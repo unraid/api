@@ -24,6 +24,8 @@ const selectedLogFile = ref<string>('');
 const lineCount = ref<number>(100);
 const autoScroll = ref<boolean>(true);
 const highlightLanguage = ref<string>('plaintext');
+const filterText = ref<string>('');
+const presetFilter = ref<string>('');
 
 // Available highlight languages
 const highlightLanguages = [
@@ -37,6 +39,15 @@ const highlightLanguages = [
   { value: 'apache', label: 'Apache' },
   { value: 'javascript', label: 'JavaScript' },
   { value: 'php', label: 'PHP' },
+];
+
+// Preset filter options
+const presetFilters = [
+  { value: '', label: 'No Filter' },
+  { value: 'OIDC', label: 'OIDC Logs' },
+  { value: 'ERROR', label: 'Errors' },
+  { value: 'WARNING', label: 'Warnings' },
+  { value: 'AUTH', label: 'Authentication' },
 ];
 
 // Fetch log files
@@ -102,6 +113,15 @@ watch(selectedLogFile, (newValue) => {
     highlightLanguage.value = autoDetectLanguage(newValue);
   }
 });
+
+// Watch for preset filter changes to update the filter text
+watch(presetFilter, (newValue) => {
+  if (newValue) {
+    filterText.value = newValue;
+  } else if (filterText.value === presetFilter.value) {
+    filterText.value = '';
+  }
+});
 </script>
 
 <template>
@@ -140,6 +160,27 @@ watch(selectedLogFile, (newValue) => {
             v-model="highlightLanguage"
             :items="highlightLanguages"
             placeholder="Select language"
+            class="w-full"
+          />
+        </div>
+
+        <div class="min-w-[150px]">
+          <Label for="preset-filter">Quick Filter</Label>
+          <Select
+            v-model="presetFilter"
+            :items="presetFilters"
+            placeholder="Select filter"
+            class="w-full"
+          />
+        </div>
+
+        <div class="min-w-[150px]">
+          <Label for="filter-text">Custom Filter</Label>
+          <Input
+            id="filter-text"
+            v-model="filterText"
+            type="text"
+            placeholder="Filter text..."
             class="w-full"
           />
         </div>

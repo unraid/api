@@ -16,6 +16,7 @@ import { useServerStore } from '~/store/server';
 // import type { ConnectSettingsValues } from '~/composables/gql/graphql';
 
 import { getConnectSettingsForm, updateConnectSettings } from './graphql/settings.query';
+import OidcDebugLogs from './OidcDebugLogs.vue';
 
 const { connectPluginInstalled } = storeToRefs(useServerStore());
 
@@ -91,6 +92,16 @@ const submitSettingsUpdate = async () => {
 const onChange = ({ data }: { data: Record<string, unknown> }) => {
   formState.value = data;
 };
+
+/** Check if OIDC is enabled in the form */
+const isOidcEnabled = computed(() => {
+  // Check if OIDC is enabled in the form state
+  // The path might be api.sso.oidc.enabled or similar based on the schema
+  const api = formState.value.api as Record<string, unknown> | undefined;
+  const ssoEnabled = api?.sso?.enabled;
+  const oidcEnabled = api?.sso?.oidc?.enabled;
+  return ssoEnabled && oidcEnabled;
+});
 </script>
 
 <template>
@@ -120,6 +131,9 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
       :readonly="isUpdating"
       @change="onChange"
     />
+    <!-- OIDC Debug Logs - shown when OIDC is enabled -->
+    <OidcDebugLogs :enabled="isOidcEnabled" />
+    
     <!-- form submission & fallback reaction message -->
     <div class="mt-6 grid grid-cols-settings gap-y-6 items-baseline">
       <div class="text-sm text-end">

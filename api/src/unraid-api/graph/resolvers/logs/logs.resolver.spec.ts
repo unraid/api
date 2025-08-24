@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LogsResolver } from '@app/unraid-api/graph/resolvers/logs/logs.resolver.js';
 import { LogsService } from '@app/unraid-api/graph/resolvers/logs/logs.service.js';
+import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
 
 describe('LogsResolver', () => {
     let resolver: LogsResolver;
@@ -16,6 +17,13 @@ describe('LogsResolver', () => {
                     provide: LogsService,
                     useValue: {
                         // Add mock implementations for service methods used by resolver
+                    },
+                },
+                {
+                    provide: SubscriptionHelperService,
+                    useValue: {
+                        // Add mock implementations for subscription helper methods
+                        wrapAsyncIterator: vi.fn(),
                     },
                 },
             ],

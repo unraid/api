@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { createReadStream } from 'node:fs';
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { readdir, stat } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { createInterface } from 'node:readline';
 
@@ -8,6 +8,7 @@ import * as chokidar from 'chokidar';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
+import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
 interface LogFile {
     name: string;
@@ -24,13 +25,17 @@ interface LogFileContent {
 }
 
 @Injectable()
-export class LogsService {
+export class LogsService implements OnModuleInit {
     private readonly logger = new Logger(LogsService.name);
-    private readonly logWatchers = new Map<
-        string,
-        { watcher: chokidar.FSWatcher; position: number; subscriptionCount: number }
-    >();
+    private readonly logWatchers = new Map<string, { watcher: chokidar.FSWatcher; position: number }>();
     private readonly DEFAULT_LINES = 100;
+
+    constructor(private readonly subscriptionTracker: SubscriptionTrackerService) {}
+
+    onModuleInit() {
+        // Log file subscriptions are registered dynamically as needed
+        this.logger.debug('LogsService initialized');
+    }
 
     /**
      * Get the base path for log files
@@ -73,11 +78,13 @@ export class LogsService {
      * @param path Path to the log file
      * @param lines Number of lines to read from the end of the file (default: 100)
      * @param startLine Optional starting line number (1-indexed)
+     * @param filter Optional filter to apply to the content
      */
     async getLogFileContent(
         path: string,
         lines = this.DEFAULT_LINES,
-        startLine?: number
+        startLine?: number,
+        filter?: string
     ): Promise<LogFileContent> {
         try {
             // Validate that the path is within the log directory
@@ -90,10 +97,10 @@ export class LogsService {
 
             if (startLine !== undefined) {
                 // Read from specific starting line
-                content = await this.readLinesFromPosition(normalizedPath, startLine, lines);
+                content = await this.readLinesFromPosition(normalizedPath, startLine, lines, filter);
             } else {
                 // Read the last N lines (default behavior)
-                content = await this.readLastLines(normalizedPath, lines);
+                content = await this.readLastLines(normalizedPath, lines, filter);
             }
 
             return {
@@ -111,135 +118,162 @@ export class LogsService {
     }
 
     /**
-     * Get the subscription channel for a log file
+     * Register and get the topic key for a log file subscription
      * @param path Path to the log file
+     * @param filter Optional filter to apply
+     * @returns The subscription topic key
      */
-    getLogFileSubscriptionChannel(path: string): PUBSUB_CHANNEL {
+    registerLogFileSubscription(path: string, filter?: string): string {
         const normalizedPath = join(this.logBasePath, basename(path));
+        const topicKey = `LOG_FILE:${normalizedPath}:${filter || ''}`;
 
-        // Start watching the file if not already watching
-        if (!this.logWatchers.has(normalizedPath)) {
-            this.startWatchingLogFile(normalizedPath);
-        } else {
-            // Increment subscription count for existing watcher
-            const watcher = this.logWatchers.get(normalizedPath);
-            if (watcher) {
-                watcher.subscriptionCount++;
-                this.logger.debug(
-                    `Incremented subscription count for ${normalizedPath} to ${watcher.subscriptionCount}`
-                );
-            }
+        // Register the topic if not already registered
+        if (!this.subscriptionTracker.getSubscriberCount(topicKey)) {
+            this.logger.debug(`Registering log file subscription topic: ${topicKey}`);
+
+            this.subscriptionTracker.registerTopic(
+                topicKey,
+                // onStart handler
+                () => {
+                    this.logger.debug(`Starting log file watcher for topic: ${topicKey}`);
+                    this.startWatchingLogFile(normalizedPath, filter);
+                },
+                // onStop handler
+                () => {
+                    this.logger.debug(`Stopping log file watcher for topic: ${topicKey}`);
+                    this.stopWatchingLogFile(normalizedPath, filter);
+                }
+            );
         }
 
-        return PUBSUB_CHANNEL.LOG_FILE;
+        return topicKey;
     }
 
     /**
      * Start watching a log file for changes using chokidar
      * @param path Path to the log file
+     * @param filter Optional filter to apply
      */
-    private async startWatchingLogFile(path: string): Promise<void> {
-        try {
-            // Get initial file size
-            const stats = await stat(path);
-            let position = stats.size;
+    private startWatchingLogFile(path: string, filter?: string): void {
+        const watcherKey = `${path}:${filter || ''}`;
 
-            // Create a watcher for the file using chokidar
-            const watcher = chokidar.watch(path, {
-                persistent: true,
-                awaitWriteFinish: {
-                    stabilityThreshold: 300,
-                    pollInterval: 100,
-                },
-            });
-
-            watcher.on('change', async () => {
-                try {
-                    const newStats = await stat(path);
-
-                    // If the file has grown
-                    if (newStats.size > position) {
-                        // Read only the new content
-                        const stream = createReadStream(path, {
-                            start: position,
-                            end: newStats.size - 1,
-                        });
-
-                        let newContent = '';
-                        stream.on('data', (chunk) => {
-                            newContent += chunk.toString();
-                        });
-
-                        stream.on('end', () => {
-                            if (newContent) {
-                                pubsub.publish(PUBSUB_CHANNEL.LOG_FILE, {
-                                    logFile: {
-                                        path,
-                                        content: newContent,
-                                        totalLines: 0, // We don't need to count lines for updates
-                                    },
-                                });
-                            }
-
-                            // Update position for next read
-                            position = newStats.size;
-                        });
-                    } else if (newStats.size < position) {
-                        // File was truncated, reset position and read from beginning
-                        position = 0;
-                        this.logger.debug(`File ${path} was truncated, resetting position`);
-
-                        // Read the entire file content
-                        const content = await this.getLogFileContent(path);
-
-                        pubsub.publish(PUBSUB_CHANNEL.LOG_FILE, {
-                            logFile: content,
-                        });
-
-                        position = newStats.size;
-                    }
-                } catch (error: unknown) {
-                    this.logger.error(`Error processing file change for ${path}: ${error}`);
-                }
-            });
-
-            watcher.on('error', (error) => {
-                this.logger.error(`Chokidar watcher error for ${path}: ${error}`);
-            });
-
-            // Store the watcher and current position with initial subscription count of 1
-            this.logWatchers.set(path, { watcher, position, subscriptionCount: 1 });
-
-            this.logger.debug(
-                `Started watching log file with chokidar: ${path} (subscription count: 1)`
-            );
-        } catch (error: unknown) {
-            this.logger.error(`Error setting up chokidar file watcher for ${path}: ${error}`);
+        // If already watching, don't create a new watcher
+        if (this.logWatchers.has(watcherKey)) {
+            this.logger.debug(`Already watching log file: ${watcherKey}`);
+            return;
         }
+
+        // Get initial file size and set up watcher
+        stat(path)
+            .then((stats) => {
+                let position = stats.size;
+
+                // Create a watcher for the file using chokidar
+                const watcher = chokidar.watch(path, {
+                    persistent: true,
+                    awaitWriteFinish: {
+                        stabilityThreshold: 300,
+                        pollInterval: 100,
+                    },
+                });
+
+                watcher.on('change', async () => {
+                    try {
+                        const newStats = await stat(path);
+
+                        // If the file has grown
+                        if (newStats.size > position) {
+                            // Read only the new content
+                            const stream = createReadStream(path, {
+                                start: position,
+                                end: newStats.size - 1,
+                            });
+
+                            let newContent = '';
+                            stream.on('data', (chunk) => {
+                                newContent += chunk.toString();
+                            });
+
+                            stream.on('end', () => {
+                                if (newContent) {
+                                    // Filter content if filter is provided
+                                    const filteredContent = filter
+                                        ? this.filterContent(newContent, filter)
+                                        : newContent;
+                                    if (filteredContent) {
+                                        pubsub.publish(PUBSUB_CHANNEL.LOG_FILE, {
+                                            logFile: {
+                                                path,
+                                                content: filteredContent,
+                                                totalLines: 0, // We don't need to count lines for updates
+                                            },
+                                        });
+                                    }
+                                }
+
+                                // Update position for next read
+                                position = newStats.size;
+                            });
+                        } else if (newStats.size < position) {
+                            // File was truncated, reset position and read from beginning
+                            position = 0;
+                            this.logger.debug(`File ${path} was truncated, resetting position`);
+
+                            // Read the entire file content
+                            const content = await this.getLogFileContent(path);
+
+                            pubsub.publish(PUBSUB_CHANNEL.LOG_FILE, {
+                                logFile: content,
+                            });
+
+                            position = newStats.size;
+                        }
+                    } catch (error: unknown) {
+                        this.logger.error(`Error processing file change for ${path}: ${error}`);
+                    }
+                });
+
+                watcher.on('error', (error) => {
+                    this.logger.error(`Chokidar watcher error for ${path}: ${error}`);
+                });
+
+                // Store the watcher and current position
+                this.logWatchers.set(watcherKey, { watcher, position });
+
+                this.logger.debug(
+                    `Started watching log file with chokidar: ${path} with filter: ${filter || 'none'}`
+                );
+            })
+            .catch((error) => {
+                this.logger.error(`Error setting up file watcher for ${path}: ${error}`);
+            });
     }
 
     /**
      * Stop watching a log file
      * @param path Path to the log file
+     * @param filter Optional filter that was used when starting the watcher
      */
-    public stopWatchingLogFile(path: string): void {
-        const normalizedPath = join(this.logBasePath, basename(path));
-        const watcher = this.logWatchers.get(normalizedPath);
+    private stopWatchingLogFile(path: string, filter?: string): void {
+        const watcherKey = `${path}:${filter || ''}`;
+        const watcher = this.logWatchers.get(watcherKey);
 
         if (watcher) {
-            // Decrement subscription count
-            watcher.subscriptionCount--;
-            this.logger.debug(
-                `Decremented subscription count for ${normalizedPath} to ${watcher.subscriptionCount}`
-            );
-
-            // Only close the watcher when subscription count reaches 0
-            if (watcher.subscriptionCount <= 0) {
-                watcher.watcher.close();
-                this.logWatchers.delete(normalizedPath);
-                this.logger.debug(`Stopped watching log file: ${normalizedPath} (no more subscribers)`);
-            }
+            watcher.watcher.close();
+            this.logWatchers.delete(watcherKey);
+            this.logger.debug(`Stopped watching log file: ${watcherKey}`);
         }
+    }
+
+    /**
+     * Filter content based on a filter string
+     * @param content The content to filter
+     * @param filter The filter string to apply
+     */
+    private filterContent(content: string, filter: string): string {
+        const lines = content.split('\n');
+        const filteredLines = lines.filter((line) => line.includes(filter));
+        return filteredLines.join('\n');
     }
 
     /**
@@ -273,8 +307,9 @@ export class LogsService {
      * Read the last N lines of a file
      * @param filePath Path to the file
      * @param lineCount Number of lines to read
+     * @param filter Optional filter to apply
      */
-    private async readLastLines(filePath: string, lineCount: number): Promise<string> {
+    private async readLastLines(filePath: string, lineCount: number, filter?: string): Promise<string> {
         const totalLines = await this.countFileLines(filePath);
         const linesToSkip = Math.max(0, totalLines - lineCount);
 
@@ -291,7 +326,10 @@ export class LogsService {
             rl.on('line', (line) => {
                 currentLine++;
                 if (currentLine > linesToSkip) {
-                    content += line + '\n';
+                    // Apply filter if provided
+                    if (!filter || line.includes(filter)) {
+                        content += line + '\n';
+                    }
                 }
             });
 
@@ -310,11 +348,13 @@ export class LogsService {
      * @param filePath Path to the file
      * @param startLine Starting line number (1-indexed)
      * @param lineCount Number of lines to read
+     * @param filter Optional filter to apply
      */
     private async readLinesFromPosition(
         filePath: string,
         startLine: number,
-        lineCount: number
+        lineCount: number,
+        filter?: string
     ): Promise<string> {
         return new Promise((resolve, reject) => {
             let currentLine = 0;
@@ -332,13 +372,16 @@ export class LogsService {
 
                 // Skip lines before the starting position
                 if (currentLine >= startLine) {
-                    // Only read the requested number of lines
-                    if (linesRead < lineCount) {
-                        content += line + '\n';
-                        linesRead++;
-                    } else {
-                        // We've read enough lines, close the stream
-                        rl.close();
+                    // Apply filter if provided
+                    if (!filter || line.includes(filter)) {
+                        // Only read the requested number of lines
+                        if (linesRead < lineCount) {
+                            content += line + '\n';
+                            linesRead++;
+                        } else {
+                            // We've read enough lines, close the stream
+                            rl.close();
+                        }
                     }
                 }
             });

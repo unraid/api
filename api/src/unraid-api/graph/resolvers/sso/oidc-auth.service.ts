@@ -63,8 +63,8 @@ export class OidcAuthService {
             authUrl.searchParams.set('state', secureState);
             authUrl.searchParams.set('response_type', 'code');
 
-            this.logger.debug(`Built authorization URL: ${authUrl.href}`);
-            this.logger.debug(
+            this.logger.log(`Built authorization URL for provider ${provider.id}`);
+            this.logger.log(
                 `Authorization parameters: client_id=${provider.clientId}, redirect_uri=${redirectUri}, scope=${provider.scopes.join(' ')}, response_type=code`
             );
 
@@ -94,8 +94,8 @@ export class OidcAuthService {
 
         const authUrl = client.buildAuthorizationUrl(config, parameters);
 
-        this.logger.debug(`Built authorization URL via discovery: ${authUrl.href}`);
-        this.logger.debug(`Authorization parameters: ${JSON.stringify(parameters, null, 2)}`);
+        this.logger.log(`Built authorization URL via discovery for provider ${provider.id}`);
+        this.logger.log(`Authorization parameters: ${JSON.stringify(parameters, null, 2)}`);
 
         return authUrl.href;
     }
@@ -798,15 +798,7 @@ export class OidcAuthService {
     }
 
     private buildOriginWithPort(url: URL): string {
-        const { protocol, hostname, port } = url;
-
-        // Check if port is empty, or is default for the protocol
-        const isDefaultPort =
-            !port ||
-            (protocol === 'https:' && port === '443') ||
-            (protocol === 'http:' && port === '80');
-
-        // Build origin with port only if non-default
-        return isDefaultPort ? `${protocol}//${hostname}` : `${protocol}//${hostname}:${port}`;
+        // URL.origin properly handles IPv6, default ports, and URL composition
+        return url.origin;
     }
 }
