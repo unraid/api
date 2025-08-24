@@ -4,10 +4,10 @@ import { Resource, Role } from '@unraid/shared/graphql.model.js';
 import {
     convertPermissionSetsToArrays,
     expandWildcardAction,
-    normalizeAction,
+    parseActionToAuthAction,
     reconcileWildcardPermissions,
 } from '@unraid/shared/util/permissions.js';
-import { AuthAction, AuthZService } from 'nest-authz';
+import { AuthZService } from 'nest-authz';
 
 import { getters } from '@app/store/index.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
@@ -123,11 +123,28 @@ export class AuthService {
                 .flatMap((permission) =>
                     (permission.actions || [])
                         .filter((action) => action && action.trim() !== '')
-                        .map((action) => ({
-                            resource: permission.resource,
-                            // Normalize action to canonical format for consistent matching
-                            action: normalizeAction(action),
-                        }))
+                        .flatMap((action) => {
+                            // Handle wildcard - expand to all CRUD actions
+                            if (action === '*' || action.toLowerCase() === '*') {
+                                return expandWildcardAction().map((expandedAction) => ({
+                                    resource: permission.resource,
+                                    action: expandedAction,
+                                }));
+                            }
+
+                            // Use the shared helper to parse and validate the action
+                            const parsedAction = parseActionToAuthAction(action);
+
+                            // Only include valid AuthAction values
+                            return parsedAction
+                                ? [
+                                      {
+                                          resource: permission.resource,
+                                          action: parsedAction,
+                                      },
+                                  ]
+                                : [];
+                        })
                 );
 
             const { errors, errorOccurred: errorOccured } = await batchProcess(
@@ -284,14 +301,18 @@ export class AuthService {
 
             const actionsSet = permissionsWithSets.get(resourceKey as Resource | '*')!;
 
-            // Normalize and handle action
-            const normalizedAction = normalizeAction(action);
-
-            // Expand wildcard action to CRUD operations
-            if (normalizedAction === '*') {
+            // Handle wildcard or parse to valid AuthAction
+            if (action === '*') {
+                // Expand wildcard action to CRUD operations
                 expandWildcardAction().forEach((a) => actionsSet.add(a));
             } else {
-                actionsSet.add(normalizedAction);
+                // Use shared helper to parse and validate action
+                const parsedAction = parseActionToAuthAction(action);
+                if (parsedAction) {
+                    actionsSet.add(parsedAction);
+                } else {
+                    this.logger.debug(`Skipping invalid action from Casbin: ${action}`);
+                }
             }
         }
 
