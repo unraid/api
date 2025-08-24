@@ -49,14 +49,19 @@ export class OidcStateService {
 
         // Store in cache with TTL
         const cacheKey = `${this.STATE_CACHE_PREFIX}${nonce}`;
+        this.logger.debug(
+            `Attempting to store state with key: ${cacheKey}, TTL: ${this.STATE_TTL_SECONDS * 1000}ms`
+        );
         await this.cacheManager.set(cacheKey, stateData, this.STATE_TTL_SECONDS * 1000);
 
         // Verify it was stored
         const verifyStored = await this.cacheManager.get(cacheKey);
         if (!verifyStored) {
             this.logger.error(`Failed to store state in cache with key: ${cacheKey}`);
+            this.logger.error(`Cache manager type: ${this.cacheManager.constructor.name}`);
         } else {
             this.logger.debug(`Successfully stored state in cache with key: ${cacheKey}`);
+            this.logger.debug(`Stored data: ${JSON.stringify(verifyStored)}`);
         }
 
         // Create signed state: nonce.timestamp.signature
@@ -146,6 +151,7 @@ export class OidcStateService {
             this.logger.debug(
                 `Instance #${this.instanceId}, HMAC secret first 8 chars: ${this.hmacSecret.substring(0, 8)}`
             );
+            this.logger.debug(`Cache manager type: ${this.cacheManager.constructor.name}`);
 
             const cachedState = await this.cacheManager.get<StateData>(cacheKey);
 
@@ -158,12 +164,34 @@ export class OidcStateService {
                 // Try to list all keys in cache for debugging
                 try {
                     const store = (this.cacheManager as any).store;
+                    this.logger.debug(`Cache store type: ${store?.constructor?.name || 'unknown'}`);
                     if (store && store.keys) {
                         const keys = await store.keys();
-                        this.logger.debug(`Current cache keys: ${keys.join(', ')}`);
+                        this.logger.debug(
+                            `Current cache keys (${keys.length} total): ${keys.join(', ')}`
+                        );
+                        // Also check if any keys match our prefix
+                        const oidcKeys = keys.filter((k: string) =>
+                            k.startsWith(this.STATE_CACHE_PREFIX)
+                        );
+                        this.logger.debug(
+                            `OIDC state keys (${oidcKeys.length}): ${oidcKeys.join(', ')}`
+                        );
+                    } else if (store && store.data) {
+                        // For in-memory cache, check the data Map directly
+                        const dataKeys = Array.from(store.data.keys());
+                        this.logger.debug(
+                            `Cache data keys (${dataKeys.length} total): ${dataKeys.join(', ')}`
+                        );
+                        const oidcKeys = dataKeys.filter((k: string) =>
+                            k.startsWith(this.STATE_CACHE_PREFIX)
+                        );
+                        this.logger.debug(
+                            `OIDC state keys (${oidcKeys.length}): ${oidcKeys.join(', ')}`
+                        );
                     }
                 } catch (e) {
-                    // Cache implementation might not support listing keys
+                    this.logger.debug(`Could not list cache keys: ${e}`);
                 }
 
                 return {
