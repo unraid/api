@@ -323,15 +323,20 @@ const downloadLogFile = async () => {
   }
 };
 
-// Refresh logs
-const refreshLogContent = async () => {
-  // Clear the state
+// Clear all state to initial values
+const clearState = () => {
   state.loadedContentChunks = [];
   state.currentStartLine = undefined;
   state.isAtTop = false;
   state.canLoadMore = false;
   state.initialLoadComplete = false;
   state.isLoadingMore = false;
+};
+
+// Refresh logs
+const refreshLogContent = async () => {
+  // Clear the state
+  clearState();
   
   // Refetch with explicit variables to ensure we get the latest logs
   await refetchLogContent({
