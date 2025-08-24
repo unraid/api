@@ -6,6 +6,7 @@ interface StateData {
     clientState: string;
     timestamp: number;
     providerId: string;
+    redirectUri?: string;
 }
 
 @Injectable()
@@ -25,7 +26,7 @@ export class OidcStateService {
         setInterval(() => this.cleanupExpiredStates(), 60000); // Every minute
     }
 
-    generateSecureState(providerId: string, clientState: string): string {
+    generateSecureState(providerId: string, clientState: string, redirectUri?: string): string {
         const nonce = crypto.randomBytes(16).toString('hex');
         const timestamp = Date.now();
 
@@ -35,6 +36,7 @@ export class OidcStateService {
             clientState,
             timestamp,
             providerId,
+            redirectUri,
         };
         this.stateCache.set(nonce, stateData);
 
@@ -52,7 +54,7 @@ export class OidcStateService {
     validateSecureState(
         state: string,
         expectedProviderId: string
-    ): { isValid: boolean; clientState?: string; error?: string } {
+    ): { isValid: boolean; clientState?: string; redirectUri?: string; error?: string } {
         try {
             // Extract provider ID and signed state
             const parts = state.split(':');
@@ -143,6 +145,7 @@ export class OidcStateService {
             return {
                 isValid: true,
                 clientState: cachedState.clientState,
+                redirectUri: cachedState.redirectUri,
             };
         } catch (error) {
             this.logger.error(
