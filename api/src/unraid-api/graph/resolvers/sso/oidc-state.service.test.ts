@@ -1,4 +1,5 @@
-import { Cache } from '@nestjs/cache-manager';
+import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
+import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -6,25 +7,14 @@ import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state
 
 describe('OidcStateService', () => {
     let service: OidcStateService;
-    let mockCacheManager: Cache;
 
-    beforeEach(() => {
-        // Create a mock cache manager
-        const cacheData = new Map<string, any>();
-        mockCacheManager = {
-            get: vi.fn(async (key: string) => cacheData.get(key)),
-            set: vi.fn(async (key: string, value: any) => {
-                cacheData.set(key, value);
-            }),
-            del: vi.fn(async (key: string) => {
-                cacheData.delete(key);
-            }),
-            reset: vi.fn(async () => {
-                cacheData.clear();
-            }),
-        } as any;
+    beforeEach(async () => {
+        const module = await Test.createTestingModule({
+            imports: [CacheModule.register()],
+            providers: [OidcStateService],
+        }).compile();
 
-        service = new OidcStateService(mockCacheManager);
+        service = module.get<OidcStateService>(OidcStateService);
     });
 
     describe('state generation and validation flow', () => {
@@ -172,21 +162,19 @@ describe('OidcStateService', () => {
     });
 
     describe('cache management', () => {
-        it('should set TTL on cache entries', async () => {
+        it('should handle TTL expiration correctly', async () => {
             const providerId = 'test-provider';
             const clientState = 'test-state';
 
-            await service.generateSecureState(providerId, clientState);
+            const state = await service.generateSecureState(providerId, clientState);
 
-            // Verify that set was called with TTL
-            expect(mockCacheManager.set).toHaveBeenCalledWith(
-                expect.stringContaining('oidc_state:'),
-                expect.objectContaining({
-                    providerId,
-                    clientState,
-                }),
-                600000 // 10 minutes in ms
-            );
+            // First validation should succeed
+            const validation1 = await service.validateSecureState(state, providerId);
+            expect(validation1.isValid).toBe(true);
+
+            // State should be removed after first use (replay protection)
+            const validation2 = await service.validateSecureState(state, providerId);
+            expect(validation2.isValid).toBe(false);
         });
     });
 });

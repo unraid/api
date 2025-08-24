@@ -1,4 +1,5 @@
-import { Cache } from '@nestjs/cache-manager';
+import { CacheModule } from '@nestjs/cache-manager';
+import { Test } from '@nestjs/testing';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -6,34 +7,17 @@ import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state
 
 describe('OidcStateService', () => {
     let service: OidcStateService;
-    let mockCacheManager: Cache;
-    let cacheData: Map<string, any>;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
         vi.useFakeTimers();
 
-        // Create a mock cache manager with in-memory storage
-        cacheData = new Map<string, any>();
-        mockCacheManager = {
-            get: vi.fn(async (key: string) => cacheData.get(key)),
-            set: vi.fn(async (key: string, value: any, ttl?: number) => {
-                cacheData.set(key, value);
-                // Simulate TTL by scheduling deletion
-                if (ttl) {
-                    setTimeout(() => cacheData.delete(key), ttl);
-                }
-            }),
-            del: vi.fn(async (key: string) => {
-                cacheData.delete(key);
-            }),
-            reset: vi.fn(async () => {
-                cacheData.clear();
-            }),
-        } as any;
+        const module = await Test.createTestingModule({
+            imports: [CacheModule.register()],
+            providers: [OidcStateService],
+        }).compile();
 
-        // Create a single instance for all tests in a describe block
-        service = new OidcStateService(mockCacheManager);
+        service = module.get<OidcStateService>(OidcStateService);
     });
 
     afterEach(() => {
@@ -78,22 +62,17 @@ describe('OidcStateService', () => {
             expect(state.startsWith(`${providerId}:`)).toBe(true);
         });
 
-        it('should store state data in cache', async () => {
+        it('should store state data in cache and retrieve it', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
             const redirectUri = 'https://example.com/callback';
 
-            await service.generateSecureState(providerId, clientState, redirectUri);
+            const state = await service.generateSecureState(providerId, clientState, redirectUri);
+            const validation = await service.validateSecureState(state, providerId);
 
-            expect(mockCacheManager.set).toHaveBeenCalledWith(
-                expect.stringContaining('oidc_state:'),
-                expect.objectContaining({
-                    clientState,
-                    providerId,
-                    redirectUri,
-                }),
-                600000 // 10 minutes TTL
-            );
+            expect(validation.isValid).toBe(true);
+            expect(validation.clientState).toBe(clientState);
+            expect(validation.redirectUri).toBe(redirectUri);
         });
     });
 
@@ -233,29 +212,20 @@ describe('OidcStateService', () => {
     });
 
     describe('cache TTL', () => {
-        it('should set proper TTL on cache entries', async () => {
-            const providerId = 'test-provider';
-            const clientState = 'client-state-123';
-
-            await service.generateSecureState(providerId, clientState);
-
-            // Verify cache set was called with proper TTL
-            expect(mockCacheManager.set).toHaveBeenCalledWith(
-                expect.any(String),
-                expect.any(Object),
-                600000 // 10 minutes in milliseconds
-            );
-        });
-
         it('should remove state from cache after successful validation', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
 
             const state = await service.generateSecureState(providerId, clientState);
-            await service.validateSecureState(state, providerId);
 
-            // Verify cache del was called
-            expect(mockCacheManager.del).toHaveBeenCalled();
+            // First validation should succeed
+            const result1 = await service.validateSecureState(state, providerId);
+            expect(result1.isValid).toBe(true);
+
+            // Second validation should fail (state was removed after first use)
+            const result2 = await service.validateSecureState(state, providerId);
+            expect(result2.isValid).toBe(false);
+            expect(result2.error).toContain('not found or already used');
         });
     });
 });

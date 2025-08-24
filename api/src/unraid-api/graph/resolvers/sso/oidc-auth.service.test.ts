@@ -1,3 +1,4 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import { UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -25,6 +26,7 @@ describe('OidcAuthService', () => {
 
     beforeEach(async () => {
         module = await Test.createTestingModule({
+            imports: [CacheModule.register()],
             providers: [
                 OidcAuthService,
                 {

@@ -1,5 +1,6 @@
-import { Cache } from '@nestjs/cache-manager';
+import { CacheModule } from '@nestjs/cache-manager';
 import { UnauthorizedException } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -8,30 +9,16 @@ import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state
 
 describe('OidcStateExtractor', () => {
     let stateService: OidcStateService;
-    let mockCacheManager: Cache;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
 
-        // Create a mock cache manager
-        const cacheData = new Map<string, any>();
-        mockCacheManager = {
-            get: vi.fn(async (key: string) => cacheData.get(key)),
-            set: vi.fn(async (key: string, value: any, ttl?: number) => {
-                cacheData.set(key, value);
-                if (ttl) {
-                    setTimeout(() => cacheData.delete(key), ttl);
-                }
-            }),
-            del: vi.fn(async (key: string) => {
-                cacheData.delete(key);
-            }),
-            reset: vi.fn(async () => {
-                cacheData.clear();
-            }),
-        } as any;
+        const module = await Test.createTestingModule({
+            imports: [CacheModule.register()],
+            providers: [OidcStateService],
+        }).compile();
 
-        stateService = new OidcStateService(mockCacheManager);
+        stateService = module.get<OidcStateService>(OidcStateService);
     });
 
     describe('extractProviderFromState', () => {
