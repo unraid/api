@@ -1557,6 +1557,73 @@ describe('OidcAuthService', () => {
             // Verify the provider was looked up with the correct ID
             expect(oidcConfig.getProvider).toHaveBeenCalledWith('test-provider');
         });
+
+        it('should validate state only once during callback flow (prevent duplicate validation bug)', async () => {
+            // This test ensures we don't reintroduce the bug where state was validated twice,
+            // causing the second validation to fail because the state was already consumed
+
+            // Setup mock provider
+            const mockProvider = {
+                id: 'test-provider',
+                name: 'Test Provider',
+                clientId: 'test-client-id',
+                clientSecret: 'test-client-secret',
+                issuer: 'https://test.provider.com',
+                scopes: ['openid', 'profile', 'email'],
+                enabled: true,
+                allowSignup: true,
+                tokenEndpoint: 'https://test.provider.com/token',
+                authorizationEndpoint: 'https://test.provider.com/authorize',
+                jwksUri: 'https://test.provider.com/.well-known/jwks.json',
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(mockProvider);
+
+            // Get the state service from the module (it was already created with proper cache manager)
+            const stateService = module.get<OidcStateService>(OidcStateService);
+
+            // Generate a valid state token
+            const providerId = 'test-provider';
+            const clientState = 'test-client-state';
+            const redirectUri = 'http://localhost:3000/graphql/api/auth/oidc/callback';
+            const stateToken = await stateService.generateSecureState(
+                providerId,
+                clientState,
+                redirectUri
+            );
+
+            // Spy on validateSecureState to ensure it's only called once
+            const validateSpy = vi.spyOn(stateService, 'validateSecureState');
+
+            // The handleCallback will fail because we haven't mocked openid-client,
+            // but we're only testing that state validation happens once before the error
+            try {
+                await service.handleCallback(
+                    providerId,
+                    'test-authorization-code',
+                    stateToken,
+                    'http://localhost:3000',
+                    `http://localhost:3000/graphql/api/auth/oidc/callback?code=test-authorization-code&state=${encodeURIComponent(stateToken)}`
+                );
+            } catch (error) {
+                // We expect this to fail since we haven't mocked the full OIDC flow
+                // But we're only testing state validation behavior
+            }
+
+            // Verify that validateSecureState was called exactly once
+            // (it's called by OidcStateExtractor.extractAndValidateState, but not again)
+            expect(validateSpy).toHaveBeenCalledTimes(1);
+            expect(validateSpy).toHaveBeenCalledWith(stateToken, providerId);
+
+            // The first call should have succeeded
+            const result = await validateSpy.mock.results[0].value;
+            expect(result.isValid).toBe(true);
+            expect(result.clientState).toBe(clientState);
+            expect(result.redirectUri).toBe(redirectUri);
+
+            // Clean up spy
+            validateSpy.mockRestore();
+        });
     });
 
     describe('validateProvider', () => {
