@@ -47,7 +47,12 @@ export class OidcAuthService {
             throw new UnauthorizedException(`Provider ${providerId} not found`);
         }
 
-        const redirectUri = this.getRedirectUri(requestOrigin);
+        // Use requestOrigin directly when provided (already validated by REST controller)
+        // Otherwise fall back to generating from config
+        const redirectUri = requestOrigin || this.getRedirectUri();
+
+        this.logger.debug(`Using redirect URI for authorization: ${redirectUri}`);
+        this.logger.debug(`Request origin was: ${requestOrigin || 'not provided'}`);
 
         // Generate secure state with cryptographic signature, including redirect URI
         const secureState = await this.stateService.generateSecureState(providerId, state, redirectUri);

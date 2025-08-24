@@ -8,7 +8,8 @@ import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.service.js';
 import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/oidc-request-handler.util.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
-import { validateRedirectUri } from '@app/unraid-api/utils/redirect-uri-validator.js';
+
+// Removed validateRedirectUri - using redirect_uri from query params directly
 
 @Controller()
 export class RestController {
@@ -75,23 +76,18 @@ export class RestController {
             // Validate required parameters
             const params = OidcRequestHandler.validateAuthorizeParams(providerId, state, redirectUri);
 
-            // Extract protocol and host from request headers
-            const requestInfo = OidcRequestHandler.extractRequestInfo(req);
-            const { protocol, host } = requestInfo;
-
-            // Validate redirect_uri using the helper function
-            const validation = validateRedirectUri(redirectUri, protocol, host, this.logger);
-            const validatedRedirectUri = validation.validatedUri;
-
-            if (!validatedRedirectUri) {
-                return res.status(400).send('Unable to determine redirect URI');
+            // IMPORTANT: Use the redirect_uri from query params directly
+            // Do NOT parse headers or try to build/validate against headers
+            // The frontend provides the complete redirect_uri
+            if (!params.redirectUri) {
+                return res.status(400).send('redirect_uri parameter is required');
             }
 
-            // Handle authorization flow
+            // Handle authorization flow using the exact redirect_uri from query params
             const authUrl = await OidcRequestHandler.handleAuthorize(
                 params.providerId,
                 params.state,
-                validatedRedirectUri,
+                params.redirectUri,
                 req,
                 this.oidcAuthService,
                 this.logger
