@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import crypto from 'crypto';
 
 interface StateData {
@@ -12,21 +13,22 @@ interface StateData {
 @Injectable()
 export class OidcStateService {
     private readonly logger = new Logger(OidcStateService.name);
-    private readonly stateCache = new Map<string, StateData>();
     private readonly hmacSecret: string;
     private readonly STATE_TTL_SECONDS = 600; // 10 minutes
+    private readonly STATE_CACHE_PREFIX = 'oidc_state:';
 
-    constructor() {
+    constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
         // Always generate a new secret on API restart for security
         // This ensures state tokens cannot be reused across restarts
         this.hmacSecret = crypto.randomBytes(32).toString('hex');
         this.logger.debug('Generated new OIDC state secret for this session');
-
-        // Clean up expired states periodically
-        setInterval(() => this.cleanupExpiredStates(), 60000); // Every minute
     }
 
-    generateSecureState(providerId: string, clientState: string, redirectUri?: string): string {
+    async generateSecureState(
+        providerId: string,
+        clientState: string,
+        redirectUri?: string
+    ): Promise<string> {
         const nonce = crypto.randomBytes(16).toString('hex');
         const timestamp = Date.now();
 
@@ -38,7 +40,10 @@ export class OidcStateService {
             providerId,
             redirectUri,
         };
-        this.stateCache.set(nonce, stateData);
+
+        // Store in cache with TTL
+        const cacheKey = `${this.STATE_CACHE_PREFIX}${nonce}`;
+        await this.cacheManager.set(cacheKey, stateData, this.STATE_TTL_SECONDS * 1000);
 
         // Create signed state: nonce.timestamp.signature
         const dataToSign = `${nonce}.${timestamp}`;
@@ -47,14 +52,16 @@ export class OidcStateService {
         const signedState = `${dataToSign}.${signature}`;
 
         this.logger.debug(`Generated secure state for provider ${providerId} with nonce ${nonce}`);
+        this.logger.debug(`Stored in cache with key: ${cacheKey}`);
+        this.logger.debug(`Stored redirectUri: ${redirectUri}`);
         // Return state with provider ID prefix (unencrypted) for routing
         return `${providerId}:${signedState}`;
     }
 
-    validateSecureState(
+    async validateSecureState(
         state: string,
         expectedProviderId: string
-    ): { isValid: boolean; clientState?: string; redirectUri?: string; error?: string } {
+    ): Promise<{ isValid: boolean; clientState?: string; redirectUri?: string; error?: string }> {
         try {
             // Extract provider ID and signed state
             const parts = state.split(':');
@@ -118,11 +125,15 @@ export class OidcStateService {
             }
 
             // Check if state exists in cache (prevents replay attacks)
-            const cachedState = this.stateCache.get(nonce);
+            const cacheKey = `${this.STATE_CACHE_PREFIX}${nonce}`;
+            const cachedState = await this.cacheManager.get<StateData>(cacheKey);
+            this.logger.debug(`Looking for nonce ${nonce} in cache with key: ${cacheKey}`);
+
             if (!cachedState) {
                 this.logger.warn(
                     `State validation failed: nonce ${nonce} not found in cache (possible replay attack)`
                 );
+                this.logger.warn(`Cache key checked: ${cacheKey}`);
                 return {
                     isValid: false,
                     error: 'State token not found or already used',
@@ -139,7 +150,7 @@ export class OidcStateService {
             }
 
             // Remove from cache to prevent reuse
-            this.stateCache.delete(nonce);
+            await this.cacheManager.del(cacheKey);
 
             this.logger.debug(`State validation successful for provider ${expectedProviderId}`);
             return {
@@ -185,20 +196,5 @@ export class OidcStateService {
         return null;
     }
 
-    private cleanupExpiredStates(): void {
-        const now = Date.now();
-        let cleaned = 0;
-
-        for (const [nonce, stateData] of this.stateCache.entries()) {
-            const age = now - stateData.timestamp;
-            if (age > this.STATE_TTL_SECONDS * 1000) {
-                this.stateCache.delete(nonce);
-                cleaned++;
-            }
-        }
-
-        if (cleaned > 0) {
-            this.logger.debug(`Cleaned up ${cleaned} expired state entries`);
-        }
-    }
+    // Cleanup is now handled by cache TTL
 }
