@@ -71,18 +71,26 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
 
         // Spy on logger methods to capture logs
         loggerSpy = {
-            debug: vi.spyOn(Logger.prototype, 'debug').mockImplementation((message: string) => {
-                debugLogs.push(message);
-            }),
-            error: vi.spyOn(Logger.prototype, 'error').mockImplementation((message: string) => {
-                errorLogs.push(message);
-            }),
-            warn: vi.spyOn(Logger.prototype, 'warn').mockImplementation((message: string) => {
-                warnLogs.push(message);
-            }),
-            log: vi.spyOn(Logger.prototype, 'log').mockImplementation((message: string) => {
-                logLogs.push(message);
-            }),
+            debug: vi
+                .spyOn(Logger.prototype, 'debug')
+                .mockImplementation((message: string, ...args: any[]) => {
+                    debugLogs.push(message);
+                }),
+            error: vi
+                .spyOn(Logger.prototype, 'error')
+                .mockImplementation((message: string, ...args: any[]) => {
+                    errorLogs.push(message);
+                }),
+            warn: vi
+                .spyOn(Logger.prototype, 'warn')
+                .mockImplementation((message: string, ...args: any[]) => {
+                    warnLogs.push(message);
+                }),
+            log: vi
+                .spyOn(Logger.prototype, 'log')
+                .mockImplementation((message: string, ...args: any[]) => {
+                    logLogs.push(message);
+                }),
             verbose: vi.spyOn(Logger.prototype, 'verbose').mockImplementation(() => {}),
         };
     });
@@ -129,7 +137,10 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
             expect(debugLogs.some((log) => log.includes('Redirect URI in token request:'))).toBe(true);
             expect(debugLogs.some((log) => log.includes('Client ID:'))).toBe(true);
             expect(debugLogs.some((log) => log.includes('Client secret configured:'))).toBe(true);
-            expect(errorLogs.some((log) => log.includes('Token exchange failed:'))).toBe(true);
+            // Changed logging format to use %o for full error object
+            expect(errorLogs.some((log) => log.includes('Token exchange failed with error:'))).toBe(
+                true
+            );
         });
 
         it('should log discovery failure details with invalid issuer URL', async () => {
