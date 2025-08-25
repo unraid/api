@@ -157,3 +157,4 @@ Enables GraphQL playground at `http://tower.local/graphql`
 
 - We are using tailwind v4 we do not need a tailwind config anymore 
 - always search the internet for tailwind v4 documentation when making tailwind related style changes
+- never run or restart the API server or web server. I will handle the lifecylce, simply wait and ask me to do this for you

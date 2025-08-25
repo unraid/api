@@ -1,6 +1,12 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
-import { Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
+import {
+    convertPermissionSetsToArrays,
+    expandWildcardAction,
+    parseActionToAuthAction,
+    reconcileWildcardPermissions,
+} from '@unraid/shared/util/permissions.js';
 import { AuthZService } from 'nest-authz';
 
 import { getters } from '@app/store/index.js';
@@ -111,12 +117,35 @@ export class AuthService {
             await this.authzService.deletePermissionsForUser(apiKeyId);
 
             // Create array of permission-action pairs for processing
-            const permissionActions = permissions.flatMap((permission) =>
-                (permission.actions || []).map((action) => ({
-                    resource: permission.resource,
-                    action,
-                }))
-            );
+            // Filter out any permissions with empty or undefined resources
+            const permissionActions = permissions
+                .filter((permission) => permission.resource && permission.resource.trim() !== '')
+                .flatMap((permission) =>
+                    (permission.actions || [])
+                        .filter((action) => action && action.trim() !== '')
+                        .flatMap((action) => {
+                            // Handle wildcard - expand to all CRUD actions
+                            if (action === '*' || action.toLowerCase() === '*') {
+                                return expandWildcardAction().map((expandedAction) => ({
+                                    resource: permission.resource,
+                                    action: expandedAction,
+                                }));
+                            }
+
+                            // Use the shared helper to parse and validate the action
+                            const parsedAction = parseActionToAuthAction(action);
+
+                            // Only include valid AuthAction values
+                            return parsedAction
+                                ? [
+                                      {
+                                          resource: permission.resource,
+                                          action: parsedAction,
+                                      },
+                                  ]
+                                : [];
+                        })
+                );
 
             const { errors, errorOccurred: errorOccured } = await batchProcess(
                 permissionActions,
@@ -225,6 +254,71 @@ export class AuthService {
 
     public validateCsrfToken(token?: string): boolean {
         return Boolean(token) && token === getters.emhttp().var.csrfToken;
+    }
+
+    /**
+     * Get implicit permissions for a role (including inherited permissions)
+     */
+    public async getImplicitPermissionsForRole(role: Role): Promise<Map<Resource, AuthAction[]>> {
+        // Use Set internally for efficient deduplication, with '*' as a special key for wildcards
+        const permissionsWithSets = new Map<Resource | '*', Set<AuthAction>>();
+
+        // Load permissions from Casbin, defaulting to empty array on error
+        let casbinPermissions: string[][] = [];
+        try {
+            casbinPermissions = await this.authzService.getImplicitPermissionsForUser(role);
+        } catch (error) {
+            this.logger.error(`Failed to get permissions for role ${role}:`, error);
+        }
+
+        // Parse the Casbin permissions format: [["role", "resource", "action"], ...]
+        for (const perm of casbinPermissions) {
+            if (perm.length < 3) continue;
+
+            const resourceStr = perm[1];
+            const action = perm[2];
+
+            if (!resourceStr) continue;
+
+            // Use '*' as a key for wildcard resources, or validate it's a valid Resource enum value
+            const resourceKey =
+                resourceStr === '*'
+                    ? '*'
+                    : Object.values(Resource).includes(resourceStr as Resource)
+                      ? (resourceStr as Resource)
+                      : null;
+
+            // Skip invalid resources (except wildcard)
+            if (!resourceKey) {
+                this.logger.debug(`Skipping invalid resource from Casbin: ${resourceStr}`);
+                continue;
+            }
+
+            // Initialize Set if needed
+            if (!permissionsWithSets.has(resourceKey as Resource | '*')) {
+                permissionsWithSets.set(resourceKey as Resource | '*', new Set());
+            }
+
+            const actionsSet = permissionsWithSets.get(resourceKey as Resource | '*')!;
+
+            // Handle wildcard or parse to valid AuthAction
+            if (action === '*') {
+                // Expand wildcard action to CRUD operations
+                expandWildcardAction().forEach((a) => actionsSet.add(a));
+            } else {
+                // Use shared helper to parse and validate action
+                const parsedAction = parseActionToAuthAction(action);
+                if (parsedAction) {
+                    actionsSet.add(parsedAction);
+                } else {
+                    this.logger.debug(`Skipping invalid action from Casbin: ${action}`);
+                }
+            }
+        }
+
+        // Reconcile wildcard permissions and convert to final format
+        reconcileWildcardPermissions(permissionsWithSets);
+        return convertPermissionSetsToArrays(permissionsWithSets);
     }
 
     /**
