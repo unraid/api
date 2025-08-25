@@ -3,6 +3,7 @@ import { computed, watch } from 'vue';
 import { useLazyQuery } from '@vue/apollo-composable';
 import { Badge } from '@unraid/ui';
 import { PREVIEW_EFFECTIVE_PERMISSIONS } from './permissions-preview.query';
+import { extractActionVerb } from '~/utils/authorizationLink';
 import type { Role, AuthAction } from '~/composables/gql/graphql';
 
 interface RawPermission {
@@ -37,13 +38,12 @@ const effectivePermissions = computed<EffectivePermission[]>(() => {
   return result.value?.previewEffectivePermissions || [];
 });
 
-// Format action for display
+// Format action for display (uppercase for UI)
 const formatAction = (action: string): string => {
   if (action === '*') return 'ALL ACTIONS';
   
-  // Handle backend format (e.g., 'read:any' -> 'READ')
-  // Extract just the verb part before the colon
-  const verb = action.split(':')[0];
+  // Use shared function to extract verb, then uppercase for display
+  const verb = extractActionVerb(action);
   return verb.toUpperCase();
 };
 

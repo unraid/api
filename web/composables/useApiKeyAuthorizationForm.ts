@@ -29,7 +29,7 @@ export function useApiKeyAuthorizationForm(urlSearchParams?: URLSearchParams) {
   const convertScopesToFormData = computed((): AuthorizationFormData => {
     const scopeConversion = convertScopesToPermissions(authParams.value.scopes);
     
-    return {
+    const formData = {
       name: defaultKeyName.value,
       description: authParams.value.description,
       roles: scopeConversion.roles,
@@ -38,6 +38,14 @@ export function useApiKeyAuthorizationForm(urlSearchParams?: URLSearchParams) {
         actions: perm.actions, // Pass AuthAction strings directly
       })),
     };
+    
+    console.log('Form data from URL:', {
+      customPermissions: formData.customPermissions,
+      firstPermissionActions: formData.customPermissions?.[0]?.actions,
+      actionTypes: formData.customPermissions?.[0]?.actions?.map(a => typeof a),
+    });
+    
+    return formData;
   });
 
   /**
