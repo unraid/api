@@ -684,13 +684,7 @@ export class OidcAuthService {
         const claimValue = claims[rule.claim];
 
         this.logger.verbose(
-            `Evaluating rule for claim ${rule.claim}: ${JSON.stringify({
-                claimValue,
-                claimType: typeof claimValue,
-                isArray: Array.isArray(claimValue),
-                ruleOperator: rule.operator,
-                ruleValues: rule.value,
-            })}`
+            `Evaluating rule for claim ${rule.claim}: { claimType: ${typeof claimValue}, isArray: ${Array.isArray(claimValue)}, ruleOperator: ${rule.operator}, ruleValuesCount: ${rule.value.length} }`
         );
 
         if (claimValue === undefined || claimValue === null) {
@@ -734,7 +728,7 @@ export class OidcAuthService {
 
         // Handle single value claims (string, number, boolean)
         const value = String(claimValue);
-        this.logger.verbose(`Processing single value claim ${rule.claim} with value: "${value}"`);
+        this.logger.verbose(`Processing single value claim ${rule.claim}`);
 
         return this.evaluateSingleValue(value, rule);
     }
@@ -744,30 +738,22 @@ export class OidcAuthService {
         switch (rule.operator) {
             case AuthorizationOperator.EQUALS:
                 result = rule.value.some((v) => value === v);
-                this.logger.verbose(
-                    `EQUALS check: "${value}" matches any of [${rule.value.join(', ')}]: ${result}`
-                );
+                this.logger.verbose(`EQUALS check: evaluated for claim ${rule.claim}: ${result}`);
                 return result;
 
             case AuthorizationOperator.CONTAINS:
                 result = rule.value.some((v) => value.includes(v));
-                this.logger.verbose(
-                    `CONTAINS check: "${value}" contains any of [${rule.value.join(', ')}]: ${result}`
-                );
+                this.logger.verbose(`CONTAINS check: evaluated for claim ${rule.claim}: ${result}`);
                 return result;
 
             case AuthorizationOperator.STARTS_WITH:
                 result = rule.value.some((v) => value.startsWith(v));
-                this.logger.verbose(
-                    `STARTS_WITH check: "${value}" starts with any of [${rule.value.join(', ')}]: ${result}`
-                );
+                this.logger.verbose(`STARTS_WITH check: evaluated for claim ${rule.claim}: ${result}`);
                 return result;
 
             case AuthorizationOperator.ENDS_WITH:
                 result = rule.value.some((v) => value.endsWith(v));
-                this.logger.verbose(
-                    `ENDS_WITH check: "${value}" ends with any of [${rule.value.join(', ')}]: ${result}`
-                );
+                this.logger.verbose(`ENDS_WITH check: evaluated for claim ${rule.claim}: ${result}`);
                 return result;
 
             default:
