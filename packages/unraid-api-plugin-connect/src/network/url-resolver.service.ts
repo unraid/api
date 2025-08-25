@@ -331,9 +331,10 @@ export class UrlResolverService {
         nginx.fqdnUrls?.forEach((fqdnUrl: FqdnEntry) => {
             doSafely(() => {
                 const urlType = this.getUrlTypeFromFqdn(fqdnUrl.interface);
+                const portToUse = urlType === URL_TYPE.LAN ? nginx.httpsPort : wanport || nginx.httpsPort;
                 const fqdnUrlToUse = this.getUrlForField({
                     url: fqdnUrl.fqdn,
-                    portSsl: Number(wanport || nginx.httpsPort),
+                    portSsl: Number(portToUse),
                 });
 
                 urls.push({
