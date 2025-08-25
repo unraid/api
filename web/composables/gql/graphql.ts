@@ -120,7 +120,7 @@ export type ActivationCode = {
 };
 
 export type AddPermissionInput = {
-  actions: Array<Scalars['String']['input']>;
+  actions: Array<AuthAction>;
   resource: Resource;
 };
 
@@ -1558,8 +1558,8 @@ export type ParityCheckMutationsStartArgs = {
 
 export type Permission = {
   __typename?: 'Permission';
-  /** Actions allowed on this resource (can be AuthAction values or custom strings) */
-  actions: Array<Scalars['String']['output']>;
+  /** Actions allowed on this resource */
+  actions: Array<AuthAction>;
   resource: Resource;
 };
 
@@ -2545,7 +2545,7 @@ export type GetApiKeyCreationFormSchemaQueryVariables = Exact<{ [key: string]: n
 
 export type GetApiKeyCreationFormSchemaQuery = { __typename?: 'Query', getApiKeyCreationFormSchema: { __typename?: 'ApiKeyFormSettings', id: string, dataSchema: any, uiSchema: any, values: any } };
 
-export type ApiKeyFragment = { __typename?: 'ApiKey', id: string, key: string, name: string, description?: string | null, createdAt: string, roles: Array<Role>, permissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<string> }> } & { ' $fragmentName'?: 'ApiKeyFragment' };
+export type ApiKeyFragment = { __typename?: 'ApiKey', id: string, key: string, name: string, description?: string | null, createdAt: string, roles: Array<Role>, permissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<AuthAction> }> } & { ' $fragmentName'?: 'ApiKeyFragment' };
 
 export type ApiKeysQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2585,7 +2585,7 @@ export type DeleteApiKeyMutation = { __typename?: 'Mutation', apiKey: { __typena
 export type ApiKeyMetaQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ApiKeyMetaQuery = { __typename?: 'Query', apiKeyPossibleRoles: Array<Role>, apiKeyPossiblePermissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<string> }> };
+export type ApiKeyMetaQuery = { __typename?: 'Query', apiKeyPossibleRoles: Array<Role>, apiKeyPossiblePermissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<AuthAction> }> };
 
 export type PreviewEffectivePermissionsQueryVariables = Exact<{
   roles?: InputMaybe<Array<Role> | Role>;
@@ -2593,14 +2593,14 @@ export type PreviewEffectivePermissionsQueryVariables = Exact<{
 }>;
 
 
-export type PreviewEffectivePermissionsQuery = { __typename?: 'Query', previewEffectivePermissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<string> }> };
+export type PreviewEffectivePermissionsQuery = { __typename?: 'Query', previewEffectivePermissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<AuthAction> }> };
 
 export type GetPermissionsForRolesQueryVariables = Exact<{
   roles: Array<Role> | Role;
 }>;
 
 
-export type GetPermissionsForRolesQuery = { __typename?: 'Query', getPermissionsForRoles: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<string> }> };
+export type GetPermissionsForRolesQuery = { __typename?: 'Query', getPermissionsForRoles: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<AuthAction> }> };
 
 export type UnifiedQueryVariables = Exact<{ [key: string]: never; }>;
 

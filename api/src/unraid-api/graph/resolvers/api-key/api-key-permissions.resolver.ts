@@ -1,29 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
-import { AuthAction, AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@unraid/shared/use-permissions.directive.js';
+import { mergePermissionsIntoMap } from '@unraid/shared/util/permissions.js';
 
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
-import { AuthAction as AuthActionEnum } from '@app/unraid-api/graph/auth/auth-action.enum.js';
 import {
     AddPermissionInput,
     Permission,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-
-// Helper function to merge permissions into a map
-function mergePermissionsIntoMap(
-    targetMap: Map<Resource, Set<string>>,
-    sourceMap: Map<Resource, string[]>
-): void {
-    for (const [resource, actions] of sourceMap) {
-        if (!targetMap.has(resource)) {
-            targetMap.set(resource, new Set());
-        }
-        const actionsSet = targetMap.get(resource)!;
-        actions.forEach((action) => actionsSet.add(action));
-    }
-}
 
 @Injectable()
 @Resolver()
@@ -42,7 +32,7 @@ export class ApiKeyPermissionsResolver {
         @Args('roles', { type: () => [Role] }) roles: Role[]
     ): Promise<Permission[]> {
         // Get the implicit permissions for each role from Casbin
-        const allPermissions = new Map<Resource, Set<string>>();
+        const allPermissions = new Map<Resource, Set<AuthAction>>();
 
         for (const role of roles) {
             // Query Casbin for what permissions this role actually has
@@ -76,7 +66,7 @@ export class ApiKeyPermissionsResolver {
         @Args('permissions', { type: () => [AddPermissionInput], nullable: true })
         permissions?: AddPermissionInput[]
     ): Promise<Permission[]> {
-        const effectivePermissions = new Map<Resource, Set<string>>();
+        const effectivePermissions = new Map<Resource, Set<AuthAction>>();
 
         // Add permissions from roles
         for (const role of roles ?? []) {
@@ -107,7 +97,7 @@ export class ApiKeyPermissionsResolver {
         return result;
     }
 
-    @Query(() => [AuthActionEnum], {
+    @Query(() => [AuthAction], {
         description: 'Get all available authentication actions with possession',
     })
     getAvailableAuthActions(): AuthAction[] {

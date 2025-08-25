@@ -1,6 +1,6 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import {
     convertPermissionSetsToArrays,
     expandWildcardAction,
@@ -259,9 +259,9 @@ export class AuthService {
     /**
      * Get implicit permissions for a role (including inherited permissions)
      */
-    public async getImplicitPermissionsForRole(role: Role): Promise<Map<Resource, string[]>> {
+    public async getImplicitPermissionsForRole(role: Role): Promise<Map<Resource, AuthAction[]>> {
         // Use Set internally for efficient deduplication, with '*' as a special key for wildcards
-        const permissionsWithSets = new Map<Resource | '*', Set<string>>();
+        const permissionsWithSets = new Map<Resource | '*', Set<AuthAction>>();
 
         // Load permissions from Casbin, defaulting to empty array on error
         let casbinPermissions: string[][] = [];

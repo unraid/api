@@ -1,16 +1,39 @@
 import { Injectable } from '@nestjs/common';
 
 import type { JsonSchema, LabelElement, UISchemaElement } from '@jsonforms/core';
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
 import { capitalCase } from 'change-case';
-import { AuthAction } from 'nest-authz';
 
 import type { SettingSlice } from '@app/unraid-api/types/json-forms.js';
 import {
     createLabeledControl,
     createSimpleLabeledControl,
 } from '@app/unraid-api/graph/utils/form-utils.js';
+
+// Helper to get GraphQL enum names for JSON Schema
+// GraphQL expects the enum names (keys) not the values
+function getAuthActionEnumNames(): string[] {
+    // Get only the "_ANY" actions (not "_OWN")
+    // e.g., CREATE_ANY, READ_ANY, UPDATE_ANY, DELETE_ANY
+    return Object.keys(AuthAction).filter((key) => key === key.toUpperCase() && key.endsWith('_ANY'));
+}
+
+// Helper to create labels for AuthAction enum dynamically
+function getAuthActionLabels(): Record<string, string> {
+    const labels: Record<string, string> = {};
+
+    for (const enumName of getAuthActionEnumNames()) {
+        // Convert CREATE_ANY -> Create (All)
+        // Convert READ_OWN -> Read (Own)
+        const [verb, possession] = enumName.split('_');
+        const verbLabel = capitalCase(verb.toLowerCase());
+        const possessionLabel = possession === 'ANY' ? 'All' : 'Own';
+        labels[enumName] = `${verbLabel} (${possessionLabel})`;
+    }
+
+    return labels;
+}
 
 export interface ApiKeyFormData {
     name: string;
@@ -116,16 +139,11 @@ export class ApiKeyFormService {
                                 title: 'Actions',
                                 items: {
                                     type: 'string',
-                                    enum: [
-                                        AuthAction.CREATE_ANY,
-                                        AuthAction.READ_ANY,
-                                        AuthAction.UPDATE_ANY,
-                                        AuthAction.DELETE_ANY,
-                                    ],
+                                    enum: getAuthActionEnumNames(),
                                 },
                                 uniqueItems: true,
                                 minItems: 1,
-                                default: [AuthAction.READ_ANY], // Set a default action
+                                default: ['READ_ANY'], // Set a default action
                             },
                         },
                         required: ['resources', 'actions'],
@@ -257,12 +275,7 @@ export class ApiKeyFormService {
                                     description: 'Select the actions allowed on this resource',
                                     controlOptions: {
                                         multiple: true,
-                                        labels: {
-                                            [AuthAction.CREATE_ANY]: 'Create',
-                                            [AuthAction.READ_ANY]: 'Read',
-                                            [AuthAction.UPDATE_ANY]: 'Update',
-                                            [AuthAction.DELETE_ANY]: 'Delete',
-                                        },
+                                        labels: getAuthActionLabels(),
                                     },
                                 }),
                             ],

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue';
+import { computed, ref, watch, onMounted, nextTick } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 import { useClipboard } from '@vueuse/core';
@@ -77,6 +77,7 @@ interface FormData extends Partial<CreateApiKeyInput> {
 const formSchema = ref<JsonSchemaForm | null>(null);
 const formData = ref<FormData>({});
 const formValid = ref(false);
+const jsonFormsKey = ref(0); // Key to force re-render of JsonForms
 
 // Use clipboard for copying
 const { copy, copied } = useClipboard();
@@ -101,18 +102,58 @@ const postCreateLoading = ref(false);
 const loading = computed<boolean>(() => createLoading.value || updateLoading.value);
 const error = computed<ApolloError | null>(() => createError.value || updateError.value);
 
+// Computed property for button disabled state
+const isButtonDisabled = computed<boolean>(() => {
+  // In authorization mode, only check loading states if we have a name
+  if (isAuthorizationMode.value && (formData.value.name || authorizationData.value?.formData?.name)) {
+    return loading.value || postCreateLoading.value;
+  }
+  
+  // Regular validation for non-authorization mode
+  return loading.value || postCreateLoading.value || !formValid.value;
+});
+
 // Load form schema - always use creation form
 const loadFormSchema = () => {
   // Always load creation form schema
   const { onResult, onError } = useQuery(GET_API_KEY_CREATION_FORM_SCHEMA);
   
-  onResult((result) => {
+  onResult(async (result) => {
     if (result.data?.getApiKeyCreationFormSchema) {
       formSchema.value = result.data.getApiKeyCreationFormSchema;
+      
+      console.log('Form schema loaded - action enum values:', {
+        actionEnum: formSchema.value?.dataSchema?.properties?.customPermissions?.items?.properties?.actions?.items?.enum,
+        fullSchema: formSchema.value?.dataSchema
+      });
       
       if (isAuthorizationMode.value && authorizationData.value?.formData) {
         // In authorization mode, use the form data from the authorization store
         formData.value = { ...authorizationData.value.formData };
+        // Ensure the name field is set for validation
+        if (!formData.value.name && authorizationData.value.name) {
+          formData.value.name = authorizationData.value.name;
+        }
+        
+        console.log('Setting form data in auth mode:', {
+          formData: formData.value,
+          permissions: formData.value.customPermissions,
+          firstActions: formData.value.customPermissions?.[0]?.actions,
+          schemaEnumValues: formSchema.value?.dataSchema?.properties?.customPermissions?.items?.properties?.actions?.items?.enum,
+          areEqual: formData.value.customPermissions?.[0]?.actions?.[0] === formSchema.value?.dataSchema?.properties?.customPermissions?.items?.properties?.actions?.items?.enum?.[0]
+        });
+        
+        // Force JsonForms to re-render and validate with the new data
+        await nextTick();
+        jsonFormsKey.value++; // Force re-render
+        console.log('Triggered JsonForms re-render in auth mode');
+        
+        // In auth mode, if we have all required fields, consider it valid initially
+        // JsonForms will override this if there are actual errors
+        if (formData.value.name) {
+          formValid.value = true;
+          console.log('Set initial formValid=true for auth mode with name');
+        }
       } else if (editingKey.value) {
         // If editing, populate form data from existing key
         populateFormFromExistingKey();
@@ -150,9 +191,24 @@ watch(
 // Watch for authorization mode changes
 watch(
   () => isAuthorizationMode.value,
-  (newValue) => {
+  async (newValue) => {
     if (newValue && authorizationData.value?.formData) {
       formData.value = { ...authorizationData.value.formData };
+      // Ensure the name field is set for validation
+      if (!formData.value.name && authorizationData.value.name) {
+        formData.value.name = authorizationData.value.name;
+      }
+      
+      // Force JsonForms to re-render and validate
+      await nextTick();
+      jsonFormsKey.value++;
+      console.log('Triggered JsonForms re-render (mode changed)');
+      
+      // Set initial valid state if we have required fields
+      if (formData.value.name) {
+        formValid.value = true;
+        console.log('Set initial formValid=true (mode changed)');
+      }
     }
   }
 );
@@ -160,10 +216,13 @@ watch(
 // Watch for authorization form data changes
 watch(
   () => authorizationData.value?.formData,
-  async (newFormData) => {
+  (newFormData) => {
     if (isAuthorizationMode.value && newFormData) {
       formData.value = { ...newFormData };
-      
+      // Ensure the name field is set for validation
+      if (!formData.value.name && authorizationData.value?.name) {
+        formData.value.name = authorizationData.value.name;
+      }
     }
   },
   { deep: true }
@@ -238,8 +297,14 @@ const populateFormFromExistingKey = async () => {
     
     const customPermissions = Array.from(permissionGroups.entries()).map(([actionKey, resources]) => ({
       resources,
-      actions: actionKey.split(',') as AuthAction[], // These are already AuthAction values joined as strings
+      actions: actionKey.split(',') as AuthAction[], // GraphQL will return these as enum values
     }));
+    
+    console.log('Edit mode - actions from API:', {
+      rawActions: fragmentKey.permissions?.[0]?.actions,
+      customPermissions,
+      firstActionSet: customPermissions[0]?.actions
+    });
     
     formData.value = {
       name: fragmentKey.name,
@@ -295,17 +360,44 @@ const close = () => {
 
 // Handle form submission
 async function upsertKey() {
-  if (!formValid.value) return;
+  console.log('upsertKey called:', {
+    isAuthorizationMode: isAuthorizationMode.value,
+    formValid: formValid.value,
+    formData: formData.value,
+    hasName: !!formData.value.name
+  });
+  
+  // In authorization mode, skip validation if we have a name
+  if (!isAuthorizationMode.value && !formValid.value) {
+    console.log('Blocked: not in auth mode and form invalid');
+    return;
+  }
+  if (isAuthorizationMode.value && !formData.value.name) {
+    console.error('Cannot authorize without a name');
+    return;
+  }
+  
+  console.log('Proceeding with API call...');
   
   // In authorization mode, validation is enough - no separate consent field
 
   postCreateLoading.value = true;
   try {
     const apiData = transformFormDataForApi();
+    console.log('API data prepared:', {
+      ...apiData,
+      permissionsDetail: apiData.permissions?.map(p => ({
+        resource: p.resource,
+        actions: p.actions,
+        actionTypes: p.actions?.map(a => typeof a)
+      }))
+    });
+    
     const isEdit = !!editingKey.value?.id;
     
     let res;
     if (isEdit && editingKey.value) {
+      console.log('Updating API key...');
       res = await updateApiKey({
         input: {
           id: editingKey.value.id,
@@ -313,11 +405,14 @@ async function upsertKey() {
         },
       });
     } else {
+      console.log('Creating new API key...');
       res = await createApiKey({
         input: apiData,
       });
     }
 
+    console.log('API response:', res);
+    
     const apiKeyResult = res?.data?.apiKey;
     if (isEdit && apiKeyResult && 'update' in apiKeyResult) {
       const fragmentData = useFragment(API_KEY_FRAGMENT, apiKeyResult.update);
@@ -325,16 +420,21 @@ async function upsertKey() {
     } else if (!isEdit && apiKeyResult && 'create' in apiKeyResult) {
       const fragmentData = useFragment(API_KEY_FRAGMENT, apiKeyResult.create);
       apiKeyStore.setCreatedKey(fragmentData);
+      console.log('Key created, fragment data:', fragmentData);
       
       // If in authorization mode, call the callback with the API key
       if (isAuthorizationMode.value && authorizationData.value?.onAuthorize && 'key' in fragmentData) {
+        console.log('Calling onAuthorize callback...');
         authorizationData.value.onAuthorize(fragmentData.key);
-        return; // Don't close the modal in authorization mode
+        // Don't close the modal or reset form - let the callback handle it
+        return;
       }
     }
 
     apiKeyStore.hideModal();
     formData.value = {} as FormData; // Reset to empty object
+  } catch (error) {
+    console.error('Error in upsertKey:', error);
   } finally {
     postCreateLoading.value = false;
   }
@@ -378,17 +478,16 @@ const copyApiKey = async () => {
         ? 'Saving...' 
         : 'Creating...'
     "
-    :primary-button-disabled="
-      loading || 
-      postCreateLoading || 
-      !formValid
-    "
+    :primary-button-disabled="isButtonDisabled"
     @update:model-value="
       (v) => {
         if (!v) close();
       }
     "
-    @primary-click="upsertKey"
+    @primary-click="() => {
+      console.log('Primary button clicked!');
+      upsertKey();
+    }"
   >
     <div class="w-full">
       <!-- Show authorization description if in authorization mode -->
@@ -406,6 +505,7 @@ const copyApiKey = async () => {
       >
         
         <JsonForms
+          :key="jsonFormsKey"
           :schema="formSchema.dataSchema"
           :uischema="formSchema.uiSchema"
           :renderers="jsonFormsRenderers"
@@ -414,6 +514,17 @@ const copyApiKey = async () => {
           @change="({ data, errors }) => {
             formData = data;
             formValid = errors ? errors.length === 0 : true;
+            
+            // Always log in authorization mode to see what's happening
+            if (isAuthorizationMode.value) {
+              console.log('JsonForms change event in auth mode:', {
+                errors: errors || [],
+                errorCount: errors ? errors.length : 0,
+                formValid: formValid.value,
+                formData: data,
+                hasName: !!data?.name
+              });
+            }
           }"
         />
       </div>
@@ -456,8 +567,8 @@ const copyApiKey = async () => {
         </div>
       </div>
 
-      <!-- Developer Authorization Link for Modal Mode -->
-      <div class="mt-4">
+      <!-- Developer Authorization Link for Modal Mode (hide in authorization flow) -->
+      <div v-if="!isAuthorizationMode" class="mt-4">
         <DeveloperAuthorizationLink
           :roles="formData.roles || []"
           :raw-permissions="formDataPermissions"

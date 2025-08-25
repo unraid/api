@@ -4,6 +4,7 @@ import { readdir, readFile, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { normalizeLegacyActions } from '@unraid/shared/util/permissions.js';
 import { watch } from 'chokidar';
 import { ValidationError } from 'class-validator';
 import { ensureDirSync } from 'fs-extra';
@@ -186,11 +187,12 @@ export class ApiKeyService implements OnModuleInit {
                 parsedContent.roles = parsedContent.roles.map((role: string) => role.toUpperCase());
             }
 
-            // Normalize permission actions to lowercase for consistent matching
+            // Normalize permission actions to AuthAction enum values
+            // Uses shared helper to handle all legacy formats
             if (parsedContent.permissions) {
                 parsedContent.permissions = parsedContent.permissions.map((permission: any) => ({
                     ...permission,
-                    actions: permission.actions?.map((action: string) => action.toLowerCase()) || [],
+                    actions: normalizeLegacyActions(permission.actions || []),
                 }));
             }
 

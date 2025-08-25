@@ -15,6 +15,27 @@ export interface AuthorizationLinkParams {
 }
 
 /**
+ * Extract just the action verb from an AuthAction enum or formatted string
+ * E.g., CREATE_ANY -> create, read:any -> read
+ */
+export function extractActionVerb(action: AuthAction | string): string {
+  const actionStr = String(action);
+  
+  // Handle enum values like CREATE_ANY, READ_ANY
+  if (actionStr.includes('_')) {
+    return actionStr.split('_')[0].toLowerCase();
+  }
+  
+  // Handle scope format like 'read:any'
+  if (actionStr.includes(':')) {
+    return actionStr.split(':')[0].toLowerCase();
+  }
+  
+  // Already just a verb
+  return actionStr.toLowerCase();
+}
+
+/**
  * Generate scopes array from roles and permissions for API key authorization
  * Uses shared utility functions for consistent scope generation
  */
@@ -29,7 +50,9 @@ export function generateScopes(roles: Role[] = [], rawPermissions: RawPermission
   // Add permission scopes using shared utility
   for (const perm of rawPermissions) {
     for (const action of perm.actions) {
-      scopes.push(permissionToScope(perm.resource, action));
+      // Convert AuthAction enum to simple form (CREATE_ANY -> create)
+      const simpleAction = extractActionVerb(action);
+      scopes.push(permissionToScope(perm.resource, simpleAction));
     }
   }
   

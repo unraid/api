@@ -48,21 +48,25 @@ function convertScopesToPermissions(scopes: string[]): ScopeConversion {
             AuthAction.DELETE_ANY
           ];
         } else {
-          // Try to map action string to AuthAction enum
-          const actionUpper = actionStr.toUpperCase().replace(':', '_');
-          const mappedAction = `${actionUpper}_ANY` as AuthAction;
+          // Try to map action string to AuthAction enum  
+          // The enum values are strings like 'CREATE_ANY', 'READ_ANY', etc.
+          const actionUpper = actionStr.toUpperCase();
+          const enumValue = `${actionUpper}_ANY` as AuthAction;
           
-          if (Object.values(AuthAction).includes(mappedAction)) {
-            actions = [mappedAction];
+          console.log('Converting action:', { 
+            original: actionStr, 
+            uppercase: actionUpper, 
+            enumValue,
+            isValidEnum: Object.values(AuthAction).includes(enumValue),
+            expectedValues: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY]
+          });
+          
+          // Check if this is a valid enum value
+          if (Object.values(AuthAction).includes(enumValue)) {
+            actions = [enumValue];
           } else {
-            // Try direct match
-            const directAction = actionStr.toUpperCase().replace(':', '_') as AuthAction;
-            if (Object.values(AuthAction).includes(directAction)) {
-              actions = [directAction];
-            } else {
-              console.warn(`Unknown action in scope: ${scope}`);
-              continue;
-            }
+            console.warn(`Unknown action in scope: ${scope}, tried to map to: ${enumValue}`);
+            continue;
           }
         }
         
@@ -80,6 +84,13 @@ function convertScopesToPermissions(scopes: string[]): ScopeConversion {
       }
     }
   }
+  
+  console.log('Final converted permissions:', {
+    permissions,
+    firstPermission: permissions[0],
+    firstActions: permissions[0]?.actions,
+    actionTypes: permissions[0]?.actions?.map(a => ({ value: a, type: typeof a }))
+  });
   
   return { permissions, roles };
 }

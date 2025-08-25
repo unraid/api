@@ -1,6 +1,6 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
-import { Node, Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Node, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { Transform, Type } from 'class-transformer';
 import {
@@ -14,7 +14,6 @@ import {
     ValidateNested,
 } from 'class-validator';
 
-import { AuthAction } from '@app/unraid-api/graph/auth/auth-action.enum.js';
 import { AtLeastOneOf } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 
 @ObjectType()
@@ -23,13 +22,13 @@ export class Permission {
     @IsEnum(Resource)
     resource!: Resource;
 
-    @Field(() => [String], {
-        description: 'Actions allowed on this resource (can be AuthAction values or custom strings)',
+    @Field(() => [AuthAction], {
+        description: 'Actions allowed on this resource',
     })
     @IsArray()
-    @IsString({ each: true })
+    @IsEnum(AuthAction, { each: true })
     @ArrayMinSize(1)
-    actions!: string[];
+    actions!: AuthAction[];
 }
 
 @ObjectType({ implements: () => Node })
@@ -71,11 +70,11 @@ export class AddPermissionInput {
     @IsEnum(Resource)
     resource!: Resource;
 
-    @Field(() => [String])
+    @Field(() => [AuthAction])
     @IsArray()
-    @IsString({ each: true })
+    @IsEnum(AuthAction, { each: true })
     @ArrayMinSize(1)
-    actions!: string[];
+    actions!: AuthAction[];
 }
 
 @InputType()

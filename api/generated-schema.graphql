@@ -613,10 +613,8 @@ enum ConfigErrorState {
 type Permission {
   resource: Resource!
 
-  """
-  Actions allowed on this resource (can be AuthAction values or custom strings)
-  """
-  actions: [String!]!
+  """Actions allowed on this resource"""
+  actions: [AuthAction!]!
 }
 
 """Available resources for permissions"""
@@ -650,6 +648,33 @@ enum Resource {
   VARS
   VMS
   WELCOME
+}
+
+"""Authentication actions with possession (e.g., create:any, read:own)"""
+enum AuthAction {
+  """Create any resource"""
+  CREATE_ANY
+
+  """Create own resource"""
+  CREATE_OWN
+
+  """Update any resource"""
+  UPDATE_ANY
+
+  """Update own resource"""
+  UPDATE_OWN
+
+  """Delete any resource"""
+  DELETE_ANY
+
+  """Delete own resource"""
+  DELETE_OWN
+
+  """Read any resource"""
+  READ_ANY
+
+  """Read own resource"""
+  READ_OWN
 }
 
 type ApiKey implements Node {
@@ -888,7 +913,7 @@ input CreateApiKeyInput {
 
 input AddPermissionInput {
   resource: Resource!
-  actions: [String!]!
+  actions: [AuthAction!]!
 }
 
 input AddRoleForApiKeyInput {
@@ -2335,33 +2360,6 @@ type Query {
   connect: Connect!
   network: Network!
   cloud: Cloud!
-}
-
-"""Authentication actions with possession (e.g., create:any, read:own)"""
-enum AuthAction {
-  """Create any resource"""
-  CREATE_ANY
-
-  """Create own resource"""
-  CREATE_OWN
-
-  """Update any resource"""
-  UPDATE_ANY
-
-  """Update own resource"""
-  UPDATE_OWN
-
-  """Delete any resource"""
-  DELETE_ANY
-
-  """Delete own resource"""
-  DELETE_OWN
-
-  """Read any resource"""
-  READ_ANY
-
-  """Read own resource"""
-  READ_OWN
 }
 
 type Mutation {

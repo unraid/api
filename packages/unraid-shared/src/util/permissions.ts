@@ -271,32 +271,67 @@ export function getRoleFromScope(scope: string): string | null {
 }
 
 /**
- * Common CRUD action sets for convenience
- */
-export const CRUD_ACTIONS = {
-  ALL: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY] as AuthAction[],
-  ALL_OWN: [AuthAction.CREATE_OWN, AuthAction.READ_OWN, AuthAction.UPDATE_OWN, AuthAction.DELETE_OWN] as AuthAction[],
-  READ_ONLY: [AuthAction.READ_ANY] as AuthAction[],
-  READ_ONLY_OWN: [AuthAction.READ_OWN] as AuthAction[],
-  CREATE_READ: [AuthAction.CREATE_ANY, AuthAction.READ_ANY] as AuthAction[],
-  UPDATE_DELETE: [AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY] as AuthAction[],
-};
-
-/**
  * Normalize an action string to AuthAction format
  * @param action - The action string to normalize
- * @returns The normalized action string or original if parsing fails
+ * @returns The normalized AuthAction or null if parsing fails
  */
-export function normalizeAction(action: string): string {
-  const parsed = parseActionToAuthAction(action);
-  return parsed || action; // Return original if parsing fails
+export function normalizeAction(action: string): AuthAction | null {
+  return parseActionToAuthAction(action);
+}
+
+/**
+ * Normalize legacy action formats to AuthAction enum values
+ * Handles multiple formats:
+ * - Simple verbs: "create", "read", "update", "delete" -> AuthAction.CREATE_ANY, etc.
+ * - Uppercase with underscore: "CREATE_ANY", "READ_ANY" -> AuthAction.CREATE_ANY, etc.
+ * - Already correct: "create:any", "read:any" -> AuthAction.CREATE_ANY, etc.
+ * 
+ * @param action - The action string to normalize
+ * @returns The normalized AuthAction enum value or null if invalid
+ */
+export function normalizeLegacyAction(action: string): AuthAction | null {
+  const actionLower = action.toLowerCase();
+  let normalizedString: string;
+  
+  // If it's already in lowercase:colon format, use it
+  if (actionLower.includes(':')) {
+    normalizedString = actionLower;
+  }
+  // If it's in uppercase_underscore format, convert to lowercase:colon
+  else if (action.includes('_')) {
+    normalizedString = actionLower.replace('_', ':');
+  }
+  // If it's a simple verb without possession, add ":any" as default
+  else if (['create', 'read', 'update', 'delete'].includes(actionLower)) {
+    normalizedString = `${actionLower}:any`;
+  }
+  // Otherwise just use lowercase (for unknown actions)
+  else {
+    normalizedString = actionLower;
+  }
+  
+  // Convert the normalized string to AuthAction enum
+  return parseActionToAuthAction(normalizedString);
+}
+
+/**
+ * Normalize an array of legacy action strings to AuthAction enum values
+ * Filters out any invalid actions that can't be normalized
+ * 
+ * @param actions - Array of action strings in various formats
+ * @returns Array of valid AuthAction enum values
+ */
+export function normalizeLegacyActions(actions: string[]): AuthAction[] {
+  return actions
+    .map(action => normalizeLegacyAction(action))
+    .filter((action): action is AuthAction => action !== null);
 }
 
 /**
  * Expand wildcard action (*) to all CRUD actions
  * @returns Array of all CRUD AuthAction values
  */
-export function expandWildcardAction(): string[] {
+export function expandWildcardAction(): AuthAction[] {
   return [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY];
 }
 
@@ -304,7 +339,7 @@ export function expandWildcardAction(): string[] {
  * Reconcile wildcard permissions by expanding them to all resources
  * @param permissionsWithSets - Map of resources to action sets, may include wildcard resource
  */
-export function reconcileWildcardPermissions(permissionsWithSets: Map<Resource | '*', Set<string>>): void {
+export function reconcileWildcardPermissions(permissionsWithSets: Map<Resource | '*', Set<AuthAction>>): void {
   if (permissionsWithSets.has('*' as Resource | '*')) {
     const wildcardActions = permissionsWithSets.get('*' as Resource | '*')!;
     permissionsWithSets.delete('*' as Resource | '*');
@@ -321,14 +356,32 @@ export function reconcileWildcardPermissions(permissionsWithSets: Map<Resource |
 }
 
 /**
+ * Merge permissions from source map into target map
+ * @param targetMap - Map to merge permissions into
+ * @param sourceMap - Map to merge permissions from
+ */
+export function mergePermissionsIntoMap(
+  targetMap: Map<Resource, Set<AuthAction>>,
+  sourceMap: Map<Resource, AuthAction[]>
+): void {
+  for (const [resource, actions] of sourceMap) {
+    if (!targetMap.has(resource)) {
+      targetMap.set(resource, new Set());
+    }
+    const actionsSet = targetMap.get(resource)!;
+    actions.forEach((action) => actionsSet.add(action));
+  }
+}
+
+/**
  * Convert permission sets to arrays, filtering out wildcards
  * @param permissionsWithSets - Map of resources to action sets
  * @returns Map of resources to action arrays (excludes wildcard resource)
  */
 export function convertPermissionSetsToArrays(
-  permissionsWithSets: Map<Resource | '*', Set<string>>
-): Map<Resource, string[]> {
-  const result = new Map<Resource, string[]>();
+  permissionsWithSets: Map<Resource | '*', Set<AuthAction>>
+): Map<Resource, AuthAction[]> {
+  const result = new Map<Resource, AuthAction[]>();
 
   for (const [resource, actionsSet] of permissionsWithSets) {
     if (resource !== '*') {
