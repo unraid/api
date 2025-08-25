@@ -50,9 +50,12 @@ export function getParityCheckStatus(varData: Var): ParityCheck {
     return {
         status: getStatusFromVarData(varData),
         speed: String(calculateParitySpeed(deltaTime, deltaBlocks)),
-        // divide resyncSize by 100 to get percentage directly (instead of multiplying by 100)
-        progress: mdResyncPos / (mdResyncSize / 100 + 1),
         date: sbSynced > 0 ? new Date(sbSynced * 1000) : undefined,
         duration: sbSynced > 0 ? Math.round(now - sbSynced) : undefined,
+        // percentage as integer, clamped to [0, 100]
+        progress:
+            mdResyncSize <= 0
+                ? 0
+                : Math.round(Math.min(100, Math.max(0, (mdResyncPos / mdResyncSize) * 100))),
     };
 }
