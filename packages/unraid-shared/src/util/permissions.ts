@@ -18,7 +18,7 @@ export interface ScopeConversion {
  * @param defaultPossession - Default possession if not specified ('any' or 'own')
  * @returns The normalized action as AuthAction or null if invalid
  */
-export function parseActionToAuthAction(action: string, defaultPossession: 'any' | 'own' = 'any'): AuthAction | null {
+export function parseActionToAuthAction(action: string | null | undefined, defaultPossession: 'any' | 'own' = 'any'): AuthAction | null {
   if (!action) return null;
   
   const normalized = action.trim().toLowerCase().replace(/_/g, ':');
