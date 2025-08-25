@@ -87,7 +87,7 @@
     "vuetify-nuxt-module": "0.18.7"
   },
   "dependencies": {
-    "@apollo/client": "3.13.9",
+    "@apollo/client": "4.0.1",
     "@floating-ui/dom": "1.7.3",
     "@floating-ui/utils": "0.2.10",
     "@floating-ui/vue": "1.1.8",
