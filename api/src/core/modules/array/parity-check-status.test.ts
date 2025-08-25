@@ -677,4 +677,404 @@ describe('getParityCheckStatus', () => {
             expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.PAUSED);
         });
     });
+
+    describe('Speed calculation', () => {
+        it('should return "0" when deltaTime is 0', () => {
+            const varData = createMockVarData({
+                mdResyncDt: '0',
+                mdResyncDb: '1000',
+            });
+
+            expect(getParityCheckStatus(varData).speed).toBe('0');
+        });
+
+        it('should return "0" when deltaBlocks is 0', () => {
+            const varData = createMockVarData({
+                mdResyncDt: '1000',
+                mdResyncDb: '0',
+            });
+
+            expect(getParityCheckStatus(varData).speed).toBe('0');
+        });
+
+        it('should return "0" when both deltaTime and deltaBlocks are 0', () => {
+            const varData = createMockVarData({
+                mdResyncDt: '0',
+                mdResyncDb: '0',
+            });
+
+            expect(getParityCheckStatus(varData).speed).toBe('0');
+        });
+
+        it('should calculate speed correctly for basic values', () => {
+            const varData = createMockVarData({
+                mdResyncDt: '1', // 1 second
+                mdResyncDb: '1024', // 1024 blocks = 1024 * 1024 bytes = 1MB
+            });
+
+            // Speed = (1024 * 1024) bytes / 1 second / 1024 / 1024 = 1 MB/s
+            expect(getParityCheckStatus(varData).speed).toBe('1');
+        });
+
+        it('should calculate speed correctly for larger values', () => {
+            const varData = createMockVarData({
+                mdResyncDt: '10', // 10 seconds
+                mdResyncDb: '20480', // 20480 blocks = 20MB of data
+            });
+
+            // Speed = (20480 * 1024) bytes / 10 seconds / 1024 / 1024 = 2 MB/s
+            expect(getParityCheckStatus(varData).speed).toBe('2');
+        });
+
+        it('should round speed values correctly', () => {
+            const varData = createMockVarData({
+                mdResyncDt: '3', // 3 seconds
+                mdResyncDb: '1536', // 1536 blocks = 1.5MB of data
+            });
+
+            // Speed = (1536 * 1024) bytes / 3 seconds / 1024 / 1024 = 0.5 MB/s
+            expect(getParityCheckStatus(varData).speed).toBe('1'); // Should round 0.5 to 1
+        });
+
+        it('should handle decimal values in deltaTime', () => {
+            const varData = createMockVarData({
+                mdResyncDt: '2.5', // 2.5 seconds
+                mdResyncDb: '2560', // 2560 blocks = 2.5MB of data
+            });
+
+            // Speed = (2560 * 1024) bytes / 2.5 seconds / 1024 / 1024 = 1 MB/s
+            expect(getParityCheckStatus(varData).speed).toBe('1');
+        });
+
+        it('should handle very small speed values', () => {
+            const varData = createMockVarData({
+                mdResyncDt: '1000', // 1000 seconds
+                mdResyncDb: '1', // 1 block = 1024 bytes
+            });
+
+            // Speed = (1 * 1024) bytes / 1000 seconds / 1024 / 1024 = ~0.00098 MB/s
+            expect(getParityCheckStatus(varData).speed).toBe('0'); // Should round to 0
+        });
+
+        it('should handle very large speed values', () => {
+            const varData = createMockVarData({
+                mdResyncDt: '1', // 1 second
+                mdResyncDb: '1048576', // 1048576 blocks = 1GB of data
+            });
+
+            // Speed = (1048576 * 1024) bytes / 1 second / 1024 / 1024 = 1024 MB/s
+            expect(getParityCheckStatus(varData).speed).toBe('1024');
+        });
+
+        it('should handle invalid deltaTime values gracefully', () => {
+            const varData = createMockVarData({
+                mdResyncDt: 'invalid',
+                mdResyncDb: '1024',
+            });
+
+            // Invalid deltaTime should convert to 0, resulting in 0 speed
+            expect(getParityCheckStatus(varData).speed).toBe('0');
+        });
+
+        it('should handle invalid deltaBlocks values gracefully', () => {
+            const varData = createMockVarData({
+                mdResyncDt: '1',
+                mdResyncDb: 'invalid',
+            });
+
+            // Invalid deltaBlocks should convert to 0, resulting in 0 speed
+            expect(getParityCheckStatus(varData).speed).toBe('0');
+        });
+
+        it('should handle negative values in deltaTime', () => {
+            const varData = createMockVarData({
+                mdResyncDt: '-1',
+                mdResyncDb: '1024',
+            });
+
+            // Negative deltaTime results in negative speed
+            // (1024 * 1024) / -1 / 1024 / 1024 = -1 MB/s
+            expect(getParityCheckStatus(varData).speed).toBe('-1');
+        });
+    });
+
+    describe('Date calculation', () => {
+        it('should return undefined when sbSynced is 0', () => {
+            const varData = createMockVarData({
+                sbSynced: 0,
+            });
+
+            expect(getParityCheckStatus(varData).date).toBeUndefined();
+        });
+
+        it('should return undefined when sbSynced is negative', () => {
+            const varData = createMockVarData({
+                sbSynced: -1,
+            });
+
+            expect(getParityCheckStatus(varData).date).toBeUndefined();
+        });
+
+        it('should return valid Date when sbSynced is positive', () => {
+            const varData = createMockVarData({
+                sbSynced: 1640995200, // Jan 1, 2022, 00:00:00 UTC
+            });
+
+            const result = getParityCheckStatus(varData);
+            expect(result.date).toBeInstanceOf(Date);
+            expect(result.date!.getTime()).toBe(1640995200 * 1000);
+        });
+
+        it('should convert Unix timestamp correctly', () => {
+            const varData = createMockVarData({
+                sbSynced: 1609459200, // Jan 1, 2021, 00:00:00 UTC
+            });
+
+            const result = getParityCheckStatus(varData);
+            expect(result.date!.getUTCFullYear()).toBe(2021);
+            expect(result.date!.getUTCMonth()).toBe(0); // January = 0
+            expect(result.date!.getUTCDate()).toBe(1);
+        });
+
+        it('should handle large timestamp values', () => {
+            const varData = createMockVarData({
+                sbSynced: 2147483647, // Max 32-bit signed integer (Jan 19, 2038)
+            });
+
+            const result = getParityCheckStatus(varData);
+            expect(result.date).toBeInstanceOf(Date);
+            expect(result.date!.getFullYear()).toBe(2038);
+        });
+
+        it('should handle small positive timestamp values', () => {
+            const varData = createMockVarData({
+                sbSynced: 1, // Jan 1, 1970, 00:00:01 UTC
+            });
+
+            const result = getParityCheckStatus(varData);
+            expect(result.date).toBeInstanceOf(Date);
+            expect(result.date!.getTime()).toBe(1000);
+        });
+    });
+
+    describe('Duration calculation', () => {
+        it('should return undefined when sbSynced is 0', () => {
+            const varData = createMockVarData({
+                sbSynced: 0,
+            });
+
+            expect(getParityCheckStatus(varData).duration).toBeUndefined();
+        });
+
+        it('should return undefined when sbSynced is negative', () => {
+            const varData = createMockVarData({
+                sbSynced: -1,
+            });
+
+            expect(getParityCheckStatus(varData).duration).toBeUndefined();
+        });
+
+        it('should calculate duration using sbSynced2 when available', () => {
+            const varData = createMockVarData({
+                sbSynced: 1000,
+                sbSynced2: 1360, // 360 seconds later (6 minutes)
+            });
+
+            const result = getParityCheckStatus(varData);
+            expect(result.duration).toBe(360);
+        });
+
+        it('should calculate duration using current time when sbSynced2 is 0', () => {
+            const mockNow = 1640995560; // Some future time
+            const originalNow = Date.now;
+            Date.now = () => mockNow * 1000; // Convert to milliseconds
+
+            const varData = createMockVarData({
+                sbSynced: 1640995200, // 360 seconds before mockNow
+                sbSynced2: 0,
+            });
+
+            const result = getParityCheckStatus(varData);
+            expect(result.duration).toBe(360);
+
+            Date.now = originalNow; // Restore original
+        });
+
+        it('should round duration values correctly', () => {
+            const varData = createMockVarData({
+                sbSynced: 1000,
+                sbSynced2: 1360.7, // 360.7 seconds later
+            });
+
+            const result = getParityCheckStatus(varData);
+            expect(result.duration).toBe(361); // Should round 360.7 to 361
+        });
+
+        it('should handle zero duration', () => {
+            const varData = createMockVarData({
+                sbSynced: 1000,
+                sbSynced2: 1000, // Same time
+            });
+
+            const result = getParityCheckStatus(varData);
+            expect(result.duration).toBe(0);
+        });
+
+        it('should handle negative duration (edge case)', () => {
+            const varData = createMockVarData({
+                sbSynced: 2000,
+                sbSynced2: 1000, // End time before start time
+            });
+
+            const result = getParityCheckStatus(varData);
+            expect(result.duration).toBe(-1000); // Should handle negative duration
+        });
+
+        it('should prefer sbSynced2 over current time when both are available', () => {
+            const mockNow = 5000;
+            const originalNow = Date.now;
+            Date.now = () => mockNow * 1000;
+
+            const varData = createMockVarData({
+                sbSynced: 1000,
+                sbSynced2: 2000, // Should use this, not current time
+            });
+
+            const result = getParityCheckStatus(varData);
+            expect(result.duration).toBe(1000); // 2000 - 1000, not 5000 - 1000
+
+            Date.now = originalNow;
+        });
+
+        it('should handle large duration values', () => {
+            const varData = createMockVarData({
+                sbSynced: 1000,
+                sbSynced2: 1000000, // 999,000 seconds (about 11.5 days)
+            });
+
+            const result = getParityCheckStatus(varData);
+            expect(result.duration).toBe(999000);
+        });
+    });
+
+    describe('Progress calculation', () => {
+        it('should return 0 when mdResyncSize is 0', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 50,
+                mdResyncSize: 0,
+            });
+
+            expect(getParityCheckStatus(varData).progress).toBe(0);
+        });
+
+        it('should return 0 when mdResyncSize is negative', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 50,
+                mdResyncSize: -100,
+            });
+
+            expect(getParityCheckStatus(varData).progress).toBe(0);
+        });
+
+        it('should calculate progress percentage correctly', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 25,
+                mdResyncSize: 100,
+            });
+
+            expect(getParityCheckStatus(varData).progress).toBe(25);
+        });
+
+        it('should handle 0% progress', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 0,
+                mdResyncSize: 100,
+            });
+
+            expect(getParityCheckStatus(varData).progress).toBe(0);
+        });
+
+        it('should handle 100% progress', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 100,
+                mdResyncSize: 100,
+            });
+
+            expect(getParityCheckStatus(varData).progress).toBe(100);
+        });
+
+        it('should clamp progress above 100% to 100%', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 150,
+                mdResyncSize: 100,
+            });
+
+            expect(getParityCheckStatus(varData).progress).toBe(100);
+        });
+
+        it('should clamp negative progress to 0%', () => {
+            const varData = createMockVarData({
+                mdResyncPos: -50,
+                mdResyncSize: 100,
+            });
+
+            expect(getParityCheckStatus(varData).progress).toBe(0);
+        });
+
+        it('should round progress values correctly', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 33,
+                mdResyncSize: 100,
+            });
+
+            expect(getParityCheckStatus(varData).progress).toBe(33);
+        });
+
+        it('should round decimal progress values', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 333,
+                mdResyncSize: 1000, // 33.3%
+            });
+
+            expect(getParityCheckStatus(varData).progress).toBe(33);
+        });
+
+        it('should handle very small progress values', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 1,
+                mdResyncSize: 1000000, // 0.0001%
+            });
+
+            expect(getParityCheckStatus(varData).progress).toBe(0); // Should round down to 0
+        });
+
+        it('should handle very large numbers', () => {
+            const varData = createMockVarData({
+                mdResyncPos: Number.MAX_SAFE_INTEGER / 2,
+                mdResyncSize: Number.MAX_SAFE_INTEGER,
+            });
+
+            expect(getParityCheckStatus(varData).progress).toBe(50);
+        });
+
+        it('should handle floating point precision issues', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 1,
+                mdResyncSize: 3, // 33.333...%
+            });
+
+            const result = getParityCheckStatus(varData).progress;
+            expect(result).toBeGreaterThanOrEqual(33);
+            expect(result).toBeLessThanOrEqual(34);
+        });
+
+        it('should handle when mdResyncPos equals mdResyncSize', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 12345,
+                mdResyncSize: 12345,
+            });
+
+            expect(getParityCheckStatus(varData).progress).toBe(100);
+        });
+    });
 });

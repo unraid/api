@@ -19,7 +19,18 @@ function calculateParitySpeed(deltaTime: number, deltaBlocks: number) {
     return Math.round(speedMBps);
 }
 
-function getStatusFromVarData(varData: Var): ParityCheckStatus {
+type RelevantVarData = Pick<
+    Var,
+    | 'mdResyncPos'
+    | 'mdResyncDt'
+    | 'sbSyncExit'
+    | 'sbSynced'
+    | 'sbSynced2'
+    | 'mdResyncDb'
+    | 'mdResyncSize'
+>;
+
+function getStatusFromVarData(varData: RelevantVarData): ParityCheckStatus {
     const { mdResyncPos, mdResyncDt, sbSyncExit, sbSynced, sbSynced2 } = varData;
     const mdResyncDtNumber = toNumberAlways(mdResyncDt, 0);
     const sbSyncExitNumber = toNumberAlways(sbSyncExit, 0);
@@ -40,7 +51,7 @@ function getStatusFromVarData(varData: Var): ParityCheckStatus {
     }
 }
 
-export function getParityCheckStatus(varData: Var): ParityCheck {
+export function getParityCheckStatus(varData: RelevantVarData): ParityCheck {
     const { sbSynced, sbSynced2, mdResyncDt, mdResyncDb, mdResyncPos, mdResyncSize } = varData;
     const deltaTime = toNumberAlways(mdResyncDt, 0);
     const deltaBlocks = toNumberAlways(mdResyncDb, 0);
