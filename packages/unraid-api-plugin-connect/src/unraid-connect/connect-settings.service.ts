@@ -216,17 +216,28 @@ export class ConnectSettingsService {
             input.forwardType
         );
 
-        this.configService.set('connect.config.wanaccess', input.accessType === WAN_ACCESS_TYPE.ALWAYS);
-        if (input.forwardType === WAN_FORWARD_TYPE.STATIC) {
+        // Currently, Dynamic Remote Access (WAN_ACCESS_TYPE.DYNAMIC) is not enabled,
+        // so we treat it as disabled for this condition.
+        const wanaccessEnabled = input.accessType === WAN_ACCESS_TYPE.ALWAYS;
+
+        this.configService.set(
+            'connect.config.upnpEnabled',
+            wanaccessEnabled && input.forwardType === WAN_FORWARD_TYPE.UPNP
+        );
+
+        if (wanaccessEnabled && input.forwardType === WAN_FORWARD_TYPE.STATIC) {
             this.configService.set('connect.config.wanport', input.port);
             // when forwarding with upnp, the upnp service will clear & set the wanport as necessary
         }
-        this.configService.set(
-            'connect.config.upnpEnabled',
-            input.forwardType === WAN_FORWARD_TYPE.UPNP
-        );
+        
+        this.configService.set('connect.config.wanaccess', wanaccessEnabled);
+        // do the wanaccess port-override last; it should have the highest precedence
+        if (!wanaccessEnabled) {
+            this.configService.set('connect.config.wanport', null);
+        }
 
         // Use the dynamic remote access service to handle the transition
+        // currently disabled; this call ensures correct migration behavior.
         await this.remoteAccess.enableDynamicRemoteAccess({
             type: dynamicRemoteAccessType,
             allowedUrl: {
@@ -238,7 +249,6 @@ export class ConnectSettingsService {
         });
 
         await this.networkService.reloadNetworkStack();
-
         return true;
     }
 
