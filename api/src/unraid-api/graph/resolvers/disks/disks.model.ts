@@ -3,7 +3,15 @@ import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Node } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { Type } from 'class-transformer';
-import { IsArray, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+    IsArray,
+    IsBoolean,
+    IsEnum,
+    IsNumber,
+    IsOptional,
+    IsString,
+    ValidateNested,
+} from 'class-validator';
 
 export enum DiskFsType {
     XFS = 'XFS',
@@ -136,4 +144,8 @@ export class Disk extends Node {
     @ValidateNested({ each: true })
     @Type(() => DiskPartition)
     partitions!: DiskPartition[];
+
+    @Field(() => Boolean, { description: 'Whether the disk is spinning or not' })
+    @IsBoolean()
+    isSpinning!: boolean;
 }
