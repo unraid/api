@@ -19,7 +19,7 @@ export class RestartCommand extends CommandRunner {
         super();
     }
 
-    async run(_: string[], options: RestartCommandOptions): Promise<void> {
+    async run(_?: string[], options: RestartCommandOptions = {}): Promise<void> {
         try {
             this.logger.info('Restarting the Unraid API...');
             const { stderr, stdout } = await this.pm2.run(
