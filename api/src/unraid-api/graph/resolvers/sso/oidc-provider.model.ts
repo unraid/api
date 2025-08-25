@@ -80,9 +80,11 @@ export class OidcProvider {
     @Field(() => String, {
         description:
             'OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration',
+        nullable: true,
     })
     @IsUrl()
-    issuer!: string;
+    @IsOptional()
+    issuer?: string;
 
     @Field(() => String, {
         nullable: true,

@@ -6,7 +6,10 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.service.js';
+import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/oidc-request-handler.util.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
+
+// Removed validateRedirectUri - using redirect_uri from query params directly
 
 @Controller()
 export class RestController {
@@ -67,25 +70,48 @@ export class RestController {
     async oidcAuthorize(
         @Param('providerId') providerId: string,
         @Query('state') state: string,
+        @Query('redirect_uri') redirectUri: string,
         @Req() req: FastifyRequest,
         @Res() res: FastifyReply
     ) {
         try {
-            if (!state) {
-                return res.status(400).send('State parameter is required');
+            // Validate required parameters
+            const params = OidcRequestHandler.validateAuthorizeParams(providerId, state, redirectUri);
+
+            // IMPORTANT: Use the redirect_uri from query params directly
+            // Do NOT parse headers or try to build/validate against headers
+            // The frontend provides the complete redirect_uri
+            if (!params.redirectUri) {
+                return res.status(400).send('redirect_uri parameter is required');
             }
 
-            // Get the host and protocol from the request headers
-            const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
-            const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || undefined;
-            const requestInfo = host ? `${protocol}://${host}` : undefined;
+            // Security validation: ensure redirect_uri is from the same hostname
+            // but allow different ports (proxies may change ports)
+            try {
+                const redirectUrl = new URL(params.redirectUri);
+                const requestHost = req.hostname || req.headers.host?.split(':')[0];
 
-            const authUrl = await this.oidcAuthService.getAuthorizationUrl(
-                providerId,
-                state,
-                requestInfo
+                // Compare hostnames (ignoring ports)
+                if (requestHost && redirectUrl.hostname.toLowerCase() !== requestHost.toLowerCase()) {
+                    this.logger.warn(
+                        `Redirect URI hostname mismatch. Expected: ${requestHost}, Got: ${redirectUrl.hostname}`
+                    );
+                    return res.status(400).send('Invalid redirect_uri: hostname mismatch');
+                }
+            } catch (e) {
+                this.logger.error(`Invalid redirect_uri format: ${params.redirectUri}`);
+                return res.status(400).send('Invalid redirect_uri format');
+            }
+
+            // Handle authorization flow using the exact redirect_uri from query params
+            const authUrl = await OidcRequestHandler.handleAuthorize(
+                params.providerId,
+                params.state,
+                params.redirectUri,
+                req,
+                this.oidcAuthService,
+                this.logger
             );
-            this.logger.log(`Redirecting to OIDC provider: ${authUrl}`);
 
             // Manually set redirect headers for better proxy compatibility
             res.status(302);
@@ -119,32 +145,20 @@ export class RestController {
         @Res() res: FastifyReply
     ) {
         try {
-            if (!code || !state) {
-                return res.status(400).send('Missing required parameters');
-            }
+            // Validate required parameters
+            const params = OidcRequestHandler.validateCallbackParams(code, state);
 
-            // Extract provider ID from state
-            const { providerId } = this.oidcAuthService.extractProviderFromState(state);
-
-            // Get the full callback URL as received, respecting reverse proxy headers
-            const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
-            const host =
-                (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
-            const fullUrl = `${protocol}://${host}${req.url}`;
-            const requestInfo = `${protocol}://${host}`;
-
-            this.logger.debug(`Full callback URL from request: ${fullUrl}`);
-
-            const paddedToken = await this.oidcAuthService.handleCallback(
-                providerId,
-                code,
-                state,
-                requestInfo,
-                fullUrl
+            // Handle callback flow
+            const result = await OidcRequestHandler.handleCallback(
+                params.code,
+                params.state,
+                req,
+                this.oidcAuthService,
+                this.logger
             );
 
             // Redirect to login page with the token in hash to keep it out of server logs
-            const loginUrl = `/login#token=${encodeURIComponent(paddedToken)}`;
+            const loginUrl = `/login#token=${encodeURIComponent(result.paddedToken)}`;
 
             // Manually set redirect headers for better proxy compatibility
             res.header('Cache-Control', 'no-store');

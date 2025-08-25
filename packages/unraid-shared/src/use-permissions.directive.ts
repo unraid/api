@@ -52,7 +52,7 @@ export const UsePermissionsDirective = new GraphQLDirective({
     args: {
         action: {
             type: AuthActionVerbEnum,
-            description: 'The action verb required for access',
+            description: 'The action required for access',
         },
         resource: {
             type: GraphQLString,

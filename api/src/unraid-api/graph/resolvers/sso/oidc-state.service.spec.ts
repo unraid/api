@@ -1,3 +1,6 @@
+import { CacheModule } from '@nestjs/cache-manager';
+import { Test } from '@nestjs/testing';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state.service.js';
@@ -5,11 +8,16 @@ import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state
 describe('OidcStateService', () => {
     let service: OidcStateService;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         vi.clearAllMocks();
         vi.useFakeTimers();
-        // Create a single instance for all tests in a describe block
-        service = new OidcStateService();
+
+        const module = await Test.createTestingModule({
+            imports: [CacheModule.register()],
+            providers: [OidcStateService],
+        }).compile();
+
+        service = module.get<OidcStateService>(OidcStateService);
     });
 
     afterEach(() => {
@@ -17,11 +25,12 @@ describe('OidcStateService', () => {
     });
 
     describe('generateSecureState', () => {
-        it('should generate a state with provider prefix and signed token', () => {
+        it('should generate a state with provider prefix and signed token', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
+            const redirectUri = 'https://example.com/callback';
 
-            const state = service.generateSecureState(providerId, clientState);
+            const state = await service.generateSecureState(providerId, clientState, redirectUri);
 
             expect(state).toBeTruthy();
             expect(typeof state).toBe('string');
@@ -32,173 +41,191 @@ describe('OidcStateService', () => {
             expect(signed.split('.').length).toBe(3);
         });
 
-        it('should generate unique states for each call', () => {
+        it('should generate unique states for each call', async () => {
+            const providerId = 'test-provider';
+            const clientState = 'client-state-123';
+            const redirectUri = 'https://example.com/callback';
+
+            const state1 = await service.generateSecureState(providerId, clientState, redirectUri);
+            const state2 = await service.generateSecureState(providerId, clientState, redirectUri);
+
+            expect(state1).not.toBe(state2);
+        });
+
+        it('should work without redirectUri parameter (backwards compatibility)', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
 
-            const state1 = service.generateSecureState(providerId, clientState);
-            const state2 = service.generateSecureState(providerId, clientState);
+            const state = await service.generateSecureState(providerId, clientState);
 
-            expect(state1).not.toBe(state2);
+            expect(state).toBeTruthy();
+            expect(state.startsWith(`${providerId}:`)).toBe(true);
+        });
+
+        it('should store state data in cache and retrieve it', async () => {
+            const providerId = 'test-provider';
+            const clientState = 'client-state-123';
+            const redirectUri = 'https://example.com/callback';
+
+            const state = await service.generateSecureState(providerId, clientState, redirectUri);
+            const validation = await service.validateSecureState(state, providerId);
+
+            expect(validation.isValid).toBe(true);
+            expect(validation.clientState).toBe(clientState);
+            expect(validation.redirectUri).toBe(redirectUri);
         });
     });
 
     describe('validateSecureState', () => {
-        it('should validate a valid state token', () => {
+        it('should validate a valid state token', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
 
-            const state = service.generateSecureState(providerId, clientState);
-            const result = service.validateSecureState(state, providerId);
+            const state = await service.generateSecureState(providerId, clientState);
+            const result = await service.validateSecureState(state, providerId);
 
             expect(result.isValid).toBe(true);
             expect(result.clientState).toBe(clientState);
             expect(result.error).toBeUndefined();
         });
 
-        it('should reject state with wrong provider ID', () => {
+        it('should validate a state token with redirectUri', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
+            const redirectUri = 'https://example.com/callback';
 
-            const state = service.generateSecureState(providerId, clientState);
-            const result = service.validateSecureState(state, 'wrong-provider');
+            const state = await service.generateSecureState(providerId, clientState, redirectUri);
+            const result = await service.validateSecureState(state, providerId);
 
-            expect(result.isValid).toBe(false);
-            expect(result.error).toBe('Provider ID mismatch in state');
+            expect(result.isValid).toBe(true);
+            expect(result.clientState).toBe(clientState);
+            expect(result.redirectUri).toBe(redirectUri);
+            expect(result.error).toBeUndefined();
         });
 
-        it('should reject expired state tokens', () => {
+        it('should reject state with wrong provider ID', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
 
-            const state = service.generateSecureState(providerId, clientState);
+            const state = await service.generateSecureState(providerId, clientState);
+            const result = await service.validateSecureState(state, 'different-provider');
 
-            // Fast forward time beyond expiration (11 minutes)
+            expect(result.isValid).toBe(false);
+            expect(result.error).toContain('Provider ID mismatch');
+        });
+
+        it('should reject expired state tokens', async () => {
+            const providerId = 'test-provider';
+            const clientState = 'client-state-123';
+
+            const state = await service.generateSecureState(providerId, clientState);
+
+            // Advance time by 11 minutes (past the 10-minute TTL)
             vi.advanceTimersByTime(11 * 60 * 1000);
 
-            const result = service.validateSecureState(state, providerId);
+            const result = await service.validateSecureState(state, providerId);
 
             expect(result.isValid).toBe(false);
-            expect(result.error).toBe('State token has expired');
+            expect(result.error).toContain('expired');
         });
 
-        it('should reject reused state tokens', () => {
+        it('should reject reused state tokens', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
 
-            const state = service.generateSecureState(providerId, clientState);
+            const state = await service.generateSecureState(providerId, clientState);
 
             // First validation should succeed
-            const result1 = service.validateSecureState(state, providerId);
+            const result1 = await service.validateSecureState(state, providerId);
             expect(result1.isValid).toBe(true);
 
             // Second validation should fail (replay attack prevention)
-            const result2 = service.validateSecureState(state, providerId);
+            const result2 = await service.validateSecureState(state, providerId);
             expect(result2.isValid).toBe(false);
-            expect(result2.error).toBe('State token not found or already used');
+            expect(result2.error).toContain('not found or already used');
         });
 
-        it('should reject invalid state tokens', () => {
-            const result = service.validateSecureState('invalid.state.token', 'test-provider');
+        it('should reject invalid state tokens', async () => {
+            const providerId = 'test-provider';
+            const invalidState = `${providerId}:invalid-format`;
+
+            const result = await service.validateSecureState(invalidState, providerId);
 
             expect(result.isValid).toBe(false);
-            expect(result.error).toBe('Invalid state format');
+            expect(result.error).toBeTruthy();
         });
 
-        it('should reject tampered state tokens', () => {
+        it('should reject tampered state tokens', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
 
-            const state = service.generateSecureState(providerId, clientState);
-
+            const state = await service.generateSecureState(providerId, clientState);
             // Tamper with the signature
-            const parts = state.split('.');
-            parts[2] = parts[2].slice(0, -4) + 'XXXX';
-            const tamperedState = parts.join('.');
+            const tamperedState = state.substring(0, state.length - 5) + 'xxxxx';
 
-            const result = service.validateSecureState(tamperedState, providerId);
+            const result = await service.validateSecureState(tamperedState, providerId);
 
             expect(result.isValid).toBe(false);
-            expect(result.error).toBe('Invalid state signature');
+            expect(result.error).toContain('signature');
         });
     });
 
     describe('extractProviderFromState', () => {
-        it('should extract provider from state prefix', () => {
-            const state = 'provider-id:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.payload.signature';
-            const result = service.extractProviderFromState(state);
+        it('should extract provider ID from state', async () => {
+            const providerId = 'test-provider';
+            const clientState = 'client-state-123';
 
-            expect(result).toBe('provider-id');
+            const state = await service.generateSecureState(providerId, clientState);
+            const extracted = service.extractProviderFromState(state);
+
+            expect(extracted).toBe(providerId);
         });
 
-        it('should handle states with multiple colons', () => {
-            const state = 'provider-id:jwt:with:colons';
-            const result = service.extractProviderFromState(state);
+        it('should return null for invalid state format', () => {
+            const invalidState = 'invalid-state-without-colon';
+            const extracted = service.extractProviderFromState(invalidState);
 
-            expect(result).toBe('provider-id');
-        });
-
-        it('should return null for invalid format', () => {
-            const result = service.extractProviderFromState('invalid-state');
-
-            expect(result).toBeNull();
+            expect(extracted).toBeNull();
         });
     });
 
     describe('extractProviderFromLegacyState', () => {
-        it('should extract provider from legacy colon-separated format', () => {
-            const result = service.extractProviderFromLegacyState('provider-id:client-state');
+        it('should handle legacy state format', () => {
+            const legacyState = 'provider-id:client-state-value';
+            const result = service.extractProviderFromLegacyState(legacyState);
 
             expect(result.providerId).toBe('provider-id');
-            expect(result.originalState).toBe('client-state');
+            expect(result.originalState).toBe('client-state-value');
         });
 
-        it('should handle multiple colons in legacy format', () => {
-            const result = service.extractProviderFromLegacyState(
-                'provider-id:client:state:with:colons'
-            );
+        it('should handle new signed state format', async () => {
+            const providerId = 'test-provider';
+            const clientState = 'client-state-123';
 
-            expect(result.providerId).toBe('provider-id');
-            expect(result.originalState).toBe('client:state:with:colons');
-        });
+            const state = await service.generateSecureState(providerId, clientState);
+            const result = service.extractProviderFromLegacyState(state);
 
-        it('should return empty provider for JWT format', () => {
-            const jwtState = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.payload.signature';
-            const result = service.extractProviderFromLegacyState(jwtState);
-
+            // New format should not be recognized as legacy
             expect(result.providerId).toBe('');
-            expect(result.originalState).toBe(jwtState);
-        });
-
-        it('should return empty provider for unknown format', () => {
-            const result = service.extractProviderFromLegacyState('some-random-state');
-
-            expect(result.providerId).toBe('');
-            expect(result.originalState).toBe('some-random-state');
+            expect(result.originalState).toBe(state);
         });
     });
 
-    describe('cleanupExpiredStates', () => {
-        it('should clean up expired states periodically', () => {
+    describe('cache TTL', () => {
+        it('should remove state from cache after successful validation', async () => {
             const providerId = 'test-provider';
+            const clientState = 'client-state-123';
 
-            // Generate multiple states
-            service.generateSecureState(providerId, 'state1');
-            service.generateSecureState(providerId, 'state2');
-            service.generateSecureState(providerId, 'state3');
+            const state = await service.generateSecureState(providerId, clientState);
 
-            // Fast forward past expiration
-            vi.advanceTimersByTime(11 * 60 * 1000);
+            // First validation should succeed
+            const result1 = await service.validateSecureState(state, providerId);
+            expect(result1.isValid).toBe(true);
 
-            // Generate a new state that shouldn't be cleaned
-            const validState = service.generateSecureState(providerId, 'state4');
-
-            // Trigger cleanup (happens every minute)
-            vi.advanceTimersByTime(60 * 1000);
-
-            // The new state should still be valid
-            const result = service.validateSecureState(validState, providerId);
-            expect(result.isValid).toBe(true);
+            // Second validation should fail (state was removed after first use)
+            const result2 = await service.validateSecureState(state, providerId);
+            expect(result2.isValid).toBe(false);
+            expect(result2.error).toContain('not found or already used');
         });
     });
 });

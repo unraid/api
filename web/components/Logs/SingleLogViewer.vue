@@ -7,6 +7,7 @@ import { ArrowDownTrayIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
 import { Button, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@unraid/ui';
 import hljs from 'highlight.js/lib/core';
 import DOMPurify from 'isomorphic-dompurify';
+import AnsiToHtml from 'ansi-to-html';
 
 import 'highlight.js/styles/github-dark.css'; // You can choose a different style
 
@@ -17,7 +18,6 @@ import javascript from 'highlight.js/lib/languages/javascript';
 import json from 'highlight.js/lib/languages/json';
 import nginx from 'highlight.js/lib/languages/nginx';
 import php from 'highlight.js/lib/languages/php';
-// Register the languages you want to support
 import plaintext from 'highlight.js/lib/languages/plaintext';
 import xml from 'highlight.js/lib/languages/xml';
 import yaml from 'highlight.js/lib/languages/yaml';
@@ -31,6 +31,33 @@ import { LOG_FILE_SUBSCRIPTION } from './log.subscription';
 // Get theme information
 const themeStore = useThemeStore();
 const isDarkMode = computed(() => themeStore.darkMode);
+
+// Initialize ANSI to HTML converter
+const ansiConverter = new AnsiToHtml({
+  fg: '#FFF',
+  bg: '#000',
+  newline: true,
+  escapeXML: true,
+  stream: false,
+  colors: {
+    0: '#000',
+    1: '#c91b00', // Red
+    2: '#00c200', // Green
+    3: '#c7c400', // Yellow
+    4: '#0225c7', // Blue
+    5: '#c930c7', // Magenta
+    6: '#00c5c7', // Cyan
+    7: '#c7c7c7', // White
+    8: '#676767', // Bright Black
+    9: '#ff6d67', // Bright Red
+    10: '#5ff967', // Bright Green
+    11: '#fefb67', // Bright Yellow
+    12: '#6871ff', // Bright Blue
+    13: '#ff76ff', // Bright Magenta
+    14: '#5ffdff', // Bright Cyan
+    15: '#fff'     // Bright White
+  }
+});
 
 // Register the languages
 hljs.registerLanguage('plaintext', plaintext);
@@ -49,10 +76,8 @@ const props = defineProps<{
   lineCount: number;
   autoScroll: boolean;
   highlightLanguage?: string; // Optional prop to specify the language for highlighting
+  filter?: string; // Optional filter to apply to log content
 }>();
-
-// Default language for highlighting
-const defaultLanguage = 'plaintext';
 
 const DEFAULT_CHUNK_SIZE = 100;
 const scrollViewportRef = ref<HTMLElement | null>(null);
@@ -83,6 +108,7 @@ const {
     path: props.logFilePath,
     lines: props.lineCount || DEFAULT_CHUNK_SIZE,
     startLine: state.currentStartLine,
+    filter: props.filter,
   }),
   () => ({
     enabled: !!props.logFilePath,
@@ -114,7 +140,7 @@ onMounted(() => {
   if (props.logFilePath) {
     subscribeToMore({
       document: LOG_FILE_SUBSCRIPTION,
-      variables: { path: props.logFilePath },
+      variables: { path: props.logFilePath, filter: props.filter },
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data || !prev) return prev;
 
@@ -127,7 +153,12 @@ onMounted(() => {
         // Update the local state with the new content
         if (newContent && state.loadedContentChunks.length > 0) {
           const lastChunk = state.loadedContentChunks[state.loadedContentChunks.length - 1];
-          lastChunk.content += newContent;
+          // Ensure there's a newline between the existing content and new content if needed
+          if (lastChunk.content && !lastChunk.content.endsWith('\n') && newContent) {
+            lastChunk.content += '\n' + newContent;
+          } else {
+            lastChunk.content += newContent;
+          }
 
           // Force scroll to bottom if auto-scroll is enabled
           if (props.autoScroll) {
@@ -191,61 +222,18 @@ watch(
 // Function to highlight log content
 const highlightLog = (content: string): string => {
   try {
-    // Determine which language to use for highlighting
-    const language = props.highlightLanguage || defaultLanguage;
+    // Convert ANSI codes to HTML
+    // This preserves the terminal colors from pino-pretty
+    const highlighted = ansiConverter.toHtml(content);
 
-    // Apply syntax highlighting
-    let highlighted = hljs.highlight(content, { language }).value;
+    // Don't apply additional regex replacements that might break the HTML
+    // The ANSI converter already handles the coloring
 
-    // Apply additional custom highlighting for common log patterns
-
-    // Highlight timestamps (various formats)
-    highlighted = highlighted.replace(
-      /\b(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\b/g,
-      '<span class="hljs-timestamp">$1</span>'
-    );
-
-    // Highlight IP addresses
-    highlighted = highlighted.replace(
-      /\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b/g,
-      '<span class="hljs-ip">$1</span>'
-    );
-
-    // Split the content into lines
-    let lines = highlighted.split('\n');
-
-    // Process each line to add error, warning, and success highlighting
-    lines = lines.map((line) => {
-      if (/(error|exception|fail|failed|failure)/i.test(line)) {
-        // Highlight error keywords
-        line = line.replace(
-          /\b(error|exception|fail|failed|failure)\b/gi,
-          '<span class="hljs-error-keyword">$1</span>'
-        );
-        // Wrap the entire line
-        return `<span class="hljs-error">${line}</span>`;
-      } else if (/(warning|warn)/i.test(line)) {
-        // Highlight warning keywords
-        line = line.replace(/\b(warning|warn)\b/gi, '<span class="hljs-warning-keyword">$1</span>');
-        // Wrap the entire line
-        return `<span class="hljs-warning">${line}</span>`;
-      } else if (/(success|successful|completed|done)/i.test(line)) {
-        // Highlight success keywords
-        line = line.replace(
-          /\b(success|successful|completed|done)\b/gi,
-          '<span class="hljs-success-keyword">$1</span>'
-        );
-        // Wrap the entire line
-        return `<span class="hljs-success">${line}</span>`;
-      }
-      return line;
+    // Sanitize the highlighted HTML while preserving style attributes for ANSI colors
+    return DOMPurify.sanitize(highlighted, {
+      ALLOWED_TAGS: ['span', 'br'],
+      ALLOWED_ATTR: ['style']
     });
-
-    // Join the lines back together
-    highlighted = lines.join('\n');
-
-    // Sanitize the highlighted HTML
-    return DOMPurify.sanitize(highlighted);
   } catch (error) {
     console.error('Error highlighting log content:', error);
     // Fallback to sanitized but not highlighted content
@@ -255,7 +243,11 @@ const highlightLog = (content: string): string => {
 
 // Computed properties
 const logContent = computed(() => {
-  const rawContent = state.loadedContentChunks.map((chunk) => chunk.content).join('');
+  // Join chunks ensuring proper newline handling
+  const rawContent = state.loadedContentChunks
+    .map((chunk) => chunk.content)
+    .filter(content => content) // Remove empty chunks
+    .join(''); // Content should already have proper newlines
   return highlightLog(rawContent);
 });
 
@@ -339,15 +331,28 @@ const downloadLogFile = async () => {
   }
 };
 
-// Refresh logs
-const refreshLogContent = () => {
+// Clear all state to initial values
+const clearState = () => {
   state.loadedContentChunks = [];
   state.currentStartLine = undefined;
   state.isAtTop = false;
   state.canLoadMore = false;
   state.initialLoadComplete = false;
   state.isLoadingMore = false;
-  refetchLogContent();
+};
+
+// Refresh logs
+const refreshLogContent = async () => {
+  // Clear the state
+  clearState();
+  
+  // Refetch with explicit variables to ensure we get the latest logs
+  await refetchLogContent({
+    path: props.logFilePath,
+    lines: props.lineCount || DEFAULT_CHUNK_SIZE,
+    startLine: undefined, // Explicitly pass undefined to get the latest lines
+    filter: props.filter,
+  });
 
   nextTick(() => {
     forceScrollToBottom();
@@ -436,7 +441,7 @@ defineExpose({ refreshLogContent });
       </div>
 
       <pre
-        class="font-mono whitespace-pre-wrap p-4 m-0 text-xs leading-6 hljs"
+        class="font-mono whitespace-pre p-4 m-0 text-xs leading-6 hljs"
         :class="{ 'theme-dark': isDarkMode, 'theme-light': !isDarkMode }"
         v-html="logContent"
       />
@@ -612,4 +617,40 @@ defineExpose({ refreshLogContent });
   color: var(--log-success-color);
   font-weight: bold;
 }
+
+/* ANSI color styles for ansi-to-html output */
+.ansi-black { color: #000; }
+.ansi-red { color: #c91b00; }
+.ansi-green { color: #00c200; }
+.ansi-yellow { color: #c7c400; }
+.ansi-blue { color: #0225c7; }
+.ansi-magenta { color: #c930c7; }
+.ansi-cyan { color: #00c5c7; }
+.ansi-white { color: #c7c7c7; }
+.ansi-bright-black { color: #676767; }
+.ansi-bright-red { color: #ff6d67; }
+.ansi-bright-green { color: #5ff967; }
+.ansi-bright-yellow { color: #fefb67; }
+.ansi-bright-blue { color: #6871ff; }
+.ansi-bright-magenta { color: #ff76ff; }
+.ansi-bright-cyan { color: #5ffdff; }
+.ansi-bright-white { color: #fff; }
+
+/* Background colors */
+.ansi-bg-black { background-color: #000; }
+.ansi-bg-red { background-color: #c91b00; }
+.ansi-bg-green { background-color: #00c200; }
+.ansi-bg-yellow { background-color: #c7c400; }
+.ansi-bg-blue { background-color: #0225c7; }
+.ansi-bg-magenta { background-color: #c930c7; }
+.ansi-bg-cyan { background-color: #00c5c7; }
+.ansi-bg-white { background-color: #c7c7c7; }
+.ansi-bg-bright-black { background-color: #676767; }
+.ansi-bg-bright-red { background-color: #ff6d67; }
+.ansi-bg-bright-green { background-color: #5ff967; }
+.ansi-bg-bright-yellow { background-color: #fefb67; }
+.ansi-bg-bright-blue { background-color: #6871ff; }
+.ansi-bg-bright-magenta { background-color: #ff76ff; }
+.ansi-bg-bright-cyan { background-color: #5ffdff; }
+.ansi-bg-bright-white { background-color: #fff; }
 </style>

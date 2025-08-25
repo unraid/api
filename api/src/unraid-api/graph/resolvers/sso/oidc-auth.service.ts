@@ -12,6 +12,7 @@ import {
     OidcProvider,
 } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
+import { OidcStateExtractor } from '@app/unraid-api/graph/resolvers/sso/oidc-state-extractor.util.js';
 import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state.service.js';
 import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
 
@@ -46,10 +47,15 @@ export class OidcAuthService {
             throw new UnauthorizedException(`Provider ${providerId} not found`);
         }
 
-        const redirectUri = this.getRedirectUri(requestOrigin);
+        // Use requestOrigin directly when provided (already validated by REST controller)
+        // Otherwise fall back to generating from config
+        const redirectUri = requestOrigin || this.getRedirectUri();
 
-        // Generate secure state with cryptographic signature
-        const secureState = this.stateService.generateSecureState(providerId, state);
+        this.logger.debug(`Using redirect URI for authorization: ${redirectUri}`);
+        this.logger.debug(`Request origin was: ${requestOrigin || 'not provided'}`);
+
+        // Generate secure state with cryptographic signature, including redirect URI
+        const secureState = await this.stateService.generateSecureState(providerId, state, redirectUri);
 
         // Build authorization URL
         if (provider.authorizationEndpoint) {
@@ -63,6 +69,11 @@ export class OidcAuthService {
             authUrl.searchParams.set('state', secureState);
             authUrl.searchParams.set('response_type', 'code');
 
+            this.logger.log(`Built authorization URL for provider ${provider.id}`);
+            this.logger.log(
+                `Authorization parameters: client_id=${provider.clientId}, redirect_uri=${redirectUri}, scope=${provider.scopes.join(' ')}, response_type=code`
+            );
+
             return authUrl.href;
         }
 
@@ -75,39 +86,37 @@ export class OidcAuthService {
             response_type: 'code',
         };
 
-        // For HTTP endpoints, we need to pass the allowInsecureRequests option
-        const serverUrl = new URL(provider.issuer || '');
-        let clientOptions: any = undefined;
-        if (serverUrl.protocol === 'http:') {
-            this.logger.debug(
-                `Building authorization URL with allowInsecureRequests for ${provider.id}`
-            );
-            clientOptions = {
-                execute: [client.allowInsecureRequests],
-            };
+        // For HTTP endpoints, we need to call allowInsecureRequests on the config
+        if (provider.issuer) {
+            try {
+                const serverUrl = new URL(provider.issuer);
+                if (serverUrl.protocol === 'http:') {
+                    this.logger.debug(`Allowing insecure requests for HTTP endpoint: ${provider.id}`);
+                    client.allowInsecureRequests(config);
+                }
+            } catch (error) {
+                this.logger.warn(`Invalid issuer URL for provider ${provider.id}: ${provider.issuer}`);
+                // Continue without special HTTP options
+            }
         }
 
         const authUrl = client.buildAuthorizationUrl(config, parameters);
+
+        this.logger.log(`Built authorization URL via discovery for provider ${provider.id}`);
+        this.logger.log(`Authorization parameters: ${JSON.stringify(parameters)}`);
 
         return authUrl.href;
     }
 
     extractProviderFromState(state: string): { providerId: string; originalState: string } {
-        // Extract provider from state prefix (no decryption needed)
-        const providerId = this.stateService.extractProviderFromState(state);
+        return OidcStateExtractor.extractProviderFromState(state, this.stateService);
+    }
 
-        if (providerId) {
-            return {
-                providerId,
-                originalState: state,
-            };
-        }
-
-        // Fallback for unknown formats
-        return {
-            providerId: '',
-            originalState: state,
-        };
+    /**
+     * Get the state service for external utilities
+     */
+    getStateService(): OidcStateService {
+        return this.stateService;
     }
 
     async handleCallback(
@@ -122,9 +131,17 @@ export class OidcAuthService {
             throw new UnauthorizedException(`Provider ${providerId} not found`);
         }
 
-        try {
-            const redirectUri = this.getRedirectUri(requestOrigin);
+        // Extract and validate state, including the stored redirect URI
+        const stateInfo = await OidcStateExtractor.extractAndValidateState(state, this.stateService);
+        if (!stateInfo.redirectUri) {
+            throw new UnauthorizedException('Missing redirect URI in state');
+        }
 
+        // Use the redirect URI that was stored during authorization
+        const redirectUri = stateInfo.redirectUri;
+        this.logger.debug(`Using stored redirect URI from state: ${redirectUri}`);
+
+        try {
             // Always use openid-client for consistency
             const config = await this.getOrCreateConfig(provider);
 
@@ -160,14 +177,13 @@ export class OidcAuthService {
 
             this.logger.debug(`Token exchange URL (matches redirect_uri): ${currentUrl.href}`);
 
-            // Validate secure state
-            const stateValidation = this.stateService.validateSecureState(state, providerId);
-            if (!stateValidation.isValid) {
-                this.logger.error(`State validation failed: ${stateValidation.error}`);
-                throw new UnauthorizedException(stateValidation.error || 'Invalid state parameter');
+            // State was already validated in extractAndValidateState above, use that result
+            // The clientState should be present after successful validation, but handle the edge case
+            if (!stateInfo.clientState) {
+                this.logger.warn('Client state missing after successful validation');
+                throw new UnauthorizedException('Invalid state: missing client state');
             }
-
-            const originalState = stateValidation.clientState!;
+            const originalState = stateInfo.clientState;
             this.logger.debug(`Exchanging code for tokens with provider ${providerId}`);
             this.logger.debug(`Client state extracted: ${originalState}`);
 
@@ -189,24 +205,36 @@ export class OidcAuthService {
                 this.logger.debug(`Config issuer: ${config.serverMetadata().issuer}`);
                 this.logger.debug(`Config token endpoint: ${config.serverMetadata().token_endpoint}`);
 
-                // For HTTP endpoints, we need to pass the allowInsecureRequests option
-                const serverUrl = new URL(provider.issuer || '');
-                let clientOptions: any = undefined;
-                if (serverUrl.protocol === 'http:') {
-                    this.logger.debug(`Token exchange with allowInsecureRequests for ${provider.id}`);
-                    clientOptions = {
-                        execute: [client.allowInsecureRequests],
-                    };
+                // Log the complete token exchange request details
+                const tokenEndpoint = config.serverMetadata().token_endpoint;
+                this.logger.debug(`Full token endpoint URL: ${tokenEndpoint}`);
+                this.logger.debug(`Authorization code: ${code.substring(0, 10)}...`);
+                this.logger.debug(`Redirect URI in token request: ${redirectUri}`);
+                this.logger.debug(`Client ID: ${provider.clientId}`);
+                this.logger.debug(`Client secret configured: ${provider.clientSecret ? 'Yes' : 'No'}`);
+                this.logger.debug(`Expected state value: ${originalState}`);
+
+                // For HTTP endpoints, we need to call allowInsecureRequests on the config
+                if (provider.issuer) {
+                    try {
+                        const serverUrl = new URL(provider.issuer);
+                        if (serverUrl.protocol === 'http:') {
+                            this.logger.debug(
+                                `Allowing insecure requests for HTTP endpoint: ${provider.id}`
+                            );
+                            client.allowInsecureRequests(config);
+                        }
+                    } catch (error) {
+                        this.logger.warn(
+                            `Invalid issuer URL for provider ${provider.id}: ${provider.issuer}`
+                        );
+                        // Continue without special HTTP options
+                    }
                 }
 
-                tokens = await client.authorizationCodeGrant(
-                    config,
-                    cleanUrl,
-                    {
-                        expectedState: originalState,
-                    },
-                    clientOptions
-                );
+                tokens = await client.authorizationCodeGrant(config, cleanUrl, {
+                    expectedState: originalState,
+                });
                 this.logger.debug(
                     `Token exchange successful, received tokens: ${Object.keys(tokens).join(', ')}`
                 );
@@ -215,20 +243,97 @@ export class OidcAuthService {
                     tokenError instanceof Error ? tokenError.message : String(tokenError);
                 this.logger.error(`Token exchange failed: ${errorMessage}`);
 
+                // Enhanced error logging for debugging
+                if (tokenError instanceof Error) {
+                    // Log the error type and full details
+                    this.logger.error(`Error type: ${tokenError.constructor.name}`);
+
+                    // Special handling for content-type errors
+                    if (
+                        errorMessage.includes('unexpected response content-type') ||
+                        (tokenError as any).code === 'OAUTH_RESPONSE_IS_NOT_JSON'
+                    ) {
+                        this.logger.error('Token endpoint returned non-JSON response.');
+                        this.logger.error('This typically means:');
+                        this.logger.error(
+                            '1. The token endpoint URL is incorrect (check for typos or wrong paths)'
+                        );
+                        this.logger.error('2. The server returned an HTML error page instead of JSON');
+                        this.logger.error(
+                            '3. Authentication failed (invalid client_id or client_secret)'
+                        );
+                        this.logger.error('4. A proxy/firewall is intercepting the request');
+                        this.logger.error(
+                            `Configured token endpoint: ${config.serverMetadata().token_endpoint}`
+                        );
+                        this.logger.error('Please verify your OIDC provider configuration.');
+                    }
+
+                    if (tokenError.stack) {
+                        this.logger.debug(`Stack trace: ${tokenError.stack}`);
+                    }
+
+                    // Check for common openid-client error patterns
+                    if ('response' in tokenError) {
+                        const response = (tokenError as any).response;
+                        if (response) {
+                            this.logger.error(`HTTP Response Status: ${response.status}`);
+                            this.logger.error(`HTTP Response Status Text: ${response.statusText}`);
+                            if (response.body) {
+                                this.logger.error('HTTP Response Body: %o', response.body);
+                            }
+                            if (response.headers) {
+                                this.logger.debug('HTTP Response Headers: %o', response.headers);
+                            }
+                        }
+                    }
+
+                    // Try to extract body from error if available
+                    if ('body' in tokenError && (tokenError as any).body) {
+                        const body = (tokenError as any).body;
+                        if (typeof body === 'string') {
+                            this.logger.error(
+                                `Error response body (string): ${body.substring(0, 1000)}`
+                            );
+                        } else {
+                            this.logger.error('Error response body: %o', body);
+                        }
+                    }
+
+                    // Check for cause property (newer error patterns)
+                    if ('cause' in tokenError && tokenError.cause) {
+                        this.logger.error('Error cause: %o', tokenError.cause);
+                    }
+
+                    // Log any additional error properties
+                    const errorKeys = Object.keys(tokenError).filter(
+                        (k) => k !== 'message' && k !== 'stack'
+                    );
+                    if (errorKeys.length > 0) {
+                        this.logger.debug(`Additional error properties: ${errorKeys.join(', ')}`);
+                        for (const key of errorKeys) {
+                            const value = (tokenError as any)[key];
+                            if (value !== undefined && value !== null) {
+                                this.logger.debug(`${key}: %o`, value);
+                            }
+                        }
+                    }
+                }
+
                 // Check if error message contains the "unexpected JWT claim" text
                 if (errorMessage.includes('unexpected JWT claim value encountered')) {
                     this.logger.error(
                         `unexpected JWT claim value encountered during token validation by openid-client`
                     );
-                    this.logger.debug(
-                        `Token exchange error details: ${JSON.stringify(tokenError, null, 2)}`
-                    );
+                    this.logger.debug('Token exchange error details: %o', tokenError);
 
                     // Log the actual vs expected issuer
                     this.logger.error(
                         `This error typically means the 'iss' claim in the JWT doesn't match the expected issuer`
                     );
                     this.logger.error(`Check that your provider's issuer URL is configured correctly`);
+                    this.logger.error(`Expected issuer: ${config.serverMetadata().issuer}`);
+                    this.logger.error(`Provider configured issuer: ${provider.issuer}`);
                 }
 
                 throw tokenError;
@@ -318,7 +423,7 @@ export class OidcAuthService {
 
                 // Create client options with HTTP support if needed
                 const serverUrl = new URL(provider.issuer);
-                let clientOptions: any = undefined;
+                let clientOptions: { execute: Array<typeof client.allowInsecureRequests> } | undefined;
                 if (serverUrl.protocol === 'http:') {
                     this.logger.debug(`Allowing HTTP for ${provider.id} as specified by user`);
                     clientOptions = {
@@ -336,6 +441,10 @@ export class OidcAuthService {
                         `Authorization endpoint: ${config.serverMetadata().authorization_endpoint}`
                     );
                     this.logger.debug(`Token endpoint: ${config.serverMetadata().token_endpoint}`);
+                    this.logger.debug(`JWKS URI: ${config.serverMetadata().jwks_uri || 'Not provided'}`);
+                    this.logger.debug(
+                        `Userinfo endpoint: ${config.serverMetadata().userinfo_endpoint || 'Not provided'}`
+                    );
                     this.configCache.set(cacheKey, config);
                     return config;
                 } catch (discoveryError) {
@@ -344,16 +453,36 @@ export class OidcAuthService {
                     this.logger.warn(`Discovery failed for ${provider.id}: ${errorMessage}`);
 
                     // Log more details about the discovery error
-                    this.logger.debug(
-                        `Discovery URL attempted: ${provider.issuer}/.well-known/openid-configuration`
-                    );
-                    this.logger.debug(
-                        `Full discovery error: ${JSON.stringify(discoveryError, null, 2)}`
-                    );
+                    const discoveryUrl = `${provider.issuer}/.well-known/openid-configuration`;
+                    this.logger.debug(`Discovery URL attempted: ${discoveryUrl}`);
 
-                    // Log stack trace for better debugging
-                    if (discoveryError instanceof Error && discoveryError.stack) {
-                        this.logger.debug(`Stack trace: ${discoveryError.stack}`);
+                    // Enhanced discovery error logging
+                    if (discoveryError instanceof Error) {
+                        this.logger.debug(`Discovery error type: ${discoveryError.constructor.name}`);
+
+                        // Check for response details in the error
+                        if ('response' in discoveryError) {
+                            const response = (discoveryError as any).response;
+                            if (response) {
+                                this.logger.error(`Discovery HTTP Status: ${response.status}`);
+                                this.logger.error(`Discovery HTTP Status Text: ${response.statusText}`);
+                                if (response.body) {
+                                    this.logger.error('Discovery Response Body: %o', response.body);
+                                }
+                            }
+                        }
+
+                        // Check for cause
+                        if ('cause' in discoveryError && discoveryError.cause) {
+                            this.logger.debug('Discovery error cause: %o', discoveryError.cause);
+                        }
+
+                        this.logger.debug('Full discovery error: %o', discoveryError);
+
+                        // Log stack trace for better debugging
+                        if (discoveryError.stack) {
+                            this.logger.debug(`Stack trace: ${discoveryError.stack}`);
+                        }
                     }
 
                     // If discovery fails but we have manual endpoints, use them
@@ -505,9 +634,7 @@ export class OidcAuthService {
             );
         }
 
-        this.logger.debug(
-            `Authorization rules to evaluate: ${JSON.stringify(provider.authorizationRules, null, 2)}`
-        );
+        this.logger.debug('Authorization rules to evaluate: %o', provider.authorizationRules);
 
         // Evaluate the rules
         const ruleMode = provider.authorizationRuleMode || AuthorizationRuleMode.OR;
@@ -664,38 +791,43 @@ export class OidcAuthService {
     }
 
     private getRedirectUri(requestOrigin?: string): string {
-        // If we have the full origin (protocol://host), use it directly
-        if (requestOrigin) {
-            // Parse the origin to extract protocol and host
-            try {
-                const url = new URL(requestOrigin);
-                const { protocol, hostname, port } = url;
+        const CALLBACK_PATH = '/graphql/api/auth/oidc/callback';
 
-                // Reconstruct the URL, removing default ports
-                let cleanOrigin = `${protocol}//${hostname}`;
-
-                // Add port if it's not the default for the protocol
-                if (
-                    port &&
-                    !(protocol === 'https:' && port === '443') &&
-                    !(protocol === 'http:' && port === '80')
-                ) {
-                    cleanOrigin += `:${port}`;
-                }
-
-                // Special handling for localhost development with Nuxt proxy
-                if (hostname === 'localhost' && port === '3000') {
-                    return `${cleanOrigin}/graphql/api/auth/oidc/callback`;
-                }
-
-                return `${cleanOrigin}/graphql/api/auth/oidc/callback`;
-            } catch (e) {
-                this.logger.warn(`Failed to parse request origin: ${requestOrigin}, error: ${e}`);
-            }
+        if (!requestOrigin) {
+            // No origin provided, use fallback
+            const baseUrl = this.configService.get('BASE_URL', 'http://tower.local');
+            this.logger.debug(`Using fallback redirect URI: ${baseUrl}${CALLBACK_PATH}`);
+            return `${baseUrl}${CALLBACK_PATH}`;
         }
 
-        // Fall back to configured BASE_URL or default
-        const baseUrl = this.configService.get('BASE_URL', 'http://tower.local');
-        return `${baseUrl}/graphql/api/auth/oidc/callback`;
+        try {
+            const url = new URL(requestOrigin);
+
+            // Check if this is already a full redirect URI
+            if (url.pathname.endsWith(CALLBACK_PATH)) {
+                // Use the full redirect URI as-is (preserving any ports)
+                this.logger.debug(`Using full redirect URI from client: ${requestOrigin}`);
+                return requestOrigin;
+            }
+
+            // Build redirect URI from origin
+            const origin = this.buildOriginWithPort(url);
+            const redirectUri = `${origin}${CALLBACK_PATH}`;
+
+            this.logger.debug(`Constructed redirect URI: ${redirectUri}`);
+            return redirectUri;
+        } catch (e) {
+            this.logger.warn(`Failed to parse request origin: ${requestOrigin}, error: ${e}`);
+
+            // Fall back to configured BASE_URL
+            const baseUrl = this.configService.get('BASE_URL', 'http://tower.local');
+            this.logger.debug(`Using fallback redirect URI: ${baseUrl}${CALLBACK_PATH}`);
+            return `${baseUrl}${CALLBACK_PATH}`;
+        }
+    }
+
+    private buildOriginWithPort(url: URL): string {
+        // URL.origin properly handles IPv6, default ports, and URL composition
+        return url.origin;
     }
 }
