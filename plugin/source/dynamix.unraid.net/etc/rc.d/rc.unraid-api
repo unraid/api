@@ -1,9 +1,6 @@
 #!/bin/bash
 # unraid-api-handler
 
-# shellcheck source=/dev/null
-source /etc/profile
-
 unraid_binary_path="/usr/local/bin/unraid-api"
 api_base_dir="/usr/local/unraid-api"
 scripts_dir="/usr/local/share/dynamix.unraid.net/scripts"
