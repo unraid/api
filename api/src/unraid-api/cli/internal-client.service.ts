@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { readFile } from 'fs/promises';
 
 import type { InternalGraphQLClientFactory } from '@unraid/shared';
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client/core/index.js';
@@ -25,10 +26,23 @@ export class CliInternalClientService {
     ) {}
 
     /**
-     * Get the admin API key using the AdminKeyService.
-     * This ensures the key exists and is available for CLI operations.
+     * Get the admin API key for CLI operations.
+     * First tries to read from /var/run/unraid-api/cli.key, then falls back to AdminKeyService.
      */
     private async getLocalApiKey(): Promise<string> {
+        // Try to read ephemeral key from /var/run first
+        try {
+            const ephemeralKey = await readFile('/var/run/unraid-api/cli.key', 'utf-8');
+            if (ephemeralKey) {
+                this.logger.debug('Using ephemeral CLI key from runtime directory');
+                return ephemeralKey.trim();
+            }
+        } catch (error) {
+            // File doesn't exist or not readable, fall back to service
+            this.logger.debug('Ephemeral key file not found, falling back to AdminKeyService');
+        }
+
+        // Fall back to AdminKeyService
         try {
             return await this.adminKeyService.getOrCreateLocalAdminKey();
         } catch (error) {
