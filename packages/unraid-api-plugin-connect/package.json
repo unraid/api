@@ -24,7 +24,7 @@
     "license": "GPL-2.0-or-later",
     "description": "Unraid Connect plugin for Unraid API",
     "devDependencies": {
-        "@apollo/client": "3.13.9",
+        "@apollo/client": "4.0.1",
         "@faker-js/faker": "9.9.0",
         "@graphql-codegen/cli": "5.0.7",
         "@graphql-typed-document-node/core": "3.2.0",
@@ -73,7 +73,7 @@
         "node-cache": "5.1.2"
     },
     "peerDependencies": {
-        "@apollo/client": "3.13.9",
+        "@apollo/client": "4.0.1",
         "@graphql-typed-document-node/core": "3.2.0",
         "@jsonforms/core": "3.6.0",
         "@nestjs/apollo": "13.1.0",
