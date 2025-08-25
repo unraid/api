@@ -242,6 +242,25 @@ export class UrlResolverService {
     }
 
     /**
+     * Validates and sanitizes a WAN port value.
+     * 
+     * @param rawPort - The raw port value from configuration
+     * @returns A valid port number between 1-65535, or undefined if invalid
+     */
+    private validateWanPort(rawPort: unknown): number | undefined {
+        if (rawPort == null || rawPort === '') {
+            return undefined;
+        }
+
+        const port = Number(rawPort);
+        if (!Number.isInteger(port) || port < 1 || port > 65535) {
+            return undefined;
+        }
+
+        return port;
+    }
+
+    /**
      * Resolves all available server access URLs from the nginx configuration.
      * This is the main method of the service that aggregates all possible access URLs.
      *
@@ -260,7 +279,8 @@ export class UrlResolverService {
         }
 
         const { nginx } = store.emhttp;
-        const wanport = this.configService.getOrThrow('connect.config.wanport', { infer: true });
+        const rawWanPort = this.configService.get('connect.config.wanport', { infer: true });
+        const wanport = this.validateWanPort(rawWanPort);
 
         if (!nginx || Object.keys(nginx).length === 0) {
             return { urls: [], errors: [new Error('Nginx Not Loaded')] };
