@@ -14,6 +14,49 @@ directive @usePermissions(
   possession: AuthPossession
 ) on FIELD_DEFINITION
 
+type ParityCheck {
+  """Date of the parity check"""
+  date: DateTime
+
+  """Duration of the parity check in seconds"""
+  duration: Int
+
+  """Speed of the parity check, in MB/s"""
+  speed: String
+
+  """Status of the parity check"""
+  status: ParityCheckStatus!
+
+  """Number of errors during the parity check"""
+  errors: Int
+
+  """Progress percentage of the parity check"""
+  progress: Int
+
+  """Whether corrections are being written to parity"""
+  correcting: Boolean
+
+  """Whether the parity check is paused"""
+  paused: Boolean
+
+  """Whether the parity check is running"""
+  running: Boolean
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+enum ParityCheckStatus {
+  NEVER_RUN
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
 type Capacity {
   """Free capacity"""
   free: String!
@@ -155,6 +198,9 @@ type UnraidArray implements Node {
 
   """Parity disks in the current array"""
   parities: [ArrayDisk!]!
+
+  """Current parity check status"""
+  parityCheckStatus: ParityCheck!
 
   """Data disks in the current array"""
   disks: [ArrayDisk!]!
@@ -835,40 +881,6 @@ input CreateRCloneRemoteInput {
 input DeleteRCloneRemoteInput {
   name: String!
 }
-
-type ParityCheck {
-  """Date of the parity check"""
-  date: DateTime
-
-  """Duration of the parity check in seconds"""
-  duration: Int
-
-  """Speed of the parity check, in MB/s"""
-  speed: String
-
-  """Status of the parity check"""
-  status: String
-
-  """Number of errors during the parity check"""
-  errors: Int
-
-  """Progress percentage of the parity check"""
-  progress: Int
-
-  """Whether corrections are being written to parity"""
-  correcting: Boolean
-
-  """Whether the parity check is paused"""
-  paused: Boolean
-
-  """Whether the parity check is running"""
-  running: Boolean
-}
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 type Config implements Node {
   id: PrefixedID!
