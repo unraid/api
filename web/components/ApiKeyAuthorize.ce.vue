@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Button } from '@unraid/ui';
+import { ref, watch } from 'vue';
+import { Button, Input } from '@unraid/ui';
+import { useClipboard } from '@vueuse/core';
+import { ClipboardDocumentIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline';
+import { storeToRefs } from 'pinia';
 import { useApiKeyAuthorization } from '~/composables/useApiKeyAuthorization.js';
 import { useApiKeyAuthorizationForm } from '~/composables/useApiKeyAuthorizationForm.js';
 import { useApiKeyStore } from '~/store/apiKey.js';
@@ -21,11 +24,36 @@ const {
 
 // Use the API key store to control the global modal
 const apiKeyStore = useApiKeyStore();
+const { createdKey, modalVisible } = storeToRefs(apiKeyStore);
 
 // Component state
 const showSuccess = ref(false);
 const createdApiKey = ref('');
 const error = ref('');
+const showKey = ref(false);
+
+// Use clipboard for copying
+const { copy, copied } = useClipboard();
+
+// Watch for modal close to restore success view
+watch(modalVisible, (isVisible) => {
+  if (!isVisible && createdKey.value && createdApiKey.value) {
+    // Modal was closed, restore success view after editing
+    showSuccess.value = true;
+  }
+});
+
+// Toggle key visibility
+const toggleShowKey = () => {
+  showKey.value = !showKey.value;
+};
+
+// Copy API key
+const copyApiKey = async () => {
+  if (createdApiKey.value) {
+    await copy(createdApiKey.value);
+  }
+};
 
 // Open the authorization modal
 const openAuthorizationModal = () => {
@@ -48,16 +76,15 @@ const handleAuthorize = (apiKey: string) => {
   showSuccess.value = true;
   apiKeyStore.hideModal();
   
-  // If redirect URI is provided, redirect after a delay
-  if (hasValidRedirectUri.value && apiKey) {
-    setTimeout(() => returnToApp(), 3000);
-  }
+  // No automatic redirect - user must click the button
 };
 
-// Navigate back to Unraid webgui home
-const navigateToWebgui = () => {
-  if (typeof window !== 'undefined') {
-    window.location.assign('/');
+// Open the edit modal for the created key
+const modifyApiKey = () => {
+  if (createdKey.value) {
+    // Open the modal in edit mode with the created key
+    apiKeyStore.showModal(createdKey.value);
+    // Don't clear states - the watchers will handle the flow
   }
 };
 
@@ -99,90 +126,158 @@ const returnToApp = () => {
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto p-6">
+  <div class="max-w-2xl mx-auto p-6">
     <!-- Success state -->
-    <div v-if="showSuccess && createdApiKey" class="bg-background rounded-lg shadow p-6 border border-muted">
-      <div class="space-y-4">
-        <div class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-          <h3 class="text-lg font-medium text-green-900 dark:text-green-100 mb-2">
-            API Key Created Successfully!
-          </h3>
-          <p class="text-green-800 dark:text-green-200">
-            The API key has been created with the approved permissions.
-          </p>
+    <div v-if="showSuccess && createdApiKey" class="bg-background rounded-lg shadow-sm border border-muted">
+      <!-- Header -->
+      <div class="p-6 pb-4 border-b border-muted">
+        <div class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
+            <svg class="h-5 w-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold">API Key Created Successfully</h3>
+            <p class="text-sm text-muted-foreground">
+              Your API key for <strong>{{ displayAppName }}</strong> has been created
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p-6 space-y-4">
+        <!-- API Key section -->
+        <div>
+          <label class="text-sm font-medium text-muted-foreground mb-2 block">Generated API Key</label>
+          <div class="p-3 bg-secondary rounded-lg">
+            <div class="flex gap-2 mb-2">
+              <div class="relative flex-1">
+                <Input
+                  :model-value="showKey ? createdApiKey : '••••••••••••••••••••••••••••••••'"
+                  class="font-mono text-sm pr-10 bg-background"
+                  readonly
+                />
+                <button
+                  type="button"
+                  class="absolute inset-y-0 right-2 flex items-center px-1 text-muted-foreground hover:text-foreground"
+                  @click="toggleShowKey"
+                >
+                  <component :is="showKey ? EyeSlashIcon : EyeIcon" class="w-4 h-4" />
+                </button>
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                @click="copyApiKey"
+              >
+                <ClipboardDocumentIcon class="w-4 h-4" />
+              </Button>
+            </div>
+            <p class="text-xs text-muted-foreground">
+              {{ copied ? '✓ Copied to clipboard' : 'Save this key securely for your application.' }}
+            </p>
+          </div>
         </div>
 
-        <div class="bg-secondary rounded-lg p-4">
-          <p class="text-sm font-medium mb-2">Your API Key:</p>
-          <code class="block text-sm font-mono break-all bg-background p-3 rounded border border-muted">
-            {{ createdApiKey }}
-          </code>
-          <p class="mt-2 text-sm text-muted-foreground">
-            Save this key securely. It won't be shown again.
-          </p>
+        <!-- Redirect info if available -->
+        <div v-if="hasValidRedirectUri">
+          <label class="text-sm font-medium text-muted-foreground mb-2 block">Next Step</label>
+          <div class="p-3 bg-secondary rounded-lg">
+            <p class="text-sm">
+              Send this API key to complete the authorization
+            </p>
+            <p class="text-xs text-muted-foreground mt-1">
+              Destination: <code class="bg-background px-1.5 py-0.5 rounded">{{ authParams.redirectUri }}</code>
+            </p>
+          </div>
         </div>
+      </div>
 
-        <div class="flex gap-3">
-          <Button
-            v-if="hasValidRedirectUri"
-            class="flex-1"
-            @click="returnToApp"
-          >
-            Return to {{ authParams.name }}
-          </Button>
-          <Button
-            variant="outline"
-            class="flex-1"
-            @click="navigateToWebgui"
-          >
-            Return to Unraid
-          </Button>
-        </div>
+      <!-- Action buttons -->
+      <div class="p-6 pt-2 flex gap-3">
+        <Button
+          variant="outline"
+          class="flex-1"
+          @click="modifyApiKey"
+        >
+          Modify API Key
+        </Button>
+        <Button
+          v-if="hasValidRedirectUri"
+          variant="primary"
+          class="flex-1"
+          @click="returnToApp"
+        >
+          Send Key to {{ authParams.name }}
+        </Button>
       </div>
     </div>
 
     <!-- Authorization form using ApiKeyCreate component -->
-    <div v-else>
-      <div class="mb-6 text-center">
-        <h2 class="text-2xl font-bold mb-2">API Key Authorization</h2>
-        <p class="text-muted-foreground">
-          <strong>{{ displayAppName }}</strong> is requesting API access to your Unraid server
-        </p>
+    <div v-else class="bg-background rounded-lg shadow-sm border border-muted">
+      <!-- Header -->
+      <div class="p-6 pb-4 border-b border-muted">
+        <div class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center flex-shrink-0">
+            <svg class="h-5 w-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold">API Key Authorization Request</h3>
+            <p class="text-sm text-muted-foreground">
+              <strong>{{ displayAppName }}</strong> is requesting API access to your Unraid server
+            </p>
+          </div>
+        </div>
       </div>
 
-      <!-- Authorization details -->
-      <div class="bg-background rounded-lg shadow p-6 border border-muted">
-        <div v-if="hasPermissions" class="mb-4">
-          <h3 class="text-sm font-semibold mb-2">Requested Permissions:</h3>
-          <p class="text-sm text-muted-foreground">
-            {{ permissionsSummary }}
-          </p>
+      <!-- Content -->
+      <div class="p-6 space-y-4">
+        <!-- Permissions section -->
+        <div>
+          <label class="text-sm font-medium text-muted-foreground mb-2 block">Requested Permissions</label>
+          <div v-if="hasPermissions" class="p-3 bg-secondary rounded-lg">
+            <p class="text-sm">{{ permissionsSummary }}</p>
+          </div>
+          <div v-else class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <p class="text-sm text-amber-800 dark:text-amber-200">
+              No specific permissions requested. The application may be requesting basic access.
+            </p>
+          </div>
         </div>
         
-        <div v-else class="mb-4">
-          <p class="text-sm text-amber-600 dark:text-amber-400">
-            No specific permissions requested. The application may be requesting basic access.
-          </p>
+        <!-- Redirect info if available -->
+        <div v-if="hasValidRedirectUri">
+          <label class="text-sm font-medium text-muted-foreground mb-2 block">After Authorization</label>
+          <div class="p-3 bg-secondary rounded-lg">
+            <p class="text-sm">
+              You will need to confirm and send the API key to the application
+            </p>
+            <p class="text-xs text-muted-foreground mt-1">
+              Destination: <code class="bg-background px-1.5 py-0.5 rounded">{{ authParams.redirectUri }}</code>
+            </p>
+          </div>
         </div>
-        
-        <p class="text-muted-foreground mb-4">
-          Click the button below to review the detailed permissions and authorize access.
-        </p>
-        
+      </div>
+
+      <!-- Action buttons -->
+      <div class="p-6 pt-2 flex gap-3">
         <Button
-          class="w-full"
+          variant="outline"
+          class="flex-1"
+          @click="deny"
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="primary"
+          class="flex-1"
           @click="openAuthorizationModal"
         >
           Review Permissions & Authorize
-        </Button>
-      </div>
-
-      <div class="mt-4 text-center">
-        <Button
-          variant="ghost"
-          @click="deny"
-        >
-          Cancel and return
         </Button>
       </div>
     </div>

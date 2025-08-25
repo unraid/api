@@ -595,7 +595,7 @@ const copyApiKey = async () => {
           {{ createdKey.key }}
         </code>
         <p class="text-xs text-muted-foreground mt-2">
-          Save this key securely. You won't be able to see it again.
+          Save this key securely for your application.
         </p>
       </div>
     </div>
