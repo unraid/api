@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.16.0](https://github.com/unraid/api/compare/v4.15.1...v4.16.0) (2025-08-25)
+
+
+### Features
+
+* add `parityCheckStatus` field to `array` query ([#1611](https://github.com/unraid/api/issues/1611)) ([c508366](https://github.com/unraid/api/commit/c508366702b9fa20d9ed05559fe73da282116aa6))
+
+
+### Bug Fixes
+
+* **connect:** clear `wanport` upon disabling remote access ([#1624](https://github.com/unraid/api/issues/1624)) ([9df6a3f](https://github.com/unraid/api/commit/9df6a3f5ebb0319aa7e3fe3be6159d39ec6f587f))
+* **connect:** valid LAN FQDN while remote access is enabled ([#1625](https://github.com/unraid/api/issues/1625)) ([aa58888](https://github.com/unraid/api/commit/aa588883cc2e2fe4aa4aea1d035236c888638f5b))
+* retry VMs init for up to 2 min ([#1612](https://github.com/unraid/api/issues/1612)) ([b2e7801](https://github.com/unraid/api/commit/b2e78012384e6b3f2630341281fc811026be23b9))
+
 ## [4.15.1](https://github.com/unraid/api/compare/v4.15.0...v4.15.1) (2025-08-20)
 
 
