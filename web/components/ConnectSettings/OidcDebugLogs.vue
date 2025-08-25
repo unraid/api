@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Button } from '@unraid/ui';
-import { ArrowPathIcon, EyeIcon, EyeSlashIcon, FunnelIcon } from '@heroicons/vue/24/outline';
+import { Button, Input } from '@unraid/ui';
+import { ArrowPathIcon, EyeIcon, EyeSlashIcon, MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import SingleLogViewer from '../Logs/SingleLogViewer.vue';
 
 // No props needed anymore
 
 const showLogs = ref(false);
 const autoScroll = ref(true);
-const filterEnabled = ref(true);
+const filterText = ref('OIDC');
 const logViewerRef = ref<InstanceType<typeof SingleLogViewer> | null>(null);
 
 const logFilePath = computed(() => '/var/log/graphql-api.log');
-const filter = computed(() => filterEnabled.value ? 'OIDC' : undefined);
 
 const refreshLogs = () => {
   logViewerRef.value?.refreshLogContent();
@@ -22,12 +21,6 @@ const toggleLogVisibility = () => {
   showLogs.value = !showLogs.value;
 };
 
-const toggleFilter = () => {
-  filterEnabled.value = !filterEnabled.value;
-  if (logViewerRef.value) {
-    refreshLogs();
-  }
-};
 </script>
 
 <template>
@@ -40,16 +33,16 @@ const toggleFilter = () => {
             View real-time OIDC authentication and configuration logs
           </p>
         </div>
-        <div class="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            :title="filterEnabled ? 'Show all logs' : 'Show only OIDC logs'"
-            @click="toggleFilter"
-          >
-            <FunnelIcon class="h-4 w-4" :class="{ 'text-primary': filterEnabled }" />
-            <span class="ml-2">{{ filterEnabled ? 'OIDC Only' : 'All Logs' }}</span>
-          </Button>
+        <div class="flex gap-2 items-center">
+          <div class="relative">
+            <MagnifyingGlassIcon class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              v-model="filterText"
+              type="text"
+              placeholder="Filter logs..."
+              class="pl-8 pr-2 py-1 h-8 w-48 text-sm"
+            />
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -77,14 +70,14 @@ const toggleFilter = () => {
           :log-file-path="logFilePath"
           :line-count="100"
           :auto-scroll="autoScroll"
-          :filter="filter"
+          :client-filter="filterText"
           highlight-language="plaintext"
           class="h-full"
         />
       </div>
       <div class="mt-2 flex justify-between items-center text-xs text-muted-foreground">
         <span>
-          {{ filterEnabled ? 'Showing OIDC-related entries only' : 'Showing all log entries' }}
+          {{ filterText ? `Filtering logs for: "${filterText}"` : 'Showing all log entries' }}
         </span>
         <label class="flex items-center gap-2 cursor-pointer">
           <input

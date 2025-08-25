@@ -24,6 +24,10 @@ interface JwtClaims {
     [claim: string]: unknown;
 }
 
+interface AuthorizationCodeGrantChecks {
+    expectedState?: string;
+}
+
 @Injectable()
 export class OidcAuthService {
     private readonly logger = new Logger(OidcAuthService.name);
@@ -199,7 +203,7 @@ export class OidcAuthService {
 
             this.logger.debug(`Clean URL for token exchange: ${cleanUrl.href}`);
 
-            let tokens;
+            let tokens: client.TokenEndpointResponse;
             try {
                 this.logger.debug(`Starting token exchange with openid-client`);
                 this.logger.debug(`Config issuer: ${config.serverMetadata().issuer}`);
@@ -213,6 +217,18 @@ export class OidcAuthService {
                 this.logger.debug(`Client ID: ${provider.clientId}`);
                 this.logger.debug(`Client secret configured: ${provider.clientSecret ? 'Yes' : 'No'}`);
                 this.logger.debug(`Expected state value: ${originalState}`);
+
+                // Log the server metadata to check for any configuration issues
+                const metadata = config.serverMetadata();
+                this.logger.debug(
+                    `Server supports response types: ${metadata.response_types_supported?.join(', ') || 'not specified'}`
+                );
+                this.logger.debug(
+                    `Server grant types: ${metadata.grant_types_supported?.join(', ') || 'not specified'}`
+                );
+                this.logger.debug(
+                    `Token endpoint auth methods: ${metadata.token_endpoint_auth_methods_supported?.join(', ') || 'not specified'}`
+                );
 
                 // For HTTP endpoints, we need to call allowInsecureRequests on the config
                 if (provider.issuer) {
@@ -232,28 +248,44 @@ export class OidcAuthService {
                     }
                 }
 
-                tokens = await client.authorizationCodeGrant(config, cleanUrl, {
+                // Add request interceptor to log the actual request being sent
+                const requestChecks: AuthorizationCodeGrantChecks = {
                     expectedState: originalState,
-                });
+                };
+
+                // Log what we're about to send
+                this.logger.debug(`Executing authorizationCodeGrant with:`);
+                this.logger.debug(`- Clean URL: ${cleanUrl.href}`);
+                this.logger.debug(`- Expected state: ${originalState}`);
+                this.logger.debug(`- Grant type: authorization_code`);
+
+                tokens = await client.authorizationCodeGrant(config, cleanUrl, requestChecks);
+
                 this.logger.debug(
                     `Token exchange successful, received tokens: ${Object.keys(tokens).join(', ')}`
                 );
             } catch (tokenError) {
+                // Log the full error object first to capture all details
+                this.logger.error('Token exchange failed with error: %o', tokenError);
+
                 const errorMessage =
                     tokenError instanceof Error ? tokenError.message : String(tokenError);
-                this.logger.error(`Token exchange failed: ${errorMessage}`);
 
                 // Enhanced error logging for debugging
                 if (tokenError instanceof Error) {
                     // Log the error type and full details
                     this.logger.error(`Error type: ${tokenError.constructor.name}`);
+                    this.logger.error(`Error message: ${errorMessage}`);
 
-                    // Special handling for content-type errors
+                    // Special handling for content-type and parsing errors
+                    const errorCode = 'code' in tokenError ? (tokenError as any).code : undefined;
                     if (
                         errorMessage.includes('unexpected response content-type') ||
-                        (tokenError as any).code === 'OAUTH_RESPONSE_IS_NOT_JSON'
+                        errorMessage.includes('parsing error') ||
+                        errorCode === 'OAUTH_RESPONSE_IS_NOT_JSON' ||
+                        errorCode === 'OAUTH_PARSE_ERROR'
                     ) {
-                        this.logger.error('Token endpoint returned non-JSON response.');
+                        this.logger.error('Token endpoint returned invalid or non-JSON response.');
                         this.logger.error('This typically means:');
                         this.logger.error(
                             '1. The token endpoint URL is incorrect (check for typos or wrong paths)'
@@ -263,10 +295,46 @@ export class OidcAuthService {
                             '3. Authentication failed (invalid client_id or client_secret)'
                         );
                         this.logger.error('4. A proxy/firewall is intercepting the request');
+                        this.logger.error('5. The OAuth server returned malformed JSON');
                         this.logger.error(
                             `Configured token endpoint: ${config.serverMetadata().token_endpoint}`
                         );
                         this.logger.error('Please verify your OIDC provider configuration.');
+
+                        // Try to extract the actual response if available
+                        if ('response' in tokenError) {
+                            const resp = (tokenError as any).response;
+                            if (resp) {
+                                if (resp.body) {
+                                    const bodyPreview =
+                                        typeof resp.body === 'string'
+                                            ? resp.body.substring(0, 500)
+                                            : JSON.stringify(resp.body).substring(0, 500);
+                                    this.logger.error(`Response preview: ${bodyPreview}`);
+                                }
+                                if (resp.headers) {
+                                    const contentType =
+                                        resp.headers['content-type'] || resp.headers['Content-Type'];
+                                    this.logger.error(`Response Content-Type: ${contentType}`);
+                                }
+                                if (resp.status) {
+                                    this.logger.error(`Response status: ${resp.status}`);
+                                }
+                            }
+                        }
+
+                        // Check for OAuth-specific error codes
+                        if ('error' in tokenError) {
+                            const oauthError = tokenError as any;
+                            if (oauthError.error) {
+                                this.logger.error(`OAuth error code: ${oauthError.error}`);
+                            }
+                            if (oauthError.error_description) {
+                                this.logger.error(
+                                    `OAuth error description: ${oauthError.error_description}`
+                                );
+                            }
+                        }
                     }
 
                     if (tokenError.stack) {
@@ -289,20 +357,46 @@ export class OidcAuthService {
                     }
 
                     // Try to extract body from error if available
-                    if ('body' in tokenError && (tokenError as any).body) {
+                    if ('body' in tokenError) {
                         const body = (tokenError as any).body;
-                        if (typeof body === 'string') {
-                            this.logger.error(
-                                `Error response body (string): ${body.substring(0, 1000)}`
-                            );
-                        } else {
-                            this.logger.error('Error response body: %o', body);
+                        if (body) {
+                            if (typeof body === 'string') {
+                                this.logger.error(
+                                    `Error response body (string): ${body.substring(0, 1000)}`
+                                );
+                            } else {
+                                this.logger.error('Error response body: %o', body);
+                            }
                         }
                     }
 
                     // Check for cause property (newer error patterns)
+                    // oauth4webapi uses cause chains for detailed error information
                     if ('cause' in tokenError && tokenError.cause) {
-                        this.logger.error('Error cause: %o', tokenError.cause);
+                        this.logger.error('Error cause chain:');
+                        let currentCause = tokenError.cause;
+                        let depth = 1;
+                        while (currentCause && depth <= 5) {
+                            if (currentCause instanceof Error) {
+                                this.logger.error(
+                                    `  [Cause ${depth}] ${currentCause.constructor.name}: ${currentCause.message}`
+                                );
+                                if ('code' in currentCause) {
+                                    this.logger.error(
+                                        `  [Cause ${depth}] Code: ${(currentCause as any).code}`
+                                    );
+                                }
+                            } else {
+                                this.logger.error(`  [Cause ${depth}]: %o`, currentCause);
+                            }
+                            currentCause =
+                                currentCause &&
+                                typeof currentCause === 'object' &&
+                                'cause' in currentCause
+                                    ? (currentCause as any).cause
+                                    : undefined;
+                            depth++;
+                        }
                     }
 
                     // Log any additional error properties
@@ -336,6 +430,7 @@ export class OidcAuthService {
                     this.logger.error(`Provider configured issuer: ${provider.issuer}`);
                 }
 
+                // Re-throw the original error with all its properties intact
                 throw tokenError;
             }
 
@@ -423,7 +518,7 @@ export class OidcAuthService {
 
                 // Create client options with HTTP support if needed
                 const serverUrl = new URL(provider.issuer);
-                let clientOptions: { execute: Array<typeof client.allowInsecureRequests> } | undefined;
+                let clientOptions: client.DiscoveryRequestOptions | undefined;
                 if (serverUrl.protocol === 'http:') {
                     this.logger.debug(`Allowing HTTP for ${provider.id} as specified by user`);
                     clientOptions = {

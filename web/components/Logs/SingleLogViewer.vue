@@ -76,7 +76,7 @@ const props = defineProps<{
   lineCount: number;
   autoScroll: boolean;
   highlightLanguage?: string; // Optional prop to specify the language for highlighting
-  filter?: string; // Optional filter to apply to log content
+  clientFilter?: string; // Optional client-side filter to apply to log content
 }>();
 
 const DEFAULT_CHUNK_SIZE = 100;
@@ -108,7 +108,6 @@ const {
     path: props.logFilePath,
     lines: props.lineCount || DEFAULT_CHUNK_SIZE,
     startLine: state.currentStartLine,
-    filter: props.filter,
   }),
   () => ({
     enabled: !!props.logFilePath,
@@ -140,7 +139,7 @@ onMounted(() => {
   if (props.logFilePath) {
     subscribeToMore({
       document: LOG_FILE_SUBSCRIPTION,
-      variables: { path: props.logFilePath, filter: props.filter },
+      variables: { path: props.logFilePath },
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data || !prev) return prev;
 
@@ -241,14 +240,28 @@ const highlightLog = (content: string): string => {
   }
 };
 
-// Computed properties
-const logContent = computed(() => {
+// Apply client-side filtering
+const filteredContent = computed(() => {
   // Join chunks ensuring proper newline handling
   const rawContent = state.loadedContentChunks
     .map((chunk) => chunk.content)
     .filter(content => content) // Remove empty chunks
     .join(''); // Content should already have proper newlines
-  return highlightLog(rawContent);
+  
+  // Apply client-side filter if provided
+  if (props.clientFilter && props.clientFilter.trim()) {
+    const filterLower = props.clientFilter.toLowerCase();
+    const lines = rawContent.split('\n');
+    const filtered = lines.filter(line => line.toLowerCase().includes(filterLower));
+    return filtered.join('\n');
+  }
+  
+  return rawContent;
+});
+
+// Computed properties
+const logContent = computed(() => {
+  return highlightLog(filteredContent.value);
 });
 
 const totalLines = computed(() => logContentResult.value?.logFile?.totalLines || 0);
@@ -351,7 +364,6 @@ const refreshLogContent = async () => {
     path: props.logFilePath,
     lines: props.lineCount || DEFAULT_CHUNK_SIZE,
     startLine: undefined, // Explicitly pass undefined to get the latest lines
-    filter: props.filter,
   });
 
   nextTick(() => {

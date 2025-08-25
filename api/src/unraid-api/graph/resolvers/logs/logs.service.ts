@@ -78,13 +78,11 @@ export class LogsService implements OnModuleInit {
      * @param path Path to the log file
      * @param lines Number of lines to read from the end of the file (default: 100)
      * @param startLine Optional starting line number (1-indexed)
-     * @param filter Optional filter to apply to the content
      */
     async getLogFileContent(
         path: string,
         lines = this.DEFAULT_LINES,
-        startLine?: number,
-        filter?: string
+        startLine?: number
     ): Promise<LogFileContent> {
         try {
             // Validate that the path is within the log directory
@@ -97,10 +95,10 @@ export class LogsService implements OnModuleInit {
 
             if (startLine !== undefined) {
                 // Read from specific starting line
-                content = await this.readLinesFromPosition(normalizedPath, startLine, lines, filter);
+                content = await this.readLinesFromPosition(normalizedPath, startLine, lines);
             } else {
                 // Read the last N lines (default behavior)
-                content = await this.readLastLines(normalizedPath, lines, filter);
+                content = await this.readLastLines(normalizedPath, lines);
             }
 
             return {
@@ -120,12 +118,11 @@ export class LogsService implements OnModuleInit {
     /**
      * Register and get the topic key for a log file subscription
      * @param path Path to the log file
-     * @param filter Optional filter to apply
      * @returns The subscription topic key
      */
-    registerLogFileSubscription(path: string, filter?: string): string {
+    registerLogFileSubscription(path: string): string {
         const normalizedPath = join(this.logBasePath, basename(path));
-        const topicKey = this.getTopicKey(normalizedPath, filter);
+        const topicKey = this.getTopicKey(normalizedPath);
 
         // Register the topic if not already registered
         if (!this.subscriptionTracker.getSubscriberCount(topicKey)) {
@@ -136,12 +133,12 @@ export class LogsService implements OnModuleInit {
                 // onStart handler
                 () => {
                     this.logger.debug(`Starting log file watcher for topic: ${topicKey}`);
-                    this.startWatchingLogFile(normalizedPath, filter);
+                    this.startWatchingLogFile(normalizedPath);
                 },
                 // onStop handler
                 () => {
                     this.logger.debug(`Stopping log file watcher for topic: ${topicKey}`);
-                    this.stopWatchingLogFile(normalizedPath, filter);
+                    this.stopWatchingLogFile(normalizedPath);
                 }
             );
         }
@@ -152,10 +149,9 @@ export class LogsService implements OnModuleInit {
     /**
      * Start watching a log file for changes using chokidar
      * @param path Path to the log file
-     * @param filter Optional filter to apply
      */
-    private startWatchingLogFile(path: string, filter?: string): void {
-        const watcherKey = `${path}:${filter || ''}`;
+    private startWatchingLogFile(path: string): void {
+        const watcherKey = path;
 
         // If already watching, don't create a new watcher
         if (this.logWatchers.has(watcherKey)) {
@@ -196,22 +192,15 @@ export class LogsService implements OnModuleInit {
 
                             stream.on('end', () => {
                                 if (newContent) {
-                                    // Filter content if filter is provided
-                                    const filteredContent = filter
-                                        ? this.filterContent(newContent, filter)
-                                        : newContent;
-                                    if (filteredContent) {
-                                        // Use topic-specific channel
-                                        const topicKey = this.getTopicKey(path, filter);
-                                        pubsub.publish(topicKey, {
-                                            logFile: {
-                                                path,
-                                                content: filteredContent,
-                                                totalLines: 0, // We don't need to count lines for updates
-                                                filter, // Include filter in payload
-                                            },
-                                        });
-                                    }
+                                    // Use topic-specific channel
+                                    const topicKey = this.getTopicKey(path);
+                                    pubsub.publish(topicKey, {
+                                        logFile: {
+                                            path,
+                                            content: newContent,
+                                            totalLines: 0, // We don't need to count lines for updates
+                                        },
+                                    });
                                 }
 
                                 // Update position for next read
@@ -226,20 +215,18 @@ export class LogsService implements OnModuleInit {
                             position = 0;
                             this.logger.debug(`File ${path} was truncated, resetting position`);
 
-                            // Read the entire file content with filter
+                            // Read the entire file content
                             const content = await this.getLogFileContent(
                                 path,
                                 this.DEFAULT_LINES,
-                                undefined,
-                                filter
+                                undefined
                             );
 
                             // Use topic-specific channel
-                            const topicKey = this.getTopicKey(path, filter);
+                            const topicKey = this.getTopicKey(path);
                             pubsub.publish(topicKey, {
                                 logFile: {
                                     ...content,
-                                    filter, // Include filter in payload
                                 },
                             });
 
@@ -257,14 +244,13 @@ export class LogsService implements OnModuleInit {
                 // Store the watcher and current position
                 this.logWatchers.set(watcherKey, { watcher, position });
 
-                // Publish initial snapshot with filter applied
-                this.getLogFileContent(path, this.DEFAULT_LINES, undefined, filter)
+                // Publish initial snapshot
+                this.getLogFileContent(path, this.DEFAULT_LINES, undefined)
                     .then((content) => {
-                        const topicKey = this.getTopicKey(path, filter);
+                        const topicKey = this.getTopicKey(path);
                         pubsub.publish(topicKey, {
                             logFile: {
                                 ...content,
-                                filter, // Include filter in payload
                             },
                         });
                     })
@@ -272,9 +258,7 @@ export class LogsService implements OnModuleInit {
                         this.logger.error(`Error publishing initial log content for ${path}: ${error}`);
                     });
 
-                this.logger.debug(
-                    `Started watching log file with chokidar: ${path} with filter: ${filter || 'none'}`
-                );
+                this.logger.debug(`Started watching log file with chokidar: ${path}`);
             })
             .catch((error) => {
                 this.logger.error(`Error setting up file watcher for ${path}: ${error}`);
@@ -284,21 +268,19 @@ export class LogsService implements OnModuleInit {
     /**
      * Get the topic key for a log file subscription
      * @param path Path to the log file (should already be normalized)
-     * @param filter Optional filter
      * @returns The topic key
      */
-    private getTopicKey(path: string, filter?: string): string {
+    private getTopicKey(path: string): string {
         // Assume path is already normalized (full path)
-        return `LOG_FILE:${path}:${filter || ''}`;
+        return `LOG_FILE:${path}`;
     }
 
     /**
      * Stop watching a log file
      * @param path Path to the log file
-     * @param filter Optional filter that was used when starting the watcher
      */
-    private stopWatchingLogFile(path: string, filter?: string): void {
-        const watcherKey = `${path}:${filter || ''}`;
+    private stopWatchingLogFile(path: string): void {
+        const watcherKey = path;
         const watcher = this.logWatchers.get(watcherKey);
 
         if (watcher) {
@@ -306,19 +288,6 @@ export class LogsService implements OnModuleInit {
             this.logWatchers.delete(watcherKey);
             this.logger.debug(`Stopped watching log file: ${watcherKey}`);
         }
-    }
-
-    /**
-     * Filter content based on a filter string
-     * @param content The content to filter
-     * @param filter The filter string to apply
-     */
-    private filterContent(content: string, filter: string): string {
-        const lines = content.split('\n');
-        // Case-insensitive filter that matches OIDC anywhere in the line
-        const filterRegex = new RegExp(filter, 'i');
-        const filteredLines = lines.filter((line) => filterRegex.test(line));
-        return filteredLines.join('\n');
     }
 
     /**
@@ -352,9 +321,8 @@ export class LogsService implements OnModuleInit {
      * Read the last N lines of a file
      * @param filePath Path to the file
      * @param lineCount Number of lines to read
-     * @param filter Optional filter to apply
      */
-    private async readLastLines(filePath: string, lineCount: number, filter?: string): Promise<string> {
+    private async readLastLines(filePath: string, lineCount: number): Promise<string> {
         const totalLines = await this.countFileLines(filePath);
         const linesToSkip = Math.max(0, totalLines - lineCount);
 
@@ -371,10 +339,7 @@ export class LogsService implements OnModuleInit {
             rl.on('line', (line) => {
                 currentLine++;
                 if (currentLine > linesToSkip) {
-                    // Apply filter if provided (case-insensitive)
-                    if (!filter || new RegExp(filter, 'i').test(line)) {
-                        content += line + '\n';
-                    }
+                    content += line + '\n';
                 }
             });
 
@@ -393,13 +358,11 @@ export class LogsService implements OnModuleInit {
      * @param filePath Path to the file
      * @param startLine Starting line number (1-indexed)
      * @param lineCount Number of lines to read
-     * @param filter Optional filter to apply
      */
     private async readLinesFromPosition(
         filePath: string,
         startLine: number,
-        lineCount: number,
-        filter?: string
+        lineCount: number
     ): Promise<string> {
         return new Promise((resolve, reject) => {
             let currentLine = 0;
@@ -417,16 +380,13 @@ export class LogsService implements OnModuleInit {
 
                 // Skip lines before the starting position
                 if (currentLine >= startLine) {
-                    // Apply filter if provided (case-insensitive)
-                    if (!filter || new RegExp(filter, 'i').test(line)) {
-                        // Only read the requested number of lines
-                        if (linesRead < lineCount) {
-                            content += line + '\n';
-                            linesRead++;
-                        } else {
-                            // We've read enough lines, close the stream
-                            rl.close();
-                        }
+                    // Only read the requested number of lines
+                    if (linesRead < lineCount) {
+                        content += line + '\n';
+                        linesRead++;
+                    } else {
+                        // We've read enough lines, close the stream
+                        rl.close();
                     }
                 }
             });

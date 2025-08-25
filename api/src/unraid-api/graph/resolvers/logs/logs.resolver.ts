@@ -31,10 +31,9 @@ export class LogsResolver {
     async logFile(
         @Args('path') path: string,
         @Args('lines', { nullable: true, type: () => Int }) lines?: number,
-        @Args('startLine', { nullable: true, type: () => Int }) startLine?: number,
-        @Args('filter', { nullable: true }) filter?: string
+        @Args('startLine', { nullable: true, type: () => Int }) startLine?: number
     ): Promise<LogFileContent> {
-        return this.logsService.getLogFileContent(path, lines, startLine, filter);
+        return this.logsService.getLogFileContent(path, lines, startLine);
     }
 
     @Subscription(() => LogFileContent, { name: 'logFile' })
@@ -42,12 +41,9 @@ export class LogsResolver {
         action: AuthAction.READ_ANY,
         resource: Resource.LOGS,
     })
-    logFileSubscription(
-        @Args('path') path: string,
-        @Args('filter', { nullable: true }) filter?: string
-    ) {
+    logFileSubscription(@Args('path') path: string) {
         // Register the topic and get the key
-        const topicKey = this.logsService.registerLogFileSubscription(path, filter);
+        const topicKey = this.logsService.registerLogFileSubscription(path);
 
         // Use the helper service to create a tracked subscription
         // This automatically handles subscribe/unsubscribe with reference counting
