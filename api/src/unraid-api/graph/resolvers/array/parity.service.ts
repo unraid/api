@@ -24,9 +24,13 @@ export class ParityService {
         const lines = history.toString().trim().split('\n').reverse();
         return lines.map<ParityCheck>((line) => {
             const [date, duration, speed, status, errors = '0'] = line.split('|');
+            const parsedDate = new Date(date);
+            const safeDate = Number.isNaN(parsedDate.getTime()) ? undefined : parsedDate;
+            const durationNumber = Number(duration);
+            const safeDuration = Number.isNaN(durationNumber) ? undefined : durationNumber;
             return {
-                date: new Date(date),
-                duration: Number.parseInt(duration, 10),
+                date: safeDate,
+                duration: safeDuration,
                 speed: speed ?? 'Unavailable',
                 // use http 422 (unprocessable entity) as fallback to differentiate from unix error codes
                 // when status is not a number.
