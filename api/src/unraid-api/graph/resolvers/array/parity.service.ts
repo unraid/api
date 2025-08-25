@@ -28,15 +28,20 @@ export class ParityService {
                 date: new Date(date),
                 duration: Number.parseInt(duration, 10),
                 speed: speed ?? 'Unavailable',
-                status:
-                    status === '-4'
-                        ? ParityCheckStatus.CANCELLED
-                        : toNumberAlways(status, 0) === 0
-                          ? ParityCheckStatus.COMPLETED
-                          : ParityCheckStatus.FAILED,
+                // use http 422 (unprocessable entity) as fallback to differentiate from unix error codes
+                // when status is not a number.
+                status: this.statusCodeToStatusEnum(toNumberAlways(status, 422)),
                 errors: Number.parseInt(errors, 10),
             };
         });
+    }
+
+    statusCodeToStatusEnum(statusCode: number): ParityCheckStatus {
+        return statusCode === -4
+            ? ParityCheckStatus.CANCELLED
+            : toNumberAlways(statusCode, 0) === 0
+              ? ParityCheckStatus.COMPLETED
+              : ParityCheckStatus.FAILED;
     }
 
     /**
