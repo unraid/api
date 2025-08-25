@@ -49,7 +49,7 @@
   },
   "dependencies": {
     "@manypkg/cli": "0.25.0",
-    "chalk": "5.5.0",
+    "chalk": "5.6.0",
     "diff": "8.0.2",
     "ignore": "7.0.5"
   },
@@ -65,5 +65,5 @@
       "pnpm lint:fix"
     ]
   },
-  "packageManager": "pnpm@10.14.0"
+  "packageManager": "pnpm@10.15.0"
 }
