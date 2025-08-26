@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
 
+import { CANONICAL_INTERNAL_CLIENT_TOKEN } from '@unraid/shared';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ApiReportService } from '@app/unraid-api/cli/api-report.service.js';
-import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { RestModule } from '@app/unraid-api/rest/rest.module.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
@@ -63,7 +63,7 @@ describe('RestModule Integration', () => {
             imports: [RestModule],
         })
             // Override services that have complex dependencies for testing
-            .overrideProvider(CliInternalClientService)
+            .overrideProvider(CANONICAL_INTERNAL_CLIENT_TOKEN)
             .useValue({ getClient: vi.fn() })
             .overrideProvider(LogService)
             .useValue({ error: vi.fn(), debug: vi.fn() })

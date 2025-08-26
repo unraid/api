@@ -8,6 +8,7 @@ export interface InternalGraphQLClientFactory {
     createClient(options: {
         getApiKey?: () => Promise<string>;
         getCookieAuth?: () => Promise<{ sessionId: string; csrfToken: string } | null>;
+        getLocalSession?: () => Promise<string | null>;
         enableSubscriptions?: boolean;
         origin?: string;
     }): Promise<ApolloClient<NormalizedCacheObject>>;

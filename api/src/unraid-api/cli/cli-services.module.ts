@@ -2,9 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
-import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';
 import { ApiReportService } from '@app/unraid-api/cli/api-report.service.js';
-import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
@@ -23,15 +21,7 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
         PluginCliModule.register(),
         UnraidFileModifierModule,
     ],
-    providers: [
-        LogService,
-        PM2Service,
-        ApiKeyService,
-        DependencyService,
-        AdminKeyService,
-        ApiReportService,
-        CliInternalClientService,
-    ],
-    exports: [ApiReportService, LogService, ApiKeyService, CliInternalClientService],
+    providers: [LogService, PM2Service, ApiKeyService, DependencyService, ApiReportService],
+    exports: [ApiReportService, LogService, ApiKeyService],
 })
 export class CliServicesModule {}

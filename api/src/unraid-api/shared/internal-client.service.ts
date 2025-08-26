@@ -1,16 +1,19 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+
+import type { CanonicalInternalClientService, InternalGraphQLClientFactory } from '@unraid/shared';
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client/core/index.js';
-import { COOKIE_SERVICE_TOKEN, INTERNAL_CLIENT_SERVICE_TOKEN, type InternalGraphQLClientFactory } from '@unraid/shared';
+import { INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared';
+
+import { LocalSessionService } from '@app/unraid-api/auth/local-session.service.js';
 
 /**
- * Connect-specific internal GraphQL client.
- * 
- * This uses the shared GraphQL client factory with cookie-based authentication
- * and enables subscriptions for real-time updates.
+ * Canonical internal GraphQL client service.
+ *
+ * This service provides a GraphQL client for internal use with local session authentication.
+ * It replaces the need for separate internal client implementations in different packages.
  */
 @Injectable()
-export class InternalClientService {
+export class InternalClientService implements CanonicalInternalClientService {
     private readonly logger = new Logger(InternalClientService.name);
     private client: ApolloClient<NormalizedCacheObject> | null = null;
     private clientCreationPromise: Promise<ApolloClient<NormalizedCacheObject>> | null = null;
@@ -18,31 +21,34 @@ export class InternalClientService {
     constructor(
         @Inject(INTERNAL_CLIENT_SERVICE_TOKEN)
         private readonly clientFactory: InternalGraphQLClientFactory,
-        @Inject(COOKIE_SERVICE_TOKEN)
-        private readonly cookieService: any,
-        private readonly configService: ConfigService
+        private readonly localSessionService: LocalSessionService
     ) {}
 
-    public async getClient(): Promise<ApolloClient<NormalizedCacheObject>> {
+    /**
+     * Get GraphQL client with local session authentication.
+     */
+    public async getClient(options?: {
+        enableSubscriptions?: boolean;
+        origin?: string;
+    }): Promise<ApolloClient<NormalizedCacheObject>> {
         // If client already exists, return it
         if (this.client) {
             return this.client;
         }
-        
+
         // If client creation is in progress, wait for it
         if (this.clientCreationPromise) {
             return this.clientCreationPromise;
         }
-        
+
         // Start client creation and store the promise
-        const creationPromise = this.createClient();
+        const creationPromise = this.createClient(options);
         this.clientCreationPromise = creationPromise;
-        
+
         try {
             // Wait for client creation to complete
             const client = await creationPromise;
             // Only set the client if this is still the current creation promise
-            // (if clearClient was called, clientCreationPromise would be null)
             if (this.clientCreationPromise === creationPromise) {
                 this.client = client;
             }
@@ -55,26 +61,20 @@ export class InternalClientService {
         }
     }
 
-    private async createClient(): Promise<ApolloClient<NormalizedCacheObject>> {
-        // Create a client with cookie-based authentication
+    private async createClient(options?: {
+        enableSubscriptions?: boolean;
+        origin?: string;
+    }): Promise<ApolloClient<NormalizedCacheObject>> {
+        const { enableSubscriptions = true, origin } = options || {};
+
+        // Create client with local session authentication
         const client = await this.clientFactory.createClient({
-            getCookieAuth: async () => {
-                const sessionId = await this.cookieService.getActiveSession();
-                if (!sessionId) {
-                    return null;
-                }
-                
-                const csrfToken = this.configService.get<string>('store.emhttp.var.csrfToken');
-                if (!csrfToken) {
-                    throw new Error('CSRF token not found in configuration');
-                }
-                
-                return { sessionId, csrfToken };
-            },
-            enableSubscriptions: true
+            getLocalSession: () => this.localSessionService.getLocalSession(),
+            enableSubscriptions,
+            origin,
         });
-        
-        this.logger.debug('Created Connect internal GraphQL client with cookie auth and subscriptions enabled');
+
+        this.logger.debug('Created canonical internal GraphQL client with local session authentication');
         return client;
     }
 

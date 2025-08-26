@@ -1,6 +1,9 @@
+import { Inject } from '@nestjs/common';
+
+import type { CanonicalInternalClientService } from '@unraid/shared';
+import { CANONICAL_INTERNAL_CLIENT_TOKEN } from '@unraid/shared';
 import { CommandRunner, SubCommand } from 'nest-commander';
 
-import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { VALIDATE_OIDC_SESSION_QUERY } from '@app/unraid-api/cli/queries/validate-oidc-session.query.js';
 
@@ -13,7 +16,8 @@ import { VALIDATE_OIDC_SESSION_QUERY } from '@app/unraid-api/cli/queries/validat
 export class ValidateTokenCommand extends CommandRunner {
     constructor(
         private readonly logger: LogService,
-        private readonly internalClient: CliInternalClientService
+        @Inject(CANONICAL_INTERNAL_CLIENT_TOKEN)
+        private readonly internalClient: CanonicalInternalClientService
     ) {
         super();
     }
@@ -45,7 +49,7 @@ export class ValidateTokenCommand extends CommandRunner {
 
     private async validateOidcToken(token: string): Promise<void> {
         try {
-            const client = await this.internalClient.getClient();
+            const client = await this.internalClient.getClient({ enableSubscriptions: false });
             const { data, errors } = await client.query({
                 query: VALIDATE_OIDC_SESSION_QUERY,
                 variables: { token },

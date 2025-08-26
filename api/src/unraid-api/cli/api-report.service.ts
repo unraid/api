@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+
+import type { CanonicalInternalClientService } from '@unraid/shared';
+import { CANONICAL_INTERNAL_CLIENT_TOKEN } from '@unraid/shared';
 
 import type { ConnectStatusQuery, SystemReportQuery } from '@app/unraid-api/cli/generated/graphql.js';
-import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import {
     CONNECT_STATUS_QUERY,
@@ -60,7 +62,8 @@ export interface ApiReportData {
 @Injectable()
 export class ApiReportService {
     constructor(
-        private readonly internalClient: CliInternalClientService,
+        @Inject(CANONICAL_INTERNAL_CLIENT_TOKEN)
+        private readonly internalClient: CanonicalInternalClientService,
         private readonly logger: LogService
     ) {}
 
@@ -135,7 +138,7 @@ export class ApiReportService {
             });
         }
 
-        const client = await this.internalClient.getClient();
+        const client = await this.internalClient.getClient({ enableSubscriptions: false });
 
         // Query system data
         let systemResult: { data: SystemReportQuery } | null = null;
@@ -190,7 +193,7 @@ export class ApiReportService {
 
         return this.createApiReportData({
             apiRunning,
-            systemData: systemResult.data,
+            systemData: systemResult?.data,
             connectData,
             servicesData,
         });

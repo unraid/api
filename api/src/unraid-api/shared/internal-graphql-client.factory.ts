@@ -36,26 +36,29 @@ export class InternalGraphQLClientFactory implements IInternalGraphQLClientFacto
      * Create a GraphQL client with the provided configuration.
      *
      * @param options Configuration options
-     * @param options.getApiKey Function to get the current API key (optional if using cookie auth)
-     * @param options.getCookieAuth Function to get session and CSRF token for cookie auth (optional if using API key)
+     * @param options.getApiKey Function to get the current API key (optional)
+     * @param options.getCookieAuth Function to get session and CSRF token for cookie auth (optional)
+     * @param options.getLocalSession Function to get local session token (optional)
      * @param options.enableSubscriptions Optional flag to enable WebSocket subscriptions
      * @param options.origin Optional origin header (defaults to 'http://localhost')
      */
     public async createClient(options: {
         getApiKey?: () => Promise<string>;
         getCookieAuth?: () => Promise<{ sessionId: string; csrfToken: string } | null>;
+        getLocalSession?: () => Promise<string | null>;
         enableSubscriptions?: boolean;
         origin?: string;
     }): Promise<ApolloClient<NormalizedCacheObject>> {
-        if (!options.getApiKey && !options.getCookieAuth) {
+        if (!options.getApiKey && !options.getCookieAuth && !options.getLocalSession) {
             throw new Error(
-                'Either getApiKey or getCookieAuth function is required for creating a GraphQL client'
+                'One of getApiKey, getCookieAuth, or getLocalSession function is required for creating a GraphQL client'
             );
         }
 
         const {
             getApiKey,
             getCookieAuth,
+            getLocalSession,
             enableSubscriptions = false,
             origin = 'http://localhost',
         } = options;
@@ -118,6 +121,18 @@ export class InternalGraphQLClientFactory implements IInternalGraphQLClientFacto
                         'x-api-key': apiKey,
                     },
                 };
+            } else if (getLocalSession) {
+                // Use local session authentication
+                const localSession = await getLocalSession();
+                if (!localSession) {
+                    throw new Error('No valid local session found');
+                }
+                return {
+                    headers: {
+                        ...headers,
+                        'x-local-session': localSession,
+                    },
+                };
             } else if (getCookieAuth) {
                 // Use cookie-based authentication
                 const cookieAuth = await getCookieAuth();
@@ -151,6 +166,14 @@ export class InternalGraphQLClientFactory implements IInternalGraphQLClientFacto
                         if (getApiKey) {
                             const apiKey = await getApiKey();
                             return { 'x-api-key': apiKey };
+                        } else if (getLocalSession) {
+                            const localSession = await getLocalSession();
+                            if (!localSession) {
+                                throw new Error(
+                                    'No valid local session found for WebSocket authentication'
+                                );
+                            }
+                            return { 'x-local-session': localSession };
                         } else if (getCookieAuth) {
                             const cookieAuth = await getCookieAuth();
                             if (!cookieAuth) {

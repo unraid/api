@@ -21,7 +21,7 @@ import type {
     RemoteAccess,
     SetupRemoteAccessInput,
 } from './connect.model.js';
-import { ConnectApiKeyService } from '../authn/connect-api-key.service.js';
+
 import { ConfigType, MyServersConfig } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
 import { NetworkService } from '../network/network.service.js';
@@ -39,7 +39,6 @@ export class ConnectSettingsService {
     constructor(
         private readonly configService: ConfigService<ConfigType>,
         private readonly remoteAccess: DynamicRemoteAccessService,
-        private readonly apiKeyService: ConnectApiKeyService,
         private readonly eventEmitter: EventEmitter2,
         private readonly userSettings: UserSettingsService,
         private readonly networkService: NetworkService
@@ -165,9 +164,6 @@ export class ConnectSettingsService {
             }
 
             try {
-                // Make sure we have a local API key for Connect
-                await this.apiKeyService.getOrCreateLocalApiKey();
-
                 // Update config with user info
                 this.configService.set(
                     'connect.config.avatar',

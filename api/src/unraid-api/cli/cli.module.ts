@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 
 import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
-import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';
 import { ApiReportService } from '@app/unraid-api/cli/api-report.service.js';
 import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions.js';
 import { ApiKeyCommand } from '@app/unraid-api/cli/apikey/api-key.command.js';
@@ -12,7 +11,6 @@ import { ConfigCommand } from '@app/unraid-api/cli/config.command.js';
 import { DeveloperToolsService } from '@app/unraid-api/cli/developer/developer-tools.service.js';
 import { DeveloperCommand } from '@app/unraid-api/cli/developer/developer.command.js';
 import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions.js';
-import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { LogsCommand } from '@app/unraid-api/cli/logs.command.js';
 import {
@@ -69,9 +67,7 @@ const DEFAULT_PROVIDERS = [
     PM2Service,
     ApiKeyService,
     DependencyService,
-    AdminKeyService,
     ApiReportService,
-    CliInternalClientService,
 ] as const;
 
 @Module({

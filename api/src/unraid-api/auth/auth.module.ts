@@ -11,13 +11,18 @@ import { BASE_POLICY, CASBIN_MODEL } from '@app/unraid-api/auth/casbin/index.js'
 import { CookieService, SESSION_COOKIE_CONFIG } from '@app/unraid-api/auth/cookie.service.js';
 import { UserCookieStrategy } from '@app/unraid-api/auth/cookie.strategy.js';
 import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy.js';
-import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';
+import { LocalSessionService } from '@app/unraid-api/auth/local-session.service.js';
+import { LocalSessionStrategy } from '@app/unraid-api/auth/local-session.strategy.js';
 import { getRequest } from '@app/utils.js';
 
 @Module({
     imports: [
         PassportModule.register({
-            defaultStrategy: [ServerHeaderStrategy.key, UserCookieStrategy.key],
+            defaultStrategy: [
+                ServerHeaderStrategy.key,
+                LocalSessionStrategy.key,
+                UserCookieStrategy.key,
+            ],
         }),
         CasbinModule,
         AuthZModule.register({
@@ -51,10 +56,11 @@ import { getRequest } from '@app/utils.js';
     providers: [
         AuthService,
         ApiKeyService,
-        AdminKeyService,
         ServerHeaderStrategy,
+        LocalSessionStrategy,
         UserCookieStrategy,
         CookieService,
+        LocalSessionService,
         {
             provide: SESSION_COOKIE_CONFIG,
             useValue: CookieService.defaultOpts(),
@@ -65,8 +71,10 @@ import { getRequest } from '@app/utils.js';
         ApiKeyService,
         PassportModule,
         ServerHeaderStrategy,
+        LocalSessionStrategy,
         UserCookieStrategy,
         CookieService,
+        LocalSessionService,
         AuthZModule,
     ],
 })
