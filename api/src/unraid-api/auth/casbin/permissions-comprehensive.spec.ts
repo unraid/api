@@ -1,4 +1,4 @@
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { Model as CasbinModel, newEnforcer, StringAdapter } from 'casbin';
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -12,25 +12,25 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // API_KEY permissions
             {
                 resource: Resource.API_KEY,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN],
                 deniedRoles: [Role.VIEWER, Role.GUEST, Role.CONNECT],
             },
             {
                 resource: Resource.API_KEY,
-                action: 'create:any',
+                action: AuthAction.CREATE_ANY,
                 allowedRoles: [Role.ADMIN],
                 deniedRoles: [Role.VIEWER, Role.GUEST, Role.CONNECT],
             },
             {
                 resource: Resource.API_KEY,
-                action: 'update:any',
+                action: AuthAction.UPDATE_ANY,
                 allowedRoles: [Role.ADMIN],
                 deniedRoles: [Role.VIEWER, Role.GUEST, Role.CONNECT],
             },
             {
                 resource: Resource.API_KEY,
-                action: 'delete:any',
+                action: AuthAction.DELETE_ANY,
                 allowedRoles: [Role.ADMIN],
                 deniedRoles: [Role.VIEWER, Role.GUEST, Role.CONNECT],
             },
@@ -38,7 +38,7 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // PERMISSION resource (for listing possible permissions)
             {
                 resource: Resource.PERMISSION,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
@@ -46,13 +46,13 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // ARRAY permissions
             {
                 resource: Resource.ARRAY,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.ARRAY,
-                action: 'update:any',
+                action: AuthAction.UPDATE_ANY,
                 allowedRoles: [Role.ADMIN],
                 deniedRoles: [Role.VIEWER, Role.GUEST],
             },
@@ -60,13 +60,13 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // CONFIG permissions
             {
                 resource: Resource.CONFIG,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.CONFIG,
-                action: 'update:any',
+                action: AuthAction.UPDATE_ANY,
                 allowedRoles: [Role.ADMIN],
                 deniedRoles: [Role.VIEWER, Role.GUEST, Role.CONNECT],
             },
@@ -74,13 +74,13 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // DOCKER permissions
             {
                 resource: Resource.DOCKER,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.DOCKER,
-                action: 'update:any',
+                action: AuthAction.UPDATE_ANY,
                 allowedRoles: [Role.ADMIN],
                 deniedRoles: [Role.VIEWER, Role.GUEST],
             },
@@ -88,13 +88,13 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // VMS permissions
             {
                 resource: Resource.VMS,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.VMS,
-                action: 'update:any',
+                action: AuthAction.UPDATE_ANY,
                 allowedRoles: [Role.ADMIN],
                 deniedRoles: [Role.VIEWER, Role.GUEST],
             },
@@ -102,19 +102,19 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // FLASH permissions (includes rclone operations)
             {
                 resource: Resource.FLASH,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.FLASH,
-                action: 'create:any',
+                action: AuthAction.CREATE_ANY,
                 allowedRoles: [Role.ADMIN],
                 deniedRoles: [Role.VIEWER, Role.GUEST, Role.CONNECT],
             },
             {
                 resource: Resource.FLASH,
-                action: 'delete:any',
+                action: AuthAction.DELETE_ANY,
                 allowedRoles: [Role.ADMIN],
                 deniedRoles: [Role.VIEWER, Role.GUEST, Role.CONNECT],
             },
@@ -122,7 +122,7 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // INFO permissions (system information)
             {
                 resource: Resource.INFO,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
@@ -130,7 +130,7 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // LOGS permissions
             {
                 resource: Resource.LOGS,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
@@ -138,7 +138,7 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // ME permissions (current user info)
             {
                 resource: Resource.ME,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT, Role.GUEST],
                 deniedRoles: [],
             },
@@ -146,7 +146,7 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // NOTIFICATIONS permissions
             {
                 resource: Resource.NOTIFICATIONS,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
@@ -154,67 +154,67 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // Other read-only resources for VIEWER
             {
                 resource: Resource.DISK,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.DISPLAY,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.ONLINE,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.OWNER,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.REGISTRATION,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.SERVERS,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.SERVICES,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.SHARE,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.VARS,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.CUSTOMIZATIONS,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.ACTIVATION_CODE,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
@@ -222,13 +222,13 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             // CONNECT special permission for remote access
             {
                 resource: Resource.CONNECT__REMOTE_ACCESS,
-                action: 'read:any',
+                action: AuthAction.READ_ANY,
                 allowedRoles: [Role.ADMIN, Role.VIEWER, Role.CONNECT],
                 deniedRoles: [Role.GUEST],
             },
             {
                 resource: Resource.CONNECT__REMOTE_ACCESS,
-                action: 'update:any',
+                action: AuthAction.UPDATE_ANY,
                 allowedRoles: [Role.ADMIN, Role.CONNECT],
                 deniedRoles: [Role.VIEWER, Role.GUEST],
             },
@@ -272,30 +272,42 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             enforcer = await newEnforcer(model, adapter);
         });
 
-        it('should match actions exactly as stored (lowercase)', async () => {
-            // Our policies store actions as lowercase (e.g., 'read:any')
+        it('should match actions exactly as stored (uppercase)', async () => {
+            // Our policies store actions as uppercase (e.g., 'READ_ANY')
             // The matcher now requires exact matching for security
 
-            // Lowercase actions should work
-            const adminLowerResult = await enforcer.enforce(Role.ADMIN, Resource.DOCKER, 'read:any');
-            expect(adminLowerResult).toBe(true);
+            // Uppercase actions should work
+            const adminUpperResult = await enforcer.enforce(
+                Role.ADMIN,
+                Resource.DOCKER,
+                AuthAction.READ_ANY
+            );
+            expect(adminUpperResult).toBe(true);
 
+            const viewerUpperResult = await enforcer.enforce(
+                Role.VIEWER,
+                Resource.DOCKER,
+                AuthAction.READ_ANY
+            );
+            expect(viewerUpperResult).toBe(true);
+
+            // For non-wildcard roles, lowercase actions won't match
             const viewerLowerResult = await enforcer.enforce(Role.VIEWER, Resource.DOCKER, 'read:any');
-            expect(viewerLowerResult).toBe(true);
-
-            // For non-wildcard roles, uppercase actions won't match
-            const viewerUpperResult = await enforcer.enforce(Role.VIEWER, Resource.DOCKER, 'READ:ANY');
-            expect(viewerUpperResult).toBe(false);
+            expect(viewerLowerResult).toBe(false);
 
             // Mixed case won't match for VIEWER either
-            const viewerMixedResult = await enforcer.enforce(Role.VIEWER, Resource.DOCKER, 'Read:Any');
+            const viewerMixedResult = await enforcer.enforce(Role.VIEWER, Resource.DOCKER, 'Read_Any');
             expect(viewerMixedResult).toBe(false);
 
             // GUEST also requires exact lowercase
             const guestUpperResult = await enforcer.enforce(Role.GUEST, Resource.ME, 'READ:ANY');
             expect(guestUpperResult).toBe(false);
 
-            const guestLowerResult = await enforcer.enforce(Role.GUEST, Resource.ME, 'read:any');
+            const guestLowerResult = await enforcer.enforce(
+                Role.GUEST,
+                Resource.ME,
+                AuthAction.READ_ANY
+            );
             expect(guestLowerResult).toBe(true);
         });
 
@@ -318,33 +330,41 @@ describe('Comprehensive Casbin Permissions Tests', () => {
 
         it('should NOT match different actions even with correct case', async () => {
             // VIEWER should not be able to UPDATE even with correct lowercase
-            const result = await enforcer.enforce(Role.VIEWER, Resource.DOCKER, 'update:any');
+            const result = await enforcer.enforce(Role.VIEWER, Resource.DOCKER, AuthAction.UPDATE_ANY);
             expect(result).toBe(false);
 
             // VIEWER should not be able to DELETE
-            const deleteResult = await enforcer.enforce(Role.VIEWER, Resource.DOCKER, 'delete:any');
+            const deleteResult = await enforcer.enforce(
+                Role.VIEWER,
+                Resource.DOCKER,
+                AuthAction.DELETE_ANY
+            );
             expect(deleteResult).toBe(false);
 
             // VIEWER should not be able to CREATE
-            const createResult = await enforcer.enforce(Role.VIEWER, Resource.DOCKER, 'create:any');
+            const createResult = await enforcer.enforce(
+                Role.VIEWER,
+                Resource.DOCKER,
+                AuthAction.CREATE_ANY
+            );
             expect(createResult).toBe(false);
         });
 
         it('should ensure actions are normalized when stored', async () => {
-            // This test documents that our auth service normalizes actions to lowercase
+            // This test documents that our auth service normalizes actions to uppercase
             // when syncing permissions, ensuring consistency
 
-            // The BASE_POLICY uses AuthAction.READ_ANY which is 'read:any' (lowercase)
-            expect(BASE_POLICY).toContain('read:any');
-            expect(BASE_POLICY).not.toContain('READ:ANY');
+            // The BASE_POLICY uses AuthAction.READ_ANY which is 'READ_ANY' (uppercase)
+            expect(BASE_POLICY).toContain('READ_ANY');
+            expect(BASE_POLICY).not.toContain('read:any');
 
-            // All our stored policies should be lowercase
+            // All our stored policies should be uppercase
             const policies = await enforcer.getPolicy();
             for (const policy of policies) {
                 const action = policy[2]; // Third element is the action
                 if (action && action !== '*') {
-                    // All non-wildcard actions should be lowercase
-                    expect(action).toBe(action.toLowerCase());
+                    // All non-wildcard actions should be uppercase
+                    expect(action).toBe(action.toUpperCase());
                 }
             }
         });
@@ -362,7 +382,12 @@ describe('Comprehensive Casbin Permissions Tests', () => {
 
         it('should allow ADMIN wildcard access to all resources and actions', async () => {
             const resources = Object.values(Resource);
-            const actions = ['read:any', 'create:any', 'update:any', 'delete:any'];
+            const actions = [
+                AuthAction.READ_ANY,
+                AuthAction.CREATE_ANY,
+                AuthAction.UPDATE_ANY,
+                AuthAction.DELETE_ANY,
+            ];
 
             for (const resource of resources) {
                 for (const action of actions) {
@@ -379,38 +404,62 @@ describe('Comprehensive Casbin Permissions Tests', () => {
 
             for (const resource of resources) {
                 // Should be able to read most resources
-                const readResult = await enforcer.enforce(Role.CONNECT, resource, 'read:any');
+                const readResult = await enforcer.enforce(Role.CONNECT, resource, AuthAction.READ_ANY);
                 expect(readResult).toBe(true);
 
                 // Should NOT be able to write (except CONNECT__REMOTE_ACCESS)
-                const updateResult = await enforcer.enforce(Role.CONNECT, resource, 'update:any');
+                const updateResult = await enforcer.enforce(
+                    Role.CONNECT,
+                    resource,
+                    AuthAction.UPDATE_ANY
+                );
                 expect(updateResult).toBe(false);
             }
 
             // CONNECT should NOT be able to read API_KEY
-            const apiKeyRead = await enforcer.enforce(Role.CONNECT, Resource.API_KEY, 'read:any');
+            const apiKeyRead = await enforcer.enforce(
+                Role.CONNECT,
+                Resource.API_KEY,
+                AuthAction.READ_ANY
+            );
             expect(apiKeyRead).toBe(false);
 
             // CONNECT should NOT be able to perform any action on API_KEY
-            const apiKeyCreate = await enforcer.enforce(Role.CONNECT, Resource.API_KEY, 'create:any');
+            const apiKeyCreate = await enforcer.enforce(
+                Role.CONNECT,
+                Resource.API_KEY,
+                AuthAction.CREATE_ANY
+            );
             expect(apiKeyCreate).toBe(false);
-            const apiKeyUpdate = await enforcer.enforce(Role.CONNECT, Resource.API_KEY, 'update:any');
+            const apiKeyUpdate = await enforcer.enforce(
+                Role.CONNECT,
+                Resource.API_KEY,
+                AuthAction.UPDATE_ANY
+            );
             expect(apiKeyUpdate).toBe(false);
-            const apiKeyDelete = await enforcer.enforce(Role.CONNECT, Resource.API_KEY, 'delete:any');
+            const apiKeyDelete = await enforcer.enforce(
+                Role.CONNECT,
+                Resource.API_KEY,
+                AuthAction.DELETE_ANY
+            );
             expect(apiKeyDelete).toBe(false);
 
             // Special case: CONNECT can update CONNECT__REMOTE_ACCESS
             const remoteAccessUpdate = await enforcer.enforce(
                 Role.CONNECT,
                 Resource.CONNECT__REMOTE_ACCESS,
-                'update:any'
+                AuthAction.UPDATE_ANY
             );
             expect(remoteAccessUpdate).toBe(true);
         });
 
         it('should explicitly deny CONNECT role from accessing API_KEY to prevent secret exposure', async () => {
             // CONNECT should NOT be able to read API_KEY (which would expose secrets)
-            const apiKeyRead = await enforcer.enforce(Role.CONNECT, Resource.API_KEY, 'read:any');
+            const apiKeyRead = await enforcer.enforce(
+                Role.CONNECT,
+                Resource.API_KEY,
+                AuthAction.READ_ANY
+            );
             expect(apiKeyRead).toBe(false);
 
             // Verify all API_KEY operations are denied for CONNECT
@@ -421,7 +470,11 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             }
 
             // Verify ADMIN can still access API_KEY
-            const adminApiKeyRead = await enforcer.enforce(Role.ADMIN, Resource.API_KEY, 'read:any');
+            const adminApiKeyRead = await enforcer.enforce(
+                Role.ADMIN,
+                Resource.API_KEY,
+                AuthAction.READ_ANY
+            );
             expect(adminApiKeyRead).toBe(true);
         });
     });
@@ -438,19 +491,19 @@ describe('Comprehensive Casbin Permissions Tests', () => {
 
         it('should inherit GUEST permissions for VIEWER', async () => {
             // VIEWER inherits from GUEST, so should have ME access
-            const result = await enforcer.enforce(Role.VIEWER, Resource.ME, 'read:any');
+            const result = await enforcer.enforce(Role.VIEWER, Resource.ME, AuthAction.READ_ANY);
             expect(result).toBe(true);
         });
 
         it('should inherit GUEST permissions for CONNECT', async () => {
             // CONNECT inherits from GUEST, so should have ME access
-            const result = await enforcer.enforce(Role.CONNECT, Resource.ME, 'read:any');
+            const result = await enforcer.enforce(Role.CONNECT, Resource.ME, AuthAction.READ_ANY);
             expect(result).toBe(true);
         });
 
         it('should inherit GUEST permissions for ADMIN', async () => {
             // ADMIN inherits from GUEST, so should have ME access
-            const result = await enforcer.enforce(Role.ADMIN, Resource.ME, 'read:any');
+            const result = await enforcer.enforce(Role.ADMIN, Resource.ME, AuthAction.READ_ANY);
             expect(result).toBe(true);
         });
     });
@@ -472,7 +525,7 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             const adapter = new StringAdapter(BASE_POLICY);
             const enforcer = await newEnforcer(model, adapter);
 
-            const result = await enforcer.enforce(Role.VIEWER, '', 'read:any');
+            const result = await enforcer.enforce(Role.VIEWER, '', AuthAction.READ_ANY);
             expect(result).toBe(false);
         });
 
@@ -482,7 +535,11 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             const adapter = new StringAdapter(BASE_POLICY);
             const enforcer = await newEnforcer(model, adapter);
 
-            const result = await enforcer.enforce('UNDEFINED_ROLE', Resource.DOCKER, 'read:any');
+            const result = await enforcer.enforce(
+                'UNDEFINED_ROLE',
+                Resource.DOCKER,
+                AuthAction.READ_ANY
+            );
             expect(result).toBe(false);
         });
 

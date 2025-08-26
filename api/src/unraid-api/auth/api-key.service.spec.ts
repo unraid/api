@@ -558,12 +558,12 @@ describe('ApiKeyService', () => {
             expect(result).toHaveLength(1);
             // All actions should be normalized to lowercase
             expect(result[0].permissions[0].actions).toEqual([
-                'read:any',
-                'update:any',
-                'create:any',
-                'delete:any',
+                AuthAction.READ_ANY,
+                AuthAction.UPDATE_ANY,
+                AuthAction.CREATE_ANY,
+                AuthAction.DELETE_ANY,
             ]);
-            expect(result[0].permissions[1].actions).toEqual(['read:any']);
+            expect(result[0].permissions[1].actions).toEqual([AuthAction.READ_ANY]);
         });
 
         it('should normalize roles to uppercase when loading from disk', async () => {

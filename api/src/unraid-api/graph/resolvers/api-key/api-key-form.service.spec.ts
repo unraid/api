@@ -1,5 +1,4 @@
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
-import { AuthAction } from 'nest-authz';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {

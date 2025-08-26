@@ -1,6 +1,5 @@
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { Model as CasbinModel, newEnforcer, StringAdapter } from 'casbin';
-import { AuthAction } from 'nest-authz';
 import { describe, expect, it } from 'vitest';
 
 import { CASBIN_MODEL } from '@app/unraid-api/auth/casbin/model.js';
@@ -13,7 +12,7 @@ describe('Casbin Policy - VIEWER role restrictions', () => {
         model.loadModelFromText(CASBIN_MODEL);
 
         // Test with a policy that has an empty object
-        const emptyPolicy = `p, VIEWER, , read:any`;
+        const emptyPolicy = `p, VIEWER, , ${AuthAction.READ_ANY}`;
         const adapter = new StringAdapter(emptyPolicy);
         const enforcer = await newEnforcer(model, adapter);
 
