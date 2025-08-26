@@ -46,7 +46,12 @@ export function useApiKeyAuthorizationForm(urlSearchParams?: URLSearchParams) {
    * Get the app name for display
    */
   const displayAppName = computed(() => {
-    return authParams.value.name;
+    const name = authParams.value.name;
+    // Remove " API Key" suffix for display if present
+    if (name.endsWith(' API Key')) {
+      return name.slice(0, -8); // Remove last 8 chars (" API Key")
+    }
+    return name;
   });
 
   /**

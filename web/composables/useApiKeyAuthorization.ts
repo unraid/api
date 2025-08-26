@@ -30,7 +30,11 @@ function convertScopesToPermissions(scopes: string[]): ScopeConversion {
       // Handle permission scope
       const [resourceStr, actionStr] = scope.split(':');
       if (resourceStr && actionStr) {
-        const resourceUpper = resourceStr.toUpperCase();
+        // Handle special case for 'vm' -> 'VMS'
+        let resourceUpper = resourceStr.toUpperCase();
+        if (resourceUpper === 'VM') {
+          resourceUpper = 'VMS';
+        }
         const resource = Object.values(Resource).find(r => r === resourceUpper) as Resource;
         
         if (!resource) {
@@ -52,14 +56,6 @@ function convertScopesToPermissions(scopes: string[]): ScopeConversion {
           // The enum values are strings like 'CREATE_ANY', 'READ_ANY', etc.
           const actionUpper = actionStr.toUpperCase();
           const enumValue = `${actionUpper}_ANY` as AuthAction;
-          
-          console.log('Converting action:', { 
-            original: actionStr, 
-            uppercase: actionUpper, 
-            enumValue,
-            isValidEnum: Object.values(AuthAction).includes(enumValue),
-            expectedValues: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY]
-          });
           
           // Check if this is a valid enum value
           if (Object.values(AuthAction).includes(enumValue)) {
@@ -84,13 +80,6 @@ function convertScopesToPermissions(scopes: string[]): ScopeConversion {
       }
     }
   }
-  
-  console.log('Final converted permissions:', {
-    permissions,
-    firstPermission: permissions[0],
-    firstActions: permissions[0]?.actions,
-    actionTypes: permissions[0]?.actions?.map(a => ({ value: a, type: typeof a }))
-  });
   
   return { permissions, roles };
 }
