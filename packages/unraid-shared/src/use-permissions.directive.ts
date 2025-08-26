@@ -46,21 +46,41 @@ export const UsePermissionsDirective = new GraphQLDirective({
     },
 });
 
-// Create a decorator that combines both the GraphQL directive and UsePermissions
-type PermissionsConfig = 
-    | { action: AuthAction; resource: Resource | string }  // New format: action with possession combined
-    | { action: AuthActionVerb | string; possession: AuthPossession | string; resource: Resource | string };  // Old format: separate verb and possession
+// New format: action with possession combined (no possession property allowed)
+type NewFormatPermissions = {
+    action: AuthAction;
+    resource: Resource | string;
+    possession?: never;  // Explicitly disallow possession property
+};
+
+// Old format: separate verb and possession (action must be verb only)
+type OldFormatPermissions = {
+    action: AuthActionVerb | string;
+    possession: AuthPossession | string;
+    resource: Resource | string;
+};
 
 /**
  * UsePermissions Decorator
  * 
  * Applies permission-based authorization to GraphQL resolvers and adds schema documentation.
  * 
- * @example
+ * @example New format with combined action:
  * ```typescript
  * @Query(() => [User])
  * @UsePermissions({
  *     action: AuthAction.READ_ANY,
+ *     resource: Resource.USERS
+ * })
+ * async getUsers() { ... }
+ * ```
+ * 
+ * @example Old format with separate verb and possession:
+ * ```typescript
+ * @Query(() => [User])
+ * @UsePermissions({
+ *     action: AuthActionVerb.READ,
+ *     possession: AuthPossession.ANY,
  *     resource: Resource.USERS
  * })
  * async getUsers() { ... }
@@ -75,56 +95,103 @@ type PermissionsConfig =
  * Note: While the GraphQL schema shows String types for the directive,
  * TypeScript ensures only valid enum values can be used.
  */
-export const UsePermissions = (permissions: PermissionsConfig) => {
-    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+export function UsePermissions(permissions: NewFormatPermissions): MethodDecorator;
+export function UsePermissions(permissions: OldFormatPermissions): MethodDecorator;
+export function UsePermissions(permissions: NewFormatPermissions | OldFormatPermissions): MethodDecorator {
+    return (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
         let finalAction: AuthAction;
         let finalResource: string;
         
-        // Handle resource - convert enum to string if needed
+        // Handle and validate resource
         if (typeof permissions.resource === 'string') {
-            finalResource = permissions.resource;
+            // String resource - validate against Resource enum
+            const resourceValues = Object.values(Resource) as string[];
+            const resourceKeys = Object.keys(Resource) as string[];
+            
+            // Check if the string matches either a key or value in the Resource enum
+            if (!resourceValues.includes(permissions.resource) && !resourceKeys.includes(permissions.resource)) {
+                throw new Error(
+                    `Invalid resource value: "${permissions.resource}". Must be one of: ${resourceValues.join(', ')}`
+                );
+            }
+            
+            // If it's a key, convert to the enum value
+            if (resourceKeys.includes(permissions.resource) && !resourceValues.includes(permissions.resource)) {
+                finalResource = Resource[permissions.resource as keyof typeof Resource];
+            } else {
+                finalResource = permissions.resource;
+            }
         } else {
-            // Resource enum value
+            // Resource enum value - validate and convert to string
+            if (!Object.values(Resource).includes(permissions.resource)) {
+                throw new Error(
+                    `Invalid Resource enum value: ${permissions.resource}. Must be one of: ${Object.values(Resource).join(', ')}`
+                );
+            }
             finalResource = permissions.resource;
-        }
-        
-        // Validate resource enum if provided as enum
-        if (typeof permissions.resource !== 'string' && !Object.values(Resource).includes(permissions.resource)) {
-            throw new Error(`Invalid Resource enum value: ${permissions.resource}`);
         }
         
         // Determine the final action based on input format
-        if ('possession' in permissions) {
+        // Detect "combined" actions early (e.g., "read:any") to avoid double-combining.
+        const maybeCombined =
+            (permissions as any)?.action &&
+            typeof (permissions as any).action === 'string' &&
+            (permissions as any).action.includes(':');
+
+        if ('possession' in permissions && !maybeCombined) {
             // Old format: combine verb and possession
             const oldFormat = permissions as { action: AuthActionVerb | string; possession: AuthPossession | string; resource: Resource | string };
-            const verb = typeof oldFormat.action === 'string' 
-                ? oldFormat.action.toLowerCase()
-                : (oldFormat.action as AuthActionVerb).toLowerCase();
-            const possession = typeof oldFormat.possession === 'string'
-                ? oldFormat.possession.toLowerCase()
-                : (oldFormat.possession as AuthPossession).toLowerCase();
+            const actionStr = typeof oldFormat.action === 'string' ? oldFormat.action : (oldFormat.action as AuthActionVerb);
+            const verb = actionStr.toLowerCase().trim();
+            const possessionStr = typeof oldFormat.possession === 'string' ? oldFormat.possession : (oldFormat.possession as AuthPossession);
+            const possession = possessionStr.toLowerCase().trim();
             finalAction = `${verb}:${possession}` as AuthAction;
-            
+
             // Validate the combined action
             if (!Object.values(AuthAction).includes(finalAction)) {
-                throw new Error(`Invalid action combination: ${verb}:${possession}`);
+                throw new Error(
+                    `Invalid action combination: "${verb}:${possession}". ` +
+                    `Valid AuthAction values are: ${Object.values(AuthAction).join(', ')}`
+                );
             }
         } else {
             // New format: action already includes possession (AuthAction enum)
-            finalAction = permissions.action;
+            finalAction = (maybeCombined ? (permissions as any).action : permissions.action) as AuthAction;
             
             // Validate AuthAction enum
             if (!Object.values(AuthAction).includes(finalAction)) {
-                throw new Error(`Invalid AuthAction enum value: ${finalAction}`);
+                throw new Error(
+                    `Invalid AuthAction enum value: "${finalAction}". ` +
+                    `Valid AuthAction values are: ${Object.values(AuthAction).join(', ')}`
+                );
             }
         }
+        
+        // Escape values for safe SDL injection
+        const escapeForSDL = (value: string): string => {
+            // Validate that the value only contains expected characters
+            // Allow uppercase/lowercase letters, underscores, and colons (for actions like "read:any")
+            const allowedPattern = /^[A-Za-z_:]+$/;
+            
+            if (!allowedPattern.test(value)) {
+                throw new Error(
+                    `Invalid characters in permission value: "${value}". Only letters, underscores, and colons are allowed.`
+                );
+            }
+            
+            // Escape special characters for GraphQL string literals
+            return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+        };
+        
+        const escapedAction = escapeForSDL(finalAction);
+        const escapedResource = escapeForSDL(finalResource);
         
         // Apply UsePermissions for actual authorization
         NestAuthzUsePermissions({ action: finalAction, resource: finalResource })(target, propertyKey, descriptor);
 
-        // Apply GraphQL directive using NestJS's @Directive decorator
+        // Apply GraphQL directive using NestJS's @Directive decorator with escaped values
         Directive(
-            `@usePermissions(action: "${finalAction}", resource: "${finalResource}")`
+            `@usePermissions(action: "${escapedAction}", resource: "${escapedResource}")`
         )(target, propertyKey, descriptor);
 
         return descriptor;
