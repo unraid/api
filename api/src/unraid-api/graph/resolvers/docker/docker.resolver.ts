@@ -6,8 +6,10 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
+import { GraphQLJSON } from 'graphql-scalars';
 
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/docker-organizer.service.js';
+import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import {
     Docker,
     DockerContainer,
@@ -21,7 +23,8 @@ import { OrganizerV1, ResolvedOrganizerV1 } from '@app/unraid-api/organizer/orga
 export class DockerResolver {
     constructor(
         private readonly dockerService: DockerService,
-        private readonly dockerOrganizerService: DockerOrganizerService
+        private readonly dockerOrganizerService: DockerOrganizerService,
+        private readonly dockerPhpService: DockerPhpService
     ) {}
 
     @UsePermissions({
@@ -134,5 +137,15 @@ export class DockerResolver {
             destinationFolderId,
         });
         return this.dockerOrganizerService.resolveOrganizer(organizer);
+    }
+
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.DOCKER,
+        possession: AuthPossession.ANY,
+    })
+    @ResolveField(() => GraphQLJSON)
+    public async containerUpdateStatuses() {
+        return this.dockerPhpService.getContainerUpdateStatuses();
     }
 }

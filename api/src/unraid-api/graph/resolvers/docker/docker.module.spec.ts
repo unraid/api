@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/docker-organizer.service.js';
+import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
 import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
@@ -61,6 +62,7 @@ describe('DockerModule', () => {
                 DockerResolver,
                 { provide: DockerService, useValue: {} },
                 { provide: DockerOrganizerService, useValue: {} },
+                { provide: DockerPhpService, useValue: { getContainerUpdateStatuses: vi.fn() } },
             ],
         }).compile();
 
