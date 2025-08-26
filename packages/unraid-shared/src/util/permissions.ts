@@ -155,8 +155,16 @@ export function convertScopesToPermissions(scopes: string[]): ScopeConversion {
         console.warn(`Unknown role in scope: ${scope}`);
       }
     } else {
-      // Handle permission scope
-      const [resourceStr, actionStr] = scope.split(':');
+      // Handle permission scope - split only on first colon
+      const colonIndex = scope.indexOf(':');
+      if (colonIndex === -1) {
+        console.warn(`Invalid scope format (missing colon): ${scope}`);
+        continue;
+      }
+      
+      const resourceStr = scope.substring(0, colonIndex);
+      const actionStr = scope.substring(colonIndex + 1).trim();
+      
       if (resourceStr && actionStr) {
         const resource = parseResourceToEnum(resourceStr);
         if (!resource) {
@@ -174,6 +182,7 @@ export function convertScopesToPermissions(scopes: string[]): ScopeConversion {
             AuthAction.DELETE_ANY
           ];
         } else {
+          // Actions like "read:any" should be preserved as-is
           const action = parseActionToAuthAction(actionStr);
           if (action) {
             actions = [action];
@@ -194,6 +203,8 @@ export function convertScopesToPermissions(scopes: string[]): ScopeConversion {
         } else {
           permissions.push({ resource, actions });
         }
+      } else {
+        console.warn(`Invalid scope format: ${scope}`);
       }
     }
   }
