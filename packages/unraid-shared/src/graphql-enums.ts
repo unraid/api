@@ -1,10 +1,31 @@
 // This file contains only the enum definitions without any NestJS dependencies
 // Safe to import in both frontend and backend
 
-import { AuthAction, AuthActionVerb, AuthPossession } from 'nest-authz';
+// Define our own AuthAction enum with matching keys and values
+// This ensures GraphQL schema and runtime values are identical
+export enum AuthAction {
+    CREATE_ANY = 'CREATE_ANY',
+    CREATE_OWN = 'CREATE_OWN',
+    READ_ANY = 'READ_ANY', 
+    READ_OWN = 'READ_OWN',
+    UPDATE_ANY = 'UPDATE_ANY',
+    UPDATE_OWN = 'UPDATE_OWN',
+    DELETE_ANY = 'DELETE_ANY',
+    DELETE_OWN = 'DELETE_OWN',
+}
 
-// Re-export auth enums for convenience
-export { AuthAction, AuthActionVerb, AuthPossession };
+// Keep these for backward compatibility if needed
+export enum AuthActionVerb {
+    CREATE = 'CREATE',
+    UPDATE = 'UPDATE',
+    DELETE = 'DELETE',
+    READ = 'READ',
+}
+
+export enum AuthPossession {
+    ANY = 'ANY',
+    OWN = 'OWN',
+}
 
 // Define Resource enum
 export enum Resource {
@@ -95,5 +116,5 @@ export interface ApiKeyWithSecret extends ApiKey {
 
 export interface Permission {
     resource: Resource;
-    actions: string[]; // Can be AuthAction or AuthActionVerb values
+    actions: AuthAction[];
 }

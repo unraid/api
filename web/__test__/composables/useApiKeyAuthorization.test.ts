@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { useApiKeyAuthorization } from '~/composables/useApiKeyAuthorization';
-import { Resource, Role } from '~/composables/gql/graphql';
+import { AuthAction, Resource, Role } from '~/composables/gql/graphql';
 
 describe('useApiKeyAuthorization', () => {
   describe('parameter parsing', () => {
     it('should parse query parameters correctly', () => {
-      const params = new URLSearchParams('?name=TestApp&scopes=docker:read,vm:*&redirect_uri=https://example.com&state=abc123');
+      const params = new URLSearchParams('?name=TestApp&scopes=docker:read,vms:*&redirect_uri=https://example.com&state=abc123');
       const { authParams } = useApiKeyAuthorization(params);
       
       expect(authParams.value.name).toBe('TestApp');
-      expect(authParams.value.scopes).toEqual(['docker:read', 'vm:*']);
+      expect(authParams.value.scopes).toEqual(['docker:read', 'vms:*']);
       expect(authParams.value.redirectUri).toBe('https://example.com');
       expect(authParams.value.state).toBe('abc123');
     });
@@ -47,7 +47,7 @@ describe('useApiKeyAuthorization', () => {
     });
 
     it('should format resource:action scopes correctly', () => {
-      const params = new URLSearchParams('?scopes=docker:read,vm:*');
+      const params = new URLSearchParams('?scopes=docker:read,vms:*');
       const { formattedPermissions } = useApiKeyAuthorization(params);
       
       expect(formattedPermissions.value).toEqual([
@@ -58,9 +58,9 @@ describe('useApiKeyAuthorization', () => {
           isRole: false,
         },
         {
-          scope: 'vm:*',
-          name: 'Vm - Full',
-          description: 'Full access to Vm',
+          scope: 'vms:*',
+          name: 'Vms - Full',
+          description: 'Full access to Vms',
           isRole: false,
         },
       ]);
@@ -85,21 +85,21 @@ describe('useApiKeyAuthorization', () => {
       expect(result.permissions).toEqual([
         {
           resource: Resource.DOCKER,
-          actions: ['read:any'],
+          actions: [AuthAction.READ_ANY],
         },
       ]);
       expect(result.roles).toEqual([]);
     });
 
     it('should handle wildcard actions', () => {
-      const params = new URLSearchParams('?scopes=vm:*');
+      const params = new URLSearchParams('?scopes=vms:*');
       const { convertScopesToPermissions } = useApiKeyAuthorization(params);
-      const result = convertScopesToPermissions(['vm:*']);
+      const result = convertScopesToPermissions(['vms:*']);
       
       expect(result.permissions).toEqual([
         {
           resource: Resource.VMS,
-          actions: ['create:any', 'read:any', 'update:any', 'delete:any'],
+          actions: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY],
         },
       ]);
     });
@@ -112,7 +112,7 @@ describe('useApiKeyAuthorization', () => {
       expect(result.permissions).toEqual([
         {
           resource: Resource.DOCKER,
-          actions: ['read:any', 'update:any'],
+          actions: [AuthAction.READ_ANY, AuthAction.UPDATE_ANY],
         },
       ]);
     });

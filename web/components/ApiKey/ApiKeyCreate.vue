@@ -28,7 +28,6 @@ import type {
   Role,
 } from '~/composables/gql/graphql';
 import type { ComposerTranslation } from 'vue-i18n';
-import type { AuthActionValue } from '~/types/auth-actions';
 
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { useApiKeyPermissionPresets } from '~/composables/useApiKeyPermissionPresets';
@@ -58,14 +57,14 @@ interface FormData extends Partial<CreateApiKeyInput> {
   permissionPresets?: string; // For the preset dropdown
   customPermissions?: Array<{
     resources: Resource[];
-    actions: AuthActionValue[];
+    actions: AuthAction[];
   }>;
   requestedPermissions?: {
     roles?: Role[];
     permissionGroups?: string[];
     customPermissions?: Array<{
       resources: Resource[];
-      actions: AuthActionValue[];
+      actions: AuthAction[];
     }>;
   };
   consent?: boolean;
@@ -245,7 +244,7 @@ const populateFormFromExistingKey = async () => {
 
     const customPermissions = Array.from(permissionGroups.entries()).map(([actionKey, resources]) => ({
       resources,
-      actions: actionKey.split(',') as AuthAction[], // GraphQL will return these as enum values
+      actions: actionKey.split(',') as AuthAction[], // Actions are now already in correct format
     }));
 
     formData.value = {

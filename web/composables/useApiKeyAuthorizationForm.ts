@@ -1,7 +1,6 @@
 import { computed } from 'vue';
 import { useApiKeyAuthorization } from './useApiKeyAuthorization.js';
-import type { Role, Resource } from '~/composables/gql/graphql.js';
-import type { AuthActionValue } from '~/types/auth-actions.js';
+import type { Role, Resource, AuthAction } from '~/composables/gql/graphql.js';
 
 export interface AuthorizationFormData {
   name: string;
@@ -9,7 +8,7 @@ export interface AuthorizationFormData {
   roles?: Role[];
   customPermissions?: Array<{
     resources: Resource[];
-    actions: AuthActionValue[];
+    actions: AuthAction[];
   }>;
 }
 
@@ -34,7 +33,7 @@ export function useApiKeyAuthorizationForm(urlSearchParams?: URLSearchParams) {
       name: defaultKeyName.value,
       description: authParams.value.description,
       roles: scopeConversion.roles,
-      customPermissions: scopeConversion.permissions.map(perm => ({
+      customPermissions: scopeConversion.permissions.map((perm: { resource: Resource; actions: AuthAction[] }) => ({
         resources: [perm.resource],
         actions: perm.actions, // Pass AuthAction strings directly
       })),

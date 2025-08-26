@@ -276,7 +276,7 @@ async function copyKeyTemplate(key: ApiKeyFragment) {
                           :roles="key.roles"
                           :raw-permissions="key.permissions?.map(p => ({
                             resource: p.resource,
-                            actions: p.actions as AuthAction[]
+                            actions: p.actions
                           })) || []"
                           :show-header="false"
                         />

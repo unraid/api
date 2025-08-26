@@ -25,3 +25,21 @@ export const AUTH_ACTION_VALUES = {
   UPDATE_OWN: 'update:own' as AuthActionValue,
   DELETE_OWN: 'delete:own' as AuthActionValue,
 } as const;
+
+/**
+ * Convert AuthActionValue (string like 'create:any') to AuthAction enum
+ * This is needed because the form uses string values but the API expects enums
+ */
+export function authActionValueToEnum(value: AuthActionValue): string {
+  // Convert 'create:any' to 'CREATE_ANY'
+  return value.toUpperCase().replace(':', '_');
+}
+
+/**
+ * Convert AuthAction enum to AuthActionValue (string)
+ * This is needed when displaying API data in forms
+ */
+export function authActionEnumToValue(enumValue: string): AuthActionValue {
+  // Convert 'CREATE_ANY' to 'create:any'
+  return enumValue.toLowerCase().replace('_', ':') as AuthActionValue;
+}

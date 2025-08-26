@@ -234,9 +234,14 @@ describe('ColorSwitcher', () => {
   });
 
   it('enables gradient automatically when banner is enabled', async () => {
+    // Create a single Pinia instance to be shared between component and store
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    setActivePinia(pinia);
+    themeStore = useThemeStore();
+
     const wrapper = mount(ColorSwitcher, {
       global: {
-        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        plugins: [pinia],
         stubs: {
           Accordion: { template: '<div><slot /></div>' },
           AccordionItem: { template: '<div><slot /></div>' },
@@ -245,8 +250,6 @@ describe('ColorSwitcher', () => {
         },
       },
     });
-
-    themeStore = useThemeStore();
 
     const switches = wrapper.findAllComponents(Switch);
     const gradientSwitch = switches[0];

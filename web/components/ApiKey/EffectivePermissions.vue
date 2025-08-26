@@ -3,12 +3,11 @@ import { computed, watch } from 'vue';
 import { useLazyQuery } from '@vue/apollo-composable';
 import { Badge } from '@unraid/ui';
 import { PREVIEW_EFFECTIVE_PERMISSIONS } from './permissions-preview.query';
-import type { Role, PreviewEffectivePermissionsQuery } from '~/composables/gql/graphql';
-import type { AuthActionValue } from '~/types/auth-actions';
+import type { AuthAction, Role, PreviewEffectivePermissionsQuery } from '~/composables/gql/graphql';
 
 interface RawPermission {
   resource: string;
-  actions: AuthActionValue[];
+  actions: AuthAction[];
 }
 
 interface Props {

@@ -1,9 +1,8 @@
 import { computed, ref } from 'vue';
-import { Resource, Role } from '~/composables/gql/graphql';
-import type { AuthActionValue } from '~/types/auth-actions';
+import { AuthAction, Resource, Role } from '~/composables/gql/graphql';
 
 export interface ScopeConversion {
-  permissions: Array<{ resource: Resource; actions: AuthActionValue[] }>;
+  permissions: Array<{ resource: Resource; actions: AuthAction[] }>;
   roles: Role[];
 }
 
@@ -13,12 +12,9 @@ export interface ScopeConversion {
  * - "role:admin" for roles
  * - "docker:read" for resource permissions
  * - "docker:*" for all actions on a resource
- * 
- * Returns AuthActionValue enum values (e.g., 'create:any', 'read:any')
- * rather than AuthAction enum keys (e.g., 'CREATE_ANY', 'READ_ANY')
  */
 function convertScopesToPermissions(scopes: string[]): ScopeConversion {
-  const permissions: Array<{ resource: Resource; actions: AuthActionValue[] }> = [];
+  const permissions: Array<{ resource: Resource; actions: AuthAction[] }> = [];
   const roles: Role[] = [];
   
   for (const scope of scopes) {
@@ -34,11 +30,7 @@ function convertScopesToPermissions(scopes: string[]): ScopeConversion {
       // Handle permission scope
       const [resourceStr, actionStr] = scope.split(':');
       if (resourceStr && actionStr) {
-        // Handle special case for 'vm' -> 'VMS'
-        let resourceUpper = resourceStr.toUpperCase();
-        if (resourceUpper === 'VM') {
-          resourceUpper = 'VMS';
-        }
+        const resourceUpper = resourceStr.toUpperCase();
         const resource = Object.values(Resource).find(r => r === resourceUpper) as Resource;
         
         if (!resource) {
@@ -47,19 +39,25 @@ function convertScopesToPermissions(scopes: string[]): ScopeConversion {
         }
         
         // Handle wildcard or specific action
-        let actions: AuthActionValue[];
+        let actions: AuthAction[];
         if (actionStr === '*') {
-          // Use the lowercase enum values for the form
+          // Wildcard means all CRUD actions
           actions = [
-            'create:any',
-            'read:any',
-            'update:any',
-            'delete:any'
+            AuthAction.CREATE_ANY,
+            AuthAction.READ_ANY,
+            AuthAction.UPDATE_ANY,
+            AuthAction.DELETE_ANY
           ];
         } else {
-          // Always use lowercase:any format for the form
-          // The form expects the enum VALUES (lowercase), not the enum KEYS
-          actions = [`${actionStr.toLowerCase()}:any` as AuthActionValue];
+          // Convert action string to AuthAction enum
+          // Scopes come in as 'read', 'create', etc. - convert to 'READ_ANY', 'CREATE_ANY'
+          const enumValue = `${actionStr.toUpperCase()}_ANY` as AuthAction;
+          if (Object.values(AuthAction).includes(enumValue)) {
+            actions = [enumValue];
+          } else {
+            console.warn(`Unknown action in scope: ${scope}`);
+            continue;
+          }
         }
         
         // Merge with existing permissions for the same resource
@@ -162,7 +160,7 @@ export function useApiKeyAuthorization(urlSearchParams?: URLSearchParams) {
     });
   };
 
-  // Use the shared convertScopesToPermissions function from @unraid/shared
+  // Use the shared convertScopesToFrontendFormPermissions function from @unraid/shared
   // This ensures consistent scope parsing across frontend and backend
 
   // Build redirect URL with API key or error

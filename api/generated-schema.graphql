@@ -658,6 +658,12 @@ enum AuthAction {
   """Create own resource"""
   CREATE_OWN
 
+  """Read any resource"""
+  READ_ANY
+
+  """Read own resource"""
+  READ_OWN
+
   """Update any resource"""
   UPDATE_ANY
 
@@ -669,12 +675,6 @@ enum AuthAction {
 
   """Delete own resource"""
   DELETE_OWN
-
-  """Read any resource"""
-  READ_ANY
-
-  """Read own resource"""
-  READ_OWN
 }
 
 type ApiKey implements Node {

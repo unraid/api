@@ -1,5 +1,5 @@
 // Import from graphql-enums to avoid NestJS dependencies
-import { Resource, Role, AuthAction } from '../graphql-enums.js';
+import { Resource, Role, AuthAction, AuthActionVerb, AuthPossession } from '../graphql-enums.js';
 
 export interface ScopeConversion {
   permissions: Array<{ resource: Resource; actions: AuthAction[] }>;
@@ -9,39 +9,42 @@ export interface ScopeConversion {
 /**
  * Normalize an action string to AuthAction enum value
  * Handles various input formats:
- * - Full AuthAction values: 'read:any', 'create:own'
- * - Uppercase with underscore: 'READ_ANY', 'CREATE_OWN'
- * - Simple verbs: 'read', 'create' (defaults to ':any')
+ * - Full AuthAction values: 'READ_ANY', 'CREATE_OWN'
+ * - Lowercase with colon: 'read:any', 'create:own' (legacy)
+ * - Simple verbs: 'read', 'create' (defaults to '_ANY')
  * - Mixed case: 'Read', 'CREATE'
  * 
  * @param action - The action string to normalize
- * @param defaultPossession - Default possession if not specified ('any' or 'own')
+ * @param defaultPossession - Default possession if not specified ('ANY' or 'OWN')
  * @returns The normalized action as AuthAction or null if invalid
  */
-export function parseActionToAuthAction(action: string | null | undefined, defaultPossession: 'any' | 'own' = 'any'): AuthAction | null {
+export function parseActionToAuthAction(action: string | null | undefined, defaultPossession: 'ANY' | 'OWN' = 'ANY'): AuthAction | null {
   if (!action) return null;
   
-  const normalized = action.trim().toLowerCase().replace(/_/g, ':');
+  // First check if it's already a valid AuthAction value
+  if (Object.values(AuthAction).includes(action as AuthAction)) {
+    return action as AuthAction;
+  }
   
-  // Direct enum value check
+  // Normalize the input - handle both underscore and colon formats
+  let normalized = action.trim().toUpperCase();
+  
+  // Convert colon format (read:any) to underscore format (READ_ANY)
+  if (normalized.includes(':')) {
+    normalized = normalized.replace(':', '_');
+  }
+  
+  // Check if normalized version is valid
   if (Object.values(AuthAction).includes(normalized as AuthAction)) {
     return normalized as AuthAction;
   }
   
-  // Check if it's already a full action with possession
-  if (normalized.includes(':')) {
-    const fullAction = normalized as AuthAction;
-    if (Object.values(AuthAction).includes(fullAction)) {
-      return fullAction;
-    }
-  }
-  
   // Handle simple verbs without possession
-  const simpleVerbs = ['create', 'read', 'update', 'delete'];
-  const verb = normalized.split(':')[0];
+  const simpleVerbs = ['CREATE', 'READ', 'UPDATE', 'DELETE'];
+  const verb = normalized.split('_')[0];
   
   if (simpleVerbs.includes(verb)) {
-    const withPossession = `${verb}:${defaultPossession}` as AuthAction;
+    const withPossession = `${verb}_${defaultPossession}` as AuthAction;
     if (Object.values(AuthAction).includes(withPossession)) {
       return withPossession;
     }
@@ -59,30 +62,43 @@ export const parseActionToEnum = parseActionToAuthAction;
 /**
  * Extract the verb from an AuthAction
  * @param action - The AuthAction to extract from
- * @returns The verb part of the action (create, read, update, delete)
+ * @returns The verb part of the action as AuthActionVerb or null if invalid
  */
-export function getVerbFromAuthAction(action: AuthAction): string {
-  return action.split(':')[0];
+export function getVerbFromAuthAction(action: AuthAction): AuthActionVerb | null {
+  // AuthAction is now in format CREATE_ANY, so split by underscore
+  const verb = action.split('_')[0];
+  
+  // Match against actual enum values
+  if (Object.values(AuthActionVerb).includes(verb as AuthActionVerb)) {
+    return verb as AuthActionVerb;
+  }
+  return null;
 }
 
 /**
  * Extract the possession from an AuthAction
  * @param action - The AuthAction to extract from
- * @returns The possession part of the action (any, own)
+ * @returns The possession part of the action as AuthPossession or null if invalid
  */
-export function getPossessionFromAuthAction(action: AuthAction): 'any' | 'own' {
-  const possession = action.split(':')[1];
-  return possession as 'any' | 'own';
+export function getPossessionFromAuthAction(action: AuthAction): AuthPossession | null {
+  // AuthAction is now in format CREATE_ANY, so split by underscore
+  const possession = action.split('_')[1];
+  
+  // Match against actual enum values
+  if (Object.values(AuthPossession).includes(possession as AuthPossession)) {
+    return possession as AuthPossession;
+  }
+  return null;
 }
 
 /**
  * Combine a verb and possession into an AuthAction
- * @param verb - The action verb
- * @param possession - The possession type
+ * @param verb - The action verb (can be uppercase or lowercase)
+ * @param possession - The possession type (can be uppercase or lowercase)
  * @returns The combined AuthAction or null if invalid
  */
-export function combineToAuthAction(verb: string, possession: 'any' | 'own'): AuthAction | null {
-  const combined = `${verb.toLowerCase()}:${possession}` as AuthAction;
+export function combineToAuthAction(verb: string, possession: string): AuthAction | null {
+  const combined = `${verb.toUpperCase()}_${possession.toUpperCase()}` as AuthAction;
   if (Object.values(AuthAction).includes(combined)) {
     return combined;
   }
@@ -105,15 +121,6 @@ export function parseResourceToEnum(resourceStr: string): Resource | null {
     return directMatch;
   }
   
-  // Handle special cases
-  const specialCases: Record<string, Resource> = {
-    'VM': Resource.VMS,
-    // Add more special cases as needed
-  };
-  
-  if (specialCases[normalized]) {
-    return specialCases[normalized];
-  }
   
   return null;
 }

@@ -1,31 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { AuthAction } from 'nest-authz';
-import { Resource } from './graphql-enums.js';
+import { AuthAction, Resource } from './graphql-enums.js';
 import { UsePermissions } from './use-permissions.directive.js';
 
 // Mock NestJS dependencies
 vi.mock('nest-authz', () => ({
   UsePermissions: vi.fn(() => vi.fn()),
-  AuthAction: {
-    CREATE_ANY: 'create:any',
-    READ_ANY: 'read:any',
-    UPDATE_ANY: 'update:any',
-    DELETE_ANY: 'delete:any',
-    CREATE_OWN: 'create:own',
-    READ_OWN: 'read:own',
-    UPDATE_OWN: 'update:own',
-    DELETE_OWN: 'delete:own',
-  },
-  AuthActionVerb: {
-    CREATE: 'create',
-    READ: 'read',
-    UPDATE: 'update',
-    DELETE: 'delete',
-  },
-  AuthPossession: {
-    ANY: 'any',
-    OWN: 'own',
-  },
 }));
 
 vi.mock('@nestjs/graphql', () => ({

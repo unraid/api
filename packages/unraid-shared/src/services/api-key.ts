@@ -1,6 +1,5 @@
 import { ApiKey, ApiKeyWithSecret, Permission } from '../graphql.model.js';
-import { Role } from '../graphql.model.js';
-import { AuthActionVerb } from 'nest-authz';
+import { Role, AuthAction } from '../graphql.model.js';
 
 export interface ApiKeyService {
     /**
@@ -30,7 +29,7 @@ export interface ApiKeyService {
         name: string;
         description?: string;
         roles?: Role[];
-        permissions?: Permission[] | { resource: string; actions: AuthActionVerb[] }[];
+        permissions?: Permission[] | { resource: string; actions: AuthAction[] }[];
         overwrite?: boolean;
     }): Promise<ApiKeyWithSecret>;
 
