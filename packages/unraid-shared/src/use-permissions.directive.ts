@@ -49,7 +49,7 @@ export const UsePermissionsDirective = new GraphQLDirective({
 // New format: action with possession combined (no possession property allowed)
 type NewFormatPermissions = {
     action: AuthAction;
-    resource: Resource | string;
+    resource: Resource;
     possession?: never;  // Explicitly disallow possession property
 };
 
@@ -57,7 +57,7 @@ type NewFormatPermissions = {
 type OldFormatPermissions = {
     action: AuthActionVerb | string;
     possession: AuthPossession | string;
-    resource: Resource | string;
+    resource: Resource;
 };
 
 /**
@@ -100,35 +100,15 @@ export function UsePermissions(permissions: OldFormatPermissions): MethodDecorat
 export function UsePermissions(permissions: NewFormatPermissions | OldFormatPermissions): MethodDecorator {
     return (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
         let finalAction: AuthAction;
-        let finalResource: string;
+        // Validate and get the resource value
+        // TypeScript now ensures this is a Resource enum value at compile time
+        const finalResource = permissions.resource;
         
-        // Handle and validate resource
-        if (typeof permissions.resource === 'string') {
-            // String resource - validate against Resource enum
-            const resourceValues = Object.values(Resource) as string[];
-            const resourceKeys = Object.keys(Resource) as string[];
-            
-            // Check if the string matches either a key or value in the Resource enum
-            if (!resourceValues.includes(permissions.resource) && !resourceKeys.includes(permissions.resource)) {
-                throw new Error(
-                    `Invalid resource value: "${permissions.resource}". Must be one of: ${resourceValues.join(', ')}`
-                );
-            }
-            
-            // If it's a key, convert to the enum value
-            if (resourceKeys.includes(permissions.resource) && !resourceValues.includes(permissions.resource)) {
-                finalResource = Resource[permissions.resource as keyof typeof Resource];
-            } else {
-                finalResource = permissions.resource;
-            }
-        } else {
-            // Resource enum value - validate and convert to string
-            if (!Object.values(Resource).includes(permissions.resource)) {
-                throw new Error(
-                    `Invalid Resource enum value: ${permissions.resource}. Must be one of: ${Object.values(Resource).join(', ')}`
-                );
-            }
-            finalResource = permissions.resource;
+        // Runtime validation as a safety check
+        if (!Object.values(Resource).includes(finalResource)) {
+            throw new Error(
+                `Invalid Resource enum value: ${finalResource}. Must be one of: ${Object.values(Resource).join(', ')}`
+            );
         }
         
         // Determine the final action based on input format

@@ -1,7 +1,7 @@
 import { Controller, Get, Logger, Param, Query, Req, Res, UnauthorizedException } from '@nestjs/common';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
@@ -24,9 +24,8 @@ export class RestController {
 
     @Get('/graphql/api/logs')
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.LOGS,
-        possession: AuthPossession.ANY,
     })
     async getLogs(@Res() res: FastifyReply) {
         try {
@@ -40,9 +39,8 @@ export class RestController {
 
     @Get('/graphql/api/customizations/:type')
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.CUSTOMIZATIONS,
-        possession: AuthPossession.ANY,
     })
     async getCustomizations(@Param('type') type: string, @Res() res: FastifyReply) {
         if (type !== 'banner' && type !== 'case') {

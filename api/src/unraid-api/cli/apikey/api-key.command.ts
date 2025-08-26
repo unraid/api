@@ -1,5 +1,4 @@
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
-import { AuthActionVerb } from 'nest-authz';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { Command, CommandRunner, InquirerService, Option } from 'nest-commander';
 
 import type { DeleteApiKeyAnswers } from '@app/unraid-api/cli/apikey/delete-api-key.questions.js';
@@ -75,7 +74,7 @@ export class ApiKeyCommand extends CommandRunner {
         flags: '-p, --permissions <permissions>',
         description: `Comma separated list of permissions to assign to the key (in the form of "resource:action")
 RESOURCES: ${Object.values(Resource).join(', ')}
-ACTIONS: ${Object.values(AuthActionVerb).join(', ')}`,
+ACTIONS: ${Object.values(AuthAction).join(', ')}`,
     })
     parsePermissions(permissions: string): Array<Permission> {
         return this.apiKeyService.convertPermissionsStringArrayToPermissions(

@@ -89,18 +89,22 @@ describe('integration with parseActionToAuthAction', () => {
   it('should produce valid AuthAction enum values after normalization', () => {
     // Test that normalized actions can be parsed to valid enum values
     const testCases = [
-      { input: 'create', normalized: 'create:any', expected: AuthAction.CREATE_ANY },
-      { input: 'CREATE_ANY', normalized: 'create:any', expected: AuthAction.CREATE_ANY },
-      { input: 'read:own', normalized: 'read:own', expected: AuthAction.READ_OWN },
-      { input: 'UPDATE_OWN', normalized: 'update:own', expected: AuthAction.UPDATE_OWN },
+      { input: 'create', normalized: AuthAction.CREATE_ANY, expected: AuthAction.CREATE_ANY },
+      { input: 'CREATE_ANY', normalized: AuthAction.CREATE_ANY, expected: AuthAction.CREATE_ANY },
+      { input: 'read:own', normalized: AuthAction.READ_OWN, expected: AuthAction.READ_OWN },
+      { input: 'UPDATE_OWN', normalized: AuthAction.UPDATE_OWN, expected: AuthAction.UPDATE_OWN },
     ];
 
     for (const testCase of testCases) {
       const normalized = normalizeLegacyAction(testCase.input);
+      expect(normalized).not.toBeNull();
       expect(normalized).toBe(testCase.normalized);
       
-      const parsed = parseActionToAuthAction(normalized);
-      expect(parsed).toBe(testCase.expected);
+      // Since we've asserted normalized is not null, we can safely use it
+      if (normalized !== null) {
+        const parsed = parseActionToAuthAction(normalized);
+        expect(parsed).toBe(testCase.expected);
+      }
     }
   });
 
@@ -111,8 +115,12 @@ describe('integration with parseActionToAuthAction', () => {
     for (const action of allActions) {
       // The enum value itself should normalize correctly
       const normalized = normalizeLegacyAction(action);
-      const parsed = parseActionToAuthAction(normalized);
-      expect(parsed).toBe(action);
+      expect(normalized).not.toBeNull();
+      
+      if (normalized !== null) {
+        const parsed = parseActionToAuthAction(normalized);
+        expect(parsed).toBe(action);
+      }
     }
   });
 });

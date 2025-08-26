@@ -1,17 +1,9 @@
 <script setup lang="ts">
 import { Button } from '@unraid/ui';
-
-interface Provider {
-  id: string;
-  name: string;
-  buttonText?: string | null;
-  buttonIcon?: string | null;
-  buttonVariant?: string | null;
-  buttonStyle?: string | null;
-}
+import type { PublicOidcProvider } from '~/composables/gql/graphql';
 
 interface Props {
-  provider: Provider;
+  provider: PublicOidcProvider;
   disabled?: boolean;
   onClick: (providerId: string) => void;
 }
@@ -25,22 +17,22 @@ const handleClick = () => {
 
 <template>
   <Button
-    :disabled="disabled"
-    :variant="(provider.buttonVariant as any) || 'outline'"
+    :disabled="props.disabled"
+    :variant="(props.provider.buttonVariant as any) || 'outline'"
     class="sso-provider-button w-full min-h-[2.5rem] h-auto py-2 px-4"
-    :style="provider.buttonStyle || ''"
+    :style="props.provider.buttonStyle || ''"
     @click="handleClick"
   >
     <div class="flex items-center justify-center gap-2 w-full">
       <img 
-        v-if="provider.buttonIcon" 
-        :src="provider.buttonIcon" 
+        v-if="props.provider.buttonIcon" 
+        :src="props.provider.buttonIcon" 
         class="w-6 h-6 sso-button-icon flex-shrink-0" 
-        :alt="`${provider.name} logo`"
+        alt=""
         aria-hidden="true"
       >
       <span class="text-center whitespace-normal">
-        {{ provider.buttonText || `Sign in with ${provider.name}` }}
+        {{ props.provider.buttonText || `Sign in with ${props.provider.name}` }}
       </span>
     </div>
   </Button>

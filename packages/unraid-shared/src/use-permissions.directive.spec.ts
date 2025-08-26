@@ -49,10 +49,10 @@ describe('UsePermissions Directive', () => {
       }).not.toThrow();
     });
 
-    it('should accept valid Resource enum string values', () => {
+    it('should accept valid Resource enum values', () => {
       const decorator = UsePermissions({
         action: AuthAction.READ_ANY,
-        resource: 'API_KEY',
+        resource: Resource.API_KEY,
       });
 
       expect(() => {
@@ -60,10 +60,10 @@ describe('UsePermissions Directive', () => {
       }).not.toThrow();
     });
 
-    it('should accept Resource enum keys as strings', () => {
+    it('should accept Resource enum values', () => {
       const decorator = UsePermissions({
         action: AuthAction.CREATE_ANY,
-        resource: 'ACTIVATION_CODE',
+        resource: Resource.ACTIVATION_CODE,
       });
 
       expect(() => {
@@ -71,21 +71,22 @@ describe('UsePermissions Directive', () => {
       }).not.toThrow();
     });
 
-    it('should reject invalid resource strings', () => {
+    it('should reject invalid resource values at runtime', () => {
+      // TypeScript prevents this at compile time, but we can test runtime validation
       const decorator = UsePermissions({
         action: AuthAction.READ_ANY,
-        resource: 'INVALID_RESOURCE',
+        resource: 'INVALID_RESOURCE' as any as Resource,
       });
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).toThrow(/Invalid resource value: "INVALID_RESOURCE"/);
+      }).toThrow(/Invalid Resource enum value/);
     });
 
-    it('should reject typos in resource names', () => {
+    it('should reject typos in resource names at runtime', () => {
       const decorator = UsePermissions({
         action: AuthAction.READ_ANY,
-        resource: 'API_KEYS', // typo: should be API_KEY
+        resource: 'API_KEYS' as any as Resource, // typo: should be API_KEY
       });
 
       expect(() => {
@@ -96,7 +97,7 @@ describe('UsePermissions Directive', () => {
     it('should provide helpful error message listing valid resources', () => {
       const decorator = UsePermissions({
         action: AuthAction.READ_ANY,
-        resource: 'INVALID',
+        resource: 'INVALID' as any as Resource,
       });
 
       expect(() => {
@@ -109,7 +110,7 @@ describe('UsePermissions Directive', () => {
     it('should reject resources with special characters', () => {
       const decorator = UsePermissions({
         action: AuthAction.READ_ANY,
-        resource: 'API_KEY", malicious: "true',
+        resource: 'API_KEY", malicious: "true' as any as Resource,
       });
 
       expect(() => {
@@ -120,7 +121,7 @@ describe('UsePermissions Directive', () => {
     it('should reject resources with GraphQL directive injection attempts', () => {
       const decorator = UsePermissions({
         action: AuthAction.READ_ANY,
-        resource: 'API_KEY") @skipAuth',
+        resource: 'API_KEY") @skipAuth' as any as Resource,
       });
 
       expect(() => {
@@ -131,7 +132,7 @@ describe('UsePermissions Directive', () => {
     it('should reject resources with invalid lowercase names', () => {
       const decorator = UsePermissions({
         action: AuthAction.READ_ANY,
-        resource: 'api_key', // lowercase not matching enum
+        resource: 'api_key' as any as Resource, // lowercase not matching enum
       });
 
       expect(() => {
@@ -230,7 +231,7 @@ describe('UsePermissions Directive', () => {
     it('should provide clear error for invalid resource', () => {
       const decorator = UsePermissions({
         action: AuthAction.READ_ANY,
-        resource: 'WRONG',
+        resource: 'WRONG' as any as Resource,
       });
 
       try {
@@ -301,7 +302,7 @@ describe('UsePermissions Directive', () => {
     it('should reject empty string resources', () => {
       const decorator = UsePermissions({
         action: AuthAction.READ_ANY,
-        resource: '',
+        resource: '' as any as Resource,
       });
 
       expect(() => {
@@ -312,7 +313,7 @@ describe('UsePermissions Directive', () => {
     it('should reject resources with newlines', () => {
       const decorator = UsePermissions({
         action: AuthAction.READ_ANY,
-        resource: 'API_KEY\n@skipAuth',
+        resource: 'API_KEY\n@skipAuth' as any as Resource,
       });
 
       expect(() => {
@@ -323,7 +324,7 @@ describe('UsePermissions Directive', () => {
     it('should reject resources with backslashes', () => {
       const decorator = UsePermissions({
         action: AuthAction.READ_ANY,
-        resource: 'API_KEY\\", another: "value',
+        resource: 'API_KEY\\", another: "value' as any as Resource,
       });
 
       expect(() => {

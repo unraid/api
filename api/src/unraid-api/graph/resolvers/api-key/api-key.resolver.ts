@@ -1,12 +1,8 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
@@ -21,9 +17,8 @@ export class ApiKeyResolver {
 
     @Query(() => [ApiKey])
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.API_KEY,
-        possession: AuthPossession.ANY,
     })
     async apiKeys(): Promise<ApiKey[]> {
         return this.apiKeyService.findAll();
@@ -31,9 +26,8 @@ export class ApiKeyResolver {
 
     @Query(() => ApiKey, { nullable: true })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.API_KEY,
-        possession: AuthPossession.ANY,
     })
     async apiKey(
         @Args('id', { type: () => PrefixedID })
@@ -44,9 +38,8 @@ export class ApiKeyResolver {
 
     @Query(() => [Role], { description: 'All possible roles for API keys' })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.PERMISSION,
-        possession: AuthPossession.ANY,
     })
     async apiKeyPossibleRoles(): Promise<Role[]> {
         return Object.values(Role);
@@ -54,14 +47,13 @@ export class ApiKeyResolver {
 
     @Query(() => [Permission], { description: 'All possible permissions for API keys' })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.PERMISSION,
-        possession: AuthPossession.ANY,
     })
     async apiKeyPossiblePermissions(): Promise<Permission[]> {
         // Build all combinations of Resource and AuthActionVerb
         const resources = Object.values(Resource);
-        const actions = Object.values(AuthActionVerb);
+        const actions = Object.values(AuthAction);
         return resources.map((resource) => ({
             resource,
             actions,

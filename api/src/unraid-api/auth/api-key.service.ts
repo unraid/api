@@ -3,13 +3,12 @@ import crypto from 'crypto';
 import { readdir, readFile, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { normalizeLegacyActions } from '@unraid/shared/util/permissions.js';
 import { watch } from 'chokidar';
 import { ValidationError } from 'class-validator';
 import { ensureDirSync } from 'fs-extra';
 import { GraphQLError } from 'graphql';
-import { AuthActionVerb } from 'nest-authz';
 import { v4 as uuidv4 } from 'uuid';
 
 import { environment } from '@app/environment.js';
@@ -66,17 +65,18 @@ export class ApiKeyService implements OnModuleInit {
     public getAllValidPermissions(): Permission[] {
         return Object.values(Resource).map((res) => ({
             resource: res,
-            actions: Object.values(AuthActionVerb),
+            actions: Object.values(AuthAction),
         }));
     }
 
     public convertPermissionsStringArrayToPermissions(permissions: string[]): Permission[] {
         return permissions.reduce<Array<Permission>>((acc, permission) => {
-            const [resource, action] = permission.split(':');
+            const [resource, ...actionParts] = permission.split(':');
+            const action = actionParts.join(':'); // Handle actions like "read:any"
             const validatedResource = Resource[resource.toUpperCase() as keyof typeof Resource] ?? null;
             // Pull the actual enum value from the graphql schema
             const validatedAction =
-                AuthActionVerb[action.toUpperCase() as keyof typeof AuthActionVerb] ?? null;
+                AuthAction[action.toUpperCase().replace(':', '_') as keyof typeof AuthAction] ?? null;
             if (validatedAction && validatedResource) {
                 const existingEntry = acc.find((p) => p.resource === validatedResource);
                 if (existingEntry) {

@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import type { JsonSchema, LabelElement, UISchemaElement } from '@jsonforms/core';
 import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
+import { normalizeAction } from '@unraid/shared/util/permissions.js';
 import { capitalCase } from 'change-case';
 
 import type { SettingSlice } from '@app/unraid-api/types/json-forms.js';
@@ -323,10 +324,10 @@ export class ApiKeyFormService {
      */
     convertFormDataToPermissions(formData: ApiKeyFormData): {
         roles: Role[];
-        permissions: Array<{ resource: Resource; actions: string[] }>;
+        permissions: Array<{ resource: Resource; actions: AuthAction[] }>;
     } {
         const roles: Role[] = [];
-        const permissions = new Map<Resource, Set<string>>();
+        const permissions = new Map<Resource, Set<AuthAction>>();
 
         // 1. Add roles if provided
         if (formData.roles && formData.roles.length > 0) {
@@ -342,14 +343,22 @@ export class ApiKeyFormService {
                     ? perm.resources
                     : [perm.resources as Resource];
 
-                // Handle actions as an array
-                const actions = Array.isArray(perm.actions) ? perm.actions : [perm.actions];
+                // Handle actions as an array and normalize them
+                const rawActions = Array.isArray(perm.actions) ? perm.actions : [perm.actions];
+                const normalizedActions: AuthAction[] = [];
+
+                for (const rawAction of rawActions) {
+                    const normalized = normalizeAction(rawAction);
+                    if (normalized) {
+                        normalizedActions.push(normalized);
+                    }
+                }
 
                 for (const resource of resources) {
                     if (!permissions.has(resource)) {
                         permissions.set(resource, new Set());
                     }
-                    actions.forEach((action) => permissions.get(resource)!.add(action));
+                    normalizedActions.forEach((action) => permissions.get(resource)!.add(action));
                 }
             }
         }
