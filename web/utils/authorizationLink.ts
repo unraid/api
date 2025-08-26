@@ -99,16 +99,3 @@ export function generateAuthorizationUrl(params: AuthorizationLinkParams): strin
   return `${baseUrl}?${urlParams.toString()}`;
 }
 
-/**
- * Copy authorization URL to clipboard and show notification
- */
-export async function copyAuthorizationUrl(params: AuthorizationLinkParams): Promise<boolean> {
-  try {
-    const url = generateAuthorizationUrl(params);
-    await navigator.clipboard.writeText(url);
-    return true;
-  } catch (error) {
-    console.error('Failed to copy authorization URL:', error);
-    return false;
-  }
-}

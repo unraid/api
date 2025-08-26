@@ -2,7 +2,8 @@
 import { computed, ref, watch } from 'vue';
 import { Button, Input, Switch } from '@unraid/ui';
 import { ClipboardDocumentIcon, LinkIcon } from '@heroicons/vue/24/outline';
-import { generateAuthorizationUrl, copyAuthorizationUrl } from '~/utils/authorizationLink';
+import { generateAuthorizationUrl } from '~/utils/authorizationLink';
+import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
 import type { Role, AuthAction } from '~/composables/gql/graphql';
 
 interface RawPermission {
@@ -32,9 +33,14 @@ const props = withDefaults(defineProps<Props>(), {
 
 // State for UI interactions
 const copySuccess = ref(false);
+const copyTemplateSuccess = ref(false);
 const showUrl = ref(false);
+const showTemplate = ref(false);
 const useCustomCallback = ref(false);
 const customCallbackUrl = ref('');
+
+// Use clipboard composable
+const { copyWithNotification } = useClipboardWithToast();
 
 // Reset custom callback URL when checkbox is unchecked
 watch(useCustomCallback, (newValue) => {
@@ -66,6 +72,29 @@ const authorizationUrl = computed(() => {
   });
 });
 
+// Computed property for template query string (without redirect_uri)
+const templateQueryString = computed(() => {
+  if (!props.show || (props.roles.length === 0 && props.rawPermissions.length === 0)) {
+    return '';
+  }
+  
+  // Generate URL without redirect_uri for template sharing
+  const url = generateAuthorizationUrl({
+    appName: props.appName,
+    appDescription: props.appDescription,
+    roles: props.roles,
+    rawPermissions: props.rawPermissions,
+    redirectUrl: '', // Empty redirect URL for templates
+  });
+  
+  // Extract just the query string part
+  const urlObj = new URL(url, window.location.origin);
+  const params = new URLSearchParams(urlObj.search);
+  params.delete('redirect_uri'); // Remove redirect_uri from template
+  
+  return '?' + params.toString();
+});
+
 // Check if there are any permissions to show
 const hasPermissions = computed(() => {
   return props.roles.length > 0 || props.rawPermissions.length > 0;
@@ -73,13 +102,10 @@ const hasPermissions = computed(() => {
 
 // Function to copy authorization URL
 const handleCopy = async () => {
-  const success = await copyAuthorizationUrl({
-    appName: props.appName,
-    appDescription: props.appDescription,
-    roles: props.roles,
-    rawPermissions: props.rawPermissions,
-    redirectUrl: effectiveRedirectUrl.value,
-  });
+  const success = await copyWithNotification(
+    authorizationUrl.value,
+    'Authorization URL copied to clipboard'
+  );
   
   if (success) {
     copySuccess.value = true;
@@ -92,6 +118,28 @@ const handleCopy = async () => {
 // Function to toggle URL visibility
 const toggleShowUrl = () => {
   showUrl.value = !showUrl.value;
+  showTemplate.value = false; // Hide template when showing URL
+};
+
+// Function to toggle template visibility
+const toggleShowTemplate = () => {
+  showTemplate.value = !showTemplate.value;
+  showUrl.value = false; // Hide URL when showing template
+};
+
+// Function to copy template query string
+const copyTemplate = async () => {
+  const success = await copyWithNotification(
+    templateQueryString.value,
+    'Template copied to clipboard'
+  );
+  
+  if (success) {
+    copyTemplateSuccess.value = true;
+    setTimeout(() => {
+      copyTemplateSuccess.value = false;
+    }, 2000);
+  }
 };
 </script>
 
@@ -99,14 +147,22 @@ const toggleShowUrl = () => {
   <div v-if="show && hasPermissions" class="space-y-3">
     <div>
       <h4 class="text-sm font-medium mb-2">Developer Authorization Link</h4>
-      <div class="flex gap-2">
+      <div class="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" @click="toggleShowUrl">
           <LinkIcon class="w-4 h-4 mr-1" />
-          Show URL
+          {{ showUrl ? 'Hide' : 'Show' }} URL
         </Button>
         <Button variant="outline" size="sm" @click="handleCopy">
           <ClipboardDocumentIcon class="w-4 h-4 mr-1" />
-          {{ copySuccess ? 'Copied!' : 'Copy' }}
+          {{ copySuccess ? 'Copied!' : 'Copy URL' }}
+        </Button>
+        <Button variant="outline" size="sm" @click="toggleShowTemplate">
+          <LinkIcon class="w-4 h-4 mr-1" />
+          {{ showTemplate ? 'Hide' : 'Show' }} Template
+        </Button>
+        <Button variant="outline" size="sm" @click="copyTemplate">
+          <ClipboardDocumentIcon class="w-4 h-4 mr-1" />
+          {{ copyTemplateSuccess ? 'Copied!' : 'Copy Template' }}
         </Button>
       </div>
     </div>
@@ -139,9 +195,20 @@ const toggleShowUrl = () => {
     </div>
     
     <div v-if="showUrl" class="p-3 bg-secondary rounded border border-muted mt-3">
+      <p class="text-xs text-muted-foreground mb-2">Full authorization URL with callback:</p>
       <code class="text-xs break-all text-foreground">
         {{ authorizationUrl }}
       </code>
+    </div>
+    
+    <div v-if="showTemplate" class="p-3 bg-secondary rounded border border-muted mt-3">
+      <p class="text-xs text-muted-foreground mb-2">Template query string (for sharing without callback):</p>
+      <code class="text-xs break-all text-foreground">
+        {{ templateQueryString }}
+      </code>
+      <p class="text-xs text-muted-foreground mt-2">
+        This template can be used with "Create from Template" to pre-fill permissions without a callback URL.
+      </p>
     </div>
   </div>
 </template>

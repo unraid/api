@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { Button, Input } from '@unraid/ui';
-import { useClipboard } from '@vueuse/core';
+import { useClipboardWithToast } from '~/composables/useClipboardWithToast.js';
 import { ClipboardDocumentIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline';
 import { storeToRefs } from 'pinia';
 import { useApiKeyAuthorization } from '~/composables/useApiKeyAuthorization.js';
@@ -33,7 +33,7 @@ const error = ref('');
 const showKey = ref(false);
 
 // Use clipboard for copying
-const { copy, copied } = useClipboard();
+const { copyWithNotification, copied } = useClipboardWithToast();
 
 // Watch for modal close to restore success view
 watch(modalVisible, (isVisible) => {
@@ -51,7 +51,7 @@ const toggleShowKey = () => {
 // Copy API key
 const copyApiKey = async () => {
   if (createdApiKey.value) {
-    await copy(createdApiKey.value);
+    await copyWithNotification(createdApiKey.value, 'API key copied to clipboard');
   }
 };
 
@@ -176,12 +176,12 @@ const returnToApp = () => {
               </Button>
             </div>
             <p class="text-xs text-muted-foreground">
-              {{ copied ? '✓ Copied to clipboard' : 'Save this key securely for your application.' }}
+              {{ copied ? '✓ Copied to clipboard' : hasValidRedirectUri ? 'Save this key securely for your application.' : 'Save this key securely. You can now use it in your application.' }}
             </p>
           </div>
         </div>
 
-        <!-- Redirect info if available -->
+        <!-- Redirect info if available, or template info -->
         <div v-if="hasValidRedirectUri">
           <label class="text-sm font-medium text-muted-foreground mb-2 block">Next Step</label>
           <div class="p-3 bg-secondary rounded-lg">
@@ -190,6 +190,17 @@ const returnToApp = () => {
             </p>
             <p class="text-xs text-muted-foreground mt-1">
               Destination: <code class="bg-background px-1.5 py-0.5 rounded">{{ authParams.redirectUri }}</code>
+            </p>
+          </div>
+        </div>
+        <div v-else>
+          <label class="text-sm font-medium text-muted-foreground mb-2 block">Template Applied</label>
+          <div class="p-3 bg-secondary rounded-lg">
+            <p class="text-sm">
+              API key created from template with the configured permissions
+            </p>
+            <p class="text-xs text-muted-foreground mt-1">
+              You can manage this key from the API Keys settings page
             </p>
           </div>
         </div>
@@ -226,9 +237,14 @@ const returnToApp = () => {
             </svg>
           </div>
           <div>
-            <h3 class="text-lg font-semibold">API Key Authorization Request</h3>
+            <h3 class="text-lg font-semibold">{{ hasValidRedirectUri ? 'API Key Authorization Request' : 'Create API Key from Template' }}</h3>
             <p class="text-sm text-muted-foreground">
-              <strong>{{ displayAppName }}</strong> is requesting API access to your Unraid server
+              <span v-if="hasValidRedirectUri">
+                <strong>{{ displayAppName }}</strong> is requesting API access to your Unraid server
+              </span>
+              <span v-else>
+                Create an API key for <strong>{{ displayAppName }}</strong> with pre-configured permissions
+              </span>
             </p>
           </div>
         </div>
@@ -238,13 +254,20 @@ const returnToApp = () => {
       <div class="p-6 space-y-4">
         <!-- Permissions section -->
         <div>
-          <label class="text-sm font-medium text-muted-foreground mb-2 block">Requested Permissions</label>
+          <label class="text-sm font-medium text-muted-foreground mb-2 block">
+            {{ hasValidRedirectUri ? 'Requested Permissions' : 'Template Permissions' }}
+          </label>
           <div v-if="hasPermissions" class="p-3 bg-secondary rounded-lg">
             <p class="text-sm">{{ permissionsSummary }}</p>
           </div>
           <div v-else class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
             <p class="text-sm text-amber-800 dark:text-amber-200">
-              No specific permissions requested. The application may be requesting basic access.
+              <span v-if="hasValidRedirectUri">
+                No specific permissions requested. The application may be requesting basic access.
+              </span>
+              <span v-else>
+                No specific permissions defined in this template.
+              </span>
             </p>
           </div>
         </div>
@@ -277,7 +300,7 @@ const returnToApp = () => {
           class="flex-1"
           @click="openAuthorizationModal"
         >
-          Review Permissions & Authorize
+          {{ hasValidRedirectUri ? 'Review Permissions & Authorize' : 'Review Permissions' }}
         </Button>
       </div>
     </div>

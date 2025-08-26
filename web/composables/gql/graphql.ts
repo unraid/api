@@ -1534,7 +1534,7 @@ export type ParityCheck = {
   /** Speed of the parity check, in MB/s */
   speed?: Maybe<Scalars['String']['output']>;
   /** Status of the parity check */
-  status?: Maybe<Scalars['String']['output']>;
+  status: ParityCheckStatus;
 };
 
 /** Parity check related mutations, WIP, response types and functionaliy will change */
@@ -1555,6 +1555,15 @@ export type ParityCheckMutations = {
 export type ParityCheckMutationsStartArgs = {
   correct: Scalars['Boolean']['input'];
 };
+
+export enum ParityCheckStatus {
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  NEVER_RUN = 'NEVER_RUN',
+  PAUSED = 'PAUSED',
+  RUNNING = 'RUNNING'
+}
 
 export type Permission = {
   __typename?: 'Permission';
@@ -2212,6 +2221,8 @@ export type UnraidArray = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Parity disks in the current array */
   parities: Array<ArrayDisk>;
+  /** Current parity check status */
+  parityCheckStatus: ParityCheck;
   /** Current array state */
   state: ArrayState;
 };

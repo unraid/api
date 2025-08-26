@@ -1,6 +1,8 @@
 import { ref } from 'vue';
 import { setActivePinia } from 'pinia';
 import { mount } from '@vue/test-utils';
+import { provideApolloClient } from '@vue/apollo-composable';
+import { ApolloClient, InMemoryCache } from '@apollo/client/core';
 
 import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -93,6 +95,22 @@ describe('UserProfile.ce.vue', () => {
   let consoleSpies: Array<ReturnType<typeof vi.spyOn>> = [];
 
   beforeEach(() => {
+    // Create a mock Apollo Client
+    const mockApolloClient = new ApolloClient({
+      cache: new InMemoryCache(),
+      defaultOptions: {
+        query: {
+          fetchPolicy: 'no-cache',
+        },
+        watchQuery: {
+          fetchPolicy: 'no-cache',
+        },
+      },
+    });
+
+    // Provide the Apollo client globally
+    provideApolloClient(mockApolloClient);
+
     // Suppress all console outputs
     consoleSpies = [
       vi.spyOn(console, 'log').mockImplementation(() => {}),

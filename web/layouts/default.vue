@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { ClientOnly, NuxtLink } from '#components';
+import { Badge, Toaster } from '@unraid/ui';
 
 import ColorSwitcherCe from '~/components/ColorSwitcher.ce.vue';
 import DummyServerSwitcher from '~/components/DummyServerSwitcher.vue';
@@ -33,23 +34,30 @@ function formatRouteName(name: string | symbol | undefined) {
 <template>
   <div class="text-black bg-white dark:text-white dark:bg-black">
     <ClientOnly>
-      <div class="flex flex-row items-center justify-center gap-6 p-6 bg-white dark:bg-zinc-800">
-        <template v-for="route in routes" :key="route.path">
-          <NuxtLink
-            :to="route.path"
-            class="underline hover:no-underline focus:no-underline"
-            active-class="text-orange"
-          >
-            {{ formatRouteName(route.name) }}
-          </NuxtLink>
-        </template>
-        <ModalsCe />
+      <div class="bg-white dark:bg-zinc-800 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex flex-wrap items-center justify-between gap-2 p-3 md:p-4">
+          <nav class="flex flex-wrap items-center gap-2">
+            <template v-for="route in routes" :key="route.path">
+              <NuxtLink :to="route.path">
+                <Badge 
+                  :variant="router.currentRoute.value.path === route.path ? 'orange' : 'gray'"
+                  size="xs"
+                  class="cursor-pointer"
+                >
+                  {{ formatRouteName(route.name) }}
+                </Badge>
+              </NuxtLink>
+            </template>
+          </nav>
+          <ModalsCe />
+        </div>
       </div>
-      <div class="flex flex-col w-full justify-center gap-6 p-6 bg-white dark:bg-zinc-800">
+      <div class="flex flex-col md:flex-row items-center justify-center gap-3 p-3 md:p-4 bg-gray-50 dark:bg-zinc-900 border-b border-gray-200 dark:border-gray-700">
         <DummyServerSwitcher />
         <ColorSwitcherCe />
       </div>
       <slot />
+      <Toaster />
     </ClientOnly>
   </div>
 </template>

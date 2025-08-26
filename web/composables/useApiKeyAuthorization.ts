@@ -1,8 +1,9 @@
 import { computed, ref } from 'vue';
-import { Resource, Role, AuthAction } from '~/composables/gql/graphql';
+import { Resource, Role } from '~/composables/gql/graphql';
+import type { AuthActionValue } from '~/types/auth-actions';
 
 export interface ScopeConversion {
-  permissions: Array<{ resource: Resource; actions: AuthAction[] }>;
+  permissions: Array<{ resource: Resource; actions: AuthActionValue[] }>;
   roles: Role[];
 }
 
@@ -14,7 +15,7 @@ export interface ScopeConversion {
  * - "docker:*" for all actions on a resource
  */
 function convertScopesToPermissions(scopes: string[]): ScopeConversion {
-  const permissions: Array<{ resource: Resource; actions: AuthAction[] }> = [];
+  const permissions: Array<{ resource: Resource; actions: AuthActionValue[] }> = [];
   const roles: Role[] = [];
   
   for (const scope of scopes) {
@@ -43,27 +44,19 @@ function convertScopesToPermissions(scopes: string[]): ScopeConversion {
         }
         
         // Handle wildcard or specific action
-        let actions: AuthAction[];
+        let actions: AuthActionValue[];
         if (actionStr === '*') {
+          // Use the lowercase enum values for the form
           actions = [
-            AuthAction.CREATE_ANY,
-            AuthAction.READ_ANY,
-            AuthAction.UPDATE_ANY,
-            AuthAction.DELETE_ANY
+            'create:any',
+            'read:any',
+            'update:any',
+            'delete:any'
           ];
         } else {
-          // Try to map action string to AuthAction enum  
-          // The enum values are strings like 'CREATE_ANY', 'READ_ANY', etc.
-          const actionUpper = actionStr.toUpperCase();
-          const enumValue = `${actionUpper}_ANY` as AuthAction;
-          
-          // Check if this is a valid enum value
-          if (Object.values(AuthAction).includes(enumValue)) {
-            actions = [enumValue];
-          } else {
-            console.warn(`Unknown action in scope: ${scope}, tried to map to: ${enumValue}`);
-            continue;
-          }
+          // Always use lowercase:any format for the form
+          // The form expects the enum VALUES (lowercase), not the enum KEYS
+          actions = [`${actionStr.toLowerCase()}:any` as AuthActionValue];
         }
         
         // Merge with existing permissions for the same resource

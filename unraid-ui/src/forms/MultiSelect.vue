@@ -64,22 +64,6 @@ const displayFormat = computed(() => control.value.uischema.options?.format || '
 // Check if readonly
 const isReadonly = computed(() => control.value.uischema.options?.readonly || !control.value.enabled);
 
-// Toggle selection of a value
-const toggleValue = (value: string) => {
-  if (isReadonly.value) return;
-
-  const current = [...selectedValues.value];
-  const index = current.indexOf(value);
-
-  if (index > -1) {
-    current.splice(index, 1);
-  } else {
-    current.push(value);
-  }
-
-  selectedValues.value = current;
-};
-
 // Remove a specific value (for chips display)
 const removeValue = (value: string) => {
   if (isReadonly.value) return;

@@ -2,10 +2,10 @@
 import { ref, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
-import { useClipboard } from '@vueuse/core';
-import type { AuthAction, ApiKeyFragment  } from '~/composables/gql/graphql';
+import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
+import type { AuthAction, ApiKeyFragment, Role } from '~/composables/gql/graphql';
 
-import { ClipboardDocumentIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/solid';
+import { ClipboardDocumentIcon, EyeIcon, EyeSlashIcon, ChevronDownIcon, LinkIcon } from '@heroicons/vue/24/solid';
 import {
   Accordion,
   AccordionContent,
@@ -14,6 +14,10 @@ import {
   Badge,
   Button,
   CardWrapper,
+  DropdownMenuRoot,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
   Input,
   PageContainer,
   Tooltip,
@@ -28,6 +32,7 @@ import { useFragment } from '~/composables/gql/fragment-masking';
 import { useApiKeyStore } from '~/store/apiKey';
 import { API_KEY_FRAGMENT, DELETE_API_KEY, GET_API_KEY_META, GET_API_KEYS } from './apikey.query';
 import EffectivePermissions from '~/components/ApiKey/EffectivePermissions.vue';
+import { generateScopes } from '~/utils/authorizationLink';
 
 const { result, refetch } = useQuery(GET_API_KEYS);
 
@@ -67,7 +72,12 @@ watchEffect(() => {
 });
 
 const showKey = ref<Record<string, boolean>>({});
-const { copy, copied } = useClipboard();
+const { copyWithNotification, copied } = useClipboardWithToast();
+
+// Template input state
+const showTemplateInput = ref(false);
+const templateUrl = ref('');
+const templateError = ref('');
 
 const { mutate: deleteKey } = useMutation(DELETE_API_KEY);
 
@@ -80,6 +90,52 @@ function toggleShowKey(keyId: string) {
 function openCreateModal(key: ApiKeyFragment | ApiKeyFragment | null = null) {
   apiKeyStore.clearCreatedKey();
   apiKeyStore.showModal(key as ApiKeyFragment | null);
+}
+
+function openCreateFromTemplate() {
+  showTemplateInput.value = true;
+  templateUrl.value = '';
+  templateError.value = '';
+}
+
+function cancelTemplateInput() {
+  showTemplateInput.value = false;
+  templateUrl.value = '';
+  templateError.value = '';
+}
+
+function applyTemplate() {
+  templateError.value = '';
+  
+  try {
+    // Parse the template URL or query string
+    let url: URL;
+    
+    if (templateUrl.value.startsWith('http://') || templateUrl.value.startsWith('https://')) {
+      // Full URL provided
+      url = new URL(templateUrl.value);
+    } else if (templateUrl.value.startsWith('?')) {
+      // Query string only
+      url = new URL(window.location.origin + templateUrl.value);
+    } else {
+      // Try to parse as query string without ?
+      url = new URL(window.location.origin + '?' + templateUrl.value);
+    }
+    
+    // Extract query parameters
+    const params = url.searchParams;
+    
+    // Navigate to the authorization page with these params using window.location
+    const authUrl = new URL('/tools/apikeyauthorize', window.location.origin);
+    params.forEach((value, key) => {
+      authUrl.searchParams.append(key, value);
+    });
+    window.location.href = authUrl.toString();
+    
+    cancelTemplateInput();
+  } catch (_err) {
+    templateError.value = 'Invalid template URL or query string. Please check the format and try again.';
+  }
 }
 
 async function _deleteKey(_id: string) {
@@ -95,7 +151,36 @@ async function _deleteKey(_id: string) {
 }
 
 async function copyKeyValue(keyValue: string) {
-  await copy(keyValue);
+  await copyWithNotification(keyValue, 'API key copied to clipboard');
+}
+
+async function copyKeyTemplate(key: ApiKeyFragment) {
+  try {
+    // Generate scopes using the same logic as DeveloperAuthorizationLink
+    const scopes = generateScopes(
+      key.roles as Role[] || [],
+      key.permissions?.map(p => ({
+        resource: p.resource,
+        actions: p.actions as AuthAction[]
+      })) || []
+    );
+    
+    // Build URL parameters for the template
+    const urlParams = new URLSearchParams({
+      name: key.name,
+      scopes: scopes.join(','),
+    });
+    
+    if (key.description) {
+      urlParams.set('description', key.description);
+    }
+    
+    // Don't include redirect_uri for templates
+    const templateQueryString = '?' + urlParams.toString();
+    await copyWithNotification(templateQueryString, 'Template copied to clipboard');
+  } catch (error) {
+    console.error('Failed to copy template:', error);
+  }
 }
 
 
@@ -106,7 +191,22 @@ async function copyKeyValue(keyValue: string) {
     <div>
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold tracking-tight">API Keys</h2>
-        <Button variant="primary" @click="openCreateModal(null)">Create API Key</Button>
+        <DropdownMenuRoot>
+          <DropdownMenuTrigger as-child>
+            <Button variant="primary">
+              Create API Key
+              <ChevronDownIcon class="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem @click="openCreateModal(null)">
+              Create New
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="openCreateFromTemplate">
+              Create from Template
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenuRoot>
       </div>
       <div
         v-if="deleteError"
@@ -185,9 +285,22 @@ async function copyKeyValue(keyValue: string) {
                   </AccordionItem>
                 </Accordion>
               </div>
-              <div class="mt-4 pt-4 border-t flex gap-2 md:justify-between">
-                <Button variant="secondary" size="sm" class="flex-1 md:flex-none" @click="openCreateModal(key)">Edit</Button>
-                <Button variant="destructive" size="sm" class="flex-1 md:flex-none" @click="_deleteKey(key.id)">Delete</Button>
+              <div class="mt-4 pt-4 border-t flex flex-wrap gap-2">
+                <Button variant="secondary" size="sm" @click="openCreateModal(key)">Edit</Button>
+                <TooltipProvider>
+                  <Tooltip :delay-duration="0">
+                    <TooltipTrigger>
+                      <Button variant="outline" size="sm" @click="copyKeyTemplate(key)">
+                        <LinkIcon class="w-4 h-4 mr-1" />
+                        Copy Template
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy a shareable template with these permissions</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <Button variant="destructive" size="sm" @click="_deleteKey(key.id)">Delete</Button>
               </div>
             </div>
           </CardWrapper>
@@ -195,6 +308,29 @@ async function copyKeyValue(keyValue: string) {
       </div>
       <div v-else class="flex flex-col gap-4 mb-6">
         <p class="text-sm">No API keys found</p>
+      </div>
+      
+      <!-- Template Input Dialog -->
+      <div v-if="showTemplateInput" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-background rounded-lg p-6 max-w-lg w-full mx-4">
+          <h3 class="text-lg font-semibold mb-4">Create from Template</h3>
+          <p class="text-sm text-muted-foreground mb-4">
+            Paste a template URL or query string to pre-fill the API key creation form with permissions.
+          </p>
+          <Input
+            v-model="templateUrl"
+            placeholder="Paste template URL or query string (e.g., ?name=MyApp&scopes=role:admin)"
+            class="mb-4"
+            @keydown.enter="applyTemplate"
+          />
+          <div v-if="templateError" class="mb-4 p-3 rounded border border-destructive bg-destructive/10 text-destructive text-sm">
+            {{ templateError }}
+          </div>
+          <div class="flex gap-3 justify-end">
+            <Button variant="outline" @click="cancelTemplateInput">Cancel</Button>
+            <Button variant="primary" @click="applyTemplate">Apply Template</Button>
+          </div>
+        </div>
       </div>
     </div>
   </PageContainer>

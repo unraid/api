@@ -2,10 +2,19 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
-import { useClipboard } from '@vueuse/core';
+import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
 
 import { ClipboardDocumentIcon } from '@heroicons/vue/24/solid';
-import { Button, Dialog, jsonFormsAjv, jsonFormsRenderers } from '@unraid/ui';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Button, 
+  Dialog, 
+  jsonFormsAjv, 
+  jsonFormsRenderers 
+} from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
@@ -19,6 +28,7 @@ import type {
   Role,
 } from '~/composables/gql/graphql';
 import type { ComposerTranslation } from 'vue-i18n';
+import type { AuthActionValue } from '~/types/auth-actions';
 
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { useApiKeyPermissionPresets } from '~/composables/useApiKeyPermissionPresets';
@@ -48,14 +58,14 @@ interface FormData extends Partial<CreateApiKeyInput> {
   permissionPresets?: string; // For the preset dropdown
   customPermissions?: Array<{
     resources: Resource[];
-    actions: AuthAction[];
+    actions: AuthActionValue[];
   }>;
   requestedPermissions?: {
     roles?: Role[];
     permissionGroups?: string[];
     customPermissions?: Array<{
       resources: Resource[];
-      actions: AuthAction[];
+      actions: AuthActionValue[];
     }>;
   };
   consent?: boolean;
@@ -70,7 +80,7 @@ const formData = ref<FormData>({
 const formValid = ref(false);
 
 // Use clipboard for copying
-const { copy, copied } = useClipboard();
+const { copyWithNotification, copied } = useClipboardWithToast();
 
 // Computed property to transform formData permissions for the EffectivePermissions component
 const formDataPermissions = computed(() => {
@@ -133,6 +143,9 @@ const loadFormSchema = () => {
         formData.value = {
           customPermissions: [],
         };
+        // Set formValid to true initially for new keys
+        // JsonForms will update this if there are validation errors
+        formValid.value = true;
       }
     }
   });
@@ -355,7 +368,7 @@ async function upsertKey() {
 // Copy API key after creation
 const copyApiKey = async () => {
   if (createdKey.value && 'key' in createdKey.value) {
-    await copy(createdKey.value.key);
+    await copyWithNotification(createdKey.value.key, 'API key copied to clipboard');
   }
 };
 </script>
@@ -465,14 +478,25 @@ const copyApiKey = async () => {
         </div>
       </div>
 
-      <!-- Developer Authorization Link for Modal Mode (hide in authorization flow) -->
+      <!-- Developer Tools Accordion (hide in authorization flow) -->
       <div v-if="!isAuthorizationMode" class="mt-4">
-        <DeveloperAuthorizationLink
-          :roles="formData.roles || []"
-          :raw-permissions="formDataPermissions"
-          :app-name="formData.name || 'My Application'"
-          :app-description="formData.description || 'API key for my application'"
-        />
+        <Accordion type="single" collapsible class="w-full">
+          <AccordionItem value="developer-tools">
+            <AccordionTrigger>
+              <span class="text-sm font-semibold">Developer Tools</span>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div class="py-2">
+                <DeveloperAuthorizationLink
+                  :roles="formData.roles || []"
+                  :raw-permissions="formDataPermissions"
+                  :app-name="formData.name || 'My Application'"
+                  :app-description="formData.description || 'API key for my application'"
+                />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
       </div>
 
       <!-- Success state for authorization mode -->
