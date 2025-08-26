@@ -1,11 +1,7 @@
 import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
@@ -27,9 +23,8 @@ export class ApiKeyMutationsResolver {
     ) {}
 
     @UsePermissions({
-        action: AuthActionVerb.CREATE,
+        action: AuthAction.CREATE_ANY,
         resource: Resource.API_KEY,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => ApiKey, { description: 'Create an API key' })
     async create(@Args('input') input: CreateApiKeyInput): Promise<ApiKey> {
@@ -45,9 +40,8 @@ export class ApiKeyMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.API_KEY,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => Boolean, { description: 'Add a role to an API key' })
     async addRole(@Args('input') input: AddRoleForApiKeyInput): Promise<boolean> {
@@ -55,9 +49,8 @@ export class ApiKeyMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.API_KEY,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => Boolean, { description: 'Remove a role from an API key' })
     async removeRole(@Args('input') input: RemoveRoleFromApiKeyInput): Promise<boolean> {
@@ -65,9 +58,8 @@ export class ApiKeyMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.DELETE,
+        action: AuthAction.DELETE_ANY,
         resource: Resource.API_KEY,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => Boolean, { description: 'Delete one or more API keys' })
     async delete(@Args('input') input: DeleteApiKeyInput): Promise<boolean> {
@@ -76,9 +68,8 @@ export class ApiKeyMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.API_KEY,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => ApiKey, { description: 'Update an API key' })
     async update(@Args('input') input: UpdateApiKeyInput): Promise<ApiKey> {

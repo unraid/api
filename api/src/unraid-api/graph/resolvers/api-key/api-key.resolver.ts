@@ -5,15 +5,11 @@ import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
-import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { ApiKey, Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 
 @Resolver(() => ApiKey)
 export class ApiKeyResolver {
-    constructor(
-        private authService: AuthService,
-        private apiKeyService: ApiKeyService
-    ) {}
+    constructor(private apiKeyService: ApiKeyService) {}
 
     @Query(() => [ApiKey])
     @UsePermissions({
@@ -51,7 +47,7 @@ export class ApiKeyResolver {
         resource: Resource.PERMISSION,
     })
     async apiKeyPossiblePermissions(): Promise<Permission[]> {
-        // Build all combinations of Resource and AuthActionVerb
+        // Build all combinations of Resource and AuthAction
         const resources = Object.values(Resource);
         const actions = Object.values(AuthAction);
         return resources.map((resource) => ({

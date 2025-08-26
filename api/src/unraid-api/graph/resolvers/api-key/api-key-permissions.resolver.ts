@@ -2,11 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import {
     expandWildcardAction,
     mergePermissionsIntoMap,
@@ -28,9 +24,8 @@ export class ApiKeyPermissionsResolver {
         description: 'Get the actual permissions that would be granted by a set of roles',
     })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.PERMISSION,
-        possession: AuthPossession.ANY,
     })
     async getPermissionsForRoles(
         @Args('roles', { type: () => [Role] }) roles: Role[]
@@ -61,9 +56,8 @@ export class ApiKeyPermissionsResolver {
             'Preview the effective permissions for a combination of roles and explicit permissions',
     })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.PERMISSION,
-        possession: AuthPossession.ANY,
     })
     async previewEffectivePermissions(
         @Args('roles', { type: () => [Role], nullable: true }) roles?: Role[],

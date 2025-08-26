@@ -118,12 +118,21 @@ export function UsePermissions(permissions: NewFormatPermissions | OldFormatPerm
             typeof (permissions as any).action === 'string' &&
             (permissions as any).action.includes('_');
 
-        if ('possession' in permissions && !maybeCombined) {
+        // Check if this might be using AuthActionVerb without possession
+        const isVerbOnly = !maybeCombined && 
+            !('possession' in permissions) &&
+            typeof (permissions as any).action === 'string' &&
+            ['CREATE', 'READ', 'UPDATE', 'DELETE'].includes((permissions as any).action.toUpperCase());
+
+        if (('possession' in permissions || isVerbOnly) && !maybeCombined) {
             // Old format: combine verb and possession
-            const oldFormat = permissions as { action: AuthActionVerb | string; possession: AuthPossession | string; resource: Resource | string };
+            const oldFormat = permissions as { action: AuthActionVerb | string; possession?: AuthPossession | string; resource: Resource | string };
             const actionStr = typeof oldFormat.action === 'string' ? oldFormat.action : (oldFormat.action as AuthActionVerb);
             const verb = actionStr.toUpperCase().trim();
-            const possessionStr = typeof oldFormat.possession === 'string' ? oldFormat.possession : (oldFormat.possession as AuthPossession);
+            // Default to 'ANY' if possession is not provided
+            const possessionStr = oldFormat.possession ? 
+                (typeof oldFormat.possession === 'string' ? oldFormat.possession : (oldFormat.possession as AuthPossession)) :
+                'ANY';
             const possession = possessionStr.toUpperCase().trim();
             // Convert to new AuthAction format (e.g., "CREATE" + "ANY" -> "CREATE_ANY")
             finalAction = `${verb}_${possession}` as AuthAction;
