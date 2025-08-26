@@ -26,8 +26,6 @@ export class ApiKeyService implements OnModuleInit {
     private readonly logger = new Logger(ApiKeyService.name);
     protected readonly basePath: string;
     protected memoryApiKeys: Array<ApiKey> = [];
-    private persistentKeys = new Map<string, ApiKey>();
-    private ephemeralKeys = new Map<string, ApiKey>();
     private static readonly validRoles: Set<Role> = new Set(Object.values(Role));
 
     constructor() {
@@ -36,60 +34,27 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     async onModuleInit() {
-        // Load persistent keys once at startup
-        const diskKeys = await this.loadAllFromDisk();
-        for (const key of diskKeys) {
-            this.persistentKeys.set(key.id, key);
+        this.memoryApiKeys = await this.loadAllFromDisk();
+        if (environment.IS_MAIN_PROCESS) {
+            this.setupWatch();
         }
-
-        // Clean up legacy internal keys
-        await this.cleanupLegacyInternalKeys();
-
-        // Update memoryApiKeys for backwards compatibility
-        this.updateMemoryApiKeys();
-
-        // NO file watching - manage in memory
-        this.logger.log(`Loaded ${this.persistentKeys.size} persistent API keys`);
     }
 
     public async findAll(): Promise<ApiKey[]> {
-        // Only return persistent keys, not ephemeral ones
-        return Array.from(this.persistentKeys.values()).map((key) =>
-            this.convertApiKeyWithSecretToApiKey(key)
+        return Promise.all(
+            this.memoryApiKeys.map(async (key) => {
+                const keyWithoutSecret = this.convertApiKeyWithSecretToApiKey(key);
+                return keyWithoutSecret;
+            })
         );
     }
 
-    private updateMemoryApiKeys() {
-        // Combine persistent and ephemeral keys for backwards compatibility
-        this.memoryApiKeys = [
-            ...Array.from(this.persistentKeys.values()),
-            ...Array.from(this.ephemeralKeys.values()),
-        ];
-    }
-
-    private async cleanupLegacyInternalKeys() {
-        const legacyNames = ['CliInternal', 'ConnectInternal', 'CLI', 'Connect', 'CliAdmin', 'Internal'];
-        const keysToDelete: string[] = [];
-
-        for (const [id, key] of this.persistentKeys) {
-            if (legacyNames.includes(key.name)) {
-                keysToDelete.push(id);
-                this.logger.log(`Removing legacy internal key: ${key.name}`);
-            }
-        }
-
-        if (keysToDelete.length > 0) {
-            // Remove from disk
-            for (const id of keysToDelete) {
-                try {
-                    await unlink(join(this.basePath, `${id}.json`));
-                } catch (error) {
-                    // File might not exist, that's ok
-                }
-                this.persistentKeys.delete(id);
-            }
-            this.logger.log(`Cleaned up ${keysToDelete.length} legacy internal keys`);
-        }
+    private setupWatch() {
+        watch(this.basePath, { ignoreInitial: false }).on('all', async (path) => {
+            this.logger.debug(`API key changed: ${path}`);
+            this.memoryApiKeys = [];
+            this.memoryApiKeys = await this.loadAllFromDisk();
+        });
     }
 
     private sanitizeName(name: string): string {
@@ -184,10 +149,6 @@ export class ApiKeyService implements OnModuleInit {
 
         await this.saveApiKey(apiKey as ApiKey);
 
-        // Update persistent keys in memory
-        this.persistentKeys.set(apiKey.id as string, apiKey as ApiKey);
-        this.updateMemoryApiKeys();
-
         return apiKey as ApiKey;
     }
 
@@ -277,95 +238,15 @@ export class ApiKeyService implements OnModuleInit {
     public findByField(field: keyof ApiKey, value: string): ApiKey | null {
         if (!value) return null;
 
-        // Check ephemeral keys first
-        for (const keyData of this.ephemeralKeys.values()) {
-            if (keyData[field] === value) {
-                return keyData;
-            }
-        }
-
-        // Then check persistent keys
-        for (const keyData of this.persistentKeys.values()) {
-            if (keyData[field] === value) {
-                return keyData;
-            }
-        }
-
-        return null;
+        return this.memoryApiKeys.find((k) => k[field] === value) ?? null;
     }
 
     findByKey(key: string): ApiKeyWithSecret | null {
-        if (!key) return null;
-
-        // Check ephemeral keys first (faster, in-memory)
-        for (const keyData of this.ephemeralKeys.values()) {
-            if (keyData.key === key) {
-                return keyData;
-            }
-        }
-
-        // Then check persistent keys
-        for (const keyData of this.persistentKeys.values()) {
-            if (keyData.key === key) {
-                return keyData;
-            }
-        }
-
-        return null;
+        return this.findByField('key', key);
     }
 
     private generateApiKey(): string {
         return crypto.randomBytes(32).toString('hex');
-    }
-
-    /**
-     * Register an in-process module with an ephemeral token.
-     * Used by Connect and other modules running in the same process.
-     */
-    public async registerModule(moduleId: string, roles: Role[]): Promise<string> {
-        // Generate 256-bit cryptographically secure token
-        const token = crypto.randomBytes(32).toString('base64url');
-
-        const keyData: ApiKeyWithSecret = {
-            id: `module-${moduleId}`,
-            key: token,
-            name: `Module-${moduleId}`,
-            description: `Ephemeral token for ${moduleId} module`,
-            roles,
-            permissions: [],
-            createdAt: new Date().toISOString(),
-        };
-
-        this.ephemeralKeys.set(keyData.id, keyData);
-        this.updateMemoryApiKeys();
-        this.logger.debug(`Registered module ${moduleId} with ephemeral token`);
-
-        return token;
-    }
-
-    /**
-     * Register an ephemeral key for external processes like CLI.
-     * The key is provided by the caller and registered in memory.
-     */
-    public async registerEphemeralKey(config: {
-        key: string;
-        name: string;
-        roles: Role[];
-        type: string;
-    }): Promise<void> {
-        const keyData: ApiKeyWithSecret = {
-            id: `ephemeral-${config.type}`,
-            key: config.key,
-            name: config.name,
-            description: `Ephemeral key for ${config.type}`,
-            roles: config.roles,
-            permissions: [],
-            createdAt: new Date().toISOString(),
-        };
-
-        this.ephemeralKeys.set(keyData.id, keyData);
-        this.updateMemoryApiKeys();
-        this.logger.debug(`Registered ephemeral key for ${config.type}`);
     }
 
     private logApiKeyValidationError(file: string, error: ValidationError): void {
@@ -428,30 +309,17 @@ export class ApiKeyService implements OnModuleInit {
             throw new Error(`API keys not found: ${missingKeys.join(', ')}`);
         }
 
-        // Separate persistent and ephemeral keys
-        const persistentIds = ids.filter((id) => this.persistentKeys.has(id));
-        const ephemeralIds = ids.filter((id) => this.ephemeralKeys.has(id));
+        // Delete all files in parallel
+        const { errors, data: deletedIds } = await batchProcess(ids, async (id) => {
+            await unlink(join(this.basePath, `${id}.json`));
+            return id;
+        });
 
-        // Delete persistent keys from disk
-        if (persistentIds.length > 0) {
-            const { errors } = await batchProcess(persistentIds, async (id) => {
-                await unlink(join(this.basePath, `${id}.json`));
-                this.persistentKeys.delete(id);
-                return id;
-            });
-
-            if (errors.length > 0) {
-                throw errors;
-            }
+        const deletedSet = new Set(deletedIds);
+        this.memoryApiKeys = this.memoryApiKeys.filter((key) => !deletedSet.has(key.id));
+        if (errors.length > 0) {
+            throw errors;
         }
-
-        // Remove ephemeral keys from memory
-        for (const id of ephemeralIds) {
-            this.ephemeralKeys.delete(id);
-        }
-
-        // Update memory cache
-        this.updateMemoryApiKeys();
     }
 
     async update({
@@ -488,15 +356,7 @@ export class ApiKeyService implements OnModuleInit {
             // Handle both empty array (to clear permissions) and populated array
             apiKey.permissions = permissions;
         }
-
-        // Only save to disk if it's a persistent key
-        if (this.persistentKeys.has(id)) {
-            await this.saveApiKey(apiKey);
-            this.persistentKeys.set(id, apiKey);
-        }
-
-        // Update memory cache
-        this.updateMemoryApiKeys();
+        await this.saveApiKey(apiKey);
         return apiKey;
     }
 

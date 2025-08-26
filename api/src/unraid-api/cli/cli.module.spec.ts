@@ -1,11 +1,7 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import {
-    CANONICAL_INTERNAL_CLIENT_TOKEN,
-    CANONICAL_INTERNAL_CLIENT_TOKEN,
-    INTERNAL_CLIENT_SERVICE_TOKEN,
-} from '@unraid/shared';
+import { CANONICAL_INTERNAL_CLIENT_TOKEN, INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { CliServicesModule } from '@app/unraid-api/cli/cli-services.module.js';
