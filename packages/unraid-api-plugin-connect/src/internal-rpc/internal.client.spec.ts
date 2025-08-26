@@ -5,7 +5,8 @@ import { InternalClientService } from './internal.client.js';
 describe('InternalClientService', () => {
     let service: InternalClientService;
     let clientFactory: any;
-    let apiKeyService: any;
+    let cookieService: any;
+    let configService: any;
 
     const mockApolloClient = {
         query: vi.fn(),
@@ -18,13 +19,23 @@ describe('InternalClientService', () => {
             createClient: vi.fn().mockResolvedValue(mockApolloClient),
         };
 
-        apiKeyService = {
-            getOrCreateLocalApiKey: vi.fn().mockResolvedValue('test-connect-key'),
+        cookieService = {
+            getActiveSession: vi.fn().mockResolvedValue('test-session-id'),
+        };
+
+        configService = {
+            get: vi.fn().mockImplementation((key: string) => {
+                if (key === 'store.emhttp.var.csrfToken') {
+                    return 'test-csrf-token';
+                }
+                return undefined;
+            }),
         };
 
         service = new InternalClientService(
             clientFactory as any,
-            apiKeyService as any
+            cookieService as any,
+            configService as any
         );
     });
 
@@ -37,20 +48,24 @@ describe('InternalClientService', () => {
     });
 
     describe('getClient', () => {
-        it('should create a client with Connect API key and subscriptions', async () => {
+        it('should create a client with cookie authentication and subscriptions', async () => {
             const client = await service.getClient();
 
-            // The API key is now fetched lazily through getApiKey function
+            // The cookie auth is now fetched lazily through getCookieAuth function
             expect(clientFactory.createClient).toHaveBeenCalledWith({
-                getApiKey: expect.any(Function),
+                getCookieAuth: expect.any(Function),
                 enableSubscriptions: true,
             });
             
-            // Verify the getApiKey function works correctly when called
+            // Verify the getCookieAuth function works correctly when called
             const callArgs = vi.mocked(clientFactory.createClient).mock.calls[0][0];
-            const apiKey = await callArgs.getApiKey();
-            expect(apiKey).toBe('test-connect-key');
-            expect(apiKeyService.getOrCreateLocalApiKey).toHaveBeenCalled();
+            const cookieAuth = await callArgs.getCookieAuth();
+            expect(cookieAuth).toEqual({
+                sessionId: 'test-session-id',
+                csrfToken: 'test-csrf-token'
+            });
+            expect(cookieService.getActiveSession).toHaveBeenCalled();
+            expect(configService.get).toHaveBeenCalledWith('store.emhttp.var.csrfToken');
             
             expect(client).toBe(mockApolloClient);
         });
@@ -104,6 +119,29 @@ describe('InternalClientService', () => {
             const client = await service.getClient();
             expect(client).toBe(mockApolloClient);
             expect(clientFactory.createClient).toHaveBeenCalledTimes(2);
+        });
+
+        it('should handle missing session', async () => {
+            vi.mocked(cookieService.getActiveSession).mockResolvedValue(null);
+
+            const client = await service.getClient();
+            
+            // Verify getCookieAuth function returns null when no session
+            const callArgs = vi.mocked(clientFactory.createClient).mock.calls[0][0];
+            const cookieAuth = await callArgs.getCookieAuth();
+            expect(cookieAuth).toBeNull();
+            expect(client).toBe(mockApolloClient);
+        });
+
+        it('should handle missing CSRF token', async () => {
+            vi.mocked(configService.get).mockReturnValue(undefined);
+
+            const client = await service.getClient();
+            
+            // Verify getCookieAuth function throws when CSRF token is missing
+            const callArgs = vi.mocked(clientFactory.createClient).mock.calls[0][0];
+            await expect(callArgs.getCookieAuth()).rejects.toThrow('CSRF token not found in configuration');
+            expect(client).toBe(mockApolloClient);
         });
     });
 

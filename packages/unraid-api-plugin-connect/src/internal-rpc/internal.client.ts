@@ -1,13 +1,12 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client/core/index.js';
-import { INTERNAL_CLIENT_SERVICE_TOKEN, type InternalGraphQLClientFactory } from '@unraid/shared';
-
-import { ConnectApiKeyService } from '../authn/connect-api-key.service.js';
+import { COOKIE_SERVICE_TOKEN, INTERNAL_CLIENT_SERVICE_TOKEN, type InternalGraphQLClientFactory } from '@unraid/shared';
 
 /**
  * Connect-specific internal GraphQL client.
  * 
- * This uses the shared GraphQL client factory with Connect's API key
+ * This uses the shared GraphQL client factory with cookie-based authentication
  * and enables subscriptions for real-time updates.
  */
 @Injectable()
@@ -19,7 +18,9 @@ export class InternalClientService {
     constructor(
         @Inject(INTERNAL_CLIENT_SERVICE_TOKEN)
         private readonly clientFactory: InternalGraphQLClientFactory,
-        private readonly apiKeyService: ConnectApiKeyService
+        @Inject(COOKIE_SERVICE_TOKEN)
+        private readonly cookieService: any,
+        private readonly configService: ConfigService
     ) {}
 
     public async getClient(): Promise<ApolloClient<NormalizedCacheObject>> {
@@ -55,13 +56,25 @@ export class InternalClientService {
     }
 
     private async createClient(): Promise<ApolloClient<NormalizedCacheObject>> {
-        // Create a client with a function to get Connect's API key dynamically
+        // Create a client with cookie-based authentication
         const client = await this.clientFactory.createClient({
-            getApiKey: () => this.apiKeyService.getOrCreateLocalApiKey(),
+            getCookieAuth: async () => {
+                const sessionId = await this.cookieService.getActiveSession();
+                if (!sessionId) {
+                    return null;
+                }
+                
+                const csrfToken = this.configService.get<string>('store.emhttp.var.csrfToken');
+                if (!csrfToken) {
+                    throw new Error('CSRF token not found in configuration');
+                }
+                
+                return { sessionId, csrfToken };
+            },
             enableSubscriptions: true
         });
         
-        this.logger.debug('Created Connect internal GraphQL client with subscriptions enabled');
+        this.logger.debug('Created Connect internal GraphQL client with cookie auth and subscriptions enabled');
         return client;
     }
 

@@ -6,7 +6,8 @@ import type { ApolloClient, NormalizedCacheObject } from '@apollo/client/core/in
  */
 export interface InternalGraphQLClientFactory {
     createClient(options: {
-        getApiKey: () => Promise<string>;
+        getApiKey?: () => Promise<string>;
+        getCookieAuth?: () => Promise<{ sessionId: string; csrfToken: string } | null>;
         enableSubscriptions?: boolean;
         origin?: string;
     }): Promise<ApolloClient<NormalizedCacheObject>>;

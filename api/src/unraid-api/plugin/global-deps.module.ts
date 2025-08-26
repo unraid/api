@@ -5,6 +5,7 @@ import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { GRAPHQL_PUBSUB_TOKEN } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import {
     API_KEY_SERVICE_TOKEN,
+    COOKIE_SERVICE_TOKEN,
     INTERNAL_CLIENT_SERVICE_TOKEN,
     LIFECYCLE_SERVICE_TOKEN,
     NGINX_SERVICE_TOKEN,
@@ -14,6 +15,7 @@ import {
 import { pubsub } from '@app/core/pubsub.js';
 import { LifecycleService } from '@app/unraid-api/app/lifecycle.service.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
+import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
 import { ApiKeyModule } from '@app/unraid-api/graph/resolvers/api-key/api-key.module.js';
 import { NginxModule } from '@app/unraid-api/nginx/nginx.module.js';
 import { NginxService } from '@app/unraid-api/nginx/nginx.service.js';
@@ -43,6 +45,10 @@ import { upnpClient } from '@app/upnp/helpers.js';
             useClass: ApiKeyService,
         },
         {
+            provide: COOKIE_SERVICE_TOKEN,
+            useClass: CookieService,
+        },
+        {
             provide: NGINX_SERVICE_TOKEN,
             useClass: NginxService,
         },
@@ -58,6 +64,7 @@ import { upnpClient } from '@app/upnp/helpers.js';
         UPNP_CLIENT_TOKEN,
         GRAPHQL_PUBSUB_TOKEN,
         API_KEY_SERVICE_TOKEN,
+        COOKIE_SERVICE_TOKEN,
         NGINX_SERVICE_TOKEN,
         INTERNAL_CLIENT_SERVICE_TOKEN,
         PrefixedID,
