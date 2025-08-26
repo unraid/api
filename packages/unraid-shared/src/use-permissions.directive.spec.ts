@@ -91,7 +91,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).toThrow(/Invalid resource value: "API_KEYS"/);
+      }).toThrow(/Invalid Resource enum value: API_KEYS/);
     });
 
     it('should provide helpful error message listing valid resources', () => {
@@ -115,7 +115,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).toThrow(/Invalid resource value/);
+      }).toThrow(/Invalid Resource enum value/);
     });
 
     it('should reject resources with GraphQL directive injection attempts', () => {
@@ -126,7 +126,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).toThrow(/Invalid resource value/);
+      }).toThrow(/Invalid Resource enum value/);
     });
 
     it('should reject resources with invalid lowercase names', () => {
@@ -137,7 +137,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).toThrow(/Invalid resource value/);
+      }).toThrow(/Invalid Resource enum value/);
     });
 
     it('should validate SDL escape function rejects invalid characters', () => {
@@ -237,7 +237,7 @@ describe('UsePermissions Directive', () => {
       try {
         decorator({}, 'testMethod', {});
       } catch (error: any) {
-        expect(error.message).toContain('Invalid resource value: "WRONG"');
+        expect(error.message).toContain('Invalid Resource enum value: WRONG');
         expect(error.message).toContain('Must be one of:');
         expect(error.message).toContain('API_KEY');
         expect(error.message).toContain('DASHBOARD');
@@ -307,7 +307,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).toThrow(/Invalid resource value: ""/);
+      }).toThrow(/Invalid Resource enum value: /);
     });
 
     it('should reject resources with newlines', () => {
@@ -318,7 +318,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).toThrow(/Invalid resource value/);
+      }).toThrow(/Invalid Resource enum value/);
     });
 
     it('should reject resources with backslashes', () => {
@@ -329,7 +329,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).toThrow(/Invalid resource value/);
+      }).toThrow(/Invalid Resource enum value/);
     });
   });
 });
