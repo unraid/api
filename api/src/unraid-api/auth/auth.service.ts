@@ -122,10 +122,11 @@ export class AuthService {
                 .filter((permission) => permission.resource && permission.resource.trim() !== '')
                 .flatMap((permission) =>
                     (permission.actions || [])
-                        .filter((action) => action && action.trim() !== '')
+                        .filter((action) => action && String(action).trim() !== '')
                         .flatMap((action) => {
+                            const actionStr = String(action);
                             // Handle wildcard - expand to all CRUD actions
-                            if (action === '*' || action.toLowerCase() === '*') {
+                            if (actionStr === '*' || actionStr.toLowerCase() === '*') {
                                 return expandWildcardAction().map((expandedAction) => ({
                                     resource: permission.resource,
                                     action: expandedAction,
@@ -133,7 +134,7 @@ export class AuthService {
                             }
 
                             // Use the shared helper to parse and validate the action
-                            const parsedAction = parseActionToAuthAction(action);
+                            const parsedAction = parseActionToAuthAction(actionStr);
 
                             // Only include valid AuthAction values
                             return parsedAction

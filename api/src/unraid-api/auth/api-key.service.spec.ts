@@ -2,9 +2,8 @@ import { Logger } from '@nestjs/common';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { ensureDir, ensureDirSync } from 'fs-extra';
-import { AuthActionVerb } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { environment } from '@app/environment.js';
@@ -55,7 +54,7 @@ describe('ApiKeyService', () => {
         permissions: [
             {
                 resource: Resource.CONNECT,
-                actions: [AuthActionVerb.READ],
+                actions: [AuthAction.READ_ANY],
             },
         ],
         createdAt: new Date().toISOString(),
@@ -179,7 +178,7 @@ describe('ApiKeyService', () => {
                 permissions: [
                     {
                         resource: Resource.CONNECT,
-                        actions: [AuthActionVerb.READ],
+                        actions: [AuthAction.READ_ANY],
                     },
                 ],
             };
@@ -190,7 +189,7 @@ describe('ApiKeyService', () => {
                 permissions: [
                     {
                         resource: Resource.CONNECT,
-                        actions: [AuthActionVerb.READ],
+                        actions: [AuthAction.READ_ANY],
                     },
                 ],
             };
@@ -365,7 +364,7 @@ describe('ApiKeyService', () => {
                 permissions: [
                     {
                         resource: Resource.CONNECT,
-                        actions: [AuthActionVerb.READ],
+                        actions: [AuthAction.READ_ANY],
                     },
                 ],
                 createdAt: new Date().toISOString(),
@@ -412,7 +411,7 @@ describe('ApiKeyService', () => {
             const updatedPermissions = [
                 {
                     resource: Resource.CONNECT,
-                    actions: [AuthActionVerb.READ, AuthActionVerb.UPDATE],
+                    actions: [AuthAction.READ_ANY, AuthAction.UPDATE_ANY],
                 },
             ];
 
@@ -472,7 +471,7 @@ describe('ApiKeyService', () => {
                 permissions: [
                     {
                         resource: Resource.CONNECT,
-                        actions: [AuthActionVerb.READ],
+                        actions: [AuthAction.READ_ANY],
                     },
                 ],
                 createdAt: new Date().toISOString(),

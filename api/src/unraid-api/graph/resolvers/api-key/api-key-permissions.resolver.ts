@@ -7,7 +7,11 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
-import { mergePermissionsIntoMap } from '@unraid/shared/util/permissions.js';
+import {
+    expandWildcardAction,
+    mergePermissionsIntoMap,
+    parseActionToAuthAction,
+} from '@unraid/shared/util/permissions.js';
 
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import {
@@ -81,7 +85,23 @@ export class ApiKeyPermissionsResolver {
                     effectivePermissions.set(perm.resource, new Set());
                 }
                 const resourceActions = effectivePermissions.get(perm.resource)!;
-                perm.actions.forEach((action) => resourceActions.add(action));
+
+                perm.actions.forEach((action) => {
+                    const actionStr = String(action);
+
+                    // Handle wildcard - expand to all CRUD actions
+                    if (actionStr === '*' || actionStr.toLowerCase() === '*') {
+                        expandWildcardAction().forEach((expandedAction) => {
+                            resourceActions.add(expandedAction);
+                        });
+                    } else {
+                        // Use the shared helper to parse and validate the action
+                        const parsedAction = parseActionToAuthAction(actionStr);
+                        if (parsedAction) {
+                            resourceActions.add(parsedAction);
+                        }
+                    }
+                });
             }
         }
 

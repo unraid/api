@@ -17,10 +17,12 @@ const routes = computed(() => {
     .sort((a, b) => a.path.localeCompare(b.path));
 });
 
-function formatRouteName(name: string | undefined) {
+function formatRouteName(name: string | symbol | undefined) {
   if (!name) return 'Home';
+  // Convert symbols to strings if needed
+  const nameStr = typeof name === 'symbol' ? name.toString() : name;
   // Convert route names like "web-components" to "Web Components"
-  return name
+  return nameStr
     .replace(/-/g, ' ')
     .split(' ')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

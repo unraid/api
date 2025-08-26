@@ -1,8 +1,8 @@
 import { UnauthorizedException } from '@nestjs/common';
 
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { newEnforcer } from 'casbin';
-import { AuthActionVerb, AuthZService } from 'nest-authz';
+import { AuthZService } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
@@ -27,7 +27,7 @@ describe('AuthService', () => {
         permissions: [
             {
                 resource: Resource.CONNECT,
-                actions: [AuthActionVerb.READ.toUpperCase()],
+                actions: [AuthAction.READ_ANY],
             },
         ],
         createdAt: new Date().toISOString(),
@@ -96,14 +96,11 @@ describe('AuthService', () => {
                 permissions: [
                     {
                         resource: Resource.DOCKER,
-                        actions: [
-                            AuthActionVerb.READ.toUpperCase(),
-                            AuthActionVerb.UPDATE.toUpperCase(),
-                        ],
+                        actions: [AuthAction.READ_ANY, AuthAction.UPDATE_ANY],
                     },
                     {
                         resource: Resource.VMS,
-                        actions: [AuthActionVerb.READ.toUpperCase()],
+                        actions: [AuthAction.READ_ANY],
                     },
                 ],
             };
