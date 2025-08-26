@@ -634,5 +634,50 @@ describe('ApiKeyService', () => {
                 expect.stringContaining('property permissions')
             );
         });
+
+        it('should normalize legacy action formats when loading API keys', async () => {
+            const legacyApiKey = {
+                ...mockApiKey,
+                permissions: [
+                    {
+                        resource: Resource.DOCKER,
+                        actions: ['create', 'READ', 'Update', 'DELETE'], // Mixed case legacy verbs
+                    },
+                    {
+                        resource: Resource.VMS,
+                        actions: ['READ_ANY', 'UPDATE_OWN'], // GraphQL enum style
+                    },
+                    {
+                        resource: Resource.CONNECT,
+                        actions: ['read:own', 'update:any'], // Casbin colon format
+                    },
+                ],
+            };
+
+            vi.mocked(readFile).mockResolvedValue(JSON.stringify(legacyApiKey));
+
+            const result = await apiKeyService['loadApiKeyFile']('legacy.json');
+
+            expect(result).not.toBeNull();
+            expect(result?.permissions).toEqual([
+                {
+                    resource: Resource.DOCKER,
+                    actions: [
+                        AuthAction.CREATE_ANY,
+                        AuthAction.READ_ANY,
+                        AuthAction.UPDATE_ANY,
+                        AuthAction.DELETE_ANY,
+                    ],
+                },
+                {
+                    resource: Resource.VMS,
+                    actions: [AuthAction.READ_ANY, AuthAction.UPDATE_OWN],
+                },
+                {
+                    resource: Resource.CONNECT,
+                    actions: [AuthAction.READ_OWN, AuthAction.UPDATE_ANY],
+                },
+            ]);
+        });
     });
 });
