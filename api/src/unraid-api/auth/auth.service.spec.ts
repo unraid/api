@@ -290,7 +290,7 @@ describe('AuthService', () => {
             // Test that VIEWER role cannot access API_KEY resource
             const mockCasbinPermissions = Object.values(Resource)
                 .filter((resource) => resource !== Resource.API_KEY)
-                .map((resource) => ['VIEWER', resource, 'read:any']);
+                .map((resource) => ['VIEWER', resource, AuthAction.READ_ANY]);
 
             vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
                 mockCasbinPermissions
@@ -306,10 +306,10 @@ describe('AuthService', () => {
             expect(result.has(Resource.API_KEY)).toBe(false);
 
             // Should have read access to other resources
-            expect(result.get(Resource.DOCKER)).toEqual(['read:any']);
-            expect(result.get(Resource.ARRAY)).toEqual(['read:any']);
-            expect(result.get(Resource.CONFIG)).toEqual(['read:any']);
-            expect(result.get(Resource.ME)).toEqual(['read:any']);
+            expect(result.get(Resource.DOCKER)).toEqual([AuthAction.READ_ANY]);
+            expect(result.get(Resource.ARRAY)).toEqual([AuthAction.READ_ANY]);
+            expect(result.get(Resource.CONFIG)).toEqual([AuthAction.READ_ANY]);
+            expect(result.get(Resource.ME)).toEqual([AuthAction.READ_ANY]);
         });
 
         it('should allow ADMIN role access to API_KEY resource', async () => {
@@ -327,10 +327,10 @@ describe('AuthService', () => {
             // ADMIN should have access to API_KEY through wildcard
             expect(result).toBeInstanceOf(Map);
             expect(result.has(Resource.API_KEY)).toBe(true);
-            expect(result.get(Resource.API_KEY)).toContain('create:any');
-            expect(result.get(Resource.API_KEY)).toContain('read:any');
-            expect(result.get(Resource.API_KEY)).toContain('update:any');
-            expect(result.get(Resource.API_KEY)).toContain('delete:any');
+            expect(result.get(Resource.API_KEY)).toContain(AuthAction.CREATE_ANY);
+            expect(result.get(Resource.API_KEY)).toContain(AuthAction.READ_ANY);
+            expect(result.get(Resource.API_KEY)).toContain(AuthAction.UPDATE_ANY);
+            expect(result.get(Resource.API_KEY)).toContain(AuthAction.DELETE_ANY);
         });
     });
 
@@ -350,8 +350,8 @@ describe('AuthService', () => {
 
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBe(2);
-            expect(result.get(Resource.DOCKER)).toEqual(['read:any', 'update:any']);
-            expect(result.get(Resource.VMS)).toEqual(['read:any']);
+            expect(result.get(Resource.DOCKER)).toEqual([AuthAction.READ_ANY, AuthAction.UPDATE_ANY]);
+            expect(result.get(Resource.VMS)).toEqual([AuthAction.READ_ANY]);
         });
 
         it('should handle wildcard permissions for admin role', async () => {
@@ -369,16 +369,16 @@ describe('AuthService', () => {
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBeGreaterThan(0);
             // Should have expanded CRUD actions with proper format for all resources
-            expect(result.get(Resource.DOCKER)).toContain('create:any');
-            expect(result.get(Resource.DOCKER)).toContain('read:any');
-            expect(result.get(Resource.DOCKER)).toContain('update:any');
-            expect(result.get(Resource.DOCKER)).toContain('delete:any');
-            expect(result.get(Resource.VMS)).toContain('create:any');
-            expect(result.get(Resource.VMS)).toContain('read:any');
-            expect(result.get(Resource.VMS)).toContain('update:any');
-            expect(result.get(Resource.VMS)).toContain('delete:any');
-            expect(result.get(Resource.ME)).toContain('read:any');
-            expect(result.get(Resource.ME)).toContain('create:any'); // Also gets CRUD from wildcard
+            expect(result.get(Resource.DOCKER)).toContain(AuthAction.CREATE_ANY);
+            expect(result.get(Resource.DOCKER)).toContain(AuthAction.READ_ANY);
+            expect(result.get(Resource.DOCKER)).toContain(AuthAction.UPDATE_ANY);
+            expect(result.get(Resource.DOCKER)).toContain(AuthAction.DELETE_ANY);
+            expect(result.get(Resource.VMS)).toContain(AuthAction.CREATE_ANY);
+            expect(result.get(Resource.VMS)).toContain(AuthAction.READ_ANY);
+            expect(result.get(Resource.VMS)).toContain(AuthAction.UPDATE_ANY);
+            expect(result.get(Resource.VMS)).toContain(AuthAction.DELETE_ANY);
+            expect(result.get(Resource.ME)).toContain(AuthAction.READ_ANY);
+            expect(result.get(Resource.ME)).toContain(AuthAction.CREATE_ANY); // Also gets CRUD from wildcard
             expect(result.has('*' as any)).toBe(false); // Still shouldn't have literal wildcard
         });
 
@@ -398,12 +398,12 @@ describe('AuthService', () => {
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBeGreaterThan(0);
             // All resources should have READ
-            expect(result.get(Resource.DOCKER)).toContain('read:any');
-            expect(result.get(Resource.VMS)).toContain('read:any');
-            expect(result.get(Resource.ARRAY)).toContain('read:any');
+            expect(result.get(Resource.DOCKER)).toContain(AuthAction.READ_ANY);
+            expect(result.get(Resource.VMS)).toContain(AuthAction.READ_ANY);
+            expect(result.get(Resource.ARRAY)).toContain(AuthAction.READ_ANY);
             // CONNECT__REMOTE_ACCESS should have both READ and UPDATE
-            expect(result.get(Resource.CONNECT__REMOTE_ACCESS)).toContain('read:any');
-            expect(result.get(Resource.CONNECT__REMOTE_ACCESS)).toContain('update:any');
+            expect(result.get(Resource.CONNECT__REMOTE_ACCESS)).toContain(AuthAction.READ_ANY);
+            expect(result.get(Resource.CONNECT__REMOTE_ACCESS)).toContain(AuthAction.UPDATE_ANY);
         });
 
         it('should expand resource-specific wildcard actions to CRUD', async () => {
@@ -421,10 +421,15 @@ describe('AuthService', () => {
             expect(result).toBeInstanceOf(Map);
             // Docker should have all CRUD actions with proper format
             expect(result.get(Resource.DOCKER)).toEqual(
-                expect.arrayContaining(['create:any', 'read:any', 'update:any', 'delete:any'])
+                expect.arrayContaining([
+                    AuthAction.CREATE_ANY,
+                    AuthAction.READ_ANY,
+                    AuthAction.UPDATE_ANY,
+                    AuthAction.DELETE_ANY,
+                ])
             );
             // Array should only have READ
-            expect(result.get(Resource.ARRAY)).toEqual(['read:any']);
+            expect(result.get(Resource.ARRAY)).toEqual([AuthAction.READ_ANY]);
         });
 
         it('should skip invalid resources', async () => {
@@ -442,7 +447,7 @@ describe('AuthService', () => {
 
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBe(1);
-            expect(result.get(Resource.DOCKER)).toEqual(['update:any']);
+            expect(result.get(Resource.DOCKER)).toEqual([AuthAction.UPDATE_ANY]);
         });
 
         it('should handle empty permissions', async () => {
@@ -470,8 +475,8 @@ describe('AuthService', () => {
 
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBe(2);
-            expect(result.get(Resource.DOCKER)).toEqual(['read:any']);
-            expect(result.get(Resource.VMS)).toEqual(['update:any']);
+            expect(result.get(Resource.DOCKER)).toEqual([AuthAction.READ_ANY]);
+            expect(result.get(Resource.VMS)).toEqual([AuthAction.UPDATE_ANY]);
         });
 
         it('should not duplicate actions for the same resource', async () => {
@@ -490,7 +495,7 @@ describe('AuthService', () => {
 
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBe(1);
-            expect(result.get(Resource.DOCKER)).toEqual(['read:any', 'update:any']);
+            expect(result.get(Resource.DOCKER)).toEqual([AuthAction.READ_ANY, AuthAction.UPDATE_ANY]);
         });
 
         it('should handle errors gracefully', async () => {

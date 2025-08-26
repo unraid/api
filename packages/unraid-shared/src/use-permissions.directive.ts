@@ -112,25 +112,26 @@ export function UsePermissions(permissions: NewFormatPermissions | OldFormatPerm
         }
         
         // Determine the final action based on input format
-        // Detect "combined" actions early (e.g., "read:any") to avoid double-combining.
+        // Detect "combined" actions early (e.g., "READ_ANY") to avoid double-combining.
         const maybeCombined =
             (permissions as any)?.action &&
             typeof (permissions as any).action === 'string' &&
-            (permissions as any).action.includes(':');
+            (permissions as any).action.includes('_');
 
         if ('possession' in permissions && !maybeCombined) {
             // Old format: combine verb and possession
             const oldFormat = permissions as { action: AuthActionVerb | string; possession: AuthPossession | string; resource: Resource | string };
             const actionStr = typeof oldFormat.action === 'string' ? oldFormat.action : (oldFormat.action as AuthActionVerb);
-            const verb = actionStr.toLowerCase().trim();
+            const verb = actionStr.toUpperCase().trim();
             const possessionStr = typeof oldFormat.possession === 'string' ? oldFormat.possession : (oldFormat.possession as AuthPossession);
-            const possession = possessionStr.toLowerCase().trim();
-            finalAction = `${verb}:${possession}` as AuthAction;
+            const possession = possessionStr.toUpperCase().trim();
+            // Convert to new AuthAction format (e.g., "CREATE" + "ANY" -> "CREATE_ANY")
+            finalAction = `${verb}_${possession}` as AuthAction;
 
             // Validate the combined action
             if (!Object.values(AuthAction).includes(finalAction)) {
                 throw new Error(
-                    `Invalid action combination: "${verb}:${possession}". ` +
+                    `Invalid action combination: "${verb}_${possession}" (converted to "${finalAction}"). ` +
                     `Valid AuthAction values are: ${Object.values(AuthAction).join(', ')}`
                 );
             }
@@ -150,12 +151,12 @@ export function UsePermissions(permissions: NewFormatPermissions | OldFormatPerm
         // Escape values for safe SDL injection
         const escapeForSDL = (value: string): string => {
             // Validate that the value only contains expected characters
-            // Allow uppercase/lowercase letters, underscores, and colons (for actions like "read:any")
-            const allowedPattern = /^[A-Za-z_:]+$/;
+            // Allow uppercase/lowercase letters and underscores (for actions like "READ_ANY")
+            const allowedPattern = /^[A-Za-z_]+$/;
             
             if (!allowedPattern.test(value)) {
                 throw new Error(
-                    `Invalid characters in permission value: "${value}". Only letters, underscores, and colons are allowed.`
+                    `Invalid characters in permission value: "${value}". Only letters and underscores are allowed.`
                 );
             }
             

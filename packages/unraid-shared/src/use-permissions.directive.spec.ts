@@ -122,11 +122,11 @@ describe('UsePermissions Directive', () => {
     it('should validate SDL escape function rejects invalid characters', () => {
       // This tests the escapeForSDL function indirectly
       const decorator = UsePermissions({
-        action: 'read:any' as AuthAction, // lowercase colon format
+        action: AuthAction.READ_ANY, // Use the proper enum value
         resource: Resource.API_KEY,
       });
 
-      // The action will be normalized to uppercase, which should pass
+      // The action should pass validation
       expect(() => {
         decorator({}, 'testMethod', {});
       }).not.toThrow();
@@ -165,7 +165,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).toThrow(/Invalid action combination: "invalid:any"/);
+      }).toThrow(/Invalid action combination: "INVALID_ANY"/);
     });
 
     it('should provide helpful error message listing valid actions', () => {
@@ -183,8 +183,8 @@ describe('UsePermissions Directive', () => {
   describe('Legacy Format Support', () => {
     it('should support old format with separate verb and possession', () => {
       const decorator = UsePermissions({
-        action: 'create' as any,
-        possession: 'any' as any,
+        action: 'CREATE' as any,
+        possession: 'ANY' as any,
         resource: Resource.API_KEY,
       } as any);
 
@@ -234,8 +234,8 @@ describe('UsePermissions Directive', () => {
       } catch (error: any) {
         expect(error.message).toContain('Invalid AuthAction enum value: "wrong:action"');
         expect(error.message).toContain('Valid AuthAction values are:');
-        expect(error.message).toContain('create:any');
-        expect(error.message).toContain('read:own');
+        expect(error.message).toContain('CREATE_ANY');
+        expect(error.message).toContain('READ_OWN');
       }
     });
 
@@ -249,7 +249,7 @@ describe('UsePermissions Directive', () => {
       try {
         decorator({}, 'testMethod', {});
       } catch (error: any) {
-        expect(error.message).toContain('Invalid action combination: "invalid:wrong"');
+        expect(error.message).toContain('Invalid action combination: "INVALID_WRONG"');
         expect(error.message).toContain('Valid AuthAction values are:');
       }
     });
