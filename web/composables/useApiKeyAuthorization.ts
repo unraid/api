@@ -13,6 +13,9 @@ export interface ScopeConversion {
  * - "role:admin" for roles
  * - "docker:read" for resource permissions
  * - "docker:*" for all actions on a resource
+ * 
+ * Returns AuthActionValue enum values (e.g., 'create:any', 'read:any')
+ * rather than AuthAction enum keys (e.g., 'CREATE_ANY', 'READ_ANY')
  */
 function convertScopesToPermissions(scopes: string[]): ScopeConversion {
   const permissions: Array<{ resource: Resource; actions: AuthActionValue[] }> = [];

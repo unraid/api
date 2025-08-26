@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { useApiKeyAuthorizationForm } from '~/composables/useApiKeyAuthorizationForm.js';
-import { AuthAction, Role } from '~/composables/gql/graphql.js';
+import { Role } from '~/composables/gql/graphql.js';
+import { AUTH_ACTION_VALUES } from '~/types/auth-actions.js';
 
 // Mock window.location for the tests
 Object.defineProperty(window, 'location', {
@@ -46,8 +47,8 @@ describe('useApiKeyAuthorizationForm', () => {
       description: '',
       roles: [],
       customPermissions: [
-        { resources: ['DOCKER'], actions: [AuthAction.READ_ANY, AuthAction.UPDATE_ANY] },
-        { resources: ['VMS'], actions: [AuthAction.READ_ANY] },
+        { resources: ['DOCKER'], actions: [AUTH_ACTION_VALUES.READ_ANY, AUTH_ACTION_VALUES.UPDATE_ANY] },
+        { resources: ['VMS'], actions: [AUTH_ACTION_VALUES.READ_ANY] },
       ],
     });
 
@@ -68,8 +69,8 @@ describe('useApiKeyAuthorizationForm', () => {
       description: '',
       roles: [Role.ADMIN],
       customPermissions: [
-        { resources: ['DOCKER'], actions: [AuthAction.READ_ANY] },
-        { resources: ['VMS'], actions: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY] },
+        { resources: ['DOCKER'], actions: [AUTH_ACTION_VALUES.READ_ANY] },
+        { resources: ['VMS'], actions: [AUTH_ACTION_VALUES.CREATE_ANY, AUTH_ACTION_VALUES.READ_ANY, AUTH_ACTION_VALUES.UPDATE_ANY, AUTH_ACTION_VALUES.DELETE_ANY] },
       ],
     });
 
