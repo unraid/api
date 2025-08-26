@@ -39,12 +39,6 @@ export function useApiKeyAuthorizationForm(urlSearchParams?: URLSearchParams) {
       })),
     };
     
-    console.log('Form data from URL:', {
-      customPermissions: formData.customPermissions,
-      firstPermissionActions: formData.customPermissions?.[0]?.actions,
-      actionTypes: formData.customPermissions?.[0]?.actions?.map(a => typeof a),
-    });
-    
     return formData;
   });
 

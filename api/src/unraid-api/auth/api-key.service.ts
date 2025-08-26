@@ -340,13 +340,15 @@ export class ApiKeyService implements OnModuleInit {
         if (description !== undefined) {
             apiKey.description = description;
         }
-        if (roles) {
+        if (roles !== undefined) {
+            // Handle both empty array (to clear roles) and populated array
             if (roles.some((role) => !ApiKeyService.validRoles.has(role))) {
                 throw new GraphQLError('Invalid role specified');
             }
             apiKey.roles = roles;
         }
-        if (permissions) {
+        if (permissions !== undefined) {
+            // Handle both empty array (to clear permissions) and populated array
             apiKey.permissions = permissions;
         }
         await this.saveApiKey(apiKey);
