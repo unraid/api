@@ -64,10 +64,9 @@ export class LocalSessionService implements OnModuleInit, OnModuleDestroy {
      */
     public async getLocalSession(): Promise<string | null> {
         try {
-            const token = await readFile(LocalSessionService.SESSION_FILE_PATH, 'utf-8');
-            return token.trim();
+            return await readFile(LocalSessionService.SESSION_FILE_PATH, 'utf-8');
         } catch (error) {
-            this.logger.debug('Local session file not found or not readable');
+            this.logger.warn(error, 'Local session file not found or not readable');
             return null;
         }
     }

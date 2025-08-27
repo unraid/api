@@ -9,7 +9,7 @@ import { batchProcess } from '@app/utils.js';
 /** token for dependency injection of a session cookie options object */
 export const SESSION_COOKIE_CONFIG = 'SESSION_COOKIE_CONFIG';
 
-type SessionCookieConfig = {
+export type SessionCookieConfig = {
     namePrefix: string;
     sessionDir: string;
     secure: boolean;

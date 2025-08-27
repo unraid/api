@@ -1,5 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import type { InternalGraphQLClientFactory as IInternalGraphQLClientFactory } from '@unraid/shared';
 import { ApolloClient, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core/index.js';
@@ -13,6 +12,9 @@ import { SocketConfigService } from '@unraid/shared';
 import { createClient } from 'graphql-ws';
 import { Agent, fetch as undiciFetch } from 'undici';
 import WebSocket from 'ws';
+
+import type { SessionCookieConfig } from '@app/unraid-api/auth/cookie.service.js';
+import { SESSION_COOKIE_CONFIG } from '@app/unraid-api/auth/cookie.service.js';
 
 /**
  * Factory service for creating internal GraphQL clients.
@@ -28,7 +30,8 @@ export class InternalGraphQLClientFactory implements IInternalGraphQLClientFacto
     private readonly logger = new Logger(InternalGraphQLClientFactory.name);
 
     constructor(
-        private readonly configService: ConfigService,
+        @Inject(SESSION_COOKIE_CONFIG)
+        private readonly sessionCookieConfig: SessionCookieConfig,
         private readonly socketConfig: SocketConfigService
     ) {}
 
@@ -143,7 +146,7 @@ export class InternalGraphQLClientFactory implements IInternalGraphQLClientFacto
                     headers: {
                         ...headers,
                         'x-csrf-token': cookieAuth.csrfToken,
-                        cookie: `unraid_${cookieAuth.sessionId}=${cookieAuth.sessionId}`,
+                        cookie: `${this.sessionCookieConfig.namePrefix}${cookieAuth.sessionId}=${cookieAuth.sessionId}`,
                     },
                 };
             }
