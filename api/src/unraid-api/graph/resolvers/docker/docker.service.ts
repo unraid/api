@@ -25,7 +25,7 @@ interface NetworkListingOptions {
 }
 
 @Injectable()
-export class DockerService implements OnModuleInit {
+export class DockerService {
     private client: Docker;
     private autoStarts: string[] = [];
     private readonly logger = new Logger(DockerService.name);
@@ -55,19 +55,6 @@ export class DockerService implements OnModuleInit {
                 apps: { installed: installedCount, running: runningCount },
             },
         };
-    }
-
-    public async onModuleInit() {
-        try {
-            await this.getContainers({ skipCache: true });
-            await this.getNetworks({ skipCache: true });
-            this.logger.debug('Docker cache warming complete.');
-            const appInfo = await this.getAppInfo();
-            await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
-        } catch (error) {
-            this.logger.warn('Error initializing Docker module:', error);
-            this.logger.warn('Docker may be disabled under Settings -> Docker.');
-        }
     }
 
     /**
