@@ -1,11 +1,7 @@
 import { Args, Int, Query, Resolver, Subscription } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { LogFile, LogFileContent } from '@app/unraid-api/graph/resolvers/logs/logs.model.js';
@@ -17,9 +13,8 @@ export class LogsResolver {
 
     @Query(() => [LogFile])
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.LOGS,
-        possession: AuthPossession.ANY,
     })
     async logFiles(): Promise<LogFile[]> {
         return this.logsService.listLogFiles();
@@ -27,9 +22,8 @@ export class LogsResolver {
 
     @Query(() => LogFileContent)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.LOGS,
-        possession: AuthPossession.ANY,
     })
     async logFile(
         @Args('path') path: string,
@@ -41,9 +35,8 @@ export class LogsResolver {
 
     @Subscription(() => LogFileContent, { name: 'logFile' })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.LOGS,
-        possession: AuthPossession.ANY,
     })
     async logFileSubscription(@Args('path') path: string) {
         // Start watching the file

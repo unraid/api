@@ -1,11 +1,7 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { getKeyFile } from '@app/core/utils/misc/get-key-file.js';
 import { getters } from '@app/store/index.js';
@@ -19,9 +15,8 @@ import {
 export class RegistrationResolver {
     @Query(() => Registration, { nullable: true })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.REGISTRATION,
-        possession: AuthPossession.ANY,
     })
     public async registration(): Promise<Registration | null> {
         const emhttp = getters.emhttp();

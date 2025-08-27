@@ -1,10 +1,8 @@
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { AccessUrl } from '@unraid/shared/network.model.js';
 import {
-    AuthActionVerb,
-    AuthPossession,
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
 
@@ -16,9 +14,8 @@ export class NetworkResolver {
     constructor(private readonly urlResolverService: UrlResolverService) {}
 
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.NETWORK,
-        possession: AuthPossession.ANY,
     })
     @Query(() => Network)
     public async network(): Promise<Network> {

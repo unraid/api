@@ -1,13 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
 import { Args, Mutation, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import {
     ArrayDisk,
@@ -27,9 +23,8 @@ export class ArrayMutationsResolver {
 
     @ResolveField(() => UnraidArray, { description: 'Set array state' })
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
     })
     public async setState(@Args('input') input: ArrayStateInput): Promise<UnraidArray> {
         return this.arrayService.updateArrayState(input);
@@ -37,9 +32,8 @@ export class ArrayMutationsResolver {
 
     @ResolveField(() => UnraidArray, { description: 'Add new disk to array' })
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
     })
     public async addDiskToArray(@Args('input') input: ArrayDiskInput): Promise<UnraidArray> {
         return this.arrayService.addDiskToArray(input);
@@ -50,9 +44,8 @@ export class ArrayMutationsResolver {
             "Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error.",
     })
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
     })
     public async removeDiskFromArray(@Args('input') input: ArrayDiskInput): Promise<UnraidArray> {
         return this.arrayService.removeDiskFromArray(input);
@@ -60,9 +53,8 @@ export class ArrayMutationsResolver {
 
     @ResolveField(() => ArrayDisk, { description: 'Mount a disk in the array' })
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
     })
     public async mountArrayDisk(@Args('id', { type: () => PrefixedID }) id: string): Promise<ArrayDisk> {
         const array = await this.arrayService.mountArrayDisk(id);
@@ -80,9 +72,8 @@ export class ArrayMutationsResolver {
 
     @ResolveField(() => ArrayDisk, { description: 'Unmount a disk from the array' })
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
     })
     public async unmountArrayDisk(
         @Args('id', { type: () => PrefixedID }) id: string
@@ -102,9 +93,8 @@ export class ArrayMutationsResolver {
 
     @ResolveField(() => Boolean, { description: 'Clear statistics for a disk in the array' })
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
     })
     public async clearArrayDiskStatistics(
         @Args('id', { type: () => PrefixedID }) id: string

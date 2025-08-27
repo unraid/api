@@ -1,14 +1,10 @@
 import { Logger } from '@nestjs/common';
 import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { ApiConfig } from '@unraid/shared/services/api-config.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
 import { LifecycleService } from '@app/unraid-api/app/lifecycle.service.js';
@@ -101,9 +97,8 @@ export class UnifiedSettingsResolver {
 
     @Mutation(() => UpdateSettingsResponse)
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONFIG,
-        possession: AuthPossession.ANY,
     })
     async updateSettings(
         @Args('input', { type: () => GraphQLJSON }) input: Record<string, unknown>

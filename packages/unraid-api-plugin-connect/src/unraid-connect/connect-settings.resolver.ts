@@ -3,12 +3,11 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
-import { Resource } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { DataSlice } from '@unraid/shared/jsonforms/settings.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
-import { AuthActionVerb, AuthPossession } from 'nest-authz';
 
 import { EVENTS } from '../helper/nest-tokens.js';
 import { ConnectSettingsService } from './connect-settings.service.js';
@@ -62,9 +61,8 @@ export class ConnectSettingsResolver {
 
     @Query(() => RemoteAccess)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.CONNECT,
-        possession: AuthPossession.ANY,
     })
     public async remoteAccess(): Promise<RemoteAccess> {
         return this.connectSettingsService.dynamicRemoteAccessSettings();
@@ -72,9 +70,8 @@ export class ConnectSettingsResolver {
 
     @Mutation(() => ConnectSettingsValues)
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONFIG,
-        possession: AuthPossession.ANY,
     })
     public async updateApiSettings(@Args('input') settings: ConnectSettingsInput) {
         this.logger.verbose(`Attempting to update API settings: ${JSON.stringify(settings, null, 2)}`);
@@ -92,9 +89,8 @@ export class ConnectSettingsResolver {
 
     @Mutation(() => Boolean)
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONNECT,
-        possession: AuthPossession.ANY,
     })
     public async connectSignIn(@Args('input') input: ConnectSignInInput): Promise<boolean> {
         return this.connectSettingsService.signIn(input);
@@ -102,9 +98,8 @@ export class ConnectSettingsResolver {
 
     @Mutation(() => Boolean)
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONNECT,
-        possession: AuthPossession.ANY,
     })
     public async connectSignOut() {
         this.eventEmitter.emit(EVENTS.LOGOUT, { reason: 'Manual Sign Out Using API' });
@@ -113,9 +108,8 @@ export class ConnectSettingsResolver {
 
     @Mutation(() => Boolean)
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONNECT,
-        possession: AuthPossession.ANY,
     })
     public async setupRemoteAccess(@Args('input') input: SetupRemoteAccessInput): Promise<boolean> {
         await this.connectSettingsService.syncSettings({
@@ -128,9 +122,8 @@ export class ConnectSettingsResolver {
 
     @Mutation(() => Boolean)
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONNECT__REMOTE_ACCESS,
-        possession: AuthPossession.ANY,
     })
     public async enableDynamicRemoteAccess(
         @Args('input') dynamicRemoteAccessInput: EnableDynamicRemoteAccessInput

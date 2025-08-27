@@ -1,5 +1,5 @@
 // Import from graphql-enums to avoid NestJS dependencies
-import { Resource, Role, AuthAction, AuthActionVerb, AuthPossession } from '../graphql-enums.js';
+import { Resource, Role, AuthAction } from '../graphql-enums.js';
 
 export interface ScopeConversion {
   permissions: Array<{ resource: Resource; actions: AuthAction[] }>;
@@ -59,51 +59,6 @@ export function parseActionToAuthAction(action: string | null | undefined, defau
  */
 export const parseActionToEnum = parseActionToAuthAction;
 
-/**
- * Extract the verb from an AuthAction
- * @param action - The AuthAction to extract from
- * @returns The verb part of the action as AuthActionVerb or null if invalid
- */
-export function getVerbFromAuthAction(action: AuthAction): AuthActionVerb | null {
-  // AuthAction is now in format CREATE_ANY, so split by underscore
-  const verb = action.split('_')[0];
-  
-  // Match against actual enum values
-  if (Object.values(AuthActionVerb).includes(verb as AuthActionVerb)) {
-    return verb as AuthActionVerb;
-  }
-  return null;
-}
-
-/**
- * Extract the possession from an AuthAction
- * @param action - The AuthAction to extract from
- * @returns The possession part of the action as AuthPossession or null if invalid
- */
-export function getPossessionFromAuthAction(action: AuthAction): AuthPossession | null {
-  // AuthAction is now in format CREATE_ANY, so split by underscore
-  const possession = action.split('_')[1];
-  
-  // Match against actual enum values
-  if (Object.values(AuthPossession).includes(possession as AuthPossession)) {
-    return possession as AuthPossession;
-  }
-  return null;
-}
-
-/**
- * Combine a verb and possession into an AuthAction
- * @param verb - The action verb (can be uppercase or lowercase)
- * @param possession - The possession type (can be uppercase or lowercase)
- * @returns The combined AuthAction or null if invalid
- */
-export function combineToAuthAction(verb: string, possession: string): AuthAction | null {
-  const combined = `${verb.toUpperCase()}_${possession.toUpperCase()}` as AuthAction;
-  if (Object.values(AuthAction).includes(combined)) {
-    return combined;
-  }
-  return null;
-}
 
 /**
  * Parse a resource string to Resource enum
