@@ -26,61 +26,41 @@ type OptionsWithLoadedFile = {
 /**
  * Flattens nested objects that were incorrectly created by periods in INI section names.
  * For example: { system: { with: { periods: {...} } } } -> { "system.with.periods": {...} }
- *
- * The strategy is:
- * 1. If a nested object has string/number properties directly, it's likely an INI section
- * 2. If it only has nested objects, it's structure created by periods and should be flattened
  */
 const flattenPeriodSections = (obj: Record<string, any>, prefix = ''): Record<string, any> => {
     const result: Record<string, any> = {};
+    const isNestedObject = (value: unknown) =>
+        Boolean(value && typeof value === 'object' && !Array.isArray(value));
 
     for (const [key, value] of Object.entries(obj)) {
         const fullKey = prefix ? `${prefix}.${key}` : key;
 
-        if (value && typeof value === 'object' && !Array.isArray(value)) {
-            // Check if this object has any direct string/number properties (INI section properties)
-            const hasDirectProperties = Object.entries(value).some(
-                ([k, v]) => typeof v === 'string' || typeof v === 'number'
-            );
-
-            // Check if this object has nested objects (potential period structure)
-            const hasNestedObjects = Object.entries(value).some(
-                ([k, v]) => v && typeof v === 'object' && !Array.isArray(v)
-            );
-
-            if (hasDirectProperties) {
-                // This has direct properties, treat as an INI section
-                // But we still need to check for nested structures within it
-                const sectionProperties: Record<string, any> = {};
-                const nestedStructures: Record<string, any> = {};
-
-                for (const [propKey, propValue] of Object.entries(value)) {
-                    if (propValue && typeof propValue === 'object' && !Array.isArray(propValue)) {
-                        nestedStructures[propKey] = propValue;
-                    } else {
-                        sectionProperties[propKey] = propValue;
-                    }
-                }
-
-                // Keep the direct properties as a section
-                if (Object.keys(sectionProperties).length > 0) {
-                    result[fullKey] = sectionProperties;
-                }
-
-                // Flatten any nested structures
-                if (Object.keys(nestedStructures).length > 0) {
-                    Object.assign(result, flattenPeriodSections(nestedStructures, fullKey));
-                }
-            } else if (hasNestedObjects) {
-                // This only has nested objects, continue flattening
-                Object.assign(result, flattenPeriodSections(value, fullKey));
-            } else {
-                // Empty object or other case
-                result[fullKey] = value;
-            }
-        } else {
-            // Regular property, keep as is
+        if (!isNestedObject(value)) {
             result[fullKey] = value;
+            continue;
+        }
+
+        const section = {};
+        const nestedObjs = {};
+        let hasSectionProps = false;
+
+        for (const [propKey, propValue] of Object.entries(value)) {
+            if (isNestedObject(propValue)) {
+                nestedObjs[propKey] = propValue;
+            } else {
+                section[propKey] = propValue;
+                hasSectionProps = true;
+            }
+        }
+
+        // Process direct properties first to maintain order
+        if (hasSectionProps) {
+            result[fullKey] = section;
+        }
+
+        // Then process nested objects
+        if (Object.keys(nestedObjs).length > 0) {
+            Object.assign(result, flattenPeriodSections(nestedObjs, fullKey));
         }
     }
 
