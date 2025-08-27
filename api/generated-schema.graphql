@@ -2308,7 +2308,7 @@ type Query {
   config: Config!
   flash: Flash!
   logFiles: [LogFile!]!
-  logFile(path: String!, lines: Int, startLine: Int, filter: String): LogFileContent!
+  logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
   me: UserAccount!
 
   """Get all notifications"""
@@ -2590,7 +2590,7 @@ input AccessUrlInput {
 }
 
 type Subscription {
-  logFile(path: String!, filter: String): LogFileContent!
+  logFile(path: String!): LogFileContent!
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
   ownerSubscription: Owner!

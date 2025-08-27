@@ -1704,7 +1704,6 @@ export type QueryGetPermissionsForRolesArgs = {
 
 
 export type QueryLogFileArgs = {
-  filter?: InputMaybe<Scalars['String']['input']>;
   lines?: InputMaybe<Scalars['Int']['input']>;
   path: Scalars['String']['input'];
   startLine?: InputMaybe<Scalars['Int']['input']>;
@@ -2031,7 +2030,6 @@ export type Subscription = {
 
 
 export type SubscriptionLogFileArgs = {
-  filter?: InputMaybe<Scalars['String']['input']>;
   path: Scalars['String']['input'];
 };
 
