@@ -201,15 +201,12 @@ export class AuthService {
         }
 
         try {
+            if (!apiKey.roles) {
+                apiKey.roles = [];
+            }
             if (!apiKey.roles.includes(role)) {
-                const apiKeyWithSecret = await this.apiKeyService.findByIdWithSecret(apiKeyId);
-
-                if (!apiKeyWithSecret) {
-                    throw new UnauthorizedException('API key not found with secret');
-                }
-
-                apiKeyWithSecret.roles.push(role);
-                await this.apiKeyService.saveApiKey(apiKeyWithSecret);
+                apiKey.roles.push(role);
+                await this.apiKeyService.saveApiKey(apiKey);
                 await this.authzService.addRoleForUser(apiKeyId, role);
             }
 
@@ -231,14 +228,11 @@ export class AuthService {
         }
 
         try {
-            const apiKeyWithSecret = await this.apiKeyService.findByIdWithSecret(apiKeyId);
-
-            if (!apiKeyWithSecret) {
-                throw new UnauthorizedException('API key not found with secret');
+            if (!apiKey.roles) {
+                apiKey.roles = [];
             }
-
-            apiKeyWithSecret.roles = apiKeyWithSecret.roles.filter((r) => r !== role);
-            await this.apiKeyService.saveApiKey(apiKeyWithSecret);
+            apiKey.roles = apiKey.roles.filter((r) => r !== role);
+            await this.apiKeyService.saveApiKey(apiKey);
             await this.authzService.deleteRoleForUser(apiKeyId, role);
 
             return true;

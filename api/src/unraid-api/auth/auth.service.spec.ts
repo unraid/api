@@ -228,10 +228,6 @@ describe('AuthService', () => {
             };
 
             vi.spyOn(apiKeyService, 'findById').mockResolvedValue(mockApiKeyWithoutRole);
-            vi.spyOn(apiKeyService, 'findByIdWithSecret').mockResolvedValue({
-                ...mockApiKey,
-                roles: [Role.ADMIN],
-            });
             vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
             vi.spyOn(authzService, 'addRoleForUser').mockResolvedValue(true);
 
@@ -239,9 +235,8 @@ describe('AuthService', () => {
 
             expect(result).toBe(true);
             expect(apiKeyService.findById).toHaveBeenCalledWith(apiKeyId);
-            expect(apiKeyService.findByIdWithSecret).toHaveBeenCalledWith(apiKeyId);
             expect(apiKeyService.saveApiKey).toHaveBeenCalledWith({
-                ...mockApiKey,
+                ...mockApiKeyWithoutRole,
                 roles: [Role.ADMIN, role],
             });
             expect(authzService.addRoleForUser).toHaveBeenCalledWith(apiKeyId, role);
@@ -259,13 +254,8 @@ describe('AuthService', () => {
     describe('removeRoleFromApiKey', () => {
         it('should remove role from API key', async () => {
             const apiKey = { ...mockApiKey, roles: [Role.ADMIN, Role.GUEST] };
-            const apiKeyWithSecret = {
-                ...mockApiKey,
-                roles: [Role.ADMIN, Role.GUEST],
-            };
 
             vi.spyOn(apiKeyService, 'findById').mockResolvedValue(apiKey);
-            vi.spyOn(apiKeyService, 'findByIdWithSecret').mockResolvedValue(apiKeyWithSecret);
             vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
             vi.spyOn(authzService, 'deleteRoleForUser').mockResolvedValue(true);
 
@@ -273,9 +263,8 @@ describe('AuthService', () => {
 
             expect(result).toBe(true);
             expect(apiKeyService.findById).toHaveBeenCalledWith(apiKey.id);
-            expect(apiKeyService.findByIdWithSecret).toHaveBeenCalledWith(apiKey.id);
             expect(apiKeyService.saveApiKey).toHaveBeenCalledWith({
-                ...apiKeyWithSecret,
+                ...apiKey,
                 roles: [Role.GUEST],
             });
             expect(authzService.deleteRoleForUser).toHaveBeenCalledWith(apiKey.id, Role.ADMIN);

@@ -12,11 +12,6 @@ export interface ApiKeyService {
      */
     findById(id: string): Promise<ApiKey | null>;
 
-    /**
-     * Find an API key by its ID
-     * Note: This returns ApiKey without the secret for security
-     */
-    findByIdWithSecret(id: string): ApiKey | null;
 
     /**
      * Find an API key by a specific field
