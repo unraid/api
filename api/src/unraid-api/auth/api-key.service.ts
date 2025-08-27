@@ -41,12 +41,7 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     public async findAll(): Promise<ApiKey[]> {
-        return Promise.all(
-            this.memoryApiKeys.map(async (key) => {
-                const keyWithoutSecret = this.convertApiKeyWithSecretToApiKey(key);
-                return keyWithoutSecret;
-            })
-        );
+        return this.memoryApiKeys;
     }
 
     private setupWatch() {
@@ -241,7 +236,7 @@ export class ApiKeyService implements OnModuleInit {
         return this.memoryApiKeys.find((k) => k[field] === value) ?? null;
     }
 
-    findByKey(key: string): ApiKeyWithSecret | null {
+    findByKey(key: string): ApiKey | null {
         return this.findByField('key', key);
     }
 
