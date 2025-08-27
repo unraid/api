@@ -101,11 +101,25 @@ export class CookieService {
      * @returns the active session id, if any, or null if no active session is found.
      */
     async getActiveSession(): Promise<string | null> {
-        const sessionFiles = await readdir(this.opts.sessionDir);
+        let sessionFiles: string[] = [];
+        try {
+            sessionFiles = await readdir(this.opts.sessionDir);
+        } catch (e) {
+            this.logger.warn(e, 'Error reading session directory');
+            return null;
+        }
         for (const sessionFile of sessionFiles) {
-            const sessionData = await readFile(join(this.opts.sessionDir, sessionFile), 'ascii');
-            if (this.isSessionValid(sessionData)) {
-                return sessionFile.replace('sess_', '');
+            if (!sessionFile.startsWith('sess_')) {
+                continue;
+            }
+            try {
+                const sessionData = await readFile(join(this.opts.sessionDir, sessionFile), 'ascii');
+                if (this.isSessionValid(sessionData)) {
+                    return sessionFile.replace('sess_', '');
+                }
+            } catch {
+                // Ignore unreadable files and continue scanning
+                continue;
             }
         }
         return null;
