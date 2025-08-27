@@ -36,12 +36,12 @@ describe('useAuthorizationLink', () => {
   it('should group resources by their action sets', () => {
     const params = new URLSearchParams({
       name: 'Docker Manager',
-      scopes: 'docker:read,docker:update,vms:read',
+      scopes: 'docker:read_any,docker:update_any,vms:read_any',
     });
 
     const { formData, hasPermissions, permissionsSummary } = useAuthorizationLink(params);
 
-    // docker has read+update, vms only has read - these should be separate groups
+    // docker has read_any+update_any, vms only has read_any - these should be separate groups
     expect(formData.value.customPermissions!).toHaveLength(2);
     
     // Find the group with just READ_ANY
@@ -67,7 +67,7 @@ describe('useAuthorizationLink', () => {
   it('should handle mixed role and permission scopes', () => {
     const params = new URLSearchParams({
       name: 'Mixed Access App',
-      scopes: 'role:admin,docker:read,vms:*',
+      scopes: 'role:admin,docker:read_any,vms:*',
     });
 
     const { formData, hasPermissions, permissionsSummary } = useAuthorizationLink(params);
@@ -165,7 +165,7 @@ describe('useAuthorizationLink', () => {
     it('should group multiple resources with same actions into single permission group', () => {
       const params = new URLSearchParams({
         name: 'Multi-Resource Reader',
-        scopes: 'connect:read,disk:read,docker:read',
+        scopes: 'connect:read_any,disk:read_any,docker:read_any',
       });
 
       const { formData } = useAuthorizationLink(params);
@@ -181,7 +181,7 @@ describe('useAuthorizationLink', () => {
     it('should create separate groups for resources with different action sets', () => {
       const params = new URLSearchParams({
         name: 'Mixed Actions App',
-        scopes: 'docker:read,docker:update,vms:create,vms:delete',
+        scopes: 'docker:read_any,docker:update_any,vms:create_any,vms:delete_any',
       });
 
       const { formData } = useAuthorizationLink(params);
@@ -207,7 +207,7 @@ describe('useAuthorizationLink', () => {
     it('should handle duplicate scopes correctly', () => {
       const params = new URLSearchParams({
         name: 'Duplicate Scopes App',
-        scopes: 'docker:read,docker:read,vms:update,vms:update',
+        scopes: 'docker:read_any,docker:read_any,vms:update_any,vms:update_any',
       });
 
       const { formData } = useAuthorizationLink(params);
@@ -229,7 +229,7 @@ describe('useAuthorizationLink', () => {
     it('should preserve wildcard expansion for resources', () => {
       const params = new URLSearchParams({
         name: 'Wildcard App',
-        scopes: 'docker:*,vms:read',
+        scopes: 'docker:*,vms:read_any',
       });
 
       const { formData } = useAuthorizationLink(params);
@@ -257,7 +257,7 @@ describe('useAuthorizationLink', () => {
     it('should handle complex permission combinations', () => {
       const params = new URLSearchParams({
         name: 'Complex Permissions App',
-        scopes: 'connect:read,disk:read,docker:*,vms:update,vms:delete,dashboard:read',
+        scopes: 'connect:read_any,disk:read_any,docker:*,vms:update_any,vms:delete_any,dashboard:read_any',
       });
 
       const { formData } = useAuthorizationLink(params);
@@ -301,7 +301,7 @@ describe('useAuthorizationLink', () => {
     it('should decode grouped scopes correctly', () => {
       const params = new URLSearchParams({
         name: 'Grouped App',
-        scopes: 'docker+vms:read+update',
+        scopes: 'docker+vms:read_any+update_any',
       });
 
       const { formData } = useAuthorizationLink(params);
@@ -317,7 +317,7 @@ describe('useAuthorizationLink', () => {
     it('should handle mixed grouped and individual scopes', () => {
       const params = new URLSearchParams({
         name: 'Mixed Grouped App',
-        scopes: 'docker+vms:read,dashboard:update',
+        scopes: 'docker+vms:read_any,dashboard:update_any',
       });
 
       const { formData } = useAuthorizationLink(params);

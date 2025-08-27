@@ -15,9 +15,9 @@ describe('authorizationScopes', () => {
         
         const scopes = encodePermissionsToScopes([], permissions);
         
-        // Should produce "docker:read+update" not "docker:read+read+update"
+        // Should produce "docker:read_any+read_own+update_any" with distinct actions preserved
         expect(scopes).toHaveLength(1);
-        expect(scopes[0]).toBe('docker:read+update');
+        expect(scopes[0]).toBe('docker:read_any+read_own+update_any');
       });
 
       it('should deduplicate resource names when grouped', () => {
@@ -34,9 +34,9 @@ describe('authorizationScopes', () => {
         
         const scopes = encodePermissionsToScopes([], permissions);
         
-        // Should produce "docker:read" not "docker+docker:read"
+        // Should produce "docker:read_any+read_own" merging both permissions
         expect(scopes).toHaveLength(1);
-        expect(scopes[0]).toBe('docker:read');
+        expect(scopes[0]).toBe('docker:read_any+read_own');
       });
 
       it('should handle multiple duplicate resources and actions correctly', () => {
@@ -57,11 +57,13 @@ describe('authorizationScopes', () => {
         
         const scopes = encodePermissionsToScopes([], permissions);
         
-        // Docker has: READ_ANY, READ_OWN, UPDATE_ANY, UPDATE_OWN -> read+update
-        // VMS has: READ_ANY, UPDATE_ANY, UPDATE_OWN -> read+update
-        // Both have same action set, should group: "docker+vms:read+update"
-        expect(scopes).toHaveLength(1);
-        expect(scopes[0]).toBe('docker+vms:read+update');
+        // Docker: READ_ANY, READ_OWN, UPDATE_ANY, UPDATE_OWN (merged from both)
+        // VMS: READ_ANY, UPDATE_OWN, UPDATE_ANY
+        // Different action sets, so separate scopes
+        expect(scopes).toHaveLength(2);
+        const scopeStrings = scopes.sort();
+        expect(scopeStrings).toContain('docker:read_any+read_own+update_any+update_own');
+        expect(scopeStrings).toContain('vms:read_any+update_any+update_own');
       });
 
       it('should maintain consistent sorting for actions and resources', () => {
@@ -72,18 +74,18 @@ describe('authorizationScopes', () => {
           },
           {
             resource: Resource.DOCKER,
-            actions: [AuthAction.UPDATE_OWN, AuthAction.READ_OWN]
+            actions: [AuthAction.UPDATE_ANY, AuthAction.READ_ANY]
           }
         ];
         
         const scopes = encodePermissionsToScopes([], permissions);
         
-        // Should sort resources (docker before vms) and actions (read before update)
+        // Should sort resources (docker before vms) and actions alphabetically
         expect(scopes).toHaveLength(1);
-        expect(scopes[0]).toBe('docker+vms:read+update');
+        expect(scopes[0]).toBe('docker+vms:read_any+update_any');
       });
 
-      it('should not duplicate wildcard when all CRUD actions are present multiple times', () => {
+      it('should handle all CRUD actions without creating wildcard', () => {
         const permissions = [
           {
             resource: Resource.DOCKER,
@@ -98,9 +100,9 @@ describe('authorizationScopes', () => {
         
         const scopes = encodePermissionsToScopes([], permissions);
         
-        // Should recognize as wildcard despite duplicates
+        // Should just list all actions, no wildcard conversion
         expect(scopes).toHaveLength(1);
-        expect(scopes[0]).toBe('docker:*');
+        expect(scopes[0]).toBe('docker:create_any+create_own+delete_any+delete_own+read_any+read_own+update_any+update_own');
       });
 
       it('should handle edge case with empty actions after deduplication', () => {
@@ -141,17 +143,17 @@ describe('authorizationScopes', () => {
         
         // Both DOCKER and VMS have READ_ANY and READ_OWN, should group without duplicates
         expect(scopes).toHaveLength(1);
-        expect(scopes[0]).toBe('docker+vms:read');
+        expect(scopes[0]).toBe('docker+vms:read_any+read_own');
       });
 
       it('should produce deterministic output for same input regardless of order', () => {
         const permissions1 = [
           { resource: Resource.VMS, actions: [AuthAction.UPDATE_ANY, AuthAction.READ_ANY] },
-          { resource: Resource.DOCKER, actions: [AuthAction.READ_OWN, AuthAction.UPDATE_OWN] }
+          { resource: Resource.DOCKER, actions: [AuthAction.READ_ANY, AuthAction.UPDATE_ANY] }
         ];
         
         const permissions2 = [
-          { resource: Resource.DOCKER, actions: [AuthAction.UPDATE_OWN, AuthAction.READ_OWN] },
+          { resource: Resource.DOCKER, actions: [AuthAction.UPDATE_ANY, AuthAction.READ_ANY] },
           { resource: Resource.VMS, actions: [AuthAction.READ_ANY, AuthAction.UPDATE_ANY] }
         ];
         
@@ -159,7 +161,7 @@ describe('authorizationScopes', () => {
         const scopes2 = encodePermissionsToScopes([], permissions2);
         
         expect(scopes1).toEqual(scopes2);
-        expect(scopes1[0]).toBe('docker+vms:read+update');
+        expect(scopes1[0]).toBe('docker+vms:read_any+update_any');
       });
     });
 
@@ -179,24 +181,24 @@ describe('authorizationScopes', () => {
         const scopes = encodePermissionsToScopes([], originalPermissions);
         const { permissions: decoded } = decodeScopesToPermissions(scopes);
         
-        // The encoding deduplicates by action verb (read, update) not by possession
-        // So READ_ANY and READ_OWN both become just "read" in the scope
-        // When decoded back, they default to _ANY possession
+        // Now possession is preserved in the encoding
         expect(decoded).toHaveLength(2);
         
         const dockerPerm = decoded.find(p => p.resource === Resource.DOCKER);
         const vmsPerm = decoded.find(p => p.resource === Resource.VMS);
         
-        // Both resources should have read and update actions (defaulting to _ANY)
+        // Docker should have its specific actions preserved
         expect(dockerPerm?.actions).toContain(AuthAction.READ_ANY);
+        expect(dockerPerm?.actions).toContain(AuthAction.READ_OWN);
         expect(dockerPerm?.actions).toContain(AuthAction.UPDATE_ANY);
         
-        expect(vmsPerm?.actions).toContain(AuthAction.READ_ANY);
+        // VMS should have its specific actions preserved
+        expect(vmsPerm?.actions).toContain(AuthAction.READ_OWN);
+        expect(vmsPerm?.actions).toContain(AuthAction.UPDATE_OWN);
         expect(vmsPerm?.actions).toContain(AuthAction.UPDATE_ANY);
         
-        // The scope should be efficiently grouped since both have same verbs
-        expect(scopes).toHaveLength(1);
-        expect(scopes[0]).toBe('docker+vms:read+update');
+        // The scopes should be separate since they have different action sets
+        expect(scopes).toHaveLength(2);
       });
     });
   });

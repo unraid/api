@@ -27,6 +27,7 @@ export interface AuthorizationFormData {
 /**
  * Convert AuthAction enum to simple action verb
  * E.g., CREATE_ANY -> create, READ_OWN -> read
+ * @deprecated Use extractActionWithPossession for possession-aware extraction
  */
 export function extractActionVerb(action: AuthAction | string): string {
   const actionStr = String(action);
@@ -46,11 +47,19 @@ export function extractActionVerb(action: AuthAction | string): string {
 }
 
 /**
+ * Convert AuthAction enum to lowercase format with possession
+ * E.g., CREATE_ANY -> create_any, READ_OWN -> read_own
+ */
+export function extractActionWithPossession(action: AuthAction | string): string {
+  // Just convert the full enum value to lowercase
+  return String(action).toLowerCase();
+}
+
+/**
  * Encode permissions into efficient scope strings
  * Groups resources with identical action sets using a compact format:
- * - Individual: "docker:read", "vms:update"
- * - Grouped: "docker+vms:read+update" (resources sharing same actions)
- * - Wildcard: "docker:*" (all CRUD actions)
+ * - Individual: "docker:read_any", "vms:update_own"  
+ * - Grouped: "docker+vms:read_any+update_own" (resources sharing same actions)
  */
 export function encodePermissionsToScopes(roles: Role[] = [], rawPermissions: RawPermission[] = []): string[] {
   const scopes: string[] = [];
@@ -63,25 +72,29 @@ export function encodePermissionsToScopes(roles: Role[] = [], rawPermissions: Ra
   // Skip empty permissions
   const validPermissions = rawPermissions.filter(perm => perm.actions && perm.actions.length > 0);
   
-  // Group permissions by their action sets for efficient encoding
-  const actionGroups = new Map<string, Set<string>>();
+  // First, merge all permissions for the same resource
+  const resourceActionsMap = new Map<string, Set<string>>();
   
   for (const perm of validPermissions) {
-    // Convert actions to simple verbs, deduplicate using Set, then sort for consistent key
-    const actionVerbsSet = new Set(
-      perm.actions.map(action => extractActionVerb(action))
-    );
-    const actionVerbs = Array.from(actionVerbsSet).sort();
-    
-    // Check if this is a wildcard (all CRUD actions)
-    const isWildcard = actionVerbs.length === 4 && 
-      actionVerbs.includes('create') && 
-      actionVerbs.includes('read') && 
-      actionVerbs.includes('update') && 
-      actionVerbs.includes('delete');
-    
-    const actionKey = isWildcard ? '*' : actionVerbs.join('+');
     const resourceName = perm.resource.toLowerCase();
+    if (!resourceActionsMap.has(resourceName)) {
+      resourceActionsMap.set(resourceName, new Set<string>());
+    }
+    
+    const actionsSet = resourceActionsMap.get(resourceName)!;
+    for (const action of perm.actions) {
+      actionsSet.add(extractActionWithPossession(action));
+    }
+  }
+  
+  // Now group resources by their action sets for efficient encoding
+  const actionGroups = new Map<string, Set<string>>();
+  
+  for (const [resourceName, actionsSet] of resourceActionsMap) {
+    const actionsWithPossession = Array.from(actionsSet).sort();
+    
+    // Create a key from the sorted actions
+    const actionKey = actionsWithPossession.join('+');
     
     if (!actionGroups.has(actionKey)) {
       actionGroups.set(actionKey, new Set<string>());
@@ -95,10 +108,10 @@ export function encodePermissionsToScopes(roles: Role[] = [], rawPermissions: Ra
     const resources = Array.from(resourcesSet).sort();
     
     if (resources.length === 1) {
-      // Single resource: "docker:read" or "docker:*"
+      // Single resource: "docker:read_any+update_own"
       scopes.push(`${resources[0]}:${actions}`);
     } else {
-      // Multiple resources with same actions: "docker+vms:read+update"
+      // Multiple resources with same actions: "docker+vms:read_any+update_own"
       scopes.push(`${resources.join('+')}:${actions}`);
     }
   }
@@ -110,8 +123,8 @@ export function encodePermissionsToScopes(roles: Role[] = [], rawPermissions: Ra
  * Decode scope strings back to permissions and roles
  * Supports both individual and grouped formats:
  * - "role:admin" -> role
- * - "docker:read" -> single permission
- * - "docker+vms:read+update" -> multiple permissions with same actions
+ * - "docker:read_any" -> single permission with possession
+ * - "docker+vms:read_any+update_own" -> multiple permissions with same actions
  * - "docker:*" -> wildcard (all CRUD actions)
  */
 export function decodeScopesToPermissions(scopes: string[]): { 
@@ -150,12 +163,12 @@ export function decodeScopesToPermissions(scopes: string[]): {
           AuthAction.DELETE_ANY
         ];
       } else {
-        // Split grouped actions (read+update)
-        const actionVerbs = actionsPart.split('+');
-        actions = actionVerbs
-          .map(verb => {
-            // Convert verb to AuthAction enum (e.g., "read" -> "READ_ANY")
-            const enumValue = `${verb.toUpperCase()}_ANY` as AuthAction;
+        // Split grouped actions (read_any+update_own)
+        const actionParts = actionsPart.split('+');
+        actions = actionParts
+          .map(actionStr => {
+            // Convert to AuthAction enum (e.g., "read_any" -> "READ_ANY")
+            const enumValue = actionStr.toUpperCase() as AuthAction;
             return Object.values(AuthAction).includes(enumValue) ? enumValue : null;
           })
           .filter((action): action is AuthAction => action !== null);
