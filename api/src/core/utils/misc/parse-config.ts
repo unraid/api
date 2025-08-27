@@ -25,7 +25,11 @@ type OptionsWithLoadedFile = {
 
 /**
  * Flattens nested objects that were incorrectly created by periods in INI section names.
- * For example: { share: { with: { periods: {...} } } } -> { "share.with.periods": {...} }
+ * For example: { system: { with: { periods: {...} } } } -> { "system.with.periods": {...} }
+ *
+ * The strategy is:
+ * 1. If a nested object has string/number properties directly, it's likely an INI section
+ * 2. If it only has nested objects, it's structure created by periods and should be flattened
  */
 const flattenPeriodSections = (obj: Record<string, any>, prefix = ''): Record<string, any> => {
     const result: Record<string, any> = {};
@@ -34,17 +38,45 @@ const flattenPeriodSections = (obj: Record<string, any>, prefix = ''): Record<st
         const fullKey = prefix ? `${prefix}.${key}` : key;
 
         if (value && typeof value === 'object' && !Array.isArray(value)) {
-            // Check if this looks like an INI section (has basic INI properties)
-            const hasIniProperties = Object.keys(value).some(
-                (k) => typeof value[k] === 'string' || typeof value[k] === 'number'
+            // Check if this object has any direct string/number properties (INI section properties)
+            const hasDirectProperties = Object.entries(value).some(
+                ([k, v]) => typeof v === 'string' || typeof v === 'number'
             );
 
-            if (hasIniProperties) {
-                // This looks like an INI section, keep it as is
-                result[fullKey] = value;
-            } else {
-                // This looks like nested structure from periods, continue flattening
+            // Check if this object has nested objects (potential period structure)
+            const hasNestedObjects = Object.entries(value).some(
+                ([k, v]) => v && typeof v === 'object' && !Array.isArray(v)
+            );
+
+            if (hasDirectProperties) {
+                // This has direct properties, treat as an INI section
+                // But we still need to check for nested structures within it
+                const sectionProperties: Record<string, any> = {};
+                const nestedStructures: Record<string, any> = {};
+
+                for (const [propKey, propValue] of Object.entries(value)) {
+                    if (propValue && typeof propValue === 'object' && !Array.isArray(propValue)) {
+                        nestedStructures[propKey] = propValue;
+                    } else {
+                        sectionProperties[propKey] = propValue;
+                    }
+                }
+
+                // Keep the direct properties as a section
+                if (Object.keys(sectionProperties).length > 0) {
+                    result[fullKey] = sectionProperties;
+                }
+
+                // Flatten any nested structures
+                if (Object.keys(nestedStructures).length > 0) {
+                    Object.assign(result, flattenPeriodSections(nestedStructures, fullKey));
+                }
+            } else if (hasNestedObjects) {
+                // This only has nested objects, continue flattening
                 Object.assign(result, flattenPeriodSections(value, fullKey));
+            } else {
+                // Empty object or other case
+                result[fullKey] = value;
             }
         } else {
             // Regular property, keep as is
@@ -159,7 +191,6 @@ export const parseConfig = <T extends Record<string, any>>(
     let data: Record<string, any>;
     try {
         data = parseIni(fileContents);
-
         // Fix nested objects created by periods in section names
         data = flattenPeriodSections(data);
     } catch (error) {

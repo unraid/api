@@ -447,6 +447,25 @@ test('After init returns values from cfg file for all fields', { timeout: 30000 
           "splitLevel": "1",
           "used": 33619300,
         },
+        {
+          "allocator": "highwater",
+          "cache": false,
+          "cachePool": "cache",
+          "color": "yellow-on",
+          "comment": "system data with periods",
+          "cow": "auto",
+          "exclude": [],
+          "floor": "0",
+          "free": 9309372,
+          "id": "system.with.periods",
+          "include": [],
+          "luksStatus": "0",
+          "name": "system.with.periods",
+          "nameOrig": "system.with.periods",
+          "size": 0,
+          "splitLevel": "1",
+          "used": 33619300,
+        },
       ]
     `);
     expect(nfsShares).toMatchInlineSnapshot(`
