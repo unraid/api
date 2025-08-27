@@ -76,13 +76,3 @@ registerEnumType(AuthAction, {
     },
 });
 
-// Keep registering old enums for backward compatibility
-registerEnumType(AuthActionVerb, {
-    name: 'AuthActionVerb',
-    description: 'DEPRECATED: Use AuthAction instead. Simple action verbs without possession.',
-});
-
-registerEnumType(AuthPossession, {
-    name: 'AuthPossession',
-    description: 'DEPRECATED: Use AuthAction instead. Possession types are now part of AuthAction.',
-});

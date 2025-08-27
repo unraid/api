@@ -31,7 +31,17 @@ export function parseActionToAuthAction(action: string | null | undefined, defau
   
   // Convert colon format (read:any) to underscore format (READ_ANY)
   if (normalized.includes(':')) {
-    normalized = normalized.replace(':', '_');
+    const parts = normalized.split(':');
+    if (parts.length === 2) {
+      const [verb, possession] = parts;
+      // Only accept valid possessions
+      if (possession !== 'ANY' && possession !== 'OWN') {
+        return null;
+      }
+      normalized = `${verb}_${possession}`;
+    } else {
+      return null;
+    }
   }
   
   // Check if normalized version is valid
@@ -41,9 +51,11 @@ export function parseActionToAuthAction(action: string | null | undefined, defau
   
   // Handle simple verbs without possession
   const simpleVerbs = ['CREATE', 'READ', 'UPDATE', 'DELETE'];
-  const verb = normalized.split('_')[0];
+  const parts = normalized.split('_');
+  const verb = parts[0];
   
-  if (simpleVerbs.includes(verb)) {
+  // If there's already a possession part, don't add default
+  if (parts.length === 1 && simpleVerbs.includes(verb)) {
     const withPossession = `${verb}_${defaultPossession}` as AuthAction;
     if (Object.values(AuthAction).includes(withPossession)) {
       return withPossession;
