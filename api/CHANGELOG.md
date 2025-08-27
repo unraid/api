@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.17.0](https://github.com/unraid/api/compare/v4.16.0...v4.17.0) (2025-08-27)
+
+
+### Features
+
+* add tailwind class sort plugin ([#1562](https://github.com/unraid/api/issues/1562)) ([ab11e7f](https://github.com/unraid/api/commit/ab11e7ff7ff74da1f1cd5e49938459d00bfc846b))
+
+
+### Bug Fixes
+
+* cleanup obsoleted legacy api keys on api startup (cli / connect) ([#1630](https://github.com/unraid/api/issues/1630)) ([6469d00](https://github.com/unraid/api/commit/6469d002b7b18e49c77ee650a4255974ab43e790))
+
 ## [4.16.0](https://github.com/unraid/api/compare/v4.15.1...v4.16.0) (2025-08-27)
 
 
