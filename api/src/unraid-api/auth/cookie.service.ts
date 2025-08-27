@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { readFile } from 'fs/promises';
+import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
@@ -9,7 +9,7 @@ import { batchProcess } from '@app/utils.js';
 /** token for dependency injection of a session cookie options object */
 export const SESSION_COOKIE_CONFIG = 'SESSION_COOKIE_CONFIG';
 
-type SessionCookieConfig = {
+export type SessionCookieConfig = {
     namePrefix: string;
     sessionDir: string;
     secure: boolean;
@@ -68,11 +68,15 @@ export class CookieService {
         }
         try {
             const sessionData = await readFile(sessionFile, 'ascii');
-            return sessionData.includes('unraid_login') && sessionData.includes('unraid_user');
+            return this.isSessionValid(sessionData);
         } catch (e) {
             this.logger.error(e, 'Error reading session file');
             return false;
         }
+    }
+
+    private isSessionValid(sessionData: string): boolean {
+        return sessionData.includes('unraid_login') && sessionData.includes('unraid_user');
     }
 
     /**
@@ -90,5 +94,34 @@ export class CookieService {
         // only allow alpha-numeric characters
         const sanitizedSessionId = sessionId.replace(/[^a-zA-Z0-9]/g, '');
         return join(this.opts.sessionDir, `sess_${sanitizedSessionId}`);
+    }
+
+    /**
+     * Returns the active session id, if any.
+     * @returns the active session id, if any, or null if no active session is found.
+     */
+    async getActiveSession(): Promise<string | null> {
+        let sessionFiles: string[] = [];
+        try {
+            sessionFiles = await readdir(this.opts.sessionDir);
+        } catch (e) {
+            this.logger.warn(e, 'Error reading session directory');
+            return null;
+        }
+        for (const sessionFile of sessionFiles) {
+            if (!sessionFile.startsWith('sess_')) {
+                continue;
+            }
+            try {
+                const sessionData = await readFile(join(this.opts.sessionDir, sessionFile), 'ascii');
+                if (this.isSessionValid(sessionData)) {
+                    return sessionFile.replace('sess_', '');
+                }
+            } catch {
+                // Ignore unreadable files and continue scanning
+                continue;
+            }
+        }
+        return null;
     }
 }

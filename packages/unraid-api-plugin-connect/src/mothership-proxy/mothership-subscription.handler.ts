@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import { isDefined } from 'class-validator';
 import { type Subscription } from 'zen-observable-ts';
+import { CANONICAL_INTERNAL_CLIENT_TOKEN, type CanonicalInternalClientService } from '@unraid/shared';
 
 import { EVENTS_SUBSCRIPTION, RemoteGraphQL_Fragment } from '../graphql/event.js';
 import {
@@ -12,7 +13,6 @@ import {
 import { useFragment } from '../graphql/generated/client/index.js';
 import { SEND_REMOTE_QUERY_RESPONSE } from '../graphql/remote-response.js';
 import { parseGraphQLQuery } from '../helper/parse-graphql.js';
-import { InternalClientService } from '../internal-rpc/internal.client.js';
 import { MothershipConnectionService } from './connection.service.js';
 import { MothershipGraphqlClientService } from './graphql.client.js';
 
@@ -29,7 +29,8 @@ type ActiveSubscription = {
 @Injectable()
 export class MothershipSubscriptionHandler {
     constructor(
-        private readonly internalClientService: InternalClientService,
+        @Inject(CANONICAL_INTERNAL_CLIENT_TOKEN)
+        private readonly internalClientService: CanonicalInternalClientService,
         private readonly mothershipClient: MothershipGraphqlClientService,
         private readonly connectionService: MothershipConnectionService
     ) {}

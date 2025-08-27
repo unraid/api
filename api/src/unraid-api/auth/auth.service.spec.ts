@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
+import { LocalSessionService } from '@app/unraid-api/auth/local-session.service.js';
 import { ApiKey } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
@@ -17,6 +18,7 @@ describe('AuthService', () => {
     let apiKeyService: ApiKeyService;
     let authzService: AuthZService;
     let cookieService: CookieService;
+    let localSessionService: LocalSessionService;
 
     const mockApiKey: ApiKey = {
         id: 'test-api-id',
@@ -55,7 +57,10 @@ describe('AuthService', () => {
         apiKeyService = new ApiKeyService();
         authzService = new AuthZService(enforcer);
         cookieService = new CookieService();
-        authService = new AuthService(cookieService, apiKeyService, authzService);
+        localSessionService = {
+            validateLocalSession: vi.fn(),
+        } as any;
+        authService = new AuthService(cookieService, apiKeyService, localSessionService, authzService);
     });
 
     afterEach(() => {

@@ -38,7 +38,8 @@ describe('ApiKeyMutationsResolver', () => {
         apiKeyService = new ApiKeyService();
         authzService = new AuthZService(enforcer);
         cookieService = new CookieService();
-        authService = new AuthService(cookieService, apiKeyService, authzService);
+        const localSessionService = { validateLocalSession: vi.fn() } as any;
+        authService = new AuthService(cookieService, apiKeyService, localSessionService, authzService);
         resolver = new ApiKeyMutationsResolver(authService, apiKeyService);
     });
 

@@ -1,5 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import type { InternalGraphQLClientFactory as IInternalGraphQLClientFactory } from '@unraid/shared';
 import { ApolloClient, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core/index.js';
@@ -13,6 +12,9 @@ import { SocketConfigService } from '@unraid/shared';
 import { createClient } from 'graphql-ws';
 import { Agent, fetch as undiciFetch } from 'undici';
 import WebSocket from 'ws';
+
+import type { SessionCookieConfig } from '@app/unraid-api/auth/cookie.service.js';
+import { SESSION_COOKIE_CONFIG } from '@app/unraid-api/auth/cookie.service.js';
 
 /**
  * Factory service for creating internal GraphQL clients.
@@ -28,7 +30,8 @@ export class InternalGraphQLClientFactory implements IInternalGraphQLClientFacto
     private readonly logger = new Logger(InternalGraphQLClientFactory.name);
 
     constructor(
-        private readonly configService: ConfigService,
+        @Inject(SESSION_COOKIE_CONFIG)
+        private readonly sessionCookieConfig: SessionCookieConfig,
         private readonly socketConfig: SocketConfigService
     ) {}
 
@@ -36,20 +39,32 @@ export class InternalGraphQLClientFactory implements IInternalGraphQLClientFacto
      * Create a GraphQL client with the provided configuration.
      *
      * @param options Configuration options
-     * @param options.getApiKey Function to get the current API key
+     * @param options.getApiKey Function to get the current API key (optional)
+     * @param options.getCookieAuth Function to get session and CSRF token for cookie auth (optional)
+     * @param options.getLocalSession Function to get local session token (optional)
      * @param options.enableSubscriptions Optional flag to enable WebSocket subscriptions
      * @param options.origin Optional origin header (defaults to 'http://localhost')
      */
     public async createClient(options: {
-        getApiKey: () => Promise<string>;
+        getApiKey?: () => Promise<string>;
+        getCookieAuth?: () => Promise<{ sessionId: string; csrfToken: string } | null>;
+        getLocalSession?: () => Promise<string | null>;
         enableSubscriptions?: boolean;
         origin?: string;
     }): Promise<ApolloClient<NormalizedCacheObject>> {
-        if (!options.getApiKey) {
-            throw new Error('getApiKey function is required for creating a GraphQL client');
+        if (!options.getApiKey && !options.getCookieAuth && !options.getLocalSession) {
+            throw new Error(
+                'One of getApiKey, getCookieAuth, or getLocalSession function is required for creating a GraphQL client'
+            );
         }
 
-        const { getApiKey, enableSubscriptions = false, origin = 'http://localhost' } = options;
+        const {
+            getApiKey,
+            getCookieAuth,
+            getLocalSession,
+            enableSubscriptions = false,
+            origin = 'http://localhost',
+        } = options;
         let httpLink: HttpLink;
 
         // Get WebSocket URI if subscriptions are enabled
@@ -98,15 +113,45 @@ export class InternalGraphQLClientFactory implements IInternalGraphQLClientFacto
             });
         }
 
-        // Create auth link that dynamically fetches the API key for each request
+        // Create auth link that dynamically fetches authentication info for each request
         const authLink = setContext(async (_, { headers }) => {
-            const apiKey = await getApiKey();
-            return {
-                headers: {
-                    ...headers,
-                    'x-api-key': apiKey,
-                },
-            };
+            if (getApiKey) {
+                // Use API key authentication
+                const apiKey = await getApiKey();
+                return {
+                    headers: {
+                        ...headers,
+                        'x-api-key': apiKey,
+                    },
+                };
+            } else if (getLocalSession) {
+                // Use local session authentication
+                const localSession = await getLocalSession();
+                if (!localSession) {
+                    throw new Error('No valid local session found');
+                }
+                return {
+                    headers: {
+                        ...headers,
+                        'x-local-session': localSession,
+                    },
+                };
+            } else if (getCookieAuth) {
+                // Use cookie-based authentication
+                const cookieAuth = await getCookieAuth();
+                if (!cookieAuth) {
+                    throw new Error('No valid session found for cookie authentication');
+                }
+                return {
+                    headers: {
+                        ...headers,
+                        'x-csrf-token': cookieAuth.csrfToken,
+                        cookie: `${this.sessionCookieConfig.namePrefix}${cookieAuth.sessionId}=${cookieAuth.sessionId}`,
+                    },
+                };
+            }
+
+            return { headers };
         });
 
         const errorLink = onError(({ networkError }) => {
@@ -121,8 +166,30 @@ export class InternalGraphQLClientFactory implements IInternalGraphQLClientFacto
                 createClient({
                     url: wsUri,
                     connectionParams: async () => {
-                        const apiKey = await getApiKey();
-                        return { 'x-api-key': apiKey };
+                        if (getApiKey) {
+                            const apiKey = await getApiKey();
+                            return { 'x-api-key': apiKey };
+                        } else if (getLocalSession) {
+                            const localSession = await getLocalSession();
+                            if (!localSession) {
+                                throw new Error(
+                                    'No valid local session found for WebSocket authentication'
+                                );
+                            }
+                            return { 'x-local-session': localSession };
+                        } else if (getCookieAuth) {
+                            const cookieAuth = await getCookieAuth();
+                            if (!cookieAuth) {
+                                throw new Error(
+                                    'No valid session found for WebSocket cookie authentication'
+                                );
+                            }
+                            return {
+                                'x-csrf-token': cookieAuth.csrfToken,
+                                cookie: `unraid_${cookieAuth.sessionId}=${cookieAuth.sessionId}`,
+                            };
+                        }
+                        return {};
                     },
                     webSocketImpl: WebSocket,
                 })

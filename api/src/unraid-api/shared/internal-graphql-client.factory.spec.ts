@@ -5,6 +5,7 @@ import { ApolloClient } from '@apollo/client/core/index.js';
 import { SocketConfigService } from '@unraid/shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { SESSION_COOKIE_CONFIG } from '@app/unraid-api/auth/cookie.service.js';
 import { InternalGraphQLClientFactory } from '@app/unraid-api/shared/internal-graphql-client.factory.js';
 
 // Mock the graphql-ws module
@@ -47,6 +48,15 @@ describe('InternalGraphQLClientFactory', () => {
                         getSocketPath: vi.fn(),
                         getApiAddress: vi.fn(),
                         getWebSocketUri: vi.fn(),
+                    },
+                },
+                {
+                    provide: SESSION_COOKIE_CONFIG,
+                    useValue: {
+                        namePrefix: 'unraid_',
+                        sessionDir: '/dev/sessions',
+                        secure: true,
+                        httpOnly: true,
                     },
                 },
             ],

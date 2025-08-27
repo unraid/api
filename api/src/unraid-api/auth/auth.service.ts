@@ -1,4 +1,5 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { timingSafeEqual } from 'node:crypto';
 
 import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import {
@@ -12,6 +13,7 @@ import { AuthZService } from 'nest-authz';
 import { getters } from '@app/store/index.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
+import { LocalSessionService } from '@app/unraid-api/auth/local-session.service.js';
 import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
@@ -24,6 +26,7 @@ export class AuthService {
     constructor(
         private cookieService: CookieService,
         private apiKeyService: ApiKeyService,
+        private localSessionService: LocalSessionService,
         private authzService: AuthZService
     ) {}
 
@@ -86,6 +89,30 @@ export class AuthService {
             return user;
         } catch (error: unknown) {
             handleAuthError(this.logger, 'Failed to validate session', error);
+        }
+    }
+
+    async validateLocalSession(localSessionToken: string): Promise<UserAccount> {
+        try {
+            const isValid = await this.localSessionService.validateLocalSession(localSessionToken);
+
+            if (!isValid) {
+                throw new UnauthorizedException('Invalid local session token');
+            }
+
+            // Local session has admin privileges
+            const user = await this.getLocalSessionUser();
+
+            // Sync the user's roles before checking them
+            await this.syncUserRoles(user.id, user.roles);
+
+            // Now get the updated roles
+            const existingRoles = await this.authzService.getRolesForUser(user.id);
+            this.logger.debug(`Local session user ${user.id} has roles: ${existingRoles}`);
+
+            return user;
+        } catch (error: unknown) {
+            handleAuthError(this.logger, 'Failed to validate local session', error);
         }
     }
 
@@ -254,7 +281,10 @@ export class AuthService {
     }
 
     public validateCsrfToken(token?: string): boolean {
-        return Boolean(token) && token === getters.emhttp().var.csrfToken;
+        if (!token) return false;
+        const csrfToken = getters.emhttp().var.csrfToken;
+        if (!csrfToken) return false;
+        return timingSafeEqual(Buffer.from(token, 'utf-8'), Buffer.from(csrfToken, 'utf-8'));
     }
 
     /**
@@ -321,11 +351,28 @@ export class AuthService {
      * @returns a service account that represents the user session (i.e. a webgui user).
      */
     async getSessionUser(): Promise<UserAccount> {
-        this.logger.debug('getSessionUser called!');
+        this.logger.verbose('getSessionUser called!');
         return {
             id: '-1',
             description: 'Session receives administrator permissions',
             name: 'admin',
+            roles: [Role.ADMIN],
+            permissions: [],
+        };
+    }
+
+    /**
+     * Returns a user object representing a local session.
+     * Note: Does NOT perform validation.
+     *
+     * @returns a service account that represents the local session user (i.e. CLI/system operations).
+     */
+    async getLocalSessionUser(): Promise<UserAccount> {
+        this.logger.verbose('getLocalSessionUser called!');
+        return {
+            id: '-2',
+            description: 'Local session receives administrator permissions for CLI/system operations',
+            name: 'local-admin',
             roles: [Role.ADMIN],
             permissions: [],
         };
