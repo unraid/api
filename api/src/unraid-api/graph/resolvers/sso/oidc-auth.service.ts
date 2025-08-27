@@ -74,8 +74,8 @@ export class OidcAuthService {
             authUrl.searchParams.set('state', secureState);
             authUrl.searchParams.set('response_type', 'code');
 
-            this.logger.log(`Built authorization URL for provider ${provider.id}`);
-            this.logger.log(
+            this.logger.debug(`Built authorization URL for provider ${provider.id}`);
+            this.logger.debug(
                 `Authorization parameters: client_id=${provider.clientId}, redirect_uri=${redirectUri}, scope=${provider.scopes.join(' ')}, response_type=code`
             );
 
