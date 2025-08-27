@@ -61,13 +61,23 @@ export class LocalSessionService {
      * Validate if a given token matches the current local session
      */
     public async validateLocalSession(token: string): Promise<boolean> {
-        if (!token) return false;
-
+        // Coerce inputs to strings (or empty string if undefined)
+        const tokenStr = token || '';
         const currentToken = await this.getLocalSession();
-        if (!currentToken) return false;
+        const currentTokenStr = currentToken || '';
+
+        // Early return if either is empty
+        if (!tokenStr || !currentTokenStr) return false;
+
+        // Create buffers
+        const tokenBuffer = Buffer.from(tokenStr, 'utf-8');
+        const currentTokenBuffer = Buffer.from(currentTokenStr, 'utf-8');
+
+        // Check length equality first to prevent timingSafeEqual from throwing
+        if (tokenBuffer.length !== currentTokenBuffer.length) return false;
 
         // Use constant-time comparison to prevent timing attacks
-        return timingSafeEqual(Buffer.from(token, 'utf-8'), Buffer.from(currentToken, 'utf-8'));
+        return timingSafeEqual(tokenBuffer, currentTokenBuffer);
     }
 
     public async deleteLocalSession(): Promise<void> {
