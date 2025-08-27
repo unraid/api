@@ -1,12 +1,8 @@
 import { OnModuleInit } from '@nestjs/common';
 import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { CpuUtilization } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
@@ -50,9 +46,8 @@ export class MetricsResolver implements OnModuleInit {
 
     @Query(() => Metrics)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.INFO,
-        possession: AuthPossession.ANY,
     })
     public async metrics(): Promise<Partial<Metrics>> {
         return {
@@ -75,9 +70,8 @@ export class MetricsResolver implements OnModuleInit {
         resolve: (value) => value.systemMetricsCpu,
     })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.INFO,
-        possession: AuthPossession.ANY,
     })
     public async systemMetricsCpuSubscription() {
         return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
@@ -88,9 +82,8 @@ export class MetricsResolver implements OnModuleInit {
         resolve: (value) => value.systemMetricsMemory,
     })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.INFO,
-        possession: AuthPossession.ANY,
     })
     public async systemMetricsMemorySubscription() {
         return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.MEMORY_UTILIZATION);

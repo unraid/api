@@ -1,12 +1,8 @@
 import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { VmMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
@@ -19,9 +15,8 @@ export class VmMutationsResolver {
     constructor(private readonly vmsService: VmsService) {}
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.VMS,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => Boolean, { description: 'Start a virtual machine' })
     async start(@Args('id', { type: () => PrefixedID }) id: string): Promise<boolean> {
@@ -29,9 +24,8 @@ export class VmMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.VMS,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => Boolean, { description: 'Stop a virtual machine' })
     async stop(@Args('id', { type: () => PrefixedID }) id: string): Promise<boolean> {
@@ -39,9 +33,8 @@ export class VmMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.VMS,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => Boolean, { description: 'Pause a virtual machine' })
     async pause(@Args('id', { type: () => PrefixedID }) id: string): Promise<boolean> {
@@ -49,9 +42,8 @@ export class VmMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.VMS,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => Boolean, { description: 'Resume a virtual machine' })
     async resume(@Args('id', { type: () => PrefixedID }) id: string): Promise<boolean> {
@@ -59,9 +51,8 @@ export class VmMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.VMS,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => Boolean, { description: 'Force stop a virtual machine' })
     async forceStop(@Args('id', { type: () => PrefixedID }) id: string): Promise<boolean> {
@@ -69,9 +60,8 @@ export class VmMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.VMS,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => Boolean, { description: 'Reboot a virtual machine' })
     async reboot(@Args('id', { type: () => PrefixedID }) id: string): Promise<boolean> {
@@ -79,9 +69,8 @@ export class VmMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.VMS,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => Boolean, { description: 'Reset a virtual machine' })
     async reset(@Args('id', { type: () => PrefixedID }) id: string): Promise<boolean> {

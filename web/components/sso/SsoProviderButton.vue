@@ -1,18 +1,9 @@
 <script setup lang="ts">
 import { Button } from '@unraid/ui';
-import { computed } from 'vue';
-
-interface Provider {
-  id: string;
-  name: string;
-  buttonText?: string | null;
-  buttonIcon?: string | null;
-  buttonVariant?: string | null;
-  buttonStyle?: string | null;
-}
+import type { PublicOidcProvider } from '~/composables/gql/graphql';
 
 interface Props {
-  provider: Provider;
+  provider: PublicOidcProvider;
   disabled?: boolean;
   onClick: (providerId: string) => void;
 }
@@ -22,95 +13,45 @@ const props = defineProps<Props>();
 const handleClick = () => {
   props.onClick(props.provider.id);
 };
-
-// Extract SVG content from data URI for inline rendering
-const inlineSvgContent = computed(() => {
-  if (!props.provider.buttonIcon?.includes('data:image/svg+xml;base64,')) {
-    return null;
-  }
-  
-  try {
-    const base64Data = props.provider.buttonIcon.replace('data:image/svg+xml;base64,', '');
-    const svgContent = atob(base64Data);
-    return svgContent;
-  } catch (e: unknown) {
-    if (e instanceof Error) {
-      console.error('Error parsing SVG content:', e.message);
-    } else {
-      console.error('Error parsing SVG content:', e);
-    }
-    return null;
-  }
-});
 </script>
 
 <template>
   <Button
-    :disabled="disabled"
-    :variant="(provider.buttonVariant as any) || 'outline'"
-    class="sso-provider-button"
-    :style="provider.buttonStyle || ''"
+    :disabled="props.disabled"
+    :variant="(props.provider.buttonVariant as any) || 'outline'"
+    class="sso-provider-button w-full min-h-[2.5rem] h-auto py-2 px-4"
+    :style="props.provider.buttonStyle || ''"
     @click="handleClick"
   >
-    <div 
-      v-if="inlineSvgContent"
-      class="w-6 h-6 mr-2 sso-button-icon-svg flex-shrink-0"
-      v-html="inlineSvgContent"
-    />
-    <img 
-      v-else-if="provider.buttonIcon" 
-      :src="provider.buttonIcon" 
-      class="w-6 h-6 mr-2 sso-button-icon" 
-      :alt="provider.name"
-    >
-    {{ provider.buttonText || `Sign in with ${provider.name}` }}
+    <div class="flex items-center justify-center gap-2 w-full">
+      <img 
+        v-if="props.provider.buttonIcon" 
+        :src="props.provider.buttonIcon" 
+        class="w-6 h-6 sso-button-icon flex-shrink-0" 
+        alt=""
+        aria-hidden="true"
+      >
+      <span class="text-center whitespace-normal">
+        {{ props.provider.buttonText || `Sign in with ${props.provider.name}` }}
+      </span>
+    </div>
   </Button>
 </template>
 
 <style scoped>
-.sso-button-icon {
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-  image-rendering: pixelated;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-@supports (image-rendering: -webkit-optimize-contrast) {
-  .sso-button-icon {
-    image-rendering: -webkit-optimize-contrast;
-  }
-}
-
-@supports (image-rendering: crisp-edges) {
-  .sso-button-icon {
-    image-rendering: crisp-edges;
-  }
-}
-
-/* For SVG specifically, prefer smooth rendering */
-.sso-button-icon[src*="svg"] {
+/* For SVG images, prefer smooth rendering */
+.sso-button-icon[src*="svg"],
+.sso-button-icon[src*="data:image/svg"] {
   image-rendering: auto;
   image-rendering: smooth;
-}
-
-/* Inline SVG rendering for perfect quality */
-.sso-button-icon-svg {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sso-button-icon-svg svg {
-  width: 100% !important;
-  height: 100% !important;
-  /* Enhanced antialiasing for crisp rendering */
-  shape-rendering: geometricPrecision;
-  text-rendering: geometricPrecision;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: optimize-contrast;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* For raster images, use crisp rendering */
+.sso-button-icon:not([src*="svg"]):not([src*="data:image/svg"]) {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 /* Automatic hover effects for buttons with custom background colors */

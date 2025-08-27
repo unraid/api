@@ -1,6 +1,10 @@
-import { ApiKey, ApiKeyWithSecret, Permission } from '../graphql.model.js';
-import { Role } from '../graphql.model.js';
-import { AuthActionVerb } from 'nest-authz';
+import { ApiKey, Permission } from '../graphql.model.js';
+import { Role, AuthAction, Resource } from '../graphql.model.js';
+
+/**
+ * Input type for creating API key permissions
+ */
+export type CreatePermissionsInput = Permission[] | Array<{ resource: Resource; actions: AuthAction[] }>;
 
 export interface ApiKeyService {
     /**
@@ -9,19 +13,20 @@ export interface ApiKeyService {
     findById(id: string): Promise<ApiKey | null>;
 
     /**
-     * Find an API key by its ID, including the secret key
+     * Find an API key by its ID
+     * Note: This returns ApiKey without the secret for security
      */
-    findByIdWithSecret(id: string): ApiKeyWithSecret | null;
+    findByIdWithSecret(id: string): ApiKey | null;
 
     /**
      * Find an API key by a specific field
      */
-    findByField(field: keyof ApiKeyWithSecret, value: string): ApiKeyWithSecret | null;
+    findByField(field: keyof ApiKey, value: string): ApiKey | null;
 
     /**
      * Find an API key by its secret key
      */
-    findByKey(key: string): ApiKeyWithSecret | null;
+    findByKey(key: string): ApiKey | null;
 
     /**
      * Create a new API key
@@ -30,9 +35,9 @@ export interface ApiKeyService {
         name: string;
         description?: string;
         roles?: Role[];
-        permissions?: Permission[] | { resource: string; actions: AuthActionVerb[] }[];
+        permissions?: CreatePermissionsInput;
         overwrite?: boolean;
-    }): Promise<ApiKeyWithSecret>;
+    }): Promise<ApiKey>;
 
     /**
      * Get all valid permissions that can be assigned to an API key

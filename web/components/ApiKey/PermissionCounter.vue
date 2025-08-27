@@ -4,11 +4,12 @@ import { computed } from 'vue';
 import { Badge } from '@unraid/ui';
 
 import { actionVariant } from './actionVariant.js';
+import type { AuthAction } from '~/composables/gql/graphql';
 
 const props = withDefaults(
   defineProps<{
-    permissions: { resource: string; actions: string[] }[];
-    possiblePermissions?: { resource: string; actions: string[] }[];
+    permissions: { resource: string; actions: AuthAction[] }[];
+    possiblePermissions?: { resource: string; actions: AuthAction[] }[];
     hideNumber?: boolean;
     label?: string;
   }>(),

@@ -4,14 +4,11 @@
 
 """Directive to document required permissions for fields"""
 directive @usePermissions(
-  """The action verb required for access"""
-  action: AuthActionVerb
+  """The action required for access (must be a valid AuthAction enum value)"""
+  action: String
 
-  """The resource required for access"""
+  """The resource required for access (must be a valid Resource enum value)"""
   resource: String
-
-  """The possession type required for access"""
-  possession: AuthPossession
 ) on FIELD_DEFINITION
 
 type ParityCheck {
@@ -615,7 +612,9 @@ enum ConfigErrorState {
 
 type Permission {
   resource: Resource!
-  actions: [String!]!
+
+  """Actions allowed on this resource"""
+  actions: [AuthAction!]!
 }
 
 """Available resources for permissions"""
@@ -651,8 +650,36 @@ enum Resource {
   WELCOME
 }
 
+"""Authentication actions with possession (e.g., create:any, read:own)"""
+enum AuthAction {
+  """Create any resource"""
+  CREATE_ANY
+
+  """Create own resource"""
+  CREATE_OWN
+
+  """Read any resource"""
+  READ_ANY
+
+  """Read own resource"""
+  READ_OWN
+
+  """Update any resource"""
+  UPDATE_ANY
+
+  """Update own resource"""
+  UPDATE_OWN
+
+  """Delete any resource"""
+  DELETE_ANY
+
+  """Delete own resource"""
+  DELETE_OWN
+}
+
 type ApiKey implements Node {
   id: PrefixedID!
+  key: String!
   name: String!
   description: String
   roles: [Role!]!
@@ -662,20 +689,90 @@ type ApiKey implements Node {
 
 """Available roles for API keys and users"""
 enum Role {
+  """Full administrative access to all resources"""
   ADMIN
-  USER
+
+  """Internal Role for Unraid Connect"""
   CONNECT
+
+  """Basic read access to user profile only"""
   GUEST
+
+  """Read-only access to all resources"""
+  VIEWER
 }
 
-type ApiKeyWithSecret implements Node {
+type SsoSettings implements Node {
   id: PrefixedID!
-  name: String!
-  description: String
-  roles: [Role!]!
-  createdAt: String!
-  permissions: [Permission!]!
-  key: String!
+
+  """List of configured OIDC providers"""
+  oidcProviders: [OidcProvider!]!
+}
+
+type UnifiedSettings implements Node & FormSchema {
+  id: PrefixedID!
+
+  """The data schema for the settings"""
+  dataSchema: JSON!
+
+  """The UI schema for the settings"""
+  uiSchema: JSON!
+
+  """The current values of the settings"""
+  values: JSON!
+}
+
+interface FormSchema {
+  """The data schema for the form"""
+  dataSchema: JSON!
+
+  """The UI schema for the form"""
+  uiSchema: JSON!
+
+  """The current values of the form"""
+  values: JSON!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+
+type ApiKeyFormSettings implements Node & FormSchema {
+  id: PrefixedID!
+
+  """The data schema for the API key form"""
+  dataSchema: JSON!
+
+  """The UI schema for the API key form"""
+  uiSchema: JSON!
+
+  """The current values of the API key form"""
+  values: JSON!
+}
+
+type UpdateSettingsResponse {
+  """Whether a restart is required for the changes to take effect"""
+  restartRequired: Boolean!
+
+  """The updated settings values"""
+  values: JSON!
+
+  """Warning messages about configuration issues found during validation"""
+  warnings: [String!]
+}
+
+type Settings implements Node {
+  id: PrefixedID!
+
+  """A view of all settings"""
+  unified: UnifiedSettings!
+
+  """SSO settings"""
+  sso: SsoSettings!
+
+  """The API setting values"""
+  api: ApiConfig!
 }
 
 type RCloneDrive {
@@ -685,11 +782,6 @@ type RCloneDrive {
   """Provider options and configuration schema"""
   options: JSON!
 }
-
-"""
-The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 type RCloneBackupConfigForm {
   id: ID!
@@ -792,7 +884,7 @@ type VmMutations {
 """API Key related mutations"""
 type ApiKeyMutations {
   """Create an API key"""
-  create(input: CreateApiKeyInput!): ApiKeyWithSecret!
+  create(input: CreateApiKeyInput!): ApiKey!
 
   """Add a role to an API key"""
   addRole(input: AddRoleForApiKeyInput!): Boolean!
@@ -804,7 +896,7 @@ type ApiKeyMutations {
   delete(input: DeleteApiKeyInput!): Boolean!
 
   """Update an API key"""
-  update(input: UpdateApiKeyInput!): ApiKeyWithSecret!
+  update(input: UpdateApiKeyInput!): ApiKey!
 }
 
 input CreateApiKeyInput {
@@ -821,7 +913,7 @@ input CreateApiKeyInput {
 
 input AddPermissionInput {
   resource: Resource!
-  actions: [String!]!
+  actions: [AuthAction!]!
 }
 
 input AddRoleForApiKeyInput {
@@ -1727,50 +1819,6 @@ type ApiConfig {
   plugins: [String!]!
 }
 
-type SsoSettings implements Node {
-  id: PrefixedID!
-
-  """List of configured OIDC providers"""
-  oidcProviders: [OidcProvider!]!
-}
-
-type UnifiedSettings implements Node {
-  id: PrefixedID!
-
-  """The data schema for the settings"""
-  dataSchema: JSON!
-
-  """The UI schema for the settings"""
-  uiSchema: JSON!
-
-  """The current values of the settings"""
-  values: JSON!
-}
-
-type UpdateSettingsResponse {
-  """Whether a restart is required for the changes to take effect"""
-  restartRequired: Boolean!
-
-  """The updated settings values"""
-  values: JSON!
-
-  """Warning messages about configuration issues found during validation"""
-  warnings: [String!]
-}
-
-type Settings implements Node {
-  id: PrefixedID!
-
-  """A view of all settings"""
-  unified: UnifiedSettings!
-
-  """SSO settings"""
-  sso: SsoSettings!
-
-  """The API setting values"""
-  api: ApiConfig!
-}
-
 type OidcAuthorizationRule {
   """The claim to check (e.g., email, sub, groups, hd)"""
   claim: String!
@@ -2243,6 +2291,20 @@ type Query {
 
   """All possible permissions for API keys"""
   apiKeyPossiblePermissions: [Permission!]!
+
+  """Get the actual permissions that would be granted by a set of roles"""
+  getPermissionsForRoles(roles: [Role!]!): [Permission!]!
+
+  """
+  Preview the effective permissions for a combination of roles and explicit permissions
+  """
+  previewEffectivePermissions(roles: [Role!], permissions: [AddPermissionInput!]): [Permission!]!
+
+  """Get all available authentication actions with possession"""
+  getAvailableAuthActions: [AuthAction!]!
+
+  """Get JSON Schema for API key creation form"""
+  getApiKeyCreationFormSchema: ApiKeyFormSettings!
   config: Config!
   flash: Flash!
   logFiles: [LogFile!]!
@@ -2538,19 +2600,4 @@ type Subscription {
   systemMetricsCpu: CpuUtilization!
   systemMetricsMemory: MemoryUtilization!
   upsUpdates: UPSDevice!
-}
-
-"""Available authentication action verbs"""
-enum AuthActionVerb {
-  CREATE
-  UPDATE
-  DELETE
-  READ
-}
-
-"""Available authentication possession types"""
-enum AuthPossession {
-  ANY
-  OWN
-  OWN_ANY
 }

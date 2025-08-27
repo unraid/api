@@ -120,7 +120,7 @@ export type ActivationCode = {
 };
 
 export type AddPermissionInput = {
-  actions: Array<Scalars['String']['input']>;
+  actions: Array<AuthAction>;
   resource: Resource;
 };
 
@@ -143,9 +143,21 @@ export type ApiKey = Node & {
   createdAt: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
+  key: Scalars['String']['output'];
   name: Scalars['String']['output'];
   permissions: Array<Permission>;
   roles: Array<Role>;
+};
+
+export type ApiKeyFormSettings = FormSchema & Node & {
+  __typename?: 'ApiKeyFormSettings';
+  /** The data schema for the API key form */
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** The UI schema for the API key form */
+  uiSchema: Scalars['JSON']['output'];
+  /** The current values of the API key form */
+  values: Scalars['JSON']['output'];
 };
 
 /** API Key related mutations */
@@ -154,13 +166,13 @@ export type ApiKeyMutations = {
   /** Add a role to an API key */
   addRole: Scalars['Boolean']['output'];
   /** Create an API key */
-  create: ApiKeyWithSecret;
+  create: ApiKey;
   /** Delete one or more API keys */
   delete: Scalars['Boolean']['output'];
   /** Remove a role from an API key */
   removeRole: Scalars['Boolean']['output'];
   /** Update an API key */
-  update: ApiKeyWithSecret;
+  update: ApiKey;
 };
 
 
@@ -197,17 +209,6 @@ export type ApiKeyResponse = {
   __typename?: 'ApiKeyResponse';
   error?: Maybe<Scalars['String']['output']>;
   valid: Scalars['Boolean']['output'];
-};
-
-export type ApiKeyWithSecret = Node & {
-  __typename?: 'ApiKeyWithSecret';
-  createdAt: Scalars['String']['output'];
-  description?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  key: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  permissions: Array<Permission>;
-  roles: Array<Role>;
 };
 
 export type ArrayCapacity = {
@@ -370,19 +371,24 @@ export enum ArrayStateInputState {
   STOP = 'STOP'
 }
 
-/** Available authentication action verbs */
-export enum AuthActionVerb {
-  CREATE = 'CREATE',
-  DELETE = 'DELETE',
-  READ = 'READ',
-  UPDATE = 'UPDATE'
-}
-
-/** Available authentication possession types */
-export enum AuthPossession {
-  ANY = 'ANY',
-  OWN = 'OWN',
-  OWN_ANY = 'OWN_ANY'
+/** Authentication actions with possession (e.g., create:any, read:own) */
+export enum AuthAction {
+  /** Create any resource */
+  CREATE_ANY = 'CREATE_ANY',
+  /** Create own resource */
+  CREATE_OWN = 'CREATE_OWN',
+  /** Delete any resource */
+  DELETE_ANY = 'DELETE_ANY',
+  /** Delete own resource */
+  DELETE_OWN = 'DELETE_OWN',
+  /** Read any resource */
+  READ_ANY = 'READ_ANY',
+  /** Read own resource */
+  READ_OWN = 'READ_OWN',
+  /** Update any resource */
+  UPDATE_ANY = 'UPDATE_ANY',
+  /** Update own resource */
+  UPDATE_OWN = 'UPDATE_OWN'
 }
 
 /** Operators for authorization rule matching */
@@ -776,6 +782,15 @@ export type FlashBackupStatus = {
   status: Scalars['String']['output'];
 };
 
+export type FormSchema = {
+  /** The data schema for the form */
+  dataSchema: Scalars['JSON']['output'];
+  /** The UI schema for the form */
+  uiSchema: Scalars['JSON']['output'];
+  /** The current values of the form */
+  values: Scalars['JSON']['output'];
+};
+
 export type Info = Node & {
   __typename?: 'Info';
   /** Motherboard information */
@@ -1053,7 +1068,7 @@ export type InfoVersions = Node & {
   core: CoreVersions;
   id: Scalars['PrefixedID']['output'];
   /** Software package versions */
-  packages: PackageVersions;
+  packages?: Maybe<PackageVersions>;
 };
 
 export type InitiateFlashBackupInput = {
@@ -1519,7 +1534,7 @@ export type ParityCheck = {
   /** Speed of the parity check, in MB/s */
   speed?: Maybe<Scalars['String']['output']>;
   /** Status of the parity check */
-  status?: Maybe<Scalars['String']['output']>;
+  status: ParityCheckStatus;
 };
 
 /** Parity check related mutations, WIP, response types and functionaliy will change */
@@ -1541,9 +1556,19 @@ export type ParityCheckMutationsStartArgs = {
   correct: Scalars['Boolean']['input'];
 };
 
+export enum ParityCheckStatus {
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  NEVER_RUN = 'NEVER_RUN',
+  PAUSED = 'PAUSED',
+  RUNNING = 'RUNNING'
+}
+
 export type Permission = {
   __typename?: 'Permission';
-  actions: Array<Scalars['String']['output']>;
+  /** Actions allowed on this resource */
+  actions: Array<AuthAction>;
   resource: Resource;
 };
 
@@ -1613,6 +1638,12 @@ export type Query = {
   disks: Array<Disk>;
   docker: Docker;
   flash: Flash;
+  /** Get JSON Schema for API key creation form */
+  getApiKeyCreationFormSchema: ApiKeyFormSettings;
+  /** Get all available authentication actions with possession */
+  getAvailableAuthActions: Array<AuthAction>;
+  /** Get the actual permissions that would be granted by a set of roles */
+  getPermissionsForRoles: Array<Permission>;
   info: Info;
   isInitialSetup: Scalars['Boolean']['output'];
   isSSOEnabled: Scalars['Boolean']['output'];
@@ -1632,6 +1663,8 @@ export type Query = {
   parityHistory: Array<ParityCheck>;
   /** List all installed plugins with their metadata */
   plugins: Array<Plugin>;
+  /** Preview the effective permissions for a combination of roles and explicit permissions */
+  previewEffectivePermissions: Array<Permission>;
   /** Get public OIDC provider information for login buttons */
   publicOidcProviders: Array<PublicOidcProvider>;
   publicPartnerInfo?: Maybe<PublicPartnerInfo>;
@@ -1665,6 +1698,11 @@ export type QueryDiskArgs = {
 };
 
 
+export type QueryGetPermissionsForRolesArgs = {
+  roles: Array<Role>;
+};
+
+
 export type QueryLogFileArgs = {
   lines?: InputMaybe<Scalars['Int']['input']>;
   path: Scalars['String']['input'];
@@ -1674,6 +1712,12 @@ export type QueryLogFileArgs = {
 
 export type QueryOidcProviderArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryPreviewEffectivePermissionsArgs = {
+  permissions?: InputMaybe<Array<AddPermissionInput>>;
+  roles?: InputMaybe<Array<Role>>;
 };
 
 
@@ -1869,10 +1913,14 @@ export enum Resource {
 
 /** Available roles for API keys and users */
 export enum Role {
+  /** Full administrative access to all resources */
   ADMIN = 'ADMIN',
+  /** Internal Role for Unraid Connect */
   CONNECT = 'CONNECT',
+  /** Basic read access to user profile only */
   GUEST = 'GUEST',
-  USER = 'USER'
+  /** Read-only access to all resources */
+  VIEWER = 'VIEWER'
 }
 
 export type Server = Node & {
@@ -2149,7 +2197,7 @@ export enum UrlType {
   WIREGUARD = 'WIREGUARD'
 }
 
-export type UnifiedSettings = Node & {
+export type UnifiedSettings = FormSchema & Node & {
   __typename?: 'UnifiedSettings';
   /** The data schema for the settings */
   dataSchema: Scalars['JSON']['output'];
@@ -2173,6 +2221,8 @@ export type UnraidArray = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Parity disks in the current array */
   parities: Array<ArrayDisk>;
+  /** Current parity check status */
+  parityCheckStatus: ParityCheck;
   /** Current array state */
   state: ArrayState;
 };
@@ -2527,7 +2577,7 @@ export type GetSsoUsersQuery = { __typename?: 'Query', settings: { __typename?: 
 export type SystemReportQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SystemReportQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: any, machineId?: string | null, system: { __typename?: 'InfoSystem', manufacturer?: string | null, model?: string | null, version?: string | null, sku?: string | null, serial?: string | null, uuid?: string | null }, versions: { __typename?: 'InfoVersions', core: { __typename?: 'CoreVersions', unraid?: string | null, kernel?: string | null }, packages: { __typename?: 'PackageVersions', openssl?: string | null } } }, config: { __typename?: 'Config', id: any, valid?: boolean | null, error?: string | null }, server?: { __typename?: 'Server', id: any, name: string } | null };
+export type SystemReportQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: any, machineId?: string | null, system: { __typename?: 'InfoSystem', manufacturer?: string | null, model?: string | null, version?: string | null, sku?: string | null, serial?: string | null, uuid?: string | null }, versions: { __typename?: 'InfoVersions', core: { __typename?: 'CoreVersions', unraid?: string | null, kernel?: string | null }, packages?: { __typename?: 'PackageVersions', openssl?: string | null } | null } }, config: { __typename?: 'Config', id: any, valid?: boolean | null, error?: string | null }, server?: { __typename?: 'Server', id: any, name: string } | null };
 
 export type ConnectStatusQueryVariables = Exact<{ [key: string]: never; }>;
 

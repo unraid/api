@@ -255,6 +255,7 @@ export function getProviderConfigSlice({
                 description: option.Help || undefined,
                 controlOptions: controlOptions,
                 rule: providerRule,
+                passScopeToLayout: true,
             });
 
             return labeledControl;

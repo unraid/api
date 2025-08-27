@@ -1,6 +1,6 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
-import { Node, Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Node, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { Transform, Type } from 'class-transformer';
 import {
@@ -22,15 +22,21 @@ export class Permission {
     @IsEnum(Resource)
     resource!: Resource;
 
-    @Field(() => [String])
+    @Field(() => [AuthAction], {
+        description: 'Actions allowed on this resource',
+    })
     @IsArray()
-    @IsString({ each: true })
+    @IsEnum(AuthAction, { each: true })
     @ArrayMinSize(1)
-    actions!: string[];
+    actions!: AuthAction[];
 }
 
 @ObjectType({ implements: () => Node })
 export class ApiKey extends Node {
+    @Field()
+    @IsString()
+    key!: string;
+
     @Field()
     @IsString()
     @IsNotEmpty()
@@ -58,24 +64,17 @@ export class ApiKey extends Node {
     permissions!: Permission[];
 }
 
-@ObjectType()
-export class ApiKeyWithSecret extends ApiKey {
-    @Field()
-    @IsString()
-    key!: string;
-}
-
 @InputType()
 export class AddPermissionInput {
     @Field(() => Resource)
     @IsEnum(Resource)
     resource!: Resource;
 
-    @Field(() => [String])
+    @Field(() => [AuthAction])
     @IsArray()
-    @IsString({ each: true })
+    @IsEnum(AuthAction, { each: true })
     @ArrayMinSize(1)
-    actions!: string[];
+    actions!: AuthAction[];
 }
 
 @InputType()

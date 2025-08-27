@@ -17,13 +17,15 @@ type Documents = {
     "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n": typeof types.PartnerInfoDocument,
     "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": typeof types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    vars {\n      regState\n    }\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n    }\n  }\n": typeof types.ActivationCodeDocument,
-    "\n  fragment ApiKey on ApiKey {\n    id\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": typeof types.ApiKeyFragmentDoc,
-    "\n  fragment ApiKeyWithKey on ApiKeyWithSecret {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": typeof types.ApiKeyWithKeyFragmentDoc,
+    "\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n": typeof types.GetApiKeyCreationFormSchemaDocument,
+    "\n  fragment ApiKey on ApiKey {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": typeof types.ApiKeyFragmentDoc,
     "\n  query ApiKeys {\n    apiKeys {\n      ...ApiKey\n    }\n  }\n": typeof types.ApiKeysDocument,
-    "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKeyWithKey\n      }\n    } \n  }\n": typeof types.CreateApiKeyDocument,
-    "\n  mutation UpdateApiKey($input: UpdateApiKeyInput!) {\n    apiKey {\n      update(input: $input) {\n        ...ApiKeyWithKey\n      }\n    }\n  }\n": typeof types.UpdateApiKeyDocument,
+    "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKey\n      }\n    } \n  }\n": typeof types.CreateApiKeyDocument,
+    "\n  mutation UpdateApiKey($input: UpdateApiKeyInput!) {\n    apiKey {\n      update(input: $input) {\n        ...ApiKey\n      }\n    }\n  }\n": typeof types.UpdateApiKeyDocument,
     "\n  mutation DeleteApiKey($input: DeleteApiKeyInput!) {\n    apiKey {\n      delete(input: $input)\n    }\n  }\n": typeof types.DeleteApiKeyDocument,
     "\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n": typeof types.ApiKeyMetaDocument,
+    "\n  query PreviewEffectivePermissions($roles: [Role!], $permissions: [AddPermissionInput!]) {\n    previewEffectivePermissions(roles: $roles, permissions: $permissions) {\n      resource\n      actions\n    }\n  }\n": typeof types.PreviewEffectivePermissionsDocument,
+    "\n  query GetPermissionsForRoles($roles: [Role!]!) {\n    getPermissionsForRoles(roles: $roles) {\n      resource\n      actions\n    }\n  }\n": typeof types.GetPermissionsForRolesDocument,
     "\n  query Unified {\n    settings {\n      unified {\n        id\n        dataSchema\n        uiSchema\n        values\n      }\n    }\n  }\n": typeof types.UnifiedDocument,
     "\n  mutation UpdateConnectSettings($input: JSON!) {\n    updateSettings(input: $input) {\n      restartRequired\n      values\n    }\n  }\n": typeof types.UpdateConnectSettingsDocument,
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": typeof types.LogFilesDocument,
@@ -60,13 +62,15 @@ const documents: Documents = {
     "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n": types.PartnerInfoDocument,
     "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    vars {\n      regState\n    }\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n    }\n  }\n": types.ActivationCodeDocument,
-    "\n  fragment ApiKey on ApiKey {\n    id\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": types.ApiKeyFragmentDoc,
-    "\n  fragment ApiKeyWithKey on ApiKeyWithSecret {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": types.ApiKeyWithKeyFragmentDoc,
+    "\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n": types.GetApiKeyCreationFormSchemaDocument,
+    "\n  fragment ApiKey on ApiKey {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": types.ApiKeyFragmentDoc,
     "\n  query ApiKeys {\n    apiKeys {\n      ...ApiKey\n    }\n  }\n": types.ApiKeysDocument,
-    "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKeyWithKey\n      }\n    } \n  }\n": types.CreateApiKeyDocument,
-    "\n  mutation UpdateApiKey($input: UpdateApiKeyInput!) {\n    apiKey {\n      update(input: $input) {\n        ...ApiKeyWithKey\n      }\n    }\n  }\n": types.UpdateApiKeyDocument,
+    "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKey\n      }\n    } \n  }\n": types.CreateApiKeyDocument,
+    "\n  mutation UpdateApiKey($input: UpdateApiKeyInput!) {\n    apiKey {\n      update(input: $input) {\n        ...ApiKey\n      }\n    }\n  }\n": types.UpdateApiKeyDocument,
     "\n  mutation DeleteApiKey($input: DeleteApiKeyInput!) {\n    apiKey {\n      delete(input: $input)\n    }\n  }\n": types.DeleteApiKeyDocument,
     "\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n": types.ApiKeyMetaDocument,
+    "\n  query PreviewEffectivePermissions($roles: [Role!], $permissions: [AddPermissionInput!]) {\n    previewEffectivePermissions(roles: $roles, permissions: $permissions) {\n      resource\n      actions\n    }\n  }\n": types.PreviewEffectivePermissionsDocument,
+    "\n  query GetPermissionsForRoles($roles: [Role!]!) {\n    getPermissionsForRoles(roles: $roles) {\n      resource\n      actions\n    }\n  }\n": types.GetPermissionsForRolesDocument,
     "\n  query Unified {\n    settings {\n      unified {\n        id\n        dataSchema\n        uiSchema\n        values\n      }\n    }\n  }\n": types.UnifiedDocument,
     "\n  mutation UpdateConnectSettings($input: JSON!) {\n    updateSettings(input: $input) {\n      restartRequired\n      values\n    }\n  }\n": types.UpdateConnectSettingsDocument,
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": types.LogFilesDocument,
@@ -129,11 +133,11 @@ export function graphql(source: "\n  query ActivationCode {\n    vars {\n      r
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  fragment ApiKey on ApiKey {\n    id\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n"): (typeof documents)["\n  fragment ApiKey on ApiKey {\n    id\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n"];
+export function graphql(source: "\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n"): (typeof documents)["\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  fragment ApiKeyWithKey on ApiKeyWithSecret {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n"): (typeof documents)["\n  fragment ApiKeyWithKey on ApiKeyWithSecret {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n"];
+export function graphql(source: "\n  fragment ApiKey on ApiKey {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n"): (typeof documents)["\n  fragment ApiKey on ApiKey {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -141,11 +145,11 @@ export function graphql(source: "\n  query ApiKeys {\n    apiKeys {\n      ...Ap
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKeyWithKey\n      }\n    } \n  }\n"): (typeof documents)["\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKeyWithKey\n      }\n    } \n  }\n"];
+export function graphql(source: "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKey\n      }\n    } \n  }\n"): (typeof documents)["\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKey\n      }\n    } \n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation UpdateApiKey($input: UpdateApiKeyInput!) {\n    apiKey {\n      update(input: $input) {\n        ...ApiKeyWithKey\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateApiKey($input: UpdateApiKeyInput!) {\n    apiKey {\n      update(input: $input) {\n        ...ApiKeyWithKey\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  mutation UpdateApiKey($input: UpdateApiKeyInput!) {\n    apiKey {\n      update(input: $input) {\n        ...ApiKey\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateApiKey($input: UpdateApiKeyInput!) {\n    apiKey {\n      update(input: $input) {\n        ...ApiKey\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -154,6 +158,14 @@ export function graphql(source: "\n  mutation DeleteApiKey($input: DeleteApiKeyI
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n"): (typeof documents)["\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query PreviewEffectivePermissions($roles: [Role!], $permissions: [AddPermissionInput!]) {\n    previewEffectivePermissions(roles: $roles, permissions: $permissions) {\n      resource\n      actions\n    }\n  }\n"): (typeof documents)["\n  query PreviewEffectivePermissions($roles: [Role!], $permissions: [AddPermissionInput!]) {\n    previewEffectivePermissions(roles: $roles, permissions: $permissions) {\n      resource\n      actions\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query GetPermissionsForRoles($roles: [Role!]!) {\n    getPermissionsForRoles(roles: $roles) {\n      resource\n      actions\n    }\n  }\n"): (typeof documents)["\n  query GetPermissionsForRoles($roles: [Role!]!) {\n    getPermissionsForRoles(roles: $roles) {\n      resource\n      actions\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

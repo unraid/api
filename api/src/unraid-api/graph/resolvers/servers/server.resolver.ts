@@ -2,12 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
@@ -24,9 +20,8 @@ export class ServerResolver {
     constructor(private readonly configService: ConfigService) {}
     @Query(() => ServerModel, { nullable: true })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.SERVERS,
-        possession: AuthPossession.ANY,
     })
     public async server(): Promise<ServerModel | null> {
         return this.getLocalServer()[0] || null;
@@ -34,9 +29,8 @@ export class ServerResolver {
 
     @Query(() => [ServerModel])
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.SERVERS,
-        possession: AuthPossession.ANY,
     })
     public async servers(): Promise<ServerModel[]> {
         return this.getLocalServer();
@@ -44,9 +38,8 @@ export class ServerResolver {
 
     @Subscription(() => ServerModel)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.SERVERS,
-        possession: AuthPossession.ANY,
     })
     public async serversSubscription() {
         return createSubscription(PUBSUB_CHANNEL.SERVERS);

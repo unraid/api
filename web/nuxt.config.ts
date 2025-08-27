@@ -239,6 +239,7 @@ export default defineNuxtConfig({
           createWebComponentTag('UnraidThemeSwitcher', '@/components/ThemeSwitcher.ce', '@/components/Wrapper/web-component-plugins'),
           createWebComponentTag('UnraidApiKeyManager', '@/components/ApiKeyPage.ce', '@/components/Wrapper/web-component-plugins'),
           createWebComponentTag('UnraidDevModalTest', '@/components/DevModalTest.ce', '@/components/Wrapper/web-component-plugins'),
+          createWebComponentTag('UnraidApiKeyAuthorize', '@/components/ApiKeyAuthorize.ce', '@/components/Wrapper/web-component-plugins'),
         ],
       },
     ],

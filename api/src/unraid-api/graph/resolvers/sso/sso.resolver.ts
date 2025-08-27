@@ -1,12 +1,9 @@
 import { Logger } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
@@ -73,9 +70,8 @@ export class SsoResolver {
 
     @Query(() => [OidcProvider], { description: 'Get all configured OIDC providers (admin only)' })
     @UsePermissions({
-        action: AuthActionVerb.READ,
-        resource: 'sso',
-        possession: AuthPossession.ANY,
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
     })
     public async oidcProviders(): Promise<OidcProvider[]> {
         return this.oidcConfig.getProviders();
@@ -83,9 +79,8 @@ export class SsoResolver {
 
     @Query(() => OidcProvider, { nullable: true, description: 'Get a specific OIDC provider by ID' })
     @UsePermissions({
-        action: AuthActionVerb.READ,
-        resource: 'sso',
-        possession: AuthPossession.ANY,
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
     })
     public async oidcProvider(
         @Args('id', { type: () => PrefixedID }) id: string
@@ -97,9 +92,8 @@ export class SsoResolver {
         description: 'Validate an OIDC session token (internal use for CLI validation)',
     })
     @UsePermissions({
-        action: AuthActionVerb.READ,
-        resource: 'sso',
-        possession: AuthPossession.ANY,
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
     })
     public async validateOidcSession(@Args('token') token: string): Promise<OidcSessionValidation> {
         return await this.oidcSessionService.validateSession(token);

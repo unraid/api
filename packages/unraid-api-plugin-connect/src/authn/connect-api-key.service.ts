@@ -1,9 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
-import { ApiKey, ApiKeyWithSecret, Permission, Role } from '@unraid/shared/graphql.model.js';
-import { ApiKeyService } from '@unraid/shared/services/api-key.js';
+import { ApiKey, AuthAction, Permission, Resource, Role } from '@unraid/shared/graphql.model.js';
+import { ApiKeyService, CreatePermissionsInput } from '@unraid/shared/services/api-key.js';
 import { API_KEY_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
-import { AuthActionVerb } from 'nest-authz';
 
 @Injectable()
 export class ConnectApiKeyService implements ApiKeyService {
@@ -22,15 +21,15 @@ export class ConnectApiKeyService implements ApiKeyService {
         return this.apiKeyService.findById(id);
     }
 
-    findByIdWithSecret(id: string): ApiKeyWithSecret | null {
+    findByIdWithSecret(id: string): ApiKey | null {
         return this.apiKeyService.findByIdWithSecret(id);
     }
 
-    findByField(field: keyof ApiKeyWithSecret, value: string): ApiKeyWithSecret | null {
+    findByField(field: keyof ApiKey, value: string): ApiKey | null {
         return this.apiKeyService.findByField(field, value);
     }
 
-    findByKey(key: string): ApiKeyWithSecret | null {
+    findByKey(key: string): ApiKey | null {
         return this.apiKeyService.findByKey(key);
     }
 
@@ -38,9 +37,9 @@ export class ConnectApiKeyService implements ApiKeyService {
         name: string;
         description?: string;
         roles?: Role[];
-        permissions?: Permission[] | { resource: string; actions: AuthActionVerb[] }[];
+        permissions?: CreatePermissionsInput;
         overwrite?: boolean;
-    }): Promise<ApiKeyWithSecret> {
+    }): Promise<ApiKey> {
         return this.apiKeyService.create(input);
     }
 
@@ -67,7 +66,7 @@ export class ConnectApiKeyService implements ApiKeyService {
     /**
      * Creates a local API key specifically for Connect
      */
-    public async createLocalConnectApiKey(): Promise<ApiKeyWithSecret | null> {
+    public async createLocalConnectApiKey(): Promise<ApiKey | null> {
         try {
             return await this.create({
                 name: ConnectApiKeyService.CONNECT_API_KEY_NAME,

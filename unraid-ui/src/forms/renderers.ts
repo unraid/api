@@ -5,6 +5,7 @@ import HorizontalLayout from '@/forms/HorizontalLayout.vue';
 import inputFieldRenderer from '@/forms/InputField.vue';
 import LabelRenderer from '@/forms/LabelRenderer.vue';
 import MissingRenderer from '@/forms/MissingRenderer.vue';
+import MultiSelect from '@/forms/MultiSelect.vue';
 import numberFieldRenderer from '@/forms/NumberField.vue';
 import ObjectArrayField from '@/forms/ObjectArrayField.vue';
 import PreconditionsLabel from '@/forms/PreconditionsLabel.vue';
@@ -55,6 +56,12 @@ const isObjectArray = (schema: JsonSchema): boolean => {
   return schema.type === 'array' && items?.type === 'object';
 };
 
+const isEnumArray = (schema: JsonSchema): boolean => {
+  if (!schema || typeof schema !== 'object' || Array.isArray(schema)) return false;
+  const items = schema.items as JsonSchema;
+  return schema.type === 'array' && items?.enum !== undefined;
+};
+
 const isStringOrAnyOfString = (schema: JsonSchema): boolean => {
   if (!schema || typeof schema !== 'object' || Array.isArray(schema)) return false;
   // Exclude enum fields - they should use select renderer
@@ -102,6 +109,16 @@ export const jsonFormsRenderers: JsonFormsRendererRegistryEntry[] = [
     renderer: markRaw(withErrorWrapper(switchRenderer)),
     tester: rankWith(4, and(isBooleanControl, optionIs('format', 'toggle'))),
   },
+  // MultiSelect for array enums or when multiple option is set
+  {
+    renderer: markRaw(withErrorWrapper(MultiSelect)),
+    tester: rankWith(8, and(isControl, schemaMatches(isEnumArray))),
+  },
+  {
+    renderer: markRaw(withErrorWrapper(MultiSelect)),
+    tester: rankWith(8, and(isControl, optionIs('multiple', true))),
+  },
+  // Regular select for single enums
   {
     renderer: markRaw(withErrorWrapper(selectRenderer)),
     tester: rankWith(6, isEnumControl),

@@ -3,20 +3,6 @@ import { graphql } from '~/composables/gql/gql';
 export const API_KEY_FRAGMENT = graphql(/* GraphQL */ `
   fragment ApiKey on ApiKey {
     id
-    name
-    description
-    createdAt
-    roles
-    permissions {
-      resource
-      actions
-    }
-  }
-`);
-
-export const API_KEY_FRAGMENT_WITH_KEY = graphql(/* GraphQL */ `
-  fragment ApiKeyWithKey on ApiKeyWithSecret {
-    id
     key
     name
     description
@@ -28,6 +14,8 @@ export const API_KEY_FRAGMENT_WITH_KEY = graphql(/* GraphQL */ `
     }
   }
 `);
+
+export const API_KEY_FRAGMENT_WITH_KEY = API_KEY_FRAGMENT;
 
 export const GET_API_KEYS = graphql(/* GraphQL */ `
   query ApiKeys {
@@ -41,7 +29,7 @@ export const CREATE_API_KEY = graphql(/* GraphQL */ `
   mutation CreateApiKey($input: CreateApiKeyInput!) {
     apiKey {
       create(input: $input) {
-        ...ApiKeyWithKey
+        ...ApiKey
       }
     } 
   }
@@ -51,7 +39,7 @@ export const UPDATE_API_KEY = graphql(/* GraphQL */ `
   mutation UpdateApiKey($input: UpdateApiKeyInput!) {
     apiKey {
       update(input: $input) {
-        ...ApiKeyWithKey
+        ...ApiKey
       }
     }
   }
@@ -69,6 +57,15 @@ export const GET_API_KEY_META = graphql(/* GraphQL */ `
   query ApiKeyMeta {
     apiKeyPossibleRoles
     apiKeyPossiblePermissions {
+      resource
+      actions
+    }
+  }
+`);
+
+export const PREVIEW_EFFECTIVE_PERMISSIONS = graphql(/* GraphQL */ `
+  query PreviewEffectivePermissions($roles: [Role!], $permissions: [AddPermissionInput!]) {
+    previewEffectivePermissions(roles: $roles, permissions: $permissions) {
       resource
       actions
     }

@@ -1,11 +1,7 @@
 import { GraphQLISODateTime, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { baseboard as getBaseboard, system as getSystem } from 'systeminformation';
 
 import { getMachineId } from '@app/core/utils/misc/get-machine-id.js';
@@ -35,9 +31,8 @@ export class InfoResolver {
 
     @Query(() => Info)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.INFO,
-        possession: AuthPossession.ANY,
     })
     public async info(): Promise<Partial<Info>> {
         return {
