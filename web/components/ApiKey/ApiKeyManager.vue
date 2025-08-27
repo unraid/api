@@ -126,7 +126,7 @@ function applyTemplate() {
     const params = url.searchParams;
     
     // Navigate to the authorization page with these params using window.location
-    const authUrl = new URL('/tools/apikeyauthorize', window.location.origin);
+    const authUrl = new URL('/Tools/ApiKeyAuthorize', window.location.origin);
     params.forEach((value, key) => {
       authUrl.searchParams.append(key, value);
     });

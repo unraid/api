@@ -281,26 +281,18 @@ export class AuthService {
 
             if (!resourceStr) continue;
 
-            // Use '*' as a key for wildcard resources, or validate it's a valid Resource enum value
-            const resourceKey =
-                resourceStr === '*'
-                    ? '*'
-                    : Object.values(Resource).includes(resourceStr as Resource)
-                      ? (resourceStr as Resource)
-                      : null;
-
             // Skip invalid resources (except wildcard)
-            if (!resourceKey) {
+            if (resourceStr !== '*' && !Object.values(Resource).includes(resourceStr as Resource)) {
                 this.logger.debug(`Skipping invalid resource from Casbin: ${resourceStr}`);
                 continue;
             }
 
             // Initialize Set if needed
-            if (!permissionsWithSets.has(resourceKey as Resource | '*')) {
-                permissionsWithSets.set(resourceKey as Resource | '*', new Set());
+            if (!permissionsWithSets.has(resourceStr as Resource | '*')) {
+                permissionsWithSets.set(resourceStr as Resource | '*', new Set());
             }
 
-            const actionsSet = permissionsWithSets.get(resourceKey as Resource | '*')!;
+            const actionsSet = permissionsWithSets.get(resourceStr as Resource | '*')!;
 
             // Handle wildcard or parse to valid AuthAction
             if (action === '*') {
