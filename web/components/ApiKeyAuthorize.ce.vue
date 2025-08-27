@@ -126,9 +126,9 @@ const returnToApp = () => {
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto p-6">
+  <div class="w-full max-w-2xl mx-auto p-6">
     <!-- Success state -->
-    <div v-if="showSuccess && createdApiKey" class="bg-background rounded-lg shadow-sm border border-muted">
+    <div v-if="showSuccess && createdApiKey" class="w-full bg-background rounded-lg shadow-sm border border-muted">
       <!-- Header -->
       <div class="p-6 pb-4 border-b border-muted">
         <div class="flex items-center gap-3">
@@ -227,7 +227,7 @@ const returnToApp = () => {
     </div>
 
     <!-- Authorization form using ApiKeyCreate component -->
-    <div v-else class="bg-background rounded-lg shadow-sm border border-muted">
+    <div v-else class="w-full bg-background rounded-lg shadow-sm border border-muted">
       <!-- Header -->
       <div class="p-6 pb-4 border-b border-muted">
         <div class="flex items-center gap-3">
