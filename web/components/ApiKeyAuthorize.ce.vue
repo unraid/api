@@ -4,8 +4,7 @@ import { Button, Input } from '@unraid/ui';
 import { useClipboardWithToast } from '~/composables/useClipboardWithToast.js';
 import { ClipboardDocumentIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline';
 import { storeToRefs } from 'pinia';
-import { useApiKeyAuthorization } from '~/composables/useApiKeyAuthorization.js';
-import { useApiKeyAuthorizationForm } from '~/composables/useApiKeyAuthorizationForm.js';
+import { useAuthorizationLink } from '~/composables/useAuthorizationLink.js';
 import { useApiKeyStore } from '~/store/apiKey.js';
 
 // Use the composables for authorization logic
@@ -13,14 +12,11 @@ const {
   authParams,
   hasValidRedirectUri,
   buildCallbackUrl,
-} = useApiKeyAuthorization();
-
-const {
   formData: authorizationFormData,
   displayAppName,
   hasPermissions,
   permissionsSummary,
-} = useApiKeyAuthorizationForm();
+} = useAuthorizationLink();
 
 // Use the API key store to control the global modal
 const apiKeyStore = useApiKeyStore();
