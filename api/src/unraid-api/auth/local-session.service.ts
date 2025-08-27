@@ -1,5 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { randomBytes } from 'crypto';
+import { randomBytes, timingSafeEqual } from 'crypto';
 import { chmod, mkdir, readFile, unlink, writeFile } from 'fs/promises';
 import { dirname } from 'path';
 
@@ -82,21 +82,7 @@ export class LocalSessionService implements OnModuleInit, OnModuleDestroy {
         if (!currentToken) return false;
 
         // Use constant-time comparison to prevent timing attacks
-        return this.constantTimeEqual(token, currentToken);
-    }
-
-    /**
-     * Constant-time string comparison to prevent timing attacks
-     */
-    private constantTimeEqual(a: string, b: string): boolean {
-        if (a.length !== b.length) return false;
-
-        let result = 0;
-        for (let i = 0; i < a.length; i++) {
-            result |= a.charCodeAt(i) ^ b.charCodeAt(i);
-        }
-
-        return result === 0;
+        return timingSafeEqual(Buffer.from(token, 'utf-8'), Buffer.from(currentToken, 'utf-8'));
     }
 
     /**

@@ -1,4 +1,5 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { timingSafeEqual } from 'node:crypto';
 
 import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import {
@@ -280,7 +281,10 @@ export class AuthService {
     }
 
     public validateCsrfToken(token?: string): boolean {
-        return Boolean(token) && token === getters.emhttp().var.csrfToken;
+        if (!token) return false;
+        const csrfToken = getters.emhttp().var.csrfToken;
+        if (!csrfToken) return false;
+        return timingSafeEqual(Buffer.from(token, 'utf-8'), Buffer.from(csrfToken, 'utf-8'));
     }
 
     /**
