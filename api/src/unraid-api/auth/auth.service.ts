@@ -201,6 +201,9 @@ export class AuthService {
         }
 
         try {
+            if (!apiKey.roles) {
+                apiKey.roles = [];
+            }
             if (!apiKey.roles.includes(role)) {
                 apiKey.roles.push(role);
                 await this.apiKeyService.saveApiKey(apiKey);
@@ -225,6 +228,9 @@ export class AuthService {
         }
 
         try {
+            if (!apiKey.roles) {
+                apiKey.roles = [];
+            }
             apiKey.roles = apiKey.roles.filter((r) => r !== role);
             await this.apiKeyService.saveApiKey(apiKey);
             await this.authzService.deleteRoleForUser(apiKeyId, role);
