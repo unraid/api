@@ -111,6 +111,25 @@ test('Returns parsed state file', async () => {
           "splitLevel": "1",
           "used": 33619300,
         },
+        {
+          "allocator": "highwater",
+          "cache": false,
+          "cachePool": "cache",
+          "color": "yellow-on",
+          "comment": "system data with 🚀",
+          "cow": "auto",
+          "exclude": [],
+          "floor": "0",
+          "free": 9309372,
+          "id": "system.with.🚀",
+          "include": [],
+          "luksStatus": "0",
+          "name": "system.with.🚀",
+          "nameOrig": "system.with.🚀",
+          "size": 0,
+          "splitLevel": "1",
+          "used": 33619300,
+        },
       ]
     `);
 });
