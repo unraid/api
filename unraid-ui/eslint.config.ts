@@ -19,7 +19,7 @@ const commonRules = {
     'error',
     { allowSameFolder: false, rootDir: 'src', prefix: '@' },
   ],
-  'prettier/prettier': 'error',
+  'prettier/prettier': 'warn',
   'no-restricted-globals': [
     'error',
     {
