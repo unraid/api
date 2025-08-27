@@ -1,7 +1,8 @@
-import { expect, test } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
+import { parseConfig } from '@app/core/utils/misc/parse-config.js';
 import { store } from '@app/store/index.js';
-import { FileLoadStatus } from '@app/store/types.js';
+import { FileLoadStatus, StateFileKey } from '@app/store/types.js';
 
 // Preloading imports for faster tests
 import '@app/store/modules/emhttp.js';
@@ -1109,4 +1110,210 @@ test('After init returns values from cfg file for all fields', { timeout: 30000 
         "wsdOpt": "",
       }
     `);
+});
+
+describe('Share parsing with periods in names', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    test('parseConfig handles periods in INI section names', () => {
+        const mockIniContent = `
+["share.with.periods"]
+name=share.with.periods
+useCache=yes
+include=
+exclude=
+
+[normal_share]
+name=normal_share
+useCache=no
+include=
+exclude=
+`;
+
+        const result = parseConfig<any>({
+            file: mockIniContent,
+            type: 'ini',
+        });
+
+        // The result should now have properly flattened keys
+
+        expect(result).toHaveProperty('shareWithPeriods');
+        expect(result).toHaveProperty('normalShare');
+        expect(result.shareWithPeriods.name).toBe('share.with.periods');
+        expect(result.normalShare.name).toBe('normal_share');
+    });
+
+    test('shares parser handles periods in share names correctly', async () => {
+        const { parse } = await import('@app/store/state-parsers/shares.js');
+
+        // The parser expects an object where values are share configs
+        const mockSharesState = {
+            shareWithPeriods: {
+                name: 'share.with.periods',
+                free: '1000000',
+                used: '500000',
+                size: '1500000',
+                include: '',
+                exclude: '',
+                useCache: 'yes',
+            },
+            normalShare: {
+                name: 'normal_share',
+                free: '2000000',
+                used: '750000',
+                size: '2750000',
+                include: '',
+                exclude: '',
+                useCache: 'no',
+            },
+        } as any;
+
+        const result = parse(mockSharesState);
+
+        expect(result).toHaveLength(2);
+        const periodShare = result.find((s) => s.name === 'share.with.periods');
+        const normalShare = result.find((s) => s.name === 'normal_share');
+
+        expect(periodShare).toBeDefined();
+        expect(periodShare?.id).toBe('share.with.periods');
+        expect(periodShare?.name).toBe('share.with.periods');
+        expect(periodShare?.cache).toBe(true);
+
+        expect(normalShare).toBeDefined();
+        expect(normalShare?.id).toBe('normal_share');
+        expect(normalShare?.name).toBe('normal_share');
+        expect(normalShare?.cache).toBe(false);
+    });
+
+    test('SMB parser handles periods in share names', async () => {
+        const { parse } = await import('@app/store/state-parsers/smb.js');
+
+        const mockSmbState = {
+            'share.with.periods': {
+                export: 'e',
+                security: 'public',
+                writeList: '',
+                readList: '',
+                volsizelimit: '0',
+            },
+            normal_share: {
+                export: 'e',
+                security: 'private',
+                writeList: 'user1,user2',
+                readList: '',
+                volsizelimit: '1000',
+            },
+        } as any;
+
+        const result = parse(mockSmbState);
+
+        expect(result).toHaveLength(2);
+        const periodShare = result.find((s) => s.name === 'share.with.periods');
+        const normalShare = result.find((s) => s.name === 'normal_share');
+
+        expect(periodShare).toBeDefined();
+        expect(periodShare?.name).toBe('share.with.periods');
+        expect(periodShare?.enabled).toBe(true);
+
+        expect(normalShare).toBeDefined();
+        expect(normalShare?.name).toBe('normal_share');
+        expect(normalShare?.writeList).toEqual(['user1', 'user2']);
+    });
+
+    test('NFS parser handles periods in share names', async () => {
+        const { parse } = await import('@app/store/state-parsers/nfs.js');
+
+        const mockNfsState = {
+            'share.with.periods': {
+                export: 'e',
+                security: 'public',
+                writeList: '',
+                readList: 'user1',
+                hostList: '',
+            },
+            normal_share: {
+                export: 'd',
+                security: 'private',
+                writeList: 'user2',
+                readList: '',
+                hostList: '192.168.1.0/24',
+            },
+        } as any;
+
+        const result = parse(mockNfsState);
+
+        expect(result).toHaveLength(2);
+        const periodShare = result.find((s) => s.name === 'share.with.periods');
+        const normalShare = result.find((s) => s.name === 'normal_share');
+
+        expect(periodShare).toBeDefined();
+        expect(periodShare?.name).toBe('share.with.periods');
+        expect(periodShare?.enabled).toBe(true);
+        expect(periodShare?.readList).toEqual(['user1']);
+
+        expect(normalShare).toBeDefined();
+        expect(normalShare?.name).toBe('normal_share');
+        expect(normalShare?.enabled).toBe(false);
+    });
+});
+
+describe('Share lookup with periods in names', () => {
+    test('getShares finds user shares with periods in names', async () => {
+        // Mock the store state
+        const mockStore = await import('@app/store/index.js');
+        const mockEmhttpState = {
+            shares: [
+                {
+                    id: 'share.with.periods',
+                    name: 'share.with.periods',
+                    cache: true,
+                    free: 1000000,
+                    used: 500000,
+                    size: 1500000,
+                    include: [],
+                    exclude: [],
+                },
+                {
+                    id: 'normal_share',
+                    name: 'normal_share',
+                    cache: false,
+                    free: 2000000,
+                    used: 750000,
+                    size: 2750000,
+                    include: [],
+                    exclude: [],
+                },
+            ],
+            smbShares: [
+                { name: 'share.with.periods', enabled: true, security: 'public' },
+                { name: 'normal_share', enabled: true, security: 'private' },
+            ],
+            nfsShares: [
+                { name: 'share.with.periods', enabled: false },
+                { name: 'normal_share', enabled: true },
+            ],
+            disks: [],
+        };
+
+        const gettersSpy = vi.spyOn(mockStore, 'getters', 'get').mockReturnValue({
+            emhttp: () => mockEmhttpState,
+        } as any);
+
+        const { getShares } = await import('@app/core/utils/shares/get-shares.js');
+
+        const periodShare = getShares('user', { name: 'share.with.periods' });
+        const normalShare = getShares('user', { name: 'normal_share' });
+
+        expect(periodShare).not.toBeNull();
+        expect(periodShare?.name).toBe('share.with.periods');
+        expect(periodShare?.type).toBe('user');
+
+        expect(normalShare).not.toBeNull();
+        expect(normalShare?.name).toBe('normal_share');
+        expect(normalShare?.type).toBe('user');
+
+        gettersSpy.mockRestore();
+    });
 });

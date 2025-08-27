@@ -24,6 +24,38 @@ type OptionsWithLoadedFile = {
 };
 
 /**
+ * Flattens nested objects that were incorrectly created by periods in INI section names.
+ * For example: { share: { with: { periods: {...} } } } -> { "share.with.periods": {...} }
+ */
+const flattenPeriodSections = (obj: Record<string, any>, prefix = ''): Record<string, any> => {
+    const result: Record<string, any> = {};
+
+    for (const [key, value] of Object.entries(obj)) {
+        const fullKey = prefix ? `${prefix}.${key}` : key;
+
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+            // Check if this looks like an INI section (has basic INI properties)
+            const hasIniProperties = Object.keys(value).some(
+                (k) => typeof value[k] === 'string' || typeof value[k] === 'number'
+            );
+
+            if (hasIniProperties) {
+                // This looks like an INI section, keep it as is
+                result[fullKey] = value;
+            } else {
+                // This looks like nested structure from periods, continue flattening
+                Object.assign(result, flattenPeriodSections(value, fullKey));
+            }
+        } else {
+            // Regular property, keep as is
+            result[fullKey] = value;
+        }
+    }
+
+    return result;
+};
+
+/**
  * Converts the following
  * ```
  * {
@@ -127,6 +159,9 @@ export const parseConfig = <T extends Record<string, any>>(
     let data: Record<string, any>;
     try {
         data = parseIni(fileContents);
+
+        // Fix nested objects created by periods in section names
+        data = flattenPeriodSections(data);
     } catch (error) {
         throw new AppError(
             `Failed to parse config file: ${error instanceof Error ? error.message : String(error)}`
