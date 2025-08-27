@@ -1,9 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
-import { ApiKey, ApiKeyWithSecret, Permission, Role } from '@unraid/shared/graphql.model.js';
+import { ApiKey, ApiKeyWithSecret, AuthAction, Permission, Role } from '@unraid/shared/graphql.model.js';
 import { ApiKeyService } from '@unraid/shared/services/api-key.js';
 import { API_KEY_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
-import { AuthActionVerb } from 'nest-authz';
 
 @Injectable()
 export class ConnectApiKeyService implements ApiKeyService {
@@ -38,7 +37,7 @@ export class ConnectApiKeyService implements ApiKeyService {
         name: string;
         description?: string;
         roles?: Role[];
-        permissions?: Permission[] | { resource: string; actions: AuthActionVerb[] }[];
+        permissions?: Permission[] | { resource: string; actions: AuthAction[] }[];
         overwrite?: boolean;
     }): Promise<ApiKeyWithSecret> {
         return this.apiKeyService.create(input);
