@@ -62,6 +62,7 @@ import { getRequest } from '@app/utils.js';
         UserCookieStrategy,
         CookieService,
         LocalSessionService,
+        LocalSessionLifecycleService,
         {
             provide: SESSION_COOKIE_CONFIG,
             useValue: CookieService.defaultOpts(),

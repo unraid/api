@@ -88,6 +88,8 @@ dev/connectStatus.json
 dev/configs/*
 # local status - doesn't need to be tracked
 dev/connectStatus.json
+# mock local session file
+dev/local-session
 
 # local OIDC config for testing - contains secrets
 dev/configs/oidc.local.json

@@ -3,6 +3,8 @@ import { randomBytes, timingSafeEqual } from 'crypto';
 import { chmod, mkdir, readFile, unlink, writeFile } from 'fs/promises';
 import { dirname } from 'path';
 
+import { PATHS_LOCAL_SESSION_FILE } from '@app/environment.js';
+
 /**
  * Service that manages a local session file for internal CLI/system authentication.
  * Creates a secure token on startup that can be used for local system operations.
@@ -11,7 +13,7 @@ import { dirname } from 'path';
 export class LocalSessionService {
     private readonly logger = new Logger(LocalSessionService.name);
     private sessionToken: string | null = null;
-    private static readonly SESSION_FILE_PATH = '/var/run/unraid-api/local-session';
+    private static readonly SESSION_FILE_PATH = PATHS_LOCAL_SESSION_FILE;
 
     /**
      * Generate a secure local session token and write it to file
@@ -31,7 +33,10 @@ export class LocalSessionService {
             });
 
             // Ensure proper permissions (redundant but explicit)
-            await chmod(LocalSessionService.getSessionFilePath(), 0o600);
+            // Check if file exists first to handle race conditions in test environments
+            await chmod(LocalSessionService.getSessionFilePath(), 0o600).catch((error) => {
+                this.logger.warn(error, 'Failed to set permissions on local session file');
+            });
 
             this.logger.debug(`Local session written to ${LocalSessionService.getSessionFilePath()}`);
         } catch (error) {
