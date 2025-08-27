@@ -4,10 +4,10 @@ import { IsNotEmpty, IsString } from 'class-validator';
 import { PrefixedID } from './prefixed-id-scalar.js';
 
 // Import enums from the shared file
-import { AuthAction, AuthActionVerb, AuthPossession, Resource, Role } from './graphql-enums.js';
+import { AuthAction, Resource, Role } from './graphql-enums.js';
 
 // Re-export for convenience
-export { AuthAction, AuthActionVerb, AuthPossession, Resource, Role };
+export { AuthAction, Resource, Role };
 
 // Re-export types from graphql-enums
 export type { ApiKey, ApiKeyWithSecret, Permission } from './graphql-enums.js';

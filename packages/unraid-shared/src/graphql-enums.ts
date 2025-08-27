@@ -14,19 +14,6 @@ export enum AuthAction {
     DELETE_OWN = 'DELETE_OWN',
 }
 
-// Keep these for backward compatibility if needed
-export enum AuthActionVerb {
-    CREATE = 'CREATE',
-    UPDATE = 'UPDATE',
-    DELETE = 'DELETE',
-    READ = 'READ',
-}
-
-export enum AuthPossession {
-    ANY = 'ANY',
-    OWN = 'OWN',
-}
-
 // Define Resource enum
 export enum Resource {
     /** Activation code management and validation */
