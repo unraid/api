@@ -1,5 +1,23 @@
 # Changelog
 
+## [4.16.0](https://github.com/unraid/api/compare/v4.15.1...v4.16.0) (2025-08-27)
+
+
+### Features
+
+* add `parityCheckStatus` field to `array` query ([#1611](https://github.com/unraid/api/issues/1611)) ([c508366](https://github.com/unraid/api/commit/c508366702b9fa20d9ed05559fe73da282116aa6))
+* generated UI API key management + OAuth-like API Key Flows ([#1609](https://github.com/unraid/api/issues/1609)) ([674323f](https://github.com/unraid/api/commit/674323fd87bbcc55932e6b28f6433a2de79b7ab0))
+
+
+### Bug Fixes
+
+* **connect:** clear `wanport` upon disabling remote access ([#1624](https://github.com/unraid/api/issues/1624)) ([9df6a3f](https://github.com/unraid/api/commit/9df6a3f5ebb0319aa7e3fe3be6159d39ec6f587f))
+* **connect:** valid LAN FQDN while remote access is enabled ([#1625](https://github.com/unraid/api/issues/1625)) ([aa58888](https://github.com/unraid/api/commit/aa588883cc2e2fe4aa4aea1d035236c888638f5b))
+* correctly parse periods in share names from ini file ([#1629](https://github.com/unraid/api/issues/1629)) ([7d67a40](https://github.com/unraid/api/commit/7d67a404333a38d6e1ba5c3febf02be8b1b71901))
+* **rc.unraid-api:** remove profile sourcing ([#1622](https://github.com/unraid/api/issues/1622)) ([6947b5d](https://github.com/unraid/api/commit/6947b5d4aff70319116eb65cf4c639444f3749e9))
+* remove unused api key calls ([#1628](https://github.com/unraid/api/issues/1628)) ([9cd0d6a](https://github.com/unraid/api/commit/9cd0d6ac658475efa25683ef6e3f2e1d68f7e903))
+* retry VMs init for up to 2 min ([#1612](https://github.com/unraid/api/issues/1612)) ([b2e7801](https://github.com/unraid/api/commit/b2e78012384e6b3f2630341281fc811026be23b9))
+
 ## [4.15.1](https://github.com/unraid/api/compare/v4.15.0...v4.15.1) (2025-08-20)
 
 
