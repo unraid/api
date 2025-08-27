@@ -35,8 +35,26 @@ export class ApiKeyService implements OnModuleInit {
 
     async onModuleInit() {
         this.memoryApiKeys = await this.loadAllFromDisk();
+        await this.cleanupLegacyInternalKeys();
         if (environment.IS_MAIN_PROCESS) {
             this.setupWatch();
+        }
+    }
+
+    private async cleanupLegacyInternalKeys() {
+        const legacyNames = ['CliInternal', 'ConnectInternal'];
+        const keysToDelete = this.memoryApiKeys.filter((key) => legacyNames.includes(key.name));
+
+        if (keysToDelete.length > 0) {
+            try {
+                await this.deleteApiKeys(keysToDelete.map((key) => key.id));
+                this.logger.log(`Cleaned up ${keysToDelete.length} legacy internal keys`);
+            } catch (error) {
+                this.logger.debug(
+                    error,
+                    `Failed to delete legacy internal keys: ${keysToDelete.map((key) => key.name).join(', ')}`
+                );
+            }
         }
     }
 
