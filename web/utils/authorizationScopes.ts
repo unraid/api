@@ -60,14 +60,18 @@ export function encodePermissionsToScopes(roles: Role[] = [], rawPermissions: Ra
     scopes.push(`role:${role.toLowerCase()}`);
   }
   
-  // Group permissions by their action sets for efficient encoding
-  const actionGroups = new Map<string, string[]>();
+  // Skip empty permissions
+  const validPermissions = rawPermissions.filter(perm => perm.actions && perm.actions.length > 0);
   
-  for (const perm of rawPermissions) {
-    // Convert actions to simple verbs and sort for consistent key
-    const actionVerbs = perm.actions
-      .map(action => extractActionVerb(action))
-      .sort();
+  // Group permissions by their action sets for efficient encoding
+  const actionGroups = new Map<string, Set<string>>();
+  
+  for (const perm of validPermissions) {
+    // Convert actions to simple verbs, deduplicate using Set, then sort for consistent key
+    const actionVerbsSet = new Set(
+      perm.actions.map(action => extractActionVerb(action))
+    );
+    const actionVerbs = Array.from(actionVerbsSet).sort();
     
     // Check if this is a wildcard (all CRUD actions)
     const isWildcard = actionVerbs.length === 4 && 
@@ -80,19 +84,22 @@ export function encodePermissionsToScopes(roles: Role[] = [], rawPermissions: Ra
     const resourceName = perm.resource.toLowerCase();
     
     if (!actionGroups.has(actionKey)) {
-      actionGroups.set(actionKey, []);
+      actionGroups.set(actionKey, new Set<string>());
     }
-    actionGroups.get(actionKey)!.push(resourceName);
+    actionGroups.get(actionKey)!.add(resourceName);
   }
   
   // Generate efficient scopes
-  for (const [actions, resources] of actionGroups.entries()) {
+  for (const [actions, resourcesSet] of actionGroups.entries()) {
+    // Convert Set to sorted array for consistent output
+    const resources = Array.from(resourcesSet).sort();
+    
     if (resources.length === 1) {
       // Single resource: "docker:read" or "docker:*"
       scopes.push(`${resources[0]}:${actions}`);
     } else {
       // Multiple resources with same actions: "docker+vms:read+update"
-      scopes.push(`${resources.sort().join('+')}:${actions}`);
+      scopes.push(`${resources.join('+')}:${actions}`);
     }
   }
   
