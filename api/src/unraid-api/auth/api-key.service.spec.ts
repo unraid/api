@@ -226,12 +226,12 @@ describe('ApiKeyService', () => {
         });
     });
 
-    describe('findByIdWithSecret', () => {
-        it('should return API key with secret when found', async () => {
+    describe('findById', () => {
+        it('should return API key when found', async () => {
             vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([mockApiKey]);
             await apiKeyService.onModuleInit();
 
-            const result = await apiKeyService.findByIdWithSecret(mockApiKey.id);
+            const result = await apiKeyService.findById(mockApiKey.id);
 
             expect(result).toEqual(mockApiKey);
         });
@@ -240,7 +240,7 @@ describe('ApiKeyService', () => {
             vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([]);
             await apiKeyService.onModuleInit();
 
-            const result = await apiKeyService.findByIdWithSecret('non-existent-id');
+            const result = await apiKeyService.findById('non-existent-id');
 
             expect(result).toBeNull();
         });
@@ -353,7 +353,7 @@ describe('ApiKeyService', () => {
     describe('update', () => {
         let updateMockApiKey: ApiKey;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             // Create a fresh copy of the mock data for update tests
             updateMockApiKey = {
                 id: 'test-api-id',
@@ -370,9 +370,11 @@ describe('ApiKeyService', () => {
                 createdAt: new Date().toISOString(),
             };
 
-            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([updateMockApiKey]);
+            // Initialize the memoryApiKeys with the test data
+            // The loadAllFromDisk mock will be called by onModuleInit
+            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([{ ...updateMockApiKey }]);
             vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
-            apiKeyService.onModuleInit();
+            await apiKeyService.onModuleInit();
         });
 
         it('should update name and description', async () => {
@@ -384,7 +386,6 @@ describe('ApiKeyService', () => {
                 name: updatedName,
                 description: updatedDescription,
             });
-
             expect(result.name).toBe(updatedName);
             expect(result.description).toBe(updatedDescription);
             expect(result.roles).toEqual(updateMockApiKey.roles);

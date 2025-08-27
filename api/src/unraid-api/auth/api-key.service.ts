@@ -226,10 +226,6 @@ export class ApiKeyService implements OnModuleInit {
         }
     }
 
-    public findByIdWithSecret(id: string): ApiKey | null {
-        return this.findByField('id', id);
-    }
-
     public findByField(field: keyof ApiKey, value: string): ApiKey | null {
         if (!value) return null;
 
@@ -330,7 +326,7 @@ export class ApiKeyService implements OnModuleInit {
         roles?: Role[];
         permissions?: Permission[] | AddPermissionInput[];
     }): Promise<ApiKey> {
-        const apiKey = this.findByIdWithSecret(id);
+        const apiKey = await this.findById(id);
         if (!apiKey) {
             throw new GraphQLError('API key not found');
         }
