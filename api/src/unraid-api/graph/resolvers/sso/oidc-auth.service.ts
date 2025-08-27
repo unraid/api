@@ -15,6 +15,7 @@ import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-ses
 import { OidcStateExtractor } from '@app/unraid-api/graph/resolvers/sso/oidc-state-extractor.util.js';
 import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state.service.js';
 import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
+import { ErrorExtractor } from '@app/unraid-api/utils/error-extractor.util.js';
 
 interface JwtClaims {
     sub?: string;
@@ -265,163 +266,33 @@ export class OidcAuthService {
                     `Token exchange successful, received tokens: ${Object.keys(tokens).join(', ')}`
                 );
             } catch (tokenError) {
-                // Log the full error object first to capture all details
-                this.logger.error('Token exchange failed with error: %o', tokenError);
+                // Extract and log error details using the utility
+                const extracted = ErrorExtractor.extract(tokenError);
+                this.logger.error('Token exchange failed');
+                ErrorExtractor.formatForLogging(extracted, this.logger);
 
-                const errorMessage =
-                    tokenError instanceof Error ? tokenError.message : String(tokenError);
-
-                // Enhanced error logging for debugging
-                if (tokenError instanceof Error) {
-                    // Log the error type and full details
-                    this.logger.error(`Error type: ${tokenError.constructor.name}`);
-                    this.logger.error(`Error message: ${errorMessage}`);
-
-                    // Special handling for content-type and parsing errors
-                    const errorCode = 'code' in tokenError ? (tokenError as any).code : undefined;
-                    if (
-                        errorMessage.includes('unexpected response content-type') ||
-                        errorMessage.includes('parsing error') ||
-                        errorCode === 'OAUTH_RESPONSE_IS_NOT_JSON' ||
-                        errorCode === 'OAUTH_PARSE_ERROR'
-                    ) {
-                        this.logger.error('Token endpoint returned invalid or non-JSON response.');
-                        this.logger.error('This typically means:');
-                        this.logger.error(
-                            '1. The token endpoint URL is incorrect (check for typos or wrong paths)'
-                        );
-                        this.logger.error('2. The server returned an HTML error page instead of JSON');
-                        this.logger.error(
-                            '3. Authentication failed (invalid client_id or client_secret)'
-                        );
-                        this.logger.error('4. A proxy/firewall is intercepting the request');
-                        this.logger.error('5. The OAuth server returned malformed JSON');
-                        this.logger.error(
-                            `Configured token endpoint: ${config.serverMetadata().token_endpoint}`
-                        );
-                        this.logger.error('Please verify your OIDC provider configuration.');
-
-                        // Try to extract the actual response if available
-                        if ('response' in tokenError) {
-                            const resp = (tokenError as any).response;
-                            if (resp) {
-                                if (resp.body) {
-                                    const bodyPreview =
-                                        typeof resp.body === 'string'
-                                            ? resp.body.substring(0, 500)
-                                            : JSON.stringify(resp.body).substring(0, 500);
-                                    this.logger.error(`Response preview: ${bodyPreview}`);
-                                }
-                                if (resp.headers) {
-                                    const contentType =
-                                        resp.headers['content-type'] || resp.headers['Content-Type'];
-                                    this.logger.error(`Response Content-Type: ${contentType}`);
-                                }
-                                if (resp.status) {
-                                    this.logger.error(`Response status: ${resp.status}`);
-                                }
-                            }
-                        }
-
-                        // Check for OAuth-specific error codes
-                        if ('error' in tokenError) {
-                            const oauthError = tokenError as any;
-                            if (oauthError.error) {
-                                this.logger.error(`OAuth error code: ${oauthError.error}`);
-                            }
-                            if (oauthError.error_description) {
-                                this.logger.error(
-                                    `OAuth error description: ${oauthError.error_description}`
-                                );
-                            }
-                        }
-                    }
-
-                    if (tokenError.stack) {
-                        this.logger.debug(`Stack trace: ${tokenError.stack}`);
-                    }
-
-                    // Check for common openid-client error patterns
-                    if ('response' in tokenError) {
-                        const response = (tokenError as any).response;
-                        if (response) {
-                            this.logger.error(`HTTP Response Status: ${response.status}`);
-                            this.logger.error(`HTTP Response Status Text: ${response.statusText}`);
-                            if (response.body) {
-                                this.logger.error('HTTP Response Body: %o', response.body);
-                            }
-                            if (response.headers) {
-                                this.logger.debug('HTTP Response Headers: %o', response.headers);
-                            }
-                        }
-                    }
-
-                    // Try to extract body from error if available
-                    if ('body' in tokenError) {
-                        const body = (tokenError as any).body;
-                        if (body) {
-                            if (typeof body === 'string') {
-                                this.logger.error(
-                                    `Error response body (string): ${body.substring(0, 1000)}`
-                                );
-                            } else {
-                                this.logger.error('Error response body: %o', body);
-                            }
-                        }
-                    }
-
-                    // Check for cause property (newer error patterns)
-                    // oauth4webapi uses cause chains for detailed error information
-                    if ('cause' in tokenError && tokenError.cause) {
-                        this.logger.error('Error cause chain:');
-                        let currentCause = tokenError.cause;
-                        let depth = 1;
-                        while (currentCause && depth <= 5) {
-                            if (currentCause instanceof Error) {
-                                this.logger.error(
-                                    `  [Cause ${depth}] ${currentCause.constructor.name}: ${currentCause.message}`
-                                );
-                                if ('code' in currentCause) {
-                                    this.logger.error(
-                                        `  [Cause ${depth}] Code: ${(currentCause as any).code}`
-                                    );
-                                }
-                            } else {
-                                this.logger.error(`  [Cause ${depth}]: %o`, currentCause);
-                            }
-                            currentCause =
-                                currentCause &&
-                                typeof currentCause === 'object' &&
-                                'cause' in currentCause
-                                    ? (currentCause as any).cause
-                                    : undefined;
-                            depth++;
-                        }
-                    }
-
-                    // Log any additional error properties
-                    const errorKeys = Object.keys(tokenError).filter(
-                        (k) => k !== 'message' && k !== 'stack'
+                // Special handling for content-type and parsing errors
+                if (ErrorExtractor.isOAuthResponseError(extracted)) {
+                    this.logger.error('Token endpoint returned invalid or non-JSON response.');
+                    this.logger.error('This typically means:');
+                    this.logger.error(
+                        '1. The token endpoint URL is incorrect (check for typos or wrong paths)'
                     );
-                    if (errorKeys.length > 0) {
-                        this.logger.debug(`Additional error properties: ${errorKeys.join(', ')}`);
-                        for (const key of errorKeys) {
-                            const value = (tokenError as any)[key];
-                            if (value !== undefined && value !== null) {
-                                this.logger.debug(`${key}: %o`, value);
-                            }
-                        }
-                    }
+                    this.logger.error('2. The server returned an HTML error page instead of JSON');
+                    this.logger.error('3. Authentication failed (invalid client_id or client_secret)');
+                    this.logger.error('4. A proxy/firewall is intercepting the request');
+                    this.logger.error('5. The OAuth server returned malformed JSON');
+                    this.logger.error(
+                        `Configured token endpoint: ${config.serverMetadata().token_endpoint}`
+                    );
+                    this.logger.error('Please verify your OIDC provider configuration.');
                 }
 
                 // Check if error message contains the "unexpected JWT claim" text
-                if (errorMessage.includes('unexpected JWT claim value encountered')) {
+                if (ErrorExtractor.isJwtClaimError(extracted)) {
                     this.logger.error(
                         `unexpected JWT claim value encountered during token validation by openid-client`
                     );
-                    this.logger.debug('Token exchange error details: %o', tokenError);
-
-                    // Log the actual vs expected issuer
                     this.logger.error(
                         `This error typically means the 'iss' claim in the JWT doesn't match the expected issuer`
                     );
@@ -492,9 +363,8 @@ export class OidcAuthService {
 
             return paddedToken;
         } catch (error) {
-            this.logger.error(
-                `OAuth callback error: ${error instanceof Error ? error.message : 'Unknown error'}`
-            );
+            const extracted = ErrorExtractor.extract(error);
+            this.logger.error(`OAuth callback error: ${extracted.message}`);
             // Re-throw the original error if it's already an UnauthorizedException
             if (error instanceof UnauthorizedException) {
                 throw error;
@@ -543,42 +413,15 @@ export class OidcAuthService {
                     this.configCache.set(cacheKey, config);
                     return config;
                 } catch (discoveryError) {
-                    const errorMessage =
-                        discoveryError instanceof Error ? discoveryError.message : 'Unknown error';
-                    this.logger.warn(`Discovery failed for ${provider.id}: ${errorMessage}`);
+                    const extracted = ErrorExtractor.extract(discoveryError);
+                    this.logger.warn(`Discovery failed for ${provider.id}: ${extracted.message}`);
 
                     // Log more details about the discovery error
                     const discoveryUrl = `${provider.issuer}/.well-known/openid-configuration`;
                     this.logger.debug(`Discovery URL attempted: ${discoveryUrl}`);
 
-                    // Enhanced discovery error logging
-                    if (discoveryError instanceof Error) {
-                        this.logger.debug(`Discovery error type: ${discoveryError.constructor.name}`);
-
-                        // Check for response details in the error
-                        if ('response' in discoveryError) {
-                            const response = (discoveryError as any).response;
-                            if (response) {
-                                this.logger.error(`Discovery HTTP Status: ${response.status}`);
-                                this.logger.error(`Discovery HTTP Status Text: ${response.statusText}`);
-                                if (response.body) {
-                                    this.logger.error('Discovery Response Body: %o', response.body);
-                                }
-                            }
-                        }
-
-                        // Check for cause
-                        if ('cause' in discoveryError && discoveryError.cause) {
-                            this.logger.debug('Discovery error cause: %o', discoveryError.cause);
-                        }
-
-                        this.logger.debug('Full discovery error: %o', discoveryError);
-
-                        // Log stack trace for better debugging
-                        if (discoveryError.stack) {
-                            this.logger.debug(`Stack trace: ${discoveryError.stack}`);
-                        }
-                    }
+                    // Use error extractor for consistent logging
+                    ErrorExtractor.formatForLogging(extracted, this.logger);
 
                     // If discovery fails but we have manual endpoints, use them
                     if (provider.authorizationEndpoint && provider.tokenEndpoint) {
@@ -627,8 +470,9 @@ export class OidcAuthService {
                             this.configCache.set(cacheKey, config);
                             return config;
                         } catch (manualConfigError) {
+                            const extracted = ErrorExtractor.extract(manualConfigError);
                             this.logger.error(
-                                `Failed to create manual configuration: ${manualConfigError instanceof Error ? manualConfigError.message : 'Unknown error'}`
+                                `Failed to create manual configuration: ${extracted.message}`
                             );
                             throw new Error(`Manual configuration failed for ${provider.id}`);
                         }
@@ -685,9 +529,8 @@ export class OidcAuthService {
                     this.configCache.set(cacheKey, config);
                     return config;
                 } catch (manualConfigError) {
-                    this.logger.error(
-                        `Failed to create manual configuration: ${manualConfigError instanceof Error ? manualConfigError.message : 'Unknown error'}`
-                    );
+                    const extracted = ErrorExtractor.extract(manualConfigError);
+                    this.logger.error(`Failed to create manual configuration: ${extracted.message}`);
                     throw new Error(`Manual configuration failed for ${provider.id}`);
                 }
             }
@@ -697,15 +540,14 @@ export class OidcAuthService {
                 `No configuration method available for ${provider.id}: requires either valid issuer for discovery or manual endpoints`
             );
         } catch (error) {
+            const extracted = ErrorExtractor.extract(error);
             this.logger.error(
-                `Failed to create OIDC configuration for ${provider.id}: ${
-                    error instanceof Error ? error.message : 'Unknown error'
-                }`
+                `Failed to create OIDC configuration for ${provider.id}: ${extracted.message}`
             );
 
             // Log more details in debug mode
-            if (error instanceof Error && error.stack) {
-                this.logger.debug(`Stack trace: ${error.stack}`);
+            if (extracted.stack) {
+                this.logger.debug(`Stack trace: ${extracted.stack}`);
             }
 
             throw new UnauthorizedException('Provider configuration error');

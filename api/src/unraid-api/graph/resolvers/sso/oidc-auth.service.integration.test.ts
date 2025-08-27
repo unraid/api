@@ -137,10 +137,8 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
             expect(debugLogs.some((log) => log.includes('Redirect URI in token request:'))).toBe(true);
             expect(debugLogs.some((log) => log.includes('Client ID:'))).toBe(true);
             expect(debugLogs.some((log) => log.includes('Client secret configured:'))).toBe(true);
-            // Changed logging format to use %o for full error object
-            expect(errorLogs.some((log) => log.includes('Token exchange failed with error:'))).toBe(
-                true
-            );
+            // Changed logging format to use error extractor
+            expect(errorLogs.some((log) => log.includes('Token exchange failed'))).toBe(true);
         });
 
         it('should log discovery failure details with invalid issuer URL', async () => {

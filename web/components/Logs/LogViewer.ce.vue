@@ -11,6 +11,7 @@ import {
 
 import { GET_LOG_FILES } from './log.query';
 import SingleLogViewer from './SingleLogViewer.vue';
+import LogViewerToolbar from './LogViewerToolbar.vue';
 
 // Types
 interface LogFile {
@@ -128,9 +129,17 @@ watch(presetFilter, (newValue) => {
   <div
     class="flex flex-col h-[500px] resize-y bg-background text-foreground rounded-lg border border-border overflow-hidden"
   >
+    <LogViewerToolbar
+      v-model:filter-text="filterText"
+      v-model:preset-filter="presetFilter"
+      title="Log Viewer"
+      :show-presets="true"
+      :preset-filters="presetFilters"
+      :show-toggle="false"
+      :show-refresh="false"
+    />
+    
     <div class="p-4 border-b border-border">
-      <h2 class="text-lg font-semibold mb-4">Log Viewer</h2>
-
       <div class="flex flex-wrap gap-4 items-end">
         <div class="flex-1 min-w-[200px]">
           <Label for="log-file-select">Log File</Label>
@@ -160,27 +169,6 @@ watch(presetFilter, (newValue) => {
             v-model="highlightLanguage"
             :items="highlightLanguages"
             placeholder="Select language"
-            class="w-full"
-          />
-        </div>
-
-        <div class="min-w-[150px]">
-          <Label for="preset-filter">Quick Filter</Label>
-          <Select
-            v-model="presetFilter"
-            :items="presetFilters"
-            placeholder="Select filter"
-            class="w-full"
-          />
-        </div>
-
-        <div class="min-w-[150px]">
-          <Label for="filter-text">Custom Filter</Label>
-          <Input
-            id="filter-text"
-            v-model="filterText"
-            type="text"
-            placeholder="Filter text..."
             class="w-full"
           />
         </div>
@@ -227,6 +215,7 @@ watch(presetFilter, (newValue) => {
         :line-count="lineCount"
         :auto-scroll="autoScroll"
         :highlight-language="highlightLanguage"
+        :client-filter="filterText"
         class="h-full"
       />
     </div>

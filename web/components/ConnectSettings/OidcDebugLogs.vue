@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Button, Input } from '@unraid/ui';
-import { ArrowPathIcon, EyeIcon, EyeSlashIcon, MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import SingleLogViewer from '../Logs/SingleLogViewer.vue';
+import LogViewerToolbar from '../Logs/LogViewerToolbar.vue';
 
 const showLogs = ref(false);
 const autoScroll = ref(true);
@@ -15,51 +14,20 @@ const refreshLogs = () => {
   logViewerRef.value?.refreshLogContent();
 };
 
-const toggleLogVisibility = () => {
-  showLogs.value = !showLogs.value;
-};
-
 </script>
 
 <template>
   <div class="mt-6 border-2 border-solid rounded-md shadow-md bg-background border-muted">
-    <div class="p-4 pb-3 border-b border-muted">
-      <div class="flex justify-between items-center">
-        <div>
-          <h3 class="text-base font-semibold">OIDC Debug Logs</h3>
-          <p class="text-sm mt-1 text-muted-foreground">
-            View real-time OIDC authentication and configuration logs
-          </p>
-        </div>
-        <div class="flex gap-2 items-center">
-          <div class="relative">
-            <MagnifyingGlassIcon class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              v-model="filterText"
-              type="text"
-              placeholder="Filter logs..."
-              class="pl-8 pr-2 py-1 h-8 w-48 text-sm"
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            title="Refresh logs"
-            @click="refreshLogs"
-          >
-            <ArrowPathIcon class="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            @click="toggleLogVisibility"
-          >
-            <component :is="showLogs ? EyeSlashIcon : EyeIcon" class="h-4 w-4" />
-            <span class="ml-2">{{ showLogs ? 'Hide' : 'Show' }} Logs</span>
-          </Button>
-        </div>
-      </div>
-    </div>
+    <LogViewerToolbar
+      v-model:filter-text="filterText"
+      v-model:is-expanded="showLogs"
+      title="OIDC Debug Logs"
+      description="View real-time OIDC authentication and configuration logs"
+      :show-toggle="true"
+      :show-refresh="true"
+      filter-placeholder="Filter logs..."
+      @refresh="refreshLogs"
+    />
     
     <div v-if="showLogs" class="p-4 pt-0">
       <div class="border rounded-lg bg-muted/30 h-[400px] overflow-hidden">
