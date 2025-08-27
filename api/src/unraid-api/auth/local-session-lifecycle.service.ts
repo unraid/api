@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 
 import { LocalSessionService } from '@app/unraid-api/auth/local-session.service.js';
 
@@ -12,14 +12,10 @@ import { LocalSessionService } from '@app/unraid-api/auth/local-session.service.
  * This service is only used in the API, and not in the CLI.
  */
 @Injectable()
-export class LocalSessionLifecycleService implements OnModuleInit, OnModuleDestroy {
+export class LocalSessionLifecycleService implements OnModuleInit {
     constructor(private readonly localSessionService: LocalSessionService) {}
 
     async onModuleInit() {
         await this.localSessionService.generateLocalSession();
-    }
-
-    async onModuleDestroy() {
-        await this.localSessionService.deleteLocalSession();
     }
 }
