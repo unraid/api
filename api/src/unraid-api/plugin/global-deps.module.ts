@@ -7,7 +7,7 @@ import {
     API_KEY_SERVICE_TOKEN,
     CANONICAL_INTERNAL_CLIENT_TOKEN,
     COOKIE_SERVICE_TOKEN,
-    INTERNAL_CLIENT_SERVICE_TOKEN,
+    INTERNAL_CLIENT_FACTORY_TOKEN,
     LIFECYCLE_SERVICE_TOKEN,
     NGINX_SERVICE_TOKEN,
     UPNP_CLIENT_TOKEN,
@@ -32,7 +32,7 @@ import { upnpClient } from '@app/upnp/helpers.js';
     providers: [
         SocketConfigService,
         {
-            provide: INTERNAL_CLIENT_SERVICE_TOKEN,
+            provide: INTERNAL_CLIENT_FACTORY_TOKEN,
             useClass: InternalGraphQLClientFactory,
         },
         {
@@ -80,7 +80,7 @@ import { upnpClient } from '@app/upnp/helpers.js';
         API_KEY_SERVICE_TOKEN,
         COOKIE_SERVICE_TOKEN,
         NGINX_SERVICE_TOKEN,
-        INTERNAL_CLIENT_SERVICE_TOKEN,
+        INTERNAL_CLIENT_FACTORY_TOKEN,
         CANONICAL_INTERNAL_CLIENT_TOKEN,
         PrefixedID,
         LIFECYCLE_SERVICE_TOKEN,

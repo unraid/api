@@ -1,7 +1,7 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { CANONICAL_INTERNAL_CLIENT_TOKEN, INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared';
+import { CANONICAL_INTERNAL_CLIENT_TOKEN, INTERNAL_CLIENT_FACTORY_TOKEN } from '@unraid/shared';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { CliServicesModule } from '@app/unraid-api/cli/cli-services.module.js';
@@ -31,7 +31,7 @@ describe('CliServicesModule', () => {
     });
 
     it('should provide InternalGraphQLClientFactory via token', () => {
-        const factory = module.get(INTERNAL_CLIENT_SERVICE_TOKEN);
+        const factory = module.get(INTERNAL_CLIENT_FACTORY_TOKEN);
         expect(factory).toBeDefined();
         expect(factory).toBeInstanceOf(InternalGraphQLClientFactory);
     });
@@ -51,7 +51,7 @@ describe('CliServicesModule', () => {
 
         it('should resolve InternalGraphQLClientFactory dependency via token', () => {
             // Explicitly test that the factory is available in the module context via token
-            const factory = module.get(INTERNAL_CLIENT_SERVICE_TOKEN);
+            const factory = module.get(INTERNAL_CLIENT_FACTORY_TOKEN);
             expect(factory).toBeDefined();
             expect(factory.createClient).toBeDefined();
         });

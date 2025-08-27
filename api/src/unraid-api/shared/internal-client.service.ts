@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import type { CanonicalInternalClientService, InternalGraphQLClientFactory } from '@unraid/shared';
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client/core/index.js';
-import { INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared';
+import { INTERNAL_CLIENT_FACTORY_TOKEN } from '@unraid/shared';
 
 import { LocalSessionService } from '@app/unraid-api/auth/local-session.service.js';
 
@@ -19,7 +19,7 @@ export class InternalClientService implements CanonicalInternalClientService {
     private clientCreationPromise: Promise<ApolloClient<NormalizedCacheObject>> | null = null;
 
     constructor(
-        @Inject(INTERNAL_CLIENT_SERVICE_TOKEN)
+        @Inject(INTERNAL_CLIENT_FACTORY_TOKEN)
         private readonly clientFactory: InternalGraphQLClientFactory,
         private readonly localSessionService: LocalSessionService
     ) {}
