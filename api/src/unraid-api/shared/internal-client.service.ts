@@ -26,6 +26,13 @@ export class InternalClientService implements CanonicalInternalClientService {
 
     /**
      * Get GraphQL client with local session authentication.
+     * If no client exists, one will be created with the given options.
+     * Otherwise, the options are ignored, and the existing client is returned.
+     *
+     * @param options - Options for creating the client
+     * @param options.enableSubscriptions - Whether to enable WebSocket subscriptions
+     * @param options.origin - The origin of the client
+     * @returns The GraphQL client
      */
     public async getClient(options?: {
         enableSubscriptions?: boolean;
