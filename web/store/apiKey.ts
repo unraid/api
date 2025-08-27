@@ -2,7 +2,7 @@ import { ref } from 'vue';
 import { defineStore } from 'pinia';
 
 import type { ApiKeyFragment } from '~/composables/gql/graphql.js';
-import type { AuthorizationFormData } from '~/composables/useApiKeyAuthorizationForm.js';
+import type { AuthorizationFormData } from '~/utils/authorizationScopes';
 
 import '~/store/globalPinia.js';
 
