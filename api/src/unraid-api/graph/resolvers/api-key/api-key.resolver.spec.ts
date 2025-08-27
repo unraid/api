@@ -35,7 +35,7 @@ describe('ApiKeyResolver', () => {
         authzService = new AuthZService(enforcer);
         cookieService = new CookieService();
         authService = new AuthService(cookieService, apiKeyService, authzService);
-        resolver = new ApiKeyResolver(authService, apiKeyService);
+        resolver = new ApiKeyResolver(apiKeyService);
     });
 
     describe('apiKeys', () => {

@@ -160,12 +160,12 @@ export function UsePermissions(permissions: NewFormatPermissions | OldFormatPerm
         // Escape values for safe SDL injection
         const escapeForSDL = (value: string): string => {
             // Validate that the value only contains expected characters
-            // Allow uppercase/lowercase letters and underscores (for actions like "READ_ANY")
-            const allowedPattern = /^[A-Za-z_]+$/;
+            // Allow letters, digits, underscores, colons, and hyphens (for actions like "READ_ANY", plugin-style values)
+            const allowedPattern = /^[A-Za-z0-9_:-]+$/;
             
             if (!allowedPattern.test(value)) {
                 throw new Error(
-                    `Invalid characters in permission value: "${value}". Only letters and underscores are allowed.`
+                    `Invalid characters in permission value: "${value}". Only letters, digits, underscores, colons, and hyphens are allowed.`
                 );
             }
             
