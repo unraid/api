@@ -1,6 +1,6 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { randomBytes, timingSafeEqual } from 'crypto';
-import { chmod, mkdir, readFile, unlink, writeFile } from 'fs/promises';
+import { chmod, mkdir, readFile, writeFile } from 'fs/promises';
 import { dirname } from 'path';
 
 /**
@@ -8,27 +8,20 @@ import { dirname } from 'path';
  * Creates a secure token on startup that can be used for local system operations.
  */
 @Injectable()
-export class LocalSessionService implements OnModuleInit, OnModuleDestroy {
+export class LocalSessionService implements OnModuleInit {
     private readonly logger = new Logger(LocalSessionService.name);
     private sessionToken: string | null = null;
     private static readonly SESSION_FILE_PATH = '/var/run/unraid-api/local-session';
 
+    // NOTE: do NOT cleanup the session file upon eg. module/application shutdown.
+    // That would invalidate the session after each cli invocation, which is incorrect.
+    // Instead, rely on the startup logic to invalidate/overwrite any obsolete session.
     async onModuleInit() {
         try {
             await this.generateLocalSession();
             this.logger.verbose('Local session initialized');
         } catch (error) {
             this.logger.error('Failed to initialize local session:', error);
-        }
-    }
-
-    async onModuleDestroy() {
-        if (!this.sessionToken) return;
-        try {
-            await unlink(LocalSessionService.SESSION_FILE_PATH);
-            this.logger.verbose('Local session file deleted');
-        } catch (error) {
-            this.logger.warn(error, 'Error deleting local session file');
         }
     }
 
