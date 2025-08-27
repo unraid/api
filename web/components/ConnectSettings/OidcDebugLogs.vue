@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { Button, Input } from '@unraid/ui';
 import { ArrowPathIcon, EyeIcon, EyeSlashIcon, MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import SingleLogViewer from '../Logs/SingleLogViewer.vue';
-
-// No props needed anymore
 
 const showLogs = ref(false);
 const autoScroll = ref(true);
 const filterText = ref('OIDC');
 const logViewerRef = ref<InstanceType<typeof SingleLogViewer> | null>(null);
 
-const logFilePath = computed(() => '/var/log/graphql-api.log');
+const logFilePath = '/var/log/graphql-api.log';
 
 const refreshLogs = () => {
   logViewerRef.value?.refreshLogContent();
