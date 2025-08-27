@@ -59,7 +59,7 @@ const effectiveRedirectUrl = computed(() => {
 
 // Computed property for authorization URL
 const authorizationUrl = computed(() => {
-  if (!props.show || (props.roles.length === 0 && props.rawPermissions.length === 0)) {
+  if (!props.show) {
     return '';
   }
   
@@ -74,7 +74,7 @@ const authorizationUrl = computed(() => {
 
 // Computed property for template query string (without redirect_uri)
 const templateQueryString = computed(() => {
-  if (!props.show || (props.roles.length === 0 && props.rawPermissions.length === 0)) {
+  if (!props.show) {
     return '';
   }
   
@@ -144,10 +144,15 @@ const copyTemplate = async () => {
 </script>
 
 <template>
-  <div v-if="show && hasPermissions" class="space-y-3">
+  <div v-if="show" class="space-y-3">
     <div>
       <h4 class="text-sm font-medium mb-2">Developer Authorization Link</h4>
-      <div class="flex flex-wrap gap-2">
+      <div v-if="!hasPermissions" class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg mb-3">
+        <p class="text-sm text-amber-800 dark:text-amber-200">
+          No permissions selected. Add roles or permissions above to generate an authorization link.
+        </p>
+      </div>
+      <div v-else class="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" @click="toggleShowUrl">
           <LinkIcon class="w-4 h-4 mr-1" />
           {{ showUrl ? 'Hide' : 'Show' }} URL
@@ -167,7 +172,7 @@ const copyTemplate = async () => {
       </div>
     </div>
     
-    <p class="text-sm text-muted-foreground">
+    <p v-if="hasPermissions" class="text-sm text-muted-foreground">
       Use this link to create an API key authorization for <strong>{{ appName }}</strong> with the selected permissions. 
       Perfect for testing your app's OAuth-style API key flow.
     </p>

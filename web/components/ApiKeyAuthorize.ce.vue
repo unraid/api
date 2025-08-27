@@ -88,12 +88,7 @@ const modifyApiKey = () => {
 const deny = () => {
   if (hasValidRedirectUri.value) {
     try {
-      const url = buildCallbackUrl(
-        authParams.value.redirectUri,
-        undefined,
-        'access_denied',
-        authParams.value.state
-      );
+      const url = buildCallbackUrl(undefined, 'access_denied');
       window.location.href = url;
     } catch {
       window.location.href = '/';
@@ -108,12 +103,7 @@ const returnToApp = () => {
   if (!hasValidRedirectUri.value || !createdApiKey.value) return;
   
   try {
-    const url = buildCallbackUrl(
-      authParams.value.redirectUri,
-      createdApiKey.value,
-      undefined,
-      authParams.value.state
-    );
+    const url = buildCallbackUrl(createdApiKey.value, undefined);
     window.location.href = url;
   } catch (_err) {
     error.value = 'Failed to redirect back to application';
@@ -122,7 +112,7 @@ const returnToApp = () => {
 </script>
 
 <template>
-  <div class="w-full max-w-2xl mx-auto p-6">
+  <div class="w-full max-w-4xl mx-auto p-6">
     <!-- Success state -->
     <div v-if="showSuccess && createdApiKey" class="w-full bg-background rounded-lg shadow-sm border border-muted">
       <!-- Header -->
