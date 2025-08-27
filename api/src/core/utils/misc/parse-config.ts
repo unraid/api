@@ -31,8 +31,11 @@ const flattenPeriodSections = (obj: Record<string, any>, prefix = ''): Record<st
     const result: Record<string, any> = {};
     const isNestedObject = (value: unknown) =>
         Boolean(value && typeof value === 'object' && !Array.isArray(value));
+    // prevent prototype pollution/injection
+    const isUnsafeKey = (k: string) => k === '__proto__' || k === 'prototype' || k === 'constructor';
 
     for (const [key, value] of Object.entries(obj)) {
+        if (isUnsafeKey(key)) continue;
         const fullKey = prefix ? `${prefix}.${key}` : key;
 
         if (!isNestedObject(value)) {
@@ -45,6 +48,7 @@ const flattenPeriodSections = (obj: Record<string, any>, prefix = ''): Record<st
         let hasSectionProps = false;
 
         for (const [propKey, propValue] of Object.entries(value)) {
+            if (isUnsafeKey(propKey)) continue;
             if (isNestedObject(propValue)) {
                 nestedObjs[propKey] = propValue;
             } else {

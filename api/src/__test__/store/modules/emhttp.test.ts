@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { parseConfig } from '@app/core/utils/misc/parse-config.js';
 import { store } from '@app/store/index.js';
-import { FileLoadStatus, StateFileKey } from '@app/store/types.js';
+import { FileLoadStatus } from '@app/store/types.js';
 
 // Preloading imports for faster tests
 import '@app/store/modules/emhttp.js';
