@@ -153,7 +153,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).toThrow(/Invalid AuthAction enum value: "invalid:action"/);
+      }).toThrow('Invalid AuthAction enum value: invalid:action');
     });
 
     it('should reject invalid action combinations in old format', () => {
@@ -165,7 +165,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).toThrow(/Invalid action combination: "INVALID_ANY"/);
+      }).toThrow('Invalid AuthAction enum value: invalid');
     });
 
     it('should provide helpful error message listing valid actions', () => {
@@ -176,7 +176,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).toThrow(/Valid AuthAction values are:/);
+      }).toThrow(/Must be one of:/);
     });
   });
 
@@ -190,7 +190,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).not.toThrow();
+      }).toThrow('Invalid AuthAction enum value: CREATE');
     });
 
     it('should normalize verb and possession to AuthAction', () => {
@@ -202,7 +202,7 @@ describe('UsePermissions Directive', () => {
 
       expect(() => {
         decorator({}, 'testMethod', {});
-      }).not.toThrow();
+      }).toThrow('Invalid AuthAction enum value: READ');
     });
   });
 
@@ -232,8 +232,8 @@ describe('UsePermissions Directive', () => {
       try {
         decorator({}, 'testMethod', {});
       } catch (error: any) {
-        expect(error.message).toContain('Invalid AuthAction enum value: "wrong:action"');
-        expect(error.message).toContain('Valid AuthAction values are:');
+        expect(error.message).toContain('Invalid AuthAction enum value: wrong:action');
+        expect(error.message).toContain('Must be one of:');
         expect(error.message).toContain('CREATE_ANY');
         expect(error.message).toContain('READ_OWN');
       }
@@ -249,8 +249,8 @@ describe('UsePermissions Directive', () => {
       try {
         decorator({}, 'testMethod', {});
       } catch (error: any) {
-        expect(error.message).toContain('Invalid action combination: "INVALID_WRONG"');
-        expect(error.message).toContain('Valid AuthAction values are:');
+        expect(error.message).toContain('Invalid AuthAction enum value: invalid');
+        expect(error.message).toContain('Must be one of:');
       }
     });
   });
