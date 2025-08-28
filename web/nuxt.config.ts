@@ -173,17 +173,11 @@ export default defineNuxtConfig({
     enabled: process.env.NODE_ENV === 'development',
   },
 
-  modules: ['@vueuse/nuxt', '@pinia/nuxt', 'nuxt-custom-elements', '@nuxt/eslint', '@nuxt/ui'],
+  modules: ['@vueuse/nuxt', '@pinia/nuxt', 'nuxt-custom-elements', '@nuxt/eslint'],
 
-  ui: {
-    theme: {
-      colors: ['primary'],
-    },
-  },
-
-  // Enable auto-imports
+  // Disable auto-imports for manual control
   imports: {
-    autoImport: true,
+    autoImport: false,
   },
 
   // Properly handle ES modules in testing and build environments
@@ -197,7 +191,16 @@ export default defineNuxtConfig({
   components: false,
 
   vite: {
-    plugins: getSharedPlugins(),
+    plugins: [
+      ...getSharedPlugins(),
+      // Add Nuxt UI vite plugin for Vue mode
+      (async () => {
+        const { default: NuxtUIVite } = await import('@nuxt/ui/vite');
+        return NuxtUIVite({
+          colorMode: true
+        });
+      })()
+    ],
     define: sharedDefine,
     build: {
       minify: 'terser',

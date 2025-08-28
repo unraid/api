@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-
 import { definePageMeta } from '#imports';
-
+import UButton from '@nuxt/ui/components/Button.vue';
 import Console from '../components/Docker/Console.vue';
 import Edit from '../components/Docker/Edit.vue';
 import Logs from '../components/Docker/Logs.vue';
