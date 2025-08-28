@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
+import UApp from '@nuxt/ui/components/App.vue';
+import UPage from '@nuxt/ui/components/Page.vue';
 
 import { defaultColors } from '~/themes/default';
 
@@ -27,9 +29,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <UPage>
-    <slot />
-  </UPage>
+  <UApp>
+    <UPage>
+      <slot />
+    </UPage>
+  </UApp>
 </template>
 
 <style>

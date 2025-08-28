@@ -161,3 +161,4 @@ Enables GraphQL playground at `http://tower.local/graphql`
 - Never use the `any` type. Always prefer proper typing
 - Avoid using casting whenever possible, prefer proper typing from the start
 - **IMPORTANT:** cache-manager v7 expects TTL values in **milliseconds**, not seconds. Always use milliseconds when setting cache TTL (e.g., 600000 for 10 minutes, not 600)
+- Use the nuxt UI library in VUE MODE NOT IN NUXT MODE
