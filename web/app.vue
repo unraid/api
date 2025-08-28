@@ -27,9 +27,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <UApp>
+  <div>
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-  </UApp>
+  </div>
 </template>
