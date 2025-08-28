@@ -6,7 +6,7 @@ import { ECOSYSTEM_PATH, LOG_LEVEL } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 
-interface RestartCommandOptions {
+export interface LogLevelOptions {
     logLevel?: string;
 }
 
@@ -19,18 +19,12 @@ export class RestartCommand extends CommandRunner {
         super();
     }
 
-    async run(_?: string[], options: RestartCommandOptions = {}): Promise<void> {
+    async run(_?: string[], options: LogLevelOptions = {}): Promise<void> {
         try {
-            this.logger.info(
-                JSON.stringify(
-                    { options, env: LOG_LEVEL, target: options.logLevel ?? LOG_LEVEL },
-                    null,
-                    2
-                )
-            );
             this.logger.info('Restarting the Unraid API...');
+            const env = { LOG_LEVEL: options.logLevel ?? LOG_LEVEL };
             const { stderr, stdout } = await this.pm2.run(
-                { tag: 'PM2 Restart', raw: true, env: { LOG_LEVEL: options.logLevel ?? LOG_LEVEL } },
+                { tag: 'PM2 Restart', raw: true, extendEnv: true, env },
                 'restart',
                 ECOSYSTEM_PATH,
                 '--update-env'
