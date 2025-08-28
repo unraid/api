@@ -27,7 +27,7 @@ export class StartCommand extends CommandRunner {
     async run(_: string[], options: LogLevelOptions): Promise<void> {
         this.logger.info('Starting the Unraid API');
         await this.cleanupPM2State();
-        const env = { LOG_LEVEL: options.logLevel ?? LOG_LEVEL };
+        const env = { LOG_LEVEL: options.logLevel };
         const { stderr, stdout } = await this.pm2.run(
             { tag: 'PM2 Start', raw: true, extendEnv: true, env },
             'start',
@@ -46,7 +46,7 @@ export class StartCommand extends CommandRunner {
     @Option({
         flags: `--log-level <${levels.join('|')}>`,
         description: 'log level to use',
-        defaultValue: 'info',
+        defaultValue: LOG_LEVEL,
     })
     parseLogLevel(val: string): LogLevel {
         return levels.includes(val as LogLevel) ? (val as LogLevel) : 'info';

@@ -7,7 +7,7 @@ import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 
 export interface LogLevelOptions {
-    logLevel?: string;
+    logLevel?: LogLevel;
 }
 
 @Command({ name: 'restart', description: 'Restart the Unraid API' })
@@ -22,7 +22,7 @@ export class RestartCommand extends CommandRunner {
     async run(_?: string[], options: LogLevelOptions = {}): Promise<void> {
         try {
             this.logger.info('Restarting the Unraid API...');
-            const env = { LOG_LEVEL: options.logLevel ?? LOG_LEVEL };
+            const env = { LOG_LEVEL: options.logLevel };
             const { stderr, stdout } = await this.pm2.run(
                 { tag: 'PM2 Restart', raw: true, extendEnv: true, env },
                 'restart',
@@ -51,7 +51,7 @@ export class RestartCommand extends CommandRunner {
     @Option({
         flags: `--log-level <${levels.join('|')}>`,
         description: 'log level to use',
-        defaultValue: 'info',
+        defaultValue: LOG_LEVEL,
     })
     parseLogLevel(val: string): LogLevel {
         return levels.includes(val as LogLevel) ? (val as LogLevel) : 'info';
