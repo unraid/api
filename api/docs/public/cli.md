@@ -22,7 +22,7 @@ Starts the Unraid API service.
 
 Options:
 
-- `--log-level`: Set logging level (trace|debug|info|warn|error)
+- `--log-level`: Set logging level (trace|debug|info|warn|error|fatal)
 
 Alternative: You can also set the log level using the `LOG_LEVEL` environment variable:
 
@@ -50,7 +50,7 @@ Restarts the Unraid API service.
 
 Options:
 
-- `--log-level`: Set logging level (trace|debug|info|warn|error)
+- `--log-level`: Set logging level (trace|debug|info|warn|error|fatal)
 
 Alternative: You can also set the log level using the `LOG_LEVEL` environment variable:
 
