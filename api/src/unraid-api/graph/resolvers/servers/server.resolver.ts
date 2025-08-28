@@ -24,7 +24,7 @@ export class ServerResolver {
         resource: Resource.SERVERS,
     })
     public async server(): Promise<ServerModel | null> {
-        return this.getLocalServer()[0] || null;
+        return this.getLocalServer() || null;
     }
 
     @Query(() => [ServerModel])
@@ -33,7 +33,7 @@ export class ServerResolver {
         resource: Resource.SERVERS,
     })
     public async servers(): Promise<ServerModel[]> {
-        return this.getLocalServer();
+        return [this.getLocalServer()];
     }
 
     @Subscription(() => ServerModel)
@@ -45,7 +45,7 @@ export class ServerResolver {
         return createSubscription(PUBSUB_CHANNEL.SERVERS);
     }
 
-    private getLocalServer(): ServerModel[] {
+    private getLocalServer(): ServerModel {
         const emhttp = getters.emhttp();
         const connectConfig = this.configService.get('connect');
 
@@ -64,22 +64,17 @@ export class ServerResolver {
             avatar: '',
         };
 
-        return [
-            {
-                id: 'local',
-                owner,
-                guid: guid || '',
-                apikey: connectConfig?.config?.apikey ?? '',
-                name: name ?? 'Local Server',
-                status:
-                    connectConfig?.mothership?.status === MinigraphStatus.CONNECTED
-                        ? ServerStatus.ONLINE
-                        : ServerStatus.OFFLINE,
-                wanip,
-                lanip,
-                localurl,
-                remoteurl,
-            },
-        ];
+        return {
+            id: 'local',
+            owner,
+            guid: guid || '',
+            apikey: connectConfig?.config?.apikey ?? '',
+            name: name ?? 'Local Server',
+            status: ServerStatus.ONLINE,
+            wanip,
+            lanip,
+            localurl,
+            remoteurl,
+        };
     }
 }
