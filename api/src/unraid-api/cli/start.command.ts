@@ -6,6 +6,7 @@ import { levels } from '@app/core/log.js';
 import { ECOSYSTEM_PATH, LOG_LEVEL } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
+import { parseLogLevelOption } from '@app/unraid-api/cli/restart.command.js';
 
 @Command({ name: 'start', description: 'Start the Unraid API' })
 export class StartCommand extends CommandRunner {
@@ -46,9 +47,9 @@ export class StartCommand extends CommandRunner {
     @Option({
         flags: `--log-level <${levels.join('|')}>`,
         description: 'log level to use',
-        defaultValue: LOG_LEVEL,
+        defaultValue: LOG_LEVEL.toLowerCase(),
     })
     parseLogLevel(val: string): LogLevel {
-        return levels.includes(val as LogLevel) ? (val as LogLevel) : 'info';
+        return parseLogLevelOption(val);
     }
 }

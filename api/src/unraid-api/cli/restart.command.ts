@@ -10,6 +10,14 @@ export interface LogLevelOptions {
     logLevel?: LogLevel;
 }
 
+export function parseLogLevelOption(val: string, allowedLevels: string[] = [...levels]): LogLevel {
+    const normalized = val.toLowerCase() as LogLevel;
+    if (allowedLevels.includes(normalized)) {
+        return normalized;
+    }
+    throw new Error(`Invalid --log-level "${val}". Allowed: ${allowedLevels.join(', ')}`);
+}
+
 @Command({ name: 'restart', description: 'Restart the Unraid API' })
 export class RestartCommand extends CommandRunner {
     constructor(
@@ -51,9 +59,9 @@ export class RestartCommand extends CommandRunner {
     @Option({
         flags: `--log-level <${levels.join('|')}>`,
         description: 'log level to use',
-        defaultValue: LOG_LEVEL,
+        defaultValue: LOG_LEVEL.toLowerCase(),
     })
     parseLogLevel(val: string): LogLevel {
-        return levels.includes(val as LogLevel) ? (val as LogLevel) : 'info';
+        return parseLogLevelOption(val);
     }
 }
