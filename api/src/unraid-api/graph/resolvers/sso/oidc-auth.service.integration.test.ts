@@ -237,7 +237,7 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
                 'http://test.local',
                 {
                     'x-forwarded-host': 'test.local',
-                    'x-forwarded-proto': 'http'
+                    'x-forwarded-proto': 'http',
                 }
             );
 

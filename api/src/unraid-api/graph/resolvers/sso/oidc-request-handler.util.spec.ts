@@ -170,7 +170,7 @@ describe('OidcRequestHandler', () => {
                 'https://example.com/callback',
                 {
                     'x-forwarded-proto': 'https',
-                    'x-forwarded-host': 'example.com'
+                    'x-forwarded-host': 'example.com',
                 }
             );
             expect(mockLogger.debug).toHaveBeenCalledWith(
@@ -218,7 +218,7 @@ describe('OidcRequestHandler', () => {
                 'https://example.com/callback?code=123&state=456',
                 {
                     'x-forwarded-proto': 'https',
-                    'x-forwarded-host': 'example.com'
+                    'x-forwarded-host': 'example.com',
                 }
             );
             expect(mockLogger.debug).toHaveBeenCalledWith('Callback request - Provider: provider123');
