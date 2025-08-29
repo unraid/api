@@ -974,108 +974,23 @@ input DeleteRCloneRemoteInput {
   name: String!
 }
 
-type Config implements Node {
-  id: PrefixedID!
-  valid: Boolean
-  error: String
-}
-
 type ConfigFile {
   name: String!
   content: String!
   path: String!
+
+  """Human-readable file size (e.g., "1.5 KB", "2.3 MB")"""
+  sizeReadable: String!
 }
 
 type ConfigFilesResponse {
   files: [ConfigFile!]!
 }
 
-type OidcAuthorizationRule {
-  """The claim to check (e.g., email, sub, groups, hd)"""
-  claim: String!
-
-  """The comparison operator"""
-  operator: AuthorizationOperator!
-
-  """The value(s) to match against"""
-  value: [String!]!
-}
-
-"""Operators for authorization rule matching"""
-enum AuthorizationOperator {
-  EQUALS
-  CONTAINS
-  ENDS_WITH
-  STARTS_WITH
-}
-
-type OidcProvider {
-  """The unique identifier for the OIDC provider"""
+type Config implements Node {
   id: PrefixedID!
-
-  """Display name of the OIDC provider"""
-  name: String!
-
-  """OAuth2 client ID registered with the provider"""
-  clientId: String!
-
-  """OAuth2 client secret (if required by provider)"""
-  clientSecret: String
-
-  """
-  OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration
-  """
-  issuer: String
-
-  """
-  OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
-  """
-  authorizationEndpoint: String
-
-  """
-  OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
-  """
-  tokenEndpoint: String
-
-  """
-  JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
-  """
-  jwksUri: String
-
-  """OAuth2 scopes to request (e.g., openid, profile, email)"""
-  scopes: [String!]!
-
-  """Flexible authorization rules based on claims"""
-  authorizationRules: [OidcAuthorizationRule!]
-
-  """
-  Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR.
-  """
-  authorizationRuleMode: AuthorizationRuleMode
-
-  """Custom text for the login button"""
-  buttonText: String
-
-  """URL or base64 encoded icon for the login button"""
-  buttonIcon: String
-
-  """
-  Button variant style from Reka UI. See https://reka-ui.com/docs/components/button
-  """
-  buttonVariant: String
-
-  """
-  Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;")
-  """
-  buttonStyle: String
-}
-
-"""
-Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass)
-"""
-enum AuthorizationRuleMode {
-  OR
-  AND
+  valid: Boolean
+  error: String
 }
 
 type PublicPartnerInfo {
@@ -1919,6 +1834,94 @@ type ApiConfig {
   plugins: [String!]!
 }
 
+type OidcAuthorizationRule {
+  """The claim to check (e.g., email, sub, groups, hd)"""
+  claim: String!
+
+  """The comparison operator"""
+  operator: AuthorizationOperator!
+
+  """The value(s) to match against"""
+  value: [String!]!
+}
+
+"""Operators for authorization rule matching"""
+enum AuthorizationOperator {
+  EQUALS
+  CONTAINS
+  ENDS_WITH
+  STARTS_WITH
+}
+
+type OidcProvider {
+  """The unique identifier for the OIDC provider"""
+  id: PrefixedID!
+
+  """Display name of the OIDC provider"""
+  name: String!
+
+  """OAuth2 client ID registered with the provider"""
+  clientId: String!
+
+  """OAuth2 client secret (if required by provider)"""
+  clientSecret: String
+
+  """
+  OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration
+  """
+  issuer: String
+
+  """
+  OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+  """
+  authorizationEndpoint: String
+
+  """
+  OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+  """
+  tokenEndpoint: String
+
+  """
+  JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+  """
+  jwksUri: String
+
+  """OAuth2 scopes to request (e.g., openid, profile, email)"""
+  scopes: [String!]!
+
+  """Flexible authorization rules based on claims"""
+  authorizationRules: [OidcAuthorizationRule!]
+
+  """
+  Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR.
+  """
+  authorizationRuleMode: AuthorizationRuleMode
+
+  """Custom text for the login button"""
+  buttonText: String
+
+  """URL or base64 encoded icon for the login button"""
+  buttonIcon: String
+
+  """
+  Button variant style from Reka UI. See https://reka-ui.com/docs/components/button
+  """
+  buttonVariant: String
+
+  """
+  Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;")
+  """
+  buttonStyle: String
+}
+
+"""
+Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass)
+"""
+enum AuthorizationRuleMode {
+  OR
+  AND
+}
+
 type OidcConfiguration {
   """List of configured OIDC providers"""
   providers: [OidcProvider!]!
@@ -2329,6 +2332,7 @@ type Query {
   getApiKeyCreationFormSchema: ApiKeyFormSettings!
   config: Config!
   allConfigFiles: ConfigFilesResponse!
+  configFile(name: String!): ConfigFile
   flash: Flash!
   logFiles: [LogFile!]!
   logFile(path: String!, lines: Int, startLine: Int): LogFileContent!

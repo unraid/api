@@ -453,6 +453,8 @@ export type ConfigFile = {
   content: Scalars['String']['output'];
   name: Scalars['String']['output'];
   path: Scalars['String']['output'];
+  /** Human-readable file size (e.g., "1.5 KB", "2.3 MB") */
+  sizeReadable: Scalars['String']['output'];
 };
 
 export type ConfigFilesResponse = {
@@ -1653,6 +1655,7 @@ export type Query = {
   array: UnraidArray;
   cloud: Cloud;
   config: Config;
+  configFile?: Maybe<ConfigFile>;
   connect: Connect;
   customization?: Maybe<Customization>;
   disk: Disk;
@@ -1713,6 +1716,11 @@ export type Query = {
 
 export type QueryApiKeyArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryConfigFileArgs = {
+  name: Scalars['String']['input'];
 };
 
 

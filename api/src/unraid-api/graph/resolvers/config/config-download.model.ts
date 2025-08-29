@@ -1,19 +1,32 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
+import { IsNotEmpty, IsString } from 'class-validator';
+
 @ObjectType()
 export class ConfigFile {
     @Field()
-    name: string;
+    @IsString()
+    @IsNotEmpty()
+    name!: string;
 
     @Field()
-    content: string;
+    @IsString()
+    @IsNotEmpty()
+    content!: string;
 
     @Field()
-    path: string;
+    @IsString()
+    @IsNotEmpty()
+    path!: string;
+
+    @Field({ description: 'Human-readable file size (e.g., "1.5 KB", "2.3 MB")' })
+    @IsString()
+    @IsNotEmpty()
+    sizeReadable!: string;
 }
 
 @ObjectType()
 export class ConfigFilesResponse {
     @Field(() => [ConfigFile])
-    files: ConfigFile[];
+    files!: ConfigFile[];
 }

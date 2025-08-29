@@ -2,7 +2,6 @@
 import { ArrowDownTrayIcon, DocumentTextIcon } from '@heroicons/vue/24/outline';
 import { Button, CardWrapper, PageContainer } from '@unraid/ui';
 import { useQuery } from '@vue/apollo-composable';
-import { convert } from 'convert';
 import FileViewer from '~/components/FileViewer.vue';
 import { allConfigFilesQuery } from '~/graphql/config-download.query';
 
@@ -28,11 +27,6 @@ const downloadAllFiles = () => {
       downloadFile(file.name, file.content);
     }
   });
-};
-
-const formatFileSize = (content: string) => {
-  const bytes = new TextEncoder().encode(content).length;
-  return convert(bytes, 'bytes').to('best');
 };
 </script>
 
@@ -91,7 +85,7 @@ const formatFileSize = (content: string) => {
               <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                   <span class="text-muted-foreground">Size:</span>
-                  <span class="font-mono">{{ formatFileSize(file.content) }}</span>
+                  <span class="font-mono">{{ file.sizeReadable }}</span>
                 </div>
                 <div v-if="file.path !== 'memory'" class="flex justify-between">
                   <span class="text-muted-foreground">Path:</span>
