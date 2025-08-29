@@ -2,6 +2,7 @@ import { Controller, Get, Logger, Param, Query, Req, Res, UnauthorizedException 
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
+import escapeHtml from 'escape-html';
 
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
@@ -15,6 +16,7 @@ import { validateRedirectUri } from '@app/unraid-api/utils/redirect-uri-validato
 export class RestController {
     protected logger = new Logger(RestController.name);
     protected oidcLogger = new Logger('OidcRestController');
+
     constructor(
         private readonly restService: RestService,
         private readonly oidcAuthService: OidcAuthService,
@@ -107,7 +109,7 @@ export class RestController {
                 return res
                     .status(400)
                     .send(
-                        `Invalid redirect_uri: ${params.redirectUri}. ${validation.reason}. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs`
+                        `Invalid redirect_uri: ${escapeHtml(params.redirectUri)}. ${escapeHtml(validation.reason || 'Unknown validation error')}. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs`
                     );
             }
 
