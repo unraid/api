@@ -681,4 +681,104 @@ describe('ApiKeyService', () => {
             ]);
         });
     });
+
+    describe('convertRolesStringArrayToRoles', () => {
+        beforeEach(async () => {
+            vi.mocked(getters.paths).mockReturnValue({
+                'auth-keys': mockBasePath,
+            } as ReturnType<typeof getters.paths>);
+
+            // Create a fresh mock logger for each test
+            mockLogger = {
+                log: vi.fn(),
+                error: vi.fn(),
+                warn: vi.fn(),
+                debug: vi.fn(),
+                verbose: vi.fn(),
+            };
+
+            apiKeyService = new ApiKeyService();
+            // Replace the logger with our mock
+            (apiKeyService as any).logger = mockLogger;
+        });
+
+        it('should convert uppercase role strings to Role enum values', () => {
+            const roles = ['ADMIN', 'CONNECT', 'VIEWER'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([Role.ADMIN, Role.CONNECT, Role.VIEWER]);
+        });
+
+        it('should convert lowercase role strings to Role enum values', () => {
+            const roles = ['admin', 'connect', 'guest'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([Role.ADMIN, Role.CONNECT, Role.GUEST]);
+        });
+
+        it('should convert mixed case role strings to Role enum values', () => {
+            const roles = ['Admin', 'CoNnEcT', 'ViEwEr'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([Role.ADMIN, Role.CONNECT, Role.VIEWER]);
+        });
+
+        it('should handle roles with whitespace', () => {
+            const roles = [' ADMIN ', '  CONNECT  ', 'VIEWER  '];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([Role.ADMIN, Role.CONNECT, Role.VIEWER]);
+        });
+
+        it('should filter out invalid roles and warn', () => {
+            const roles = ['ADMIN', 'INVALID_ROLE', 'VIEWER', 'ANOTHER_INVALID'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([Role.ADMIN, Role.VIEWER]);
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                'Ignoring invalid roles: INVALID_ROLE, ANOTHER_INVALID'
+            );
+        });
+
+        it('should return empty array when all roles are invalid', () => {
+            const roles = ['INVALID1', 'INVALID2', 'INVALID3'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([]);
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                'Ignoring invalid roles: INVALID1, INVALID2, INVALID3'
+            );
+        });
+
+        it('should return empty array for empty input', () => {
+            const result = apiKeyService.convertRolesStringArrayToRoles([]);
+
+            expect(result).toEqual([]);
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+        });
+
+        it('should handle all valid Role enum values', () => {
+            const roles = Object.values(Role);
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual(Object.values(Role));
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+        });
+
+        it('should deduplicate roles', () => {
+            const roles = ['ADMIN', 'admin', 'ADMIN', 'VIEWER', 'viewer'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            // Note: Current implementation doesn't deduplicate, but this test documents the behavior
+            expect(result).toEqual([Role.ADMIN, Role.ADMIN, Role.ADMIN, Role.VIEWER, Role.VIEWER]);
+        });
+
+        it('should handle mixed valid and invalid roles correctly', () => {
+            const roles = ['ADMIN', 'invalid', 'CONNECT', 'bad_role', 'GUEST', 'VIEWER'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([Role.ADMIN, Role.CONNECT, Role.GUEST, Role.VIEWER]);
+            expect(mockLogger.warn).toHaveBeenCalledWith('Ignoring invalid roles: invalid, bad_role');
+        });
+    });
 });

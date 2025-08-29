@@ -39,6 +39,12 @@ export class AddApiKeyQuestionSet {
         return this.apiKeyService.convertRolesStringArrayToRoles(val);
     }
 
+    @WhenFor({ name: 'roles' })
+    shouldAskRoles(options: { roles?: Role[]; permissions?: Permission[] }): boolean {
+        // Ask for roles if they weren't provided or are empty
+        return !options.roles || options.roles.length === 0;
+    }
+
     @ChoicesFor({ name: 'roles' })
     async getRoles() {
         return Object.values(Role);
@@ -51,6 +57,12 @@ export class AddApiKeyQuestionSet {
     })
     parsePermissions(val: string[]): Permission[] {
         return this.apiKeyService.convertPermissionsStringArrayToPermissions(val);
+    }
+
+    @WhenFor({ name: 'permissions' })
+    shouldAskPermissions(options: { roles?: Role[]; permissions?: Permission[] }): boolean {
+        // Ask for permissions if they weren't provided or are empty
+        return !options.permissions || options.permissions.length === 0;
     }
 
     @ChoicesFor({ name: 'permissions' })
@@ -72,6 +84,6 @@ export class AddApiKeyQuestionSet {
 
     @WhenFor({ name: 'overwrite' })
     shouldAskOverwrite(options: { name: string }): boolean {
-        return Boolean(this.apiKeyService.findByKey(options.name));
+        return Boolean(this.apiKeyService.findByField('name', options.name));
     }
 }
