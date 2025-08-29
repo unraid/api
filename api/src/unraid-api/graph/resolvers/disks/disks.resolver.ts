@@ -33,4 +33,9 @@ export class DisksResolver {
     public async temperature(@Parent() disk: Disk) {
         return this.disksService.getTemperature(disk.device);
     }
+
+    @ResolveField(() => Boolean)
+    public async isSpinning(@Parent() disk: Disk) {
+        return disk.isSpinning;
+    }
 }
