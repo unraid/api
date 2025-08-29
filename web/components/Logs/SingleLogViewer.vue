@@ -204,6 +204,7 @@ const highlightLog = (content: string): string => {
     let highlighted: string;
     
     // Check if content contains ANSI escape sequences
+    // eslint-disable-next-line no-control-regex
     const hasAnsiSequences = /\x1b\[/.test(content);
     
     if (hasAnsiSequences) {
