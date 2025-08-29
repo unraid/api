@@ -84,6 +84,6 @@ export class AddApiKeyQuestionSet {
 
     @WhenFor({ name: 'overwrite' })
     shouldAskOverwrite(options: { name: string }): boolean {
-        return Boolean(this.apiKeyService.findByKey(options.name));
+        return Boolean(this.apiKeyService.findByField('name', options.name));
     }
 }
