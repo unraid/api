@@ -1,7 +1,7 @@
-const fs = require('fs');
+import fs from 'fs';
 
 // Read the JSON file
-const filePath = '../web/.nuxt/nuxt-custom-elements/dist/unraid-components/manifest.json';
+const filePath = './dist-wc/webcomponent.manifest.json';
 const jsonData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
 // Add timestamp (ts) to the JSON data

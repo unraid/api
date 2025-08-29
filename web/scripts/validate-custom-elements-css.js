@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 /**
  * Recursively find JS files in a directory
@@ -33,7 +33,7 @@ function validateCustomElementsCSS() {
 
   try {
     // Find the custom elements JS files
-    const customElementsDir = '.nuxt/nuxt-custom-elements/dist';
+    const customElementsDir = './dist-wc';
     const jsFiles = findJSFiles(customElementsDir);
 
     if (jsFiles.length === 0) {
