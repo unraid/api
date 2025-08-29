@@ -21,7 +21,14 @@ unraid-api start [--log-level <level>]
 Starts the Unraid API service.
 
 Options:
-- `--log-level`: Set logging level (trace|debug|info|warn|error)
+
+- `--log-level`: Set logging level (trace|debug|info|warn|error|fatal)
+
+Alternative: You can also set the log level using the `LOG_LEVEL` environment variable:
+
+```bash
+LOG_LEVEL=trace unraid-api start
+```
 
 ### Stop
 
@@ -36,10 +43,20 @@ Stops the Unraid API service.
 ### Restart
 
 ```bash
-unraid-api restart
+unraid-api restart [--log-level <level>]
 ```
 
 Restarts the Unraid API service.
+
+Options:
+
+- `--log-level`: Set logging level (trace|debug|info|warn|error|fatal)
+
+Alternative: You can also set the log level using the `LOG_LEVEL` environment variable:
+
+```bash
+LOG_LEVEL=trace unraid-api restart
+```
 
 ### Logs
 
