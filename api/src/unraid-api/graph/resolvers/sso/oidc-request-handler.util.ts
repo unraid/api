@@ -59,8 +59,13 @@ export class OidcRequestHandler {
         logger.debug(`Authorization request - Full URL: ${requestInfo.fullUrl}`);
         logger.debug(`Authorization request - Redirect URI: ${redirectUri}`);
 
-        // Get authorization URL using the validated redirect URI
-        const authUrl = await oidcAuthService.getAuthorizationUrl(providerId, state, redirectUri);
+        // Get authorization URL using the validated redirect URI and request headers
+        const authUrl = await oidcAuthService.getAuthorizationUrl(
+            providerId,
+            state,
+            redirectUri,
+            req.headers as Record<string, string | string[] | undefined>
+        );
 
         logger.log(`Redirecting to OIDC provider: ${authUrl}`);
         return authUrl;
@@ -88,13 +93,14 @@ export class OidcRequestHandler {
         logger.debug(`Callback request - Full URL: ${requestInfo.fullUrl}`);
         logger.debug(`Redirect URI will be retrieved from encrypted state`);
 
-        // Handle the callback using stored redirect URI from state
+        // Handle the callback using stored redirect URI from state and request headers
         const paddedToken = await oidcAuthService.handleCallback(
             providerId,
             code,
             state,
             undefined, // requestOrigin no longer needed
-            requestInfo.fullUrl
+            requestInfo.fullUrl,
+            req.headers as Record<string, string | string[] | undefined>
         );
 
         return {

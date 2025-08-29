@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Button } from '@unraid/ui';
+import type { SelectItemType } from '@unraid/ui';
 import { ArrowPathIcon, EyeIcon, EyeSlashIcon, ChevronDownIcon, ChevronUpIcon } from '@heroicons/vue/24/outline';
 import LogFilterInput from './LogFilterInput.vue';
-
-interface PresetFilter {
-  value: string;
-  label: string;
-}
 
 const props = withDefaults(defineProps<{
   title?: string;
@@ -18,15 +14,19 @@ const props = withDefaults(defineProps<{
   showRefresh?: boolean;
   showPresets?: boolean;
   presetFilter?: string;
-  presetFilters?: PresetFilter[];
+  presetFilters?: SelectItemType[];
   filterPlaceholder?: string;
   filterLabel?: string;
   compact?: boolean;
 }>(), {
+  title: '',
+  description: '',
   showToggle: false,
   isExpanded: true,
   showRefresh: true,
   showPresets: false,
+  presetFilter: 'none',
+  presetFilters: () => [],
   filterPlaceholder: 'Filter logs...',
   filterLabel: 'Filter',
   compact: false
@@ -84,7 +84,7 @@ const handleRefresh = () => {
         <Button
           v-if="showRefresh"
           variant="outline"
-          :size="compact ? 'xs' : 'sm'"
+          :size="compact ? 'sm' : 'sm'"
           title="Refresh logs"
           @click="handleRefresh"
         >
@@ -94,7 +94,7 @@ const handleRefresh = () => {
         <Button
           v-if="showToggle"
           variant="outline"
-          :size="compact ? 'xs' : 'sm'"
+          :size="compact ? 'sm' : 'sm'"
           @click="toggleExpanded"
         >
           <component 
@@ -107,7 +107,7 @@ const handleRefresh = () => {
         <Button
           v-else-if="showToggle === false && typeof isExpanded === 'boolean'"
           variant="ghost"
-          :size="compact ? 'xs' : 'sm'"
+          :size="compact ? 'sm' : 'sm'"
           class="p-1"
           @click="toggleExpanded"
         >

@@ -1,23 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Input, Label, Select } from '@unraid/ui';
+import type { SelectItemType } from '@unraid/ui';
 import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
-
-interface PresetFilter {
-  value: string;
-  label: string;
-}
 
 const props = withDefaults(defineProps<{
   modelValue: string;
   preset?: string;
   showPresets?: boolean;
-  presetFilters?: PresetFilter[];
+  presetFilters?: SelectItemType[];
   inputClass?: string;
   placeholder?: string;
   label?: string;
   showIcon?: boolean;
 }>(), {
+  preset: 'none',
   showPresets: false,
   presetFilters: () => [
     { value: 'none', label: 'No Filter' },

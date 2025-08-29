@@ -4,7 +4,7 @@ import {
   scopesToFormData,
   buildCallbackUrl as buildUrl,
   generateAuthorizationUrl as generateUrl
-} from '~/utils/authorizationScopes.js';
+} from '~/utils/authorizationScopes';
 
 export interface ApiKeyAuthorizationParams {
   name: string;
@@ -13,22 +13,6 @@ export interface ApiKeyAuthorizationParams {
   redirectUri: string;
   state: string;
 }
-
-// Re-export types from utils for convenience
-export type { 
-  AuthorizationFormData,
-  AuthorizationLinkParams,
-  RawPermission 
-} from '~/utils/authorizationScopes.js';
-
-// Re-export functions for direct use
-export { 
-  encodePermissionsToScopes,
-  decodeScopesToPermissions,
-  extractActionVerb,
-  generateAuthorizationUrl,
-  buildCallbackUrl
-} from '~/utils/authorizationScopes.js';
 
 /**
  * Composable for authorization link handling with reactive state
