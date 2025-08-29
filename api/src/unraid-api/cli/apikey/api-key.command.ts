@@ -15,6 +15,7 @@ interface KeyOptions {
     description?: string;
     roles?: Role[];
     permissions?: Permission[];
+    overwrite?: boolean;
 }
 
 @Command({
@@ -91,6 +92,14 @@ ACTIONS: ${Object.values(AuthAction).join(', ')}`,
         return true;
     }
 
+    @Option({
+        flags: '--overwrite',
+        description: 'Overwrite existing API key if it exists',
+    })
+    parseOverwrite(): boolean {
+        return true;
+    }
+
     /** Prompt the user to select API keys to delete. Then, delete the selected keys. */
     private async deleteKeys() {
         const allKeys = await this.apiKeyService.findAll();
@@ -140,6 +149,15 @@ ACTIONS: ${Object.values(AuthAction).join(', ')}`,
                 if (!hasMinimumInfo) {
                     // Interactive mode - prompt for missing fields
                     options = await this.inquirerService.prompt(AddApiKeyQuestionSet.name, options);
+                } else {
+                    // Non-interactive mode - check if key exists and handle overwrite
+                    const existingKey = this.apiKeyService.findByField('name', options.name);
+                    if (existingKey && !options.overwrite) {
+                        this.logger.error(
+                            `API key with name '${options.name}' already exists. Use --overwrite to replace it.`
+                        );
+                        process.exit(1);
+                    }
                 }
 
                 this.logger.log('Creating API Key...');
@@ -157,7 +175,7 @@ ACTIONS: ${Object.values(AuthAction).join(', ')}`,
                     description: options.description || `CLI generated key: ${options.name}`,
                     roles: options.roles,
                     permissions: options.permissions,
-                    overwrite: true,
+                    overwrite: options.overwrite ?? false,
                 });
 
                 this.logger.log(key.key);

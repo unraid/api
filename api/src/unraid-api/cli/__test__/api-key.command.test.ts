@@ -110,9 +110,57 @@ describe('ApiKeyCommand', () => {
                 description: 'Test description',
                 roles: ['ADMIN'],
                 permissions: undefined,
-                overwrite: true,
+                overwrite: false,
             });
             expect(logService.log).toHaveBeenCalledWith('new-api-key-456');
+        });
+
+        it('should error when key exists and overwrite is not set in non-interactive mode', async () => {
+            const mockKey = { key: 'existing-key', name: 'test-key' };
+            vi.mocked(apiKeyService.findByField)
+                .mockReturnValueOnce(null) // First call in line 131
+                .mockReturnValueOnce(mockKey as any); // Second call in non-interactive check
+            const exitSpy = vi.spyOn(process, 'exit').mockImplementation(() => {
+                throw new Error('process.exit');
+            });
+
+            await expect(
+                command.run([], {
+                    name: 'test-key',
+                    create: true,
+                    roles: ['ADMIN'] as any,
+                })
+            ).rejects.toThrow();
+
+            expect(logService.error).toHaveBeenCalledWith(
+                "API key with name 'test-key' already exists. Use --overwrite to replace it."
+            );
+            expect(exitSpy).toHaveBeenCalledWith(1);
+            exitSpy.mockRestore();
+        });
+
+        it('should create key with overwrite when key exists and overwrite is set', async () => {
+            const mockKey = { key: 'existing-key', name: 'test-key' };
+            vi.mocked(apiKeyService.findByField)
+                .mockReturnValueOnce(null) // First call in line 131
+                .mockReturnValueOnce(mockKey as any); // Second call in non-interactive check
+            vi.mocked(apiKeyService.create).mockResolvedValue({ key: 'overwritten-key' } as any);
+
+            await command.run([], {
+                name: 'test-key',
+                create: true,
+                roles: ['ADMIN'] as any,
+                overwrite: true,
+            });
+
+            expect(apiKeyService.create).toHaveBeenCalledWith({
+                name: 'test-key',
+                description: 'CLI generated key: test-key',
+                roles: ['ADMIN'],
+                permissions: undefined,
+                overwrite: true,
+            });
+            expect(logService.log).toHaveBeenCalledWith('overwritten-key');
         });
 
         it('should prompt for missing fields when creating without sufficient info', async () => {
@@ -122,6 +170,7 @@ describe('ApiKeyCommand', () => {
                 roles: ['USER'],
                 permissions: [],
                 description: 'Prompted description',
+                overwrite: false,
             } as any);
             vi.mocked(apiKeyService.create).mockResolvedValue({ key: 'prompted-api-key' } as any);
 
@@ -131,7 +180,13 @@ describe('ApiKeyCommand', () => {
                 name: '',
                 create: true,
             });
-            expect(apiKeyService.create).toHaveBeenCalled();
+            expect(apiKeyService.create).toHaveBeenCalledWith({
+                name: 'prompted-key',
+                description: 'Prompted description',
+                roles: ['USER'],
+                permissions: [],
+                overwrite: false,
+            });
         });
     });
 });
