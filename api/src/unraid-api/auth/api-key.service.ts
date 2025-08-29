@@ -110,9 +110,25 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     public convertRolesStringArrayToRoles(roles: string[]): Role[] {
-        return roles
-            .map((roleStr) => Role[roleStr.trim().toUpperCase() as keyof typeof Role])
-            .filter(Boolean);
+        const validRoles: Role[] = [];
+        const invalidRoles: string[] = [];
+
+        for (const roleStr of roles) {
+            const upperRole = roleStr.trim().toUpperCase();
+            const role = Role[upperRole as keyof typeof Role];
+
+            if (role && ApiKeyService.validRoles.has(role)) {
+                validRoles.push(role);
+            } else {
+                invalidRoles.push(roleStr);
+            }
+        }
+
+        if (invalidRoles.length > 0) {
+            this.logger.warn(`Ignoring invalid roles: ${invalidRoles.join(', ')}`);
+        }
+
+        return validRoles;
     }
 
     async create({

@@ -52,22 +52,15 @@ export class ApiKeyCommand extends CommandRunner {
     })
     parseRoles(roles: string): Role[] {
         if (!roles) return [Role.GUEST];
-        const validRoles: Set<Role> = new Set(Object.values(Role));
 
-        const requestedRoles = roles.split(',').map((role) => role.trim().toLocaleLowerCase() as Role);
-        const validRequestedRoles = requestedRoles.filter((role) => validRoles.has(role));
+        const roleArray = roles.split(',').filter(Boolean);
+        const validRoles = this.apiKeyService.convertRolesStringArrayToRoles(roleArray);
 
-        if (validRequestedRoles.length === 0) {
-            throw new Error(`Invalid roles. Valid options are: ${Array.from(validRoles).join(', ')}`);
+        if (validRoles.length === 0) {
+            throw new Error(`Invalid roles. Valid options are: ${Object.values(Role).join(', ')}`);
         }
 
-        const invalidRoles = requestedRoles.filter((role) => !validRoles.has(role));
-
-        if (invalidRoles.length > 0) {
-            this.logger.warn(`Ignoring invalid roles: ${invalidRoles.join(', ')}`);
-        }
-
-        return validRequestedRoles;
+        return validRoles;
     }
 
     @Option({
@@ -138,8 +131,18 @@ ACTIONS: ${Object.values(AuthAction).join(', ')}`,
             if (key) {
                 this.logger.log(key.key);
             } else if (options.create) {
-                options = await this.inquirerService.prompt(AddApiKeyQuestionSet.name, options);
-                this.logger.log('Creating API Key...' + JSON.stringify(options));
+                // Check if we have minimum required info from flags (name + at least one role or permission)
+                const hasMinimumInfo =
+                    options.name &&
+                    ((options.roles && options.roles.length > 0) ||
+                        (options.permissions && options.permissions.length > 0));
+
+                if (!hasMinimumInfo) {
+                    // Interactive mode - prompt for missing fields
+                    options = await this.inquirerService.prompt(AddApiKeyQuestionSet.name, options);
+                }
+
+                this.logger.log('Creating API Key...');
 
                 if (!options.roles && !options.permissions) {
                     this.logger.error('Please add at least one role or permission to the key.');
