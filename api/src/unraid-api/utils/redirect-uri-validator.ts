@@ -70,15 +70,89 @@ export function validateRedirectUri(
 
         // Check against additional allowed origins if provided
         if (allowedOrigins && allowedOrigins.length > 0) {
+            logger?.debug(`Checking against ${allowedOrigins.length} allowed origins`);
             for (const allowedOrigin of allowedOrigins) {
                 try {
                     const allowedUrl = new URL(allowedOrigin);
+                    const allowedOriginStr = allowedUrl.origin.toLowerCase();
                     const allowedHostname = allowedUrl.hostname.toLowerCase();
-                    // Allow HTTPS when expecting HTTP (common with reverse proxies)
+
+                    logger?.debug(`Checking allowed origin: ${allowedOrigin}`);
+
+                    // Try multiple matching strategies in order of specificity
+
+                    // 1. Exact URL match (if allowed origin includes path/query)
+                    if (allowedOrigin.includes('/') && allowedOrigin.length > allowedOriginStr.length) {
+                        const allowedUrlNormalized = allowedOrigin.toLowerCase();
+                        const providedUrlNormalized = redirectUri.toLowerCase();
+
+                        // Exact match
+                        if (providedUrlNormalized === allowedUrlNormalized) {
+                            logger?.debug(`  Exact URL match: ${redirectUri} matches ${allowedOrigin}`);
+                            logger?.debug(
+                                `Validated redirect_uri against allowed origin: ${redirectUri}`
+                            );
+                            return {
+                                isValid: true,
+                                validatedUri: redirectUri,
+                            };
+                        }
+
+                        // Prefix match (if allowed origin ends with /)
+                        if (
+                            allowedUrlNormalized.endsWith('/') &&
+                            providedUrlNormalized.startsWith(allowedUrlNormalized)
+                        ) {
+                            logger?.debug(
+                                `  URL prefix match: ${redirectUri} matches prefix ${allowedOrigin}`
+                            );
+                            logger?.debug(
+                                `Validated redirect_uri against allowed origin: ${redirectUri}`
+                            );
+                            return {
+                                isValid: true,
+                                validatedUri: redirectUri,
+                            };
+                        }
+                    }
+
+                    // 2. Origin match (protocol + hostname + port)
+                    const providedOrigin = providedUrl.origin.toLowerCase();
+                    if (providedOrigin === allowedOriginStr) {
+                        // Allow HTTPS when expecting HTTP (common with reverse proxies)
+                        const originProtocolMatches =
+                            providedUrl.protocol === allowedUrl.protocol ||
+                            (allowedUrl.protocol === 'http:' && providedUrl.protocol === 'https:');
+
+                        if (originProtocolMatches) {
+                            logger?.debug(
+                                `  Origin match: ${providedOrigin} matches ${allowedOriginStr}`
+                            );
+                            logger?.debug(
+                                `Validated redirect_uri against allowed origin: ${redirectUri}`
+                            );
+                            return {
+                                isValid: true,
+                                validatedUri: redirectUri,
+                            };
+                        }
+                    }
+
+                    // 3. Hostname match (original behavior, but with better logging)
                     const allowedProtocolMatches =
                         providedUrl.protocol === allowedUrl.protocol ||
                         (allowedUrl.protocol === 'http:' && providedUrl.protocol === 'https:');
                     const allowedHostnameMatches = providedHostname === allowedHostname;
+
+                    logger?.debug(
+                        `  Hostname comparison: provided=${providedHostname}, allowed=${allowedHostname}`
+                    );
+                    logger?.debug(
+                        `  Protocol comparison: provided=${providedUrl.protocol}, allowed=${allowedUrl.protocol}`
+                    );
+                    logger?.debug(
+                        `  Protocol matches: ${allowedProtocolMatches}, Hostname matches: ${allowedHostnameMatches}`
+                    );
 
                     if (allowedProtocolMatches && allowedHostnameMatches) {
                         logger?.debug(`Validated redirect_uri against allowed origin: ${redirectUri}`);

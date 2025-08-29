@@ -745,6 +745,15 @@ export class OidcAuthService {
         const config = await this.oidcConfig.getConfig();
         const allowedOrigins = config?.defaultAllowedOrigins;
 
+        // Debug logging to trace the issue
+        this.logger.debug(
+            `OIDC Config loaded: ${JSON.stringify(config ? { hasConfig: true, allowedOrigins } : { hasConfig: false })}`
+        );
+        this.logger.debug(
+            `Validating redirect URI: ${requestOrigin} against host: ${protocol}://${host}`
+        );
+        this.logger.debug(`Allowed origins from config: ${JSON.stringify(allowedOrigins || [])}`);
+
         // Validate the provided requestOrigin using centralized validator
         // Pass the global allowed origins if available
         const validation = validateRedirectUri(
@@ -757,9 +766,8 @@ export class OidcAuthService {
 
         if (!validation.isValid) {
             this.logger.warn(`Invalid redirect_uri in GraphQL OIDC flow: ${validation.reason}`);
-            const attemptedUri = requestOrigin || `${protocol}://${host}`;
             throw new UnauthorizedException(
-                `Invalid redirect_uri: ${attemptedUri}. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs`
+                `Invalid redirect_uri: ${requestOrigin}. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs`
             );
         }
 
