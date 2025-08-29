@@ -116,49 +116,8 @@ onMounted(() => {
     observer.observe(scrollViewportRef.value as unknown as Node, { childList: true, subtree: true });
   }
 
-  if (props.logFilePath) {
-    subscribeToMore({
-      document: LOG_FILE_SUBSCRIPTION,
-      variables: { path: props.logFilePath },
-      updateQuery: (prev, { subscriptionData }) => {
-        if (!subscriptionData.data || !prev) return prev;
-
-        // Set subscription as active when we receive data
-        state.isSubscriptionActive = true;
-
-        const existingContent = prev.logFile?.content || '';
-        const newContent = subscriptionData.data.logFile.content;
-
-        // Update the local state with the new content
-        if (newContent && state.loadedContentChunks.length > 0) {
-          const lastChunk = state.loadedContentChunks[state.loadedContentChunks.length - 1];
-          // Ensure there's a newline between the existing content and new content if needed
-          if (lastChunk.content && !lastChunk.content.endsWith('\n') && newContent) {
-            lastChunk.content += '\n' + newContent;
-          } else {
-            lastChunk.content += newContent;
-          }
-
-          // Force scroll to bottom if auto-scroll is enabled
-          if (props.autoScroll) {
-            nextTick(() => forceScrollToBottom());
-          }
-        }
-
-        return {
-          ...prev,
-          logFile: {
-            ...prev.logFile,
-            content: existingContent + newContent,
-            totalLines: (prev.logFile?.totalLines || 0) + (newContent.split('\n').length - 1),
-          },
-        };
-      },
-    });
-
-    // Set subscription as active
-    state.isSubscriptionActive = true;
-  }
+  // Start the log subscription
+  startLogSubscription();
 });
 
 // Cleanup observer on unmount
@@ -212,7 +171,7 @@ const highlightLog = (content: string): string => {
       highlighted = ansiConverter.ansi_to_html(content);
     } else if (props.highlightLanguage) {
       // Use highlight.js for specific language if provided
-      const result = hljs.highlight(content, { language: props.highlightLanguage });
+      const result = hljs.highlight(content, { language: props.highlightLanguage, ignoreIllegals: true });
       highlighted = result.value;
     } else {
       // Use highlight.js auto-detection for non-ANSI content
@@ -346,6 +305,58 @@ const clearState = () => {
   state.isLoadingMore = false;
 };
 
+// Helper function to start log subscription
+const startLogSubscription = () => {
+  if (!props.logFilePath) return;
+  
+  try {
+    subscribeToMore({
+      document: LOG_FILE_SUBSCRIPTION,
+      variables: { path: props.logFilePath },
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data || !prev) return prev;
+
+        // Set subscription as active when we receive data
+        state.isSubscriptionActive = true;
+
+        const existingContent = prev.logFile?.content || '';
+        const newContent = subscriptionData.data.logFile.content;
+
+        // Update the local state with the new content
+        if (newContent && state.loadedContentChunks.length > 0) {
+          const lastChunk = state.loadedContentChunks[state.loadedContentChunks.length - 1];
+          // Ensure there's a newline between the existing content and new content if needed
+          if (lastChunk.content && !lastChunk.content.endsWith('\n') && newContent) {
+            lastChunk.content += '\n' + newContent;
+          } else {
+            lastChunk.content += newContent;
+          }
+
+          // Force scroll to bottom if auto-scroll is enabled
+          if (props.autoScroll) {
+            nextTick(() => forceScrollToBottom());
+          }
+        }
+
+        return {
+          ...prev,
+          logFile: {
+            ...prev.logFile,
+            content: existingContent + newContent,
+            totalLines: (prev.logFile?.totalLines || 0) + (newContent.split('\n').length - 1),
+          },
+        };
+      },
+    });
+    
+    // Set subscription as active
+    state.isSubscriptionActive = true;
+  } catch (error) {
+    console.error('Error starting log subscription:', error);
+    state.isSubscriptionActive = false;
+  }
+};
+
 // Refresh logs
 const refreshLogContent = async () => {
   // Clear the state
@@ -357,6 +368,11 @@ const refreshLogContent = async () => {
     lines: props.lineCount || DEFAULT_CHUNK_SIZE,
     startLine: undefined, // Explicitly pass undefined to get the latest lines
   });
+  
+  // Restart the subscription with the same variables used for refetch
+  // Note: subscribeToMore in Vue Apollo doesn't return an unsubscribe function
+  // The previous subscription is automatically replaced when calling subscribeToMore again
+  startLogSubscription();
 
   nextTick(() => {
     forceScrollToBottom();

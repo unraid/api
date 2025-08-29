@@ -71,15 +71,16 @@ export function createMockLogFileQuery(
 }
 
 /**
- * Helper to mock the entire @vue/apollo-composable module
+ * Factory function to create the mock module object for @vue/apollo-composable
+ * Call this at the top level of test files: vi.mock('@vue/apollo-composable', () => apolloComposableMockFactory())
  */
-export function mockApolloComposable() {
-  vi.mock('@vue/apollo-composable', () => ({
+export function apolloComposableMockFactory() {
+  return {
     useApolloClient: vi.fn(() => ({
       client: {
         query: vi.fn()
       }
     })),
     useQuery: vi.fn(() => createMockUseQuery())
-  }));
+  };
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { mount, flushPromises } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import DOMPurify from 'isomorphic-dompurify';
 import { AnsiUp } from 'ansi_up';
@@ -237,7 +237,7 @@ describe('SingleLogViewer - ANSI Color Support', () => {
       
       // Wait for watchers to process
       await wrapper.vm.$nextTick();
-      await new Promise(resolve => setTimeout(resolve, 100)); // Give time for async operations
+      await flushPromises();
       await wrapper.vm.$nextTick();
       
       // Get the pre element that contains the log content
@@ -289,7 +289,7 @@ describe('SingleLogViewer - ANSI Color Support', () => {
       
       // Wait for processing
       await wrapper.vm.$nextTick();
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await flushPromises();
       await wrapper.vm.$nextTick();
       
       const preElement = wrapper.find('pre.hljs');
@@ -336,7 +336,7 @@ describe('SingleLogViewer - ANSI Color Support', () => {
       
       // Wait for processing
       await wrapper.vm.$nextTick();
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await flushPromises();
       await wrapper.vm.$nextTick();
       
       const preElement = wrapper.find('pre.hljs');
