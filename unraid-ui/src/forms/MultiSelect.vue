@@ -100,7 +100,7 @@ const placeholder = computed(() => {
         <button
           v-if="!isReadonly"
           @click.stop="removeValue(value)"
-          class="ml-1 hover:text-destructive"
+          class="hover:text-destructive ml-1"
           type="button"
         >
           <XMarkIcon class="h-3 w-3" />
@@ -119,7 +119,7 @@ const placeholder = computed(() => {
           <ChevronDownIcon class="ml-2 h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent class="w-56 max-h-[20rem] overflow-y-auto">
+      <DropdownMenuContent class="max-h-[20rem] w-56 overflow-y-auto">
         <DropdownMenuLabel>Select Items</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuCheckboxItem
@@ -139,7 +139,7 @@ const placeholder = computed(() => {
         >
           <div class="flex flex-col">
             <span>{{ option.label }}</span>
-            <span v-if="option.description" class="text-xs text-muted-foreground">
+            <span v-if="option.description" class="text-muted-foreground text-xs">
               {{ option.description }}
             </span>
           </div>
@@ -172,13 +172,13 @@ const placeholder = computed(() => {
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent class="w-full max-h-[20rem] overflow-y-auto">
-        <DropdownMenuLabel class="flex justify-between items-center">
+      <DropdownMenuContent class="max-h-[20rem] w-full overflow-y-auto">
+        <DropdownMenuLabel class="flex items-center justify-between">
           <span>Select Items</span>
           <button
             v-if="selectedValues.length > 0"
             @click="clearAll"
-            class="text-xs text-muted-foreground hover:text-foreground"
+            class="text-muted-foreground hover:text-foreground text-xs"
             type="button"
           >
             Clear all
@@ -203,7 +203,7 @@ const placeholder = computed(() => {
         >
           <div class="flex flex-col">
             <span>{{ option.label }}</span>
-            <span v-if="option.description" class="text-xs text-muted-foreground">
+            <span v-if="option.description" class="text-muted-foreground text-xs">
               {{ option.description }}
             </span>
           </div>
@@ -211,7 +211,7 @@ const placeholder = computed(() => {
 
         <template v-if="selectedValues.length > 0">
           <DropdownMenuSeparator />
-          <div class="px-2 py-2 text-sm text-muted-foreground">{{ selectedValues.length }} selected</div>
+          <div class="text-muted-foreground px-2 py-2 text-sm">{{ selectedValues.length }} selected</div>
         </template>
       </DropdownMenuContent>
     </DropdownMenuRoot>

@@ -32,8 +32,8 @@ const description = computed(() => props.uischema.options?.description);
     <p v-if="description" class="mb-2">{{ description }}</p>
     <ul class="list-none space-y-1">
       <li v-for="(item, index) in items" :key="index" class="flex items-center">
-        <span v-if="item.status" class="text-green-500 mr-2 font-bold">✓</span>
-        <span v-else class="text-red-500 mr-2 font-extrabold">✕</span>
+        <span v-if="item.status" class="mr-2 font-bold text-green-500">✓</span>
+        <span v-else class="mr-2 font-extrabold text-red-500">✕</span>
         <span>{{ item.text }}</span>
       </li>
     </ul>

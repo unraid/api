@@ -5,19 +5,19 @@
         v-for="(element, index) in elements"
         :key="`${layout.path || ''}-${index}`"
         :value="`item-${index}`"
-        class="border rounded-lg bg-background"
+        class="bg-background rounded-lg border"
       >
-        <AccordionTrigger class="px-4 py-3 hover:bg-muted/50 [&[data-state=open]>svg]:rotate-180">
+        <AccordionTrigger class="hover:bg-muted/50 px-4 py-3 [&[data-state=open]>svg]:rotate-180">
           <div class="flex flex-col items-start space-y-1 text-left">
             <span class="font-medium">
               {{ getAccordionTitle(element, index) }}
             </span>
-            <span v-if="getAccordionDescription(element, index)" class="text-sm text-muted-foreground">
+            <span v-if="getAccordionDescription(element, index)" class="text-muted-foreground text-sm">
               {{ getAccordionDescription(element, index) }}
             </span>
           </div>
         </AccordionTrigger>
-        <AccordionContent class="px-4 pb-4 pt-0">
+        <AccordionContent class="px-4 pt-0 pb-4">
           <div class="space-y-4">
             <DispatchRenderer
               :schema="layout.schema"

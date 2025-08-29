@@ -141,13 +141,13 @@ const getStepState = (stepIndex: number): StepState => {
           >
             {{ step.label }}
           </StepperTitle>
-          <StepperDescription v-if="step.description" class="text-xs font-normal text-muted-foreground">
+          <StepperDescription v-if="step.description" class="text-muted-foreground text-xs font-normal">
             {{ step.description }}
           </StepperDescription>
         </div>
         <StepperSeparator
           v-if="index < stepsConfig.length - 1"
-          class="absolute left-1/2 top-4 -z-10 ml-[calc(var(--separator-offset,0rem)+10px)] h-0.5 w-[calc(100%-20px)] bg-border data-[state=active]:bg-primary data-[state=completed]:bg-primary"
+          class="bg-border data-[state=active]:bg-primary data-[state=completed]:bg-primary absolute top-4 left-1/2 -z-10 ml-[calc(var(--separator-offset,0rem)+10px)] h-0.5 w-[calc(100%-20px)]"
         />
       </StepperItem>
     </Stepper>

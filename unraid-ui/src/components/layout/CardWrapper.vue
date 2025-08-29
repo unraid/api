@@ -19,13 +19,13 @@ withDefaults(
 
 <template>
   <div
-    class="group/card text-left relative flex flex-col flex-1 border-2 border-solid rounded-md shadow-md"
+    class="group/card relative flex flex-1 flex-col rounded-md border-2 border-solid text-left shadow-md"
     :class="[
       padding && 'p-4',
       increasedPadding && 'md:p-6',
       hover && 'hover:shadow-orange/50 transition-all',
-      error && 'text-white bg-unraid-red border-unraid-red',
-      warning && 'text-black bg-yellow-100 border-yellow-100',
+      error && 'bg-unraid-red border-unraid-red text-white',
+      warning && 'border-yellow-100 bg-yellow-100 text-black',
       !error && !warning && 'text-foreground bg-background border-muted',
     ]"
   >

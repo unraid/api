@@ -62,7 +62,7 @@ const placeholder = computed(() => control.value.uischema?.options?.placeholder 
     <Button
       variant="outline"
       size="md"
-      class="text-sm rounded-sm"
+      class="rounded-sm text-sm"
       :disabled="!control.enabled"
       @click="addItem"
     >
