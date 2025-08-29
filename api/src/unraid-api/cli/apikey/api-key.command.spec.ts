@@ -146,7 +146,7 @@ describe('ApiKeyCommand', () => {
                 description: 'Test description',
                 roles: [Role.ADMIN],
                 permissions: undefined,
-                overwrite: true,
+                overwrite: false,
             });
             expect(logService.log).toHaveBeenCalledWith('test-key-123');
         });
@@ -183,7 +183,7 @@ describe('ApiKeyCommand', () => {
                 description: 'Test with permissions',
                 roles: undefined,
                 permissions: mockPermissions,
-                overwrite: true,
+                overwrite: false,
             });
             expect(logService.log).toHaveBeenCalledWith('test-key-456');
         });
@@ -212,7 +212,7 @@ describe('ApiKeyCommand', () => {
                 description: 'CLI generated key: NO_DESC',
                 roles: [Role.VIEWER],
                 permissions: undefined,
-                overwrite: true,
+                overwrite: false,
             });
         });
 
