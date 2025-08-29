@@ -41,7 +41,7 @@ const createWebComponentTag = (name: string, path: string, appContext: string) =
   async: false,
   name,
   path,
-  appContext
+  appContext,
 });
 
 /**
@@ -173,15 +173,9 @@ export default defineNuxtConfig({
     enabled: process.env.NODE_ENV === 'development',
   },
 
-  modules: ['@vueuse/nuxt', '@pinia/nuxt', 'nuxt-custom-elements', '@nuxt/eslint', '@nuxt/ui'],
+  modules: ['@vueuse/nuxt', '@pinia/nuxt', 'nuxt-custom-elements', '@nuxt/eslint'],
 
-  ui: {
-    theme: {
-      colors: ['primary'],
-    },
-  },
-
-  // Disable auto-imports
+  // Disable auto-imports for manual control
   imports: {
     autoImport: false,
   },
@@ -197,7 +191,16 @@ export default defineNuxtConfig({
   components: false,
 
   vite: {
-    plugins: getSharedPlugins(),
+    plugins: [
+      ...getSharedPlugins(),
+      // Add Nuxt UI vite plugin for Vue mode
+      (async () => {
+        const { default: NuxtUIVite } = await import('@nuxt/ui/vite');
+        return NuxtUIVite({
+          colorMode: true
+        });
+      })()
+    ],
     define: sharedDefine,
     build: {
       minify: 'terser',
@@ -215,31 +218,104 @@ export default defineNuxtConfig({
         name: 'UnraidComponents',
         viteExtend(config: UserConfig) {
           const sharedConfig = applySharedViteConfig(config, true);
-          
+
           // Optimize CSS while keeping it inlined for functionality
           if (!sharedConfig.css) sharedConfig.css = {};
           sharedConfig.css.devSourcemap = process.env.NODE_ENV === 'development';
-          
+
           return sharedConfig;
         },
         tags: [
-          createWebComponentTag('UnraidAuth', '@/components/Auth.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidConnectSettings', '@/components/ConnectSettings/ConnectSettings.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidDownloadApiLogs', '@/components/DownloadApiLogs.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidHeaderOsVersion', '@/components/HeaderOsVersion.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidModals', '@/components/Modals.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidUserProfile', '@/components/UserProfile.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidUpdateOs', '@/components/UpdateOs.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidDowngradeOs', '@/components/DowngradeOs.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidRegistration', '@/components/Registration.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidWanIpCheck', '@/components/WanIpCheck.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidWelcomeModal', '@/components/Activation/WelcomeModal.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidSsoButton', '@/components/SsoButton.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidLogViewer', '@/components/Logs/LogViewer.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidThemeSwitcher', '@/components/ThemeSwitcher.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidApiKeyManager', '@/components/ApiKeyPage.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidDevModalTest', '@/components/DevModalTest.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidApiKeyAuthorize', '@/components/ApiKeyAuthorize.ce', '@/components/Wrapper/web-component-plugins'),
+          createWebComponentTag(
+            'UnraidAuth',
+            '@/components/Auth.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidConnectSettings',
+            '@/components/ConnectSettings/ConnectSettings.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidDownloadApiLogs',
+            '@/components/DownloadApiLogs.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidHeaderOsVersion',
+            '@/components/HeaderOsVersion.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidModals',
+            '@/components/Modals.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidUserProfile',
+            '@/components/UserProfile.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidUpdateOs',
+            '@/components/UpdateOs.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidDowngradeOs',
+            '@/components/DowngradeOs.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidRegistration',
+            '@/components/Registration.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidWanIpCheck',
+            '@/components/WanIpCheck.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidWelcomeModal',
+            '@/components/Activation/WelcomeModal.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidSsoButton',
+            '@/components/SsoButton.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidLogViewer',
+            '@/components/Logs/LogViewer.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidThemeSwitcher',
+            '@/components/ThemeSwitcher.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidApiKeyManager',
+            '@/components/ApiKeyPage.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidDevModalTest',
+            '@/components/DevModalTest.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidApiKeyAuthorize',
+            '@/components/ApiKeyAuthorize.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
+          createWebComponentTag(
+            'UnraidDetailTest',
+            '@/components/LayoutViews/Detail/DetailTest.ce',
+            '@/components/Wrapper/web-component-plugins'
+          ),
         ],
       },
     ],

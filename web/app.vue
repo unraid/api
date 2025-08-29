@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { onMounted } from 'vue';
 
-import { NuxtLayout, NuxtPage, UApp  } from '#components';
 import { devConfig } from '~/helpers/env';
 
 onMounted(() => {
@@ -28,9 +27,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <UApp>
+  <div>
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-  </UApp>
+  </div>
 </template>
