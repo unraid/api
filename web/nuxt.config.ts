@@ -240,6 +240,7 @@ export default defineNuxtConfig({
           createWebComponentTag('UnraidApiKeyManager', '@/components/ApiKeyPage.ce', '@/components/Wrapper/web-component-plugins'),
           createWebComponentTag('UnraidDevModalTest', '@/components/DevModalTest.ce', '@/components/Wrapper/web-component-plugins'),
           createWebComponentTag('UnraidApiKeyAuthorize', '@/components/ApiKeyAuthorize.ce', '@/components/Wrapper/web-component-plugins'),
+          createWebComponentTag('UnraidConfigDownload', '@/components/ConfigDownload/ConfigDownloadManager.ce', '@/components/Wrapper/web-component-plugins'),
         ],
       },
     ],

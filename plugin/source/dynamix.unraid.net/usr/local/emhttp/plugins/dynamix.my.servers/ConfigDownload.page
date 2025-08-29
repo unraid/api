@@ -3,4 +3,4 @@ Title="Config Download"
 Icon="icon-download"
 Tag="download"
 ---
-<unraid-config-download-page />
+<unraid-config-download />
