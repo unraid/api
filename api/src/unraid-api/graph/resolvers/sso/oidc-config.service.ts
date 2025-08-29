@@ -478,19 +478,21 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         };
 
         // Add the control for defaultAllowedOrigins before the providers control using UnraidSettingsLayout
-        providersSlice.elements[0].elements.unshift(
-            createLabeledControl({
-                scope: '#/properties/sso/properties/defaultAllowedOrigins',
-                label: 'Allowed Redirect Origins',
-                description:
-                    'Add trusted origins here when accessing Unraid through custom ports, reverse proxies, or Tailscale. Each origin should include the protocol and optionally a port (e.g., https://unraid.local:8443)',
-                controlOptions: {
-                    format: 'array',
-                    inputType: 'text',
-                    placeholder: 'https://unraid.local:8443',
-                },
-            })
-        );
+        if (providersSlice.elements?.[0]?.elements) {
+            providersSlice.elements[0].elements.unshift(
+                createLabeledControl({
+                    scope: '#/properties/sso/properties/defaultAllowedOrigins',
+                    label: 'Allowed Redirect Origins',
+                    description:
+                        'Add trusted origins here when accessing Unraid through custom ports, reverse proxies, or Tailscale. Each origin should include the protocol and optionally a port (e.g., https://unraid.local:8443)',
+                    controlOptions: {
+                        format: 'array',
+                        inputType: 'text',
+                        placeholder: 'https://unraid.local:8443',
+                    },
+                })
+            );
+        }
 
         return mergeSettingSlices([providersSlice], { as: 'sso' });
     }
