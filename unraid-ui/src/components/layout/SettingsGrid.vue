@@ -10,7 +10,7 @@ const props = defineProps<{
   <div
     :class="
       cn(
-        'grid grid-cols-1 md:grid-cols-[35%_1fr] [&>*:nth-child(odd)]:text-end gap-2 items-baseline md:gap-x-3 md:gap-y-6',
+        'grid grid-cols-1 items-baseline gap-2 md:grid-cols-[35%_1fr] md:gap-x-3 md:gap-y-6 [&>*:nth-child(odd)]:text-end',
         props.class
       )
     "

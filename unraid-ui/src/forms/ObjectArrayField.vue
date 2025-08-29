@@ -168,7 +168,7 @@ const updateItem = (index: number, newValue: unknown) => {
 <template>
   <div class="w-full">
     <Tabs v-if="items.length > 0" v-model="activeTab" class="w-full">
-      <div class="flex items-center gap-2 mb-4">
+      <div class="mb-4 flex items-center gap-2">
         <TabsList class="flex-1 flex-wrap">
           <TabsTrigger
             v-for="(item, index) in items"
@@ -196,8 +196,8 @@ const updateItem = (index: number, newValue: unknown) => {
         :value="String(index)"
         class="mt-0 w-full"
       >
-        <div class="border rounded-lg p-1 sm:p-6 w-full">
-          <div class="flex justify-end mb-4">
+        <div class="w-full rounded-lg border p-1 sm:p-6">
+          <div class="mb-4 flex justify-end">
             <Button
               v-if="!isItemProtected(item)"
               variant="ghost"
@@ -206,7 +206,7 @@ const updateItem = (index: number, newValue: unknown) => {
               :disabled="!control.enabled"
               @click="removeItem(index)"
             >
-              <X class="h-4 w-4 mr-2" />
+              <X class="mr-2 h-4 w-4" />
               Remove {{ getItemLabel(item, index) }}
             </Button>
           </div>
@@ -214,13 +214,13 @@ const updateItem = (index: number, newValue: unknown) => {
             <!-- Show warning if item matches protected condition -->
             <div
               v-if="getItemWarning(item)"
-              class="mb-4 p-3 bg-warning/10 border border-warning/20 rounded-lg"
+              class="bg-warning/10 border-warning/20 mb-4 rounded-lg border p-3"
             >
               <div class="flex items-start gap-2">
                 <span class="text-warning">⚠️</span>
                 <div>
-                  <div class="font-medium text-warning">{{ getItemWarning(item)?.title }}</div>
-                  <div class="text-sm text-muted-foreground mt-1">
+                  <div class="text-warning font-medium">{{ getItemWarning(item)?.title }}</div>
+                  <div class="text-muted-foreground mt-1 text-sm">
                     {{ getItemWarning(item)?.description }}
                   </div>
                 </div>
@@ -240,10 +240,10 @@ const updateItem = (index: number, newValue: unknown) => {
       </TabsContent>
     </Tabs>
 
-    <div v-else class="text-center py-8 border-2 border-dashed rounded-lg">
+    <div v-else class="rounded-lg border-2 border-dashed py-8 text-center">
       <p class="text-muted-foreground mb-4">No {{ itemTypeName.toLowerCase() }}s configured</p>
       <Button variant="outline" size="md" :disabled="!control.enabled" @click="addItem">
-        <Plus class="h-4 w-4 mr-2" />
+        <Plus class="mr-2 h-4 w-4" />
         Add First {{ itemTypeName }}
       </Button>
     </div>

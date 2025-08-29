@@ -31,7 +31,7 @@ const elements = computed(() => {
 </script>
 
 <template>
-  <div v-if="isVisible" class="flex flex-row gap-2 items-baseline">
+  <div v-if="isVisible" class="flex flex-row items-baseline gap-2">
     <template v-for="(element, _i) in elements" :key="_i">
       <DispatchRenderer
         :schema="layout.layout.value.schema"

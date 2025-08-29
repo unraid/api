@@ -8,7 +8,7 @@ const props = withDefaults(defineProps<{ class?: string }>(), { class: '' });
   <div
     :class="
       cn(
-        'inline-block h-8 w-8 animate-spin rounded-full border-2 border-solid border-current border-e-transparent align-[-0.125em] text-primary motion-reduce:animate-[spin_1.5s_linear_infinite]',
+        'text-primary inline-block h-8 w-8 animate-spin rounded-full border-2 border-solid border-current border-e-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]',
         props.class
       )
     "
