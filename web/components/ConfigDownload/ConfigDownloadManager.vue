@@ -28,6 +28,15 @@ const downloadAllFiles = () => {
     }
   });
 };
+
+const safeFormatJson = (content: string): string => {
+  try {
+    const parsed = JSON.parse(content);
+    return JSON.stringify(parsed, null, 2);
+  } catch {
+    return content;
+  }
+};
 </script>
 
 <template>
@@ -99,7 +108,7 @@ const downloadAllFiles = () => {
                   </summary>
                   <div class="mt-2">
                     <FileViewer 
-                      :content="JSON.stringify(JSON.parse(file.content), null, 2)"
+                      :content="safeFormatJson(file.content)"
                       language="json"
                       :show-line-numbers="true"
                       max-height="300px"
