@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.service.js';
+import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
 import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/oidc-request-handler.util.js';
 import { RestController } from '@app/unraid-api/rest/rest.controller.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
@@ -14,6 +15,7 @@ describe('RestController', () => {
     let controller: RestController;
     let restService: RestService;
     let oidcAuthService: OidcAuthService;
+    let oidcConfig: OidcConfigPersistence;
     let mockReply: Partial<FastifyReply>;
 
     // Helper function to create a mock request with the desired hostname
@@ -45,6 +47,14 @@ describe('RestController', () => {
                     },
                 },
                 {
+                    provide: OidcConfigPersistence,
+                    useValue: {
+                        getConfig: vi.fn().mockResolvedValue({
+                            defaultAllowedOrigins: [],
+                        }),
+                    },
+                },
+                {
                     provide: ConfigService,
                     useValue: {
                         get: vi.fn(),
@@ -56,6 +66,7 @@ describe('RestController', () => {
         controller = module.get<RestController>(RestController);
         restService = module.get<RestService>(RestService);
         oidcAuthService = module.get<OidcAuthService>(OidcAuthService);
+        oidcConfig = module.get<OidcConfigPersistence>(OidcConfigPersistence);
 
         mockReply = {
             status: vi.fn().mockReturnThis(),
@@ -139,7 +150,9 @@ describe('RestController', () => {
 
                 expect(mockReply.status).toHaveBeenCalledWith(400);
                 expect(mockReply.send).toHaveBeenCalledWith(
-                    'Invalid redirect_uri: https://evil.com/graphql/api/auth/oidc/callback. Hostname mismatch. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs'
+                    expect.stringContaining(
+                        'Invalid redirect_uri: https://evil.com/graphql/api/auth/oidc/callback'
+                    )
                 );
                 expect(OidcRequestHandler.handleAuthorize).not.toHaveBeenCalled();
             });
@@ -157,7 +170,9 @@ describe('RestController', () => {
 
                 expect(mockReply.status).toHaveBeenCalledWith(400);
                 expect(mockReply.send).toHaveBeenCalledWith(
-                    'Invalid redirect_uri: https://evil.unraid.mytailnet.ts.net/graphql/api/auth/oidc/callback. Hostname mismatch. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs'
+                    expect.stringContaining(
+                        'Invalid redirect_uri: https://evil.unraid.mytailnet.ts.net/graphql/api/auth/oidc/callback'
+                    )
                 );
                 expect(OidcRequestHandler.handleAuthorize).not.toHaveBeenCalled();
             });
@@ -192,7 +207,7 @@ describe('RestController', () => {
 
                 expect(mockReply.status).toHaveBeenCalledWith(400);
                 expect(mockReply.send).toHaveBeenCalledWith(
-                    'Invalid redirect_uri: not-a-valid-url. Invalid format. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs'
+                    expect.stringContaining('Invalid redirect_uri: not-a-valid-url')
                 );
                 expect(OidcRequestHandler.handleAuthorize).not.toHaveBeenCalled();
             });
@@ -271,6 +286,155 @@ describe('RestController', () => {
 
                 expect(mockReply.status).toHaveBeenCalledWith(302);
                 expect(OidcRequestHandler.handleAuthorize).toHaveBeenCalled();
+            });
+
+            it('should accept redirect_uri with different hostname if in allowed origins', async () => {
+                const mockRequest = createMockRequest('devgen-dev1.local');
+
+                // Mock the config to include the allowed origin
+                vi.mocked(oidcConfig.getConfig).mockResolvedValueOnce({
+                    defaultAllowedOrigins: ['https://devgen-bad-dev1.local'],
+                } as any);
+
+                await controller.oidcAuthorize(
+                    'test-provider',
+                    'test-state',
+                    'https://devgen-bad-dev1.local/graphql/api/auth/oidc/callback',
+                    mockRequest,
+                    mockReply as FastifyReply
+                );
+
+                expect(mockReply.status).toHaveBeenCalledWith(302);
+                expect(OidcRequestHandler.handleAuthorize).toHaveBeenCalledWith(
+                    'test-provider',
+                    'test-state',
+                    'https://devgen-bad-dev1.local/graphql/api/auth/oidc/callback',
+                    mockRequest,
+                    oidcAuthService,
+                    expect.any(Logger)
+                );
+            });
+
+            describe('integration with centralized validator', () => {
+                it('should use the same validation logic as validateRedirectUri function', async () => {
+                    const testCases = [
+                        {
+                            name: 'accepts HTTPS upgrade from allowed origins',
+                            requestHost: 'devgen-dev1.local',
+                            redirectUri: 'https://allowed-host.local/graphql/api/auth/oidc/callback',
+                            allowedOrigins: ['http://allowed-host.local'],
+                            expectedStatus: 302,
+                            shouldSucceed: true,
+                        },
+                        {
+                            name: 'rejects hostname not in allowed origins',
+                            requestHost: 'devgen-dev1.local',
+                            redirectUri: 'https://evil.com/graphql/api/auth/oidc/callback',
+                            allowedOrigins: ['https://good-host.local'],
+                            expectedStatus: 400,
+                            shouldSucceed: false,
+                        },
+                        {
+                            name: 'accepts multiple allowed origins',
+                            requestHost: 'devgen-dev1.local',
+                            redirectUri: 'https://second.local/graphql/api/auth/oidc/callback',
+                            allowedOrigins: [
+                                'https://first.local',
+                                'https://second.local',
+                                'https://third.local',
+                            ],
+                            expectedStatus: 302,
+                            shouldSucceed: true,
+                        },
+                        {
+                            name: 'respects protocol and hostname from headers',
+                            requestHost: undefined,
+                            headers: {
+                                'x-forwarded-proto': 'https',
+                                'x-forwarded-host': 'proxy.local',
+                            },
+                            redirectUri: 'https://proxy.local/graphql/api/auth/oidc/callback',
+                            allowedOrigins: [],
+                            expectedStatus: 302,
+                            shouldSucceed: true,
+                        },
+                    ];
+
+                    for (const testCase of testCases) {
+                        // Reset mocks for each test case
+                        vi.clearAllMocks();
+
+                        const mockRequest = createMockRequest(
+                            testCase.requestHost,
+                            testCase.headers || {}
+                        );
+
+                        vi.mocked(oidcConfig.getConfig).mockResolvedValueOnce({
+                            defaultAllowedOrigins: testCase.allowedOrigins,
+                        } as any);
+
+                        await controller.oidcAuthorize(
+                            'test-provider',
+                            'test-state',
+                            testCase.redirectUri,
+                            mockRequest,
+                            mockReply as FastifyReply
+                        );
+
+                        expect(mockReply.status).toHaveBeenCalledWith(testCase.expectedStatus);
+
+                        if (testCase.shouldSucceed) {
+                            expect(OidcRequestHandler.handleAuthorize).toHaveBeenCalled();
+                        } else {
+                            expect(mockReply.send).toHaveBeenCalledWith(
+                                expect.stringContaining(testCase.redirectUri)
+                            );
+                            expect(OidcRequestHandler.handleAuthorize).not.toHaveBeenCalled();
+                        }
+                    }
+                });
+
+                it('should handle edge cases consistently with centralized validator', async () => {
+                    // Test with empty allowed origins
+                    vi.mocked(oidcConfig.getConfig).mockResolvedValueOnce({
+                        defaultAllowedOrigins: [],
+                    } as any);
+
+                    const mockRequest = createMockRequest('host.local');
+
+                    await controller.oidcAuthorize(
+                        'test-provider',
+                        'test-state',
+                        'https://different.local/graphql/api/auth/oidc/callback',
+                        mockRequest,
+                        mockReply as FastifyReply
+                    );
+
+                    expect(mockReply.status).toHaveBeenCalledWith(400);
+                    expect(mockReply.send).toHaveBeenCalledWith(
+                        expect.stringContaining('https://different.local/graphql/api/auth/oidc/callback')
+                    );
+                });
+
+                it('should validate that error messages guide users to settings', async () => {
+                    vi.mocked(oidcConfig.getConfig).mockResolvedValueOnce({
+                        defaultAllowedOrigins: [],
+                    } as any);
+
+                    const mockRequest = createMockRequest('host.local');
+
+                    await controller.oidcAuthorize(
+                        'test-provider',
+                        'test-state',
+                        'https://different.local/graphql/api/auth/oidc/callback',
+                        mockRequest,
+                        mockReply as FastifyReply
+                    );
+
+                    expect(mockReply.send).toHaveBeenCalledWith(
+                        expect.stringContaining('Settings → Management Access → Allowed Redirect URIs')
+                    );
+                });
             });
         });
 

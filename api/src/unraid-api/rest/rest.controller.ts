@@ -6,17 +6,19 @@ import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.service.js';
+import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
 import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/oidc-request-handler.util.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
-
-// Removed validateRedirectUri - using redirect_uri from query params directly
+import { validateRedirectUri } from '@app/unraid-api/utils/redirect-uri-validator.js';
 
 @Controller()
 export class RestController {
     protected logger = new Logger(RestController.name);
+    protected oidcLogger = new Logger('OidcRestController');
     constructor(
         private readonly restService: RestService,
-        private readonly oidcAuthService: OidcAuthService
+        private readonly oidcAuthService: OidcAuthService,
+        private readonly oidcConfig: OidcConfigPersistence
     ) {}
 
     @Get('/')
@@ -83,29 +85,29 @@ export class RestController {
                 return res.status(400).send('redirect_uri parameter is required');
             }
 
-            // Security validation: ensure redirect_uri is from the same hostname
-            // but allow different ports (proxies may change ports)
-            try {
-                const redirectUrl = new URL(params.redirectUri);
-                const requestHost = req.hostname || req.headers.host?.split(':')[0];
+            // Security validation: validate redirect_uri with support for allowed origins
+            const protocol = (req.headers['x-forwarded-proto'] as string) || 'http';
+            const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || req.hostname;
 
-                // Compare hostnames (ignoring ports)
-                if (requestHost && redirectUrl.hostname.toLowerCase() !== requestHost.toLowerCase()) {
-                    this.logger.warn(
-                        `Redirect URI hostname mismatch. Expected: ${requestHost}, Got: ${redirectUrl.hostname}`
-                    );
-                    return res
-                        .status(400)
-                        .send(
-                            `Invalid redirect_uri: ${params.redirectUri}. Hostname mismatch. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs`
-                        );
-                }
-            } catch (e) {
-                this.logger.error(`Invalid redirect_uri format: ${params.redirectUri}`);
+            // Get allowed origins from OIDC config
+            const config = await this.oidcConfig.getConfig();
+            const allowedOrigins = config?.defaultAllowedOrigins;
+
+            // Validate the redirect URI using the centralized validator
+            const validation = validateRedirectUri(
+                params.redirectUri,
+                protocol,
+                host,
+                this.oidcLogger,
+                allowedOrigins
+            );
+
+            if (!validation.isValid) {
+                this.oidcLogger.warn(`Invalid redirect_uri: ${validation.reason}`);
                 return res
                     .status(400)
                     .send(
-                        `Invalid redirect_uri: ${params.redirectUri}. Invalid format. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs`
+                        `Invalid redirect_uri: ${params.redirectUri}. ${validation.reason}. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs`
                     );
             }
 
@@ -116,7 +118,7 @@ export class RestController {
                 params.redirectUri,
                 req,
                 this.oidcAuthService,
-                this.logger
+                this.oidcLogger
             );
 
             // Manually set redirect headers for better proxy compatibility
@@ -124,13 +126,13 @@ export class RestController {
             res.header('Location', authUrl);
             return res.send();
         } catch (error: unknown) {
-            this.logger.error(`OIDC authorize error for provider ${providerId}:`, error);
+            this.oidcLogger.error(`OIDC authorize error for provider ${providerId}:`, error);
 
             // Log more details about the error
             if (error instanceof Error) {
-                this.logger.error(`Error message: ${error.message}`);
+                this.oidcLogger.error(`Error message: ${error.message}`);
                 if (error.stack) {
-                    this.logger.debug(`Stack trace: ${error.stack}`);
+                    this.oidcLogger.debug(`Stack trace: ${error.stack}`);
                 }
             }
 
@@ -160,7 +162,7 @@ export class RestController {
                 params.state,
                 req,
                 this.oidcAuthService,
-                this.logger
+                this.oidcLogger
             );
 
             // Redirect to login page with the token in hash to keep it out of server logs
@@ -174,16 +176,16 @@ export class RestController {
             res.header('Location', loginUrl);
             return res.send();
         } catch (error: unknown) {
-            this.logger.error(`OIDC callback error: ${error}`);
+            this.oidcLogger.error(`OIDC callback error: ${error}`);
 
             // Use a generic error message to avoid leaking sensitive information
             const errorMessage = 'Authentication failed';
 
             // Log detailed error for debugging but don't expose to user
             if (error instanceof UnauthorizedException) {
-                this.logger.debug(`UnauthorizedException occurred during OIDC callback`);
+                this.oidcLogger.debug(`UnauthorizedException occurred during OIDC callback`);
             } else if (error instanceof Error) {
-                this.logger.debug(`Error during OIDC callback: ${error.message}`);
+                this.oidcLogger.debug(`Error during OIDC callback: ${error.message}`);
             }
 
             const loginUrl = `/login#error=${encodeURIComponent(errorMessage)}`;
