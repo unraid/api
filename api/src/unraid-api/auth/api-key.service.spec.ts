@@ -685,8 +685,8 @@ describe('ApiKeyService', () => {
     describe('convertRolesStringArrayToRoles', () => {
         beforeEach(async () => {
             vi.mocked(getters.paths).mockReturnValue({
-                keys: mockBasePath,
-            });
+                'auth-keys': mockBasePath,
+            } as ReturnType<typeof getters.paths>);
 
             // Create a fresh mock logger for each test
             mockLogger = {

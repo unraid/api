@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { InquirerService } from 'nest-commander';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -122,7 +122,14 @@ describe('ApiKeyCommand', () => {
 
     describe('run', () => {
         it('should create API key with roles without prompting', async () => {
-            const mockKey = { key: 'test-key-123' };
+            const mockKey = {
+                id: 'test-id',
+                key: 'test-key-123',
+                name: 'TEST',
+                roles: [Role.ADMIN],
+                createdAt: new Date().toISOString(),
+                permissions: [],
+            };
             vi.spyOn(apiKeyService, 'findByField').mockReturnValue(null);
             vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockKey);
 
@@ -145,8 +152,20 @@ describe('ApiKeyCommand', () => {
         });
 
         it('should create API key with permissions only without prompting', async () => {
-            const mockKey = { key: 'test-key-456' };
-            const mockPermissions = [{ resource: 'DOCKER', action: 'READ_ANY' }];
+            const mockKey = {
+                id: 'test-id',
+                key: 'test-key-456',
+                name: 'TEST_PERMS',
+                roles: [],
+                createdAt: new Date().toISOString(),
+                permissions: [],
+            };
+            const mockPermissions = [
+                {
+                    resource: Resource.DOCKER,
+                    actions: [AuthAction.READ_ANY],
+                },
+            ];
 
             vi.spyOn(apiKeyService, 'findByField').mockReturnValue(null);
             vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockKey);
@@ -170,7 +189,14 @@ describe('ApiKeyCommand', () => {
         });
 
         it('should use default description when not provided', async () => {
-            const mockKey = { key: 'test-key-789' };
+            const mockKey = {
+                id: 'test-id',
+                key: 'test-key-789',
+                name: 'NO_DESC',
+                roles: [Role.VIEWER],
+                createdAt: new Date().toISOString(),
+                permissions: [],
+            };
             vi.spyOn(apiKeyService, 'findByField').mockReturnValue(null);
             vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockKey);
 
@@ -191,7 +217,14 @@ describe('ApiKeyCommand', () => {
         });
 
         it('should return existing key when found', async () => {
-            const existingKey = { key: 'existing-key-123', name: 'EXISTING' };
+            const existingKey = {
+                id: 'existing-id',
+                key: 'existing-key-123',
+                name: 'EXISTING',
+                roles: [Role.ADMIN],
+                createdAt: new Date().toISOString(),
+                permissions: [],
+            };
             vi.spyOn(apiKeyService, 'findByField').mockReturnValue(existingKey);
 
             await command.run([], {
