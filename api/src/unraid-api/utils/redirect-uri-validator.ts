@@ -14,18 +14,21 @@ export interface RedirectUriValidationResult {
  * - Prevents redirecting OAuth codes to external domains
  * - Allows port variations (needed for nginx/socket proxy scenarios)
  * - Validates protocol to prevent downgrade attacks
+ * - Optionally validates against additional allowed origins
  *
  * @param redirectUri - The redirect URI provided by the client
  * @param expectedProtocol - The protocol from request headers (http/https)
  * @param expectedHost - The host from request headers (may or may not include port)
  * @param logger - Optional logger for debugging
+ * @param allowedOrigins - Optional list of additional allowed origins
  * @returns Validation result with the URI to use
  */
 export function validateRedirectUri(
     redirectUri: string | undefined,
     expectedProtocol: string,
     expectedHost: string | undefined,
-    logger?: Logger
+    logger?: Logger,
+    allowedOrigins?: string[]
 ): RedirectUriValidationResult {
     const baseUrl = expectedHost ? `${expectedProtocol}://${expectedHost}` : undefined;
 
@@ -52,6 +55,7 @@ export function validateRedirectUri(
         const protocolMatches = providedUrl.protocol === expectedUrl.protocol;
         const hostnameMatches = providedHostname === expectedHostname;
 
+        // Check against primary expected origin
         if (protocolMatches && hostnameMatches) {
             // Trust the redirect_uri with its port information
             logger?.debug(`Validated redirect_uri: ${redirectUri}`);
@@ -59,15 +63,38 @@ export function validateRedirectUri(
                 isValid: true,
                 validatedUri: redirectUri,
             };
-        } else {
-            const reason = `Hostname or protocol mismatch. Expected: ${expectedUrl.protocol}//${expectedHostname}, Got: ${providedUrl.protocol}//${providedHostname}`;
-            logger?.warn(`Rejected redirect_uri: ${reason}`);
-            return {
-                isValid: false,
-                validatedUri: baseUrl,
-                reason,
-            };
         }
+
+        // Check against additional allowed origins if provided
+        if (allowedOrigins && allowedOrigins.length > 0) {
+            for (const allowedOrigin of allowedOrigins) {
+                try {
+                    const allowedUrl = new URL(allowedOrigin);
+                    const allowedHostname = allowedUrl.hostname.toLowerCase();
+                    const allowedProtocolMatches = providedUrl.protocol === allowedUrl.protocol;
+                    const allowedHostnameMatches = providedHostname === allowedHostname;
+
+                    if (allowedProtocolMatches && allowedHostnameMatches) {
+                        logger?.debug(`Validated redirect_uri against allowed origin: ${redirectUri}`);
+                        return {
+                            isValid: true,
+                            validatedUri: redirectUri,
+                        };
+                    }
+                } catch (e) {
+                    logger?.warn(`Invalid allowed origin format: ${allowedOrigin}`);
+                }
+            }
+        }
+
+        // If we get here, validation failed
+        const reason = `Hostname or protocol mismatch. Expected: ${expectedUrl.protocol}//${expectedHostname}, Got: ${providedUrl.protocol}//${providedHostname}`;
+        logger?.warn(`Rejected redirect_uri: ${reason}`);
+        return {
+            isValid: false,
+            validatedUri: baseUrl,
+            reason,
+        };
     } catch (error) {
         const reason = `Invalid redirect_uri format: ${redirectUri}`;
         logger?.warn(reason);

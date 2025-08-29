@@ -43,6 +43,10 @@ describe('OidcAuthService', () => {
                     provide: OidcConfigPersistence,
                     useValue: {
                         getProvider: vi.fn(),
+                        getConfig: vi.fn().mockResolvedValue({
+                            providers: [],
+                            defaultAllowedOrigins: [],
+                        }),
                     },
                 },
                 {
@@ -1685,112 +1689,118 @@ describe('OidcAuthService', () => {
     });
 
     describe('getRedirectUri (private method)', () => {
-        it('should validate redirect URI against request headers', () => {
+        it('should validate redirect URI against request headers', async () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
             const headers = {
                 'x-forwarded-proto': 'https',
                 'x-forwarded-host': 'example.com',
             };
             // Valid redirect URI matching headers
-            const redirectUri = getRedirectUri('https://example.com', headers);
+            const redirectUri = await getRedirectUri('https://example.com', headers);
             expect(redirectUri).toBe('https://example.com/graphql/api/auth/oidc/callback');
         });
 
-        it('should reject redirect URI with mismatched hostname', () => {
+        it('should reject redirect URI with mismatched hostname', async () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
             const headers = {
                 'x-forwarded-proto': 'https',
                 'x-forwarded-host': 'trusted.com',
             };
             // Should throw when hostname doesn't match
-            expect(() => getRedirectUri('https://attacker.com', headers)).toThrow(UnauthorizedException);
+            await expect(getRedirectUri('https://attacker.com', headers)).rejects.toThrow(
+                UnauthorizedException
+            );
         });
 
-        it('should reject redirect URI with mismatched protocol', () => {
+        it('should reject redirect URI with mismatched protocol', async () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
             const headers = {
                 'x-forwarded-proto': 'https',
                 'x-forwarded-host': 'example.com',
             };
             // Should throw when protocol doesn't match (downgrade attack)
-            expect(() => getRedirectUri('http://example.com', headers)).toThrow(UnauthorizedException);
+            await expect(getRedirectUri('http://example.com', headers)).rejects.toThrow(
+                UnauthorizedException
+            );
         });
 
-        it('should allow port variations for same hostname', () => {
+        it('should allow port variations for same hostname', async () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
             const headers = {
                 'x-forwarded-proto': 'https',
                 'x-forwarded-host': 'example.com',
             };
             // Should allow different ports for same hostname
-            const redirectUri = getRedirectUri('https://example.com:1443', headers);
+            const redirectUri = await getRedirectUri('https://example.com:1443', headers);
             expect(redirectUri).toBe('https://example.com:1443/graphql/api/auth/oidc/callback');
         });
 
-        it('should use headers to construct redirect URI when no origin provided', () => {
+        it('should use headers to construct redirect URI when no origin provided', async () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
             const headers = {
                 'x-forwarded-proto': 'https',
                 'x-forwarded-host': 'example.com:1443',
             };
-            const redirectUri = getRedirectUri(undefined, headers);
+            const redirectUri = await getRedirectUri(undefined, headers);
             expect(redirectUri).toBe('https://example.com:1443/graphql/api/auth/oidc/callback');
         });
 
-        it('should use fallback when no origin and no headers provided', () => {
+        it('should use fallback when no origin and no headers provided', async () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
             configService.get.mockReturnValue('http://tower.local');
-            const redirectUri = getRedirectUri();
+            const redirectUri = await getRedirectUri();
             expect(redirectUri).toBe('http://tower.local/graphql/api/auth/oidc/callback');
         });
 
-        it('should reject redirect URIs ending with callback path from untrusted origins', () => {
+        it('should reject redirect URIs ending with callback path from untrusted origins', async () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
             const headers = {
                 'x-forwarded-proto': 'https',
                 'x-forwarded-host': 'trusted.com',
             };
             // Even if the path is correct, should reject untrusted origin
-            expect(() =>
+            await expect(
                 getRedirectUri('https://attacker.com/graphql/api/auth/oidc/callback', headers)
-            ).toThrow(UnauthorizedException);
+            ).rejects.toThrow(UnauthorizedException);
         });
 
-        it('should handle valid redirect URI with path included', () => {
+        it('should handle valid redirect URI with path included', async () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
             const headers = {
                 'x-forwarded-proto': 'https',
                 'x-forwarded-host': 'example.com',
             };
             // Valid redirect URI with full path should work
-            const redirectUri = getRedirectUri(
+            const redirectUri = await getRedirectUri(
                 'https://example.com/graphql/api/auth/oidc/callback',
                 headers
             );
             expect(redirectUri).toBe('https://example.com/graphql/api/auth/oidc/callback');
         });
 
-        it('should handle malformed URLs gracefully', () => {
+        it('should handle malformed URLs gracefully', async () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
             const headers = {
                 'x-forwarded-proto': 'https',
                 'x-forwarded-host': 'example.com',
             };
             // Invalid URL should throw
-            expect(() => getRedirectUri('not-a-valid-url', headers)).toThrow(UnauthorizedException);
+            await expect(getRedirectUri('not-a-valid-url', headers)).rejects.toThrow(
+                UnauthorizedException
+            );
         });
 
-        it('should handle host header without x-forwarded headers', () => {
+        it('should handle host header without x-forwarded headers', async () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
             const headers = {
                 host: 'example.com:3000',
             };
             // Should use host header when x-forwarded headers are missing
-            const redirectUri = getRedirectUri('http://example.com:3000', headers);
+            const redirectUri = await getRedirectUri('http://example.com:3000', headers);
             expect(redirectUri).toBe('http://example.com:3000/graphql/api/auth/oidc/callback');
         });
 
-        it('should prioritize x-forwarded headers over host header', () => {
+        it('should prioritize x-forwarded headers over host header', async () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
             const headers = {
                 'x-forwarded-proto': 'https',
@@ -1798,7 +1808,7 @@ describe('OidcAuthService', () => {
                 host: 'backend.example.com:3000',
             };
             // Should use x-forwarded headers when present
-            const redirectUri = getRedirectUri('https://proxy.example.com', headers);
+            const redirectUri = await getRedirectUri('https://proxy.example.com', headers);
             expect(redirectUri).toBe('https://proxy.example.com/graphql/api/auth/oidc/callback');
         });
     });
@@ -1874,8 +1884,7 @@ describe('OidcAuthService', () => {
                                 access_token: 'mock-access-token',
                                 token_type: 'Bearer',
                                 expires_in: 3600,
-                                id_token:
-                                    'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InRlc3Qta2V5In0.eyJzdWIiOiJ0ZXN0LXVzZXIiLCJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0Ojk5OTkiLCJhdWQiOiJ0ZXN0LWNsaWVudC1pZCIsImlhdCI6MTYwMDAwMDAwMCwiZXhwIjoxOTAwMDAwMDAwfQ.mock-signature',
+                                id_token: 'fake-id-token-not-jwt-0000',
                             })
                         );
                     });

@@ -31,9 +31,9 @@ export class OidcSessionService {
             expiresAt: new Date(now.getTime() + this.SESSION_TTL_SECONDS * 1000),
         };
 
-        // Store in cache with TTL
-        await this.cacheManager.set(sessionId, session, this.SESSION_TTL_SECONDS * 1000);
-        this.logger.log(`Created OIDC session ${sessionId} for provider ${providerId}`);
+        // Store in cache with TTL (in seconds)
+        await this.cacheManager.set(sessionId, session, this.SESSION_TTL_SECONDS);
+        this.logger.log(`Created OIDC session for provider ${providerId}`);
 
         return this.createPaddedToken(sessionId);
     }
@@ -46,13 +46,13 @@ export class OidcSessionService {
 
         const session = await this.cacheManager.get<OidcSession>(sessionId);
         if (!session) {
-            this.logger.debug(`Session ${sessionId} not found`);
+            this.logger.debug(`Session not found`);
             return { valid: false };
         }
 
         const now = new Date();
         if (now > new Date(session.expiresAt)) {
-            this.logger.debug(`Session ${sessionId} expired`);
+            this.logger.debug(`Session expired`);
             await this.cacheManager.del(sessionId);
             return { valid: false };
         }
@@ -62,7 +62,7 @@ export class OidcSessionService {
         await this.cacheManager.del(sessionId);
 
         this.logger.log(
-            `Validated and invalidated session ${sessionId} for provider ${session.providerId} (one-time use)`
+            `Validated and invalidated session for provider ${session.providerId} (one-time use)`
         );
         return { valid: true, username: 'root' };
     }

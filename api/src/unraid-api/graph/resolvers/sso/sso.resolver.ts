@@ -7,6 +7,7 @@ import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
+import { OidcConfiguration } from '@app/unraid-api/graph/resolvers/sso/oidc-configuration.model.js';
 import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 import { OidcSessionValidation } from '@app/unraid-api/graph/resolvers/sso/oidc-session-validation.model.js';
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
@@ -86,6 +87,19 @@ export class SsoResolver {
         @Args('id', { type: () => PrefixedID }) id: string
     ): Promise<OidcProvider | null> {
         return this.oidcConfig.getProvider(id);
+    }
+
+    @Query(() => OidcConfiguration, { description: 'Get the full OIDC configuration (admin only)' })
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
+    public async oidcConfiguration(): Promise<OidcConfiguration> {
+        const config = await this.oidcConfig.getConfig();
+        return {
+            providers: config?.providers || [],
+            defaultAllowedOrigins: config?.defaultAllowedOrigins || [],
+        };
     }
 
     @Query(() => OidcSessionValidation, {

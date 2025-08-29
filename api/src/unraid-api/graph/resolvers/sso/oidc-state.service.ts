@@ -16,7 +16,7 @@ export class OidcStateService {
     private readonly instanceId: number;
     private readonly logger = new Logger(OidcStateService.name);
     private readonly hmacSecret: string;
-    private readonly STATE_TTL_SECONDS = 600; // 10 minutes
+    private readonly STATE_TTL_MS = 600000; // 10 minutes in milliseconds (cache-manager v7+ expects milliseconds, not seconds)
     private readonly STATE_CACHE_PREFIX = 'oidc_state:';
 
     constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
@@ -47,21 +47,17 @@ export class OidcStateService {
             redirectUri,
         };
 
-        // Store in cache with TTL
+        // Store in cache with TTL (in milliseconds for cache-manager v7)
         const cacheKey = `${this.STATE_CACHE_PREFIX}${nonce}`;
-        this.logger.debug(
-            `Attempting to store state with key: ${cacheKey}, TTL: ${this.STATE_TTL_SECONDS * 1000}ms`
-        );
-        await this.cacheManager.set(cacheKey, stateData, this.STATE_TTL_SECONDS * 1000);
+        this.logger.debug(`Storing state with key: ${cacheKey}, TTL: ${this.STATE_TTL_MS}ms`);
+        await this.cacheManager.set(cacheKey, stateData, this.STATE_TTL_MS);
 
         // Verify it was stored
         const verifyStored = await this.cacheManager.get(cacheKey);
-        if (!verifyStored) {
-            this.logger.error(`Failed to store state in cache with key: ${cacheKey}`);
-            this.logger.error(`Cache manager type: ${this.cacheManager.constructor.name}`);
+        if (verifyStored) {
+            this.logger.debug(`State successfully stored and verified for key: ${cacheKey}`);
         } else {
-            this.logger.debug(`Successfully stored state in cache with key: ${cacheKey}`);
-            this.logger.debug(`Stored data: ${JSON.stringify(verifyStored)}`);
+            this.logger.error(`CRITICAL: State was NOT stored in cache for key: ${cacheKey}`);
         }
 
         // Create signed state: nonce.timestamp.signature
@@ -137,7 +133,7 @@ export class OidcStateService {
             // Check timestamp expiration
             const now = Date.now();
             const age = now - timestamp;
-            if (age > this.STATE_TTL_SECONDS * 1000) {
+            if (age > this.STATE_TTL_MS) {
                 this.logger.warn(`State validation failed: token expired (age: ${age}ms)`);
                 return {
                     isValid: false,
@@ -160,48 +156,6 @@ export class OidcStateService {
                     `State validation failed: nonce ${nonce} not found in cache (possible replay attack)`
                 );
                 this.logger.warn(`Cache key checked: ${cacheKey}`);
-
-                // Try to list all keys in cache for debugging (implementation-specific)
-                // This is debugging code only used when validation fails
-                try {
-                    // Note: Accessing internals of cache manager for debugging purposes
-                    // Different cache implementations may have different internal structures
-                    const store = (this.cacheManager as any).store;
-                    if (!store) {
-                        this.logger.debug('Cache store not accessible for debugging');
-                    } else {
-                        this.logger.debug(`Cache store type: ${store.constructor?.name || 'unknown'}`);
-
-                        // Try to get keys - implementation varies by cache type
-                        let cacheKeys: string[] = [];
-
-                        if (typeof store.keys === 'function') {
-                            // Redis-like cache with keys() method
-                            const keys = await store.keys();
-                            if (Array.isArray(keys)) {
-                                cacheKeys = keys.map((k) => String(k));
-                            }
-                        } else if (store.data instanceof Map) {
-                            // In-memory cache using Map
-                            cacheKeys = Array.from(store.data.keys()).map((k) => String(k));
-                        }
-
-                        if (cacheKeys.length > 0) {
-                            this.logger.debug(`Cache contains ${cacheKeys.length} total keys`);
-                            const oidcKeys = cacheKeys.filter((k) =>
-                                k.startsWith(this.STATE_CACHE_PREFIX)
-                            );
-                            this.logger.debug(
-                                `Found ${oidcKeys.length} OIDC state keys: ${oidcKeys.join(', ')}`
-                            );
-                        } else {
-                            this.logger.debug('No cache keys found or unable to enumerate keys');
-                        }
-                    }
-                } catch (e) {
-                    // This is debug code, so failures are expected with some cache implementations
-                    this.logger.debug(`Could not enumerate cache keys for debugging: ${e}`);
-                }
 
                 return {
                     isValid: false,

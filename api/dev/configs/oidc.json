@@ -17,5 +17,6 @@
       ],
       "buttonText": "Login With Unraid.net"
     }
-  ]
+  ],
+  "defaultAllowedOrigins": []
 }

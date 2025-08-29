@@ -57,9 +57,9 @@ export class OidcAuthService {
         // Use requestOrigin with validation
         // If requestOrigin provided, validate it
         // Otherwise fall back to generating from config
-        const redirectUri = requestOrigin
+        const redirectUri = await (requestOrigin
             ? this.getRedirectUri(requestOrigin, requestHeaders)
-            : this.getRedirectUri(undefined, requestHeaders);
+            : this.getRedirectUri(undefined, requestHeaders));
 
         this.logger.debug(`Using redirect URI for authorization: ${redirectUri}`);
         this.logger.debug(`Request origin was: ${requestOrigin || 'not provided'}`);
@@ -719,10 +719,10 @@ export class OidcAuthService {
         return this.validationService.validateProvider(provider);
     }
 
-    private getRedirectUri(
+    private async getRedirectUri(
         requestOrigin?: string,
         requestHeaders?: Record<string, string | string[] | undefined>
-    ): string {
+    ): Promise<string> {
         const CALLBACK_PATH = '/graphql/api/auth/oidc/callback';
 
         // Extract protocol and host from headers for validation
@@ -741,8 +741,19 @@ export class OidcAuthService {
             return `${baseUrl}${CALLBACK_PATH}`;
         }
 
+        // Get the global allowed origins from OIDC config
+        const config = await this.oidcConfig.getConfig();
+        const allowedOrigins = config?.defaultAllowedOrigins;
+
         // Validate the provided requestOrigin using centralized validator
-        const validation = validateRedirectUri(requestOrigin, protocol, host, this.logger);
+        // Pass the global allowed origins if available
+        const validation = validateRedirectUri(
+            requestOrigin,
+            protocol,
+            host,
+            this.logger,
+            allowedOrigins
+        );
 
         if (!validation.isValid) {
             this.logger.warn(`Invalid redirect_uri in GraphQL OIDC flow: ${validation.reason}`);

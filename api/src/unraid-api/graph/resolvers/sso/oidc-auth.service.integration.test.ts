@@ -42,6 +42,10 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
                     useValue: {
                         getProvider: vi.fn(),
                         saveProvider: vi.fn(),
+                        getConfig: vi.fn().mockReturnValue({
+                            providers: [],
+                            defaultAllowedOrigins: [],
+                        }),
                     },
                 },
                 {
@@ -329,7 +333,7 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
             expect(result.isValid).toBe(false);
             // The error message should indicate JSON parsing issue
             expect(result.error).toBeDefined();
-        }, 10000);
+        }, 30000); // Increased timeout to 30 seconds for external HTTP request
 
         it('should handle and log HTTP vs HTTPS protocol differences', async () => {
             const httpProvider: OidcProvider = {

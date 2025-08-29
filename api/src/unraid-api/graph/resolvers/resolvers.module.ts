@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
+import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
 import { ApiKeyModule } from '@app/unraid-api/graph/resolvers/api-key/api-key.module.js';
 import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 import { ArrayModule } from '@app/unraid-api/graph/resolvers/array/array.module.js';
+import { ConfigDownloadResolver } from '@app/unraid-api/graph/resolvers/config/config-download.resolver.js';
 import { ConfigResolver } from '@app/unraid-api/graph/resolvers/config/config.resolver.js';
 import { CustomizationModule } from '@app/unraid-api/graph/resolvers/customization/customization.module.js';
 import { DisksModule } from '@app/unraid-api/graph/resolvers/disks/disks.module.js';
@@ -39,6 +41,7 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         ServicesModule,
         ArrayModule,
         ApiKeyModule,
+        ApiConfigModule,
         AuthModule,
         CustomizationModule,
         DockerModule,
@@ -53,6 +56,7 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
     ],
     providers: [
         ConfigResolver,
+        ConfigDownloadResolver,
         FlashResolver,
         LogsResolver,
         LogsService,

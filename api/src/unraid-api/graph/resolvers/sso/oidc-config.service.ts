@@ -14,12 +14,14 @@ import {
 import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
 import {
     createAccordionLayout,
+    createLabeledControl,
     createSimpleLabeledControl,
 } from '@app/unraid-api/graph/utils/form-utils.js';
 import { SettingSlice } from '@app/unraid-api/types/json-forms.js';
 
 export interface OidcConfig {
     providers: OidcProvider[];
+    defaultAllowedOrigins?: string[];
 }
 
 @Injectable()
@@ -51,6 +53,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
     defaultConfig(): OidcConfig {
         return {
             providers: [this.getUnraidNetSsoProvider()],
+            defaultAllowedOrigins: [],
         };
     }
 
@@ -92,6 +95,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
 
         return {
             providers: [unraidNetSsoProvider],
+            defaultAllowedOrigins: [],
         };
     }
 
@@ -461,7 +465,34 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
     }
 
     private buildSlice(): SettingSlice {
-        return mergeSettingSlices([this.oidcProvidersSlice()], { as: 'sso' });
+        const providersSlice = this.oidcProvidersSlice();
+
+        // Add defaultAllowedOrigins to the properties
+        providersSlice.properties.defaultAllowedOrigins = {
+            type: 'array',
+            items: { type: 'string' },
+            title: 'Default Allowed Redirect Origins',
+            default: [],
+            description:
+                'Additional trusted redirect origins to allow redirects from custom ports, reverse proxies, Tailscale, etc.',
+        };
+
+        // Add the control for defaultAllowedOrigins before the providers control using UnraidSettingsLayout
+        providersSlice.elements[0].elements.unshift(
+            createLabeledControl({
+                scope: '#/properties/sso/properties/defaultAllowedOrigins',
+                label: 'Allowed Redirect Origins',
+                description:
+                    'Add trusted origins here when accessing Unraid through custom ports, reverse proxies, or Tailscale. Each origin should include the protocol and optionally a port (e.g., https://unraid.local:8443)',
+                controlOptions: {
+                    format: 'array',
+                    inputType: 'text',
+                    placeholder: 'https://unraid.local:8443',
+                },
+            })
+        );
+
+        return mergeSettingSlices([providersSlice], { as: 'sso' });
     }
 
     private oidcProvidersSlice(): SettingSlice {

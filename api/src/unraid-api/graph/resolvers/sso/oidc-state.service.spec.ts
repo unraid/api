@@ -1,5 +1,5 @@
 import { CacheModule } from '@nestjs/cache-manager';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -7,12 +7,15 @@ import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state
 
 describe('OidcStateService', () => {
     let service: OidcStateService;
+    let module: TestingModule;
 
     beforeEach(async () => {
         vi.clearAllMocks();
         vi.useFakeTimers();
+        // Set a deterministic system time for consistent testing
+        vi.setSystemTime(new Date('2024-01-01T00:00:00Z'));
 
-        const module = await Test.createTestingModule({
+        module = await Test.createTestingModule({
             imports: [CacheModule.register()],
             providers: [OidcStateService],
         }).compile();
@@ -20,8 +23,12 @@ describe('OidcStateService', () => {
         service = module.get<OidcStateService>(OidcStateService);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         vi.useRealTimers();
+        // Close the testing module to prevent handle leaks
+        if (module) {
+            await module.close();
+        }
     });
 
     describe('generateSecureState', () => {

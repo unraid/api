@@ -448,6 +448,18 @@ export enum ConfigErrorState {
   WITHDRAWN = 'WITHDRAWN'
 }
 
+export type ConfigFile = {
+  __typename?: 'ConfigFile';
+  content: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+};
+
+export type ConfigFilesResponse = {
+  __typename?: 'ConfigFilesResponse';
+  files: Array<ConfigFile>;
+};
+
 export type Connect = Node & {
   __typename?: 'Connect';
   /** The status of dynamic remote access */
@@ -1432,6 +1444,14 @@ export type OidcAuthorizationRule = {
   value: Array<Scalars['String']['output']>;
 };
 
+export type OidcConfiguration = {
+  __typename?: 'OidcConfiguration';
+  /** Default allowed redirect origins that apply to all OIDC providers (e.g., Tailscale domains) */
+  defaultAllowedOrigins?: Maybe<Array<Scalars['String']['output']>>;
+  /** List of configured OIDC providers */
+  providers: Array<OidcProvider>;
+};
+
 export type OidcProvider = {
   __typename?: 'OidcProvider';
   /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
@@ -1623,6 +1643,7 @@ export type PublicPartnerInfo = {
 
 export type Query = {
   __typename?: 'Query';
+  allConfigFiles: ConfigFilesResponse;
   apiKey?: Maybe<ApiKey>;
   /** All possible permissions for API keys */
   apiKeyPossiblePermissions: Array<Permission>;
@@ -1654,6 +1675,8 @@ export type Query = {
   network: Network;
   /** Get all notifications */
   notifications: Notifications;
+  /** Get the full OIDC configuration (admin only) */
+  oidcConfiguration: OidcConfiguration;
   /** Get a specific OIDC provider by ID */
   oidcProvider?: Maybe<OidcProvider>;
   /** Get all configured OIDC providers (admin only) */
@@ -1933,6 +1956,7 @@ export type Server = Node & {
   name: Scalars['String']['output'];
   owner: ProfileModel;
   remoteurl: Scalars['String']['output'];
+  /** Whether this server is online or offline */
   status: ServerStatus;
   wanip: Scalars['String']['output'];
 };

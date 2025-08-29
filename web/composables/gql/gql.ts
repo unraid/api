@@ -49,6 +49,7 @@ type Documents = {
     "\n  query InfoVersions {\n    info {\n      id\n      os {\n        id\n        hostname\n      }\n      versions {\n        id\n        core {\n          unraid\n          api\n        }\n      }\n    }\n  }\n": typeof types.InfoVersionsDocument,
     "\n  query OidcProviders {\n    settings {\n      sso {\n        oidcProviders {\n          id\n          name\n          clientId\n          issuer\n          authorizationEndpoint\n          tokenEndpoint\n          jwksUri\n          scopes\n          authorizationRules {\n            claim\n            operator\n            value\n          }\n          authorizationRuleMode\n          buttonText\n          buttonIcon\n        }\n      }\n    }\n  }\n": typeof types.OidcProvidersDocument,
     "\n  query PublicOidcProviders {\n    publicOidcProviders {\n      id\n      name\n      buttonText\n      buttonIcon\n      buttonVariant\n      buttonStyle\n    }\n  }\n": typeof types.PublicOidcProvidersDocument,
+    "\n  query AllConfigFiles {\n    allConfigFiles {\n      files {\n        name\n        content\n        path\n      }\n    }\n  }\n": typeof types.AllConfigFilesDocument,
     "\n  query serverInfo {\n    info {\n      os {\n        hostname\n      }\n    }\n    vars {\n      comment\n    }\n  }\n": typeof types.ServerInfoDocument,
     "\n  mutation ConnectSignIn($input: ConnectSignInInput!) {\n    connectSignIn(input: $input)\n  }\n": typeof types.ConnectSignInDocument,
     "\n  mutation SignOut {\n    connectSignOut\n  }\n": typeof types.SignOutDocument,
@@ -94,6 +95,7 @@ const documents: Documents = {
     "\n  query InfoVersions {\n    info {\n      id\n      os {\n        id\n        hostname\n      }\n      versions {\n        id\n        core {\n          unraid\n          api\n        }\n      }\n    }\n  }\n": types.InfoVersionsDocument,
     "\n  query OidcProviders {\n    settings {\n      sso {\n        oidcProviders {\n          id\n          name\n          clientId\n          issuer\n          authorizationEndpoint\n          tokenEndpoint\n          jwksUri\n          scopes\n          authorizationRules {\n            claim\n            operator\n            value\n          }\n          authorizationRuleMode\n          buttonText\n          buttonIcon\n        }\n      }\n    }\n  }\n": types.OidcProvidersDocument,
     "\n  query PublicOidcProviders {\n    publicOidcProviders {\n      id\n      name\n      buttonText\n      buttonIcon\n      buttonVariant\n      buttonStyle\n    }\n  }\n": types.PublicOidcProvidersDocument,
+    "\n  query AllConfigFiles {\n    allConfigFiles {\n      files {\n        name\n        content\n        path\n      }\n    }\n  }\n": types.AllConfigFilesDocument,
     "\n  query serverInfo {\n    info {\n      os {\n        hostname\n      }\n    }\n    vars {\n      comment\n    }\n  }\n": types.ServerInfoDocument,
     "\n  mutation ConnectSignIn($input: ConnectSignInInput!) {\n    connectSignIn(input: $input)\n  }\n": types.ConnectSignInDocument,
     "\n  mutation SignOut {\n    connectSignOut\n  }\n": types.SignOutDocument,
@@ -258,6 +260,10 @@ export function graphql(source: "\n  query OidcProviders {\n    settings {\n    
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query PublicOidcProviders {\n    publicOidcProviders {\n      id\n      name\n      buttonText\n      buttonIcon\n      buttonVariant\n      buttonStyle\n    }\n  }\n"): (typeof documents)["\n  query PublicOidcProviders {\n    publicOidcProviders {\n      id\n      name\n      buttonText\n      buttonIcon\n      buttonVariant\n      buttonStyle\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query AllConfigFiles {\n    allConfigFiles {\n      files {\n        name\n        content\n        path\n      }\n    }\n  }\n"): (typeof documents)["\n  query AllConfigFiles {\n    allConfigFiles {\n      files {\n        name\n        content\n        path\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
