@@ -114,7 +114,7 @@ describe('validateRedirectUri', () => {
     });
 
     describe('protocol validation', () => {
-        it('should reject protocol mismatches (https to http)', () => {
+        it('should reject HTTP when expecting HTTPS (prevent downgrade attacks)', () => {
             const result = validateRedirectUri('http://example.com', 'https', 'example.com', mockLogger);
 
             expect(result.isValid).toBe(false);
@@ -122,11 +122,11 @@ describe('validateRedirectUri', () => {
             expect(result.reason).toContain('Hostname or protocol mismatch');
         });
 
-        it('should reject protocol mismatches (http to https)', () => {
+        it('should allow HTTPS when expecting HTTP (common with reverse proxies)', () => {
             const result = validateRedirectUri('https://example.com', 'http', 'example.com', mockLogger);
 
-            expect(result.isValid).toBe(false);
-            expect(result.validatedUri).toBe('http://example.com');
+            expect(result.isValid).toBe(true);
+            expect(result.validatedUri).toBe('https://example.com');
         });
 
         it('should accept matching protocols', () => {

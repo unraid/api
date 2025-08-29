@@ -51,8 +51,11 @@ export function validateRedirectUri(
         const providedHostname = providedUrl.hostname.toLowerCase();
         const expectedHostname = expectedUrl.hostname.toLowerCase();
 
-        // Also ensure protocol matches for security
-        const protocolMatches = providedUrl.protocol === expectedUrl.protocol;
+        // Check protocol matches, but allow HTTPS when expecting HTTP (common with reverse proxies)
+        // Never allow HTTP when expecting HTTPS (would be a downgrade attack)
+        const protocolMatches =
+            providedUrl.protocol === expectedUrl.protocol ||
+            (expectedUrl.protocol === 'http:' && providedUrl.protocol === 'https:');
         const hostnameMatches = providedHostname === expectedHostname;
 
         // Check against primary expected origin
@@ -71,7 +74,10 @@ export function validateRedirectUri(
                 try {
                     const allowedUrl = new URL(allowedOrigin);
                     const allowedHostname = allowedUrl.hostname.toLowerCase();
-                    const allowedProtocolMatches = providedUrl.protocol === allowedUrl.protocol;
+                    // Allow HTTPS when expecting HTTP (common with reverse proxies)
+                    const allowedProtocolMatches =
+                        providedUrl.protocol === allowedUrl.protocol ||
+                        (allowedUrl.protocol === 'http:' && providedUrl.protocol === 'https:');
                     const allowedHostnameMatches = providedHostname === allowedHostname;
 
                     if (allowedProtocolMatches && allowedHostnameMatches) {

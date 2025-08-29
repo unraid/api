@@ -138,7 +138,9 @@ describe('RestController', () => {
                 );
 
                 expect(mockReply.status).toHaveBeenCalledWith(400);
-                expect(mockReply.send).toHaveBeenCalledWith('Invalid redirect_uri: hostname mismatch');
+                expect(mockReply.send).toHaveBeenCalledWith(
+                    'Invalid redirect_uri: https://evil.com/graphql/api/auth/oidc/callback. Hostname mismatch. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs'
+                );
                 expect(OidcRequestHandler.handleAuthorize).not.toHaveBeenCalled();
             });
 
@@ -154,7 +156,9 @@ describe('RestController', () => {
                 );
 
                 expect(mockReply.status).toHaveBeenCalledWith(400);
-                expect(mockReply.send).toHaveBeenCalledWith('Invalid redirect_uri: hostname mismatch');
+                expect(mockReply.send).toHaveBeenCalledWith(
+                    'Invalid redirect_uri: https://evil.unraid.mytailnet.ts.net/graphql/api/auth/oidc/callback. Hostname mismatch. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs'
+                );
                 expect(OidcRequestHandler.handleAuthorize).not.toHaveBeenCalled();
             });
 
@@ -187,7 +191,9 @@ describe('RestController', () => {
                 );
 
                 expect(mockReply.status).toHaveBeenCalledWith(400);
-                expect(mockReply.send).toHaveBeenCalledWith('Invalid redirect_uri format');
+                expect(mockReply.send).toHaveBeenCalledWith(
+                    'Invalid redirect_uri: not-a-valid-url. Invalid format. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs'
+                );
                 expect(OidcRequestHandler.handleAuthorize).not.toHaveBeenCalled();
             });
 

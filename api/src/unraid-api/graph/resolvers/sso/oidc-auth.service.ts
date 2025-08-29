@@ -757,7 +757,10 @@ export class OidcAuthService {
 
         if (!validation.isValid) {
             this.logger.warn(`Invalid redirect_uri in GraphQL OIDC flow: ${validation.reason}`);
-            throw new UnauthorizedException('Invalid redirect_uri');
+            const attemptedUri = requestOrigin || `${protocol}://${host}`;
+            throw new UnauthorizedException(
+                `Invalid redirect_uri: ${attemptedUri}. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs`
+            );
         }
 
         // Ensure the validated URI has the correct callback path

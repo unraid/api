@@ -94,11 +94,19 @@ export class RestController {
                     this.logger.warn(
                         `Redirect URI hostname mismatch. Expected: ${requestHost}, Got: ${redirectUrl.hostname}`
                     );
-                    return res.status(400).send('Invalid redirect_uri: hostname mismatch');
+                    return res
+                        .status(400)
+                        .send(
+                            `Invalid redirect_uri: ${params.redirectUri}. Hostname mismatch. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs`
+                        );
                 }
             } catch (e) {
                 this.logger.error(`Invalid redirect_uri format: ${params.redirectUri}`);
-                return res.status(400).send('Invalid redirect_uri format');
+                return res
+                    .status(400)
+                    .send(
+                        `Invalid redirect_uri: ${params.redirectUri}. Invalid format. Please add this callback URI to Settings → Management Access → Allowed Redirect URIs`
+                    );
             }
 
             // Handle authorization flow using the exact redirect_uri from query params
