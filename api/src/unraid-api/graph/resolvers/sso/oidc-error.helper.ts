@@ -218,7 +218,13 @@ export class OidcErrorHelper {
 
         // Check for HTTP status errors
         const httpError = this.parseHttpError(errorMessage, issuerUrl);
-        if (httpError.details.type !== undefined) {
+        // Proper type-narrowing guard for accessing details.type
+        if (
+            httpError.details &&
+            typeof httpError.details === 'object' &&
+            'type' in httpError.details &&
+            httpError.details.type !== undefined
+        ) {
             return httpError;
         }
 

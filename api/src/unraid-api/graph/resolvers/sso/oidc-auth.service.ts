@@ -16,6 +16,7 @@ import { OidcStateExtractor } from '@app/unraid-api/graph/resolvers/sso/oidc-sta
 import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state.service.js';
 import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
 import { ErrorExtractor } from '@app/unraid-api/utils/error-extractor.util.js';
+import { validateRedirectUri } from '@app/unraid-api/utils/redirect-uri-validator.js';
 
 interface JwtClaims {
     sub?: string;
@@ -724,128 +725,79 @@ export class OidcAuthService {
     ): string {
         const CALLBACK_PATH = '/graphql/api/auth/oidc/callback';
 
+        // Extract protocol and host from headers for validation
+        const { protocol, host } = this.getRequestOriginInfo(requestHeaders);
+
+        // If no requestOrigin provided, construct from headers or use fallback
         if (!requestOrigin) {
-            // No origin provided, use fallback
-            const baseUrl = this.configService.get('BASE_URL', 'http://tower.local');
-            this.logger.debug(`Using fallback redirect URI: ${baseUrl}${CALLBACK_PATH}`);
-            return `${baseUrl}${CALLBACK_PATH}`;
-        }
-
-        try {
-            const url = new URL(requestOrigin);
-
-            // Check if this is already a full redirect URI with the callback path
-            if (url.pathname === CALLBACK_PATH || url.pathname === `${CALLBACK_PATH}/`) {
-                const origin = url.origin;
-                if (!this.isAllowedRedirectOrigin(origin, requestHeaders)) {
-                    this.logger.warn(`Rejecting redirect_uri from disallowed origin: ${origin}`);
-                    throw new UnauthorizedException('Invalid redirect_uri origin');
-                }
-                this.logger.debug(`Using validated redirect origin from client: ${origin}`);
-                return `${origin}${CALLBACK_PATH}`;
+            if (protocol && host) {
+                const redirectUri = `${protocol}://${host}${CALLBACK_PATH}`;
+                this.logger.debug(`Using redirect URI from headers: ${redirectUri}`);
+                return redirectUri;
             }
-
-            // Build redirect URI from origin (validate first)
-            const origin = this.buildOriginWithPort(url);
-            if (!this.isAllowedRedirectOrigin(origin, requestHeaders)) {
-                this.logger.warn(`Rejecting redirect origin (not allowed): ${origin}`);
-                throw new UnauthorizedException('Invalid redirect_uri origin');
-            }
-            const redirectUri = `${origin}${CALLBACK_PATH}`;
-            this.logger.debug(`Constructed redirect URI: ${redirectUri}`);
-            return redirectUri;
-        } catch (e) {
-            // If it's an UnauthorizedException from validation, re-throw it
-            if (e instanceof UnauthorizedException) {
-                throw e;
-            }
-
-            this.logger.warn(`Failed to parse request origin: ${requestOrigin}, error: ${e}`);
-
             // Fall back to configured BASE_URL
             const baseUrl = this.configService.get('BASE_URL', 'http://tower.local');
             this.logger.debug(`Using fallback redirect URI: ${baseUrl}${CALLBACK_PATH}`);
             return `${baseUrl}${CALLBACK_PATH}`;
         }
+
+        // Validate the provided requestOrigin using centralized validator
+        const validation = validateRedirectUri(requestOrigin, protocol, host, this.logger);
+
+        if (!validation.isValid) {
+            this.logger.warn(`Invalid redirect_uri in GraphQL OIDC flow: ${validation.reason}`);
+            throw new UnauthorizedException('Invalid redirect_uri');
+        }
+
+        // Ensure the validated URI has the correct callback path
+        try {
+            const url = new URL(validation.validatedUri);
+            // Only use origin to prevent path manipulation
+            const redirectUri = `${url.origin}${CALLBACK_PATH}`;
+            this.logger.debug(`Using validated redirect URI: ${redirectUri}`);
+            return redirectUri;
+        } catch (e) {
+            this.logger.error(
+                `Failed to construct redirect URI from validated URI: ${validation.validatedUri}`
+            );
+            throw new UnauthorizedException('Invalid redirect_uri');
+        }
+    }
+
+    private getRequestOriginInfo(requestHeaders?: Record<string, string | string[] | undefined>): {
+        protocol: string;
+        host: string | undefined;
+    } {
+        if (!requestHeaders) {
+            return { protocol: 'http', host: undefined };
+        }
+
+        // Extract protocol from x-forwarded-proto or default to http
+        const forwardedProto = requestHeaders['x-forwarded-proto'];
+        const protocol = forwardedProto
+            ? Array.isArray(forwardedProto)
+                ? forwardedProto[0]
+                : forwardedProto
+            : 'http';
+
+        // Extract host from x-forwarded-host or host header
+        const forwardedHost = requestHeaders['x-forwarded-host'];
+        const hostHeader = requestHeaders['host'];
+        const host = forwardedHost
+            ? Array.isArray(forwardedHost)
+                ? forwardedHost[0]
+                : forwardedHost
+            : hostHeader
+              ? Array.isArray(hostHeader)
+                  ? hostHeader[0]
+                  : hostHeader
+              : undefined;
+
+        return { protocol, host };
     }
 
     private buildOriginWithPort(url: URL): string {
         // URL.origin properly handles IPv6, default ports, and URL composition
         return url.origin;
-    }
-
-    /**
-     * Validates if a redirect origin is allowed
-     * This provides security by ensuring redirects only go to expected origins
-     * Also parses and allows origins from request headers when provided
-     */
-    private isAllowedRedirectOrigin(
-        origin: string,
-        requestHeaders?: Record<string, string | string[] | undefined>
-    ): boolean {
-        // Get allowed origins from configuration
-        const baseUrl = this.configService.get('BASE_URL', 'http://tower.local');
-        const allowedOrigins = new Set([
-            'http://tower.local',
-            'https://tower.local',
-            'http://localhost:3000',
-            'http://localhost:3001',
-            baseUrl,
-        ]);
-
-        // Add any additional allowed origins from environment
-        const additionalOrigins = this.configService.get<string>('ALLOWED_REDIRECT_ORIGINS', '');
-        if (additionalOrigins) {
-            additionalOrigins
-                .split(',')
-                .map((o) => o.trim())
-                .forEach((o) => allowedOrigins.add(o));
-        }
-
-        // Parse and add origin from request headers if available
-        if (requestHeaders) {
-            // Check x-forwarded-proto and x-forwarded-host headers (common in proxy setups)
-            const forwardedProto = requestHeaders['x-forwarded-proto'];
-            const forwardedHost = requestHeaders['x-forwarded-host'];
-
-            if (forwardedProto && forwardedHost) {
-                const proto = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto;
-                const host = Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost;
-                const derivedOrigin = `${proto}://${host}`;
-
-                // Log the derived origin for debugging
-                this.logger.debug(`Derived origin from headers: ${derivedOrigin}`);
-
-                // Add the derived origin to allowed list dynamically
-                allowedOrigins.add(derivedOrigin);
-            }
-
-            // Also check the standard Origin header
-            const originHeader = requestHeaders['origin'];
-            if (originHeader) {
-                const headerOrigin = Array.isArray(originHeader) ? originHeader[0] : originHeader;
-                this.logger.debug(`Origin header found: ${headerOrigin}`);
-                allowedOrigins.add(headerOrigin);
-            }
-
-            // Check Referer header as fallback
-            const refererHeader = requestHeaders['referer'] || requestHeaders['referrer'];
-            if (refererHeader) {
-                try {
-                    const referer = Array.isArray(refererHeader) ? refererHeader[0] : refererHeader;
-                    const refererUrl = new URL(referer);
-                    const refererOrigin = refererUrl.origin;
-                    this.logger.debug(`Referer origin found: ${refererOrigin}`);
-                    allowedOrigins.add(refererOrigin);
-                } catch (e) {
-                    this.logger.debug(`Could not parse referer header: ${refererHeader}`);
-                }
-            }
-        }
-
-        this.logger.debug(
-            `Checking origin ${origin} against allowed origins: ${Array.from(allowedOrigins).join(', ')}`
-        );
-        return allowedOrigins.has(origin);
     }
 }

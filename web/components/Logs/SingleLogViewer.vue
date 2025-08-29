@@ -7,7 +7,7 @@ import { ArrowDownTrayIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
 import { Button, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@unraid/ui';
 import hljs from 'highlight.js/lib/core';
 import DOMPurify from 'isomorphic-dompurify';
-import AnsiToHtml from 'ansi-to-html';
+import { AnsiUp } from 'ansi_up';
 
 import 'highlight.js/styles/github-dark.css'; // You can choose a different style
 
@@ -32,32 +32,12 @@ import { LOG_FILE_SUBSCRIPTION } from './log.subscription';
 const themeStore = useThemeStore();
 const isDarkMode = computed(() => themeStore.darkMode);
 
-// Initialize ANSI to HTML converter
-const ansiConverter = new AnsiToHtml({
-  fg: '#FFF',
-  bg: '#000',
-  newline: true,
-  escapeXML: true,
-  stream: false,
-  colors: {
-    0: '#000',
-    1: '#c91b00', // Red
-    2: '#00c200', // Green
-    3: '#c7c400', // Yellow
-    4: '#0225c7', // Blue
-    5: '#c930c7', // Magenta
-    6: '#00c5c7', // Cyan
-    7: '#c7c7c7', // White
-    8: '#676767', // Bright Black
-    9: '#ff6d67', // Bright Red
-    10: '#5ff967', // Bright Green
-    11: '#fefb67', // Bright Yellow
-    12: '#6871ff', // Bright Blue
-    13: '#ff76ff', // Bright Magenta
-    14: '#5ffdff', // Bright Cyan
-    15: '#fff'     // Bright White
-  }
-});
+// Initialize ANSI to HTML converter with CSS classes
+const ansiConverter = new AnsiUp();
+// Use CSS classes instead of inline styles
+ansiConverter.use_classes = true;
+// Escape HTML entities for security
+ansiConverter.escape_html = true;
 
 // Register the languages
 hljs.registerLanguage('plaintext', plaintext);
@@ -221,17 +201,17 @@ watch(
 // Function to highlight log content
 const highlightLog = (content: string): string => {
   try {
-    // Convert ANSI codes to HTML
-    // This preserves the terminal colors from pino-pretty
-    const highlighted = ansiConverter.toHtml(content);
+    // Convert ANSI codes to HTML with CSS classes
+    // ansi_up uses ansi_to_html method
+    const highlighted = ansiConverter.ansi_to_html(content);
 
     // Don't apply additional regex replacements that might break the HTML
     // The ANSI converter already handles the coloring
 
-    // Sanitize the highlighted HTML while preserving style attributes for ANSI colors
+    // Sanitize the highlighted HTML while preserving class attributes for ANSI colors
     return DOMPurify.sanitize(highlighted, {
       ALLOWED_TAGS: ['span', 'br'],
-      ALLOWED_ATTR: ['style']
+      ALLOWED_ATTR: ['class']  // Allow class attribute for ANSI color classes
     });
   } catch (error) {
     console.error('Error highlighting log content:', error);
@@ -630,39 +610,50 @@ defineExpose({ refreshLogContent });
   font-weight: bold;
 }
 
-/* ANSI color styles for ansi-to-html output */
-:deep(.ansi-black) { color: #000; }
-:deep(.ansi-red) { color: #c91b00; }
-:deep(.ansi-green) { color: #00c200; }
-:deep(.ansi-yellow) { color: #c7c400; }
-:deep(.ansi-blue) { color: #0225c7; }
-:deep(.ansi-magenta) { color: #c930c7; }
-:deep(.ansi-cyan) { color: #00c5c7; }
-:deep(.ansi-white) { color: #c7c7c7; }
-:deep(.ansi-bright-black) { color: #676767; }
-:deep(.ansi-bright-red) { color: #ff6d67; }
-:deep(.ansi-bright-green) { color: #5ff967; }
-:deep(.ansi-bright-yellow) { color: #fefb67; }
-:deep(.ansi-bright-blue) { color: #6871ff; }
-:deep(.ansi-bright-magenta) { color: #ff76ff; }
-:deep(.ansi-bright-cyan) { color: #5ffdff; }
-:deep(.ansi-bright-white) { color: #fff; }
+/* ANSI color styles for ansi_up output - using format: ansi-{color}-fg/bg */
+/* Foreground colors */
+:deep(.ansi-black-fg) { color: #000; }
+:deep(.ansi-red-fg) { color: #c91b00; }
+:deep(.ansi-green-fg) { color: #00c200; }
+:deep(.ansi-yellow-fg) { color: #c7c400; }
+:deep(.ansi-blue-fg) { color: #0225c7; }
+:deep(.ansi-magenta-fg) { color: #c930c7; }
+:deep(.ansi-cyan-fg) { color: #00c5c7; }
+:deep(.ansi-white-fg) { color: #c7c7c7; }
+
+/* Bright foreground colors */
+:deep(.ansi-bright-black-fg) { color: #676767; }
+:deep(.ansi-bright-red-fg) { color: #ff6d67; }
+:deep(.ansi-bright-green-fg) { color: #5ff967; }
+:deep(.ansi-bright-yellow-fg) { color: #fefb67; }
+:deep(.ansi-bright-blue-fg) { color: #6871ff; }
+:deep(.ansi-bright-magenta-fg) { color: #ff76ff; }
+:deep(.ansi-bright-cyan-fg) { color: #5ffdff; }
+:deep(.ansi-bright-white-fg) { color: #fff; }
 
 /* Background colors */
-:deep(.ansi-bg-black) { background-color: #000; }
-:deep(.ansi-bg-red) { background-color: #c91b00; }
-:deep(.ansi-bg-green) { background-color: #00c200; }
-:deep(.ansi-bg-yellow) { background-color: #c7c400; }
-:deep(.ansi-bg-blue) { background-color: #0225c7; }
-:deep(.ansi-bg-magenta) { background-color: #c930c7; }
-:deep(.ansi-bg-cyan) { background-color: #00c5c7; }
-:deep(.ansi-bg-white) { background-color: #c7c7c7; }
-:deep(.ansi-bg-bright-black) { background-color: #676767; }
-:deep(.ansi-bg-bright-red) { background-color: #ff6d67; }
-:deep(.ansi-bg-bright-green) { background-color: #5ff967; }
-:deep(.ansi-bg-bright-yellow) { background-color: #fefb67; }
-:deep(.ansi-bg-bright-blue) { background-color: #6871ff; }
-:deep(.ansi-bg-bright-magenta) { background-color: #ff76ff; }
-:deep(.ansi-bg-bright-cyan) { background-color: #5ffdff; }
-:deep(.ansi-bg-bright-white) { background-color: #fff; }
+:deep(.ansi-black-bg) { background-color: #000; }
+:deep(.ansi-red-bg) { background-color: #c91b00; }
+:deep(.ansi-green-bg) { background-color: #00c200; }
+:deep(.ansi-yellow-bg) { background-color: #c7c400; }
+:deep(.ansi-blue-bg) { background-color: #0225c7; }
+:deep(.ansi-magenta-bg) { background-color: #c930c7; }
+:deep(.ansi-cyan-bg) { background-color: #00c5c7; }
+:deep(.ansi-white-bg) { background-color: #c7c7c7; }
+
+/* Bright background colors */
+:deep(.ansi-bright-black-bg) { background-color: #676767; }
+:deep(.ansi-bright-red-bg) { background-color: #ff6d67; }
+:deep(.ansi-bright-green-bg) { background-color: #5ff967; }
+:deep(.ansi-bright-yellow-bg) { background-color: #fefb67; }
+:deep(.ansi-bright-blue-bg) { background-color: #6871ff; }
+:deep(.ansi-bright-magenta-bg) { background-color: #ff76ff; }
+:deep(.ansi-bright-cyan-bg) { background-color: #5ffdff; }
+:deep(.ansi-bright-white-bg) { background-color: #fff; }
+
+/* Additional ansi_up classes */
+:deep(.ansi-bold) { font-weight: bold; }
+:deep(.ansi-italic) { font-style: italic; }
+:deep(.ansi-underline) { text-decoration: underline; }
+:deep(.ansi-strike) { text-decoration: line-through; }
 </style>
