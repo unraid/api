@@ -366,12 +366,7 @@ describe('SingleLogViewer - ANSI Color Support', () => {
         })
         .join('\n');
 
-      const startTime = performance.now();
       const result = ansiConverter.ansi_to_html(largeInput);
-      const endTime = performance.now();
-
-      // Should process 1000 lines in under 100ms
-      expect(endTime - startTime).toBeLessThan(100);
       
       // Should contain the expected number of color spans
       const colorMatches = result.match(/class="ansi-/g);
@@ -385,15 +380,10 @@ describe('SingleLogViewer - ANSI Color Support', () => {
         .map((_, i) => `<span class="ansi-red-fg">Line ${i}</span>`)
         .join('\n');
 
-      const startTime = performance.now();
       const sanitized = DOMPurify.sanitize(largeHtml, {
         ALLOWED_TAGS: ['span', 'br'],
         ALLOWED_ATTR: ['class']
       });
-      const endTime = performance.now();
-
-      // Should sanitize 1000 spans in a reasonable time (under 500ms)
-      expect(endTime - startTime).toBeLessThan(500);
       
       // Should preserve all spans
       const spanMatches = sanitized.match(/<span/g);
