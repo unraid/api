@@ -15,7 +15,7 @@ export interface OidcSession {
 @Injectable()
 export class OidcSessionService {
     private readonly logger = new Logger(OidcSessionService.name);
-    private readonly SESSION_TTL_SECONDS = 2 * 60; // 2 minutes for one-time token security
+    private readonly SESSION_TTL_MS = 2 * 60 * 1000; // 2 minutes in milliseconds (cache-manager v7 expects milliseconds)
 
     constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {}
 
@@ -28,11 +28,20 @@ export class OidcSessionService {
             providerId,
             providerUserId,
             createdAt: now,
-            expiresAt: new Date(now.getTime() + this.SESSION_TTL_SECONDS * 1000),
+            expiresAt: new Date(now.getTime() + this.SESSION_TTL_MS),
         };
 
-        // Store in cache with TTL (in seconds)
-        await this.cacheManager.set(sessionId, session, this.SESSION_TTL_SECONDS);
+        // Store in cache with TTL (in milliseconds for cache-manager v7)
+        await this.cacheManager.set(sessionId, session, this.SESSION_TTL_MS);
+
+        // Verify it was stored
+        const verifyStored = await this.cacheManager.get(sessionId);
+        if (verifyStored) {
+            this.logger.debug(`Session successfully stored and verified with ID: ${sessionId}`);
+        } else {
+            this.logger.error(`CRITICAL: Session was NOT stored in cache for ID: ${sessionId}`);
+        }
+
         this.logger.log(`Created OIDC session for provider ${providerId}`);
 
         return this.createPaddedToken(sessionId);
@@ -44,9 +53,10 @@ export class OidcSessionService {
             return { valid: false };
         }
 
+        this.logger.debug(`Looking for session with ID: ${sessionId}`);
         const session = await this.cacheManager.get<OidcSession>(sessionId);
         if (!session) {
-            this.logger.debug(`Session not found`);
+            this.logger.debug(`Session not found for ID: ${sessionId}`);
             return { valid: false };
         }
 
