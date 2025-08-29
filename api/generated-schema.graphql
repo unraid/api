@@ -1798,6 +1798,8 @@ type Server implements Node {
   guid: String!
   apikey: String!
   name: String!
+
+  """Whether this server is online or offline"""
   status: ServerStatus!
   wanip: String!
   lanip: String!
