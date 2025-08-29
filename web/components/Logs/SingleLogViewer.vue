@@ -201,17 +201,28 @@ watch(
 // Function to highlight log content
 const highlightLog = (content: string): string => {
   try {
-    // Convert ANSI codes to HTML with CSS classes
-    // ansi_up uses ansi_to_html method
-    const highlighted = ansiConverter.ansi_to_html(content);
+    let highlighted: string;
+    
+    // Check if content contains ANSI escape sequences
+    const hasAnsiSequences = /\x1b\[/.test(content);
+    
+    if (hasAnsiSequences) {
+      // Use ANSI converter for content with ANSI codes
+      highlighted = ansiConverter.ansi_to_html(content);
+    } else if (props.highlightLanguage) {
+      // Use highlight.js for specific language if provided
+      const result = hljs.highlight(content, { language: props.highlightLanguage });
+      highlighted = result.value;
+    } else {
+      // Use highlight.js auto-detection for non-ANSI content
+      const result = hljs.highlightAuto(content);
+      highlighted = result.value;
+    }
 
-    // Don't apply additional regex replacements that might break the HTML
-    // The ANSI converter already handles the coloring
-
-    // Sanitize the highlighted HTML while preserving class attributes for ANSI colors
+    // Sanitize the highlighted HTML while preserving class attributes for syntax highlighting
     return DOMPurify.sanitize(highlighted, {
-      ALLOWED_TAGS: ['span', 'br'],
-      ALLOWED_ATTR: ['class']  // Allow class attribute for ANSI color classes
+      ALLOWED_TAGS: ['span', 'br', 'code', 'pre'],
+      ALLOWED_ATTR: ['class']  // Allow class attribute for hljs and ANSI color classes
     });
   } catch (error) {
     console.error('Error highlighting log content:', error);

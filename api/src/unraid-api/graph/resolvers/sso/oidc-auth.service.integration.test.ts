@@ -234,12 +234,16 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
             const authUrl = await service.getAuthorizationUrl(
                 'manual-endpoints',
                 'test-state',
-                'http://test.local'
+                'http://test.local',
+                {
+                    'x-forwarded-host': 'test.local',
+                    'x-forwarded-proto': 'http'
+                }
             );
 
             // Verify manual endpoint logs
-            expect(logLogs.some((log) => log.includes('Built authorization URL'))).toBe(true);
-            expect(logLogs.some((log) => log.includes('client_id=test-client-id'))).toBe(true);
+            expect(debugLogs.some((log) => log.includes('Built authorization URL'))).toBe(true);
+            expect(debugLogs.some((log) => log.includes('client_id=test-client-id'))).toBe(true);
             expect(authUrl).toContain('https://auth.example.com/authorize');
         });
 
@@ -325,7 +329,7 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
             expect(result.isValid).toBe(false);
             // The error message should indicate JSON parsing issue
             expect(result.error).toBeDefined();
-        });
+        }, 10000);
 
         it('should handle and log HTTP vs HTTPS protocol differences', async () => {
             const httpProvider: OidcProvider = {

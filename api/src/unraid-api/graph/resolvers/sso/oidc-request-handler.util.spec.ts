@@ -167,7 +167,11 @@ describe('OidcRequestHandler', () => {
             expect(mockAuthService.getAuthorizationUrl).toHaveBeenCalledWith(
                 'provider123',
                 'state456',
-                'https://example.com/callback'
+                'https://example.com/callback',
+                {
+                    'x-forwarded-proto': 'https',
+                    'x-forwarded-host': 'example.com'
+                }
             );
             expect(mockLogger.debug).toHaveBeenCalledWith(
                 'Authorization request - Provider: provider123'
@@ -211,7 +215,11 @@ describe('OidcRequestHandler', () => {
                 'code123',
                 'state456',
                 undefined,
-                'https://example.com/callback?code=123&state=456'
+                'https://example.com/callback?code=123&state=456',
+                {
+                    'x-forwarded-proto': 'https',
+                    'x-forwarded-host': 'example.com'
+                }
             );
             expect(mockLogger.debug).toHaveBeenCalledWith('Callback request - Provider: provider123');
         });
