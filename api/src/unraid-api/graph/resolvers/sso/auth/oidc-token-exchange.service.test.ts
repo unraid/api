@@ -87,7 +87,6 @@ describe('OidcTokenExchangeService', () => {
 
             const loggerWarnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
 
-
             const result = await service.exchangeCodeForTokens(
                 mockConfig,
                 mockProvider,
