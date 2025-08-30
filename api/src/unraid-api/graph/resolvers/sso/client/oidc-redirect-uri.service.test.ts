@@ -149,7 +149,7 @@ describe('OidcRedirectUriService', () => {
             expect(result).toBe('https://example.com/graphql/api/auth/oidc/callback');
             expect(validateRedirectUri).toHaveBeenCalledWith(
                 'https://example.com',
-                'http', // Default protocol when not specified
+                'https', // Inferred from requestOrigin when x-forwarded-proto not present
                 'example.com',
                 expect.anything(),
                 expect.anything()
@@ -173,7 +173,7 @@ describe('OidcRedirectUriService', () => {
             expect(result).toBe('https://example.com/graphql/api/auth/oidc/callback');
             expect(validateRedirectUri).toHaveBeenCalledWith(
                 'https://example.com',
-                'http',
+                'https', // Inferred from requestOrigin when x-forwarded-proto not present
                 'forwarded.example.com', // Should use x-forwarded-host
                 expect.anything(),
                 expect.anything()

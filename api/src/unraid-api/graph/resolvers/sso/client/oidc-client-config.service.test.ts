@@ -72,9 +72,9 @@ describe('OidcClientConfigService', () => {
 
             const config = await service.getOrCreateConfig(provider);
 
-            // Verify the configuration was created with fallback issuer
+            // Verify the configuration was created with inferred issuer from endpoints
             expect(config).toBeDefined();
-            expect(config.serverMetadata().issuer).toBe('manual-manual-provider-no-issuer');
+            expect(config.serverMetadata().issuer).toBe('https://manual.example.com');
             expect(config.serverMetadata().authorization_endpoint).toBe(
                 'https://manual.example.com/auth'
             );

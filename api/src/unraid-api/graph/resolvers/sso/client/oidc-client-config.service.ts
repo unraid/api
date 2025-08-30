@@ -100,9 +100,13 @@ export class OidcClientConfigService {
     }
 
     private createManualConfiguration(provider: OidcProvider, cacheKey: string): client.Configuration {
-        // Create manual configuration
+        // Create manual configuration with a valid issuer URL
+        const inferredIssuer =
+            provider.issuer && provider.issuer.trim() !== ''
+                ? provider.issuer
+                : new URL(provider.authorizationEndpoint ?? provider.tokenEndpoint!).origin;
         const serverMetadata: client.ServerMetadata = {
-            issuer: provider.issuer || `manual-${provider.id}`,
+            issuer: inferredIssuer,
             authorization_endpoint: provider.authorizationEndpoint!,
             token_endpoint: provider.tokenEndpoint!,
             jwks_uri: provider.jwksUri,
@@ -125,9 +129,13 @@ export class OidcClientConfigService {
                 clientAuth
             );
 
-            // Use manual configuration with HTTP support if needed
-            const serverUrl = new URL(provider.tokenEndpoint!);
-            if (serverUrl.protocol === 'http:') {
+            // Allow HTTP if any configured endpoint uses http
+            const endpoints = [
+                serverMetadata.authorization_endpoint,
+                serverMetadata.token_endpoint,
+            ].filter(Boolean) as string[];
+            const hasHttp = endpoints.some((e) => new URL(e).protocol === 'http:');
+            if (hasHttp) {
                 this.logger.debug(`Allowing HTTP for manual endpoints on ${provider.id}`);
                 // allowInsecureRequests is deprecated but still needed for HTTP endpoints
                 client.allowInsecureRequests(config);

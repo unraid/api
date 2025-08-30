@@ -15,7 +15,7 @@ export class OidcRedirectUriService {
         requestHeaders: Record<string, string | string[] | undefined>
     ): Promise<string> {
         // Extract protocol and host from headers for validation
-        const { protocol, host } = this.getRequestOriginInfo(requestHeaders);
+        const { protocol, host } = this.getRequestOriginInfo(requestHeaders, requestOrigin);
 
         // Get the global allowed origins from OIDC config
         const config = await this.oidcConfig.getConfig();
@@ -62,17 +62,22 @@ export class OidcRedirectUriService {
         }
     }
 
-    private getRequestOriginInfo(requestHeaders: Record<string, string | string[] | undefined>): {
+    private getRequestOriginInfo(
+        requestHeaders: Record<string, string | string[] | undefined>,
+        requestOrigin?: string
+    ): {
         protocol: string;
         host: string | undefined;
     } {
-        // Extract protocol from x-forwarded-proto or default to http
+        // Extract protocol from x-forwarded-proto or infer from requestOrigin, default to http
         const forwardedProto = requestHeaders['x-forwarded-proto'];
         const protocol = forwardedProto
             ? Array.isArray(forwardedProto)
                 ? forwardedProto[0]
                 : forwardedProto
-            : 'http';
+            : requestOrigin?.startsWith('https')
+              ? 'https'
+              : 'http';
 
         // Extract host from x-forwarded-host or host header
         const forwardedHost = requestHeaders['x-forwarded-host'];
