@@ -974,19 +974,6 @@ input DeleteRCloneRemoteInput {
   name: String!
 }
 
-type ConfigFile {
-  name: String!
-  content: String!
-  path: String!
-
-  """Human-readable file size (e.g., "1.5 KB", "2.3 MB")"""
-  sizeReadable: String!
-}
-
-type ConfigFilesResponse {
-  files: [ConfigFile!]!
-}
-
 type Config implements Node {
   id: PrefixedID!
   valid: Boolean
@@ -2331,11 +2318,7 @@ type Query {
   """Get JSON Schema for API key creation form"""
   getApiKeyCreationFormSchema: ApiKeyFormSettings!
   config: Config!
-  allConfigFiles: ConfigFilesResponse!
-  configFile(name: String!): ConfigFile
   flash: Flash!
-  logFiles: [LogFile!]!
-  logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
   me: UserAccount!
 
   """Get all notifications"""
@@ -2362,6 +2345,8 @@ type Query {
   disk(id: PrefixedID!): Disk!
   rclone: RCloneBackupSettings!
   info: Info!
+  logFiles: [LogFile!]!
+  logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
   settings: Settings!
   isSSOEnabled: Boolean!
 
@@ -2620,13 +2605,13 @@ input AccessUrlInput {
 }
 
 type Subscription {
-  logFile(path: String!): LogFileContent!
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
   ownerSubscription: Owner!
   serversSubscription: Server!
   parityHistorySubscription: ParityCheck!
   arraySubscription: UnraidArray!
+  logFile(path: String!): LogFileContent!
   systemMetricsCpu: CpuUtilization!
   systemMetricsMemory: MemoryUtilization!
   upsUpdates: UPSDevice!
