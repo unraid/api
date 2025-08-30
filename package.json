@@ -48,7 +48,7 @@
     ]
   },
   "dependencies": {
-    "@manypkg/cli": "0.25.0",
+    "@manypkg/cli": "0.25.1",
     "chalk": "5.6.0",
     "diff": "8.0.2",
     "ignore": "7.0.5"
