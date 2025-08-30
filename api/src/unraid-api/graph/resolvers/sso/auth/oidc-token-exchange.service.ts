@@ -32,16 +32,21 @@ export class OidcTokenExchangeService {
         currentUrl.searchParams.set('state', state);
 
         // Copy additional parameters from the actual callback if provided
-        if (fullCallbackUrl) {
-            const actualUrl = new URL(fullCallbackUrl);
-            // Copy over additional params that Google might have added (scope, authuser, prompt, etc)
-            // but DO NOT change the base URL or path
-            ['scope', 'authuser', 'prompt', 'hd', 'session_state', 'iss'].forEach((param) => {
-                const value = actualUrl.searchParams.get(param);
-                if (value && !currentUrl.searchParams.has(param)) {
-                    currentUrl.searchParams.set(param, value);
-                }
-            });
+        if (fullCallbackUrl && typeof fullCallbackUrl === 'string' && fullCallbackUrl.trim()) {
+            try {
+                const actualUrl = new URL(fullCallbackUrl);
+                // Copy over additional params that Google might have added (scope, authuser, prompt, etc)
+                // but DO NOT change the base URL or path
+                ['scope', 'authuser', 'prompt', 'hd', 'session_state', 'iss'].forEach((param) => {
+                    const value = actualUrl.searchParams.get(param);
+                    if (value && !currentUrl.searchParams.has(param)) {
+                        currentUrl.searchParams.set(param, value);
+                    }
+                });
+            } catch (urlError) {
+                this.logger.warn(`Failed to parse fullCallbackUrl: ${fullCallbackUrl}`, urlError);
+                // Continue with the existing currentUrl flow without additional params
+            }
         }
 
         // Google returns iss in the response, openid-client v6 expects it
