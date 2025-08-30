@@ -23,7 +23,7 @@ describe('LogsResolver', () => {
                     provide: SubscriptionHelperService,
                     useValue: {
                         // Add mock implementations for subscription helper methods
-                        wrapAsyncIterator: vi.fn(),
+                        createTrackedSubscription: vi.fn(),
                     },
                 },
             ],
