@@ -5,6 +5,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.service.js';
+import { OidcAuthorizationService } from '@app/unraid-api/graph/resolvers/sso/oidc-authorization.service.js';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
 import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
@@ -37,6 +38,17 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
             providers: [
                 OidcAuthService,
                 OidcValidationService,
+                {
+                    provide: OidcAuthorizationService,
+                    useValue: {
+                        buildAuthorizationUrl: vi.fn().mockResolvedValue('https://example.com/auth'),
+                        exchangeCodeForTokens: vi.fn().mockResolvedValue({
+                            access_token: 'test-access-token',
+                            id_token: 'test-id-token',
+                            refresh_token: 'test-refresh-token',
+                        }),
+                    },
+                },
                 {
                     provide: OidcConfigPersistence,
                     useValue: {
