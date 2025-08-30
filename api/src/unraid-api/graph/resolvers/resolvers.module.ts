@@ -12,8 +12,7 @@ import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.modu
 import { FlashBackupModule } from '@app/unraid-api/graph/resolvers/flash-backup/flash-backup.module.js';
 import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resolver.js';
 import { InfoModule } from '@app/unraid-api/graph/resolvers/info/info.module.js';
-import { LogsResolver } from '@app/unraid-api/graph/resolvers/logs/logs.resolver.js';
-import { LogsService } from '@app/unraid-api/graph/resolvers/logs/logs.service.js';
+import { LogsModule } from '@app/unraid-api/graph/resolvers/logs/logs.module.js';
 import { MetricsModule } from '@app/unraid-api/graph/resolvers/metrics/metrics.module.js';
 import { RootMutationsResolver } from '@app/unraid-api/graph/resolvers/mutation/mutation.resolver.js';
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
@@ -47,6 +46,7 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         DisksModule,
         FlashBackupModule,
         InfoModule,
+        LogsModule,
         RCloneModule,
         SettingsModule,
         SsoModule,
@@ -56,8 +56,6 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
     providers: [
         ConfigResolver,
         FlashResolver,
-        LogsResolver,
-        LogsService,
         MeResolver,
         NotificationsResolver,
         NotificationsService,

@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { createReadStream } from 'node:fs';
 import { readdir, stat } from 'node:fs/promises';
 import { basename, join } from 'node:path';
@@ -6,8 +6,9 @@ import { createInterface } from 'node:readline';
 
 import * as chokidar from 'chokidar';
 
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { pubsub } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
+import { LogWatcherManager } from '@app/unraid-api/graph/resolvers/logs/log-watcher-manager.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
 interface LogFile {
@@ -25,17 +26,14 @@ interface LogFileContent {
 }
 
 @Injectable()
-export class LogsService implements OnModuleInit {
+export class LogsService {
     private readonly logger = new Logger(LogsService.name);
-    private readonly logWatchers = new Map<string, { watcher: chokidar.FSWatcher; position: number }>();
     private readonly DEFAULT_LINES = 100;
 
-    constructor(private readonly subscriptionTracker: SubscriptionTrackerService) {}
-
-    onModuleInit() {
-        // Log file subscriptions are registered dynamically as needed
-        this.logger.debug('LogsService initialized');
-    }
+    constructor(
+        private readonly subscriptionTracker: SubscriptionTrackerService,
+        private readonly watcherManager: LogWatcherManager
+    ) {}
 
     /**
      * Get the base path for log files
@@ -153,16 +151,19 @@ export class LogsService implements OnModuleInit {
     private startWatchingLogFile(path: string): void {
         const watcherKey = path;
 
-        // If already watching, don't create a new watcher
-        if (this.logWatchers.has(watcherKey)) {
-            this.logger.debug(`Already watching log file: ${watcherKey}`);
+        // Check if already watching or initializing
+        if (this.watcherManager.isWatchingOrInitializing(watcherKey)) {
+            this.logger.debug(`Already watching or initializing log file: ${watcherKey}`);
             return;
         }
+
+        // Mark as initializing immediately to prevent race conditions
+        this.watcherManager.setInitializing(watcherKey);
 
         // Get initial file size and set up watcher
         stat(path)
             .then((stats) => {
-                let position = stats.size;
+                const position = stats.size;
 
                 // Create a watcher for the file using chokidar
                 const watcher = chokidar.watch(path, {
@@ -174,14 +175,27 @@ export class LogsService implements OnModuleInit {
                 });
 
                 watcher.on('change', async () => {
+                    // Check if we're already processing a change event for this file
+                    if (!this.watcherManager.startProcessing(watcherKey)) {
+                        // Already processing, ignore this event
+                        return;
+                    }
+
                     try {
                         const newStats = await stat(path);
 
+                        // Get the current position
+                        const currentPosition = this.watcherManager.getPosition(watcherKey);
+                        if (currentPosition === undefined) {
+                            // Watcher was stopped or not active, ignore the event
+                            return;
+                        }
+
                         // If the file has grown
-                        if (newStats.size > position) {
+                        if (newStats.size > currentPosition) {
                             // Read only the new content
                             const stream = createReadStream(path, {
-                                start: position,
+                                start: currentPosition,
                                 end: newStats.size - 1,
                             });
 
@@ -191,49 +205,66 @@ export class LogsService implements OnModuleInit {
                             });
 
                             stream.on('end', () => {
-                                if (newContent) {
-                                    // Use topic-specific channel
-                                    const topicKey = this.getTopicKey(path);
-                                    pubsub.publish(topicKey, {
-                                        logFile: {
-                                            path,
-                                            content: newContent,
-                                            totalLines: 0, // We don't need to count lines for updates
-                                        },
-                                    });
-                                }
+                                try {
+                                    if (newContent) {
+                                        // Use topic-specific channel
+                                        const topicKey = this.getTopicKey(path);
+                                        pubsub.publish(topicKey, {
+                                            logFile: {
+                                                path,
+                                                content: newContent,
+                                                totalLines: 0, // We don't need to count lines for updates
+                                            },
+                                        });
+                                    }
 
-                                // Update position for next read
-                                position = newStats.size;
+                                    // Update position for next read (while still holding the guard)
+                                    this.watcherManager.updatePosition(watcherKey, newStats.size);
+                                } finally {
+                                    // Clear the in-flight flag
+                                    this.watcherManager.finishProcessing(watcherKey);
+                                }
                             });
 
                             stream.on('error', (error) => {
                                 this.logger.error(`Error reading stream for ${path}: ${error}`);
+                                // Clear the in-flight flag on error
+                                this.watcherManager.finishProcessing(watcherKey);
                             });
-                        } else if (newStats.size < position) {
+                        } else if (newStats.size < currentPosition) {
                             // File was truncated, reset position and read from beginning
-                            position = 0;
                             this.logger.debug(`File ${path} was truncated, resetting position`);
 
-                            // Read the entire file content
-                            const content = await this.getLogFileContent(
-                                path,
-                                this.DEFAULT_LINES,
-                                undefined
-                            );
+                            try {
+                                // Read the entire file content
+                                const content = await this.getLogFileContent(
+                                    path,
+                                    this.DEFAULT_LINES,
+                                    undefined
+                                );
 
-                            // Use topic-specific channel
-                            const topicKey = this.getTopicKey(path);
-                            pubsub.publish(topicKey, {
-                                logFile: {
-                                    ...content,
-                                },
-                            });
+                                // Use topic-specific channel
+                                const topicKey = this.getTopicKey(path);
+                                pubsub.publish(topicKey, {
+                                    logFile: {
+                                        ...content,
+                                    },
+                                });
 
-                            position = newStats.size;
+                                // Update position (while still holding the guard)
+                                this.watcherManager.updatePosition(watcherKey, newStats.size);
+                            } finally {
+                                // Clear the in-flight flag
+                                this.watcherManager.finishProcessing(watcherKey);
+                            }
+                        } else {
+                            // File size unchanged, clear the in-flight flag
+                            this.watcherManager.finishProcessing(watcherKey);
                         }
                     } catch (error: unknown) {
                         this.logger.error(`Error processing file change for ${path}: ${error}`);
+                        // Clear the in-flight flag on error
+                        this.watcherManager.finishProcessing(watcherKey);
                     }
                 });
 
@@ -241,8 +272,10 @@ export class LogsService implements OnModuleInit {
                     this.logger.error(`Chokidar watcher error for ${path}: ${error}`);
                 });
 
-                // Store the watcher and current position
-                this.logWatchers.set(watcherKey, { watcher, position });
+                // Check if we were stopped during initialization and handle cleanup
+                if (!this.watcherManager.handlePostInitialization(watcherKey, watcher, position)) {
+                    return;
+                }
 
                 // Publish initial snapshot
                 this.getLogFileContent(path, this.DEFAULT_LINES, undefined)
@@ -262,6 +295,8 @@ export class LogsService implements OnModuleInit {
             })
             .catch((error) => {
                 this.logger.error(`Error setting up file watcher for ${path}: ${error}`);
+                // Clean up the initializing entry on error
+                this.watcherManager.removeEntry(watcherKey);
             });
     }
 
@@ -280,14 +315,7 @@ export class LogsService implements OnModuleInit {
      * @param path Path to the log file
      */
     private stopWatchingLogFile(path: string): void {
-        const watcherKey = path;
-        const watcher = this.logWatchers.get(watcherKey);
-
-        if (watcher) {
-            watcher.watcher.close();
-            this.logWatchers.delete(watcherKey);
-            this.logger.debug(`Stopped watching log file: ${watcherKey}`);
-        }
+        this.watcherManager.stopWatcher(path);
     }
 
     /**
