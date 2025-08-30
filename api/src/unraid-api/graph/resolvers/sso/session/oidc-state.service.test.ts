@@ -26,12 +26,26 @@ describe('OidcStateService', () => {
             // Generate state
             const state = await service.generateSecureState(providerId, clientState, redirectUri);
 
-            // Verify state format
+            // Verify state format: providerId:nonce.timestamp.signature
             expect(state).toMatch(/^unraid\.net:[a-f0-9]+\.\d+\.[a-f0-9]+$/);
 
-            // Extract parts
+            // Extract and verify parts
             const [extractedProviderId, signedState] = state.split(':');
             expect(extractedProviderId).toBe(providerId);
+
+            // Parse the signed state components
+            const [nonce, timestamp, signature] = signedState.split('.');
+
+            // Verify nonce is a 32-character hex string (16 bytes)
+            expect(nonce).toMatch(/^[a-f0-9]{32}$/);
+
+            // Verify timestamp is a valid number and recent
+            const timestampNum = parseInt(timestamp, 10);
+            expect(timestampNum).toBeGreaterThan(Date.now() - 1000); // Generated within last second
+            expect(timestampNum).toBeLessThanOrEqual(Date.now());
+
+            // Verify signature is a 64-character hex string (SHA256 output)
+            expect(signature).toMatch(/^[a-f0-9]{64}$/);
 
             // Validate the state
             const validation = await service.validateSecureState(state, providerId);
@@ -39,6 +53,25 @@ describe('OidcStateService', () => {
             expect(validation.isValid).toBe(true);
             expect(validation.clientState).toBe(clientState);
             expect(validation.redirectUri).toBe(redirectUri);
+        });
+
+        it('should verify signed state integrity with HMAC', async () => {
+            const providerId = 'test-provider';
+            const clientState = 'test-state';
+            const redirectUri = 'http://localhost:3000/callback';
+
+            const state = await service.generateSecureState(providerId, clientState, redirectUri);
+
+            // Tamper with the signature
+            const [provider, signedState] = state.split(':');
+            const [nonce, timestamp] = signedState.split('.');
+            const tamperedSignature = 'a'.repeat(64); // Invalid signature
+            const tamperedState = `${provider}:${nonce}.${timestamp}.${tamperedSignature}`;
+
+            const validation = await service.validateSecureState(tamperedState, providerId);
+
+            expect(validation.isValid).toBe(false);
+            expect(validation.error).toContain('Invalid state signature');
         });
 
         it('should fail validation when nonce is not in cache', async () => {
@@ -175,6 +208,32 @@ describe('OidcStateService', () => {
             // State should be removed after first use (replay protection)
             const validation2 = await service.validateSecureState(state, providerId);
             expect(validation2.isValid).toBe(false);
+        });
+
+        it('should store complete state data in cache with redirect URI', async () => {
+            const providerId = 'test-provider';
+            const clientState = 'client-123';
+            const redirectUri = 'http://example.com/callback';
+
+            const state = await service.generateSecureState(providerId, clientState, redirectUri);
+
+            // Extract nonce from the generated state
+            const [, signedState] = state.split(':');
+            const [nonce] = signedState.split('.');
+
+            // Access the cache directly to verify stored data
+            const cacheKey = `oidc_state:${nonce}`;
+            const cachedData = await service['cacheManager'].get(cacheKey);
+
+            expect(cachedData).toBeDefined();
+            expect(cachedData).toMatchObject({
+                nonce,
+                clientState,
+                providerId,
+                redirectUri,
+            });
+            expect(cachedData.timestamp).toBeGreaterThan(Date.now() - 1000);
+            expect(cachedData.timestamp).toBeLessThanOrEqual(Date.now());
         });
     });
 });
