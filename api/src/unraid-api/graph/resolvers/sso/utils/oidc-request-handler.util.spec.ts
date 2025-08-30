@@ -39,9 +39,10 @@ describe('OidcRequestHandler', () => {
 
         it('should fall back to request properties when headers are missing', () => {
             const mockReq = {
-                headers: {},
+                headers: {
+                    host: 'localhost:3000',
+                },
                 protocol: 'http',
-                host: 'localhost:3000',
                 url: '/callback?code=123&state=456',
             } as FastifyRequest;
 

@@ -29,8 +29,16 @@ export class OidcRequestHandler {
      * Extract request information from Fastify request headers
      */
     static extractRequestInfo(req: FastifyRequest): RequestInfo {
-        const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
-        const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
+        // Handle potentially comma-separated forwarded headers (take first value)
+        const forwardedProto = String(req.headers['x-forwarded-proto'] || '')
+            .split(',')[0]
+            ?.trim();
+        const forwardedHost = String(req.headers['x-forwarded-host'] || '')
+            .split(',')[0]
+            ?.trim();
+
+        const protocol = forwardedProto || req.protocol || 'http';
+        const host = forwardedHost || req.headers.host || 'localhost:3000';
         const fullUrl = `${protocol}://${host}${req.url}`;
         const baseUrl = `${protocol}://${host}`;
 
