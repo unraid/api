@@ -6,9 +6,9 @@ import escapeHtml from 'escape-html';
 
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
-import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.service.js';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
 import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/oidc-request-handler.util.js';
+import { OidcService } from '@app/unraid-api/graph/resolvers/sso/oidc.service.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
 import { validateRedirectUri } from '@app/unraid-api/utils/redirect-uri-validator.js';
 
@@ -19,7 +19,7 @@ export class RestController {
 
     constructor(
         private readonly restService: RestService,
-        private readonly oidcAuthService: OidcAuthService,
+        private readonly oidcService: OidcService,
         private readonly oidcConfig: OidcConfigPersistence
     ) {}
 
@@ -119,7 +119,7 @@ export class RestController {
                 params.state,
                 params.redirectUri,
                 req,
-                this.oidcAuthService,
+                this.oidcService,
                 this.oidcLogger
             );
 
@@ -163,7 +163,7 @@ export class RestController {
                 params.code,
                 params.state,
                 req,
-                this.oidcAuthService,
+                this.oidcService,
                 this.oidcLogger
             );
 

@@ -5,16 +5,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
-import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.service.js';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
 import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/oidc-request-handler.util.js';
+import { OidcService } from '@app/unraid-api/graph/resolvers/sso/oidc.service.js';
 import { RestController } from '@app/unraid-api/rest/rest.controller.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
 
 describe('RestController', () => {
     let controller: RestController;
-    let restService: RestService;
-    let oidcAuthService: OidcAuthService;
+    let oidcService: OidcService;
     let oidcConfig: OidcConfigPersistence;
     let mockReply: Partial<FastifyReply>;
 
@@ -40,7 +39,7 @@ describe('RestController', () => {
                     },
                 },
                 {
-                    provide: OidcAuthService,
+                    provide: OidcService,
                     useValue: {
                         getAuthorizationUrl: vi.fn(),
                         handleCallback: vi.fn(),
@@ -64,8 +63,7 @@ describe('RestController', () => {
         }).compile();
 
         controller = module.get<RestController>(RestController);
-        restService = module.get<RestService>(RestService);
-        oidcAuthService = module.get<OidcAuthService>(OidcAuthService);
+        oidcService = module.get<OidcService>(OidcService);
         oidcConfig = module.get<OidcConfigPersistence>(OidcConfigPersistence);
 
         mockReply = {
@@ -102,7 +100,7 @@ describe('RestController', () => {
                     'test-state',
                     'https://unraid.mytailnet.ts.net:1443/graphql/api/auth/oidc/callback',
                     mockRequest,
-                    oidcAuthService,
+                    oidcService,
                     expect.any(Logger)
                 );
             });
@@ -246,7 +244,7 @@ describe('RestController', () => {
                     'test-state',
                     customRedirectUri, // Should be exactly as provided, with :1443
                     mockRequest,
-                    oidcAuthService,
+                    oidcService,
                     expect.any(Logger)
                 );
             });
@@ -268,7 +266,7 @@ describe('RestController', () => {
                     'test-state',
                     'http://localhost:3000/graphql/api/auth/oidc/callback',
                     mockRequest,
-                    oidcAuthService,
+                    oidcService,
                     expect.any(Logger)
                 );
             });
@@ -310,7 +308,7 @@ describe('RestController', () => {
                     'test-state',
                     'https://devgen-bad-dev1.local/graphql/api/auth/oidc/callback',
                     mockRequest,
-                    oidcAuthService,
+                    oidcService,
                     expect.any(Logger)
                 );
             });

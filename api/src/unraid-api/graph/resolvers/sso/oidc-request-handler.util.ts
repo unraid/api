@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 
 import type { FastifyRequest } from '@app/unraid-api/types/fastify.js';
-import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.service.js';
 import { OidcStateExtractor } from '@app/unraid-api/graph/resolvers/sso/oidc-state-extractor.util.js';
+import { OidcService } from '@app/unraid-api/graph/resolvers/sso/oidc.service.js';
 
 export interface RequestInfo {
     protocol: string;
@@ -50,7 +50,7 @@ export class OidcRequestHandler {
         state: string,
         redirectUri: string,
         req: FastifyRequest,
-        oidcAuthService: OidcAuthService,
+        oidcService: OidcService,
         logger: Logger
     ): Promise<string> {
         const requestInfo = this.extractRequestInfo(req);
@@ -60,7 +60,7 @@ export class OidcRequestHandler {
         logger.debug(`Authorization request - Redirect URI: ${redirectUri}`);
 
         // Get authorization URL using the validated redirect URI and request headers
-        const authUrl = await oidcAuthService.getAuthorizationUrl({
+        const authUrl = await oidcService.getAuthorizationUrl({
             providerId,
             state,
             requestOrigin: redirectUri,
@@ -78,13 +78,13 @@ export class OidcRequestHandler {
         code: string,
         state: string,
         req: FastifyRequest,
-        oidcAuthService: OidcAuthService,
+        oidcService: OidcService,
         logger: Logger
     ): Promise<OidcCallbackResult> {
         // Extract provider ID from state for routing
         const { providerId } = OidcStateExtractor.extractProviderFromState(
             state,
-            oidcAuthService.getStateService()
+            oidcService.getStateService()
         );
 
         const requestInfo = this.extractRequestInfo(req);
@@ -94,7 +94,7 @@ export class OidcRequestHandler {
         logger.debug(`Redirect URI will be retrieved from encrypted state`);
 
         // Handle the callback using stored redirect URI from state and request headers
-        const paddedToken = await oidcAuthService.handleCallback({
+        const paddedToken = await oidcService.handleCallback({
             providerId,
             code,
             state,
