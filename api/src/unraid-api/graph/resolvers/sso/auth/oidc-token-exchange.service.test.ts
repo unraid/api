@@ -86,7 +86,7 @@ describe('OidcTokenExchangeService', () => {
             vi.mocked(client.authorizationCodeGrant).mockResolvedValue(mockTokens as any);
 
             const loggerWarnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
-            const loggerDebugSpy = vi.spyOn(Logger.prototype, 'debug').mockImplementation(() => {});
+
 
             const result = await service.exchangeCodeForTokens(
                 mockConfig,
