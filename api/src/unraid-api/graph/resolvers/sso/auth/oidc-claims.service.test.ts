@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     JwtClaims,
     OidcClaimsService,
-} from '@app/unraid-api/graph/resolvers/sso/oidc-claims.service.js';
+} from '@app/unraid-api/graph/resolvers/sso/auth/oidc-claims.service.js';
 
 // Mock jose
 vi.mock('jose', () => ({

@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import type { Cache } from 'cache-manager';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
+import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-session.service.js';
 
 describe('OidcSessionService', () => {
     let service: OidcSessionService;

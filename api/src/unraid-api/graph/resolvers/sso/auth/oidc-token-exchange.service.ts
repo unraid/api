@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import * as client from 'openid-client';
 
-import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
+import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 import { ErrorExtractor } from '@app/unraid-api/utils/error-extractor.util.js';
 
 // Extended type for our internal use - openid-client v6 doesn't directly expose

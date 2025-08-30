@@ -6,12 +6,12 @@ import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
 import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 
+import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/core/oidc-validation.service.js';
 import {
     AuthorizationOperator,
     OidcAuthorizationRule,
     OidcProvider,
-} from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
-import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
+} from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 import {
     createAccordionLayout,
     createLabeledControl,

@@ -7,7 +7,7 @@ import { type ApiConfig } from '@unraid/shared/services/api-config.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 import { execa } from 'execa';
 
-import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
+import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
 import { createLabeledControl } from '@app/unraid-api/graph/utils/form-utils.js';
 import { SettingSlice } from '@app/unraid-api/types/json-forms.js';
 

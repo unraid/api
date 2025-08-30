@@ -1,6 +1,6 @@
 import { UnauthorizedException } from '@nestjs/common';
 
-import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state.service.js';
+import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state.service.js';
 
 export interface StateExtractionResult {
     providerId: string;

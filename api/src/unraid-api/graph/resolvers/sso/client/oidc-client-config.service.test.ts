@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { OidcClientConfigService } from '@app/unraid-api/graph/resolvers/sso/oidc-client-config.service.js';
-import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
-import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
+import { OidcClientConfigService } from '@app/unraid-api/graph/resolvers/sso/client/oidc-client-config.service.js';
+import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/core/oidc-validation.service.js';
+import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 
 describe('OidcClientConfigService', () => {
     let service: OidcClientConfigService;

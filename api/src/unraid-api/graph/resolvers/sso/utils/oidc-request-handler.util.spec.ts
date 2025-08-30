@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { FastifyRequest } from '@app/unraid-api/types/fastify.js';
-import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/oidc-request-handler.util.js';
+import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/utils/oidc-request-handler.util.js';
 
 describe('OidcRequestHandler', () => {
     let mockLogger: Logger;

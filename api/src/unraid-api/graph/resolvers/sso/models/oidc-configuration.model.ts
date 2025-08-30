@@ -1,6 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
-import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
+import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 
 @ObjectType()
 export class OidcConfiguration {

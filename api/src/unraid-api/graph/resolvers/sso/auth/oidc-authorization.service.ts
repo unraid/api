@@ -5,7 +5,7 @@ import {
     AuthorizationRuleMode,
     OidcAuthorizationRule,
     OidcProvider,
-} from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
+} from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 
 interface JwtClaims {
     sub?: string;

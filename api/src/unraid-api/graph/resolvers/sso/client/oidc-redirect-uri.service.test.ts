@@ -3,8 +3,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
-import { OidcRedirectUriService } from '@app/unraid-api/graph/resolvers/sso/oidc-redirect-uri.service.js';
+import { OidcRedirectUriService } from '@app/unraid-api/graph/resolvers/sso/client/oidc-redirect-uri.service.js';
+import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
 import { validateRedirectUri } from '@app/unraid-api/utils/redirect-uri-validator.js';
 
 // Mock the redirect URI validator

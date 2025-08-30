@@ -3,13 +3,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { OidcAuthorizationService } from '@app/unraid-api/graph/resolvers/sso/oidc-authorization.service.js';
+import { OidcAuthorizationService } from '@app/unraid-api/graph/resolvers/sso/auth/oidc-authorization.service.js';
 import {
     AuthorizationOperator,
     AuthorizationRuleMode,
     OidcAuthorizationRule,
     OidcProvider,
-} from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
+} from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 
 describe('OidcAuthorizationService', () => {
     let service: OidcAuthorizationService;

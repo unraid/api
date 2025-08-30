@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 
 import type { FastifyRequest } from '@app/unraid-api/types/fastify.js';
-import { OidcStateExtractor } from '@app/unraid-api/graph/resolvers/sso/oidc-state-extractor.util.js';
-import { OidcService } from '@app/unraid-api/graph/resolvers/sso/oidc.service.js';
+import { OidcService } from '@app/unraid-api/graph/resolvers/sso/core/oidc.service.js';
+import { OidcStateExtractor } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state-extractor.util.js';
 
 export interface RequestInfo {
     protocol: string;

@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 
 import * as client from 'openid-client';
 
-import { OidcErrorHelper } from '@app/unraid-api/graph/resolvers/sso/oidc-error.helper.js';
-import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
+import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
+import { OidcErrorHelper } from '@app/unraid-api/graph/resolvers/sso/utils/oidc-error.helper.js';
 
 @Injectable()
 export class OidcValidationService {

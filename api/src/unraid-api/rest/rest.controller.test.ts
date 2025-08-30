@@ -5,9 +5,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
-import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
-import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/oidc-request-handler.util.js';
-import { OidcService } from '@app/unraid-api/graph/resolvers/sso/oidc.service.js';
+import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
+import { OidcService } from '@app/unraid-api/graph/resolvers/sso/core/oidc.service.js';
+import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/utils/oidc-request-handler.util.js';
 import { RestController } from '@app/unraid-api/rest/rest.controller.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
 
@@ -465,6 +465,7 @@ describe('RestController', () => {
                 );
 
                 expect(mockReply.status).toHaveBeenCalledWith(400);
+                expect(mockReply.send).toHaveBeenCalledWith('Invalid provider or configuration');
             });
 
             it('should return 400 if state is missing', async () => {
@@ -479,6 +480,7 @@ describe('RestController', () => {
                 );
 
                 expect(mockReply.status).toHaveBeenCalledWith(400);
+                expect(mockReply.send).toHaveBeenCalledWith('Invalid provider or configuration');
             });
         });
     });

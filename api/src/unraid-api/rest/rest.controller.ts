@@ -6,9 +6,9 @@ import escapeHtml from 'escape-html';
 
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
-import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
-import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/oidc-request-handler.util.js';
-import { OidcService } from '@app/unraid-api/graph/resolvers/sso/oidc.service.js';
+import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
+import { OidcService } from '@app/unraid-api/graph/resolvers/sso/core/oidc.service.js';
+import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/utils/oidc-request-handler.util.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
 import { validateRedirectUri } from '@app/unraid-api/utils/redirect-uri-validator.js';
 

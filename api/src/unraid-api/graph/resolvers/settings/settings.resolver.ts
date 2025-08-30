@@ -16,8 +16,8 @@ import {
 } from '@app/unraid-api/graph/resolvers/settings/settings.model.js';
 import { ApiSettings } from '@app/unraid-api/graph/resolvers/settings/settings.service.js';
 import { SsoSettings } from '@app/unraid-api/graph/resolvers/settings/sso-settings.model.js';
-import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
-import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
+import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
+import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 
 @Resolver(() => Settings)
 export class SettingsResolver {

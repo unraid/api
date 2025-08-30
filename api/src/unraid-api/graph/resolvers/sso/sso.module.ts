@@ -1,47 +1,16 @@
 import { Module } from '@nestjs/common';
 
-import { UserSettingsModule } from '@unraid/shared/services/user-settings.js';
-
-import { OidcAuthorizationService } from '@app/unraid-api/graph/resolvers/sso/oidc-authorization.service.js';
-import { OidcClaimsService } from '@app/unraid-api/graph/resolvers/sso/oidc-claims.service.js';
-import { OidcClientConfigService } from '@app/unraid-api/graph/resolvers/sso/oidc-client-config.service.js';
-import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
-import { OidcRedirectUriService } from '@app/unraid-api/graph/resolvers/sso/oidc-redirect-uri.service.js';
-import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
-import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state.service.js';
-import { OidcTokenExchangeService } from '@app/unraid-api/graph/resolvers/sso/oidc-token-exchange.service.js';
-import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
-import { OidcService } from '@app/unraid-api/graph/resolvers/sso/oidc.service.js';
+import { OidcAuthModule } from '@app/unraid-api/graph/resolvers/sso/auth/oidc-auth.module.js';
+import { OidcClientModule } from '@app/unraid-api/graph/resolvers/sso/client/oidc-client.module.js';
+import { OidcCoreModule } from '@app/unraid-api/graph/resolvers/sso/core/oidc-core.module.js';
+import { OidcSessionModule } from '@app/unraid-api/graph/resolvers/sso/session/oidc-session.module.js';
 import { SsoResolver } from '@app/unraid-api/graph/resolvers/sso/sso.resolver.js';
 
-import '@app/unraid-api/graph/resolvers/sso/sso-settings.types.js';
+import '@app/unraid-api/graph/resolvers/sso/models/sso-settings.types.js';
 
 @Module({
-    imports: [UserSettingsModule],
-    providers: [
-        SsoResolver,
-        OidcConfigPersistence,
-        OidcSessionService,
-        OidcStateService,
-        OidcService,
-        OidcValidationService,
-        OidcAuthorizationService,
-        OidcRedirectUriService,
-        OidcClientConfigService,
-        OidcTokenExchangeService,
-        OidcClaimsService,
-    ],
-    exports: [
-        OidcConfigPersistence,
-        OidcSessionService,
-        OidcStateService,
-        OidcService,
-        OidcValidationService,
-        OidcAuthorizationService,
-        OidcRedirectUriService,
-        OidcClientConfigService,
-        OidcTokenExchangeService,
-        OidcClaimsService,
-    ],
+    imports: [OidcCoreModule, OidcAuthModule, OidcSessionModule, OidcClientModule],
+    providers: [SsoResolver],
+    exports: [OidcCoreModule, OidcAuthModule, OidcSessionModule, OidcClientModule],
 })
 export class SsoModule {}

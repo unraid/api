@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state.service.js';
+import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state.service.js';
 
 describe('OidcStateService', () => {
     let service: OidcStateService;

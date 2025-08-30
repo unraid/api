@@ -2,17 +2,17 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
 import * as client from 'openid-client';
 
-import { OidcAuthorizationService } from '@app/unraid-api/graph/resolvers/sso/oidc-authorization.service.js';
-import { OidcClaimsService } from '@app/unraid-api/graph/resolvers/sso/oidc-claims.service.js';
-import { OidcClientConfigService } from '@app/unraid-api/graph/resolvers/sso/oidc-client-config.service.js';
-import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
-import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
-import { OidcRedirectUriService } from '@app/unraid-api/graph/resolvers/sso/oidc-redirect-uri.service.js';
-import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
-import { OidcStateExtractor } from '@app/unraid-api/graph/resolvers/sso/oidc-state-extractor.util.js';
-import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state.service.js';
-import { OidcTokenExchangeService } from '@app/unraid-api/graph/resolvers/sso/oidc-token-exchange.service.js';
-import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
+import { OidcAuthorizationService } from '@app/unraid-api/graph/resolvers/sso/auth/oidc-authorization.service.js';
+import { OidcClaimsService } from '@app/unraid-api/graph/resolvers/sso/auth/oidc-claims.service.js';
+import { OidcTokenExchangeService } from '@app/unraid-api/graph/resolvers/sso/auth/oidc-token-exchange.service.js';
+import { OidcClientConfigService } from '@app/unraid-api/graph/resolvers/sso/client/oidc-client-config.service.js';
+import { OidcRedirectUriService } from '@app/unraid-api/graph/resolvers/sso/client/oidc-redirect-uri.service.js';
+import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
+import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/core/oidc-validation.service.js';
+import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
+import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-session.service.js';
+import { OidcStateExtractor } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state-extractor.util.js';
+import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/session/oidc-state.service.js';
 import { ErrorExtractor } from '@app/unraid-api/utils/error-extractor.util.js';
 
 export interface GetAuthorizationUrlParams {
