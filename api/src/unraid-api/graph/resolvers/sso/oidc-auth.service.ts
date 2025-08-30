@@ -33,17 +33,17 @@ type ExtendedGrantChecks = client.AuthorizationCodeGrantChecks;
 export interface GetAuthorizationUrlParams {
     providerId: string;
     state: string;
-    requestOrigin?: string;
-    requestHeaders?: Record<string, string | string[] | undefined>;
+    requestOrigin: string;
+    requestHeaders: Record<string, string | string[] | undefined>;
 }
 
 export interface HandleCallbackParams {
     providerId: string;
     code: string;
     state: string;
-    requestOrigin?: string;
-    fullCallbackUrl?: string;
-    requestHeaders?: Record<string, string | string[] | undefined>;
+    requestOrigin: string;
+    fullCallbackUrl: string;
+    requestHeaders: Record<string, string | string[] | undefined>;
 }
 
 @Injectable()
@@ -68,14 +68,10 @@ export class OidcAuthService {
         }
 
         // Use requestOrigin with validation
-        // If requestOrigin provided, validate it
-        // Otherwise fall back to generating from config
-        const redirectUri = await (requestOrigin
-            ? this.getRedirectUri(requestOrigin, requestHeaders)
-            : this.getRedirectUri(undefined, requestHeaders));
+        const redirectUri = await this.getRedirectUri(requestOrigin, requestHeaders);
 
         this.logger.debug(`Using redirect URI for authorization: ${redirectUri}`);
-        this.logger.debug(`Request origin was: ${requestOrigin || 'not provided'}`);
+        this.logger.debug(`Request origin was: ${requestOrigin}`);
 
         // Generate secure state with cryptographic signature, including redirect URI
         const secureState = await this.stateService.generateSecureState(providerId, state, redirectUri);
@@ -143,7 +139,7 @@ export class OidcAuthService {
     }
 
     async handleCallback(params: HandleCallbackParams): Promise<string> {
-        const { providerId, code, state, requestOrigin, fullCallbackUrl, requestHeaders } = params;
+        const { providerId, code, state, fullCallbackUrl } = params;
 
         const provider = await this.oidcConfig.getProvider(providerId);
         if (!provider) {
@@ -728,26 +724,13 @@ export class OidcAuthService {
     }
 
     private async getRedirectUri(
-        requestOrigin?: string,
-        requestHeaders?: Record<string, string | string[] | undefined>
+        requestOrigin: string,
+        requestHeaders: Record<string, string | string[] | undefined>
     ): Promise<string> {
         const CALLBACK_PATH = '/graphql/api/auth/oidc/callback';
 
         // Extract protocol and host from headers for validation
         const { protocol, host } = this.getRequestOriginInfo(requestHeaders);
-
-        // If no requestOrigin provided, construct from headers or use fallback
-        if (!requestOrigin) {
-            if (protocol && host) {
-                const redirectUri = `${protocol}://${host}${CALLBACK_PATH}`;
-                this.logger.debug(`Using redirect URI from headers: ${redirectUri}`);
-                return redirectUri;
-            }
-            // Fall back to configured BASE_URL
-            const baseUrl = this.configService.get('BASE_URL', 'http://tower.local');
-            this.logger.debug(`Using fallback redirect URI: ${baseUrl}${CALLBACK_PATH}`);
-            return `${baseUrl}${CALLBACK_PATH}`;
-        }
 
         // Get the global allowed origins from OIDC config
         const config = await this.oidcConfig.getConfig();
@@ -794,14 +777,10 @@ export class OidcAuthService {
         }
     }
 
-    private getRequestOriginInfo(requestHeaders?: Record<string, string | string[] | undefined>): {
+    private getRequestOriginInfo(requestHeaders: Record<string, string | string[] | undefined>): {
         protocol: string;
         host: string | undefined;
     } {
-        if (!requestHeaders) {
-            return { protocol: 'http', host: undefined };
-        }
-
         // Extract protocol from x-forwarded-proto or default to http
         const forwardedProto = requestHeaders['x-forwarded-proto'];
         const protocol = forwardedProto

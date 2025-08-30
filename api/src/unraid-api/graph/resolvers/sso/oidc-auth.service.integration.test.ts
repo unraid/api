@@ -130,6 +130,9 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
                     code: 'test-code',
                     state: 'test-state',
                     requestOrigin: 'http://test.local',
+                    fullCallbackUrl:
+                        'http://test.local/graphql/api/auth/oidc/callback?code=test-code&state=test-state',
+                    requestHeaders: { host: 'test.local' },
                 });
             } catch (error) {
                 // We expect this to fail
@@ -214,6 +217,7 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
                     providerId: 'auth-url-test',
                     state: 'test-state',
                     requestOrigin: 'http://test.local',
+                    requestHeaders: { host: 'test.local' },
                 });
 
                 // Verify URL building logs
@@ -281,6 +285,9 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
                     code: 'test-code',
                     state: 'test-state',
                     requestOrigin: 'http://test.local',
+                    fullCallbackUrl:
+                        'http://test.local/graphql/api/auth/oidc/callback?code=test-code&state=test-state',
+                    requestHeaders: { host: 'test.local' },
                 });
             } catch (error) {
                 // Expected to fail
@@ -389,6 +396,7 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
                     requestOrigin: 'https://myapp.example.com',
                     fullCallbackUrl:
                         'https://myapp.example.com/graphql/api/auth/oidc/callback?code=authorization-code-12345&state=state-with-signature&scope=openid+email+profile',
+                    requestHeaders: { host: 'myapp.example.com' },
                 });
             } catch (error) {
                 // Expected to fail

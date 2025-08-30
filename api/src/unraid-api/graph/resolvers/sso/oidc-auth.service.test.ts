@@ -1504,6 +1504,8 @@ describe('OidcAuthService', () => {
             const authUrl = await service.getAuthorizationUrl({
                 providerId: 'encode-test-provider',
                 state: 'original-state',
+                requestOrigin: 'http://localhost:3001',
+                requestHeaders: { host: 'localhost:3001' },
             });
 
             // Verify that the state parameter includes provider ID at the start
@@ -1517,6 +1519,8 @@ describe('OidcAuthService', () => {
                 service.getAuthorizationUrl({
                     providerId: 'nonexistent-provider',
                     state: 'test-state',
+                    requestOrigin: 'http://localhost:3001',
+                    requestHeaders: { host: 'localhost:3001' },
                 })
             ).rejects.toThrow('Provider nonexistent-provider not found');
         });
@@ -1537,6 +1541,8 @@ describe('OidcAuthService', () => {
             const authUrl = await service.getAuthorizationUrl({
                 providerId: 'custom-scopes-provider',
                 state: 'test-state',
+                requestOrigin: 'http://localhost:3001',
+                requestHeaders: { host: 'localhost:3001' },
             });
 
             expect(authUrl).toContain('scope=openid+profile+groups+custom%3Ascope');
@@ -1552,6 +1558,10 @@ describe('OidcAuthService', () => {
                     providerId: 'nonexistent-provider',
                     code: 'code',
                     state: 'redirect-uri',
+                    requestOrigin: 'http://localhost:3001',
+                    fullCallbackUrl:
+                        'http://localhost:3001/graphql/api/auth/oidc/callback?code=code&state=redirect-uri',
+                    requestHeaders: { host: 'localhost:3001' },
                 })
             ).rejects.toThrow('Provider nonexistent-provider not found');
         });
@@ -1562,6 +1572,10 @@ describe('OidcAuthService', () => {
                     providerId: 'invalid-state',
                     code: 'code',
                     state: 'redirect-uri',
+                    requestOrigin: 'http://localhost:3001',
+                    fullCallbackUrl:
+                        'http://localhost:3001/graphql/api/auth/oidc/callback?code=code&state=redirect-uri',
+                    requestHeaders: { host: 'localhost:3001' },
                 })
             ).rejects.toThrow(UnauthorizedException);
         });
@@ -1584,6 +1598,10 @@ describe('OidcAuthService', () => {
                     providerId: 'test-provider',
                     code: 'code',
                     state: 'redirect-uri',
+                    requestOrigin: 'http://localhost:3001',
+                    fullCallbackUrl:
+                        'http://localhost:3001/graphql/api/auth/oidc/callback?code=code&state=redirect-uri',
+                    requestHeaders: { host: 'localhost:3001' },
                 })
             ).rejects.toThrow(UnauthorizedException);
 
@@ -1637,6 +1655,7 @@ describe('OidcAuthService', () => {
                     state: stateToken,
                     requestOrigin: 'http://localhost:3000',
                     fullCallbackUrl: `http://localhost:3000/graphql/api/auth/oidc/callback?code=test-authorization-code&state=${encodeURIComponent(stateToken)}`,
+                    requestHeaders: { host: 'localhost:3000' },
                 });
             } catch (error) {
                 // We expect this to fail since we haven't mocked the full OIDC flow
@@ -1756,21 +1775,17 @@ describe('OidcAuthService', () => {
             expect(redirectUri).toBe('https://example.com:1443/graphql/api/auth/oidc/callback');
         });
 
-        it('should use headers to construct redirect URI when no origin provided', async () => {
+        it('should validate and use provided origin for redirect URI', async () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
             const headers = {
                 'x-forwarded-proto': 'https',
                 'x-forwarded-host': 'example.com:1443',
             };
-            const redirectUri = await getRedirectUri(undefined, headers);
+            const redirectUri = await getRedirectUri(
+                'https://example.com:1443/graphql/api/auth/oidc/callback',
+                headers
+            );
             expect(redirectUri).toBe('https://example.com:1443/graphql/api/auth/oidc/callback');
-        });
-
-        it('should use fallback when no origin and no headers provided', async () => {
-            const getRedirectUri = (service as any).getRedirectUri.bind(service);
-            configService.get.mockReturnValue('http://tower.local');
-            const redirectUri = await getRedirectUri();
-            expect(redirectUri).toBe('http://tower.local/graphql/api/auth/oidc/callback');
         });
 
         it('should reject redirect URIs ending with callback path from untrusted origins', async () => {
@@ -2047,8 +2062,9 @@ describe('OidcAuthService', () => {
                         providerId,
                         code: 'test-auth-code',
                         state: callbackState,
-                        requestOrigin: undefined,
+                        requestOrigin: 'https://unraid.mytailnet.ts.net:1443',
                         fullCallbackUrl: `${customRedirectUri}?code=test-auth-code&state=${encodeURIComponent(callbackState)}`,
+                        requestHeaders: headers,
                     });
 
                     // Verify the token was created
