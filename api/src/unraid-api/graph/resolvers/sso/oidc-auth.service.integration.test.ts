@@ -125,12 +125,12 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
             vi.mocked(configPersistence.getProvider).mockResolvedValue(provider);
 
             try {
-                await service.handleCallback(
-                    'google-test',
-                    'test-code',
-                    'test-state',
-                    'http://test.local'
-                );
+                await service.handleCallback({
+                    providerId: 'google-test',
+                    code: 'test-code',
+                    state: 'test-state',
+                    requestOrigin: 'http://test.local',
+                });
             } catch (error) {
                 // We expect this to fail
             }
@@ -210,7 +210,11 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
             vi.mocked(configPersistence.getProvider).mockResolvedValue(provider);
 
             try {
-                await service.getAuthorizationUrl('auth-url-test', 'test-state', 'http://test.local');
+                await service.getAuthorizationUrl({
+                    providerId: 'auth-url-test',
+                    state: 'test-state',
+                    requestOrigin: 'http://test.local',
+                });
 
                 // Verify URL building logs
                 expect(logLogs.some((log) => log.includes('Built authorization URL'))).toBe(true);
@@ -235,15 +239,15 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
 
             vi.mocked(configPersistence.getProvider).mockResolvedValue(provider);
 
-            const authUrl = await service.getAuthorizationUrl(
-                'manual-endpoints',
-                'test-state',
-                'http://test.local',
-                {
+            const authUrl = await service.getAuthorizationUrl({
+                providerId: 'manual-endpoints',
+                state: 'test-state',
+                requestOrigin: 'http://test.local',
+                requestHeaders: {
                     'x-forwarded-host': 'test.local',
                     'x-forwarded-proto': 'http',
-                }
-            );
+                },
+            });
 
             // Verify manual endpoint logs
             expect(debugLogs.some((log) => log.includes('Built authorization URL'))).toBe(true);
@@ -272,12 +276,12 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
 
             // Mock a scenario where JWT validation fails
             try {
-                await service.handleCallback(
-                    'jwt-validation-test',
-                    'test-code',
-                    'test-state',
-                    'http://test.local'
-                );
+                await service.handleCallback({
+                    providerId: 'jwt-validation-test',
+                    code: 'test-code',
+                    state: 'test-state',
+                    requestOrigin: 'http://test.local',
+                });
             } catch (error) {
                 // Expected to fail
             }
@@ -378,13 +382,14 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
             vi.mocked(configPersistence.getProvider).mockResolvedValue(provider);
 
             try {
-                await service.handleCallback(
-                    'token-params-test',
-                    'authorization-code-12345',
-                    'state-with-signature',
-                    'https://myapp.example.com',
-                    'https://myapp.example.com/graphql/api/auth/oidc/callback?code=authorization-code-12345&state=state-with-signature&scope=openid+email+profile'
-                );
+                await service.handleCallback({
+                    providerId: 'token-params-test',
+                    code: 'authorization-code-12345',
+                    state: 'state-with-signature',
+                    requestOrigin: 'https://myapp.example.com',
+                    fullCallbackUrl:
+                        'https://myapp.example.com/graphql/api/auth/oidc/callback?code=authorization-code-12345&state=state-with-signature&scope=openid+email+profile',
+                });
             } catch (error) {
                 // Expected to fail
             }

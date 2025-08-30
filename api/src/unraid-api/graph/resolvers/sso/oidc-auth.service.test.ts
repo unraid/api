@@ -1472,12 +1472,12 @@ describe('OidcAuthService', () => {
             // Mock config service for fallback
             configService.get.mockReturnValue('http://tower.local');
 
-            const authUrl = await service.getAuthorizationUrl(
-                'test-provider',
-                'test-state',
-                'http://localhost:3001',
-                { host: 'localhost:3001' }
-            );
+            const authUrl = await service.getAuthorizationUrl({
+                providerId: 'test-provider',
+                state: 'test-state',
+                requestOrigin: 'http://localhost:3001',
+                requestHeaders: { host: 'localhost:3001' },
+            });
 
             expect(authUrl).toContain('https://custom.example.com/auth');
             expect(authUrl).toContain('client_id=test-client-id');
@@ -1501,7 +1501,10 @@ describe('OidcAuthService', () => {
 
             oidcConfig.getProvider.mockResolvedValue(provider);
 
-            const authUrl = await service.getAuthorizationUrl('encode-test-provider', 'original-state');
+            const authUrl = await service.getAuthorizationUrl({
+                providerId: 'encode-test-provider',
+                state: 'original-state',
+            });
 
             // Verify that the state parameter includes provider ID at the start
             expect(authUrl).toMatch(/state=encode-test-provider%3A[a-f0-9]+\.[0-9]+\.[a-f0-9]+/);
@@ -1511,7 +1514,10 @@ describe('OidcAuthService', () => {
             oidcConfig.getProvider.mockResolvedValue(null);
 
             await expect(
-                service.getAuthorizationUrl('nonexistent-provider', 'test-state')
+                service.getAuthorizationUrl({
+                    providerId: 'nonexistent-provider',
+                    state: 'test-state',
+                })
             ).rejects.toThrow('Provider nonexistent-provider not found');
         });
 
@@ -1528,7 +1534,10 @@ describe('OidcAuthService', () => {
 
             oidcConfig.getProvider.mockResolvedValue(provider);
 
-            const authUrl = await service.getAuthorizationUrl('custom-scopes-provider', 'test-state');
+            const authUrl = await service.getAuthorizationUrl({
+                providerId: 'custom-scopes-provider',
+                state: 'test-state',
+            });
 
             expect(authUrl).toContain('scope=openid+profile+groups+custom%3Ascope');
         });
@@ -1539,13 +1548,21 @@ describe('OidcAuthService', () => {
             oidcConfig.getProvider.mockResolvedValue(null);
 
             await expect(
-                service.handleCallback('nonexistent-provider', 'code', 'redirect-uri')
+                service.handleCallback({
+                    providerId: 'nonexistent-provider',
+                    code: 'code',
+                    state: 'redirect-uri',
+                })
             ).rejects.toThrow('Provider nonexistent-provider not found');
         });
 
         it('should handle malformed state parameter', async () => {
             await expect(
-                service.handleCallback('invalid-state', 'code', 'redirect-uri')
+                service.handleCallback({
+                    providerId: 'invalid-state',
+                    code: 'code',
+                    state: 'redirect-uri',
+                })
             ).rejects.toThrow(UnauthorizedException);
         });
 
@@ -1563,7 +1580,11 @@ describe('OidcAuthService', () => {
 
             // This will fail during token exchange, but we're testing the provider lookup logic
             await expect(
-                service.handleCallback('test-provider', 'code', 'redirect-uri')
+                service.handleCallback({
+                    providerId: 'test-provider',
+                    code: 'code',
+                    state: 'redirect-uri',
+                })
             ).rejects.toThrow(UnauthorizedException);
 
             // Verify the provider was looked up with the correct ID
@@ -1610,13 +1631,13 @@ describe('OidcAuthService', () => {
             // The handleCallback will fail because we haven't mocked openid-client,
             // but we're only testing that state validation happens once before the error
             try {
-                await service.handleCallback(
+                await service.handleCallback({
                     providerId,
-                    'test-authorization-code',
-                    stateToken,
-                    'http://localhost:3000',
-                    `http://localhost:3000/graphql/api/auth/oidc/callback?code=test-authorization-code&state=${encodeURIComponent(stateToken)}`
-                );
+                    code: 'test-authorization-code',
+                    state: stateToken,
+                    requestOrigin: 'http://localhost:3000',
+                    fullCallbackUrl: `http://localhost:3000/graphql/api/auth/oidc/callback?code=test-authorization-code&state=${encodeURIComponent(stateToken)}`,
+                });
             } catch (error) {
                 // We expect this to fail since we haven't mocked the full OIDC flow
                 // But we're only testing state validation behavior
@@ -1983,12 +2004,12 @@ describe('OidcAuthService', () => {
                     'x-forwarded-proto': 'https',
                     'x-forwarded-host': 'unraid.mytailnet.ts.net:1443',
                 };
-                const authUrl = await service.getAuthorizationUrl(
+                const authUrl = await service.getAuthorizationUrl({
                     providerId,
-                    clientState,
-                    customRedirectUri,
-                    headers
-                );
+                    state: clientState,
+                    requestOrigin: customRedirectUri,
+                    requestHeaders: headers,
+                });
 
                 // VERIFY: The redirect URI stored in state should be EXACTLY what was passed in
                 // With the fix, it uses requestOrigin directly without processing
@@ -2022,13 +2043,13 @@ describe('OidcAuthService', () => {
 
                 // Call handleCallback which should use the redirect URI from state for token exchange
                 try {
-                    const result = await service.handleCallback(
+                    const result = await service.handleCallback({
                         providerId,
-                        'test-auth-code',
-                        callbackState,
-                        undefined,
-                        `${customRedirectUri}?code=test-auth-code&state=${encodeURIComponent(callbackState)}`
-                    );
+                        code: 'test-auth-code',
+                        state: callbackState,
+                        requestOrigin: undefined,
+                        fullCallbackUrl: `${customRedirectUri}?code=test-auth-code&state=${encodeURIComponent(callbackState)}`,
+                    });
 
                     // Verify the token was created
                     expect(result).toEqual({ paddedToken: 'padded-token' });

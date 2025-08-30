@@ -30,6 +30,22 @@ interface JwtClaims {
 // skip options for aud/iss checks, so we'll handle validation errors differently
 type ExtendedGrantChecks = client.AuthorizationCodeGrantChecks;
 
+export interface GetAuthorizationUrlParams {
+    providerId: string;
+    state: string;
+    requestOrigin?: string;
+    requestHeaders?: Record<string, string | string[] | undefined>;
+}
+
+export interface HandleCallbackParams {
+    providerId: string;
+    code: string;
+    state: string;
+    requestOrigin?: string;
+    fullCallbackUrl?: string;
+    requestHeaders?: Record<string, string | string[] | undefined>;
+}
+
 @Injectable()
 export class OidcAuthService {
     private readonly logger = new Logger(OidcAuthService.name);
@@ -43,12 +59,9 @@ export class OidcAuthService {
         private readonly validationService: OidcValidationService
     ) {}
 
-    async getAuthorizationUrl(
-        providerId: string,
-        state: string,
-        requestOrigin?: string,
-        requestHeaders?: Record<string, string | string[] | undefined>
-    ): Promise<string> {
+    async getAuthorizationUrl(params: GetAuthorizationUrlParams): Promise<string> {
+        const { providerId, state, requestOrigin, requestHeaders } = params;
+
         const provider = await this.oidcConfig.getProvider(providerId);
         if (!provider) {
             throw new UnauthorizedException(`Provider ${providerId} not found`);
@@ -129,14 +142,9 @@ export class OidcAuthService {
         return this.stateService;
     }
 
-    async handleCallback(
-        providerId: string,
-        code: string,
-        state: string,
-        requestOrigin?: string,
-        fullCallbackUrl?: string,
-        requestHeaders?: Record<string, string | string[] | undefined>
-    ): Promise<string> {
+    async handleCallback(params: HandleCallbackParams): Promise<string> {
+        const { providerId, code, state, requestOrigin, fullCallbackUrl, requestHeaders } = params;
+
         const provider = await this.oidcConfig.getProvider(providerId);
         if (!provider) {
             throw new UnauthorizedException(`Provider ${providerId} not found`);

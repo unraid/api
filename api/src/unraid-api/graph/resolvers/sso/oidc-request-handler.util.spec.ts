@@ -164,15 +164,15 @@ describe('OidcRequestHandler', () => {
             );
 
             expect(authUrl).toBe('https://provider.com/auth?client_id=123');
-            expect(mockAuthService.getAuthorizationUrl).toHaveBeenCalledWith(
-                'provider123',
-                'state456',
-                'https://example.com/callback',
-                {
+            expect(mockAuthService.getAuthorizationUrl).toHaveBeenCalledWith({
+                providerId: 'provider123',
+                state: 'state456',
+                requestOrigin: 'https://example.com/callback',
+                requestHeaders: {
                     'x-forwarded-proto': 'https',
                     'x-forwarded-host': 'example.com',
-                }
-            );
+                },
+            });
             expect(mockLogger.debug).toHaveBeenCalledWith(
                 'Authorization request - Provider: provider123'
             );
@@ -210,17 +210,17 @@ describe('OidcRequestHandler', () => {
             expect(result.providerId).toBe('provider123');
             expect(result.paddedToken).toBe('paddedToken123');
             expect(result.requestInfo.fullUrl).toBe('https://example.com/callback?code=123&state=456');
-            expect(mockAuthService.handleCallback).toHaveBeenCalledWith(
-                'provider123',
-                'code123',
-                'state456',
-                undefined,
-                'https://example.com/callback?code=123&state=456',
-                {
+            expect(mockAuthService.handleCallback).toHaveBeenCalledWith({
+                providerId: 'provider123',
+                code: 'code123',
+                state: 'state456',
+                requestOrigin: 'https://example.com',
+                fullCallbackUrl: 'https://example.com/callback?code=123&state=456',
+                requestHeaders: {
                     'x-forwarded-proto': 'https',
                     'x-forwarded-host': 'example.com',
-                }
-            );
+                },
+            });
             expect(mockLogger.debug).toHaveBeenCalledWith('Callback request - Provider: provider123');
         });
     });
