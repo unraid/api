@@ -5,22 +5,7 @@ import { vInfiniteScroll } from '@vueuse/components';
 
 import { ArrowDownTrayIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
 import { Button, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@unraid/ui';
-import hljs from 'highlight.js/lib/core';
-import DOMPurify from 'isomorphic-dompurify';
-
-import 'highlight.js/styles/github-dark.css'; // You can choose a different style
-
-import apache from 'highlight.js/lib/languages/apache';
-import bash from 'highlight.js/lib/languages/bash';
-import ini from 'highlight.js/lib/languages/ini';
-import javascript from 'highlight.js/lib/languages/javascript';
-import json from 'highlight.js/lib/languages/json';
-import nginx from 'highlight.js/lib/languages/nginx';
-import php from 'highlight.js/lib/languages/php';
-// Register the languages you want to support
-import plaintext from 'highlight.js/lib/languages/plaintext';
-import xml from 'highlight.js/lib/languages/xml';
-import yaml from 'highlight.js/lib/languages/yaml';
+import { useContentHighlighting } from '~/composables/useContentHighlighting';
 
 import type { LogFileContentQuery, LogFileContentQueryVariables } from '~/composables/gql/graphql';
 
@@ -32,27 +17,16 @@ import { LOG_FILE_SUBSCRIPTION } from './log.subscription';
 const themeStore = useThemeStore();
 const isDarkMode = computed(() => themeStore.darkMode);
 
-// Register the languages
-hljs.registerLanguage('plaintext', plaintext);
-hljs.registerLanguage('bash', bash);
-hljs.registerLanguage('ini', ini);
-hljs.registerLanguage('xml', xml);
-hljs.registerLanguage('json', json);
-hljs.registerLanguage('yaml', yaml);
-hljs.registerLanguage('nginx', nginx);
-hljs.registerLanguage('apache', apache);
-hljs.registerLanguage('javascript', javascript);
-hljs.registerLanguage('php', php);
+// Use shared highlighting logic
+const { highlightContent } = useContentHighlighting();
 
 const props = defineProps<{
   logFilePath: string;
   lineCount: number;
   autoScroll: boolean;
   highlightLanguage?: string; // Optional prop to specify the language for highlighting
+  clientFilter?: string; // Optional client-side filter to apply to log content
 }>();
-
-// Default language for highlighting
-const defaultLanguage = 'plaintext';
 
 const DEFAULT_CHUNK_SIZE = 100;
 const scrollViewportRef = ref<HTMLElement | null>(null);
@@ -111,44 +85,8 @@ onMounted(() => {
     observer.observe(scrollViewportRef.value as unknown as Node, { childList: true, subtree: true });
   }
 
-  if (props.logFilePath) {
-    subscribeToMore({
-      document: LOG_FILE_SUBSCRIPTION,
-      variables: { path: props.logFilePath },
-      updateQuery: (prev, { subscriptionData }) => {
-        if (!subscriptionData.data || !prev) return prev;
-
-        // Set subscription as active when we receive data
-        state.isSubscriptionActive = true;
-
-        const existingContent = prev.logFile?.content || '';
-        const newContent = subscriptionData.data.logFile.content;
-
-        // Update the local state with the new content
-        if (newContent && state.loadedContentChunks.length > 0) {
-          const lastChunk = state.loadedContentChunks[state.loadedContentChunks.length - 1];
-          lastChunk.content += newContent;
-
-          // Force scroll to bottom if auto-scroll is enabled
-          if (props.autoScroll) {
-            nextTick(() => forceScrollToBottom());
-          }
-        }
-
-        return {
-          ...prev,
-          logFile: {
-            ...prev.logFile,
-            content: existingContent + newContent,
-            totalLines: (prev.logFile?.totalLines || 0) + (newContent.split('\n').length - 1),
-          },
-        };
-      },
-    });
-
-    // Set subscription as active
-    state.isSubscriptionActive = true;
-  }
+  // Start the log subscription
+  startLogSubscription();
 });
 
 // Cleanup observer on unmount
@@ -188,75 +126,33 @@ watch(
   { deep: true }
 );
 
-// Function to highlight log content
+// Function to highlight log content using shared composable
 const highlightLog = (content: string): string => {
-  try {
-    // Determine which language to use for highlighting
-    const language = props.highlightLanguage || defaultLanguage;
-
-    // Apply syntax highlighting
-    let highlighted = hljs.highlight(content, { language }).value;
-
-    // Apply additional custom highlighting for common log patterns
-
-    // Highlight timestamps (various formats)
-    highlighted = highlighted.replace(
-      /\b(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\b/g,
-      '<span class="hljs-timestamp">$1</span>'
-    );
-
-    // Highlight IP addresses
-    highlighted = highlighted.replace(
-      /\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b/g,
-      '<span class="hljs-ip">$1</span>'
-    );
-
-    // Split the content into lines
-    let lines = highlighted.split('\n');
-
-    // Process each line to add error, warning, and success highlighting
-    lines = lines.map((line) => {
-      if (/(error|exception|fail|failed|failure)/i.test(line)) {
-        // Highlight error keywords
-        line = line.replace(
-          /\b(error|exception|fail|failed|failure)\b/gi,
-          '<span class="hljs-error-keyword">$1</span>'
-        );
-        // Wrap the entire line
-        return `<span class="hljs-error">${line}</span>`;
-      } else if (/(warning|warn)/i.test(line)) {
-        // Highlight warning keywords
-        line = line.replace(/\b(warning|warn)\b/gi, '<span class="hljs-warning-keyword">$1</span>');
-        // Wrap the entire line
-        return `<span class="hljs-warning">${line}</span>`;
-      } else if (/(success|successful|completed|done)/i.test(line)) {
-        // Highlight success keywords
-        line = line.replace(
-          /\b(success|successful|completed|done)\b/gi,
-          '<span class="hljs-success-keyword">$1</span>'
-        );
-        // Wrap the entire line
-        return `<span class="hljs-success">${line}</span>`;
-      }
-      return line;
-    });
-
-    // Join the lines back together
-    highlighted = lines.join('\n');
-
-    // Sanitize the highlighted HTML
-    return DOMPurify.sanitize(highlighted);
-  } catch (error) {
-    console.error('Error highlighting log content:', error);
-    // Fallback to sanitized but not highlighted content
-    return DOMPurify.sanitize(content);
-  }
+  return highlightContent(content, props.highlightLanguage);
 };
+
+// Apply client-side filtering
+const filteredContent = computed(() => {
+  // Join chunks ensuring proper newline handling
+  const rawContent = state.loadedContentChunks
+    .map((chunk) => chunk.content)
+    .filter(content => content) // Remove empty chunks
+    .join(''); // Content should already have proper newlines
+  
+  // Apply client-side filter if provided
+  if (props.clientFilter && props.clientFilter.trim()) {
+    const filterLower = props.clientFilter.toLowerCase();
+    const lines = rawContent.split('\n');
+    const filtered = lines.filter(line => line.toLowerCase().includes(filterLower));
+    return filtered.join('\n');
+  }
+  
+  return rawContent;
+});
 
 // Computed properties
 const logContent = computed(() => {
-  const rawContent = state.loadedContentChunks.map((chunk) => chunk.content).join('');
-  return highlightLog(rawContent);
+  return highlightLog(filteredContent.value);
 });
 
 const totalLines = computed(() => logContentResult.value?.logFile?.totalLines || 0);
@@ -339,15 +235,84 @@ const downloadLogFile = async () => {
   }
 };
 
-// Refresh logs
-const refreshLogContent = () => {
+// Clear all state to initial values
+const clearState = () => {
   state.loadedContentChunks = [];
   state.currentStartLine = undefined;
   state.isAtTop = false;
   state.canLoadMore = false;
   state.initialLoadComplete = false;
   state.isLoadingMore = false;
-  refetchLogContent();
+};
+
+// Helper function to start log subscription
+const startLogSubscription = () => {
+  if (!props.logFilePath) return;
+  
+  try {
+    subscribeToMore({
+      document: LOG_FILE_SUBSCRIPTION,
+      variables: { path: props.logFilePath },
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data || !prev) return prev;
+
+        // Set subscription as active when we receive data
+        state.isSubscriptionActive = true;
+
+        const existingContent = prev.logFile?.content || '';
+        const newContent = subscriptionData.data.logFile.content;
+
+        // Update the local state with the new content
+        if (newContent && state.loadedContentChunks.length > 0) {
+          const lastChunk = state.loadedContentChunks[state.loadedContentChunks.length - 1];
+          // Ensure there's a newline between the existing content and new content if needed
+          if (lastChunk.content && !lastChunk.content.endsWith('\n') && newContent) {
+            lastChunk.content += '\n' + newContent;
+          } else {
+            lastChunk.content += newContent;
+          }
+
+          // Force scroll to bottom if auto-scroll is enabled
+          if (props.autoScroll) {
+            nextTick(() => forceScrollToBottom());
+          }
+        }
+
+        return {
+          ...prev,
+          logFile: {
+            ...prev.logFile,
+            content: existingContent + newContent,
+            totalLines: (prev.logFile?.totalLines || 0) + (newContent.split('\n').length - 1),
+          },
+        };
+      },
+    });
+    
+    // Set subscription as active
+    state.isSubscriptionActive = true;
+  } catch (error) {
+    console.error('Error starting log subscription:', error);
+    state.isSubscriptionActive = false;
+  }
+};
+
+// Refresh logs
+const refreshLogContent = async () => {
+  // Clear the state
+  clearState();
+  
+  // Refetch with explicit variables to ensure we get the latest logs
+  await refetchLogContent({
+    path: props.logFilePath,
+    lines: props.lineCount || DEFAULT_CHUNK_SIZE,
+    startLine: undefined, // Explicitly pass undefined to get the latest lines
+  });
+  
+  // Restart the subscription with the same variables used for refetch
+  // Note: subscribeToMore in Vue Apollo doesn't return an unsubscribe function
+  // The previous subscription is automatically replaced when calling subscribeToMore again
+  startLogSubscription();
 
   nextTick(() => {
     forceScrollToBottom();
@@ -436,7 +401,7 @@ defineExpose({ refreshLogContent });
       </div>
 
       <pre
-        class="font-mono whitespace-pre-wrap p-4 m-0 text-xs leading-6 hljs"
+        class="font-mono whitespace-pre p-4 m-0 text-xs leading-6 hljs"
         :class="{ 'theme-dark': isDarkMode, 'theme-light': !isDarkMode }"
         v-html="logContent"
       />
@@ -612,4 +577,51 @@ defineExpose({ refreshLogContent });
   color: var(--log-success-color);
   font-weight: bold;
 }
+
+/* ANSI color styles for ansi_up output - using format: ansi-{color}-fg/bg */
+/* Foreground colors */
+:deep(.ansi-black-fg) { color: #000; }
+:deep(.ansi-red-fg) { color: #c91b00; }
+:deep(.ansi-green-fg) { color: #00c200; }
+:deep(.ansi-yellow-fg) { color: #c7c400; }
+:deep(.ansi-blue-fg) { color: #0225c7; }
+:deep(.ansi-magenta-fg) { color: #c930c7; }
+:deep(.ansi-cyan-fg) { color: #00c5c7; }
+:deep(.ansi-white-fg) { color: #c7c7c7; }
+
+/* Bright foreground colors */
+:deep(.ansi-bright-black-fg) { color: #676767; }
+:deep(.ansi-bright-red-fg) { color: #ff6d67; }
+:deep(.ansi-bright-green-fg) { color: #5ff967; }
+:deep(.ansi-bright-yellow-fg) { color: #fefb67; }
+:deep(.ansi-bright-blue-fg) { color: #6871ff; }
+:deep(.ansi-bright-magenta-fg) { color: #ff76ff; }
+:deep(.ansi-bright-cyan-fg) { color: #5ffdff; }
+:deep(.ansi-bright-white-fg) { color: #fff; }
+
+/* Background colors */
+:deep(.ansi-black-bg) { background-color: #000; }
+:deep(.ansi-red-bg) { background-color: #c91b00; }
+:deep(.ansi-green-bg) { background-color: #00c200; }
+:deep(.ansi-yellow-bg) { background-color: #c7c400; }
+:deep(.ansi-blue-bg) { background-color: #0225c7; }
+:deep(.ansi-magenta-bg) { background-color: #c930c7; }
+:deep(.ansi-cyan-bg) { background-color: #00c5c7; }
+:deep(.ansi-white-bg) { background-color: #c7c7c7; }
+
+/* Bright background colors */
+:deep(.ansi-bright-black-bg) { background-color: #676767; }
+:deep(.ansi-bright-red-bg) { background-color: #ff6d67; }
+:deep(.ansi-bright-green-bg) { background-color: #5ff967; }
+:deep(.ansi-bright-yellow-bg) { background-color: #fefb67; }
+:deep(.ansi-bright-blue-bg) { background-color: #6871ff; }
+:deep(.ansi-bright-magenta-bg) { background-color: #ff76ff; }
+:deep(.ansi-bright-cyan-bg) { background-color: #5ffdff; }
+:deep(.ansi-bright-white-bg) { background-color: #fff; }
+
+/* Additional ansi_up classes */
+:deep(.ansi-bold) { font-weight: bold; }
+:deep(.ansi-italic) { font-style: italic; }
+:deep(.ansi-underline) { text-decoration: underline; }
+:deep(.ansi-strike) { text-decoration: line-through; }
 </style>

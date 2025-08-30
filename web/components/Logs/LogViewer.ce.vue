@@ -11,6 +11,7 @@ import {
 
 import { GET_LOG_FILES } from './log.query';
 import SingleLogViewer from './SingleLogViewer.vue';
+import LogViewerToolbar from './LogViewerToolbar.vue';
 
 // Types
 interface LogFile {
@@ -20,10 +21,12 @@ interface LogFile {
 }
 
 // Component state
-const selectedLogFile = ref<string>('');
+const selectedLogFile = ref<string | null>(null);
 const lineCount = ref<number>(100);
 const autoScroll = ref<boolean>(true);
 const highlightLanguage = ref<string>('plaintext');
+const filterText = ref<string>('');
+const presetFilter = ref<string>('none');
 
 // Available highlight languages
 const highlightLanguages = [
@@ -37,6 +40,15 @@ const highlightLanguages = [
   { value: 'apache', label: 'Apache' },
   { value: 'javascript', label: 'JavaScript' },
   { value: 'php', label: 'PHP' },
+];
+
+// Preset filter options
+const presetFilters = [
+  { value: 'none', label: 'No Filter' },
+  { value: 'OIDC', label: 'OIDC Logs' },
+  { value: 'ERROR', label: 'Errors' },
+  { value: 'WARNING', label: 'Warnings' },
+  { value: 'AUTH', label: 'Authentication' },
 ];
 
 // Fetch log files
@@ -102,15 +114,32 @@ watch(selectedLogFile, (newValue) => {
     highlightLanguage.value = autoDetectLanguage(newValue);
   }
 });
+
+// Watch for preset filter changes to update the filter text
+watch(presetFilter, (newValue) => {
+  if (newValue && newValue !== 'none') {
+    filterText.value = newValue;
+  } else if (newValue === 'none') {
+    filterText.value = '';
+  }
+});
 </script>
 
 <template>
   <div
     class="flex flex-col h-[500px] resize-y bg-background text-foreground rounded-lg border border-border overflow-hidden"
   >
+    <LogViewerToolbar
+      v-model:filter-text="filterText"
+      v-model:preset-filter="presetFilter"
+      title="Log Viewer"
+      :show-presets="true"
+      :preset-filters="presetFilters"
+      :show-toggle="false"
+      :show-refresh="false"
+    />
+    
     <div class="p-4 border-b border-border">
-      <h2 class="text-lg font-semibold mb-4">Log Viewer</h2>
-
       <div class="flex flex-wrap gap-4 items-end">
         <div class="flex-1 min-w-[200px]">
           <Label for="log-file-select">Log File</Label>
@@ -186,6 +215,7 @@ watch(selectedLogFile, (newValue) => {
         :line-count="lineCount"
         :auto-scroll="autoScroll"
         :highlight-language="highlightLanguage"
+        :client-filter="filterText"
         class="h-full"
       />
     </div>

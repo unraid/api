@@ -1,4 +1,5 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import crypto from 'crypto';
 
 interface StateData {
@@ -6,26 +7,34 @@ interface StateData {
     clientState: string;
     timestamp: number;
     providerId: string;
+    redirectUri?: string;
 }
 
 @Injectable()
 export class OidcStateService {
+    private static instanceCount = 0;
+    private readonly instanceId: number;
     private readonly logger = new Logger(OidcStateService.name);
-    private readonly stateCache = new Map<string, StateData>();
     private readonly hmacSecret: string;
-    private readonly STATE_TTL_SECONDS = 600; // 10 minutes
+    private readonly STATE_TTL_MS = 600000; // 10 minutes in milliseconds (cache-manager v7+ expects milliseconds, not seconds)
+    private readonly STATE_CACHE_PREFIX = 'oidc_state:';
 
-    constructor() {
+    constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
+        // Track instance creation
+        this.instanceId = ++OidcStateService.instanceCount;
+
         // Always generate a new secret on API restart for security
         // This ensures state tokens cannot be reused across restarts
         this.hmacSecret = crypto.randomBytes(32).toString('hex');
-        this.logger.debug('Generated new OIDC state secret for this session');
-
-        // Clean up expired states periodically
-        setInterval(() => this.cleanupExpiredStates(), 60000); // Every minute
+        this.logger.warn(`OidcStateService instance #${this.instanceId} created with new HMAC secret`);
+        this.logger.debug(`HMAC secret first 8 chars: ${this.hmacSecret.substring(0, 8)}`);
     }
 
-    generateSecureState(providerId: string, clientState: string): string {
+    async generateSecureState(
+        providerId: string,
+        clientState: string,
+        redirectUri?: string
+    ): Promise<string> {
         const nonce = crypto.randomBytes(16).toString('hex');
         const timestamp = Date.now();
 
@@ -35,8 +44,21 @@ export class OidcStateService {
             clientState,
             timestamp,
             providerId,
+            redirectUri,
         };
-        this.stateCache.set(nonce, stateData);
+
+        // Store in cache with TTL (in milliseconds for cache-manager v7)
+        const cacheKey = `${this.STATE_CACHE_PREFIX}${nonce}`;
+        this.logger.debug(`Storing state with key: ${cacheKey}, TTL: ${this.STATE_TTL_MS}ms`);
+        await this.cacheManager.set(cacheKey, stateData, this.STATE_TTL_MS);
+
+        // Verify it was stored
+        const verifyStored = await this.cacheManager.get(cacheKey);
+        if (verifyStored) {
+            this.logger.debug(`State successfully stored and verified for key: ${cacheKey}`);
+        } else {
+            this.logger.error(`CRITICAL: State was NOT stored in cache for key: ${cacheKey}`);
+        }
 
         // Create signed state: nonce.timestamp.signature
         const dataToSign = `${nonce}.${timestamp}`;
@@ -45,14 +67,18 @@ export class OidcStateService {
         const signedState = `${dataToSign}.${signature}`;
 
         this.logger.debug(`Generated secure state for provider ${providerId} with nonce ${nonce}`);
+        this.logger.debug(
+            `Instance #${this.instanceId}, HMAC secret first 8 chars: ${this.hmacSecret.substring(0, 8)}`
+        );
+        this.logger.debug(`Stored redirectUri: ${redirectUri}`);
         // Return state with provider ID prefix (unencrypted) for routing
         return `${providerId}:${signedState}`;
     }
 
-    validateSecureState(
+    async validateSecureState(
         state: string,
         expectedProviderId: string
-    ): { isValid: boolean; clientState?: string; error?: string } {
+    ): Promise<{ isValid: boolean; clientState?: string; redirectUri?: string; error?: string }> {
         try {
             // Extract provider ID and signed state
             const parts = state.split(':');
@@ -107,7 +133,7 @@ export class OidcStateService {
             // Check timestamp expiration
             const now = Date.now();
             const age = now - timestamp;
-            if (age > this.STATE_TTL_SECONDS * 1000) {
+            if (age > this.STATE_TTL_MS) {
                 this.logger.warn(`State validation failed: token expired (age: ${age}ms)`);
                 return {
                     isValid: false,
@@ -116,11 +142,21 @@ export class OidcStateService {
             }
 
             // Check if state exists in cache (prevents replay attacks)
-            const cachedState = this.stateCache.get(nonce);
+            const cacheKey = `${this.STATE_CACHE_PREFIX}${nonce}`;
+            this.logger.debug(`Looking for nonce ${nonce} in cache with key: ${cacheKey}`);
+            this.logger.debug(
+                `Instance #${this.instanceId}, HMAC secret first 8 chars: ${this.hmacSecret.substring(0, 8)}`
+            );
+            this.logger.debug(`Cache manager type: ${this.cacheManager.constructor.name}`);
+
+            const cachedState = await this.cacheManager.get<StateData>(cacheKey);
+
             if (!cachedState) {
                 this.logger.warn(
                     `State validation failed: nonce ${nonce} not found in cache (possible replay attack)`
                 );
+                this.logger.warn(`Cache key checked: ${cacheKey}`);
+
                 return {
                     isValid: false,
                     error: 'State token not found or already used',
@@ -137,12 +173,13 @@ export class OidcStateService {
             }
 
             // Remove from cache to prevent reuse
-            this.stateCache.delete(nonce);
+            await this.cacheManager.del(cacheKey);
 
             this.logger.debug(`State validation successful for provider ${expectedProviderId}`);
             return {
                 isValid: true,
                 clientState: cachedState.clientState,
+                redirectUri: cachedState.redirectUri,
             };
         } catch (error) {
             this.logger.error(
@@ -182,20 +219,5 @@ export class OidcStateService {
         return null;
     }
 
-    private cleanupExpiredStates(): void {
-        const now = Date.now();
-        let cleaned = 0;
-
-        for (const [nonce, stateData] of this.stateCache.entries()) {
-            const age = now - stateData.timestamp;
-            if (age > this.STATE_TTL_SECONDS * 1000) {
-                this.stateCache.delete(nonce);
-                cleaned++;
-            }
-        }
-
-        if (cleaned > 0) {
-            this.logger.debug(`Cleaned up ${cleaned} expired state entries`);
-        }
-    }
+    // Cleanup is now handled by cache TTL
 }

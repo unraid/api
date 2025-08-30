@@ -1,33 +1,16 @@
-import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 
-import { UserSettingsModule } from '@unraid/shared/services/user-settings.js';
-
-import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.service.js';
-import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
-import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
-import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state.service.js';
-import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
+import { OidcAuthModule } from '@app/unraid-api/graph/resolvers/sso/auth/oidc-auth.module.js';
+import { OidcClientModule } from '@app/unraid-api/graph/resolvers/sso/client/oidc-client.module.js';
+import { OidcCoreModule } from '@app/unraid-api/graph/resolvers/sso/core/oidc-core.module.js';
+import { OidcSessionModule } from '@app/unraid-api/graph/resolvers/sso/session/oidc-session.module.js';
 import { SsoResolver } from '@app/unraid-api/graph/resolvers/sso/sso.resolver.js';
 
-import '@app/unraid-api/graph/resolvers/sso/sso-settings.types.js';
+import '@app/unraid-api/graph/resolvers/sso/models/sso-settings.types.js';
 
 @Module({
-    imports: [UserSettingsModule, CacheModule.register()],
-    providers: [
-        SsoResolver,
-        OidcConfigPersistence,
-        OidcSessionService,
-        OidcStateService,
-        OidcAuthService,
-        OidcValidationService,
-    ],
-    exports: [
-        OidcConfigPersistence,
-        OidcSessionService,
-        OidcStateService,
-        OidcAuthService,
-        OidcValidationService,
-    ],
+    imports: [OidcCoreModule, OidcAuthModule, OidcSessionModule, OidcClientModule],
+    providers: [SsoResolver],
+    exports: [OidcCoreModule, OidcAuthModule, OidcSessionModule, OidcClientModule],
 })
 export class SsoModule {}

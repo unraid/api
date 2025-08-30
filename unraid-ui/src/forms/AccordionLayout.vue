@@ -42,7 +42,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { jsonFormsAjv } from '@/forms/config';
-import type { Layout, UISchemaElement } from '@jsonforms/core';
+import type { BaseUISchemaElement, Labelable, Layout, UISchemaElement } from '@jsonforms/core';
 import { isVisible } from '@jsonforms/core';
 import { DispatchRenderer, useJsonFormsLayout } from '@jsonforms/vue';
 import type { RendererProps } from '@jsonforms/vue';
@@ -61,8 +61,9 @@ const elements = computed(() => {
   const allElements = props.uischema?.elements || [];
 
   // Filter elements based on visibility rules
-  return allElements.filter((element: UISchemaElement & Record<string, unknown>) => {
-    if (!element.rule) {
+  return allElements.filter((element) => {
+    const elementWithRule = element as BaseUISchemaElement;
+    if (!elementWithRule.rule) {
       // No rule means always visible
       return true;
     }
@@ -71,13 +72,13 @@ const elements = computed(() => {
     try {
       // Get the root data from JSONForms context for rule evaluation
       const rootData = jsonFormsContext?.core?.data || {};
-      const formData = props.data || layout.data || rootData;
-      const formPath = props.path || layout.path || '';
+      const formData = props.data || rootData;
+      const formPath = props.path || layout.value.path || '';
 
-      const visible = isVisible(element as UISchemaElement, formData, formPath, jsonFormsAjv);
+      const visible = isVisible(element, formData, formPath, jsonFormsAjv);
       return visible;
     } catch (error) {
-      console.warn('[AccordionLayout] Error evaluating visibility:', error, element.rule);
+      console.warn('[AccordionLayout] Error evaluating visibility:', error, elementWithRule.rule);
       return true; // Default to visible on error
     }
   });
@@ -127,31 +128,21 @@ const defaultOpenItems = computed(() => {
 });
 
 // Get title for accordion item from element options
-const getAccordionTitle = (
-  element: UISchemaElement & Record<string, unknown>,
-  index: number
-): string => {
-  return (
-    (element as { options?: { accordion?: { title?: string }; title?: string }; text?: string }).options
-      ?.accordion?.title ||
-    (element as { options?: { accordion?: { title?: string }; title?: string }; text?: string }).options
-      ?.title ||
-    (element as { options?: { accordion?: { title?: string }; title?: string }; text?: string }).text ||
-    `Section ${index + 1}`
-  );
+const getAccordionTitle = (element: UISchemaElement, index: number): string => {
+  const el = element as BaseUISchemaElement & Labelable;
+  const options = el.options;
+  const accordionTitle = options?.accordion?.title;
+  const title = options?.title;
+  const text = el.label;
+  return accordionTitle || title || text || `Section ${index + 1}`;
 };
 
 // Get description for accordion item from element options
-const getAccordionDescription = (
-  element: UISchemaElement & Record<string, unknown>,
-  index: number
-): string => {
-  return (
-    (element as { options?: { accordion?: { description?: string }; description?: string } }).options
-      ?.accordion?.description ||
-    (element as { options?: { accordion?: { description?: string }; description?: string } }).options
-      ?.description ||
-    ''
-  );
+const getAccordionDescription = (element: UISchemaElement, _index: number): string => {
+  const el = element as BaseUISchemaElement;
+  const options = el.options;
+  const accordionDescription = options?.accordion?.description;
+  const description = options?.description;
+  return accordionDescription || description || '';
 };
 </script>

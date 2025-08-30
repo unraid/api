@@ -99,6 +99,7 @@
         "diff": "8.0.2",
         "dockerode": "4.0.7",
         "dotenv": "17.2.1",
+        "escape-html": "1.0.3",
         "execa": "9.6.0",
         "exit-hook": "4.0.0",
         "fastify": "5.5.0",

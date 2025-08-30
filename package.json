@@ -5,6 +5,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "build:watch": " pnpm -r --parallel build:watch",
+    "codegen": "pnpm -r codegen",
     "dev": "pnpm -r dev",
     "unraid:deploy": "pnpm -r unraid:deploy",
     "test": "pnpm -r test",

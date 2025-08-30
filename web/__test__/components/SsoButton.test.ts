@@ -59,6 +59,8 @@ const mockLocation = {
   hash: '',
   origin: 'http://mock-origin.com',
   pathname: '/login',
+  protocol: 'http:',
+  host: 'mock-origin.com',
   get href() {
     return mockLocationHref;
   },
@@ -253,7 +255,8 @@ describe('SsoButtons', () => {
     expect(sessionStorage.setItem).toHaveBeenCalledWith('sso_provider', 'unraid-net');
 
     const generatedState = (sessionStorage.setItem as Mock).mock.calls[0][1];
-    const expectedUrl = `/graphql/api/auth/oidc/authorize/unraid-net?state=${encodeURIComponent(generatedState)}`;
+    const redirectUri = `${mockLocation.origin}/graphql/api/auth/oidc/callback`;
+    const expectedUrl = `/graphql/api/auth/oidc/authorize/unraid-net?state=${encodeURIComponent(generatedState)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
     expect(mockLocation.href).toBe(expectedUrl);
   });
@@ -375,6 +378,57 @@ describe('SsoButtons', () => {
     // Should redirect to the OIDC callback endpoint
     const expectedUrl = `/graphql/api/auth/oidc/callback?code=${encodeURIComponent(mockCode)}&state=${encodeURIComponent(mockState)}`;
     expect(mockLocation.href).toBe(expectedUrl);
+  });
+
+  it('handles HTTPS with non-standard port correctly', async () => {
+    const mockProviders = [
+      { 
+        id: 'tsidp', 
+        name: 'Tailscale IDP',
+        buttonText: 'Sign in with Tailscale',
+        buttonIcon: null,
+        buttonVariant: 'secondary',
+        buttonStyle: null
+      }
+    ];
+    
+    // Set up location with HTTPS and non-standard port
+    mockLocation.protocol = 'https:';
+    mockLocation.host = 'unraid.mytailnet.ts.net:1443';
+    mockLocation.origin = 'https://unraid.mytailnet.ts.net:1443';
+    
+    mockUseQuery.mockReturnValue({
+      result: { value: { publicOidcProviders: mockProviders } },
+      refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
+    });
+
+    const wrapper = mount(SsoButtons, {
+      global: {
+        stubs: { 
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' }
+        },
+      },
+    });
+    
+    await flushPromises();
+    vi.runAllTimers();
+    await flushPromises();
+
+    const button = wrapper.find('button');
+    await button.trigger('click');
+
+    // Should include the correct redirect URI with HTTPS and port 1443
+    const generatedState = (sessionStorage.setItem as Mock).mock.calls[0][1];
+    const redirectUri = 'https://unraid.mytailnet.ts.net:1443/graphql/api/auth/oidc/callback';
+    const expectedUrl = `/graphql/api/auth/oidc/authorize/tsidp?state=${encodeURIComponent(generatedState)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+    expect(mockLocation.href).toBe(expectedUrl);
+    
+    // Reset location mock for other tests
+    mockLocation.protocol = 'http:';
+    mockLocation.host = 'mock-origin.com';
+    mockLocation.origin = 'http://mock-origin.com';
   });
 
   it('handles multiple OIDC providers', async () => {
