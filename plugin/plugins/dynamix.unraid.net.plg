@@ -161,7 +161,100 @@ exit 0
           sed -i 's|<body>|<body>\n<unraid-modals></unraid-modals>|' "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
         fi
       fi
+      
+      ]]>
+    </INLINE>
+  </FILE>
 
+  <FILE Run="/bin/php" Method="install">
+    <INLINE>
+      <![CDATA[
+      <?php
+      echo "Patching webgui CSS files to exclude .unraid-reset components...\n";
+      
+      $cssDir = "/usr/local/emhttp/plugins/dynamix/styles";
+      $backupDir = "$cssDir/.unraid-api-backup";
+      
+      if (!is_dir($cssDir)) {
+          echo "Warning: CSS directory not found at $cssDir\n";
+          exit(0);
+      }
+      
+      // Create backup directory
+      if (!is_dir($backupDir)) {
+          mkdir($backupDir, 0755, true);
+      }
+      
+      // Elements to wrap with :not(.unraid-reset)
+      $elementsToWrap = [
+          // Form inputs
+          "input", "textarea", "select", "button", "label",
+          // Tables
+          "table", "thead", "tbody", "tfoot", "tr", "td", "th",
+          // Links styled as buttons
+          "a.button",
+          // Common structural elements that might have global styles
+          "form", "fieldset", "legend"
+      ];
+      
+      // Process only default-* and dynamix-* CSS files
+      foreach (glob("$cssDir/*.css") as $cssFile) {
+          $filename = basename($cssFile);
+          
+          // Only process default-* and dynamix-* files
+          if (!preg_match('/^(default-|dynamix-).*\.css$/', $filename)) {
+              continue;
+          }
+          
+          $backupFile = "$backupDir/$filename";
+          
+          // Read file content
+          $content = file_get_contents($cssFile);
+          
+          // Skip if already patched
+          if (strpos($content, ":not(.unraid-reset)") !== false) {
+              echo "  $filename already patched, skipping...\n";
+              continue;
+          }
+          
+          // Create backup if it doesn't exist
+          if (!file_exists($backupFile)) {
+              copy($cssFile, $backupFile);
+          }
+          
+          echo "  Patching $filename...\n";
+          
+          // Process each line
+          $lines = explode("\n", $content);
+          $modifiedLines = [];
+          
+          foreach ($lines as $line) {
+              $modified = false;
+              $trimmedLine = ltrim($line);
+              $leadingWhitespace = substr($line, 0, strlen($line) - strlen($trimmedLine));
+              
+              // Check if line starts with any element selector
+              foreach ($elementsToWrap as $element) {
+                  // Match element at start of selector (with possible pseudo-classes)
+                  if (preg_match("/^" . preg_quote($element, "/") . "([\[\:\.\#\s\,\>]|$)/", $trimmedLine)) {
+                      // Add :not(.unraid-reset) prefix
+                      $modifiedLines[] = $leadingWhitespace . ":not(.unraid-reset) " . $trimmedLine;
+                      $modified = true;
+                      break;
+                  }
+              }
+              
+              if (!$modified) {
+                  $modifiedLines[] = $line;
+              }
+          }
+          
+          // Write modified content back
+          file_put_contents($cssFile, implode("\n", $modifiedLines));
+      }
+      
+      echo "CSS patching complete.\n";
+      ?>
       ]]>
     </INLINE>
   </FILE>
@@ -271,6 +364,27 @@ exit 0
       for FILE in "${FILES_TO_RESTORE[@]}"; do
         [ -f "$FILE-" ] && mv -f "$FILE-" "$FILE"
       done
+      
+      # Restore CSS files from backup
+      echo "Restoring original CSS files..."
+      CSS_DIR="/usr/local/emhttp/plugins/dynamix/styles"
+      BACKUP_DIR="$CSS_DIR/.unraid-api-backup"
+      
+      if [ -d "$BACKUP_DIR" ]; then
+        for backup_file in "$BACKUP_DIR"/*.css; do
+          if [ -f "$backup_file" ]; then
+            filename=$(basename "$backup_file")
+            original_file="$CSS_DIR/$filename"
+            echo "  Restoring $filename..."
+            cp "$backup_file" "$original_file"
+          fi
+        done
+        # Remove backup directory after restoration
+        rm -rf "$BACKUP_DIR"
+        echo "CSS restoration complete."
+      else
+        echo "No CSS backup found, skipping restoration."
+      fi
       
       # Handle the unraid-components directory
       DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components

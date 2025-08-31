@@ -8,76 +8,91 @@
 @source "../../unraid-ui/src/**/*.{vue,ts}";
 @source "../**/*.{vue,ts,js}";
 
-/* Create a CSS layer for resets with lower priority than Tailwind */
-@layer base {
-  /* Reset inherited styles from webgui for Unraid components */
-  .unraid-reset,
-  .unraid-reset *:not(svg):not(path):not(g):not(circle):not(rect):not(line):not(polyline):not(polygon):not(ellipse):not(text):not(tspan):not(stop):not(defs):not(clipPath):not(mask):not(marker):not(symbol):not(use):not(image):not(pattern) {
-    /* Reset all CSS properties to browser defaults */
-    all: unset;
-    
-    /* Restore essential properties */
-    display: revert;
-    box-sizing: border-box;
-  }
+/* 
+ * Strategy: Only reset the specific properties that webgui sets
+ * This preserves Tailwind's ability to style elements
+ */
 
-  /* Apply isolation to non-modal components to prevent style leakage */
-  .unraid-reset:not(#teleports):not(#modals):not(unraid-modals) {
-    /* Create a new stacking context for style isolation */
-    isolation: isolate;
-  }
+/* Container wrapper */
+.unraid-reset {
+  /* Create isolation and set base styles */
+  isolation: isolate;
+  display: contents;
   
-  /* Ensure SVG icons render properly - don't reset them */
-  .unraid-reset svg {
-    fill: currentColor;
-  }
+  /* Override webgui font settings */
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgb(17 24 39);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Specific resets for interactive elements to restore functionality */
+/* Dark mode */
+.dark .unraid-reset {
+  color: rgb(243 244 246);
+}
+
+/* Reset only the properties that webgui commonly sets */
+.unraid-reset * {
+  /* Reset text transforms */
+  text-transform: none;
+  letter-spacing: normal;
+  
+  /* Ensure box-sizing is correct */
+  box-sizing: border-box;
+}
+
+/* Specific resets for form elements that webgui heavily styles */
 .unraid-reset button,
 .unraid-reset input,
 .unraid-reset select,
 .unraid-reset textarea {
-  cursor: revert;
-  /* Reset button borders that leak from webgui */
-  border: none;
-  background: none;
-  padding: 0;
-  margin: 0;
+  /* Remove webgui form styling */
+  appearance: none;
+  background-image: none;
   font: inherit;
   color: inherit;
-  text-align: inherit;
+  min-width: initial;
 }
 
-.unraid-reset a {
+/* Ensure buttons are clickable */
+.unraid-reset button,
+.unraid-reset [role="button"],
+.unraid-reset input[type="button"],
+.unraid-reset input[type="submit"],
+.unraid-reset input[type="reset"] {
   cursor: pointer;
-  text-decoration: revert;
 }
 
+/* Links */
+.unraid-reset a {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Hidden elements */
 .unraid-reset [hidden] {
   display: none !important;
 }
 
-/* Ensure modals and their backdrops appear above all other content */
-[role="dialog"] {
-  z-index: 99999 !important;
+/* SVG icons should inherit color */
+.unraid-reset svg {
+  fill: currentColor;
 }
 
-/* Modal backdrop */
-.fixed.inset-0[aria-hidden="true"],
-[data-headlessui-portal] .fixed.inset-0 {
-  z-index: 99998 !important;
-}
-
-/* Teleport container children */
+/* Modal z-index management */
+[role="dialog"],
+[data-headlessui-portal],
 #teleports > *,
 #modals > *,
 unraid-modals > * {
   z-index: 99999 !important;
 }
 
-/* Portal roots from HeadlessUI */
-[data-headlessui-portal] {
-  position: relative;
-  z-index: 99999 !important;
+/* Modal backdrops */
+.fixed.inset-0[aria-hidden="true"],
+[data-headlessui-portal] .fixed.inset-0 {
+  z-index: 99998 !important;
 }
