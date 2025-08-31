@@ -3,8 +3,8 @@
  * This prevents Tailwind from applying global resets that affect webgui
  */
 
-/* Define layers for Tailwind v4 */
-@layer theme, base, components, utilities;
+/* Define layers for Tailwind v4 - webgui first so our layers override */
+@layer webgui, theme, base, components, utilities;
 
 /* Import only the parts of Tailwind we need - NO PREFLIGHT */
 @import 'tailwindcss/theme.css' layer(theme);
@@ -68,6 +68,53 @@
   /* Dark mode */
   .dark .unraid-reset {
     color: rgb(243 244 246);
+  }
+  
+  /* 
+   * Reset interactive elements to beat webgui styles
+   * Using @layer to ensure Tailwind utilities can still override
+   */
+  @layer base {
+    .unapi button,
+    .unapi input,
+    .unapi select,
+    .unapi textarea,
+    .unapi a,
+    .unraid-reset button,
+    .unraid-reset input,
+    .unraid-reset select,
+    .unraid-reset textarea,
+    .unraid-reset a {
+      /* Use 'revert-layer' to undo webgui styles but keep Tailwind */
+      all: revert-layer;
+      /* Base resets that Tailwind utilities can override */
+      font-family: inherit;
+      font-size: 100%;
+      font-weight: inherit;
+      line-height: inherit;
+      color: inherit;
+      background-color: transparent;
+      background-image: none;
+      border: 0;
+      padding: 0;
+      margin: 0;
+      cursor: auto;
+      text-align: inherit;
+      text-transform: none;
+      appearance: none;
+      outline: 2px solid transparent;
+      outline-offset: 2px;
+    }
+    
+    /* Specific button reset for webgui button styles */
+    .unapi button:not([class*="btn"]),
+    .unraid-reset button:not([class*="btn"]) {
+      /* Double specificity to beat webgui */
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      min-width: auto;
+    }
   }
   
   /* Inherit typography through all elements */

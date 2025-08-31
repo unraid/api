@@ -2,7 +2,6 @@ import path from 'path';
 
 import tailwindcss from '@tailwindcss/vite';
 import removeConsole from 'vite-plugin-remove-console';
-import postcssPrefixPlugin from './postcss-prefix-plugin.js';
 
 import type { PluginOption } from 'vite';
 
@@ -200,26 +199,6 @@ export default defineNuxtConfig({
       minify: 'terser',
       terserOptions: sharedTerserOptions,
     },
-    css: {
-      postcss: {
-        plugins: [
-          postcssPrefixPlugin({
-            prefix: '.unapi',
-            exclude: [
-              // Don't prefix Tailwind's reset styles
-              /^:root/,
-              /^html/,
-              /^body$/,
-              /^\*/,
-              // Don't prefix keyframes
-              /^@/,
-              // Already prefixed
-              /^\.unapi/
-            ]
-          })
-        ]
-      }
-    }
   },
 
   // DISABLED: Using standalone mount approach instead
