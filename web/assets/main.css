@@ -8,34 +8,29 @@
 @source "../../unraid-ui/src/**/*.{vue,ts}";
 @source "../**/*.{vue,ts,js}";
 
-/* Reset inherited styles from webgui for Unraid components */
-.unraid-reset {
-  /* Reset text and spacing properties that commonly leak from webgui */
-  font-size: 1rem;
-  font-weight: normal;
-  text-align: left;
-  text-transform: none;
-  letter-spacing: normal;
-  word-spacing: normal;
-  
-  /* Reset box model */
-  margin: 0;
-  padding: 0;
-  border: 0;
-  
-  /* Ensure proper box sizing */
-  box-sizing: border-box;
-}
+/* Create a CSS layer for resets with lower priority than Tailwind */
+@layer base {
+  /* Reset inherited styles from webgui for Unraid components */
+  .unraid-reset,
+  .unraid-reset *:not(svg):not(path):not(g):not(circle):not(rect):not(line):not(polyline):not(polygon):not(ellipse):not(text):not(tspan):not(stop):not(defs):not(clipPath):not(mask):not(marker):not(symbol):not(use):not(image):not(pattern) {
+    /* Reset all CSS properties to browser defaults */
+    all: unset;
+    
+    /* Restore essential properties */
+    display: revert;
+    box-sizing: border-box;
+  }
 
-/* Apply isolation to non-modal components to prevent style leakage */
-.unraid-reset:not(#teleports):not(#modals):not(unraid-modals) {
-  /* Create a new stacking context for style isolation */
-  isolation: isolate;
-}
-
-.unraid-reset * {
-  /* Ensure all children use border-box */
-  box-sizing: border-box;
+  /* Apply isolation to non-modal components to prevent style leakage */
+  .unraid-reset:not(#teleports):not(#modals):not(unraid-modals) {
+    /* Create a new stacking context for style isolation */
+    isolation: isolate;
+  }
+  
+  /* Ensure SVG icons render properly - don't reset them */
+  .unraid-reset svg {
+    fill: currentColor;
+  }
 }
 
 /* Specific resets for interactive elements to restore functionality */
