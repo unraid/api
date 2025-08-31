@@ -180,7 +180,18 @@ exit 0
           exit(0);
       }
       
-      // Create backup directory
+      // First restore any existing backups to ensure clean state
+      if (is_dir($backupDir)) {
+          echo "Restoring original CSS files from backup...\n";
+          foreach (glob("$backupDir/*.css") as $backupFile) {
+              $filename = basename($backupFile);
+              $originalFile = "$cssDir/$filename";
+              echo "  Restoring $filename...\n";
+              copy($backupFile, $originalFile);
+          }
+      }
+      
+      // Create backup directory if it doesn't exist
       if (!is_dir($backupDir)) {
           mkdir($backupDir, 0755, true);
       }
