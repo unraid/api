@@ -123,6 +123,9 @@ export function mountVueApp(options: MountOptions): VueApp | null {
   targets.forEach((target) => {
     const mountTarget = target as HTMLElement;
     
+    // Add unraid-reset class to ensure webgui styles don't leak in
+    mountTarget.classList.add('unraid-reset');
+    
     if (useShadowRoot) {
       // Create shadow root if needed
       if (!mountTarget.shadowRoot) {
