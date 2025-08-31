@@ -3,8 +3,8 @@
  * This prevents Tailwind from applying global resets that affect webgui
  */
 
-/* Define layers for Tailwind v4 - webgui first so our layers override */
-@layer webgui, theme, base, components, utilities;
+/* Define layers for Tailwind v4 - base first, webgui later for higher priority */
+@layer base, theme, components, utilities, webgui;
 
 /* Import only the parts of Tailwind we need - NO PREFLIGHT */
 @import 'tailwindcss/theme.css' layer(theme);
@@ -27,7 +27,7 @@
   /* Container with proper isolation */
   .unraid-reset {
     isolation: isolate;
-    display: contents;
+    /* Removed display: contents to maintain stacking context for modals */
     
     /* Set base typography that webgui can't override */
     font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -134,29 +134,29 @@
   .unraid-reset input[type="submit"],
   .unraid-reset input[type="reset"],
   .unraid-reset a.button {
-    /* Reset ALL webgui button properties including CSS variables */
-    font-family: inherit !important;
-    font-size: inherit !important;
-    font-weight: normal !important;
-    letter-spacing: normal !important;
-    text-transform: none !important;
-    min-width: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    text-align: center !important;
-    text-decoration: none !important;
-    white-space: nowrap !important;
-    cursor: pointer !important;
-    outline: none !important;
-    border-radius: 0 !important;
-    border: none !important;
-    color: inherit !important;
-    background: transparent !important;
-    background-size: auto !important;
-    appearance: none !important;
-    box-sizing: border-box !important;
+    /* Reset webgui button properties - use !important only where absolutely necessary */
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: normal;
+    letter-spacing: normal;
+    text-transform: none;
+    min-width: auto;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    outline: none;
+    border-radius: 0;
+    border: none;
+    color: inherit;
+    background: transparent;
+    background-size: auto;
+    appearance: none;
+    box-sizing: border-box;
     
-    /* Override CSS variables from webgui */
+    /* Override CSS variables from webgui - these need !important */
     --button-border: none !important;
     --button-text-color: inherit !important;
     --button-background: transparent !important;
@@ -196,17 +196,20 @@
 }
 
 
-/* Modal z-index management - scoped to Unraid containers */
-.unraid [role="dialog"],
-.unraid [data-headlessui-portal],
-.unraid #teleports > *,
-.unraid #modals > *,
-.unraid unraid-modals > * {
+/* Modal z-index management - ensure modals appear above webgui */
+[role="dialog"],
+[data-headlessui-portal],
+#teleports,
+#modals,
+unraid-modals,
+.z-50 {
   z-index: 99999 !important;
+  position: relative;
 }
 
-/* Modal backdrops - scoped to Unraid containers */
-.unraid .fixed.inset-0[aria-hidden="true"],
-.unraid [data-headlessui-portal] .fixed.inset-0 {
+/* Modal backdrops */
+.fixed.inset-0[aria-hidden="true"],
+[data-headlessui-portal] .fixed.inset-0,
+.fixed.inset-0.z-50 {
   z-index: 99998 !important;
 }

@@ -195,50 +195,6 @@ exit 0
       if (!is_dir($backupDir)) {
           mkdir($backupDir, 0755, true);
       }
-      
-      // Function to patch CSS - we'll just add a layer wrapper
-      function patchCssContent($content) {
-          // Simply wrap everything in a @layer to control cascade order
-          // Our Tailwind styles in later layers will override
-          return "@layer webgui {\n" . $content . "\n}";
-      }
-      
-      // Process only default-* and dynamix-* CSS files
-      foreach (glob("$cssDir/*.css") as $cssFile) {
-          $filename = basename($cssFile);
-          
-          // Only process default-* and dynamix-* files
-          if (!preg_match('/^(default-|dynamix-).*\.css$/', $filename)) {
-              continue;
-          }
-          
-          $backupFile = "$backupDir/$filename";
-          
-          // Read file content
-          $content = file_get_contents($cssFile);
-          
-          // Skip if already patched
-          if (strpos($content, "/* Unraid API compatibility patch - exclusion based */") !== false) {
-              echo "  $filename already patched, skipping...\n";
-              continue;
-          }
-          
-          // Create backup if it doesn't exist
-          if (!file_exists($backupFile)) {
-              copy($cssFile, $backupFile);
-          }
-          
-          echo "  Patching $filename...\n";
-          
-          // Add compatibility patch comment and wrap in layer
-          $patchedContent = "/* Unraid API compatibility patch - layer based */\n";
-          $patchedContent .= patchCssContent($content);
-          
-          // Write modified content back
-          file_put_contents($cssFile, $patchedContent);
-      }
-      
-      echo "CSS patching complete.\n";
       ?>
       ]]>
     </INLINE>

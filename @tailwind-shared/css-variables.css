@@ -1,7 +1,27 @@
 /* Hybrid theme system: Native CSS + Theme Store fallback */
 @layer base {
+  /* Override Tailwind v4 global styles that leak outside components */
+  *, ::after, ::before, ::backdrop {
+    /* Reset border-color to initial to prevent Tailwind from affecting webgui */
+    border-color: initial;
+  }
+  
+  /* Properly scope border colors to our components only */
+  .unraid-reset *, 
+  .unraid-reset ::after, 
+  .unraid-reset ::before,
+  .unapi *,
+  .unapi ::after,
+  .unapi ::before {
+    border-color: hsl(var(--border));
+  }
+  
   /* Light mode defaults */
   :root {
+    /* Override Tailwind v4 global styles to use webgui variables */
+    --ui-bg: var(--background-color) !important;
+    --ui-text: var(--text-color) !important;
+    
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --muted: 0 0% 96.1%;
@@ -30,6 +50,10 @@
 
   /* Dark mode */
   .dark {
+    /* Override Tailwind v4 global styles to use webgui variables */
+    --ui-bg: var(--background-color) !important;
+    --ui-text: var(--text-color) !important;
+    
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
     --muted: 0 0% 14.9%;
@@ -64,67 +88,19 @@
     --border: 0 0% 14.9%;
   }
 
-  /* For web components: inherit CSS variables from the host */
-  :host {
-    --background: inherit;
-    --foreground: inherit;
-    --muted: inherit;
-    --muted-foreground: inherit;
-    --popover: inherit;
-    --popover-foreground: inherit;
-    --card: inherit;
-    --card-foreground: inherit;
-    --border: inherit;
-    --input: inherit;
-    --primary: inherit;
-    --primary-foreground: inherit;
-    --secondary: inherit;
-    --secondary-foreground: inherit;
-    --accent: inherit;
-    --accent-foreground: inherit;
-    --destructive: inherit;
-    --destructive-foreground: inherit;
-    --ring: inherit;
-    --chart-1: inherit;
-    --chart-2: inherit;
-    --chart-3: inherit;
-    --chart-4: inherit;
-    --chart-5: inherit;
+  /* For embedded components: just override the Tailwind v4 globals */
+  .unraid-reset, 
+  .unapi {
+    /* Override Tailwind v4 global styles to use webgui variables */
+    --ui-bg: var(--background-color) !important;
+    --ui-text: var(--text-color) !important;
   }
 
-  /* Class-based dark mode support for web components using :host-context */
-  :host-context(.dark) {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-  }
-
-  /* Alternative class-based dark mode support for specific Unraid themes */
-  :host-context(.dark[data-theme='black']),
-  :host-context(.dark[data-theme='gray']) {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
+  /* Class-based dark mode support for embedded components */
+  .dark .unraid-reset,
+  .dark .unapi {
+    /* Override Tailwind v4 global styles to use webgui variables */
+    --ui-bg: var(--background-color) !important;
+    --ui-text: var(--text-color) !important;
   }
 }
