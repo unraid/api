@@ -10,9 +10,6 @@
 
 /* Reset inherited styles from webgui for Unraid components */
 .unraid-reset {
-  /* Create a new stacking context */
-  isolation: isolate;
-  
   /* Reset text and spacing properties that commonly leak from webgui */
   font-size: 1rem;
   font-weight: normal;
@@ -30,6 +27,12 @@
   box-sizing: border-box;
 }
 
+/* Apply isolation to non-modal components to prevent style leakage */
+.unraid-reset:not(#teleports):not(#modals):not(unraid-modals) {
+  /* Create a new stacking context for style isolation */
+  isolation: isolate;
+}
+
 .unraid-reset * {
   /* Ensure all children use border-box */
   box-sizing: border-box;
@@ -41,6 +44,14 @@
 .unraid-reset select,
 .unraid-reset textarea {
   cursor: revert;
+  /* Reset button borders that leak from webgui */
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
 }
 
 .unraid-reset a {
@@ -50,4 +61,28 @@
 
 .unraid-reset [hidden] {
   display: none !important;
+}
+
+/* Ensure modals and their backdrops appear above all other content */
+[role="dialog"] {
+  z-index: 99999 !important;
+}
+
+/* Modal backdrop */
+.fixed.inset-0[aria-hidden="true"],
+[data-headlessui-portal] .fixed.inset-0 {
+  z-index: 99998 !important;
+}
+
+/* Teleport container children */
+#teleports > *,
+#modals > *,
+unraid-modals > * {
+  z-index: 99999 !important;
+}
+
+/* Portal roots from HeadlessUI */
+[data-headlessui-portal] {
+  position: relative;
+  z-index: 99999 !important;
 }
