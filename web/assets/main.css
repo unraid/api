@@ -7,3 +7,36 @@
 @source "../../unraid-ui/dist/**/*.{js,mjs}";
 @source "../../unraid-ui/src/**/*.{vue,ts}";
 @source "../**/*.{vue,ts,js}";
+
+/* Reset all inherited styles from webgui for Unraid components */
+.unraid-reset,
+.unraid-reset * {
+  /* Reset all inherited properties to initial values */
+  all: unset;
+  
+  /* Restore essential display properties */
+  display: revert;
+  box-sizing: border-box;
+  
+  /* Ensure text is visible */
+  color: inherit;
+  font-family: inherit;
+  line-height: inherit;
+}
+
+/* Specific resets for interactive elements to restore functionality */
+.unraid-reset button,
+.unraid-reset input,
+.unraid-reset select,
+.unraid-reset textarea {
+  cursor: revert;
+}
+
+.unraid-reset a {
+  cursor: pointer;
+  text-decoration: revert;
+}
+
+.unraid-reset [hidden] {
+  display: none !important;
+}
