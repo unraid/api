@@ -26,7 +26,8 @@ const getGraphQLEndpoint = () => {
 };
 
 const httpEndpoint = getGraphQLEndpoint();
-const wsEndpoint = new URL(httpEndpoint.toString().replace('http', 'ws'));
+const wsEndpoint = new URL(httpEndpoint.toString());
+wsEndpoint.protocol = httpEndpoint.protocol === 'https:' ? 'wss:' : 'ws:';
 const DEV_MODE = (globalThis as unknown as { __DEV__: boolean }).__DEV__ ?? false;
 
 const headers = {
