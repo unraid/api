@@ -90,6 +90,42 @@ export interface MountOptions {
   props?: Record<string, unknown>;
 }
 
+// Helper function to parse props from HTML attributes
+function parsePropsFromElement(element: Element): Record<string, unknown> {
+  const props: Record<string, unknown> = {};
+  
+  for (const attr of element.attributes) {
+    const name = attr.name;
+    const value = attr.value;
+    
+    // Skip Vue internal attributes and common HTML attributes
+    if (name.startsWith('data-v-') || name === 'class' || name === 'id' || name === 'style') {
+      continue;
+    }
+    
+    // Try to parse JSON values (handles HTML-encoded JSON)
+    if (value.startsWith('{') || value.startsWith('[')) {
+      try {
+        // Decode HTML entities first
+        const decoded = value
+          .replace(/&quot;/g, '"')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&#39;/g, "'");
+        props[name] = JSON.parse(decoded);
+      } catch (_e) {
+        // If JSON parsing fails, use as string
+        props[name] = value;
+      }
+    } else {
+      props[name] = value;
+    }
+  }
+  
+  return props;
+}
+
 export function mountVueApp(options: MountOptions): VueApp | null {
   const { component, selector, appId = selector, useShadowRoot = false, props = {} } = options;
   
@@ -106,8 +142,12 @@ export function mountVueApp(options: MountOptions): VueApp | null {
     return null;
   }
   
-  // Create the Vue app
-  const app = createApp(component, props);
+  // For the first target, parse props from HTML attributes
+  const firstTarget = targets[0];
+  const parsedProps = { ...parsePropsFromElement(firstTarget), ...props };
+  
+  // Create the Vue app with parsed props
+  const app = createApp(component, parsedProps);
   
   // Setup i18n
   const i18n = setupI18n();
@@ -156,8 +196,9 @@ export function mountVueApp(options: MountOptions): VueApp | null {
         // First target, use the main app
         app.mount(mountTarget);
       } else {
-        // Additional targets, create cloned apps
-        const clonedApp = createApp(component, props);
+        // Additional targets, create cloned apps with their own props
+        const targetProps = { ...parsePropsFromElement(mountTarget), ...props };
+        const clonedApp = createApp(component, targetProps);
         clonedApp.use(i18n);
         clonedApp.use(globalPinia); // Shared Pinia instance
         clonedApp.provide(DefaultApolloClient, client);
