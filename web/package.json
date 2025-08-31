@@ -11,7 +11,7 @@
     "serve": "NODE_ENV=production PORT=${PORT:-4321} node .output/server/index.mjs",
     "// Build": "",
     "prebuild:dev": "pnpm predev",
-    "build:dev": "nuxi build --dotenv .env.production && pnpm run manifest-ts && pnpm run deploy-to-unraid:dev",
+    "build:dev": "pnpm run build && pnpm run deploy-to-unraid:dev",
     "build:webgui": "pnpm run type-check && nuxi build --dotenv .env.production && pnpm run manifest-ts && pnpm run copy-to-webgui-repo",
     "build": "NODE_ENV=production nuxi build --dotenv .env.production && pnpm run build:standalone && pnpm run manifest-ts && pnpm run validate:css",
     "build:standalone": "vite build --config vite.standalone.config.ts && pnpm run manifest-standalone",
