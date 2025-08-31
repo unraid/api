@@ -196,6 +196,105 @@ exit 0
           mkdir($backupDir, 0755, true);
       }
       
+      // Define selectors to exclude from webgui styles
+      // Simply exclude anything inside .unapi containers
+      $exclusionSelectors = [
+          '.unapi',
+          '.unraid-reset' // Keep for backwards compatibility
+      ];
+      
+      // Function to patch CSS rules to exclude our components
+      function patchCssContent($content, $exclusionSelectors) {
+          // Split CSS into rules while preserving structure
+          $lines = explode("\n", $content);
+          $inRule = false;
+          $currentRule = [];
+          $output = [];
+          $braceDepth = 0;
+          
+          foreach ($lines as $line) {
+              // Count braces to track rule boundaries
+              $openBraces = substr_count($line, '{');
+              $closeBraces = substr_count($line, '}');
+              
+              // Check if this line starts a new rule
+              if (!$inRule && strpos($line, '{') !== false && !preg_match('/^\s*@/', $line)) {
+                  $inRule = true;
+                  $currentRule = [$line];
+                  $braceDepth = $openBraces - $closeBraces;
+              } elseif ($inRule) {
+                  $currentRule[] = $line;
+                  $braceDepth += $openBraces - $closeBraces;
+                  
+                  // Check if rule is complete
+                  if ($braceDepth <= 0) {
+                      // Process the complete rule
+                      $ruleText = implode("\n", $currentRule);
+                      
+                      // Extract selector (everything before first {)
+                      if (preg_match('/^([^{]+)\{/', $ruleText, $matches)) {
+                          $selector = trim($matches[1]);
+                          
+                          // Skip if this is an @-rule or already has :not()
+                          if (strpos($selector, '@') === 0 || strpos($selector, ':not(') !== false) {
+                              $output[] = $ruleText;
+                          } else {
+                              // Add exclusions to problematic selectors
+                              $needsPatch = false;
+                              
+                              // Check if this selector could affect our components
+                              // Target generic selectors, element selectors, and broad class selectors
+                              if (preg_match('/^(\*|body|html|div|button|input|a|span|p|h[1-6]|ul|li|form|label|select|textarea)(\s|,|$|\.|#|\[)/', $selector) ||
+                                  strpos($selector, '*') !== false ||
+                                  preg_match('/^\.[a-z]/', $selector)) {
+                                  $needsPatch = true;
+                              }
+                              
+                              if ($needsPatch) {
+                                  // Parse individual selectors
+                                  $selectors = array_map('trim', explode(',', $selector));
+                                  $patchedSelectors = [];
+                                  
+                                  foreach ($selectors as $sel) {
+                                      // Add :not(.unapi) for element selectors
+                                      // Or prepend :not(.unapi) * for other selectors
+                                      if (preg_match('/^[a-z]+/i', $sel) && strpos($sel, '.') === false && strpos($sel, '#') === false) {
+                                          // Pure element selector (button, input, etc)
+                                          // Exclude elements that have .unapi class or are inside .unapi
+                                          $patchedSel = $sel . ':not(.unapi):not(.unapi ' . $sel . ')';
+                                      } else {
+                                          // Class or ID selector - ensure it doesn't apply within .unapi
+                                          $patchedSel = ':not(.unapi) ' . $sel . ':not(.unapi)';
+                                      }
+                                      $patchedSelectors[] = $patchedSel;
+                                  }
+                                  
+                                  // Rebuild the rule with patched selectors
+                                  $newSelector = implode(', ', $patchedSelectors);
+                                  $ruleText = preg_replace('/^[^{]+\{/', $newSelector . ' {', $ruleText);
+                              }
+                          }
+                      }
+                      
+                      $output[] = $ruleText;
+                      $inRule = false;
+                      $currentRule = [];
+                      $braceDepth = 0;
+                  }
+              } else {
+                  // Not in a rule, just pass through
+                  $output[] = $line;
+              }
+          }
+          
+          // Add any remaining lines
+          if (!empty($currentRule)) {
+              $output = array_merge($output, $currentRule);
+          }
+          
+          return implode("\n", $output);
+      }
+      
       // Process only default-* and dynamix-* CSS files
       foreach (glob("$cssDir/*.css") as $cssFile) {
           $filename = basename($cssFile);
@@ -211,7 +310,7 @@ exit 0
           $content = file_get_contents($cssFile);
           
           // Skip if already patched
-          if (strpos($content, "/* Unraid API compatibility patch */") !== false) {
+          if (strpos($content, "/* Unraid API compatibility patch - exclusion based */") !== false) {
               echo "  $filename already patched, skipping...\n";
               continue;
           }
@@ -223,13 +322,12 @@ exit 0
           
           echo "  Patching $filename...\n";
           
-          // Add compatibility patch comment
-          $content = "/* Unraid API compatibility patch */\n" . $content;
-          
-          // No layer wrapping - keep original CSS as-is
+          // Add compatibility patch comment and apply exclusion patches
+          $patchedContent = "/* Unraid API compatibility patch - exclusion based */\n";
+          $patchedContent .= patchCssContent($content, $exclusionSelectors);
           
           // Write modified content back
-          file_put_contents($cssFile, $content);
+          file_put_contents($cssFile, $patchedContent);
       }
       
       echo "CSS patching complete.\n";
