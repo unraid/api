@@ -379,7 +379,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: unraid-wc-rich
-          path: web/.nuxt/nuxt-custom-elements/dist/unraid-components
+          path: web/.nuxt/standalone-apps
 
   build-plugin-staging-pr:
     name: Build and Deploy Plugin
