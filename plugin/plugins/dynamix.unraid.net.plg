@@ -185,18 +185,6 @@ exit 0
           mkdir($backupDir, 0755, true);
       }
       
-      // Elements to wrap with :not(.unraid-reset)
-      $elementsToWrap = [
-          // Form inputs
-          "input", "textarea", "select", "button", "label",
-          // Tables
-          "table", "thead", "tbody", "tfoot", "tr", "td", "th",
-          // Links styled as buttons
-          "a.button",
-          // Common structural elements that might have global styles
-          "form", "fieldset", "legend"
-      ];
-      
       // Process only default-* and dynamix-* CSS files
       foreach (glob("$cssDir/*.css") as $cssFile) {
           $filename = basename($cssFile);
@@ -212,7 +200,7 @@ exit 0
           $content = file_get_contents($cssFile);
           
           // Skip if already patched
-          if (strpos($content, ":not(.unraid-reset)") !== false) {
+          if (strpos($content, "@layer webgui") !== false) {
               echo "  $filename already patched, skipping...\n";
               continue;
           }
@@ -224,33 +212,34 @@ exit 0
           
           echo "  Patching $filename...\n";
           
-          // Process each line
-          $lines = explode("\n", $content);
-          $modifiedLines = [];
+          // Wrap entire CSS file content in a @layer
+          // This puts all webgui styles in a lower priority layer
+          $layerPrefix = "
+/* Added by Unraid API to prevent style conflicts */
+/* Define layer order - unraid-api layer takes precedence over webgui */
+@layer webgui, unraid-api;
+
+/* Wrap all existing webgui styles in the webgui layer */
+@layer webgui {
+";
           
-          foreach ($lines as $line) {
-              $modified = false;
-              $trimmedLine = ltrim($line);
-              $leadingWhitespace = substr($line, 0, strlen($line) - strlen($trimmedLine));
-              
-              // Check if line starts with any element selector
-              foreach ($elementsToWrap as $element) {
-                  // Match element at start of selector (with possible pseudo-classes)
-                  if (preg_match("/^" . preg_quote($element, "/") . "([\[\:\.\#\s\,\>]|$)/", $trimmedLine)) {
-                      // Add :not(.unraid-reset) prefix
-                      $modifiedLines[] = $leadingWhitespace . ":not(.unraid-reset) " . $trimmedLine;
-                      $modified = true;
-                      break;
-                  }
-              }
-              
-              if (!$modified) {
-                  $modifiedLines[] = $line;
-              }
-          }
+          $layerSuffix = "
+} /* End @layer webgui */
+
+/* Styles for Unraid API components */
+@layer unraid-api {
+    /* Any .unraid-reset elements will have styles that override webgui layer */
+    .unraid-reset {
+        /* This layer has higher priority than webgui layer */
+    }
+}
+";
+          
+          // Wrap the content in the layer
+          $content = $layerPrefix . $content . $layerSuffix;
           
           // Write modified content back
-          file_put_contents($cssFile, implode("\n", $modifiedLines));
+          file_put_contents($cssFile, $content);
       }
       
       echo "CSS patching complete.\n";
