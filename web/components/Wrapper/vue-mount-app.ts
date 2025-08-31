@@ -13,6 +13,8 @@ import { client } from '~/helpers/create-apollo-client';
 
 // Global store for mounted apps
 const mountedApps = new Map<string, VueApp>();
+const mountedAppClones = new Map<string, VueApp[]>();
+const mountedAppContainers = new Map<string, HTMLElement[]>(); // shadow-root containers for cleanup
 
 // Shared style injection tracking
 const styleInjected = new WeakSet<Document | ShadowRoot>();
@@ -160,6 +162,8 @@ export function mountVueApp(options: MountOptions): VueApp | null {
   app.provide(DefaultApolloClient, client);
   
   // Mount to all targets
+  const clones: VueApp[] = [];
+  const containers: HTMLElement[] = [];
   targets.forEach((target) => {
     const mountTarget = target as HTMLElement;
     
@@ -175,7 +179,9 @@ export function mountVueApp(options: MountOptions): VueApp | null {
       // Create mount container in shadow root
       const container = document.createElement('div');
       container.id = 'app';
+      container.setAttribute('data-app-id', appId);
       mountTarget.shadowRoot!.appendChild(container);
+      containers.push(container);
       
       // Inject styles into shadow root
       injectStyles(mountTarget.shadowRoot!);
@@ -186,6 +192,7 @@ export function mountVueApp(options: MountOptions): VueApp | null {
       clonedApp.use(globalPinia);
       clonedApp.provide(DefaultApolloClient, client);
       clonedApp.mount(container);
+      clones.push(clonedApp);
     } else {
       // Direct mount without shadow root
       injectStyles(document);
@@ -203,12 +210,15 @@ export function mountVueApp(options: MountOptions): VueApp | null {
         clonedApp.use(globalPinia); // Shared Pinia instance
         clonedApp.provide(DefaultApolloClient, client);
         clonedApp.mount(mountTarget);
+        clones.push(clonedApp);
       }
     }
   });
   
   // Store the app reference
   mountedApps.set(appId, app);
+  if (clones.length) mountedAppClones.set(appId, clones);
+  if (containers.length) mountedAppContainers.set(appId, containers);
   
   return app;
 }
@@ -219,6 +229,16 @@ export function unmountVueApp(appId: string): boolean {
     console.warn(`[VueMountApp] No app found with id: ${appId}`);
     return false;
   }
+  
+  // Unmount clones first
+  const clones = mountedAppClones.get(appId) ?? [];
+  for (const c of clones) c.unmount();
+  mountedAppClones.delete(appId);
+  
+  // Remove shadow containers
+  const containers = mountedAppContainers.get(appId) ?? [];
+  for (const el of containers) el.remove();
+  mountedAppContainers.delete(appId);
   
   app.unmount();
   mountedApps.delete(appId);

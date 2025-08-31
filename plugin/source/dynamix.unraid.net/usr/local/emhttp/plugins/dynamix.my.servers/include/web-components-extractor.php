@@ -108,19 +108,27 @@ class WebComponentsExtractor
             return '';
         }
         
-        $manifestPath = $manifestFiles[0];
-        $manifest = $this->getManifestContents($manifestPath);
-        $subfolder = $this->getRelativePath($manifestPath);
-        
-        if (!isset($manifest[self::STANDALONE_APPS_ENTRY])) {
-            return '';
-        }
-        
-        $jsFile = ($subfolder ? $subfolder . '/' : '') . $manifest[self::STANDALONE_APPS_ENTRY]['file'];
-        
-        // Use a unique identifier to prevent duplicate script loading
-        $scriptId = 'unraid-standalone-apps-script';
-        return '<script id="' . $scriptId . '" type="module" src="' . $this->getAssetPath($jsFile) . '"></script>
+        // Iterate over all manifest files to find valid standalone apps entry
+        foreach ($manifestFiles as $manifestPath) {
+            $manifest = $this->getManifestContents($manifestPath);
+            $subfolder = $this->getRelativePath($manifestPath);
+            
+            // Check if STANDALONE_APPS_ENTRY exists and has a valid 'file' key
+            if (!isset($manifest[self::STANDALONE_APPS_ENTRY])) {
+                continue; // Skip this manifest if entry doesn't exist
+            }
+            
+            $entry = $manifest[self::STANDALONE_APPS_ENTRY];
+            if (!isset($entry['file']) || empty($entry['file'])) {
+                continue; // Skip if 'file' key is missing or empty
+            }
+            
+            // Build the JS file path
+            $jsFile = ($subfolder ? $subfolder . '/' : '') . $entry['file'];
+            
+            // Use a unique identifier to prevent duplicate script loading
+            $scriptId = 'unraid-standalone-apps-script';
+            return '<script id="' . $scriptId . '" type="module" src="' . $this->getAssetPath($jsFile) . '"></script>
         <script>
             // Remove duplicate script tags to prevent multiple loads
             (function() {
@@ -132,6 +140,10 @@ class WebComponentsExtractor
                 }
             })();
         </script>';
+        }
+        
+        // Return empty string if no valid standalone apps entry found
+        return '';
     }
     
     private function getUnraidUiScriptHtml(): string

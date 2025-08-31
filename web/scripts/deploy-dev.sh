@@ -42,6 +42,11 @@ if [ -n "$rsync_standalone" ]; then
   echo "Executing standalone apps sync:"
   echo "$rsync_standalone"
   eval "$rsync_standalone"
+  standalone_exit_code=$?
+  # If standalone rsync failed, update exit_code
+  if [ $standalone_exit_code -ne 0 ]; then
+    exit_code=$standalone_exit_code
+  fi
 fi
 
 # Update the auth-request.php file to include the new web component JS
@@ -114,5 +119,5 @@ elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
   powershell.exe -c "(New-Object Media.SoundPlayer 'C:\Windows\Media\Windows Default.wav').PlaySync()"
 fi
 
-# Exit with the rsync command's exit code
+# Exit with the final exit code (non-zero if any command failed)
 exit $exit_code
