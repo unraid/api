@@ -10,8 +10,9 @@ fi
 # Set server name from command-line argument
 server_name="$1"
 
-# Source directory path
+# Source directory paths
 source_directory=".nuxt/nuxt-custom-elements/dist/unraid-components/"
+standalone_directory=".nuxt/standalone-apps/"
 
 if [ ! -d "$source_directory" ]; then
   echo "The web components directory does not exist."
@@ -24,12 +25,24 @@ ssh "root@${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/u
 
 rsync_command="rsync -avz -e ssh $source_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt"
 
+# Also sync standalone apps if they exist
+if [ -d "$standalone_directory" ]; then
+  rsync_standalone="rsync -avz -e ssh $standalone_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone"
+fi
+
 echo "Executing the following command:"
 echo "$rsync_command"
 
 # Execute the rsync command and capture the exit code
 eval "$rsync_command"
 exit_code=$?
+
+# Execute standalone rsync if directory exists
+if [ -n "$rsync_standalone" ]; then
+  echo "Executing standalone apps sync:"
+  echo "$rsync_standalone"
+  eval "$rsync_standalone"
+fi
 
 # Update the auth-request.php file to include the new web component JS
 update_auth_request() {
@@ -38,9 +51,16 @@ update_auth_request() {
   ssh "root@${server_name}" "
     AUTH_REQUEST_FILE='/usr/local/emhttp/auth-request.php'
     WEB_COMPS_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/_nuxt/'
+    STANDALONE_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/'
 
     # Find JS files and modify paths
     mapfile -t JS_FILES < <(find \"\$WEB_COMPS_DIR\" -type f -name \"*.js\" | sed 's|/usr/local/emhttp||' | sort -u)
+    
+    # Find standalone JS files if directory exists
+    if [ -d \"\$STANDALONE_DIR\" ]; then
+      mapfile -t STANDALONE_JS < <(find \"\$STANDALONE_DIR\" -type f -name \"*.js\" | sed 's|/usr/local/emhttp||' | sort -u)
+      FILES_TO_ADD+=(\"\${STANDALONE_JS[@]}\")
+    fi
 
     FILES_TO_ADD+=(\"\${JS_FILES[@]}\")
 

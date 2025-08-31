@@ -3,7 +3,7 @@ import path from 'path';
 import tailwindcss from '@tailwindcss/vite';
 import removeConsole from 'vite-plugin-remove-console';
 
-import type { PluginOption, UserConfig } from 'vite';
+import type { PluginOption } from 'vite';
 
 /**
  * Used to avoid redeclaring variables in the webgui codebase.
@@ -34,15 +34,13 @@ console.log(dropConsole ? 'WARN: Console logs are disabled' : 'INFO: Console log
 
 const assetsDir = path.join(__dirname, '../api/dev/webGui/');
 
-/**
- * Create a tag configuration
- */
-const createWebComponentTag = (name: string, path: string, appContext: string) => ({
-  async: false,
-  name,
-  path,
-  appContext
-});
+// REMOVED: No longer needed with standalone mount approach
+// const createWebComponentTag = (name: string, path: string, appContext: string) => ({
+//   async: false,
+//   name,
+//   path,
+//   appContext
+// });
 
 /**
  * Shared terser options for consistent minification
@@ -118,26 +116,24 @@ const sharedDefine = {
   __VUE_PROD_DEVTOOLS__: false,
 };
 
-/**
- * Apply shared Vite configuration to a config object
- */
-const applySharedViteConfig = (config: UserConfig, includeJQueryIsolation = false) => {
-  if (!config.plugins) config.plugins = [];
-  if (!config.define) config.define = {};
-  if (!config.build) config.build = {};
-
-  // Add shared plugins
-  config.plugins.push(...getSharedPlugins(includeJQueryIsolation));
-
-  // Merge define values
-  Object.assign(config.define, sharedDefine);
-
-  // Apply build configuration
-  config.build.minify = 'terser';
-  config.build.terserOptions = sharedTerserOptions;
-
-  return config;
-};
+// REMOVED: No longer needed with standalone mount approach
+// const applySharedViteConfig = (config: UserConfig, includeJQueryIsolation = false) => {
+//   if (!config.plugins) config.plugins = [];
+//   if (!config.define) config.define = {};
+//   if (!config.build) config.build = {};
+//
+//   // Add shared plugins
+//   config.plugins.push(...getSharedPlugins(includeJQueryIsolation));
+//
+//   // Merge define values
+//   Object.assign(config.define, sharedDefine);
+//
+//   // Apply build configuration
+//   config.build.minify = 'terser';
+//   config.build.terserOptions = sharedTerserOptions;
+//
+//   return config;
+// };
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -205,45 +201,11 @@ export default defineNuxtConfig({
     },
   },
 
-  customElements: {
-    analyzer: process.env.NODE_ENV !== 'test',
-    entries: [
-      // @ts-expect-error The nuxt-custom-elements module types don't perfectly match our configuration object structure.
-      // The custom elements configuration requires specific properties and methods that may not align with the
-      // module's TypeScript definitions, particularly around the viteExtend function and tag configuration format.
-      {
-        name: 'UnraidComponents',
-        viteExtend(config: UserConfig) {
-          const sharedConfig = applySharedViteConfig(config, true);
-          
-          // Optimize CSS while keeping it inlined for functionality
-          if (!sharedConfig.css) sharedConfig.css = {};
-          sharedConfig.css.devSourcemap = process.env.NODE_ENV === 'development';
-          
-          return sharedConfig;
-        },
-        tags: [
-          createWebComponentTag('UnraidAuth', '@/components/Auth.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidConnectSettings', '@/components/ConnectSettings/ConnectSettings.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidDownloadApiLogs', '@/components/DownloadApiLogs.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidHeaderOsVersion', '@/components/HeaderOsVersion.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidModals', '@/components/Modals.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidUserProfile', '@/components/UserProfile.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidUpdateOs', '@/components/UpdateOs.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidDowngradeOs', '@/components/DowngradeOs.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidRegistration', '@/components/Registration.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidWanIpCheck', '@/components/WanIpCheck.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidWelcomeModal', '@/components/Activation/WelcomeModal.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidSsoButton', '@/components/SsoButton.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidLogViewer', '@/components/Logs/LogViewer.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidThemeSwitcher', '@/components/ThemeSwitcher.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidApiKeyManager', '@/components/ApiKeyPage.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidDevModalTest', '@/components/DevModalTest.ce', '@/components/Wrapper/web-component-plugins'),
-          createWebComponentTag('UnraidApiKeyAuthorize', '@/components/ApiKeyAuthorize.ce', '@/components/Wrapper/web-component-plugins'),
-        ],
-      },
-    ],
-  },
+  // DISABLED: Using standalone mount approach instead
+  // customElements: {
+  //   analyzer: process.env.NODE_ENV !== 'test',
+  //   entries: [],
+  // },
 
   compatibilityDate: '2024-12-05',
 
