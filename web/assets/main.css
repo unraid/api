@@ -9,78 +9,113 @@
 @source "../**/*.{vue,ts,js}";
 
 /* 
- * Strategy: Only reset the specific properties that webgui sets
- * This preserves Tailwind's ability to style elements
+ * Strategy: Use higher specificity to override webgui styles
+ * without breaking Tailwind utilities
  */
 
-/* Container wrapper */
-.unraid-reset {
-  /* Create isolation and set base styles */
-  isolation: isolate;
-  display: contents;
+/* Define layer order explicitly */
+@layer reset, base, components, utilities;
+
+/* Put resets in lowest priority layer */
+@layer reset {
+  /* Container with proper isolation */
+  .unraid-reset {
+    isolation: isolate;
+    display: contents;
+    
+    /* Set base typography that webgui can't override */
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: rgb(17 24 39);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
   
-  /* Override webgui font settings */
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  color: rgb(17 24 39);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Dark mode */
-.dark .unraid-reset {
-  color: rgb(243 244 246);
-}
-
-/* Reset only the properties that webgui commonly sets */
-.unraid-reset * {
-  /* Reset text transforms */
-  text-transform: none;
-  letter-spacing: normal;
+  /* Dark mode */
+  .dark .unraid-reset {
+    color: rgb(243 244 246);
+  }
   
-  /* Ensure box-sizing is correct */
-  box-sizing: border-box;
+  /* Inherit font through all elements */
+  .unraid-reset * {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    box-sizing: border-box;
+  }
+  
+  /* Override webgui button styles with higher specificity */
+  .unraid-reset button,
+  .unraid-reset button[type="button"],
+  .unraid-reset button[type="submit"],
+  .unraid-reset button[type="reset"],
+  .unraid-reset input[type="button"],
+  .unraid-reset input[type="submit"],
+  .unraid-reset input[type="reset"],
+  .unraid-reset a.button {
+    /* Reset ALL webgui button properties including CSS variables */
+    font-family: inherit !important;
+    font-size: inherit !important;
+    font-weight: normal !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    min-width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    outline: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    color: inherit !important;
+    background: transparent !important;
+    background-size: auto !important;
+    appearance: none !important;
+    box-sizing: border-box !important;
+    
+    /* Override CSS variables from webgui */
+    --button-border: none !important;
+    --button-text-color: inherit !important;
+    --button-background: transparent !important;
+    --button-background-size: auto !important;
+  }
+  
+  /* Form elements */
+  .unraid-reset input:not([type="button"]):not([type="submit"]):not([type="reset"]),
+  .unraid-reset select,
+  .unraid-reset textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    appearance: none;
+    background: transparent;
+    border: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Links */
+  .unraid-reset a:not(.button) {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  /* SVG icons */
+  .unraid-reset svg {
+    fill: currentColor;
+  }
+  
+  /* Hidden elements */
+  .unraid-reset [hidden] {
+    display: none;
+  }
 }
 
-/* Specific resets for form elements that webgui heavily styles */
-.unraid-reset button,
-.unraid-reset input,
-.unraid-reset select,
-.unraid-reset textarea {
-  /* Remove webgui form styling */
-  appearance: none;
-  background-image: none;
-  font: inherit;
-  color: inherit;
-  min-width: initial;
-}
-
-/* Ensure buttons are clickable */
-.unraid-reset button,
-.unraid-reset [role="button"],
-.unraid-reset input[type="button"],
-.unraid-reset input[type="submit"],
-.unraid-reset input[type="reset"] {
-  cursor: pointer;
-}
-
-/* Links */
-.unraid-reset a {
-  color: inherit;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-/* Hidden elements */
-.unraid-reset [hidden] {
-  display: none !important;
-}
-
-/* SVG icons should inherit color */
-.unraid-reset svg {
-  fill: currentColor;
-}
 
 /* Modal z-index management */
 [role="dialog"],
