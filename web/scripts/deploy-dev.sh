@@ -38,19 +38,18 @@ exit_code=0
 # Deploy web components if they exist
 if [ "$has_webcomponents" = true ]; then
   echo "Deploying web components..."
-  ssh "root@${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/*"
-  rsync_command="rsync -avz -e ssh $webcomponents_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt"
-  echo "$rsync_command"
-  eval "$rsync_command"
+  # Run rsync with proper quoting and --delete for safe mirroring
+  rsync -avz --delete -e "ssh" "$webcomponents_directory" "root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/"
   exit_code=$?
 fi
 
 # Deploy standalone apps if they exist
 if [ "$has_standalone" = true ]; then
   echo "Deploying standalone apps..."
-  rsync_standalone="rsync -avz --delete -e ssh $standalone_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
-  echo "$rsync_standalone"
-  eval "$rsync_standalone"
+  # Ensure remote directory exists
+  ssh root@"${server_name}" "mkdir -p /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
+  # Run rsync with proper quoting
+  rsync -avz --delete -e "ssh" "$standalone_directory" "root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
   standalone_exit_code=$?
   # If standalone rsync failed, update exit_code
   if [ $standalone_exit_code -ne 0 ]; then
@@ -91,7 +90,7 @@ update_auth_request() {
           print $0
           next
         }
-        !in_array || !/\/plugins\/dynamix\.my\.servers\/unraid-components\/nuxt\/_nuxt\/unraid-components\.client-/ {
+        !in_array || !/\/plugins\/dynamix\.my\.servers\/unraid-components\/(nuxt\/_nuxt|standalone)\/.*\.m?js/ {
           print $0
         }
       ' "$AUTH_REQUEST_FILE" > "${AUTH_REQUEST_FILE}.tmp"

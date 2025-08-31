@@ -166,7 +166,7 @@ exit 0
     </INLINE>
   </FILE>
 
-  <FILE Run="/bin/php" Method="install">
+  <FILE Run="/usr/bin/php" Method="install">
     <INLINE>
       <![CDATA[
       <?php
