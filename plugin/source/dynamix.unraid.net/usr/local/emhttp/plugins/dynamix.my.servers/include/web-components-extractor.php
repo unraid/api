@@ -113,14 +113,18 @@ class WebComponentsExtractor
             $manifest = $this->getManifestContents($manifestPath);
             $subfolder = $this->getRelativePath($manifestPath);
             
-            // Check if STANDALONE_APPS_ENTRY exists and has a valid 'file' key
+            // Check if STANDALONE_APPS_ENTRY exists
             if (!isset($manifest[self::STANDALONE_APPS_ENTRY])) {
-                continue; // Skip this manifest if entry doesn't exist
+                error_log("Standalone apps manifest at '{$manifestPath}' is missing the '" . self::STANDALONE_APPS_ENTRY . "' entry key");
+                return '';
             }
             
             $entry = $manifest[self::STANDALONE_APPS_ENTRY];
+            
+            // Check if 'file' key exists
             if (!isset($entry['file']) || empty($entry['file'])) {
-                continue; // Skip if 'file' key is missing or empty
+                error_log("Standalone apps manifest at '{$manifestPath}' has entry '" . self::STANDALONE_APPS_ENTRY . "' but is missing the 'file' field");
+                return '';
             }
             
             // Build the JS file path

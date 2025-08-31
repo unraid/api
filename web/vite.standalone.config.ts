@@ -25,6 +25,13 @@ const getCssContent = () => {
     }
   }
   
+  // Fallback to source asset
+  const fallback = path.resolve(__dirname, 'assets/main.css');
+  if (fs.existsSync(fallback)) {
+    console.warn('Nuxt CSS not found; falling back to assets/main.css');
+    return fs.readFileSync(fallback, 'utf-8');
+  }
+  
   console.warn('No CSS file found, using empty string');
   return '';
 };

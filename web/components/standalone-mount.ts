@@ -60,15 +60,11 @@ componentMappings.forEach(({ component, selector, appId }) => {
   });
 });
 
-// Special handling for Modals - also mount to #modals if it exists
-if (document.querySelector('#modals')) {
-  mountVueApp({
-    component: Modals,
-    selector: '#modals',
-    appId: 'modals-direct',
-    useShadowRoot: false,
-  });
-}
+// Special handling for Modals - also mount to #modals
+autoMountComponent(Modals, '#modals', {
+  appId: 'modals-direct',
+  useShadowRoot: false,
+});
 
 // Expose functions globally for testing and dynamic mounting
 declare global {
