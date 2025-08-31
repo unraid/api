@@ -29,16 +29,26 @@ function findJSFiles(dir, jsFiles = []) {
  * Validates that Tailwind CSS styles are properly inlined in the JavaScript bundle
  */
 function validateCustomElementsCSS() {
-  console.log('🔍 Validating custom elements JS bundle includes inlined Tailwind styles...');
+  console.log('🔍 Validating JS bundle includes inlined Tailwind styles...');
 
   try {
-    // Find the custom elements JS files
-    const customElementsDir = '.nuxt/nuxt-custom-elements/dist';
-    const jsFiles = findJSFiles(customElementsDir);
-
+    // Check standalone apps first (new approach)
+    const standaloneDir = '.nuxt/standalone-apps';
+    let jsFiles = findJSFiles(standaloneDir);
+    let usingStandalone = true;
+    
+    // Fallback to custom elements if standalone doesn't exist
     if (jsFiles.length === 0) {
-      throw new Error('No custom elements JS files found in ' + customElementsDir);
+      const customElementsDir = '.nuxt/nuxt-custom-elements/dist';
+      jsFiles = findJSFiles(customElementsDir);
+      usingStandalone = false;
+      
+      if (jsFiles.length === 0) {
+        throw new Error('No JS files found in standalone apps or custom elements dist');
+      }
     }
+    
+    console.log(`📦 Using ${usingStandalone ? 'standalone apps' : 'custom elements'} bundle`);
 
     // Find the largest JS file (likely the main bundle with inlined CSS)
     const jsFile = jsFiles.reduce((largest, current) => {
