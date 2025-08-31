@@ -6,6 +6,12 @@ import path from 'path';
 const distPath = '.nuxt/standalone-apps';
 const manifestPath = path.join(distPath, 'standalone.manifest.json');
 
+// Check if directory exists
+if (!fs.existsSync(distPath)) {
+  console.warn(`Directory ${distPath} does not exist. Skipping manifest generation.`);
+  process.exit(0);
+}
+
 // Get all JS files in the dist directory
 const files = fs.readdirSync(distPath);
 const manifest = {};
