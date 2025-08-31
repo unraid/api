@@ -8,20 +8,31 @@
 @source "../../unraid-ui/src/**/*.{vue,ts}";
 @source "../**/*.{vue,ts,js}";
 
-/* Reset all inherited styles from webgui for Unraid components */
-.unraid-reset,
-.unraid-reset * {
-  /* Reset all inherited properties to initial values */
-  all: unset;
+/* Reset inherited styles from webgui for Unraid components */
+.unraid-reset {
+  /* Create a new stacking context */
+  isolation: isolate;
   
-  /* Restore essential display properties */
-  display: revert;
+  /* Reset text and spacing properties that commonly leak from webgui */
+  font-size: 1rem;
+  font-weight: normal;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  word-spacing: normal;
+  
+  /* Reset box model */
+  margin: 0;
+  padding: 0;
+  border: 0;
+  
+  /* Ensure proper box sizing */
   box-sizing: border-box;
-  
-  /* Ensure text is visible */
-  color: inherit;
-  font-family: inherit;
-  line-height: inherit;
+}
+
+.unraid-reset * {
+  /* Ensure all children use border-box */
+  box-sizing: border-box;
 }
 
 /* Specific resets for interactive elements to restore functionality */
