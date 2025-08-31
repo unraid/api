@@ -227,8 +227,8 @@ exit 0
           // This puts all webgui styles in a lower priority layer
           $layerPrefix = "
 /* Added by Unraid API to prevent style conflicts */
-/* Define layer order - unraid-api layer takes precedence over webgui */
-@layer webgui, unraid-api;
+/* Define layer order - base resets first, then webgui overrides them, then our app styles */
+@layer properties, theme, base, webgui, components, utilities, unraid-api;
 
 /* Wrap all existing webgui styles in the webgui layer */
 @layer webgui {

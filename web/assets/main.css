@@ -3,8 +3,10 @@
  * This prevents Tailwind from applying global resets that affect webgui
  */
 
-/* Define layers first */
-@layer theme, base, components, utilities;
+/* Layer order is defined by the plugin to ensure proper cascade:
+ * @layer properties, theme, base, webgui, components, utilities, unraid-api;
+ * This ensures: base resets < webgui styles < our component styles
+ * Do not define layers here as it will conflict with the plugin's definition */
 
 /* Import only the parts of Tailwind we need - NO PREFLIGHT */
 @import 'tailwindcss/theme.css' layer(theme);
@@ -21,8 +23,10 @@
 /* 
  * Scoped resets - only apply within our components
  * This replaces Tailwind's global preflight
+ * Placed in components layer: higher than webgui but lower than utilities
+ * This allows Tailwind utilities to override these resets
  */
-@layer base {
+@layer components {
   /* Container with proper isolation */
   .unraid-reset {
     isolation: isolate;
@@ -77,7 +81,7 @@
     color: inherit;
   }
   
-  /* Override webgui button styles with higher specificity */
+  /* Override webgui button styles - layer precedence handles specificity */
   .unraid-reset button,
   .unraid-reset button[type="button"],
   .unraid-reset button[type="submit"],
@@ -87,32 +91,32 @@
   .unraid-reset input[type="reset"],
   .unraid-reset a.button {
     /* Reset ALL webgui button properties including CSS variables */
-    font-family: inherit !important;
-    font-size: inherit !important;
-    font-weight: normal !important;
-    letter-spacing: normal !important;
-    text-transform: none !important;
-    min-width: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    text-align: center !important;
-    text-decoration: none !important;
-    white-space: nowrap !important;
-    cursor: pointer !important;
-    outline: none !important;
-    border-radius: 0 !important;
-    border: none !important;
-    color: inherit !important;
-    background: transparent !important;
-    background-size: auto !important;
-    appearance: none !important;
-    box-sizing: border-box !important;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: normal;
+    letter-spacing: normal;
+    text-transform: none;
+    min-width: auto;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    outline: none;
+    border-radius: 0;
+    border: none;
+    color: inherit;
+    background: transparent;
+    background-size: auto;
+    appearance: none;
+    box-sizing: border-box;
     
     /* Override CSS variables from webgui */
-    --button-border: none !important;
-    --button-text-color: inherit !important;
-    --button-background: transparent !important;
-    --button-background-size: auto !important;
+    --button-border: none;
+    --button-text-color: inherit;
+    --button-background: transparent;
+    --button-background-size: auto;
   }
   
   /* Form elements */
