@@ -256,13 +256,19 @@ export function getMountedApp(appId: string): VueApp | undefined {
 
 // Auto-mount function for script tags
 export function autoMountComponent(component: Component, selector: string, options?: Partial<MountOptions>) {
+  const tryMount = () => {
+    // Check if elements exist before attempting to mount
+    if (document.querySelector(selector)) {
+      mountVueApp({ component, selector, ...options });
+    }
+    // Silently skip if no elements found - this is expected for most components
+  };
+
   // Wait for DOM to be ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      mountVueApp({ component, selector, ...options });
-    });
+    document.addEventListener('DOMContentLoaded', tryMount);
   } else {
     // DOM is already ready
-    mountVueApp({ component, selector, ...options });
+    tryMount();
   }
 }
