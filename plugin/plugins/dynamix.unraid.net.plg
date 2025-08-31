@@ -170,7 +170,7 @@ exit 0
     <INLINE>
       <![CDATA[
       <?php
-      echo "Patching webgui CSS files to exclude .unraid-reset components...\n";
+      echo "Patching webgui CSS files for compatibility...\n";
       
       $cssDir = "/usr/local/emhttp/plugins/dynamix/styles";
       $backupDir = "$cssDir/.unraid-api-backup";
@@ -211,7 +211,7 @@ exit 0
           $content = file_get_contents($cssFile);
           
           // Skip if already patched
-          if (strpos($content, "@layer webgui") !== false) {
+          if (strpos($content, "/* Unraid API compatibility patch */") !== false) {
               echo "  $filename already patched, skipping...\n";
               continue;
           }
@@ -223,31 +223,10 @@ exit 0
           
           echo "  Patching $filename...\n";
           
-          // Wrap entire CSS file content in a @layer
-          // This puts all webgui styles in a lower priority layer
-          $layerPrefix = "
-/* Added by Unraid API to prevent style conflicts */
-/* Define layer order - base resets first, then webgui overrides them, then our app styles */
-@layer properties, theme, base, webgui, components, utilities, unraid-api;
-
-/* Wrap all existing webgui styles in the webgui layer */
-@layer webgui {
-";
+          // Add compatibility patch comment
+          $content = "/* Unraid API compatibility patch */\n" . $content;
           
-          $layerSuffix = "
-} /* End @layer webgui */
-
-/* Styles for Unraid API components */
-@layer unraid-api {
-    /* Any .unraid-reset elements will have styles that override webgui layer */
-    .unraid-reset {
-        /* This layer has higher priority than webgui layer */
-    }
-}
-";
-          
-          // Wrap the content in the layer
-          $content = $layerPrefix . $content . $layerSuffix;
+          // No layer wrapping - keep original CSS as-is
           
           // Write modified content back
           file_put_contents($cssFile, $content);
