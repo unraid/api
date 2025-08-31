@@ -11,35 +11,44 @@ fi
 server_name="$1"
 
 # Source directory paths
-source_directory=".nuxt/nuxt-custom-elements/dist/unraid-components/"
+webcomponents_directory=".nuxt/nuxt-custom-elements/dist/unraid-components/"
 standalone_directory=".nuxt/standalone-apps/"
 
-if [ ! -d "$source_directory" ]; then
-  echo "The web components directory does not exist."
+# Check what we have to deploy
+has_webcomponents=false
+has_standalone=false
+
+if [ -d "$webcomponents_directory" ]; then
+  has_webcomponents=true
+fi
+
+if [ -d "$standalone_directory" ]; then
+  has_standalone=true
+fi
+
+# Exit if neither exists
+if [ "$has_webcomponents" = false ] && [ "$has_standalone" = false ]; then
+  echo "Error: Neither web components nor standalone apps directory exists."
+  echo "Please run 'pnpm build' or 'pnpm build:standalone' first."
   exit 1
 fi
 
-# Replace the value inside the rsync command with the user's input
-# Delete existing web components in the target directory
-ssh "root@${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/*"
+exit_code=0
 
-rsync_command="rsync -avz -e ssh $source_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt"
-
-# Also sync standalone apps if they exist
-if [ -d "$standalone_directory" ]; then
-  rsync_standalone="rsync -avz --delete -e ssh $standalone_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
+# Deploy web components if they exist
+if [ "$has_webcomponents" = true ]; then
+  echo "Deploying web components..."
+  ssh "root@${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/*"
+  rsync_command="rsync -avz -e ssh $webcomponents_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt"
+  echo "$rsync_command"
+  eval "$rsync_command"
+  exit_code=$?
 fi
 
-echo "Executing the following command:"
-echo "$rsync_command"
-
-# Execute the rsync command and capture the exit code
-eval "$rsync_command"
-exit_code=$?
-
-# Execute standalone rsync if directory exists
-if [ -n "$rsync_standalone" ]; then
-  echo "Executing standalone apps sync:"
+# Deploy standalone apps if they exist
+if [ "$has_standalone" = true ]; then
+  echo "Deploying standalone apps..."
+  rsync_standalone="rsync -avz --delete -e ssh $standalone_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
   echo "$rsync_standalone"
   eval "$rsync_standalone"
   standalone_exit_code=$?
