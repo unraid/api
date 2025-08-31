@@ -62,40 +62,41 @@ function validateCustomElementsCSS() {
     const jsContent = fs.readFileSync(jsFile, 'utf8');
     
     // Define required Tailwind indicators (looking for inlined CSS in JS)
+    // Updated patterns to work with minified CSS (no spaces)
     const requiredIndicators = [
       {
         name: 'Tailwind utility classes (inline)',
-        pattern: /\.flex\s*\{[^}]*display:\s*flex/,
+        pattern: /\.flex\s*\{[^}]*display:\s*flex|\.flex{display:flex/,
         description: 'Basic Tailwind utility classes inlined'
       },
       {
         name: 'Tailwind margin utilities (inline)',
-        pattern: /\.m-\d+\s*\{[^}]*margin:/,
+        pattern: /\.m-\d+\s*\{[^}]*margin:|\.m-\d+{[^}]*margin:/,
         description: 'Tailwind margin utilities inlined'
       },
       {
         name: 'Tailwind padding utilities (inline)',
-        pattern: /\.p-\d+\s*\{[^}]*padding:/,
+        pattern: /\.p-\d+\s*\{[^}]*padding:|\.p-\d+{[^}]*padding:/,
         description: 'Tailwind padding utilities inlined'
       },
       {
         name: 'Tailwind color utilities (inline)',
-        pattern: /\.text-\w+\s*\{[^}]*color:/,
+        pattern: /\.text-\w+\s*\{[^}]*color:|\.text-\w+{[^}]*color:/,
         description: 'Tailwind text color utilities inlined'
       },
       {
         name: 'Tailwind background utilities (inline)',
-        pattern: /\.bg-\w+\s*\{[^}]*background/,
+        pattern: /\.bg-\w+\s*\{[^}]*background|\.bg-\w+{[^}]*background/,
         description: 'Tailwind background utilities inlined'
       },
       {
         name: 'CSS custom properties',
-        pattern: /--[\w-]+:\s*[^;]+;/,
+        pattern: /--[\w-]+:\s*[^;]+;|--[\w-]+:[^;]+;/,
         description: 'CSS custom properties (variables)'
       },
       {
         name: 'Responsive breakpoints',
-        pattern: /@media\s*\([^)]*min-width/,
+        pattern: /@media\s*\([^)]*min-width|@media\([^)]*min-width/,
         description: 'Responsive media queries'
       },
       {
