@@ -1,4 +1,14 @@
-@import 'tailwindcss';
+/* 
+ * Tailwind v4 configuration without global preflight
+ * This prevents Tailwind from applying global resets that affect webgui
+ */
+
+/* Define layers first */
+@layer theme, base, components, utilities;
+
+/* Import only the parts of Tailwind we need - NO PREFLIGHT */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
 @import 'tw-animate-css';
 @import '../../@tailwind-shared/index.css';
 @import '@nuxt/ui';
@@ -9,15 +19,10 @@
 @source "../**/*.{vue,ts,js}";
 
 /* 
- * Strategy: Use higher specificity to override webgui styles
- * without breaking Tailwind utilities
+ * Scoped resets - only apply within our components
+ * This replaces Tailwind's global preflight
  */
-
-/* Define layer order explicitly */
-@layer reset, base, components, utilities;
-
-/* Put resets in lowest priority layer */
-@layer reset {
+@layer base {
   /* Container with proper isolation */
   .unraid-reset {
     isolation: isolate;
@@ -32,18 +37,44 @@
     -moz-osx-font-smoothing: grayscale;
   }
   
+  /* Scoped box-sizing reset */
+  .unraid-reset *,
+  .unraid-reset *::before,
+  .unraid-reset *::after {
+    box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: currentColor;
+  }
+  
+  /* Scoped margin reset */
+  .unraid-reset blockquote,
+  .unraid-reset dl,
+  .unraid-reset dd,
+  .unraid-reset h1,
+  .unraid-reset h2,
+  .unraid-reset h3,
+  .unraid-reset h4,
+  .unraid-reset h5,
+  .unraid-reset h6,
+  .unraid-reset hr,
+  .unraid-reset figure,
+  .unraid-reset p,
+  .unraid-reset pre {
+    margin: 0;
+  }
+  
   /* Dark mode */
   .dark .unraid-reset {
     color: rgb(243 244 246);
   }
   
-  /* Inherit font through all elements */
+  /* Inherit typography through all elements */
   .unraid-reset * {
     font-family: inherit;
     font-size: inherit;
     line-height: inherit;
     color: inherit;
-    box-sizing: border-box;
   }
   
   /* Override webgui button styles with higher specificity */
@@ -117,17 +148,17 @@
 }
 
 
-/* Modal z-index management */
-[role="dialog"],
-[data-headlessui-portal],
-#teleports > *,
-#modals > *,
-unraid-modals > * {
+/* Modal z-index management - scoped to Unraid containers */
+.unraid [role="dialog"],
+.unraid [data-headlessui-portal],
+.unraid #teleports > *,
+.unraid #modals > *,
+.unraid unraid-modals > * {
   z-index: 99999 !important;
 }
 
-/* Modal backdrops */
-.fixed.inset-0[aria-hidden="true"],
-[data-headlessui-portal] .fixed.inset-0 {
+/* Modal backdrops - scoped to Unraid containers */
+.unraid .fixed.inset-0[aria-hidden="true"],
+.unraid [data-headlessui-portal] .fixed.inset-0 {
   z-index: 99998 !important;
 }
