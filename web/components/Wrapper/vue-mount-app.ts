@@ -164,7 +164,7 @@ export function mountVueApp(options: MountOptions): VueApp | null {
   // Mount to all targets
   const clones: VueApp[] = [];
   const containers: HTMLElement[] = [];
-  targets.forEach((target) => {
+  targets.forEach((target, index) => {
     const mountTarget = target as HTMLElement;
     
     // Add unraid-reset class to ensure webgui styles don't leak in
@@ -186,20 +186,25 @@ export function mountVueApp(options: MountOptions): VueApp | null {
       // Inject styles into shadow root
       injectStyles(mountTarget.shadowRoot!);
       
-      // Clone and mount the app to this container
-      const clonedApp = createApp(component, props);
-      clonedApp.use(i18n);
-      clonedApp.use(globalPinia);
-      clonedApp.provide(DefaultApolloClient, client);
-      clonedApp.mount(container);
-      clones.push(clonedApp);
+      // For the first target, use the main app, otherwise create clones
+      if (index === 0) {
+        app.mount(container);
+      } else {
+        const targetProps = { ...parsePropsFromElement(mountTarget), ...props };
+        const clonedApp = createApp(component, targetProps);
+        clonedApp.use(i18n);
+        clonedApp.use(globalPinia);
+        clonedApp.provide(DefaultApolloClient, client);
+        clonedApp.mount(container);
+        clones.push(clonedApp);
+      }
     } else {
       // Direct mount without shadow root
       injectStyles(document);
       
       // For multiple targets, we need to create separate app instances
       // but they'll share the same Pinia store
-      if (Array.from(targets).indexOf(mountTarget) === 0) {
+      if (index === 0) {
         // First target, use the main app
         app.mount(mountTarget);
       } else {
