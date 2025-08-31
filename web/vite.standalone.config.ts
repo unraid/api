@@ -5,17 +5,23 @@ import fs from 'fs';
 
 // Read CSS content at build time
 const getCssContent = () => {
-  const cssFiles = [
-    '.nuxt/dist/client/_nuxt/entry.DXd6OtrS.css',
-    '.output/public/_nuxt/entry.DXd6OtrS.css',
-    'assets/main.css'
+  const directories = [
+    '.nuxt/dist/client/_nuxt',
+    '.output/public/_nuxt'
   ];
   
-  for (const file of cssFiles) {
-    const fullPath = path.resolve(__dirname, file);
-    if (fs.existsSync(fullPath)) {
-      console.log(`Reading CSS from: ${fullPath}`);
-      return fs.readFileSync(fullPath, 'utf-8');
+  for (const dir of directories) {
+    const fullDir = path.resolve(__dirname, dir);
+    if (fs.existsSync(fullDir)) {
+      // Find entry.*.css files dynamically
+      const files = fs.readdirSync(fullDir);
+      const entryFile = files.find(f => f.startsWith('entry.') && f.endsWith('.css'));
+      
+      if (entryFile) {
+        const fullPath = path.join(fullDir, entryFile);
+        console.log(`Reading CSS from: ${fullPath}`);
+        return fs.readFileSync(fullPath, 'utf-8');
+      }
     }
   }
   
