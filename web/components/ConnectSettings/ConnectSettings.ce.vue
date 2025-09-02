@@ -12,6 +12,8 @@ import { BrandButton, jsonFormsRenderers, jsonFormsAjv, Label, SettingsGrid } fr
 import { JsonForms } from '@jsonforms/vue';
 
 import { useServerStore } from '~/store/server';
+import Auth from '~/components/Auth.ce.vue';
+import DownloadApiLogs from '~/components/DownloadApiLogs.ce.vue';
 // unified settings values are returned as JSON, so use a generic record type
 // import type { ConnectSettingsValues } from '~/composables/gql/graphql';
 
@@ -98,14 +100,10 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
   <SettingsGrid>
     <template v-if="connectPluginInstalled">
       <Label>Account Status:</Label>
-      <div v-html="'<unraid-auth></unraid-auth>'"/>
+      <Auth />
     </template>
     <Label>Download Unraid API Logs:</Label>
-    <div
-      v-html="
-        '<unraid-download-api-logs></unraid-download-api-logs>'
-      "
-    />
+    <DownloadApiLogs />
   </SettingsGrid>
   <!-- auto-generated settings form -->
   <div class="mt-6 pl-3 [&_.vertical-layout]:space-y-6">
@@ -125,7 +123,7 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
       <div class="text-sm text-end">
         <p v-if="isUpdating">Applying Settings...</p>
       </div>
-      <div class="col-start-2 ml-10 space-y-4">
+      <div class="col-start-2 ml-10 space-y-4 max-w-3xl">
         <BrandButton
           padding="lean"
           size="12px"

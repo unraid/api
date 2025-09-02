@@ -12,9 +12,6 @@ import type { Props as ModalProps } from '~/components/Modal.vue';
 
 import Modal from '~/components/Modal.vue';
 
-vi.mock('@unraid/ui', () => ({
-  cn: (...args: unknown[]) => args.filter(Boolean).join(' '),
-}));
 
 const mockSetProperty = vi.fn();
 const mockRemoveProperty = vi.fn();

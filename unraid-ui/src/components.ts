@@ -17,6 +17,7 @@ export * from '@/components/common/tabs';
 export * from '@/components/common/tooltip';
 export * from '@/components/common/toast';
 export * from '@/components/common/popover';
+export * from '@/components/common/responsive-modal';
 export * from '@/components/modals';
 export * from '@/components/common/accordion';
 export * from '@/components/common/dialog';

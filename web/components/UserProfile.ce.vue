@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { onBeforeMount, onMounted, ref, watch } from 'vue';
+import { onBeforeMount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { useClipboard } from '@vueuse/core';
 
-import { cn, DropdownMenu } from '@unraid/ui';
+import { DropdownMenu, Button } from '@unraid/ui';
+import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
 import { devConfig } from '~/helpers/env';
 
 import type { Server } from '~/types/server';
@@ -12,9 +12,7 @@ import type { Server } from '~/types/server';
 import NotificationsSidebar from '~/components/Notifications/Sidebar.vue';
 import UpcDropdownContent from '~/components/UserProfile/DropdownContent.vue';
 import UpcDropdownTrigger from '~/components/UserProfile/DropdownTrigger.vue';
-import UpcServerState from '~/components/UserProfile/ServerState.vue';
-// Auto-imported components - now manually imported
-import UpcUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
+import UpcServerStatus from '~/components/UserProfile/ServerStatus.vue';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
@@ -33,28 +31,18 @@ const { callbackData } = storeToRefs(callbackStore);
 const { name, description, guid, keyfile, lanIp } = storeToRefs(serverStore);
 const { bannerGradient, theme } = storeToRefs(useThemeStore());
 
+// Control dropdown open state
+const dropdownOpen = ref(false);
+
 /**
  * Copy LAN IP on server name click
  */
-let copyIpInterval: string | number | NodeJS.Timeout | undefined;
-const { copy, copied, isSupported } = useClipboard({ source: lanIp.value ?? '' });
-const showCopyNotSupported = ref<boolean>(false);
-const copyLanIp = () => {
-  // if http then clipboard is not supported
-  if (!isSupported || window.location.protocol === 'http:') {
-    showCopyNotSupported.value = true;
-    return;
+const { copyWithNotification } = useClipboardWithToast();
+const copyLanIp = async () => {
+  if (lanIp.value) {
+    await copyWithNotification(lanIp.value, t('LAN IP Copied'));
   }
-  copy(lanIp.value ?? '');
 };
-watch(showCopyNotSupported, (newVal, oldVal) => {
-  if (newVal && oldVal === false) {
-    clearTimeout(copyIpInterval);
-    copyIpInterval = setTimeout(() => {
-      showCopyNotSupported.value = false;
-    }, 5000);
-  }
-});
 
 /**
  * Sets the server store and locale messages then listen for callbacks
@@ -104,57 +92,47 @@ onMounted(() => {
       :style="bannerGradient"
     />
 
-    <div
-      :class="
-        cn(
-          'text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-wrap xs:flex-row items-baseline justify-end gap-x-1 xs:gap-x-4'
-        )
-      "
-    >
-      <UpcUptimeExpire :as="'span'" :t="t" class="text-xs" />
-      <span class="hidden xs:block">&bull;</span>
-      <UpcServerState :t="t" class="text-xs" />
-    </div>
+    <UpcServerStatus :t="t" class="relative z-10" />
 
-    <div class="relative z-10 flex flex-row items-center justify-end gap-x-4 h-full">
-      <h1
-        class="text-md sm:text-lg relative flex flex-col-reverse items-end md:flex-row border-0 text-header-text-primary"
+    <div class="relative z-10 flex flex-row items-center justify-end gap-x-2 h-full">
+      <div
+        class="text-base relative flex flex-col-reverse items-center md:items-center md:flex-row border-0 text-header-text-primary"
       >
         <template v-if="description && theme?.descriptionShow">
-          <span class="text-right text-xs sm:text-lg hidden md:inline-block" v-html="description" />
-          <span class="text-header-text-secondary hidden md:inline-block px-2">&bull;</span>
+          <span class="text-center md:text-right text-base hidden md:inline-flex md:items-center" v-html="description" />
+          <span class="text-header-text-secondary hidden md:inline-flex md:items-center px-2">&bull;</span>
         </template>
-        <button
+        <Button
           v-if="lanIp"
+          variant="ghost"
           :title="t('Click to Copy LAN IP {0}', [lanIp])"
-          class="text-header-text-primary opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity"
+          class="text-header-text-primary text-base p-0 h-auto opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity flex items-center"
           @click="copyLanIp()"
         >
           {{ name }}
-        </button>
-        <span v-else class="text-header-text-primary">
+        </Button>
+        <span v-else class="text-header-text-primary text-sm xs:text-base flex items-center">
           {{ name }}
         </span>
-        <span
-          v-show="copied || showCopyNotSupported"
-          class="text-white text-xs leading-none py-1 px-2 absolute top-full right-0 bg-linear-to-r from-unraid-red to-orange text-center block rounded"
-        >
-          <template v-if="copied">{{ t('LAN IP Copied') }}</template>
-          <template v-else>{{ t('LAN IP {0}', [lanIp]) }}</template>
-        </span>
-      </h1>
-
-      <div class="block w-[2px] h-6 bg-header-text-secondary" />
+      </div>
 
       <NotificationsSidebar />
 
-      <DropdownMenu align="end" side="bottom" :side-offset="4">
+      <DropdownMenu 
+        v-model:open="dropdownOpen"
+        align="end" 
+        side="bottom" 
+        :side-offset="4"
+      >
         <template #trigger>
           <UpcDropdownTrigger :t="t" />
         </template>
         <template #content>
           <div class="max-w-[350px] sm:min-w-[350px]">
-            <UpcDropdownContent :t="t" />
+            <UpcDropdownContent 
+              :t="t" 
+              @close-dropdown="dropdownOpen = false"
+            />
           </div>
         </template>
       </DropdownMenu>

@@ -11,7 +11,7 @@ import {
   InformationCircleIcon,
   XCircleIcon,
 } from '@heroicons/vue/24/solid';
-import { Badge, BrandButton, BrandLoading } from '@unraid/ui';
+import { Badge, BrandButton, BrandLoading, Button } from '@unraid/ui';
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 
 import type { BrandButtonProps } from '@unraid/ui';
@@ -123,22 +123,24 @@ const checkButton = computed((): BrandButtonProps => {
       </h2>
     </header>
     <div class="flex flex-col md:flex-row gap-4 justify-start md:items-start md:justify-between">
-      <div class="inline-flex flex-wrap justify-start gap-2">
-        <button
-          class="group"
+      <div class="inline-flex flex-wrap justify-start items-center gap-2">
+        <Button
+          variant="ghost"
+          class="p-0 h-auto hover:bg-transparent"
           :title="t('View release notes')"
           @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [osVersion]))"
         >
           <Badge :icon="InformationCircleIcon" variant="gray" size="md">
             {{ t('Current Version {0}', [osVersion]) }}
           </Badge>
-        </button>
+        </Button>
 
-        <a
+        <Button
           v-if="ineligibleText && !availableWithRenewal"
-          :href="WEBGUI_TOOLS_REGISTRATION.toString()"
-          class="group"
+          variant="ghost"
+          class="p-0 h-auto hover:bg-transparent"
           :title="t('Learn more and fix')"
+          @click="() => window.location.href = WEBGUI_TOOLS_REGISTRATION.toString()"
         >
           <Badge
             variant="yellow"
@@ -148,7 +150,7 @@ const checkButton = computed((): BrandButtonProps => {
           >
             {{ t('Key ineligible for future releases') }}
           </Badge>
-        </a>
+        </Button>
         <Badge
           v-else-if="ineligibleText && availableWithRenewal"
           variant="yellow"

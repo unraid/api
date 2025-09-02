@@ -2,7 +2,7 @@
 import { computed, watchEffect } from 'vue';
 
 import { XMarkIcon } from '@heroicons/vue/24/outline';
-import { cn } from '@unraid/ui';
+import { Button, cn } from '@unraid/ui';
 import { TransitionChild, TransitionRoot } from '@headlessui/vue';
 
 import type { ComposerTranslation } from 'vue-i18n';
@@ -117,19 +117,20 @@ const computedVerticalCenter = computed<string>(() => {
               disableShadow ? 'shadow-none border-none' : 'shadow-xl',
               error ? 'shadow-unraid-red/30 border-unraid-red/10' : '',
               success ? 'shadow-green-600/30 border-green-600/10' : '',
-              !error && !success && !disableShadow ? 'shadow-orange/10 border-white/10' : '',
+              !error && !success && !disableShadow ? 'shadow-orange/10' : '',
             ]"
-            class="text-base text-foreground bg-background text-left relative z-10 mx-auto flex flex-col justify-around border-2 border-solid transform overflow-hidden rounded-lg transition-all"
+            class="text-base text-foreground bg-background text-left relative z-10 mx-auto flex flex-col justify-around border-2 border-solid border-muted transform overflow-hidden rounded-lg transition-all"
           >
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 pt-1 pr-1 sm:block">
-              <button
-                class="rounded-md text-foreground bg-transparent p-2 hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                type="button"
+              <Button
+                variant="ghost"
+                size="icon"
+                class="rounded-md text-foreground hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red"
+                :aria-label="t('Close')"
                 @click="closeModal"
               >
-                <span class="sr-only">{{ t('Close') }}</span>
                 <XMarkIcon class="h-6 w-6" aria-hidden="true" />
-              </button>
+              </Button>
             </div>
 
             <header

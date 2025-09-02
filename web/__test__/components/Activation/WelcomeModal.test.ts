@@ -27,6 +27,12 @@ vi.mock('@unraid/ui', async (importOriginal) => {
         </div>
       `,
     },
+    BrandButton: {
+      name: 'BrandButton',
+      props: ['text', 'disabled'],
+      emits: ['click'],
+      template: '<button :disabled="disabled" @click="$emit(\'click\')">{{ text }}</button>',
+    },
   };
 });
 
@@ -168,17 +174,16 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     expect(button.exists()).toBe(true);
 
     // Initially dialog should be visible
-    let dialog = wrapper.findComponent({ name: 'Dialog' });
+    const dialog = wrapper.findComponent({ name: 'Dialog' });
     expect(dialog.exists()).toBe(true);
     expect(dialog.props('modelValue')).toBe(true);
 
     await button.trigger('click');
     await wrapper.vm.$nextTick();
 
-    // After click, the dialog should be hidden (modelValue should be false)
-    dialog = wrapper.findComponent({ name: 'Dialog' });
-    expect(dialog.exists()).toBe(true);
-    expect(dialog.props('modelValue')).toBe(false);
+    // After click, the dialog should be hidden - check if the dialog div is no longer rendered
+    const dialogDiv = wrapper.find('[role="dialog"]');
+    expect(dialogDiv.exists()).toBe(false);
   });
 
   it('disables the Create a password button when loading', async () => {
@@ -188,7 +193,7 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     const button = wrapper.find('button');
 
     expect(button.exists()).toBe(true);
-    expect(button.attributes('disabled')).toBe('');
+    expect(button.attributes('disabled')).toBeDefined();
   });
 
   it('renders activation steps with correct active step', async () => {

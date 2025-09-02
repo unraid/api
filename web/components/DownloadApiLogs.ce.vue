@@ -17,7 +17,7 @@ const downloadUrl = computed(() => {
 
 <template>
   <div class="whitespace-normal flex flex-col gap-y-4 max-w-3xl">
-    <span>
+    <p class="text-sm text-start">
       {{ t('The primary method of support for Unraid Connect is through our forums and Discord.') }}
       {{
         t(
@@ -25,7 +25,7 @@ const downloadUrl = computed(() => {
         )
       }}
       {{ t('The logs may contain sensitive information so do not post them publicly.') }}
-    </span>
+    </p>
     <span class="flex flex-col gap-y-4">
       <div class="flex">
         <BrandButton

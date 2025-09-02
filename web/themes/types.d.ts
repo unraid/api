@@ -41,6 +41,8 @@ type BaseThemeVariables = {
   '--color-header-background'?: string;
   '--color-header-gradient-start'?: string;
   '--color-header-gradient-end'?: string;
+  '--custom-font-size'?: string;
+  '--ui-border-muted'?: string;
 };
 
 type LegacyThemeVariables = {

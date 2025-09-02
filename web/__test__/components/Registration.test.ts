@@ -2,7 +2,6 @@
  * Registration Component Test Coverage
  */
 
-import { defineComponent } from 'vue';
 import { setActivePinia } from 'pinia';
 import { mount } from '@vue/test-utils';
 
@@ -14,7 +13,6 @@ import type { ServerconnectPluginInstalled } from '~/types/server';
 import type { Pinia } from 'pinia';
 
 import Registration from '~/components/Registration.ce.vue';
-import MockedRegistrationItem from '~/components/Registration/Item.vue';
 import { usePurchaseStore } from '~/store/purchase';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
@@ -57,6 +55,7 @@ vi.mock('@unraid/ui', async (importOriginal) => {
     BrandButton: { template: '<button><slot /></button>', props: ['text', 'title', 'icon', 'disabled'] },
     CardWrapper: { template: '<div><slot /></div>' },
     PageContainer: { template: '<div><slot /></div>' },
+    SettingsGrid: { template: '<div class="settings-grid"><slot /></div>' },
   };
 });
 
@@ -83,26 +82,6 @@ vi.mock('~/components/UserProfile/UptimeExpire.vue', () => ({
   },
 }));
 
-vi.mock('~/components/Registration/Item.vue', () => ({
-  default: defineComponent({
-    props: ['label', 'text', 'component', 'componentProps', 'error', 'warning', 'componentOpacity'],
-    name: 'RegistrationItem',
-    template: `
-      <div class="registration-item">
-        <dt v-if="label">{{ label }}</dt>
-        <dd>
-          <span v-if="text">{{ text }}</span>
-          <template v-if="component">
-             <component :is="component" v-bind="componentProps" :class="[componentOpacity && !error ? 'opacity-75' : '']" />
-          </template>
-        </dd>
-      </div>
-    `,
-    setup(props) {
-      return { ...props };
-    },
-  }),
-}));
 
 // Define initial state for the server store for testing
 const initialServerState = {
@@ -146,9 +125,22 @@ describe('Registration.ce.vue', () => {
   let purchaseStore: ReturnType<typeof usePurchaseStore>;
 
   const findItemByLabel = (labelKey: string) => {
-    const items = wrapper.findAllComponents({ name: 'RegistrationItem' });
-
-    return items.find((item) => item.props('label') === t(labelKey));
+    const allLabels = wrapper.findAll('.font-semibold');
+    const label = allLabels.find((el) => el.html().includes(t(labelKey)));
+    
+    if (!label) return undefined;
+    
+    const nextSibling = label.element.nextElementSibling;
+    
+    return {
+      exists: () => true,
+      props: (prop: string) => {
+        if (prop === 'text' && nextSibling) {
+          return nextSibling.textContent?.trim();
+        }
+        return undefined;
+      },
+    };
   };
 
   beforeEach(() => {
@@ -175,8 +167,9 @@ describe('Registration.ce.vue', () => {
     wrapper = mount(Registration, {
       global: {
         plugins: [pinia],
-        components: {
-          RegistrationItem: MockedRegistrationItem,
+        stubs: {
+          ShieldCheckIcon: { template: '<div class="shield-check-icon"/>' },
+          ShieldExclamationIcon: { template: '<div class="shield-exclamation-icon"/>' },
         },
       },
     });
@@ -205,21 +198,12 @@ describe('Registration.ce.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    const items = wrapper.findAllComponents({ name: 'RegistrationItem' });
-    const keyActionsItem = items.find((item) => {
-      const componentProp = item.props('component');
+    const keyActionsElement = wrapper.find('[data-testid="key-actions"]');
+    
+    expect(keyActionsElement.exists(), 'KeyActions element not found').toBe(true);
 
-      return componentProp?.template?.includes('data-testid="key-actions"');
-    });
-
-    expect(keyActionsItem, 'RegistrationItem for KeyActions not found').toBeDefined();
-
-    const componentProps = keyActionsItem!.props('componentProps') as {
-      filterOut?: string[];
-      t: unknown;
-    };
     const expectedActions = serverStore.keyActions?.filter(
-      (action) => !componentProps?.filterOut?.includes(action.name)
+      (action) => !['renew'].includes(action.name)
     );
 
     expect(expectedActions, 'No expected actions found in store for TRIAL state').toBeDefined();
