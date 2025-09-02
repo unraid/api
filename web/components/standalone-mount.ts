@@ -24,11 +24,13 @@ import { useThemeStore } from '~/store/theme';
 import { globalPinia } from '~/store/globalPinia';
 import { client as apolloClient } from '~/helpers/create-apollo-client';
 import { provideApolloClient } from '@vue/apollo-composable';
+import { gql } from '@apollo/client/core';
 
 // Extend window interface for Apollo client
 declare global {
   interface Window {
     apolloClient: typeof apolloClient;
+    gql: typeof gql;
   }
 }
 
@@ -36,6 +38,9 @@ declare global {
 if (typeof window !== 'undefined') {
   // Make Apollo client globally available
   window.apolloClient = apolloClient;
+  
+  // Make gql globally available for browser console usage
+  window.gql = gql;
   
   // Provide Apollo client globally for all components
   provideApolloClient(apolloClient);
