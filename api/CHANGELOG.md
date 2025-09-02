@@ -1,5 +1,20 @@
 # Changelog
 
+## [4.18.0](https://github.com/unraid/api/compare/v4.17.0...v4.18.0) (2025-09-02)
+
+
+### Features
+
+* **api:** enhance OIDC redirect URI handling in service and tests ([#1618](https://github.com/unraid/api/issues/1618)) ([4e945f5](https://github.com/unraid/api/commit/4e945f5f56ce059eb275a9576caf3194a5df8a90))
+
+
+### Bug Fixes
+
+* api key creation cli ([#1637](https://github.com/unraid/api/issues/1637)) ([c147a6b](https://github.com/unraid/api/commit/c147a6b5075969e77798210c4a5cfd1fa5b96ae3))
+* **cli:** support `--log-level` for `start` and `restart` cmds ([#1623](https://github.com/unraid/api/issues/1623)) ([a1ee915](https://github.com/unraid/api/commit/a1ee915ca52e5a063eccf8facbada911a63f37f6))
+* confusing server -&gt; status query ([#1635](https://github.com/unraid/api/issues/1635)) ([9d42b36](https://github.com/unraid/api/commit/9d42b36f74274cad72490da5152fdb98fdc5b89b))
+* use unraid css variables in sonner ([#1634](https://github.com/unraid/api/issues/1634)) ([26a95af](https://github.com/unraid/api/commit/26a95af9539d05a837112d62dc6b7dd46761c83f))
+
 ## [4.17.0](https://github.com/unraid/api/compare/v4.16.0...v4.17.0) (2025-08-27)
 
 
