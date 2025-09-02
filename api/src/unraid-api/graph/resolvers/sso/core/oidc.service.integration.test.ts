@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import * as client from 'openid-client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { OidcAuthorizationService } from '@app/unraid-api/graph/resolvers/sso/auth/oidc-authorization.service.js';
@@ -359,20 +360,38 @@ describe('OidcService Integration Tests - Enhanced Logging', () => {
             const provider: OidcProvider = {
                 id: 'malformed-json',
                 name: 'Malformed JSON Test',
-                issuer: 'https://httpbin.org/html', // Returns HTML, not JSON
+                issuer: 'https://example.com/malformed',
                 clientId: 'test-client-id',
                 clientSecret: 'test-client-secret',
                 scopes: ['openid'],
                 authorizationRules: [],
             };
 
+            // Mock global fetch to return HTML instead of JSON
+            const originalFetch = global.fetch;
+            global.fetch = vi.fn().mockImplementation(() =>
+                Promise.resolve(
+                    new Response('<html><body>Not JSON</body></html>', {
+                        status: 200,
+                        headers: { 'content-type': 'text/html' },
+                    })
+                )
+            );
+
             const validationService = new OidcValidationService(new ConfigService());
             const result = await validationService.validateProvider(provider);
 
+            // Restore original fetch
+            global.fetch = originalFetch;
+
             expect(result.isValid).toBe(false);
-            // The error message should indicate JSON parsing issue
             expect(result.error).toBeDefined();
-        }, 30000); // Increased timeout to 30 seconds for external HTTP request
+            // The openid-client library will fail when it gets HTML instead of JSON
+            // It returns "unexpected response content-type" error
+            expect(result.error).toMatch(
+                /Invalid OIDC discovery|malformed|doesn't conform|unexpected|content-type/i
+            );
+        });
 
         it('should handle and log HTTP vs HTTPS protocol differences', async () => {
             const httpProvider: OidcProvider = {
