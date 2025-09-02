@@ -232,7 +232,9 @@ describe('OidcStateService', () => {
                 providerId,
                 redirectUri,
             });
+            // @ts-expect-error - cachedData is of type StateData
             expect(cachedData.timestamp).toBeGreaterThan(Date.now() - 1000);
+            // @ts-expect-error - cachedData is of type StateData
             expect(cachedData.timestamp).toBeLessThanOrEqual(Date.now());
         });
     });
