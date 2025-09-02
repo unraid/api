@@ -1,15 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 
-import { AsyncMutex } from '@unraid/shared/util/processing.js';
-
 import { phpLoader } from '@app/core/utils/plugins/php-loader.js';
 
 type StatusItem = { name: string; updateStatus: 0 | 1 | 2 | 3 };
+
+/** Note that these values propogate down to api consumers, so be aware of breaking changes. */
+enum UpdateStatus {
+    UP_TO_DATE = 'UP_TO_DATE',
+    UPDATE_AVAILABLE = 'UPDATE_AVAILABLE',
+    REBUILD_READY = 'REBUILD_READY',
+    UNKNOWN = 'UNKNOWN',
+}
+
 type ExplicitStatusItem = {
     name: string;
-    updateStatus: 'up to date' | 'update available' | 'rebuild ready' | 'unknown';
+    updateStatus: UpdateStatus;
 };
+
+/**
+ * These types reflect the structure of the /var/lib/docker/unraid-update-status.json file,
+ * which is not controlled by the Unraid API.
+ */
 export type CachedStatusEntry = {
     /** sha256 digest - "sha256:..." */
     local: string;
@@ -68,10 +80,10 @@ export class DockerPhpService {
         return items;
     }
 
-    private updateStatusToString(updateStatus: 0): 'up to date';
-    private updateStatusToString(updateStatus: 1): 'update available';
-    private updateStatusToString(updateStatus: 2): 'rebuild ready';
-    private updateStatusToString(updateStatus: 3): 'unknown';
+    private updateStatusToString(updateStatus: 0): UpdateStatus.UP_TO_DATE;
+    private updateStatusToString(updateStatus: 1): UpdateStatus.UPDATE_AVAILABLE;
+    private updateStatusToString(updateStatus: 2): UpdateStatus.REBUILD_READY;
+    private updateStatusToString(updateStatus: 3): UpdateStatus.UNKNOWN;
     // prettier-ignore
     private updateStatusToString(updateStatus: StatusItem['updateStatus']): ExplicitStatusItem['updateStatus'];
     private updateStatusToString(
@@ -79,13 +91,13 @@ export class DockerPhpService {
     ): ExplicitStatusItem['updateStatus'] {
         switch (updateStatus) {
             case 0:
-                return 'up to date';
+                return UpdateStatus.UP_TO_DATE;
             case 1:
-                return 'update available';
+                return UpdateStatus.UPDATE_AVAILABLE;
             case 2:
-                return 'rebuild ready';
+                return UpdateStatus.REBUILD_READY;
             default:
-                return 'unknown';
+                return UpdateStatus.UNKNOWN;
         }
     }
 
