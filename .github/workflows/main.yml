@@ -47,7 +47,7 @@ jobs:
       - name: Cache APT Packages
         uses: awalsh128/cache-apt-pkgs-action@v1.5.3
         with:
-          packages: bash procps python3 libvirt-dev jq zstd git build-essential libvirt-daemon-system
+          packages: bash procps python3 libvirt-dev jq zstd git build-essential libvirt-daemon-system php-cli
           version: 1.0
 
       - name: Install pnpm
@@ -147,12 +147,17 @@ jobs:
           (cd ../unraid-ui && pnpm test --coverage 2>/dev/null || pnpm test) > ui-test.log 2>&1 &
           UI_PID=$!
 
+          echo "🚀 Starting Plugin tests..."
+          (cd ../plugin && pnpm test) > plugin-test.log 2>&1 &
+          PLUGIN_PID=$!
+
           # Wait for all processes and capture exit codes
           wait $API_PID && echo "✅ API tests completed" || { echo "❌ API tests failed"; API_EXIT=1; }
           wait $CONNECT_PID && echo "✅ Connect tests completed" || { echo "❌ Connect tests failed"; CONNECT_EXIT=1; }
           wait $SHARED_PID && echo "✅ Shared tests completed" || { echo "❌ Shared tests failed"; SHARED_EXIT=1; }
           wait $WEB_PID && echo "✅ Web tests completed" || { echo "❌ Web tests failed"; WEB_EXIT=1; }
           wait $UI_PID && echo "✅ UI tests completed" || { echo "❌ UI tests failed"; UI_EXIT=1; }
+          wait $PLUGIN_PID && echo "✅ Plugin tests completed" || { echo "❌ Plugin tests failed"; PLUGIN_EXIT=1; }
 
           # Display all outputs
           echo "📋 API Test Results:" && cat api-test.log
@@ -160,9 +165,10 @@ jobs:
           echo "📋 Shared Package Test Results:" && cat shared-test.log
           echo "📋 Web Package Test Results:" && cat web-test.log
           echo "📋 UI Package Test Results:" && cat ui-test.log
+          echo "📋 Plugin Test Results:" && cat plugin-test.log
 
           # Exit with error if any test failed
-          if [[ ${API_EXIT:-0} -eq 1 || ${CONNECT_EXIT:-0} -eq 1 || ${SHARED_EXIT:-0} -eq 1 || ${WEB_EXIT:-0} -eq 1 || ${UI_EXIT:-0} -eq 1 ]]; then
+          if [[ ${API_EXIT:-0} -eq 1 || ${CONNECT_EXIT:-0} -eq 1 || ${SHARED_EXIT:-0} -eq 1 || ${WEB_EXIT:-0} -eq 1 || ${UI_EXIT:-0} -eq 1 || ${PLUGIN_EXIT:-0} -eq 1 ]]; then
             exit 1
           fi
 
