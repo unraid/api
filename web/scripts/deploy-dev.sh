@@ -78,7 +78,8 @@ update_auth_request() {
       ' "$AUTH_REQUEST_FILE" > "${AUTH_REQUEST_FILE}.tmp"
 
       # Now add new entries right after the opening bracket
-      awk -v files_to_add="$(printf '%s\n' "${FILES_TO_ADD[@]}" | sort -u | awk '{printf "  \047%s\047,\n", $0}')" '
+      # Escape single quotes in filenames for PHP safety
+      awk -v files_to_add="$(printf '%s\n' "${FILES_TO_ADD[@]}" | sed "s/'/\\\\'/g" | sort -u | awk '{printf "  \047%s\047,\n", $0}')" '
         /\$arrWhitelist\s*=\s*\[/ {
           print $0
           print files_to_add
@@ -90,7 +91,8 @@ update_auth_request() {
       rm "${AUTH_REQUEST_FILE}.tmp"
       echo "Updated $AUTH_REQUEST_FILE with new web component JS files"
     else
-      echo "\$arrWhitelist array not found in $AUTH_REQUEST_FILE"
+      echo "\$arrWhitelist array not found in $AUTH_REQUEST_FILE" >&2
+      exit 1
     fi
 EOF
 }

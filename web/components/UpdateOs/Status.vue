@@ -214,6 +214,7 @@ const navigateToRegistration = () => {
         <Button
           :variant="checkButton.variant === 'fill' ? 'pill-orange' : 'pill-gray'"
           :title="checkButton.text"
+          :disabled="status === 'checking'"
           @click="checkButton.click"
         >
           <component :is="checkButton.icon" class="shrink-0" style="width: 16px; height: 16px;" />
