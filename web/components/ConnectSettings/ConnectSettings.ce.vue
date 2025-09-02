@@ -123,7 +123,7 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
       <div class="text-sm text-end">
         <p v-if="isUpdating">Applying Settings...</p>
       </div>
-      <div class="col-start-2 ml-10 space-y-4 max-w-3xl">
+      <div class="col-start-2 space-y-4 max-w-3xl">
         <BrandButton
           padding="lean"
           size="12px"
