@@ -13,7 +13,9 @@
             "watch": false,
             "interpreter": "/usr/local/bin/node",
             "ignore_watch": ["node_modules", "src", ".env.*", "myservers.cfg"],
-            "log_file": "/var/log/graphql-api.log",
+            "out_file": "/var/log/graphql-api.log",
+            "error_file": "/var/log/graphql-api.log",
+            "merge_logs": true,
             "kill_timeout": 10000
         }
     ]
