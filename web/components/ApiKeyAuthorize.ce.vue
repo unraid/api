@@ -6,6 +6,7 @@ import { ClipboardDocumentIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/
 import { storeToRefs } from 'pinia';
 import { useAuthorizationLink } from '~/composables/useAuthorizationLink.js';
 import { useApiKeyStore } from '~/store/apiKey.js';
+import ApiKeyCreate from './ApiKey/ApiKeyCreate.vue';
 
 // Use the composables for authorization logic
 const {
@@ -20,7 +21,7 @@ const {
 
 // Use the API key store to control the global modal
 const apiKeyStore = useApiKeyStore();
-const { createdKey, modalVisible } = storeToRefs(apiKeyStore);
+const { createdKey, modalVisible, isAuthorizationMode, authorizationData, editingKey } = storeToRefs(apiKeyStore);
 
 // Component state
 const showSuccess = ref(false);
@@ -295,5 +296,16 @@ const returnToApp = () => {
     <div v-if="error" class="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
       <p class="text-red-800 dark:text-red-200">{{ error }}</p>
     </div>
+    
+    <!-- API Key Create Modal (for authorization flow) -->
+    <ApiKeyCreate 
+      :open="modalVisible"
+      :editing-key="editingKey"
+      :is-authorization-mode="isAuthorizationMode"
+      :authorization-data="authorizationData"
+      @update:open="(v) => v ? apiKeyStore.showModal() : apiKeyStore.hideModal()"
+      @created="(key) => apiKeyStore.setCreatedKey(key)"
+      @updated="(key) => apiKeyStore.setCreatedKey(key)"
+    />
   </div>
 </template>

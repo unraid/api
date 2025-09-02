@@ -1,22 +1,21 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
-import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery } from '@vue/apollo-composable';
-import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
 
 import { ClipboardDocumentIcon } from '@heroicons/vue/24/solid';
-import { 
+import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  Button, 
+  Button,
+  jsonFormsAjv,
+  jsonFormsRenderers,
   ResponsiveModal,
+  ResponsiveModalFooter,
   ResponsiveModalHeader,
   ResponsiveModalTitle,
-  ResponsiveModalFooter,
-  jsonFormsAjv, 
-  jsonFormsRenderers 
 } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
@@ -25,15 +24,17 @@ import type { ApolloError } from '@apollo/client/errors';
 import type { FragmentType } from '~/composables/gql/fragment-masking';
 import type {
   ApiKeyFormSettings,
+  ApiKeyFragment,
   AuthAction,
   CreateApiKeyInput,
   Resource,
   Role,
 } from '~/composables/gql/graphql';
-import type { ComposerTranslation } from 'vue-i18n';
+import type { AuthorizationFormData } from '~/utils/authorizationScopes';
 
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { useApiKeyPermissionPresets } from '~/composables/useApiKeyPermissionPresets';
+import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
 import { useApiKeyStore } from '~/store/apiKey';
 import { GET_API_KEY_CREATION_FORM_SCHEMA } from './api-key-form.query';
 import { API_KEY_FRAGMENT, CREATE_API_KEY, UPDATE_API_KEY } from './apikey.query';
@@ -41,15 +42,38 @@ import DeveloperAuthorizationLink from './DeveloperAuthorizationLink.vue';
 import EffectivePermissions from './EffectivePermissions.vue';
 
 interface Props {
-  t?: ComposerTranslation;
+  open?: boolean;
+  editingKey?: ApiKeyFragment | null;
+  isAuthorizationMode?: boolean;
+  authorizationData?: {
+    name: string;
+    description: string;
+    scopes: string[];
+    formData?: AuthorizationFormData;
+    onAuthorize?: (apiKey: string) => void;
+  } | null;
 }
 
-const props = defineProps<Props>();
-const { t } = props;
+const props = withDefaults(defineProps<Props>(), {
+  open: false,
+  editingKey: null,
+  isAuthorizationMode: false,
+  authorizationData: null,
+});
 
+const { t } = useI18n();
+
+const emit = defineEmits<{
+  'update:open': [value: boolean];
+  created: [key: ApiKeyFragment];
+  updated: [key: ApiKeyFragment];
+}>();
+
+// Local state for created key
+const createdKey = ref<ApiKeyFragment | null>(null);
+
+// Store is only used for legacy compatibility
 const apiKeyStore = useApiKeyStore();
-const { modalVisible, editingKey, isAuthorizationMode, authorizationData, createdKey } =
-  storeToRefs(apiKeyStore);
 
 // Form data that matches what the backend expects
 // This will be transformed into CreateApiKeyInput or UpdateApiKeyInput
@@ -87,7 +111,7 @@ const formDataPermissions = computed(() => {
   // Explicitly depend on the array length to ensure reactivity when going to/from empty
   const permissions = formData.value.customPermissions;
   const permissionCount = permissions?.length ?? 0;
-  
+
   if (!permissions || permissionCount === 0) return [];
 
   // Flatten the resources array into individual permission entries
@@ -109,7 +133,7 @@ const error = computed<ApolloError | null>(() => createError.value || updateErro
 // Computed property for button disabled state
 const isButtonDisabled = computed<boolean>(() => {
   // In authorization mode, only check loading states if we have a name
-  if (isAuthorizationMode.value && (formData.value.name || authorizationData.value?.formData?.name)) {
+  if (props.isAuthorizationMode && (formData.value.name || props.authorizationData?.formData?.name)) {
     return loading.value || postCreateLoading.value;
   }
 
@@ -126,12 +150,12 @@ const loadFormSchema = () => {
     if (result.data?.getApiKeyCreationFormSchema) {
       formSchema.value = result.data.getApiKeyCreationFormSchema;
 
-      if (isAuthorizationMode.value && authorizationData.value?.formData) {
+      if (props.isAuthorizationMode && props.authorizationData?.formData) {
         // In authorization mode, use the form data from the authorization store
-        formData.value = { ...authorizationData.value.formData };
+        formData.value = { ...props.authorizationData.formData };
         // Ensure the name field is set for validation
-        if (!formData.value.name && authorizationData.value.name) {
-          formData.value.name = authorizationData.value.name;
+        if (!formData.value.name && props.authorizationData.name) {
+          formData.value.name = props.authorizationData.name;
         }
 
         // In auth mode, if we have all required fields, consider it valid initially
@@ -139,7 +163,7 @@ const loadFormSchema = () => {
         if (formData.value.name) {
           formValid.value = true;
         }
-      } else if (editingKey.value) {
+      } else if (props.editingKey) {
         // If editing, populate form data from existing key
         populateFormFromExistingKey();
       } else {
@@ -167,9 +191,9 @@ onMounted(() => {
 
 // Watch for editing key changes
 watch(
-  () => editingKey.value,
+  () => props.editingKey,
   () => {
-    if (!isAuthorizationMode.value) {
+    if (!props.isAuthorizationMode) {
       populateFormFromExistingKey();
     }
   }
@@ -177,13 +201,13 @@ watch(
 
 // Watch for authorization mode changes
 watch(
-  () => isAuthorizationMode.value,
+  () => props.isAuthorizationMode,
   async (newValue) => {
-    if (newValue && authorizationData.value?.formData) {
-      formData.value = { ...authorizationData.value.formData };
+    if (newValue && props.authorizationData?.formData) {
+      formData.value = { ...props.authorizationData.formData };
       // Ensure the name field is set for validation
-      if (!formData.value.name && authorizationData.value.name) {
-        formData.value.name = authorizationData.value.name;
+      if (!formData.value.name && props.authorizationData.name) {
+        formData.value.name = props.authorizationData.name;
       }
 
       // Set initial valid state if we have required fields
@@ -196,13 +220,13 @@ watch(
 
 // Watch for authorization form data changes
 watch(
-  () => authorizationData.value?.formData,
+  () => props.authorizationData?.formData,
   (newFormData) => {
-    if (isAuthorizationMode.value && newFormData) {
+    if (props.isAuthorizationMode && newFormData) {
       formData.value = { ...newFormData };
       // Ensure the name field is set for validation
-      if (!formData.value.name && authorizationData.value?.name) {
-        formData.value.name = authorizationData.value.name;
+      if (!formData.value.name && props.authorizationData?.name) {
+        formData.value.name = props.authorizationData.name;
       }
     }
   },
@@ -228,11 +252,11 @@ watch(
 
 // Populate form data from existing key
 const populateFormFromExistingKey = async () => {
-  if (!editingKey.value || !formSchema.value) return;
+  if (!props.editingKey || !formSchema.value) return;
 
   const fragmentKey = useFragment(
     API_KEY_FRAGMENT,
-    editingKey.value as FragmentType<typeof API_KEY_FRAGMENT>
+    props.editingKey as FragmentType<typeof API_KEY_FRAGMENT>
   );
   if (fragmentKey) {
     // Group permissions by actions for better UI
@@ -293,7 +317,7 @@ const transformFormDataForApi = (): CreateApiKeyInput => {
   } else {
     // If customPermissions is undefined or null, and we're editing,
     // we should still send an empty array to clear permissions
-    if (editingKey.value) {
+    if (props.editingKey) {
       apiData.permissions = [];
     }
   }
@@ -307,20 +331,21 @@ const transformFormDataForApi = (): CreateApiKeyInput => {
 };
 
 const close = () => {
-  apiKeyStore.hideModal();
+  emit('update:open', false);
   formData.value = {
     customPermissions: [],
     roles: [],
   } as FormData;
+  createdKey.value = null; // Reset local created key
 };
 
 // Handle form submission
 async function upsertKey() {
   // In authorization mode, skip validation if we have a name
-  if (!isAuthorizationMode.value && !formValid.value) {
+  if (!props.isAuthorizationMode && !formValid.value) {
     return;
   }
-  if (isAuthorizationMode.value && !formData.value.name) {
+  if (props.isAuthorizationMode && !formData.value.name) {
     console.error('Cannot authorize without a name');
     return;
   }
@@ -331,13 +356,13 @@ async function upsertKey() {
   try {
     const apiData = transformFormDataForApi();
 
-    const isEdit = !!editingKey.value?.id;
+    const isEdit = !!props.editingKey?.id;
 
     let res;
-    if (isEdit && editingKey.value) {
+    if (isEdit && props.editingKey) {
       res = await updateApiKey({
         input: {
-          id: editingKey.value.id,
+          id: props.editingKey.id,
           ...apiData,
         },
       });
@@ -356,8 +381,8 @@ async function upsertKey() {
       apiKeyStore.setCreatedKey(fragmentData);
 
       // If in authorization mode, call the callback with the API key
-      if (isAuthorizationMode.value && authorizationData.value?.onAuthorize && 'key' in fragmentData) {
-        authorizationData.value.onAuthorize(fragmentData.key);
+      if (props.isAuthorizationMode && props.authorizationData?.onAuthorize && 'key' in fragmentData) {
+        props.authorizationData.onAuthorize(fragmentData.key);
         // Don't close the modal or reset form - let the callback handle it
         return;
       }
@@ -386,8 +411,7 @@ const copyApiKey = async () => {
 <template>
   <!-- Modal mode (handles both regular creation and authorization) -->
   <ResponsiveModal
-    v-if="modalVisible"
-    :open="modalVisible"
+    :open="props.open"
     sheet-side="bottom"
     :sheet-class="'h-[100vh] flex flex-col'"
     :dialog-class="'max-w-4xl max-h-[90vh] overflow-hidden'"
@@ -413,12 +437,12 @@ const copyApiKey = async () => {
         }}
       </ResponsiveModalTitle>
     </ResponsiveModalHeader>
-    
-    <div class="flex-1 overflow-y-auto p-6 w-full">
+
+    <div class="w-full flex-1 overflow-y-auto p-6">
       <!-- Show authorization description if in authorization mode -->
       <div
         v-if="isAuthorizationMode && formSchema?.dataSchema?.description"
-        class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
+        class="mb-4 rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20"
       >
         <p class="text-sm">{{ formSchema.dataSchema.description }}</p>
       </div>
@@ -449,20 +473,20 @@ const copyApiKey = async () => {
       <!-- Loading state -->
       <div v-else class="flex items-center justify-center py-8">
         <div class="text-center">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4" />
-          <p class="text-sm text-muted-foreground">Loading form...</p>
+          <div class="border-primary mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2" />
+          <p class="text-muted-foreground text-sm">Loading form...</p>
         </div>
       </div>
 
       <!-- Error display -->
-      <div v-if="error" class="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+      <div v-if="error" class="mt-4 rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
         <p class="text-sm text-red-600 dark:text-red-400">
           {{ extractGraphQLErrorMessage(error) }}
         </p>
       </div>
 
       <!-- Permissions Preview -->
-      <div class="mt-6 p-4 bg-muted/50 rounded-lg border border-muted">
+      <div class="bg-muted/50 border-muted mt-6 rounded-lg border p-4">
         <EffectivePermissions
           :roles="formData.roles || []"
           :raw-permissions="formDataPermissions"
@@ -472,14 +496,14 @@ const copyApiKey = async () => {
         <!-- Show selected roles for context -->
         <div
           v-if="formData.roles && formData.roles.length > 0"
-          class="mt-3 pt-3 border-t border-muted border-gray-200 dark:border-gray-700"
+          class="border-muted mt-3 border-t border-gray-200 pt-3 dark:border-gray-700"
         >
-          <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">Selected Roles:</div>
+          <div class="mb-1 text-xs text-gray-600 dark:text-gray-400">Selected Roles:</div>
           <div class="flex flex-wrap gap-1">
             <span
               v-for="role in formData.roles"
               :key="role"
-              class="px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 rounded text-xs"
+              class="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"
             >
               {{ role }}
             </span>
@@ -511,27 +535,25 @@ const copyApiKey = async () => {
       <!-- Success state for authorization mode -->
       <div
         v-if="isAuthorizationMode && createdKey && 'key' in createdKey"
-        class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg"
+        class="mt-4 rounded-lg bg-green-50 p-4 dark:bg-green-900/20"
       >
-        <div class="flex items-center justify-between mb-2">
+        <div class="mb-2 flex items-center justify-between">
           <span class="text-sm font-medium">API Key created successfully!</span>
           <Button type="button" variant="ghost" size="sm" @click="copyApiKey">
-            <ClipboardDocumentIcon class="w-4 h-4 mr-2" />
+            <ClipboardDocumentIcon class="mr-2 h-4 w-4" />
             {{ copied ? 'Copied!' : 'Copy Key' }}
           </Button>
         </div>
-        <code class="block mt-2 p-2 bg-white dark:bg-gray-800 rounded text-xs break-all border">
+        <code class="mt-2 block rounded border bg-white p-2 text-xs break-all dark:bg-gray-800">
           {{ createdKey.key }}
         </code>
-        <p class="text-xs text-muted-foreground mt-2">Save this key securely for your application.</p>
+        <p class="text-muted-foreground mt-2 text-xs">Save this key securely for your application.</p>
       </div>
     </div>
 
     <ResponsiveModalFooter>
-      <div class="flex justify-end gap-2 w-full">
-        <Button variant="secondary" @click="close()">
-          Cancel
-        </Button>
+      <div class="flex w-full justify-end gap-2">
+        <Button variant="secondary" @click="close()"> Cancel </Button>
         <Button
           variant="primary"
           :disabled="isButtonDisabled || loading || postCreateLoading"

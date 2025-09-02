@@ -38,6 +38,7 @@ import { useFragment } from '~/composables/gql/fragment-masking';
 import { useApiKeyStore } from '~/store/apiKey';
 import { API_KEY_FRAGMENT, DELETE_API_KEY, GET_API_KEY_META, GET_API_KEYS } from './apikey.query';
 import EffectivePermissions from '~/components/ApiKey/EffectivePermissions.vue';
+import ApiKeyCreate from '~/components/ApiKey/ApiKeyCreate.vue';
 import { generateScopes } from '~/utils/authorizationLink';
 
 const { result, refetch } = useQuery(GET_API_KEYS);
@@ -45,6 +46,10 @@ const { result, refetch } = useQuery(GET_API_KEYS);
 const apiKeyStore = useApiKeyStore();
 const { createdKey } = storeToRefs(apiKeyStore);
 const apiKeys = ref<ApiKeyFragment[]>([]);
+
+// Local modal state
+const showCreateModal = ref(false);
+const editingKey = ref<ApiKeyFragment | null>(null);
 
 
 watchEffect(() => {
@@ -95,10 +100,28 @@ function toggleShowKey(keyId: string) {
 
 function openCreateModal(key: ApiKeyFragment | ApiKeyFragment | null = null) {
   apiKeyStore.clearCreatedKey();
-  apiKeyStore.showModal(key as ApiKeyFragment | null);
+  editingKey.value = key as ApiKeyFragment | null;
+  showCreateModal.value = true;
 }
 
-function openCreateFromTemplate() {
+function handleKeyCreated(key: ApiKeyFragment) {
+  // Add the new key to the list
+  apiKeys.value.unshift(key);
+  showCreateModal.value = false;
+  editingKey.value = null;
+}
+
+function handleKeyUpdated(key: ApiKeyFragment) {
+  // Update the key in the list
+  const index = apiKeys.value.findIndex(k => k.id === key.id);
+  if (index >= 0) {
+    apiKeys.value[index] = key;
+  }
+  showCreateModal.value = false;
+  editingKey.value = null;
+}
+
+async function openCreateFromTemplate() {
   showTemplateInput.value = true;
   templateUrl.value = '';
   templateError.value = '';
@@ -341,6 +364,14 @@ async function copyKeyTemplate(key: ApiKeyFragment) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      <!-- API Key Create Modal -->
+      <ApiKeyCreate 
+        v-model:open="showCreateModal"
+        :editing-key="editingKey"
+        @created="handleKeyCreated"
+        @updated="handleKeyUpdated"
+      />
     </div>
   </PageContainer>
 </template>

@@ -4,11 +4,6 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 class WebComponentsExtractor
 {
     private const PREFIXED_PATH = '/plugins/dynamix.my.servers/unraid-components/';
-    private const RICH_COMPONENTS_ENTRY = 'unraid-components.client.mjs';
-    private const RICH_COMPONENTS_ENTRY_JS = 'unraid-components.client.js';
-    private const UI_ENTRY = 'src/register.ts';
-    private const UI_STYLES_ENTRY = 'style.css';
-    private const STANDALONE_APPS_ENTRY = 'standalone-apps.js';
 
     private static ?WebComponentsExtractor $instance = null;
 
@@ -22,15 +17,6 @@ class WebComponentsExtractor
         return self::$instance;
     }
 
-    private function findManifestFiles(string $manifestName): array
-    {
-        $basePath = '/usr/local/emhttp' . self::PREFIXED_PATH;
-        $escapedBasePath = escapeshellarg($basePath);
-        $escapedManifestName = escapeshellarg($manifestName);
-        $command = "find {$escapedBasePath} -name {$escapedManifestName}";
-        exec($command, $files);
-        return $files;
-    }
 
     public function getAssetPath(string $asset, string $subfolder = ''): string
     {
@@ -50,168 +36,87 @@ class WebComponentsExtractor
         return $contents ? json_decode($contents, true) : [];
     }
 
-
-    private function getRichComponentsFile(): string
+    private function processManifestFiles(): string
     {
-        $manifestFiles = $this->findManifestFiles('manifest.json');
+        // Find all manifest files (*.manifest.json or manifest.json)
+        $manifestFiles = $this->findAllManifestFiles();
         
+        if (empty($manifestFiles)) {
+            return '';
+        }
+        
+        $scripts = [];
+        
+        // Process each manifest file
         foreach ($manifestFiles as $manifestPath) {
             $manifest = $this->getManifestContents($manifestPath);
+            if (empty($manifest)) {
+                continue;
+            }
+            
             $subfolder = $this->getRelativePath($manifestPath);
             
-            foreach ($manifest as $key => $value) {
-                // Skip timestamp entries
-                if ($key === 'ts' || !is_array($value)) {
+            // Process each entry in the manifest
+            foreach ($manifest as $key => $entry) {
+                // Skip if not an array with a 'file' key
+                if (!is_array($entry) || !isset($entry['file']) || empty($entry['file'])) {
                     continue;
                 }
                 
-                // Check for both old format (direct key match) and new format (path-based key)
-                $matchesMjs = strpos($key, self::RICH_COMPONENTS_ENTRY) !== false;
-                $matchesJs = strpos($key, self::RICH_COMPONENTS_ENTRY_JS) !== false;
+                // Build the file path
+                $filePath = ($subfolder ? $subfolder . '/' : '') . $entry['file'];
+                $fullPath = $this->getAssetPath($filePath);
                 
-                if (($matchesMjs || $matchesJs) && isset($value["file"])) {
-                    return ($subfolder ? $subfolder . '/' : '') . $value["file"];
+                // Determine file type and generate appropriate tag
+                $extension = pathinfo($entry['file'], PATHINFO_EXTENSION);
+                
+                if ($extension === 'js' || $extension === 'mjs') {
+                    // Generate script tag with unique ID based on the key
+                    $scriptId = 'unraid-' . preg_replace('/[^a-zA-Z0-9-]/', '-', $key);
+                    $scripts[] = '<script id="' . $scriptId . '" type="module" src="' . $fullPath . '"></script>';
+                } elseif ($extension === 'css') {
+                    // Generate link tag for CSS files
+                    $linkId = 'unraid-' . preg_replace('/[^a-zA-Z0-9-]/', '-', $key);
+                    $scripts[] = '<link id="' . $linkId . '" rel="stylesheet" href="' . $fullPath . '">';
                 }
             }
         }
-        return '';
-    }
-
-    private function getRichComponentsScript(): string
-    {
-        $jsFile = $this->getRichComponentsFile();
-        if (empty($jsFile)) {
-            return '<script>console.error("%cNo matching key containing \'' . self::RICH_COMPONENTS_ENTRY . '\' or \'' . self::RICH_COMPONENTS_ENTRY_JS . '\' found.", "font-weight: bold; color: white; background-color: red");</script>';
-        }
-        // Add a unique identifier to prevent duplicate script loading
-        $scriptId = 'unraid-rich-components-script';
-        return '<script id="' . $scriptId . '" src="' . $this->getAssetPath($jsFile) . '"></script>
-        <script>
-            // Remove duplicate script tags to prevent multiple loads
-            (function() {
-                var scripts = document.querySelectorAll(\'script[id="' . $scriptId . '"]\');
-                if (scripts.length > 1) {
-                    for (var i = 1; i < scripts.length; i++) {
-                        scripts[i].remove();
-                    }
-                }
-            })();
-        </script>';
-    }
-
-    private function getStandaloneAppsScript(): string
-    {
-        $manifestFiles = $this->findManifestFiles('standalone.manifest.json');
         
-        if (empty($manifestFiles)) {
-            // No standalone apps, return empty
+        if (empty($scripts)) {
             return '';
         }
         
-        // Iterate over all manifest files to find valid standalone apps entry
-        foreach ($manifestFiles as $manifestPath) {
-            $manifest = $this->getManifestContents($manifestPath);
-            $subfolder = $this->getRelativePath($manifestPath);
-            
-            // Check if STANDALONE_APPS_ENTRY exists
-            if (!isset($manifest[self::STANDALONE_APPS_ENTRY])) {
-                error_log("Standalone apps manifest at '{$manifestPath}' is missing the '" . self::STANDALONE_APPS_ENTRY . "' entry key");
-                return '';
-            }
-            
-            $entry = $manifest[self::STANDALONE_APPS_ENTRY];
-            
-            // Check if 'file' key exists
-            if (!isset($entry['file']) || empty($entry['file'])) {
-                error_log("Standalone apps manifest at '{$manifestPath}' has entry '" . self::STANDALONE_APPS_ENTRY . "' but is missing the 'file' field");
-                return '';
-            }
-            
-            // Build the JS file path
-            $jsFile = ($subfolder ? $subfolder . '/' : '') . $entry['file'];
-            
-            // Use a unique identifier to prevent duplicate script loading
-            $scriptId = 'unraid-standalone-apps-script';
-            return '<script id="' . $scriptId . '" type="module" src="' . $this->getAssetPath($jsFile) . '"></script>
+        // Add deduplication script
+        $deduplicationScript = '
         <script>
-            // Remove duplicate script tags to prevent multiple loads
+            // Remove duplicate resource tags to prevent multiple loads
             (function() {
-                var scripts = document.querySelectorAll(\'script[id="' . $scriptId . '"]\');
-                if (scripts.length > 1) {
-                    for (var i = 1; i < scripts.length; i++) {
-                        scripts[i].remove();
+                var elements = document.querySelectorAll(\'[id^="unraid-"]\');
+                var seen = {};
+                for (var i = 0; i < elements.length; i++) {
+                    var el = elements[i];
+                    if (seen[el.id]) {
+                        el.remove();
+                    } else {
+                        seen[el.id] = true;
                     }
                 }
             })();
         </script>';
-        }
         
-        // Return empty string if no valid standalone apps entry found
-        return '';
+        return implode("\n", $scripts) . $deduplicationScript;
     }
     
-    private function getUnraidUiScriptHtml(): string
+    private function findAllManifestFiles(): array
     {
-        $manifestFiles = $this->findManifestFiles('ui.manifest.json');
+        $basePath = '/usr/local/emhttp' . self::PREFIXED_PATH;
+        $escapedBasePath = escapeshellarg($basePath);
         
-        if (empty($manifestFiles)) {
-            error_log("No ui.manifest.json found");
-            return '';
-        }
-
-        $manifestPath = $manifestFiles[0]; // Use the first found manifest
-        $manifest = $this->getManifestContents($manifestPath);
-        $subfolder = $this->getRelativePath($manifestPath);
-
-        if (!isset($manifest[self::UI_ENTRY]) || !isset($manifest[self::UI_STYLES_ENTRY])) {
-            error_log("Required entries not found in ui.manifest.json");
-            return '';
-        }
-
-        $jsFile = ($subfolder ? $subfolder . '/' : '') . $manifest[self::UI_ENTRY]['file'];
-        $cssFile = ($subfolder ? $subfolder . '/' : '') . $manifest[self::UI_STYLES_ENTRY]['file'];
+        // Find all files ending with .manifest.json or exactly named manifest.json
+        $command = "find {$escapedBasePath} -type f \\( -name '*.manifest.json' -o -name 'manifest.json' \\) 2>/dev/null";
+        exec($command, $files);
         
-        // Read the CSS file content
-        $cssPath = '/usr/local/emhttp' . $this->getAssetPath($cssFile);
-        $cssContent = @file_get_contents($cssPath);
-        
-        if ($cssContent === false) {
-            error_log("Failed to read CSS file: " . $cssPath);
-            $cssContent = '';
-        }
-        
-        // Escape the CSS content for JavaScript
-        $escapedCssContent = json_encode($cssContent);
-
-        // Use a data attribute to ensure this only runs once per page
-        return '<script data-unraid-ui-register defer type="module">
-            (async function() {
-                // Check if components have already been registered
-                if (window.__unraidUiComponentsRegistered) {
-                    return;
-                }
-                
-                // Mark as registered immediately to prevent race conditions
-                window.__unraidUiComponentsRegistered = true;
-                
-                try {
-                    const { registerAllComponents } = await import("' . $this->getAssetPath($jsFile) . '");
-                    registerAllComponents({ sharedCssContent: ' . $escapedCssContent . ' });
-                } catch (error) {
-                    console.error("[Unraid UI] Failed to register components:", error);
-                    // Reset flag on error so it can be retried
-                    window.__unraidUiComponentsRegistered = false;
-                }
-                
-                // Clean up duplicate script tags
-                const scripts = document.querySelectorAll(\'script[data-unraid-ui-register]\');
-                if (scripts.length > 1) {
-                    for (let i = 1; i < scripts.length; i++) {
-                        scripts[i].remove();
-                    }
-                }
-            })();
-        </script>';
+        return $files;
     }
 
     public function getScriptTagHtml(): string
@@ -220,14 +125,12 @@ class WebComponentsExtractor
         static $scriptsOutput = false;
         
         if ($scriptsOutput) {
-            return '<!-- Web components scripts already loaded -->';
+            return '<!-- Resources already loaded -->';
         }
         
         try {
             $scriptsOutput = true;
-            return $this->getRichComponentsScript() . 
-                   $this->getUnraidUiScriptHtml() . 
-                   $this->getStandaloneAppsScript();
+            return $this->processManifestFiles();
         } catch (\Exception $e) {
             error_log("Error in WebComponentsExtractor::getScriptTagHtml: " . $e->getMessage());
             $scriptsOutput = false; // Reset on error

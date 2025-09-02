@@ -11,6 +11,7 @@ import {
   XMarkIcon,
 } from '@heroicons/vue/24/solid';
 import {
+  Button,
   BrandButton,
   BrandLoading,
   cn,
@@ -347,18 +348,20 @@ const modalWidth = computed(() => {
           )"
         >
           <div :class="cn('flex flex-col-reverse xs:!flex-row justify-start gap-2')">
-            <BrandButton
-              variant="underline-hover-red"
-              :icon="XMarkIcon"
-              :text="t('Close')"
+            <Button
+              variant="ghost"
               @click="close"
-            />
-            <BrandButton
-              variant="underline"
-              :icon="ArrowTopRightOnSquareIcon"
-              :text="t('More options')"
+            >
+              <XMarkIcon class="w-4 h-4 mr-2" />
+              {{ t('Close') }}
+            </Button>
+            <Button
+              variant="ghost"
               @click="accountStore.updateOs()"
-            />
+            >
+              <ArrowTopRightOnSquareIcon class="w-4 h-4 mr-2" />
+              {{ t('More options') }}
+            </Button>
           </div>
           <div v-if="actionButtons" :class="cn('flex flex-col xs:!flex-row justify-end gap-2')">
             <BrandButton

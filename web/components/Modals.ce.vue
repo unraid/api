@@ -5,7 +5,6 @@ import { storeToRefs } from 'pinia';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useTrialStore } from '~/store/trial';
 import { useUpdateOsStore } from '~/store/updateOs';
-import ApiKeyCreate from '~/components/ApiKey/ApiKeyCreate.vue';
 import UpcCallbackFeedback from '~/components/UserProfile/CallbackFeedback.vue';
 import UpcTrial from '~/components/UserProfile/Trial.vue';
 import UpdateOsCheckUpdateResponseModal from '~/components/UpdateOs/CheckUpdateResponseModal.vue';
@@ -26,6 +25,5 @@ const { updateOsModalVisible, changelogModalVisible } = storeToRefs(useUpdateOsS
     <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
     <UpdateOsChangelogModal :t="t" :open="changelogModalVisible" />
     <ActivationModal :t="t" />
-    <ApiKeyCreate :t="t" />
   </div>
 </template>
