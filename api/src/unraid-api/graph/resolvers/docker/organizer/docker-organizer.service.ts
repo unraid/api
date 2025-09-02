@@ -3,9 +3,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { ContainerListOptions } from 'dockerode';
 
 import { AppError } from '@app/core/errors/app-error.js';
-import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { DockerOrganizerConfigService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer-config.service.js';
 import {
     addMissingResourcesToView,
     createFolderInView,
@@ -47,7 +47,7 @@ export function containerListToResourcesObject(containers: DockerContainer[]): O
 export class DockerOrganizerService {
     private readonly logger = new Logger(DockerOrganizerService.name);
     constructor(
-        private readonly dockerConfigService: DockerConfigService,
+        private readonly dockerConfigService: DockerOrganizerConfigService,
         private readonly dockerService: DockerService
     ) {}
 

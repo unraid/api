@@ -2,17 +2,17 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
-import {
-    containerToResource,
-    DockerOrganizerService,
-} from '@app/unraid-api/graph/resolvers/docker/docker-organizer.service.js';
 import {
     ContainerPortType,
     ContainerState,
     DockerContainer,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { DockerOrganizerConfigService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer-config.service.js';
+import {
+    containerToResource,
+    DockerOrganizerService,
+} from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
 import { OrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
 
 describe('containerToResource', () => {
@@ -138,7 +138,7 @@ describe('containerToResource', () => {
 
 describe('DockerOrganizerService', () => {
     let service: DockerOrganizerService;
-    let configService: DockerConfigService;
+    let configService: DockerOrganizerConfigService;
     let dockerService: DockerService;
 
     const mockOrganizer: OrganizerV1 = {
@@ -178,7 +178,7 @@ describe('DockerOrganizerService', () => {
             providers: [
                 DockerOrganizerService,
                 {
-                    provide: DockerConfigService,
+                    provide: DockerOrganizerConfigService,
                     useValue: {
                         getConfig: vi.fn().mockImplementation(() => structuredClone(mockOrganizer)),
                         validate: vi.fn().mockImplementation((config) => Promise.resolve(config)),
@@ -220,7 +220,7 @@ describe('DockerOrganizerService', () => {
         }).compile();
 
         service = moduleRef.get<DockerOrganizerService>(DockerOrganizerService);
-        configService = moduleRef.get<DockerConfigService>(DockerConfigService);
+        configService = moduleRef.get<DockerOrganizerConfigService>(DockerOrganizerConfigService);
         dockerService = moduleRef.get<DockerService>(DockerService);
     });
 

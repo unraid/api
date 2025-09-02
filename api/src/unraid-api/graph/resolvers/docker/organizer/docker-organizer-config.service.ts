@@ -13,7 +13,7 @@ import { OrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
 import { validateOrganizerIntegrity } from '@app/unraid-api/organizer/organizer.validation.js';
 
 @Injectable()
-export class DockerConfigService extends ConfigFilePersister<OrganizerV1> {
+export class DockerOrganizerConfigService extends ConfigFilePersister<OrganizerV1> {
     constructor(configService: ConfigService) {
         super(configService);
     }

@@ -8,7 +8,6 @@ import {
 } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
-import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/docker-organizer.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import {
     Docker,
@@ -16,8 +15,9 @@ import {
     DockerNetwork,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
 import { DEFAULT_ORGANIZER_ROOT_ID } from '@app/unraid-api/organizer/organizer.js';
-import { OrganizerV1, ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
+import { ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
 
 @Resolver(() => Docker)
 export class DockerResolver {
