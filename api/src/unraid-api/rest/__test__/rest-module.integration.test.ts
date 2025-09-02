@@ -1,3 +1,4 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
 
 import { CANONICAL_INTERNAL_CLIENT_TOKEN } from '@unraid/shared';
@@ -60,7 +61,7 @@ vi.mock('execa', () => ({
 describe('RestModule Integration', () => {
     it('should compile with RestService having access to ApiReportService', async () => {
         const module = await Test.createTestingModule({
-            imports: [RestModule],
+            imports: [CacheModule.register({ isGlobal: true }), RestModule],
         })
             // Override services that have complex dependencies for testing
             .overrideProvider(CANONICAL_INTERNAL_CLIENT_TOKEN)

@@ -1798,6 +1798,8 @@ type Server implements Node {
   guid: String!
   apikey: String!
   name: String!
+
+  """Whether this server is online or offline"""
   status: ServerStatus!
   wanip: String!
   lanip: String!
@@ -1854,7 +1856,7 @@ type OidcProvider {
   """
   OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration
   """
-  issuer: String!
+  issuer: String
 
   """
   OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
@@ -1905,6 +1907,16 @@ Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules
 enum AuthorizationRuleMode {
   OR
   AND
+}
+
+type OidcConfiguration {
+  """List of configured OIDC providers"""
+  providers: [OidcProvider!]!
+
+  """
+  Default allowed redirect origins that apply to all OIDC providers (e.g., Tailscale domains)
+  """
+  defaultAllowedOrigins: [String!]
 }
 
 type OidcSessionValidation {
@@ -2307,8 +2319,6 @@ type Query {
   getApiKeyCreationFormSchema: ApiKeyFormSettings!
   config: Config!
   flash: Flash!
-  logFiles: [LogFile!]!
-  logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
   me: UserAccount!
 
   """Get all notifications"""
@@ -2335,6 +2345,8 @@ type Query {
   disk(id: PrefixedID!): Disk!
   rclone: RCloneBackupSettings!
   info: Info!
+  logFiles: [LogFile!]!
+  logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
   settings: Settings!
   isSSOEnabled: Boolean!
 
@@ -2346,6 +2358,9 @@ type Query {
 
   """Get a specific OIDC provider by ID"""
   oidcProvider(id: PrefixedID!): OidcProvider
+
+  """Get the full OIDC configuration (admin only)"""
+  oidcConfiguration: OidcConfiguration!
 
   """Validate an OIDC session token (internal use for CLI validation)"""
   validateOidcSession(token: String!): OidcSessionValidation!
@@ -2590,13 +2605,13 @@ input AccessUrlInput {
 }
 
 type Subscription {
-  logFile(path: String!): LogFileContent!
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
   ownerSubscription: Owner!
   serversSubscription: Server!
   parityHistorySubscription: ParityCheck!
   arraySubscription: UnraidArray!
+  logFile(path: String!): LogFileContent!
   systemMetricsCpu: CpuUtilization!
   systemMetricsMemory: MemoryUtilization!
   upsUpdates: UPSDevice!

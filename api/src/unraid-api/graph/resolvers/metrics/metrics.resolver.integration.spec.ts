@@ -9,7 +9,7 @@ import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
 import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
-import { SubscriptionPollingService } from '@app/unraid-api/graph/services/subscription-polling.service.js';
+import { SubscriptionManagerService } from '@app/unraid-api/graph/services/subscription-manager.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
 describe('MetricsResolver Integration Tests', () => {
@@ -25,7 +25,7 @@ describe('MetricsResolver Integration Tests', () => {
                 MemoryService,
                 SubscriptionTrackerService,
                 SubscriptionHelperService,
-                SubscriptionPollingService,
+                SubscriptionManagerService,
             ],
         }).compile();
 
@@ -36,8 +36,8 @@ describe('MetricsResolver Integration Tests', () => {
 
     afterEach(async () => {
         // Clean up polling service
-        const pollingService = module.get<SubscriptionPollingService>(SubscriptionPollingService);
-        pollingService.stopAll();
+        const subscriptionManager = module.get<SubscriptionManagerService>(SubscriptionManagerService);
+        subscriptionManager.stopAll();
         await module.close();
     });
 
@@ -202,10 +202,13 @@ describe('MetricsResolver Integration Tests', () => {
         it('should handle errors in CPU polling gracefully', async () => {
             const service = module.get<CpuService>(CpuService);
             const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
-            const pollingService = module.get<SubscriptionPollingService>(SubscriptionPollingService);
+            const subscriptionManager =
+                module.get<SubscriptionManagerService>(SubscriptionManagerService);
 
             // Mock logger to capture error logs
-            const loggerSpy = vi.spyOn(pollingService['logger'], 'error').mockImplementation(() => {});
+            const loggerSpy = vi
+                .spyOn(subscriptionManager['logger'], 'error')
+                .mockImplementation(() => {});
             vi.spyOn(service, 'generateCpuLoad').mockRejectedValueOnce(new Error('CPU error'));
 
             // Trigger polling
@@ -215,7 +218,7 @@ describe('MetricsResolver Integration Tests', () => {
             await new Promise((resolve) => setTimeout(resolve, 1100));
 
             expect(loggerSpy).toHaveBeenCalledWith(
-                expect.stringContaining('Error in polling task'),
+                expect.stringContaining('Error in subscription callback'),
                 expect.any(Error)
             );
 
@@ -226,10 +229,13 @@ describe('MetricsResolver Integration Tests', () => {
         it('should handle errors in memory polling gracefully', async () => {
             const service = module.get<MemoryService>(MemoryService);
             const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
-            const pollingService = module.get<SubscriptionPollingService>(SubscriptionPollingService);
+            const subscriptionManager =
+                module.get<SubscriptionManagerService>(SubscriptionManagerService);
 
             // Mock logger to capture error logs
-            const loggerSpy = vi.spyOn(pollingService['logger'], 'error').mockImplementation(() => {});
+            const loggerSpy = vi
+                .spyOn(subscriptionManager['logger'], 'error')
+                .mockImplementation(() => {});
             vi.spyOn(service, 'generateMemoryLoad').mockRejectedValueOnce(new Error('Memory error'));
 
             // Trigger polling
@@ -239,7 +245,7 @@ describe('MetricsResolver Integration Tests', () => {
             await new Promise((resolve) => setTimeout(resolve, 2100));
 
             expect(loggerSpy).toHaveBeenCalledWith(
-                expect.stringContaining('Error in polling task'),
+                expect.stringContaining('Error in subscription callback'),
                 expect.any(Error)
             );
 
@@ -251,22 +257,30 @@ describe('MetricsResolver Integration Tests', () => {
     describe('Polling cleanup on module destroy', () => {
         it('should clean up timers when module is destroyed', async () => {
             const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
-            const pollingService = module.get<SubscriptionPollingService>(SubscriptionPollingService);
+            const subscriptionManager =
+                module.get<SubscriptionManagerService>(SubscriptionManagerService);
 
             // Start polling
             trackerService.subscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
             trackerService.subscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
 
-            // Verify polling is active
-            expect(pollingService.isPolling(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(true);
-            expect(pollingService.isPolling(PUBSUB_CHANNEL.MEMORY_UTILIZATION)).toBe(true);
+            // Wait a bit for subscriptions to be fully set up
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            // Verify subscriptions are active
+            expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(true);
+            expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.MEMORY_UTILIZATION)).toBe(
+                true
+            );
 
             // Clean up the module
             await module.close();
 
-            // Timers should be cleaned up
-            expect(pollingService.isPolling(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(false);
-            expect(pollingService.isPolling(PUBSUB_CHANNEL.MEMORY_UTILIZATION)).toBe(false);
+            // Subscriptions should be cleaned up
+            expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(false);
+            expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.MEMORY_UTILIZATION)).toBe(
+                false
+            );
         });
     });
 });

@@ -448,6 +448,20 @@ export enum ConfigErrorState {
   WITHDRAWN = 'WITHDRAWN'
 }
 
+export type ConfigFile = {
+  __typename?: 'ConfigFile';
+  content: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+  /** Human-readable file size (e.g., "1.5 KB", "2.3 MB") */
+  sizeReadable: Scalars['String']['output'];
+};
+
+export type ConfigFilesResponse = {
+  __typename?: 'ConfigFilesResponse';
+  files: Array<ConfigFile>;
+};
+
 export type Connect = Node & {
   __typename?: 'Connect';
   /** The status of dynamic remote access */
@@ -1432,6 +1446,14 @@ export type OidcAuthorizationRule = {
   value: Array<Scalars['String']['output']>;
 };
 
+export type OidcConfiguration = {
+  __typename?: 'OidcConfiguration';
+  /** Default allowed redirect origins that apply to all OIDC providers (e.g., Tailscale domains) */
+  defaultAllowedOrigins?: Maybe<Array<Scalars['String']['output']>>;
+  /** List of configured OIDC providers */
+  providers: Array<OidcProvider>;
+};
+
 export type OidcProvider = {
   __typename?: 'OidcProvider';
   /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
@@ -1455,7 +1477,7 @@ export type OidcProvider = {
   /** The unique identifier for the OIDC provider */
   id: Scalars['PrefixedID']['output'];
   /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
-  issuer: Scalars['String']['output'];
+  issuer?: Maybe<Scalars['String']['output']>;
   /** JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
   jwksUri?: Maybe<Scalars['String']['output']>;
   /** Display name of the OIDC provider */
@@ -1623,6 +1645,7 @@ export type PublicPartnerInfo = {
 
 export type Query = {
   __typename?: 'Query';
+  allConfigFiles: ConfigFilesResponse;
   apiKey?: Maybe<ApiKey>;
   /** All possible permissions for API keys */
   apiKeyPossiblePermissions: Array<Permission>;
@@ -1632,6 +1655,7 @@ export type Query = {
   array: UnraidArray;
   cloud: Cloud;
   config: Config;
+  configFile?: Maybe<ConfigFile>;
   connect: Connect;
   customization?: Maybe<Customization>;
   disk: Disk;
@@ -1654,6 +1678,8 @@ export type Query = {
   network: Network;
   /** Get all notifications */
   notifications: Notifications;
+  /** Get the full OIDC configuration (admin only) */
+  oidcConfiguration: OidcConfiguration;
   /** Get a specific OIDC provider by ID */
   oidcProvider?: Maybe<OidcProvider>;
   /** Get all configured OIDC providers (admin only) */
@@ -1690,6 +1716,11 @@ export type Query = {
 
 export type QueryApiKeyArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryConfigFileArgs = {
+  name: Scalars['String']['input'];
 };
 
 
@@ -1933,6 +1964,7 @@ export type Server = Node & {
   name: Scalars['String']['output'];
   owner: ProfileModel;
   remoteurl: Scalars['String']['output'];
+  /** Whether this server is online or offline */
   status: ServerStatus;
   wanip: Scalars['String']['output'];
 };
@@ -2757,12 +2789,24 @@ export type InfoVersionsQuery = { __typename?: 'Query', info: { __typename?: 'In
 export type OidcProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OidcProvidersQuery = { __typename?: 'Query', settings: { __typename?: 'Settings', sso: { __typename?: 'SsoSettings', oidcProviders: Array<{ __typename?: 'OidcProvider', id: string, name: string, clientId: string, issuer: string, authorizationEndpoint?: string | null, tokenEndpoint?: string | null, jwksUri?: string | null, scopes: Array<string>, authorizationRuleMode?: AuthorizationRuleMode | null, buttonText?: string | null, buttonIcon?: string | null, authorizationRules?: Array<{ __typename?: 'OidcAuthorizationRule', claim: string, operator: AuthorizationOperator, value: Array<string> }> | null }> } } };
+export type OidcProvidersQuery = { __typename?: 'Query', settings: { __typename?: 'Settings', sso: { __typename?: 'SsoSettings', oidcProviders: Array<{ __typename?: 'OidcProvider', id: string, name: string, clientId: string, issuer?: string | null, authorizationEndpoint?: string | null, tokenEndpoint?: string | null, jwksUri?: string | null, scopes: Array<string>, authorizationRuleMode?: AuthorizationRuleMode | null, buttonText?: string | null, buttonIcon?: string | null, authorizationRules?: Array<{ __typename?: 'OidcAuthorizationRule', claim: string, operator: AuthorizationOperator, value: Array<string> }> | null }> } } };
 
 export type PublicOidcProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type PublicOidcProvidersQuery = { __typename?: 'Query', publicOidcProviders: Array<{ __typename?: 'PublicOidcProvider', id: string, name: string, buttonText?: string | null, buttonIcon?: string | null, buttonVariant?: string | null, buttonStyle?: string | null }> };
+
+export type AllConfigFilesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllConfigFilesQuery = { __typename?: 'Query', allConfigFiles: { __typename?: 'ConfigFilesResponse', files: Array<{ __typename?: 'ConfigFile', name: string, content: string, path: string, sizeReadable: string }> } };
+
+export type ConfigFileQueryVariables = Exact<{
+  name: Scalars['String']['input'];
+}>;
+
+
+export type ConfigFileQuery = { __typename?: 'Query', configFile?: { __typename?: 'ConfigFile', name: string, content: string, path: string, sizeReadable: string } | null };
 
 export type ServerInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2842,6 +2886,8 @@ export const ListRCloneRemotesDocument = {"kind":"Document","definitions":[{"kin
 export const InfoVersionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"InfoVersions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}},{"kind":"Field","name":{"kind":"Name","value":"versions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"core"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraid"}},{"kind":"Field","name":{"kind":"Name","value":"api"}}]}}]}}]}}]}}]} as unknown as DocumentNode<InfoVersionsQuery, InfoVersionsQueryVariables>;
 export const OidcProvidersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"OidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sso"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"oidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"clientId"}},{"kind":"Field","name":{"kind":"Name","value":"issuer"}},{"kind":"Field","name":{"kind":"Name","value":"authorizationEndpoint"}},{"kind":"Field","name":{"kind":"Name","value":"tokenEndpoint"}},{"kind":"Field","name":{"kind":"Name","value":"jwksUri"}},{"kind":"Field","name":{"kind":"Name","value":"scopes"}},{"kind":"Field","name":{"kind":"Name","value":"authorizationRules"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"claim"}},{"kind":"Field","name":{"kind":"Name","value":"operator"}},{"kind":"Field","name":{"kind":"Name","value":"value"}}]}},{"kind":"Field","name":{"kind":"Name","value":"authorizationRuleMode"}},{"kind":"Field","name":{"kind":"Name","value":"buttonText"}},{"kind":"Field","name":{"kind":"Name","value":"buttonIcon"}}]}}]}}]}}]}}]} as unknown as DocumentNode<OidcProvidersQuery, OidcProvidersQueryVariables>;
 export const PublicOidcProvidersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PublicOidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicOidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"buttonText"}},{"kind":"Field","name":{"kind":"Name","value":"buttonIcon"}},{"kind":"Field","name":{"kind":"Name","value":"buttonVariant"}},{"kind":"Field","name":{"kind":"Name","value":"buttonStyle"}}]}}]}}]} as unknown as DocumentNode<PublicOidcProvidersQuery, PublicOidcProvidersQueryVariables>;
+export const AllConfigFilesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"AllConfigFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"allConfigFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"files"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"sizeReadable"}}]}}]}}]}}]} as unknown as DocumentNode<AllConfigFilesQuery, AllConfigFilesQueryVariables>;
+export const ConfigFileDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ConfigFile"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"configFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"sizeReadable"}}]}}]}}]} as unknown as DocumentNode<ConfigFileQuery, ConfigFileQueryVariables>;
 export const ServerInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}}]}}]} as unknown as DocumentNode<ServerInfoQuery, ServerInfoQueryVariables>;
 export const ConnectSignInDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConnectSignIn"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ConnectSignInInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignIn"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<ConnectSignInMutation, ConnectSignInMutationVariables>;
 export const SignOutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignOut"}}]}}]} as unknown as DocumentNode<SignOutMutation, SignOutMutationVariables>;

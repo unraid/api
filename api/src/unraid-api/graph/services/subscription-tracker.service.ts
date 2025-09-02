@@ -1,14 +1,44 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import { SubscriptionPollingService } from '@app/unraid-api/graph/services/subscription-polling.service.js';
+import { SubscriptionManagerService } from '@app/unraid-api/graph/services/subscription-manager.service.js';
 
+/**
+ * Service for managing subscriptions with automatic reference counting.
+ *
+ * This service tracks the number of active subscribers for each topic and automatically
+ * starts/stops the underlying subscription based on subscriber count.
+ *
+ * **When to use this service:**
+ * - When you have multiple GraphQL subscriptions that share the same data source
+ * - When you need to start a resource (polling, file watcher, etc.) only when there are active subscribers
+ * - When you need automatic cleanup when the last subscriber disconnects
+ *
+ * @example
+ * // Register a polling subscription
+ * subscriptionTracker.registerTopic(
+ *   'metrics-update',
+ *   async () => {
+ *     const metrics = await fetchMetrics();
+ *     pubsub.publish('metrics-update', { metrics });
+ *   },
+ *   5000 // Poll every 5 seconds
+ * );
+ *
+ * @example
+ * // Register an event-based subscription (e.g., file watching)
+ * subscriptionTracker.registerTopic(
+ *   'log-file-updates',
+ *   () => startFileWatcher('/var/log/app.log'), // onStart
+ *   () => stopFileWatcher('/var/log/app.log')   // onStop
+ * );
+ */
 @Injectable()
 export class SubscriptionTrackerService {
     private readonly logger = new Logger(SubscriptionTrackerService.name);
     private subscriberCounts = new Map<string, number>();
     private topicHandlers = new Map<string, { onStart: () => void; onStop: () => void }>();
 
-    constructor(private readonly pollingService: SubscriptionPollingService) {}
+    constructor(private readonly subscriptionManager: SubscriptionManagerService) {}
 
     /**
      * Register a topic with optional polling support
@@ -29,8 +59,8 @@ export class SubscriptionTrackerService {
                 callback: async () => callbackOrOnStart(),
             };
             this.topicHandlers.set(topic, {
-                onStart: () => this.pollingService.startPolling(pollingConfig),
-                onStop: () => this.pollingService.stopPolling(topic),
+                onStart: () => this.subscriptionManager.startSubscription(pollingConfig),
+                onStop: () => this.subscriptionManager.stopSubscription(topic),
             });
         } else {
             // Legacy API: onStart and onStop handlers

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { RuleEffect } from '@jsonforms/core';
@@ -6,12 +6,12 @@ import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
 import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 
+import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/core/oidc-validation.service.js';
 import {
     AuthorizationOperator,
     OidcAuthorizationRule,
     OidcProvider,
-} from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
-import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
+} from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 import {
     createAccordionLayout,
     createLabeledControl,
@@ -21,6 +21,7 @@ import { SettingSlice } from '@app/unraid-api/types/json-forms.js';
 
 export interface OidcConfig {
     providers: OidcProvider[];
+    defaultAllowedOrigins?: string[];
 }
 
 @Injectable()
@@ -52,6 +53,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
     defaultConfig(): OidcConfig {
         return {
             providers: [this.getUnraidNetSsoProvider()],
+            defaultAllowedOrigins: [],
         };
     }
 
@@ -93,6 +95,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
 
         return {
             providers: [unraidNetSsoProvider],
+            defaultAllowedOrigins: [],
         };
     }
 
@@ -119,6 +122,42 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                         provider.authorizationRules || currentDefaults.authorizationRules,
                 };
             }
+
+            // Fix dangerous authorization rules for non-unraid.net providers
+            if (provider.authorizationRules && provider.authorizationRules.length > 0) {
+                // Filter out dangerous rules that would allow all emails
+                const safeRules = provider.authorizationRules.filter((rule) => {
+                    // Remove rules that have "email endsWith @" which allows all emails
+                    if (
+                        rule.claim === 'email' &&
+                        rule.operator === AuthorizationOperator.ENDS_WITH &&
+                        rule.value &&
+                        rule.value.length === 1 &&
+                        rule.value[0] === '@'
+                    ) {
+                        this.logger.warn(
+                            `Removing dangerous authorization rule from provider "${provider.name}": email endsWith "@" allows all emails`
+                        );
+                        return false;
+                    }
+                    // Remove rules with empty or invalid values
+                    if (
+                        !rule.value ||
+                        rule.value.length === 0 ||
+                        rule.value.every((v) => !v || !v.trim())
+                    ) {
+                        this.logger.warn(
+                            `Removing invalid authorization rule from provider "${provider.name}": empty values`
+                        );
+                        return false;
+                    }
+                    return true;
+                });
+
+                // Update provider with safe rules
+                provider.authorizationRules = safeRules;
+            }
+
             return provider;
         });
 
@@ -153,6 +192,28 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         if (provider.authorizationMode === 'simple' && provider.simpleAuthorization) {
             const rules = this.convertSimpleToRules(provider.simpleAuthorization);
             provider.authorizationRules = rules;
+        }
+
+        // Validate that authorization rules are present and valid for ALL providers
+        if (!provider.authorizationRules || provider.authorizationRules.length === 0) {
+            throw new Error(
+                `Provider "${provider.name}" requires authorization rules. Please configure who can access your server.`
+            );
+        }
+
+        // Validate each rule has valid values
+        for (const rule of provider.authorizationRules) {
+            if (!rule.claim || !rule.claim.trim()) {
+                throw new Error(`Provider "${provider.name}": Authorization rule claim cannot be empty`);
+            }
+            if (!rule.operator) {
+                throw new Error(`Provider "${provider.name}": Authorization rule operator is required`);
+            }
+            if (!rule.value || rule.value.length === 0 || rule.value.every((v) => !v || !v.trim())) {
+                throw new Error(
+                    `Provider "${provider.name}": Authorization rule for claim "${rule.claim}" must have at least one non-empty value`
+                );
+            }
         }
 
         // Clean up the provider object - remove UI-only fields
@@ -191,46 +252,52 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         allowedDomains?: string[];
         allowedEmails?: string[];
         allowedUserIds?: string[];
-        googleWorkspaceDomain?: string;
     }): OidcAuthorizationRule[] {
         const rules: OidcAuthorizationRule[] = [];
 
         // Convert email domains to endsWith rules
+        // Only add if domains are provided AND not empty AND have non-empty values
         if (simpleAuth?.allowedDomains && simpleAuth.allowedDomains.length > 0) {
-            rules.push({
-                claim: 'email',
-                operator: AuthorizationOperator.ENDS_WITH,
-                value: simpleAuth.allowedDomains.map((domain: string) =>
-                    domain.startsWith('@') ? domain : `@${domain}`
-                ),
-            });
+            const validDomains = simpleAuth.allowedDomains.filter(
+                (domain: string) => domain && domain.trim()
+            );
+            if (validDomains.length > 0) {
+                rules.push({
+                    claim: 'email',
+                    operator: AuthorizationOperator.ENDS_WITH,
+                    value: validDomains.map((domain: string) =>
+                        domain.startsWith('@') ? domain : `@${domain}`
+                    ),
+                });
+            }
         }
 
         // Convert specific emails to equals rules
+        // Only add if emails are provided AND not empty AND have non-empty values
         if (simpleAuth?.allowedEmails && simpleAuth.allowedEmails.length > 0) {
-            rules.push({
-                claim: 'email',
-                operator: AuthorizationOperator.EQUALS,
-                value: simpleAuth.allowedEmails,
-            });
+            const validEmails = simpleAuth.allowedEmails.filter(
+                (email: string) => email && email.trim()
+            );
+            if (validEmails.length > 0) {
+                rules.push({
+                    claim: 'email',
+                    operator: AuthorizationOperator.EQUALS,
+                    value: validEmails,
+                });
+            }
         }
 
         // Convert user IDs to sub equals rules
+        // Only add if user IDs are provided AND not empty AND have non-empty values
         if (simpleAuth?.allowedUserIds && simpleAuth.allowedUserIds.length > 0) {
-            rules.push({
-                claim: 'sub',
-                operator: AuthorizationOperator.EQUALS,
-                value: simpleAuth.allowedUserIds,
-            });
-        }
-
-        // Google Workspace domain (hd claim)
-        if (simpleAuth?.googleWorkspaceDomain) {
-            rules.push({
-                claim: 'hd',
-                operator: AuthorizationOperator.EQUALS,
-                value: [simpleAuth.googleWorkspaceDomain],
-            });
+            const validUserIds = simpleAuth.allowedUserIds.filter((id: string) => id && id.trim());
+            if (validUserIds.length > 0) {
+                rules.push({
+                    claim: 'sub',
+                    operator: AuthorizationOperator.EQUALS,
+                    value: validUserIds,
+                });
+            }
         }
 
         return rules;
@@ -286,7 +353,6 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     allowedDomains?: string[];
                                     allowedEmails?: string[];
                                     allowedUserIds?: string[];
-                                    googleWorkspaceDomain?: string;
                                 }
                             );
                             // Return provider with generated rules, removing UI-only fields
@@ -303,6 +369,38 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                         return cleanProvider;
                     }),
                 };
+
+                // Validate authorization rules for ALL providers including unraid.net
+                for (const provider of processedConfig.providers) {
+                    if (!provider.authorizationRules || provider.authorizationRules.length === 0) {
+                        throw new Error(
+                            `Provider "${provider.name}" requires authorization rules. Please configure who can access your server.`
+                        );
+                    }
+
+                    // Validate each rule has valid values
+                    for (const rule of provider.authorizationRules) {
+                        if (!rule.claim || !rule.claim.trim()) {
+                            throw new Error(
+                                `Provider "${provider.name}": Authorization rule claim cannot be empty`
+                            );
+                        }
+                        if (!rule.operator) {
+                            throw new Error(
+                                `Provider "${provider.name}": Authorization rule operator is required`
+                            );
+                        }
+                        if (
+                            !rule.value ||
+                            rule.value.length === 0 ||
+                            rule.value.every((v) => !v || !v.trim())
+                        ) {
+                            throw new Error(
+                                `Provider "${provider.name}": Authorization rule for claim "${rule.claim}" must have at least one non-empty value`
+                            );
+                        }
+                    }
+                }
 
                 // Validate OIDC discovery for all providers with issuer URLs
                 const validationErrors: string[] = [];
@@ -419,10 +517,6 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             if (rule.claim === 'sub' && rule.operator === AuthorizationOperator.EQUALS) {
                 return true;
             }
-            // Google Workspace domain
-            if (rule.claim === 'hd' && rule.operator === AuthorizationOperator.EQUALS) {
-                return true;
-            }
             return false;
         });
     }
@@ -431,13 +525,11 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         allowedDomains: string[];
         allowedEmails: string[];
         allowedUserIds: string[];
-        googleWorkspaceDomain?: string;
     } {
         const simpleAuth = {
             allowedDomains: [] as string[],
             allowedEmails: [] as string[],
             allowedUserIds: [] as string[],
-            googleWorkspaceDomain: undefined as string | undefined,
         };
 
         rules.forEach((rule) => {
@@ -449,12 +541,6 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                 simpleAuth.allowedEmails = rule.value;
             } else if (rule.claim === 'sub' && rule.operator === AuthorizationOperator.EQUALS) {
                 simpleAuth.allowedUserIds = rule.value;
-            } else if (
-                rule.claim === 'hd' &&
-                rule.operator === AuthorizationOperator.EQUALS &&
-                rule.value.length > 0
-            ) {
-                simpleAuth.googleWorkspaceDomain = rule.value[0];
             }
         });
 
@@ -462,7 +548,36 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
     }
 
     private buildSlice(): SettingSlice {
-        return mergeSettingSlices([this.oidcProvidersSlice()], { as: 'sso' });
+        const providersSlice = this.oidcProvidersSlice();
+
+        // Add defaultAllowedOrigins to the properties
+        providersSlice.properties.defaultAllowedOrigins = {
+            type: 'array',
+            items: { type: 'string' },
+            title: 'Default Allowed Redirect Origins',
+            default: [],
+            description:
+                'Additional trusted redirect origins to allow redirects from custom ports, reverse proxies, Tailscale, etc.',
+        };
+
+        // Add the control for defaultAllowedOrigins before the providers control using UnraidSettingsLayout
+        if (providersSlice.elements?.[0]?.elements) {
+            providersSlice.elements[0].elements.unshift(
+                createLabeledControl({
+                    scope: '#/properties/sso/properties/defaultAllowedOrigins',
+                    label: 'Allowed Redirect Origins',
+                    description:
+                        'Add trusted origins here when accessing Unraid through custom ports, reverse proxies, or Tailscale. Each origin should include the protocol and optionally a port (e.g., https://unraid.local:8443)',
+                    controlOptions: {
+                        format: 'array',
+                        inputType: 'text',
+                        placeholder: 'https://unraid.local:8443',
+                    },
+                })
+            );
+        }
+
+        return mergeSettingSlices([providersSlice], { as: 'sso' });
     }
 
     private oidcProvidersSlice(): SettingSlice {
@@ -999,7 +1114,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                                             scope: '#/properties/claim',
                                                                             label: 'JWT Claim:',
                                                                             description:
-                                                                                'JWT claim to check (e.g., email, sub, groups, hd for Google hosted domain)',
+                                                                                'JWT claim to check (e.g., email, sub, groups)',
                                                                             controlOptions: {
                                                                                 inputType: 'text',
                                                                                 placeholder: 'email',

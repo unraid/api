@@ -13,10 +13,11 @@ export const pubsub = new PubSub({ eventEmitter });
 
 /**
  * Create a pubsub subscription.
- * @param channel The pubsub channel to subscribe to.
+ * @param channel The pubsub channel to subscribe to. Can be either a predefined GRAPHQL_PUBSUB_CHANNEL
+ *                or a dynamic string for runtime-generated topics (e.g., log file paths like "LOG_FILE:/var/log/test.log")
  */
 export const createSubscription = <T = any>(
-    channel: GRAPHQL_PUBSUB_CHANNEL
+    channel: GRAPHQL_PUBSUB_CHANNEL | string
 ): AsyncIterableIterator<T> => {
     return pubsub.asyncIterableIterator<T>(channel);
 };

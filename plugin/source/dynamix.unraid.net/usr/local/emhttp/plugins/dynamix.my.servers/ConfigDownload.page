@@ -1,0 +1,6 @@
+Menu="ManagementAccess:160"
+Title="API Config Download"
+Icon="icon-download"
+Tag="download"
+---
+<unraid-config-download />

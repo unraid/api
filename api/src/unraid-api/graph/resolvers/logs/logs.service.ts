@@ -1,13 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { createReadStream } from 'node:fs';
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { readdir, stat } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { createInterface } from 'node:readline';
 
 import * as chokidar from 'chokidar';
 
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { pubsub } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
+import { LogWatcherManager } from '@app/unraid-api/graph/resolvers/logs/log-watcher-manager.service.js';
+import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
 interface LogFile {
     name: string;
@@ -26,11 +28,12 @@ interface LogFileContent {
 @Injectable()
 export class LogsService {
     private readonly logger = new Logger(LogsService.name);
-    private readonly logWatchers = new Map<
-        string,
-        { watcher: chokidar.FSWatcher; position: number; subscriptionCount: number }
-    >();
     private readonly DEFAULT_LINES = 100;
+
+    constructor(
+        private readonly subscriptionTracker: SubscriptionTrackerService,
+        private readonly watcherManager: LogWatcherManager
+    ) {}
 
     /**
      * Get the base path for log files
@@ -111,135 +114,208 @@ export class LogsService {
     }
 
     /**
-     * Get the subscription channel for a log file
+     * Register and get the topic key for a log file subscription
      * @param path Path to the log file
+     * @returns The subscription topic key
      */
-    getLogFileSubscriptionChannel(path: string): PUBSUB_CHANNEL {
+    registerLogFileSubscription(path: string): string {
         const normalizedPath = join(this.logBasePath, basename(path));
+        const topicKey = this.getTopicKey(normalizedPath);
 
-        // Start watching the file if not already watching
-        if (!this.logWatchers.has(normalizedPath)) {
-            this.startWatchingLogFile(normalizedPath);
-        } else {
-            // Increment subscription count for existing watcher
-            const watcher = this.logWatchers.get(normalizedPath);
-            if (watcher) {
-                watcher.subscriptionCount++;
-                this.logger.debug(
-                    `Incremented subscription count for ${normalizedPath} to ${watcher.subscriptionCount}`
-                );
-            }
+        // Register the topic if not already registered
+        if (!this.subscriptionTracker.getSubscriberCount(topicKey)) {
+            this.logger.debug(`Registering log file subscription topic: ${topicKey}`);
+
+            this.subscriptionTracker.registerTopic(
+                topicKey,
+                // onStart handler
+                () => {
+                    this.logger.debug(`Starting log file watcher for topic: ${topicKey}`);
+                    this.startWatchingLogFile(normalizedPath);
+                },
+                // onStop handler
+                () => {
+                    this.logger.debug(`Stopping log file watcher for topic: ${topicKey}`);
+                    this.stopWatchingLogFile(normalizedPath);
+                }
+            );
         }
 
-        return PUBSUB_CHANNEL.LOG_FILE;
+        return topicKey;
     }
 
     /**
      * Start watching a log file for changes using chokidar
      * @param path Path to the log file
      */
-    private async startWatchingLogFile(path: string): Promise<void> {
-        try {
-            // Get initial file size
-            const stats = await stat(path);
-            let position = stats.size;
+    private startWatchingLogFile(path: string): void {
+        const watcherKey = path;
 
-            // Create a watcher for the file using chokidar
-            const watcher = chokidar.watch(path, {
-                persistent: true,
-                awaitWriteFinish: {
-                    stabilityThreshold: 300,
-                    pollInterval: 100,
-                },
-            });
+        // Check if already watching or initializing
+        if (this.watcherManager.isWatchingOrInitializing(watcherKey)) {
+            this.logger.debug(`Already watching or initializing log file: ${watcherKey}`);
+            return;
+        }
 
-            watcher.on('change', async () => {
-                try {
-                    const newStats = await stat(path);
+        // Mark as initializing immediately to prevent race conditions
+        this.watcherManager.setInitializing(watcherKey);
 
-                    // If the file has grown
-                    if (newStats.size > position) {
-                        // Read only the new content
-                        const stream = createReadStream(path, {
-                            start: position,
-                            end: newStats.size - 1,
-                        });
+        // Get initial file size and set up watcher
+        stat(path)
+            .then((stats) => {
+                const position = stats.size;
 
-                        let newContent = '';
-                        stream.on('data', (chunk) => {
-                            newContent += chunk.toString();
-                        });
+                // Create a watcher for the file using chokidar
+                const watcher = chokidar.watch(path, {
+                    persistent: true,
+                    awaitWriteFinish: {
+                        stabilityThreshold: 300,
+                        pollInterval: 100,
+                    },
+                });
 
-                        stream.on('end', () => {
-                            if (newContent) {
-                                pubsub.publish(PUBSUB_CHANNEL.LOG_FILE, {
+                watcher.on('change', async () => {
+                    // Check if we're already processing a change event for this file
+                    if (!this.watcherManager.startProcessing(watcherKey)) {
+                        // Already processing, ignore this event
+                        return;
+                    }
+
+                    try {
+                        const newStats = await stat(path);
+
+                        // Get the current position
+                        const currentPosition = this.watcherManager.getPosition(watcherKey);
+                        if (currentPosition === undefined) {
+                            // Watcher was stopped or not active, ignore the event
+                            return;
+                        }
+
+                        // If the file has grown
+                        if (newStats.size > currentPosition) {
+                            // Read only the new content
+                            const stream = createReadStream(path, {
+                                start: currentPosition,
+                                end: newStats.size - 1,
+                            });
+
+                            let newContent = '';
+                            stream.on('data', (chunk) => {
+                                newContent += chunk.toString();
+                            });
+
+                            stream.on('end', () => {
+                                try {
+                                    if (newContent) {
+                                        // Use topic-specific channel
+                                        const topicKey = this.getTopicKey(path);
+                                        pubsub.publish(topicKey, {
+                                            logFile: {
+                                                path,
+                                                content: newContent,
+                                                totalLines: 0, // We don't need to count lines for updates
+                                            },
+                                        });
+                                    }
+
+                                    // Update position for next read (while still holding the guard)
+                                    this.watcherManager.updatePosition(watcherKey, newStats.size);
+                                } finally {
+                                    // Clear the in-flight flag
+                                    this.watcherManager.finishProcessing(watcherKey);
+                                }
+                            });
+
+                            stream.on('error', (error) => {
+                                this.logger.error(`Error reading stream for ${path}: ${error}`);
+                                // Clear the in-flight flag on error
+                                this.watcherManager.finishProcessing(watcherKey);
+                            });
+                        } else if (newStats.size < currentPosition) {
+                            // File was truncated, reset position and read from beginning
+                            this.logger.debug(`File ${path} was truncated, resetting position`);
+
+                            try {
+                                // Read the entire file content
+                                const content = await this.getLogFileContent(
+                                    path,
+                                    this.DEFAULT_LINES,
+                                    undefined
+                                );
+
+                                // Use topic-specific channel
+                                const topicKey = this.getTopicKey(path);
+                                pubsub.publish(topicKey, {
                                     logFile: {
-                                        path,
-                                        content: newContent,
-                                        totalLines: 0, // We don't need to count lines for updates
+                                        ...content,
                                     },
                                 });
+
+                                // Update position (while still holding the guard)
+                                this.watcherManager.updatePosition(watcherKey, newStats.size);
+                            } finally {
+                                // Clear the in-flight flag
+                                this.watcherManager.finishProcessing(watcherKey);
                             }
-
-                            // Update position for next read
-                            position = newStats.size;
-                        });
-                    } else if (newStats.size < position) {
-                        // File was truncated, reset position and read from beginning
-                        position = 0;
-                        this.logger.debug(`File ${path} was truncated, resetting position`);
-
-                        // Read the entire file content
-                        const content = await this.getLogFileContent(path);
-
-                        pubsub.publish(PUBSUB_CHANNEL.LOG_FILE, {
-                            logFile: content,
-                        });
-
-                        position = newStats.size;
+                        } else {
+                            // File size unchanged, clear the in-flight flag
+                            this.watcherManager.finishProcessing(watcherKey);
+                        }
+                    } catch (error: unknown) {
+                        this.logger.error(`Error processing file change for ${path}: ${error}`);
+                        // Clear the in-flight flag on error
+                        this.watcherManager.finishProcessing(watcherKey);
                     }
-                } catch (error: unknown) {
-                    this.logger.error(`Error processing file change for ${path}: ${error}`);
+                });
+
+                watcher.on('error', (error) => {
+                    this.logger.error(`Chokidar watcher error for ${path}: ${error}`);
+                });
+
+                // Check if we were stopped during initialization and handle cleanup
+                if (!this.watcherManager.handlePostInitialization(watcherKey, watcher, position)) {
+                    return;
                 }
+
+                // Publish initial snapshot
+                this.getLogFileContent(path, this.DEFAULT_LINES, undefined)
+                    .then((content) => {
+                        const topicKey = this.getTopicKey(path);
+                        pubsub.publish(topicKey, {
+                            logFile: {
+                                ...content,
+                            },
+                        });
+                    })
+                    .catch((error) => {
+                        this.logger.error(`Error publishing initial log content for ${path}: ${error}`);
+                    });
+
+                this.logger.debug(`Started watching log file with chokidar: ${path}`);
+            })
+            .catch((error) => {
+                this.logger.error(`Error setting up file watcher for ${path}: ${error}`);
+                // Clean up the initializing entry on error
+                this.watcherManager.removeEntry(watcherKey);
             });
+    }
 
-            watcher.on('error', (error) => {
-                this.logger.error(`Chokidar watcher error for ${path}: ${error}`);
-            });
-
-            // Store the watcher and current position with initial subscription count of 1
-            this.logWatchers.set(path, { watcher, position, subscriptionCount: 1 });
-
-            this.logger.debug(
-                `Started watching log file with chokidar: ${path} (subscription count: 1)`
-            );
-        } catch (error: unknown) {
-            this.logger.error(`Error setting up chokidar file watcher for ${path}: ${error}`);
-        }
+    /**
+     * Get the topic key for a log file subscription
+     * @param path Path to the log file (should already be normalized)
+     * @returns The topic key
+     */
+    private getTopicKey(path: string): string {
+        // Assume path is already normalized (full path)
+        return `LOG_FILE:${path}`;
     }
 
     /**
      * Stop watching a log file
      * @param path Path to the log file
      */
-    public stopWatchingLogFile(path: string): void {
-        const normalizedPath = join(this.logBasePath, basename(path));
-        const watcher = this.logWatchers.get(normalizedPath);
-
-        if (watcher) {
-            // Decrement subscription count
-            watcher.subscriptionCount--;
-            this.logger.debug(
-                `Decremented subscription count for ${normalizedPath} to ${watcher.subscriptionCount}`
-            );
-
-            // Only close the watcher when subscription count reaches 0
-            if (watcher.subscriptionCount <= 0) {
-                watcher.watcher.close();
-                this.logWatchers.delete(normalizedPath);
-                this.logger.debug(`Stopped watching log file: ${normalizedPath} (no more subscribers)`);
-            }
-        }
+    private stopWatchingLogFile(path: string): void {
+        this.watcherManager.stopWatcher(path);
     }
 
     /**

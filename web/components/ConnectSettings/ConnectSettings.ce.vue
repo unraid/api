@@ -16,6 +16,7 @@ import { useServerStore } from '~/store/server';
 // import type { ConnectSettingsValues } from '~/composables/gql/graphql';
 
 import { getConnectSettingsForm, updateConnectSettings } from './graphql/settings.query';
+import OidcDebugLogs from './OidcDebugLogs.vue';
 
 const { connectPluginInstalled } = storeToRefs(useServerStore());
 
@@ -120,6 +121,9 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
       :readonly="isUpdating"
       @change="onChange"
     />
+    <!-- OIDC Debug Logs -->
+    <OidcDebugLogs />
+    
     <!-- form submission & fallback reaction message -->
     <div class="mt-6 grid grid-cols-settings gap-y-6 items-baseline">
       <div class="text-sm text-end">
