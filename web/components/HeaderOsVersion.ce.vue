@@ -17,7 +17,7 @@ import ChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
 import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
 
 const { t } = useI18n();
-const { copyWithNotification, isSupported: clipboardSupported } = useClipboardWithToast();
+const { copyWithNotification } = useClipboardWithToast();
 
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
@@ -60,13 +60,13 @@ const openApiChangelog = () => {
 };
 
 const copyOsVersion = () => {
-  if (displayOsVersion.value && clipboardSupported.value) {
+  if (displayOsVersion.value) {
     copyWithNotification(displayOsVersion.value, t('OS version copied to clipboard'));
   }
 };
 
 const copyApiVersion = () => {
-  if (apiVersion.value && clipboardSupported.value) {
+  if (apiVersion.value) {
     copyWithNotification(apiVersion.value, t('API version copied to clipboard'));
   }
 };
@@ -163,28 +163,28 @@ const updateOsStatus = computed(() => {
           </DropdownMenuLabel>
           
           <DropdownMenuItem 
-            :disabled="!displayOsVersion || !clipboardSupported"
+            :disabled="!displayOsVersion"
             class="text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
             @click="copyOsVersion"
           >
             <span class="flex justify-between items-center w-full">
               <span class="flex items-center gap-x-2">
                 <span>{{ t('Unraid OS') }}</span>
-                <ClipboardDocumentIcon v-if="clipboardSupported" class="w-3 h-3 opacity-60" />
+                <ClipboardDocumentIcon class="w-3 h-3 opacity-60" />
               </span>
               <span class="font-semibold">{{ displayOsVersion || t('Unknown') }}</span>
             </span>
           </DropdownMenuItem>
           
           <DropdownMenuItem 
-            :disabled="!apiVersion || !clipboardSupported"
+            :disabled="!apiVersion"
             class="text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
             @click="copyApiVersion"
           >
             <span class="flex justify-between items-center w-full">
               <span class="flex items-center gap-x-2">
                 <span>{{ t('Unraid API') }}</span>
-                <ClipboardDocumentIcon v-if="clipboardSupported" class="w-3 h-3 opacity-60" />
+                <ClipboardDocumentIcon class="w-3 h-3 opacity-60" />
               </span>
               <span class="font-semibold">{{ apiVersion || t('Unknown') }}</span>
             </span>

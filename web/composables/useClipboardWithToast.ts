@@ -15,30 +15,48 @@ export function useClipboardWithToast() {
     text: string,
     successMessage: string = 'Copied to clipboard'
   ): Promise<boolean> => {
-    if (!isSupported.value) {
-      console.warn('Clipboard API is not supported');
-      // Use global toast if available
-      if (globalThis.toast) {
-        globalThis.toast.error('Clipboard not supported');
+    // Try modern Clipboard API first
+    if (isSupported.value) {
+      try {
+        await copy(text);
+        // Use global toast if available
+        if (globalThis.toast) {
+          globalThis.toast.success(successMessage);
+        }
+        return true;
+      } catch (error) {
+        console.error('Failed to copy to clipboard:', error);
       }
-      return false;
     }
     
+    // Fallback to execCommand for HTTP contexts
     try {
-      await copy(text);
-      // Use global toast if available
-      if (globalThis.toast) {
-        globalThis.toast.success(successMessage);
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      textarea.style.pointerEvents = 'none';
+      document.body.appendChild(textarea);
+      textarea.select();
+      
+      const success = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      
+      if (success) {
+        if (globalThis.toast) {
+          globalThis.toast.success(successMessage);
+        }
+        return true;
       }
-      return true;
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
-      // Use global toast if available
-      if (globalThis.toast) {
-        globalThis.toast.error('Failed to copy to clipboard');
-      }
-      return false;
+      console.error('Fallback copy failed:', error);
     }
+    
+    // Both methods failed
+    if (globalThis.toast) {
+      globalThis.toast.error('Failed to copy to clipboard');
+    }
+    return false;
   };
   
   return {
