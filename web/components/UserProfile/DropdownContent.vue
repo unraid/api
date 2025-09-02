@@ -36,6 +36,10 @@ import Keyline from './Keyline.vue';
 
 const props = defineProps<{ t: ComposerTranslation }>();
 
+const emit = defineEmits<{
+  'close-dropdown': []
+}>();
+
 const accountStore = useAccountStore();
 const errorsStore = useErrorsStore();
 const updateOsStore = useUpdateOsStore();
@@ -72,6 +76,7 @@ const manageUnraidNetAccount = computed((): UserProfileLink => {
     external: true,
     click: () => {
       accountStore.manage();
+      emit('close-dropdown');
     },
     icon: UserIcon,
     text: props.t('Manage Unraid.net Account'),
@@ -83,6 +88,7 @@ const updateOsCheckForUpdatesButton = computed((): UserProfileLink => {
   return {
     click: () => {
       updateOsStore.localCheckForUpdate();
+      emit('close-dropdown');
     },
     icon: ArrowPathIcon,
     text: props.t('Check for Update'),
@@ -92,6 +98,7 @@ const updateOsResponseModalOpenButton = computed((): UserProfileLink => {
   return {
     click: () => {
       updateOsStore.setModalOpen(true);
+      emit('close-dropdown');
     },
     emphasize: true,
     icon: BellAlertIcon,
@@ -199,7 +206,7 @@ const unraidConnectWelcome = computed(() => {
   <div class="flex flex-col grow gap-y-2">
     <header
       v-if="connectPluginInstalled"
-      class="flex flex-col items-start justify-between mt-2 mx-2"
+      class="flex flex-col items-start justify-between mt-2 mx-2 gap-2"
     >
       <h2 class="text-lg leading-none flex flex-row gap-x-1 items-center justify-between">
         <BrandLogoConnect

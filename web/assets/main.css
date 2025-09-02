@@ -3,12 +3,9 @@
  * This prevents Tailwind from applying global resets that affect webgui
  */
 
-/* Define layers for Tailwind v4 - base first, webgui later for higher priority */
-@layer base, theme, components, utilities, webgui;
-
 /* Import only the parts of Tailwind we need - NO PREFLIGHT */
-@import 'tailwindcss/theme.css' layer(theme);
-@import 'tailwindcss/utilities.css' layer(utilities);
+@import 'tailwindcss/theme.css';
+@import 'tailwindcss/utilities.css';
 @import 'tw-animate-css';
 @import '../../@tailwind-shared/index.css';
 @import '@nuxt/ui';
@@ -19,197 +16,66 @@
 @source "../**/*.{vue,ts,js}";
 
 /* 
- * Scoped resets - only apply within our components
- * This replaces Tailwind's global preflight
- * Using high specificity to override webgui styles
+ * Minimal styles for our components
+ * Only essential styles to ensure components work properly
  */
-@layer base {
-  /* Container with proper isolation */
-  .unraid-reset {
-    isolation: isolate;
-    /* Removed display: contents to maintain stacking context for modals */
-    
-    /* Set base typography that webgui can't override */
-    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-size: 16px;
-    line-height: 1.5;
-    color: rgb(17 24 39);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  
-  /* Scoped box-sizing reset */
-  .unraid-reset *,
-  .unraid-reset *::before,
-  .unraid-reset *::after {
-    box-sizing: border-box;
-    border-width: 0;
-    border-style: solid;
-    border-color: currentColor;
-  }
-  
-  /* Scoped margin reset */
-  .unraid-reset blockquote,
-  .unraid-reset dl,
-  .unraid-reset dd,
-  .unraid-reset h1,
-  .unraid-reset h2,
-  .unraid-reset h3,
-  .unraid-reset h4,
-  .unraid-reset h5,
-  .unraid-reset h6,
-  .unraid-reset hr,
-  .unraid-reset figure,
-  .unraid-reset p,
-  .unraid-reset pre {
-    margin: 0;
-  }
-  
-  /* Dark mode */
-  .dark .unraid-reset {
-    color: rgb(243 244 246);
-  }
-  
-  /* 
-   * Reset interactive elements to beat webgui styles
-   * Using @layer to ensure Tailwind utilities can still override
-   */
-  @layer base {
-    .unapi button,
-    .unapi input,
-    .unapi select,
-    .unapi textarea,
-    .unapi a,
-    .unraid-reset button,
-    .unraid-reset input,
-    .unraid-reset select,
-    .unraid-reset textarea,
-    .unraid-reset a {
-      /* Use 'revert-layer' to undo webgui styles but keep Tailwind */
-      all: revert-layer;
-      /* Base resets that Tailwind utilities can override */
-      font-family: inherit;
-      font-size: 100%;
-      font-weight: inherit;
-      line-height: inherit;
-      color: inherit;
-      background-color: transparent;
-      background-image: none;
-      border: 0;
-      padding: 0;
-      margin: 0;
-      cursor: auto;
-      text-align: inherit;
-      text-transform: none;
-      appearance: none;
-      outline: 2px solid transparent;
-      outline-offset: 2px;
-    }
-    
-    /* Specific button reset for webgui button styles */
-    .unapi button:not([class*="btn"]),
-    .unraid-reset button:not([class*="btn"]) {
-      /* Double specificity to beat webgui */
-      background: transparent;
-      box-shadow: none;
-      border-radius: 0;
-      min-width: auto;
-    }
-  }
-  
-  /* Inherit typography through all elements */
-  .unraid-reset * {
-    font-family: inherit;
-    font-size: inherit;
-    line-height: inherit;
-    color: inherit;
-  }
-  
-  /* Override webgui button styles with higher specificity */
-  .unraid-reset button,
-  .unraid-reset button[type="button"],
-  .unraid-reset button[type="submit"],
-  .unraid-reset button[type="reset"],
-  .unraid-reset input[type="button"],
-  .unraid-reset input[type="submit"],
-  .unraid-reset input[type="reset"],
-  .unraid-reset a.button {
-    /* Reset webgui button properties - use !important only where absolutely necessary */
-    font-family: inherit;
-    font-size: inherit;
-    font-weight: normal;
-    letter-spacing: normal;
-    text-transform: none;
-    min-width: auto;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-    text-decoration: none;
-    white-space: nowrap;
-    cursor: pointer;
-    outline: none;
-    border-radius: 0;
-    border: none;
-    color: inherit;
-    background: transparent;
-    background-size: auto;
-    appearance: none;
-    box-sizing: border-box;
-    
-    /* Override CSS variables from webgui - these need !important */
-    --button-border: none !important;
-    --button-text-color: inherit !important;
-    --button-background: transparent !important;
-    --button-background-size: auto !important;
-  }
-  
-  /* Form elements */
-  .unraid-reset input:not([type="button"]):not([type="submit"]):not([type="reset"]),
-  .unraid-reset select,
-  .unraid-reset textarea {
-    font-family: inherit;
-    font-size: inherit;
-    color: inherit;
-    appearance: none;
-    background: transparent;
-    border: none;
-    margin: 0;
-    padding: 0;
-  }
-  
-  /* Links */
-  .unraid-reset a:not(.button) {
-    color: inherit;
-    text-decoration: none;
-    cursor: pointer;
-  }
-  
-  /* SVG icons */
-  .unraid-reset svg {
-    fill: currentColor;
-  }
-  
-  /* Hidden elements */
-  .unraid-reset [hidden] {
-    display: none;
-  }
+
+/* Box-sizing for proper layout */
+.unapi *,
+.unapi *::before,
+.unapi *::after {
+  box-sizing: border-box;
 }
 
-
-/* Modal z-index management - ensure modals appear above webgui */
-[role="dialog"],
-[data-headlessui-portal],
-#teleports,
-#modals,
-unraid-modals,
-.z-50 {
-  z-index: 99999 !important;
-  position: relative;
+/* Reset figure element for logo */
+.unapi figure {
+  margin: 0;
+  padding: 0;
 }
 
-/* Modal backdrops */
-.fixed.inset-0[aria-hidden="true"],
-[data-headlessui-portal] .fixed.inset-0,
-.fixed.inset-0.z-50 {
-  z-index: 99998 !important;
+/* Reset heading elements - only margin/padding */
+.unapi h1,
+.unapi h2,
+.unapi h3,
+.unapi h4,
+.unapi h5 {
+  margin: 0;
+  padding: 0;
 }
+
+/* Reset paragraph element */
+.unapi p {
+  margin: 0;
+  padding: 0;
+}
+
+/* Reset toggle/switch button backgrounds */
+button[role="switch"],
+button[role="switch"][data-state="checked"],
+button[role="switch"][data-state="unchecked"] {
+  background-color: transparent !important;
+  background: transparent !important;
+  border: 1px solid #ccc !important;
+}
+
+/* Style for checked state */
+button[role="switch"][data-state="checked"] {
+  background-color: #ff8c2f !important; /* Unraid orange */
+}
+
+/* Style for unchecked state */
+button[role="switch"][data-state="unchecked"] {
+  background-color: #e5e5e5 !important;
+}
+
+/* Dark mode toggle styles */
+.dark button[role="switch"][data-state="unchecked"] {
+  background-color: #333 !important;
+  border-color: #555 !important;
+}
+
+/* Toggle thumb/handle */
+button[role="switch"] span {
+  background-color: white !important;
+}
+

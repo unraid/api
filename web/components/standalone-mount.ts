@@ -22,10 +22,25 @@ import ApiKeyAuthorize from './ApiKeyAuthorize.ce.vue';
 import { autoMountComponent, mountVueApp, getMountedApp } from './Wrapper/vue-mount-app';
 import { useThemeStore } from '~/store/theme';
 import { globalPinia } from '~/store/globalPinia';
+import { client as apolloClient } from '~/helpers/create-apollo-client';
+import { provideApolloClient } from '@vue/apollo-composable';
 
-// Initialize theme store and set CSS variables
+// Extend window interface for Apollo client
+declare global {
+  interface Window {
+    apolloClient: typeof apolloClient;
+  }
+}
+
+// Initialize global Apollo client context
 if (typeof window !== 'undefined') {
-  // Ensure pinia is ready
+  // Make Apollo client globally available
+  window.apolloClient = apolloClient;
+  
+  // Provide Apollo client globally for all components
+  provideApolloClient(apolloClient);
+  
+  // Initialize theme store and set CSS variables - this is needed by all components
   const themeStore = useThemeStore(globalPinia);
   themeStore.setTheme();
   themeStore.setCssVars();

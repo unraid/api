@@ -44,11 +44,11 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative flex items-center justify-center">
     <BellIcon class="w-6 h-6 text-header-text-primary" />
     <div
       v-if="!seen && indicatorLevel === 'UNREAD'"
-      class="absolute top-0 right-0 size-2.5 rounded-full border border-neutral-800 bg-unraid-green"
+      class="absolute top-0 right-0 size-2.5 rounded-full border border-muted bg-unraid-green"
     />
     <component
       :is="icon.component"

@@ -9,7 +9,15 @@ import {
   KeyIcon,
   ServerStackIcon,
 } from '@heroicons/vue/24/solid';
-import { BrandButton, BrandLoading, cn } from '@unraid/ui';
+import { 
+  BrandButton, 
+  BrandLoading, 
+  cn,
+  ResponsiveModal,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+  ResponsiveModalFooter,
+} from '@unraid/ui';
 import { allowedDocsOriginRegex, allowedDocsUrlRegex } from '~/helpers/urls';
 
 import type { ComposerTranslation } from 'vue-i18n';
@@ -18,7 +26,6 @@ import RawChangelogRenderer from '~/components/UpdateOs/RawChangelogRenderer.vue
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
 import { useUpdateOsStore } from '~/store/updateOs';
-import Modal from '~/components/Modal.vue';
 
 export interface Props {
   open?: boolean;
@@ -53,6 +60,7 @@ const isDarkMode = computed(() => {
   }
   return darkMode.value;
 });
+
 const { availableWithRenewal, releaseForUpdate, changelogModalVisible } = storeToRefs(updateOsStore);
 const { setReleaseForUpdate, fetchAndConfirmInstall } = updateOsStore;
 
@@ -166,22 +174,25 @@ watch(isDarkMode, () => {
 </script>
 
 <template>
-  <Modal
+  <ResponsiveModal
     v-if="currentRelease?.version"
-    :center-content="false"
-    max-width="max-w-[800px]"
     :open="modalVisible"
-    :show-close-x="true"
-    :t="t"
-    :tall-content="true"
-    :title="t('Unraid OS {0} Changelog', [currentRelease.version])"
-    :disable-overlay-close="false"
-    @close="handleClose"
+    sheet-side="bottom"
+    sheet-padding="none"
+    :dialog-class="'max-w-[80rem] p-0'"
+    :show-close-button="true"
+    @update:open="(value: boolean) => !value && handleClose()"
   >
-    <template #main>
-      <div class="flex flex-col gap-4 min-w-[280px] sm:min-w-[400px]">
+    <ResponsiveModalHeader>
+      <ResponsiveModalTitle>
+        {{ t('Unraid OS {0} Changelog', [currentRelease.version]) }}
+      </ResponsiveModalTitle>
+    </ResponsiveModalHeader>
+
+    <div class="px-3 flex-1">
+      <div class="flex flex-col gap-4 sm:min-w-[40rem]">
         <!-- iframe for changelog if available -->
-        <div v-if="docsChangelogUrl" class="w-[calc(100%+3rem)] h-[475px] -mx-6 -my-6">
+        <div v-if="docsChangelogUrl" class="w-full h-[calc(100vh-15rem)] sm:h-[45rem] overflow-hidden">
           <iframe
             v-if="actualIframeSrc"
             ref="iframeRef"
@@ -205,17 +216,17 @@ watch(isDarkMode, () => {
         <!-- Loading state -->
         <div
           v-else
-          class="text-center flex flex-col justify-center w-full min-h-[250px] min-w-[280px] sm:min-w-[400px]"
+          class="text-center flex flex-col justify-center w-full min-h-[25rem] sm:min-w-[40rem]"
         >
-          <BrandLoading class="w-[150px] mx-auto mt-6" />
+          <BrandLoading class="w-[15rem] mx-auto mt-6" />
           <p>{{ props.t('Loading changelog…') }}</p>
         </div>
       </div>
-    </template>
+    </div>
 
-    <template #footer>
-      <div :class="cn('flex flex-col-reverse xs:!flex-row justify-between gap-3 md:gap-4')">
-        <div :class="cn('flex flex-col-reverse xs:!flex-row xs:justify-start gap-3 md:gap-4')">
+    <ResponsiveModalFooter>
+      <div :class="cn('flex flex-wrap justify-between gap-3 md:gap-4 w-full')">
+        <div :class="cn('flex flex-wrap justify-start gap-3 md:gap-4')">
           <!-- Back to changelog button (when navigated away) -->
           <BrandButton
             v-if="hasNavigated && docsChangelogUrl"
@@ -256,6 +267,6 @@ watch(isDarkMode, () => {
           </BrandButton>
         </template>
       </div>
-    </template>
-  </Modal>
+    </ResponsiveModalFooter>
+  </ResponsiveModal>
 </template>

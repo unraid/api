@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
-import { BrandLoading } from '@unraid/ui';
+import { BrandLoading, Button } from '@unraid/ui';
 
 import type { ComposerTranslation } from 'vue-i18n';
 
@@ -78,13 +78,14 @@ const close = () => {
     <template v-if="!trialModalLoading" #footer>
       <div class="w-full max-w-xs flex flex-col items-center gap-y-4 mx-auto">
         <div>
-          <button
-            class="text-xs tracking-wide inline-block mx-2 opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
+          <Button
+            variant="link"
+            class="text-xs tracking-wide inline-block mx-2 opacity-60 hover:opacity-100 focus:opacity-100 underline transition h-auto p-0"
             :title="t('Close Modal')"
             @click="close"
           >
             {{ t('Close') }}
-          </button>
+          </Button>
         </div>
       </div>
     </template>

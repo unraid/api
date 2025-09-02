@@ -11,7 +11,10 @@ import {
   AccordionItem,
   AccordionTrigger,
   Button, 
-  Dialog, 
+  ResponsiveModal,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
+  ResponsiveModalFooter,
   jsonFormsAjv, 
   jsonFormsRenderers 
 } from '@unraid/ui';
@@ -382,37 +385,36 @@ const copyApiKey = async () => {
 
 <template>
   <!-- Modal mode (handles both regular creation and authorization) -->
-  <Dialog
+  <ResponsiveModal
     v-if="modalVisible"
-    v-model="modalVisible"
-    size="xl"
-    :title="
-      isAuthorizationMode
-        ? 'Authorize API Key Access'
-        : editingKey
-          ? t
-            ? t('Edit API Key')
-            : 'Edit API Key'
-          : t
-            ? t('Create API Key')
-            : 'Create API Key'
-    "
-    :scrollable="true"
-    close-button-text="Cancel"
-    :primary-button-text="isAuthorizationMode ? 'Authorize' : editingKey ? 'Save' : 'Create'"
-    :primary-button-loading="loading || postCreateLoading"
-    :primary-button-loading-text="
-      isAuthorizationMode ? 'Authorizing...' : editingKey ? 'Saving...' : 'Creating...'
-    "
-    :primary-button-disabled="isButtonDisabled"
-    @update:model-value="
+    :open="modalVisible"
+    sheet-side="bottom"
+    :sheet-class="'h-[100vh] flex flex-col'"
+    :dialog-class="'max-w-4xl max-h-[90vh] overflow-hidden'"
+    :show-close-button="true"
+    @update:open="
       (v) => {
         if (!v) close();
       }
     "
-    @primary-click="upsertKey"
   >
-    <div class="w-full">
+    <ResponsiveModalHeader>
+      <ResponsiveModalTitle>
+        {{
+          isAuthorizationMode
+            ? 'Authorize API Key Access'
+            : editingKey
+              ? t
+                ? t('Edit API Key')
+                : 'Edit API Key'
+              : t
+                ? t('Create API Key')
+                : 'Create API Key'
+        }}
+      </ResponsiveModalTitle>
+    </ResponsiveModalHeader>
+    
+    <div class="flex-1 overflow-y-auto p-6 w-full">
       <!-- Show authorization description if in authorization mode -->
       <div
         v-if="isAuthorizationMode && formSchema?.dataSchema?.description"
@@ -470,7 +472,7 @@ const copyApiKey = async () => {
         <!-- Show selected roles for context -->
         <div
           v-if="formData.roles && formData.roles.length > 0"
-          class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+          class="mt-3 pt-3 border-t border-muted border-gray-200 dark:border-gray-700"
         >
           <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">Selected Roles:</div>
           <div class="flex flex-wrap gap-1">
@@ -524,5 +526,25 @@ const copyApiKey = async () => {
         <p class="text-xs text-muted-foreground mt-2">Save this key securely for your application.</p>
       </div>
     </div>
-  </Dialog>
+
+    <ResponsiveModalFooter>
+      <div class="flex justify-end gap-2 w-full">
+        <Button variant="secondary" @click="close()">
+          Cancel
+        </Button>
+        <Button
+          variant="primary"
+          :disabled="isButtonDisabled || loading || postCreateLoading"
+          @click="upsertKey"
+        >
+          <span v-if="loading || postCreateLoading">
+            {{ isAuthorizationMode ? 'Authorizing...' : editingKey ? 'Saving...' : 'Creating...' }}
+          </span>
+          <span v-else>
+            {{ isAuthorizationMode ? 'Authorize' : editingKey ? 'Save' : 'Create' }}
+          </span>
+        </Button>
+      </div>
+    </ResponsiveModalFooter>
+  </ResponsiveModal>
 </template>

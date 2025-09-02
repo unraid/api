@@ -85,7 +85,7 @@ const reformattedTimestamp = computed<string>(() => {
 </script>
 
 <template>
-  <div class="group/item relative py-5 flex flex-col gap-2 text-base">
+  <div class="group/item relative py-3 flex flex-col gap-2 text-base">
     <header class="flex flex-row items-baseline justify-between gap-2 -translate-y-1">
       <h3
         class="tracking-normal flex flex-row items-baseline gap-2 uppercase font-bold overflow-x-hidden"

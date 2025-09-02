@@ -1,23 +1,7 @@
 /* Hybrid theme system: Native CSS + Theme Store fallback */
-@layer base {
-  /* Override Tailwind v4 global styles that leak outside components */
-  *, ::after, ::before, ::backdrop {
-    /* Reset border-color to initial to prevent Tailwind from affecting webgui */
-    border-color: initial;
-  }
-  
-  /* Properly scope border colors to our components only */
-  .unraid-reset *, 
-  .unraid-reset ::after, 
-  .unraid-reset ::before,
-  .unapi *,
-  .unapi ::after,
-  .unapi ::before {
-    border-color: hsl(var(--border));
-  }
-  
-  /* Light mode defaults */
-  :root {
+
+/* Light mode defaults */
+:root {
     /* Override Tailwind v4 global styles to use webgui variables */
     --ui-bg: var(--background-color) !important;
     --ui-text: var(--text-color) !important;
@@ -87,20 +71,3 @@
     --foreground: 0 0% 98%;
     --border: 0 0% 14.9%;
   }
-
-  /* For embedded components: just override the Tailwind v4 globals */
-  .unraid-reset, 
-  .unapi {
-    /* Override Tailwind v4 global styles to use webgui variables */
-    --ui-bg: var(--background-color) !important;
-    --ui-text: var(--text-color) !important;
-  }
-
-  /* Class-based dark mode support for embedded components */
-  .dark .unraid-reset,
-  .dark .unapi {
-    /* Override Tailwind v4 global styles to use webgui variables */
-    --ui-bg: var(--background-color) !important;
-    --ui-text: var(--text-color) !important;
-  }
-}

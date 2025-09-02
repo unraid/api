@@ -53,7 +53,7 @@ const items = [
     <AccordionItem value="color-theme-customization">
       <AccordionTrigger>Color Theme Customization</AccordionTrigger>
       <AccordionContent>
-        <div class="flex flex-col gap-2 border-solid border-2 p-2 border-r-2">
+        <div class="flex flex-col gap-2 border-solid border-2 border-muted p-2">
           <h1 class="text-lg">Color Theme Customization</h1>
 
           <Label for="theme-select">Theme</Label>

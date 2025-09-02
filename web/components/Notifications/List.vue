@@ -93,17 +93,28 @@ async function onLoadMore() {
   <div
     v-if="notifications?.length > 0"
     v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore }]"
-    class="divide-y px-7 flex flex-col overflow-y-scroll flex-1 min-h-0"
+    class="px-3 flex flex-col overflow-y-scroll flex-1 min-h-0"
   >
-    <NotificationsItem
-      v-for="notification in notifications"
-      :key="notification.id"
-      v-bind="notification"
-    />
-    <div v-if="loading" class="py-5 grid place-content-center">
+    <TransitionGroup 
+      name="notification-list" 
+      tag="div" 
+      class="divide-y"
+      enter-active-class="transition-all duration-300 ease-out"
+      leave-active-class="transition-all duration-300 ease-in absolute right-0 left-0"
+      enter-from-class="opacity-0 -translate-x-4"
+      leave-to-class="opacity-0 translate-x-4"
+      move-class="transition-transform duration-300"
+    >
+      <NotificationsItem
+        v-for="notification in notifications"
+        :key="notification.id"
+        v-bind="notification"
+      />
+    </TransitionGroup>
+    <div v-if="loading" class="py-3 grid place-content-center">
       <LoadingSpinner />
     </div>
-    <div v-if="!canLoadMore" class="py-5 grid place-content-center text-secondary-foreground">
+    <div v-if="!canLoadMore" class="py-3 grid place-content-center text-secondary-foreground">
       You've reached the end...
     </div>
   </div>

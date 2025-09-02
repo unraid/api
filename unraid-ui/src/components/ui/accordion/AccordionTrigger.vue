@@ -14,9 +14,11 @@ const delegatedProps = reactiveOmit(props, 'class');
   <AccordionHeader class="flex">
     <AccordionTrigger
       v-bind="delegatedProps"
+      as="span"
+      tabindex="0"
       :class="
         cn(
-          'flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180',
+          'flex flex-1 cursor-pointer items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180',
           props.class
         )
       "

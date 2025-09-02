@@ -7,7 +7,6 @@ export interface BrandButtonProps {
   variant?: BrandButtonVariants['variant'];
   size?: BrandButtonVariants['size'];
   padding?: BrandButtonVariants['padding'];
-  btnType?: 'button' | 'submit' | 'reset';
   class?: string;
   click?: () => void;
   disabled?: boolean;
@@ -26,7 +25,6 @@ const props = withDefaults(defineProps<BrandButtonProps>(), {
   variant: 'fill',
   size: '16px',
   padding: 'default',
-  btnType: 'button',
   class: undefined,
   click: undefined,
   disabled: false,
@@ -58,15 +56,26 @@ const needsBrandGradientBackground = computed(() => {
 
 <template>
   <component
-    :is="href ? 'a' : 'button'"
-    :disabled="disabled"
+    :is="href ? 'a' : 'span'"
+    :role="!href ? 'button' : undefined"
+    :tabindex="!href && !disabled ? 0 : undefined"
+    :aria-disabled="!href && disabled ? true : undefined"
     :href="href"
     :rel="external ? 'noopener noreferrer' : ''"
     :target="external ? '_blank' : ''"
-    :type="!href ? btnType : ''"
     :class="classes.button"
     :title="title"
-    @click="click ?? $emit('click')"
+    @click="!disabled && (click ?? $emit('click'))"
+    @keydown="
+      !href &&
+      !disabled &&
+      ((e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          (click ?? $emit('click'))();
+        }
+      })
+    "
   >
     <div
       v-if="variant === 'fill'"

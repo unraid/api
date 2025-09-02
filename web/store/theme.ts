@@ -137,6 +137,11 @@ export const useThemeStore = defineStore('theme', () => {
       customTheme['--color-header-gradient-end'] = hexToRgba(theme.value.bgColor, 0.7);
     }
 
+    // Set ui-border-muted if it exists in the theme
+    if (customTheme['--ui-border-muted']) {
+      // The value is already set from the defaultColors theme
+    }
+
     requestAnimationFrame(() => {
       // Apply dark class to both html and body for maximum compatibility
       if (darkMode.value) {

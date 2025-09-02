@@ -196,7 +196,7 @@ const updateItem = (index: number, newValue: unknown) => {
         :value="String(index)"
         class="mt-0 w-full"
       >
-        <div class="w-full rounded-lg border p-1 sm:p-6">
+        <div class="border-muted w-full rounded-lg border p-1 sm:p-6">
           <div class="mb-4 flex justify-end">
             <Button
               v-if="!isItemProtected(item)"
@@ -214,7 +214,7 @@ const updateItem = (index: number, newValue: unknown) => {
             <!-- Show warning if item matches protected condition -->
             <div
               v-if="getItemWarning(item)"
-              class="bg-warning/10 border-warning/20 mb-4 rounded-lg border p-3"
+              class="bg-warning/10 border-warning/20 border-muted mb-4 rounded-lg border p-3"
             >
               <div class="flex items-start gap-2">
                 <span class="text-warning">⚠️</span>
@@ -240,7 +240,7 @@ const updateItem = (index: number, newValue: unknown) => {
       </TabsContent>
     </Tabs>
 
-    <div v-else class="rounded-lg border-2 border-dashed py-8 text-center">
+    <div v-else class="border-muted rounded-lg border-2 border-dashed py-8 text-center">
       <p class="text-muted-foreground mb-4">No {{ itemTypeName.toLowerCase() }}s configured</p>
       <Button variant="outline" size="md" :disabled="!control.enabled" @click="addItem">
         <Plus class="mr-2 h-4 w-4" />

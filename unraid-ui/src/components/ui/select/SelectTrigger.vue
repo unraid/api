@@ -15,9 +15,11 @@ const forwardedProps = useForwardProps(delegatedProps);
 <template>
   <SelectTrigger
     v-bind="forwardedProps"
+    as="span"
+    tabindex="0"
     :class="
       cn(
-        'border-input bg-background ring-offset-background data-placeholder:text-muted-foreground focus:ring-ring flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-start text-sm focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 [&>span]:truncate',
+        'border-input bg-background ring-offset-background data-placeholder:text-muted-foreground focus:ring-ring flex h-10 w-full cursor-pointer items-center justify-between rounded-md border px-3 py-2 text-start text-sm focus:ring-2 focus:ring-offset-2 focus:outline-hidden data-disabled:cursor-not-allowed data-disabled:opacity-50 [&>span]:truncate',
         props.class
       )
     "

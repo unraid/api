@@ -7,20 +7,57 @@ export interface ButtonProps {
   variant?: ButtonVariants['variant'];
   size?: ButtonVariants['size'];
   class?: string;
+  disabled?: boolean;
 }
 
 const props = withDefaults(defineProps<ButtonProps>(), {
   variant: 'primary',
   size: 'md',
+  disabled: false,
 });
 
+const emit = defineEmits<{
+  click: [event: MouseEvent];
+}>();
+
 const buttonClass = computed(() => {
-  return cn(buttonVariants({ variant: props.variant, size: props.size }), props.class);
+  return cn(
+    buttonVariants({ variant: props.variant, size: props.size }),
+    'cursor-pointer select-none',
+    props.disabled && 'pointer-events-none opacity-50',
+    props.class
+  );
 });
+
+const handleClick = (event: MouseEvent) => {
+  if (!props.disabled) {
+    emit('click', event);
+  }
+};
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (!props.disabled && (event.key === 'Enter' || event.key === ' ')) {
+    event.preventDefault();
+    // Create a synthetic click event
+    const clickEvent = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      view: window,
+    });
+    emit('click', clickEvent);
+  }
+};
 </script>
 
 <template>
-  <button :class="buttonClass">
+  <span
+    :class="buttonClass"
+    role="button"
+    :tabindex="disabled ? -1 : 0"
+    :aria-disabled="disabled"
+    @click="handleClick"
+    @keydown="handleKeydown"
+  >
     <slot />
-  </button>
+  </span>
 </template>

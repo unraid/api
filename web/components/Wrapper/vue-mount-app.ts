@@ -11,6 +11,9 @@ import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
 import { globalPinia } from '~/store/globalPinia';
 import { client } from '~/helpers/create-apollo-client';
 
+// Ensure Apollo client is singleton
+const apolloClient = (typeof window !== 'undefined' && window.apolloClient) || client;
+
 // Global store for mounted apps
 const mountedApps = new Map<string, VueApp>();
 const mountedAppClones = new Map<string, VueApp[]>();
@@ -159,7 +162,7 @@ export function mountVueApp(options: MountOptions): VueApp | null {
   app.use(globalPinia);
   
   // Provide Apollo client
-  app.provide(DefaultApolloClient, client);
+  app.provide(DefaultApolloClient, apolloClient);
   
   // Mount to all targets
   const clones: VueApp[] = [];
@@ -167,10 +170,8 @@ export function mountVueApp(options: MountOptions): VueApp | null {
   targets.forEach((target, index) => {
     const mountTarget = target as HTMLElement;
     
-    // Add unapi class to ensure our prefixed styles apply and webgui styles are excluded
+    // Add unapi class for minimal styling
     mountTarget.classList.add('unapi');
-    // Keep unraid-reset for backwards compatibility
-    mountTarget.classList.add('unraid-reset');
     
     if (useShadowRoot) {
       // Create shadow root if needed
@@ -196,7 +197,7 @@ export function mountVueApp(options: MountOptions): VueApp | null {
         const clonedApp = createApp(component, targetProps);
         clonedApp.use(i18n);
         clonedApp.use(globalPinia);
-        clonedApp.provide(DefaultApolloClient, client);
+        clonedApp.provide(DefaultApolloClient, apolloClient);
         clonedApp.mount(container);
         clones.push(clonedApp);
       }
@@ -215,7 +216,7 @@ export function mountVueApp(options: MountOptions): VueApp | null {
         const clonedApp = createApp(component, targetProps);
         clonedApp.use(i18n);
         clonedApp.use(globalPinia); // Shared Pinia instance
-        clonedApp.provide(DefaultApolloClient, client);
+        clonedApp.provide(DefaultApolloClient, apolloClient);
         clonedApp.mount(mountTarget);
         clones.push(clonedApp);
       }

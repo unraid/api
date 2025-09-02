@@ -14,6 +14,12 @@ import {
   Badge,
   Button,
   CardWrapper,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
   DropdownMenuRoot,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -237,14 +243,14 @@ async function copyKeyTemplate(key: ApiKeyFragment) {
                       class="w-full font-mono text-xs px-2 py-1 rounded pr-10"
                       readonly
                     />
-                    <button
-                      type="button"
-                      class="absolute inset-y-0 right-2 flex items-center px-1 text-gray-500 hover:text-gray-700"
-                      tabindex="-1"
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      class="absolute inset-y-0 right-2 h-auto w-auto px-1 text-gray-500 hover:text-gray-700"
                       @click="toggleShowKey(key.id)"
                     >
                       <component :is="showKey[key.id] ? EyeSlashIcon : EyeIcon" class="w-5 h-5" />
-                    </button>
+                    </Button>
                   </div>
                   <TooltipProvider>
                     <Tooltip :delay-duration="0">
@@ -260,7 +266,7 @@ async function copyKeyTemplate(key: ApiKeyFragment) {
                   </TooltipProvider>
                 </div>
               </div>
-              <div v-if="key.permissions?.length || key.roles?.length" class="mt-4 pt-4 border-t">
+              <div v-if="key.permissions?.length || key.roles?.length" class="mt-4 pt-4 border-t border-muted">
                 <Accordion 
                   type="single" 
                   collapsible 
@@ -285,11 +291,11 @@ async function copyKeyTemplate(key: ApiKeyFragment) {
                   </AccordionItem>
                 </Accordion>
               </div>
-              <div class="mt-4 pt-4 border-t flex flex-wrap gap-2">
+              <div class="mt-4 pt-4 border-t border-muted flex flex-wrap gap-2">
                 <Button variant="secondary" size="sm" @click="openCreateModal(key)">Edit</Button>
                 <TooltipProvider>
                   <Tooltip :delay-duration="0">
-                    <TooltipTrigger>
+                    <TooltipTrigger as-child>
                       <Button variant="outline" size="sm" @click="copyKeyTemplate(key)">
                         <LinkIcon class="w-4 h-4 mr-1" />
                         Copy Template
@@ -311,27 +317,30 @@ async function copyKeyTemplate(key: ApiKeyFragment) {
       </div>
       
       <!-- Template Input Dialog -->
-      <div v-if="showTemplateInput" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-background rounded-lg p-6 max-w-lg w-full mx-4">
-          <h3 class="text-lg font-semibold mb-4">Create from Template</h3>
-          <p class="text-sm text-muted-foreground mb-4">
-            Paste a template URL or query string to pre-fill the API key creation form with permissions.
-          </p>
-          <Input
-            v-model="templateUrl"
-            placeholder="Paste template URL or query string (e.g., ?name=MyApp&scopes=role:admin)"
-            class="mb-4"
-            @keydown.enter="applyTemplate"
-          />
-          <div v-if="templateError" class="mb-4 p-3 rounded border border-destructive bg-destructive/10 text-destructive text-sm">
-            {{ templateError }}
+      <Dialog v-model:open="showTemplateInput">
+        <DialogContent class="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create from Template</DialogTitle>
+            <DialogDescription>
+              Paste a template URL or query string to pre-fill the API key creation form with permissions.
+            </DialogDescription>
+          </DialogHeader>
+          <div class="space-y-4">
+            <Input
+              v-model="templateUrl"
+              placeholder="Paste template URL or query string (e.g., ?name=MyApp&scopes=role:admin)"
+              @keydown.enter="applyTemplate"
+            />
+            <div v-if="templateError" class="p-3 rounded border border-destructive bg-destructive/10 text-destructive text-sm">
+              {{ templateError }}
+            </div>
           </div>
-          <div class="flex gap-3 justify-end">
+          <DialogFooter>
             <Button variant="outline" @click="cancelTemplateInput">Cancel</Button>
-            <Button variant="primary" @click="applyTemplate">Apply Template</Button>
-          </div>
-        </div>
-      </div>
+            <Button @click="applyTemplate">Apply Template</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   </PageContainer>
 </template>

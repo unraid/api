@@ -23,36 +23,6 @@ vi.mock('@unraid/shared-callbacks', () => ({
   useCallback: vi.fn(() => ({ send: vi.fn(), watcher: vi.fn() })),
 }));
 
-vi.mock('@unraid/ui', () => ({
-  Badge: {
-    name: 'Badge',
-    template: '<div><slot /></div>',
-  },
-  DropdownMenuRoot: {
-    name: 'DropdownMenuRoot',
-    template: '<div><slot /></div>',
-  },
-  DropdownMenuTrigger: {
-    name: 'DropdownMenuTrigger',
-    template: '<div><slot /></div>',
-  },
-  DropdownMenuContent: {
-    name: 'DropdownMenuContent',
-    template: '<div><slot /></div>',
-  },
-  DropdownMenuItem: {
-    name: 'DropdownMenuItem',
-    template: '<div><slot /></div>',
-  },
-  DropdownMenuLabel: {
-    name: 'DropdownMenuLabel',
-    template: '<div><slot /></div>',
-  },
-  DropdownMenuSeparator: {
-    name: 'DropdownMenuSeparator',
-    template: '<div />',
-  },
-}));
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: () => ({

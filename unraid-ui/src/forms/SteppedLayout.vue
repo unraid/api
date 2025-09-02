@@ -155,7 +155,7 @@ const getStepState = (stepIndex: number): StepState => {
     <!-- Render elements for the current step -->
     <!-- Added key to force re-render on step change, ensuring correct elements display -->
     <div
-      class="current-step-content rounded-md border p-4 shadow-sm"
+      class="current-step-content border-muted rounded-md border p-4 shadow-sm"
       :key="`step-content-${currentStep}`"
     >
       <DispatchRenderer
