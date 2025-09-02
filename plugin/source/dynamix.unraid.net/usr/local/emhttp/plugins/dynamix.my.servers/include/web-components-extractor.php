@@ -29,6 +29,11 @@ class WebComponentsExtractor
         $relative = str_replace($basePath, '', $fullPath);
         return dirname($relative);
     }
+    
+    private function sanitizeForId(string $input): string
+    {
+        return preg_replace('/[^a-zA-Z0-9-]/', '-', $input);
+    }
 
     public function getManifestContents(string $manifestPath): array
     {
@@ -70,14 +75,20 @@ class WebComponentsExtractor
                 // Determine file type and generate appropriate tag
                 $extension = pathinfo($entry['file'], PATHINFO_EXTENSION);
                 
+                // Sanitize subfolder and key for ID generation
+                $sanitizedSubfolder = $subfolder ? $this->sanitizeForId($subfolder) . '-' : '';
+                $sanitizedKey = $this->sanitizeForId($key);
+                
+                // Escape attributes for HTML safety
+                $safeId = htmlspecialchars('unraid-' . $sanitizedSubfolder . $sanitizedKey, ENT_QUOTES, 'UTF-8');
+                $safePath = htmlspecialchars($fullPath, ENT_QUOTES, 'UTF-8');
+                
                 if ($extension === 'js' || $extension === 'mjs') {
-                    // Generate script tag with unique ID based on the key
-                    $scriptId = 'unraid-' . preg_replace('/[^a-zA-Z0-9-]/', '-', $key);
-                    $scripts[] = '<script id="' . $scriptId . '" type="module" src="' . $fullPath . '"></script>';
+                    // Generate script tag with unique ID based on subfolder and key
+                    $scripts[] = '<script id="' . $safeId . '" type="module" src="' . $safePath . '"></script>';
                 } elseif ($extension === 'css') {
-                    // Generate link tag for CSS files
-                    $linkId = 'unraid-' . preg_replace('/[^a-zA-Z0-9-]/', '-', $key);
-                    $scripts[] = '<link id="' . $linkId . '" rel="stylesheet" href="' . $fullPath . '">';
+                    // Generate link tag for CSS files with unique ID
+                    $scripts[] = '<link id="' . $safeId . '" rel="stylesheet" href="' . $safePath . '">';
                 }
             }
         }

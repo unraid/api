@@ -51,7 +51,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     />
     <DialogContent :class="sheetClass" v-bind="forwarded">
       <slot />
-      <SheetClose as="span" class="absolute top-4 right-4">
+      <SheetClose as="span" class="absolute top-[max(1rem,env(safe-area-inset-top))] right-4">
         <Button variant="ghost" size="sm" class="h-auto w-auto p-1">
           <X class="h-4 w-4" />
         </Button>

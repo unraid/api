@@ -17,7 +17,9 @@ const props = withDefaults(defineProps<ResponsiveModalHeaderProps>(), {
 const isMobile = useMediaQuery(props.breakpoint);
 
 const headerClass = computed(() => {
-  return cn('px-6 pt-6 flex-shrink-0', props.class);
+  // Add safe area padding for iOS devices on mobile
+  const safePadding = isMobile.value ? 'pt-[max(1.5rem,env(safe-area-inset-top))]' : 'pt-6';
+  return cn('px-6 flex-shrink-0', safePadding, props.class);
 });
 </script>
 
