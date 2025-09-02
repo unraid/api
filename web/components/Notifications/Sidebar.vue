@@ -205,7 +205,7 @@ const prepareToViewNotifications = () => {
               "
             />
             <TooltipProvider>
-              <Tooltip>
+              <Tooltip :delay-duration="0">
                 <TooltipTrigger as-child>
                   <a href="/Settings/Notifications">
                     <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
@@ -214,7 +214,7 @@ const prepareToViewNotifications = () => {
                   </a>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Edit Settings</p>
+                  <p>Edit Notification Settings</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
