@@ -17,7 +17,7 @@ import ChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
 import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
 
 const { t } = useI18n();
-const { copyWithNotification } = useClipboardWithToast();
+const { copyWithNotification, isSupported: clipboardSupported } = useClipboardWithToast();
 
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
@@ -60,13 +60,13 @@ const openApiChangelog = () => {
 };
 
 const copyOsVersion = () => {
-  if (displayOsVersion.value) {
+  if (displayOsVersion.value && clipboardSupported.value) {
     copyWithNotification(displayOsVersion.value, t('OS version copied to clipboard'));
   }
 };
 
 const copyApiVersion = () => {
-  if (apiVersion.value) {
+  if (apiVersion.value && clipboardSupported.value) {
     copyWithNotification(apiVersion.value, t('API version copied to clipboard'));
   }
 };
@@ -149,7 +149,10 @@ const updateOsStatus = computed(() => {
             class="text-xs xs:text-sm flex flex-row items-center gap-x-1 font-semibold text-header-text-secondary hover:text-orange-dark focus:text-orange-dark hover:underline focus:underline leading-none h-auto p-0"
             :title="t('Version Information')"
           >
-            <InformationCircleIcon class="fill-current w-3 h-3 xs:w-4 xs:h-4 shrink-0" />
+            <InformationCircleIcon 
+              class="fill-current w-3 h-3 xs:w-4 xs:h-4 shrink-0" 
+              style="width: 12px !important; height: 12px !important; margin: 0 !important; display: inline-block !important;"
+            />
             {{ displayOsVersion }}
           </Button>
         </DropdownMenuTrigger>
@@ -160,28 +163,28 @@ const updateOsStatus = computed(() => {
           </DropdownMenuLabel>
           
           <DropdownMenuItem 
-            :disabled="!displayOsVersion"
+            :disabled="!displayOsVersion || !clipboardSupported"
             class="text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
             @click="copyOsVersion"
           >
             <span class="flex justify-between items-center w-full">
               <span class="flex items-center gap-x-2">
                 <span>{{ t('Unraid OS') }}</span>
-                <ClipboardDocumentIcon class="w-3 h-3 opacity-60" />
+                <ClipboardDocumentIcon v-if="clipboardSupported" class="w-3 h-3 opacity-60" />
               </span>
               <span class="font-semibold">{{ displayOsVersion || t('Unknown') }}</span>
             </span>
           </DropdownMenuItem>
           
           <DropdownMenuItem 
-            :disabled="!apiVersion"
+            :disabled="!apiVersion || !clipboardSupported"
             class="text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
             @click="copyApiVersion"
           >
             <span class="flex justify-between items-center w-full">
               <span class="flex items-center gap-x-2">
                 <span>{{ t('Unraid API') }}</span>
-                <ClipboardDocumentIcon class="w-3 h-3 opacity-60" />
+                <ClipboardDocumentIcon v-if="clipboardSupported" class="w-3 h-3 opacity-60" />
               </span>
               <span class="font-semibold">{{ apiVersion || t('Unknown') }}</span>
             </span>
