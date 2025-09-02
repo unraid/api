@@ -6,8 +6,20 @@ import { deployDir } from "../../utils/paths";
 
 describe("setupTxzEnvironment", () => {
   it("should return default values when no arguments are provided", async () => {
-    const envArgs = {};
-    const expected: TxzEnv = { ci: false, skipValidation: "false", compress: "1", txzOutputDir: join(startingDir, deployDir) };
+    const envArgs = {
+      apiVersion: "4.17.0",
+      baseUrl: "https://example.com"
+    };
+    const expected: TxzEnv = { 
+      apiVersion: "4.17.0",
+      baseUrl: "https://example.com",
+      ci: false, 
+      skipValidation: "false", 
+      compress: "1", 
+      txzOutputDir: join(startingDir, deployDir),
+      tag: "",
+      buildNumber: 1
+    };
 
     const result = await validateTxzEnv(envArgs);
 
@@ -15,8 +27,24 @@ describe("setupTxzEnvironment", () => {
   });
 
   it("should parse and return provided environment arguments", async () => {
-    const envArgs = { ci: true, skipValidation: "true", txzOutputDir: join(startingDir, "deploy/release/test"), compress: '8' };
-    const expected: TxzEnv = { ci: true, skipValidation: "true", compress: "8", txzOutputDir: join(startingDir, "deploy/release/test") };
+    const envArgs = { 
+      apiVersion: "4.17.0",
+      baseUrl: "https://example.com",
+      ci: true, 
+      skipValidation: "true", 
+      txzOutputDir: join(startingDir, "deploy/release/test"), 
+      compress: '8' 
+    };
+    const expected: TxzEnv = { 
+      apiVersion: "4.17.0",
+      baseUrl: "https://example.com",
+      ci: true, 
+      skipValidation: "true", 
+      compress: "8", 
+      txzOutputDir: join(startingDir, "deploy/release/test"),
+      tag: "",
+      buildNumber: 1
+    };
 
     const result = await validateTxzEnv(envArgs);
 
@@ -24,7 +52,11 @@ describe("setupTxzEnvironment", () => {
   });
 
   it("should warn and skip validation when skipValidation is true", async () => {
-    const envArgs = { skipValidation: "true" };
+    const envArgs = { 
+      apiVersion: "4.17.0",
+      baseUrl: "https://example.com",
+      skipValidation: "true" 
+    };
     const consoleWarnSpy = vi
       .spyOn(console, "warn")
       .mockImplementation(() => {});
@@ -38,7 +70,11 @@ describe("setupTxzEnvironment", () => {
   });
 
   it("should throw an error for invalid SKIP_VALIDATION value", async () => {
-    const envArgs = { skipValidation: "invalid" };
+    const envArgs = { 
+      apiVersion: "4.17.0",
+      baseUrl: "https://example.com",
+      skipValidation: "invalid" 
+    };
 
     await expect(validateTxzEnv(envArgs)).rejects.toThrow(
       "Must be true or false"

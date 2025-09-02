@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
 import { BellAlertIcon, ExclamationTriangleIcon, InformationCircleIcon, DocumentTextIcon, ArrowTopRightOnSquareIcon, ClipboardDocumentIcon } from '@heroicons/vue/24/solid';
-import { Badge, Button, DropdownMenuRoot, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@unraid/ui';
+import { Button, DropdownMenuRoot, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@unraid/ui';
 import { WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE, getReleaseNotesUrl } from '~/helpers/urls';
 
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
@@ -85,6 +85,16 @@ const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => {
   };
 });
 
+const handleUpdateStatusClick = () => {
+  if (!updateOsStatus.value) return;
+  
+  if (updateOsStatus.value.click) {
+    updateOsStatus.value.click();
+  } else if (updateOsStatus.value.href) {
+    window.location.href = updateOsStatus.value.href;
+  }
+};
+
 const updateOsStatus = computed(() => {
   if (stateDataError.value) {
     // only allowed to update when server is does not have a state error
@@ -151,7 +161,6 @@ const updateOsStatus = computed(() => {
           >
             <InformationCircleIcon 
               class="fill-current w-3 h-3 xs:w-4 xs:h-4 shrink-0" 
-              style="width: 12px !important; height: 12px !important; margin: 0 !important; display: inline-block !important;"
             />
             {{ displayOsVersion }}
           </Button>
@@ -210,30 +219,22 @@ const updateOsStatus = computed(() => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenuRoot>
-      <component
-        :is="updateOsStatus.href ? 'a' : 'span'"
+      <Button
         v-if="updateOsStatus"
-        :href="updateOsStatus.href ?? undefined"
-        :title="updateOsStatus.title ?? undefined"
-        :role="!updateOsStatus.href ? 'button' : undefined"
-        :tabindex="!updateOsStatus.href ? 0 : undefined"
-        class="group cursor-pointer"
-        @click="updateOsStatus.click?.()"
-        @keydown.enter="!updateOsStatus.href && updateOsStatus.click?.()"
-        @keydown.space.prevent="!updateOsStatus.href && updateOsStatus.click?.()"
+        :variant="updateOsStatus.badge?.color === 'orange' ? 'pill-orange' : 'pill-gray'"
+        :title="updateOsStatus.title ?? updateOsStatus.text"
+        :disabled="!updateOsStatus.href && !updateOsStatus.click"
+        size="sm"
+        @click="handleUpdateStatusClick"
       >
-        <Badge
-          v-if="updateOsStatus.badge"
-          :color="updateOsStatus.badge.color"
-          :icon="updateOsStatus.badge.icon"
-          size="xs"
-        >
-          {{ updateOsStatus.text }}
-        </Badge>
-        <template v-else>
-          {{ updateOsStatus.text }}
-        </template>
-      </component>
+        <span v-if="updateOsStatus.badge?.icon" class="inline-flex shrink-0 w-4 h-4">
+          <component 
+            :is="updateOsStatus.badge.icon" 
+            class="w-full h-full"
+          />
+        </span>
+        {{ updateOsStatus.text || '' }}
+      </Button>
     </div>
     
     <!-- OS Release Notes Modal -->

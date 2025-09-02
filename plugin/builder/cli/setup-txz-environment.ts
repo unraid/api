@@ -22,7 +22,7 @@ export const validateTxzEnv = async (
 ): Promise<TxzEnv> => {
   const validatedEnv = txzEnvSchema.parse(envArgs);
 
-  if ("skipValidation" in validatedEnv) {
+  if (validatedEnv.skipValidation === "true") {
     console.warn("skipValidation is true, skipping validation");
   }
 

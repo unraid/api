@@ -43,7 +43,7 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const LoadingIcon = () => h(BrandLoading, { variant: 'white' });
+const LoadingIcon = () => h(BrandLoading, { variant: 'white', style: 'width: 16px; height: 16px;' });
 
 const { dateTimeFormat, osVersion, rebootType, rebootVersion, regExp, regUpdatesExpired } =
   storeToRefs(serverStore);
@@ -83,7 +83,7 @@ const checkButton = computed(() => {
           accountStore.updateOs();
         }
       },
-      icon: ArrowTopRightOnSquareIcon,
+      icon: () => h(ArrowTopRightOnSquareIcon, { style: 'width: 16px; height: 16px;' }),
       text: props.t('More options'),
     };
   }
@@ -93,7 +93,7 @@ const checkButton = computed(() => {
       click: () => {
         updateOsStore.localCheckForUpdate();
       },
-      icon: ArrowPathIcon,
+      icon: () => h(ArrowPathIcon, { style: 'width: 16px; height: 16px;' }),
       text: props.t('Check for Update'),
     };
   }
@@ -103,7 +103,7 @@ const checkButton = computed(() => {
     click: () => {
       updateOsStore.setModalOpen(true);
     },
-    icon: BellAlertIcon,
+    icon: () => h(BellAlertIcon, { style: 'width: 16px; height: 16px;' }),
     text: availableWithRenewal.value
       ? props.t('Unraid OS {0} Released', [availableWithRenewal.value])
       : props.t('Unraid OS {0} Update Available', [available.value]),
@@ -135,7 +135,7 @@ const navigateToRegistration = () => {
           :title="t('View release notes')"
           @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [osVersion]))"
         >
-          <Badge :icon="InformationCircleIcon" variant="gray" size="md">
+          <Badge :icon="() => h(InformationCircleIcon, { style: 'width: 16px; height: 16px;' })" variant="gray" size="md">
             {{ t('Current Version {0}', [osVersion]) }}
           </Badge>
         </Button>
@@ -149,7 +149,7 @@ const navigateToRegistration = () => {
         >
           <Badge
             variant="yellow"
-            :icon="ExclamationTriangleIcon"
+            :icon="() => h(ExclamationTriangleIcon, { style: 'width: 16px; height: 16px;' })"
             :title="regExpOutput?.text"
             class="underline"
           >
@@ -172,7 +172,7 @@ const navigateToRegistration = () => {
           <Badge
             v-if="rebootType === ''"
             :variant="updateAvailable ? 'orange' : 'green'"
-            :icon="updateAvailable ? BellAlertIcon : CheckCircleIcon"
+            :icon="updateAvailable ? () => h(BellAlertIcon, { style: 'width: 16px; height: 16px;' }) : () => h(CheckCircleIcon, { style: 'width: 16px; height: 16px;' })"
           >
             {{
               available
@@ -182,12 +182,12 @@ const navigateToRegistration = () => {
                   : t('Up-to-date')
             }}
           </Badge>
-          <Badge v-else variant="yellow" :icon="ExclamationTriangleIcon">
+          <Badge v-else variant="yellow" :icon="() => h(ExclamationTriangleIcon, { style: 'width: 16px; height: 16px;' })">
             {{ t(rebootTypeText) }}
           </Badge>
         </template>
 
-        <Badge v-if="downgradeNotAvailable" variant="gray" :icon="XCircleIcon">
+        <Badge v-if="downgradeNotAvailable" variant="gray" :icon="() => h(XCircleIcon, { style: 'width: 16px; height: 16px;' })">
           {{ t('No downgrade available') }}
         </Badge>
       </div>
@@ -203,7 +203,7 @@ const navigateToRegistration = () => {
           "
           @click="updateOsActionsStore.rebootServer()"
         >
-          <ArrowPathIcon class="w-4 shrink-0" />
+          <ArrowPathIcon class="shrink-0" style="width: 16px; height: 16px;" />
           {{
             rebootType === 'downgrade'
               ? t('Reboot Now to Downgrade to {0}', [rebootVersion])

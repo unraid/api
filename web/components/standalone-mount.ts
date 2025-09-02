@@ -25,6 +25,7 @@ import { globalPinia } from '~/store/globalPinia';
 import { client as apolloClient } from '~/helpers/create-apollo-client';
 import { provideApolloClient } from '@vue/apollo-composable';
 import { parse } from 'graphql';
+import { ensureTeleportContainer } from '@unraid/ui';
 
 // Extend window interface for Apollo client
 declare global {
@@ -51,6 +52,10 @@ if (typeof window !== 'undefined') {
   const themeStore = useThemeStore(globalPinia);
   themeStore.setTheme();
   themeStore.setCssVars();
+  
+  // Pre-create the teleport container to avoid mounting issues
+  // This ensures the container exists before any components try to teleport to it
+  ensureTeleportContainer();
 }
 
 // Define component mappings

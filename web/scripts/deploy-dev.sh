@@ -11,37 +11,23 @@ fi
 server_name="$1"
 
 # Source directory paths
-webcomponents_directory=".nuxt/nuxt-custom-elements/dist/unraid-components/"
 standalone_directory=".nuxt/standalone-apps/"
 
 # Check what we have to deploy
-has_webcomponents=false
 has_standalone=false
-
-if [ -d "$webcomponents_directory" ]; then
-  has_webcomponents=true
-fi
 
 if [ -d "$standalone_directory" ]; then
   has_standalone=true
 fi
 
-# Exit if neither exists
-if [ "$has_webcomponents" = false ] && [ "$has_standalone" = false ]; then
-  echo "Error: Neither web components nor standalone apps directory exists."
+# Exit if standalone directory doesn't exist
+if [ "$has_standalone" = false ]; then
+  echo "Error: Standalone apps directory does not exist."
   echo "Please run 'pnpm build' or 'pnpm build:standalone' first."
   exit 1
 fi
 
 exit_code=0
-
-# Deploy web components if they exist
-if [ "$has_webcomponents" = true ]; then
-  echo "Deploying web components..."
-  # Run rsync with proper quoting and --delete for safe mirroring
-  rsync -avz --delete -e "ssh" "$webcomponents_directory" "root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/"
-  exit_code=$?
-fi
 
 # Deploy standalone apps if they exist
 if [ "$has_standalone" = true ]; then
@@ -63,19 +49,15 @@ update_auth_request() {
   # SSH into server and update auth-request.php
   ssh "root@${server_name}" bash -s << 'EOF'
     AUTH_REQUEST_FILE='/usr/local/emhttp/auth-request.php'
-    WEB_COMPS_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/_nuxt/'
-    STANDALONE_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/'
+    UNRAID_COMPS_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/'
 
-    # Find JS files and modify paths
-    mapfile -t JS_FILES < <(find "$WEB_COMPS_DIR" -type f -name "*.js" | sed 's|/usr/local/emhttp||' | sort -u)
-    
-    # Find standalone JS files if directory exists
-    if [ -d "$STANDALONE_DIR" ]; then
-      mapfile -t STANDALONE_JS < <(find "$STANDALONE_DIR" -type f -name "*.js" | sed 's|/usr/local/emhttp||' | sort -u)
-      FILES_TO_ADD+=("${STANDALONE_JS[@]}")
+    # Find ALL JS/MJS/CSS files under unraid-components
+    if [ -d "$UNRAID_COMPS_DIR" ]; then
+      mapfile -t FILES_TO_ADD < <(find "$UNRAID_COMPS_DIR" -type f \( -name "*.js" -o -name "*.mjs" -o -name "*.css" \) | sed 's|/usr/local/emhttp||' | sort -u)
+    else
+      echo "Unraid components directory not found"
+      exit 1
     fi
-
-    FILES_TO_ADD+=("${JS_FILES[@]}")
 
     if grep -q '\$arrWhitelist' "$AUTH_REQUEST_FILE"; then
       awk '
@@ -90,7 +72,7 @@ update_auth_request() {
           print $0
           next
         }
-        !in_array || !/\/plugins\/dynamix\.my\.servers\/unraid-components\/(nuxt\/_nuxt|standalone)\/.*\.m?js/ {
+        !in_array || !/\/plugins\/dynamix\.my\.servers\/unraid-components\/.*\.(m?js|css)/ {
           print $0
         }
       ' "$AUTH_REQUEST_FILE" > "${AUTH_REQUEST_FILE}.tmp"

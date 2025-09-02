@@ -2,6 +2,7 @@ import { createApp } from 'vue';
 import type { App as VueApp, Component } from 'vue';
 import { createI18n } from 'vue-i18n';
 import { DefaultApolloClient } from '@vue/apollo-composable';
+import { ensureTeleportContainer } from '@unraid/ui';
 
 // Import Tailwind CSS for injection
 import tailwindStyles from '~/assets/main.css?inline';
@@ -147,6 +148,9 @@ export function mountVueApp(options: MountOptions): VueApp | null {
     return null;
   }
   
+  // Ensure teleport container exists before mounting
+  ensureTeleportContainer();
+  
   // For the first target, parse props from HTML attributes
   const firstTarget = targets[0];
   const parsedProps = { ...parsePropsFromElement(firstTarget), ...props };
@@ -262,7 +266,11 @@ export function autoMountComponent(component: Component, selector: string, optio
   const tryMount = () => {
     // Check if elements exist before attempting to mount
     if (document.querySelector(selector)) {
-      mountVueApp({ component, selector, ...options });
+      try {
+        mountVueApp({ component, selector, ...options });
+      } catch (error) {
+        console.error(`[VueMountApp] Failed to mount component for selector ${selector}:`, error);
+      }
     }
     // Silently skip if no elements found - this is expected for most components
   };
@@ -271,7 +279,7 @@ export function autoMountComponent(component: Component, selector: string, optio
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', tryMount);
   } else {
-    // DOM is already ready
-    tryMount();
+    // DOM is already ready, but use setTimeout to ensure all scripts are loaded
+    setTimeout(tryMount, 0);
   }
 }
