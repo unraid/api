@@ -110,6 +110,12 @@ const checkButton = computed((): BrandButtonProps => {
       : props.t('Unraid OS {0} Update Available', [available.value]),
   };
 });
+
+const navigateToRegistration = () => {
+  if (typeof window !== 'undefined') {
+    window.location.href = WEBGUI_TOOLS_REGISTRATION.toString();
+  }
+};
 </script>
 
 <template>
@@ -140,7 +146,7 @@ const checkButton = computed((): BrandButtonProps => {
           variant="ghost"
           class="p-0 h-auto hover:bg-transparent"
           :title="t('Learn more and fix')"
-          @click="() => window.location.href = WEBGUI_TOOLS_REGISTRATION.toString()"
+          @click="navigateToRegistration"
         >
           <Badge
             variant="yellow"

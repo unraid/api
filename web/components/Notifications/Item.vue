@@ -128,7 +128,7 @@ const reformattedTimestamp = computed<string>(() => {
       <Button
         v-if="type === NotificationType.UNREAD"
         :disabled="archive.loading"
-        @click="archive.mutate"
+        @click="() => archive.mutate({ id: props.id })"
       >
         <ArchiveBoxIcon class="size-4 mr-2" />
         <span class="text-sm">Archive</span>
@@ -136,7 +136,7 @@ const reformattedTimestamp = computed<string>(() => {
       <Button
         v-if="type === NotificationType.ARCHIVE"
         :disabled="deleteNotification.loading"
-        @click="deleteNotification.mutate"
+        @click="() => deleteNotification.mutate({ id: props.id, type: props.type })"
       >
         <TrashIcon class="size-4 mr-2" />
         <span class="text-sm">Delete</span>
