@@ -12,6 +12,7 @@ const useTeleport = () => {
       container = document.createElement('div');
       container.id = 'unraid-teleport-container';
       container.style.position = 'relative';
+      container.classList.add('unapi');
       container.style.zIndex = '999999'; // Very high z-index to ensure it's always on top
       document.body.appendChild(container);
     }

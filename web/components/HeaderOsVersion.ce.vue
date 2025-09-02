@@ -211,12 +211,16 @@ const updateOsStatus = computed(() => {
         </DropdownMenuContent>
       </DropdownMenuRoot>
       <component
-        :is="updateOsStatus.href ? 'a' : 'button'"
+        :is="updateOsStatus.href ? 'a' : 'span'"
         v-if="updateOsStatus"
         :href="updateOsStatus.href ?? undefined"
         :title="updateOsStatus.title ?? undefined"
-        class="group"
+        :role="!updateOsStatus.href ? 'button' : undefined"
+        :tabindex="!updateOsStatus.href ? 0 : undefined"
+        class="group cursor-pointer"
         @click="updateOsStatus.click?.()"
+        @keydown.enter="!updateOsStatus.href && updateOsStatus.click?.()"
+        @keydown.space.prevent="!updateOsStatus.href && updateOsStatus.click?.()"
       >
         <Badge
           v-if="updateOsStatus.badge"

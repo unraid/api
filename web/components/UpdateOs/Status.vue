@@ -11,10 +11,9 @@ import {
   InformationCircleIcon,
   XCircleIcon,
 } from '@heroicons/vue/24/solid';
-import { Badge, BrandButton, BrandLoading, Button } from '@unraid/ui';
+import { Badge, BrandLoading, Button } from '@unraid/ui';
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 
-import type { BrandButtonProps } from '@unraid/ui';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
@@ -74,7 +73,7 @@ const showRebootButton = computed(
   () => rebootType.value === 'downgrade' || rebootType.value === 'update'
 );
 
-const checkButton = computed((): BrandButtonProps => {
+const checkButton = computed(() => {
   if (showRebootButton.value || props.showExternalDowngrade) {
     return {
       click: () => {
@@ -194,35 +193,42 @@ const navigateToRegistration = () => {
       </div>
 
       <div class="inline-flex flex-col shrink-0 gap-4 grow items-center md:items-end">
-        <span v-if="showRebootButton">
-          <BrandButton
-            :icon="ArrowPathIcon"
-            :text="
-              rebootType === 'downgrade'
-                ? t('Reboot Now to Downgrade to {0}', [rebootVersion])
-                : t('Reboot Now to Update to {0}', [rebootVersion])
-            "
-            @click="updateOsActionsStore.rebootServer()"
-          />
-        </span>
+        <Button
+          v-if="showRebootButton"
+          variant="primary"
+          :title="
+            rebootType === 'downgrade'
+              ? t('Reboot Now to Downgrade to {0}', [rebootVersion])
+              : t('Reboot Now to Update to {0}', [rebootVersion])
+          "
+          @click="updateOsActionsStore.rebootServer()"
+        >
+          <ArrowPathIcon class="w-4 shrink-0" />
+          {{
+            rebootType === 'downgrade'
+              ? t('Reboot Now to Downgrade to {0}', [rebootVersion])
+              : t('Reboot Now to Update to {0}', [rebootVersion])
+          }}
+        </Button>
 
-        <span>
-          <BrandButton
-            :variant="checkButton.variant"
-            :icon="checkButton.icon"
-            :text="checkButton.text"
-            @click="checkButton.click"
-          />
-        </span>
+        <Button
+          :variant="checkButton.variant === 'fill' ? 'pill-orange' : 'pill-gray'"
+          :title="checkButton.text"
+          @click="checkButton.click"
+        >
+          <component :is="checkButton.icon" class="shrink-0" style="width: 16px; height: 16px;" />
+          {{ checkButton.text }}
+        </Button>
 
-        <span v-if="rebootType !== ''">
-          <BrandButton
-            variant="outline"
-            :icon="XCircleIcon"
-            :text="t('Cancel {0}', [rebootType === 'downgrade' ? t('Downgrade') : t('Update')])"
-            @click="updateOsStore.cancelUpdate()"
-          />
-        </span>
+        <Button
+          v-if="rebootType !== ''"
+          variant="pill-gray"
+          :title="t('Cancel {0}', [rebootType === 'downgrade' ? t('Downgrade') : t('Update')])"
+          @click="updateOsStore.cancelUpdate()"
+        >
+          <XCircleIcon class="shrink-0" style="width: 16px; height: 16px;" />
+          {{ t('Cancel {0}', [rebootType === 'downgrade' ? t('Downgrade') : t('Update')]) }}
+        </Button>
       </div>
     </div>
   </div>

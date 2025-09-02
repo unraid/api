@@ -14,6 +14,8 @@ export const buttonVariants = cva(
         link: 'text-primary underline-offset-4 hover:underline',
         header:
           'group relative flex flex-row items-center text-base border-0 text-header-text-primary bg-transparent hover:bg-accent/20 focus-visible:bg-accent/20 focus-visible:ring-1 focus-visible:ring-accent/20 focus-visible:ring-offset-0 rounded-lg min-h-[36px]',
+        'pill-orange': 'bg-orange text-white hover:bg-orange-dark rounded-full text-xs px-2 py-1 gap-1',
+        'pill-gray': 'bg-gray-200 text-gray-800 hover:bg-gray-300 rounded-full text-xs px-2 py-1 gap-1',
       },
       size: {
         sm: 'rounded-md px-3 py-1',

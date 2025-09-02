@@ -82,13 +82,19 @@ const reformattedTimestamp = computed<string>(() => {
   }).format(new Date(props.timestamp));
   return reformattedDate;
 });
+
+const navigateToLink = () => {
+  if (props.link) {
+    window.location.href = props.link;
+  }
+};
 </script>
 
 <template>
   <div class="group/item relative py-3 flex flex-col gap-2 text-base">
     <header class="flex flex-row items-baseline justify-between gap-2 -translate-y-1">
       <h3
-        class="tracking-normal flex flex-row items-baseline gap-2 uppercase font-bold overflow-x-hidden"
+        class="tracking-normal flex flex-row items-baseline gap-2 font-normal normal-case overflow-x-hidden m-0"
       >
         <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
         <component
@@ -108,7 +114,7 @@ const reformattedTimestamp = computed<string>(() => {
       </div>
     </header>
 
-    <h4 class="font-bold">
+    <h4 class="font-normal m-0">
       {{ subject }}
     </h4>
 
@@ -119,12 +125,15 @@ const reformattedTimestamp = computed<string>(() => {
     <p v-if="mutationError" class="text-red-600">Error: {{ mutationError }}</p>
 
     <div class="flex justify-end items-baseline gap-4">
-      <a v-if="link" :href="link">
-        <Button type="button" variant="outline">
-          <LinkIcon class="size-4 mr-2" />
-          <span class="text-sm">View</span>
-        </Button>
-      </a>
+      <Button
+        v-if="link"
+        type="button"
+        variant="link"
+        @click="navigateToLink"
+      >
+        <LinkIcon class="size-4 mr-2" />
+        <span class="text-sm">View</span>
+      </Button>
       <Button
         v-if="type === NotificationType.UNREAD"
         :disabled="archive.loading"

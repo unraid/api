@@ -6,6 +6,10 @@ export const brandButtonVariants = cva(
     variants: {
       variant: {
         fill: '[&]:text-white bg-transparent border-transparent',
+        'pill-orange':
+          'text-white bg-orange border-transparent rounded-full hover:bg-orange-dark focus:bg-orange-dark',
+        'pill-gray':
+          'text-gray-800 bg-gray-200 border-transparent rounded-full hover:bg-gray-300 focus:bg-gray-300',
         black:
           '[&]:text-white bg-black border-black transition hover:text-black focus:text-black hover:bg-grey focus:bg-grey hover:border-grey focus:border-grey',
         gray: 'text-black bg-grey transition hover:text-white focus:text-white hover:bg-grey-mid focus:bg-grey-mid hover:border-grey-mid focus:border-grey-mid',
