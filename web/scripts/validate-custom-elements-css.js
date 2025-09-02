@@ -29,16 +29,26 @@ function findJSFiles(dir, jsFiles = []) {
  * Validates that Tailwind CSS styles are properly inlined in the JavaScript bundle
  */
 function validateCustomElementsCSS() {
-  console.log('🔍 Validating custom elements JS bundle includes inlined Tailwind styles...');
+  console.log('🔍 Validating JS bundle includes inlined Tailwind styles...');
 
   try {
-    // Find the custom elements JS files
-    const customElementsDir = '.nuxt/nuxt-custom-elements/dist';
-    const jsFiles = findJSFiles(customElementsDir);
-
+    // Check standalone apps first (new approach)
+    const standaloneDir = '.nuxt/standalone-apps';
+    let jsFiles = findJSFiles(standaloneDir);
+    let usingStandalone = true;
+    
+    // Fallback to custom elements if standalone doesn't exist
     if (jsFiles.length === 0) {
-      throw new Error('No custom elements JS files found in ' + customElementsDir);
+      const customElementsDir = '.nuxt/nuxt-custom-elements/dist';
+      jsFiles = findJSFiles(customElementsDir);
+      usingStandalone = false;
+      
+      if (jsFiles.length === 0) {
+        throw new Error('No JS files found in standalone apps or custom elements dist');
+      }
     }
+    
+    console.log(`📦 Using ${usingStandalone ? 'standalone apps' : 'custom elements'} bundle`);
 
     // Find the largest JS file (likely the main bundle with inlined CSS)
     const jsFile = jsFiles.reduce((largest, current) => {
@@ -52,40 +62,41 @@ function validateCustomElementsCSS() {
     const jsContent = fs.readFileSync(jsFile, 'utf8');
     
     // Define required Tailwind indicators (looking for inlined CSS in JS)
+    // Updated patterns to work with minified CSS (no spaces)
     const requiredIndicators = [
       {
         name: 'Tailwind utility classes (inline)',
-        pattern: /\.flex\s*\{[^}]*display:\s*flex/,
+        pattern: /\.flex\s*\{[^}]*display:\s*flex|\.flex{display:flex/,
         description: 'Basic Tailwind utility classes inlined'
       },
       {
         name: 'Tailwind margin utilities (inline)',
-        pattern: /\.m-\d+\s*\{[^}]*margin:/,
+        pattern: /\.m-\d+\s*\{[^}]*margin:|\.m-\d+{[^}]*margin:/,
         description: 'Tailwind margin utilities inlined'
       },
       {
         name: 'Tailwind padding utilities (inline)',
-        pattern: /\.p-\d+\s*\{[^}]*padding:/,
+        pattern: /\.p-\d+\s*\{[^}]*padding:|\.p-\d+{[^}]*padding:/,
         description: 'Tailwind padding utilities inlined'
       },
       {
         name: 'Tailwind color utilities (inline)',
-        pattern: /\.text-\w+\s*\{[^}]*color:/,
+        pattern: /\.text-\w+\s*\{[^}]*color:|\.text-\w+{[^}]*color:/,
         description: 'Tailwind text color utilities inlined'
       },
       {
         name: 'Tailwind background utilities (inline)',
-        pattern: /\.bg-\w+\s*\{[^}]*background/,
+        pattern: /\.bg-\w+\s*\{[^}]*background|\.bg-\w+{[^}]*background/,
         description: 'Tailwind background utilities inlined'
       },
       {
         name: 'CSS custom properties',
-        pattern: /--[\w-]+:\s*[^;]+;/,
+        pattern: /--[\w-]+:\s*[^;]+;|--[\w-]+:[^;]+;/,
         description: 'CSS custom properties (variables)'
       },
       {
         name: 'Responsive breakpoints',
-        pattern: /@media\s*\([^)]*min-width/,
+        pattern: /@media\s*\([^)]*min-width|@media\([^)]*min-width/,
         description: 'Responsive media queries'
       },
       {

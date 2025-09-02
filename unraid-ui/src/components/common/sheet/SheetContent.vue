@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import Button from '@/components/common/button/Button.vue';
 import { sheetVariants, type SheetVariants } from '@/components/common/sheet/sheet.variants';
+import SheetClose from '@/components/common/sheet/SheetClose.vue';
 import useTeleport from '@/composables/useTeleport';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-vue-next';
 import {
-  DialogClose,
   DialogContent,
   DialogOverlay,
   DialogPortal,
@@ -50,11 +51,11 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     />
     <DialogContent :class="sheetClass" v-bind="forwarded">
       <slot />
-      <DialogClose
-        class="ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none"
-      >
-        <X class="text-muted-foreground h-4 w-4" />
-      </DialogClose>
+      <SheetClose as="span" class="absolute top-4 right-4">
+        <Button variant="ghost" size="sm" class="h-auto w-auto p-1">
+          <X class="h-4 w-4" />
+        </Button>
+      </SheetClose>
     </DialogContent>
   </DialogPortal>
 </template>

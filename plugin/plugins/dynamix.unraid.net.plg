@@ -161,7 +161,41 @@ exit 0
           sed -i 's|<body>|<body>\n<unraid-modals></unraid-modals>|' "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
         fi
       fi
+      
+      ]]>
+    </INLINE>
+  </FILE>
 
+  <FILE Run="/usr/bin/php" Method="install">
+    <INLINE>
+      <![CDATA[
+      <?php
+      echo "Patching webgui CSS files for compatibility...\n";
+      
+      $cssDir = "/usr/local/emhttp/plugins/dynamix/styles";
+      $backupDir = "$cssDir/.unraid-api-backup";
+      
+      if (!is_dir($cssDir)) {
+          echo "Warning: CSS directory not found at $cssDir\n";
+          exit(0);
+      }
+      
+      // First restore any existing backups to ensure clean state
+      if (is_dir($backupDir)) {
+          echo "Restoring original CSS files from backup...\n";
+          foreach (glob("$backupDir/*.css") as $backupFile) {
+              $filename = basename($backupFile);
+              $originalFile = "$cssDir/$filename";
+              echo "  Restoring $filename...\n";
+              copy($backupFile, $originalFile);
+          }
+      }
+      
+      // Create backup directory if it doesn't exist
+      if (!is_dir($backupDir)) {
+          mkdir($backupDir, 0755, true);
+      }
+      ?>
       ]]>
     </INLINE>
   </FILE>
@@ -271,6 +305,27 @@ exit 0
       for FILE in "${FILES_TO_RESTORE[@]}"; do
         [ -f "$FILE-" ] && mv -f "$FILE-" "$FILE"
       done
+      
+      # Restore CSS files from backup
+      echo "Restoring original CSS files..."
+      CSS_DIR="/usr/local/emhttp/plugins/dynamix/styles"
+      BACKUP_DIR="$CSS_DIR/.unraid-api-backup"
+      
+      if [ -d "$BACKUP_DIR" ]; then
+        for backup_file in "$BACKUP_DIR"/*.css; do
+          if [ -f "$backup_file" ]; then
+            filename=$(basename "$backup_file")
+            original_file="$CSS_DIR/$filename"
+            echo "  Restoring $filename..."
+            cp "$backup_file" "$original_file"
+          fi
+        done
+        # Remove backup directory after restoration
+        rm -rf "$BACKUP_DIR"
+        echo "CSS restoration complete."
+      else
+        echo "No CSS backup found, skipping restoration."
+      fi
       
       # Handle the unraid-components directory
       DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components

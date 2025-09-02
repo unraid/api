@@ -85,7 +85,7 @@ const reformattedTimestamp = computed<string>(() => {
 </script>
 
 <template>
-  <div class="group/item relative py-5 flex flex-col gap-2 text-base">
+  <div class="group/item relative py-3 flex flex-col gap-2 text-base">
     <header class="flex flex-row items-baseline justify-between gap-2 -translate-y-1">
       <h3
         class="tracking-normal flex flex-row items-baseline gap-2 uppercase font-bold overflow-x-hidden"
@@ -128,7 +128,7 @@ const reformattedTimestamp = computed<string>(() => {
       <Button
         v-if="type === NotificationType.UNREAD"
         :disabled="archive.loading"
-        @click="archive.mutate"
+        @click="() => archive.mutate({ id: props.id })"
       >
         <ArchiveBoxIcon class="size-4 mr-2" />
         <span class="text-sm">Archive</span>
@@ -136,7 +136,7 @@ const reformattedTimestamp = computed<string>(() => {
       <Button
         v-if="type === NotificationType.ARCHIVE"
         :disabled="deleteNotification.loading"
-        @click="deleteNotification.mutate"
+        @click="() => deleteNotification.mutate({ id: props.id, type: props.type })"
       >
         <TrashIcon class="size-4 mr-2" />
         <span class="text-sm">Delete</span>

@@ -286,7 +286,7 @@ const returnToApp = () => {
           class="flex-1"
           @click="openAuthorizationModal"
         >
-          {{ hasValidRedirectUri ? 'Review Permissions & Authorize' : 'Review Permissions' }}
+          {{ hasValidRedirectUri ? 'Authorize' : 'Continue' }}
         </Button>
       </div>
     </div>

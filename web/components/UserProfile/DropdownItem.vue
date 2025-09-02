@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import { Button } from '@unraid/ui';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import type { ServerStateDataAction } from '~/types/server';
@@ -17,23 +18,36 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const showExternalIconOnHover = computed(() => props.item?.external && props.item.icon !== ArrowTopRightOnSquareIcon);
+
+const buttonClass = computed(() => {
+  const classes = ['text-left', 'text-sm', 'w-full', 'flex', 'flex-row', 'items-center', 'justify-between', 'gap-x-2', 'px-2', 'py-2', 'h-auto'];
+  
+  if (!props.item?.emphasize) {
+    classes.push('dropdown-item-hover');
+  }
+  if (props.item?.emphasize) {
+    classes.push('dropdown-item-emphasized');
+  }
+  if (showExternalIconOnHover.value) {
+    classes.push('group');
+  }
+  if (props.rounded) {
+    classes.push('rounded-md');
+  }
+  
+  return classes.join(' ');
+});
 </script>
 
 <template>
-  <component
-    :is="item?.click ? 'button' : 'a'"
+  <Button
+    :as="item?.click ? 'button' : 'a'"
     :disabled="item?.disabled"
     :href="item?.href ?? null"
     :target="item?.external ? '_blank' : null"
     :rel="item?.external ? 'noopener noreferrer' : null"
-    class="text-left text-sm w-full flex flex-row items-center justify-between gap-x-2 px-2 py-2 cursor-pointer"
-    :class="{
-      'text-foreground bg-transparent hover:text-white focus:text-white focus:outline-hidden dropdown-item-hover': !item?.emphasize,
-      'text-white bg-linear-to-r from-unraid-red to-orange dropdown-item-emphasized': item?.emphasize,
-      'group': showExternalIconOnHover,
-      'rounded-md': rounded,
-      'disabled:opacity-50 disabled:hover:opacity-50 disabled:focus:opacity-50 disabled:cursor-not-allowed': item?.disabled,
-    }"
+    variant="ghost"
+    :class="buttonClass"
     @click.stop="item?.click ? item?.click(item?.clickParams ?? []) : null"
   >
     <span class="leading-snug inline-flex flex-row items-center gap-x-2">
@@ -44,7 +58,7 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
       v-if="showExternalIconOnHover"
       class="text-white fill-current shrink-0 w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out"
     />
-  </component>
+  </Button>
 </template>
 
 <style>

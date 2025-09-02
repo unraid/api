@@ -5,7 +5,7 @@
         v-for="(element, index) in elements"
         :key="`${layout.path || ''}-${index}`"
         :value="`item-${index}`"
-        class="bg-background rounded-lg border"
+        class="bg-background border-muted rounded-lg border"
       >
         <AccordionTrigger class="hover:bg-muted/50 px-4 py-3 [&[data-state=open]>svg]:rotate-180">
           <div class="flex flex-col items-start space-y-1 text-left">

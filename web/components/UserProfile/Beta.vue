@@ -4,13 +4,13 @@ export interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  colorClasses: 'text-grey-mid border-grey-mid',
+  colorClasses: 'text-grey-mid border-muted',
 });
 </script>
 
 <template>
   <span
-    class="text-xs uppercase py-1 px-1.5 border-2 rounded-full"
+    class="text-xs uppercase py-1 px-1.5 border-2 border-muted rounded-full"
     :class="colorClasses"
   >
     {{ 'Beta' }}

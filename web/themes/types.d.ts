@@ -35,6 +35,14 @@ type BaseThemeVariables = {
   '--header-gradient-start': string;
   '--header-gradient-end': string;
   '--banner-gradient': string | null;
+  // Tailwind v4 color variables for utility classes
+  '--color-header-text-primary'?: string;
+  '--color-header-text-secondary'?: string;
+  '--color-header-background'?: string;
+  '--color-header-gradient-start'?: string;
+  '--color-header-gradient-end'?: string;
+  '--custom-font-size'?: string;
+  '--ui-border-muted'?: string;
 };
 
 type LegacyThemeVariables = {

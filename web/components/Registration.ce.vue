@@ -20,7 +20,7 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ShieldCheckIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
-import { BrandButton, CardWrapper, PageContainer } from '@unraid/ui';
+import { BrandButton, CardWrapper, PageContainer, SettingsGrid } from '@unraid/ui';
 
 import type { RegistrationItemProps } from '~/types/registration';
 import type { ServerStateDataAction } from '~/types/server';
@@ -30,7 +30,6 @@ import RegistrationKeyLinkedStatus from '~/components/Registration/KeyLinkedStat
 import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue';
 import RegistrationUpdateExpirationAction from '~/components/Registration/UpdateExpirationAction.vue';
 import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
-import RegistrationItem from '~/components/Registration/Item.vue';
 import useDateTimeHelper from '~/composables/dateTime';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
@@ -125,75 +124,9 @@ const showFilteredKeyActions = computed(
     )
 );
 
-const items = computed((): RegistrationItemProps[] => {
+// Organize items into three sections
+const flashDriveItems = computed((): RegistrationItemProps[] => {
   return [
-    ...(computedArray.value
-      ? [
-          {
-            label: t('Array status'),
-            text: computedArray.value,
-            warning: arrayWarning.value,
-          },
-        ]
-      : []),
-    ...(regTy.value
-      ? [
-          {
-            label: t('License key type'),
-            text: regTy.value,
-          },
-        ]
-      : []),
-    ...(showTrialExpiration.value
-      ? [
-          {
-            error: state.value === 'EEXPIRED',
-            label: t('Trial expiration'),
-            component: UserProfileUptimeExpire,
-            componentProps: {
-              forExpire: true,
-              shortText: true,
-              t,
-            },
-            componentOpacity: true,
-          },
-        ]
-      : []),
-    ...(regTo.value
-      ? [
-          {
-            label: t('Registered to'),
-            text: regTo.value,
-          },
-        ]
-      : []),
-    ...(regTo.value && regTm.value && formattedRegTm.value
-      ? [
-          {
-            label: t('Registered on'),
-            text: formattedRegTm.value,
-          },
-        ]
-      : []),
-    ...(showUpdateEligibility.value
-      ? [
-          {
-            label: t('OS Update Eligibility'),
-            warning: regUpdatesExpired.value,
-            component: RegistrationUpdateExpirationAction,
-            componentProps: { t },
-            componentOpacity: !regUpdatesExpired.value,
-          },
-        ]
-      : []),
-    ...(state.value === 'EGUID'
-      ? [
-          {
-            label: t('Registered GUID'),
-            text: regGuid.value,
-          },
-        ]
-      : []),
     ...(guid.value
       ? [
           {
@@ -218,6 +151,78 @@ const items = computed((): RegistrationItemProps[] => {
           },
         ]
       : []),
+    ...(state.value === 'EGUID'
+      ? [
+          {
+            label: t('Registered GUID'),
+            text: regGuid.value,
+          },
+        ]
+      : []),
+  ];
+});
+
+const licenseItems = computed((): RegistrationItemProps[] => {
+  return [
+    ...(computedArray.value
+      ? [
+          {
+            label: t('Array status'),
+            text: computedArray.value,
+            warning: arrayWarning.value,
+          },
+        ]
+      : []),
+    ...(regTy.value
+      ? [
+          {
+            label: t('License key type'),
+            text: regTy.value,
+          },
+        ]
+      : []),
+    ...(regTo.value
+      ? [
+          {
+            label: t('Registered to'),
+            text: regTo.value,
+          },
+        ]
+      : []),
+    ...(regTo.value && regTm.value && formattedRegTm.value
+      ? [
+          {
+            label: t('Registered on'),
+            text: formattedRegTm.value,
+          },
+        ]
+      : []),
+    ...(showTrialExpiration.value
+      ? [
+          {
+            error: state.value === 'EEXPIRED',
+            label: t('Trial expiration'),
+            component: UserProfileUptimeExpire,
+            componentProps: {
+              forExpire: true,
+              shortText: true,
+              t,
+            },
+            componentOpacity: true,
+          },
+        ]
+      : []),
+    ...(showUpdateEligibility.value
+      ? [
+          {
+            label: t('OS Update Eligibility'),
+            warning: regUpdatesExpired.value,
+            component: RegistrationUpdateExpirationAction,
+            componentProps: { t },
+            componentOpacity: !regUpdatesExpired.value,
+          },
+        ]
+      : []),
     ...(keyInstalled.value
       ? [
           {
@@ -235,6 +240,11 @@ const items = computed((): RegistrationItemProps[] => {
           },
         ]
       : []),
+  ];
+});
+
+const actionItems = computed((): RegistrationItemProps[] => {
+  return [
     ...(showLinkedAndTransferStatus.value
       ? [
           {
@@ -253,7 +263,6 @@ const items = computed((): RegistrationItemProps[] => {
           },
         ]
       : []),
-
     ...(showFilteredKeyActions.value
       ? [
           {
@@ -299,26 +308,84 @@ const items = computed((): RegistrationItemProps[] => {
               />
             </span>
           </header>
-          <dl>
-            <RegistrationItem
-              v-for="item in items"
-              :key="item.label"
-              :component="item?.component"
-              :component-props="item?.componentProps"
-              :error="item.error ?? false"
-              :warning="item.warning ?? false"
-              :label="item.label"
-              :text="item.text"
-            >
-              <template v-if="item.component" #right>
-                <component
-                  :is="item.component"
-                  v-bind="item.componentProps"
-                  :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']"
-                />
+          
+          <!-- Flash Drive Section -->
+          <div v-if="flashDriveItems.length > 0" class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <h4 class="text-lg font-semibold mb-3">{{ t('Flash Drive') }}</h4>
+            <SettingsGrid>
+              <template v-for="item in flashDriveItems" :key="item.label">
+                <div class="font-semibold flex items-center gap-x-2">
+                  <ShieldExclamationIcon v-if="item.error" class="w-4 h-4 text-unraid-red" />
+                  <span v-html="item.label" />
+                </div>
+                <div class="select-all" :class="[item.error ? 'text-unraid-red' : 'opacity-75']">
+                  {{ item.text }}
+                </div>
               </template>
-            </RegistrationItem>
-          </dl>
+            </SettingsGrid>
+          </div>
+
+          <!-- License Section -->
+          <div v-if="licenseItems.length > 0" class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <h4 class="text-lg font-semibold mb-3">{{ t('License') }}</h4>
+            <SettingsGrid>
+              <template v-for="item in licenseItems" :key="item.label">
+                <div class="font-semibold flex items-center gap-x-2">
+                  <ShieldExclamationIcon v-if="item.error" class="w-4 h-4 text-unraid-red" />
+                  <span v-html="item.label" />
+                </div>
+                <div
+:class="[
+                  item.error ? 'text-unraid-red' : item.warning ? 'text-yellow-600' : '',
+                  item.text && !item.error && !item.warning ? 'opacity-75' : ''
+                ]">
+                  <span v-if="item.text" class="select-all">
+                    {{ item.text }}
+                  </span>
+                  <component
+                    :is="item.component"
+                    v-if="item.component"
+                    v-bind="item.componentProps"
+                    :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']"
+                  />
+                </div>
+              </template>
+            </SettingsGrid>
+          </div>
+
+          <!-- Actions Section -->
+          <div v-if="actionItems.length > 0" class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <h4 class="text-lg font-semibold mb-3">{{ t('Actions') }}</h4>
+            <SettingsGrid>
+              <template v-for="item in actionItems" :key="item.label || 'action-' + actionItems.indexOf(item)">
+                <template v-if="item.label">
+                  <div class="font-semibold flex items-center gap-x-2">
+                    <ShieldExclamationIcon v-if="item.error" class="w-4 h-4 text-unraid-red" />
+                    <span v-html="item.label" />
+                  </div>
+                  <div :class="[item.error ? 'text-unraid-red' : '']">
+                    <span v-if="item.text" class="select-all opacity-75">
+                      {{ item.text }}
+                    </span>
+                    <component
+                      :is="item.component"
+                      v-if="item.component"
+                      v-bind="item.componentProps"
+                      :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']"
+                    />
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="md:col-span-2">
+                    <component
+                      :is="item.component"
+                      v-bind="item.componentProps"
+                    />
+                  </div>
+                </template>
+              </template>
+            </SettingsGrid>
+          </div>
         </div>
       </CardWrapper>
     </PageContainer>

@@ -14,7 +14,12 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from '@unraid/ui';
+import { Settings } from 'lucide-vue-next';
 
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
@@ -125,34 +130,42 @@ const prepareToViewNotifications = () => {
 
 <template>
   <Sheet>
-    <SheetTrigger @click="prepareToViewNotifications">
-      <span class="sr-only">Notifications</span>
-      <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
+    <SheetTrigger as-child>
+      <Button 
+        variant="header"
+        size="header"
+        @click="prepareToViewNotifications"
+      >
+        <span class="sr-only">Notifications</span>
+        <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
+      </Button>
     </SheetTrigger>
     <SheetContent
       side="right"
       class="w-full max-w-screen sm:max-w-[540px] max-h-screen h-screen min-h-screen px-0 flex flex-col gap-5 pb-0"
     >
       <div class="relative flex flex-col h-full w-full">
-        <SheetHeader class="ml-1 px-6 items-baseline gap-1 pb-2">
+        <SheetHeader class="ml-1 px-3 items-baseline gap-1 pb-2">
           <SheetTitle class="text-2xl">Notifications</SheetTitle>
-          <a href="/Settings/Notifications">
-            <Button variant="link" size="sm" class="p-0 h-auto">Edit Settings</Button>
-          </a>
         </SheetHeader>
         <Tabs
           default-value="unread"
           class="flex flex-1 flex-col min-h-0"
           aria-label="Notification filters"
         >
-          <div class="flex flex-row justify-between items-center flex-wrap gap-5 px-6">
+          <div class="flex flex-row justify-between items-center flex-wrap gap-3 px-3">
             <TabsList class="flex" aria-label="Filter notifications by status">
-              <TabsTrigger value="unread">
-                Unread <span v-if="overview">({{ overview.unread.total }})</span>
+              <TabsTrigger value="unread" as-child>
+                <Button variant="ghost" size="sm" class="inline-flex items-center gap-1 px-3 py-1">
+                  <span>Unread</span>
+                  <span v-if="overview" class="font-normal">({{ overview.unread.total }})</span>
+                </Button>
               </TabsTrigger>
-              <TabsTrigger value="archived">
-                Archived
-                <span v-if="overview">({{ readArchivedCount }})</span>
+              <TabsTrigger value="archived" as-child>
+                <Button variant="ghost" size="sm" class="inline-flex items-center gap-1 px-3 py-1">
+                  <span>Archived</span>
+                  <span v-if="overview" class="font-normal">({{ readArchivedCount }})</span>
+                </Button>
               </TabsTrigger>
             </TabsList>
             <TabsContent value="unread" class="flex-col items-end">
@@ -177,11 +190,13 @@ const prepareToViewNotifications = () => {
                 Delete All
               </Button>
             </TabsContent>
+          </div>
 
+          <div class="flex justify-between items-center px-3 gap-2 mt-2">
             <Select
               :items="filterItems"
               placeholder="Filter By"
-              class="h-auto"
+              class="h-8 px-3 text-sm"
               @update:model-value="
                 (val: unknown) => {
                   const strVal = String(val);
@@ -189,6 +204,20 @@ const prepareToViewNotifications = () => {
                 }
               "
             />
+            <TooltipProvider>
+              <Tooltip :delay-duration="0">
+                <TooltipTrigger as-child>
+                  <a href="/Settings/Notifications">
+                    <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
+                      <Settings class="h-4 w-4" />
+                    </Button>
+                  </a>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit Notification Settings</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           <TabsContent value="unread" class="flex-col flex-1 min-h-0">

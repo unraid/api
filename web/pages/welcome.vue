@@ -38,7 +38,7 @@ const showWelcomeModal = () => {
   <div class="flex flex-col gap-6 p-6">
     <WelcomeModalCe ref="welcomeModalRef" />
     <ModalsCe />
-    <div class="mt-4 p-4 border rounded bg-gray-100 dark:bg-gray-800">
+    <div class="mt-4 p-4 border border-muted rounded bg-gray-100 dark:bg-gray-800">
       <h3 class="text-lg font-semibold mb-2">Activation Modal Debug Info:</h3>
       <p>Should Show Modal (`showActivationModal`): {{ isVisible }}</p>
       <ul class="list-disc list-inside ml-4">

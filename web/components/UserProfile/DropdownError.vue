@@ -14,7 +14,7 @@ const { errors } = storeToRefs(errorsStore);
 </script>
 
 <template>
-  <ul v-if="errors.length" class="list-reset flex flex-col gap-y-2 mb-1 border-2 border-solid border-unraid-red/90 rounded-md">
+  <ul v-if="errors.length" class="list-reset flex flex-col gap-y-2 mb-1 border-2 border-solid border-muted rounded-md">
     <li v-for="(error, index) in errors" :key="index" class="flex flex-col gap-2">
       <h3 class="text-lg py-1 px-3 text-white bg-unraid-red/90 font-semibold">
         <span>{{ t(error.heading) }}</span>

@@ -116,7 +116,7 @@ declare global {
 
     <div v-else-if="error" class="py-8 text-center text-red-500">
       <p class="mb-4">Failed to load remotes</p>
-      <Button @click="refetchRemotes">Retry</Button>
+      <Button @click="() => refetchRemotes()">Retry</Button>
     </div>
 
     <div v-else class="py-8 text-center">

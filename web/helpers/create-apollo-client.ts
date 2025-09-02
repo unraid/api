@@ -4,11 +4,30 @@ import { RetryLink } from '@apollo/client/link/retry/index.js';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { getMainDefinition } from '@apollo/client/utilities/index.js';
 import { createClient } from 'graphql-ws';
+
+import type { ErrorResponse } from '@apollo/client/link/error/index.js';
+import type { GraphQLFormattedError } from 'graphql';
+
 import { createApolloCache } from './apollo-cache';
 import { WEBGUI_GRAPHQL } from './urls';
 
-const httpEndpoint = WEBGUI_GRAPHQL;
-const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace('http', 'ws'));
+// Allow overriding the GraphQL endpoint for development/testing
+declare global {
+  interface Window {
+    GRAPHQL_ENDPOINT?: string;
+  }
+}
+
+const getGraphQLEndpoint = () => {
+  if (typeof window !== 'undefined' && window.GRAPHQL_ENDPOINT) {
+    return new URL(window.GRAPHQL_ENDPOINT);
+  }
+  return WEBGUI_GRAPHQL;
+};
+
+const httpEndpoint = getGraphQLEndpoint();
+const wsEndpoint = new URL(httpEndpoint.toString());
+wsEndpoint.protocol = httpEndpoint.protocol === 'https:' ? 'wss:' : 'ws:';
 const DEV_MODE = (globalThis as unknown as { __DEV__: boolean }).__DEV__ ?? false;
 
 const headers = {
@@ -28,17 +47,15 @@ const wsLink = new GraphQLWsLink(
   })
 );
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const errorLink = onError(({ graphQLErrors, networkError }: any) => {
+const errorLink = onError(({ graphQLErrors, networkError }: ErrorResponse) => {
   if (graphQLErrors) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    graphQLErrors.map((error: any) => {
+    graphQLErrors.forEach((error: GraphQLFormattedError) => {
       console.error('[GraphQL error]', error);
-      const errorMsg = error.error?.message ?? error.message;
+      const errorMsg =
+        (error as GraphQLFormattedError & { error?: { message?: string } }).error?.message ?? error.message;
       if (errorMsg?.includes('offline')) {
         // @todo restart the api, but make sure not to trigger infinite loop
       }
-      return error.message;
     });
   }
 
@@ -46,9 +63,8 @@ const errorLink = onError(({ graphQLErrors, networkError }: any) => {
     console.error(`[Network error]: ${networkError}`);
     const msg = networkError.message ? networkError.message : networkError;
     if (typeof msg === 'string' && msg.includes('Unexpected token < in JSON at position 0')) {
-      return 'Unraid API • CORS Error';
+      console.error('Unraid API • CORS Error');
     }
-    return msg;
   }
 });
 
@@ -69,7 +85,7 @@ const retryLink = new RetryLink({
 // Disable Apollo Client if not in DEV Mode and server state says unraid-api is not running
 const disableQueryLink = new ApolloLink((operation, forward) => {
   if (!DEV_MODE && operation.getContext().serverState?.unraidApi?.status === 'offline') {
-    return null;  
+    return null;
   }
   return forward(operation);
 });

@@ -8,6 +8,7 @@ class WebComponentsExtractor
     private const RICH_COMPONENTS_ENTRY_JS = 'unraid-components.client.js';
     private const UI_ENTRY = 'src/register.ts';
     private const UI_STYLES_ENTRY = 'style.css';
+    private const STANDALONE_APPS_ENTRY = 'standalone-apps.js';
 
     private static ?WebComponentsExtractor $instance = null;
 
@@ -98,6 +99,57 @@ class WebComponentsExtractor
         </script>';
     }
 
+    private function getStandaloneAppsScript(): string
+    {
+        $manifestFiles = $this->findManifestFiles('standalone.manifest.json');
+        
+        if (empty($manifestFiles)) {
+            // No standalone apps, return empty
+            return '';
+        }
+        
+        // Iterate over all manifest files to find valid standalone apps entry
+        foreach ($manifestFiles as $manifestPath) {
+            $manifest = $this->getManifestContents($manifestPath);
+            $subfolder = $this->getRelativePath($manifestPath);
+            
+            // Check if STANDALONE_APPS_ENTRY exists
+            if (!isset($manifest[self::STANDALONE_APPS_ENTRY])) {
+                error_log("Standalone apps manifest at '{$manifestPath}' is missing the '" . self::STANDALONE_APPS_ENTRY . "' entry key");
+                return '';
+            }
+            
+            $entry = $manifest[self::STANDALONE_APPS_ENTRY];
+            
+            // Check if 'file' key exists
+            if (!isset($entry['file']) || empty($entry['file'])) {
+                error_log("Standalone apps manifest at '{$manifestPath}' has entry '" . self::STANDALONE_APPS_ENTRY . "' but is missing the 'file' field");
+                return '';
+            }
+            
+            // Build the JS file path
+            $jsFile = ($subfolder ? $subfolder . '/' : '') . $entry['file'];
+            
+            // Use a unique identifier to prevent duplicate script loading
+            $scriptId = 'unraid-standalone-apps-script';
+            return '<script id="' . $scriptId . '" type="module" src="' . $this->getAssetPath($jsFile) . '"></script>
+        <script>
+            // Remove duplicate script tags to prevent multiple loads
+            (function() {
+                var scripts = document.querySelectorAll(\'script[id="' . $scriptId . '"]\');
+                if (scripts.length > 1) {
+                    for (var i = 1; i < scripts.length; i++) {
+                        scripts[i].remove();
+                    }
+                }
+            })();
+        </script>';
+        }
+        
+        // Return empty string if no valid standalone apps entry found
+        return '';
+    }
+    
     private function getUnraidUiScriptHtml(): string
     {
         $manifestFiles = $this->findManifestFiles('ui.manifest.json');
@@ -173,7 +225,9 @@ class WebComponentsExtractor
         
         try {
             $scriptsOutput = true;
-            return $this->getRichComponentsScript() . $this->getUnraidUiScriptHtml();
+            return $this->getRichComponentsScript() . 
+                   $this->getUnraidUiScriptHtml() . 
+                   $this->getStandaloneAppsScript();
         } catch (\Exception $e) {
             error_log("Error in WebComponentsExtractor::getScriptTagHtml: " . $e->getMessage());
             $scriptsOutput = false; // Reset on error

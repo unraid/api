@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
+import { Button } from '@unraid/ui';
 import {
   Bars3Icon,
   BellAlertIcon,
@@ -47,8 +48,10 @@ const title = computed((): string => {
 </script>
 
 <template>
-  <button
-    class="group text-lg border-0 relative flex flex-row justify-end items-center h-full gap-x-2 opacity-100 hover:opacity-75 transition-opacity text-header-text-primary"
+  <Button
+    variant="header"
+    size="header"
+    class="justify-center gap-x-1.5 pl-0"
     :title="title"
   >
     <template v-if="errors.length && errors[0].level">
@@ -80,5 +83,5 @@ const title = computed((): string => {
     <Bars3Icon class="w-5" />
 
     <BrandAvatar v-if="connectPluginInstalled" />
-  </button>
+  </Button>
 </template>

@@ -6,6 +6,7 @@ export * from './dialog/index.js';
 export * from './dropdown-menu/index.js';
 export * from './loading/index.js';
 export * from './popover/index.js';
+export * from './responsive-modal/index.js';
 export * from './scroll-area/index.js';
 export * from './sheet/index.js';
 export * from './stepper/index.js';
