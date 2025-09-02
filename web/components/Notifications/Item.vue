@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
-import type { Component } from 'vue';
+import { useMutation } from '@vue/apollo-composable';
 import { computedAsync } from '@vueuse/core';
-import { Markdown } from '@/helpers/markdown';
+
 import {
   ArchiveBoxIcon,
   CheckBadgeIcon,
@@ -12,8 +12,11 @@ import {
   TrashIcon,
 } from '@heroicons/vue/24/solid';
 import { Button } from '@unraid/ui';
-import { useMutation } from '@vue/apollo-composable';
+import { Markdown } from '@/helpers/markdown';
+
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
+import type { Component } from 'vue';
+
 import { NotificationType } from '~/composables/gql/graphql';
 import {
   archiveNotification as archiveMutation,
@@ -82,19 +85,13 @@ const reformattedTimestamp = computed<string>(() => {
   }).format(new Date(props.timestamp));
   return reformattedDate;
 });
-
-const navigateToLink = () => {
-  if (props.link) {
-    window.location.href = props.link;
-  }
-};
 </script>
 
 <template>
-  <div class="group/item relative py-3 flex flex-col gap-2 text-base">
-    <header class="flex flex-row items-baseline justify-between gap-2 -translate-y-1">
+  <div class="group/item relative flex flex-col gap-2 py-3 text-base">
+    <header class="flex -translate-y-1 flex-row items-baseline justify-between gap-2">
       <h3
-        class="tracking-normal flex flex-row items-baseline gap-2 font-normal normal-case overflow-x-hidden m-0"
+        class="m-0 flex flex-row items-baseline gap-2 overflow-x-hidden text-base font-semibold normal-case"
       >
         <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
         <component
@@ -103,18 +100,18 @@ const navigateToLink = () => {
           class="size-5 shrink-0 translate-y-1"
           :class="icon.color"
         />
-        <span class="truncate flex-1" :title="title">{{ title }}</span>
+        <span class="flex-1 truncate" :title="title">{{ title }}</span>
       </h3>
 
       <div
-        class="shrink-0 flex flex-row items-baseline justify-end gap-2 mt-1"
+        class="mt-1 flex shrink-0 flex-row items-baseline justify-end gap-2"
         :title="formattedTimestamp ?? reformattedTimestamp"
       >
         <p class="text-secondary-foreground text-sm">{{ reformattedTimestamp }}</p>
       </div>
     </header>
 
-    <h4 class="font-normal m-0">
+    <h4 class="m-0 font-normal">
       {{ subject }}
     </h4>
 
@@ -124,22 +121,21 @@ const navigateToLink = () => {
 
     <p v-if="mutationError" class="text-red-600">Error: {{ mutationError }}</p>
 
-    <div class="flex justify-end items-baseline gap-4">
-      <Button
+    <div class="flex items-baseline justify-end gap-4">
+      <a
         v-if="link"
-        type="button"
-        variant="link"
-        @click="navigateToLink"
+        :href="link"
+        class="text-primary inline-flex items-center justify-center text-sm font-medium hover:underline focus:underline"
       >
-        <LinkIcon class="size-4 mr-2" />
+        <LinkIcon class="mr-2 size-4" />
         <span class="text-sm">View</span>
-      </Button>
+      </a>
       <Button
         v-if="type === NotificationType.UNREAD"
         :disabled="archive.loading"
         @click="() => archive.mutate({ id: props.id })"
       >
-        <ArchiveBoxIcon class="size-4 mr-2" />
+        <ArchiveBoxIcon class="mr-2 size-4" />
         <span class="text-sm">Archive</span>
       </Button>
       <Button
@@ -147,7 +143,7 @@ const navigateToLink = () => {
         :disabled="deleteNotification.loading"
         @click="() => deleteNotification.mutate({ id: props.id, type: props.type })"
       >
-        <TrashIcon class="size-4 mr-2" />
+        <TrashIcon class="mr-2 size-4" />
         <span class="text-sm">Delete</span>
       </Button>
     </div>

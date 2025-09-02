@@ -1,49 +1,45 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 
 import { Button } from '@unraid/ui';
 import {
   Bars3Icon,
-  BellAlertIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
   ShieldExclamationIcon,
 } from '@heroicons/vue/24/solid';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import BrandAvatar from '~/components/Brand/Avatar.vue';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore } from '~/store/updateOs';
 
-const props = defineProps<{ t: ComposerTranslation }>();
+const { t } = useI18n();
 
 const { errors } = storeToRefs(useErrorsStore());
-const { connectPluginInstalled, rebootType, state, stateData } = storeToRefs(useServerStore());
-const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
+const { connectPluginInstalled, state, stateData } = storeToRefs(useServerStore());
 
 const showErrorIcon = computed(() => errors.value.length || stateData.value.error);
 
 const text = computed((): string => {
   if (stateData.value.error && state.value !== 'EEXPIRED') {
-    return props.t('Fix Error');
+    return t('Fix Error');
   }
   return '';
 });
 
 const title = computed((): string => {
   if (state.value === 'ENOKEYFILE') {
-    return props.t('Get Started');
+    return t('Get Started');
   }
   if (state.value === 'EEXPIRED') {
-    return props.t('Trial Expired, see options below');
+    return t('Trial Expired, see options below');
   }
   if (showErrorIcon.value) {
-    return props.t('Learn more about the error');
+    return t('Learn more about the error');
   }
-  return props.t('Open Dropdown');
+  return t('Open Dropdown');
 });
 </script>
 
@@ -74,11 +70,6 @@ const title = computed((): string => {
         class="absolute bottom-[-3px] inset-x-0 h-0.5 w-full bg-linear-to-r from-unraid-red to-orange rounded opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity"
       />
     </span>
-
-    <BellAlertIcon
-      v-if="osUpdateAvailable && !rebootType"
-      class="hover:animate-pulse fill-current relative w-4 h-4"
-    />
 
     <Bars3Icon class="w-5" />
 

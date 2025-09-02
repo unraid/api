@@ -117,8 +117,8 @@ describe('UpdateOs.ce.vue', () => {
 
       expect(mockAccountStore.updateOs).toHaveBeenCalledTimes(1);
       expect(mockAccountStore.updateOs).toHaveBeenCalledWith(true);
-      expect(wrapper.find('[data-testid="brand-loading-mock"]').exists()).toBe(true);
-      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="brand-loading-mock"]').isVisible()).toBe(true);
+      expect(wrapper.find('[data-testid="update-os-status"]').isVisible()).toBe(false);
     });
 
     it('shows status and does not call updateOs when path does not match', () => {
@@ -137,8 +137,8 @@ describe('UpdateOs.ce.vue', () => {
       });
 
       expect(mockAccountStore.updateOs).not.toHaveBeenCalled();
-      expect(wrapper.find('[data-testid="brand-loading-mock"]').exists()).toBe(false);
-      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="brand-loading-mock"]').isVisible()).toBe(false);
+      expect(wrapper.find('[data-testid="update-os-status"]').isVisible()).toBe(true);
     });
 
     it('shows status and does not call updateOs when path matches but rebootType is not empty', () => {
@@ -157,8 +157,8 @@ describe('UpdateOs.ce.vue', () => {
       });
 
       expect(mockAccountStore.updateOs).not.toHaveBeenCalled();
-      expect(wrapper.find('[data-testid="brand-loading-mock"]').exists()).toBe(false);
-      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="brand-loading-mock"]').isVisible()).toBe(false);
+      expect(wrapper.find('[data-testid="update-os-status"]').isVisible()).toBe(true);
     });
   });
 

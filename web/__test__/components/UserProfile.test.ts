@@ -87,18 +87,18 @@ const initialServerData: Server = {
 
 // Component stubs for mount options
 const stubs = {
-  UpcUptimeExpire: { template: '<div data-testid="uptime-expire"></div>', props: ['t'] },
-  UpcServerState: { template: '<div data-testid="server-state"></div>', props: ['t'] },
+  UpcUptimeExpire: { template: '<div data-testid="uptime-expire"></div>' },
+  UpcServerState: { template: '<div data-testid="server-state"></div>' },
   UpcServerStatus: { 
     template: '<div><div data-testid="uptime-expire"></div><div data-testid="server-state"></div></div>', 
-    props: ['t', 'class'] 
+    props: ['class'] 
   },
   NotificationsSidebar: { template: '<div data-testid="notifications-sidebar"></div>' },
   DropdownMenu: {
     template: '<div data-testid="dropdown-menu"><slot name="trigger" /><slot name="content" /></div>',
   },
-  UpcDropdownContent: { template: '<div data-testid="dropdown-content"></div>', props: ['t'] },
-  UpcDropdownTrigger: { template: '<button data-testid="dropdown-trigger"></button>', props: ['t'] },
+  UpcDropdownContent: { template: '<div data-testid="dropdown-content"></div>' },
+  UpcDropdownTrigger: { template: '<button data-testid="dropdown-trigger"></button>' },
 };
 
 describe('UserProfile.ce.vue', () => {

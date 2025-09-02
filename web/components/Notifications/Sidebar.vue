@@ -99,7 +99,7 @@ onNotificationAdded(({ data }) => {
     [Importance.INFO]: globalThis.toast.info,
   };
   const toast = funcMapping[notif.importance];
-  const createOpener = () => ({ label: 'Open', onClick: () => location.assign(notif.link as string) });
+  const createOpener = () => ({ label: 'Open', onClick: () => window.location.assign(notif.link as string) });
 
   requestAnimationFrame(() =>
     toast(notif.title, {

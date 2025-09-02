@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
@@ -18,6 +18,11 @@ import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
 
 const { t } = useI18n();
 const { copyWithNotification } = useClipboardWithToast();
+
+onMounted(() => {
+  const logoWrapper = document.querySelector('.logo');
+  logoWrapper?.classList.remove('logo');
+});
 
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
@@ -136,7 +141,7 @@ const updateOsStatus = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-2 mt-6">
+  <div class="flex flex-col gap-y-2 mt-2 ml-2">
     <a
       :href="unraidLogoHeaderLink.href"
       :title="unraidLogoHeaderLink.title"

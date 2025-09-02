@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import type { ComposerTranslation } from 'vue-i18n';
 import { cn } from '@unraid/ui';
 import UpcUptimeExpire from './UptimeExpire.vue';
 import UpcServerState from './ServerState.vue';
 
 interface Props {
-  t: ComposerTranslation;
   class?: string;
 }
 
@@ -24,8 +22,8 @@ defineProps<Props>();
       )
     "
   >
-    <UpcUptimeExpire :as="'span'" :t="t" :short-text="true" class="text-xs" />
+    <UpcUptimeExpire :as="'span'" :short-text="true" class="text-xs" />
     <span class="hidden xs:inline">&bull;</span>
-    <UpcServerState :t="t" class="text-xs" />
+    <UpcServerState class="text-xs" />
   </div>
 </template>

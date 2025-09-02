@@ -92,7 +92,7 @@ onMounted(() => {
       :style="bannerGradient"
     />
 
-    <UpcServerStatus :t="t" class="relative z-10" />
+    <UpcServerStatus class="relative z-10" />
 
     <div class="relative z-10 flex flex-row items-center justify-end gap-x-2 h-full">
       <div
@@ -125,12 +125,11 @@ onMounted(() => {
         :side-offset="4"
       >
         <template #trigger>
-          <UpcDropdownTrigger :t="t" />
+          <UpcDropdownTrigger />
         </template>
         <template #content>
           <div class="max-w-[350px] sm:min-w-[350px]">
             <UpcDropdownContent 
-              :t="t" 
               @close-dropdown="dropdownOpen = false"
             />
           </div>
