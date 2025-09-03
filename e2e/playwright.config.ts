@@ -14,7 +14,6 @@ export default defineConfig({
     ['list'],
     process.env.CI ? ['github'] : null,
   ].filter(Boolean) as any,
-  
   use: {
     baseURL: process.env.UNRAID_URL || 'http://tower.local',
     trace: 'on-first-retry',
