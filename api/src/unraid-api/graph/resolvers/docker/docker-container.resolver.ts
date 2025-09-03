@@ -2,10 +2,7 @@ import { Logger } from '@nestjs/common';
 import { Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthAction,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { AppError } from '@app/core/errors/app-error.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';

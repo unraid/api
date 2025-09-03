@@ -62,9 +62,8 @@ type AsyncOperation<T> = () => Promise<T>;
  *   fetch('/api/expensive-data').then(res => res.json())
  * );
  * 
- * // Multiple components can call this without duplication
  * const data1 = await dataLoader.do(); // Executes the fetch
- * const data2 = await dataLoader.do(); // Gets the same promise result
+ * const data2 = await dataLoader.do(); // If first promise is finished, a new fetch is executed
  */
 export class AsyncMutex<T = unknown> {
   private currentOperation: Promise<any> | null = null;
@@ -77,12 +76,20 @@ export class AsyncMutex<T = unknown> {
    *                   This is useful when you have a specific operation that should be deduplicated.
    * 
    * @example
-   * // Without default operation
+   * // Without default operation (shared mutex)
    * const mutex = new AsyncMutex();
-   * await mutex.do(() => someAsyncWork());
+   * const promise1 = mutex.do(() => someAsyncWork());
+   * const promise2 = mutex.do(() => someOtherAsyncWork());
+   * 
+   * // Both promises will be the same
+   * expect(await promise1).toBe(await promise2);
+   * 
+   * // After the first operation completes, new operations can run
+   * await promise1;
+   * const newPromise = mutex.do(() => someOtherAsyncWork()); // This will execute
    * 
    * @example
-   * // With default operation
+   * // With default operation (deduplicating a specific operation)
    * const dataMutex = new AsyncMutex(() => loadExpensiveData());
    * await dataMutex.do(); // Executes loadExpensiveData()
    */
