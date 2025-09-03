@@ -16,7 +16,7 @@
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&plugin_url;"
-  launch="&launch;" min="6.9.0-rc1" icon="globe">
+  launch="&launch;" min="6.12.15" icon="globe">
 
   <CHANGES>
     ##a long time ago in a galaxy far far away
@@ -61,19 +61,19 @@ exit 0
 $version = @parse_ini_file('/etc/unraid-version', true)['version'];
 
 // Check if this is a supported version
-// - Must be 6.12.0 or higher
-// - Must not be a 6.12.0 beta/rc version
-$is_stable_6_12_or_higher = version_compare($version, '6.12.0', '>=') && !preg_match('/^6\\.12\\.0-/', $version);
+// - Must be 6.12.15 or higher
+// - Must not be a 6.12.15 beta/rc version
+$is_stable_6_12_or_higher = version_compare($version, '6.12.15', '>=') && !preg_match('/^6\\.12\\.0-/', $version);
 
 if ($is_stable_6_12_or_higher) {
   echo "Running on supported version {$version}\n";
   exit(0);
 }
 
-echo "Warning: Unsupported Unraid version {$version}. This plugin requires Unraid 6.12.0 or higher.\n";
-echo "The plugin may not function correctly on this system.\n";
+echo "Warning: Unsupported Unraid version {$version}. This plugin requires Unraid 6.12.15 or higher.\n";
+echo "The plugin will not function correctly on this system.\n";
 
-exit(0);
+exit(1);
 ]]>
     </INLINE>
   </FILE>
