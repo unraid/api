@@ -332,6 +332,14 @@ if [ -d "/usr/local/unraid-api/node_modules" ]; then
   rm -rf "/usr/local/unraid-api/node_modules"
 fi
 
+# Clear existing unraid-components directory contents to ensure clean installation
+echo "Cleaning up existing unraid-components directory..."
+DIR="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
+if [ -d "$DIR" ]; then
+  echo "Clearing contents of: $DIR"
+  rm -rf "$DIR"/*
+fi
+
 # Install the package using the explicit file path
 upgradepkg --install-new --reinstall "${PKG_FILE}"
 if [ $? -ne 0 ]; then

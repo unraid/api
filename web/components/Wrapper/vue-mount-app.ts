@@ -524,30 +524,31 @@ export function autoMountComponent(component: Component, selector: string, optio
     const elements = document.querySelectorAll(selector);
     if (elements.length === 0) return;
     
-    // Validate all elements are properly connected to the DOM and not being manipulated
+    // Validate all elements are properly connected to the DOM
     const validElements = Array.from(elements).filter(el => {
       const element = el as HTMLElement;
       
-      // Basic connectivity check
+      // Basic connectivity check - element must be in DOM
       if (!element.isConnected || !element.parentNode || !document.contains(element)) {
         return false;
       }
       
-      // Check if the element appears to be in a stable state
-      const rect = element.getBoundingClientRect();
-      const hasStableGeometry = rect.width >= 0 && rect.height >= 0;
-      
-      // Check if element is being hidden/manipulated by other scripts
-      const computedStyle = window.getComputedStyle(element);
-      const isVisible = computedStyle.display !== 'none' && 
-                       computedStyle.visibility !== 'hidden' && 
-                       computedStyle.opacity !== '0';
-      
-      if (!hasStableGeometry) {
-        console.debug(`[VueMountApp] Element ${selector} has unstable geometry, may be manipulated by scripts`);
+      // Additional check: ensure the element's parentNode relationship is stable
+      // This catches cases where elements appear connected but have DOM manipulation issues
+      try {
+        // Try to access nextSibling - this will throw if DOM is in inconsistent state
+        void element.nextSibling;
+        // Verify parent-child relationship is intact
+        if (element.parentNode && !Array.from(element.parentNode.childNodes).includes(element)) {
+          console.warn(`[VueMountApp] Element ${selector} has broken parent-child relationship`);
+          return false;
+        }
+      } catch (error) {
+        console.warn(`[VueMountApp] Element ${selector} has unstable DOM state:`, error);
+        return false;
       }
       
-      return hasStableGeometry && isVisible;
+      return true;
     });
       
       if (validElements.length > 0) {
