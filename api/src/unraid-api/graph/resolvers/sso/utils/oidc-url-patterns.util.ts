@@ -39,6 +39,10 @@ export class OidcUrlPatterns {
                 'http://localhost:8080/auth',
                 'https://login.microsoftonline.com/common/v2.0',
                 'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_example',
+                // Well-known URLs are valid at the URL pattern level (schema-level validation handles rejection)
+                'https://example.com/.well-known/openid-configuration',
+                'https://auth.example.com/path/.well-known/openid-configuration',
+                'https://example.com/.well-known/jwks.json',
             ],
             invalid: [
                 'https://accounts.google.com/', // Trailing slash
@@ -49,9 +53,6 @@ export class OidcUrlPatterns {
                 ' https://accounts.google.com', // Leading whitespace
                 'https://accounts. google.com', // Internal whitespace
                 'ftp://example.com', // Invalid protocol
-                'https://example.com/.well-known/openid-configuration', // Discovery URLs not allowed
-                'https://auth.example.com/path/.well-known/openid-configuration', // Discovery URLs not allowed
-                'https://example.com/.well-known/jwks.json', // Well-known URLs not allowed
             ],
         };
     }
