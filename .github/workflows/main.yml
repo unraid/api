@@ -117,41 +117,61 @@ jobs:
           # Verify libvirt is running using sudo to bypass group membership delays
           sudo virsh list --all || true
 
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
+      - name: Build UI Package First
+        run: |
+          echo "🔧 Building UI package for web tests dependency..."
+          cd ../unraid-ui && pnpm run build
 
       - name: Run Tests Concurrently
         run: |
           set -e
 
-          # Run all tests in parallel with labeled output
+          # Run all tests in parallel with labeled output and coverage generation
           echo "🚀 Starting API coverage tests..."
           pnpm run coverage > api-test.log 2>&1 &
           API_PID=$!
 
           echo "🚀 Starting Connect plugin tests..."
-          (cd ../packages/unraid-api-plugin-connect && pnpm test) > connect-test.log 2>&1 &
+          (cd ../packages/unraid-api-plugin-connect && pnpm test --coverage 2>/dev/null || pnpm test) > connect-test.log 2>&1 &
           CONNECT_PID=$!
 
           echo "🚀 Starting Shared package tests..."
-          (cd ../packages/unraid-shared && pnpm test) > shared-test.log 2>&1 &
+          (cd ../packages/unraid-shared && pnpm test --coverage 2>/dev/null || pnpm test) > shared-test.log 2>&1 &
           SHARED_PID=$!
+
+          echo "🚀 Starting Web package coverage tests..."
+          (cd ../web && (pnpm test --coverage || pnpm test)) > web-test.log 2>&1 &
+          WEB_PID=$!
+
+          echo "🚀 Starting UI package coverage tests..."
+          (cd ../unraid-ui && pnpm test --coverage 2>/dev/null || pnpm test) > ui-test.log 2>&1 &
+          UI_PID=$!
 
           # Wait for all processes and capture exit codes
           wait $API_PID && echo "✅ API tests completed" || { echo "❌ API tests failed"; API_EXIT=1; }
           wait $CONNECT_PID && echo "✅ Connect tests completed" || { echo "❌ Connect tests failed"; CONNECT_EXIT=1; }
           wait $SHARED_PID && echo "✅ Shared tests completed" || { echo "❌ Shared tests failed"; SHARED_EXIT=1; }
+          wait $WEB_PID && echo "✅ Web tests completed" || { echo "❌ Web tests failed"; WEB_EXIT=1; }
+          wait $UI_PID && echo "✅ UI tests completed" || { echo "❌ UI tests failed"; UI_EXIT=1; }
 
           # Display all outputs
           echo "📋 API Test Results:" && cat api-test.log
           echo "📋 Connect Plugin Test Results:" && cat connect-test.log  
           echo "📋 Shared Package Test Results:" && cat shared-test.log
+          echo "📋 Web Package Test Results:" && cat web-test.log
+          echo "📋 UI Package Test Results:" && cat ui-test.log
 
           # Exit with error if any test failed
-          if [[ ${API_EXIT:-0} -eq 1 || ${CONNECT_EXIT:-0} -eq 1 || ${SHARED_EXIT:-0} -eq 1 ]]; then
+          if [[ ${API_EXIT:-0} -eq 1 || ${CONNECT_EXIT:-0} -eq 1 || ${SHARED_EXIT:-0} -eq 1 || ${WEB_EXIT:-0} -eq 1 || ${UI_EXIT:-0} -eq 1 ]]; then
             exit 1
           fi
+
+      - name: Upload all coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/coverage-final.json,../web/coverage/coverage-final.json,../unraid-ui/coverage/coverage-final.json,../packages/unraid-api-plugin-connect/coverage/coverage-final.json,../packages/unraid-shared/coverage/coverage-final.json
+          fail_ci_if_error: false
 
   build-api:
     name: Build API
