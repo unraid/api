@@ -18,6 +18,7 @@
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
+[![Codecov][codecov-shield]][codecov-url]
 
 </div>
 <!-- PROJECT LOGO -->
@@ -283,6 +284,8 @@ Project Link: [https://github.com/unraid/api](https://github.com/unraid/api)
 [license-url]: https://github.com/unraid/api/blob/main/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/company/unraid
+[codecov-shield]: https://img.shields.io/codecov/c/github/unraid/api?style=for-the-badge
+[codecov-url]: https://codecov.io/gh/unraid/api
 [Nuxt.js]: https://img.shields.io/badge/Nuxt-002E3B?style=for-the-badge&logo=nuxtdotjs&logoColor=#00DC82
 [Node.js]: https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white
 [PHP]: https://img.shields.io/badge/php-%23777BB4.svg?style=for-the-badge&logo=php&logoColor=white
