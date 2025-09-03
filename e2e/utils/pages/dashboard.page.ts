@@ -11,9 +11,9 @@ export class DashboardPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.header = page.locator('header, #header, .header');
-    this.navigationMenu = page.locator('nav, #nav, .nav-menu');
-    this.mainContent = page.locator('main, #content, .content');
+    this.header = page.locator('#header').first();
+    this.navigationMenu = page.locator('#menu');
+    this.mainContent = page.locator('#content, .content, main');
     this.arrayStatus = page.locator('[data-test="array-status"], .array-status, #array-status');
     this.dockerContainers = page.locator('[data-test="docker-containers"], .docker-containers, #docker-containers');
     this.vmList = page.locator('[data-test="vm-list"], .vm-list, #vm-list');
@@ -42,6 +42,6 @@ export class DashboardPage {
   }
 
   async navigateTo(menuItem: string) {
-    await this.navigationMenu.locator(`text="${menuItem}"`).click();
+    await this.navigationMenu.locator(`a:has-text("${menuItem}")`).first().click();
   }
 }

@@ -9,3 +9,6 @@ node_modules/
 screenshots/
 videos/
 traces/
+
+# specific to each individual developer, not the project
+auth.json

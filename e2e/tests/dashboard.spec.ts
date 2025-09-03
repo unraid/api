@@ -4,7 +4,7 @@ import { waitForPageLoad } from '../utils/helpers.js';
 
 test.describe('Dashboard', () => {
   test.beforeEach(async ({ authenticatedPage }) => {
-    
+    // Authentication handled by fixture
   });
 
   test('should load dashboard page', async ({ page }) => {
@@ -19,12 +19,13 @@ test.describe('Dashboard', () => {
   test('should display navigation menu', async ({ page }) => {
     const dashboard = new DashboardPage(page);
     await dashboard.goto();
+    await waitForPageLoad(page);
     
     await expect(dashboard.navigationMenu).toBeVisible();
     
     const menuItems = ['Main', 'Shares', 'Users', 'Settings', 'Plugins', 'Docker', 'VMs'];
     for (const item of menuItems) {
-      const menuItem = dashboard.navigationMenu.locator(`text="${item}"`);
+      const menuItem = dashboard.navigationMenu.locator(`a:has-text("${item}")`);
       const exists = await menuItem.count() > 0;
       
       if (exists) {
@@ -36,6 +37,7 @@ test.describe('Dashboard', () => {
   test('should navigate to different sections', async ({ page }) => {
     const dashboard = new DashboardPage(page);
     await dashboard.goto();
+    await waitForPageLoad(page);
     
     const sectionsToTest = [
       { name: 'Docker', urlPattern: /Docker/i },
@@ -44,16 +46,18 @@ test.describe('Dashboard', () => {
     ];
 
     for (const section of sectionsToTest) {
-      const sectionExists = await dashboard.navigationMenu.locator(`text="${section.name}"`).count() > 0;
+      const menuLink = dashboard.navigationMenu.locator(`a:has-text("${section.name}")`);
+      const sectionExists = await menuLink.count() > 0;
       
       if (sectionExists) {
-        await dashboard.navigateTo(section.name);
+        await menuLink.first().click();
         await waitForPageLoad(page);
         
         const url = page.url();
         expect(url).toMatch(section.urlPattern);
         
         await dashboard.goto();
+        await waitForPageLoad(page);
       }
     }
   });

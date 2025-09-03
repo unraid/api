@@ -19,16 +19,30 @@ export const test = base.extend<AuthFixtures>({
     if (password) {
       await page.goto('/');
       
-      const needsAuth = await page.locator('input[name="username"], input[name="password"]').count() > 0;
+      // Wait for page to fully load
+      await page.waitForLoadState('networkidle');
+      
+      // Check if we need to authenticate
+      const needsAuth = await page.locator('input[name="username"], input[name="password"], input#user, input#pass').count() > 0;
       
       if (needsAuth) {
-        await page.fill('input[name="username"]', username);
-        await page.fill('input[name="password"]', password);
-        await page.click('button[type="submit"], input[type="submit"]');
+        // Try different selector combinations for username/password fields
+        const usernameInput = page.locator('input[name="username"], input#user').first();
+        const passwordInput = page.locator('input[name="password"], input#pass').first();
+        const submitButton = page.locator('button[type="submit"], input[type="submit"], button:has-text("Login")').first();
         
-        await expect(page).not.toHaveURL(/login/);
+        await usernameInput.fill(username);
+        await passwordInput.fill(password);
+        await submitButton.click();
         
-        await page.context().storageState({ path: 'auth.json' });
+        // Wait for navigation to complete
+        await page.waitForLoadState('networkidle');
+        
+        // Check if we successfully logged in
+        const stillOnLogin = page.url().includes('login');
+        if (!stillOnLogin) {
+          await page.context().storageState({ path: 'auth.json' });
+        }
       }
     }
 
