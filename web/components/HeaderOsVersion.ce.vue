@@ -156,7 +156,7 @@ const updateOsStatus = computed(() => {
       >
     </a>
 
-    <div class="flex flex-wrap justify-start gap-2">
+    <div class="flex flex-wrap justify-start gap-2 mt-2">
       <DropdownMenuRoot>
         <DropdownMenuTrigger as-child>
           <Button 
