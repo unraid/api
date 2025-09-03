@@ -33,7 +33,7 @@ describe('OidcUrlPatterns', () => {
             ];
 
             validUrls.forEach((url) => {
-                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(true, `${url} should be valid`);
+                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(true);
             });
         });
 
@@ -48,10 +48,7 @@ describe('OidcUrlPatterns', () => {
             ];
 
             invalidUrls.forEach((url) => {
-                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(
-                    false,
-                    `${url} should be invalid due to trailing slash`
-                );
+                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(false);
             });
         });
 
@@ -65,10 +62,7 @@ describe('OidcUrlPatterns', () => {
             ];
 
             invalidUrls.forEach((url) => {
-                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(
-                    false,
-                    `"${url}" should be invalid due to whitespace`
-                );
+                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(false);
             });
         });
 
@@ -92,7 +86,7 @@ describe('OidcUrlPatterns', () => {
             ];
 
             wellKnownUrls.forEach((url) => {
-                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(true, `${url} should be valid`);
+                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(true);
             });
         });
 
@@ -105,10 +99,7 @@ describe('OidcUrlPatterns', () => {
             ];
 
             invalidWellKnownUrls.forEach((url) => {
-                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(
-                    false,
-                    `${url} should be invalid due to trailing slash`
-                );
+                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(false);
             });
         });
 
@@ -167,10 +158,7 @@ describe('OidcUrlPatterns', () => {
             const examples = OidcUrlPatterns.getExamples();
 
             examples.valid.forEach((url) => {
-                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(
-                    true,
-                    `Example valid URL ${url} should pass validation`
-                );
+                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(true);
             });
         });
 
@@ -178,10 +166,7 @@ describe('OidcUrlPatterns', () => {
             const examples = OidcUrlPatterns.getExamples();
 
             examples.invalid.forEach((url) => {
-                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(
-                    false,
-                    `Example invalid URL ${url} should fail validation`
-                );
+                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(false);
             });
         });
     });
@@ -192,14 +177,8 @@ describe('OidcUrlPatterns', () => {
             const problematicUrl = 'https://accounts.google.com/';
             const correctUrl = 'https://accounts.google.com';
 
-            expect(OidcUrlPatterns.isValidIssuerUrl(problematicUrl)).toBe(
-                false,
-                'The problematic URL from the bug report should be rejected'
-            );
-            expect(OidcUrlPatterns.isValidIssuerUrl(correctUrl)).toBe(
-                true,
-                'The correct URL should be accepted'
-            );
+            expect(OidcUrlPatterns.isValidIssuerUrl(problematicUrl)).toBe(false);
+            expect(OidcUrlPatterns.isValidIssuerUrl(correctUrl)).toBe(true);
         });
 
         it('should prevent the double slash in discovery URL construction', () => {

@@ -46,7 +46,7 @@ describe('OidcConfigPersistence', () => {
         mockValidationService = module.get<OidcValidationService>(OidcValidationService);
 
         // Mock persist method to avoid file system operations
-        vi.spyOn(service, 'persist').mockResolvedValue();
+        vi.spyOn(service, 'persist').mockResolvedValue(true);
     });
 
     describe('URL validation integration', () => {
@@ -57,12 +57,12 @@ describe('OidcConfigPersistence', () => {
 
             // Test valid URLs
             examples.valid.forEach((url) => {
-                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(true, `${url} should be valid`);
+                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(true);
             });
 
             // Test invalid URLs
             examples.invalid.forEach((url) => {
-                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(false, `${url} should be invalid`);
+                expect(OidcUrlPatterns.isValidIssuerUrl(url)).toBe(false);
             });
         });
 
@@ -80,14 +80,8 @@ describe('OidcConfigPersistence', () => {
             const problematicUrl = 'https://accounts.google.com/';
             const correctUrl = 'https://accounts.google.com';
 
-            expect(OidcUrlPatterns.isValidIssuerUrl(problematicUrl)).toBe(
-                false,
-                'The problematic URL from the bug report should be rejected'
-            );
-            expect(OidcUrlPatterns.isValidIssuerUrl(correctUrl)).toBe(
-                true,
-                'The correct URL should be accepted'
-            );
+            expect(OidcUrlPatterns.isValidIssuerUrl(problematicUrl)).toBe(false);
+            expect(OidcUrlPatterns.isValidIssuerUrl(correctUrl)).toBe(true);
         });
     });
 });
