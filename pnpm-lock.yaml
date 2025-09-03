@@ -164,8 +164,8 @@ importers:
         specifier: 1.0.2
         version: 1.0.2
       cron:
-        specifier: 4.3.3
-        version: 4.3.3
+        specifier: 4.3.0
+        version: 4.3.0
       cross-fetch:
         specifier: 4.1.0
         version: 4.1.0
@@ -4201,9 +4201,6 @@ packages:
   '@types/luxon@3.6.2':
     resolution: {integrity: sha512-R/BdP7OxEMc44l2Ex5lSXHoIXTB2JLNa3y2QISIbr58U/YcsffyQrYW//hZSdrfxrjRZj3GcUoxMPGdO8gSYuw==}
 
-  '@types/luxon@3.7.1':
-    resolution: {integrity: sha512-H3iskjFIAn5SlJU7OuxUmTEpebK6TKB8rxZShDslBMZJ5u9S//KM1sbdAisiSrqwLQncVjnpi2OK2J51h+4lsg==}
-
   '@types/mdx@2.0.13':
     resolution: {integrity: sha512-+OWZQfAYyio6YkJb3HLxDrvnx6SWWDbC0zVPfBRzUk0/nqoDyf6dNxQi3eArPe8rJ473nobTMQ/8Zk+LxJ+Yuw==}
 
@@ -5866,10 +5863,6 @@ packages:
 
   cron@4.3.0:
     resolution: {integrity: sha512-ciiYNLfSlF9MrDqnbMdRWFiA6oizSF7kA1osPP9lRzNu0Uu+AWog1UKy7SkckiDY2irrNjeO6qLyKnXC8oxmrw==}
-    engines: {node: '>=18.x'}
-
-  cron@4.3.3:
-    resolution: {integrity: sha512-B/CJj5yL3sjtlun6RtYHvoSB26EmQ2NUmhq9ZiJSyKIM4K/fqfh9aelDFlIayD2YMeFZqWLi9hHV+c+pq2Djkw==}
     engines: {node: '>=18.x'}
 
   croner@4.1.97:
@@ -13424,8 +13417,8 @@ snapshots:
 
   '@jridgewell/source-map@0.3.6':
     dependencies:
-      '@jridgewell/gen-mapping': 0.3.12
-      '@jridgewell/trace-mapping': 0.3.29
+      '@jridgewell/gen-mapping': 0.3.8
+      '@jridgewell/trace-mapping': 0.3.25
 
   '@jridgewell/sourcemap-codec@1.5.0': {}
 
@@ -14805,8 +14798,6 @@ snapshots:
   '@types/long@4.0.2': {}
 
   '@types/luxon@3.6.2': {}
-
-  '@types/luxon@3.7.1': {}
 
   '@types/mdx@2.0.13': {}
 
@@ -16672,11 +16663,6 @@ snapshots:
     dependencies:
       '@types/luxon': 3.6.2
       luxon: 3.6.1
-
-  cron@4.3.3:
-    dependencies:
-      '@types/luxon': 3.7.1
-      luxon: 3.7.1
 
   croner@4.1.97: {}
 
