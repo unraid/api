@@ -1,13 +1,7 @@
 <script setup lang="ts">
-import { cn } from '@unraid/ui';
+import { cn, type ClassValue } from '@unraid/ui';
 import UpcUptimeExpire from './UptimeExpire.vue';
 import UpcServerState from './ServerState.vue';
-
-interface Props {
-  class?: string;
-}
-
-defineProps<Props>();
 </script>
 
 <template>
@@ -18,7 +12,7 @@ defineProps<Props>();
         'flex flex-col items-end gap-y-0.5 justify-end',
         'xs:flex-row xs:items-baseline xs:gap-x-2 xs:gap-y-0',
         'text-xs',
-        $props.class
+        $attrs.class as ClassValue
       )
     "
   >

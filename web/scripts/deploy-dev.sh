@@ -60,6 +60,22 @@ update_auth_request() {
     fi
 
     if grep -q '\$arrWhitelist' "$AUTH_REQUEST_FILE"; then
+      # Create a timestamped backup
+      local TIMESTAMP=$(date +%s)
+      local BACKUP_FILE="${AUTH_REQUEST_FILE}.bak.${TIMESTAMP}"
+      local TEMP_FILE="${AUTH_REQUEST_FILE}.tmp.new"
+      
+      # Create backup
+      cp "$AUTH_REQUEST_FILE" "$BACKUP_FILE" || {
+        echo "Failed to create backup of $AUTH_REQUEST_FILE" >&2
+        exit 1
+      }
+      
+      # Clean up any existing temp file
+      rm -f "$TEMP_FILE"
+      
+      # Process the file through both stages using a pipeline
+      # First remove existing web component entries, then add new ones
       awk '
         BEGIN { in_array = 0 }
         /\$arrWhitelist\s*=\s*\[/ {
@@ -75,10 +91,7 @@ update_auth_request() {
         !in_array || !/\/plugins\/dynamix\.my\.servers\/unraid-components\/.*\.(m?js|css)/ {
           print $0
         }
-      ' "$AUTH_REQUEST_FILE" > "${AUTH_REQUEST_FILE}.tmp"
-
-      # Now add new entries right after the opening bracket
-      # Escape single quotes in filenames for PHP safety
+      ' "$AUTH_REQUEST_FILE" | \
       awk -v files_to_add="$(printf '%s\n' "${FILES_TO_ADD[@]}" | sed "s/'/\\\\'/g" | sort -u | awk '{printf "  \047%s\047,\n", $0}')" '
         /\$arrWhitelist\s*=\s*\[/ {
           print $0
@@ -86,10 +99,30 @@ update_auth_request() {
           next
         }
         { print }
-      ' "${AUTH_REQUEST_FILE}.tmp" > "${AUTH_REQUEST_FILE}"
-
-      rm "${AUTH_REQUEST_FILE}.tmp"
-      echo "Updated $AUTH_REQUEST_FILE with new web component JS files"
+      ' > "$TEMP_FILE"
+      
+      # Check pipeline succeeded and temp file is non-empty
+      if [ ${PIPESTATUS[0]} -ne 0 ] || [ ${PIPESTATUS[1]} -ne 0 ] || [ ! -s "$TEMP_FILE" ]; then
+        echo "Failed to process $AUTH_REQUEST_FILE" >&2
+        rm -f "$TEMP_FILE"
+        exit 1
+      fi
+      
+      # Verify the temp file has the expected content
+      if ! grep -q '\$arrWhitelist' "$TEMP_FILE" 2>/dev/null; then
+        echo "Generated file does not contain \$arrWhitelist array" >&2
+        rm -f "$TEMP_FILE"
+        exit 1
+      fi
+      
+      # Atomically replace the original file
+      mv "$TEMP_FILE" "$AUTH_REQUEST_FILE" || {
+        echo "Failed to update $AUTH_REQUEST_FILE" >&2
+        rm -f "$TEMP_FILE"
+        exit 1
+      }
+      
+      echo "Updated $AUTH_REQUEST_FILE with new web component JS files (backup: $BACKUP_FILE)"
     else
       echo "\$arrWhitelist array not found in $AUTH_REQUEST_FILE" >&2
       exit 1

@@ -2,7 +2,7 @@
  * UpdateOs Component Test Coverage
  */
 
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
 import { createTestingPinia } from '@pinia/testing';
@@ -100,7 +100,7 @@ describe('UpdateOs.ce.vue', () => {
   });
 
   describe('Initial Rendering and onBeforeMount Logic', () => {
-    it('shows loader and calls updateOs when path matches and rebootType is empty', () => {
+    it('shows loader and calls updateOs when path matches and rebootType is empty', async () => {
       mockLocation.pathname = '/Tools/Update';
       mockRebootType.value = '';
 
@@ -115,13 +115,18 @@ describe('UpdateOs.ce.vue', () => {
         },
       });
 
+      await nextTick();
+
       expect(mockAccountStore.updateOs).toHaveBeenCalledTimes(1);
       expect(mockAccountStore.updateOs).toHaveBeenCalledWith(true);
+      // Since v-show is used, both elements exist in DOM but visibility is toggled
+      expect(wrapper.find('[data-testid="brand-loading-mock"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="brand-loading-mock"]').isVisible()).toBe(true);
+      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="update-os-status"]').isVisible()).toBe(false);
     });
 
-    it('shows status and does not call updateOs when path does not match', () => {
+    it('shows status and does not call updateOs when path does not match', async () => {
       mockLocation.pathname = '/some/other/path';
       mockRebootType.value = '';
 
@@ -136,12 +141,17 @@ describe('UpdateOs.ce.vue', () => {
         },
       });
 
+      await nextTick();
+
       expect(mockAccountStore.updateOs).not.toHaveBeenCalled();
+      // Since v-show is used, both elements exist in DOM but visibility is toggled
+      expect(wrapper.find('[data-testid="brand-loading-mock"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="brand-loading-mock"]').isVisible()).toBe(false);
+      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="update-os-status"]').isVisible()).toBe(true);
     });
 
-    it('shows status and does not call updateOs when path matches but rebootType is not empty', () => {
+    it('shows status and does not call updateOs when path matches but rebootType is not empty', async () => {
       mockLocation.pathname = '/Tools/Update';
       mockRebootType.value = 'downgrade';
 
@@ -156,8 +166,13 @@ describe('UpdateOs.ce.vue', () => {
         },
       });
 
+      await nextTick();
+
       expect(mockAccountStore.updateOs).not.toHaveBeenCalled();
+      // Since v-show is used, both elements exist in DOM but visibility is toggled
+      expect(wrapper.find('[data-testid="brand-loading-mock"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="brand-loading-mock"]').isVisible()).toBe(false);
+      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="update-os-status"]').isVisible()).toBe(true);
     });
   });

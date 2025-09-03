@@ -85,10 +85,25 @@ class WebComponentsExtractor
                 
                 if ($extension === 'js' || $extension === 'mjs') {
                     // Generate script tag with unique ID based on subfolder and key
-                    $scripts[] = '<script id="' . $safeId . '" type="module" src="' . $safePath . '"></script>';
+                    $scripts[] = '<script id="' . $safeId . '" type="module" src="' . $safePath . '" data-unraid="1"></script>';
+                    // Also emit any CSS referenced by this entry (Vite manifest "css": [])
+                    if (!empty($entry['css']) && is_array($entry['css'])) {
+                        foreach ($entry['css'] as $cssFile) {
+                            if (!is_string($cssFile) || $cssFile === '') continue;
+                            $cssPath = ($subfolder ? $subfolder . '/' : '') . $cssFile;
+                            $cssFull = $this->getAssetPath($cssPath);
+                            $cssId = htmlspecialchars(
+                                'unraid-' . $sanitizedSubfolder . $sanitizedKey . '-css-' . $this->sanitizeForId(basename($cssFile)),
+                                ENT_QUOTES,
+                                'UTF-8'
+                            );
+                            $cssHref = htmlspecialchars($cssFull, ENT_QUOTES, 'UTF-8');
+                            $scripts[] = '<link id="' . $cssId . '" rel="stylesheet" href="' . $cssHref . '" data-unraid="1">';
+                        }
+                    }
                 } elseif ($extension === 'css') {
                     // Generate link tag for CSS files with unique ID
-                    $scripts[] = '<link id="' . $safeId . '" rel="stylesheet" href="' . $safePath . '">';
+                    $scripts[] = '<link id="' . $safeId . '" rel="stylesheet" href="' . $safePath . '" data-unraid="1">';
                 }
             }
         }
@@ -102,7 +117,7 @@ class WebComponentsExtractor
         <script>
             // Remove duplicate resource tags to prevent multiple loads
             (function() {
-                var elements = document.querySelectorAll(\'[id^="unraid-"]\');
+                var elements = document.querySelectorAll(\'[data-unraid="1"]\');
                 var seen = {};
                 for (var i = 0; i < elements.length; i++) {
                     var el = elements[i];

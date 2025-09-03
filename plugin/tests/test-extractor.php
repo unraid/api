@@ -52,7 +52,8 @@ class ExtractorTest {
             ],
             'standalone-apps.js' => [
                 'file' => 'standalone-apps.js',
-                'src' => 'standalone-apps.js'
+                'src' => 'standalone-apps.js',
+                'css' => ['app-styles.css', 'theme.css']
             ],
             'ts' => 1234567890
         ], JSON_PRETTY_PRINT));
@@ -74,7 +75,8 @@ class ExtractorTest {
         
         file_put_contents($this->componentDir . '/other/manifest.json', json_encode([
             'app-entry' => [
-                'file' => 'app.js'
+                'file' => 'app.js',
+                'css' => ['main.css']
             ],
             'app-styles' => [
                 'file' => 'app.css'
@@ -197,6 +199,10 @@ class ExtractorTest {
             "Deduplication targets correct elements",
             strpos($output, 'document.querySelectorAll') !== false
         );
+        $this->test(
+            "Deduplication only targets data-unraid elements",
+            strpos($output, 'querySelectorAll(\'[data-unraid="1"]\')') !== false
+        );
         
         // Test: Path Construction
         echo "\nTest: Path Construction\n";
@@ -249,6 +255,46 @@ class ExtractorTest {
             (strpos($output, 'special&#039;file&quot;') !== false || 
              strpos($output, "special&apos;file&quot;") !== false ||
              strpos($output, "special'file&quot;") === false)
+        );
+        
+        // Test: Data-Unraid Attribute
+        echo "\nTest: Data-Unraid Attribute\n";
+        echo "----------------------------\n";
+        $this->test(
+            "Script tags have data-unraid attribute",
+            preg_match('/<script[^>]+data-unraid="1"/', $output) > 0
+        );
+        $this->test(
+            "Link tags have data-unraid attribute",
+            preg_match('/<link[^>]+data-unraid="1"/', $output) > 0
+        );
+        
+        // Test: CSS Loading from Manifest
+        echo "\nTest: CSS Loading from Manifest\n";
+        echo "--------------------------------\n";
+        $this->test(
+            "Loads CSS from JS entry css array (app-styles.css)",
+            strpos($output, 'id="unraid-standalone-apps-standalone-apps-js-css-app-styles-css"') !== false
+        );
+        $this->test(
+            "Loads CSS from JS entry css array (theme.css)",
+            strpos($output, 'id="unraid-standalone-apps-standalone-apps-js-css-theme-css"') !== false
+        );
+        $this->test(
+            "CSS from manifest has correct href path (app-styles.css)",
+            strpos($output, '/plugins/dynamix.my.servers/unraid-components/standalone-apps/app-styles.css') !== false
+        );
+        $this->test(
+            "CSS from manifest has correct href path (theme.css)",
+            strpos($output, '/plugins/dynamix.my.servers/unraid-components/standalone-apps/theme.css') !== false
+        );
+        $this->test(
+            "Loads CSS from other JS entry (main.css)",
+            strpos($output, 'id="unraid-other-app-entry-css-main-css"') !== false
+        );
+        $this->test(
+            "CSS from manifest has data-unraid attribute",
+            preg_match('/<link[^>]+id="unraid-[^"]*-css-[^"]+"[^>]+data-unraid="1"/', $output) > 0
         );
         
         // Test: Duplicate Prevention

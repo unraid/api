@@ -3,6 +3,8 @@ import DOMPurify from 'dompurify';
 import { Marked, type MarkedExtension } from 'marked';
 import { twMerge } from 'tailwind-merge';
 
+export type { ClassValue };
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
