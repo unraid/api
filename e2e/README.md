@@ -119,6 +119,5 @@ Tests can run in CI with:
 | UNRAID_URL | Unraid server URL | http://tower.local |
 | UNRAID_USERNAME | Username for auth | root |
 | UNRAID_PASSWORD | Password for auth | - |
-| HEADLESS | Run in headless mode | true |
 | SLOW_MO | Slow down actions (ms) | 0 |
 | DEBUG | Enable debug mode | false |
