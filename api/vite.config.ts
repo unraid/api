@@ -1,3 +1,6 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { basename, join } from 'node:path';
+
 import type { ViteUserConfig } from 'vitest/config';
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
@@ -73,12 +76,17 @@ export default defineConfig(({ mode }): ViteUserConfig => {
             // Copy PHP files to assets directory
             {
                 name: 'copy-php-files',
+                buildStart() {
+                    const phpFiles = ['src/core/utils/plugins/wrapper.php'];
+                    phpFiles.forEach((file) => this.addWatchFile(file));
+                },
                 async generateBundle() {
-                    const { readFileSync } = await import('fs');
-                    const { join, basename } = await import('path');
-
                     const phpFiles = ['src/core/utils/plugins/wrapper.php'];
                     phpFiles.forEach((file) => {
+                        if (!existsSync(file)) {
+                            this.warn(`[copy-php-files] PHP file ${file} does not exist`);
+                            return;
+                        }
                         const content = readFileSync(file);
                         this.emitFile({
                             type: 'asset',
