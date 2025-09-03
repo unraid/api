@@ -1,5 +1,6 @@
 import { createAjv } from '@jsonforms/core';
 import type Ajv from 'ajv';
+import addErrors from 'ajv-errors';
 
 export interface JsonFormsConfig {
   /**
@@ -20,10 +21,15 @@ export interface JsonFormsConfig {
  * This ensures all JSONForms instances have proper validation and visibility rule support
  */
 export function createJsonFormsAjv(): Ajv {
-  return createAjv({
+  const ajv = createAjv({
     allErrors: true,
     strict: false,
   });
+
+  // Add support for custom error messages
+  addErrors(ajv);
+
+  return ajv;
 }
 
 /**
