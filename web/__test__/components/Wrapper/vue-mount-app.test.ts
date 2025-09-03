@@ -649,7 +649,7 @@ describe('vue-mount-app', () => {
       expect(element.querySelector('.test-component')).toBeTruthy();
     });
 
-    it('should validate element visibility before mounting', async () => {
+    it('should mount even when element is hidden', async () => {
       const element = document.createElement('div');
       element.id = 'hidden-app';
       element.style.display = 'none';
@@ -658,7 +658,9 @@ describe('vue-mount-app', () => {
       autoMountComponent(TestComponent, '#hidden-app');
       await vi.runAllTimersAsync();
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
+      // Hidden elements should still mount successfully
+      expect(element.querySelector('.test-component')).toBeTruthy();
+      expect(consoleWarnSpy).not.toHaveBeenCalledWith(
         expect.stringContaining('No valid DOM elements found')
       );
     });
