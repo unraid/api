@@ -12,6 +12,7 @@ import {
     OidcAuthorizationRule,
     OidcProvider,
 } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
+import { OidcUrlPatterns } from '@app/unraid-api/graph/resolvers/sso/utils/oidc-url-patterns.util.js';
 import {
     createAccordionLayout,
     createLabeledControl,
@@ -620,7 +621,22 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                 type: 'string',
                                 title: 'Issuer URL',
                                 format: 'uri',
-                                description: 'OIDC issuer URL (e.g., https://accounts.google.com)',
+                                allOf: [
+                                    {
+                                        pattern: OidcUrlPatterns.ISSUER_URL_PATTERN,
+                                        errorMessage:
+                                            'Must be a valid HTTP or HTTPS URL without trailing slashes or whitespace',
+                                    },
+                                    {
+                                        not: {
+                                            pattern: '\\.well-known',
+                                        },
+                                        errorMessage:
+                                            'Cannot contain /.well-known/ paths. Use the base issuer URL instead (e.g., https://accounts.google.com instead of https://accounts.google.com/.well-known/openid-configuration)',
+                                    },
+                                ],
+                                description:
+                                    'OIDC issuer URL (e.g., https://accounts.google.com). Cannot contain /.well-known/ paths - use the base issuer URL instead of the full discovery endpoint. Must not end with a trailing slash.',
                             },
                             authorizationEndpoint: {
                                 anyOf: [
