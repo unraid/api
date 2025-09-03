@@ -105,6 +105,7 @@ class UnraidOsCheck
      * @param string $url The URL to fetch
      * @param array $opts Array of options to pass to curl_setopt()
      * @param array $getinfo Empty array passed by reference, will contain results of curl_getinfo and curl_error
+     *                       Note: CURLINFO_HEADER_OUT exposes request headers (not response headers) for curl_getinfo
      * @return string|false $out The fetched content
      */
     private function safe_http_get_contents(string $url, array $opts = [], array &$getinfo = NULL) {
@@ -127,6 +128,9 @@ class UnraidOsCheck
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_REFERER, "");
         curl_setopt($ch, CURLOPT_FAILONERROR, true);
+        // Explicitly enforce TLS verification
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
         if(is_array($opts) && $opts) {
             foreach($opts as $key => $val) {
                 curl_setopt($ch, $key, $val);
@@ -141,8 +145,9 @@ class UnraidOsCheck
             if(isset($getinfo)) {
                 $getinfo['error'] = $msg;
             }
-            my_logger($msg, "http_get_contents");
+            my_logger($msg, "safe_http_get_contents");
         }
+        curl_close($ch);
         return $out;
     }
 
