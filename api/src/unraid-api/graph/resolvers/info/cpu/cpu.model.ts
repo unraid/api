@@ -27,6 +27,16 @@ export class CpuLoad {
         description: 'The percentage of time the CPU spent servicing hardware interrupts.',
     })
     percentIrq!: number;
+
+    @Field(() => Float, {
+        description: 'The percentage of time the CPU spent running virtual machines (guest).',
+    })
+    percentGuest!: number;
+
+    @Field(() => Float, {
+        description: 'The percentage of CPU time stolen by the hypervisor.',
+    })
+    percentSteal!: number;
 }
 
 @ObjectType({ implements: () => Node })
