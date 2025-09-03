@@ -282,4 +282,153 @@ describe('ApiKeyCommand', () => {
             expect(result).toEqual([Role.ADMIN, Role.CONNECT]);
         });
     });
+
+    describe('JSON output functionality', () => {
+        let consoleSpy: ReturnType<typeof vi.spyOn>;
+
+        beforeEach(() => {
+            consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        });
+
+        it('should output JSON when creating key with --json flag', async () => {
+            const mockKey = {
+                id: 'test-id-123',
+                key: 'test-key-456',
+                name: 'JSON_TEST',
+                roles: [Role.ADMIN],
+                createdAt: new Date().toISOString(),
+                permissions: [],
+            };
+            vi.spyOn(apiKeyService, 'findByField').mockReturnValue(null);
+            vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockKey);
+
+            await command.run([], {
+                name: 'JSON_TEST',
+                create: true,
+                roles: [Role.ADMIN],
+                json: true,
+            });
+
+            expect(consoleSpy).toHaveBeenCalledWith(
+                JSON.stringify({ key: 'test-key-456', name: 'JSON_TEST', id: 'test-id-123' })
+            );
+            expect(logService.log).not.toHaveBeenCalledWith('test-key-456');
+        });
+
+        it('should output JSON when fetching existing key with --json flag', async () => {
+            const existingKey = {
+                id: 'existing-id-456',
+                key: 'existing-key-789',
+                name: 'EXISTING_JSON',
+                roles: [Role.VIEWER],
+                createdAt: new Date().toISOString(),
+                permissions: [],
+            };
+            vi.spyOn(apiKeyService, 'findByField').mockReturnValue(existingKey);
+
+            await command.run([], {
+                name: 'EXISTING_JSON',
+                create: false,
+                json: true,
+            });
+
+            expect(consoleSpy).toHaveBeenCalledWith(
+                JSON.stringify({ key: 'existing-key-789', name: 'EXISTING_JSON', id: 'existing-id-456' })
+            );
+            expect(logService.log).not.toHaveBeenCalledWith('existing-key-789');
+        });
+
+        it('should output JSON when deleting key with --json flag', async () => {
+            const existingKeys = [
+                {
+                    id: 'delete-id-123',
+                    name: 'DELETE_JSON',
+                    key: 'delete-key-456',
+                    roles: [Role.GUEST],
+                    createdAt: new Date().toISOString(),
+                    permissions: [],
+                },
+            ];
+            vi.spyOn(apiKeyService, 'findAll').mockResolvedValue(existingKeys);
+            vi.spyOn(apiKeyService, 'deleteApiKeys').mockResolvedValue();
+
+            await command.run([], {
+                name: 'DELETE_JSON',
+                delete: true,
+                json: true,
+            });
+
+            expect(consoleSpy).toHaveBeenCalledWith(
+                JSON.stringify({
+                    deleted: 1,
+                    keys: [{ id: 'delete-id-123', name: 'DELETE_JSON' }],
+                })
+            );
+            expect(logService.log).not.toHaveBeenCalledWith('Successfully deleted 1 API key');
+        });
+
+        it('should output JSON error when deleting non-existent key with --json flag', async () => {
+            vi.spyOn(apiKeyService, 'findAll').mockResolvedValue([]);
+
+            await command.run([], {
+                name: 'NONEXISTENT',
+                delete: true,
+                json: true,
+            });
+
+            expect(consoleSpy).toHaveBeenCalledWith(
+                JSON.stringify({ deleted: 0, message: 'No API keys found to delete' })
+            );
+            expect(logService.log).not.toHaveBeenCalledWith('No API keys found to delete');
+        });
+
+        it('should not suppress creation message when not using JSON', async () => {
+            const mockKey = {
+                id: 'test-id',
+                key: 'test-key',
+                name: 'NO_JSON_TEST',
+                roles: [Role.ADMIN],
+                createdAt: new Date().toISOString(),
+                permissions: [],
+            };
+            vi.spyOn(apiKeyService, 'findByField').mockReturnValue(null);
+            vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockKey);
+
+            await command.run([], {
+                name: 'NO_JSON_TEST',
+                create: true,
+                roles: [Role.ADMIN],
+                json: false,
+            });
+
+            expect(logService.log).toHaveBeenCalledWith('Creating API Key...');
+            expect(logService.log).toHaveBeenCalledWith('test-key');
+            expect(consoleSpy).not.toHaveBeenCalled();
+        });
+
+        it('should suppress creation message when using JSON', async () => {
+            const mockKey = {
+                id: 'test-id',
+                key: 'test-key',
+                name: 'JSON_SUPPRESS_TEST',
+                roles: [Role.ADMIN],
+                createdAt: new Date().toISOString(),
+                permissions: [],
+            };
+            vi.spyOn(apiKeyService, 'findByField').mockReturnValue(null);
+            vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockKey);
+
+            await command.run([], {
+                name: 'JSON_SUPPRESS_TEST',
+                create: true,
+                roles: [Role.ADMIN],
+                json: true,
+            });
+
+            expect(logService.log).not.toHaveBeenCalledWith('Creating API Key...');
+            expect(consoleSpy).toHaveBeenCalledWith(
+                JSON.stringify({ key: 'test-key', name: 'JSON_SUPPRESS_TEST', id: 'test-id' })
+            );
+        });
+    });
 });

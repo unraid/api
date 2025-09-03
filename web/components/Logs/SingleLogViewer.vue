@@ -34,6 +34,7 @@ const state = reactive({
   loadedContentChunks: [] as { content: string; startLine: number }[],
   currentStartLine: undefined as number | undefined,
   isLoadingMore: false,
+  isRefreshing: false,
   isAtTop: false,
   canLoadMore: false,
   initialLoadComplete: false,
@@ -104,11 +105,25 @@ watch(
     const effectiveStartLine = startLine || 1;
 
     if (state.isLoadingMore) {
+      // Loading more historical content - prepend to existing chunks
       state.loadedContentChunks.unshift({ content, startLine: effectiveStartLine });
       state.isLoadingMore = false;
 
       nextTick(() => (state.canLoadMore = true));
+    } else if (state.isRefreshing) {
+      // Refreshing - replace all content and reset state
+      state.loadedContentChunks = [{ content, startLine: effectiveStartLine }];
+      state.isRefreshing = false;
+      state.currentStartLine = undefined;
+      state.isAtTop = false;
+      state.initialLoadComplete = true;
+
+      nextTick(() => {
+        forceScrollToBottom();
+        setTimeout(() => (state.canLoadMore = true), 300);
+      });
     } else {
+      // Initial load - replace all content
       state.loadedContentChunks = [{ content, startLine: effectiveStartLine }];
 
       nextTick(() => {
@@ -235,16 +250,6 @@ const downloadLogFile = async () => {
   }
 };
 
-// Clear all state to initial values
-const clearState = () => {
-  state.loadedContentChunks = [];
-  state.currentStartLine = undefined;
-  state.isAtTop = false;
-  state.canLoadMore = false;
-  state.initialLoadComplete = false;
-  state.isLoadingMore = false;
-};
-
 // Helper function to start log subscription
 const startLogSubscription = () => {
   if (!props.logFilePath) return;
@@ -297,10 +302,12 @@ const startLogSubscription = () => {
   }
 };
 
-// Refresh logs
+// Refresh logs with full reset
 const refreshLogContent = async () => {
-  // Clear the state
-  clearState();
+  // Set refresh flag to indicate we're refreshing
+  state.isRefreshing = true;
+  state.isLoadingMore = false;
+  state.canLoadMore = false;
   
   // Refetch with explicit variables to ensure we get the latest logs
   await refetchLogContent({
@@ -310,13 +317,7 @@ const refreshLogContent = async () => {
   });
   
   // Restart the subscription with the same variables used for refetch
-  // Note: subscribeToMore in Vue Apollo doesn't return an unsubscribe function
-  // The previous subscription is automatically replaced when calling subscribeToMore again
   startLogSubscription();
-
-  nextTick(() => {
-    forceScrollToBottom();
-  });
 };
 
 watch(() => props.logFilePath, refreshLogContent);
