@@ -498,6 +498,18 @@ importers:
         specifier: 8.8.1
         version: 8.8.1
 
+  e2e:
+    devDependencies:
+      '@playwright/test':
+        specifier: ^1.49.0
+        version: 1.55.0
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.18.0
+      dotenv:
+        specifier: ^16.4.5
+        version: 16.6.1
+
   packages/unraid-api-plugin-connect:
     dependencies:
       '@unraid/shared':
@@ -1190,7 +1202,7 @@ importers:
         version: 1.9.0(@typescript-eslint/utils@8.41.0(eslint@9.34.0(jiti@2.5.1))(typescript@5.9.2))(@vue/compiler-sfc@3.5.20)(eslint-import-resolver-node@0.3.9)(eslint@9.34.0(jiti@2.5.1))(magicast@0.3.5)(typescript@5.9.2)(vite@7.1.3(@types/node@22.18.0)(jiti@2.5.1)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))
       '@nuxt/test-utils':
         specifier: 3.19.2
-        version: 3.19.2(@testing-library/vue@8.1.0(@vue/compiler-sfc@3.5.20)(vue@3.5.20(typescript@5.9.2)))(@vitest/ui@3.2.4)(@vue/test-utils@2.4.6)(happy-dom@18.0.1)(jsdom@26.1.0)(magicast@0.3.5)(typescript@5.9.2)(vitest@3.2.4)
+        version: 3.19.2(@playwright/test@1.55.0)(@testing-library/vue@8.1.0(@vue/compiler-sfc@3.5.20)(vue@3.5.20(typescript@5.9.2)))(@vitest/ui@3.2.4)(@vue/test-utils@2.4.6)(happy-dom@18.0.1)(jsdom@26.1.0)(magicast@0.3.5)(playwright-core@1.55.0)(typescript@5.9.2)(vitest@3.2.4)
       '@pinia/testing':
         specifier: 1.0.2
         version: 1.0.2(pinia@3.0.3(typescript@5.9.2)(vue@3.5.20(typescript@5.9.2)))
@@ -4332,6 +4344,11 @@ packages:
   '@pkgr/core@0.2.7':
     resolution: {integrity: sha512-YLT9Zo3oNPJoBjBc4q8G2mjU4tqIbf5CEOORbUUr48dCD9q3umJ3IPlVqOqDakPfd2HuwccBaqlGhN4Gmr5OWg==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
+
+  '@playwright/test@1.55.0':
+    resolution: {integrity: sha512-04IXzPwHrW69XusN/SIdDdKZBzMfOT9UNT/YiJit/xpy2VuAoB8NHc8Aplb96zsWDddLnbkPL3TsmrS04ZU2xQ==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   '@pm2/agent@2.1.1':
     resolution: {integrity: sha512-0V9ckHWd/HSC8BgAbZSoq8KXUG81X97nSkAxmhKDhmF8vanyaoc1YXwc2KVkbWz82Rg4gjd2n9qiT3i7bdvGrQ==}
@@ -7548,10 +7565,6 @@ packages:
     resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
     engines: {node: '>=12'}
 
-  dotenv@16.5.0:
-    resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
-    engines: {node: '>=12'}
-
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
     engines: {node: '>=12'}
@@ -8535,6 +8548,11 @@ packages:
 
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
+
+  fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -10919,6 +10937,16 @@ packages:
   pkg-up@3.1.0:
     resolution: {integrity: sha512-nDywThFk1i4BQK4twPQ6TA4RT8bDY96yeuCVBWL3ePARCiEKDRSrNGbFIgUJpLp+XeIR65v8ra7WuJOFUBtkMA==}
     engines: {node: '>=8'}
+
+  playwright-core@1.55.0:
+    resolution: {integrity: sha512-GvZs4vU3U5ro2nZpeiwyb0zuFaqb9sUiAJuyrWpcGouD8y9/HLgGbNRjIph7zU9D3hnPaisMl9zG9CgFi/biIg==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.55.0:
+    resolution: {integrity: sha512-sdCWStblvV1YU909Xqx0DhOjPZE4/5lJsIS84IfN9dAZfcl/CIZ5O8l3o0j7hPMjDvqoTF8ZUcc+i/GL5erstA==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   pluralize@8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
@@ -15427,7 +15455,7 @@ snapshots:
       '@whatwg-node/fetch': 0.10.8
       chalk: 4.1.2
       debug: 4.4.1(supports-color@5.5.0)
-      dotenv: 16.5.0
+      dotenv: 16.6.1
       graphql: 16.11.0
       graphql-request: 6.1.0(graphql@16.11.0)
       http-proxy-agent: 7.0.2
@@ -16668,7 +16696,7 @@ snapshots:
     transitivePeerDependencies:
       - magicast
 
-  '@nuxt/test-utils@3.19.2(@testing-library/vue@8.1.0(@vue/compiler-sfc@3.5.20)(vue@3.5.20(typescript@5.9.2)))(@vitest/ui@3.2.4)(@vue/test-utils@2.4.6)(happy-dom@18.0.1)(jsdom@26.1.0)(magicast@0.3.5)(typescript@5.9.2)(vitest@3.2.4)':
+  '@nuxt/test-utils@3.19.2(@playwright/test@1.55.0)(@testing-library/vue@8.1.0(@vue/compiler-sfc@3.5.20)(vue@3.5.20(typescript@5.9.2)))(@vitest/ui@3.2.4)(@vue/test-utils@2.4.6)(happy-dom@18.0.1)(jsdom@26.1.0)(magicast@0.3.5)(playwright-core@1.55.0)(typescript@5.9.2)(vitest@3.2.4)':
     dependencies:
       '@nuxt/kit': 3.17.5(magicast@0.3.5)
       c12: 3.0.4(magicast@0.3.5)
@@ -16692,14 +16720,16 @@ snapshots:
       tinyexec: 1.0.1
       ufo: 1.6.1
       unplugin: 2.3.5
-      vitest-environment-nuxt: 1.0.1(@testing-library/vue@8.1.0(@vue/compiler-sfc@3.5.20)(vue@3.5.20(typescript@5.9.2)))(@vitest/ui@3.2.4)(@vue/test-utils@2.4.6)(happy-dom@18.0.1)(jsdom@26.1.0)(magicast@0.3.5)(typescript@5.9.2)(vitest@3.2.4)
+      vitest-environment-nuxt: 1.0.1(@playwright/test@1.55.0)(@testing-library/vue@8.1.0(@vue/compiler-sfc@3.5.20)(vue@3.5.20(typescript@5.9.2)))(@vitest/ui@3.2.4)(@vue/test-utils@2.4.6)(happy-dom@18.0.1)(jsdom@26.1.0)(magicast@0.3.5)(playwright-core@1.55.0)(typescript@5.9.2)(vitest@3.2.4)
       vue: 3.5.20(typescript@5.9.2)
     optionalDependencies:
+      '@playwright/test': 1.55.0
       '@testing-library/vue': 8.1.0(@vue/compiler-sfc@3.5.20)(vue@3.5.20(typescript@5.9.2))
       '@vitest/ui': 3.2.4(vitest@3.2.4)
       '@vue/test-utils': 2.4.6
       happy-dom: 18.0.1
       jsdom: 26.1.0
+      playwright-core: 1.55.0
       vitest: 3.2.4(@types/node@22.18.0)(@vitest/ui@3.2.4)(happy-dom@18.0.1)(jiti@2.5.1)(jsdom@26.1.0)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)
     transitivePeerDependencies:
       - magicast
@@ -17140,6 +17170,10 @@ snapshots:
     optional: true
 
   '@pkgr/core@0.2.7': {}
+
+  '@playwright/test@1.55.0':
+    dependencies:
+      playwright: 1.55.0
 
   '@pm2/agent@2.1.1':
     dependencies:
@@ -19600,7 +19634,7 @@ snapshots:
       chokidar: 4.0.3
       confbox: 0.2.2
       defu: 6.1.4
-      dotenv: 16.5.0
+      dotenv: 16.6.1
       exsolve: 1.0.7
       giget: 2.0.0
       jiti: 2.5.1
@@ -20699,11 +20733,9 @@ snapshots:
 
   dotenv-expand@12.0.1:
     dependencies:
-      dotenv: 16.5.0
+      dotenv: 16.6.1
 
   dotenv@16.4.7: {}
-
-  dotenv@16.5.0: {}
 
   dotenv@16.6.1: {}
 
@@ -21977,6 +22009,9 @@ snapshots:
       universalify: 0.1.2
 
   fs.realpath@1.0.0: {}
+
+  fsevents@2.3.2:
+    optional: true
 
   fsevents@2.3.3:
     optional: true
@@ -24675,6 +24710,14 @@ snapshots:
     dependencies:
       find-up: 3.0.0
 
+  playwright-core@1.55.0: {}
+
+  playwright@1.55.0:
+    dependencies:
+      playwright-core: 1.55.0
+    optionalDependencies:
+      fsevents: 2.3.2
+
   pluralize@8.0.0: {}
 
   pm2-axon-rpc@0.7.1:
@@ -27170,9 +27213,9 @@ snapshots:
       tsx: 4.20.5
       yaml: 2.8.1
 
-  vitest-environment-nuxt@1.0.1(@testing-library/vue@8.1.0(@vue/compiler-sfc@3.5.20)(vue@3.5.20(typescript@5.9.2)))(@vitest/ui@3.2.4)(@vue/test-utils@2.4.6)(happy-dom@18.0.1)(jsdom@26.1.0)(magicast@0.3.5)(typescript@5.9.2)(vitest@3.2.4):
+  vitest-environment-nuxt@1.0.1(@playwright/test@1.55.0)(@testing-library/vue@8.1.0(@vue/compiler-sfc@3.5.20)(vue@3.5.20(typescript@5.9.2)))(@vitest/ui@3.2.4)(@vue/test-utils@2.4.6)(happy-dom@18.0.1)(jsdom@26.1.0)(magicast@0.3.5)(playwright-core@1.55.0)(typescript@5.9.2)(vitest@3.2.4):
     dependencies:
-      '@nuxt/test-utils': 3.19.2(@testing-library/vue@8.1.0(@vue/compiler-sfc@3.5.20)(vue@3.5.20(typescript@5.9.2)))(@vitest/ui@3.2.4)(@vue/test-utils@2.4.6)(happy-dom@18.0.1)(jsdom@26.1.0)(magicast@0.3.5)(typescript@5.9.2)(vitest@3.2.4)
+      '@nuxt/test-utils': 3.19.2(@playwright/test@1.55.0)(@testing-library/vue@8.1.0(@vue/compiler-sfc@3.5.20)(vue@3.5.20(typescript@5.9.2)))(@vitest/ui@3.2.4)(@vue/test-utils@2.4.6)(happy-dom@18.0.1)(jsdom@26.1.0)(magicast@0.3.5)(playwright-core@1.55.0)(typescript@5.9.2)(vitest@3.2.4)
     transitivePeerDependencies:
       - '@cucumber/cucumber'
       - '@jest/globals'
