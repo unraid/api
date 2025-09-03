@@ -12,6 +12,7 @@ import {
     OidcAuthorizationRule,
     OidcProvider,
 } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
+import { OidcUrlPatterns } from '@app/unraid-api/graph/resolvers/sso/utils/oidc-url-patterns.util.js';
 import {
     createAccordionLayout,
     createLabeledControl,
@@ -620,7 +621,9 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                 type: 'string',
                                 title: 'Issuer URL',
                                 format: 'uri',
-                                description: 'OIDC issuer URL (e.g., https://accounts.google.com)',
+                                pattern: OidcUrlPatterns.ISSUER_URL_PATTERN,
+                                description:
+                                    'OIDC issuer URL (e.g., https://accounts.google.com). Must not end with a trailing slash.',
                             },
                             authorizationEndpoint: {
                                 anyOf: [
