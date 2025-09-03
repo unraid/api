@@ -194,25 +194,31 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             provider.authorizationRules = rules;
         }
 
-        // Validate that authorization rules are present and valid for ALL providers
+        // Skip providers without authorization rules (they will be ignored)
         if (!provider.authorizationRules || provider.authorizationRules.length === 0) {
-            throw new Error(
-                `Provider "${provider.name}" requires authorization rules. Please configure who can access your server.`
+            this.logger.warn(
+                `Provider "${provider.name}" has no authorization rules and will be ignored. Configure authorization rules to enable this provider.`
             );
         }
 
-        // Validate each rule has valid values
-        for (const rule of provider.authorizationRules) {
-            if (!rule.claim || !rule.claim.trim()) {
-                throw new Error(`Provider "${provider.name}": Authorization rule claim cannot be empty`);
-            }
-            if (!rule.operator) {
-                throw new Error(`Provider "${provider.name}": Authorization rule operator is required`);
-            }
-            if (!rule.value || rule.value.length === 0 || rule.value.every((v) => !v || !v.trim())) {
-                throw new Error(
-                    `Provider "${provider.name}": Authorization rule for claim "${rule.claim}" must have at least one non-empty value`
-                );
+        // Validate each rule has valid values (only if rules exist)
+        if (provider.authorizationRules && provider.authorizationRules.length > 0) {
+            for (const rule of provider.authorizationRules) {
+                if (!rule.claim || !rule.claim.trim()) {
+                    throw new Error(
+                        `Provider "${provider.name}": Authorization rule claim cannot be empty`
+                    );
+                }
+                if (!rule.operator) {
+                    throw new Error(
+                        `Provider "${provider.name}": Authorization rule operator is required`
+                    );
+                }
+                if (!rule.value || rule.value.length === 0 || rule.value.every((v) => !v || !v.trim())) {
+                    throw new Error(
+                        `Provider "${provider.name}": Authorization rule for claim "${rule.claim}" must have at least one non-empty value`
+                    );
+                }
             }
         }
 
@@ -370,12 +376,13 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                     }),
                 };
 
-                // Validate authorization rules for ALL providers including unraid.net
+                // Validate authorization rules for providers that have them
                 for (const provider of processedConfig.providers) {
                     if (!provider.authorizationRules || provider.authorizationRules.length === 0) {
-                        throw new Error(
-                            `Provider "${provider.name}" requires authorization rules. Please configure who can access your server.`
+                        this.logger.warn(
+                            `Provider "${provider.name}" has no authorization rules and will be ignored. Configure authorization rules to enable this provider.`
                         );
+                        continue;
                     }
 
                     // Validate each rule has valid values
@@ -565,9 +572,9 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             providersSlice.elements[0].elements.unshift(
                 createLabeledControl({
                     scope: '#/properties/sso/properties/defaultAllowedOrigins',
-                    label: 'Allowed Redirect Origins',
+                    label: 'Allowed OIDC Redirect Origins',
                     description:
-                        'Add trusted origins here when accessing Unraid through custom ports, reverse proxies, or Tailscale. Each origin should include the protocol and optionally a port (e.g., https://unraid.local:8443)',
+                        'Add trusted origins for OIDC redirection. These are URLs that the OIDC provider can redirect to after authentication when accessing Unraid through custom ports, reverse proxies, or Tailscale. Each origin should include the protocol and optionally a port (e.g., https://unraid.local:8443)',
                     controlOptions: {
                         format: 'array',
                         inputType: 'text',
