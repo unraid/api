@@ -22,6 +22,11 @@ export default defineConfig({
     include: ['__test__/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts}'],
     testTimeout: 5000,
     hookTimeout: 5000,
+    coverage: {
+      all: true,
+      include: ['components/**/*', 'composables/**/*', 'utils/**/*', 'stores/**/*'],
+      reporter: ['text', 'json', 'html'],
+    },
   },
   resolve: {
     alias: {
