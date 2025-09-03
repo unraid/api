@@ -418,6 +418,23 @@
   --normal-border: hsl(var(--border));
   --normal-text: hsl(var(--foreground));
 
+  --success-bg: hsl(var(--background));
+  --success-border: hsl(var(--border));
+  --success-text: hsl(140, 100%, 27%);
+
+  --info-bg: hsl(var(--background));
+  --info-border: hsl(var(--border));
+  --info-text: hsl(210, 92%, 45%);
+
+  --warning-bg: hsl(var(--background));
+  --warning-border: hsl(var(--border));
+  --warning-text: hsl(31, 92%, 45%);
+
+  --error-bg: hsl(var(--background));
+  --error-border: hsl(var(--border));
+  --error-text: hsl(360, 100%, 45%);
+
+  /* Old colors, preserved for reference
   --success-bg: hsl(143, 85%, 96%);
   --success-border: hsl(145, 92%, 91%);
   --success-text: hsl(140, 100%, 27%);
@@ -432,7 +449,7 @@
 
   --error-bg: hsl(359, 100%, 97%);
   --error-border: hsl(359, 100%, 94%);
-  --error-text: hsl(360, 100%, 45%);
+  --error-text: hsl(360, 100%, 45%); */
 }
 
 [data-sonner-toaster][data-theme='light'] [data-sonner-toast][data-invert='true'] {
@@ -452,6 +469,23 @@
   --normal-border: hsl(var(--border));
   --normal-text: hsl(var(--foreground));
 
+  --success-bg: hsl(var(--background));
+  --success-border: hsl(var(--border));
+  --success-text: hsl(150, 86%, 65%);
+
+  --info-bg: hsl(var(--background));
+  --info-border: hsl(var(--border));
+  --info-text: hsl(216, 87%, 65%);
+
+  --warning-bg: hsl(var(--background));
+  --warning-border: hsl(var(--border));
+  --warning-text: hsl(46, 87%, 65%);
+
+  --error-bg: hsl(var(--background));
+  --error-border: hsl(var(--border));
+  --error-text: hsl(358, 100%, 81%);
+
+  /* Old colors, preserved for reference
   --success-bg: hsl(150, 100%, 6%);
   --success-border: hsl(147, 100%, 12%);
   --success-text: hsl(150, 86%, 65%);
@@ -466,7 +500,7 @@
 
   --error-bg: hsl(358, 76%, 10%);
   --error-border: hsl(357, 89%, 16%);
-  --error-text: hsl(358, 100%, 81%);
+  --error-text: hsl(358, 100%, 81%); */
 }
 
 [data-rich-colors='true'][data-sonner-toast][data-type='success'] {
