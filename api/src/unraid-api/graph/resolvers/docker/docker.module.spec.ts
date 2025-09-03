@@ -1,15 +1,16 @@
-import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { describe, expect, it, vi } from 'vitest';
 
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
-import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/docker-organizer.service.js';
+import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
 import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { DockerOrganizerConfigService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer-config.service.js';
+import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
 
 describe('DockerModule', () => {
     it('should compile the module', async () => {
@@ -18,6 +19,8 @@ describe('DockerModule', () => {
         })
             .overrideProvider(DockerService)
             .useValue({ getDockerClient: vi.fn() })
+            .overrideProvider(DockerOrganizerConfigService)
+            .useValue({ getConfig: vi.fn() })
             .overrideProvider(DockerConfigService)
             .useValue({ getConfig: vi.fn() })
             .compile();
@@ -61,6 +64,7 @@ describe('DockerModule', () => {
                 DockerResolver,
                 { provide: DockerService, useValue: {} },
                 { provide: DockerOrganizerService, useValue: {} },
+                { provide: DockerPhpService, useValue: { getContainerUpdateStatuses: vi.fn() } },
             ],
         }).compile();
 
