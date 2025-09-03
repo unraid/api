@@ -32,6 +32,8 @@ describe('MetricsResolver', () => {
                                     loadNice: 0,
                                     loadIdle: 70.0,
                                     loadIrq: 0,
+                                    loadGuest: 0,
+                                    loadSteal: 0,
                                 },
                                 {
                                     load: 21.0,
@@ -40,6 +42,8 @@ describe('MetricsResolver', () => {
                                     loadNice: 0,
                                     loadIdle: 79.0,
                                     loadIrq: 0,
+                                    loadGuest: 0,
+                                    loadSteal: 0,
                                 },
                             ],
                         }),

@@ -37,6 +37,8 @@ export class CpuService {
                 percentNice: cpu.loadNice,
                 percentIdle: cpu.loadIdle,
                 percentIrq: cpu.loadIrq,
+                percentGuest: cpu.loadGuest,
+                percentSteal: cpu.loadSteal,
             })),
         };
     }
