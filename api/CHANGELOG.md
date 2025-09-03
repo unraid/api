@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.18.1](https://github.com/unraid/api/compare/v4.18.0...v4.18.1) (2025-09-03)
+
+
+### Bug Fixes
+
+* OIDC and API Key management issues ([#1642](https://github.com/unraid/api/issues/1642)) ([0fe2c2c](https://github.com/unraid/api/commit/0fe2c2c1c85dcc547e4b1217a3b5636d7dd6d4b4))
+* rm redundant emission to `$HOME/.pm2/logs` ([#1640](https://github.com/unraid/api/issues/1640)) ([a8e4119](https://github.com/unraid/api/commit/a8e4119270868a1dabccd405853a7340f8dcd8a5))
+
 ## [4.18.0](https://github.com/unraid/api/compare/v4.17.0...v4.18.0) (2025-09-02)
 
 
