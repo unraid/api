@@ -376,9 +376,11 @@ async function upsertKey() {
     if (isEdit && apiKeyResult && 'update' in apiKeyResult) {
       const fragmentData = useFragment(API_KEY_FRAGMENT, apiKeyResult.update);
       apiKeyStore.setCreatedKey(fragmentData);
+      emit('updated', fragmentData);
     } else if (!isEdit && apiKeyResult && 'create' in apiKeyResult) {
       const fragmentData = useFragment(API_KEY_FRAGMENT, apiKeyResult.create);
       apiKeyStore.setCreatedKey(fragmentData);
+      emit('created', fragmentData);
 
       // If in authorization mode, call the callback with the API key
       if (props.isAuthorizationMode && props.authorizationData?.onAuthorize && 'key' in fragmentData) {
@@ -389,6 +391,7 @@ async function upsertKey() {
     }
 
     apiKeyStore.hideModal();
+    emit('update:open', false);
     formData.value = {
       customPermissions: [],
       roles: [],
