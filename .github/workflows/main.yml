@@ -117,9 +117,10 @@ jobs:
           # Verify libvirt is running using sudo to bypass group membership delays
           sudo virsh list --all || true
 
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
+      - name: Build UI Package First
+        run: |
+          echo "🔧 Building UI package for web tests dependency..."
+          cd ../unraid-ui && pnpm run build
 
       - name: Run Tests Concurrently
         run: |
