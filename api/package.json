@@ -94,7 +94,7 @@
         "command-exists": "1.2.9",
         "convert": "5.12.0",
         "cookie": "1.0.2",
-        "cron": "4.3.3",
+        "cron": "4.3.0",
         "cross-fetch": "4.1.0",
         "diff": "8.0.2",
         "dockerode": "4.0.7",
