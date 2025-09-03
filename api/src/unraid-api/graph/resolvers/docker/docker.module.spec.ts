@@ -1,7 +1,9 @@
+import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { describe, expect, it, vi } from 'vitest';
 
+import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
@@ -19,6 +21,8 @@ describe('DockerModule', () => {
             .overrideProvider(DockerService)
             .useValue({ getDockerClient: vi.fn() })
             .overrideProvider(DockerOrganizerConfigService)
+            .useValue({ getConfig: vi.fn() })
+            .overrideProvider(DockerConfigService)
             .useValue({ getConfig: vi.fn() })
             .compile();
 
