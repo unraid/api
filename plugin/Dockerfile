@@ -1,4 +1,4 @@
-FROM node:22.18.0-bookworm-slim AS plugin-builder
+FROM node:22.19.0-bookworm-slim AS plugin-builder
 
 # Install build tools and dependencies
 RUN apt-get update -y && apt-get install -y \
