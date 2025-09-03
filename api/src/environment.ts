@@ -108,3 +108,6 @@ export const PATHS_LOGS_FILE = process.env.PATHS_LOGS_FILE ?? '/var/log/graphql-
 
 export const PATHS_CONFIG_MODULES =
     process.env.PATHS_CONFIG_MODULES ?? '/boot/config/plugins/dynamix.my.servers/configs';
+
+export const PATHS_LOCAL_SESSION_FILE =
+    process.env.PATHS_LOCAL_SESSION_FILE ?? '/var/run/unraid-api/local-session';

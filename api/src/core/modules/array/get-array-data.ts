@@ -1,6 +1,7 @@
 import { GraphQLError } from 'graphql';
 import { sum } from 'lodash-es';
 
+import { getParityCheckStatus } from '@app/core/modules/array/parity-check-status.js';
 import { store } from '@app/store/index.js';
 import { FileLoadStatus } from '@app/store/types.js';
 import {
@@ -61,5 +62,6 @@ export const getArrayData = (getState = store.getState): UnraidArray => {
         parities,
         disks,
         caches,
+        parityCheckStatus: getParityCheckStatus(emhttp.var),
     };
 };

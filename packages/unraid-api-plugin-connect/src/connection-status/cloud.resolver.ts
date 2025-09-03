@@ -1,9 +1,7 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import {
-    AuthActionVerb,
-    AuthPossession,
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
 
@@ -22,9 +20,8 @@ export class CloudResolver {
     ) {}
     @Query(() => Cloud)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.CLOUD,
-        possession: AuthPossession.ANY,
     })
     public async cloud(): Promise<Cloud> {
         const minigraphql = this.cloudService.checkMothershipClient();

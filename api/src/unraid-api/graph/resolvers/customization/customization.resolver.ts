@@ -1,11 +1,7 @@
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { Public } from '@app/unraid-api/auth/public.decorator.js'; // Import Public decorator
 
@@ -23,9 +19,8 @@ export class CustomizationResolver {
     // Authenticated query
     @Query(() => Customization, { nullable: true })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.CUSTOMIZATIONS,
-        possession: AuthPossession.ANY,
     })
     async customization(): Promise<Customization | null> {
         // We return an empty object because the fields are resolved by @ResolveField
@@ -52,9 +47,8 @@ export class CustomizationResolver {
 
     @ResolveField(() => ActivationCode, { nullable: true, name: 'activationCode' })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.ACTIVATION_CODE,
-        possession: AuthPossession.ANY,
     })
     async activationCode(): Promise<ActivationCode | null> {
         return this.customizationService.getActivationData();

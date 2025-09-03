@@ -1,12 +1,8 @@
 import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { AppError } from '@app/core/errors/app-error.js';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
@@ -31,9 +27,8 @@ export class NotificationsResolver {
 
     @Query(() => Notifications, { description: 'Get all notifications' })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.NOTIFICATIONS,
-        possession: AuthPossession.ANY,
     })
     public async notifications(): Promise<Notifications> {
         return {
@@ -153,9 +148,8 @@ export class NotificationsResolver {
 
     @Subscription(() => Notification)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.NOTIFICATIONS,
-        possession: AuthPossession.ANY,
     })
     async notificationAdded() {
         return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_ADDED);
@@ -163,9 +157,8 @@ export class NotificationsResolver {
 
     @Subscription(() => NotificationOverview)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.NOTIFICATIONS,
-        possession: AuthPossession.ANY,
     })
     async notificationsOverview() {
         return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW);

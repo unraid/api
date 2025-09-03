@@ -1,5 +1,6 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify/index.js';
 
@@ -73,6 +74,39 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
 
         // HSTS disabled to avoid issues with running on local networks
         hsts: false,
+    });
+
+    // Add sandbox access control hook
+    server.addHook('preHandler', async (request, reply) => {
+        // Only block GET requests to /graphql when sandbox is disabled
+        if (request.method === 'GET') {
+            // Extract pathname without query parameters
+            const urlPath = request.url.split('?')[0];
+
+            if (urlPath === '/graphql') {
+                const configService = app.get(ConfigService);
+                const sandboxValue = configService.get('api.sandbox');
+
+                // Robustly coerce to boolean - only true when explicitly true
+                const sandboxEnabled =
+                    sandboxValue === true ||
+                    (typeof sandboxValue === 'string' && sandboxValue.toLowerCase() === 'true');
+
+                if (!sandboxEnabled) {
+                    reply.status(403).send({
+                        errors: [
+                            {
+                                message: 'GraphQL sandbox is disabled. Enable it in the API settings.',
+                                extensions: {
+                                    code: 'SANDBOX_DISABLED',
+                                },
+                            },
+                        ],
+                    });
+                    return;
+                }
+            }
+        }
     });
 
     // Allows all origins but still checks authentication

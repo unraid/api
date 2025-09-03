@@ -1,6 +1,10 @@
 // Unit Test File for NotificationsService: loadNotificationFile
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
+
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { NotificationIni } from '@app/core/types/states/notification.js';
 import {
@@ -10,16 +14,31 @@ import {
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
-// Only mock getters.dynamix and Logger
-vi.mock('@app/store/index.js', () => ({
-    getters: {
-        dynamix: vi.fn().mockReturnValue({
-            notify: { path: '/test/notifications' },
-            display: {
-                date: 'Y-m-d',
-                time: 'H:i:s',
-            },
-        }),
+// Mock getters.dynamix, Logger, and pubsub
+vi.mock('@app/store/index.js', () => {
+    // Create test directory path inside factory function
+    const testNotificationsDir = join(tmpdir(), 'unraid-api-test-notifications');
+
+    return {
+        getters: {
+            dynamix: vi.fn().mockReturnValue({
+                notify: { path: testNotificationsDir },
+                display: {
+                    date: 'Y-m-d',
+                    time: 'H:i:s',
+                },
+            }),
+        },
+    };
+});
+
+vi.mock('@app/core/pubsub.js', () => ({
+    pubsub: {
+        publish: vi.fn(),
+    },
+    PUBSUB_CHANNEL: {
+        NOTIFICATION_OVERVIEW: 'notification_overview',
+        NOTIFICATION_ADDED: 'notification_added',
     },
 }));
 
@@ -36,6 +55,9 @@ vi.mock('@nestjs/common', async (importOriginal) => {
         })),
     };
 });
+
+// Create a temporary test directory path for use in integration tests
+const testNotificationsDir = join(tmpdir(), 'unraid-api-test-notifications');
 
 describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     let service: NotificationsService;
@@ -224,5 +246,67 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
         expect(result.description).toBe('Test Description');
         expect(result.timestamp).toBeUndefined(); // Malformed timestamp results in undefined
         expect(result.formattedTimestamp).toBe('not-a-timestamp'); // Returns original string when parsing fails
+    });
+});
+
+describe('NotificationsService - deleteNotification (integration test)', () => {
+    let service: NotificationsService;
+
+    beforeEach(() => {
+        // Clean up any existing test directory
+        if (existsSync(testNotificationsDir)) {
+            rmSync(testNotificationsDir, { recursive: true, force: true });
+        }
+
+        // Create fresh directory structure
+        mkdirSync(testNotificationsDir, { recursive: true });
+        mkdirSync(join(testNotificationsDir, 'unread'), { recursive: true });
+        mkdirSync(join(testNotificationsDir, 'archive'), { recursive: true });
+
+        service = new NotificationsService();
+    });
+
+    afterEach(() => {
+        // Clean up after each test
+        if (existsSync(testNotificationsDir)) {
+            rmSync(testNotificationsDir, { recursive: true, force: true });
+        }
+    });
+
+    it('should successfully delete an invalid notification file from disk', async () => {
+        // Create a truly invalid notification with only timestamp - missing all required fields
+        const invalidNotificationContent = `
+timestamp=1609459200
+        `.trim();
+
+        const notificationId = 'invalid-test.notify';
+        const filePath = join(testNotificationsDir, 'unread', notificationId);
+
+        // Create actual invalid notification file on disk
+        writeFileSync(filePath, invalidNotificationContent);
+
+        // Verify file exists before deletion
+        expect(existsSync(filePath)).toBe(true);
+
+        const result = await service.deleteNotification({
+            id: notificationId,
+            type: NotificationType.UNREAD,
+        });
+
+        // The key integration test: verify file was actually deleted from disk
+        expect(existsSync(filePath)).toBe(false);
+
+        // Verify the service returns a notification object (even if mocked content)
+        expect(result.notification).toBeDefined();
+        expect(result.notification.id).toBe(notificationId);
+        expect(result.notification.type).toBe(NotificationType.UNREAD);
+
+        // Verify overview is returned and updated
+        expect(result.overview).toBeDefined();
+        expect(result.overview.unread).toBeDefined();
+        expect(result.overview.archive).toBeDefined();
+
+        // The service should be able to handle deletion of any file, valid or invalid
+        expect(result.notification.importance).toMatch(/ALERT|WARNING|INFO/);
     });
 });

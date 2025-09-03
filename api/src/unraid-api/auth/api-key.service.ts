@@ -3,12 +3,12 @@ import crypto from 'crypto';
 import { readdir, readFile, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
+import { normalizeLegacyActions } from '@unraid/shared/util/permissions.js';
 import { watch } from 'chokidar';
 import { ValidationError } from 'class-validator';
 import { ensureDirSync } from 'fs-extra';
 import { GraphQLError } from 'graphql';
-import { AuthActionVerb } from 'nest-authz';
 import { v4 as uuidv4 } from 'uuid';
 
 import { environment } from '@app/environment.js';
@@ -16,7 +16,6 @@ import { getters } from '@app/store/index.js';
 import {
     AddPermissionInput,
     ApiKey,
-    ApiKeyWithSecret,
     Permission,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
@@ -26,7 +25,7 @@ import { batchProcess } from '@app/utils.js';
 export class ApiKeyService implements OnModuleInit {
     private readonly logger = new Logger(ApiKeyService.name);
     protected readonly basePath: string;
-    protected memoryApiKeys: Array<ApiKeyWithSecret> = [];
+    protected memoryApiKeys: Array<ApiKey> = [];
     private static readonly validRoles: Set<Role> = new Set(Object.values(Role));
 
     constructor() {
@@ -36,23 +35,31 @@ export class ApiKeyService implements OnModuleInit {
 
     async onModuleInit() {
         this.memoryApiKeys = await this.loadAllFromDisk();
+        await this.cleanupLegacyInternalKeys();
         if (environment.IS_MAIN_PROCESS) {
             this.setupWatch();
         }
     }
 
-    public convertApiKeyWithSecretToApiKey(key: ApiKeyWithSecret): ApiKey {
-        const { key: _, ...rest } = key;
-        return rest;
+    private async cleanupLegacyInternalKeys() {
+        const legacyNames = ['CliInternal', 'ConnectInternal'];
+        const keysToDelete = this.memoryApiKeys.filter((key) => legacyNames.includes(key.name));
+
+        if (keysToDelete.length > 0) {
+            try {
+                await this.deleteApiKeys(keysToDelete.map((key) => key.id));
+                this.logger.log(`Cleaned up ${keysToDelete.length} legacy internal keys`);
+            } catch (error) {
+                this.logger.debug(
+                    error,
+                    `Failed to delete legacy internal keys: ${keysToDelete.map((key) => key.name).join(', ')}`
+                );
+            }
+        }
     }
 
     public async findAll(): Promise<ApiKey[]> {
-        return Promise.all(
-            this.memoryApiKeys.map(async (key) => {
-                const keyWithoutSecret = this.convertApiKeyWithSecretToApiKey(key);
-                return keyWithoutSecret;
-            })
-        );
+        return this.memoryApiKeys;
     }
 
     private setupWatch() {
@@ -76,17 +83,18 @@ export class ApiKeyService implements OnModuleInit {
     public getAllValidPermissions(): Permission[] {
         return Object.values(Resource).map((res) => ({
             resource: res,
-            actions: Object.values(AuthActionVerb),
+            actions: Object.values(AuthAction),
         }));
     }
 
     public convertPermissionsStringArrayToPermissions(permissions: string[]): Permission[] {
         return permissions.reduce<Array<Permission>>((acc, permission) => {
-            const [resource, action] = permission.split(':');
+            const [resource, ...actionParts] = permission.split(':');
+            const action = actionParts.join(':'); // Handle actions like "read:any"
             const validatedResource = Resource[resource.toUpperCase() as keyof typeof Resource] ?? null;
             // Pull the actual enum value from the graphql schema
             const validatedAction =
-                AuthActionVerb[action.toUpperCase() as keyof typeof AuthActionVerb] ?? null;
+                AuthAction[action.toUpperCase().replace(':', '_') as keyof typeof AuthAction] ?? null;
             if (validatedAction && validatedResource) {
                 const existingEntry = acc.find((p) => p.resource === validatedResource);
                 if (existingEntry) {
@@ -102,9 +110,25 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     public convertRolesStringArrayToRoles(roles: string[]): Role[] {
-        return roles
-            .map((roleStr) => Role[roleStr.trim().toUpperCase() as keyof typeof Role])
-            .filter(Boolean);
+        const validRoles: Role[] = [];
+        const invalidRoles: string[] = [];
+
+        for (const roleStr of roles) {
+            const upperRole = roleStr.trim().toUpperCase();
+            const role = Role[upperRole as keyof typeof Role];
+
+            if (role && ApiKeyService.validRoles.has(role)) {
+                validRoles.push(role);
+            } else {
+                invalidRoles.push(roleStr);
+            }
+        }
+
+        if (invalidRoles.length > 0) {
+            this.logger.warn(`Ignoring invalid roles: ${invalidRoles.join(', ')}`);
+        }
+
+        return validRoles;
     }
 
     async create({
@@ -119,7 +143,7 @@ export class ApiKeyService implements OnModuleInit {
         roles?: Role[];
         permissions?: Permission[] | AddPermissionInput[];
         overwrite?: boolean;
-    }): Promise<ApiKeyWithSecret> {
+    }): Promise<ApiKey> {
         const trimmedName = name?.trim();
         const sanitizedName = this.sanitizeName(trimmedName);
 
@@ -139,7 +163,7 @@ export class ApiKeyService implements OnModuleInit {
         if (!overwrite && existingKey) {
             return existingKey;
         }
-        const apiKey: Partial<ApiKeyWithSecret> = {
+        const apiKey: Partial<ApiKey> = {
             id: uuidv4(),
             key: this.generateApiKey(),
             name: sanitizedName,
@@ -152,18 +176,18 @@ export class ApiKeyService implements OnModuleInit {
         // Update createdAt date
         apiKey.createdAt = new Date().toISOString();
 
-        await this.saveApiKey(apiKey as ApiKeyWithSecret);
+        await this.saveApiKey(apiKey as ApiKey);
 
-        return apiKey as ApiKeyWithSecret;
+        return apiKey as ApiKey;
     }
 
-    async loadAllFromDisk(): Promise<ApiKeyWithSecret[]> {
+    async loadAllFromDisk(): Promise<ApiKey[]> {
         const files = await readdir(this.basePath).catch((error) => {
             this.logger.error(`Failed to read API key directory: ${error}`);
             throw new Error('Failed to list API keys');
         });
 
-        const apiKeys: ApiKeyWithSecret[] = [];
+        const apiKeys: ApiKey[] = [];
         const jsonFiles = files.filter((file) => file.includes('.json'));
 
         for (const file of jsonFiles) {
@@ -186,7 +210,7 @@ export class ApiKeyService implements OnModuleInit {
      * @param file The file to load
      * @returns The API key with secret
      */
-    private async loadApiKeyFile(file: string): Promise<ApiKeyWithSecret | null> {
+    private async loadApiKeyFile(file: string): Promise<ApiKey | null> {
         try {
             const content = await readFile(join(this.basePath, file), 'utf8');
 
@@ -196,7 +220,17 @@ export class ApiKeyService implements OnModuleInit {
             if (parsedContent.roles) {
                 parsedContent.roles = parsedContent.roles.map((role: string) => role.toUpperCase());
             }
-            return await validateObject(ApiKeyWithSecret, parsedContent);
+
+            // Normalize permission actions to AuthAction enum values
+            // Uses shared helper to handle all legacy formats
+            if (parsedContent.permissions) {
+                parsedContent.permissions = parsedContent.permissions.map((permission: any) => ({
+                    ...permission,
+                    actions: normalizeLegacyActions(permission.actions || []),
+                }));
+            }
+
+            return await validateObject(ApiKey, parsedContent);
         } catch (error) {
             if (error instanceof SyntaxError) {
                 this.logger.error(`Corrupted key file: ${file}`);
@@ -216,12 +250,7 @@ export class ApiKeyService implements OnModuleInit {
 
     async findById(id: string): Promise<ApiKey | null> {
         try {
-            const key = this.findByField('id', id);
-
-            if (key) {
-                return this.convertApiKeyWithSecretToApiKey(key);
-            }
-            return null;
+            return this.findByField('id', id);
         } catch (error) {
             if (error instanceof ValidationError) {
                 this.logApiKeyValidationError(id, error);
@@ -231,17 +260,13 @@ export class ApiKeyService implements OnModuleInit {
         }
     }
 
-    public findByIdWithSecret(id: string): ApiKeyWithSecret | null {
-        return this.findByField('id', id);
-    }
-
-    public findByField(field: keyof ApiKeyWithSecret, value: string): ApiKeyWithSecret | null {
+    public findByField(field: keyof ApiKey, value: string): ApiKey | null {
         if (!value) return null;
 
         return this.memoryApiKeys.find((k) => k[field] === value) ?? null;
     }
 
-    findByKey(key: string): ApiKeyWithSecret | null {
+    findByKey(key: string): ApiKey | null {
         return this.findByField('key', key);
     }
 
@@ -254,9 +279,9 @@ export class ApiKeyService implements OnModuleInit {
                     Errors: ${JSON.stringify(error.constraints, null, 2)}`);
     }
 
-    public async saveApiKey(apiKey: ApiKeyWithSecret): Promise<void> {
+    public async saveApiKey(apiKey: ApiKey): Promise<void> {
         try {
-            const validatedApiKey = await validateObject(ApiKeyWithSecret, apiKey);
+            const validatedApiKey = await validateObject(ApiKey, apiKey);
             if (!validatedApiKey.permissions?.length && !validatedApiKey.roles?.length) {
                 throw new GraphQLError('At least one of permissions or roles must be specified');
             }
@@ -266,7 +291,7 @@ export class ApiKeyService implements OnModuleInit {
                 .reduce((acc, key) => {
                     acc[key] = validatedApiKey[key];
                     return acc;
-                }, {} as ApiKeyWithSecret);
+                }, {} as ApiKey);
 
             await writeFile(
                 join(this.basePath, `${validatedApiKey.id}.json`),
@@ -334,8 +359,8 @@ export class ApiKeyService implements OnModuleInit {
         description?: string;
         roles?: Role[];
         permissions?: Permission[] | AddPermissionInput[];
-    }): Promise<ApiKeyWithSecret> {
-        const apiKey = this.findByIdWithSecret(id);
+    }): Promise<ApiKey> {
+        const apiKey = await this.findById(id);
         if (!apiKey) {
             throw new GraphQLError('API key not found');
         }
@@ -345,13 +370,15 @@ export class ApiKeyService implements OnModuleInit {
         if (description !== undefined) {
             apiKey.description = description;
         }
-        if (roles) {
+        if (roles !== undefined) {
+            // Handle both empty array (to clear roles) and populated array
             if (roles.some((role) => !ApiKeyService.validRoles.has(role))) {
                 throw new GraphQLError('Invalid role specified');
             }
             apiKey.roles = roles;
         }
-        if (permissions) {
+        if (permissions !== undefined) {
+            // Handle both empty array (to clear permissions) and populated array
             apiKey.permissions = permissions;
         }
         await this.saveApiKey(apiKey);

@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { access, readFile, unlink, writeFile } from 'fs/promises';
 
+import type { CanonicalInternalClientService } from '@unraid/shared';
+import { CANONICAL_INTERNAL_CLIENT_TOKEN } from '@unraid/shared';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DeveloperToolsService } from '@app/unraid-api/cli/developer/developer-tools.service.js';
-import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
 
@@ -15,7 +16,7 @@ describe('DeveloperToolsService', () => {
     let service: DeveloperToolsService;
     let logService: LogService;
     let restartCommand: RestartCommand;
-    let internalClient: CliInternalClientService;
+    let internalClient: CanonicalInternalClientService;
 
     const mockClient = {
         mutate: vi.fn(),
@@ -42,7 +43,7 @@ describe('DeveloperToolsService', () => {
                     },
                 },
                 {
-                    provide: CliInternalClientService,
+                    provide: CANONICAL_INTERNAL_CLIENT_TOKEN,
                     useValue: {
                         getClient: vi.fn().mockResolvedValue(mockClient),
                     },
@@ -53,7 +54,7 @@ describe('DeveloperToolsService', () => {
         service = module.get<DeveloperToolsService>(DeveloperToolsService);
         logService = module.get<LogService>(LogService);
         restartCommand = module.get<RestartCommand>(RestartCommand);
-        internalClient = module.get<CliInternalClientService>(CliInternalClientService);
+        internalClient = module.get<CanonicalInternalClientService>(CANONICAL_INTERNAL_CLIENT_TOKEN);
     });
 
     describe('setSandboxMode', () => {

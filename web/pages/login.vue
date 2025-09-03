@@ -1,7 +1,9 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
 import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
+import { Dialog, Button, Input } from '@unraid/ui';
 import SsoButtonCe from '~/components/SsoButton.ce.vue';
 import { SERVER_INFO_QUERY } from './login.query';
 
@@ -10,10 +12,81 @@ const { result } = useQuery(SERVER_INFO_QUERY);
 
 const serverName = computed(() => result.value?.info?.os?.hostname || 'UNRAID');
 const serverComment = computed(() => result.value?.vars?.comment || '');
+
+const showDebugModal = ref(false);
+const debugData = ref<{ username: string; password: string; timestamp: string } | null>(null);
+const cliToken = ref('');
+const cliOutput = ref('');
+const isExecutingCli = ref(false);
+
+// Check for token in URL hash on mount (keeps token out of server logs)
+const route = useRoute();
+onMounted(() => {
+  // Check hash first (preferred), then query params (fallback)
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+  const tokenFromHash = hashParams.get('token');
+  const tokenFromQuery = route.query.token as string;
+  
+  const token = tokenFromHash || tokenFromQuery;
+  if (token) {
+    cliToken.value = token;
+  }
+});
+
+const handleFormSubmit = (event: Event) => {
+  event.preventDefault();
+  const form = event.target as HTMLFormElement;
+  const formData = new FormData(form);
+  
+  const password = formData.get('password') as string;
+  
+  debugData.value = {
+    username: formData.get('username') as string,
+    password: password,
+    timestamp: new Date().toISOString()
+  };
+  
+  // Clear the token field - it expects a JWT token, not a password
+  cliToken.value = '';
+  
+  showDebugModal.value = true;
+};
+
+const executeCliCommand = async () => {
+  if (!cliToken.value.trim()) {
+    cliOutput.value = JSON.stringify({ error: 'Please enter a token', valid: false }, null, 2);
+    return;
+  }
+  
+  isExecutingCli.value = true;
+  try {
+    const data = await $fetch('/api/debug/validate-token', {
+      method: 'POST',
+      body: { token: cliToken.value },
+    });
+    
+    // Format the output nicely
+    if (data.success && 'stdout' in data && typeof data.stdout === 'object') {
+      cliOutput.value = JSON.stringify(data.stdout, null, 2);
+    } else if ('stdout' in data && data.stdout) {
+      cliOutput.value = typeof data.stdout === 'string' ? data.stdout : JSON.stringify(data.stdout, null, 2);
+    } else {
+      cliOutput.value = JSON.stringify(data, null, 2);
+    }
+  } catch (error) {
+    cliOutput.value = JSON.stringify({ 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      valid: false 
+    }, null, 2);
+  } finally {
+    isExecutingCli.value = false;
+  }
+};
 </script>
 
 <template>
-  <section id="login" class="shadow">
+  <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <section id="login" class="shadow">
       <div class="logo angle">
         <div class="wordmark">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 222.4 39" class="Nav__logo--white">
@@ -33,7 +106,7 @@ const serverComment = computed(() => result.value?.vars?.comment || '');
         </div>
 
         <div class="form">
-          <form action="/login" method="POST">
+          <form action="/login" method="POST" @submit="handleFormSubmit">
             <p>
               <input
                 name="username"
@@ -58,6 +131,50 @@ const serverComment = computed(() => result.value?.vars?.comment || '');
         <a href="https://docs.unraid.net/go/lost-root-password/" target="_blank" class="password-recovery">{{ t('Password recovery') }}</a>
       </div>
     </section>
+
+    <!-- Debug Dialog -->
+    <Dialog
+      v-model="showDebugModal"
+      title="SSO Debug Tool"
+      description="Debug SSO configurations and validate tokens"
+      :show-footer="false"
+      size="lg"
+    >
+      <div class="space-y-6 p-4">
+        <div>
+          <h3 class="font-semibold mb-2 text-sm">Form Data Submitted:</h3>
+          <pre class="bg-muted p-3 rounded text-xs overflow-x-auto max-h-32 overflow-y-auto whitespace-pre-wrap break-all">{{ JSON.stringify(debugData, null, 2) }}</pre>
+        </div>
+        
+        <div class="border-t pt-4">
+          <h3 class="font-semibold mb-2 text-sm">JWT/OIDC Token Validation Tool:</h3>
+          <p class="text-xs text-muted-foreground mb-3">Enter a JWT or OIDC session token to validate it using the CLI command</p>
+          
+          <div class="flex flex-col gap-3">
+            <Input
+              v-model="cliToken"
+              type="text"
+              placeholder="Enter JWT or OIDC session token"
+              class="w-full break-all overflow-hidden"
+              style="word-break: break-all; overflow-wrap: break-word;"
+            />
+            <Button
+              :disabled="isExecutingCli"
+              class="w-full sm:w-auto"
+              @click="executeCliCommand"
+            >
+              {{ isExecutingCli ? 'Validating...' : 'Validate Token' }}
+            </Button>
+          </div>
+          
+          <div v-if="cliOutput" class="mt-4">
+            <h4 class="font-semibold mb-2 text-sm">CLI Output:</h4>
+            <pre class="bg-muted p-3 rounded text-xs overflow-x-auto max-h-48 overflow-y-auto whitespace-pre-wrap break-all">{{ cliOutput }}</pre>
+          </div>
+        </div>
+      </div>
+    </Dialog>
+  </div>
 </template>
 <style scoped>
 /************************
@@ -78,6 +195,11 @@ body {
   padding: 0;
   margin: 0;
 }
+
+:root.dark body {
+  background: #111827;
+  color: #f3f4f6;
+}
 a {
   text-transform: uppercase;
   font-weight: bold;
@@ -91,11 +213,22 @@ a:hover {
 h1 {
   font-size: 1.8em;
   margin: 0;
+  color: #111827;
 }
+
+:root.dark h1 {
+  color: #f3f4f6;
+}
+
 h2 {
   font-size: 0.8em;
   margin-top: 0;
   margin-bottom: 1.8em;
+  color: #374151;
+}
+
+:root.dark h2 {
+  color: #d1d5db;
 }
 .button {
   color: #ff8c2f;
@@ -151,15 +284,29 @@ h2 {
 textarea {
   font-family: clear-sans, sans-serif;
   font-size: 0.875rem;
-  background-color: #f2f2f2;
+  background-color: #f3f4f6;
+  color: #111827;
   width: 100%;
   margin-bottom: 1rem;
-  border: 2px solid #ccc;
+  border: 2px solid #d1d5db;
   padding: 0.75rem 1rem;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
   border-radius: 0;
   -webkit-appearance: none;
+}
+
+:root.dark [type='email'],
+:root.dark [type='number'],
+:root.dark [type='password'],
+:root.dark [type='search'],
+:root.dark [type='tel'],
+:root.dark [type='text'],
+:root.dark [type='url'],
+:root.dark textarea {
+  background-color: #1f2937;
+  color: #f3f4f6;
+  border-color: #4b5563;
 }
 [type='email']:active,
 [type='email']:focus,
@@ -191,6 +338,10 @@ textarea:focus {
   margin: 6rem auto;
   border-radius: 10px;
   background: #fff;
+}
+
+:root.dark #login {
+  background: #1f2937;
 }
 #login::after {
   content: '';
@@ -293,6 +444,10 @@ textarea:focus {
 @media (max-width: 500px) {
   body {
     background: #fff;
+  }
+  
+  :root.dark body {
+    background: #111827;
   }
   [type='email'],
   [type='number'],

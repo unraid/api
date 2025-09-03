@@ -8,24 +8,13 @@ const props = defineProps<{
 
 <template>
   <div
-    :class="cn('settings-grid grid gap-2 items-baseline md:pl-3 md:gap-x-10 md:gap-y-6', props.class)"
+    :class="
+      cn(
+        'grid grid-cols-1 items-baseline gap-2 md:grid-cols-[35%_1fr] md:gap-x-3 md:gap-y-6 [&>*:nth-child(odd)]:text-end',
+        props.class
+      )
+    "
   >
     <slot />
   </div>
 </template>
-
-<style>
-.settings-grid {
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 768px) {
-  .settings-grid {
-    grid-template-columns: 35% 1fr;
-  }
-
-  .settings-grid > *:nth-child(odd) {
-    text-align: end;
-  }
-}
-</style>

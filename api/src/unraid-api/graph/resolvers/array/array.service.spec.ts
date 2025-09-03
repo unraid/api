@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ArrayRunningError } from '@app/core/errors/array-running-error.js';
 import { getArrayData as getArrayDataUtil } from '@app/core/modules/array/get-array-data.js';
+import { ParityCheckStatus } from '@app/core/modules/array/parity-check-status.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import {
     ArrayDiskInput,
@@ -82,6 +83,13 @@ describe('ArrayService', () => {
             parities: [],
             disks: [],
             caches: [],
+            parityCheckStatus: {
+                status: ParityCheckStatus.NEVER_RUN,
+                progress: 0,
+                date: undefined,
+                duration: 0,
+                speed: '0',
+            },
         };
         mockGetArrayDataUtil.mockResolvedValue(mockArrayData);
 

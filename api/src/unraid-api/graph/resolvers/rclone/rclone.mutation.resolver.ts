@@ -1,12 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { RCloneMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
@@ -27,9 +23,8 @@ export class RCloneMutationsResolver {
 
     @ResolveField(() => RCloneRemote, { description: 'Create a new RClone remote' })
     @UsePermissions({
-        action: AuthActionVerb.CREATE,
+        action: AuthAction.CREATE_ANY,
         resource: Resource.FLASH,
-        possession: AuthPossession.ANY,
     })
     async createRCloneRemote(@Args('input') input: CreateRCloneRemoteInput): Promise<RCloneRemote> {
         try {
@@ -48,9 +43,8 @@ export class RCloneMutationsResolver {
 
     @ResolveField(() => Boolean, { description: 'Delete an existing RClone remote' })
     @UsePermissions({
-        action: AuthActionVerb.DELETE,
+        action: AuthAction.DELETE_ANY,
         resource: Resource.FLASH,
-        possession: AuthPossession.ANY,
     })
     async deleteRCloneRemote(@Args('input') input: DeleteRCloneRemoteInput): Promise<boolean> {
         try {

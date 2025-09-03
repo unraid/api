@@ -1,12 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { AppError } from '@app/core/errors/app-error.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
@@ -18,9 +14,8 @@ export class DockerContainerResolver {
     constructor(private readonly dockerManifestService: DockerManifestService) {}
 
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => Boolean, { nullable: true })
     public async isUpdateAvailable(@Parent() container: DockerContainer) {
@@ -33,9 +28,8 @@ export class DockerContainerResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => Boolean, { nullable: true })
     public async isRebuildReady(@Parent() container: DockerContainer) {
@@ -43,9 +37,8 @@ export class DockerContainerResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
-        possession: AuthPossession.ANY,
     })
     @Mutation(() => Boolean)
     public async refreshDockerDigests() {

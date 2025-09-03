@@ -83,7 +83,7 @@ const sizeClasses = {
         cn(
           sizeClasses[size],
           size === 'full'
-            ? 'fixed inset-0 translate-x-0 translate-y-0 max-w-none rounded-none border-0'
+            ? 'fixed inset-0 max-w-none translate-x-0 translate-y-0 rounded-none border-0'
             : ''
         )
       "

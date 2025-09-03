@@ -120,7 +120,7 @@ export type ActivationCode = {
 };
 
 export type AddPermissionInput = {
-  actions: Array<Scalars['String']['input']>;
+  actions: Array<AuthAction>;
   resource: Resource;
 };
 
@@ -143,9 +143,21 @@ export type ApiKey = Node & {
   createdAt: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
+  key: Scalars['String']['output'];
   name: Scalars['String']['output'];
   permissions: Array<Permission>;
   roles: Array<Role>;
+};
+
+export type ApiKeyFormSettings = FormSchema & Node & {
+  __typename?: 'ApiKeyFormSettings';
+  /** The data schema for the API key form */
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** The UI schema for the API key form */
+  uiSchema: Scalars['JSON']['output'];
+  /** The current values of the API key form */
+  values: Scalars['JSON']['output'];
 };
 
 /** API Key related mutations */
@@ -154,13 +166,13 @@ export type ApiKeyMutations = {
   /** Add a role to an API key */
   addRole: Scalars['Boolean']['output'];
   /** Create an API key */
-  create: ApiKeyWithSecret;
+  create: ApiKey;
   /** Delete one or more API keys */
   delete: Scalars['Boolean']['output'];
   /** Remove a role from an API key */
   removeRole: Scalars['Boolean']['output'];
   /** Update an API key */
-  update: ApiKeyWithSecret;
+  update: ApiKey;
 };
 
 
@@ -197,17 +209,6 @@ export type ApiKeyResponse = {
   __typename?: 'ApiKeyResponse';
   error?: Maybe<Scalars['String']['output']>;
   valid: Scalars['Boolean']['output'];
-};
-
-export type ApiKeyWithSecret = Node & {
-  __typename?: 'ApiKeyWithSecret';
-  createdAt: Scalars['String']['output'];
-  description?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  key: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  permissions: Array<Permission>;
-  roles: Array<Role>;
 };
 
 export type ArrayCapacity = {
@@ -370,30 +371,39 @@ export enum ArrayStateInputState {
   STOP = 'STOP'
 }
 
-/** Available authentication action verbs */
-export enum AuthActionVerb {
-  CREATE = 'CREATE',
-  DELETE = 'DELETE',
-  READ = 'READ',
-  UPDATE = 'UPDATE'
+/** Authentication actions with possession (e.g., create:any, read:own) */
+export enum AuthAction {
+  /** Create any resource */
+  CREATE_ANY = 'CREATE_ANY',
+  /** Create own resource */
+  CREATE_OWN = 'CREATE_OWN',
+  /** Delete any resource */
+  DELETE_ANY = 'DELETE_ANY',
+  /** Delete own resource */
+  DELETE_OWN = 'DELETE_OWN',
+  /** Read any resource */
+  READ_ANY = 'READ_ANY',
+  /** Read own resource */
+  READ_OWN = 'READ_OWN',
+  /** Update any resource */
+  UPDATE_ANY = 'UPDATE_ANY',
+  /** Update own resource */
+  UPDATE_OWN = 'UPDATE_OWN'
 }
 
-/** Available authentication possession types */
-export enum AuthPossession {
-  ANY = 'ANY',
-  OWN = 'OWN',
-  OWN_ANY = 'OWN_ANY'
+/** Operators for authorization rule matching */
+export enum AuthorizationOperator {
+  CONTAINS = 'CONTAINS',
+  ENDS_WITH = 'ENDS_WITH',
+  EQUALS = 'EQUALS',
+  STARTS_WITH = 'STARTS_WITH'
 }
 
-export type Baseboard = Node & {
-  __typename?: 'Baseboard';
-  assetTag?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  manufacturer: Scalars['String']['output'];
-  model?: Maybe<Scalars['String']['output']>;
-  serial?: Maybe<Scalars['String']['output']>;
-  version?: Maybe<Scalars['String']['output']>;
-};
+/** Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass) */
+export enum AuthorizationRuleMode {
+  AND = 'AND',
+  OR = 'OR'
+}
 
 export type Capacity = {
   __typename?: 'Capacity';
@@ -403,15 +413,6 @@ export type Capacity = {
   total: Scalars['String']['output'];
   /** Used capacity */
   used: Scalars['String']['output'];
-};
-
-export type Case = Node & {
-  __typename?: 'Case';
-  base64?: Maybe<Scalars['String']['output']>;
-  error?: Maybe<Scalars['String']['output']>;
-  icon?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type Cloud = {
@@ -446,6 +447,20 @@ export enum ConfigErrorState {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   WITHDRAWN = 'WITHDRAWN'
 }
+
+export type ConfigFile = {
+  __typename?: 'ConfigFile';
+  content: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+  /** Human-readable file size (e.g., "1.5 KB", "2.3 MB") */
+  sizeReadable: Scalars['String']['output'];
+};
+
+export type ConfigFilesResponse = {
+  __typename?: 'ConfigFilesResponse';
+  files: Array<ConfigFile>;
+};
 
 export type Connect = Node & {
   __typename?: 'Connect';
@@ -525,6 +540,42 @@ export enum ContainerState {
   RUNNING = 'RUNNING'
 }
 
+export type CoreVersions = {
+  __typename?: 'CoreVersions';
+  /** Unraid API version */
+  api?: Maybe<Scalars['String']['output']>;
+  /** Kernel version */
+  kernel?: Maybe<Scalars['String']['output']>;
+  /** Unraid version */
+  unraid?: Maybe<Scalars['String']['output']>;
+};
+
+/** CPU load for a single core */
+export type CpuLoad = {
+  __typename?: 'CpuLoad';
+  /** The percentage of time the CPU was idle. */
+  percentIdle: Scalars['Float']['output'];
+  /** The percentage of time the CPU spent servicing hardware interrupts. */
+  percentIrq: Scalars['Float']['output'];
+  /** The percentage of time the CPU spent on low-priority (niced) user space processes. */
+  percentNice: Scalars['Float']['output'];
+  /** The percentage of time the CPU spent in kernel space. */
+  percentSystem: Scalars['Float']['output'];
+  /** The total CPU load on a single core, in percent. */
+  percentTotal: Scalars['Float']['output'];
+  /** The percentage of time the CPU spent in user space. */
+  percentUser: Scalars['Float']['output'];
+};
+
+export type CpuUtilization = Node & {
+  __typename?: 'CpuUtilization';
+  /** CPU load for each core */
+  cpus: Array<CpuLoad>;
+  id: Scalars['PrefixedID']['output'];
+  /** Total CPU load in percent */
+  percentTotal: Scalars['Float']['output'];
+};
+
 export type CreateApiKeyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
@@ -553,14 +604,6 @@ export type DeleteApiKeyInput = {
 
 export type DeleteRCloneRemoteInput = {
   name: Scalars['String']['input'];
-};
-
-export type Devices = Node & {
-  __typename?: 'Devices';
-  gpu: Array<Gpu>;
-  id: Scalars['PrefixedID']['output'];
-  pci: Array<Pci>;
-  usb: Array<Usb>;
 };
 
 export type Disk = Node & {
@@ -638,31 +681,6 @@ export enum DiskSmartStatus {
   OK = 'OK',
   UNKNOWN = 'UNKNOWN'
 }
-
-export type Display = Node & {
-  __typename?: 'Display';
-  banner?: Maybe<Scalars['String']['output']>;
-  case?: Maybe<Case>;
-  critical?: Maybe<Scalars['Int']['output']>;
-  dashapps?: Maybe<Scalars['String']['output']>;
-  date?: Maybe<Scalars['String']['output']>;
-  hot?: Maybe<Scalars['Int']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  locale?: Maybe<Scalars['String']['output']>;
-  max?: Maybe<Scalars['Int']['output']>;
-  number?: Maybe<Scalars['String']['output']>;
-  resize?: Maybe<Scalars['Boolean']['output']>;
-  scale?: Maybe<Scalars['Boolean']['output']>;
-  tabs?: Maybe<Scalars['Boolean']['output']>;
-  text?: Maybe<Scalars['Boolean']['output']>;
-  theme?: Maybe<ThemeName>;
-  total?: Maybe<Scalars['Boolean']['output']>;
-  unit?: Maybe<Temperature>;
-  usage?: Maybe<Scalars['Boolean']['output']>;
-  users?: Maybe<Scalars['String']['output']>;
-  warning?: Maybe<Scalars['Int']['output']>;
-  wwn?: Maybe<Scalars['Boolean']['output']>;
-};
 
 export type Docker = Node & {
   __typename?: 'Docker';
@@ -778,80 +796,293 @@ export type FlashBackupStatus = {
   status: Scalars['String']['output'];
 };
 
-export type Gpu = Node & {
-  __typename?: 'Gpu';
-  blacklisted: Scalars['Boolean']['output'];
-  class: Scalars['String']['output'];
-  id: Scalars['PrefixedID']['output'];
-  productid: Scalars['String']['output'];
-  type: Scalars['String']['output'];
-  typeid: Scalars['String']['output'];
-  vendorname: Scalars['String']['output'];
+export type FormSchema = {
+  /** The data schema for the form */
+  dataSchema: Scalars['JSON']['output'];
+  /** The UI schema for the form */
+  uiSchema: Scalars['JSON']['output'];
+  /** The current values of the form */
+  values: Scalars['JSON']['output'];
 };
 
 export type Info = Node & {
   __typename?: 'Info';
-  /** Count of docker containers */
-  apps: InfoApps;
-  baseboard: Baseboard;
+  /** Motherboard information */
+  baseboard: InfoBaseboard;
+  /** CPU information */
   cpu: InfoCpu;
-  devices: Devices;
-  display: Display;
+  /** Device information */
+  devices: InfoDevices;
+  /** Display configuration */
+  display: InfoDisplay;
   id: Scalars['PrefixedID']['output'];
   /** Machine ID */
-  machineId?: Maybe<Scalars['PrefixedID']['output']>;
+  machineId?: Maybe<Scalars['ID']['output']>;
+  /** Memory information */
   memory: InfoMemory;
-  os: Os;
-  system: System;
+  /** Operating system information */
+  os: InfoOs;
+  /** System information */
+  system: InfoSystem;
+  /** Current server time */
   time: Scalars['DateTime']['output'];
-  versions: Versions;
+  /** Software versions */
+  versions: InfoVersions;
 };
 
-export type InfoApps = Node & {
-  __typename?: 'InfoApps';
+export type InfoBaseboard = Node & {
+  __typename?: 'InfoBaseboard';
+  /** Motherboard asset tag */
+  assetTag?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
-  /** How many docker containers are installed */
-  installed: Scalars['Int']['output'];
-  /** How many docker containers are running */
-  started: Scalars['Int']['output'];
+  /** Motherboard manufacturer */
+  manufacturer?: Maybe<Scalars['String']['output']>;
+  /** Maximum memory capacity in bytes */
+  memMax?: Maybe<Scalars['Float']['output']>;
+  /** Number of memory slots */
+  memSlots?: Maybe<Scalars['Float']['output']>;
+  /** Motherboard model */
+  model?: Maybe<Scalars['String']['output']>;
+  /** Motherboard serial number */
+  serial?: Maybe<Scalars['String']['output']>;
+  /** Motherboard version */
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 export type InfoCpu = Node & {
   __typename?: 'InfoCpu';
-  brand: Scalars['String']['output'];
-  cache: Scalars['JSON']['output'];
-  cores: Scalars['Int']['output'];
-  family: Scalars['String']['output'];
-  flags: Array<Scalars['String']['output']>;
+  /** CPU brand name */
+  brand?: Maybe<Scalars['String']['output']>;
+  /** CPU cache information */
+  cache?: Maybe<Scalars['JSON']['output']>;
+  /** Number of CPU cores */
+  cores?: Maybe<Scalars['Int']['output']>;
+  /** CPU family */
+  family?: Maybe<Scalars['String']['output']>;
+  /** CPU feature flags */
+  flags?: Maybe<Array<Scalars['String']['output']>>;
   id: Scalars['PrefixedID']['output'];
-  manufacturer: Scalars['String']['output'];
-  model: Scalars['String']['output'];
-  processors: Scalars['Int']['output'];
-  revision: Scalars['String']['output'];
-  socket: Scalars['String']['output'];
-  speed: Scalars['Float']['output'];
-  speedmax: Scalars['Float']['output'];
-  speedmin: Scalars['Float']['output'];
-  stepping: Scalars['Int']['output'];
-  threads: Scalars['Int']['output'];
-  vendor: Scalars['String']['output'];
+  /** CPU manufacturer */
+  manufacturer?: Maybe<Scalars['String']['output']>;
+  /** CPU model */
+  model?: Maybe<Scalars['String']['output']>;
+  /** Number of physical processors */
+  processors?: Maybe<Scalars['Int']['output']>;
+  /** CPU revision */
+  revision?: Maybe<Scalars['String']['output']>;
+  /** CPU socket type */
+  socket?: Maybe<Scalars['String']['output']>;
+  /** Current CPU speed in GHz */
+  speed?: Maybe<Scalars['Float']['output']>;
+  /** Maximum CPU speed in GHz */
+  speedmax?: Maybe<Scalars['Float']['output']>;
+  /** Minimum CPU speed in GHz */
+  speedmin?: Maybe<Scalars['Float']['output']>;
+  /** CPU stepping */
+  stepping?: Maybe<Scalars['Int']['output']>;
+  /** Number of CPU threads */
+  threads?: Maybe<Scalars['Int']['output']>;
+  /** CPU vendor */
+  vendor?: Maybe<Scalars['String']['output']>;
+  /** CPU voltage */
   voltage?: Maybe<Scalars['String']['output']>;
+};
+
+export type InfoDevices = Node & {
+  __typename?: 'InfoDevices';
+  /** List of GPU devices */
+  gpu?: Maybe<Array<InfoGpu>>;
+  id: Scalars['PrefixedID']['output'];
+  /** List of network interfaces */
+  network?: Maybe<Array<InfoNetwork>>;
+  /** List of PCI devices */
+  pci?: Maybe<Array<InfoPci>>;
+  /** List of USB devices */
+  usb?: Maybe<Array<InfoUsb>>;
+};
+
+export type InfoDisplay = Node & {
+  __typename?: 'InfoDisplay';
+  /** Case display configuration */
+  case: InfoDisplayCase;
+  /** Critical temperature threshold */
+  critical: Scalars['Int']['output'];
+  /** Hot temperature threshold */
+  hot: Scalars['Int']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Locale setting */
+  locale?: Maybe<Scalars['String']['output']>;
+  /** Maximum temperature threshold */
+  max?: Maybe<Scalars['Int']['output']>;
+  /** Enable UI resize */
+  resize: Scalars['Boolean']['output'];
+  /** Enable UI scaling */
+  scale: Scalars['Boolean']['output'];
+  /** Show tabs in UI */
+  tabs: Scalars['Boolean']['output'];
+  /** Show text labels */
+  text: Scalars['Boolean']['output'];
+  /** UI theme name */
+  theme: ThemeName;
+  /** Show totals */
+  total: Scalars['Boolean']['output'];
+  /** Temperature unit (C or F) */
+  unit: Temperature;
+  /** Show usage statistics */
+  usage: Scalars['Boolean']['output'];
+  /** Warning temperature threshold */
+  warning: Scalars['Int']['output'];
+  /** Show WWN identifiers */
+  wwn: Scalars['Boolean']['output'];
+};
+
+export type InfoDisplayCase = Node & {
+  __typename?: 'InfoDisplayCase';
+  /** Base64 encoded case image */
+  base64: Scalars['String']['output'];
+  /** Error message if any */
+  error: Scalars['String']['output'];
+  /** Case icon identifier */
+  icon: Scalars['String']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Case image URL */
+  url: Scalars['String']['output'];
+};
+
+export type InfoGpu = Node & {
+  __typename?: 'InfoGpu';
+  /** Whether GPU is blacklisted */
+  blacklisted: Scalars['Boolean']['output'];
+  /** Device class */
+  class: Scalars['String']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Product ID */
+  productid: Scalars['String']['output'];
+  /** GPU type/manufacturer */
+  type: Scalars['String']['output'];
+  /** GPU type identifier */
+  typeid: Scalars['String']['output'];
+  /** Vendor name */
+  vendorname?: Maybe<Scalars['String']['output']>;
 };
 
 export type InfoMemory = Node & {
   __typename?: 'InfoMemory';
-  active: Scalars['BigInt']['output'];
-  available: Scalars['BigInt']['output'];
-  buffcache: Scalars['BigInt']['output'];
-  free: Scalars['BigInt']['output'];
   id: Scalars['PrefixedID']['output'];
+  /** Physical memory layout */
   layout: Array<MemoryLayout>;
-  max: Scalars['BigInt']['output'];
-  swapfree: Scalars['BigInt']['output'];
-  swaptotal: Scalars['BigInt']['output'];
-  swapused: Scalars['BigInt']['output'];
-  total: Scalars['BigInt']['output'];
-  used: Scalars['BigInt']['output'];
+};
+
+export type InfoNetwork = Node & {
+  __typename?: 'InfoNetwork';
+  /** DHCP enabled flag */
+  dhcp?: Maybe<Scalars['Boolean']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** Network interface name */
+  iface: Scalars['String']['output'];
+  /** MAC address */
+  mac?: Maybe<Scalars['String']['output']>;
+  /** Network interface model */
+  model?: Maybe<Scalars['String']['output']>;
+  /** Network speed */
+  speed?: Maybe<Scalars['String']['output']>;
+  /** Network vendor */
+  vendor?: Maybe<Scalars['String']['output']>;
+  /** Virtual interface flag */
+  virtual?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type InfoOs = Node & {
+  __typename?: 'InfoOs';
+  /** OS architecture */
+  arch?: Maybe<Scalars['String']['output']>;
+  /** OS build identifier */
+  build?: Maybe<Scalars['String']['output']>;
+  /** OS codename */
+  codename?: Maybe<Scalars['String']['output']>;
+  /** Linux distribution name */
+  distro?: Maybe<Scalars['String']['output']>;
+  /** Fully qualified domain name */
+  fqdn?: Maybe<Scalars['String']['output']>;
+  /** Hostname */
+  hostname?: Maybe<Scalars['String']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** Kernel version */
+  kernel?: Maybe<Scalars['String']['output']>;
+  /** OS logo name */
+  logofile?: Maybe<Scalars['String']['output']>;
+  /** Operating system platform */
+  platform?: Maybe<Scalars['String']['output']>;
+  /** OS release version */
+  release?: Maybe<Scalars['String']['output']>;
+  /** OS serial number */
+  serial?: Maybe<Scalars['String']['output']>;
+  /** Service pack version */
+  servicepack?: Maybe<Scalars['String']['output']>;
+  /** OS started via UEFI */
+  uefi?: Maybe<Scalars['Boolean']['output']>;
+  /** Boot time ISO string */
+  uptime?: Maybe<Scalars['String']['output']>;
+};
+
+export type InfoPci = Node & {
+  __typename?: 'InfoPci';
+  /** Blacklisted status */
+  blacklisted: Scalars['String']['output'];
+  /** Device class */
+  class: Scalars['String']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Product ID */
+  productid: Scalars['String']['output'];
+  /** Product name */
+  productname?: Maybe<Scalars['String']['output']>;
+  /** Device type/manufacturer */
+  type: Scalars['String']['output'];
+  /** Type identifier */
+  typeid: Scalars['String']['output'];
+  /** Vendor ID */
+  vendorid: Scalars['String']['output'];
+  /** Vendor name */
+  vendorname?: Maybe<Scalars['String']['output']>;
+};
+
+export type InfoSystem = Node & {
+  __typename?: 'InfoSystem';
+  id: Scalars['PrefixedID']['output'];
+  /** System manufacturer */
+  manufacturer?: Maybe<Scalars['String']['output']>;
+  /** System model */
+  model?: Maybe<Scalars['String']['output']>;
+  /** System serial number */
+  serial?: Maybe<Scalars['String']['output']>;
+  /** System SKU */
+  sku?: Maybe<Scalars['String']['output']>;
+  /** System UUID */
+  uuid?: Maybe<Scalars['String']['output']>;
+  /** System version */
+  version?: Maybe<Scalars['String']['output']>;
+  /** Virtual machine flag */
+  virtual?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type InfoUsb = Node & {
+  __typename?: 'InfoUsb';
+  /** USB bus number */
+  bus?: Maybe<Scalars['String']['output']>;
+  /** USB device number */
+  device?: Maybe<Scalars['String']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** USB device name */
+  name: Scalars['String']['output'];
+};
+
+export type InfoVersions = Node & {
+  __typename?: 'InfoVersions';
+  /** Core system versions */
+  core: CoreVersions;
+  id: Scalars['PrefixedID']['output'];
+  /** Software package versions */
+  packages?: Maybe<PackageVersions>;
 };
 
 export type InitiateFlashBackupInput = {
@@ -897,18 +1128,66 @@ export type LogFileContent = {
 
 export type MemoryLayout = Node & {
   __typename?: 'MemoryLayout';
+  /** Memory bank location (e.g., BANK 0) */
   bank?: Maybe<Scalars['String']['output']>;
+  /** Memory clock speed in MHz */
   clockSpeed?: Maybe<Scalars['Int']['output']>;
+  /** Form factor (e.g., DIMM, SODIMM) */
   formFactor?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
+  /** Memory manufacturer */
   manufacturer?: Maybe<Scalars['String']['output']>;
+  /** Part number of the memory module */
   partNum?: Maybe<Scalars['String']['output']>;
+  /** Serial number of the memory module */
   serialNum?: Maybe<Scalars['String']['output']>;
+  /** Memory module size in bytes */
   size: Scalars['BigInt']['output'];
+  /** Memory type (e.g., DDR4, DDR5) */
   type?: Maybe<Scalars['String']['output']>;
+  /** Configured voltage in millivolts */
   voltageConfigured?: Maybe<Scalars['Int']['output']>;
+  /** Maximum voltage in millivolts */
   voltageMax?: Maybe<Scalars['Int']['output']>;
+  /** Minimum voltage in millivolts */
   voltageMin?: Maybe<Scalars['Int']['output']>;
+};
+
+export type MemoryUtilization = Node & {
+  __typename?: 'MemoryUtilization';
+  /** Active memory in bytes */
+  active: Scalars['BigInt']['output'];
+  /** Available memory in bytes */
+  available: Scalars['BigInt']['output'];
+  /** Buffer/cache memory in bytes */
+  buffcache: Scalars['BigInt']['output'];
+  /** Free memory in bytes */
+  free: Scalars['BigInt']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Swap usage percentage */
+  percentSwapTotal: Scalars['Float']['output'];
+  /** Memory usage percentage */
+  percentTotal: Scalars['Float']['output'];
+  /** Free swap memory in bytes */
+  swapFree: Scalars['BigInt']['output'];
+  /** Total swap memory in bytes */
+  swapTotal: Scalars['BigInt']['output'];
+  /** Used swap memory in bytes */
+  swapUsed: Scalars['BigInt']['output'];
+  /** Total system memory in bytes */
+  total: Scalars['BigInt']['output'];
+  /** Used memory in bytes */
+  used: Scalars['BigInt']['output'];
+};
+
+/** System metrics including CPU and memory utilization */
+export type Metrics = Node & {
+  __typename?: 'Metrics';
+  /** Current CPU utilization metrics */
+  cpu?: Maybe<CpuUtilization>;
+  id: Scalars['PrefixedID']['output'];
+  /** Current memory utilization metrics */
+  memory?: Maybe<MemoryUtilization>;
 };
 
 /** The status of the minigraph */
@@ -940,21 +1219,25 @@ export type Mutation = {
   configureUps: Scalars['Boolean']['output'];
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
+  createDockerFolder: ResolvedOrganizerV1;
   /** Creates a new notification record */
   createNotification: Notification;
   /** Deletes all archived notifications on server. */
   deleteArchivedNotifications: NotificationOverview;
+  deleteDockerEntries: ResolvedOrganizerV1;
   deleteNotification: NotificationOverview;
   docker: DockerMutations;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   /** Initiates a flash drive backup using a configured remote. */
   initiateFlashBackup: FlashBackupStatus;
+  moveDockerEntriesToFolder: ResolvedOrganizerV1;
   parityCheck: ParityCheckMutations;
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
   recalculateOverview: NotificationOverview;
   /** Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required. */
   removePlugin: Scalars['Boolean']['output'];
+  setDockerFolderChildren: ResolvedOrganizerV1;
   setupRemoteAccess: Scalars['Boolean']['output'];
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
@@ -996,8 +1279,20 @@ export type MutationConnectSignInArgs = {
 };
 
 
+export type MutationCreateDockerFolderArgs = {
+  childrenIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  name: Scalars['String']['input'];
+  parentId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationCreateNotificationArgs = {
   input: NotificationData;
+};
+
+
+export type MutationDeleteDockerEntriesArgs = {
+  entryIds: Array<Scalars['String']['input']>;
 };
 
 
@@ -1017,8 +1312,20 @@ export type MutationInitiateFlashBackupArgs = {
 };
 
 
+export type MutationMoveDockerEntriesToFolderArgs = {
+  destinationFolderId: Scalars['String']['input'];
+  sourceEntryIds: Array<Scalars['String']['input']>;
+};
+
+
 export type MutationRemovePluginArgs = {
   input: PluginManagementInput;
+};
+
+
+export type MutationSetDockerFolderChildrenArgs = {
+  childrenIds: Array<Scalars['String']['input']>;
+  folderId?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1129,12 +1436,70 @@ export type NotificationsListArgs = {
   filter: NotificationFilter;
 };
 
+export type OidcAuthorizationRule = {
+  __typename?: 'OidcAuthorizationRule';
+  /** The claim to check (e.g., email, sub, groups, hd) */
+  claim: Scalars['String']['output'];
+  /** The comparison operator */
+  operator: AuthorizationOperator;
+  /** The value(s) to match against */
+  value: Array<Scalars['String']['output']>;
+};
+
+export type OidcConfiguration = {
+  __typename?: 'OidcConfiguration';
+  /** Default allowed redirect origins that apply to all OIDC providers (e.g., Tailscale domains) */
+  defaultAllowedOrigins?: Maybe<Array<Scalars['String']['output']>>;
+  /** List of configured OIDC providers */
+  providers: Array<OidcProvider>;
+};
+
+export type OidcProvider = {
+  __typename?: 'OidcProvider';
+  /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  authorizationEndpoint?: Maybe<Scalars['String']['output']>;
+  /** Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR. */
+  authorizationRuleMode?: Maybe<AuthorizationRuleMode>;
+  /** Flexible authorization rules based on claims */
+  authorizationRules?: Maybe<Array<OidcAuthorizationRule>>;
+  /** URL or base64 encoded icon for the login button */
+  buttonIcon?: Maybe<Scalars['String']['output']>;
+  /** Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;") */
+  buttonStyle?: Maybe<Scalars['String']['output']>;
+  /** Custom text for the login button */
+  buttonText?: Maybe<Scalars['String']['output']>;
+  /** Button variant style from Reka UI. See https://reka-ui.com/docs/components/button */
+  buttonVariant?: Maybe<Scalars['String']['output']>;
+  /** OAuth2 client ID registered with the provider */
+  clientId: Scalars['String']['output'];
+  /** OAuth2 client secret (if required by provider) */
+  clientSecret?: Maybe<Scalars['String']['output']>;
+  /** The unique identifier for the OIDC provider */
+  id: Scalars['PrefixedID']['output'];
+  /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
+  issuer?: Maybe<Scalars['String']['output']>;
+  /** JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  jwksUri?: Maybe<Scalars['String']['output']>;
+  /** Display name of the OIDC provider */
+  name: Scalars['String']['output'];
+  /** OAuth2 scopes to request (e.g., openid, profile, email) */
+  scopes: Array<Scalars['String']['output']>;
+  /** OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  tokenEndpoint?: Maybe<Scalars['String']['output']>;
+};
+
+export type OidcSessionValidation = {
+  __typename?: 'OidcSessionValidation';
+  username?: Maybe<Scalars['String']['output']>;
+  valid: Scalars['Boolean']['output'];
+};
+
 export type OrganizerContainerResource = {
   __typename?: 'OrganizerContainerResource';
   id: Scalars['String']['output'];
   meta?: Maybe<DockerContainer>;
   name: Scalars['String']['output'];
-  type: OrganizerResourceType;
+  type: Scalars['String']['output'];
 };
 
 export type OrganizerResource = {
@@ -1142,32 +1507,7 @@ export type OrganizerResource = {
   id: Scalars['String']['output'];
   meta?: Maybe<Scalars['JSON']['output']>;
   name: Scalars['String']['output'];
-  type: OrganizerResourceType;
-};
-
-/** The type of organizer resource */
-export enum OrganizerResourceType {
-  BOOKMARK = 'BOOKMARK',
-  CONTAINER = 'CONTAINER',
-  FILE = 'FILE',
-  VM = 'VM'
-}
-
-export type Os = Node & {
-  __typename?: 'Os';
-  arch?: Maybe<Scalars['String']['output']>;
-  build?: Maybe<Scalars['String']['output']>;
-  codename?: Maybe<Scalars['String']['output']>;
-  codepage?: Maybe<Scalars['String']['output']>;
-  distro?: Maybe<Scalars['String']['output']>;
-  hostname?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  kernel?: Maybe<Scalars['String']['output']>;
-  logofile?: Maybe<Scalars['String']['output']>;
-  platform?: Maybe<Scalars['String']['output']>;
-  release?: Maybe<Scalars['String']['output']>;
-  serial?: Maybe<Scalars['String']['output']>;
-  uptime?: Maybe<Scalars['String']['output']>;
+  type: Scalars['String']['output'];
 };
 
 export type Owner = {
@@ -1175,6 +1515,26 @@ export type Owner = {
   avatar: Scalars['String']['output'];
   url: Scalars['String']['output'];
   username: Scalars['String']['output'];
+};
+
+export type PackageVersions = {
+  __typename?: 'PackageVersions';
+  /** Docker version */
+  docker?: Maybe<Scalars['String']['output']>;
+  /** Git version */
+  git?: Maybe<Scalars['String']['output']>;
+  /** nginx version */
+  nginx?: Maybe<Scalars['String']['output']>;
+  /** Node.js version */
+  node?: Maybe<Scalars['String']['output']>;
+  /** npm version */
+  npm?: Maybe<Scalars['String']['output']>;
+  /** OpenSSL version */
+  openssl?: Maybe<Scalars['String']['output']>;
+  /** PHP version */
+  php?: Maybe<Scalars['String']['output']>;
+  /** pm2 version */
+  pm2?: Maybe<Scalars['String']['output']>;
 };
 
 export type ParityCheck = {
@@ -1196,7 +1556,7 @@ export type ParityCheck = {
   /** Speed of the parity check, in MB/s */
   speed?: Maybe<Scalars['String']['output']>;
   /** Status of the parity check */
-  status?: Maybe<Scalars['String']['output']>;
+  status: ParityCheckStatus;
 };
 
 /** Parity check related mutations, WIP, response types and functionaliy will change */
@@ -1218,22 +1578,19 @@ export type ParityCheckMutationsStartArgs = {
   correct: Scalars['Boolean']['input'];
 };
 
-export type Pci = Node & {
-  __typename?: 'Pci';
-  blacklisted?: Maybe<Scalars['String']['output']>;
-  class?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  productid?: Maybe<Scalars['String']['output']>;
-  productname?: Maybe<Scalars['String']['output']>;
-  type?: Maybe<Scalars['String']['output']>;
-  typeid?: Maybe<Scalars['String']['output']>;
-  vendorid?: Maybe<Scalars['String']['output']>;
-  vendorname?: Maybe<Scalars['String']['output']>;
-};
+export enum ParityCheckStatus {
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  NEVER_RUN = 'NEVER_RUN',
+  PAUSED = 'PAUSED',
+  RUNNING = 'RUNNING'
+}
 
 export type Permission = {
   __typename?: 'Permission';
-  actions: Array<Scalars['String']['output']>;
+  /** Actions allowed on this resource */
+  actions: Array<AuthAction>;
   resource: Resource;
 };
 
@@ -1266,6 +1623,16 @@ export type ProfileModel = Node & {
   username: Scalars['String']['output'];
 };
 
+export type PublicOidcProvider = {
+  __typename?: 'PublicOidcProvider';
+  buttonIcon?: Maybe<Scalars['String']['output']>;
+  buttonStyle?: Maybe<Scalars['String']['output']>;
+  buttonText?: Maybe<Scalars['String']['output']>;
+  buttonVariant?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type PublicPartnerInfo = {
   __typename?: 'PublicPartnerInfo';
   /** Indicates if a partner logo exists */
@@ -1278,6 +1645,7 @@ export type PublicPartnerInfo = {
 
 export type Query = {
   __typename?: 'Query';
+  allConfigFiles: ConfigFilesResponse;
   apiKey?: Maybe<ApiKey>;
   /** All possible permissions for API keys */
   apiKeyPossiblePermissions: Array<Permission>;
@@ -1287,27 +1655,44 @@ export type Query = {
   array: UnraidArray;
   cloud: Cloud;
   config: Config;
+  configFile?: Maybe<ConfigFile>;
   connect: Connect;
   customization?: Maybe<Customization>;
   disk: Disk;
   disks: Array<Disk>;
-  display: Display;
   docker: Docker;
   flash: Flash;
+  /** Get JSON Schema for API key creation form */
+  getApiKeyCreationFormSchema: ApiKeyFormSettings;
+  /** Get all available authentication actions with possession */
+  getAvailableAuthActions: Array<AuthAction>;
+  /** Get the actual permissions that would be granted by a set of roles */
+  getPermissionsForRoles: Array<Permission>;
   info: Info;
   isInitialSetup: Scalars['Boolean']['output'];
   isSSOEnabled: Scalars['Boolean']['output'];
   logFile: LogFileContent;
   logFiles: Array<LogFile>;
   me: UserAccount;
+  metrics: Metrics;
   network: Network;
   /** Get all notifications */
   notifications: Notifications;
+  /** Get the full OIDC configuration (admin only) */
+  oidcConfiguration: OidcConfiguration;
+  /** Get a specific OIDC provider by ID */
+  oidcProvider?: Maybe<OidcProvider>;
+  /** Get all configured OIDC providers (admin only) */
+  oidcProviders: Array<OidcProvider>;
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
   /** List all installed plugins with their metadata */
   plugins: Array<Plugin>;
+  /** Preview the effective permissions for a combination of roles and explicit permissions */
+  previewEffectivePermissions: Array<Permission>;
+  /** Get public OIDC provider information for login buttons */
+  publicOidcProviders: Array<PublicOidcProvider>;
   publicPartnerInfo?: Maybe<PublicPartnerInfo>;
   publicTheme: Theme;
   rclone: RCloneBackupSettings;
@@ -1321,6 +1706,8 @@ export type Query = {
   upsConfiguration: UpsConfiguration;
   upsDeviceById?: Maybe<UpsDevice>;
   upsDevices: Array<UpsDevice>;
+  /** Validate an OIDC session token (internal use for CLI validation) */
+  validateOidcSession: OidcSessionValidation;
   vars: Vars;
   /** Get information about all VMs on the system */
   vms: Vms;
@@ -1332,8 +1719,18 @@ export type QueryApiKeyArgs = {
 };
 
 
+export type QueryConfigFileArgs = {
+  name: Scalars['String']['input'];
+};
+
+
 export type QueryDiskArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryGetPermissionsForRolesArgs = {
+  roles: Array<Role>;
 };
 
 
@@ -1344,8 +1741,24 @@ export type QueryLogFileArgs = {
 };
 
 
+export type QueryOidcProviderArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryPreviewEffectivePermissionsArgs = {
+  permissions?: InputMaybe<Array<AddPermissionInput>>;
+  roles?: InputMaybe<Array<Role>>;
+};
+
+
 export type QueryUpsDeviceByIdArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type QueryValidateOidcSessionArgs = {
+  token: Scalars['String']['input'];
 };
 
 export type RCloneBackupConfigForm = {
@@ -1531,10 +1944,14 @@ export enum Resource {
 
 /** Available roles for API keys and users */
 export enum Role {
+  /** Full administrative access to all resources */
   ADMIN = 'ADMIN',
+  /** Internal Role for Unraid Connect */
   CONNECT = 'CONNECT',
+  /** Basic read access to user profile only */
   GUEST = 'GUEST',
-  USER = 'USER'
+  /** Read-only access to all resources */
+  VIEWER = 'VIEWER'
 }
 
 export type Server = Node & {
@@ -1547,6 +1964,7 @@ export type Server = Node & {
   name: Scalars['String']['output'];
   owner: ProfileModel;
   remoteurl: Scalars['String']['output'];
+  /** Whether this server is online or offline */
   status: ServerStatus;
   wanip: Scalars['String']['output'];
 };
@@ -1571,6 +1989,8 @@ export type Settings = Node & {
   /** The API setting values */
   api: ApiConfig;
   id: Scalars['PrefixedID']['output'];
+  /** SSO settings */
+  sso: SsoSettings;
   /** A view of all settings */
   unified: UnifiedSettings;
 };
@@ -1619,17 +2039,24 @@ export type Share = Node & {
   used?: Maybe<Scalars['BigInt']['output']>;
 };
 
+export type SsoSettings = Node & {
+  __typename?: 'SsoSettings';
+  id: Scalars['PrefixedID']['output'];
+  /** List of configured OIDC providers */
+  oidcProviders: Array<OidcProvider>;
+};
+
 export type Subscription = {
   __typename?: 'Subscription';
   arraySubscription: UnraidArray;
-  displaySubscription: Display;
-  infoSubscription: Info;
   logFile: LogFileContent;
   notificationAdded: Notification;
   notificationsOverview: NotificationOverview;
   ownerSubscription: Owner;
   parityHistorySubscription: ParityCheck;
   serversSubscription: Server;
+  systemMetricsCpu: CpuUtilization;
+  systemMetricsMemory: MemoryUtilization;
   upsUpdates: UpsDevice;
 };
 
@@ -1638,21 +2065,10 @@ export type SubscriptionLogFileArgs = {
   path: Scalars['String']['input'];
 };
 
-export type System = Node & {
-  __typename?: 'System';
-  id: Scalars['PrefixedID']['output'];
-  manufacturer?: Maybe<Scalars['String']['output']>;
-  model?: Maybe<Scalars['String']['output']>;
-  serial?: Maybe<Scalars['String']['output']>;
-  sku?: Maybe<Scalars['String']['output']>;
-  uuid?: Maybe<Scalars['String']['output']>;
-  version?: Maybe<Scalars['String']['output']>;
-};
-
-/** Temperature unit (Celsius or Fahrenheit) */
+/** Temperature unit */
 export enum Temperature {
-  C = 'C',
-  F = 'F'
+  CELSIUS = 'CELSIUS',
+  FAHRENHEIT = 'FAHRENHEIT'
 }
 
 export type Theme = {
@@ -1813,7 +2229,7 @@ export enum UrlType {
   WIREGUARD = 'WIREGUARD'
 }
 
-export type UnifiedSettings = Node & {
+export type UnifiedSettings = FormSchema & Node & {
   __typename?: 'UnifiedSettings';
   /** The data schema for the settings */
   dataSchema: Scalars['JSON']['output'];
@@ -1837,6 +2253,8 @@ export type UnraidArray = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Parity disks in the current array */
   parities: Array<ArrayDisk>;
+  /** Current parity check status */
+  parityCheckStatus: ParityCheck;
   /** Current array state */
   state: ArrayState;
 };
@@ -1855,17 +2273,13 @@ export type UpdateSettingsResponse = {
   restartRequired: Scalars['Boolean']['output'];
   /** The updated settings values */
   values: Scalars['JSON']['output'];
+  /** Warning messages about configuration issues found during validation */
+  warnings?: Maybe<Array<Scalars['String']['output']>>;
 };
 
 export type Uptime = {
   __typename?: 'Uptime';
   timestamp?: Maybe<Scalars['String']['output']>;
-};
-
-export type Usb = Node & {
-  __typename?: 'Usb';
-  id: Scalars['PrefixedID']['output'];
-  name?: Maybe<Scalars['String']['output']>;
 };
 
 export type UserAccount = Node & {
@@ -2045,37 +2459,6 @@ export type Vars = Node & {
   workgroup?: Maybe<Scalars['String']['output']>;
 };
 
-export type Versions = Node & {
-  __typename?: 'Versions';
-  apache?: Maybe<Scalars['String']['output']>;
-  docker?: Maybe<Scalars['String']['output']>;
-  gcc?: Maybe<Scalars['String']['output']>;
-  git?: Maybe<Scalars['String']['output']>;
-  grunt?: Maybe<Scalars['String']['output']>;
-  gulp?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  kernel?: Maybe<Scalars['String']['output']>;
-  mongodb?: Maybe<Scalars['String']['output']>;
-  mysql?: Maybe<Scalars['String']['output']>;
-  nginx?: Maybe<Scalars['String']['output']>;
-  node?: Maybe<Scalars['String']['output']>;
-  npm?: Maybe<Scalars['String']['output']>;
-  openssl?: Maybe<Scalars['String']['output']>;
-  perl?: Maybe<Scalars['String']['output']>;
-  php?: Maybe<Scalars['String']['output']>;
-  pm2?: Maybe<Scalars['String']['output']>;
-  postfix?: Maybe<Scalars['String']['output']>;
-  postgresql?: Maybe<Scalars['String']['output']>;
-  python?: Maybe<Scalars['String']['output']>;
-  redis?: Maybe<Scalars['String']['output']>;
-  systemOpenssl?: Maybe<Scalars['String']['output']>;
-  systemOpensslLib?: Maybe<Scalars['String']['output']>;
-  tsc?: Maybe<Scalars['String']['output']>;
-  unraid?: Maybe<Scalars['String']['output']>;
-  v8?: Maybe<Scalars['String']['output']>;
-  yarn?: Maybe<Scalars['String']['output']>;
-};
-
 export type VmDomain = Node & {
   __typename?: 'VmDomain';
   /** The unique identifier for the vm (uuid) */
@@ -2226,7 +2609,7 @@ export type GetSsoUsersQuery = { __typename?: 'Query', settings: { __typename?: 
 export type SystemReportQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SystemReportQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: any, machineId?: any | null, system: { __typename?: 'System', manufacturer?: string | null, model?: string | null, version?: string | null, sku?: string | null, serial?: string | null, uuid?: string | null }, versions: { __typename?: 'Versions', unraid?: string | null, kernel?: string | null, openssl?: string | null } }, config: { __typename?: 'Config', id: any, valid?: boolean | null, error?: string | null }, server?: { __typename?: 'Server', id: any, name: string } | null };
+export type SystemReportQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: any, machineId?: string | null, system: { __typename?: 'InfoSystem', manufacturer?: string | null, model?: string | null, version?: string | null, sku?: string | null, serial?: string | null, uuid?: string | null }, versions: { __typename?: 'InfoVersions', core: { __typename?: 'CoreVersions', unraid?: string | null, kernel?: string | null }, packages?: { __typename?: 'PackageVersions', openssl?: string | null } | null } }, config: { __typename?: 'Config', id: any, valid?: boolean | null, error?: string | null }, server?: { __typename?: 'Server', id: any, name: string } | null };
 
 export type ConnectStatusQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2238,6 +2621,13 @@ export type ServicesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ServicesQuery = { __typename?: 'Query', services: Array<{ __typename?: 'Service', id: any, name?: string | null, online?: boolean | null, version?: string | null, uptime?: { __typename?: 'Uptime', timestamp?: string | null } | null }> };
 
+export type ValidateOidcSessionQueryVariables = Exact<{
+  token: Scalars['String']['input'];
+}>;
+
+
+export type ValidateOidcSessionQuery = { __typename?: 'Query', validateOidcSession: { __typename?: 'OidcSessionValidation', valid: boolean, username?: string | null } };
+
 
 export const AddPluginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AddPlugin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PluginManagementInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addPlugin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<AddPluginMutation, AddPluginMutationVariables>;
 export const RemovePluginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RemovePlugin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PluginManagementInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"removePlugin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<RemovePluginMutation, RemovePluginMutationVariables>;
@@ -2245,6 +2635,7 @@ export const UpdateSsoUsersDocument = {"kind":"Document","definitions":[{"kind":
 export const UpdateSandboxSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSandboxSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"JSON"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"restartRequired"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<UpdateSandboxSettingsMutation, UpdateSandboxSettingsMutationVariables>;
 export const GetPluginsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"plugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"hasApiModule"}},{"kind":"Field","name":{"kind":"Name","value":"hasCliModule"}}]}}]}}]} as unknown as DocumentNode<GetPluginsQuery, GetPluginsQueryVariables>;
 export const GetSsoUsersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSSOUsers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"api"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ssoSubIds"}}]}}]}}]}}]} as unknown as DocumentNode<GetSsoUsersQuery, GetSsoUsersQueryVariables>;
-export const SystemReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SystemReport"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"machineId"}},{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"manufacturer"}},{"kind":"Field","name":{"kind":"Name","value":"model"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"serial"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"versions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraid"}},{"kind":"Field","name":{"kind":"Name","value":"kernel"}},{"kind":"Field","name":{"kind":"Name","value":"openssl"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"server"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<SystemReportQuery, SystemReportQueryVariables>;
+export const SystemReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SystemReport"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"machineId"}},{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"manufacturer"}},{"kind":"Field","name":{"kind":"Name","value":"model"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"serial"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"versions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"core"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraid"}},{"kind":"Field","name":{"kind":"Name","value":"kernel"}}]}},{"kind":"Field","name":{"kind":"Name","value":"packages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"openssl"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"server"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<SystemReportQuery, SystemReportQueryVariables>;
 export const ConnectStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ConnectStatus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connect"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dynamicRemoteAccess"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"enabledType"}},{"kind":"Field","name":{"kind":"Name","value":"runningType"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]}}]} as unknown as DocumentNode<ConnectStatusQuery, ConnectStatusQueryVariables>;
 export const ServicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Services"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"services"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"online"}},{"kind":"Field","name":{"kind":"Name","value":"uptime"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"timestamp"}}]}},{"kind":"Field","name":{"kind":"Name","value":"version"}}]}}]}}]} as unknown as DocumentNode<ServicesQuery, ServicesQueryVariables>;
+export const ValidateOidcSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ValidateOidcSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"token"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"validateOidcSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"token"},"value":{"kind":"Variable","name":{"kind":"Name","value":"token"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}}]}}]} as unknown as DocumentNode<ValidateOidcSessionQuery, ValidateOidcSessionQueryVariables>;

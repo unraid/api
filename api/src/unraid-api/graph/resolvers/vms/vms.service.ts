@@ -1,4 +1,5 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
+import { Timeout } from '@nestjs/schedule';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 
@@ -11,7 +12,7 @@ import { getters } from '@app/store/index.js';
 import { VmDomain, VmState } from '@app/unraid-api/graph/resolvers/vms/vms.model.js';
 
 @Injectable()
-export class VmsService implements OnModuleInit, OnModuleDestroy {
+export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
     private readonly logger = new Logger(VmsService.name);
     private hypervisor: InstanceType<typeof HypervisorClass> | null = null;
     private isVmsAvailable: boolean = false;
@@ -38,9 +39,24 @@ export class VmsService implements OnModuleInit, OnModuleDestroy {
         }
     }
 
-    async onModuleInit() {
+    async onApplicationBootstrap() {
         this.logger.debug(`Initializing VMs service with URI: ${this.uri}`);
         await this.attemptHypervisorInitializationAndWatch();
+    }
+
+    @Timeout(10_000)
+    async healInitialization(maxRetries = 12, delay = 10_000) {
+        let retries = 1;
+        while (!this.isVmsAvailable && retries <= maxRetries) {
+            this.logger.log(`Attempting to initialize VMs service...attempt ${retries}/${maxRetries}`);
+            await this.attemptHypervisorInitializationAndWatch();
+            if (this.isVmsAvailable) {
+                this.logger.log('VMs service initialized successfully');
+                break;
+            }
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            retries++;
+        }
     }
 
     async onModuleDestroy() {

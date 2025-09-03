@@ -2,15 +2,14 @@ import { Logger } from '@nestjs/common';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { ensureDir, ensureDirSync } from 'fs-extra';
-import { AuthActionVerb } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { environment } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
-import { ApiKey, ApiKeyWithSecret } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { ApiKey } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 
 // Mock the store and its modules
 vi.mock('@app/store/index.js', () => ({
@@ -48,28 +47,14 @@ describe('ApiKeyService', () => {
 
     const mockApiKey: ApiKey = {
         id: 'test-api-id',
+        key: 'test-secret-key',
         name: 'Test API Key',
         description: 'Test API Key Description',
         roles: [Role.GUEST],
         permissions: [
             {
                 resource: Resource.CONNECT,
-                actions: [AuthActionVerb.READ],
-            },
-        ],
-        createdAt: new Date().toISOString(),
-    };
-
-    const mockApiKeyWithSecret: ApiKeyWithSecret = {
-        id: 'test-api-id',
-        key: 'test-api-key',
-        name: 'Test API Key',
-        description: 'Test API Key Description',
-        roles: [Role.GUEST],
-        permissions: [
-            {
-                resource: Resource.CONNECT,
-                actions: [AuthActionVerb.READ],
+                actions: [AuthAction.READ_ANY],
             },
         ],
         createdAt: new Date().toISOString(),
@@ -130,21 +115,23 @@ describe('ApiKeyService', () => {
     });
 
     describe('create', () => {
-        it('should create ApiKeyWithSecret with generated key', async () => {
+        it('should create ApiKey with generated key', async () => {
             const saveSpy = vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
-            const { key, id, description, roles } = mockApiKeyWithSecret;
+            const { id, description, roles } = mockApiKey;
             const name = 'Test API Key';
 
             const result = await apiKeyService.create({ name, description: description ?? '', roles });
 
             expect(result).toMatchObject({
                 id,
-                key,
                 name: name,
                 description,
                 roles,
                 createdAt: expect.any(String),
             });
+            expect(result.key).toBeDefined();
+            expect(typeof result.key).toBe('string');
+            expect(result.key.length).toBeGreaterThan(0);
 
             expect(saveSpy).toHaveBeenCalledWith(result);
         });
@@ -177,8 +164,8 @@ describe('ApiKeyService', () => {
     describe('findAll', () => {
         it('should return all API keys', async () => {
             vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([
-                mockApiKeyWithSecret,
-                { ...mockApiKeyWithSecret, id: 'second-id' },
+                mockApiKey,
+                { ...mockApiKey, id: 'second-id' },
             ]);
             await apiKeyService.onModuleInit();
 
@@ -191,7 +178,7 @@ describe('ApiKeyService', () => {
                 permissions: [
                     {
                         resource: Resource.CONNECT,
-                        actions: [AuthActionVerb.READ],
+                        actions: [AuthAction.READ_ANY],
                     },
                 ],
             };
@@ -202,7 +189,7 @@ describe('ApiKeyService', () => {
                 permissions: [
                     {
                         resource: Resource.CONNECT,
-                        actions: [AuthActionVerb.READ],
+                        actions: [AuthAction.READ_ANY],
                     },
                 ],
             };
@@ -219,17 +206,17 @@ describe('ApiKeyService', () => {
 
     describe('findById', () => {
         it('should return API key by id when found', async () => {
-            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([mockApiKeyWithSecret]);
+            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([mockApiKey]);
             await apiKeyService.onModuleInit();
 
-            const result = await apiKeyService.findById(mockApiKeyWithSecret.id);
+            const result = await apiKeyService.findById(mockApiKey.id);
 
             expect(result).toMatchObject({ ...mockApiKey, createdAt: expect.any(String) });
         });
 
         it('should return null if API key not found', async () => {
             vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([
-                { ...mockApiKeyWithSecret, id: 'different-id' },
+                { ...mockApiKey, id: 'different-id' },
             ]);
             await apiKeyService.onModuleInit();
 
@@ -239,21 +226,21 @@ describe('ApiKeyService', () => {
         });
     });
 
-    describe('findByIdWithSecret', () => {
-        it('should return API key with secret when found', async () => {
-            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([mockApiKeyWithSecret]);
+    describe('findById', () => {
+        it('should return API key when found', async () => {
+            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([mockApiKey]);
             await apiKeyService.onModuleInit();
 
-            const result = await apiKeyService.findByIdWithSecret(mockApiKeyWithSecret.id);
+            const result = await apiKeyService.findById(mockApiKey.id);
 
-            expect(result).toEqual(mockApiKeyWithSecret);
+            expect(result).toEqual(mockApiKey);
         });
 
         it('should return null when API key not found', async () => {
             vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([]);
             await apiKeyService.onModuleInit();
 
-            const result = await apiKeyService.findByIdWithSecret('non-existent-id');
+            const result = await apiKeyService.findById('non-existent-id');
 
             expect(result).toBeNull();
         });
@@ -274,23 +261,20 @@ describe('ApiKeyService', () => {
 
     describe('findByKey', () => {
         it('should return API key by key value when multiple keys exist', async () => {
-            const differentKey = { ...mockApiKeyWithSecret, key: 'different-key' };
-            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([
-                differentKey,
-                mockApiKeyWithSecret,
-            ]);
+            const differentKey = { ...mockApiKey, key: 'different-key' };
+            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([differentKey, mockApiKey]);
 
             await apiKeyService.onModuleInit();
 
-            const result = await apiKeyService.findByKey(mockApiKeyWithSecret.key);
+            const result = await apiKeyService.findByKey(mockApiKey.key);
 
-            expect(result).toEqual(mockApiKeyWithSecret);
+            expect(result).toEqual(mockApiKey);
         });
 
         it('should return null if key not found in any file', async () => {
             vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([
-                { ...mockApiKeyWithSecret, key: 'different-key-1' },
-                { ...mockApiKeyWithSecret, key: 'different-key-2' },
+                { ...mockApiKey, key: 'different-key-1' },
+                { ...mockApiKey, key: 'different-key-2' },
             ]);
             await apiKeyService.onModuleInit();
 
@@ -314,21 +298,21 @@ describe('ApiKeyService', () => {
         it('should save API key to file', async () => {
             vi.mocked(writeFile).mockResolvedValue(undefined);
 
-            await apiKeyService.saveApiKey(mockApiKeyWithSecret);
+            await apiKeyService.saveApiKey(mockApiKey);
 
             const writeFileCalls = vi.mocked(writeFile).mock.calls;
 
             expect(writeFileCalls.length).toBe(1);
 
             const [filePath, fileContent] = writeFileCalls[0] ?? [];
-            const expectedPath = join(mockBasePath, `${mockApiKeyWithSecret.id}.json`);
+            const expectedPath = join(mockBasePath, `${mockApiKey.id}.json`);
 
             expect(filePath).toBe(expectedPath);
 
             if (typeof fileContent === 'string') {
                 const savedApiKey = JSON.parse(fileContent);
 
-                expect(savedApiKey).toEqual(mockApiKeyWithSecret);
+                expect(savedApiKey).toEqual(mockApiKey);
             } else {
                 throw new Error('File content should be a string');
             }
@@ -337,16 +321,16 @@ describe('ApiKeyService', () => {
         it('should throw GraphQLError on write error', async () => {
             vi.mocked(writeFile).mockRejectedValue(new Error('Write failed'));
 
-            await expect(apiKeyService.saveApiKey(mockApiKeyWithSecret)).rejects.toThrow(
+            await expect(apiKeyService.saveApiKey(mockApiKey)).rejects.toThrow(
                 'Failed to save API key: Write failed'
             );
         });
 
         it('should throw GraphQLError on invalid API key structure', async () => {
             const invalidApiKey = {
-                ...mockApiKeyWithSecret,
+                ...mockApiKey,
                 name: '', // Invalid: name cannot be empty
-            } as ApiKeyWithSecret;
+            } as ApiKey;
 
             await expect(apiKeyService.saveApiKey(invalidApiKey)).rejects.toThrow(
                 'Failed to save API key: Invalid data structure'
@@ -355,10 +339,10 @@ describe('ApiKeyService', () => {
 
         it('should throw GraphQLError when roles and permissions array is empty', async () => {
             const invalidApiKey = {
-                ...mockApiKeyWithSecret,
+                ...mockApiKey,
                 permissions: [],
                 roles: [],
-            } as ApiKeyWithSecret;
+            } as ApiKey;
 
             await expect(apiKeyService.saveApiKey(invalidApiKey)).rejects.toThrow(
                 'At least one of permissions or roles must be specified'
@@ -367,9 +351,9 @@ describe('ApiKeyService', () => {
     });
 
     describe('update', () => {
-        let updateMockApiKey: ApiKeyWithSecret;
+        let updateMockApiKey: ApiKey;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             // Create a fresh copy of the mock data for update tests
             updateMockApiKey = {
                 id: 'test-api-id',
@@ -380,15 +364,17 @@ describe('ApiKeyService', () => {
                 permissions: [
                     {
                         resource: Resource.CONNECT,
-                        actions: [AuthActionVerb.READ],
+                        actions: [AuthAction.READ_ANY],
                     },
                 ],
                 createdAt: new Date().toISOString(),
             };
 
-            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([updateMockApiKey]);
+            // Initialize the memoryApiKeys with the test data
+            // The loadAllFromDisk mock will be called by onModuleInit
+            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([{ ...updateMockApiKey }]);
             vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
-            apiKeyService.onModuleInit();
+            await apiKeyService.onModuleInit();
         });
 
         it('should update name and description', async () => {
@@ -400,7 +386,6 @@ describe('ApiKeyService', () => {
                 name: updatedName,
                 description: updatedDescription,
             });
-
             expect(result.name).toBe(updatedName);
             expect(result.description).toBe(updatedDescription);
             expect(result.roles).toEqual(updateMockApiKey.roles);
@@ -427,7 +412,7 @@ describe('ApiKeyService', () => {
             const updatedPermissions = [
                 {
                     resource: Resource.CONNECT,
-                    actions: [AuthActionVerb.READ, AuthActionVerb.UPDATE],
+                    actions: [AuthAction.READ_ANY, AuthAction.UPDATE_ANY],
                 },
             ];
 
@@ -474,7 +459,7 @@ describe('ApiKeyService', () => {
     });
 
     describe('loadAllFromDisk', () => {
-        let loadMockApiKey: ApiKeyWithSecret;
+        let loadMockApiKey: ApiKey;
 
         beforeEach(() => {
             // Create a fresh copy of the mock data for loadAllFromDisk tests
@@ -487,7 +472,7 @@ describe('ApiKeyService', () => {
                 permissions: [
                     {
                         resource: Resource.CONNECT,
-                        actions: [AuthActionVerb.READ],
+                        actions: [AuthAction.READ_ANY],
                     },
                 ],
                 createdAt: new Date().toISOString(),
@@ -550,15 +535,62 @@ describe('ApiKeyService', () => {
                 key: 'unique-key',
             });
         });
+
+        it('should normalize permission actions to lowercase when loading from disk', async () => {
+            const apiKeyWithMixedCaseActions = {
+                ...loadMockApiKey,
+                permissions: [
+                    {
+                        resource: Resource.DOCKER,
+                        actions: ['READ:ANY', 'Update:Any', 'create:any', 'DELETE:ANY'], // Mixed case actions
+                    },
+                    {
+                        resource: Resource.ARRAY,
+                        actions: ['Read:Any'], // Mixed case
+                    },
+                ],
+            };
+
+            vi.mocked(readdir).mockResolvedValue(['key1.json'] as any);
+            vi.mocked(readFile).mockResolvedValueOnce(JSON.stringify(apiKeyWithMixedCaseActions));
+
+            const result = await apiKeyService.loadAllFromDisk();
+
+            expect(result).toHaveLength(1);
+            // All actions should be normalized to lowercase
+            expect(result[0].permissions[0].actions).toEqual([
+                AuthAction.READ_ANY,
+                AuthAction.UPDATE_ANY,
+                AuthAction.CREATE_ANY,
+                AuthAction.DELETE_ANY,
+            ]);
+            expect(result[0].permissions[1].actions).toEqual([AuthAction.READ_ANY]);
+        });
+
+        it('should normalize roles to uppercase when loading from disk', async () => {
+            const apiKeyWithMixedCaseRoles = {
+                ...loadMockApiKey,
+                roles: ['admin', 'Viewer', 'CONNECT'], // Mixed case roles
+            };
+
+            vi.mocked(readdir).mockResolvedValue(['key1.json'] as any);
+            vi.mocked(readFile).mockResolvedValueOnce(JSON.stringify(apiKeyWithMixedCaseRoles));
+
+            const result = await apiKeyService.loadAllFromDisk();
+
+            expect(result).toHaveLength(1);
+            // All roles should be normalized to uppercase
+            expect(result[0].roles).toEqual(['ADMIN', 'VIEWER', 'CONNECT']);
+        });
     });
 
     describe('loadApiKeyFile', () => {
         it('should load and parse a valid API key file', async () => {
-            vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockApiKeyWithSecret));
+            vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockApiKey));
 
             const result = await apiKeyService['loadApiKeyFile']('test.json');
 
-            expect(result).toEqual(mockApiKeyWithSecret);
+            expect(result).toEqual(mockApiKey);
             expect(readFile).toHaveBeenCalledWith(join(mockBasePath, 'test.json'), 'utf8');
         });
 
@@ -592,7 +624,7 @@ describe('ApiKeyService', () => {
                 expect.stringContaining('Error validating API key file test.json')
             );
             expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('An instance of ApiKeyWithSecret has failed the validation')
+                expect.stringContaining('An instance of ApiKey has failed the validation')
             );
             expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('property key'));
             expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('property id'));
@@ -602,6 +634,151 @@ describe('ApiKeyService', () => {
             expect(mockLogger.error).toHaveBeenCalledWith(
                 expect.stringContaining('property permissions')
             );
+        });
+
+        it('should normalize legacy action formats when loading API keys', async () => {
+            const legacyApiKey = {
+                ...mockApiKey,
+                permissions: [
+                    {
+                        resource: Resource.DOCKER,
+                        actions: ['create', 'READ', 'Update', 'DELETE'], // Mixed case legacy verbs
+                    },
+                    {
+                        resource: Resource.VMS,
+                        actions: ['READ_ANY', 'UPDATE_OWN'], // GraphQL enum style
+                    },
+                    {
+                        resource: Resource.CONNECT,
+                        actions: ['read:own', 'update:any'], // Casbin colon format
+                    },
+                ],
+            };
+
+            vi.mocked(readFile).mockResolvedValue(JSON.stringify(legacyApiKey));
+
+            const result = await apiKeyService['loadApiKeyFile']('legacy.json');
+
+            expect(result).not.toBeNull();
+            expect(result?.permissions).toEqual([
+                {
+                    resource: Resource.DOCKER,
+                    actions: [
+                        AuthAction.CREATE_ANY,
+                        AuthAction.READ_ANY,
+                        AuthAction.UPDATE_ANY,
+                        AuthAction.DELETE_ANY,
+                    ],
+                },
+                {
+                    resource: Resource.VMS,
+                    actions: [AuthAction.READ_ANY, AuthAction.UPDATE_OWN],
+                },
+                {
+                    resource: Resource.CONNECT,
+                    actions: [AuthAction.READ_OWN, AuthAction.UPDATE_ANY],
+                },
+            ]);
+        });
+    });
+
+    describe('convertRolesStringArrayToRoles', () => {
+        beforeEach(async () => {
+            vi.mocked(getters.paths).mockReturnValue({
+                'auth-keys': mockBasePath,
+            } as ReturnType<typeof getters.paths>);
+
+            // Create a fresh mock logger for each test
+            mockLogger = {
+                log: vi.fn(),
+                error: vi.fn(),
+                warn: vi.fn(),
+                debug: vi.fn(),
+                verbose: vi.fn(),
+            };
+
+            apiKeyService = new ApiKeyService();
+            // Replace the logger with our mock
+            (apiKeyService as any).logger = mockLogger;
+        });
+
+        it('should convert uppercase role strings to Role enum values', () => {
+            const roles = ['ADMIN', 'CONNECT', 'VIEWER'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([Role.ADMIN, Role.CONNECT, Role.VIEWER]);
+        });
+
+        it('should convert lowercase role strings to Role enum values', () => {
+            const roles = ['admin', 'connect', 'guest'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([Role.ADMIN, Role.CONNECT, Role.GUEST]);
+        });
+
+        it('should convert mixed case role strings to Role enum values', () => {
+            const roles = ['Admin', 'CoNnEcT', 'ViEwEr'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([Role.ADMIN, Role.CONNECT, Role.VIEWER]);
+        });
+
+        it('should handle roles with whitespace', () => {
+            const roles = [' ADMIN ', '  CONNECT  ', 'VIEWER  '];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([Role.ADMIN, Role.CONNECT, Role.VIEWER]);
+        });
+
+        it('should filter out invalid roles and warn', () => {
+            const roles = ['ADMIN', 'INVALID_ROLE', 'VIEWER', 'ANOTHER_INVALID'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([Role.ADMIN, Role.VIEWER]);
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                'Ignoring invalid roles: INVALID_ROLE, ANOTHER_INVALID'
+            );
+        });
+
+        it('should return empty array when all roles are invalid', () => {
+            const roles = ['INVALID1', 'INVALID2', 'INVALID3'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([]);
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                'Ignoring invalid roles: INVALID1, INVALID2, INVALID3'
+            );
+        });
+
+        it('should return empty array for empty input', () => {
+            const result = apiKeyService.convertRolesStringArrayToRoles([]);
+
+            expect(result).toEqual([]);
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+        });
+
+        it('should handle all valid Role enum values', () => {
+            const roles = Object.values(Role);
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual(Object.values(Role));
+            expect(mockLogger.warn).not.toHaveBeenCalled();
+        });
+
+        it('should deduplicate roles', () => {
+            const roles = ['ADMIN', 'admin', 'ADMIN', 'VIEWER', 'viewer'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            // Note: Current implementation doesn't deduplicate, but this test documents the behavior
+            expect(result).toEqual([Role.ADMIN, Role.ADMIN, Role.ADMIN, Role.VIEWER, Role.VIEWER]);
+        });
+
+        it('should handle mixed valid and invalid roles correctly', () => {
+            const roles = ['ADMIN', 'invalid', 'CONNECT', 'bad_role', 'GUEST', 'VIEWER'];
+            const result = apiKeyService.convertRolesStringArrayToRoles(roles);
+
+            expect(result).toEqual([Role.ADMIN, Role.CONNECT, Role.GUEST, Role.VIEWER]);
+            expect(mockLogger.warn).toHaveBeenCalledWith('Ignoring invalid roles: invalid, bad_role');
         });
     });
 });

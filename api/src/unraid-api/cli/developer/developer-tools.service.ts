@@ -1,8 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { access, readFile, unlink, writeFile } from 'fs/promises';
 import * as path from 'path';
 
-import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
+import type { CanonicalInternalClientService } from '@unraid/shared';
+import { CANONICAL_INTERNAL_CLIENT_TOKEN } from '@unraid/shared';
+
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { UPDATE_SANDBOX_MUTATION } from '@app/unraid-api/cli/queries/developer.mutation.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
@@ -52,12 +54,13 @@ unraid-dev-modal-test {
     constructor(
         private readonly logger: LogService,
         private readonly restartCommand: RestartCommand,
-        private readonly internalClient: CliInternalClientService
+        @Inject(CANONICAL_INTERNAL_CLIENT_TOKEN)
+        private readonly internalClient: CanonicalInternalClientService
     ) {}
 
     async setSandboxMode(enable: boolean): Promise<void> {
         try {
-            const client = await this.internalClient.getClient();
+            const client = await this.internalClient.getClient({ enableSubscriptions: false });
 
             const result = await client.mutate({
                 mutation: UPDATE_SANDBOX_MUTATION,

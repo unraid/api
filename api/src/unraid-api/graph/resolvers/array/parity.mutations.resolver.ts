@@ -1,11 +1,7 @@
 import { Args, Mutation, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
 import { ParityService } from '@app/unraid-api/graph/resolvers/array/parity.service.js';
@@ -19,9 +15,8 @@ export class ParityCheckMutationsResolver {
     constructor(private readonly parityService: ParityService) {}
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => GraphQLJSON, { description: 'Start a parity check' })
     async start(@Args('correct') correct: boolean): Promise<object> {
@@ -32,9 +27,8 @@ export class ParityCheckMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => GraphQLJSON, { description: 'Pause a parity check' })
     async pause(): Promise<object> {
@@ -45,9 +39,8 @@ export class ParityCheckMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => GraphQLJSON, { description: 'Resume a parity check' })
     async resume(): Promise<object> {
@@ -58,9 +51,8 @@ export class ParityCheckMutationsResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => GraphQLJSON, { description: 'Cancel a parity check' })
     async cancel(): Promise<object> {

@@ -1,11 +1,7 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { getShares } from '@app/core/utils/shares/get-shares.js';
 import { Share } from '@app/unraid-api/graph/resolvers/array/array.model.js';
@@ -16,9 +12,8 @@ export class SharesResolver {
 
     @Query(() => [Share])
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.SHARE,
-        possession: AuthPossession.ANY,
     })
     public async shares() {
         const userShares = getShares('users');

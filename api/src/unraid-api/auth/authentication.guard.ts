@@ -13,6 +13,7 @@ import type { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { apiLogger } from '@app/core/log.js';
 import { UserCookieStrategy } from '@app/unraid-api/auth/cookie.strategy.js';
 import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy.js';
+import { LocalSessionStrategy } from '@app/unraid-api/auth/local-session.strategy.js';
 import { IS_PUBLIC_ENDPOINT_KEY } from '@app/unraid-api/auth/public.decorator.js';
 
 /**
@@ -37,7 +38,7 @@ type GraphQLContext =
 
 @Injectable()
 export class AuthenticationGuard
-    extends AuthGuard([ServerHeaderStrategy.key, UserCookieStrategy.key])
+    extends AuthGuard([ServerHeaderStrategy.key, LocalSessionStrategy.key, UserCookieStrategy.key])
     implements CanActivate
 {
     protected logger = new Logger(AuthenticationGuard.name);

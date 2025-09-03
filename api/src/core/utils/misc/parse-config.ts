@@ -24,6 +24,54 @@ type OptionsWithLoadedFile = {
 };
 
 /**
+ * Flattens nested objects that were incorrectly created by periods in INI section names.
+ * For example: { system: { with: { periods: {...} } } } -> { "system.with.periods": {...} }
+ */
+const flattenPeriodSections = (obj: Record<string, any>, prefix = ''): Record<string, any> => {
+    const result: Record<string, any> = {};
+    const isNestedObject = (value: unknown) =>
+        Boolean(value && typeof value === 'object' && !Array.isArray(value));
+    // prevent prototype pollution/injection
+    const isUnsafeKey = (k: string) => k === '__proto__' || k === 'prototype' || k === 'constructor';
+
+    for (const [key, value] of Object.entries(obj)) {
+        if (isUnsafeKey(key)) continue;
+        const fullKey = prefix ? `${prefix}.${key}` : key;
+
+        if (!isNestedObject(value)) {
+            result[fullKey] = value;
+            continue;
+        }
+
+        const section = {};
+        const nestedObjs = {};
+        let hasSectionProps = false;
+
+        for (const [propKey, propValue] of Object.entries(value)) {
+            if (isUnsafeKey(propKey)) continue;
+            if (isNestedObject(propValue)) {
+                nestedObjs[propKey] = propValue;
+            } else {
+                section[propKey] = propValue;
+                hasSectionProps = true;
+            }
+        }
+
+        // Process direct properties first to maintain order
+        if (hasSectionProps) {
+            result[fullKey] = section;
+        }
+
+        // Then process nested objects
+        if (Object.keys(nestedObjs).length > 0) {
+            Object.assign(result, flattenPeriodSections(nestedObjs, fullKey));
+        }
+    }
+
+    return result;
+};
+
+/**
  * Converts the following
  * ```
  * {
@@ -127,6 +175,8 @@ export const parseConfig = <T extends Record<string, any>>(
     let data: Record<string, any>;
     try {
         data = parseIni(fileContents);
+        // Fix nested objects created by periods in section names
+        data = flattenPeriodSections(data);
     } catch (error) {
         throw new AppError(
             `Failed to parse config file: ${error instanceof Error ? error.message : String(error)}`

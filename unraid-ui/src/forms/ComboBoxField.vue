@@ -90,7 +90,7 @@ if (control.value.data !== undefined && control.value.data !== null) {
       </ComboboxTrigger>
     </ComboboxAnchor>
     <ComboboxList>
-      <ComboboxEmpty class="p-2 text-sm text-muted-foreground"> No suggestions found </ComboboxEmpty>
+      <ComboboxEmpty class="text-muted-foreground p-2 text-sm"> No suggestions found </ComboboxEmpty>
 
       <template v-for="suggestion in suggestions" :key="suggestion.value">
         <TooltipProvider v-if="suggestion.tooltip">
@@ -99,7 +99,7 @@ if (control.value.data !== undefined && control.value.data !== null) {
               <ComboboxItem
                 :value="suggestion.value"
                 @select="handleSelect"
-                class="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-hidden hover:bg-accent hover:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+                class="hover:bg-accent hover:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-hidden select-none"
               >
                 <span>{{ suggestion.label || suggestion.value }}</span>
               </ComboboxItem>
@@ -113,7 +113,7 @@ if (control.value.data !== undefined && control.value.data !== null) {
           v-else
           :value="suggestion.value"
           @select="handleSelect"
-          class="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-hidden hover:bg-accent hover:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+          class="hover:bg-accent hover:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground relative flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-hidden select-none"
         >
           <span>{{ suggestion.label || suggestion.value }}</span>
         </ComboboxItem>

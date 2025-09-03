@@ -34,7 +34,7 @@ const props = withDefaults(
 defineEmits(['retry']);
 </script>
 <template>
-  <div :class="cn('h-full flex flex-col items-center justify-center gap-3', props.class)">
+  <div :class="cn('flex h-full flex-col items-center justify-center gap-3', props.class)">
     <!-- Loading State -->
     <div v-if="loading" class="contents">
       <LoadingSpinner />
@@ -43,7 +43,7 @@ defineEmits(['retry']);
     <!-- Error State -->
     <div v-else-if="error" class="space-y-3">
       <div class="flex justify-center">
-        <ShieldExclamationIcon class="h-10 text-unraid-red" />
+        <ShieldExclamationIcon class="text-unraid-red h-10" />
       </div>
       <div>
         <h3 class="font-bold">{{ `Error` }}</h3>

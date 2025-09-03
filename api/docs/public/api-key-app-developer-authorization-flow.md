@@ -1,0 +1,100 @@
+# API Key Authorization Flow
+
+This document describes the self-service API key creation flow for third-party applications.
+
+## Overview
+
+Applications can request API access to an Unraid server by redirecting users to a special authorization page where users can review requested permissions and create an API key with one click.
+
+## Flow
+
+1. **Application initiates request**: The app redirects the user to:
+
+    ```
+    https://[unraid-server]/ApiKeyAuthorize?name=MyApp&scopes=docker:read,vm:*&redirect_uri=https://myapp.com/callback&state=abc123
+    ```
+
+2. **User authentication**: If not already logged in, the user is redirected to login first (standard Unraid auth)
+
+3. **Consent screen**: User sees:
+    - Application name and description
+    - Requested permissions (with checkboxes to approve/deny specific scopes)
+    - API key name field (pre-filled)
+    - Authorize & Cancel buttons
+
+4. **API key creation**: Upon authorization:
+    - API key is created with approved scopes
+    - Key is displayed to the user
+    - If `redirect_uri` is provided, user is redirected back with the key
+
+5. **Callback**: App receives the API key:
+    ```
+    https://myapp.com/callback?api_key=xxx&state=abc123
+    ```
+
+## Query Parameters
+
+- `name` (required): Name of the requesting application
+- `description` (optional): Description of the application
+- `scopes` (required): Comma-separated list of requested scopes
+- `redirect_uri` (optional): URL to redirect after authorization
+- `state` (optional): Opaque value for maintaining state
+
+## Scope Format
+
+Scopes follow the pattern: `resource:action`
+
+### Examples:
+
+- `docker:read` - Read access to Docker
+- `vm:*` - Full access to VMs
+- `system:update` - Update access to system
+- `role:viewer` - Viewer role access
+- `role:admin` - Admin role access
+
+### Available Resources:
+
+- `docker`, `vm`, `system`, `share`, `user`, `network`, `disk`, etc.
+
+### Available Actions:
+
+- `create`, `read`, `update`, `delete` or `*` for all
+
+## Security Considerations
+
+1. **HTTPS required**: Redirect URIs must use HTTPS (except localhost for development)
+2. **User consent**: Users explicitly approve each permission
+3. **Session-based**: Uses existing Unraid authentication session
+4. **One-time display**: API keys are shown once and must be saved securely
+
+## Example Integration
+
+```javascript
+// JavaScript example
+const unraidServer = 'tower.local';
+const appName = 'My Docker Manager';
+const scopes = 'docker:*,system:read';
+const redirectUri = 'https://myapp.com/unraid/callback';
+const state = generateRandomState();
+
+// Store state for verification
+sessionStorage.setItem('oauth_state', state);
+
+// Redirect user to authorization page
+window.location.href =
+    `https://${unraidServer}/ApiKeyAuthorize?` +
+    `name=${encodeURIComponent(appName)}&` +
+    `scopes=${encodeURIComponent(scopes)}&` +
+    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+    `state=${encodeURIComponent(state)}`;
+
+// Handle callback
+const urlParams = new URLSearchParams(window.location.search);
+const apiKey = urlParams.get('api_key');
+const returnedState = urlParams.get('state');
+
+if (returnedState === sessionStorage.getItem('oauth_state')) {
+    // Save API key securely
+    saveApiKey(apiKey);
+}
+```

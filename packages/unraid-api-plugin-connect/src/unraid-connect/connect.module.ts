@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { UserSettingsModule } from '@unraid/shared/services/user-settings.js';
 
-import { ConnectApiKeyService } from '../authn/connect-api-key.service.js';
+
 import { ConnectLoginHandler } from '../authn/connect-login.events.js';
 import { ConnectConfigService } from '../config/connect.config.service.js';
 import { RemoteAccessModule } from '../remote-access/remote-access.module.js';
@@ -16,7 +16,6 @@ import { ConnectResolver } from './connect.resolver.js';
     providers: [
         ConnectSettingsService,
         ConnectLoginHandler,
-        ConnectApiKeyService,
         ConnectSettingsResolver,
         ConnectResolver,
         ConnectConfigService,
@@ -24,7 +23,6 @@ import { ConnectResolver } from './connect.resolver.js';
     exports: [
         ConnectSettingsService,
         ConnectLoginHandler,
-        ConnectApiKeyService,
         ConnectSettingsResolver,
         ConnectResolver,
         ConnectConfigService,

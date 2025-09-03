@@ -6,7 +6,7 @@ import { nextTick } from 'vue';
 import { setActivePinia } from 'pinia';
 import { mount } from '@vue/test-utils';
 
-import { Input, Label, Select, SelectTrigger, Switch } from '@unraid/ui';
+import { Input, Label, Select, Switch } from '@unraid/ui';
 import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -68,6 +68,12 @@ describe('ColorSwitcher', () => {
     const wrapper = mount(ColorSwitcher, {
       global: {
         plugins: [createTestingPinia({ createSpy: vi.fn })],
+        stubs: {
+          Accordion: { template: '<div><slot /></div>' },
+          AccordionItem: { template: '<div><slot /></div>' },
+          AccordionTrigger: { template: '<div><slot /></div>' },
+          AccordionContent: { template: '<div><slot /></div>' },
+        },
       },
     });
 
@@ -80,13 +86,22 @@ describe('ColorSwitcher', () => {
     const switches = wrapper.findAllComponents(Switch);
     expect(switches).toHaveLength(3);
 
-    expect(wrapper.findComponent(SelectTrigger).exists()).toBe(true);
+    expect(wrapper.findComponent(Select).exists()).toBe(true);
   });
 
   it('updates theme store when theme selection changes', async () => {
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    setActivePinia(pinia);
+    themeStore = useThemeStore();
+    
     const wrapper = mount(ColorSwitcher, {
       global: {
+        plugins: [pinia],
         stubs: {
+          Accordion: { template: '<div><slot /></div>' },
+          AccordionItem: { template: '<div><slot /></div>' },
+          AccordionTrigger: { template: '<div><slot /></div>' },
+          AccordionContent: { template: '<div><slot /></div>' },
           Select: {
             template: '<div/>',
             props: ['modelValue'],
@@ -96,8 +111,12 @@ describe('ColorSwitcher', () => {
       },
     });
 
+    // Clear mocks after initial mount
+    vi.clearAllMocks();
+
     const selectComponent = wrapper.findComponent(Select);
     await selectComponent.vm.$emit('update:modelValue', 'black');
+    await nextTick();
     await nextTick();
 
     expect(themeStore.setTheme).toHaveBeenCalledTimes(2);
@@ -114,8 +133,20 @@ describe('ColorSwitcher', () => {
   });
 
   it('updates theme store when color inputs change', async () => {
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    setActivePinia(pinia);
+    themeStore = useThemeStore();
+    
     const wrapper = mount(ColorSwitcher, {
-      global: {},
+      global: {
+        plugins: [pinia],
+        stubs: {
+          Accordion: { template: '<div><slot /></div>' },
+          AccordionItem: { template: '<div><slot /></div>' },
+          AccordionTrigger: { template: '<div><slot /></div>' },
+          AccordionContent: { template: '<div><slot /></div>' },
+        },
+      },
     });
 
     const inputs = wrapper.findAllComponents(Input);
@@ -123,19 +154,25 @@ describe('ColorSwitcher', () => {
     const secondaryTextInput = inputs[1];
     const bgInput = inputs[2];
 
-    await primaryTextInput.setValue('#ff0000');
+    // Clear mocks after initial mount
+    vi.clearAllMocks();
+
+    await primaryTextInput.vm.$emit('update:modelValue', '#ff0000');
+    await nextTick();
     await nextTick();
 
     expect(themeStore.setTheme).toHaveBeenCalledTimes(2);
     expect(themeStore.setTheme).toHaveBeenCalledWith(expect.objectContaining({ textColor: '#ff0000' }));
 
-    await secondaryTextInput.setValue('#00ff00');
+    await secondaryTextInput.vm.$emit('update:modelValue', '#00ff00');
+    await nextTick();
     await nextTick();
 
     expect(themeStore.setTheme).toHaveBeenCalledTimes(3);
     expect(themeStore.setTheme).toHaveBeenCalledWith(expect.objectContaining({ metaColor: '#00ff00' }));
 
-    await bgInput.setValue('#0000ff');
+    await bgInput.vm.$emit('update:modelValue', '#0000ff');
+    await nextTick();
     await nextTick();
 
     expect(themeStore.setTheme).toHaveBeenCalledTimes(4);
@@ -154,7 +191,15 @@ describe('ColorSwitcher', () => {
 
   it('updates theme store when switches change', async () => {
     const wrapper = mount(ColorSwitcher, {
-      global: {},
+      global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        stubs: {
+          Accordion: { template: '<div><slot /></div>' },
+          AccordionItem: { template: '<div><slot /></div>' },
+          AccordionTrigger: { template: '<div><slot /></div>' },
+          AccordionContent: { template: '<div><slot /></div>' },
+        },
+      },
     });
 
     themeStore = useThemeStore();
@@ -189,11 +234,22 @@ describe('ColorSwitcher', () => {
   });
 
   it('enables gradient automatically when banner is enabled', async () => {
-    const wrapper = mount(ColorSwitcher, {
-      global: {},
-    });
-
+    // Create a single Pinia instance to be shared between component and store
+    const pinia = createTestingPinia({ createSpy: vi.fn });
+    setActivePinia(pinia);
     themeStore = useThemeStore();
+
+    const wrapper = mount(ColorSwitcher, {
+      global: {
+        plugins: [pinia],
+        stubs: {
+          Accordion: { template: '<div><slot /></div>' },
+          AccordionItem: { template: '<div><slot /></div>' },
+          AccordionTrigger: { template: '<div><slot /></div>' },
+          AccordionContent: { template: '<div><slot /></div>' },
+        },
+      },
+    });
 
     const switches = wrapper.findAllComponents(Switch);
     const gradientSwitch = switches[0];

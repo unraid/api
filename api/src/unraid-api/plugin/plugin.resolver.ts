@@ -2,11 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { LifecycleService } from '@app/unraid-api/app/lifecycle.service.js';
 import { PluginManagementService } from '@app/unraid-api/plugin/plugin-management.service.js';
@@ -23,9 +19,8 @@ export class PluginResolver {
 
     @Query(() => [Plugin], { description: 'List all installed plugins with their metadata' })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.CONFIG,
-        possession: AuthPossession.ANY,
     })
     async plugins(): Promise<Plugin[]> {
         const plugins = await PluginService.getPlugins();
@@ -47,9 +42,8 @@ export class PluginResolver {
             'Add one or more plugins to the API. Returns false if restart was triggered automatically, true if manual restart is required.',
     })
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONFIG,
-        possession: AuthPossession.ANY,
     })
     async addPlugin(@Args('input') input: PluginManagementInput): Promise<boolean> {
         if (input.bundled) {
@@ -76,9 +70,8 @@ export class PluginResolver {
             'Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required.',
     })
     @UsePermissions({
-        action: AuthActionVerb.DELETE,
+        action: AuthAction.DELETE_ANY,
         resource: Resource.CONFIG,
-        possession: AuthPossession.ANY,
     })
     async removePlugin(@Args('input') input: PluginManagementInput): Promise<boolean> {
         if (input.bundled) {

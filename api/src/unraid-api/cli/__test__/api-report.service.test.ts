@@ -1,9 +1,10 @@
 import { Test } from '@nestjs/testing';
 
+import type { CanonicalInternalClientService } from '@unraid/shared';
+import { CANONICAL_INTERNAL_CLIENT_TOKEN } from '@unraid/shared';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiReportService } from '@app/unraid-api/cli/api-report.service.js';
-import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import {
     CONNECT_STATUS_QUERY,
@@ -40,7 +41,7 @@ describe('ApiReportService', () => {
             providers: [
                 ApiReportService,
                 { provide: LogService, useValue: mockLogService },
-                { provide: CliInternalClientService, useValue: mockInternalClientService },
+                { provide: CANONICAL_INTERNAL_CLIENT_TOKEN, useValue: mockInternalClientService },
             ],
         }).compile();
 
@@ -64,9 +65,13 @@ describe('ApiReportService', () => {
                     uuid: 'test-uuid',
                 },
                 versions: {
-                    unraid: '6.12.0',
-                    kernel: '5.19.17',
-                    openssl: '3.0.8',
+                    core: {
+                        unraid: '6.12.0',
+                        kernel: '5.19.17',
+                    },
+                    packages: {
+                        openssl: '3.0.8',
+                    },
                 },
             },
             config: {

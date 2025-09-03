@@ -1,32 +1,29 @@
 import { Logger } from '@nestjs/common';
 import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { ApiConfig } from '@unraid/shared/services/api-config.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
-import { ENVIRONMENT } from '@app/environment.js';
 import { LifecycleService } from '@app/unraid-api/app/lifecycle.service.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
-import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import {
     Settings,
     UnifiedSettings,
     UpdateSettingsResponse,
 } from '@app/unraid-api/graph/resolvers/settings/settings.model.js';
 import { ApiSettings } from '@app/unraid-api/graph/resolvers/settings/settings.service.js';
+import { SsoSettings } from '@app/unraid-api/graph/resolvers/settings/sso-settings.model.js';
+import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
+import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/models/oidc-provider.model.js';
 
 @Resolver(() => Settings)
 export class SettingsResolver {
     constructor(
         private readonly apiSettings: ApiSettings,
-        private readonly ssoUserService: SsoUserService
+        private readonly oidcConfig: OidcConfigPersistence
     ) {}
 
     @Query(() => Settings)
@@ -51,10 +48,19 @@ export class SettingsResolver {
         };
     }
 
+    @ResolveField(() => SsoSettings)
+    async sso() {
+        return {
+            id: 'sso-settings',
+        };
+    }
+
     @Query(() => Boolean)
     @Public()
     public async isSSOEnabled(): Promise<boolean> {
-        return this.ssoUserService.getSsoUsers().then((users) => users.length > 0);
+        // Check if any OIDC provider has authorization rules configured
+        const providers = await this.oidcConfig.getProviders();
+        return providers.some((p) => p.authorizationRules && p.authorizationRules.length > 0);
     }
 }
 
@@ -68,7 +74,7 @@ export class UnifiedSettingsResolver {
 
     @ResolveField(() => GraphQLJSON)
     async dataSchema() {
-        const { properties } = await this.userSettings.getAllSettings(['api']);
+        const { properties } = await this.userSettings.getAllSettings(['api', 'sso']);
         return {
             type: 'object',
             properties,
@@ -77,7 +83,7 @@ export class UnifiedSettingsResolver {
 
     @ResolveField(() => GraphQLJSON)
     async uiSchema() {
-        const { elements } = await this.userSettings.getAllSettings(['api']);
+        const { elements } = await this.userSettings.getAllSettings(['api', 'sso']);
         return {
             type: 'VerticalLayout',
             elements,
@@ -91,12 +97,11 @@ export class UnifiedSettingsResolver {
 
     @Mutation(() => UpdateSettingsResponse)
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.CONFIG,
-        possession: AuthPossession.ANY,
     })
     async updateSettings(
-        @Args('input', { type: () => GraphQLJSON }) input: object
+        @Args('input', { type: () => GraphQLJSON }) input: Record<string, unknown>
     ): Promise<UpdateSettingsResponse> {
         this.logger.verbose('Updating Settings %O', input);
         const { restartRequired, values } = await this.userSettings.updateNamespacedValues(input);
@@ -106,5 +111,15 @@ export class UnifiedSettingsResolver {
             this.lifecycleService.restartApi({ delayMs: 300 });
         }
         return { restartRequired, values };
+    }
+}
+
+@Resolver(() => SsoSettings)
+export class SsoSettingsResolver {
+    constructor(private readonly oidcConfig: OidcConfigPersistence) {}
+
+    @ResolveField(() => [OidcProvider], { description: 'List of configured OIDC providers' })
+    async oidcProviders(): Promise<OidcProvider[]> {
+        return this.oidcConfig.getProviders();
     }
 }

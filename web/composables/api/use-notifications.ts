@@ -39,7 +39,7 @@ export function useHaveSeenNotifications() {
      *
      * Writing this ref will persist to local storage and affect global state.
      */
-    haveSeenNotifications: useStorage<boolean>(HAVE_SEEN_NOTIFICATIONS_KEY, null),
+    haveSeenNotifications: useStorage<boolean>(HAVE_SEEN_NOTIFICATIONS_KEY, false),
   };
 }
 

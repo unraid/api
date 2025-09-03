@@ -1,6 +1,7 @@
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 import { AuthZGuard } from 'nest-authz';
@@ -30,18 +31,19 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
                 logger: apiLogger,
                 autoLogging: false,
                 timestamp: false,
-                ...(LOG_LEVEL !== 'TRACE'
-                    ? {
-                          serializers: {
-                              req: (req) => ({
-                                  id: req.id,
-                                  method: req.method,
-                                  url: req.url,
-                                  remoteAddress: req.remoteAddress,
-                              }),
-                          },
-                      }
-                    : {}),
+                serializers: {
+                    req: () => undefined,
+                    res: () => undefined,
+                },
+                formatters: {
+                    log: (obj) => {
+                        // Map NestJS context to Pino context field for pino-pretty
+                        if (obj.context && !obj.logger) {
+                            return { ...obj, logger: obj.context };
+                        }
+                        return obj;
+                    },
+                },
             },
         }),
         AuthModule,

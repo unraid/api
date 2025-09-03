@@ -1,11 +1,7 @@
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { VmDomain, Vms } from '@app/unraid-api/graph/resolvers/vms/vms.model.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
@@ -16,9 +12,8 @@ export class VmsResolver {
 
     @Query(() => Vms, { description: 'Get information about all VMs on the system' })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.VMS,
-        possession: AuthPossession.ANY,
     })
     public async vms() {
         return {

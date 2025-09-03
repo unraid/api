@@ -12,6 +12,11 @@ import { NoUnusedVariablesRule } from 'graphql';
 
 import { ENVIRONMENT } from '@app/environment.js';
 import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
+
+// Import enum registrations to ensure they're registered with GraphQL
+import '@app/unraid-api/graph/auth/auth-action.enum.js';
+
+import { createDynamicIntrospectionPlugin } from '@app/unraid-api/graph/introspection-plugin.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { createSandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
 import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
@@ -34,7 +39,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                                   path: './generated-schema.graphql',
                               }
                             : true,
-                    introspection: isSandboxEnabled(),
+                    introspection: true,
                     playground: false, // we handle this in the sandbox plugin
                     context: async ({ req, connectionParams, extra }) => {
                         return {
@@ -43,7 +48,10 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                             extra,
                         };
                     },
-                    plugins: [createSandboxPlugin(isSandboxEnabled)] as any[],
+                    plugins: [
+                        createDynamicIntrospectionPlugin(isSandboxEnabled),
+                        createSandboxPlugin(),
+                    ] as any[],
                     subscriptions: {
                         'graphql-ws': {
                             path: '/graphql',

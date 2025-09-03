@@ -1,5 +1,118 @@
 # Changelog
 
+## [4.18.1](https://github.com/unraid/api/compare/v4.18.0...v4.18.1) (2025-09-03)
+
+
+### Bug Fixes
+
+* OIDC and API Key management issues ([#1642](https://github.com/unraid/api/issues/1642)) ([0fe2c2c](https://github.com/unraid/api/commit/0fe2c2c1c85dcc547e4b1217a3b5636d7dd6d4b4))
+* rm redundant emission to `$HOME/.pm2/logs` ([#1640](https://github.com/unraid/api/issues/1640)) ([a8e4119](https://github.com/unraid/api/commit/a8e4119270868a1dabccd405853a7340f8dcd8a5))
+
+## [4.18.0](https://github.com/unraid/api/compare/v4.17.0...v4.18.0) (2025-09-02)
+
+
+### Features
+
+* **api:** enhance OIDC redirect URI handling in service and tests ([#1618](https://github.com/unraid/api/issues/1618)) ([4e945f5](https://github.com/unraid/api/commit/4e945f5f56ce059eb275a9576caf3194a5df8a90))
+
+
+### Bug Fixes
+
+* api key creation cli ([#1637](https://github.com/unraid/api/issues/1637)) ([c147a6b](https://github.com/unraid/api/commit/c147a6b5075969e77798210c4a5cfd1fa5b96ae3))
+* **cli:** support `--log-level` for `start` and `restart` cmds ([#1623](https://github.com/unraid/api/issues/1623)) ([a1ee915](https://github.com/unraid/api/commit/a1ee915ca52e5a063eccf8facbada911a63f37f6))
+* confusing server -&gt; status query ([#1635](https://github.com/unraid/api/issues/1635)) ([9d42b36](https://github.com/unraid/api/commit/9d42b36f74274cad72490da5152fdb98fdc5b89b))
+* use unraid css variables in sonner ([#1634](https://github.com/unraid/api/issues/1634)) ([26a95af](https://github.com/unraid/api/commit/26a95af9539d05a837112d62dc6b7dd46761c83f))
+
+## [4.17.0](https://github.com/unraid/api/compare/v4.16.0...v4.17.0) (2025-08-27)
+
+
+### Features
+
+* add tailwind class sort plugin ([#1562](https://github.com/unraid/api/issues/1562)) ([ab11e7f](https://github.com/unraid/api/commit/ab11e7ff7ff74da1f1cd5e49938459d00bfc846b))
+
+
+### Bug Fixes
+
+* cleanup obsoleted legacy api keys on api startup (cli / connect) ([#1630](https://github.com/unraid/api/issues/1630)) ([6469d00](https://github.com/unraid/api/commit/6469d002b7b18e49c77ee650a4255974ab43e790))
+
+## [4.16.0](https://github.com/unraid/api/compare/v4.15.1...v4.16.0) (2025-08-27)
+
+
+### Features
+
+* add `parityCheckStatus` field to `array` query ([#1611](https://github.com/unraid/api/issues/1611)) ([c508366](https://github.com/unraid/api/commit/c508366702b9fa20d9ed05559fe73da282116aa6))
+* generated UI API key management + OAuth-like API Key Flows ([#1609](https://github.com/unraid/api/issues/1609)) ([674323f](https://github.com/unraid/api/commit/674323fd87bbcc55932e6b28f6433a2de79b7ab0))
+
+
+### Bug Fixes
+
+* **connect:** clear `wanport` upon disabling remote access ([#1624](https://github.com/unraid/api/issues/1624)) ([9df6a3f](https://github.com/unraid/api/commit/9df6a3f5ebb0319aa7e3fe3be6159d39ec6f587f))
+* **connect:** valid LAN FQDN while remote access is enabled ([#1625](https://github.com/unraid/api/issues/1625)) ([aa58888](https://github.com/unraid/api/commit/aa588883cc2e2fe4aa4aea1d035236c888638f5b))
+* correctly parse periods in share names from ini file ([#1629](https://github.com/unraid/api/issues/1629)) ([7d67a40](https://github.com/unraid/api/commit/7d67a404333a38d6e1ba5c3febf02be8b1b71901))
+* **rc.unraid-api:** remove profile sourcing ([#1622](https://github.com/unraid/api/issues/1622)) ([6947b5d](https://github.com/unraid/api/commit/6947b5d4aff70319116eb65cf4c639444f3749e9))
+* remove unused api key calls ([#1628](https://github.com/unraid/api/issues/1628)) ([9cd0d6a](https://github.com/unraid/api/commit/9cd0d6ac658475efa25683ef6e3f2e1d68f7e903))
+* retry VMs init for up to 2 min ([#1612](https://github.com/unraid/api/issues/1612)) ([b2e7801](https://github.com/unraid/api/commit/b2e78012384e6b3f2630341281fc811026be23b9))
+
+## [4.15.1](https://github.com/unraid/api/compare/v4.15.0...v4.15.1) (2025-08-20)
+
+
+### Bug Fixes
+
+* minor duplicate click handler and version resolver nullability issue ([ac198d5](https://github.com/unraid/api/commit/ac198d5d1a3073fdeb053c2ff8f704b0dba0d047))
+
+## [4.15.0](https://github.com/unraid/api/compare/v4.14.0...v4.15.0) (2025-08-20)
+
+
+### Features
+
+* **api:** restructure versioning information in GraphQL schema ([#1600](https://github.com/unraid/api/issues/1600)) ([d0c6602](https://github.com/unraid/api/commit/d0c66020e1d1d5b6fcbc4ee8979bba4b3d34c7ad))
+
+## [4.14.0](https://github.com/unraid/api/compare/v4.13.1...v4.14.0) (2025-08-19)
+
+
+### Features
+
+* **api:** add cpu utilization query and subscription ([#1590](https://github.com/unraid/api/issues/1590)) ([2b4c2a2](https://github.com/unraid/api/commit/2b4c2a264bb2769f88c3000d16447889cae57e98))
+* enhance OIDC claim evaluation with array handling ([#1596](https://github.com/unraid/api/issues/1596)) ([b7798b8](https://github.com/unraid/api/commit/b7798b82f44aae9a428261270fd9dbde35ff7751))
+
+
+### Bug Fixes
+
+* remove unraid-api sso users & always apply sso modification on &lt; 7.2 ([#1595](https://github.com/unraid/api/issues/1595)) ([4262830](https://github.com/unraid/api/commit/426283011afd41e3af7e48cfbb2a2d351c014bd1))
+* update Docusaurus PR workflow to process and copy API docs ([3a10871](https://github.com/unraid/api/commit/3a10871918fe392a1974b69d16a135546166e058))
+* update OIDC provider setup documentation for navigation clarity ([1a01696](https://github.com/unraid/api/commit/1a01696dc7b947abf5f2f097de1b231d5593c2ff))
+* update OIDC provider setup documentation for redirect URI and screenshots ([1bc5251](https://github.com/unraid/api/commit/1bc52513109436b3ce8237c3796af765e208f9fc))
+
+## [4.13.1](https://github.com/unraid/api/compare/v4.13.0...v4.13.1) (2025-08-15)
+
+
+### Bug Fixes
+
+* insecure routes not working for SSO ([#1587](https://github.com/unraid/api/issues/1587)) ([a4ff3c4](https://github.com/unraid/api/commit/a4ff3c40926915f6989ed4af679b30cf295ea15d))
+
+## [4.13.0](https://github.com/unraid/api/compare/v4.12.0...v4.13.0) (2025-08-15)
+
+
+### Features
+
+* `createDockerFolder` & `setDockerFolderChildren` mutations ([#1558](https://github.com/unraid/api/issues/1558)) ([557b03f](https://github.com/unraid/api/commit/557b03f8829d3f179b5e26162fa250121cb33420))
+* `deleteDockerEntries` mutation ([#1564](https://github.com/unraid/api/issues/1564)) ([78997a0](https://github.com/unraid/api/commit/78997a02c6d96ec0ed75352dfc9849524147428c))
+* add `moveDockerEntriesToFolder` mutation ([#1569](https://github.com/unraid/api/issues/1569)) ([20c2d5b](https://github.com/unraid/api/commit/20c2d5b4457ad50d1e287fb3141aa98e8e7de665))
+* add docker -&gt; organizer query ([#1555](https://github.com/unraid/api/issues/1555)) ([dfe352d](https://github.com/unraid/api/commit/dfe352dfa1bd6aa059cab56357ba6bff5e8ed7cb))
+* connect settings page updated for responsive webgui ([#1585](https://github.com/unraid/api/issues/1585)) ([96c120f](https://github.com/unraid/api/commit/96c120f9b24d3c91df5e9401917c8994eef36c46))
+* implement OIDC provider management in GraphQL API ([#1563](https://github.com/unraid/api/issues/1563)) ([979a267](https://github.com/unraid/api/commit/979a267bc5e128a8b789f0123e23c61860ebb11b))
+
+
+### Bug Fixes
+
+* change config file loading error log to debug ([#1565](https://github.com/unraid/api/issues/1565)) ([3534d6f](https://github.com/unraid/api/commit/3534d6fdd7c59e65615167cfe306deebad9ca4d3))
+* **connect:** remove unraid-api folder before creating symlink ([#1556](https://github.com/unraid/api/issues/1556)) ([514a0ef](https://github.com/unraid/api/commit/514a0ef560a90595f774b6c0db60f1d2b4cd853c))
+* **deps:** pin dependencies ([#1586](https://github.com/unraid/api/issues/1586)) ([5721785](https://github.com/unraid/api/commit/57217852a337ead4c8c8e7596d1b7d590b64a26f))
+* **deps:** update all non-major dependencies ([#1543](https://github.com/unraid/api/issues/1543)) ([18b5209](https://github.com/unraid/api/commit/18b52090874c0ba86878d0f7e31bf0dc42734d75))
+* **deps:** update all non-major dependencies ([#1579](https://github.com/unraid/api/issues/1579)) ([ad6aa3b](https://github.com/unraid/api/commit/ad6aa3b6743aeeb42eff34d1c89ad874dfd0af09))
+* refactor API client to support Unix socket connections ([#1575](https://github.com/unraid/api/issues/1575)) ([a2c5d24](https://github.com/unraid/api/commit/a2c5d2495ffc02efa1ec5c63f0a1c5d23c9ed7ff))
+* **theme:** API key white text on white background ([#1584](https://github.com/unraid/api/issues/1584)) ([b321687](https://github.com/unraid/api/commit/b3216874faae208cdfc3edec719629fce428b6a3))
+
 ## [4.12.0](https://github.com/unraid/api/compare/v4.11.0...v4.12.0) (2025-07-30)
 
 

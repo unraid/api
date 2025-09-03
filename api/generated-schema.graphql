@@ -4,15 +4,55 @@
 
 """Directive to document required permissions for fields"""
 directive @usePermissions(
-  """The action verb required for access"""
-  action: AuthActionVerb
+  """The action required for access (must be a valid AuthAction enum value)"""
+  action: String
 
-  """The resource required for access"""
+  """The resource required for access (must be a valid Resource enum value)"""
   resource: String
-
-  """The possession type required for access"""
-  possession: AuthPossession
 ) on FIELD_DEFINITION
+
+type ParityCheck {
+  """Date of the parity check"""
+  date: DateTime
+
+  """Duration of the parity check in seconds"""
+  duration: Int
+
+  """Speed of the parity check, in MB/s"""
+  speed: String
+
+  """Status of the parity check"""
+  status: ParityCheckStatus!
+
+  """Number of errors during the parity check"""
+  errors: Int
+
+  """Progress percentage of the parity check"""
+  progress: Int
+
+  """Whether corrections are being written to parity"""
+  correcting: Boolean
+
+  """Whether the parity check is paused"""
+  paused: Boolean
+
+  """Whether the parity check is running"""
+  running: Boolean
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+enum ParityCheckStatus {
+  NEVER_RUN
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELLED
+  FAILED
+}
 
 type Capacity {
   """Free capacity"""
@@ -155,6 +195,9 @@ type UnraidArray implements Node {
 
   """Parity disks in the current array"""
   parities: [ArrayDisk!]!
+
+  """Current parity check status"""
+  parityCheckStatus: ParityCheck!
 
   """Data disks in the current array"""
   disks: [ArrayDisk!]!
@@ -569,7 +612,9 @@ enum ConfigErrorState {
 
 type Permission {
   resource: Resource!
-  actions: [String!]!
+
+  """Actions allowed on this resource"""
+  actions: [AuthAction!]!
 }
 
 """Available resources for permissions"""
@@ -605,8 +650,36 @@ enum Resource {
   WELCOME
 }
 
+"""Authentication actions with possession (e.g., create:any, read:own)"""
+enum AuthAction {
+  """Create any resource"""
+  CREATE_ANY
+
+  """Create own resource"""
+  CREATE_OWN
+
+  """Read any resource"""
+  READ_ANY
+
+  """Read own resource"""
+  READ_OWN
+
+  """Update any resource"""
+  UPDATE_ANY
+
+  """Update own resource"""
+  UPDATE_OWN
+
+  """Delete any resource"""
+  DELETE_ANY
+
+  """Delete own resource"""
+  DELETE_OWN
+}
+
 type ApiKey implements Node {
   id: PrefixedID!
+  key: String!
   name: String!
   description: String
   roles: [Role!]!
@@ -616,20 +689,90 @@ type ApiKey implements Node {
 
 """Available roles for API keys and users"""
 enum Role {
+  """Full administrative access to all resources"""
   ADMIN
-  USER
+
+  """Internal Role for Unraid Connect"""
   CONNECT
+
+  """Basic read access to user profile only"""
   GUEST
+
+  """Read-only access to all resources"""
+  VIEWER
 }
 
-type ApiKeyWithSecret implements Node {
+type SsoSettings implements Node {
   id: PrefixedID!
-  name: String!
-  description: String
-  roles: [Role!]!
-  createdAt: String!
-  permissions: [Permission!]!
-  key: String!
+
+  """List of configured OIDC providers"""
+  oidcProviders: [OidcProvider!]!
+}
+
+type UnifiedSettings implements Node & FormSchema {
+  id: PrefixedID!
+
+  """The data schema for the settings"""
+  dataSchema: JSON!
+
+  """The UI schema for the settings"""
+  uiSchema: JSON!
+
+  """The current values of the settings"""
+  values: JSON!
+}
+
+interface FormSchema {
+  """The data schema for the form"""
+  dataSchema: JSON!
+
+  """The UI schema for the form"""
+  uiSchema: JSON!
+
+  """The current values of the form"""
+  values: JSON!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+
+type ApiKeyFormSettings implements Node & FormSchema {
+  id: PrefixedID!
+
+  """The data schema for the API key form"""
+  dataSchema: JSON!
+
+  """The UI schema for the API key form"""
+  uiSchema: JSON!
+
+  """The current values of the API key form"""
+  values: JSON!
+}
+
+type UpdateSettingsResponse {
+  """Whether a restart is required for the changes to take effect"""
+  restartRequired: Boolean!
+
+  """The updated settings values"""
+  values: JSON!
+
+  """Warning messages about configuration issues found during validation"""
+  warnings: [String!]
+}
+
+type Settings implements Node {
+  id: PrefixedID!
+
+  """A view of all settings"""
+  unified: UnifiedSettings!
+
+  """SSO settings"""
+  sso: SsoSettings!
+
+  """The API setting values"""
+  api: ApiConfig!
 }
 
 type RCloneDrive {
@@ -639,11 +782,6 @@ type RCloneDrive {
   """Provider options and configuration schema"""
   options: JSON!
 }
-
-"""
-The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 type RCloneBackupConfigForm {
   id: ID!
@@ -746,7 +884,7 @@ type VmMutations {
 """API Key related mutations"""
 type ApiKeyMutations {
   """Create an API key"""
-  create(input: CreateApiKeyInput!): ApiKeyWithSecret!
+  create(input: CreateApiKeyInput!): ApiKey!
 
   """Add a role to an API key"""
   addRole(input: AddRoleForApiKeyInput!): Boolean!
@@ -758,7 +896,7 @@ type ApiKeyMutations {
   delete(input: DeleteApiKeyInput!): Boolean!
 
   """Update an API key"""
-  update(input: UpdateApiKeyInput!): ApiKeyWithSecret!
+  update(input: UpdateApiKeyInput!): ApiKey!
 }
 
 input CreateApiKeyInput {
@@ -775,7 +913,7 @@ input CreateApiKeyInput {
 
 input AddPermissionInput {
   resource: Resource!
-  actions: [String!]!
+  actions: [AuthAction!]!
 }
 
 input AddRoleForApiKeyInput {
@@ -835,40 +973,6 @@ input CreateRCloneRemoteInput {
 input DeleteRCloneRemoteInput {
   name: String!
 }
-
-type ParityCheck {
-  """Date of the parity check"""
-  date: DateTime
-
-  """Duration of the parity check in seconds"""
-  duration: Int
-
-  """Speed of the parity check, in MB/s"""
-  speed: String
-
-  """Status of the parity check"""
-  status: String
-
-  """Number of errors during the parity check"""
-  errors: Int
-
-  """Progress percentage of the parity check"""
-  progress: Int
-
-  """Whether corrections are being written to parity"""
-  correcting: Boolean
-
-  """Whether the parity check is paused"""
-  paused: Boolean
-
-  """Whether the parity check is running"""
-  running: Boolean
-}
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
 
 type Config implements Node {
   id: PrefixedID!
@@ -938,223 +1042,6 @@ enum ThemeName {
   black
   gray
   white
-}
-
-type InfoApps implements Node {
-  id: PrefixedID!
-
-  """How many docker containers are installed"""
-  installed: Int!
-
-  """How many docker containers are running"""
-  started: Int!
-}
-
-type Baseboard implements Node {
-  id: PrefixedID!
-  manufacturer: String!
-  model: String
-  version: String
-  serial: String
-  assetTag: String
-}
-
-type InfoCpu implements Node {
-  id: PrefixedID!
-  manufacturer: String!
-  brand: String!
-  vendor: String!
-  family: String!
-  model: String!
-  stepping: Int!
-  revision: String!
-  voltage: String
-  speed: Float!
-  speedmin: Float!
-  speedmax: Float!
-  threads: Int!
-  cores: Int!
-  processors: Int!
-  socket: String!
-  cache: JSON!
-  flags: [String!]!
-}
-
-type Gpu implements Node {
-  id: PrefixedID!
-  type: String!
-  typeid: String!
-  vendorname: String!
-  productid: String!
-  blacklisted: Boolean!
-  class: String!
-}
-
-type Pci implements Node {
-  id: PrefixedID!
-  type: String
-  typeid: String
-  vendorname: String
-  vendorid: String
-  productname: String
-  productid: String
-  blacklisted: String
-  class: String
-}
-
-type Usb implements Node {
-  id: PrefixedID!
-  name: String
-}
-
-type Devices implements Node {
-  id: PrefixedID!
-  gpu: [Gpu!]!
-  pci: [Pci!]!
-  usb: [Usb!]!
-}
-
-type Case implements Node {
-  id: PrefixedID!
-  icon: String
-  url: String
-  error: String
-  base64: String
-}
-
-type Display implements Node {
-  id: PrefixedID!
-  case: Case
-  date: String
-  number: String
-  scale: Boolean
-  tabs: Boolean
-  users: String
-  resize: Boolean
-  wwn: Boolean
-  total: Boolean
-  usage: Boolean
-  banner: String
-  dashapps: String
-  theme: ThemeName
-  text: Boolean
-  unit: Temperature
-  warning: Int
-  critical: Int
-  hot: Int
-  max: Int
-  locale: String
-}
-
-"""Temperature unit (Celsius or Fahrenheit)"""
-enum Temperature {
-  C
-  F
-}
-
-type MemoryLayout implements Node {
-  id: PrefixedID!
-  size: BigInt!
-  bank: String
-  type: String
-  clockSpeed: Int
-  formFactor: String
-  manufacturer: String
-  partNum: String
-  serialNum: String
-  voltageConfigured: Int
-  voltageMin: Int
-  voltageMax: Int
-}
-
-type InfoMemory implements Node {
-  id: PrefixedID!
-  max: BigInt!
-  total: BigInt!
-  free: BigInt!
-  used: BigInt!
-  active: BigInt!
-  available: BigInt!
-  buffcache: BigInt!
-  swaptotal: BigInt!
-  swapused: BigInt!
-  swapfree: BigInt!
-  layout: [MemoryLayout!]!
-}
-
-type Os implements Node {
-  id: PrefixedID!
-  platform: String
-  distro: String
-  release: String
-  codename: String
-  kernel: String
-  arch: String
-  hostname: String
-  codepage: String
-  logofile: String
-  serial: String
-  build: String
-  uptime: String
-}
-
-type System implements Node {
-  id: PrefixedID!
-  manufacturer: String
-  model: String
-  version: String
-  serial: String
-  uuid: String
-  sku: String
-}
-
-type Versions implements Node {
-  id: PrefixedID!
-  kernel: String
-  openssl: String
-  systemOpenssl: String
-  systemOpensslLib: String
-  node: String
-  v8: String
-  npm: String
-  yarn: String
-  pm2: String
-  gulp: String
-  grunt: String
-  git: String
-  tsc: String
-  mysql: String
-  redis: String
-  mongodb: String
-  apache: String
-  nginx: String
-  php: String
-  docker: String
-  postfix: String
-  postgresql: String
-  perl: String
-  python: String
-  gcc: String
-  unraid: String
-}
-
-type Info implements Node {
-  id: PrefixedID!
-
-  """Count of docker containers"""
-  apps: InfoApps!
-  baseboard: Baseboard!
-  cpu: InfoCpu!
-  devices: Devices!
-  display: Display!
-
-  """Machine ID"""
-  machineId: PrefixedID
-  memory: InfoMemory!
-  os: Os!
-  system: System!
-  time: DateTime!
-  versions: Versions!
 }
 
 type ContainerPort {
@@ -1281,6 +1168,527 @@ type Flash implements Node {
   product: String!
 }
 
+type InfoGpu implements Node {
+  id: PrefixedID!
+
+  """GPU type/manufacturer"""
+  type: String!
+
+  """GPU type identifier"""
+  typeid: String!
+
+  """Whether GPU is blacklisted"""
+  blacklisted: Boolean!
+
+  """Device class"""
+  class: String!
+
+  """Product ID"""
+  productid: String!
+
+  """Vendor name"""
+  vendorname: String
+}
+
+type InfoNetwork implements Node {
+  id: PrefixedID!
+
+  """Network interface name"""
+  iface: String!
+
+  """Network interface model"""
+  model: String
+
+  """Network vendor"""
+  vendor: String
+
+  """MAC address"""
+  mac: String
+
+  """Virtual interface flag"""
+  virtual: Boolean
+
+  """Network speed"""
+  speed: String
+
+  """DHCP enabled flag"""
+  dhcp: Boolean
+}
+
+type InfoPci implements Node {
+  id: PrefixedID!
+
+  """Device type/manufacturer"""
+  type: String!
+
+  """Type identifier"""
+  typeid: String!
+
+  """Vendor name"""
+  vendorname: String
+
+  """Vendor ID"""
+  vendorid: String!
+
+  """Product name"""
+  productname: String
+
+  """Product ID"""
+  productid: String!
+
+  """Blacklisted status"""
+  blacklisted: String!
+
+  """Device class"""
+  class: String!
+}
+
+type InfoUsb implements Node {
+  id: PrefixedID!
+
+  """USB device name"""
+  name: String!
+
+  """USB bus number"""
+  bus: String
+
+  """USB device number"""
+  device: String
+}
+
+type InfoDevices implements Node {
+  id: PrefixedID!
+
+  """List of GPU devices"""
+  gpu: [InfoGpu!]
+
+  """List of network interfaces"""
+  network: [InfoNetwork!]
+
+  """List of PCI devices"""
+  pci: [InfoPci!]
+
+  """List of USB devices"""
+  usb: [InfoUsb!]
+}
+
+type InfoDisplayCase implements Node {
+  id: PrefixedID!
+
+  """Case image URL"""
+  url: String!
+
+  """Case icon identifier"""
+  icon: String!
+
+  """Error message if any"""
+  error: String!
+
+  """Base64 encoded case image"""
+  base64: String!
+}
+
+type InfoDisplay implements Node {
+  id: PrefixedID!
+
+  """Case display configuration"""
+  case: InfoDisplayCase!
+
+  """UI theme name"""
+  theme: ThemeName!
+
+  """Temperature unit (C or F)"""
+  unit: Temperature!
+
+  """Enable UI scaling"""
+  scale: Boolean!
+
+  """Show tabs in UI"""
+  tabs: Boolean!
+
+  """Enable UI resize"""
+  resize: Boolean!
+
+  """Show WWN identifiers"""
+  wwn: Boolean!
+
+  """Show totals"""
+  total: Boolean!
+
+  """Show usage statistics"""
+  usage: Boolean!
+
+  """Show text labels"""
+  text: Boolean!
+
+  """Warning temperature threshold"""
+  warning: Int!
+
+  """Critical temperature threshold"""
+  critical: Int!
+
+  """Hot temperature threshold"""
+  hot: Int!
+
+  """Maximum temperature threshold"""
+  max: Int
+
+  """Locale setting"""
+  locale: String
+}
+
+"""Temperature unit"""
+enum Temperature {
+  CELSIUS
+  FAHRENHEIT
+}
+
+"""CPU load for a single core"""
+type CpuLoad {
+  """The total CPU load on a single core, in percent."""
+  percentTotal: Float!
+
+  """The percentage of time the CPU spent in user space."""
+  percentUser: Float!
+
+  """The percentage of time the CPU spent in kernel space."""
+  percentSystem: Float!
+
+  """
+  The percentage of time the CPU spent on low-priority (niced) user space processes.
+  """
+  percentNice: Float!
+
+  """The percentage of time the CPU was idle."""
+  percentIdle: Float!
+
+  """The percentage of time the CPU spent servicing hardware interrupts."""
+  percentIrq: Float!
+}
+
+type CpuUtilization implements Node {
+  id: PrefixedID!
+
+  """Total CPU load in percent"""
+  percentTotal: Float!
+
+  """CPU load for each core"""
+  cpus: [CpuLoad!]!
+}
+
+type InfoCpu implements Node {
+  id: PrefixedID!
+
+  """CPU manufacturer"""
+  manufacturer: String
+
+  """CPU brand name"""
+  brand: String
+
+  """CPU vendor"""
+  vendor: String
+
+  """CPU family"""
+  family: String
+
+  """CPU model"""
+  model: String
+
+  """CPU stepping"""
+  stepping: Int
+
+  """CPU revision"""
+  revision: String
+
+  """CPU voltage"""
+  voltage: String
+
+  """Current CPU speed in GHz"""
+  speed: Float
+
+  """Minimum CPU speed in GHz"""
+  speedmin: Float
+
+  """Maximum CPU speed in GHz"""
+  speedmax: Float
+
+  """Number of CPU threads"""
+  threads: Int
+
+  """Number of CPU cores"""
+  cores: Int
+
+  """Number of physical processors"""
+  processors: Int
+
+  """CPU socket type"""
+  socket: String
+
+  """CPU cache information"""
+  cache: JSON
+
+  """CPU feature flags"""
+  flags: [String!]
+}
+
+type MemoryLayout implements Node {
+  id: PrefixedID!
+
+  """Memory module size in bytes"""
+  size: BigInt!
+
+  """Memory bank location (e.g., BANK 0)"""
+  bank: String
+
+  """Memory type (e.g., DDR4, DDR5)"""
+  type: String
+
+  """Memory clock speed in MHz"""
+  clockSpeed: Int
+
+  """Part number of the memory module"""
+  partNum: String
+
+  """Serial number of the memory module"""
+  serialNum: String
+
+  """Memory manufacturer"""
+  manufacturer: String
+
+  """Form factor (e.g., DIMM, SODIMM)"""
+  formFactor: String
+
+  """Configured voltage in millivolts"""
+  voltageConfigured: Int
+
+  """Minimum voltage in millivolts"""
+  voltageMin: Int
+
+  """Maximum voltage in millivolts"""
+  voltageMax: Int
+}
+
+type MemoryUtilization implements Node {
+  id: PrefixedID!
+
+  """Total system memory in bytes"""
+  total: BigInt!
+
+  """Used memory in bytes"""
+  used: BigInt!
+
+  """Free memory in bytes"""
+  free: BigInt!
+
+  """Available memory in bytes"""
+  available: BigInt!
+
+  """Active memory in bytes"""
+  active: BigInt!
+
+  """Buffer/cache memory in bytes"""
+  buffcache: BigInt!
+
+  """Memory usage percentage"""
+  percentTotal: Float!
+
+  """Total swap memory in bytes"""
+  swapTotal: BigInt!
+
+  """Used swap memory in bytes"""
+  swapUsed: BigInt!
+
+  """Free swap memory in bytes"""
+  swapFree: BigInt!
+
+  """Swap usage percentage"""
+  percentSwapTotal: Float!
+}
+
+type InfoMemory implements Node {
+  id: PrefixedID!
+
+  """Physical memory layout"""
+  layout: [MemoryLayout!]!
+}
+
+type InfoOs implements Node {
+  id: PrefixedID!
+
+  """Operating system platform"""
+  platform: String
+
+  """Linux distribution name"""
+  distro: String
+
+  """OS release version"""
+  release: String
+
+  """OS codename"""
+  codename: String
+
+  """Kernel version"""
+  kernel: String
+
+  """OS architecture"""
+  arch: String
+
+  """Hostname"""
+  hostname: String
+
+  """Fully qualified domain name"""
+  fqdn: String
+
+  """OS build identifier"""
+  build: String
+
+  """Service pack version"""
+  servicepack: String
+
+  """Boot time ISO string"""
+  uptime: String
+
+  """OS logo name"""
+  logofile: String
+
+  """OS serial number"""
+  serial: String
+
+  """OS started via UEFI"""
+  uefi: Boolean
+}
+
+type InfoSystem implements Node {
+  id: PrefixedID!
+
+  """System manufacturer"""
+  manufacturer: String
+
+  """System model"""
+  model: String
+
+  """System version"""
+  version: String
+
+  """System serial number"""
+  serial: String
+
+  """System UUID"""
+  uuid: String
+
+  """System SKU"""
+  sku: String
+
+  """Virtual machine flag"""
+  virtual: Boolean
+}
+
+type InfoBaseboard implements Node {
+  id: PrefixedID!
+
+  """Motherboard manufacturer"""
+  manufacturer: String
+
+  """Motherboard model"""
+  model: String
+
+  """Motherboard version"""
+  version: String
+
+  """Motherboard serial number"""
+  serial: String
+
+  """Motherboard asset tag"""
+  assetTag: String
+
+  """Maximum memory capacity in bytes"""
+  memMax: Float
+
+  """Number of memory slots"""
+  memSlots: Float
+}
+
+type CoreVersions {
+  """Unraid version"""
+  unraid: String
+
+  """Unraid API version"""
+  api: String
+
+  """Kernel version"""
+  kernel: String
+}
+
+type PackageVersions {
+  """OpenSSL version"""
+  openssl: String
+
+  """Node.js version"""
+  node: String
+
+  """npm version"""
+  npm: String
+
+  """pm2 version"""
+  pm2: String
+
+  """Git version"""
+  git: String
+
+  """nginx version"""
+  nginx: String
+
+  """PHP version"""
+  php: String
+
+  """Docker version"""
+  docker: String
+}
+
+type InfoVersions implements Node {
+  id: PrefixedID!
+
+  """Core system versions"""
+  core: CoreVersions!
+
+  """Software package versions"""
+  packages: PackageVersions
+}
+
+type Info implements Node {
+  id: PrefixedID!
+
+  """Current server time"""
+  time: DateTime!
+
+  """Motherboard information"""
+  baseboard: InfoBaseboard!
+
+  """CPU information"""
+  cpu: InfoCpu!
+
+  """Device information"""
+  devices: InfoDevices!
+
+  """Display configuration"""
+  display: InfoDisplay!
+
+  """Machine ID"""
+  machineId: ID
+
+  """Memory information"""
+  memory: InfoMemory!
+
+  """Operating system information"""
+  os: InfoOs!
+
+  """System information"""
+  system: InfoSystem!
+
+  """Software versions"""
+  versions: InfoVersions!
+}
+
 type LogFile {
   """Name of the log file"""
   name: String!
@@ -1307,6 +1715,17 @@ type LogFileContent {
 
   """Starting line number of the content (1-indexed)"""
   startLine: Int
+}
+
+"""System metrics including CPU and memory utilization"""
+type Metrics implements Node {
+  id: PrefixedID!
+
+  """Current CPU utilization metrics"""
+  cpu: CpuUtilization
+
+  """Current memory utilization metrics"""
+  memory: MemoryUtilization
 }
 
 type NotificationCounts {
@@ -1382,6 +1801,8 @@ type Server implements Node {
   guid: String!
   apikey: String!
   name: String!
+
+  """Whether this server is online or offline"""
   status: ServerStatus!
   wanip: String!
   lanip: String!
@@ -1403,35 +1824,116 @@ type ApiConfig {
   plugins: [String!]!
 }
 
-type UnifiedSettings implements Node {
-  id: PrefixedID!
+type OidcAuthorizationRule {
+  """The claim to check (e.g., email, sub, groups, hd)"""
+  claim: String!
 
-  """The data schema for the settings"""
-  dataSchema: JSON!
+  """The comparison operator"""
+  operator: AuthorizationOperator!
 
-  """The UI schema for the settings"""
-  uiSchema: JSON!
-
-  """The current values of the settings"""
-  values: JSON!
+  """The value(s) to match against"""
+  value: [String!]!
 }
 
-type UpdateSettingsResponse {
-  """Whether a restart is required for the changes to take effect"""
-  restartRequired: Boolean!
-
-  """The updated settings values"""
-  values: JSON!
+"""Operators for authorization rule matching"""
+enum AuthorizationOperator {
+  EQUALS
+  CONTAINS
+  ENDS_WITH
+  STARTS_WITH
 }
 
-type Settings implements Node {
+type OidcProvider {
+  """The unique identifier for the OIDC provider"""
   id: PrefixedID!
 
-  """A view of all settings"""
-  unified: UnifiedSettings!
+  """Display name of the OIDC provider"""
+  name: String!
 
-  """The API setting values"""
-  api: ApiConfig!
+  """OAuth2 client ID registered with the provider"""
+  clientId: String!
+
+  """OAuth2 client secret (if required by provider)"""
+  clientSecret: String
+
+  """
+  OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration
+  """
+  issuer: String
+
+  """
+  OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+  """
+  authorizationEndpoint: String
+
+  """
+  OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+  """
+  tokenEndpoint: String
+
+  """
+  JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+  """
+  jwksUri: String
+
+  """OAuth2 scopes to request (e.g., openid, profile, email)"""
+  scopes: [String!]!
+
+  """Flexible authorization rules based on claims"""
+  authorizationRules: [OidcAuthorizationRule!]
+
+  """
+  Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR.
+  """
+  authorizationRuleMode: AuthorizationRuleMode
+
+  """Custom text for the login button"""
+  buttonText: String
+
+  """URL or base64 encoded icon for the login button"""
+  buttonIcon: String
+
+  """
+  Button variant style from Reka UI. See https://reka-ui.com/docs/components/button
+  """
+  buttonVariant: String
+
+  """
+  Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;")
+  """
+  buttonStyle: String
+}
+
+"""
+Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass)
+"""
+enum AuthorizationRuleMode {
+  OR
+  AND
+}
+
+type OidcConfiguration {
+  """List of configured OIDC providers"""
+  providers: [OidcProvider!]!
+
+  """
+  Default allowed redirect origins that apply to all OIDC providers (e.g., Tailscale domains)
+  """
+  defaultAllowedOrigins: [String!]
+}
+
+type OidcSessionValidation {
+  valid: Boolean!
+  username: String
+}
+
+type PublicOidcProvider {
+  id: ID!
+  name: String!
+  buttonText: String
+  buttonIcon: String
+  buttonVariant: String
+  buttonStyle: String
 }
 
 type UPSBattery {
@@ -1804,12 +2306,22 @@ type Query {
 
   """All possible permissions for API keys"""
   apiKeyPossiblePermissions: [Permission!]!
+
+  """Get the actual permissions that would be granted by a set of roles"""
+  getPermissionsForRoles(roles: [Role!]!): [Permission!]!
+
+  """
+  Preview the effective permissions for a combination of roles and explicit permissions
+  """
+  previewEffectivePermissions(roles: [Role!], permissions: [AddPermissionInput!]): [Permission!]!
+
+  """Get all available authentication actions with possession"""
+  getAvailableAuthActions: [AuthAction!]!
+
+  """Get JSON Schema for API key creation form"""
+  getApiKeyCreationFormSchema: ApiKeyFormSettings!
   config: Config!
-  display: Display!
   flash: Flash!
-  info: Info!
-  logFiles: [LogFile!]!
-  logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
   me: UserAccount!
 
   """Get all notifications"""
@@ -1835,8 +2347,27 @@ type Query {
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
   rclone: RCloneBackupSettings!
+  info: Info!
+  logFiles: [LogFile!]!
+  logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
   settings: Settings!
   isSSOEnabled: Boolean!
+
+  """Get public OIDC provider information for login buttons"""
+  publicOidcProviders: [PublicOidcProvider!]!
+
+  """Get all configured OIDC providers (admin only)"""
+  oidcProviders: [OidcProvider!]!
+
+  """Get a specific OIDC provider by ID"""
+  oidcProvider(id: PrefixedID!): OidcProvider
+
+  """Get the full OIDC configuration (admin only)"""
+  oidcConfiguration: OidcConfiguration!
+
+  """Validate an OIDC session token (internal use for CLI validation)"""
+  validateOidcSession(token: String!): OidcSessionValidation!
+  metrics: Metrics!
   upsDevices: [UPSDevice!]!
   upsDeviceById(id: String!): UPSDevice
   upsConfiguration: UPSConfiguration!
@@ -2078,29 +2609,14 @@ input AccessUrlInput {
 }
 
 type Subscription {
-  displaySubscription: Display!
-  infoSubscription: Info!
-  logFile(path: String!): LogFileContent!
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
   ownerSubscription: Owner!
   serversSubscription: Server!
   parityHistorySubscription: ParityCheck!
   arraySubscription: UnraidArray!
+  logFile(path: String!): LogFileContent!
+  systemMetricsCpu: CpuUtilization!
+  systemMetricsMemory: MemoryUtilization!
   upsUpdates: UPSDevice!
-}
-
-"""Available authentication action verbs"""
-enum AuthActionVerb {
-  CREATE
-  UPDATE
-  DELETE
-  READ
-}
-
-"""Available authentication possession types"""
-enum AuthPossession {
-  ANY
-  OWN
-  OWN_ANY
 }

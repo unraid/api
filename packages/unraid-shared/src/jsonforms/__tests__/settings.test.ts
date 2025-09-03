@@ -1,4 +1,4 @@
-import { expect, test, describe } from "bun:test";
+import { expect, test, describe } from "vitest";
 import { mergeSettingSlices, type SettingSlice } from "../settings.js";
 
 describe("mergeSettingSlices element ordering", () => {

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { AuthZService } from 'nest-authz';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -47,7 +47,7 @@ describe('MeResolver', () => {
             permissions: [
                 {
                     resource: Resource.ME,
-                    actions: ['read'],
+                    actions: [AuthAction.READ_ANY],
                 },
             ],
         };

@@ -1,11 +1,7 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { getters } from '@app/store/index.js';
 import { Flash } from '@app/unraid-api/graph/resolvers/flash/flash.model.js';
@@ -14,9 +10,8 @@ import { Flash } from '@app/unraid-api/graph/resolvers/flash/flash.model.js';
 export class FlashResolver {
     @Query(() => Flash)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.FLASH,
-        possession: AuthPossession.ANY,
     })
     public async flash() {
         const emhttp = getters.emhttp();

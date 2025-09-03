@@ -1,12 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
 import { RCloneFormService } from '@app/unraid-api/graph/resolvers/rclone/rclone-form.service.js';
@@ -31,9 +27,8 @@ export class RCloneBackupSettingsResolver {
 
     @Query(() => RCloneBackupSettings)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.FLASH,
-        possession: AuthPossession.ANY,
     })
     async rclone(): Promise<RCloneBackupSettings> {
         return {} as RCloneBackupSettings;

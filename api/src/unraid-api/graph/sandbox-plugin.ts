@@ -28,34 +28,23 @@ const preconditionFailed = (preconditionName: string) => {
     throw new HttpException(`Precondition failed: ${preconditionName} `, HttpStatus.PRECONDITION_FAILED);
 };
 
-export const getPluginBasedOnSandbox = async (sandbox: boolean, csrfToken: string) => {
-    if (sandbox) {
-        const { ApolloServerPluginLandingPageLocalDefault } = await import(
-            '@apollo/server/plugin/landingPage/default'
-        );
-        const plugin = ApolloServerPluginLandingPageLocalDefault({
-            footer: false,
-            includeCookies: true,
-            document: initialDocument,
-            embed: {
-                initialState: {
-                    sharedHeaders: {
-                        'x-csrf-token': csrfToken,
-                    },
+export const getSandboxPlugin = async (csrfToken: string) => {
+    const { ApolloServerPluginLandingPageLocalDefault } = await import(
+        '@apollo/server/plugin/landingPage/default'
+    );
+    const plugin = ApolloServerPluginLandingPageLocalDefault({
+        footer: false,
+        includeCookies: true,
+        document: initialDocument,
+        embed: {
+            initialState: {
+                sharedHeaders: {
+                    'x-csrf-token': csrfToken,
                 },
             },
-        });
-        return plugin;
-    } else {
-        const { ApolloServerPluginLandingPageProductionDefault } = await import(
-            '@apollo/server/plugin/landingPage/default'
-        );
-
-        const plugin = ApolloServerPluginLandingPageProductionDefault({
-            footer: false,
-        });
-        return plugin;
-    }
+        },
+    });
+    return plugin;
 };
 
 /**
@@ -72,11 +61,10 @@ export const getPluginBasedOnSandbox = async (sandbox: boolean, csrfToken: strin
  * - Initial document state
  * - Shared headers containing CSRF token
  */
-async function renderSandboxPage(service: GraphQLServerContext, isSandboxEnabled: () => boolean) {
+async function renderSandboxPage(service: GraphQLServerContext) {
     const { getters } = await import('@app/store/index.js');
-    const sandbox = isSandboxEnabled();
     const csrfToken = getters.emhttp().var.csrfToken;
-    const plugin = await getPluginBasedOnSandbox(sandbox, csrfToken);
+    const plugin = await getSandboxPlugin(csrfToken);
 
     if (!plugin.serverWillStart) return preconditionFailed('serverWillStart');
     const serverListener = await plugin.serverWillStart(service);
@@ -88,15 +76,15 @@ async function renderSandboxPage(service: GraphQLServerContext, isSandboxEnabled
 }
 
 /**
- * Apollo plugin to render the GraphQL Sandbox page on-demand based on current server state.
+ * Apollo plugin to render the GraphQL Sandbox page.
  *
- * Usually, the `ApolloServerPluginLandingPageLocalDefault` plugin configures its
- * parameters once, during server startup. This plugin defers the configuration
- * and rendering to request-time instead of server startup.
+ * Access to this page is controlled by the sandbox-access-plugin which blocks
+ * GET requests when sandbox is disabled. This plugin only handles rendering
+ * the sandbox UI when it's allowed through.
  */
-export const createSandboxPlugin = (isSandboxEnabled: () => boolean): ApolloServerPlugin => ({
+export const createSandboxPlugin = (): ApolloServerPlugin => ({
     serverWillStart: async (service) =>
         ({
-            renderLandingPage: () => renderSandboxPage(service, isSandboxEnabled),
+            renderLandingPage: () => renderSandboxPage(service),
         }) satisfies GraphQLServerListener,
 });

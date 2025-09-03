@@ -5,6 +5,8 @@ import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { GraphQLBigInt } from 'graphql-scalars';
 
+import { ParityCheck } from '@app/unraid-api/graph/resolvers/array/parity.model.js';
+
 @ObjectType()
 export class Capacity {
     @Field(() => String, { description: 'Free capacity' })
@@ -141,6 +143,9 @@ export class UnraidArray extends Node {
 
     @Field(() => [ArrayDisk], { description: 'Parity disks in the current array' })
     parities!: ArrayDisk[];
+
+    @Field(() => ParityCheck, { description: 'Current parity check status' })
+    parityCheckStatus!: ParityCheck;
 
     @Field(() => [ArrayDisk], { description: 'Data disks in the current array' })
     disks!: ArrayDisk[];

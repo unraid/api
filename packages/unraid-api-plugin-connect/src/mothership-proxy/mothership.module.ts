@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
 
-import { ConnectApiKeyService } from '../authn/connect-api-key.service.js';
+
 import { CloudResolver } from '../connection-status/cloud.resolver.js';
 import { CloudService } from '../connection-status/cloud.service.js';
 import { ConnectStatusWriterService } from '../connection-status/connect-status-writer.service.js';
 import { TimeoutCheckerJob } from '../connection-status/timeout-checker.job.js';
-import { InternalClientService } from '../internal-rpc/internal.client.js';
 import { RemoteAccessModule } from '../remote-access/remote-access.module.js';
 import { MothershipConnectionService } from './connection.service.js';
 import { MothershipGraphqlClientService } from './graphql.client.js';
@@ -17,10 +16,8 @@ import { MothershipHandler } from './mothership.events.js';
     imports: [RemoteAccessModule],
     providers: [
         ConnectStatusWriterService,
-        ConnectApiKeyService,
         MothershipConnectionService,
         MothershipGraphqlClientService,
-        InternalClientService,
         MothershipHandler,
         MothershipSubscriptionHandler,
         TimeoutCheckerJob,

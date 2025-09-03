@@ -1,18 +1,26 @@
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
-import { AuthAction } from 'nest-authz';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
+
+// Generate VIEWER permissions for all resources except API_KEY
+const viewerPermissions = Object.values(Resource)
+    .filter((resource) => resource !== Resource.API_KEY)
+    .map((resource) => `p, ${Role.VIEWER}, ${resource}, ${AuthAction.READ_ANY}`)
+    .join('\n');
 
 export const BASE_POLICY = `
-# Admin permissions
+# Admin permissions - full access
 p, ${Role.ADMIN}, *, *
 
-# Connect Permissions
-p, ${Role.CONNECT}, *, ${AuthAction.READ_ANY}
+# Connect permissions - inherits from VIEWER plus can manage remote access
 p, ${Role.CONNECT}, ${Resource.CONNECT__REMOTE_ACCESS}, ${AuthAction.UPDATE_ANY}
 
-# Guest permissions
+# Guest permissions - basic profile access
 p, ${Role.GUEST}, ${Resource.ME}, ${AuthAction.READ_ANY}
+
+# Viewer permissions - read-only access to all resources except API_KEY
+${viewerPermissions}
 
 # Role inheritance
 g, ${Role.ADMIN}, ${Role.GUEST}
-g, ${Role.CONNECT}, ${Role.GUEST}
+g, ${Role.CONNECT}, ${Role.VIEWER}
+g, ${Role.VIEWER}, ${Role.GUEST}
 `;

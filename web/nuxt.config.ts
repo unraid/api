@@ -148,9 +148,23 @@ export default defineNuxtConfig({
         dir: assetsDir,
       },
     ],
+    devProxy: {
+      '/graphql': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        ws: true,
+        secure: false,
+        // Important: preserve the host header
+        headers: {
+          'X-Forwarded-Host': 'localhost:3000',
+          'X-Forwarded-Proto': 'http',
+          'X-Forwarded-For': '127.0.0.1',
+        },
+      },
+    },
   },
   devServer: {
-    port: 4321,
+    port: 3000,
   },
 
   css: ['@/assets/main.css'],
@@ -225,6 +239,7 @@ export default defineNuxtConfig({
           createWebComponentTag('UnraidThemeSwitcher', '@/components/ThemeSwitcher.ce', '@/components/Wrapper/web-component-plugins'),
           createWebComponentTag('UnraidApiKeyManager', '@/components/ApiKeyPage.ce', '@/components/Wrapper/web-component-plugins'),
           createWebComponentTag('UnraidDevModalTest', '@/components/DevModalTest.ce', '@/components/Wrapper/web-component-plugins'),
+          createWebComponentTag('UnraidApiKeyAuthorize', '@/components/ApiKeyAuthorize.ce', '@/components/Wrapper/web-component-plugins'),
         ],
       },
     ],

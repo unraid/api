@@ -8,7 +8,6 @@ import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
 import {
     ApiKey,
-    ApiKeyWithSecret,
     CreateApiKeyInput,
     DeleteApiKeyInput,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
@@ -23,16 +22,7 @@ describe('ApiKeyMutationsResolver', () => {
 
     const mockApiKey: ApiKey = {
         id: 'test-api-id',
-        name: 'Test API Key',
-        description: 'Test API Key Description',
-        roles: [Role.GUEST],
-        createdAt: new Date().toISOString(),
-        permissions: [],
-    };
-
-    const mockApiKeyWithSecret: ApiKeyWithSecret = {
-        id: 'test-api-id',
-        key: 'test-api-key',
+        key: 'test-secret-key',
         name: 'Test API Key',
         description: 'Test API Key Description',
         roles: [Role.GUEST],
@@ -48,7 +38,8 @@ describe('ApiKeyMutationsResolver', () => {
         apiKeyService = new ApiKeyService();
         authzService = new AuthZService(enforcer);
         cookieService = new CookieService();
-        authService = new AuthService(cookieService, apiKeyService, authzService);
+        const localSessionService = { validateLocalSession: vi.fn() } as any;
+        authService = new AuthService(cookieService, apiKeyService, localSessionService, authzService);
         resolver = new ApiKeyMutationsResolver(authService, apiKeyService);
     });
 
@@ -61,12 +52,12 @@ describe('ApiKeyMutationsResolver', () => {
                 permissions: [],
             };
 
-            vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKeyWithSecret);
+            vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKey);
             vi.spyOn(authService, 'syncApiKeyRoles').mockResolvedValue();
 
             const result = await resolver.create(input);
 
-            expect(result).toEqual(mockApiKeyWithSecret);
+            expect(result).toEqual(mockApiKey);
             expect(apiKeyService.create).toHaveBeenCalledWith({
                 name: input.name,
                 description: input.description,
@@ -95,7 +86,7 @@ describe('ApiKeyMutationsResolver', () => {
                 roles: [Role.GUEST],
                 permissions: [],
             };
-            vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKeyWithSecret);
+            vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKey);
             vi.spyOn(authService, 'syncApiKeyRoles').mockRejectedValue(new Error('Sync failed'));
             await expect(resolver.create(input)).rejects.toThrow('Sync failed');
         });

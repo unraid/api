@@ -1,11 +1,7 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { getters } from '@app/store/index.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
@@ -16,9 +12,8 @@ import { Vars } from '@app/unraid-api/graph/resolvers/vars/vars.model.js';
 export class VarsResolver {
     @Query(() => Vars)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.VARS,
-        possession: AuthPossession.ANY,
     })
     public async vars() {
         return {

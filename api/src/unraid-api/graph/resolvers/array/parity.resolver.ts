@@ -1,11 +1,7 @@
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { PubSub } from 'graphql-subscriptions';
 
 import { PUBSUB_CHANNEL } from '@app/core/pubsub.js';
@@ -23,9 +19,8 @@ export class ParityResolver {
     ) {}
 
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
     })
     @Query(() => [ParityCheck])
     async parityHistory(): Promise<ParityCheck[]> {
@@ -33,9 +28,8 @@ export class ParityResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
     })
     @Subscription(() => ParityCheck)
     parityHistorySubscription() {

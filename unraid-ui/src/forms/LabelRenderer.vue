@@ -51,8 +51,12 @@ const labelClass = computed(() => {
   switch (labelFormat.value) {
     case 'title':
       return 'text-xl font-semibold mb-2'; // Example styling for title
+    case 'subtitle':
+      return 'text-base font-semibold mb-1'; // Styling for subtitle
     case 'heading':
       return 'text-lg font-semibold mt-4 mb-1'; // Example styling for heading
+    case 'description':
+      return 'text-sm text-muted-foreground'; // Description format should not be bold
     default:
       return 'font-semibold'; // Default label styling
   }
@@ -70,7 +74,7 @@ const descriptionClass = computed(() => {
 
 <template>
   <!-- Use the computed isVisible based on renderer.value.visible -->
-  <div class="flex flex-col gap-2 shrink-0">
+  <div class="flex shrink-0 flex-col gap-2">
     <!-- Replace native label with the Label component -->
     <Label v-if="labelText" :class="labelClass">{{ labelText }}</Label>
     <!-- Use v-html with the parsedDescription ref -->

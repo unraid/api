@@ -12,7 +12,7 @@ const normalizedErrors = computed(() => {
 </script>
 
 <template>
-  <div v-if="normalizedErrors.length > 0" class="mt-2 text-red-500 text-sm">
+  <div v-if="normalizedErrors.length > 0" class="mt-2 text-sm text-red-500">
     <p v-for="error in normalizedErrors" :key="error">{{ error }}</p>
   </div>
 </template>

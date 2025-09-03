@@ -1,11 +1,7 @@
 import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
@@ -28,9 +24,8 @@ export class DockerResolver {
     ) {}
 
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
-        possession: AuthPossession.ANY,
     })
     @Query(() => Docker)
     public docker() {
@@ -40,9 +35,8 @@ export class DockerResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => [DockerContainer])
     public async containers(
@@ -52,9 +46,8 @@ export class DockerResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => [DockerNetwork])
     public async networks(
@@ -64,9 +57,8 @@ export class DockerResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => ResolvedOrganizerV1)
     public async organizer() {
@@ -74,9 +66,8 @@ export class DockerResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
-        possession: AuthPossession.ANY,
     })
     @Mutation(() => ResolvedOrganizerV1)
     public async createDockerFolder(
@@ -93,9 +84,8 @@ export class DockerResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
-        possession: AuthPossession.ANY,
     })
     @Mutation(() => ResolvedOrganizerV1)
     public async setDockerFolderChildren(
@@ -110,9 +100,8 @@ export class DockerResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
-        possession: AuthPossession.ANY,
     })
     @Mutation(() => ResolvedOrganizerV1)
     public async deleteDockerEntries(@Args('entryIds', { type: () => [String] }) entryIds: string[]) {
@@ -123,9 +112,8 @@ export class DockerResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
+        action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
-        possession: AuthPossession.ANY,
     })
     @Mutation(() => ResolvedOrganizerV1)
     public async moveDockerEntriesToFolder(
@@ -140,9 +128,8 @@ export class DockerResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
-        possession: AuthPossession.ANY,
     })
     @ResolveField(() => GraphQLJSON)
     public async containerUpdateStatuses() {

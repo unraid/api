@@ -2,7 +2,7 @@
 import { computed, provide, ref, watch } from 'vue';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import { Button, jsonFormsRenderers } from '@unraid/ui';
+import { Button, jsonFormsRenderers, jsonFormsAjv } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 
 import { CREATE_REMOTE } from '~/components/RClone/graphql/rclone.mutations';
@@ -223,6 +223,7 @@ provide('isSubmitting', isCreating);
           :renderers="renderers"
           :data="formState"
           :config="jsonFormsConfig"
+          :ajv="jsonFormsAjv"
           :readonly="isCreating"
           @change="onChange"
         />

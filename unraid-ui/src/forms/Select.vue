@@ -20,10 +20,11 @@ const selected = computed(() => control.value.data);
 const options = computed(() => {
   const enumValues: string[] = control.value.schema.enum || [];
   const tooltips: string[] | undefined = control.value.uischema.options?.tooltips;
+  const labels: Record<string, string> | undefined = control.value.uischema.options?.labels;
 
   return enumValues.map((value, index) => ({
     value,
-    label: value,
+    label: labels?.[value] || value,
     tooltip: tooltips && tooltips[index] ? tooltips[index] : undefined,
   }));
 });
@@ -41,7 +42,9 @@ const onChange = (value: unknown) => {
     @update:model-value="onChange"
   >
     <SelectTrigger>
-      <SelectValue v-if="selected">{{ selected }}</SelectValue>
+      <SelectValue v-if="selected">{{
+        options.find((o) => o.value === selected)?.label || selected
+      }}</SelectValue>
       <span v-else>{{ control.schema.default ?? 'Select an option' }}</span>
     </SelectTrigger>
 

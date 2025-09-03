@@ -10,7 +10,7 @@ withDefaults(
 </script>
 
 <template>
-  <div class="grid gap-y-6 w-full mx-auto px-4" :class="maxWidth">
+  <div class="mx-auto grid w-full gap-y-6 px-4" :class="maxWidth">
     <slot />
   </div>
 </template>

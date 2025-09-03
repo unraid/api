@@ -2,10 +2,8 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import {
-    AuthActionVerb,
-    AuthPossession,
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
 
@@ -19,9 +17,8 @@ export class ConnectResolver {
 
     @Query(() => Connect)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.CONNECT,
-        possession: AuthPossession.ANY,
     })
     public connect(): Connect {
         return {

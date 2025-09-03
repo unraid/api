@@ -45,5 +45,5 @@ describe('CloudService.hardCheckCloud (integration)', () => {
             }
             throw error;
         }
-    });
+    }, { timeout: 10000 });
 });

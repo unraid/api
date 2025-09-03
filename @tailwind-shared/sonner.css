@@ -233,8 +233,8 @@
   justify-content: center;
   align-items: center;
   padding: 0;
-  color: var(--gray12);
-  border: 1px solid var(--gray4);
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
   transform: var(--toast-close-button-transform);
   border-radius: 50%;
   cursor: pointer;
@@ -243,7 +243,7 @@
 }
 
 [data-sonner-toast] [data-close-button] {
-  background: var(--gray1);
+  background: hsl(var(--background));
 }
 
 :where([data-sonner-toast]) :where([data-close-button]):focus-visible {
@@ -255,8 +255,8 @@
 }
 
 [data-sonner-toast]:hover [data-close-button]:hover {
-  background: var(--gray2);
-  border-color: var(--gray5);
+  background: hsl(var(--muted));
+  border-color: hsl(var(--border));
 }
 
 /* Leave a ghost div to avoid setting hover to false when swiping out */
@@ -414,9 +414,9 @@
 }
 
 [data-sonner-toaster][data-theme='light'] {
-  --normal-bg: #fff;
-  --normal-border: var(--gray4);
-  --normal-text: var(--gray12);
+  --normal-bg: hsl(var(--background));
+  --normal-border: hsl(var(--border));
+  --normal-text: hsl(var(--foreground));
 
   --success-bg: hsl(143, 85%, 96%);
   --success-border: hsl(145, 92%, 91%);
@@ -436,21 +436,21 @@
 }
 
 [data-sonner-toaster][data-theme='light'] [data-sonner-toast][data-invert='true'] {
-  --normal-bg: #000;
-  --normal-border: hsl(0, 0%, 20%);
-  --normal-text: var(--gray1);
+  --normal-bg: hsl(0 0% 3.9%);
+  --normal-border: hsl(0 0% 14.9%);
+  --normal-text: hsl(0 0% 98%);
 }
 
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast][data-invert='true'] {
-  --normal-bg: #fff;
-  --normal-border: var(--gray3);
-  --normal-text: var(--gray12);
+  --normal-bg: hsl(0 0% 100%);
+  --normal-border: hsl(0 0% 89.8%);
+  --normal-text: hsl(0 0% 3.9%);
 }
 
 [data-sonner-toaster][data-theme='dark'] {
-  --normal-bg: #000;
-  --normal-border: hsl(0, 0%, 20%);
-  --normal-text: var(--gray1);
+  --normal-bg: hsl(var(--background));
+  --normal-border: hsl(var(--border));
+  --normal-text: hsl(var(--foreground));
 
   --success-bg: hsl(150, 100%, 6%);
   --success-border: hsl(147, 100%, 12%);
@@ -541,7 +541,7 @@
 
 .sonner-loading-bar {
   animation: sonner-spin 1.2s linear infinite;
-  background: var(--gray11);
+  background: hsl(var(--muted-foreground));
   border-radius: 6px;
   height: 8%;
   left: -10%;

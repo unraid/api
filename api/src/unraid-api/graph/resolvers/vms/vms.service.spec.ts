@@ -196,7 +196,7 @@ describe('VmsService', () => {
         service = module.get<VmsService>(VmsService);
 
         // Initialize the service
-        await service.onModuleInit();
+        await service.onApplicationBootstrap();
     });
 
     afterAll(async () => {

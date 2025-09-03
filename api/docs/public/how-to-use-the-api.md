@@ -1,39 +1,75 @@
+---
+title: Using the Unraid API
+description: Learn how to interact with your Unraid server through the GraphQL API
+sidebar_position: 2
+---
+
 # Using the Unraid API
+
+:::tip[Quick Start]
+The Unraid API provides a powerful GraphQL interface for managing your server. This guide covers authentication, common queries, and best practices.
+:::
 
 The Unraid API provides a GraphQL interface that allows you to interact with your Unraid server. This guide will help you get started with exploring and using the API.
 
-## Enabling the GraphQL Sandbox
+## 🎮 Enabling the GraphQL Sandbox
 
-1. Enable developer mode using the CLI:
+### Web GUI Method (Recommended)
 
-    ```bash
-    unraid-api developer --sandbox true
-    ```
-    
-    Or use the interactive mode:
-    
-    ```bash
-    unraid-api developer
-    ```
+:::info[Preferred Method]
+Using the Web GUI is the easiest way to enable the GraphQL sandbox.
+:::
 
-2. Once enabled, you can access the Apollo Sandbox interface
-
+1. Navigate to **Settings** → **Management Access** → **Developer Options**
+2. Enable the **GraphQL Sandbox** toggle
 3. Access the GraphQL playground by navigating to:
 
     ```txt
     http://YOUR_SERVER_IP/graphql
     ```
 
-## Authentication
+### CLI Method
 
-Most queries and mutations require authentication. You can authenticate using either:
+Alternatively, you can enable developer mode using the CLI:
 
-1. API Keys
-2. Cookies (default method when signed into the WebGUI)
+```bash
+unraid-api developer --sandbox true
+```
 
-### Creating an API Key
+Or use the interactive mode:
 
-Use the CLI to create an API key:
+```bash
+unraid-api developer
+```
+
+## 🔑 Authentication
+
+:::warning[Required for Most Operations]
+Most queries and mutations require authentication. Always include appropriate credentials in your requests.
+:::
+
+You can authenticate using:
+
+1. **API Keys** - For programmatic access
+2. **Cookies** - Automatic when signed into the WebGUI
+3. **SSO/OIDC** - When configured with external providers
+
+### Managing API Keys
+
+<tabs>
+<tabItem value="gui" label="Web GUI (Recommended)" default>
+
+Navigate to **Settings** → **Management Access** → **API Keys** in your Unraid web interface to:
+
+- View existing API keys
+- Create new API keys
+- Manage permissions and roles
+- Revoke or regenerate keys
+
+</tabItem>
+<tabItem value="cli" label="CLI Method">
+
+You can also use the CLI to create an API key:
 
 ```bash
 unraid-api apikey --create
@@ -46,6 +82,11 @@ Follow the prompts to set:
 - Roles
 - Permissions
 
+</tabItem>
+</tabs>
+
+### Using API Keys
+
 The generated API key should be included in your GraphQL requests as a header:
 
 ```json
@@ -54,7 +95,7 @@ The generated API key should be included in your GraphQL requests as a header:
 }
 ```
 
-## Available Schemas
+## 📊 Available Schemas
 
 The API provides access to various aspects of your Unraid server:
 
@@ -83,9 +124,9 @@ The API provides access to various aspects of your Unraid server:
 - Handle SSO configuration
 - Manage allowed origins
 
-### Example Queries
+### 💻 Example Queries
 
-1. Check System Status:
+#### Check System Status
 
 ```graphql
 query {
@@ -106,7 +147,7 @@ query {
 }
 ```
 
-2. Monitor Array Status:
+#### Monitor Array Status
 
 ```graphql
 query {
@@ -129,7 +170,7 @@ query {
 }
 ```
 
-3. List Docker Containers:
+#### List Docker Containers
 
 ```graphql
 query {
@@ -143,7 +184,7 @@ query {
 }
 ```
 
-## Schema Types
+## 🏗️ Schema Types
 
 The API includes several core types:
 
@@ -170,19 +211,23 @@ Available roles:
 - `connect`: Remote access features
 - `guest`: Limited read access
 
-## Best Practices
+## ✨ Best Practices
 
+:::tip[Pro Tips]
 1. Use the Apollo Sandbox to explore the schema and test queries
 2. Start with small queries and gradually add fields as needed
 3. Monitor your query complexity to maintain performance
 4. Use appropriate roles and permissions for your API keys
 5. Keep your API keys secure and rotate them periodically
+:::
 
-## Rate Limiting
+## ⏱️ Rate Limiting
 
+:::caution[Rate Limits]
 The API implements rate limiting to prevent abuse. Ensure your applications handle rate limit responses appropriately.
+:::
 
-## Error Handling
+## 🚨 Error Handling
 
 The API returns standard GraphQL errors in the following format:
 
@@ -198,11 +243,13 @@ The API returns standard GraphQL errors in the following format:
 }
 ```
 
-## Additional Resources
+## 📚 Additional Resources
 
+:::info[Learn More]
 - Use the Apollo Sandbox's schema explorer to browse all available types and fields
 - Check the documentation tab in Apollo Sandbox for detailed field descriptions
 - Monitor the API's health using `unraid-api status`
 - Generate reports using `unraid-api report` for troubleshooting
 
-For more information about specific commands and configuration options, refer to the CLI documentation or run `unraid-api --help`.
+For more information about specific commands and configuration options, refer to the [CLI documentation](/cli) or run `unraid-api --help`.
+:::

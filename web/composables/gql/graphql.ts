@@ -120,7 +120,7 @@ export type ActivationCode = {
 };
 
 export type AddPermissionInput = {
-  actions: Array<Scalars['String']['input']>;
+  actions: Array<AuthAction>;
   resource: Resource;
 };
 
@@ -143,9 +143,21 @@ export type ApiKey = Node & {
   createdAt: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
+  key: Scalars['String']['output'];
   name: Scalars['String']['output'];
   permissions: Array<Permission>;
   roles: Array<Role>;
+};
+
+export type ApiKeyFormSettings = FormSchema & Node & {
+  __typename?: 'ApiKeyFormSettings';
+  /** The data schema for the API key form */
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** The UI schema for the API key form */
+  uiSchema: Scalars['JSON']['output'];
+  /** The current values of the API key form */
+  values: Scalars['JSON']['output'];
 };
 
 /** API Key related mutations */
@@ -154,13 +166,13 @@ export type ApiKeyMutations = {
   /** Add a role to an API key */
   addRole: Scalars['Boolean']['output'];
   /** Create an API key */
-  create: ApiKeyWithSecret;
+  create: ApiKey;
   /** Delete one or more API keys */
   delete: Scalars['Boolean']['output'];
   /** Remove a role from an API key */
   removeRole: Scalars['Boolean']['output'];
   /** Update an API key */
-  update: ApiKeyWithSecret;
+  update: ApiKey;
 };
 
 
@@ -197,17 +209,6 @@ export type ApiKeyResponse = {
   __typename?: 'ApiKeyResponse';
   error?: Maybe<Scalars['String']['output']>;
   valid: Scalars['Boolean']['output'];
-};
-
-export type ApiKeyWithSecret = Node & {
-  __typename?: 'ApiKeyWithSecret';
-  createdAt: Scalars['String']['output'];
-  description?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  key: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  permissions: Array<Permission>;
-  roles: Array<Role>;
 };
 
 export type ArrayCapacity = {
@@ -370,30 +371,39 @@ export enum ArrayStateInputState {
   STOP = 'STOP'
 }
 
-/** Available authentication action verbs */
-export enum AuthActionVerb {
-  CREATE = 'CREATE',
-  DELETE = 'DELETE',
-  READ = 'READ',
-  UPDATE = 'UPDATE'
+/** Authentication actions with possession (e.g., create:any, read:own) */
+export enum AuthAction {
+  /** Create any resource */
+  CREATE_ANY = 'CREATE_ANY',
+  /** Create own resource */
+  CREATE_OWN = 'CREATE_OWN',
+  /** Delete any resource */
+  DELETE_ANY = 'DELETE_ANY',
+  /** Delete own resource */
+  DELETE_OWN = 'DELETE_OWN',
+  /** Read any resource */
+  READ_ANY = 'READ_ANY',
+  /** Read own resource */
+  READ_OWN = 'READ_OWN',
+  /** Update any resource */
+  UPDATE_ANY = 'UPDATE_ANY',
+  /** Update own resource */
+  UPDATE_OWN = 'UPDATE_OWN'
 }
 
-/** Available authentication possession types */
-export enum AuthPossession {
-  ANY = 'ANY',
-  OWN = 'OWN',
-  OWN_ANY = 'OWN_ANY'
+/** Operators for authorization rule matching */
+export enum AuthorizationOperator {
+  CONTAINS = 'CONTAINS',
+  ENDS_WITH = 'ENDS_WITH',
+  EQUALS = 'EQUALS',
+  STARTS_WITH = 'STARTS_WITH'
 }
 
-export type Baseboard = Node & {
-  __typename?: 'Baseboard';
-  assetTag?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  manufacturer: Scalars['String']['output'];
-  model?: Maybe<Scalars['String']['output']>;
-  serial?: Maybe<Scalars['String']['output']>;
-  version?: Maybe<Scalars['String']['output']>;
-};
+/** Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass) */
+export enum AuthorizationRuleMode {
+  AND = 'AND',
+  OR = 'OR'
+}
 
 export type Capacity = {
   __typename?: 'Capacity';
@@ -403,15 +413,6 @@ export type Capacity = {
   total: Scalars['String']['output'];
   /** Used capacity */
   used: Scalars['String']['output'];
-};
-
-export type Case = Node & {
-  __typename?: 'Case';
-  base64?: Maybe<Scalars['String']['output']>;
-  error?: Maybe<Scalars['String']['output']>;
-  icon?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type Cloud = {
@@ -446,6 +447,20 @@ export enum ConfigErrorState {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   WITHDRAWN = 'WITHDRAWN'
 }
+
+export type ConfigFile = {
+  __typename?: 'ConfigFile';
+  content: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+  /** Human-readable file size (e.g., "1.5 KB", "2.3 MB") */
+  sizeReadable: Scalars['String']['output'];
+};
+
+export type ConfigFilesResponse = {
+  __typename?: 'ConfigFilesResponse';
+  files: Array<ConfigFile>;
+};
 
 export type Connect = Node & {
   __typename?: 'Connect';
@@ -525,6 +540,42 @@ export enum ContainerState {
   RUNNING = 'RUNNING'
 }
 
+export type CoreVersions = {
+  __typename?: 'CoreVersions';
+  /** Unraid API version */
+  api?: Maybe<Scalars['String']['output']>;
+  /** Kernel version */
+  kernel?: Maybe<Scalars['String']['output']>;
+  /** Unraid version */
+  unraid?: Maybe<Scalars['String']['output']>;
+};
+
+/** CPU load for a single core */
+export type CpuLoad = {
+  __typename?: 'CpuLoad';
+  /** The percentage of time the CPU was idle. */
+  percentIdle: Scalars['Float']['output'];
+  /** The percentage of time the CPU spent servicing hardware interrupts. */
+  percentIrq: Scalars['Float']['output'];
+  /** The percentage of time the CPU spent on low-priority (niced) user space processes. */
+  percentNice: Scalars['Float']['output'];
+  /** The percentage of time the CPU spent in kernel space. */
+  percentSystem: Scalars['Float']['output'];
+  /** The total CPU load on a single core, in percent. */
+  percentTotal: Scalars['Float']['output'];
+  /** The percentage of time the CPU spent in user space. */
+  percentUser: Scalars['Float']['output'];
+};
+
+export type CpuUtilization = Node & {
+  __typename?: 'CpuUtilization';
+  /** CPU load for each core */
+  cpus: Array<CpuLoad>;
+  id: Scalars['PrefixedID']['output'];
+  /** Total CPU load in percent */
+  percentTotal: Scalars['Float']['output'];
+};
+
 export type CreateApiKeyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
@@ -553,14 +604,6 @@ export type DeleteApiKeyInput = {
 
 export type DeleteRCloneRemoteInput = {
   name: Scalars['String']['input'];
-};
-
-export type Devices = Node & {
-  __typename?: 'Devices';
-  gpu: Array<Gpu>;
-  id: Scalars['PrefixedID']['output'];
-  pci: Array<Pci>;
-  usb: Array<Usb>;
 };
 
 export type Disk = Node & {
@@ -639,36 +682,12 @@ export enum DiskSmartStatus {
   UNKNOWN = 'UNKNOWN'
 }
 
-export type Display = Node & {
-  __typename?: 'Display';
-  banner?: Maybe<Scalars['String']['output']>;
-  case?: Maybe<Case>;
-  critical?: Maybe<Scalars['Int']['output']>;
-  dashapps?: Maybe<Scalars['String']['output']>;
-  date?: Maybe<Scalars['String']['output']>;
-  hot?: Maybe<Scalars['Int']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  locale?: Maybe<Scalars['String']['output']>;
-  max?: Maybe<Scalars['Int']['output']>;
-  number?: Maybe<Scalars['String']['output']>;
-  resize?: Maybe<Scalars['Boolean']['output']>;
-  scale?: Maybe<Scalars['Boolean']['output']>;
-  tabs?: Maybe<Scalars['Boolean']['output']>;
-  text?: Maybe<Scalars['Boolean']['output']>;
-  theme?: Maybe<ThemeName>;
-  total?: Maybe<Scalars['Boolean']['output']>;
-  unit?: Maybe<Temperature>;
-  usage?: Maybe<Scalars['Boolean']['output']>;
-  users?: Maybe<Scalars['String']['output']>;
-  warning?: Maybe<Scalars['Int']['output']>;
-  wwn?: Maybe<Scalars['Boolean']['output']>;
-};
-
 export type Docker = Node & {
   __typename?: 'Docker';
   containers: Array<DockerContainer>;
   id: Scalars['PrefixedID']['output'];
   networks: Array<DockerNetwork>;
+  organizer: ResolvedOrganizerV1;
 };
 
 
@@ -777,80 +796,293 @@ export type FlashBackupStatus = {
   status: Scalars['String']['output'];
 };
 
-export type Gpu = Node & {
-  __typename?: 'Gpu';
-  blacklisted: Scalars['Boolean']['output'];
-  class: Scalars['String']['output'];
-  id: Scalars['PrefixedID']['output'];
-  productid: Scalars['String']['output'];
-  type: Scalars['String']['output'];
-  typeid: Scalars['String']['output'];
-  vendorname: Scalars['String']['output'];
+export type FormSchema = {
+  /** The data schema for the form */
+  dataSchema: Scalars['JSON']['output'];
+  /** The UI schema for the form */
+  uiSchema: Scalars['JSON']['output'];
+  /** The current values of the form */
+  values: Scalars['JSON']['output'];
 };
 
 export type Info = Node & {
   __typename?: 'Info';
-  /** Count of docker containers */
-  apps: InfoApps;
-  baseboard: Baseboard;
+  /** Motherboard information */
+  baseboard: InfoBaseboard;
+  /** CPU information */
   cpu: InfoCpu;
-  devices: Devices;
-  display: Display;
+  /** Device information */
+  devices: InfoDevices;
+  /** Display configuration */
+  display: InfoDisplay;
   id: Scalars['PrefixedID']['output'];
   /** Machine ID */
-  machineId?: Maybe<Scalars['PrefixedID']['output']>;
+  machineId?: Maybe<Scalars['ID']['output']>;
+  /** Memory information */
   memory: InfoMemory;
-  os: Os;
-  system: System;
+  /** Operating system information */
+  os: InfoOs;
+  /** System information */
+  system: InfoSystem;
+  /** Current server time */
   time: Scalars['DateTime']['output'];
-  versions: Versions;
+  /** Software versions */
+  versions: InfoVersions;
 };
 
-export type InfoApps = Node & {
-  __typename?: 'InfoApps';
+export type InfoBaseboard = Node & {
+  __typename?: 'InfoBaseboard';
+  /** Motherboard asset tag */
+  assetTag?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
-  /** How many docker containers are installed */
-  installed: Scalars['Int']['output'];
-  /** How many docker containers are running */
-  started: Scalars['Int']['output'];
+  /** Motherboard manufacturer */
+  manufacturer?: Maybe<Scalars['String']['output']>;
+  /** Maximum memory capacity in bytes */
+  memMax?: Maybe<Scalars['Float']['output']>;
+  /** Number of memory slots */
+  memSlots?: Maybe<Scalars['Float']['output']>;
+  /** Motherboard model */
+  model?: Maybe<Scalars['String']['output']>;
+  /** Motherboard serial number */
+  serial?: Maybe<Scalars['String']['output']>;
+  /** Motherboard version */
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 export type InfoCpu = Node & {
   __typename?: 'InfoCpu';
-  brand: Scalars['String']['output'];
-  cache: Scalars['JSON']['output'];
-  cores: Scalars['Int']['output'];
-  family: Scalars['String']['output'];
-  flags: Array<Scalars['String']['output']>;
+  /** CPU brand name */
+  brand?: Maybe<Scalars['String']['output']>;
+  /** CPU cache information */
+  cache?: Maybe<Scalars['JSON']['output']>;
+  /** Number of CPU cores */
+  cores?: Maybe<Scalars['Int']['output']>;
+  /** CPU family */
+  family?: Maybe<Scalars['String']['output']>;
+  /** CPU feature flags */
+  flags?: Maybe<Array<Scalars['String']['output']>>;
   id: Scalars['PrefixedID']['output'];
-  manufacturer: Scalars['String']['output'];
-  model: Scalars['String']['output'];
-  processors: Scalars['Int']['output'];
-  revision: Scalars['String']['output'];
-  socket: Scalars['String']['output'];
-  speed: Scalars['Float']['output'];
-  speedmax: Scalars['Float']['output'];
-  speedmin: Scalars['Float']['output'];
-  stepping: Scalars['Int']['output'];
-  threads: Scalars['Int']['output'];
-  vendor: Scalars['String']['output'];
+  /** CPU manufacturer */
+  manufacturer?: Maybe<Scalars['String']['output']>;
+  /** CPU model */
+  model?: Maybe<Scalars['String']['output']>;
+  /** Number of physical processors */
+  processors?: Maybe<Scalars['Int']['output']>;
+  /** CPU revision */
+  revision?: Maybe<Scalars['String']['output']>;
+  /** CPU socket type */
+  socket?: Maybe<Scalars['String']['output']>;
+  /** Current CPU speed in GHz */
+  speed?: Maybe<Scalars['Float']['output']>;
+  /** Maximum CPU speed in GHz */
+  speedmax?: Maybe<Scalars['Float']['output']>;
+  /** Minimum CPU speed in GHz */
+  speedmin?: Maybe<Scalars['Float']['output']>;
+  /** CPU stepping */
+  stepping?: Maybe<Scalars['Int']['output']>;
+  /** Number of CPU threads */
+  threads?: Maybe<Scalars['Int']['output']>;
+  /** CPU vendor */
+  vendor?: Maybe<Scalars['String']['output']>;
+  /** CPU voltage */
   voltage?: Maybe<Scalars['String']['output']>;
+};
+
+export type InfoDevices = Node & {
+  __typename?: 'InfoDevices';
+  /** List of GPU devices */
+  gpu?: Maybe<Array<InfoGpu>>;
+  id: Scalars['PrefixedID']['output'];
+  /** List of network interfaces */
+  network?: Maybe<Array<InfoNetwork>>;
+  /** List of PCI devices */
+  pci?: Maybe<Array<InfoPci>>;
+  /** List of USB devices */
+  usb?: Maybe<Array<InfoUsb>>;
+};
+
+export type InfoDisplay = Node & {
+  __typename?: 'InfoDisplay';
+  /** Case display configuration */
+  case: InfoDisplayCase;
+  /** Critical temperature threshold */
+  critical: Scalars['Int']['output'];
+  /** Hot temperature threshold */
+  hot: Scalars['Int']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Locale setting */
+  locale?: Maybe<Scalars['String']['output']>;
+  /** Maximum temperature threshold */
+  max?: Maybe<Scalars['Int']['output']>;
+  /** Enable UI resize */
+  resize: Scalars['Boolean']['output'];
+  /** Enable UI scaling */
+  scale: Scalars['Boolean']['output'];
+  /** Show tabs in UI */
+  tabs: Scalars['Boolean']['output'];
+  /** Show text labels */
+  text: Scalars['Boolean']['output'];
+  /** UI theme name */
+  theme: ThemeName;
+  /** Show totals */
+  total: Scalars['Boolean']['output'];
+  /** Temperature unit (C or F) */
+  unit: Temperature;
+  /** Show usage statistics */
+  usage: Scalars['Boolean']['output'];
+  /** Warning temperature threshold */
+  warning: Scalars['Int']['output'];
+  /** Show WWN identifiers */
+  wwn: Scalars['Boolean']['output'];
+};
+
+export type InfoDisplayCase = Node & {
+  __typename?: 'InfoDisplayCase';
+  /** Base64 encoded case image */
+  base64: Scalars['String']['output'];
+  /** Error message if any */
+  error: Scalars['String']['output'];
+  /** Case icon identifier */
+  icon: Scalars['String']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Case image URL */
+  url: Scalars['String']['output'];
+};
+
+export type InfoGpu = Node & {
+  __typename?: 'InfoGpu';
+  /** Whether GPU is blacklisted */
+  blacklisted: Scalars['Boolean']['output'];
+  /** Device class */
+  class: Scalars['String']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Product ID */
+  productid: Scalars['String']['output'];
+  /** GPU type/manufacturer */
+  type: Scalars['String']['output'];
+  /** GPU type identifier */
+  typeid: Scalars['String']['output'];
+  /** Vendor name */
+  vendorname?: Maybe<Scalars['String']['output']>;
 };
 
 export type InfoMemory = Node & {
   __typename?: 'InfoMemory';
-  active: Scalars['BigInt']['output'];
-  available: Scalars['BigInt']['output'];
-  buffcache: Scalars['BigInt']['output'];
-  free: Scalars['BigInt']['output'];
   id: Scalars['PrefixedID']['output'];
+  /** Physical memory layout */
   layout: Array<MemoryLayout>;
-  max: Scalars['BigInt']['output'];
-  swapfree: Scalars['BigInt']['output'];
-  swaptotal: Scalars['BigInt']['output'];
-  swapused: Scalars['BigInt']['output'];
-  total: Scalars['BigInt']['output'];
-  used: Scalars['BigInt']['output'];
+};
+
+export type InfoNetwork = Node & {
+  __typename?: 'InfoNetwork';
+  /** DHCP enabled flag */
+  dhcp?: Maybe<Scalars['Boolean']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** Network interface name */
+  iface: Scalars['String']['output'];
+  /** MAC address */
+  mac?: Maybe<Scalars['String']['output']>;
+  /** Network interface model */
+  model?: Maybe<Scalars['String']['output']>;
+  /** Network speed */
+  speed?: Maybe<Scalars['String']['output']>;
+  /** Network vendor */
+  vendor?: Maybe<Scalars['String']['output']>;
+  /** Virtual interface flag */
+  virtual?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type InfoOs = Node & {
+  __typename?: 'InfoOs';
+  /** OS architecture */
+  arch?: Maybe<Scalars['String']['output']>;
+  /** OS build identifier */
+  build?: Maybe<Scalars['String']['output']>;
+  /** OS codename */
+  codename?: Maybe<Scalars['String']['output']>;
+  /** Linux distribution name */
+  distro?: Maybe<Scalars['String']['output']>;
+  /** Fully qualified domain name */
+  fqdn?: Maybe<Scalars['String']['output']>;
+  /** Hostname */
+  hostname?: Maybe<Scalars['String']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** Kernel version */
+  kernel?: Maybe<Scalars['String']['output']>;
+  /** OS logo name */
+  logofile?: Maybe<Scalars['String']['output']>;
+  /** Operating system platform */
+  platform?: Maybe<Scalars['String']['output']>;
+  /** OS release version */
+  release?: Maybe<Scalars['String']['output']>;
+  /** OS serial number */
+  serial?: Maybe<Scalars['String']['output']>;
+  /** Service pack version */
+  servicepack?: Maybe<Scalars['String']['output']>;
+  /** OS started via UEFI */
+  uefi?: Maybe<Scalars['Boolean']['output']>;
+  /** Boot time ISO string */
+  uptime?: Maybe<Scalars['String']['output']>;
+};
+
+export type InfoPci = Node & {
+  __typename?: 'InfoPci';
+  /** Blacklisted status */
+  blacklisted: Scalars['String']['output'];
+  /** Device class */
+  class: Scalars['String']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Product ID */
+  productid: Scalars['String']['output'];
+  /** Product name */
+  productname?: Maybe<Scalars['String']['output']>;
+  /** Device type/manufacturer */
+  type: Scalars['String']['output'];
+  /** Type identifier */
+  typeid: Scalars['String']['output'];
+  /** Vendor ID */
+  vendorid: Scalars['String']['output'];
+  /** Vendor name */
+  vendorname?: Maybe<Scalars['String']['output']>;
+};
+
+export type InfoSystem = Node & {
+  __typename?: 'InfoSystem';
+  id: Scalars['PrefixedID']['output'];
+  /** System manufacturer */
+  manufacturer?: Maybe<Scalars['String']['output']>;
+  /** System model */
+  model?: Maybe<Scalars['String']['output']>;
+  /** System serial number */
+  serial?: Maybe<Scalars['String']['output']>;
+  /** System SKU */
+  sku?: Maybe<Scalars['String']['output']>;
+  /** System UUID */
+  uuid?: Maybe<Scalars['String']['output']>;
+  /** System version */
+  version?: Maybe<Scalars['String']['output']>;
+  /** Virtual machine flag */
+  virtual?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type InfoUsb = Node & {
+  __typename?: 'InfoUsb';
+  /** USB bus number */
+  bus?: Maybe<Scalars['String']['output']>;
+  /** USB device number */
+  device?: Maybe<Scalars['String']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** USB device name */
+  name: Scalars['String']['output'];
+};
+
+export type InfoVersions = Node & {
+  __typename?: 'InfoVersions';
+  /** Core system versions */
+  core: CoreVersions;
+  id: Scalars['PrefixedID']['output'];
+  /** Software package versions */
+  packages?: Maybe<PackageVersions>;
 };
 
 export type InitiateFlashBackupInput = {
@@ -896,18 +1128,66 @@ export type LogFileContent = {
 
 export type MemoryLayout = Node & {
   __typename?: 'MemoryLayout';
+  /** Memory bank location (e.g., BANK 0) */
   bank?: Maybe<Scalars['String']['output']>;
+  /** Memory clock speed in MHz */
   clockSpeed?: Maybe<Scalars['Int']['output']>;
+  /** Form factor (e.g., DIMM, SODIMM) */
   formFactor?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
+  /** Memory manufacturer */
   manufacturer?: Maybe<Scalars['String']['output']>;
+  /** Part number of the memory module */
   partNum?: Maybe<Scalars['String']['output']>;
+  /** Serial number of the memory module */
   serialNum?: Maybe<Scalars['String']['output']>;
+  /** Memory module size in bytes */
   size: Scalars['BigInt']['output'];
+  /** Memory type (e.g., DDR4, DDR5) */
   type?: Maybe<Scalars['String']['output']>;
+  /** Configured voltage in millivolts */
   voltageConfigured?: Maybe<Scalars['Int']['output']>;
+  /** Maximum voltage in millivolts */
   voltageMax?: Maybe<Scalars['Int']['output']>;
+  /** Minimum voltage in millivolts */
   voltageMin?: Maybe<Scalars['Int']['output']>;
+};
+
+export type MemoryUtilization = Node & {
+  __typename?: 'MemoryUtilization';
+  /** Active memory in bytes */
+  active: Scalars['BigInt']['output'];
+  /** Available memory in bytes */
+  available: Scalars['BigInt']['output'];
+  /** Buffer/cache memory in bytes */
+  buffcache: Scalars['BigInt']['output'];
+  /** Free memory in bytes */
+  free: Scalars['BigInt']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Swap usage percentage */
+  percentSwapTotal: Scalars['Float']['output'];
+  /** Memory usage percentage */
+  percentTotal: Scalars['Float']['output'];
+  /** Free swap memory in bytes */
+  swapFree: Scalars['BigInt']['output'];
+  /** Total swap memory in bytes */
+  swapTotal: Scalars['BigInt']['output'];
+  /** Used swap memory in bytes */
+  swapUsed: Scalars['BigInt']['output'];
+  /** Total system memory in bytes */
+  total: Scalars['BigInt']['output'];
+  /** Used memory in bytes */
+  used: Scalars['BigInt']['output'];
+};
+
+/** System metrics including CPU and memory utilization */
+export type Metrics = Node & {
+  __typename?: 'Metrics';
+  /** Current CPU utilization metrics */
+  cpu?: Maybe<CpuUtilization>;
+  id: Scalars['PrefixedID']['output'];
+  /** Current memory utilization metrics */
+  memory?: Maybe<MemoryUtilization>;
 };
 
 /** The status of the minigraph */
@@ -936,23 +1216,28 @@ export type Mutation = {
   archiveNotification: Notification;
   archiveNotifications: NotificationOverview;
   array: ArrayMutations;
+  configureUps: Scalars['Boolean']['output'];
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
+  createDockerFolder: ResolvedOrganizerV1;
   /** Creates a new notification record */
   createNotification: Notification;
   /** Deletes all archived notifications on server. */
   deleteArchivedNotifications: NotificationOverview;
+  deleteDockerEntries: ResolvedOrganizerV1;
   deleteNotification: NotificationOverview;
   docker: DockerMutations;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   /** Initiates a flash drive backup using a configured remote. */
   initiateFlashBackup: FlashBackupStatus;
+  moveDockerEntriesToFolder: ResolvedOrganizerV1;
   parityCheck: ParityCheckMutations;
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
   recalculateOverview: NotificationOverview;
   /** Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required. */
   removePlugin: Scalars['Boolean']['output'];
+  setDockerFolderChildren: ResolvedOrganizerV1;
   setupRemoteAccess: Scalars['Boolean']['output'];
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
@@ -984,13 +1269,30 @@ export type MutationArchiveNotificationsArgs = {
 };
 
 
+export type MutationConfigureUpsArgs = {
+  config: UpsConfigInput;
+};
+
+
 export type MutationConnectSignInArgs = {
   input: ConnectSignInInput;
 };
 
 
+export type MutationCreateDockerFolderArgs = {
+  childrenIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  name: Scalars['String']['input'];
+  parentId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationCreateNotificationArgs = {
   input: NotificationData;
+};
+
+
+export type MutationDeleteDockerEntriesArgs = {
+  entryIds: Array<Scalars['String']['input']>;
 };
 
 
@@ -1010,8 +1312,20 @@ export type MutationInitiateFlashBackupArgs = {
 };
 
 
+export type MutationMoveDockerEntriesToFolderArgs = {
+  destinationFolderId: Scalars['String']['input'];
+  sourceEntryIds: Array<Scalars['String']['input']>;
+};
+
+
 export type MutationRemovePluginArgs = {
   input: PluginManagementInput;
+};
+
+
+export type MutationSetDockerFolderChildrenArgs = {
+  childrenIds: Array<Scalars['String']['input']>;
+  folderId?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1122,21 +1436,78 @@ export type NotificationsListArgs = {
   filter: NotificationFilter;
 };
 
-export type Os = Node & {
-  __typename?: 'Os';
-  arch?: Maybe<Scalars['String']['output']>;
-  build?: Maybe<Scalars['String']['output']>;
-  codename?: Maybe<Scalars['String']['output']>;
-  codepage?: Maybe<Scalars['String']['output']>;
-  distro?: Maybe<Scalars['String']['output']>;
-  hostname?: Maybe<Scalars['String']['output']>;
+export type OidcAuthorizationRule = {
+  __typename?: 'OidcAuthorizationRule';
+  /** The claim to check (e.g., email, sub, groups, hd) */
+  claim: Scalars['String']['output'];
+  /** The comparison operator */
+  operator: AuthorizationOperator;
+  /** The value(s) to match against */
+  value: Array<Scalars['String']['output']>;
+};
+
+export type OidcConfiguration = {
+  __typename?: 'OidcConfiguration';
+  /** Default allowed redirect origins that apply to all OIDC providers (e.g., Tailscale domains) */
+  defaultAllowedOrigins?: Maybe<Array<Scalars['String']['output']>>;
+  /** List of configured OIDC providers */
+  providers: Array<OidcProvider>;
+};
+
+export type OidcProvider = {
+  __typename?: 'OidcProvider';
+  /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  authorizationEndpoint?: Maybe<Scalars['String']['output']>;
+  /** Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR. */
+  authorizationRuleMode?: Maybe<AuthorizationRuleMode>;
+  /** Flexible authorization rules based on claims */
+  authorizationRules?: Maybe<Array<OidcAuthorizationRule>>;
+  /** URL or base64 encoded icon for the login button */
+  buttonIcon?: Maybe<Scalars['String']['output']>;
+  /** Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;") */
+  buttonStyle?: Maybe<Scalars['String']['output']>;
+  /** Custom text for the login button */
+  buttonText?: Maybe<Scalars['String']['output']>;
+  /** Button variant style from Reka UI. See https://reka-ui.com/docs/components/button */
+  buttonVariant?: Maybe<Scalars['String']['output']>;
+  /** OAuth2 client ID registered with the provider */
+  clientId: Scalars['String']['output'];
+  /** OAuth2 client secret (if required by provider) */
+  clientSecret?: Maybe<Scalars['String']['output']>;
+  /** The unique identifier for the OIDC provider */
   id: Scalars['PrefixedID']['output'];
-  kernel?: Maybe<Scalars['String']['output']>;
-  logofile?: Maybe<Scalars['String']['output']>;
-  platform?: Maybe<Scalars['String']['output']>;
-  release?: Maybe<Scalars['String']['output']>;
-  serial?: Maybe<Scalars['String']['output']>;
-  uptime?: Maybe<Scalars['String']['output']>;
+  /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
+  issuer?: Maybe<Scalars['String']['output']>;
+  /** JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  jwksUri?: Maybe<Scalars['String']['output']>;
+  /** Display name of the OIDC provider */
+  name: Scalars['String']['output'];
+  /** OAuth2 scopes to request (e.g., openid, profile, email) */
+  scopes: Array<Scalars['String']['output']>;
+  /** OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  tokenEndpoint?: Maybe<Scalars['String']['output']>;
+};
+
+export type OidcSessionValidation = {
+  __typename?: 'OidcSessionValidation';
+  username?: Maybe<Scalars['String']['output']>;
+  valid: Scalars['Boolean']['output'];
+};
+
+export type OrganizerContainerResource = {
+  __typename?: 'OrganizerContainerResource';
+  id: Scalars['String']['output'];
+  meta?: Maybe<DockerContainer>;
+  name: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+};
+
+export type OrganizerResource = {
+  __typename?: 'OrganizerResource';
+  id: Scalars['String']['output'];
+  meta?: Maybe<Scalars['JSON']['output']>;
+  name: Scalars['String']['output'];
+  type: Scalars['String']['output'];
 };
 
 export type Owner = {
@@ -1144,6 +1515,26 @@ export type Owner = {
   avatar: Scalars['String']['output'];
   url: Scalars['String']['output'];
   username: Scalars['String']['output'];
+};
+
+export type PackageVersions = {
+  __typename?: 'PackageVersions';
+  /** Docker version */
+  docker?: Maybe<Scalars['String']['output']>;
+  /** Git version */
+  git?: Maybe<Scalars['String']['output']>;
+  /** nginx version */
+  nginx?: Maybe<Scalars['String']['output']>;
+  /** Node.js version */
+  node?: Maybe<Scalars['String']['output']>;
+  /** npm version */
+  npm?: Maybe<Scalars['String']['output']>;
+  /** OpenSSL version */
+  openssl?: Maybe<Scalars['String']['output']>;
+  /** PHP version */
+  php?: Maybe<Scalars['String']['output']>;
+  /** pm2 version */
+  pm2?: Maybe<Scalars['String']['output']>;
 };
 
 export type ParityCheck = {
@@ -1165,7 +1556,7 @@ export type ParityCheck = {
   /** Speed of the parity check, in MB/s */
   speed?: Maybe<Scalars['String']['output']>;
   /** Status of the parity check */
-  status?: Maybe<Scalars['String']['output']>;
+  status: ParityCheckStatus;
 };
 
 /** Parity check related mutations, WIP, response types and functionaliy will change */
@@ -1187,22 +1578,19 @@ export type ParityCheckMutationsStartArgs = {
   correct: Scalars['Boolean']['input'];
 };
 
-export type Pci = Node & {
-  __typename?: 'Pci';
-  blacklisted?: Maybe<Scalars['String']['output']>;
-  class?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  productid?: Maybe<Scalars['String']['output']>;
-  productname?: Maybe<Scalars['String']['output']>;
-  type?: Maybe<Scalars['String']['output']>;
-  typeid?: Maybe<Scalars['String']['output']>;
-  vendorid?: Maybe<Scalars['String']['output']>;
-  vendorname?: Maybe<Scalars['String']['output']>;
-};
+export enum ParityCheckStatus {
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  NEVER_RUN = 'NEVER_RUN',
+  PAUSED = 'PAUSED',
+  RUNNING = 'RUNNING'
+}
 
 export type Permission = {
   __typename?: 'Permission';
-  actions: Array<Scalars['String']['output']>;
+  /** Actions allowed on this resource */
+  actions: Array<AuthAction>;
   resource: Resource;
 };
 
@@ -1235,6 +1623,16 @@ export type ProfileModel = Node & {
   username: Scalars['String']['output'];
 };
 
+export type PublicOidcProvider = {
+  __typename?: 'PublicOidcProvider';
+  buttonIcon?: Maybe<Scalars['String']['output']>;
+  buttonStyle?: Maybe<Scalars['String']['output']>;
+  buttonText?: Maybe<Scalars['String']['output']>;
+  buttonVariant?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type PublicPartnerInfo = {
   __typename?: 'PublicPartnerInfo';
   /** Indicates if a partner logo exists */
@@ -1247,6 +1645,7 @@ export type PublicPartnerInfo = {
 
 export type Query = {
   __typename?: 'Query';
+  allConfigFiles: ConfigFilesResponse;
   apiKey?: Maybe<ApiKey>;
   /** All possible permissions for API keys */
   apiKeyPossiblePermissions: Array<Permission>;
@@ -1256,27 +1655,44 @@ export type Query = {
   array: UnraidArray;
   cloud: Cloud;
   config: Config;
+  configFile?: Maybe<ConfigFile>;
   connect: Connect;
   customization?: Maybe<Customization>;
   disk: Disk;
   disks: Array<Disk>;
-  display: Display;
   docker: Docker;
   flash: Flash;
+  /** Get JSON Schema for API key creation form */
+  getApiKeyCreationFormSchema: ApiKeyFormSettings;
+  /** Get all available authentication actions with possession */
+  getAvailableAuthActions: Array<AuthAction>;
+  /** Get the actual permissions that would be granted by a set of roles */
+  getPermissionsForRoles: Array<Permission>;
   info: Info;
   isInitialSetup: Scalars['Boolean']['output'];
   isSSOEnabled: Scalars['Boolean']['output'];
   logFile: LogFileContent;
   logFiles: Array<LogFile>;
   me: UserAccount;
+  metrics: Metrics;
   network: Network;
   /** Get all notifications */
   notifications: Notifications;
+  /** Get the full OIDC configuration (admin only) */
+  oidcConfiguration: OidcConfiguration;
+  /** Get a specific OIDC provider by ID */
+  oidcProvider?: Maybe<OidcProvider>;
+  /** Get all configured OIDC providers (admin only) */
+  oidcProviders: Array<OidcProvider>;
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
   /** List all installed plugins with their metadata */
   plugins: Array<Plugin>;
+  /** Preview the effective permissions for a combination of roles and explicit permissions */
+  previewEffectivePermissions: Array<Permission>;
+  /** Get public OIDC provider information for login buttons */
+  publicOidcProviders: Array<PublicOidcProvider>;
   publicPartnerInfo?: Maybe<PublicPartnerInfo>;
   publicTheme: Theme;
   rclone: RCloneBackupSettings;
@@ -1287,6 +1703,11 @@ export type Query = {
   services: Array<Service>;
   settings: Settings;
   shares: Array<Share>;
+  upsConfiguration: UpsConfiguration;
+  upsDeviceById?: Maybe<UpsDevice>;
+  upsDevices: Array<UpsDevice>;
+  /** Validate an OIDC session token (internal use for CLI validation) */
+  validateOidcSession: OidcSessionValidation;
   vars: Vars;
   /** Get information about all VMs on the system */
   vms: Vms;
@@ -1298,8 +1719,18 @@ export type QueryApiKeyArgs = {
 };
 
 
+export type QueryConfigFileArgs = {
+  name: Scalars['String']['input'];
+};
+
+
 export type QueryDiskArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryGetPermissionsForRolesArgs = {
+  roles: Array<Role>;
 };
 
 
@@ -1307,6 +1738,27 @@ export type QueryLogFileArgs = {
   lines?: InputMaybe<Scalars['Int']['input']>;
   path: Scalars['String']['input'];
   startLine?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryOidcProviderArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryPreviewEffectivePermissionsArgs = {
+  permissions?: InputMaybe<Array<AddPermissionInput>>;
+  roles?: InputMaybe<Array<Role>>;
+};
+
+
+export type QueryUpsDeviceByIdArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type QueryValidateOidcSessionArgs = {
+  token: Scalars['String']['input'];
 };
 
 export type RCloneBackupConfigForm = {
@@ -1433,6 +1885,30 @@ export type RemoveRoleFromApiKeyInput = {
   role: Role;
 };
 
+export type ResolvedOrganizerEntry = OrganizerContainerResource | OrganizerResource | ResolvedOrganizerFolder;
+
+export type ResolvedOrganizerFolder = {
+  __typename?: 'ResolvedOrganizerFolder';
+  children: Array<ResolvedOrganizerEntry>;
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+};
+
+export type ResolvedOrganizerV1 = {
+  __typename?: 'ResolvedOrganizerV1';
+  version: Scalars['Float']['output'];
+  views: Array<ResolvedOrganizerView>;
+};
+
+export type ResolvedOrganizerView = {
+  __typename?: 'ResolvedOrganizerView';
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  prefs?: Maybe<Scalars['JSON']['output']>;
+  root: ResolvedOrganizerEntry;
+};
+
 /** Available resources for permissions */
 export enum Resource {
   ACTIVATION_CODE = 'ACTIVATION_CODE',
@@ -1468,10 +1944,14 @@ export enum Resource {
 
 /** Available roles for API keys and users */
 export enum Role {
+  /** Full administrative access to all resources */
   ADMIN = 'ADMIN',
+  /** Internal Role for Unraid Connect */
   CONNECT = 'CONNECT',
+  /** Basic read access to user profile only */
   GUEST = 'GUEST',
-  USER = 'USER'
+  /** Read-only access to all resources */
+  VIEWER = 'VIEWER'
 }
 
 export type Server = Node & {
@@ -1484,6 +1964,7 @@ export type Server = Node & {
   name: Scalars['String']['output'];
   owner: ProfileModel;
   remoteurl: Scalars['String']['output'];
+  /** Whether this server is online or offline */
   status: ServerStatus;
   wanip: Scalars['String']['output'];
 };
@@ -1508,6 +1989,8 @@ export type Settings = Node & {
   /** The API setting values */
   api: ApiConfig;
   id: Scalars['PrefixedID']['output'];
+  /** SSO settings */
+  sso: SsoSettings;
   /** A view of all settings */
   unified: UnifiedSettings;
 };
@@ -1556,17 +2039,25 @@ export type Share = Node & {
   used?: Maybe<Scalars['BigInt']['output']>;
 };
 
+export type SsoSettings = Node & {
+  __typename?: 'SsoSettings';
+  id: Scalars['PrefixedID']['output'];
+  /** List of configured OIDC providers */
+  oidcProviders: Array<OidcProvider>;
+};
+
 export type Subscription = {
   __typename?: 'Subscription';
   arraySubscription: UnraidArray;
-  displaySubscription: Display;
-  infoSubscription: Info;
   logFile: LogFileContent;
   notificationAdded: Notification;
   notificationsOverview: NotificationOverview;
   ownerSubscription: Owner;
   parityHistorySubscription: ParityCheck;
   serversSubscription: Server;
+  systemMetricsCpu: CpuUtilization;
+  systemMetricsMemory: MemoryUtilization;
+  upsUpdates: UpsDevice;
 };
 
 
@@ -1574,21 +2065,10 @@ export type SubscriptionLogFileArgs = {
   path: Scalars['String']['input'];
 };
 
-export type System = Node & {
-  __typename?: 'System';
-  id: Scalars['PrefixedID']['output'];
-  manufacturer?: Maybe<Scalars['String']['output']>;
-  model?: Maybe<Scalars['String']['output']>;
-  serial?: Maybe<Scalars['String']['output']>;
-  sku?: Maybe<Scalars['String']['output']>;
-  uuid?: Maybe<Scalars['String']['output']>;
-  version?: Maybe<Scalars['String']['output']>;
-};
-
-/** Temperature unit (Celsius or Fahrenheit) */
+/** Temperature unit */
 export enum Temperature {
-  C = 'C',
-  F = 'F'
+  CELSIUS = 'CELSIUS',
+  FAHRENHEIT = 'FAHRENHEIT'
 }
 
 export type Theme = {
@@ -1617,6 +2097,129 @@ export enum ThemeName {
   WHITE = 'white'
 }
 
+export type UpsBattery = {
+  __typename?: 'UPSBattery';
+  /** Battery charge level as a percentage (0-100). Unit: percent (%). Example: 100 means battery is fully charged */
+  chargeLevel: Scalars['Int']['output'];
+  /** Estimated runtime remaining on battery power. Unit: seconds. Example: 3600 means 1 hour of runtime remaining */
+  estimatedRuntime: Scalars['Int']['output'];
+  /** Battery health status. Possible values: 'Good', 'Replace', 'Unknown'. Indicates if the battery needs replacement */
+  health: Scalars['String']['output'];
+};
+
+/** UPS cable connection types */
+export enum UpsCableType {
+  CUSTOM = 'CUSTOM',
+  ETHER = 'ETHER',
+  SIMPLE = 'SIMPLE',
+  SMART = 'SMART',
+  USB = 'USB'
+}
+
+export type UpsConfigInput = {
+  /** Battery level percentage to initiate shutdown. Unit: percent (%) - Valid range: 0-100 */
+  batteryLevel?: InputMaybe<Scalars['Int']['input']>;
+  /** Custom cable configuration (only used when upsCable is CUSTOM). Format depends on specific UPS model */
+  customUpsCable?: InputMaybe<Scalars['String']['input']>;
+  /** Device path or network address for UPS connection. Examples: '/dev/ttyUSB0' for USB, '192.168.1.100:3551' for network */
+  device?: InputMaybe<Scalars['String']['input']>;
+  /** Turn off UPS power after system shutdown. Useful for ensuring complete power cycle */
+  killUps?: InputMaybe<UpsKillPower>;
+  /** Runtime left in minutes to initiate shutdown. Unit: minutes */
+  minutes?: InputMaybe<Scalars['Int']['input']>;
+  /** Override UPS capacity for runtime calculations. Unit: watts (W). Leave unset to use UPS-reported capacity */
+  overrideUpsCapacity?: InputMaybe<Scalars['Int']['input']>;
+  /** Enable or disable the UPS monitoring service */
+  service?: InputMaybe<UpsServiceState>;
+  /** Time on battery before shutdown. Unit: seconds. Set to 0 to disable timeout-based shutdown */
+  timeout?: InputMaybe<Scalars['Int']['input']>;
+  /** Type of cable connecting the UPS to the server */
+  upsCable?: InputMaybe<UpsCableType>;
+  /** UPS communication protocol */
+  upsType?: InputMaybe<UpsType>;
+};
+
+export type UpsConfiguration = {
+  __typename?: 'UPSConfiguration';
+  /** Battery level threshold for shutdown. Unit: percent (%). Example: 10 means shutdown when battery reaches 10%. System will shutdown when battery drops to this level */
+  batteryLevel?: Maybe<Scalars['Int']['output']>;
+  /** Custom cable configuration string. Only used when upsCable is set to 'custom'. Format depends on specific UPS model */
+  customUpsCable?: Maybe<Scalars['String']['output']>;
+  /** Device path or network address for UPS connection. Examples: '/dev/ttyUSB0' for USB, '192.168.1.100:3551' for network. Depends on upsType setting */
+  device?: Maybe<Scalars['String']['output']>;
+  /** Kill UPS power after shutdown. Values: 'yes' or 'no'. If 'yes', tells UPS to cut power after system shutdown. Useful for ensuring complete power cycle */
+  killUps?: Maybe<Scalars['String']['output']>;
+  /** Runtime threshold for shutdown. Unit: minutes. Example: 5 means shutdown when 5 minutes runtime remaining. System will shutdown when estimated runtime drops below this */
+  minutes?: Maybe<Scalars['Int']['output']>;
+  /** Override UPS model name. Used for display purposes. Leave unset to use UPS-reported model */
+  modelName?: Maybe<Scalars['String']['output']>;
+  /** Network server mode. Values: 'on' or 'off'. Enable to allow network clients to monitor this UPS */
+  netServer?: Maybe<Scalars['String']['output']>;
+  /** Network Information Server (NIS) IP address. Default: '0.0.0.0' (listen on all interfaces). IP address for apcupsd network information server */
+  nisIp?: Maybe<Scalars['String']['output']>;
+  /** Override UPS capacity for runtime calculations. Unit: volt-amperes (VA). Example: 1500 for a 1500VA UPS. Leave unset to use UPS-reported capacity */
+  overrideUpsCapacity?: Maybe<Scalars['Int']['output']>;
+  /** UPS service state. Values: 'enable' or 'disable'. Controls whether the UPS monitoring service is running */
+  service?: Maybe<Scalars['String']['output']>;
+  /** Timeout for UPS communications. Unit: seconds. Example: 0 means no timeout. Time to wait for UPS response before considering it offline */
+  timeout?: Maybe<Scalars['Int']['output']>;
+  /** Type of cable connecting the UPS to the server. Common values: 'usb', 'smart', 'ether', 'custom'. Determines communication protocol */
+  upsCable?: Maybe<Scalars['String']['output']>;
+  /** UPS name for network monitoring. Used to identify this UPS on the network. Example: 'SERVER_UPS' */
+  upsName?: Maybe<Scalars['String']['output']>;
+  /** UPS communication type. Common values: 'usb', 'net', 'snmp', 'dumb', 'pcnet', 'modbus'. Defines how the server communicates with the UPS */
+  upsType?: Maybe<Scalars['String']['output']>;
+};
+
+export type UpsDevice = {
+  __typename?: 'UPSDevice';
+  /** Battery-related information */
+  battery: UpsBattery;
+  /** Unique identifier for the UPS device. Usually based on the model name or a generated ID */
+  id: Scalars['ID']['output'];
+  /** UPS model name/number. Example: 'APC Back-UPS Pro 1500' */
+  model: Scalars['String']['output'];
+  /** Display name for the UPS device. Can be customized by the user */
+  name: Scalars['String']['output'];
+  /** Power-related information */
+  power: UpsPower;
+  /** Current operational status of the UPS. Common values: 'Online', 'On Battery', 'Low Battery', 'Replace Battery', 'Overload', 'Offline'. 'Online' means running on mains power, 'On Battery' means running on battery backup */
+  status: Scalars['String']['output'];
+};
+
+/** Kill UPS power after shutdown option */
+export enum UpsKillPower {
+  NO = 'NO',
+  YES = 'YES'
+}
+
+export type UpsPower = {
+  __typename?: 'UPSPower';
+  /** Input voltage from the wall outlet/mains power. Unit: volts (V). Example: 120.5 for typical US household voltage */
+  inputVoltage: Scalars['Float']['output'];
+  /** Current load on the UPS as a percentage of its capacity. Unit: percent (%). Example: 25 means UPS is loaded at 25% of its maximum capacity */
+  loadPercentage: Scalars['Int']['output'];
+  /** Output voltage being delivered to connected devices. Unit: volts (V). Example: 120.5 - should match input voltage when on mains power */
+  outputVoltage: Scalars['Float']['output'];
+};
+
+/** Service state for UPS daemon */
+export enum UpsServiceState {
+  DISABLE = 'DISABLE',
+  ENABLE = 'ENABLE'
+}
+
+/** UPS communication protocols */
+export enum UpsType {
+  APCSMART = 'APCSMART',
+  DUMB = 'DUMB',
+  MODBUS = 'MODBUS',
+  NET = 'NET',
+  PCNET = 'PCNET',
+  SNMP = 'SNMP',
+  USB = 'USB'
+}
+
 export enum UrlType {
   DEFAULT = 'DEFAULT',
   LAN = 'LAN',
@@ -1626,7 +2229,7 @@ export enum UrlType {
   WIREGUARD = 'WIREGUARD'
 }
 
-export type UnifiedSettings = Node & {
+export type UnifiedSettings = FormSchema & Node & {
   __typename?: 'UnifiedSettings';
   /** The data schema for the settings */
   dataSchema: Scalars['JSON']['output'];
@@ -1650,6 +2253,8 @@ export type UnraidArray = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Parity disks in the current array */
   parities: Array<ArrayDisk>;
+  /** Current parity check status */
+  parityCheckStatus: ParityCheck;
   /** Current array state */
   state: ArrayState;
 };
@@ -1668,17 +2273,13 @@ export type UpdateSettingsResponse = {
   restartRequired: Scalars['Boolean']['output'];
   /** The updated settings values */
   values: Scalars['JSON']['output'];
+  /** Warning messages about configuration issues found during validation */
+  warnings?: Maybe<Array<Scalars['String']['output']>>;
 };
 
 export type Uptime = {
   __typename?: 'Uptime';
   timestamp?: Maybe<Scalars['String']['output']>;
-};
-
-export type Usb = Node & {
-  __typename?: 'Usb';
-  id: Scalars['PrefixedID']['output'];
-  name?: Maybe<Scalars['String']['output']>;
 };
 
 export type UserAccount = Node & {
@@ -1858,37 +2459,6 @@ export type Vars = Node & {
   workgroup?: Maybe<Scalars['String']['output']>;
 };
 
-export type Versions = Node & {
-  __typename?: 'Versions';
-  apache?: Maybe<Scalars['String']['output']>;
-  docker?: Maybe<Scalars['String']['output']>;
-  gcc?: Maybe<Scalars['String']['output']>;
-  git?: Maybe<Scalars['String']['output']>;
-  grunt?: Maybe<Scalars['String']['output']>;
-  gulp?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  kernel?: Maybe<Scalars['String']['output']>;
-  mongodb?: Maybe<Scalars['String']['output']>;
-  mysql?: Maybe<Scalars['String']['output']>;
-  nginx?: Maybe<Scalars['String']['output']>;
-  node?: Maybe<Scalars['String']['output']>;
-  npm?: Maybe<Scalars['String']['output']>;
-  openssl?: Maybe<Scalars['String']['output']>;
-  perl?: Maybe<Scalars['String']['output']>;
-  php?: Maybe<Scalars['String']['output']>;
-  pm2?: Maybe<Scalars['String']['output']>;
-  postfix?: Maybe<Scalars['String']['output']>;
-  postgresql?: Maybe<Scalars['String']['output']>;
-  python?: Maybe<Scalars['String']['output']>;
-  redis?: Maybe<Scalars['String']['output']>;
-  systemOpenssl?: Maybe<Scalars['String']['output']>;
-  systemOpensslLib?: Maybe<Scalars['String']['output']>;
-  tsc?: Maybe<Scalars['String']['output']>;
-  unraid?: Maybe<Scalars['String']['output']>;
-  v8?: Maybe<Scalars['String']['output']>;
-  yarn?: Maybe<Scalars['String']['output']>;
-};
-
 export type VmDomain = Node & {
   __typename?: 'VmDomain';
   /** The unique identifier for the vm (uuid) */
@@ -2013,9 +2583,12 @@ export type ActivationCodeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ActivationCodeQuery = { __typename?: 'Query', vars: { __typename?: 'Vars', regState?: RegistrationState | null }, customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', code?: string | null, partnerName?: string | null, serverName?: string | null, sysModel?: string | null, comment?: string | null, header?: string | null, headermetacolor?: string | null, background?: string | null, showBannerGradient?: boolean | null, theme?: string | null } | null, partnerInfo?: { __typename?: 'PublicPartnerInfo', hasPartnerLogo: boolean, partnerName?: string | null, partnerUrl?: string | null, partnerLogoUrl?: string | null } | null } | null };
 
-export type ApiKeyFragment = { __typename?: 'ApiKey', id: string, name: string, description?: string | null, createdAt: string, roles: Array<Role>, permissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<string> }> } & { ' $fragmentName'?: 'ApiKeyFragment' };
+export type GetApiKeyCreationFormSchemaQueryVariables = Exact<{ [key: string]: never; }>;
 
-export type ApiKeyWithKeyFragment = { __typename?: 'ApiKeyWithSecret', id: string, key: string, name: string, description?: string | null, createdAt: string, roles: Array<Role>, permissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<string> }> } & { ' $fragmentName'?: 'ApiKeyWithKeyFragment' };
+
+export type GetApiKeyCreationFormSchemaQuery = { __typename?: 'Query', getApiKeyCreationFormSchema: { __typename?: 'ApiKeyFormSettings', id: string, dataSchema: any, uiSchema: any, values: any } };
+
+export type ApiKeyFragment = { __typename?: 'ApiKey', id: string, key: string, name: string, description?: string | null, createdAt: string, roles: Array<Role>, permissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<AuthAction> }> } & { ' $fragmentName'?: 'ApiKeyFragment' };
 
 export type ApiKeysQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2031,8 +2604,8 @@ export type CreateApiKeyMutationVariables = Exact<{
 
 
 export type CreateApiKeyMutation = { __typename?: 'Mutation', apiKey: { __typename?: 'ApiKeyMutations', create: (
-      { __typename?: 'ApiKeyWithSecret' }
-      & { ' $fragmentRefs'?: { 'ApiKeyWithKeyFragment': ApiKeyWithKeyFragment } }
+      { __typename?: 'ApiKey' }
+      & { ' $fragmentRefs'?: { 'ApiKeyFragment': ApiKeyFragment } }
     ) } };
 
 export type UpdateApiKeyMutationVariables = Exact<{
@@ -2041,8 +2614,8 @@ export type UpdateApiKeyMutationVariables = Exact<{
 
 
 export type UpdateApiKeyMutation = { __typename?: 'Mutation', apiKey: { __typename?: 'ApiKeyMutations', update: (
-      { __typename?: 'ApiKeyWithSecret' }
-      & { ' $fragmentRefs'?: { 'ApiKeyWithKeyFragment': ApiKeyWithKeyFragment } }
+      { __typename?: 'ApiKey' }
+      & { ' $fragmentRefs'?: { 'ApiKeyFragment': ApiKeyFragment } }
     ) } };
 
 export type DeleteApiKeyMutationVariables = Exact<{
@@ -2055,7 +2628,22 @@ export type DeleteApiKeyMutation = { __typename?: 'Mutation', apiKey: { __typena
 export type ApiKeyMetaQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ApiKeyMetaQuery = { __typename?: 'Query', apiKeyPossibleRoles: Array<Role>, apiKeyPossiblePermissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<string> }> };
+export type ApiKeyMetaQuery = { __typename?: 'Query', apiKeyPossibleRoles: Array<Role>, apiKeyPossiblePermissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<AuthAction> }> };
+
+export type PreviewEffectivePermissionsQueryVariables = Exact<{
+  roles?: InputMaybe<Array<Role> | Role>;
+  permissions?: InputMaybe<Array<AddPermissionInput> | AddPermissionInput>;
+}>;
+
+
+export type PreviewEffectivePermissionsQuery = { __typename?: 'Query', previewEffectivePermissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<AuthAction> }> };
+
+export type GetPermissionsForRolesQueryVariables = Exact<{
+  roles: Array<Role> | Role;
+}>;
+
+
+export type GetPermissionsForRolesQuery = { __typename?: 'Query', getPermissionsForRoles: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<AuthAction> }> };
 
 export type UnifiedQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2193,10 +2781,37 @@ export type ListRCloneRemotesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ListRCloneRemotesQuery = { __typename?: 'Query', rclone: { __typename?: 'RCloneBackupSettings', remotes: Array<{ __typename?: 'RCloneRemote', name: string, type: string, parameters: any, config: any }> } };
 
+export type InfoVersionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type InfoVersionsQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: string, os: { __typename?: 'InfoOs', id: string, hostname?: string | null }, versions: { __typename?: 'InfoVersions', id: string, core: { __typename?: 'CoreVersions', unraid?: string | null, api?: string | null } } } };
+
+export type OidcProvidersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OidcProvidersQuery = { __typename?: 'Query', settings: { __typename?: 'Settings', sso: { __typename?: 'SsoSettings', oidcProviders: Array<{ __typename?: 'OidcProvider', id: string, name: string, clientId: string, issuer?: string | null, authorizationEndpoint?: string | null, tokenEndpoint?: string | null, jwksUri?: string | null, scopes: Array<string>, authorizationRuleMode?: AuthorizationRuleMode | null, buttonText?: string | null, buttonIcon?: string | null, authorizationRules?: Array<{ __typename?: 'OidcAuthorizationRule', claim: string, operator: AuthorizationOperator, value: Array<string> }> | null }> } } };
+
+export type PublicOidcProvidersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type PublicOidcProvidersQuery = { __typename?: 'Query', publicOidcProviders: Array<{ __typename?: 'PublicOidcProvider', id: string, name: string, buttonText?: string | null, buttonIcon?: string | null, buttonVariant?: string | null, buttonStyle?: string | null }> };
+
+export type AllConfigFilesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllConfigFilesQuery = { __typename?: 'Query', allConfigFiles: { __typename?: 'ConfigFilesResponse', files: Array<{ __typename?: 'ConfigFile', name: string, content: string, path: string, sizeReadable: string }> } };
+
+export type ConfigFileQueryVariables = Exact<{
+  name: Scalars['String']['input'];
+}>;
+
+
+export type ConfigFileQuery = { __typename?: 'Query', configFile?: { __typename?: 'ConfigFile', name: string, content: string, path: string, sizeReadable: string } | null };
+
 export type ServerInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ServerInfoQuery = { __typename?: 'Query', info: { __typename?: 'Info', os: { __typename?: 'Os', hostname?: string | null } }, vars: { __typename?: 'Vars', comment?: string | null } };
+export type ServerInfoQuery = { __typename?: 'Query', info: { __typename?: 'Info', os: { __typename?: 'InfoOs', hostname?: string | null } }, vars: { __typename?: 'Vars', comment?: string | null } };
 
 export type ConnectSignInMutationVariables = Exact<{
   input: ConnectSignInInput;
@@ -2228,26 +2843,28 @@ export type CloudStateQuery = { __typename?: 'Query', cloud: (
 export type ServerStateQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ServerStateQuery = { __typename?: 'Query', config: { __typename?: 'Config', error?: string | null, valid?: boolean | null }, info: { __typename?: 'Info', os: { __typename?: 'Os', hostname?: string | null } }, owner: { __typename?: 'Owner', avatar: string, username: string }, registration?: { __typename?: 'Registration', state?: RegistrationState | null, expiration?: string | null, updateExpiration?: string | null, keyFile?: { __typename?: 'KeyFile', contents?: string | null } | null } | null, vars: { __typename?: 'Vars', regGen?: string | null, regState?: RegistrationState | null, configError?: ConfigErrorState | null, configValid?: boolean | null } };
+export type ServerStateQuery = { __typename?: 'Query', config: { __typename?: 'Config', error?: string | null, valid?: boolean | null }, info: { __typename?: 'Info', os: { __typename?: 'InfoOs', hostname?: string | null } }, owner: { __typename?: 'Owner', avatar: string, username: string }, registration?: { __typename?: 'Registration', state?: RegistrationState | null, expiration?: string | null, updateExpiration?: string | null, keyFile?: { __typename?: 'KeyFile', contents?: string | null } | null } | null, vars: { __typename?: 'Vars', regGen?: string | null, regState?: RegistrationState | null, configError?: ConfigErrorState | null, configValid?: boolean | null } };
 
 export type GetThemeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetThemeQuery = { __typename?: 'Query', publicTheme: { __typename?: 'Theme', name: ThemeName, showBannerImage: boolean, showBannerGradient: boolean, headerBackgroundColor?: string | null, showHeaderDescription: boolean, headerPrimaryTextColor?: string | null, headerSecondaryTextColor?: string | null } };
 
-export const ApiKeyFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyFragment, unknown>;
-export const ApiKeyWithKeyFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKeyWithKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKeyWithSecret"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyWithKeyFragment, unknown>;
+export const ApiKeyFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyFragment, unknown>;
 export const NotificationFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationFragmentFragment, unknown>;
 export const NotificationCountFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationCountFragmentFragment, unknown>;
 export const PartialCloudFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<PartialCloudFragment, unknown>;
 export const PartnerInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}}]}}]} as unknown as DocumentNode<PartnerInfoQuery, PartnerInfoQueryVariables>;
 export const PublicWelcomeDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PublicWelcomeData"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"isInitialSetup"}}]}}]} as unknown as DocumentNode<PublicWelcomeDataQuery, PublicWelcomeDataQueryVariables>;
 export const ActivationCodeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regState"}}]}},{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"sysModel"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}},{"kind":"Field","name":{"kind":"Name","value":"header"}},{"kind":"Field","name":{"kind":"Name","value":"headermetacolor"}},{"kind":"Field","name":{"kind":"Name","value":"background"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}}]}},{"kind":"Field","name":{"kind":"Name","value":"partnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}}]}}]}}]} as unknown as DocumentNode<ActivationCodeQuery, ActivationCodeQueryVariables>;
-export const ApiKeysDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ApiKeys"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKeys"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeysQuery, ApiKeysQueryVariables>;
-export const CreateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"create"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKeyWithKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKeyWithKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKeyWithSecret"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<CreateApiKeyMutation, CreateApiKeyMutationVariables>;
-export const UpdateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKeyWithKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKeyWithKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKeyWithSecret"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<UpdateApiKeyMutation, UpdateApiKeyMutationVariables>;
+export const GetApiKeyCreationFormSchemaDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetApiKeyCreationFormSchema"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getApiKeyCreationFormSchema"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<GetApiKeyCreationFormSchemaQuery, GetApiKeyCreationFormSchemaQueryVariables>;
+export const ApiKeysDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ApiKeys"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKeys"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeysQuery, ApiKeysQueryVariables>;
+export const CreateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"create"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<CreateApiKeyMutation, CreateApiKeyMutationVariables>;
+export const UpdateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<UpdateApiKeyMutation, UpdateApiKeyMutationVariables>;
 export const DeleteApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]}}]} as unknown as DocumentNode<DeleteApiKeyMutation, DeleteApiKeyMutationVariables>;
 export const ApiKeyMetaDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ApiKeyMeta"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKeyPossibleRoles"}},{"kind":"Field","name":{"kind":"Name","value":"apiKeyPossiblePermissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyMetaQuery, ApiKeyMetaQueryVariables>;
+export const PreviewEffectivePermissionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PreviewEffectivePermissions"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"roles"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Role"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"permissions"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"AddPermissionInput"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"previewEffectivePermissions"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"roles"},"value":{"kind":"Variable","name":{"kind":"Name","value":"roles"}}},{"kind":"Argument","name":{"kind":"Name","value":"permissions"},"value":{"kind":"Variable","name":{"kind":"Name","value":"permissions"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<PreviewEffectivePermissionsQuery, PreviewEffectivePermissionsQueryVariables>;
+export const GetPermissionsForRolesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPermissionsForRoles"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"roles"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Role"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getPermissionsForRoles"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"roles"},"value":{"kind":"Variable","name":{"kind":"Name","value":"roles"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<GetPermissionsForRolesQuery, GetPermissionsForRolesQueryVariables>;
 export const UnifiedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Unified"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unified"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]}}]} as unknown as DocumentNode<UnifiedQuery, UnifiedQueryVariables>;
 export const UpdateConnectSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateConnectSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"JSON"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"restartRequired"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<UpdateConnectSettingsMutation, UpdateConnectSettingsMutationVariables>;
 export const LogFilesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"size"}},{"kind":"Field","name":{"kind":"Name","value":"modifiedAt"}}]}}]}}]} as unknown as DocumentNode<LogFilesQuery, LogFilesQueryVariables>;
@@ -2266,6 +2883,11 @@ export const CreateRCloneRemoteDocument = {"kind":"Document","definitions":[{"ki
 export const DeleteRCloneRemoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteRCloneRemote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteRCloneRemoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteRCloneRemote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]}}]} as unknown as DocumentNode<DeleteRCloneRemoteMutation, DeleteRCloneRemoteMutationVariables>;
 export const GetRCloneConfigFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetRCloneConfigForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"formOptions"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"RCloneConfigFormInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"configForm"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"formOptions"},"value":{"kind":"Variable","name":{"kind":"Name","value":"formOptions"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}}]}}]}}]}}]} as unknown as DocumentNode<GetRCloneConfigFormQuery, GetRCloneConfigFormQueryVariables>;
 export const ListRCloneRemotesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListRCloneRemotes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"remotes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"parameters"}},{"kind":"Field","name":{"kind":"Name","value":"config"}}]}}]}}]}}]} as unknown as DocumentNode<ListRCloneRemotesQuery, ListRCloneRemotesQueryVariables>;
+export const InfoVersionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"InfoVersions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}},{"kind":"Field","name":{"kind":"Name","value":"versions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"core"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraid"}},{"kind":"Field","name":{"kind":"Name","value":"api"}}]}}]}}]}}]}}]} as unknown as DocumentNode<InfoVersionsQuery, InfoVersionsQueryVariables>;
+export const OidcProvidersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"OidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sso"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"oidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"clientId"}},{"kind":"Field","name":{"kind":"Name","value":"issuer"}},{"kind":"Field","name":{"kind":"Name","value":"authorizationEndpoint"}},{"kind":"Field","name":{"kind":"Name","value":"tokenEndpoint"}},{"kind":"Field","name":{"kind":"Name","value":"jwksUri"}},{"kind":"Field","name":{"kind":"Name","value":"scopes"}},{"kind":"Field","name":{"kind":"Name","value":"authorizationRules"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"claim"}},{"kind":"Field","name":{"kind":"Name","value":"operator"}},{"kind":"Field","name":{"kind":"Name","value":"value"}}]}},{"kind":"Field","name":{"kind":"Name","value":"authorizationRuleMode"}},{"kind":"Field","name":{"kind":"Name","value":"buttonText"}},{"kind":"Field","name":{"kind":"Name","value":"buttonIcon"}}]}}]}}]}}]}}]} as unknown as DocumentNode<OidcProvidersQuery, OidcProvidersQueryVariables>;
+export const PublicOidcProvidersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PublicOidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicOidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"buttonText"}},{"kind":"Field","name":{"kind":"Name","value":"buttonIcon"}},{"kind":"Field","name":{"kind":"Name","value":"buttonVariant"}},{"kind":"Field","name":{"kind":"Name","value":"buttonStyle"}}]}}]}}]} as unknown as DocumentNode<PublicOidcProvidersQuery, PublicOidcProvidersQueryVariables>;
+export const AllConfigFilesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"AllConfigFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"allConfigFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"files"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"sizeReadable"}}]}}]}}]}}]} as unknown as DocumentNode<AllConfigFilesQuery, AllConfigFilesQueryVariables>;
+export const ConfigFileDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ConfigFile"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"configFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"sizeReadable"}}]}}]}}]} as unknown as DocumentNode<ConfigFileQuery, ConfigFileQueryVariables>;
 export const ServerInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}}]}}]} as unknown as DocumentNode<ServerInfoQuery, ServerInfoQueryVariables>;
 export const ConnectSignInDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConnectSignIn"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ConnectSignInInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignIn"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<ConnectSignInMutation, ConnectSignInMutationVariables>;
 export const SignOutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignOut"}}]}}]} as unknown as DocumentNode<SignOutMutation, SignOutMutationVariables>;

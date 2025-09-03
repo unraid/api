@@ -1,5 +1,4 @@
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
-import { AuthActionVerb } from 'nest-authz';
+import { AuthAction, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { Command, CommandRunner, InquirerService, Option } from 'nest-commander';
 
 import type { DeleteApiKeyAnswers } from '@app/unraid-api/cli/apikey/delete-api-key.questions.js';
@@ -11,11 +10,13 @@ import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.mode
 
 interface KeyOptions {
     name: string;
-    create: boolean;
+    create?: boolean;
     delete?: boolean;
     description?: string;
     roles?: Role[];
     permissions?: Permission[];
+    overwrite?: boolean;
+    json?: boolean;
 }
 
 @Command({
@@ -53,29 +54,22 @@ export class ApiKeyCommand extends CommandRunner {
     })
     parseRoles(roles: string): Role[] {
         if (!roles) return [Role.GUEST];
-        const validRoles: Set<Role> = new Set(Object.values(Role));
 
-        const requestedRoles = roles.split(',').map((role) => role.trim().toLocaleLowerCase() as Role);
-        const validRequestedRoles = requestedRoles.filter((role) => validRoles.has(role));
+        const roleArray = roles.split(',').filter(Boolean);
+        const validRoles = this.apiKeyService.convertRolesStringArrayToRoles(roleArray);
 
-        if (validRequestedRoles.length === 0) {
-            throw new Error(`Invalid roles. Valid options are: ${Array.from(validRoles).join(', ')}`);
+        if (validRoles.length === 0) {
+            throw new Error(`Invalid roles. Valid options are: ${Object.values(Role).join(', ')}`);
         }
 
-        const invalidRoles = requestedRoles.filter((role) => !validRoles.has(role));
-
-        if (invalidRoles.length > 0) {
-            this.logger.warn(`Ignoring invalid roles: ${invalidRoles.join(', ')}`);
-        }
-
-        return validRequestedRoles;
+        return validRoles;
     }
 
     @Option({
         flags: '-p, --permissions <permissions>',
         description: `Comma separated list of permissions to assign to the key (in the form of "resource:action")
 RESOURCES: ${Object.values(Resource).join(', ')}
-ACTIONS: ${Object.values(AuthActionVerb).join(', ')}`,
+ACTIONS: ${Object.values(AuthAction).join(', ')}`,
     })
     parsePermissions(permissions: string): Array<Permission> {
         return this.apiKeyService.convertPermissionsStringArrayToPermissions(
@@ -99,48 +93,137 @@ ACTIONS: ${Object.values(AuthActionVerb).join(', ')}`,
         return true;
     }
 
-    /** Prompt the user to select API keys to delete. Then, delete the selected keys. */
-    private async deleteKeys() {
+    @Option({
+        flags: '--overwrite',
+        description: 'Overwrite existing API key if it exists',
+    })
+    parseOverwrite(): boolean {
+        return true;
+    }
+
+    @Option({
+        flags: '--json',
+        description: 'Output machine-readable JSON format',
+    })
+    parseJson(): boolean {
+        return true;
+    }
+
+    /** Helper to output either JSON or regular log message */
+    private output(message: string, jsonData?: object, jsonOutput?: boolean): void {
+        if (jsonOutput && jsonData) {
+            console.log(JSON.stringify(jsonData));
+        } else {
+            this.logger.log(message);
+        }
+    }
+
+    /** Helper to output either JSON or regular error message */
+    private outputError(message: string, jsonData?: object, jsonOutput?: boolean): void {
+        if (jsonOutput && jsonData) {
+            console.log(JSON.stringify(jsonData));
+        } else {
+            this.logger.error(message);
+        }
+    }
+
+    /** Delete API keys either by name (non-interactive) or by prompting user selection (interactive). */
+    private async deleteKeys(name?: string, jsonOutput?: boolean) {
         const allKeys = await this.apiKeyService.findAll();
         if (allKeys.length === 0) {
-            this.logger.log('No API keys found to delete');
+            this.output(
+                'No API keys found to delete',
+                { deleted: 0, message: 'No API keys found to delete' },
+                jsonOutput
+            );
             return;
         }
 
-        const answers = await this.inquirerService.prompt<DeleteApiKeyAnswers>(
-            DeleteApiKeyQuestionSet.name,
-            {}
-        );
-        if (!answers.selectedKeys || answers.selectedKeys.length === 0) {
-            this.logger.log('No keys selected for deletion');
-            return;
+        let selectedKeyIds: string[];
+        let deletedKeys: { id: string; name: string }[] = [];
+
+        if (name) {
+            // Non-interactive mode: delete by name
+            const keyToDelete = allKeys.find((key) => key.name === name);
+            if (!keyToDelete) {
+                this.outputError(
+                    `No API key found with name: ${name}`,
+                    { deleted: 0, error: `No API key found with name: ${name}` },
+                    jsonOutput
+                );
+                process.exit(1);
+            }
+            selectedKeyIds = [keyToDelete.id];
+            deletedKeys = [{ id: keyToDelete.id, name: keyToDelete.name }];
+        } else {
+            // Interactive mode: prompt user to select keys
+            const answers = await this.inquirerService.prompt<DeleteApiKeyAnswers>(
+                DeleteApiKeyQuestionSet.name,
+                {}
+            );
+            if (!answers.selectedKeys || answers.selectedKeys.length === 0) {
+                this.output(
+                    'No keys selected for deletion',
+                    { deleted: 0, message: 'No keys selected for deletion' },
+                    jsonOutput
+                );
+                return;
+            }
+            selectedKeyIds = answers.selectedKeys;
+            deletedKeys = allKeys
+                .filter((key) => selectedKeyIds.includes(key.id))
+                .map((key) => ({ id: key.id, name: key.name }));
         }
 
         try {
-            await this.apiKeyService.deleteApiKeys(answers.selectedKeys);
-            this.logger.log(`Successfully deleted ${answers.selectedKeys.length} API keys`);
+            await this.apiKeyService.deleteApiKeys(selectedKeyIds);
+            const message = `Successfully deleted ${selectedKeyIds.length} API key${selectedKeyIds.length === 1 ? '' : 's'}`;
+            this.output(message, { deleted: selectedKeyIds.length, keys: deletedKeys }, jsonOutput);
         } catch (error) {
-            this.logger.error(error as any);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.outputError(errorMessage, { deleted: 0, error: errorMessage }, jsonOutput);
             process.exit(1);
         }
     }
 
-    async run(
-        _: string[],
-        options: KeyOptions = { create: false, name: '', delete: false }
-    ): Promise<void> {
+    async run(_: string[], options: KeyOptions = { name: '', delete: false }): Promise<void> {
         try {
             if (options.delete) {
-                await this.deleteKeys();
+                await this.deleteKeys(options.name, options.json);
                 return;
             }
 
             const key = this.apiKeyService.findByField('name', options.name);
             if (key) {
-                this.logger.log(key.key);
-            } else if (options.create) {
-                options = await this.inquirerService.prompt(AddApiKeyQuestionSet.name, options);
-                this.logger.log('Creating API Key...' + JSON.stringify(options));
+                this.output(key.key, { key: key.key, name: key.name, id: key.id }, options.json);
+            } else if (options.create === true) {
+                // Check if we have minimum required info from flags (name + at least one role or permission)
+                const hasMinimumInfo =
+                    options.name &&
+                    ((options.roles && options.roles.length > 0) ||
+                        (options.permissions && options.permissions.length > 0));
+
+                if (!hasMinimumInfo) {
+                    // Interactive mode - prompt for missing fields
+                    options = await this.inquirerService.prompt(AddApiKeyQuestionSet.name, options);
+                } else {
+                    // Non-interactive mode - check if key exists and handle overwrite
+                    const existingKey = this.apiKeyService.findByField('name', options.name);
+                    if (existingKey && !options.overwrite) {
+                        this.outputError(
+                            `API key with name '${options.name}' already exists. Use --overwrite to replace it.`,
+                            {
+                                error: `API key with name '${options.name}' already exists. Use --overwrite to replace it.`,
+                            },
+                            options.json
+                        );
+                        process.exit(1);
+                    }
+                }
+
+                if (!options.json) {
+                    this.logger.log('Creating API Key...');
+                }
 
                 if (!options.roles && !options.permissions) {
                     this.logger.error('Please add at least one role or permission to the key.');
@@ -155,10 +238,10 @@ ACTIONS: ${Object.values(AuthActionVerb).join(', ')}`,
                     description: options.description || `CLI generated key: ${options.name}`,
                     roles: options.roles,
                     permissions: options.permissions,
-                    overwrite: true,
+                    overwrite: options.overwrite ?? false,
                 });
 
-                this.logger.log(key.key);
+                this.output(key.key, { key: key.key, name: key.name, id: key.id }, options.json);
             } else {
                 this.logger.log('No Key Found');
                 process.exit(1);

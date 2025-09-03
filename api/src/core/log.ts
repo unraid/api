@@ -29,8 +29,24 @@ const stream = SUPPRESS_LOGS
             singleLine: true,
             hideObject: false,
             colorize: true,
+            colorizeObjects: true,
+            levelFirst: false,
             ignore: 'hostname,pid',
             destination: logDestination,
+            translateTime: 'HH:mm:ss',
+            customPrettifiers: {
+                time: (timestamp: string | object) => `[${timestamp}`,
+                level: (logLevel: string | object, key: string, log: any, extras: any) => {
+                    // Use labelColorized which preserves the colors
+                    const { labelColorized } = extras;
+                    const context = log.context || log.logger || 'app';
+                    return `${labelColorized} ${context}]`;
+                },
+            },
+            messageFormat: (log: any, messageKey: string) => {
+                const msg = log[messageKey] || log.msg || '';
+                return msg;
+            },
         })
       : logDestination;
 

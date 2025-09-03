@@ -18,6 +18,14 @@ import {
 import { DispatchRenderer, useJsonFormsLayout, type RendererProps } from '@jsonforms/vue';
 import { computed, inject, ref, type Ref } from 'vue';
 
+// Extend UISchemaElement to include options property
+interface UISchemaElementWithOptions extends UISchemaElement {
+  options?: {
+    step?: number;
+    [key: string]: unknown;
+  };
+}
+
 // Define props based on RendererProps<Layout>
 const props = defineProps<RendererProps<Layout>>();
 
@@ -73,8 +81,9 @@ const updateStep = (newStep: number) => {
 
 // --- Filtered Elements for Current Step ---
 const currentStepElements = computed(() => {
-  const filtered = (props.uischema.elements || []).filter((element: UISchemaElement) => {
-    // Check if the element has an 'options' object and an 'step' property
+  const elements = (props.uischema.elements || []) as UISchemaElementWithOptions[];
+  const filtered = elements.filter((element) => {
+    // Check if the element has an 'options' object and a 'step' property
     return (
       typeof element.options === 'object' &&
       element.options !== null &&
@@ -132,13 +141,13 @@ const getStepState = (stepIndex: number): StepState => {
           >
             {{ step.label }}
           </StepperTitle>
-          <StepperDescription v-if="step.description" class="text-xs font-normal text-muted-foreground">
+          <StepperDescription v-if="step.description" class="text-muted-foreground text-xs font-normal">
             {{ step.description }}
           </StepperDescription>
         </div>
         <StepperSeparator
           v-if="index < stepsConfig.length - 1"
-          class="absolute left-1/2 top-4 -z-10 ml-[calc(var(--separator-offset,0rem)+10px)] h-0.5 w-[calc(100%-20px)] bg-border data-[state=active]:bg-primary data-[state=completed]:bg-primary"
+          class="bg-border data-[state=active]:bg-primary data-[state=completed]:bg-primary absolute top-4 left-1/2 -z-10 ml-[calc(var(--separator-offset,0rem)+10px)] h-0.5 w-[calc(100%-20px)]"
         />
       </StepperItem>
     </Stepper>

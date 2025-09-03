@@ -28,7 +28,6 @@ describe('UrlResolverService', () => {
     describe('getServerIps', () => {
         it('should return empty arrays when store is not loaded', () => {
             (mockConfigService.get as Mock).mockReturnValue(null);
-            (mockConfigService.getOrThrow as Mock).mockReturnValue(null);
 
             const result = service.getServerIps();
 
@@ -144,7 +143,7 @@ describe('UrlResolverService', () => {
                         nginx: {
                             defaultUrl: 'https://default.unraid.net',
                             lanIp: '192.168.1.1',
-                            lanIp6: '2001:db8::1',
+                            lanIp6: 'ipv6.unraid.local',
                             lanName: 'unraid.local',
                             lanMdns: 'unraid.local',
                             sslEnabled: testCase.sslEnabled,
@@ -205,8 +204,9 @@ describe('UrlResolverService', () => {
                 },
             };
 
-            (mockConfigService.get as Mock).mockReturnValue(mockStore);
-            (mockConfigService.getOrThrow as Mock).mockReturnValue(443);
+            (mockConfigService.get as Mock)
+                .mockReturnValueOnce(mockStore)
+                .mockReturnValueOnce(443);
 
             const result = service.getServerIps();
 
@@ -259,6 +259,106 @@ describe('UrlResolverService', () => {
             expect(wanFqdnUrl).toBeDefined();
             expect(wanFqdnUrl?.ipv4?.toString()).toBe('https://wan.unraid.net/');
         });
+        it('should handle invalid WAN port values gracefully', () => {
+            const testCases = [
+                { port: null, description: 'null port' },
+                { port: undefined, description: 'undefined port' },
+                { port: '', description: 'empty string port' },
+                { port: 'invalid', description: 'non-numeric port' },
+                { port: 0, description: 'zero port' },
+                { port: -1, description: 'negative port' },
+                { port: 65536, description: 'port above valid range' },
+                { port: 1.5, description: 'non-integer port' },
+            ];
+
+            testCases.forEach(({ port, description }) => {
+                const mockStore = {
+                    emhttp: {
+                        nginx: {
+                            defaultUrl: 'https://default.unraid.net',
+                            lanIp: '192.168.1.1',
+                            lanIp6: 'ipv6.unraid.local', 
+                            lanName: 'unraid.local',
+                            lanMdns: 'unraid.local',
+                            sslEnabled: true,
+                            sslMode: 'yes',
+                            httpPort: 80,
+                            httpsPort: 443,
+                            fqdnUrls: [
+                                {
+                                    interface: 'WAN',
+                                    id: null,
+                                    fqdn: 'wan.unraid.net',
+                                    isIpv6: false,
+                                },
+                            ],
+                        },
+                    },
+                };
+
+                (mockConfigService.get as Mock)
+                    .mockReturnValueOnce(mockStore)
+                    .mockReturnValueOnce(port);
+
+                const result = service.getServerIps();
+
+                // Should fallback to nginx.httpsPort (443) for WAN FQDN URLs
+                const wanFqdnUrl = result.urls.find(
+                    (url) => url.type === URL_TYPE.WAN && url.name === 'FQDN WAN'
+                );
+                expect(wanFqdnUrl).toBeDefined();
+                expect(wanFqdnUrl?.ipv4?.toString()).toBe('https://wan.unraid.net/');
+                expect(result.errors).toHaveLength(0);
+            });
+        });
+
+        it('should use valid WAN port when provided', () => {
+            const testCases = [
+                { port: 1, expected: 'https://wan.unraid.net:1/' },
+                { port: 8080, expected: 'https://wan.unraid.net:8080/' },
+                { port: 65535, expected: 'https://wan.unraid.net:65535/' },
+                { port: '3000', expected: 'https://wan.unraid.net:3000/' }, // string that parses to valid number
+            ];
+
+            testCases.forEach(({ port, expected }) => {
+                const mockStore = {
+                    emhttp: {
+                        nginx: {
+                            defaultUrl: 'https://default.unraid.net',
+                            lanIp: '192.168.1.1',
+                            lanIp6: 'ipv6.unraid.local',
+                            lanName: 'unraid.local',
+                            lanMdns: 'unraid.local',
+                            sslEnabled: true,
+                            sslMode: 'yes',
+                            httpPort: 80,
+                            httpsPort: 443,
+                            fqdnUrls: [
+                                {
+                                    interface: 'WAN',
+                                    id: null,
+                                    fqdn: 'wan.unraid.net',
+                                    isIpv6: false,
+                                },
+                            ],
+                        },
+                    },
+                };
+
+                (mockConfigService.get as Mock)
+                    .mockReturnValueOnce(mockStore)
+                    .mockReturnValueOnce(port);
+
+                const result = service.getServerIps();
+
+                const wanFqdnUrl = result.urls.find(
+                    (url) => url.type === URL_TYPE.WAN && url.name === 'FQDN WAN'
+                );
+                expect(wanFqdnUrl).toBeDefined();
+                expect(wanFqdnUrl?.ipv4?.toString()).toBe(expected);
+                expect(result.errors).toHaveLength(0);
+            });
+        });
     });
 
     describe('getRemoteAccessUrl', () => {
@@ -287,8 +387,9 @@ describe('UrlResolverService', () => {
                 },
             };
 
-            (mockConfigService.get as Mock).mockReturnValue(mockStore);
-            (mockConfigService.getOrThrow as Mock).mockReturnValue(443);
+            (mockConfigService.get as Mock)
+                .mockReturnValueOnce(mockStore)
+                .mockReturnValueOnce(443);
 
             const result = service.getRemoteAccessUrl();
 

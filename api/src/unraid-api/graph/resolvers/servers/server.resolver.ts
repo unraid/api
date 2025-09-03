@@ -2,12 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@unraid/shared/use-permissions.directive.js';
+import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
@@ -24,35 +20,32 @@ export class ServerResolver {
     constructor(private readonly configService: ConfigService) {}
     @Query(() => ServerModel, { nullable: true })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.SERVERS,
-        possession: AuthPossession.ANY,
     })
     public async server(): Promise<ServerModel | null> {
-        return this.getLocalServer()[0] || null;
+        return this.getLocalServer() || null;
     }
 
     @Query(() => [ServerModel])
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.SERVERS,
-        possession: AuthPossession.ANY,
     })
     public async servers(): Promise<ServerModel[]> {
-        return this.getLocalServer();
+        return [this.getLocalServer()];
     }
 
     @Subscription(() => ServerModel)
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.SERVERS,
-        possession: AuthPossession.ANY,
     })
     public async serversSubscription() {
         return createSubscription(PUBSUB_CHANNEL.SERVERS);
     }
 
-    private getLocalServer(): ServerModel[] {
+    private getLocalServer(): ServerModel {
         const emhttp = getters.emhttp();
         const connectConfig = this.configService.get('connect');
 
@@ -71,22 +64,17 @@ export class ServerResolver {
             avatar: '',
         };
 
-        return [
-            {
-                id: 'local',
-                owner,
-                guid: guid || '',
-                apikey: connectConfig?.config?.apikey ?? '',
-                name: name ?? 'Local Server',
-                status:
-                    connectConfig?.mothership?.status === MinigraphStatus.CONNECTED
-                        ? ServerStatus.ONLINE
-                        : ServerStatus.OFFLINE,
-                wanip,
-                lanip,
-                localurl,
-                remoteurl,
-            },
-        ];
+        return {
+            id: 'local',
+            owner,
+            guid: guid || '',
+            apikey: connectConfig?.config?.apikey ?? '',
+            name: name ?? 'Local Server',
+            status: ServerStatus.ONLINE,
+            wanip,
+            lanip,
+            localurl,
+            remoteurl,
+        };
     }
 }

@@ -7,7 +7,7 @@ import { type ApiConfig } from '@unraid/shared/services/api-config.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 import { execa } from 'execa';
 
-import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
+import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
 import { createLabeledControl } from '@app/unraid-api/graph/utils/form-utils.js';
 import { SettingSlice } from '@app/unraid-api/types/json-forms.js';
 
@@ -17,13 +17,19 @@ export class ApiSettings {
     constructor(
         private readonly userSettings: UserSettingsService,
         private readonly configService: ConfigService<{ api: ApiConfig }, true>,
-        private readonly ssoUserService: SsoUserService
+        private readonly oidcConfig: OidcConfigPersistence
     ) {
         this.userSettings.register('api', {
             buildSlice: async () => this.buildSlice(),
             getCurrentValues: async () => this.getSettings(),
             updateValues: async (settings: Partial<ApiConfig>) => this.updateSettings(settings),
         });
+    }
+
+    private async shouldShowSsoUsersSettings(): Promise<boolean> {
+        // SSO users are now managed through OIDC provider configuration
+        // This legacy setting is no longer shown
+        return false;
     }
 
     getSettings(): ApiConfig {
@@ -37,17 +43,13 @@ export class ApiSettings {
     }
 
     async updateSettings(settings: Partial<ApiConfig>) {
-        let restartRequired = false;
+        const restartRequired = false;
         if (typeof settings.sandbox === 'boolean') {
-            const currentSandbox = this.configService.get('api.sandbox', { infer: true });
-            restartRequired ||= settings.sandbox !== currentSandbox;
             // @ts-expect-error - depend on the configService.get calls above for type safety
             this.configService.set('api.sandbox', settings.sandbox);
         }
-        if (settings.ssoSubIds) {
-            const ssoNeedsRestart = await this.ssoUserService.setSsoUsers(settings.ssoSubIds);
-            restartRequired ||= ssoNeedsRestart;
-        }
+        // SSO user IDs are now managed through OIDC provider configuration
+        // Migration happens automatically when OIDC config is created
         if (settings.extraOrigins) {
             // @ts-expect-error - this is correct, but the configService typescript implementation is too narrow
             this.configService.set('api.extraOrigins', settings.extraOrigins);
@@ -55,17 +57,19 @@ export class ApiSettings {
         return { restartRequired, values: await this.getSettings() };
     }
 
-    buildSlice(): SettingSlice {
-        return mergeSettingSlices(
-            [
-                this.sandboxSlice(),
-                this.ssoUsersSlice(),
-                // Because CORS is effectively disabled, this setting is no longer necessary
-                // keeping it here for in case it needs to be re-enabled
-                // this.extraOriginsSlice(),
-            ],
-            { as: 'api' }
-        );
+    async buildSlice(): Promise<SettingSlice> {
+        const slices: SettingSlice[] = [this.sandboxSlice()];
+
+        // Only show SSO users setting if migration hasn't happened yet
+        if (await this.shouldShowSsoUsersSettings()) {
+            slices.push(this.ssoUsersSlice());
+        }
+
+        // Because CORS is effectively disabled, this setting is no longer necessary
+        // keeping it here for in case it needs to be re-enabled
+        // slices.push(this.extraOriginsSlice());
+
+        return mergeSettingSlices(slices, { as: 'api' });
     }
 
     /**
@@ -98,7 +102,6 @@ export class ApiSettings {
 
     /**
      * Extra origins settings slice
-     */
     private extraOriginsSlice(): SettingSlice {
         return {
             properties: {
@@ -126,7 +129,7 @@ export class ApiSettings {
                 }),
             ],
         };
-    }
+    } */
 
     /**
      * SSO users settings slice
@@ -140,14 +143,14 @@ export class ApiSettings {
                         type: 'string',
                     },
                     title: 'Unraid API SSO Users',
-                    description: `Provide a list of Unique Unraid Account ID's. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>. Requires restart if adding first user.`,
+                    description: `Provide a list of Unique Unraid Account ID's. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>.`,
                 },
             },
             elements: [
                 createLabeledControl({
                     scope: '#/properties/api/properties/ssoSubIds',
                     label: 'Unraid Connect SSO Users:',
-                    description: `Provide a list of Unique Unraid Account IDs. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>. Requires restart if adding first user.`,
+                    description: `Provide a list of Unique Unraid Account IDs. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>.`,
                     controlOptions: {
                         inputType: 'text',
                         placeholder: 'UUID',
