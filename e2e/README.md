@@ -38,10 +38,14 @@ pnpm test:debug
 pnpm test:ui
 
 # Run specific test file
-pnpm --filter @unraid/e2e test auth.spec.ts
+pnpm test auth.spec.ts
 
 # Run tests against different server
 UNRAID_URL=http://192.168.1.100 pnpm test:e2e
+
+# Run tests against different "profiles"
+# -> Make sure not to track your profiles in git
+dotenvx run -f .env.dev-server-2 -- pnpm test
 ```
 
 ## Test Structure
