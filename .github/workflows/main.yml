@@ -153,6 +153,12 @@ jobs:
             exit 1
           fi
 
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
   build-api:
     name: Build API
     runs-on: ubuntu-latest
