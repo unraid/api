@@ -10,7 +10,7 @@ import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.mode
 
 interface KeyOptions {
     name: string;
-    create: boolean;
+    create?: boolean;
     delete?: boolean;
     description?: string;
     roles?: Role[];
@@ -186,10 +186,7 @@ ACTIONS: ${Object.values(AuthAction).join(', ')}`,
         }
     }
 
-    async run(
-        _: string[],
-        options: KeyOptions = { create: false, name: '', delete: false }
-    ): Promise<void> {
+    async run(_: string[], options: KeyOptions = { name: '', delete: false }): Promise<void> {
         try {
             if (options.delete) {
                 await this.deleteKeys(options.name, options.json);
@@ -199,7 +196,7 @@ ACTIONS: ${Object.values(AuthAction).join(', ')}`,
             const key = this.apiKeyService.findByField('name', options.name);
             if (key) {
                 this.output(key.key, { key: key.key, name: key.name, id: key.id }, options.json);
-            } else if (options.create) {
+            } else if (options.create === true) {
                 // Check if we have minimum required info from flags (name + at least one role or permission)
                 const hasMinimumInfo =
                     options.name &&
