@@ -4,6 +4,7 @@ import {
   setupPluginEnv,
 } from "../../cli/setup-plugin-environment";
 import { access, readFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
 
 // Mock fs/promises
 vi.mock("node:fs/promises", () => ({
@@ -14,8 +15,19 @@ vi.mock("node:fs/promises", () => ({
   },
 }));
 
+// Mock node:fs
+vi.mock("node:fs", () => ({
+  existsSync: vi.fn(),
+}));
+
 beforeEach(() => {
   vi.resetAllMocks();
+  
+  // Mock existsSync to return true for test.txz
+  vi.mocked(existsSync).mockImplementation((path) => {
+    return path.toString().includes("test.txz");
+  });
+  
   vi.mocked(readFile).mockImplementation((path, encoding) => {
     console.log("Mock readFile called with:", path, encoding);
     
@@ -42,6 +54,7 @@ describe("validatePluginEnv", () => {
 
   it("validates required fields", async () => {
     const validEnv = {
+      apiVersion: "4.17.0",
       baseUrl: "https://example.com",
       txzPath: "./test.txz",
       pluginVersion: "2024.05.05.1232",
@@ -53,6 +66,7 @@ describe("validatePluginEnv", () => {
 
   it("throws on invalid URL", async () => {
     const invalidEnv = {
+      apiVersion: "4.17.0",
       baseUrl: "not-a-url",
       txzPath: "./test.txz",
       pluginVersion: "2024.05.05.1232",
@@ -63,6 +77,7 @@ describe("validatePluginEnv", () => {
 
   it("handles tag option in non-CI mode", async () => {
     const envWithTag = {
+      apiVersion: "4.17.0",
       baseUrl: "https://example.com",
       txzPath: "./test.txz",
       pluginVersion: "2024.05.05.1232",
@@ -77,6 +92,7 @@ describe("validatePluginEnv", () => {
 
   it("reads release notes when release-notes-path is provided", async () => {
     const envWithNotes = {
+      apiVersion: "4.17.0",
       baseUrl: "https://example.com",
       txzPath: "./test.txz",
       pluginVersion: "2024.05.05.1232",
@@ -100,6 +116,7 @@ describe("validatePluginEnv", () => {
     });
 
     const envWithEmptyNotes = {
+      apiVersion: "4.17.0",
       baseUrl: "https://example.com",
       txzPath: "./test.txz",
       pluginVersion: "2024.05.05.1232",

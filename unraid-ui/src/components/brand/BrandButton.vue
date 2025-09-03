@@ -7,7 +7,6 @@ export interface BrandButtonProps {
   variant?: BrandButtonVariants['variant'];
   size?: BrandButtonVariants['size'];
   padding?: BrandButtonVariants['padding'];
-  btnType?: 'button' | 'submit' | 'reset';
   class?: string;
   click?: () => void;
   disabled?: boolean;
@@ -26,7 +25,6 @@ const props = withDefaults(defineProps<BrandButtonProps>(), {
   variant: 'fill',
   size: '16px',
   padding: 'default',
-  btnType: 'button',
   class: undefined,
   click: undefined,
   disabled: false,
@@ -51,22 +49,37 @@ const classes = computed(() => {
     iconSize: props.size ?? '16px',
   };
 });
+
 const needsBrandGradientBackground = computed(() => {
   return ['outline-solid', 'outline-primary'].includes(props.variant ?? '');
 });
+
+const isLink = computed(() => Boolean(props.href));
+const isButton = computed(() => !isLink.value);
 </script>
 
 <template>
   <component
-    :is="href ? 'a' : 'button'"
-    :disabled="disabled"
+    :is="isLink ? 'a' : 'span'"
+    :role="isButton ? 'button' : undefined"
+    :tabindex="isButton && !disabled ? 0 : undefined"
+    :aria-disabled="isButton && disabled ? true : undefined"
     :href="href"
     :rel="external ? 'noopener noreferrer' : ''"
     :target="external ? '_blank' : ''"
-    :type="!href ? btnType : ''"
     :class="classes.button"
     :title="title"
-    @click="click ?? $emit('click')"
+    @click="!disabled && (click ?? $emit('click'))"
+    @keydown="
+      isButton &&
+      !disabled &&
+      ((e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          (click ?? $emit('click'))();
+        }
+      })
+    "
   >
     <div
       v-if="variant === 'fill'"

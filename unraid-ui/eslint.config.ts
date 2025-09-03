@@ -87,6 +87,13 @@ const commonGlobals = {
   HTMLElement: 'readonly',
   HTMLInputElement: 'readonly',
   CustomEvent: 'readonly',
+  MouseEvent: 'readonly',
+  KeyboardEvent: 'readonly',
+  FocusEvent: 'readonly',
+  PointerEvent: 'readonly',
+  TouchEvent: 'readonly',
+  WheelEvent: 'readonly',
+  DragEvent: 'readonly',
 };
 
 export default [// Base config from recommended configs

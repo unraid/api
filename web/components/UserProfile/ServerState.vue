@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
-import type { ComposerTranslation } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
 import type { ServerStateDataAction } from '~/types/server';
 import UpcServerStateBuy from './ServerStateBuy.vue';
 
-defineProps<{ t: ComposerTranslation; }>();
+const { t } = useI18n();
 
 const { state, stateData } = storeToRefs(useServerStore());
 
@@ -27,12 +27,12 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
         :title="t('Upgrade Key')"
         @click="upgradeAction.click?.()"
       >
-        <h5>Unraid OS <em><strong>{{ t(stateData.humanReadable) }}</strong></em></h5>
+        <span class="font-semibold">Unraid OS <em><strong>{{ t(stateData.humanReadable) }}</strong></em></span>
       </UpcServerStateBuy>
     </template>
-    <h5 v-else>
+    <span v-else class="font-semibold">
       Unraid OS <em :class="{ 'text-unraid-red': stateData.error || state === 'EEXPIRED' }"><strong>{{ t(stateData.humanReadable) }}</strong></em>
-    </h5>
+    </span>
 
     <template v-if="purchaseAction">
       <UpcServerStateBuy

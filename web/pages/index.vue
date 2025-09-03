@@ -122,7 +122,7 @@ watch(
 
           <h3 class="text-lg font-semibold font-mono">ConnectSettingsCe</h3>
           <ConnectSettingsCe />
-          <hr class="border-black dark:border-white" >
+          <hr class="border-muted" >
 
           <!-- <h3 class="text-lg font-semibold font-mono">
             DownloadApiLogsCe
@@ -141,19 +141,19 @@ watch(
           <hr class="border-black dark:border-white"> -->
           <h3 class="text-lg font-semibold font-mono">UpdateOsCe</h3>
           <UpdateOsCe />
-          <hr class="border-black dark:border-white" >
+          <hr class="border-muted" >
           <h3 class="text-lg font-semibold font-mono">DowngraadeOsCe</h3>
           <DowngradeOsCe :restore-release-date="'2022-10-10'" :restore-version="'6.11.2'" />
-          <hr class="border-black dark:border-white" >
+          <hr class="border-muted" >
           <h3 class="text-lg font-semibold font-mono">RegistrationCe</h3>
           <RegistrationCe />
-          <hr class="border-black dark:border-white" >
+          <hr class="border-muted" >
           <h3 class="text-lg font-semibold font-mono">ModalsCe</h3>
           <ModalsCe />
-          <hr class="border-black dark:border-white" >
+          <hr class="border-muted" >
           <h3 class="text-lg font-semibold font-mono">WelcomeModalCe</h3>
           <WelcomeModalCe />
-          <hr class="border-black dark:border-white" >
+          <hr class="border-muted" >
           <h3 class="text-lg font-semibold font-mono">Test Callback Builder</h3>
           <div class="flex flex-col justify-end gap-2">
             <p>
@@ -172,7 +172,7 @@ watch(
             </code>
           </div>
           <div>
-            <hr class="border-black dark:border-white" >
+            <hr class="border-muted" >
             <h2 class="text-xl font-semibold font-mono">Nuxt UI Button - Primary Color Test</h2>
             <div class="flex gap-4 items-center">
               <UButton color="primary" variant="solid">Primary Solid</UButton>
@@ -183,7 +183,7 @@ watch(
             </div>
           </div>
           <div class="bg-background">
-            <hr class="border-black dark:border-white" >
+            <hr class="border-muted" >
             <h2 class="text-xl font-semibold font-mono">Brand Button Component</h2>
             <template v-for="variant in variants" :key="variant">
               <BrandButton
@@ -196,12 +196,12 @@ watch(
             </template>
           </div>
           <div class="bg-background">
-            <hr class="border-black dark:border-white" >
+            <hr class="border-muted" >
             <h2 class="text-xl font-semibold font-mono">SSO Button Component</h2>
             <SsoButtonCe />
           </div>
           <div class="bg-background">
-            <hr class="border-black dark:border-white" >
+            <hr class="border-muted" >
             <h2 class="text-xl font-semibold font-mono">Log Viewer Component</h2>
             <LogViewerCe />
           </div>

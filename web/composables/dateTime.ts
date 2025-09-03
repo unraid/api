@@ -96,19 +96,15 @@ const useDateTimeHelper = (
     formats.find(formatOption => formatOption.format === selectedFormat);
 
   const dateFormat = findMatchingFormat(format?.date ?? dateFormatOptions[0].format, dateFormatOptions);
-  console.debug('[dateFormat]', dateFormat);
 
   let displayFormat = `${dateFormat?.display}`;
-  console.debug('[displayFormat]', displayFormat);
   if (!hideMinutesSeconds) {
     const timeFormat = findMatchingFormat(format?.time ?? timeFormatOptions[0].format, timeFormatOptions);
     displayFormat = `${displayFormat} ${timeFormat?.display}`;
-    console.debug('[displayFormat] with time', displayFormat);
   }
 
   const formatDate = (date: number): string =>
     dayjs(date).format(displayFormat);
-  console.debug('[formatDate]', formatDate(Date.now()));
 
   /**
  * Original meat and potatos from:

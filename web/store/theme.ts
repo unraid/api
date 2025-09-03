@@ -117,15 +117,29 @@ export const useThemeStore = defineStore('theme', () => {
     // overwrite with hex colors set in webGUI @ /Settings/DisplaySettings
     if (theme.value.textColor) {
       customTheme['--header-text-primary'] = theme.value.textColor;
+      // Also set the Tailwind v4 color variable for utility classes
+      customTheme['--color-header-text-primary'] = theme.value.textColor;
     }
     if (theme.value.metaColor) {
       customTheme['--header-text-secondary'] = theme.value.metaColor;
+      // Also set the Tailwind v4 color variable for utility classes
+      customTheme['--color-header-text-secondary'] = theme.value.metaColor;
     }
 
     if (theme.value.bgColor) {
       customTheme['--header-background-color'] = theme.value.bgColor;
+      // Also set the Tailwind v4 color variable for utility classes
+      customTheme['--color-header-background'] = theme.value.bgColor;
       customTheme['--header-gradient-start'] = hexToRgba(theme.value.bgColor, 0);
       customTheme['--header-gradient-end'] = hexToRgba(theme.value.bgColor, 0.7);
+      // Also set the Tailwind v4 color variables for gradient utility classes
+      customTheme['--color-header-gradient-start'] = hexToRgba(theme.value.bgColor, 0);
+      customTheme['--color-header-gradient-end'] = hexToRgba(theme.value.bgColor, 0.7);
+    }
+
+    // Set ui-border-muted if it exists in the theme
+    if (customTheme['--ui-border-muted']) {
+      // The value is already set from the defaultColors theme
     }
 
     requestAnimationFrame(() => {

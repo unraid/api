@@ -11,10 +11,9 @@ import {
   InformationCircleIcon,
   XCircleIcon,
 } from '@heroicons/vue/24/solid';
-import { Badge, BrandButton, BrandLoading } from '@unraid/ui';
+import { Badge, BrandLoading, Button } from '@unraid/ui';
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 
-import type { BrandButtonProps } from '@unraid/ui';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
@@ -44,7 +43,7 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const LoadingIcon = () => h(BrandLoading, { variant: 'white' });
+const LoadingIcon = () => h(BrandLoading, { variant: 'white', style: 'width: 16px; height: 16px;' });
 
 const { dateTimeFormat, osVersion, rebootType, rebootVersion, regExp, regUpdatesExpired } =
   storeToRefs(serverStore);
@@ -74,7 +73,7 @@ const showRebootButton = computed(
   () => rebootType.value === 'downgrade' || rebootType.value === 'update'
 );
 
-const checkButton = computed((): BrandButtonProps => {
+const checkButton = computed(() => {
   if (showRebootButton.value || props.showExternalDowngrade) {
     return {
       click: () => {
@@ -84,7 +83,7 @@ const checkButton = computed((): BrandButtonProps => {
           accountStore.updateOs();
         }
       },
-      icon: ArrowTopRightOnSquareIcon,
+      icon: () => h(ArrowTopRightOnSquareIcon, { style: 'width: 16px; height: 16px;' }),
       text: props.t('More options'),
     };
   }
@@ -94,7 +93,7 @@ const checkButton = computed((): BrandButtonProps => {
       click: () => {
         updateOsStore.localCheckForUpdate();
       },
-      icon: ArrowPathIcon,
+      icon: () => h(ArrowPathIcon, { style: 'width: 16px; height: 16px;' }),
       text: props.t('Check for Update'),
     };
   }
@@ -104,12 +103,18 @@ const checkButton = computed((): BrandButtonProps => {
     click: () => {
       updateOsStore.setModalOpen(true);
     },
-    icon: BellAlertIcon,
+    icon: () => h(BellAlertIcon, { style: 'width: 16px; height: 16px;' }),
     text: availableWithRenewal.value
       ? props.t('Unraid OS {0} Released', [availableWithRenewal.value])
       : props.t('Unraid OS {0} Update Available', [available.value]),
   };
 });
+
+const navigateToRegistration = () => {
+  if (typeof window !== 'undefined') {
+    window.location.href = WEBGUI_TOOLS_REGISTRATION.toString();
+  }
+};
 </script>
 
 <template>
@@ -123,32 +128,34 @@ const checkButton = computed((): BrandButtonProps => {
       </h2>
     </header>
     <div class="flex flex-col md:flex-row gap-4 justify-start md:items-start md:justify-between">
-      <div class="inline-flex flex-wrap justify-start gap-2">
-        <button
-          class="group"
+      <div class="inline-flex flex-wrap justify-start items-center gap-2">
+        <Button
+          variant="ghost"
+          class="p-0 h-auto hover:bg-transparent"
           :title="t('View release notes')"
           @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [osVersion]))"
         >
-          <Badge :icon="InformationCircleIcon" variant="gray" size="md">
+          <Badge :icon="() => h(InformationCircleIcon, { style: 'width: 16px; height: 16px;' })" variant="gray" size="md">
             {{ t('Current Version {0}', [osVersion]) }}
           </Badge>
-        </button>
+        </Button>
 
-        <a
+        <Button
           v-if="ineligibleText && !availableWithRenewal"
-          :href="WEBGUI_TOOLS_REGISTRATION.toString()"
-          class="group"
+          variant="ghost"
+          class="p-0 h-auto hover:bg-transparent"
           :title="t('Learn more and fix')"
+          @click="navigateToRegistration"
         >
           <Badge
             variant="yellow"
-            :icon="ExclamationTriangleIcon"
+            :icon="() => h(ExclamationTriangleIcon, { style: 'width: 16px; height: 16px;' })"
             :title="regExpOutput?.text"
             class="underline"
           >
             {{ t('Key ineligible for future releases') }}
           </Badge>
-        </a>
+        </Button>
         <Badge
           v-else-if="ineligibleText && availableWithRenewal"
           variant="yellow"
@@ -165,7 +172,7 @@ const checkButton = computed((): BrandButtonProps => {
           <Badge
             v-if="rebootType === ''"
             :variant="updateAvailable ? 'orange' : 'green'"
-            :icon="updateAvailable ? BellAlertIcon : CheckCircleIcon"
+            :icon="updateAvailable ? () => h(BellAlertIcon, { style: 'width: 16px; height: 16px;' }) : () => h(CheckCircleIcon, { style: 'width: 16px; height: 16px;' })"
           >
             {{
               available
@@ -175,46 +182,54 @@ const checkButton = computed((): BrandButtonProps => {
                   : t('Up-to-date')
             }}
           </Badge>
-          <Badge v-else variant="yellow" :icon="ExclamationTriangleIcon">
+          <Badge v-else variant="yellow" :icon="() => h(ExclamationTriangleIcon, { style: 'width: 16px; height: 16px;' })">
             {{ t(rebootTypeText) }}
           </Badge>
         </template>
 
-        <Badge v-if="downgradeNotAvailable" variant="gray" :icon="XCircleIcon">
+        <Badge v-if="downgradeNotAvailable" variant="gray" :icon="() => h(XCircleIcon, { style: 'width: 16px; height: 16px;' })">
           {{ t('No downgrade available') }}
         </Badge>
       </div>
 
       <div class="inline-flex flex-col shrink-0 gap-4 grow items-center md:items-end">
-        <span v-if="showRebootButton">
-          <BrandButton
-            :icon="ArrowPathIcon"
-            :text="
-              rebootType === 'downgrade'
-                ? t('Reboot Now to Downgrade to {0}', [rebootVersion])
-                : t('Reboot Now to Update to {0}', [rebootVersion])
-            "
-            @click="updateOsActionsStore.rebootServer()"
-          />
-        </span>
+        <Button
+          v-if="showRebootButton"
+          variant="primary"
+          :title="
+            rebootType === 'downgrade'
+              ? t('Reboot Now to Downgrade to {0}', [rebootVersion])
+              : t('Reboot Now to Update to {0}', [rebootVersion])
+          "
+          @click="updateOsActionsStore.rebootServer()"
+        >
+          <ArrowPathIcon class="shrink-0" style="width: 16px; height: 16px;" />
+          {{
+            rebootType === 'downgrade'
+              ? t('Reboot Now to Downgrade to {0}', [rebootVersion])
+              : t('Reboot Now to Update to {0}', [rebootVersion])
+          }}
+        </Button>
 
-        <span>
-          <BrandButton
-            :variant="checkButton.variant"
-            :icon="checkButton.icon"
-            :text="checkButton.text"
-            @click="checkButton.click"
-          />
-        </span>
+        <Button
+          :variant="checkButton.variant === 'fill' ? 'pill-orange' : 'pill-gray'"
+          :title="checkButton.text"
+          :disabled="status === 'checking'"
+          @click="checkButton.click"
+        >
+          <component :is="checkButton.icon" class="shrink-0" style="width: 16px; height: 16px;" />
+          {{ checkButton.text }}
+        </Button>
 
-        <span v-if="rebootType !== ''">
-          <BrandButton
-            variant="outline"
-            :icon="XCircleIcon"
-            :text="t('Cancel {0}', [rebootType === 'downgrade' ? t('Downgrade') : t('Update')])"
-            @click="updateOsStore.cancelUpdate()"
-          />
-        </span>
+        <Button
+          v-if="rebootType !== ''"
+          variant="pill-gray"
+          :title="t('Cancel {0}', [rebootType === 'downgrade' ? t('Downgrade') : t('Update')])"
+          @click="updateOsStore.cancelUpdate()"
+        >
+          <XCircleIcon class="shrink-0" style="width: 16px; height: 16px;" />
+          {{ t('Cancel {0}', [rebootType === 'downgrade' ? t('Downgrade') : t('Update')]) }}
+        </Button>
       </div>
     </div>
   </div>

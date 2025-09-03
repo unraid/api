@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
-import { BellAlertIcon, ExclamationTriangleIcon, InformationCircleIcon, DocumentTextIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
-import { Badge, DropdownMenuRoot, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@unraid/ui';
+import { BellAlertIcon, ExclamationTriangleIcon, InformationCircleIcon, DocumentTextIcon, ArrowTopRightOnSquareIcon, ClipboardDocumentIcon } from '@heroicons/vue/24/solid';
+import { Button, DropdownMenuRoot, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@unraid/ui';
 import { WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE, getReleaseNotesUrl } from '~/helpers/urls';
 
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
@@ -14,8 +14,15 @@ import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import { INFO_VERSIONS_QUERY } from './UserProfile/versions.query';
 import ChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
+import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
 
 const { t } = useI18n();
+const { copyWithNotification } = useClipboardWithToast();
+
+onMounted(() => {
+  const logoWrapper = document.querySelector('.logo');
+  logoWrapper?.classList.remove('logo');
+});
 
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
@@ -57,6 +64,18 @@ const openApiChangelog = () => {
   window.open('https://github.com/unraid/api/releases', '_blank');
 };
 
+const copyOsVersion = () => {
+  if (displayOsVersion.value) {
+    copyWithNotification(displayOsVersion.value, t('OS version copied to clipboard'));
+  }
+};
+
+const copyApiVersion = () => {
+  if (apiVersion.value) {
+    copyWithNotification(apiVersion.value, t('API version copied to clipboard'));
+  }
+};
+
 const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => {
   if (partnerInfo.value?.partnerUrl) {
     return {
@@ -70,6 +89,16 @@ const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => {
     title: t('Visit Unraid website'),
   };
 });
+
+const handleUpdateStatusClick = () => {
+  if (!updateOsStatus.value) return;
+  
+  if (updateOsStatus.value.click) {
+    updateOsStatus.value.click();
+  } else if (updateOsStatus.value.href) {
+    window.location.href = updateOsStatus.value.href;
+  }
+};
 
 const updateOsStatus = computed(() => {
   if (stateDataError.value) {
@@ -112,7 +141,7 @@ const updateOsStatus = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-2 mt-6">
+  <div class="flex flex-col gap-y-2 mt-2 ml-2">
     <a
       :href="unraidLogoHeaderLink.href"
       :title="unraidLogoHeaderLink.title"
@@ -122,7 +151,7 @@ const updateOsStatus = computed(() => {
     >
       <img
         :src="'/webGui/images/UN-logotype-gradient.svg'"
-        class="w-[160px] h-auto max-h-[30px] object-contain"
+        class="w-[14rem] xs:w-[16rem] h-auto max-h-[3rem] object-contain"
         alt="Unraid Logo"
       >
     </a>
@@ -130,13 +159,16 @@ const updateOsStatus = computed(() => {
     <div class="flex flex-wrap justify-start gap-2">
       <DropdownMenuRoot>
         <DropdownMenuTrigger as-child>
-          <button 
-            class="text-xs xs:text-sm flex flex-row items-center gap-x-1 font-semibold text-header-text-secondary hover:text-orange-dark focus:text-orange-dark hover:underline focus:underline leading-none"
+          <Button 
+            variant="link"
+            class="text-xs xs:text-sm flex flex-row items-center gap-x-1 font-semibold text-header-text-secondary hover:text-orange-dark focus:text-orange-dark hover:underline focus:underline leading-none h-auto p-0"
             :title="t('Version Information')"
           >
-            <InformationCircleIcon class="fill-current w-3 h-3 xs:w-4 xs:h-4 shrink-0" />
+            <InformationCircleIcon 
+              class="fill-current w-3 h-3 xs:w-4 xs:h-4 shrink-0" 
+            />
             {{ displayOsVersion }}
-          </button>
+          </Button>
         </DropdownMenuTrigger>
         
         <DropdownMenuContent class="min-w-[200px]" align="start" :side-offset="4">
@@ -144,16 +176,30 @@ const updateOsStatus = computed(() => {
             {{ t('Version Information') }}
           </DropdownMenuLabel>
           
-          <DropdownMenuItem disabled class="text-xs opacity-100">
-            <span class="flex justify-between w-full">
-              <span>{{ t('Unraid OS') }}</span>
+          <DropdownMenuItem 
+            :disabled="!displayOsVersion"
+            class="text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+            @click="copyOsVersion"
+          >
+            <span class="flex justify-between items-center w-full">
+              <span class="flex items-center gap-x-2">
+                <span>{{ t('Unraid OS') }}</span>
+                <ClipboardDocumentIcon class="w-3 h-3 opacity-60" />
+              </span>
               <span class="font-semibold">{{ displayOsVersion || t('Unknown') }}</span>
             </span>
           </DropdownMenuItem>
           
-          <DropdownMenuItem disabled class="text-xs opacity-100">
-            <span class="flex justify-between w-full">
-              <span>{{ t('Unraid API') }}</span>
+          <DropdownMenuItem 
+            :disabled="!apiVersion"
+            class="text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+            @click="copyApiVersion"
+          >
+            <span class="flex justify-between items-center w-full">
+              <span class="flex items-center gap-x-2">
+                <span>{{ t('Unraid API') }}</span>
+                <ClipboardDocumentIcon class="w-3 h-3 opacity-60" />
+              </span>
               <span class="font-semibold">{{ apiVersion || t('Unknown') }}</span>
             </span>
           </DropdownMenuItem>
@@ -178,26 +224,22 @@ const updateOsStatus = computed(() => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenuRoot>
-      <component
-        :is="updateOsStatus.href ? 'a' : 'button'"
+      <Button
         v-if="updateOsStatus"
-        :href="updateOsStatus.href ?? undefined"
-        :title="updateOsStatus.title ?? undefined"
-        class="group"
-        @click="updateOsStatus.click?.()"
+        :variant="updateOsStatus.badge?.color === 'orange' ? 'pill-orange' : 'pill-gray'"
+        :title="updateOsStatus.title ?? updateOsStatus.text"
+        :disabled="!updateOsStatus.href && !updateOsStatus.click"
+        size="sm"
+        @click="handleUpdateStatusClick"
       >
-        <Badge
-          v-if="updateOsStatus.badge"
-          :color="updateOsStatus.badge.color"
-          :icon="updateOsStatus.badge.icon"
-          size="xs"
-        >
-          {{ updateOsStatus.text }}
-        </Badge>
-        <template v-else>
-          {{ updateOsStatus.text }}
-        </template>
-      </component>
+        <span v-if="updateOsStatus.badge?.icon" class="inline-flex shrink-0 w-4 h-4">
+          <component 
+            :is="updateOsStatus.badge.icon" 
+            class="w-full h-full"
+          />
+        </span>
+        {{ updateOsStatus.text || '' }}
+      </Button>
     </div>
     
     <!-- OS Release Notes Modal -->

@@ -105,7 +105,7 @@ const mutatedParsedChangelog = computed(() => {
 </script>
 
 <template>
-  <div class="prose prose-sm dark:prose-invert max-w-none markdown-body p-4 overflow-auto">
+  <div class="prose prose-sm dark:prose-invert max-w-none p-4 overflow-auto [&_.grid]:!flex [&_.grid]:!flex-wrap [&_.grid]:!gap-8 [&_.grid>*]:!flex-1 [&_.grid>*]:!basis-full md:[&_.grid>*]:!basis-[calc(50%-1rem)]">
     <div v-if="parseChangelogFailed" class="text-center flex flex-col gap-4 prose">
       <h2 class="text-lg text-unraid-red italic font-semibold">
         {{ props.t(`Error Parsing Changelog • {0}`, [parseChangelogFailed]) }}
@@ -138,4 +138,4 @@ const mutatedParsedChangelog = computed(() => {
       <p>{{ props.t('No changelog content available') }}</p>
     </div>
   </div>
-</template> 
+</template>

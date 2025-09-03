@@ -100,6 +100,57 @@ class UnraidOsCheck
         return [];
     }
 
+    /**
+     * Safe version of http_get_contents that falls back to system function if defined
+     * @param string $url The URL to fetch
+     * @param array $opts Array of options to pass to curl_setopt()
+     * @param array $getinfo Empty array passed by reference, will contain results of curl_getinfo and curl_error
+     *                       Note: CURLINFO_HEADER_OUT exposes request headers (not response headers) for curl_getinfo
+     * @return string|false $out The fetched content
+     */
+    private function safe_http_get_contents(string $url, array $opts = [], array &$getinfo = NULL) {
+        // Use system http_get_contents if it exists
+        if (function_exists('http_get_contents')) {
+            return http_get_contents($url, $opts, $getinfo);
+        }
+        
+        // Otherwise use our implementation
+        $ch = curl_init();
+        if(isset($getinfo)) {
+            curl_setopt($ch, CURLINFO_HEADER_OUT, TRUE);
+        }
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 45);
+        curl_setopt($ch, CURLOPT_ENCODING, "");
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_REFERER, "");
+        curl_setopt($ch, CURLOPT_FAILONERROR, true);
+        // Explicitly enforce TLS verification
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        if(is_array($opts) && $opts) {
+            foreach($opts as $key => $val) {
+                curl_setopt($ch, $key, $val);
+            }
+        }
+        $out = curl_exec($ch);
+        if(isset($getinfo)) {
+            $getinfo = curl_getinfo($ch);
+        }
+        if (curl_errno($ch)) {
+            $msg = curl_error($ch) . " {$url}";
+            if(isset($getinfo)) {
+                $getinfo['error'] = $msg;
+            }
+            my_logger($msg, "safe_http_get_contents");
+        }
+        curl_close($ch);
+        return $out;
+    }
+
     /** @todo clean up this method to be more extensible */
     public function checkForUpdate()
     {
@@ -136,7 +187,7 @@ class UnraidOsCheck
         $urlbase = $parsedAltUrl ?? $defaultUrl;
         $url     = $urlbase.'?'.http_build_query($params);
         $curlinfo = [];
-        $response = http_get_contents($url,[],$curlinfo);
+        $response = $this->safe_http_get_contents($url,[],$curlinfo);
         if (array_key_exists('error', $curlinfo)) {
             $response = json_encode(array('error' => $curlinfo['error']), JSON_PRETTY_PRINT);
         }

@@ -10,77 +10,133 @@ fi
 # Set server name from command-line argument
 server_name="$1"
 
-# Source directory path
-source_directory=".nuxt/nuxt-custom-elements/dist/unraid-components/"
+# Source directory paths
+standalone_directory=".nuxt/standalone-apps/"
 
-if [ ! -d "$source_directory" ]; then
-  echo "The web components directory does not exist."
+# Check what we have to deploy
+has_standalone=false
+
+if [ -d "$standalone_directory" ]; then
+  has_standalone=true
+fi
+
+# Exit if standalone directory doesn't exist
+if [ "$has_standalone" = false ]; then
+  echo "Error: Standalone apps directory does not exist."
+  echo "Please run 'pnpm build' or 'pnpm build:standalone' first."
   exit 1
 fi
 
-# Replace the value inside the rsync command with the user's input
-# Delete existing web components in the target directory
-ssh "root@${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/*"
+exit_code=0
 
-rsync_command="rsync -avz -e ssh $source_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt"
-
-echo "Executing the following command:"
-echo "$rsync_command"
-
-# Execute the rsync command and capture the exit code
-eval "$rsync_command"
-exit_code=$?
+# Deploy standalone apps if they exist
+if [ "$has_standalone" = true ]; then
+  echo "Deploying standalone apps..."
+  # Ensure remote directory exists
+  ssh root@"${server_name}" "mkdir -p /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
+  # Run rsync with proper quoting
+  rsync -avz --delete -e "ssh" "$standalone_directory" "root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
+  standalone_exit_code=$?
+  # If standalone rsync failed, update exit_code
+  if [ $standalone_exit_code -ne 0 ]; then
+    exit_code=$standalone_exit_code
+  fi
+fi
 
 # Update the auth-request.php file to include the new web component JS
 update_auth_request() {
   local server_name="$1"
   # SSH into server and update auth-request.php
-  ssh "root@${server_name}" "
+  ssh "root@${server_name}" bash -s << 'EOF'
     AUTH_REQUEST_FILE='/usr/local/emhttp/auth-request.php'
-    WEB_COMPS_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/_nuxt/'
+    UNRAID_COMPS_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/'
 
-    # Find JS files and modify paths
-    mapfile -t JS_FILES < <(find \"\$WEB_COMPS_DIR\" -type f -name \"*.js\" | sed 's|/usr/local/emhttp||' | sort -u)
+    # Find ALL JS/MJS/CSS files under unraid-components
+    if [ -d "$UNRAID_COMPS_DIR" ]; then
+      mapfile -t FILES_TO_ADD < <(find "$UNRAID_COMPS_DIR" -type f \( -name "*.js" -o -name "*.mjs" -o -name "*.css" \) | sed 's|/usr/local/emhttp||' | sort -u)
+    else
+      echo "Unraid components directory not found"
+      exit 1
+    fi
 
-    FILES_TO_ADD+=(\"\${JS_FILES[@]}\")
-
-    if grep -q '\$arrWhitelist' \"\$AUTH_REQUEST_FILE\"; then
+    if grep -q '\$arrWhitelist' "$AUTH_REQUEST_FILE"; then
+      # Create a timestamped backup
+      TIMESTAMP=$(date +%s)
+      BACKUP_FILE="${AUTH_REQUEST_FILE}.bak.${TIMESTAMP}"
+      TEMP_FILE="${AUTH_REQUEST_FILE}.tmp.new"
+      
+      # Create backup
+      cp "$AUTH_REQUEST_FILE" "$BACKUP_FILE" || {
+        echo "Failed to create backup of $AUTH_REQUEST_FILE" >&2
+        exit 1
+      }
+      
+      # Clean up any existing temp file
+      rm -f "$TEMP_FILE"
+      
+      # Process the file through both stages using a pipeline
+      # First remove existing web component entries, then add new ones
       awk '
         BEGIN { in_array = 0 }
-        /\\\$arrWhitelist\s*=\s*\[/ {
+        /\$arrWhitelist\s*=\s*\[/ {
           in_array = 1
-          print \$0
+          print $0
           next
         }
         in_array && /^\s*\]/ {
           in_array = 0
-          print \$0
+          print $0
           next
         }
-        !in_array || !/\/plugins\/dynamix\.my\.servers\/unraid-components\/nuxt\/_nuxt\/unraid-components\.client-/ {
-          print \$0
+        !in_array || !/\/plugins\/dynamix\.my\.servers\/unraid-components\/.*\.(m?js|css)/ {
+          print $0
         }
-      ' \"\$AUTH_REQUEST_FILE\" > \"\${AUTH_REQUEST_FILE}.tmp\"
-
-      # Now add new entries right after the opening bracket
-      awk -v files_to_add=\"\$(printf '%s\n' \"\${FILES_TO_ADD[@]}\" | sort -u | awk '{printf \"  \\\x27%s\\\x27,\n\", \$0}')\" '
-        /\\\$arrWhitelist\s*=\s*\[/ {
-          print \$0
+      ' "$AUTH_REQUEST_FILE" | \
+      awk -v files_to_add="$(printf '%s\n' "${FILES_TO_ADD[@]}" | sed "s/'/\\\\'/g" | sort -u | awk '{printf "  \047%s\047,\n", $0}')" '
+        /\$arrWhitelist\s*=\s*\[/ {
+          print $0
           print files_to_add
           next
         }
         { print }
-      ' \"\${AUTH_REQUEST_FILE}.tmp\" > \"\${AUTH_REQUEST_FILE}\"
-
-      rm \"\${AUTH_REQUEST_FILE}.tmp\"
-      echo \"Updated \$AUTH_REQUEST_FILE with new web component JS files\"
+      ' > "$TEMP_FILE"
+      
+      # Check pipeline succeeded and temp file is non-empty
+      if [ ${PIPESTATUS[0]} -ne 0 ] || [ ${PIPESTATUS[1]} -ne 0 ] || [ ! -s "$TEMP_FILE" ]; then
+        echo "Failed to process $AUTH_REQUEST_FILE" >&2
+        rm -f "$TEMP_FILE"
+        exit 1
+      fi
+      
+      # Verify the temp file has the expected content
+      if ! grep -q '\$arrWhitelist' "$TEMP_FILE" 2>/dev/null; then
+        echo "Generated file does not contain \$arrWhitelist array" >&2
+        rm -f "$TEMP_FILE"
+        exit 1
+      fi
+      
+      # Atomically replace the original file
+      mv "$TEMP_FILE" "$AUTH_REQUEST_FILE" || {
+        echo "Failed to update $AUTH_REQUEST_FILE" >&2
+        rm -f "$TEMP_FILE"
+        exit 1
+      }
+      
+      echo "Updated $AUTH_REQUEST_FILE with new web component JS files (backup: $BACKUP_FILE)"
     else
-      echo \"\\\$arrWhitelist array not found in \$AUTH_REQUEST_FILE\"
+      echo "\$arrWhitelist array not found in $AUTH_REQUEST_FILE" >&2
+      exit 1
     fi
-  "
+EOF
 }
 
 update_auth_request "$server_name"
+auth_request_exit_code=$?
+
+# If auth request update failed, update exit_code
+if [ $auth_request_exit_code -ne 0 ]; then
+  exit_code=$auth_request_exit_code
+fi
 
 # Play built-in sound based on the operating system
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -94,5 +150,5 @@ elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
   powershell.exe -c "(New-Object Media.SoundPlayer 'C:\Windows\Media\Windows Default.wav').PlaySync()"
 fi
 
-# Exit with the rsync command's exit code
+# Exit with the final exit code (non-zero if any command failed)
 exit $exit_code

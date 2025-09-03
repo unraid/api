@@ -1,54 +1,53 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 
+import { Button } from '@unraid/ui';
 import {
   Bars3Icon,
-  BellAlertIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
   ShieldExclamationIcon,
 } from '@heroicons/vue/24/solid';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import BrandAvatar from '~/components/Brand/Avatar.vue';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore } from '~/store/updateOs';
 
-const props = defineProps<{ t: ComposerTranslation }>();
+const { t } = useI18n();
 
 const { errors } = storeToRefs(useErrorsStore());
-const { connectPluginInstalled, rebootType, state, stateData } = storeToRefs(useServerStore());
-const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
+const { connectPluginInstalled, state, stateData } = storeToRefs(useServerStore());
 
 const showErrorIcon = computed(() => errors.value.length || stateData.value.error);
 
 const text = computed((): string => {
   if (stateData.value.error && state.value !== 'EEXPIRED') {
-    return props.t('Fix Error');
+    return t('Fix Error');
   }
   return '';
 });
 
 const title = computed((): string => {
   if (state.value === 'ENOKEYFILE') {
-    return props.t('Get Started');
+    return t('Get Started');
   }
   if (state.value === 'EEXPIRED') {
-    return props.t('Trial Expired, see options below');
+    return t('Trial Expired, see options below');
   }
   if (showErrorIcon.value) {
-    return props.t('Learn more about the error');
+    return t('Learn more about the error');
   }
-  return props.t('Open Dropdown');
+  return t('Open Dropdown');
 });
 </script>
 
 <template>
-  <button
-    class="group text-lg border-0 relative flex flex-row justify-end items-center h-full gap-x-2 opacity-100 hover:opacity-75 transition-opacity text-header-text-primary"
+  <Button
+    variant="header"
+    size="header"
+    class="justify-center gap-x-1.5 pl-0"
     :title="title"
   >
     <template v-if="errors.length && errors[0].level">
@@ -72,13 +71,8 @@ const title = computed((): string => {
       />
     </span>
 
-    <BellAlertIcon
-      v-if="osUpdateAvailable && !rebootType"
-      class="hover:animate-pulse fill-current relative w-4 h-4"
-    />
-
     <Bars3Icon class="w-5" />
 
     <BrandAvatar v-if="connectPluginInstalled" />
-  </button>
+  </Button>
 </template>

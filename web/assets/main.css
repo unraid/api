@@ -1,4 +1,11 @@
-@import 'tailwindcss';
+/* 
+ * Tailwind v4 configuration without global preflight
+ * This prevents Tailwind from applying global resets that affect webgui
+ */
+
+/* Import only the parts of Tailwind we need - NO PREFLIGHT */
+@import 'tailwindcss/theme.css';
+@import 'tailwindcss/utilities.css';
 @import 'tw-animate-css';
 @import '../../@tailwind-shared/index.css';
 @import '@nuxt/ui';
@@ -7,3 +14,68 @@
 @source "../../unraid-ui/dist/**/*.{js,mjs}";
 @source "../../unraid-ui/src/**/*.{vue,ts}";
 @source "../**/*.{vue,ts,js}";
+
+/* 
+ * Minimal styles for our components
+ * Only essential styles to ensure components work properly
+ */
+
+/* Box-sizing for proper layout */
+.unapi *,
+.unapi *::before,
+.unapi *::after {
+  box-sizing: border-box;
+}
+
+/* Reset figure element for logo */
+.unapi figure {
+  margin: 0;
+  padding: 0;
+}
+
+/* Reset heading elements - only margin/padding */
+.unapi h1,
+.unapi h2,
+.unapi h3,
+.unapi h4,
+.unapi h5 {
+  margin: 0;
+  padding: 0;
+}
+
+/* Reset paragraph element */
+.unapi p {
+  margin: 0;
+  padding: 0;
+}
+
+/* Reset toggle/switch button backgrounds */
+button[role="switch"],
+button[role="switch"][data-state="checked"],
+button[role="switch"][data-state="unchecked"] {
+  background-color: transparent !important;
+  background: transparent !important;
+  border: 1px solid #ccc !important;
+}
+
+/* Style for checked state */
+button[role="switch"][data-state="checked"] {
+  background-color: #ff8c2f !important; /* Unraid orange */
+}
+
+/* Style for unchecked state */
+button[role="switch"][data-state="unchecked"] {
+  background-color: #e5e5e5 !important;
+}
+
+/* Dark mode toggle styles */
+.dark button[role="switch"][data-state="unchecked"] {
+  background-color: #333 !important;
+  border-color: #555 !important;
+}
+
+/* Toggle thumb/handle */
+button[role="switch"] span {
+  background-color: white !important;
+}
+

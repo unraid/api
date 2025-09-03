@@ -10,8 +10,20 @@ import {
   KeyIcon,
   XMarkIcon,
 } from '@heroicons/vue/24/solid';
-import { BrandButton, BrandLoading, cn } from '@unraid/ui';
-import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
+import {
+  Button,
+  BrandButton,
+  BrandLoading,
+  cn,
+  DialogRoot,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  Switch,
+  Label,
+} from '@unraid/ui';
 
 import type { BrandButtonProps } from '@unraid/ui';
 import type { ComposerTranslation } from 'vue-i18n';
@@ -21,7 +33,6 @@ import { useAccountStore } from '~/store/account';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
-import Modal from '~/components/Modal.vue';
 import UpdateOsIgnoredRelease from './IgnoredRelease.vue';
 
 export interface Props {
@@ -264,110 +275,109 @@ const modalWidth = computed(() => {
 </script>
 
 <template>
-  <Modal
-    :t="t"
+  <DialogRoot
     :open="open"
-    :title="modalCopy?.title"
-    :description="modalCopy?.description"
-    :show-close-x="!checkForUpdatesLoading"
-    :max-width="modalWidth"
-    @close="close"
+    @update:open="(value) => !value && close()"
   >
-    <template v-if="renderMainSlot" #main>
-      <BrandLoading v-if="checkForUpdatesLoading" class="w-[150px] mx-auto" />
-      <div v-else class="flex flex-col gap-y-4">
-        <div v-if="extraLinks.length > 0" :class="cn('flex flex-col xs:!flex-row justify-center gap-2')">
-          <BrandButton
-            v-for="item in extraLinks"
-            :key="item.text"
-            :btn-style="item.variant ?? undefined"
-            :href="item.href ?? undefined"
-            :icon="item.icon"
-            :icon-right="item.iconRight"
-            :icon-right-hover-display="item.iconRightHoverDisplay"
-            :text="t(item.text ?? '')"
-            :title="item.title ? t(item.title) : undefined"
-            @click="item.click?.()"
-          />
-        </div>
+    <DialogContent
+      :class="modalWidth"
+      :show-close-button="!checkForUpdatesLoading"
+    >
+      <DialogHeader v-if="modalCopy?.title">
+        <DialogTitle>
+          {{ modalCopy.title }}
+        </DialogTitle>
+        <DialogDescription v-if="modalCopy?.description">
+          <span v-html="modalCopy.description" />
+        </DialogDescription>
+      </DialogHeader>
 
-        <div v-if="available || availableWithRenewal" class="mx-auto">
-          <SwitchGroup>
+      <div v-if="renderMainSlot" class="flex flex-col gap-4">
+        <BrandLoading v-if="checkForUpdatesLoading" class="w-[150px] mx-auto" />
+        <div v-else class="flex flex-col gap-y-4">
+          <div v-if="extraLinks.length > 0" :class="cn('flex flex-col xs:!flex-row justify-center gap-2')">
+            <BrandButton
+              v-for="item in extraLinks"
+              :key="item.text"
+              :btn-style="item.variant ?? undefined"
+              :href="item.href ?? undefined"
+              :icon="item.icon"
+              :icon-right="item.iconRight"
+              :icon-right-hover-display="item.iconRightHoverDisplay"
+              :text="t(item.text ?? '')"
+              :title="item.title ? t(item.title) : undefined"
+              @click="item.click?.()"
+            />
+          </div>
+
+          <div v-if="available || availableWithRenewal" class="mx-auto">
             <div class="flex justify-center items-center gap-2 p-2 rounded">
               <Switch
                 v-model="ignoreThisRelease"
                 :class="
-                  ignoreThisRelease ? 'bg-linear-to-r from-unraid-red to-orange' : 'bg-transparent'
+                  ignoreThisRelease ? 'bg-linear-to-r from-unraid-red to-orange' : 'data-[state=unchecked]:bg-transparent data-[state=unchecked]:bg-opacity-10 data-[state=unchecked]:bg-foreground'
                 "
-                class="relative inline-flex h-6 w-12 items-center rounded-full overflow-hidden"
-              >
-                <span
-                  v-show="!ignoreThisRelease"
-                  class="absolute z-0 inset-0 opacity-10 bg-foreground"
-                />
-                <span
-                  :class="ignoreThisRelease ? 'translate-x-[26px]' : 'translate-x-[2px]'"
-                  class="inline-block h-5 w-5 transform rounded-full bg-white transition"
-                />
-              </Switch>
-              <SwitchLabel class="text-base">
+              />
+              <Label class="text-base">
                 {{ t('Ignore this release until next reboot') }}
-              </SwitchLabel>
+              </Label>
             </div>
-          </SwitchGroup>
-        </div>
-        <div
-          v-else-if="updateOsIgnoredReleases.length > 0"
-          class="w-full max-w-[640px] mx-auto flex flex-col gap-2"
-        >
-          <h3 class="text-left text-base font-semibold italic">
-            {{ t('Ignored Releases') }}
-          </h3>
-          <UpdateOsIgnoredRelease
-            v-for="ignoredRelease in updateOsIgnoredReleases"
-            :key="ignoredRelease"
-            :label="ignoredRelease"
-            :t="t"
-          />
+          </div>
+          <div
+            v-else-if="updateOsIgnoredReleases.length > 0"
+            class="w-full max-w-[640px] mx-auto flex flex-col gap-2"
+          >
+            <h3 class="text-left text-base font-semibold italic">
+              {{ t('Ignored Releases') }}
+            </h3>
+            <UpdateOsIgnoredRelease
+              v-for="ignoredRelease in updateOsIgnoredReleases"
+              :key="ignoredRelease"
+              :label="ignoredRelease"
+              :t="t"
+            />
+          </div>
         </div>
       </div>
-    </template>
 
-    <template #footer>
-      <div
-        :class="cn(
-          'w-full flex gap-2 mx-auto',
-          actionButtons ? 'flex-col-reverse xs:!flex-row justify-between' : 'justify-center'
-        )"
-      >
-        <div :class="cn('flex flex-col-reverse xs:!flex-row justify-start gap-2')">
-          <BrandButton
-            variant="underline-hover-red"
-            :icon="XMarkIcon"
-            :text="t('Close')"
-            @click="close"
-          />
-          <BrandButton
-            variant="underline"
-            :icon="ArrowTopRightOnSquareIcon"
-            :text="t('More options')"
-            @click="accountStore.updateOs()"
-          />
+      <DialogFooter>
+        <div
+          :class="cn(
+            'w-full flex gap-2 mx-auto',
+            actionButtons ? 'flex-col-reverse xs:!flex-row justify-between' : 'justify-center'
+          )"
+        >
+          <div :class="cn('flex flex-col-reverse xs:!flex-row justify-start gap-2')">
+            <Button
+              variant="ghost"
+              @click="close"
+            >
+              <XMarkIcon class="w-4 h-4 mr-2" />
+              {{ t('Close') }}
+            </Button>
+            <Button
+              variant="ghost"
+              @click="accountStore.updateOs()"
+            >
+              <ArrowTopRightOnSquareIcon class="w-4 h-4 mr-2" />
+              {{ t('More options') }}
+            </Button>
+          </div>
+          <div v-if="actionButtons" :class="cn('flex flex-col xs:!flex-row justify-end gap-2')">
+            <BrandButton
+              v-for="item in actionButtons"
+              :key="item.text"
+              :btn-style="item.variant ?? undefined"
+              :icon="item.icon"
+              :icon-right="item.iconRight"
+              :icon-right-hover-display="item.iconRightHoverDisplay"
+              :text="t(item.text ?? '')"
+              :title="item.title ? t(item.title) : undefined"
+              @click="item.click?.()"
+            />
+          </div>
         </div>
-        <div v-if="actionButtons" :class="cn('flex flex-col xs:!flex-row justify-end gap-2')">
-          <BrandButton
-            v-for="item in actionButtons"
-            :key="item.text"
-            :btn-style="item.variant ?? undefined"
-            :icon="item.icon"
-            :icon-right="item.iconRight"
-            :icon-right-hover-display="item.iconRightHoverDisplay"
-            :text="t(item.text ?? '')"
-            :title="item.title ? t(item.title) : undefined"
-            @click="item.click?.()"
-          />
-        </div>
-      </div>
-    </template>
-  </Modal>
+      </DialogFooter>
+    </DialogContent>
+  </DialogRoot>
 </template>

@@ -161,7 +161,7 @@ exit 0
           sed -i 's|<body>|<body>\n<unraid-modals></unraid-modals>|' "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
         fi
       fi
-
+      
       ]]>
     </INLINE>
   </FILE>
@@ -271,6 +271,27 @@ exit 0
       for FILE in "${FILES_TO_RESTORE[@]}"; do
         [ -f "$FILE-" ] && mv -f "$FILE-" "$FILE"
       done
+      
+      # Restore CSS files from backup
+      echo "Restoring original CSS files..."
+      CSS_DIR="/usr/local/emhttp/plugins/dynamix/styles"
+      BACKUP_DIR="$CSS_DIR/.unraid-api-backup"
+      
+      if [ -d "$BACKUP_DIR" ]; then
+        for backup_file in "$BACKUP_DIR"/*.css; do
+          if [ -f "$backup_file" ]; then
+            filename=$(basename "$backup_file")
+            original_file="$CSS_DIR/$filename"
+            echo "  Restoring $filename..."
+            cp "$backup_file" "$original_file"
+          fi
+        done
+        # Remove backup directory after restoration
+        rm -rf "$BACKUP_DIR"
+        echo "CSS restoration complete."
+      else
+        echo "No CSS backup found, skipping restoration."
+      fi
       
       # Handle the unraid-components directory
       DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components

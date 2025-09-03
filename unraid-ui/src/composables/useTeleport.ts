@@ -1,29 +1,16 @@
+import { ensureTeleportContainer } from '@/helpers/ensure-teleport-container';
 import { onMounted, ref } from 'vue';
 
 const useTeleport = () => {
-  const teleportTarget = ref<string | HTMLElement>('#modals');
-
-  const determineTeleportTarget = (): HTMLElement | undefined => {
-    const myModalsComponent =
-      document.querySelector('unraid-modals') ||
-      document.querySelector('uui-modals') ||
-      document.querySelector('uui-modal-target');
-    if (!myModalsComponent?.shadowRoot) return;
-
-    const potentialTarget = myModalsComponent.shadowRoot.querySelector('#modals');
-    if (!potentialTarget) return;
-
-    teleportTarget.value = potentialTarget as HTMLElement;
-    return teleportTarget.value;
-  };
+  const teleportTarget = ref<string | HTMLElement>('body');
 
   onMounted(() => {
-    determineTeleportTarget();
+    const container = ensureTeleportContainer();
+    teleportTarget.value = container;
   });
 
   return {
     teleportTarget,
-    determineTeleportTarget,
   };
 };
 

@@ -21,7 +21,7 @@ import {
 } from '~/helpers/urls';
 
 import type { UserProfileLink } from '~/types/userProfile';
-import type { ComposerTranslation } from 'vue-i18n';
+import { useI18n } from 'vue-i18n';
 
 import { useAccountStore } from '~/store/account';
 import { useErrorsStore } from '~/store/errors';
@@ -34,7 +34,11 @@ import DropdownError from './DropdownError.vue';
 import DropdownItem from './DropdownItem.vue';
 import Keyline from './Keyline.vue';
 
-const props = defineProps<{ t: ComposerTranslation }>();
+const { t } = useI18n();
+
+const emit = defineEmits<{
+  'close-dropdown': []
+}>();
 
 const accountStore = useAccountStore();
 const errorsStore = useErrorsStore();
@@ -72,10 +76,11 @@ const manageUnraidNetAccount = computed((): UserProfileLink => {
     external: true,
     click: () => {
       accountStore.manage();
+      emit('close-dropdown');
     },
     icon: UserIcon,
-    text: props.t('Manage Unraid.net Account'),
-    title: props.t('Manage Unraid.net Account in new tab'),
+    text: t('Manage Unraid.net Account'),
+    title: t('Manage Unraid.net Account in new tab'),
   };
 });
 
@@ -83,21 +88,23 @@ const updateOsCheckForUpdatesButton = computed((): UserProfileLink => {
   return {
     click: () => {
       updateOsStore.localCheckForUpdate();
+      emit('close-dropdown');
     },
     icon: ArrowPathIcon,
-    text: props.t('Check for Update'),
+    text: t('Check for Update'),
   };
 });
 const updateOsResponseModalOpenButton = computed((): UserProfileLink => {
   return {
     click: () => {
       updateOsStore.setModalOpen(true);
+      emit('close-dropdown');
     },
     emphasize: true,
     icon: BellAlertIcon,
     text: osUpdateAvailableWithRenewal.value
-      ? props.t('Unraid OS {0} Released', [osUpdateAvailableWithRenewal.value])
-      : props.t('Unraid OS {0} Update Available', [osUpdateAvailable.value]),
+      ? t('Unraid OS {0} Released', [osUpdateAvailableWithRenewal.value])
+      : t('Unraid OS {0} Update Available', [osUpdateAvailable.value]),
   };
 });
 const rebootDetectedButton = computed((): UserProfileLink => {
@@ -109,8 +116,8 @@ const rebootDetectedButton = computed((): UserProfileLink => {
     icon: ExclamationTriangleIcon,
     text:
       rebootType.value === 'downgrade'
-        ? props.t('Reboot Required for Downgrade')
-        : props.t('Reboot Required for Update'),
+        ? t('Reboot Required for Downgrade')
+        : t('Reboot Required for Update'),
   };
 });
 
@@ -136,8 +143,8 @@ const links = computed((): UserProfileLink[] => {
           {
             href: WEBGUI_TOOLS_REGISTRATION.toString(),
             icon: KeyIcon,
-            text: props.t('OS Update Eligibility Expired'),
-            title: props.t('Go to Tools > Registration to Learn More'),
+            text: t('OS Update Eligibility Expired'),
+            title: t('Go to Tools > Registration to Learn More'),
           },
         ]
       : []),
@@ -153,8 +160,8 @@ const links = computed((): UserProfileLink[] => {
             external: true,
             href: CONNECT_DASHBOARD.toString(),
             icon: ArrowTopRightOnSquareIcon,
-            text: props.t('Go to Connect'),
-            title: props.t('Opens Connect in new tab'),
+            text: t('Go to Connect'),
+            title: t('Opens Connect in new tab'),
           },
           ...[manageUnraidNetAccount.value],
           ...signOutAction.value,
@@ -163,8 +170,8 @@ const links = computed((): UserProfileLink[] => {
     {
       href: WEBGUI_CONNECT_SETTINGS.toString(),
       icon: CogIcon,
-      text: props.t('Settings'),
-      title: props.t('Go to API Settings'),
+      text: t('Settings'),
+      title: t('Go to API Settings'),
     },
   ];
 });
@@ -187,8 +194,8 @@ const unraidConnectWelcome = computed(() => {
     !stateDataError.value
   ) {
     return {
-      heading: props.t('Thank you for installing Connect!'),
-      message: props.t('Sign In to your Unraid.net account to get started'),
+      heading: t('Thank you for installing Connect!'),
+      message: t('Sign In to your Unraid.net account to get started'),
     };
   }
   return undefined;
@@ -199,7 +206,7 @@ const unraidConnectWelcome = computed(() => {
   <div class="flex flex-col grow gap-y-2">
     <header
       v-if="connectPluginInstalled"
-      class="flex flex-col items-start justify-between mt-2 mx-2"
+      class="flex flex-col items-start justify-between mt-2 mx-2 gap-2"
     >
       <h2 class="text-lg leading-none flex flex-row gap-x-1 items-center justify-between">
         <BrandLogoConnect

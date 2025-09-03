@@ -1,12 +1,10 @@
 import { useClipboard } from '@vueuse/core';
-import { useToast } from '@unraid/ui';
 
 /**
  * Composable for clipboard operations with toast notifications
  */
 export function useClipboardWithToast() {
   const { copy, copied, isSupported } = useClipboard();
-  const toast = useToast();
   
   /**
    * Copy text and show toast
@@ -17,21 +15,48 @@ export function useClipboardWithToast() {
     text: string,
     successMessage: string = 'Copied to clipboard'
   ): Promise<boolean> => {
-    if (!isSupported.value) {
-      console.warn('Clipboard API is not supported');
-      toast.error('Clipboard not supported');
-      return false;
+    // Try modern Clipboard API first
+    if (isSupported.value) {
+      try {
+        await copy(text);
+        // Use global toast if available
+        if (globalThis.toast) {
+          globalThis.toast.success(successMessage);
+        }
+        return true;
+      } catch (error) {
+        console.error('Failed to copy to clipboard:', error);
+      }
     }
     
+    // Fallback to execCommand for HTTP contexts
     try {
-      await copy(text);
-      toast.success(successMessage);
-      return true;
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      textarea.style.pointerEvents = 'none';
+      document.body.appendChild(textarea);
+      textarea.select();
+      
+      const success = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      
+      if (success) {
+        if (globalThis.toast) {
+          globalThis.toast.success(successMessage);
+        }
+        return true;
+      }
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
-      toast.error('Failed to copy to clipboard');
-      return false;
+      console.error('Fallback copy failed:', error);
     }
+    
+    // Both methods failed
+    if (globalThis.toast) {
+      globalThis.toast.error('Failed to copy to clipboard');
+    }
+    return false;
   };
   
   return {

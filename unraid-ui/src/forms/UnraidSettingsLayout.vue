@@ -33,7 +33,7 @@ const elements = computed(() => {
 </script>
 
 <template>
-  <SettingsGrid v-if="isVisible">
+  <SettingsGrid v-if="isVisible" class="[&_.grow]:max-w-3xl">
     <template v-for="(element, _i) in elements" :key="_i">
       <DispatchRenderer
         :schema="layout.layout.value.schema"

@@ -146,7 +146,7 @@ const executeCliCommand = async () => {
           <pre class="bg-muted p-3 rounded text-xs overflow-x-auto max-h-32 overflow-y-auto whitespace-pre-wrap break-all">{{ JSON.stringify(debugData, null, 2) }}</pre>
         </div>
         
-        <div class="border-t pt-4">
+        <div class="border-t border-muted pt-4">
           <h3 class="font-semibold mb-2 text-sm">JWT/OIDC Token Validation Tool:</h3>
           <p class="text-xs text-muted-foreground mb-3">Enter a JWT or OIDC session token to validate it using the CLI command</p>
           

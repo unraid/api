@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, nextTick } from 'vue';
 import { defineStore } from 'pinia';
 
 import type { ApiKeyFragment } from '~/composables/gql/graphql.js';
@@ -23,19 +23,25 @@ export const useApiKeyStore = defineStore('apiKey', () => {
 
   function showModal(key: ApiKeyFragment | null = null) {
     editingKey.value = key;
-    modalVisible.value = true;
     // Reset authorization mode if editing
     if (key) {
       isAuthorizationMode.value = false;
       authorizationData.value = null;
     }
+    // Use nextTick to ensure DOM updates are complete before showing modal
+    nextTick(() => {
+      modalVisible.value = true;
+    });
   }
 
   function hideModal() {
     modalVisible.value = false;
-    editingKey.value = null;
-    isAuthorizationMode.value = false;
-    authorizationData.value = null;
+    // Clean up state after modal closes
+    nextTick(() => {
+      editingKey.value = null;
+      isAuthorizationMode.value = false;
+      authorizationData.value = null;
+    });
   }
   
   function setAuthorizationMode(
