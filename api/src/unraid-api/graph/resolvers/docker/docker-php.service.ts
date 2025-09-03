@@ -113,6 +113,11 @@ export class DockerPhpService {
         }
     }
 
+    /**
+     * Gets the update statuses for all containers by triggering `DockerTemplates->getAllInfo(true)` via DockerContainers.php
+     * @param dockerContainersPath - Path to the DockerContainers.php file
+     * @returns The update statuses for all containers
+     */
     async getContainerUpdateStatuses(
         dockerContainersPath = '/usr/local/emhttp/plugins/dynamix.docker.manager/include/DockerContainers.php'
     ): Promise<ExplicitStatusItem[]> {

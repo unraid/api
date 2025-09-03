@@ -28,6 +28,12 @@ export class DockerManifestService {
         });
     }
 
+    /**
+     * Checks if an update is available for a given container image.
+     * @param imageRef - The image reference to check, e.g. "unraid/baseimage:latest". If no tag is provided, "latest" is assumed, following the webgui's implementation.
+     * @param cacheData read from /var/lib/docker/unraid-update-status.json by default
+     * @returns True if an update is available, false if not, or null if the status is unknown
+     */
     async isUpdateAvailableCached(imageRef: string, cacheData?: Record<string, CachedStatusEntry>) {
         let taggedRef = imageRef;
         if (!taggedRef.includes(':')) taggedRef += ':latest';
@@ -38,6 +44,11 @@ export class DockerManifestService {
         return containerData.status?.toLowerCase() === 'true';
     }
 
+    /**
+     * Checks if a container is rebuild ready.
+     * @param networkMode - The network mode of the container, e.g. "container:unraid/baseimage:latest".
+     * @returns True if the container is rebuild ready, false if not
+     */
     async isRebuildReady(networkMode?: string) {
         if (!networkMode || !networkMode.startsWith('container:')) return false;
         const target = networkMode.slice('container:'.length);

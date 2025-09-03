@@ -15,6 +15,9 @@ export class ContainerStatusJob implements OnApplicationBootstrap {
         private readonly dockerConfigService: DockerConfigService
     ) {}
 
+    /**
+     * Initialize cron job for refreshing the update status for all containers on a user-configurable schedule.
+     */
     onApplicationBootstrap() {
         const cronExpression = this.dockerConfigService.getConfig().updateCheckCronSchedule;
         const cronJob = CronJob.from({
