@@ -137,28 +137,6 @@ const sharedDefine = {
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  nitro: {
-    publicAssets: [
-      {
-        baseURL: '/webGui/',
-        dir: assetsDir,
-      },
-    ],
-    devProxy: {
-      '/graphql': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-        ws: true,
-        secure: false,
-        // Important: preserve the host header
-        headers: {
-          'X-Forwarded-Host': 'localhost:3000',
-          'X-Forwarded-Proto': 'http',
-          'X-Forwarded-For': '127.0.0.1',
-        },
-      },
-    },
-  },
   devServer: {
     port: 3000,
   },
@@ -169,7 +147,7 @@ export default defineNuxtConfig({
     enabled: process.env.NODE_ENV === 'development',
   },
 
-  modules: ['@vueuse/nuxt', '@pinia/nuxt', 'nuxt-custom-elements', '@nuxt/eslint', '@nuxt/ui'],
+  modules: ['@vueuse/nuxt', '@pinia/nuxt', '@nuxt/eslint', '@nuxt/ui'],
 
   ui: {
     theme: {
@@ -201,13 +179,33 @@ export default defineNuxtConfig({
     },
   },
 
-  // DISABLED: Using standalone mount approach instead
-  // customElements: {
-  //   analyzer: process.env.NODE_ENV !== 'test',
-  //   entries: [],
-  // },
 
   compatibilityDate: '2024-12-05',
 
   ssr: false,
+  
+  // Configure for static generation
+  nitro: {
+    preset: 'static',
+    publicAssets: [
+      {
+        baseURL: '/webGui/',
+        dir: assetsDir,
+      },
+    ],
+    devProxy: {
+      '/graphql': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        ws: true,
+        secure: false,
+        // Important: preserve the host header
+        headers: {
+          'X-Forwarded-Host': 'localhost:3000',
+          'X-Forwarded-Proto': 'http',
+          'X-Forwarded-For': '127.0.0.1',
+        },
+      },
+    },
+  },
 });

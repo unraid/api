@@ -61,9 +61,9 @@ update_auth_request() {
 
     if grep -q '\$arrWhitelist' "$AUTH_REQUEST_FILE"; then
       # Create a timestamped backup
-      local TIMESTAMP=$(date +%s)
-      local BACKUP_FILE="${AUTH_REQUEST_FILE}.bak.${TIMESTAMP}"
-      local TEMP_FILE="${AUTH_REQUEST_FILE}.tmp.new"
+      TIMESTAMP=$(date +%s)
+      BACKUP_FILE="${AUTH_REQUEST_FILE}.bak.${TIMESTAMP}"
+      TEMP_FILE="${AUTH_REQUEST_FILE}.tmp.new"
       
       # Create backup
       cp "$AUTH_REQUEST_FILE" "$BACKUP_FILE" || {
