@@ -20,7 +20,9 @@ export class ContainerStatusJob implements OnApplicationBootstrap {
         const cronJob = CronJob.from({
             cronTime: cronExpression,
             onTick: () => {
-                this.dockerManifestService.refreshDigests();
+                this.dockerManifestService.refreshDigests().catch((error) => {
+                    this.logger.warn(error, 'Failed to refresh container update status');
+                });
             },
             start: true,
         });

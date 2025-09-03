@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 
 import { phpLoader } from '@app/core/utils/plugins/php-loader.js';
@@ -33,12 +33,24 @@ export type CachedStatusEntry = {
 
 @Injectable()
 export class DockerPhpService {
+    private readonly logger = new Logger(DockerPhpService.name);
     constructor() {}
 
+    /**
+     * Reads JSON from a file containing cached update status.
+     * If the file does not exist, an empty object is returned.
+     * @param cacheFile
+     * @returns
+     */
     async readCachedUpdateStatus(cacheFile = '/var/lib/docker/unraid-update-status.json') {
-        const cache = await readFile(cacheFile, 'utf8');
-        const cacheData = JSON.parse(cache);
-        return cacheData as Record<string, CachedStatusEntry>;
+        try {
+            const cache = await readFile(cacheFile, 'utf8');
+            const cacheData = JSON.parse(cache);
+            return cacheData as Record<string, CachedStatusEntry>;
+        } catch (error) {
+            this.logger.warn(error, 'Failed to read cached update status');
+            return {};
+        }
     }
 
     /**----------------------
