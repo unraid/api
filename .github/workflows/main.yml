@@ -139,7 +139,7 @@ jobs:
           SHARED_PID=$!
 
           echo "🚀 Starting Web package coverage tests..."
-          (cd ../web && pnpm test --coverage 2>/dev/null || pnpm test) > web-test.log 2>&1 &
+          (cd ../web && (pnpm test --coverage || pnpm test)) > web-test.log 2>&1 &
           WEB_PID=$!
 
           echo "🚀 Starting UI package coverage tests..."

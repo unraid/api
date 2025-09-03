@@ -23,8 +23,6 @@ export default defineConfig({
     testTimeout: 5000,
     hookTimeout: 5000,
     coverage: {
-      all: true,
-      include: ['components/**/*', 'composables/**/*', 'utils/**/*', 'stores/**/*'],
       reporter: ['text', 'json', 'html'],
     },
   },
