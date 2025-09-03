@@ -24,8 +24,8 @@ const addItem = () => {
 };
 
 const removeItem = (index: number) => {
-  const newItems = [...items.value];
-  newItems.splice(index, 1);
+  // Create a completely new array by filtering out the item
+  const newItems = items.value.filter((_, i) => i !== index);
   items.value = newItems;
 };
 

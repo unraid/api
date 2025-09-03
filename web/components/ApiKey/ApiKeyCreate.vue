@@ -52,7 +52,6 @@ const { modalVisible, editingKey, isAuthorizationMode, authorizationData, create
 // This will be transformed into CreateApiKeyInput or UpdateApiKeyInput
 interface FormData extends Partial<CreateApiKeyInput> {
   keyName?: string; // Used in authorization mode
-  authorizationType?: 'roles' | 'groups' | 'custom';
   permissionGroups?: string[];
   permissionPresets?: string; // For the preset dropdown
   customPermissions?: Array<{
@@ -74,7 +73,6 @@ const formSchema = ref<ApiKeyFormSettings | null>(null);
 const formData = ref<FormData>({
   customPermissions: [],
   roles: [],
-  authorizationType: 'roles',
 } as FormData);
 const formValid = ref(false);
 
@@ -83,10 +81,14 @@ const { copyWithNotification, copied } = useClipboardWithToast();
 
 // Computed property to transform formData permissions for the EffectivePermissions component
 const formDataPermissions = computed(() => {
-  if (!formData.value.customPermissions) return [];
+  // Explicitly depend on the array length to ensure reactivity when going to/from empty
+  const permissions = formData.value.customPermissions;
+  const permissionCount = permissions?.length ?? 0;
+  
+  if (!permissions || permissionCount === 0) return [];
 
   // Flatten the resources array into individual permission entries
-  return formData.value.customPermissions.flatMap((perm) =>
+  return permissions.flatMap((perm) =>
     perm.resources.map((resource) => ({
       resource,
       actions: perm.actions, // Already string[] which can be AuthAction values
@@ -141,6 +143,7 @@ const loadFormSchema = () => {
         // For new keys, initialize with empty data
         formData.value = {
           customPermissions: [],
+          roles: [],
         };
         // Set formValid to true initially for new keys
         // JsonForms will update this if there are validation errors
@@ -250,7 +253,6 @@ const populateFormFromExistingKey = async () => {
     formData.value = {
       name: fragmentKey.name,
       description: fragmentKey.description || '',
-      authorizationType: fragmentKey.roles.length > 0 ? 'roles' : 'custom',
       roles: [...fragmentKey.roles],
       customPermissions,
     };
@@ -303,7 +305,10 @@ const transformFormDataForApi = (): CreateApiKeyInput => {
 
 const close = () => {
   apiKeyStore.hideModal();
-  formData.value = {} as FormData; // Reset to empty object
+  formData.value = {
+    customPermissions: [],
+    roles: [],
+  } as FormData;
 };
 
 // Handle form submission
@@ -356,7 +361,10 @@ async function upsertKey() {
     }
 
     apiKeyStore.hideModal();
-    formData.value = {} as FormData; // Reset to empty object
+    formData.value = {
+      customPermissions: [],
+      roles: [],
+    } as FormData;
   } catch (error) {
     console.error('Error in upsertKey:', error);
   } finally {
