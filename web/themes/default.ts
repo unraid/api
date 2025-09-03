@@ -115,7 +115,7 @@ export const defaultColors: Record<string, ThemeVariables> = {
     '--color-header-gradient-end': '#1c1b1b',
   },
   azure: {
-    ...defaultDark,
+    ...defaultLight,
     '--header-text-primary': '#39587f',
     '--header-text-secondary': '#606e7f',
     '--header-background-color': '#f2f2f2',

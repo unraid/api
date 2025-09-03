@@ -49,17 +49,21 @@ const classes = computed(() => {
     iconSize: props.size ?? '16px',
   };
 });
+
 const needsBrandGradientBackground = computed(() => {
   return ['outline-solid', 'outline-primary'].includes(props.variant ?? '');
 });
+
+const isLink = computed(() => Boolean(props.href));
+const isButton = computed(() => !isLink.value);
 </script>
 
 <template>
   <component
-    :is="href ? 'a' : 'span'"
-    :role="!href ? 'button' : undefined"
-    :tabindex="!href && !disabled ? 0 : undefined"
-    :aria-disabled="!href && disabled ? true : undefined"
+    :is="isLink ? 'a' : 'span'"
+    :role="isButton ? 'button' : undefined"
+    :tabindex="isButton && !disabled ? 0 : undefined"
+    :aria-disabled="isButton && disabled ? true : undefined"
     :href="href"
     :rel="external ? 'noopener noreferrer' : ''"
     :target="external ? '_blank' : ''"
@@ -67,7 +71,7 @@ const needsBrandGradientBackground = computed(() => {
     :title="title"
     @click="!disabled && (click ?? $emit('click'))"
     @keydown="
-      !href &&
+      isButton &&
       !disabled &&
       ((e) => {
         if (e.key === 'Enter' || e.key === ' ') {

@@ -8,7 +8,7 @@ import SsoButtons from './sso/SsoButtons.vue';
 
 <style>
 /* Font size overrides for 16px base (standard Tailwind sizing) */
-:host {
+:root {
   /* Text sizes - standard Tailwind rem values */
   --text-xs: 0.75rem; /* 12px */
   --text-sm: 0.875rem; /* 14px */
