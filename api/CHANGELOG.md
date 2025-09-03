@@ -1,5 +1,16 @@
 # Changelog
 
+## [4.18.2](https://github.com/unraid/api/compare/v4.18.1...v4.18.2) (2025-09-03)
+
+
+### Bug Fixes
+
+* add missing CPU guest metrics to CPU responses ([#1644](https://github.com/unraid/api/issues/1644)) ([99dbad5](https://github.com/unraid/api/commit/99dbad57d55a256f5f3f850f9a47a6eaa6348065))
+* **plugin:** raise minimum unraid os version to 6.12.15 ([#1649](https://github.com/unraid/api/issues/1649)) ([bc15bd3](https://github.com/unraid/api/commit/bc15bd3d7008acb416ac3c6fb1f4724c685ec7e7))
+* update GitHub Actions token for workflow trigger ([4d8588b](https://github.com/unraid/api/commit/4d8588b17331afa45ba8caf84fcec8c0ea03591f))
+* update OIDC URL validation and add tests ([#1646](https://github.com/unraid/api/issues/1646)) ([c7c3bb5](https://github.com/unraid/api/commit/c7c3bb57ea482633a7acff064b39fbc8d4e07213))
+* use shared bg & border color for styled toasts ([#1647](https://github.com/unraid/api/issues/1647)) ([7c3aee8](https://github.com/unraid/api/commit/7c3aee8f3f9ba82ae8c8ed3840c20ab47f3cb00f))
+
 ## [4.18.1](https://github.com/unraid/api/compare/v4.18.0...v4.18.1) (2025-09-03)
 
 
