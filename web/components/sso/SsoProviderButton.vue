@@ -27,7 +27,7 @@ const handleClick = () => {
       <img 
         v-if="props.provider.buttonIcon" 
         :src="props.provider.buttonIcon" 
-        class="w-6 h-6 sso-button-icon flex-shrink-0" 
+        class="w-4 h-4 sso-button-icon flex-shrink-0" 
         alt=""
         aria-hidden="true"
       >

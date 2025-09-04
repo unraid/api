@@ -36,83 +36,9 @@ declare global {
   }
 }
 
-// Add pre-render CSS to hide components until they're mounted
-function injectPreRenderCSS() {
-  const style = document.createElement('style');
-  style.id = 'unraid-prerender-css';
-  style.textContent = `
-    /* Hide unraid components during initial load to prevent FOUC */
-    unraid-auth,
-    unraid-connect-settings,
-    unraid-download-api-logs,
-    unraid-header-os-version,
-    unraid-modals,
-    unraid-user-profile,
-    unraid-update-os,
-    unraid-downgrade-os,
-    unraid-registration,
-    unraid-wan-ip-check,
-    unraid-welcome-modal,
-    unraid-sso-button,
-    unraid-log-viewer,
-    unraid-theme-switcher,
-    unraid-api-key-manager,
-    unraid-dev-modal-test,
-    unraid-api-key-authorize {
-      opacity: 0;
-      transition: opacity 0.2s ease-in-out;
-    }
-    
-    /* Show components once they have the unapi class (mounted) */
-    unraid-auth.unapi,
-    unraid-connect-settings.unapi,
-    unraid-download-api-logs.unapi,
-    unraid-header-os-version.unapi,
-    unraid-modals.unapi,
-    unraid-user-profile.unapi,
-    unraid-update-os.unapi,
-    unraid-downgrade-os.unapi,
-    unraid-registration.unapi,
-    unraid-wan-ip-check.unapi,
-    unraid-welcome-modal.unapi,
-    unraid-sso-button.unapi,
-    unraid-log-viewer.unapi,
-    unraid-theme-switcher.unapi,
-    unraid-api-key-manager.unapi,
-    unraid-dev-modal-test.unapi,
-    unraid-api-key-authorize.unapi {
-      opacity: 1;
-    }
-    
-    /* Font size overrides for SSO button component */
-    unraid-sso-button {
-      --text-xs: 0.75rem;
-      --text-sm: 0.875rem;
-      --text-base: 1rem;
-      --text-lg: 1.125rem;
-      --text-xl: 1.25rem;
-      --text-2xl: 1.5rem;
-      --text-3xl: 1.875rem;
-      --text-4xl: 2.25rem;
-      --text-5xl: 3rem;
-      --text-6xl: 3.75rem;
-      --text-7xl: 4.5rem;
-      --text-8xl: 6rem;
-      --text-9xl: 8rem;
-    }
-  `;
-  document.head.appendChild(style);
-}
 
 // Initialize global Apollo client context
 if (typeof window !== 'undefined') {
-  // Inject pre-render CSS as early as possible
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', injectPreRenderCSS);
-  } else {
-    injectPreRenderCSS();
-  }
-  
   // Make Apollo client globally available
   window.apolloClient = apolloClient;
   
@@ -140,6 +66,7 @@ const componentMappings = [
   { component: DownloadApiLogs, selector: 'unraid-download-api-logs', appId: 'download-api-logs' },
   { component: HeaderOsVersion, selector: 'unraid-header-os-version', appId: 'header-os-version' },
   { component: Modals, selector: 'unraid-modals', appId: 'modals' },
+  { component: Modals, selector: '#modals', appId: 'modals-legacy' }, // Legacy ID selector
   { component: UserProfile, selector: 'unraid-user-profile', appId: 'user-profile' },
   { component: UpdateOs, selector: 'unraid-update-os', appId: 'update-os' },
   { component: DowngradeOs, selector: 'unraid-downgrade-os', appId: 'downgrade-os' },
@@ -162,12 +89,6 @@ componentMappings.forEach(({ component, selector, appId }) => {
     appId,
     useShadowRoot: false, // Mount directly to avoid shadow DOM issues
   });
-});
-
-// Special handling for Modals - also mount to #modals
-autoMountComponent(Modals, '#modals', {
-  appId: 'modals-direct',
-  useShadowRoot: false,
 });
 
 // Expose functions globally for testing and dynamic mounting
