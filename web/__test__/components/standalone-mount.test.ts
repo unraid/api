@@ -119,13 +119,8 @@ describe('standalone-mount', () => {
     // Reset all mocks
     vi.clearAllMocks();
     
-    // Clear window properties
-    delete (window as Record<string, unknown>).apolloClient;
-    delete (window as Record<string, unknown>).gql;
-    delete (window as Record<string, unknown>).graphqlParse;
-    delete (window as Record<string, unknown>).UnraidComponents;
-    delete (window as Record<string, unknown>).mountVueApp;
-    delete (window as Record<string, unknown>).getMountedApp;
+    // Use Vitest's unstubAllGlobals to clean up any global stubs from previous tests
+    vi.unstubAllGlobals();
     
     // Mock document methods
     vi.spyOn(document.head, 'appendChild').mockImplementation(() => document.createElement('style'));
@@ -139,6 +134,7 @@ describe('standalone-mount', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.resetModules();
+    vi.unstubAllGlobals();
   });
 
   describe('initialization', () => {
@@ -238,16 +234,15 @@ describe('standalone-mount', () => {
       await import('~/components/standalone-mount');
 
       // Check for some dynamic mount functions
-      expect(typeof (window as Record<string, unknown>).mountAuth).toBe('function');
-      expect(typeof (window as Record<string, unknown>).mountConnectSettings).toBe('function');
-      expect(typeof (window as Record<string, unknown>).mountUserProfile).toBe('function');
-      expect(typeof (window as Record<string, unknown>).mountModals).toBe('function');
-      expect(typeof (window as Record<string, unknown>).mountThemeSwitcher).toBe('function');
+      expect(typeof window.mountAuth).toBe('function');
+      expect(typeof window.mountConnectSettings).toBe('function');
+      expect(typeof window.mountUserProfile).toBe('function');
+      expect(typeof window.mountModals).toBe('function');
+      expect(typeof window.mountThemeSwitcher).toBe('function');
 
       // Test calling a dynamic mount function
       const customSelector = '#custom-auth';
-      const mountAuth = (window as Record<string, unknown>).mountAuth as (selector?: string) => unknown;
-      mountAuth(customSelector);
+      window.mountAuth?.(customSelector);
       
       expect(mockMountVueApp).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -261,8 +256,7 @@ describe('standalone-mount', () => {
       await import('~/components/standalone-mount');
 
       // Call mount function without custom selector
-      const mountAuthDefault = (window as Record<string, unknown>).mountAuth as (selector?: string) => unknown;
-      mountAuthDefault();
+      window.mountAuth?.();
       
       expect(mockMountVueApp).toHaveBeenCalledWith(
         expect.objectContaining({

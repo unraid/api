@@ -1,5 +1,4 @@
 // Import all components
-import type { Component } from 'vue';
 import Auth from './Auth.ce.vue';
 import ConnectSettings from './ConnectSettings/ConnectSettings.ce.vue';
 import DownloadApiLogs from './DownloadApiLogs.ce.vue';
@@ -27,14 +26,7 @@ import { provideApolloClient } from '@vue/apollo-composable';
 import { parse } from 'graphql';
 import { ensureTeleportContainer } from '@unraid/ui';
 
-// Extend window interface for Apollo client
-declare global {
-  interface Window {
-    apolloClient: typeof apolloClient;
-    gql: typeof parse;
-    graphqlParse: typeof parse;
-  }
-}
+// Window type definitions are automatically included via tsconfig.json
 
 
 // Initialize global Apollo client context
@@ -91,14 +83,7 @@ componentMappings.forEach(({ component, selector, appId }) => {
   });
 });
 
-// Expose functions globally for testing and dynamic mounting
-declare global {
-  interface Window {
-    UnraidComponents: Record<string, Component>;
-    mountVueApp: typeof mountVueApp;
-    getMountedApp: typeof getMountedApp;
-  }
-}
+// Window interface extensions are defined in ~/types/window.d.ts
 
 if (typeof window !== 'undefined') {
   // Expose all components
