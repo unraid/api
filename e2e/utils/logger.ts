@@ -9,16 +9,18 @@ export class TestLogger {
   private logger: winston.Logger;
   private testInfo: TestInfo | null = null;
   private logFilePath: string | null = null;
+  private browserName: string = 'unknown';
   
   constructor() {
     this.logger = winston.createLogger({
       level: process.env.LOG_LEVEL || 'info',
       format: combine(
         timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
-        printf(({ level, message, timestamp, testPath, ...meta }) => {
+        printf(({ level, message, timestamp, testPath, browser, ...meta }) => {
           const testContext = testPath ? `[${testPath}]` : '';
+          const browserContext = browser ? `[${browser}]` : '';
           const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
-          return `[${timestamp}] [${level.toUpperCase()}] ${testContext} ${message}${metaStr}`;
+          return `[${timestamp}] [${level.toUpperCase()}] ${browserContext} ${testContext} ${message}${metaStr}`;
         })
       ),
       transports: [
@@ -26,7 +28,10 @@ export class TestLogger {
           level: 'error',
           format: combine(
             colorize(),
-            printf(({ level, message }) => `[TEST] ${message}`)
+            printf(({ level, message, browser }) => {
+              const browserPrefix = browser ? `[${browser}]` : '';
+              return `[TEST] ${browserPrefix} ${message}`;
+            })
           )
         })
       ]
@@ -35,13 +40,18 @@ export class TestLogger {
 
   private ensureLogDirectory(testInfo: TestInfo): string {
     const outputDir = process.env.TEST_RESULTS_DIR || 'test-results';
+    const browserName = testInfo.project.name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
     const testName = testInfo.titlePath.join(' > ').replace(/[^a-z0-9]/gi, '-').toLowerCase();
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-    const logDir = path.join(outputDir, 'logs');
+    
+    // Organize logs by browser/project
+    const logDir = path.join(outputDir, 'logs', browserName);
     
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
     }
+    
+    this.browserName = testInfo.project.name;
     
     return path.join(logDir, `${testName}-${timestamp}.log`);
   }
@@ -90,33 +100,33 @@ export class TestLogger {
   }
 
   log(message: string, meta?: any): void {
-    this.logger.info(message, { testPath: this.getTestPath(), ...meta });
+    this.logger.info(message, { testPath: this.getTestPath(), browser: this.browserName, ...meta });
   }
 
   info(message: string, meta?: any): void {
-    this.logger.info(message, { testPath: this.getTestPath(), ...meta });
+    this.logger.info(message, { testPath: this.getTestPath(), browser: this.browserName, ...meta });
   }
 
   warn(message: string, meta?: any): void {
-    this.logger.warn(message, { testPath: this.getTestPath(), ...meta });
+    this.logger.warn(message, { testPath: this.getTestPath(), browser: this.browserName, ...meta });
   }
 
   error(message: string | Error, meta?: any): void {
     const msg = message instanceof Error ? message.message : message;
     const errorMeta = message instanceof Error ? { stack: message.stack, ...meta } : meta;
-    this.logger.error(msg, { testPath: this.getTestPath(), ...errorMeta });
+    this.logger.error(msg, { testPath: this.getTestPath(), browser: this.browserName, ...errorMeta });
   }
 
   debug(message: string, meta?: any): void {
-    this.logger.debug(message, { testPath: this.getTestPath(), ...meta });
+    this.logger.debug(message, { testPath: this.getTestPath(), browser: this.browserName, ...meta });
   }
 
   verbose(message: string, meta?: any): void {
-    this.logger.verbose(message, { testPath: this.getTestPath(), ...meta });
+    this.logger.verbose(message, { testPath: this.getTestPath(), browser: this.browserName, ...meta });
   }
 
   http(message: string, meta?: any): void {
-    this.logger.http(message, { testPath: this.getTestPath(), ...meta });
+    this.logger.http(message, { testPath: this.getTestPath(), browser: this.browserName, ...meta });
   }
 }
 
