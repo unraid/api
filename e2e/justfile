@@ -90,6 +90,47 @@ list-envs:
 show-report env_name:
     npx playwright show-report "playwright-report-{{env_name}}"
 
+# Show all reports from all environments
+show-all-reports:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    # Find all playwright report directories
+    report_dirs=$(find . -maxdepth 1 -type d -name "playwright-report-*" | sort)
+    
+    if [ -z "$report_dirs" ]; then
+        echo "No HTML reports found. Run 'just test-all-envs' first."
+        exit 1
+    fi
+    
+    echo "Available reports:"
+    port=9323
+    for report_dir in $report_dirs; do
+        env_name=$(basename "$report_dir" | sed 's/playwright-report-//')
+        echo "- $env_name: $report_dir (will serve on port $port)"
+        ((port++))
+    done
+    echo ""
+    
+    # Open each report in browser with different ports
+    port=9323
+    pids=()
+    for report_dir in $report_dirs; do
+        env_name=$(basename "$report_dir" | sed 's/playwright-report-//')
+        echo "Opening report for environment: $env_name on port $port"
+        npx playwright show-report "$report_dir" --port "$port" &
+        pids+=($!)
+        ((port++))
+        sleep 1  # Small delay to prevent browser overwhelm
+    done
+    
+    echo "All reports opened in browser"
+    echo "Press Ctrl+C to stop all report servers"
+    
+    # Wait for all background processes and handle cleanup
+    trap 'echo "Stopping all report servers..."; kill ${pids[@]} 2>/dev/null; exit' INT TERM
+    wait
+
 # Run tests in headed mode for a specific environment
 test-env-headed env_file *args="":
     #!/usr/bin/env bash
