@@ -15,12 +15,12 @@ echo "Cleaning deployed files from Unraid server: $server_name"
 exit_code=0
 
 # Remove standalone apps directory
-echo "Removing standalone apps directory..."
-ssh root@"${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
-standalone_exit_code=$?
-if [ $standalone_exit_code -ne 0 ]; then
-  echo "Warning: Failed to remove standalone apps directory"
-  exit_code=$standalone_exit_code
+echo "Removing components directory..."
+ssh root@"${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/"
+components_exit_code=$?
+if [ $components_exit_code -ne 0 ]; then
+  echo "Warning: Failed to remove components directory"
+  exit_code=$components_exit_code
 fi
 
 # Clean up auth-request.php file
