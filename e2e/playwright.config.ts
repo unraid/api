@@ -10,7 +10,10 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [
-    ['html', { outputFolder: process.env.PLAYWRIGHT_HTML_REPORT || 'playwright-report' }],
+    ['html', { 
+      outputFolder: process.env.PLAYWRIGHT_HTML_OUTPUT_DIR || 'playwright-report',
+      open: process.env.PLAYWRIGHT_HTML_OPEN as 'always' | 'never' | 'on-failure' || 'on-failure'
+    }],
     ['line'],
     process.env.CI ? ['github'] : null,
   ].filter(Boolean) as any,

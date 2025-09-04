@@ -31,13 +31,10 @@ test-all-envs:
         echo "Environment: $env_name"
         echo "========================================="
         
-        # Create a custom playwright config for this environment
-        mkdir -p "playwright-report-$env_name"
-        mkdir -p "test-results-$env_name"
-        
         # Run tests with dotenvx loading the specific env file
-        # Use environment variable to pass custom paths to playwright config
-        PLAYWRIGHT_HTML_REPORT="playwright-report-$env_name" \
+        # Use official Playwright environment variables for output paths
+        PLAYWRIGHT_HTML_OUTPUT_DIR="playwright-report-$env_name" \
+        PLAYWRIGHT_HTML_OPEN="never" \
         TEST_RESULTS_DIR="test-results-$env_name" \
         dotenvx run --env-file="$env_file" -- pnpm test || {
             echo "Tests failed for environment: $env_name"
@@ -71,11 +68,9 @@ test-env env_file:
     echo "Running tests with: {{env_file}}"
     echo "Environment: $env_name"
     
-    # Create directories and run tests with custom paths
-    mkdir -p "playwright-report-$env_name"
-    mkdir -p "test-results-$env_name"
-    
-    PLAYWRIGHT_HTML_REPORT="playwright-report-$env_name" \
+    # Run tests with official Playwright environment variables
+    PLAYWRIGHT_HTML_OUTPUT_DIR="playwright-report-$env_name" \
+    PLAYWRIGHT_HTML_OPEN="never" \
     TEST_RESULTS_DIR="test-results-$env_name" \
     dotenvx run --env-file="{{env_file}}" -- pnpm test
 
@@ -110,11 +105,9 @@ test-env-headed env_file:
     
     echo "Running headed tests with: {{env_file}}"
     
-    # Create directories and run tests with custom paths
-    mkdir -p "playwright-report-$env_name"
-    mkdir -p "test-results-$env_name"
-    
-    PLAYWRIGHT_HTML_REPORT="playwright-report-$env_name" \
+    # Run tests in headed mode with custom output paths
+    PLAYWRIGHT_HTML_OUTPUT_DIR="playwright-report-$env_name" \
+    PLAYWRIGHT_HTML_OPEN="always" \
     TEST_RESULTS_DIR="test-results-$env_name" \
     dotenvx run --env-file="{{env_file}}" -- pnpm test:headed
 
