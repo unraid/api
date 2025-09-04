@@ -113,7 +113,7 @@ const returnToApp = () => {
 </script>
 
 <template>
-  <div class="w-full max-w-4xl mx-auto p-6">
+  <div class="w-full max-w-3xl mx-auto p-6">
     <!-- Success state -->
     <div v-if="showSuccess && createdApiKey" class="w-full bg-background rounded-lg shadow-sm border border-muted">
       <!-- Header -->
