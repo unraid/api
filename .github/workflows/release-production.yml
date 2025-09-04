@@ -124,3 +124,16 @@ jobs:
             --no-guess-mime-type \
             --content-encoding none \
             --acl public-read
+
+      - name: Actions for Discord
+        uses: Ilshidur/action-discord@0.4.0
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.PUBLIC_DISCORD_RELEASE_ENDPOINT }}
+        with:
+          args: |
+            🚀 **Unraid API Release ${{ inputs.version }}**
+            
+            View Release: https://github.com/${{ github.repository }}/releases/tag/${{ inputs.version }}
+            
+            **Changelog:**
+            ${{ steps.release-info.outputs.body }}
