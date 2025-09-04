@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { RuleEffect } from '@jsonforms/core';
@@ -6,6 +6,7 @@ import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
 import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 
+import { OidcClientConfigService } from '@app/unraid-api/graph/resolvers/sso/client/oidc-client-config.service.js';
 import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/core/oidc-validation.service.js';
 import {
     AuthorizationOperator,
@@ -30,7 +31,10 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
     constructor(
         configService: ConfigService,
         private readonly userSettings: UserSettingsService,
-        private readonly validationService: OidcValidationService
+        private readonly validationService: OidcValidationService,
+        @Optional()
+        @Inject(forwardRef(() => OidcClientConfigService))
+        private readonly clientConfigService?: OidcClientConfigService
     ) {
         super(configService);
         this.registerSettings();
@@ -252,6 +256,15 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         this.configService.set(this.configKey(), newConfig);
         await this.persist(newConfig);
 
+        // Clear the OIDC client configuration cache when a provider is updated
+        // This ensures the new issuer/endpoints are used immediately
+        if (this.clientConfigService) {
+            this.clientConfigService.clearCache(cleanedProvider.id);
+            this.logger.debug(
+                `Cleared OIDC client configuration cache for provider ${cleanedProvider.id}`
+            );
+        }
+
         return cleanedProvider;
     }
 
@@ -327,6 +340,12 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         const newConfig = { ...config, providers: filteredProviders };
         this.configService.set(this.configKey(), newConfig);
         await this.persist(newConfig);
+
+        // Clear the cache for the deleted provider
+        if (this.clientConfigService) {
+            this.clientConfigService.clearCache(id);
+            this.logger.debug(`Cleared OIDC client configuration cache for deleted provider ${id}`);
+        }
 
         return true;
     }
@@ -439,6 +458,13 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
 
                 this.configService.set(this.configKey(), processedConfig);
                 await this.persist(processedConfig);
+
+                // Clear the OIDC client configuration cache to ensure fresh discovery
+                // This fixes the issue where changing issuer URLs requires API restart
+                if (this.clientConfigService) {
+                    this.clientConfigService.clearCache();
+                    this.logger.debug('Cleared OIDC client configuration cache after provider update');
+                }
 
                 // Include validation results in response
                 const response: { restartRequired: boolean; values: OidcConfig; warnings?: string[] } = {
