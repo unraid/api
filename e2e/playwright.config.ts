@@ -10,10 +10,11 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [
-    ['html'],
-    ['list'],
+    ['html', { outputFolder: process.env.PLAYWRIGHT_HTML_REPORT || 'playwright-report' }],
+    ['line'],
     process.env.CI ? ['github'] : null,
   ].filter(Boolean) as any,
+  outputDir: process.env.TEST_RESULTS_DIR || 'test-results',
   use: {
     baseURL: process.env.UNRAID_URL || 'http://tower.local',
     trace: 'on-first-retry',

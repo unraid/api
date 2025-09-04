@@ -1,0 +1,125 @@
+# Justfile for running e2e tests with different environment configurations
+
+# Default recipe - show available commands
+default:
+    @just --list
+
+# Run tests against all .env files except .env.example
+test-all-envs:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    # Find all .env.* files except .env.example
+    env_files=$(find . -maxdepth 1 -name ".env.*" -type f | grep -v ".env.example" | sort)
+    
+    if [ -z "$env_files" ]; then
+        echo "No .env.* files found (excluding .env.example)"
+        exit 1
+    fi
+    
+    echo "Found environment files:"
+    echo "$env_files"
+    echo ""
+    
+    # Run tests for each env file
+    for env_file in $env_files; do
+        # Extract environment name from filename
+        env_name=$(basename "$env_file" | sed 's/^\.env\.//')
+        
+        echo "========================================="
+        echo "Running tests with: $env_file"
+        echo "Environment: $env_name"
+        echo "========================================="
+        
+        # Create a custom playwright config for this environment
+        mkdir -p "playwright-report-$env_name"
+        mkdir -p "test-results-$env_name"
+        
+        # Run tests with dotenvx loading the specific env file
+        # Use environment variable to pass custom paths to playwright config
+        PLAYWRIGHT_HTML_REPORT="playwright-report-$env_name" \
+        TEST_RESULTS_DIR="test-results-$env_name" \
+        dotenvx run --env-file="$env_file" -- pnpm test || {
+            echo "Tests failed for environment: $env_name"
+            # Continue with other environments even if one fails
+        }
+        
+        echo ""
+    done
+    
+    echo "========================================="
+    echo "All test runs completed"
+    echo "Reports available in:"
+    find . -maxdepth 1 -type d -name "playwright-report-*" | sort
+    echo ""
+    echo "Artifacts available in:"
+    find . -maxdepth 1 -type d -name "test-results-*" | sort
+
+# Run tests for a specific environment file
+test-env env_file:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    if [ ! -f "{{env_file}}" ]; then
+        echo "Environment file not found: {{env_file}}"
+        exit 1
+    fi
+    
+    # Extract environment name from filename
+    env_name=$(basename "{{env_file}}" | sed 's/^\.env\.//')
+    
+    echo "Running tests with: {{env_file}}"
+    echo "Environment: $env_name"
+    
+    # Create directories and run tests with custom paths
+    mkdir -p "playwright-report-$env_name"
+    mkdir -p "test-results-$env_name"
+    
+    PLAYWRIGHT_HTML_REPORT="playwright-report-$env_name" \
+    TEST_RESULTS_DIR="test-results-$env_name" \
+    dotenvx run --env-file="{{env_file}}" -- pnpm test
+
+# Clean all test artifacts and reports
+clean:
+    rm -rf playwright-report-*
+    rm -rf test-results-*
+    rm -rf playwright-report
+    rm -rf test-results
+
+# List available environment files
+list-envs:
+    @echo "Available environment files:"
+    @find . -maxdepth 1 -name ".env.*" -type f | grep -v ".env.example" | sort
+
+# Show report for a specific environment
+show-report env_name:
+    npx playwright show-report "playwright-report-{{env_name}}"
+
+# Run tests in headed mode for a specific environment
+test-env-headed env_file:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    if [ ! -f "{{env_file}}" ]; then
+        echo "Environment file not found: {{env_file}}"
+        exit 1
+    fi
+    
+    # Extract environment name from filename
+    env_name=$(basename "{{env_file}}" | sed 's/^\.env\.//')
+    
+    echo "Running headed tests with: {{env_file}}"
+    
+    # Create directories and run tests with custom paths
+    mkdir -p "playwright-report-$env_name"
+    mkdir -p "test-results-$env_name"
+    
+    PLAYWRIGHT_HTML_REPORT="playwright-report-$env_name" \
+    TEST_RESULTS_DIR="test-results-$env_name" \
+    dotenvx run --env-file="{{env_file}}" -- pnpm test:headed
+
+# Install dependencies including dotenvx
+install:
+    pnpm install
+    npm install -g @dotenvx/dotenvx
+    pnpm playwright:install
