@@ -85,7 +85,7 @@ exit(0);
   <FILE Name="/tmp/unraid_connect_cleanup_for_unsupported_os_versions.sh" Run="/bin/bash" Method="install" Max="6.12.0">
     <INLINE>
       <![CDATA[
-# Inlined copy of perform_connect_cleanup and perform_full_cleanup from
+# Inlined copy of perform_connect_cleanup from
 # /usr/local/share/dynamix.unraid.net/install/scripts/cleanup.sh
 # to avoid the need to decompress the plugin tarball just to run the cleanup script
 
@@ -164,68 +164,8 @@ perform_connect_cleanup() {
   fi
 }
 
-# Full cleanup function - runs only during removal
-perform_full_cleanup() {
-  # Clean up Connect and Flash Backup services
-  perform_connect_cleanup
-  
-  # Stop and remove the API
-  if [ -e /etc/rc.d/rc.unraid-api ]; then
-    # Stop flash backup
-    /etc/rc.d/rc.flash_backup stop >/dev/null 2>&1
-    # Stop the api gracefully
-    /etc/rc.d/rc.unraid-api stop >/dev/null 2>&1
-    # Stop newer clients
-    unraid-api stop
-    # Kill any processes
-    pid_list=$(pidof unraid-api 2>/dev/null) || true
-    [ -n "$pid_list" ] && kill -9 $pid_list
-    # Find all PIDs referencing main.js and kill them
-    node_pids=$(pgrep -f "node /usr/local/unraid-api/dist/main.js" 2>/dev/null) || true
-    [ -n "$node_pids" ] && echo "$node_pids" | xargs kill -9
-    # Clean up files
-    rm -rf /usr/local/unraid-api
-    rm -rf /var/run/unraid-api.sock
-    rm -rf /usr/.pnpm-store
-  fi
-
-  # Delete plugin files and cleanup
-  rm -f /boot/config/plugins/dynamix.my.servers/.gitignore
-  rm -f /etc/rc.d/rc.unraid-api
-  rm -f /etc/rc.d/rc.flash_backup
-  rm -rf /usr/local/sbin/unraid-api
-  rm -rf /usr/local/bin/unraid-api
-  rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
-  rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net.staging
-  rm -f /etc/rc.d/rc6.d/K10_flash_backup
-  rm -f /var/log/gitcount
-  rm -f /var/log/gitflash
-  rm -f /var/log/gitratelimit
-  rm -f /usr/local/emhttp/state/flashbackup.ini
-  rm -f /usr/local/emhttp/state/myservers.cfg
-  
-  # Delete any legacy files that may exist
-  rm -rf /boot/config/plugins/dynamix.my.servers/libvirt.node
-  rm -rf /boot/config/plugins/dynamix.my.servers/segfault-handler.node
-  rm -rf /boot/config/plugins/dynamix.my.servers/wc
-  rm -f /boot/config/plugins/Unraid.net/unraid-api.tgz
-  rm -f /boot/config/plugins/Unraid.net/.gitignore
-  rm -f /boot/config/plugins/dynamix.my.servers/unraid-api.tgz
-  rm -rf /boot/config/plugins/Unraid.net/webComps
-  rm -rf /boot/config/plugins/Unraid.net/wc
-  rm -f /usr/local/emhttp/webGui/javascript/vue.js
-  rm -f /usr/local/emhttp/webGui/javascript/vue.min.js
-  rm -rf /usr/local/emhttp/webGui/webComps
-  rm -rf /usr/local/emhttp/webGui/wc
-  
-  # Clean up our optional makestate modifications in rc.nginx (on 6.9 and 6.10.0-rc[12])
-  sed -i '/scripts\/makestate/d' /etc/rc.d/rc.nginx
-  # Clean up extra origin for robots.txt
-  sed -i '/#robots.txt any origin/d' /etc/rc.d/rc.nginx
-}
-
-perform_full_cleanup
-echo "Done."
+perform_connect_cleanup
+echo "Done. Please uninstall the Connect plugin to complete the cleanup."
 # Exit with error to clarify that further user action--either uninstalling the plugin or upgrading to a newer version of Unraid--is required.
 exit 1;
 ]]>
