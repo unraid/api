@@ -16,11 +16,22 @@ export const getKeyFile = async function (appStore: RootState = store.getState()
 
     const keyFileName = basename(emhttp.var?.regFile);
     const registrationKeyFilePath = join(paths['keyfile-base'], keyFileName);
-    const keyFile = await readFile(registrationKeyFilePath, 'binary');
-    return Buffer.from(keyFile, 'binary')
-        .toString('base64')
-        .trim()
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, '');
+
+    try {
+        const keyFile = await readFile(registrationKeyFilePath, 'binary');
+        return Buffer.from(keyFile, 'binary')
+            .toString('base64')
+            .trim()
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=/g, '');
+    } catch (error) {
+        // Handle ENOENT error when Pro.key file doesn't exist
+        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+            // Return empty string when key file is missing (ENOKEYFILE state)
+            return '';
+        }
+        // Re-throw other errors
+        throw error;
+    }
 };
