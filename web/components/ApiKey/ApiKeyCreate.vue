@@ -417,7 +417,7 @@ const copyApiKey = async () => {
     :open="props.open"
     sheet-side="bottom"
     :sheet-class="'h-[100vh] flex flex-col'"
-    :dialog-class="'max-w-4xl max-h-[90vh] overflow-hidden'"
+    :dialog-class="'max-w-3xl max-h-[90vh] overflow-hidden'"
     :show-close-button="true"
     @update:open="
       (v) => {

@@ -241,7 +241,9 @@ const updateItem = (index: number, newValue: unknown) => {
     </Tabs>
 
     <div v-else class="border-muted rounded-lg border-2 border-dashed py-8 text-center">
-      <p class="text-muted-foreground mb-4">No {{ itemTypeName.toLowerCase() }}s configured</p>
+      <p class="text-muted-foreground mb-4 text-center">
+        No {{ itemTypeName.toLowerCase() }}s configured
+      </p>
       <Button variant="outline" size="md" :disabled="!control.enabled" @click="addItem">
         <Plus class="mr-2 h-4 w-4" />
         Add First {{ itemTypeName }}

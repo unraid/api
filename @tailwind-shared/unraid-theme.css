@@ -167,6 +167,27 @@
   --max-width-800px: 800px;
   --max-width-1024px: 1024px;
 
+  /* Container sizes adjusted for 10px base font size (1.6x scale) */
+  --container-xs: 32rem;
+  --container-sm: 38.4rem;
+  --container-md: 44.8rem;
+  --container-lg: 51.2rem;
+  --container-xl: 57.6rem;
+  --container-2xl: 67.2rem;
+  --container-3xl: 76.8rem;
+  --container-4xl: 89.6rem;
+  --container-5xl: 102.4rem;
+  --container-6xl: 115.2rem;
+  --container-7xl: 128rem;
+  
+  /* Extended width scale for max-w-* utilities */
+  --width-5xl: 102.4rem;
+  --width-6xl: 115.2rem;
+  --width-7xl: 128rem;
+  --width-8xl: 140.8rem;
+  --width-9xl: 153.6rem;
+  --width-10xl: 166.4rem;
+
   /* Animations */
   --animate-mark-2: mark-2 1.5s ease infinite;
   --animate-mark-3: mark-3 1.5s ease infinite;
