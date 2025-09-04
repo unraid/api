@@ -28,7 +28,7 @@ export class TestLogger {
           level: 'error',
           format: combine(
             colorize(),
-            printf(({ level, message, browser }) => {
+            printf(({ message, browser }) => {
               const browserPrefix = browser ? `[${browser}]` : '';
               return `[TEST] ${browserPrefix} ${message}`;
             })
@@ -41,11 +41,23 @@ export class TestLogger {
   private ensureLogDirectory(testInfo: TestInfo): string {
     const outputDir = process.env.TEST_RESULTS_DIR || 'test-results';
     const browserName = testInfo.project.name.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    const testName = testInfo.titlePath.join(' > ').replace(/[^a-z0-9]/gi, '-').toLowerCase();
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
     
-    // Organize logs by browser/project
-    const logDir = path.join(outputDir, 'logs', browserName);
+    // Build simple hierarchy: logs/browser/test-file/suite/test-name/
+    const pathParts = [outputDir, 'logs', browserName];
+    
+    // Add test file name
+    const testFileName = path.basename(testInfo.file, '.spec.ts')
+      .replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    pathParts.push(testFileName);
+    
+    // Add test suite hierarchy and test name
+    const titleParts = testInfo.titlePath.map(part => 
+      part.replace(/[^a-z0-9]/gi, '-').toLowerCase()
+    );
+    pathParts.push(...titleParts);
+    
+    const logDir = path.join(...pathParts);
     
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
@@ -53,7 +65,7 @@ export class TestLogger {
     
     this.browserName = testInfo.project.name;
     
-    return path.join(logDir, `${testName}-${timestamp}.log`);
+    return path.join(logDir, `${timestamp}.log`);
   }
 
   attachToTest(testInfo: TestInfo): void {
