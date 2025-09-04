@@ -42,8 +42,8 @@ export class PM2Service {
 
     async run(context: CmdContext, ...args: string[]) {
         const { tag, raw, ...execOptions } = context;
-        // Explicitly set extendEnv to false for controlled environment
-        execOptions.extendEnv = execOptions.extendEnv ?? false;
+        // Default to true to match execa's default behavior
+        execOptions.extendEnv ??= true;
         execOptions.shell ??= 'bash';
 
         // Ensure /usr/local/bin is in PATH for Node.js
