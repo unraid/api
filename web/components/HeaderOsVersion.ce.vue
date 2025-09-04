@@ -141,7 +141,7 @@ const updateOsStatus = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-2 mt-2 ml-2">
+  <div class="flex flex-col gap-y-2 mt-4 ml-4">
     <a
       :href="unraidLogoHeaderLink.href"
       :title="unraidLogoHeaderLink.title"
@@ -165,7 +165,7 @@ const updateOsStatus = computed(() => {
             :title="t('Version Information')"
           >
             <InformationCircleIcon 
-              class="fill-current w-3 h-3 xs:w-4 xs:h-4 shrink-0" 
+              :style="{ width: '12px', height: '12px', flexShrink: 0 }"
             />
             {{ displayOsVersion }}
           </Button>

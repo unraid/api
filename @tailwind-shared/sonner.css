@@ -699,3 +699,10 @@
   opacity: 0;
   transform: scale(0.8) translate(-50%, -50%);
 }
+
+/* Override Unraid webgui docker icon styles on sonner containers */
+[data-sonner-toast] [data-icon]:before,
+[data-sonner-toast] .fa-docker:before {
+  font-family: inherit !important;
+  content: '' !important;
+}
