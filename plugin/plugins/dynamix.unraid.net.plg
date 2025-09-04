@@ -14,9 +14,9 @@
   <!ENTITY tag "">
   <!ENTITY api_version "">
 ]>
-
+<!-- Plugin min version is lower than the actual min version of Connect (6.12.0) to facilitate cleanup on newly unsupported versions. -->
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&plugin_url;"
-  launch="&launch;" min="6.12.15" icon="globe">
+  launch="&launch;" min="6.9.0-rc1" icon="globe">
 
   <CHANGES>
     ##a long time ago in a galaxy far far away
@@ -60,10 +60,10 @@ exit 0
 // Check Unraid version
 $version = @parse_ini_file('/etc/unraid-version', true)['version'];
 
-// Check if this is a supported version
-// - Must be 6.12.15 or higher
-// - Must not be a 6.12.15 beta/rc version
-$is_stable_6_12_or_higher = version_compare($version, '6.12.15', '>=') && !preg_match('/^6\\.12\\.0-/', $version);
+// Check if this is a recommended version
+// - Should be 6.12.15 or higher
+// - Should not be a 6.12.15 beta/rc version
+$is_stable_6_12_or_higher = version_compare($version, '6.12.15', '>=') && !preg_match('/^6\\.12\\.15-/', $version);
 
 if ($is_stable_6_12_or_higher) {
   echo "Running on supported version {$version}\n";
@@ -71,9 +71,103 @@ if ($is_stable_6_12_or_higher) {
 }
 
 echo "Warning: Unsupported Unraid version {$version}. This plugin requires Unraid 6.12.15 or higher.\n";
-echo "The plugin will not function correctly on this system.\n";
+echo "The plugin may not function correctly on this system. It may stop working entirely in the future.\n";
+echo "⚠️ Please uninstall this plugin or upgrade to a newer version of Unraid to enjoy Unraid Connect\n";
 
-exit(1);
+// early escape handled via unraid_connect_cleanup_for_unsupported_os_versions step
+exit(0);
+]]>
+    </INLINE>
+  </FILE>
+
+<!-- cleanup script for Unraid 6.12.0 and earlier. when run, it will exit the plugin install with an error status. -->
+<!-- See the version of dynamix.unraid.net.plg in commit a240a031a for the original implementation of this code. -->
+  <FILE Name="/tmp/unraid_connect_cleanup_for_unsupported_os_versions.sh" Run="/bin/bash" Method="install" Max="6.12.0">
+    <INLINE>
+      <![CDATA[
+# Inlined copy of perform_connect_cleanup from
+# /usr/local/share/dynamix.unraid.net/install/scripts/cleanup.sh
+# to avoid the need to decompress the plugin tarball just to run the cleanup script
+
+# Handle flash backup deactivation and Connect signout
+perform_connect_cleanup() {
+  printf "\n**********************************\n"
+  printf "🧹 CLEANING UP - may take a minute\n"
+  printf "**********************************\n"
+  
+  # Handle git-based flash backups
+  if [ -f "/boot/.git" ]; then
+    if [ -f "/etc/rc.d/rc.flash_backup" ]; then
+      printf "\nStopping flash backup service. Please wait...\n"
+      /etc/rc.d/rc.flash_backup stop >/dev/null 2>&1
+    fi
+    
+    if [ -f "/usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php" ]; then
+      printf "\nDeactivating flash backup. Please wait...\n"
+      /usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php deactivate
+    fi
+  fi
+  
+  # Check if connect.json or myservers.cfg exists
+  if [ -f "/boot/config/plugins/dynamix.my.servers/configs/connect.json" ] || [ -f "/boot/config/plugins/dynamix.my.servers/myservers.cfg" ]; then
+    # Stop unraid-api
+    printf "\nStopping unraid-api. Please wait...\n"
+    output=$(/etc/rc.d/rc.unraid-api stop --delete 2>&1)
+    if [ -z "$output" ]; then
+      echo "Waiting for unraid-api to stop..."
+      sleep 5  # Give it time to stop
+    fi
+    echo "Stopped unraid-api: $output"
+    
+    # Sign out of Unraid Connect (we'll use curl directly from shell)
+    # We need to extract the username from connect.json or myservers.cfg and the registration key
+    has_username=false
+    
+    # Check connect.json first (newer format)
+    if [ -f "/boot/config/plugins/dynamix.my.servers/configs/connect.json" ] && command -v jq >/dev/null 2>&1; then
+      username=$(jq -r '.username' "/boot/config/plugins/dynamix.my.servers/configs/connect.json" 2>/dev/null)
+      if [ -n "$username" ] && [ "$username" != "null" ]; then
+        has_username=true
+      fi
+    fi
+
+    # Fallback to myservers.cfg (legacy format)
+    if [ "$has_username" = false ] && [ -f "/boot/config/plugins/dynamix.my.servers/myservers.cfg" ]; then
+      if grep -q 'username' "/boot/config/plugins/dynamix.my.servers/myservers.cfg"; then
+        has_username=true
+      fi
+    fi
+    
+    if [ "$has_username" = true ]; then
+      printf "\nSigning out of Unraid Connect\n"
+      # Check if regFILE exists in var.ini
+      if [ -f "/var/local/emhttp/var.ini" ]; then
+        regfile=$(grep "regFILE" "/var/local/emhttp/var.ini" | cut -d= -f2)
+        if [ -n "$regfile" ] && [ -f "$regfile" ]; then
+          # Base64 encode the key file and send to server
+          encoded_key=$(base64 "$regfile" | tr -d '\n')
+          if [ -n "$encoded_key" ]; then
+            curl -s -X POST "https://keys.lime-technology.com/account/server/unregister" \
+              -d "keyfile=$encoded_key" >/dev/null 2>&1
+          fi
+        fi
+      fi
+    fi
+    
+    # Remove config files
+    rm -f /boot/config/plugins/dynamix.my.servers/myservers.cfg
+    rm -f /boot/config/plugins/dynamix.my.servers/configs/connect.json
+    
+    # Reload nginx to disable Remote Access
+    printf "\n⚠️ Reloading Web Server. If this window stops updating for two minutes please close it.\n"
+    /etc/rc.d/rc.nginx reload >/dev/null 2>&1
+  fi
+}
+
+perform_connect_cleanup
+echo "Done. Please uninstall the Connect plugin to complete the cleanup."
+# Exit with error to clarify that further user action--either uninstalling the plugin or upgrading to a newer version of Unraid--is required.
+exit 1;
 ]]>
     </INLINE>
   </FILE>
