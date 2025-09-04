@@ -14,7 +14,7 @@
   <!ENTITY tag "">
   <!ENTITY api_version "">
 ]>
-<!-- Plugin min version is lower than the actual min version of Connect (6.12.15) to facilitate cleanup on newly unsupported versions. -->
+<!-- Plugin min version is lower than the actual min version of Connect (6.12.0) to facilitate cleanup on newly unsupported versions. -->
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&plugin_url;"
   launch="&launch;" min="6.9.0-rc1" icon="globe">
 
@@ -60,9 +60,9 @@ exit 0
 // Check Unraid version
 $version = @parse_ini_file('/etc/unraid-version', true)['version'];
 
-// Check if this is a supported version
-// - Must be 6.12.15 or higher
-// - Must not be a 6.12.15 beta/rc version
+// Check if this is a recommended version
+// - Should be 6.12.15 or higher
+// - Should not be a 6.12.15 beta/rc version
 $is_stable_6_12_or_higher = version_compare($version, '6.12.15', '>=') && !preg_match('/^6\\.12\\.15-/', $version);
 
 if ($is_stable_6_12_or_higher) {
@@ -71,17 +71,17 @@ if ($is_stable_6_12_or_higher) {
 }
 
 echo "Warning: Unsupported Unraid version {$version}. This plugin requires Unraid 6.12.15 or higher.\n";
-echo "The plugin will not function correctly on this system.\n";
-echo "Will cleanup automatically.\n";
+echo "The plugin may not function correctly on this system.\n";
 echo "⚠️ Please uninstall this plugin or upgrade to a newer version of Unraid to enjoy Unraid Connect\n";
 
+// early escape handled via unraid_connect_cleanup_for_unsupported_os_versions step
 exit(0);
 ]]>
     </INLINE>
   </FILE>
 
-<!-- cleanup script for Unraid 6.12.14 and earlier. when run, it will exit the plugin install with an error status. -->
-  <File Name="unraid_connect_deprecation_cleanup" Run="/bin/bash" Method="install" Max="6.12.14">
+<!-- cleanup script for Unraid 6.12.0 and earlier. when run, it will exit the plugin install with an error status. -->
+  <File Name="/tmp/unraid_connect_cleanup_for_unsupported_os_versions.sh" Run="/bin/bash" Method="install" Max="6.12.0">
     <INLINE>
       <![CDATA[
 # Inlined copy of /usr/local/share/dynamix.unraid.net/install/scripts/cleanup.sh
