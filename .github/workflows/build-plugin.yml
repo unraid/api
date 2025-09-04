@@ -36,6 +36,8 @@ on:
         required: true
       CF_ENDPOINT:
         required: true
+      UNRAID_BOT_GITHUB_ADMIN_TOKEN:
+        required: false
 jobs:
   build-plugin:
     name: Build and Deploy Plugin
