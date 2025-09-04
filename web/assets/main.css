@@ -17,36 +17,44 @@
 
 /* 
  * Minimal styles for our components
- * Only essential styles to ensure components work properly
+ * Using @layer to ensure these have lower priority than Tailwind utilities
  */
 
-/* Box-sizing for proper layout */
-.unapi *,
-.unapi *::before,
-.unapi *::after {
-  box-sizing: border-box;
-}
+@layer base {
+  /* Box-sizing for proper layout */
+  .unapi *,
+  .unapi *::before,
+  .unapi *::after {
+    box-sizing: border-box;
+  }
 
-/* Reset figure element for logo */
-.unapi figure {
-  margin: 0;
-  padding: 0;
-}
+  /* Reset figure element for logo */
+  .unapi figure {
+    margin: 0;
+    padding: 0;
+  }
 
-/* Reset heading elements - only margin/padding */
-.unapi h1,
-.unapi h2,
-.unapi h3,
-.unapi h4,
-.unapi h5 {
-  margin: 0;
-  padding: 0;
-}
+  /* Reset heading elements - only margin/padding */
+  .unapi h1,
+  .unapi h2,
+  .unapi h3,
+  .unapi h4,
+  .unapi h5 {
+    margin: 0;
+    padding: 0;
+  }
 
-/* Reset paragraph element */
-.unapi p {
-  margin: 0;
-  padding: 0;
+  /* Reset paragraph element */
+  .unapi p {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Reset UL styles to prevent default browser styling */
+  .unapi ul {
+    padding-inline-start: 0;
+    list-style-type: none;
+  }
 }
 
 /* Reset toggle/switch button backgrounds */
