@@ -334,9 +334,6 @@ jobs:
           echo VITE_UNRAID_NET=${{ secrets.VITE_UNRAID_NET }} >> .env
           echo VITE_CALLBACK_KEY=${{ secrets.VITE_CALLBACK_KEY }} >> .env
 
-          touch .env.production
-          echo NUXT_UI_PRO_LICENSE=${{ secrets.NUXT_UI_PRO_LICENSE }} >> .env.production
-
       - name: Install Node
         uses: actions/setup-node@v4
         with:

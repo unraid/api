@@ -1,6 +1,0 @@
-Menu="UNRAID-OS"
-Title="Detail Layout"
-Icon="icon-u-globe"
-Tag="globe"
----
-<unraid-detail-test />
