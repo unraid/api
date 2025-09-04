@@ -4,6 +4,7 @@ node_modules/
 /blob-report*/
 /playwright/.cache/
 .env*
+!.env.example
 *.log
 screenshots/
 videos/
