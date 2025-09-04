@@ -35,7 +35,7 @@ if [ "$has_standalone" = true ]; then
   # Ensure remote directory exists
   ssh root@"${server_name}" "mkdir -p /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
   # Clear the remote standalone directory before rsyncing
-  ssh root@"${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/*"
+  ssh root@"${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/*"
   # Run rsync with proper quoting
   rsync -avz --delete -e "ssh" "$standalone_directory" "root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
   standalone_exit_code=$?
