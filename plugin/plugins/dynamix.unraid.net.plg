@@ -71,7 +71,7 @@ if ($is_stable_6_12_or_higher) {
 }
 
 echo "Warning: Unsupported Unraid version {$version}. This plugin requires Unraid 6.12.15 or higher.\n";
-echo "The plugin may not function correctly on this system.\n";
+echo "The plugin may not function correctly on this system. It may stop working entirely in the future.\n";
 echo "⚠️ Please uninstall this plugin or upgrade to a newer version of Unraid to enjoy Unraid Connect\n";
 
 // early escape handled via unraid_connect_cleanup_for_unsupported_os_versions step
