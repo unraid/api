@@ -1,12 +1,14 @@
 import { Command, CommandRunner, Option } from 'nest-commander';
 
 import type { LogLevel } from '@app/core/log.js';
-import type { LogLevelOptions } from '@app/unraid-api/cli/restart.command.js';
 import { levels } from '@app/core/log.js';
-import { ECOSYSTEM_PATH, LOG_LEVEL } from '@app/environment.js';
+import { ECOSYSTEM_PATH } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
-import { parseLogLevelOption } from '@app/unraid-api/cli/restart.command.js';
+
+interface StartCommandOptions {
+    'log-level'?: string;
+}
 
 @Command({ name: 'start', description: 'Start the Unraid API' })
 export class StartCommand extends CommandRunner {
@@ -25,12 +27,17 @@ export class StartCommand extends CommandRunner {
         await this.pm2.run({ tag: 'PM2 Delete' }, 'delete', ECOSYSTEM_PATH);
     }
 
-    async run(_: string[], options: LogLevelOptions): Promise<void> {
+    async run(_: string[], options: StartCommandOptions): Promise<void> {
         this.logger.info('Starting the Unraid API');
         await this.cleanupPM2State();
-        const env = { LOG_LEVEL: options.logLevel };
+
+        const env: Record<string, string> = {};
+        if (options['log-level']) {
+            env.LOG_LEVEL = options['log-level'];
+        }
+
         const { stderr, stdout } = await this.pm2.run(
-            { tag: 'PM2 Start', raw: true, extendEnv: true, env },
+            { tag: 'PM2 Start', env, raw: true },
             'start',
             ECOSYSTEM_PATH,
             '--update-env'
@@ -47,9 +54,9 @@ export class StartCommand extends CommandRunner {
     @Option({
         flags: `--log-level <${levels.join('|')}>`,
         description: 'log level to use',
-        defaultValue: LOG_LEVEL.toLowerCase(),
+        defaultValue: 'info',
     })
     parseLogLevel(val: string): LogLevel {
-        return parseLogLevelOption(val);
+        return levels.includes(val as LogLevel) ? (val as LogLevel) : 'info';
     }
 }
