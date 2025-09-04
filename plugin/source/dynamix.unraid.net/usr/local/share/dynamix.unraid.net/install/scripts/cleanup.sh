@@ -1,5 +1,7 @@
 #!/bin/sh
 # Script to handle cleanup operations during removal
+# NOTE: an inline copy of this script exists in dynamix.unraid.net.plg for Unraid 6.12.14 and earlier
+# When updating this script, be sure to update the inline copy as well.
 
 # Get the operation mode
 MODE="${1:-cleanup}"
@@ -23,8 +25,8 @@ perform_connect_cleanup() {
     fi
   fi
   
-  # Check if myservers.cfg exists
-  if [ -f "/boot/config/plugins/dynamix.my.servers/myservers.cfg" ]; then
+  # Check if connect.json or myservers.cfg exists
+  if [ -f "/boot/config/plugins/dynamix.my.servers/configs/connect.json" ] || [ -f "/boot/config/plugins/dynamix.my.servers/myservers.cfg" ]; then
     # Stop unraid-api
     printf "\nStopping unraid-api. Please wait...\n"
     output=$(/etc/rc.d/rc.unraid-api stop --delete 2>&1)
@@ -35,8 +37,25 @@ perform_connect_cleanup() {
     echo "Stopped unraid-api: $output"
     
     # Sign out of Unraid Connect (we'll use curl directly from shell)
-    # We need to extract the username from myservers.cfg and the registration key
-    if grep -q 'username' "/boot/config/plugins/dynamix.my.servers/myservers.cfg"; then
+    # We need to extract the username from connect.json or myservers.cfg and the registration key
+    has_username=false
+    
+    # Check connect.json first (newer format)
+    if [ -f "/boot/config/plugins/dynamix.my.servers/configs/connect.json" ] && command -v jq >/dev/null 2>&1; then
+      username=$(jq -r '.username' "/boot/config/plugins/dynamix.my.servers/configs/connect.json" 2>/dev/null)
+      if [ -n "$username" ] && [ "$username" != "null" ]; then
+        has_username=true
+      fi
+    fi
+    
+    # Fallback to myservers.cfg (legacy format)
+    if [ "$has_username" = false ] && [ -f "/boot/config/plugins/dynamix.my.servers/myservers.cfg" ]; then
+      if grep -q 'username' "/boot/config/plugins/dynamix.my.servers/myservers.cfg"; then
+        has_username=true
+      fi
+    fi
+    
+    if [ "$has_username" = true ]; then
       printf "\nSigning out of Unraid Connect\n"
       # Check if regFILE exists in var.ini
       if [ -f "/var/local/emhttp/var.ini" ]; then
@@ -52,8 +71,9 @@ perform_connect_cleanup() {
       fi
     fi
     
-    # Remove myservers.cfg
+    # Remove config files
     rm -f /boot/config/plugins/dynamix.my.servers/myservers.cfg
+    rm -f /boot/config/plugins/dynamix.my.servers/configs/connect.json
     
     # Reload nginx to disable Remote Access
     printf "\n⚠️ Reloading Web Server. If this window stops updating for two minutes please close it.\n"
