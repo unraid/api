@@ -509,6 +509,9 @@ importers:
       dotenv:
         specifier: ^16.4.5
         version: 16.6.1
+      winston:
+        specifier: ^3.17.0
+        version: 3.17.0
 
   packages/unraid-api-plugin-connect:
     dependencies:
