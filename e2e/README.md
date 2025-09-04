@@ -105,11 +105,68 @@ Tests can run in CI with:
   run: pnpm test:e2e
 ```
 
+## Logging
+
+Tests automatically capture console logs and redirect them to structured log files. You don't need to import anything - just use standard console methods:
+
+```typescript
+test('example test', async ({ page }) => {
+  console.log('Starting test');
+  console.info('User navigated to dashboard');
+  console.warn('Slow network detected');
+  console.error('Authentication failed');
+  
+  // All logs are automatically captured with test context
+});
+```
+
+### Log Files Location
+
+Logs are organized by browser and test hierarchy:
+```
+test-results/logs/
+├── chromium/
+├── firefox/
+└── mobile-chrome/
+    └── test-file/
+        └── test-suite/
+            └── test-name/
+                └── timestamp.log
+```
+
+### Log Format
+
+Each log entry includes:
+- Timestamp (millisecond precision)
+- Log level (INFO, WARN, ERROR)
+- Browser name
+- Full test path
+- Message and metadata
+
+Example log entry:
+```
+[2025-09-04 15:54:14.774] [INFO] [chromium] [dashboard.spec.ts > Dashboard > should display navigation menu] Found menu item: Main
+```
+
+### Direct Logger Access
+
+For more control, you can access the logger directly:
+
+```typescript
+test('advanced logging', async ({ logger }) => {
+  logger.info('Test started');
+  logger.debug('Detailed debug info', { userId: 123 });
+  logger.warn('Performance issue detected', { loadTime: 5000 });
+  logger.error('Critical failure', new Error('Database connection lost'));
+});
+```
+
 ## Debugging
 
 - Screenshots on failure: `test-results/`
 - Videos: `test-results/` (on failure)
 - Traces: `test-results/` (on retry)
+- **Logs: `test-results/logs/` (organized by browser/test)**
 - HTML Report: `pnpm --filter @unraid/e2e test:report`
 
 ## Environment Variables
