@@ -17,7 +17,7 @@ import ThemeSwitcher from './ThemeSwitcher.ce.vue';
 import ApiKeyPage from './ApiKeyPage.ce.vue';
 import DevModalTest from './DevModalTest.ce.vue';
 import ApiKeyAuthorize from './ApiKeyAuthorize.ce.vue';
-
+import UnraidToaster from './UnraidToaster.vue';
 // Import utilities
 import { autoMountComponent, mountVueApp, getMountedApp } from './Wrapper/vue-mount-app';
 import { useThemeStore } from '~/store/theme';
@@ -152,6 +152,7 @@ const componentMappings = [
   { component: ApiKeyPage, selector: 'unraid-api-key-manager', appId: 'api-key-manager' },
   { component: DevModalTest, selector: 'unraid-dev-modal-test', appId: 'dev-modal-test' },
   { component: ApiKeyAuthorize, selector: 'unraid-api-key-authorize', appId: 'api-key-authorize' },
+  { component: UnraidToaster, selector: 'uui-toaster', appId: 'toaster' },
 ];
 
 // Auto-mount all components
@@ -197,6 +198,7 @@ if (typeof window !== 'undefined') {
     ApiKeyPage,
     DevModalTest,
     ApiKeyAuthorize,
+    UnraidToaster,
   };
   
   // Expose utility functions
