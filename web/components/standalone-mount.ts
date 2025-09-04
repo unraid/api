@@ -153,6 +153,7 @@ const componentMappings = [
   { component: DevModalTest, selector: 'unraid-dev-modal-test', appId: 'dev-modal-test' },
   { component: ApiKeyAuthorize, selector: 'unraid-api-key-authorize', appId: 'api-key-authorize' },
   { component: UnraidToaster, selector: 'uui-toaster', appId: 'toaster' },
+  { component: UnraidToaster, selector: 'unraid-toaster', appId: 'toaster-legacy' }, // Legacy alias
 ];
 
 // Auto-mount all components
