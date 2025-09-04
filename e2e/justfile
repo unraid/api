@@ -5,7 +5,7 @@ default:
     @just --list
 
 # Run tests against all .env files except .env.example
-test-all-envs:
+test-all-envs *args="":
     #!/usr/bin/env bash
     set -euo pipefail
     
@@ -36,7 +36,7 @@ test-all-envs:
         PLAYWRIGHT_HTML_OUTPUT_DIR="playwright-report-$env_name" \
         PLAYWRIGHT_HTML_OPEN="never" \
         TEST_RESULTS_DIR="test-results-$env_name" \
-        dotenvx run --env-file="$env_file" -- pnpm test || {
+        dotenvx run --env-file="$env_file" -- pnpm test {{args}} || {
             echo "Tests failed for environment: $env_name"
             # Continue with other environments even if one fails
         }
@@ -53,7 +53,7 @@ test-all-envs:
     find . -maxdepth 1 -type d -name "test-results-*" | sort
 
 # Run tests for a specific environment file
-test-env env_file:
+test-env env_file *args="":
     #!/usr/bin/env bash
     set -euo pipefail
     
@@ -72,7 +72,7 @@ test-env env_file:
     PLAYWRIGHT_HTML_OUTPUT_DIR="playwright-report-$env_name" \
     PLAYWRIGHT_HTML_OPEN="never" \
     TEST_RESULTS_DIR="test-results-$env_name" \
-    dotenvx run --env-file="{{env_file}}" -- pnpm test
+    dotenvx run --env-file="{{env_file}}" -- pnpm test {{args}}
 
 # Clean all test artifacts and reports
 clean:
@@ -91,7 +91,7 @@ show-report env_name:
     npx playwright show-report "playwright-report-{{env_name}}"
 
 # Run tests in headed mode for a specific environment
-test-env-headed env_file:
+test-env-headed env_file *args="":
     #!/usr/bin/env bash
     set -euo pipefail
     
@@ -109,10 +109,14 @@ test-env-headed env_file:
     PLAYWRIGHT_HTML_OUTPUT_DIR="playwright-report-$env_name" \
     PLAYWRIGHT_HTML_OPEN="always" \
     TEST_RESULTS_DIR="test-results-$env_name" \
-    dotenvx run --env-file="{{env_file}}" -- pnpm test:headed
+    dotenvx run --env-file="{{env_file}}" -- pnpm test:headed {{args}}
 
 # Install dependencies including dotenvx
 install:
+    #!/usr/bin/env bash
     pnpm install
-    npm install -g @dotenvx/dotenvx
+    if ! command -v dotenvx &> /dev/null; then
+        echo "Installing dotenvx..."
+        npm install -g @dotenvx/dotenvx
+    fi
     pnpm playwright:install

@@ -22,7 +22,37 @@ End-to-end tests for Unraid WebGUI using Playwright.
    UNRAID_PASSWORD=your_password
    ```
 
+## Creating Test Profiles
+
+To test against multiple Unraid servers or configurations, create additional environment files:
+
+1. Copy `.env.example` to create new profiles:
+   ```bash
+   cp .env.example .env.test-server
+   cp .env.example .env.dev-server-2
+   cp .env.example .env.staging
+   ```
+
+2. Configure each profile with different server details:
+   ```bash
+   # .env.test-server
+   UNRAID_URL=https://test.example.com
+   UNRAID_USERNAME=root
+   UNRAID_PASSWORD=test_password
+
+   # .env.dev-server-2  
+   UNRAID_URL=http://192.168.1.50
+   UNRAID_USERNAME=admin
+   UNRAID_PASSWORD=dev_password
+   ```
+
+You can then run tests against specific profiles using dotenvx or the justfile recipes (see below).
+
 ## Running Tests
+
+By default, `pnpm test` commands will read environment variables from `.env`.
+
+Use `dotenvx` as shown below to override.
 
 ```bash
 # Run all tests
@@ -47,6 +77,68 @@ UNRAID_URL=http://192.168.1.100 pnpm test:e2e
 # -> Make sure not to track your profiles in git
 dotenvx run -f .env.dev-server-2 -- pnpm test
 ```
+
+## Justfile Usage
+
+This project includes a `justfile` for advanced testing workflows. Install [just](https://github.com/casey/just) if you haven't already.
+
+### Quick Start
+
+```bash
+# Install dependencies (including dotenvx if not present)
+just install
+
+# List available commands
+just
+
+# List your environment profiles
+just list-envs
+```
+
+### Running Tests with Profiles
+
+```bash
+# Run tests against a specific environment file
+just test-env .env.production-server
+
+# Run tests against a specific environment with additional args
+just test-env .env.dev-server-2 --grep "login"
+
+# Run tests against ALL environment files (excludes .env.example)
+just test-all-envs
+
+# Run tests against all environments with specific test pattern
+just test-all-envs --grep "dashboard"
+```
+
+### Headed Mode Testing
+
+```bash
+# Run tests in headed mode for debugging
+just test-env-headed .env.staging
+
+# Run headed tests with specific browser
+just test-env-headed .env.local --project=chromium
+```
+
+### Managing Results
+
+```bash
+# View report for a specific environment
+just show-report production-server
+
+# Clean all test artifacts and reports
+just clean
+```
+
+### Use Cases
+
+- **Multi-environment validation**: Test the same suite against development, staging, and production servers
+- **Configuration testing**: Validate behavior across different Unraid configurations (different plugins, versions, etc.)
+- **Regression testing**: Run focused tests against specific environments when debugging issues
+- **Batch testing**: Validate changes across your entire server fleet with one command
+
+The justfile automatically organizes reports by environment (e.g., `playwright-report-production-server`) so you can easily compare results across different servers.
 
 ## Test Structure
 
