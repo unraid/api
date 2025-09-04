@@ -1,5 +1,24 @@
 # Changelog
 
+## [4.19.0](https://github.com/unraid/api/compare/v4.18.2...v4.19.0) (2025-09-04)
+
+
+### Features
+
+* mount vue apps, not web components ([#1639](https://github.com/unraid/api/issues/1639)) ([88087d5](https://github.com/unraid/api/commit/88087d5201992298cdafa791d5d1b5bb23dcd72b))
+
+
+### Bug Fixes
+
+* api version json response ([#1653](https://github.com/unraid/api/issues/1653)) ([292bc0f](https://github.com/unraid/api/commit/292bc0fc810a0d0f0cce6813b0631ff25099cc05))
+* enhance DOM validation and cleanup in vue-mount-app ([6cf7c88](https://github.com/unraid/api/commit/6cf7c88242f2f4fe9f83871560039767b5b90273))
+* enhance getKeyFile function to handle missing key file gracefully ([#1659](https://github.com/unraid/api/issues/1659)) ([728b38a](https://github.com/unraid/api/commit/728b38ac11faeacd39ce9d0157024ad140e29b36))
+* info alert docker icon ([#1661](https://github.com/unraid/api/issues/1661)) ([239cdd6](https://github.com/unraid/api/commit/239cdd6133690699348e61f68e485d2b54fdcbdb))
+* oidc cache busting issues fixed ([#1656](https://github.com/unraid/api/issues/1656)) ([e204eb8](https://github.com/unraid/api/commit/e204eb80a00ab9242e3dca4ccfc3e1b55a7694b7))
+* **plugin:** restore cleanup behavior for unsupported unraid versions ([#1658](https://github.com/unraid/api/issues/1658)) ([534a077](https://github.com/unraid/api/commit/534a07788b76de49e9ba14059a9aed0bf16e02ca))
+* UnraidToaster component and update dialog close button ([#1657](https://github.com/unraid/api/issues/1657)) ([44774d0](https://github.com/unraid/api/commit/44774d0acdd25aa33cb60a5d0b4f80777f4068e5))
+* vue mounting logic with tests ([#1651](https://github.com/unraid/api/issues/1651)) ([33774aa](https://github.com/unraid/api/commit/33774aa596124a031a7452b62ca4c43743a09951))
+
 ## [4.18.2](https://github.com/unraid/api/compare/v4.18.1...v4.18.2) (2025-09-03)
 
 
