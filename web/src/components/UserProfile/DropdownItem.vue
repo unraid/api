@@ -73,8 +73,8 @@ const buttonClass = computed(() => {
   <a
     v-if="item?.href && !item?.click"
     :href="item.href"
-    :target="item?.external ? '_blank' : null"
-    :rel="item?.external ? 'noopener noreferrer' : null"
+    :target="item?.external ? '_blank' : undefined"
+    :rel="item?.external ? 'noopener noreferrer' : undefined"
     :class="buttonClass"
   >
     <span class="inline-flex flex-row items-center gap-x-2 leading-snug">
