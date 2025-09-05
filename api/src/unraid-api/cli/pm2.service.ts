@@ -42,8 +42,22 @@ export class PM2Service {
 
     async run(context: CmdContext, ...args: string[]) {
         const { tag, raw, ...execOptions } = context;
-        execOptions.extendEnv ??= false;
+        // Default to true to match execa's default behavior
+        execOptions.extendEnv ??= true;
         execOptions.shell ??= 'bash';
+
+        // Ensure /usr/local/bin is in PATH for Node.js
+        const currentPath = execOptions.env?.PATH || process.env.PATH || '/usr/bin:/bin:/usr/sbin:/sbin';
+        const needsPathUpdate = !currentPath.includes('/usr/local/bin');
+        const finalPath = needsPathUpdate ? `/usr/local/bin:${currentPath}` : currentPath;
+
+        // Only modify PATH if needed, regardless of extendEnv setting
+        if (needsPathUpdate) {
+            execOptions.env = {
+                ...execOptions.env,
+                PATH: finalPath,
+            };
+        }
         const runCommand = () => execa(PM2_PATH, [...args], execOptions satisfies Options);
         if (raw) {
             return runCommand();
