@@ -1,0 +1,14 @@
+node_modules/
+/test-results*/
+/playwright-report*/
+/blob-report*/
+/playwright/.cache/
+.env*
+!.env.example
+*.log
+screenshots/
+videos/
+traces/
+
+# specific to each individual developer, not the project
+auth.json

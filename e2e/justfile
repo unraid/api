@@ -1,0 +1,163 @@
+# Justfile for running e2e tests with different environment configurations
+
+# Default recipe - show available commands
+default:
+    @just --list
+
+# Run tests against all .env files except .env.example
+test-all-envs *args="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    # Find all .env.* files except .env.example
+    env_files=$(find . -maxdepth 1 -name ".env.*" -type f | grep -v ".env.example" | sort)
+    
+    if [ -z "$env_files" ]; then
+        echo "No .env.* files found (excluding .env.example)"
+        exit 1
+    fi
+    
+    echo "Found environment files:"
+    echo "$env_files"
+    echo ""
+    
+    # Run tests for each env file
+    for env_file in $env_files; do
+        # Extract environment name from filename
+        env_name=$(basename "$env_file" | sed 's/^\.env\.//')
+        
+        echo "========================================="
+        echo "Running tests with: $env_file"
+        echo "Environment: $env_name"
+        echo "========================================="
+        
+        # Run tests with dotenvx loading the specific env file
+        # Use official Playwright environment variables for output paths
+        PLAYWRIGHT_HTML_OUTPUT_DIR="playwright-report-$env_name" \
+        PLAYWRIGHT_HTML_OPEN="never" \
+        TEST_RESULTS_DIR="test-results-$env_name" \
+        dotenvx run --env-file="$env_file" -- pnpm test {{args}} || {
+            echo "Tests failed for environment: $env_name"
+            # Continue with other environments even if one fails
+        }
+        
+        echo ""
+    done
+    
+    echo "========================================="
+    echo "All test runs completed"
+    echo "Reports available in:"
+    find . -maxdepth 1 -type d -name "playwright-report-*" | sort
+    echo ""
+    echo "Artifacts available in:"
+    find . -maxdepth 1 -type d -name "test-results-*" | sort
+
+# Run tests for a specific environment file
+test-env env_file *args="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    if [ ! -f "{{env_file}}" ]; then
+        echo "Environment file not found: {{env_file}}"
+        exit 1
+    fi
+    
+    # Extract environment name from filename
+    env_name=$(basename "{{env_file}}" | sed 's/^\.env\.//')
+    
+    echo "Running tests with: {{env_file}}"
+    echo "Environment: $env_name"
+    
+    # Run tests with official Playwright environment variables
+    PLAYWRIGHT_HTML_OUTPUT_DIR="playwright-report-$env_name" \
+    PLAYWRIGHT_HTML_OPEN="never" \
+    TEST_RESULTS_DIR="test-results-$env_name" \
+    dotenvx run --env-file="{{env_file}}" -- pnpm test {{args}}
+
+# Clean all test artifacts and reports
+clean:
+    rm -rf playwright-report-*
+    rm -rf test-results-*
+    rm -rf playwright-report
+    rm -rf test-results
+
+# List available environment files
+list-envs:
+    @echo "Available environment files:"
+    @find . -maxdepth 1 -name ".env.*" -type f | grep -v ".env.example" | sort
+
+# Show report for a specific environment
+show-report env_name:
+    npx playwright show-report "playwright-report-{{env_name}}"
+
+# Show all reports from all environments
+show-all-reports:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    # Find all playwright report directories
+    report_dirs=$(find . -maxdepth 1 -type d -name "playwright-report-*" | sort)
+    
+    if [ -z "$report_dirs" ]; then
+        echo "No HTML reports found. Run 'just test-all-envs' first."
+        exit 1
+    fi
+    
+    echo "Available reports:"
+    port=9323
+    for report_dir in $report_dirs; do
+        env_name=$(basename "$report_dir" | sed 's/playwright-report-//')
+        echo "- $env_name: $report_dir (will serve on port $port)"
+        ((port++))
+    done
+    echo ""
+    
+    # Open each report in browser with different ports
+    port=9323
+    pids=()
+    for report_dir in $report_dirs; do
+        env_name=$(basename "$report_dir" | sed 's/playwright-report-//')
+        echo "Opening report for environment: $env_name on port $port"
+        npx playwright show-report "$report_dir" --port "$port" &
+        pids+=($!)
+        ((port++))
+        sleep 1  # Small delay to prevent browser overwhelm
+    done
+    
+    echo "All reports opened in browser"
+    echo "Press Ctrl+C to stop all report servers"
+    
+    # Wait for all background processes and handle cleanup
+    trap 'echo "Stopping all report servers..."; kill ${pids[@]} 2>/dev/null; exit' INT TERM
+    wait
+
+# Run tests in headed mode for a specific environment
+test-env-headed env_file *args="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    
+    if [ ! -f "{{env_file}}" ]; then
+        echo "Environment file not found: {{env_file}}"
+        exit 1
+    fi
+    
+    # Extract environment name from filename
+    env_name=$(basename "{{env_file}}" | sed 's/^\.env\.//')
+    
+    echo "Running headed tests with: {{env_file}}"
+    
+    # Run tests in headed mode with custom output paths
+    PLAYWRIGHT_HTML_OUTPUT_DIR="playwright-report-$env_name" \
+    PLAYWRIGHT_HTML_OPEN="always" \
+    TEST_RESULTS_DIR="test-results-$env_name" \
+    dotenvx run --env-file="{{env_file}}" -- pnpm test:headed {{args}}
+
+# Install dependencies including dotenvx
+install:
+    #!/usr/bin/env bash
+    pnpm install
+    if ! command -v dotenvx &> /dev/null; then
+        echo "Installing dotenvx..."
+        npm install -g @dotenvx/dotenvx
+    fi
+    pnpm playwright:install
