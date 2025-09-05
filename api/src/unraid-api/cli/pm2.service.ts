@@ -51,13 +51,13 @@ export class PM2Service {
         const needsPathUpdate = !currentPath.includes('/usr/local/bin');
         const finalPath = needsPathUpdate ? `/usr/local/bin:${currentPath}` : currentPath;
 
-        // Only modify PATH if needed, regardless of extendEnv setting
-        if (needsPathUpdate) {
-            execOptions.env = {
-                ...execOptions.env,
-                PATH: finalPath,
-            };
-        }
+        // Always ensure PM2_HOME is set in the environment for every PM2 command
+        execOptions.env = {
+            ...execOptions.env,
+            PM2_HOME,
+            ...(needsPathUpdate && { PATH: finalPath }),
+        };
+
         const runCommand = () => execa(PM2_PATH, [...args], execOptions satisfies Options);
         if (raw) {
             return runCommand();

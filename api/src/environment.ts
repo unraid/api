@@ -2,7 +2,6 @@
 // Non-function exports from this module are loaded into the NestJS Config at runtime.
 
 import { readFileSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -99,7 +98,7 @@ export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
       ? 'https://staging.mothership.unraid.net/ws'
       : 'https://mothership.unraid.net/ws';
 
-export const PM2_HOME = process.env.PM2_HOME ?? join(homedir(), '.pm2');
+export const PM2_HOME = process.env.PM2_HOME ?? '/var/log/.pm2';
 export const PM2_PATH = join(import.meta.dirname, '../../', 'node_modules', 'pm2', 'bin', 'pm2');
 export const ECOSYSTEM_PATH = join(import.meta.dirname, '../../', 'ecosystem.config.json');
 export const PATHS_LOGS_DIR =

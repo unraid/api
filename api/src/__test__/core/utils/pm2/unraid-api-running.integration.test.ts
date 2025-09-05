@@ -1,10 +1,11 @@
 import { existsSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { execa } from 'execa';
 import pm2 from 'pm2';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import { isUnraidApiRunning } from '@app/core/utils/pm2/unraid-api-running.js';
 
@@ -16,11 +17,6 @@ const TEST_PROCESS_NAME = 'test-unraid-api';
 
 // Shared PM2 connection state
 let pm2Connected = false;
-
-// Helper function to run CLI command (assumes CLI is built)
-async function runCliCommand(command: string, options: any = {}) {
-    return await execa('node', [CLI_PATH, command], options);
-}
 
 // Helper to ensure PM2 connection is established
 async function ensurePM2Connection() {
@@ -57,7 +53,7 @@ async function deleteTestProcesses() {
             }
 
             const processName = processNames[deletedCount];
-            pm2.delete(processName, (deleteErr) => {
+            pm2.delete(processName, () => {
                 // Ignore errors, process might not exist
                 deletedCount++;
                 deleteNext();
@@ -92,7 +88,7 @@ async function cleanupAllPM2Processes() {
             }
 
             // Kill the daemon to ensure fresh state
-            pm2.killDaemon((killErr) => {
+            pm2.killDaemon(() => {
                 pm2.disconnect();
                 pm2Connected = false;
                 // Small delay to let PM2 fully shutdown
@@ -104,6 +100,9 @@ async function cleanupAllPM2Processes() {
 
 describe.skipIf(!!process.env.CI)('PM2 integration tests', () => {
     beforeAll(async () => {
+        // Set PM2_HOME to use home directory for testing (not /var/log)
+        process.env.PM2_HOME = join(homedir(), '.pm2');
+
         // Build the CLI if it doesn't exist (only for CLI tests)
         if (!existsSync(CLI_PATH)) {
             console.log('Building CLI for integration tests...');
@@ -198,6 +197,13 @@ describe.skipIf(!!process.env.CI)('PM2 integration tests', () => {
         }, 30000);
 
         it('should handle PM2 connection errors gracefully', async () => {
+            // Disconnect PM2 first to ensure we're testing fresh connection
+            await new Promise<void>((resolve) => {
+                pm2.disconnect();
+                pm2Connected = false;
+                setTimeout(resolve, 100);
+            });
+
             // Set an invalid PM2_HOME to force connection failure
             const originalPM2Home = process.env.PM2_HOME;
             process.env.PM2_HOME = '/invalid/path/that/does/not/exist';
