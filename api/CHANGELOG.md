@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.19.1](https://github.com/unraid/api/compare/v4.19.0...v4.19.1) (2025-09-05)
+
+
+### Bug Fixes
+
+* custom path detection to fix setup issues ([#1664](https://github.com/unraid/api/issues/1664)) ([2ecdb99](https://github.com/unraid/api/commit/2ecdb99052f39d89af21bbe7ad3f80b83bb1eaa9))
+
 ## [4.19.0](https://github.com/unraid/api/compare/v4.18.2...v4.19.0) (2025-09-04)
 
 
