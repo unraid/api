@@ -610,17 +610,15 @@ describe('mount-engine', () => {
       );
     });
 
-    it('should add delay for problematic selectors', async () => {
+    it('should mount immediately for all selectors', async () => {
       const element = document.createElement('div');
       element.id = 'unraid-connect-settings';
       document.body.appendChild(element);
 
       autoMountComponent(TestComponent, '#unraid-connect-settings');
 
-      await vi.advanceTimersByTimeAsync(100);
-      expect(element.querySelector('.test-component')).toBeFalsy();
-
-      await vi.advanceTimersByTimeAsync(200);
+      // Component should mount immediately without delay
+      await vi.runAllTimersAsync();
       expect(element.querySelector('.test-component')).toBeTruthy();
     });
 
