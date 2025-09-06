@@ -17,7 +17,7 @@ import { useThemeStore } from '~/store/theme';
 
 // Explicitly mock @unraid/ui to ensure we use the actual components
 vi.mock('@unraid/ui', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@unraid/ui')>();
+  const actual = await importOriginal();
   return {
     ...actual,
   };
@@ -93,7 +93,7 @@ describe('ColorSwitcher', () => {
     const pinia = createTestingPinia({ createSpy: vi.fn });
     setActivePinia(pinia);
     themeStore = useThemeStore();
-    
+
     const wrapper = mount(ColorSwitcher, {
       global: {
         plugins: [pinia],
@@ -136,7 +136,7 @@ describe('ColorSwitcher', () => {
     const pinia = createTestingPinia({ createSpy: vi.fn });
     setActivePinia(pinia);
     themeStore = useThemeStore();
-    
+
     const wrapper = mount(ColorSwitcher, {
       global: {
         plugins: [pinia],

@@ -2,8 +2,8 @@ import type { ActivationCode, Config, PartialCloudFragment } from '~/composables
 import type { Theme } from '~/themes/types';
 import type { UserProfileLink } from '~/types/userProfile';
 
-
-export type ServerState = 'BASIC'
+export type ServerState =
+  | 'BASIC'
   | 'PLUS'
   | 'PRO'
   | 'TRIAL'
@@ -32,7 +32,12 @@ export type ServerState = 'BASIC'
   | undefined;
 
 export type ServerOsVersionBranch = 'stable' | 'next' | 'preview' | 'test';
-export type ServerconnectPluginInstalled = 'dynamix.unraid.net.plg' | 'dynamix.unraid.net.staging.plg' | 'dynamix.unraid.net.plg_installFailed' | 'dynamix.unraid.net.staging.plg_installFailed' | '';
+export type ServerconnectPluginInstalled =
+  | 'dynamix.unraid.net.plg'
+  | 'dynamix.unraid.net.staging.plg'
+  | 'dynamix.unraid.net.plg_installFailed'
+  | 'dynamix.unraid.net.staging.plg_installFailed'
+  | '';
 export type ServerRebootType = 'thirdPartyDriversDownloading' | 'downgrade' | 'update' | '';
 
 export interface DateFormatOption {
@@ -173,7 +178,17 @@ export interface ServerPurchaseCallbackSendPayload {
   site: string;
 }
 
-export type ServerStateDataKeyActions = 'activate' | 'purchase' | 'redeem' | 'upgrade' | 'recover' | 'renew' | 'replace' | 'trialExtend' | 'trialStart' | 'updateOs';
+export type ServerStateDataKeyActions =
+  | 'activate'
+  | 'purchase'
+  | 'redeem'
+  | 'upgrade'
+  | 'recover'
+  | 'renew'
+  | 'replace'
+  | 'trialExtend'
+  | 'trialStart'
+  | 'updateOs';
 
 export type ServerStateDataAccountActions = 'signIn' | 'signOut' | 'troubleshoot';
 

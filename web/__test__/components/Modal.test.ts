@@ -12,7 +12,6 @@ import type { Props as ModalProps } from '~/components/Modal.vue';
 
 import Modal from '~/components/Modal.vue';
 
-
 const mockSetProperty = vi.fn();
 const mockRemoveProperty = vi.fn();
 
@@ -149,7 +148,7 @@ describe('Modal', () => {
 
     await nextTick();
 
-    let modalDiv = wrapper.find('[class*="text-left relative z-10"]');
+    let modalDiv = wrapper.find('.text-left.relative.z-10');
 
     expect(modalDiv.classes()).toContain('shadow-unraid-red/30');
     expect(modalDiv.classes()).toContain('border-unraid-red/10');
@@ -158,7 +157,7 @@ describe('Modal', () => {
 
     await nextTick();
 
-    modalDiv = wrapper.find('[class*="text-left relative z-10"]');
+    modalDiv = wrapper.find('.text-left.relative.z-10');
 
     expect(modalDiv.classes()).toContain('shadow-green-600/30');
     expect(modalDiv.classes()).toContain('border-green-600/10');
@@ -175,7 +174,7 @@ describe('Modal', () => {
 
     await nextTick();
 
-    const modalDiv = wrapper.find('[class*="text-left relative z-10"]');
+    const modalDiv = wrapper.find('.text-left.relative.z-10');
 
     expect(modalDiv.classes()).toContain('shadow-none');
     expect(modalDiv.classes()).toContain('border-none');
@@ -205,7 +204,7 @@ describe('Modal', () => {
 
   it('applies overlay color and opacity classes', async () => {
     const overlayColor = 'bg-blue-500';
-    const overlayOpacity = 'bg-blue-500/50';
+    const overlayOpacity = 'bg-opacity-50';
 
     wrapper = mount(Modal, {
       props: {
@@ -218,7 +217,7 @@ describe('Modal', () => {
 
     await nextTick();
 
-    const overlay = wrapper.find('[class*="fixed inset-0 z-0"]');
+    const overlay = wrapper.find('.fixed.inset-0.z-0');
 
     expect(overlay.classes()).toContain(overlayColor);
     expect(overlay.classes()).toContain(overlayOpacity);

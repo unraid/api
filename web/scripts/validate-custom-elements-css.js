@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 /**
  * Recursively find JS files in a directory
@@ -15,7 +14,7 @@ function findJSFiles(dir, jsFiles = []) {
   for (const item of items) {
     const fullPath = path.join(dir, item);
     const stat = fs.statSync(fullPath);
-    
+
     if (stat.isDirectory()) {
       findJSFiles(fullPath, jsFiles);
     } else if (item.endsWith('.js')) {
@@ -36,18 +35,18 @@ function validateCustomElementsCSS() {
     const standaloneDir = '.nuxt/standalone-apps';
     let jsFiles = findJSFiles(standaloneDir);
     let usingStandalone = true;
-    
+
     // Fallback to custom elements if standalone doesn't exist
     if (jsFiles.length === 0) {
       const customElementsDir = '.nuxt/nuxt-custom-elements/dist';
       jsFiles = findJSFiles(customElementsDir);
       usingStandalone = false;
-      
+
       if (jsFiles.length === 0) {
         throw new Error('No JS files found in standalone apps or custom elements dist');
       }
     }
-    
+
     console.log(`📦 Using ${usingStandalone ? 'standalone apps' : 'custom elements'} bundle`);
 
     // Find the largest JS file (likely the main bundle with inlined CSS)
@@ -60,50 +59,50 @@ function validateCustomElementsCSS() {
 
     // Read the JS content
     const jsContent = fs.readFileSync(jsFile, 'utf8');
-    
+
     // Define required Tailwind indicators (looking for inlined CSS in JS)
     // Updated patterns to work with minified CSS (no spaces)
     const requiredIndicators = [
       {
         name: 'Tailwind utility classes (inline)',
         pattern: /\.flex\s*\{[^}]*display:\s*flex|\.flex{display:flex/,
-        description: 'Basic Tailwind utility classes inlined'
+        description: 'Basic Tailwind utility classes inlined',
       },
       {
         name: 'Tailwind margin utilities (inline)',
         pattern: /\.m-\d+\s*\{[^}]*margin:|\.m-\d+{[^}]*margin:/,
-        description: 'Tailwind margin utilities inlined'
+        description: 'Tailwind margin utilities inlined',
       },
       {
         name: 'Tailwind padding utilities (inline)',
         pattern: /\.p-\d+\s*\{[^}]*padding:|\.p-\d+{[^}]*padding:/,
-        description: 'Tailwind padding utilities inlined'
+        description: 'Tailwind padding utilities inlined',
       },
       {
         name: 'Tailwind color utilities (inline)',
         pattern: /\.text-\w+\s*\{[^}]*color:|\.text-\w+{[^}]*color:/,
-        description: 'Tailwind text color utilities inlined'
+        description: 'Tailwind text color utilities inlined',
       },
       {
         name: 'Tailwind background utilities (inline)',
         pattern: /\.bg-\w+\s*\{[^}]*background|\.bg-\w+{[^}]*background/,
-        description: 'Tailwind background utilities inlined'
+        description: 'Tailwind background utilities inlined',
       },
       {
         name: 'CSS custom properties',
         pattern: /--[\w-]+:\s*[^;]+;|--[\w-]+:[^;]+;/,
-        description: 'CSS custom properties (variables)'
+        description: 'CSS custom properties (variables)',
       },
       {
         name: 'Responsive breakpoints',
         pattern: /@media\s*\([^)]*min-width|@media\([^)]*min-width/,
-        description: 'Responsive media queries'
+        description: 'Responsive media queries',
       },
       {
         name: 'CSS reset styles',
         pattern: /\*[^}]*box-sizing|box-sizing[^}]*border-box/,
-        description: 'Tailwind CSS reset/normalize styles'
-      }
+        description: 'Tailwind CSS reset/normalize styles',
+      },
     ];
 
     // Validate each indicator
@@ -115,7 +114,7 @@ function validateCustomElementsCSS() {
       results.push({
         name: indicator.name,
         description: indicator.description,
-        passed: found
+        passed: found,
       });
 
       if (!found) {
@@ -126,7 +125,7 @@ function validateCustomElementsCSS() {
     // Report results
     console.log('\n📊 Validation Results:');
     console.log('====================');
-    
+
     for (const result of results) {
       const status = result.passed ? '✅' : '❌';
       console.log(`${status} ${result.name}`);
@@ -138,9 +137,11 @@ function validateCustomElementsCSS() {
     // File size check
     const fileSizeKB = Math.round(fs.statSync(jsFile).size / 1024);
     console.log(`\n📏 JS bundle size: ${fileSizeKB} KB`);
-    
+
     if (fileSizeKB < 1000) {
-      console.log('⚠️  WARNING: JS bundle seems too small, inlined Tailwind styles might not be included');
+      console.log(
+        '⚠️  WARNING: JS bundle seems too small, inlined Tailwind styles might not be included'
+      );
       allPassed = false;
     } else {
       console.log('✅ JS bundle size looks good');
@@ -158,7 +159,6 @@ function validateCustomElementsCSS() {
       console.log('   - CSS is not being injected into shadow DOM components');
       process.exit(1);
     }
-
   } catch (error) {
     console.error('\n❌ ERROR during validation:', error.message);
     process.exit(1);

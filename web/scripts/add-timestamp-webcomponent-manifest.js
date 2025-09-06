@@ -1,4 +1,4 @@
-const fs = require('fs');
+import fs from 'fs';
 
 // Read the JSON file
 const filePath = '../web/.nuxt/nuxt-custom-elements/dist/unraid-components/manifest.json';

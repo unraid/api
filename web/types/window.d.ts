@@ -1,12 +1,12 @@
-import type { Component } from 'vue';
-import type { parse } from 'graphql';
+import type { getMountedApp, mountVueApp } from '~/components/Wrapper/mount-engine';
 import type { client as apolloClient } from '~/helpers/create-apollo-client';
-import type { mountVueApp, getMountedApp } from '~/components/Wrapper/vue-mount-app';
+import type { parse } from 'graphql';
+import type { Component } from 'vue';
 
 /**
  * Global Window interface extensions for Unraid components
  * This file provides type definitions for properties added to the window object
- * by the standalone-mount.ts module
+ * by the component-registry.ts module
  */
 declare global {
   interface Window {
@@ -14,12 +14,12 @@ declare global {
     apolloClient: typeof apolloClient;
     gql: typeof parse;
     graphqlParse: typeof parse;
-    
+
     // Vue component registry and utilities
     UnraidComponents: Record<string, Component>;
     mountVueApp: typeof mountVueApp;
     getMountedApp: typeof getMountedApp;
-    
+
     // Dynamic mount functions created at runtime
     // These are generated for each component in componentMappings
     mountAuth?: (selector?: string) => unknown;
@@ -42,7 +42,12 @@ declare global {
     mountApiKeyAuthorize?: (selector?: string) => unknown;
     mountToaster?: (selector?: string) => unknown;
     mountToasterLegacy?: (selector?: string) => unknown;
-    
+
+    // Webgui provided functions
+    flashBackup?: () => void;
+    downloadDiagnostics?: () => void;
+    confirmDowngrade?: () => void;
+
     // Index signature for any other dynamic mount functions
     [key: `mount${string}`]: ((selector?: string) => unknown) | undefined;
   }

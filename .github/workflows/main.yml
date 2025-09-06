@@ -333,7 +333,6 @@ jobs:
           echo VITE_CONNECT=${{ secrets.VITE_CONNECT }} >> .env
           echo VITE_UNRAID_NET=${{ secrets.VITE_UNRAID_NET }} >> .env
           echo VITE_CALLBACK_KEY=${{ secrets.VITE_CALLBACK_KEY }} >> .env
-          cat .env
 
       - name: Install Node
         uses: actions/setup-node@v4

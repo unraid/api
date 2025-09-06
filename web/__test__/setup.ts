@@ -3,7 +3,7 @@ import { config } from '@vue/test-utils';
 import { vi } from 'vitest';
 
 // Import mocks
-import './mocks/ui-components.js';
+import '@/../__test__/mocks/ui-components.js';
 
 // Configure Vue Test Utils
 config.global.plugins = [

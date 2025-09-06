@@ -2,8 +2,8 @@
  * Modal store test coverage
  */
 
-import { createPinia, setActivePinia } from 'pinia';
 import { ref } from 'vue';
+import { createPinia, setActivePinia } from 'pinia';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,10 +11,12 @@ import { useModalStore } from '~/store/modal';
 
 vi.mock('@vueuse/core', () => ({
   useToggle: (initial: boolean) => {
-    const state = ref(initial)
-    const toggle = () => { state.value = !state.value }
-    return [state, toggle]
-  }
+    const state = ref(initial);
+    const toggle = () => {
+      state.value = !state.value;
+    };
+    return [state, toggle];
+  },
 }));
 
 describe('Modal Store', () => {

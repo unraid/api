@@ -1,9 +1,9 @@
 import { ref } from 'vue';
 import { setActivePinia } from 'pinia';
-import { mount } from '@vue/test-utils';
 import { provideApolloClient } from '@vue/apollo-composable';
-import { ApolloClient, InMemoryCache } from '@apollo/client/core';
+import { mount } from '@vue/test-utils';
 
+import { ApolloClient, InMemoryCache } from '@apollo/client/core';
 import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -89,9 +89,9 @@ const initialServerData: Server = {
 const stubs = {
   UpcUptimeExpire: { template: '<div data-testid="uptime-expire"></div>' },
   UpcServerState: { template: '<div data-testid="server-state"></div>' },
-  UpcServerStatus: { 
-    template: '<div><div data-testid="uptime-expire"></div><div data-testid="server-state"></div></div>', 
-    props: ['class'] 
+  UpcServerStatus: {
+    template: '<div><div data-testid="uptime-expire"></div><div data-testid="server-state"></div></div>',
+    props: ['class'],
   },
   NotificationsSidebar: { template: '<div data-testid="notifications-sidebar"></div>' },
   DropdownMenu: {
@@ -109,6 +109,19 @@ describe('UserProfile.ce.vue', () => {
   let consoleSpies: Array<ReturnType<typeof vi.spyOn>> = [];
 
   beforeEach(() => {
+    // Mock window.location for server store
+    Object.defineProperty(window, 'location', {
+      value: {
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/',
+        protocol: 'http:',
+        href: 'http://localhost:3000/',
+      },
+      writable: true,
+      configurable: true,
+    });
+
     // Create a mock Apollo Client
     const mockApolloClient = new ApolloClient({
       cache: new InMemoryCache(),
