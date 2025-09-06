@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { mkdir, rm } from 'node:fs/promises';
+import { chmod, chown, mkdir, rm, stat } from 'node:fs/promises';
+import { userInfo } from 'node:os';
 import { join } from 'node:path';
 
 import type { Options, Result, ResultPromise } from 'execa';
@@ -114,8 +115,55 @@ export class PM2Service {
 
     /**
      * Ensures that the dependencies necessary for PM2 to start and operate are present.
+     * Creates PM2_HOME directory with proper permissions if it doesn't exist.
      */
     async ensurePm2Dependencies() {
-        await mkdir(PATHS_LOGS_DIR, { recursive: true });
+        try {
+            // Create logs directory
+            await mkdir(PATHS_LOGS_DIR, { recursive: true });
+
+            // Create PM2_HOME directory with mkdir -p semantics
+            await mkdir(PM2_HOME, { recursive: true });
+            this.logger.trace(`Ensured PM2_HOME directory exists at ${PM2_HOME}`);
+
+            // Get current user info for ownership
+            const user = userInfo();
+            const uid = user.uid;
+            const gid = user.gid;
+
+            try {
+                // Set ownership to current user/group
+                await chown(PM2_HOME, uid, gid);
+
+                // Set permissions to 0750 (rwxr-x---)
+                await chmod(PM2_HOME, 0o750);
+
+                this.logger.trace(`Set PM2_HOME permissions: owner=${uid}:${gid}, mode=0750`);
+            } catch (permError) {
+                // Log warning but don't throw - PM2 may still work even if we can't set ideal permissions
+                this.logger.warn(
+                    `Could not set optimal permissions for PM2_HOME at ${PM2_HOME}: ${permError}. PM2 may still function but with default permissions.`
+                );
+            }
+
+            // Verify the directory is accessible
+            try {
+                const stats = await stat(PM2_HOME);
+                if (!stats.isDirectory()) {
+                    this.logger.warn(
+                        `PM2_HOME at ${PM2_HOME} exists but is not a directory. PM2 operations may fail.`
+                    );
+                }
+            } catch (statError) {
+                this.logger.warn(
+                    `Could not verify PM2_HOME directory at ${PM2_HOME}: ${statError}. Directory may not be fully accessible.`
+                );
+            }
+        } catch (error) {
+            // Log error but don't throw - let PM2 fail with its own error messages if the setup is incomplete
+            this.logger.error(
+                `Failed to fully ensure PM2 dependencies: ${error instanceof Error ? error.message : error}. PM2 may encounter issues during operation.`
+            );
+        }
     }
 }
