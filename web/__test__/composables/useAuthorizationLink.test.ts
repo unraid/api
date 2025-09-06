@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
+import { AuthAction, Resource, Role } from '~/composables/gql/graphql.js';
 import { useAuthorizationLink } from '~/composables/useAuthorizationLink.js';
-import { Role, Resource, AuthAction } from '~/composables/gql/graphql.js';
 
 // Mock window.location for the tests
 Object.defineProperty(window, 'location', {
@@ -19,7 +20,8 @@ describe('useAuthorizationLink', () => {
       redirect_uri: 'https://example.com/callback',
     });
 
-    const { formData, displayAppName, hasPermissions, permissionsSummary } = useAuthorizationLink(params);
+    const { formData, displayAppName, hasPermissions, permissionsSummary } =
+      useAuthorizationLink(params);
 
     expect(formData.value).toEqual({
       name: 'MyApp',
@@ -43,19 +45,20 @@ describe('useAuthorizationLink', () => {
 
     // docker has read_any+update_any, vms only has read_any - these should be separate groups
     expect(formData.value.customPermissions!).toHaveLength(2);
-    
+
     // Find the group with just READ_ANY
     const readOnlyGroup = formData.value.customPermissions!.find(
-      p => p.actions.length === 1 && p.actions[0] === AuthAction.READ_ANY
+      (p) => p.actions.length === 1 && p.actions[0] === AuthAction.READ_ANY
     );
     expect(readOnlyGroup).toBeDefined();
     expect(readOnlyGroup?.resources).toEqual([Resource.VMS]);
-    
+
     // Find the group with READ_ANY and UPDATE_ANY
     const readUpdateGroup = formData.value.customPermissions!.find(
-      p => p.actions.length === 2 && 
-          p.actions.includes(AuthAction.READ_ANY) &&
-          p.actions.includes(AuthAction.UPDATE_ANY)
+      (p) =>
+        p.actions.length === 2 &&
+        p.actions.includes(AuthAction.READ_ANY) &&
+        p.actions.includes(AuthAction.UPDATE_ANY)
     );
     expect(readUpdateGroup).toBeDefined();
     expect(readUpdateGroup?.resources).toEqual([Resource.DOCKER]);
@@ -74,18 +77,16 @@ describe('useAuthorizationLink', () => {
 
     expect(formData.value.roles).toEqual([Role.ADMIN]);
     expect(formData.value.customPermissions!).toHaveLength(2);
-    
+
     // Docker should have just read permission
-    const dockerGroup = formData.value.customPermissions!.find(
-      p => p.resources.includes(Resource.DOCKER)
+    const dockerGroup = formData.value.customPermissions!.find((p) =>
+      p.resources.includes(Resource.DOCKER)
     );
     expect(dockerGroup).toBeDefined();
     expect(dockerGroup?.actions).toEqual([AuthAction.READ_ANY]);
-    
+
     // VMs should have all CRUD permissions from wildcard
-    const vmsGroup = formData.value.customPermissions!.find(
-      p => p.resources.includes(Resource.VMS)
-    );
+    const vmsGroup = formData.value.customPermissions!.find((p) => p.resources.includes(Resource.VMS));
     expect(vmsGroup).toBeDefined();
     expect(vmsGroup?.actions).toContain(AuthAction.CREATE_ANY);
     expect(vmsGroup?.actions).toContain(AuthAction.READ_ANY);
@@ -188,17 +189,15 @@ describe('useAuthorizationLink', () => {
 
       // Docker has read+update, VMs has create+delete - these should be separate
       expect(formData.value.customPermissions!).toHaveLength(2);
-      
-      const dockerGroup = formData.value.customPermissions!.find(
-        p => p.resources.includes(Resource.DOCKER)
+
+      const dockerGroup = formData.value.customPermissions!.find((p) =>
+        p.resources.includes(Resource.DOCKER)
       );
       expect(dockerGroup).toBeDefined();
       expect(dockerGroup?.actions).toContain(AuthAction.READ_ANY);
       expect(dockerGroup?.actions).toContain(AuthAction.UPDATE_ANY);
-      
-      const vmsGroup = formData.value.customPermissions!.find(
-        p => p.resources.includes(Resource.VMS)
-      );
+
+      const vmsGroup = formData.value.customPermissions!.find((p) => p.resources.includes(Resource.VMS));
       expect(vmsGroup).toBeDefined();
       expect(vmsGroup?.actions).toContain(AuthAction.CREATE_ANY);
       expect(vmsGroup?.actions).toContain(AuthAction.DELETE_ANY);
@@ -214,14 +213,14 @@ describe('useAuthorizationLink', () => {
 
       // Docker has read, VMs has update - different actions so separate groups
       expect(formData.value.customPermissions!).toHaveLength(2);
-      
-      const readGroup = formData.value.customPermissions!.find(
-        p => p.actions.includes(AuthAction.READ_ANY)
+
+      const readGroup = formData.value.customPermissions!.find((p) =>
+        p.actions.includes(AuthAction.READ_ANY)
       );
       expect(readGroup?.resources).toEqual([Resource.DOCKER]);
-      
-      const updateGroup = formData.value.customPermissions!.find(
-        p => p.actions.includes(AuthAction.UPDATE_ANY)
+
+      const updateGroup = formData.value.customPermissions!.find((p) =>
+        p.actions.includes(AuthAction.UPDATE_ANY)
       );
       expect(updateGroup?.resources).toEqual([Resource.VMS]);
     });
@@ -236,9 +235,9 @@ describe('useAuthorizationLink', () => {
 
       // Docker has all CRUD, VMs has just read - different action sets so separate groups
       expect(formData.value.customPermissions!).toHaveLength(2);
-      
-      const dockerGroup = formData.value.customPermissions!.find(
-        p => p.resources.includes(Resource.DOCKER)
+
+      const dockerGroup = formData.value.customPermissions!.find((p) =>
+        p.resources.includes(Resource.DOCKER)
       );
       expect(dockerGroup).toBeDefined();
       // Should have all CRUD actions from wildcard
@@ -246,10 +245,8 @@ describe('useAuthorizationLink', () => {
       expect(dockerGroup?.actions).toContain(AuthAction.READ_ANY);
       expect(dockerGroup?.actions).toContain(AuthAction.UPDATE_ANY);
       expect(dockerGroup?.actions).toContain(AuthAction.DELETE_ANY);
-      
-      const vmsGroup = formData.value.customPermissions!.find(
-        p => p.resources.includes(Resource.VMS)
-      );
+
+      const vmsGroup = formData.value.customPermissions!.find((p) => p.resources.includes(Resource.VMS));
       expect(vmsGroup).toBeDefined();
       expect(vmsGroup?.actions).toEqual([AuthAction.READ_ANY]);
     });
@@ -257,7 +254,8 @@ describe('useAuthorizationLink', () => {
     it('should handle complex permission combinations', () => {
       const params = new URLSearchParams({
         name: 'Complex Permissions App',
-        scopes: 'connect:read_any,disk:read_any,docker:*,vms:update_any,vms:delete_any,dashboard:read_any',
+        scopes:
+          'connect:read_any,disk:read_any,docker:*,vms:update_any,vms:delete_any,dashboard:read_any',
       });
 
       const { formData } = useAuthorizationLink(params);
@@ -267,10 +265,10 @@ describe('useAuthorizationLink', () => {
       // - docker has all CRUD from wildcard (group 2)
       // - vms has update+delete (group 3)
       expect(formData.value.customPermissions!).toHaveLength(3);
-      
+
       // Find read-only group (connect, disk, dashboard)
       const readOnlyGroup = formData.value.customPermissions!.find(
-        p => p.actions.length === 1 && p.actions[0] === AuthAction.READ_ANY
+        (p) => p.actions.length === 1 && p.actions[0] === AuthAction.READ_ANY
       );
       expect(readOnlyGroup).toBeDefined();
       expect(readOnlyGroup?.resources).toContain(Resource.CONNECT);
@@ -279,7 +277,7 @@ describe('useAuthorizationLink', () => {
 
       // Find full CRUD group (docker with wildcard)
       const fullCrudGroup = formData.value.customPermissions!.find(
-        p => p.actions.length === 4 && p.resources.includes(Resource.DOCKER)
+        (p) => p.actions.length === 4 && p.resources.includes(Resource.DOCKER)
       );
       expect(fullCrudGroup).toBeDefined();
       expect(fullCrudGroup?.actions).toContain(AuthAction.CREATE_ANY);
@@ -288,8 +286,8 @@ describe('useAuthorizationLink', () => {
       expect(fullCrudGroup?.actions).toContain(AuthAction.DELETE_ANY);
 
       // Find update+delete group (vms)
-      const updateDeleteGroup = formData.value.customPermissions!.find(
-        p => p.resources.includes(Resource.VMS)
+      const updateDeleteGroup = formData.value.customPermissions!.find((p) =>
+        p.resources.includes(Resource.VMS)
       );
       expect(updateDeleteGroup).toBeDefined();
       expect(updateDeleteGroup?.actions).toContain(AuthAction.UPDATE_ANY);
@@ -324,16 +322,16 @@ describe('useAuthorizationLink', () => {
 
       // Should have two groups: docker+vms with read, dashboard with update
       expect(formData.value.customPermissions!).toHaveLength(2);
-      
-      const readGroup = formData.value.customPermissions!.find(
-        p => p.actions.includes(AuthAction.READ_ANY)
+
+      const readGroup = formData.value.customPermissions!.find((p) =>
+        p.actions.includes(AuthAction.READ_ANY)
       );
       expect(readGroup).toBeDefined();
       expect(readGroup?.resources).toContain(Resource.DOCKER);
       expect(readGroup?.resources).toContain(Resource.VMS);
-      
-      const updateGroup = formData.value.customPermissions!.find(
-        p => p.actions.includes(AuthAction.UPDATE_ANY)
+
+      const updateGroup = formData.value.customPermissions!.find((p) =>
+        p.actions.includes(AuthAction.UPDATE_ANY)
       );
       expect(updateGroup).toBeDefined();
       expect(updateGroup?.resources).toEqual([Resource.DASHBOARD]);

@@ -1,21 +1,19 @@
 import { createApp } from 'vue';
 import { createI18n } from 'vue-i18n';
 import { DefaultApolloClient } from '@vue/apollo-composable';
+import ui from '@nuxt/ui/vue-plugin';
 
 // Import main CSS
 import '~/assets/main.css';
 
+import App from '@/App.vue';
 // Import router and main app
-import router from '@/src/router';
-import App from '@/src/App.vue';
-
-// Import UI configurations
-import * as uiConfig from '@/src/ui-config';
-
-import en_US from '~/locales/en_US.json';
-import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
-import { globalPinia } from '~/store/globalPinia';
+import router from '@/router';
 import { client } from '~/helpers/create-apollo-client';
+import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
+import en_US from '~/locales/en_US.json';
+
+import { globalPinia } from '~/store/globalPinia';
 
 const app = createApp(App);
 
@@ -53,11 +51,9 @@ const i18n = createI18n({
 app.use(i18n);
 app.use(globalPinia);
 app.use(router);
+app.use(ui);
 
 // Provide Apollo client
 app.provide(DefaultApolloClient, client);
-
-// Provide UI config
-app.provide('ui.config', uiConfig);
 
 app.mount('#app');

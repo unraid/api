@@ -12,7 +12,7 @@ import { describe, expect, it, vi } from 'vitest';
 import DevSettings from '~/components/DevSettings.vue';
 
 vi.mock('@unraid/ui', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@unraid/ui')>();
+  const actual = await importOriginal();
   return {
     ...actual,
   };

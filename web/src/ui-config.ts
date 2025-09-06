@@ -3,13 +3,31 @@
 
 export const colors = {
   primary: 'green',
-  gray: 'slate'
+  gray: 'slate',
 };
 
 export const strategy = 'merge';
 
 export const theme = {
-  colors: ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose'],
+  colors: [
+    'red',
+    'orange',
+    'amber',
+    'yellow',
+    'lime',
+    'green',
+    'emerald',
+    'teal',
+    'cyan',
+    'sky',
+    'blue',
+    'indigo',
+    'violet',
+    'purple',
+    'fuchsia',
+    'pink',
+    'rose',
+  ],
 };
 
 export const icons = {

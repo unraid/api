@@ -29,6 +29,10 @@ unraid-ui/node_modules/
 # TypeScript v1 declaration files
 typings/
 
+# Auto-generated type declarations for Nuxt UI
+auto-imports.d.ts
+components.d.ts
+
 # Optional npm cache directory
 .npm
 

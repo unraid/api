@@ -1,4 +1,5 @@
 import { ref } from 'vue';
+
 import { vi } from 'vitest';
 
 // Types for mock data
@@ -27,13 +28,15 @@ export function createMockUseQuery<TData = unknown>(
     result: ref(resultData),
     loading: ref(options.loading ?? false),
     error: ref(options.error ?? null),
-    refetch: vi.fn(() => Promise.resolve({
-      data: resultData || {},
-      loading: false,
-      networkStatus: 7,
-      stale: false,
-      error: undefined
-    })),
+    refetch: vi.fn(() =>
+      Promise.resolve({
+        data: resultData || {},
+        loading: false,
+        networkStatus: 7,
+        stale: false,
+        error: undefined,
+      })
+    ),
     subscribeToMore: vi.fn(),
     networkStatus: ref(7),
     start: vi.fn(),
@@ -47,7 +50,7 @@ export function createMockUseQuery<TData = unknown>(
     fetchMore: vi.fn(),
     updateQuery: vi.fn(),
     onResult: vi.fn(),
-    onError: vi.fn()
+    onError: vi.fn(),
   };
 }
 
@@ -63,10 +66,10 @@ export function createMockLogFileQuery(
     logFile: {
       content,
       totalLines,
-      startLine
-    }
+      startLine,
+    },
   };
-  
+
   return createMockUseQuery(result);
 }
 
@@ -78,9 +81,9 @@ export function apolloComposableMockFactory() {
   return {
     useApolloClient: vi.fn(() => ({
       client: {
-        query: vi.fn()
-      }
+        query: vi.fn(),
+      },
     })),
-    useQuery: vi.fn(() => createMockUseQuery())
+    useQuery: vi.fn(() => createMockUseQuery()),
   };
 }

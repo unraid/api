@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { ClientOnly, NuxtLink } from '#components';
+
 import { Badge, Toaster } from '@unraid/ui';
+import { ClientOnly, NuxtLink } from '#components';
 
 import ColorSwitcherCe from '~/components/ColorSwitcher.ce.vue';
 import DummyServerSwitcher from '~/components/DummyServerSwitcher.vue';
@@ -20,14 +21,19 @@ const routes = computed(() => {
     .getRoutes()
     .filter((route) => !route.path.includes(':') && route.path !== '/404' && route.name)
     .sort((a, b) => a.path.localeCompare(b.path));
-  
+
   // Group routes by parent path
-  const grouped = new Map<string, any>();
-  const topLevel: any[] = [];
-  
-  allRoutes.forEach(route => {
+  interface RouteItem {
+    path: string;
+    name?: string | symbol;
+    children: RouteItem[];
+  }
+  const grouped = new Map<string, RouteItem>();
+  const topLevel: RouteItem[] = [];
+
+  allRoutes.forEach((route) => {
     const pathParts = route.path.split('/').filter(Boolean);
-    
+
     if (pathParts.length === 1) {
       // Top level route
       const existing = grouped.get(pathParts[0]);
@@ -37,29 +43,29 @@ const routes = computed(() => {
       }
       topLevel.push({
         ...route,
-        children: []
+        children: [],
       });
       grouped.set(pathParts[0], topLevel[topLevel.length - 1]);
     } else if (pathParts.length >= 2) {
       // Nested route - find or create parent
       const parentPath = pathParts[0];
       let parent = grouped.get(parentPath);
-      
+
       if (!parent) {
         // Create a virtual parent route
         parent = {
           path: `/${parentPath}`,
           name: parentPath,
-          children: []
+          children: [],
         };
         topLevel.push(parent);
         grouped.set(parentPath, parent);
       }
-      
+
       parent.children.push(route);
     }
   });
-  
+
   return topLevel;
 });
 
@@ -67,13 +73,13 @@ function formatRouteName(name: string | symbol | undefined, path?: string) {
   if (!name) return 'Home';
   // Convert symbols to strings if needed
   const nameStr = typeof name === 'symbol' ? name.toString() : name;
-  
+
   // For nested routes, show the last part of the path
   if (path && path.includes('/') && path.split('/').filter(Boolean).length > 1) {
     const lastPart = path.split('/').pop();
     return lastPart ? lastPart.charAt(0).toUpperCase() + lastPart.slice(1).replace(/-/g, ' ') : nameStr;
   }
-  
+
   // Convert route names like "web-components" to "Web Components"
   return nameStr
     .replace(/-/g, ' ')
@@ -84,55 +90,60 @@ function formatRouteName(name: string | symbol | undefined, path?: string) {
 </script>
 
 <template>
-  <div class="text-black bg-white dark:text-white dark:bg-black">
+  <div class="bg-white text-black dark:bg-black dark:text-white">
     <ClientOnly>
-      <div class="bg-white dark:bg-zinc-800 border-b border-muted">
+      <div class="border-muted border-b bg-white dark:bg-zinc-800">
         <div class="flex flex-wrap items-center justify-between gap-2 p-3 md:p-4">
           <nav class="flex flex-wrap items-center gap-2">
             <template v-for="route in routes" :key="route.path">
               <!-- Routes with children get a dropdown -->
               <div v-if="route.children && route.children.length > 0" class="relative">
-                <Badge 
+                <Badge
                   :variant="router.currentRoute.value.path.startsWith(route.path) ? 'orange' : 'gray'"
                   size="xs"
-                  class="cursor-pointer flex items-center gap-1"
+                  class="flex cursor-pointer items-center gap-1"
                   @click="toggleDropdown(route.path)"
                 >
                   {{ formatRouteName(route.name) }}
-                  <svg 
-                    class="w-3 h-3 transition-transform"
+                  <svg
+                    class="h-3 w-3 transition-transform"
                     :class="openDropdown === route.path && 'rotate-180'"
-                    fill="none" 
-                    stroke="currentColor" 
+                    fill="none"
+                    stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </Badge>
-                
+
                 <!-- Dropdown menu -->
-                <div 
+                <div
                   v-if="openDropdown === route.path"
-                  class="absolute top-full mt-1 left-0 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-50 min-w-[150px]"
+                  class="absolute top-full left-0 z-50 mt-1 min-w-[150px] rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-zinc-800"
                 >
                   <NuxtLink
                     v-for="child in route.children"
                     :key="child.path"
                     :to="child.path"
-                    class="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-700 dark:text-gray-200"
+                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-zinc-700"
                     @click="openDropdown = null"
                   >
                     {{ formatRouteName(child.name, child.path) }}
                   </NuxtLink>
                 </div>
               </div>
-              
+
               <!-- Regular routes without children -->
               <NuxtLink v-else :to="route.path">
-                <Badge 
+                <Badge
                   :variant="router.currentRoute.value.path === route.path ? 'orange' : 'gray'"
                   size="xs"
-                  class="cursor-pointer header-nav-badge hover:brightness-90 hover:bg-transparent [&.bg-gray-200]:hover:bg-gray-200 [&.bg-orange]:hover:bg-orange"
+                  class="header-nav-badge [&.bg-orange]:hover:bg-orange cursor-pointer hover:bg-transparent hover:brightness-90 [&.bg-gray-200]:hover:bg-gray-200"
                 >
                   {{ formatRouteName(route.name) }}
                 </Badge>
@@ -142,7 +153,9 @@ function formatRouteName(name: string | symbol | undefined, path?: string) {
           <ModalsCe />
         </div>
       </div>
-      <div class="flex flex-col md:flex-row items-center justify-center gap-3 p-3 md:p-4 bg-gray-50 dark:bg-zinc-900 border-b border-muted">
+      <div
+        class="border-muted flex flex-col items-center justify-center gap-3 border-b bg-gray-50 p-3 md:flex-row md:p-4 dark:bg-zinc-900"
+      >
         <DummyServerSwitcher />
         <ColorSwitcherCe />
       </div>

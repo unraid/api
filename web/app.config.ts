@@ -2,12 +2,12 @@ export default {
   ui: {
     colors: {
       primary: 'blue',
-      neutral: 'gray'
-    }
+      neutral: 'gray',
+    },
   },
   toaster: {
     position: 'bottom-right' as const,
     expand: true,
-    duration: 5000
-  }
+    duration: 5000,
+  },
 };

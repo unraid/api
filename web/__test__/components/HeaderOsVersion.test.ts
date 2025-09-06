@@ -23,7 +23,6 @@ vi.mock('@unraid/shared-callbacks', () => ({
   useCallback: vi.fn(() => ({ send: vi.fn(), watcher: vi.fn() })),
 }));
 
-
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: () => ({
     result: { value: {} },
@@ -123,11 +122,19 @@ describe('HeaderOsVersion', () => {
   });
 
   it('renders OS version button with correct version and no update status initially', () => {
-    const versionButton = wrapper.find('button[title*="Version Information"]');
+    // The version button is within the DropdownMenuTrigger
+    const versionButton = wrapper.find('[title="Version Information"]');
 
     expect(versionButton.exists()).toBe(true);
     expect(versionButton.text()).toContain('6.12.0');
-    expect(findUpdateStatusComponent()).toBeNull();
+
+    // No update status button should be rendered initially
+    const updateButtons = wrapper.findAll('button');
+    const hasUpdateButton = updateButtons.some((button) => {
+      const title = button.attributes('title');
+      return title && (title.includes('Update') || title.includes('Reboot'));
+    });
+    expect(hasUpdateButton).toBe(false);
   });
 
   it('does not render update status when stateDataError is present', async () => {

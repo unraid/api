@@ -1,13 +1,19 @@
+import path from 'node:path';
 import { fileURLToPath, URL } from 'node:url';
-import path from 'path';
+
+import ui from '@nuxt/ui/vite';
+
 import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
 import removeConsole from 'vite-plugin-remove-console';
 
+import { serveStaticHtml } from './vite-plugin-serve-static';
+
 const dropConsole = process.env.VITE_ALLOW_CONSOLE_LOGS !== 'true';
 console.log(dropConsole ? 'WARN: Console logs are disabled' : 'INFO: Console logs are enabled');
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const assetsDir = path.join(__dirname, '../api/dev/webGui/');
 
 /**
@@ -47,8 +53,10 @@ const sharedTerserOptions = {
  * Shared define configuration
  */
 const sharedDefine = {
-  'globalThis.__DEV__': process.env.NODE_ENV === 'development',
-  __VUE_PROD_DEVTOOLS__: false,
+  'globalThis.__DEV__': JSON.stringify(process.env.NODE_ENV === 'development'),
+  __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
+  'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+  'process.env': JSON.stringify({}),
 };
 
 // https://vitejs.dev/config/
@@ -59,37 +67,64 @@ export default defineConfig({
       template: {
         compilerOptions: {
           // Treat all unraid-* components as custom elements
-          isCustomElement: (tag) => tag.startsWith('unraid-')
-        }
-      }
+          isCustomElement: (tag) => tag.startsWith('unraid-'),
+        },
+      },
     }),
+    ui(),
+    serveStaticHtml(), // Serve static test pages
     // Remove console logs in production
-    ...(dropConsole ? [
-      removeConsole({
-        includes: ['log', 'info', 'debug'],
-      })
-    ] : []),
-    // Add Nuxt UI vite plugin for Vue mode
-    (async () => {
-      const { default: NuxtUIVite } = await import('@nuxt/ui/vite');
-      return NuxtUIVite({
-        colorMode: true
-      });
-    })()
+    ...(dropConsole
+      ? [
+          removeConsole({
+            includes: ['log', 'info', 'debug'],
+          }),
+        ]
+      : []),
   ],
-  
+
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./', import.meta.url)),
-      '~': fileURLToPath(new URL('./', import.meta.url)),
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '~': fileURLToPath(new URL('./src', import.meta.url)),
       '~~': fileURLToPath(new URL('./', import.meta.url)),
-      '~/': fileURLToPath(new URL('./', import.meta.url)),
+      '~/': fileURLToPath(new URL('./src/', import.meta.url)),
     },
   },
 
-  define: sharedDefine,
+  define: {
+    ...sharedDefine,
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+  },
+
+  publicDir: false, // Don't copy public files to dist
 
   build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    manifest: false, // Disable Vite's manifest since we generate our own
+    lib: {
+      entry: fileURLToPath(new URL('./src/components/component-registry.ts', import.meta.url)),
+      name: 'UnraidStandaloneApps',
+      fileName: 'standalone-apps',
+      formats: ['es'],
+    },
+    rollupOptions: {
+      output: {
+        format: 'es',
+        entryFileNames: 'standalone-apps.js',
+        chunkFileNames: '[name]-[hash].js',
+        assetFileNames: (assetInfo) => {
+          // Keep CSS files with predictable names
+          if (assetInfo.name?.endsWith('.css')) {
+            return 'standalone-apps.css';
+          }
+          return '[name]-[hash][extname]';
+        },
+        inlineDynamicImports: false,
+      },
+    },
+    cssCodeSplit: false, // Bundle all CSS together
     minify: 'terser',
     terserOptions: sharedTerserOptions,
   },
@@ -109,12 +144,41 @@ export default defineConfig({
             proxyReq.setHeader('X-Forwarded-Proto', 'http');
             proxyReq.setHeader('X-Forwarded-For', '127.0.0.1');
           });
+          // Handle connection errors gracefully
+          proxy.on('error', (err: Error, _req: unknown, res: unknown) => {
+            console.warn('[Vite] GraphQL proxy error (API server may not be running):', err.message);
+            // Check if res has writeHead method (it's an HTTP response, not a socket)
+            const httpRes = res as {
+              writeHead?: (statusCode: number, headers: Record<string, string>) => void;
+              end?: (data: string) => void;
+            };
+            if (
+              httpRes &&
+              typeof httpRes.writeHead === 'function' &&
+              typeof httpRes.end === 'function'
+            ) {
+              httpRes.writeHead(503, {
+                'Content-Type': 'application/json',
+              });
+              httpRes.end(
+                JSON.stringify({
+                  error: 'GraphQL API server not available',
+                  message: 'Please start the API server on port 3001',
+                })
+              );
+            }
+          });
         },
       },
       '/webGui': {
         target: `file://${assetsDir}`,
         changeOrigin: true,
       },
+    },
+    // Configure static file serving
+    fs: {
+      strict: false,
+      allow: ['..'], // Allow serving files outside of root
     },
   },
 });

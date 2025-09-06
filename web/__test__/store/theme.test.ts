@@ -20,6 +20,7 @@ describe('Theme Store', () => {
   const originalAddClassFn = document.body.classList.add;
   const originalRemoveClassFn = document.body.classList.remove;
   const originalStyleCssText = document.body.style.cssText;
+  const originalDocumentElementSetProperty = document.documentElement.style.setProperty;
 
   beforeEach(() => {
     setActivePinia(createPinia());
@@ -28,6 +29,9 @@ describe('Theme Store', () => {
     document.body.classList.add = vi.fn();
     document.body.classList.remove = vi.fn();
     document.body.style.cssText = '';
+    document.documentElement.style.setProperty = vi.fn();
+    document.documentElement.classList.add = vi.fn();
+    document.documentElement.classList.remove = vi.fn();
 
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
       cb(0);
@@ -42,6 +46,7 @@ describe('Theme Store', () => {
     document.body.classList.add = originalAddClassFn;
     document.body.classList.remove = originalRemoveClassFn;
     document.body.style.cssText = originalStyleCssText;
+    document.documentElement.style.setProperty = originalDocumentElementSetProperty;
     vi.restoreAllMocks();
   });
 
@@ -80,7 +85,9 @@ describe('Theme Store', () => {
         banner: true,
         bannerGradient: true,
       });
-      expect(store.bannerGradient).toMatchInlineSnapshot(`"background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, var(--header-background-color) 90%);"`);
+      expect(store.bannerGradient).toMatchInlineSnapshot(
+        `"background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, var(--header-background-color) 90%);"`
+      );
 
       store.setTheme({
         ...store.theme,
@@ -88,7 +95,9 @@ describe('Theme Store', () => {
         bannerGradient: true,
         bgColor: '#123456',
       });
-      expect(store.bannerGradient).toMatchInlineSnapshot(`"background-image: linear-gradient(90deg, var(--header-gradient-start) 0, var(--header-gradient-end) 90%);"`);
+      expect(store.bannerGradient).toMatchInlineSnapshot(
+        `"background-image: linear-gradient(90deg, var(--header-gradient-start) 0, var(--header-gradient-end) 90%);"`
+      );
     });
   });
 
@@ -133,9 +142,22 @@ describe('Theme Store', () => {
 
       await nextTick();
 
-      expect(store.activeColorVariables['--header-text-primary']).toBe('#333333');
-      expect(store.activeColorVariables['--header-text-secondary']).toBe('#666666');
-      expect(store.activeColorVariables['--header-background-color']).toBe('#ffffff');
+      // activeColorVariables now contains the theme defaults from defaultColors
+      // Custom values are applied as CSS variables on the documentElement
+      // The white theme's --color-beta is a reference to var(--header-text-primary)
+      expect(store.activeColorVariables['--color-beta']).toBe('var(--header-text-primary)');
+      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
+        '--custom-header-text-primary',
+        '#333333'
+      );
+      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
+        '--custom-header-text-secondary',
+        '#666666'
+      );
+      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
+        '--custom-header-background-color',
+        '#ffffff'
+      );
     });
 
     it('should handle banner gradient correctly', async () => {
@@ -155,8 +177,19 @@ describe('Theme Store', () => {
       expect(mockHexToRgba).toHaveBeenCalledWith('#112233', 0);
       expect(mockHexToRgba).toHaveBeenCalledWith('#112233', 0.7);
 
-      expect(store.activeColorVariables['--header-gradient-start']).toBe('rgba(mock-#112233-0)');
-      expect(store.activeColorVariables['--header-gradient-end']).toBe('rgba(mock-#112233-0.7)');
+      // Banner gradient values are now set as custom CSS variables on documentElement
+      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
+        '--custom-header-gradient-start',
+        'rgba(mock-#112233-0)'
+      );
+      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
+        '--custom-header-gradient-end',
+        'rgba(mock-#112233-0.7)'
+      );
+      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
+        '--banner-gradient',
+        'linear-gradient(90deg, rgba(mock-#112233-0) 0, rgba(mock-#112233-0.7) 90%)'
+      );
     });
   });
 });

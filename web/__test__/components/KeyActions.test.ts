@@ -11,9 +11,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ServerStateDataAction, ServerStateDataActionType } from '~/types/server';
 
-import KeyActions from '../../components/KeyActions.vue';
+import KeyActions from '~/components/KeyActions.vue';
 
-import '~/__test__/mocks/ui-components';
+import '../mocks/ui-components';
 
 vi.mock('crypto-js/aes', () => ({
   default: {},

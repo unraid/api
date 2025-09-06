@@ -82,7 +82,6 @@ vi.mock('~/components/UserProfile/UptimeExpire.vue', () => ({
   },
 }));
 
-
 // Define initial state for the server store for testing
 const initialServerState = {
   dateTimeFormat: { date: 'MMM D, YYYY', time: 'h:mm A' },
@@ -127,11 +126,11 @@ describe('Registration.ce.vue', () => {
   const findItemByLabel = (labelKey: string) => {
     const allLabels = wrapper.findAll('.font-semibold');
     const label = allLabels.find((el) => el.html().includes(t(labelKey)));
-    
+
     if (!label) return undefined;
-    
+
     const nextSibling = label.element.nextElementSibling;
-    
+
     return {
       exists: () => true,
       props: (prop: string) => {
@@ -199,12 +198,10 @@ describe('Registration.ce.vue', () => {
     await wrapper.vm.$nextTick();
 
     const keyActionsElement = wrapper.find('[data-testid="key-actions"]');
-    
+
     expect(keyActionsElement.exists(), 'KeyActions element not found').toBe(true);
 
-    const expectedActions = serverStore.keyActions?.filter(
-      (action) => !['renew'].includes(action.name)
-    );
+    const expectedActions = serverStore.keyActions?.filter((action) => !['renew'].includes(action.name));
 
     expect(expectedActions, 'No expected actions found in store for TRIAL state').toBeDefined();
     expect(expectedActions!.length).toBeGreaterThan(0);
