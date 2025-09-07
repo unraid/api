@@ -26,6 +26,35 @@
     box-sizing: border-box;
   }
 
+  /* Override Unraid's button styles for Nuxt UI components */
+  .unapi button {
+    /* Reset Unraid's button styles */
+    margin: 0 !important;
+    padding: 0;
+    border: none;
+    background: none;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Restore button functionality while removing Unraid's forced styles */
+  .unapi button:not([role="switch"]) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  /* Ensure Nuxt UI modal/slideover close buttons work properly */
+  .unapi [role="dialog"] button,
+  .unapi [data-radix-collection-item] button {
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+  }
+
   /* Reset figure element for logo */
   .unapi figure {
     margin: 0;

@@ -7,27 +7,11 @@
 /* Default/White Theme */
 :root,
 .theme-white {
-  --header-text-primary: #1c1b1b;
-  --header-text-secondary: #999999;
-  --header-background-color: #ffffff;
-  --header-gradient-start: rgba(255, 255, 255, 0);
-  --header-gradient-end: rgba(255, 255, 255, 0.7);
-  --ui-border-muted: hsl(240 5.9% 90%);
-  --color-border: #e0e0e0;
-  --color-alpha: #ff8c2f;
-  --color-beta: #f2f2f2;
-  --color-gamma: #1c1b1b;
-  --color-gamma-opaque: rgba(28, 27, 27, 0.3);
-}
-
-/* Dark/Black Theme */
-.theme-black,
-.theme-black.dark {
   --header-text-primary: #ffffff;
   --header-text-secondary: #999999;
-  --header-background-color: #0c0c0c;
-  --header-gradient-start: rgba(12, 12, 12, 0);
-  --header-gradient-end: rgba(12, 12, 12, 0.7);
+  --header-background-color: #1c1b1b;
+  --header-gradient-start: rgba(28, 27, 27, 0);
+  --header-gradient-end: rgba(28, 27, 27, 0.7);
   --ui-border-muted: hsl(240 5% 20%);
   --color-border: #383735;
   --color-alpha: #ff8c2f;
@@ -36,13 +20,29 @@
   --color-gamma-opaque: rgba(255, 255, 255, 0.3);
 }
 
+/* Black Theme */
+.theme-black,
+.theme-black.dark {
+  --header-text-primary: #1c1b1b;
+  --header-text-secondary: #999999;
+  --header-background-color: #f2f2f2;
+  --header-gradient-start: rgba(242, 242, 242, 0);
+  --header-gradient-end: rgba(242, 242, 242, 0.7);
+  --ui-border-muted: hsl(240 5.9% 90%);
+  --color-border: #e0e0e0;
+  --color-alpha: #ff8c2f;
+  --color-beta: #f2f2f2;
+  --color-gamma: #1c1b1b;
+  --color-gamma-opaque: rgba(28, 27, 27, 0.3);
+}
+
 /* Gray Theme */
 .theme-gray {
   --header-text-primary: #ffffff;
   --header-text-secondary: #999999;
-  --header-background-color: #222222;
-  --header-gradient-start: rgba(34, 34, 34, 0);
-  --header-gradient-end: rgba(34, 34, 34, 0.7);
+  --header-background-color: #1c1b1b;
+  --header-gradient-start: rgba(28, 27, 27, 0);
+  --header-gradient-end: rgba(28, 27, 27, 0.7);
   --ui-border-muted: hsl(240 5% 25%);
   --color-border: #383735;
   --color-alpha: #ff8c2f;
@@ -53,11 +53,11 @@
 
 /* Azure Theme */
 .theme-azure {
-  --header-text-primary: #ffffff;
-  --header-text-secondary: #b8d4e3;
-  --header-background-color: #336699;
-  --header-gradient-start: rgba(51, 102, 153, 0);
-  --header-gradient-end: rgba(51, 102, 153, 0.7);
+  --header-text-primary: #1c1b1b;
+  --header-text-secondary: #999999;
+  --header-background-color: #f2f2f2;
+  --header-gradient-start: rgba(242, 242, 242, 0);
+  --header-gradient-end: rgba(242, 242, 242, 0.7);
   --ui-border-muted: hsl(210 40% 80%);
   --color-border: #5a8bb8;
   --color-alpha: #ff8c2f;

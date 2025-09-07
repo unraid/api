@@ -85,6 +85,7 @@ declare module 'vue' {
     ReleaseNotesModal: typeof import('./src/components/ReleaseNotesModal.vue')['default']
     RemoteItem: typeof import('./src/components/RClone/RemoteItem.vue')['default']
     ReplaceCheck: typeof import('./src/components/Registration/ReplaceCheck.vue')['default']
+    ResponsiveModal: typeof import('./src/components/ResponsiveModal.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ServerState: typeof import('./src/components/UserProfile/ServerState.vue')['default']
@@ -99,6 +100,7 @@ declare module 'vue' {
     'ThemeSwitcher.ce': typeof import('./src/components/ThemeSwitcher.ce.vue')['default']
     ThirdPartyDrivers: typeof import('./src/components/UpdateOs/ThirdPartyDrivers.vue')['default']
     Trial: typeof import('./src/components/UserProfile/Trial.vue')['default']
+    UModal: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.3_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_717626353d7e2aa0e50ed397345224b8/node_modules/@nuxt/ui/dist/runtime/components/Modal.vue')['default']
     UnraidToaster: typeof import('./src/components/UnraidToaster.vue')['default']
     Update: typeof import('./src/components/UpdateOs/Update.vue')['default']
     UpdateExpiration: typeof import('./src/components/Registration/UpdateExpiration.vue')['default']
@@ -107,6 +109,7 @@ declare module 'vue' {
     'UpdateOs.ce': typeof import('./src/components/UpdateOs.ce.vue')['default']
     UptimeExpire: typeof import('./src/components/UserProfile/UptimeExpire.vue')['default']
     'UserProfile.ce': typeof import('./src/components/UserProfile.ce.vue')['default']
+    USlideover: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.3_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_717626353d7e2aa0e50ed397345224b8/node_modules/@nuxt/ui/dist/runtime/components/Slideover.vue')['default']
     'WanIpCheck.ce': typeof import('./src/components/WanIpCheck.ce.vue')['default']
     'WelcomeModal.ce': typeof import('./src/components/Activation/WelcomeModal.ce.vue')['default']
   }

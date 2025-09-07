@@ -9,8 +9,8 @@ import type { Theme, ThemeVariables } from '~/themes/types';
 
 import { graphql } from '~/composables/gql/gql';
 
-// used to swap the UPC text color when using the azure or gray theme
-export const DARK_THEMES = ['black', 'gray'] as const;
+// Themes that should apply the .dark class (dark UI themes)
+export const DARK_UI_THEMES = ['gray', 'black'] as const;
 
 export const GET_THEME_QUERY = graphql(`
   query getTheme {
@@ -43,8 +43,9 @@ export const useThemeStore = defineStore('theme', () => {
   const activeColorVariables = ref<ThemeVariables>(defaultColors.white);
 
   // Getters
-  const darkMode = computed<boolean>(
-    () => DARK_THEMES.includes(theme.value?.name as (typeof DARK_THEMES)[number]) ?? false
+  // Apply dark mode for gray and black themes
+  const darkMode = computed<boolean>(() =>
+    DARK_UI_THEMES.includes(theme.value?.name as (typeof DARK_UI_THEMES)[number])
   );
 
   const bannerGradient = computed(() => {
