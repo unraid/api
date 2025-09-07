@@ -57,9 +57,9 @@ const handleKeydown = (event: KeyboardEvent) => {
   <a
     v-if="as === 'a'"
     :class="buttonClass"
-    :href="href"
-    :target="target"
-    :rel="rel"
+    :href="href ?? undefined"
+    :target="target ?? undefined"
+    :rel="rel ?? undefined"
     :tabindex="disabled ? -1 : 0"
     :aria-disabled="disabled"
     @click="handleClick"

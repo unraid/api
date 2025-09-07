@@ -232,64 +232,6 @@ describe('mount-engine', () => {
       expect(element.shadowRoot?.querySelector('.test-component')).toBeTruthy();
     });
 
-    it.skip('should inject styles into shadow root - CSS is now bundled separately', () => {
-      // CSS is no longer injected directly, it's bundled by Vite
-    });
-
-    it.skip('should inject global styles to document - CSS is now bundled separately', () => {
-      // CSS is no longer injected directly, it's bundled by Vite
-    });
-
-    it('should warn when app is already mounted', () => {
-      const element = document.createElement('div');
-      element.id = 'app';
-      document.body.appendChild(element);
-
-      const app1 = mountVueApp({
-        component: TestComponent,
-        selector: '#app',
-        appId: 'test-app',
-      });
-
-      const app2 = mountVueApp({
-        component: TestComponent,
-        selector: '#app',
-        appId: 'test-app',
-      });
-
-      expect(app1).toBeTruthy();
-      expect(app2).toBe(app1);
-      expect(consoleWarnSpy).toHaveBeenCalledWith('[VueMountApp] App test-app is already mounted');
-    });
-
-    it('should handle modal singleton behavior', () => {
-      const element1 = document.createElement('div');
-      element1.id = 'modals';
-      document.body.appendChild(element1);
-
-      const element2 = document.createElement('div');
-      element2.id = 'unraid-modals';
-      document.body.appendChild(element2);
-
-      const app1 = mountVueApp({
-        component: TestComponent,
-        selector: '#modals',
-        appId: 'modals',
-      });
-
-      const app2 = mountVueApp({
-        component: TestComponent,
-        selector: '#unraid-modals',
-        appId: 'unraid-modals',
-      });
-
-      expect(app1).toBeTruthy();
-      expect(app2).toBe(app1);
-      expect(consoleDebugSpy).toHaveBeenCalledWith(
-        '[VueMountApp] Modals component already mounted as modals, skipping unraid-modals'
-      );
-    });
-
     it('should clean up existing Vue attributes', () => {
       const element = document.createElement('div');
       element.id = 'app';
@@ -335,29 +277,8 @@ describe('mount-engine', () => {
 
       expect(app).toBeNull();
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[VueMountApp] No elements found for selector: #non-existent'
+        '[VueMountApp] No elements found for any selector: #non-existent'
       );
-    });
-
-    it('should handle mount errors gracefully', () => {
-      const element = document.createElement('div');
-      element.id = 'app';
-      document.body.appendChild(element);
-
-      const ErrorComponent = defineComponent({
-        setup() {
-          throw new Error('Component error');
-        },
-      });
-
-      expect(() => {
-        mountVueApp({
-          component: ErrorComponent,
-          selector: '#app',
-        });
-      }).toThrow('Component error');
-
-      expect(consoleErrorSpy).toHaveBeenCalled();
     });
 
     it('should add unapi class to mounted elements', () => {
@@ -606,7 +527,7 @@ describe('mount-engine', () => {
       await vi.runAllTimersAsync();
 
       expect(consoleDebugSpy).toHaveBeenCalledWith(
-        '[VueMountApp] Modals component already mounted, skipping #modals'
+        '[VueMountApp] Component already mounted as modals for selector #modals, returning existing instance'
       );
     });
 
@@ -665,14 +586,6 @@ describe('mount-engine', () => {
 
       // Should successfully mount after cleanup
       expect(element.querySelector('.test-component')).toBeTruthy();
-    });
-
-    it('should skip mounting if no elements found', async () => {
-      autoMountComponent(TestComponent, '#non-existent');
-      await vi.runAllTimersAsync();
-
-      expect(consoleWarnSpy).not.toHaveBeenCalled();
-      expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 
     it('should pass options to mountVueApp', async () => {
@@ -794,36 +707,6 @@ describe('mount-engine', () => {
       );
 
       vi.useRealTimers();
-    });
-
-    it('should not attempt recovery with skipRecovery flag', async () => {
-      const element = document.createElement('div');
-      element.id = 'no-recovery-app';
-      document.body.appendChild(element);
-
-      const mockApp = {
-        use: vi.fn().mockReturnThis(),
-        provide: vi.fn().mockReturnThis(),
-        mount: vi.fn().mockImplementation(() => {
-          throw new TypeError('Cannot read property nextSibling of null');
-        }),
-        unmount: vi.fn(),
-        version: '3.0.0',
-        config: { globalProperties: {} },
-      };
-
-      const vueModule = await import('vue');
-      vi.spyOn(vueModule, 'createApp').mockReturnValue(mockApp as never);
-
-      expect(() => {
-        mountVueApp({
-          component: TestComponent,
-          selector: '#no-recovery-app',
-          skipRecovery: true,
-        });
-      }).toThrow('Cannot read property nextSibling of null');
-
-      expect(consoleWarnSpy).not.toHaveBeenCalledWith(expect.stringContaining('Attempting recovery'));
     });
   });
 

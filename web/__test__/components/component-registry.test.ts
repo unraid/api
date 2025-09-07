@@ -58,11 +58,13 @@ vi.mock('~/components/UnraidToaster.vue', () => ({
 
 // Mock mount-engine module
 const mockAutoMountComponent = vi.fn();
+const mockAutoMountAllComponents = vi.fn();
 const mockMountVueApp = vi.fn();
 const mockGetMountedApp = vi.fn();
 
 vi.mock('~/components/Wrapper/mount-engine', () => ({
   autoMountComponent: mockAutoMountComponent,
+  autoMountAllComponents: mockAutoMountAllComponents,
   mountVueApp: mockMountVueApp,
   getMountedApp: mockGetMountedApp,
 }));
@@ -135,7 +137,7 @@ describe('component-registry', () => {
 
   describe('initialization', () => {
     it('should set up Apollo client globally', async () => {
-      await import('~/components/Wrapper/component-registry');
+      await import('~/components/Wrapper/auto-mount');
 
       expect(window.apolloClient).toBe(mockApolloClient);
       expect(window.graphqlParse).toBe(mockParse);
@@ -144,13 +146,13 @@ describe('component-registry', () => {
     });
 
     it('should initialize theme once', async () => {
-      await import('~/components/Wrapper/component-registry');
+      await import('~/components/Wrapper/auto-mount');
 
       expect(mockInitializeTheme).toHaveBeenCalled();
     });
 
     it('should ensure teleport container exists', async () => {
-      await import('~/components/Wrapper/component-registry');
+      await import('~/components/Wrapper/auto-mount');
 
       expect(mockEnsureTeleportContainer).toHaveBeenCalled();
     });
@@ -168,14 +170,13 @@ describe('component-registry', () => {
       document.body.appendChild(modalElement);
 
       // Clear previous calls
-      mockAutoMountComponent.mockClear();
+      mockAutoMountAllComponents.mockClear();
 
-      // Import component-registry which will trigger auto-mounting
-      await import('~/components/Wrapper/component-registry');
+      // Import auto-mount which will trigger auto-mounting
+      await import('~/components/Wrapper/auto-mount');
 
-      // Since components are lazy-loaded and only mount when elements exist,
-      // we expect at least the elements we created to trigger mounting
-      expect(mockAutoMountComponent.mock.calls.length).toBeGreaterThan(0);
+      // Auto-mount should be called when DOM is ready
+      expect(mockAutoMountAllComponents).toHaveBeenCalled();
 
       // Clean up
       document.body.removeChild(authElement);
@@ -185,55 +186,28 @@ describe('component-registry', () => {
 
   describe('global exports', () => {
     it('should expose utility functions globally', async () => {
-      await import('~/components/Wrapper/component-registry');
+      await import('~/components/Wrapper/auto-mount');
 
       expect(window.mountVueApp).toBe(mockMountVueApp);
       expect(window.getMountedApp).toBe(mockGetMountedApp);
+      expect(window.autoMountComponent).toBe(mockAutoMountComponent);
     });
 
-    it('should create dynamic mount functions for each component', async () => {
-      await import('~/components/Wrapper/component-registry');
+    it('should expose mountVueApp function globally', async () => {
+      await import('~/components/Wrapper/auto-mount');
 
-      // Check for some dynamic mount functions
-      expect(typeof window.mountAuth).toBe('function');
-      expect(typeof window.mountConnectSettings).toBe('function');
-      expect(typeof window.mountUserProfile).toBe('function');
-      expect(typeof window.mountModals).toBe('function');
-      expect(typeof window.mountThemeSwitcher).toBe('function');
+      // Check that mountVueApp is exposed
+      expect(typeof window.mountVueApp).toBe('function');
 
-      // Test calling a dynamic mount function
-      const customSelector = '#custom-auth';
-      await window.mountAuth?.(customSelector);
-
-      expect(mockMountVueApp).toHaveBeenCalledWith(
-        expect.objectContaining({
-          selector: customSelector,
-          useShadowRoot: false,
-        })
-      );
+      // Note: Dynamic mount functions are no longer created automatically
+      // They would be created via mountVueApp calls
     });
 
-    it('should use default selector when no custom selector provided', async () => {
-      await import('~/components/Wrapper/component-registry');
+    it('should expose autoMountComponent function globally', async () => {
+      await import('~/components/Wrapper/auto-mount');
 
-      // Call mount function without custom selector
-      await window.mountAuth?.();
-
-      expect(mockMountVueApp).toHaveBeenCalledWith(
-        expect.objectContaining({
-          selector: 'unraid-auth',
-          useShadowRoot: false,
-        })
-      );
-    });
-  });
-
-  // Skip SSR safety test as it's complex to test with module isolation
-  describe.skip('SSR safety', () => {
-    it('should not initialize when window is undefined', async () => {
-      // This test is skipped because the module initialization happens at import time
-      // and it's difficult to properly isolate the window object manipulation
-      // The functionality is simple enough - just checking if window exists before running code
+      // Check that autoMountComponent is exposed
+      expect(typeof window.autoMountComponent).toBe('function');
     });
   });
 });
