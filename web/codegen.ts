@@ -20,7 +20,7 @@ const config: CodegenConfig = {
     },
   },
   generates: {
-    'composables/gql/': {
+    'src/composables/gql/': {
       preset: 'client',
       config: {
         useTypeImports: true,

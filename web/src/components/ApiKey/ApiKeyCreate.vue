@@ -33,7 +33,8 @@ import type {
 import type { AuthorizationFormData } from '~/utils/authorizationScopes';
 
 import { GET_API_KEY_CREATION_FORM_SCHEMA } from '~/components/ApiKey/api-key-form.query';
-import { API_KEY_FRAGMENT, CREATE_API_KEY, UPDATE_API_KEY } from '~/components/ApiKey/apikey.query';
+import { CREATE_API_KEY, UPDATE_API_KEY } from '~/components/ApiKey/apikey.mutation';
+import { API_KEY_FRAGMENT } from '~/components/ApiKey/apikey.query';
 import DeveloperAuthorizationLink from '~/components/ApiKey/DeveloperAuthorizationLink.vue';
 import EffectivePermissions from '~/components/ApiKey/EffectivePermissions.vue';
 import { useFragment } from '~/composables/gql/fragment-masking';

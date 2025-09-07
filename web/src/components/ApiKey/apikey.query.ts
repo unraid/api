@@ -25,34 +25,6 @@ export const GET_API_KEYS = graphql(/* GraphQL */ `
   }
 `);
 
-export const CREATE_API_KEY = graphql(/* GraphQL */ `
-  mutation CreateApiKey($input: CreateApiKeyInput!) {
-    apiKey {
-      create(input: $input) {
-        ...ApiKey
-      }
-    }
-  }
-`);
-
-export const UPDATE_API_KEY = graphql(/* GraphQL */ `
-  mutation UpdateApiKey($input: UpdateApiKeyInput!) {
-    apiKey {
-      update(input: $input) {
-        ...ApiKey
-      }
-    }
-  }
-`);
-
-export const DELETE_API_KEY = graphql(/* GraphQL */ `
-  mutation DeleteApiKey($input: DeleteApiKeyInput!) {
-    apiKey {
-      delete(input: $input)
-    }
-  }
-`);
-
 export const GET_API_KEY_META = graphql(/* GraphQL */ `
   query ApiKeyMeta {
     apiKeyPossibleRoles

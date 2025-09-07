@@ -39,12 +39,8 @@ import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
 import type { ApiKeyFragment, AuthAction, Role } from '~/composables/gql/graphql';
 
-import {
-  API_KEY_FRAGMENT,
-  DELETE_API_KEY,
-  GET_API_KEY_META,
-  GET_API_KEYS,
-} from '~/components/ApiKey/apikey.query';
+import { DELETE_API_KEY } from '~/components/ApiKey/apikey.mutation';
+import { API_KEY_FRAGMENT, GET_API_KEY_META, GET_API_KEYS } from '~/components/ApiKey/apikey.query';
 import ApiKeyCreate from '~/components/ApiKey/ApiKeyCreate.vue';
 import EffectivePermissions from '~/components/ApiKey/EffectivePermissions.vue';
 import { useFragment } from '~/composables/gql/fragment-masking';
