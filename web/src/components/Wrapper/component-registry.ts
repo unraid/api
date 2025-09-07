@@ -135,4 +135,9 @@ export const componentMappings: ComponentMapping[] = [
     selector: 'unraid-color-switcher',
     appId: 'color-switcher',
   },
+  {
+    loader: () => import('../UnraidToaster.vue'),
+    selector: ['unraid-toaster', 'uui-toaster'],
+    appId: 'toaster',
+  },
 ];

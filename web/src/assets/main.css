@@ -10,7 +10,7 @@
 
 /* Scan for Tailwind classes in all source files */
 @source "../**/*.{vue,ts,js,tsx,jsx}";
-@source "../../unraid-ui/src/**/*.{vue,ts,js,tsx,jsx}";
+@source "../../../unraid-ui/src/**/*.{vue,ts,js,tsx,jsx}";
 
 /* 
  * Minimal styles for our components
