@@ -12,7 +12,7 @@ import type { ComposerTranslation } from 'vue-i18n';
 import ActivationModal from '~/components/Activation/ActivationModal.vue';
 
 vi.mock('@unraid/ui', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
     Dialog: {

@@ -17,7 +17,7 @@ import { useThemeStore } from '~/store/theme';
 
 // Explicitly mock @unraid/ui to ensure we use the actual components
 vi.mock('@unraid/ui', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
   };

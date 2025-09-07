@@ -194,6 +194,9 @@
     console.log('Server state updated:', type, updates);
   };
 
+  // Track if we've already applied state to prevent duplicates
+  const appliedStateElements = new WeakSet();
+
   // Function to pass server state to components via attributes
   window.applyServerStateToComponents = function (type = 'default') {
     const state = window.getTestServerState(type);
@@ -212,23 +215,77 @@
     componentsNeedingState.forEach((selector) => {
       const elements = document.querySelectorAll(selector);
       elements.forEach((el) => {
+        // Skip if we've already applied state to this element
+        if (appliedStateElements.has(el)) {
+          console.log(`Skipping duplicate state application to ${selector}`);
+          return;
+        }
+
+        // Check if the element already has the same state
+        const currentState = el.getAttribute('server');
+        if (currentState === stateJson) {
+          console.log(`${selector} already has current state, skipping`);
+          appliedStateElements.add(el);
+          return;
+        }
+
         el.setAttribute('server', stateJson);
+        appliedStateElements.add(el);
         console.log(`Applied server state to ${selector}`);
       });
     });
   };
 
   // Auto-apply default server state when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () {
-      setTimeout(function () {
-        window.applyServerStateToComponents('default');
-      }, 500); // Small delay to ensure components are mounted
-    });
-  } else {
+  let hasInitiallyApplied = false;
+
+  function applyInitialState() {
+    if (hasInitiallyApplied) return;
+    hasInitiallyApplied = true;
+
+    // Apply state with a delay to ensure components are mounted
     setTimeout(function () {
       window.applyServerStateToComponents('default');
-    }, 500);
+
+      // Set up mutation observer to handle dynamically added components
+      const observer = new MutationObserver(function (mutations) {
+        let shouldApply = false;
+
+        mutations.forEach(function (mutation) {
+          mutation.addedNodes.forEach(function (node) {
+            if (node.nodeType === 1) {
+              // Element node
+              const tagName = node.tagName?.toLowerCase();
+              if (tagName && tagName.startsWith('unraid-')) {
+                shouldApply = true;
+              }
+            }
+          });
+        });
+
+        // Apply state to new components if any were added
+        if (shouldApply) {
+          // Small delay to let components initialize
+          setTimeout(function () {
+            window.applyServerStateToComponents('default');
+          }, 100);
+        }
+      });
+
+      // Start observing
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+      });
+
+      console.log('Server state observer initialized');
+    }, 1000); // Increased delay to ensure components are fully mounted
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', applyInitialState);
+  } else {
+    applyInitialState();
   }
 
   console.log('Test server state helper loaded. Available states:', Object.keys(window.testServerState));

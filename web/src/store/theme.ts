@@ -175,29 +175,6 @@ export const useThemeStore = defineStore('theme', () => {
     });
   };
 
-  /**
-   * Creates a string of CSS rules preserving existing rules that are not defined in the theme variables
-   * @param themeVariables - The theme variables to apply
-   * @param body - The body element to apply the CSS to
-   * @returns A string of CSS rules
-   */
-  const createCssText = (themeVariables: ThemeVariables, body: HTMLElement) => {
-    const existingStyles = body.style.cssText
-      .split(';')
-      .filter((rule) => rule.trim())
-      .filter((rule) => {
-        // Keep rules that aren't in our theme variables
-        return !Object.keys(themeVariables).some((themeVar) => rule.startsWith(themeVar));
-      });
-
-    const themeStyles = Object.entries(themeVariables).reduce((acc, [key, value]) => {
-      if (value) acc.push(`${key}: ${value}`);
-      return acc;
-    }, [] as string[]);
-
-    return [...existingStyles, ...themeStyles].join(';');
-  };
-
   watch(theme, () => {
     setCssVars();
   });

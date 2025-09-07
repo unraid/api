@@ -12,16 +12,16 @@
     console.log('Loading resources in dev mode with hot reloading');
 
     // In dev mode, load the source files directly through Vite
-    // CSS is imported within component-registry.ts, so Vite will handle it
+    // CSS is imported within auto-mount.ts, so Vite will handle it
     if (!document.getElementById('unraid-dev-mount')) {
       const script = document.createElement('script');
       script.id = 'unraid-dev-mount';
       script.type = 'module';
-      // Load the source file directly - Vite will handle HMR and CSS
-      script.src = '/src/components/component-registry.ts';
+      // Load the auto-mount entry point - Vite will handle HMR and CSS
+      script.src = '/src/components/Wrapper/auto-mount.ts';
       script.setAttribute('data-unraid', '1');
       document.head.appendChild(script);
-      console.log('Loaded dev script with HMR and CSS: /src/components/component-registry.ts');
+      console.log('Loaded dev script with HMR and CSS: /src/components/Wrapper/auto-mount.ts');
     }
   }
 

@@ -16,7 +16,6 @@ import { addPreventClose, removePreventClose } from '~/composables/preventClose'
 import { useAccountStore } from '~/store/account';
 import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
@@ -25,12 +24,12 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const { send, watcher: providedWatcher } = useCallback({
     encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
   });
-  const accountStore = useAccountStore();
-  const installKeyStore = useInstallKeyStore();
-  const serverStore = useServerStore();
 
-  const updateOsStore = useUpdateOsStore(); // if we remove this line, the store things break…
-  const updateOsActionsStore = useUpdateOsActionsStore();
+  // Lazy store initialization - call stores inside functions to avoid circular dependencies
+  const getAccountStore = () => useAccountStore();
+  const getInstallKeyStore = () => useInstallKeyStore();
+  const getServerStore = () => useServerStore();
+  const getUpdateOsActionsStore = () => useUpdateOsActionsStore();
 
   const callbackStatus = ref<CallbackStatus>('ready');
   const callbackData = ref<QueryPayloads>();
@@ -87,10 +86,11 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
         console.debug('[redirectToCallbackType]', { action, index, array });
 
         if (actionTypesWithKey.includes(action.type)) {
-          await installKeyStore.install(action as ExternalKeyActions);
+          await getInstallKeyStore().install(action as ExternalKeyActions);
         }
 
         if (action.type === 'signIn' && action?.user) {
+          const accountStore = getAccountStore();
           accountStore.setAccountAction(action as ExternalSignIn);
           await accountStore.setConnectSignInPayload({
             apiKey: action?.apiKey ?? '',
@@ -100,11 +100,13 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
         }
 
         if (action.type === 'signOut' || action.type === 'oemSignOut') {
+          const accountStore = getAccountStore();
           accountStore.setAccountAction(action as ExternalSignOut);
           await accountStore.setQueueConnectSignOut(true);
         }
 
         if (action.type === 'updateOs' || action.type === 'downgradeOs') {
+          const updateOsActionsStore = getUpdateOsActionsStore();
           updateOsActionsStore.setUpdateOsAction(action as ExternalUpdateOsAction);
           await updateOsActionsStore.actOnUpdateOsAction(action.type === 'downgradeOs');
 
@@ -119,16 +121,19 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
         if (array.length === index + 1) {
           // all actions have run
-          await serverStore.refreshServerState();
+          await getServerStore().refreshServerState();
         }
       }
     );
   };
 
   // Wait until we have a refreshServerStateStatus value to determine callbackStatus
-  const refreshServerStateStatus = computed(() => serverStore.refreshServerStateStatus);
+  const refreshServerStateStatus = computed(() => getServerStore().refreshServerStateStatus);
   watchEffect(() => {
     if (callbackData.value?.actions && refreshServerStateStatus.value === 'done') {
+      const accountStore = getAccountStore();
+      const installKeyStore = getInstallKeyStore();
+
       if (callbackData.value.actions.length > 1) {
         // if we have more than 1 action it means there was a key install and an account action so both need to be successful
         const allSuccess =

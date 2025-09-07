@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { onBeforeMount, onMounted, ref } from 'vue';
+import { computed, onBeforeMount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { storeToRefs } from 'pinia';
 
 import { Button, DropdownMenu } from '@unraid/ui';
 import { devConfig } from '~/helpers/env';
@@ -24,12 +23,20 @@ const props = defineProps<Props>();
 
 const { t } = useI18n();
 
+// In standalone mounting context without Suspense, we need to use computed
+// to safely access store properties that may be initialized asynchronously
 const callbackStore = useCallbackActionsStore();
 const serverStore = useServerStore();
+const themeStore = useThemeStore();
 
-const { callbackData } = storeToRefs(callbackStore);
-const { name, description, guid, keyfile, lanIp } = storeToRefs(serverStore);
-const { bannerGradient, theme } = storeToRefs(useThemeStore());
+const callbackData = computed(() => callbackStore.callbackData);
+const name = computed(() => serverStore.name);
+const description = computed(() => serverStore.description);
+const guid = computed(() => serverStore.guid);
+const keyfile = computed(() => serverStore.keyfile);
+const lanIp = computed(() => serverStore.lanIp);
+const bannerGradient = computed(() => themeStore.bannerGradient);
+const theme = computed(() => themeStore.theme);
 
 // Control dropdown open state
 const dropdownOpen = ref(false);

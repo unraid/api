@@ -4,7 +4,7 @@ interface Props {
   title: string;
 }
 
-const _props = defineProps<Props>();
+defineProps<Props>();
 </script>
 
 <template>

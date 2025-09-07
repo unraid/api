@@ -12,7 +12,7 @@ import type { ComposerTranslation } from 'vue-i18n';
 import WelcomeModal from '~/components/Activation/WelcomeModal.ce.vue';
 
 vi.mock('@unraid/ui', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
     Dialog: {

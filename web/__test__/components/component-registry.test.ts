@@ -135,7 +135,7 @@ describe('component-registry', () => {
 
   describe('initialization', () => {
     it('should set up Apollo client globally', async () => {
-      await import('~/components/component-registry');
+      await import('~/components/Wrapper/component-registry');
 
       expect(window.apolloClient).toBe(mockApolloClient);
       expect(window.graphqlParse).toBe(mockParse);
@@ -144,13 +144,13 @@ describe('component-registry', () => {
     });
 
     it('should initialize theme once', async () => {
-      await import('~/components/component-registry');
+      await import('~/components/Wrapper/component-registry');
 
       expect(mockInitializeTheme).toHaveBeenCalled();
     });
 
     it('should ensure teleport container exists', async () => {
-      await import('~/components/component-registry');
+      await import('~/components/Wrapper/component-registry');
 
       expect(mockEnsureTeleportContainer).toHaveBeenCalled();
     });
@@ -171,7 +171,7 @@ describe('component-registry', () => {
       mockAutoMountComponent.mockClear();
 
       // Import component-registry which will trigger auto-mounting
-      await import('~/components/component-registry');
+      await import('~/components/Wrapper/component-registry');
 
       // Since components are lazy-loaded and only mount when elements exist,
       // we expect at least the elements we created to trigger mounting
@@ -185,14 +185,14 @@ describe('component-registry', () => {
 
   describe('global exports', () => {
     it('should expose utility functions globally', async () => {
-      await import('~/components/component-registry');
+      await import('~/components/Wrapper/component-registry');
 
       expect(window.mountVueApp).toBe(mockMountVueApp);
       expect(window.getMountedApp).toBe(mockGetMountedApp);
     });
 
     it('should create dynamic mount functions for each component', async () => {
-      await import('~/components/component-registry');
+      await import('~/components/Wrapper/component-registry');
 
       // Check for some dynamic mount functions
       expect(typeof window.mountAuth).toBe('function');
@@ -214,7 +214,7 @@ describe('component-registry', () => {
     });
 
     it('should use default selector when no custom selector provided', async () => {
-      await import('~/components/component-registry');
+      await import('~/components/Wrapper/component-registry');
 
       // Call mount function without custom selector
       await window.mountAuth?.();

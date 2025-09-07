@@ -1,16 +1,19 @@
-import { createApp, h } from 'vue';
+import { createApp, defineAsyncComponent, h } from 'vue';
 import { createI18n } from 'vue-i18n';
 import { DefaultApolloClient } from '@vue/apollo-composable';
 import UApp from '@nuxt/ui/components/App.vue';
 import ui from '@nuxt/ui/vue-plugin';
 
 import { ensureTeleportContainer } from '@unraid/ui';
+// Import component registry (only imported here to avoid ordering issues)
+import { componentMappings } from '@/components/Wrapper/component-registry';
 import { client } from '~/helpers/create-apollo-client';
 import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
 import en_US from '~/locales/en_US.json';
 
 import type { Component, App as VueApp } from 'vue';
 
+// Import Pinia for use in Vue apps
 import { globalPinia } from '~/store/globalPinia';
 
 // Ensure Apollo client is singleton
@@ -19,7 +22,10 @@ const apolloClient = (typeof window !== 'undefined' && window.apolloClient) || c
 // Global store for mounted apps
 const mountedApps = new Map<string, VueApp>();
 const mountedAppClones = new Map<string, VueApp[]>();
-const mountedAppContainers = new Map<string, HTMLElement[]>(); // shadow-root containers for cleanup
+const mountedAppContainers = new Map<string, HTMLElement[]>();
+
+// Registry to track selector aliases - maps each selector to its canonical appId
+const selectorRegistry = new Map<string, string>(); // shadow-root containers for cleanup
 
 // Extend HTMLElement to include Vue's internal properties
 interface HTMLElementWithVue extends HTMLElement {
@@ -77,11 +83,12 @@ function setupI18n() {
 
 export interface MountOptions {
   component: Component;
-  selector: string;
+  selector: string | string[]; // Can be a single selector or array of selector aliases
   appId?: string;
   useShadowRoot?: boolean;
   props?: Record<string, unknown>;
   skipRecovery?: boolean; // Internal flag to prevent recursive recovery attempts
+  waitForElement?: boolean; // If true, poll for element existence before mounting
 }
 
 // Helper function to parse props from HTML attributes
@@ -124,31 +131,89 @@ export function mountVueApp(options: MountOptions): VueApp | null {
   const {
     component,
     selector,
-    appId = selector,
+    appId,
     useShadowRoot = false,
     props = {},
     skipRecovery = false,
+    waitForElement = false,
   } = options;
 
-  // Check if app is already mounted
-  if (mountedApps.has(appId)) {
-    console.warn(`[VueMountApp] App ${appId} is already mounted`);
-    return mountedApps.get(appId)!;
-  }
+  // Normalize selector to array
+  const selectors = Array.isArray(selector) ? selector : [selector];
 
-  // Special handling for modals - enforce singleton behavior
-  if (selector.includes('unraid-modals') || selector === '#modals') {
-    const existingModalApps = ['modals', 'modals-direct', 'unraid-modals'];
-    for (const modalId of existingModalApps) {
-      if (mountedApps.has(modalId)) {
-        console.debug(`[VueMountApp] Modals component already mounted as ${modalId}, skipping ${appId}`);
-        return mountedApps.get(modalId)!;
+  // Generate appId from first selector if not provided
+  const canonicalAppId = appId || selectors[0];
+
+  // Check if any of the selectors are already registered (singleton check)
+  for (const sel of selectors) {
+    if (selectorRegistry.has(sel)) {
+      const existingAppId = selectorRegistry.get(sel)!;
+      if (mountedApps.has(existingAppId)) {
+        console.debug(
+          `[VueMountApp] Component already mounted as ${existingAppId} for selector ${sel}, returning existing instance`
+        );
+        return mountedApps.get(existingAppId)!;
       }
     }
   }
 
+  // Check if app is already mounted by its ID
+  if (mountedApps.has(canonicalAppId)) {
+    console.warn(`[VueMountApp] App ${canonicalAppId} is already mounted`);
+    return mountedApps.get(canonicalAppId)!;
+  }
+
+  // If waitForElement is true, poll for element existence
+  if (waitForElement) {
+    const tryMount = () => {
+      // Check if any of the selectors have elements
+      for (const sel of selectors) {
+        const elements = document.querySelectorAll(sel);
+        if (elements.length > 0) {
+          try {
+            // Element found, mount immediately with this selector
+            mountVueApp({ ...options, selector: sel, waitForElement: false });
+          } catch (error) {
+            console.error(`[VueMountApp] Failed to mount ${appId || sel} during async mount:`, error);
+            // Don't retry this component to avoid infinite loops
+          }
+          return;
+        }
+      }
+      // No elements found, try again later
+      setTimeout(tryMount, 100);
+    };
+
+    // Start polling when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', tryMount);
+    } else {
+      tryMount();
+    }
+    return null; // Return null for async mounting
+  }
+
+  // Find the first selector that has elements in the DOM
+  let activeSelector: string | null = null;
+  for (const sel of selectors) {
+    if (document.querySelector(sel)) {
+      activeSelector = sel;
+      break;
+    }
+  }
+
+  if (!activeSelector) {
+    console.warn(`[VueMountApp] No elements found for any selector: ${selectors.join(', ')}`);
+    return null;
+  }
+
+  // Register all selectors as aliases for this app
+  for (const sel of selectors) {
+    selectorRegistry.set(sel, canonicalAppId);
+  }
+
   // Check if any elements matching the selector already have Vue apps mounted
-  const potentialTargets = document.querySelectorAll(selector);
+  const potentialTargets = document.querySelectorAll(activeSelector);
   for (const target of potentialTargets) {
     const element = target as HTMLElementWithVue;
     const hasVueAttributes =
@@ -165,7 +230,7 @@ export function mountVueApp(options: MountOptions): VueApp | null {
           `[VueMountApp] Element ${selector} already has working Vue component, skipping remount`
         );
         // Return the existing app if we can find it
-        const existingApp = mountedApps.get(appId);
+        const existingApp = mountedApps.get(canonicalAppId);
         if (existingApp) {
           return existingApp;
         }
@@ -198,7 +263,7 @@ export function mountVueApp(options: MountOptions): VueApp | null {
         delete element.__vueParentComponent;
 
         console.info(
-          `[VueMountApp] Cleared Vue state from ${selector} without unmounting (prevents nextSibling errors)`
+          `[VueMountApp] Cleared Vue state from ${activeSelector} without unmounting (prevents nextSibling errors)`
         );
       } catch (error) {
         console.warn(`[VueMountApp] Error cleaning up existing Vue instance:`, error);
@@ -219,9 +284,9 @@ export function mountVueApp(options: MountOptions): VueApp | null {
   }
 
   // Find all mount targets
-  const targets = document.querySelectorAll(selector);
+  const targets = document.querySelectorAll(activeSelector);
   if (targets.length === 0) {
-    console.warn(`[VueMountApp] No elements found for selector: ${selector}`);
+    console.warn(`[VueMountApp] No elements found for selector: ${activeSelector}`);
     return null;
   }
 
@@ -339,7 +404,7 @@ export function mountVueApp(options: MountOptions): VueApp | null {
       // Create mount container in shadow root
       const container = document.createElement('div');
       container.id = 'app';
-      container.setAttribute('data-app-id', appId);
+      container.setAttribute('data-app-id', canonicalAppId);
       mountTarget.shadowRoot!.appendChild(container);
       containers.push(container);
 
@@ -423,7 +488,9 @@ export function mountVueApp(options: MountOptions): VueApp | null {
             return;
           }
 
-          throw error;
+          // Don't throw error - just return null to allow other components to mount
+          // The error has already been logged
+          return null;
         }
       } else {
         // Additional targets, create cloned apps with their own props
@@ -458,9 +525,9 @@ export function mountVueApp(options: MountOptions): VueApp | null {
   });
 
   // Store the app reference
-  mountedApps.set(appId, app);
-  if (clones.length) mountedAppClones.set(appId, clones);
-  if (containers.length) mountedAppContainers.set(appId, containers);
+  mountedApps.set(canonicalAppId, app);
+  if (clones.length) mountedAppClones.set(canonicalAppId, clones);
+  if (containers.length) mountedAppContainers.set(canonicalAppId, containers);
 
   return app;
 }
@@ -470,6 +537,13 @@ export function unmountVueApp(appId: string): boolean {
   if (!app) {
     console.warn(`[VueMountApp] No app found with id: ${appId}`);
     return false;
+  }
+
+  // Clean up selector registry - remove all selectors that point to this appId
+  for (const [selector, registeredAppId] of selectorRegistry.entries()) {
+    if (registeredAppId === appId) {
+      selectorRegistry.delete(selector);
+    }
   }
 
   // Unmount clones first with error handling
@@ -517,123 +591,101 @@ export function getMountedApp(appId: string): VueApp | undefined {
   return mountedApps.get(appId);
 }
 
-// Auto-mount function for script tags
+// Auto-mount function that waits for DOM elements to be available
 export function autoMountComponent(
-  component: Component,
-  selector: string,
+  componentOrMapping: Component | { component?: Component; loader?: () => Promise<VueComponentModule> },
+  selector: string | string[],
   options?: Partial<MountOptions>
 ) {
-  const tryMount = () => {
-    // Special handling for modals - should only mount once, ignore subsequent attempts
-    if (selector.includes('unraid-modals') || selector === '#modals') {
-      const modalAppId = options?.appId || 'modals';
-      if (mountedApps.has(modalAppId) || mountedApps.has('modals-direct')) {
-        console.debug(`[VueMountApp] Modals component already mounted, skipping ${selector}`);
-        return;
+  let component: Component;
+
+  // Handle different input types
+  if ('component' in componentOrMapping && componentOrMapping.component) {
+    // Direct component from mapping
+    component = componentOrMapping.component;
+  } else if ('loader' in componentOrMapping && componentOrMapping.loader) {
+    // Async loader from mapping - create async component
+    component = createAsyncComponent(componentOrMapping.loader);
+  } else if (
+    typeof componentOrMapping === 'object' &&
+    !('component' in componentOrMapping) &&
+    !('loader' in componentOrMapping)
+  ) {
+    // Direct component passed
+    component = componentOrMapping as Component;
+  } else {
+    console.error('[autoMountComponent] Invalid component or mapping provided');
+    return;
+  }
+
+  // Delegate to mountVueApp with waitForElement option
+  mountVueApp({
+    component,
+    selector,
+    ...options,
+    waitForElement: true,
+  });
+}
+
+// Type for Vue component module
+type VueComponentModule = { default: object } | object;
+
+// Helper to create async components with consistent error handling
+export function createAsyncComponent(loader: () => Promise<VueComponentModule>) {
+  return defineAsyncComponent({
+    loader: async () => {
+      const module = await loader();
+      return 'default' in module ? module.default : module;
+    },
+    loadingComponent: undefined,
+    errorComponent: undefined,
+    delay: 0,
+    timeout: 5000, // 5 second timeout
+    onError(error, _retry, fail) {
+      console.error('[AsyncComponent] Failed to load component:', error);
+      fail();
+    },
+  });
+}
+
+// Auto-mount all registered components from component-registry
+export function autoMountAllComponents() {
+  console.log('[AutoMountAll] Starting auto-mount for', componentMappings.length, 'components');
+
+  componentMappings.forEach((mapping) => {
+    const { selector, appId } = mapping;
+
+    // Normalize selector to array for consistent handling
+    const selectors = Array.isArray(selector) ? selector : [selector];
+
+    // Check if any of the selectors have elements in the DOM
+    const hasElements = selectors.some((sel) => {
+      const found = document.querySelector(sel);
+      if (found) {
+        console.log(`[AutoMountAll] Found element for selector: ${sel}`);
+        return true;
       }
-    }
-
-    // Check if elements exist before attempting to mount
-    const elements = document.querySelectorAll(selector);
-    if (elements.length > 0) {
-      performMount();
-    }
-    // Silently skip if no elements found - this is expected for most components
-  };
-
-  const performMount = () => {
-    const elements = document.querySelectorAll(selector);
-    if (elements.length === 0) return;
-
-    // Validate all elements are properly connected to the DOM
-    const validElements = Array.from(elements).filter((el) => {
-      const element = el as HTMLElement;
-
-      // Basic connectivity check - element must be in DOM
-      if (!element.isConnected || !element.parentNode || !document.contains(element)) {
-        return false;
-      }
-
-      // Additional check: ensure the element's parentNode relationship is stable
-      // This catches cases where elements appear connected but have DOM manipulation issues
-      try {
-        // Try to access nextSibling - this will throw if DOM is in inconsistent state
-        void element.nextSibling;
-        // Verify parent-child relationship is intact
-        if (element.parentNode && !Array.from(element.parentNode.childNodes).includes(element)) {
-          console.warn(`[VueMountApp] Element ${selector} has broken parent-child relationship`);
-          return false;
-        }
-      } catch (error) {
-        console.warn(`[VueMountApp] Element ${selector} has unstable DOM state:`, error);
-        return false;
-      }
-
-      return true;
+      return false;
     });
 
-    if (validElements.length > 0) {
+    // Only proceed if at least one selector has elements
+    if (hasElements) {
+      console.log(`[AutoMountAll] Mounting component: ${appId}`);
       try {
-        mountVueApp({ component, selector, ...options });
+        // Pass the mapping directly to autoMountComponent
+        // Let mount-engine handle component vs loader logic
+        autoMountComponent(mapping, selector, {
+          appId,
+          useShadowRoot: false,
+        });
       } catch (error) {
-        console.error(`[VueMountApp] Failed to mount component for selector ${selector}:`, error);
-
-        // Additional debugging for this specific error
-        if (error instanceof TypeError && error.message.includes('nextSibling')) {
-          console.warn(
-            `[VueMountApp] DOM state issue detected for ${selector}, attempting cleanup and retry`
-          );
-
-          // Perform more aggressive cleanup for nextSibling errors
-          validElements.forEach((el) => {
-            const element = el as HTMLElement;
-
-            // Remove all Vue-related attributes that might be causing issues
-            element.removeAttribute('data-vue-mounted');
-            element.removeAttribute('data-v-app');
-            Array.from(element.attributes).forEach((attr) => {
-              if (attr.name.startsWith('data-v-')) {
-                element.removeAttribute(attr.name);
-              }
-            });
-
-            // Completely reset the element's content and state
-            element.innerHTML = '';
-            element.className = element.className.replace(/\bunapi\b/g, '').trim();
-
-            // Remove any Vue instance references
-            delete (element as unknown as HTMLElementWithVue).__vueParentComponent;
-          });
-
-          // Try again immediately
-          try {
-            console.info(`[VueMountApp] Retrying mount for ${selector} after cleanup`);
-            mountVueApp({ component, selector, ...options, skipRecovery: true });
-          } catch (retryError) {
-            console.error(`[VueMountApp] Retry failed for ${selector}:`, retryError);
-
-            // If retry also fails, try one more time
-            try {
-              console.info(`[VueMountApp] Final retry attempt for ${selector}`);
-              mountVueApp({ component, selector, ...options, skipRecovery: true });
-            } catch (finalError) {
-              console.error(`[VueMountApp] All retry attempts failed for ${selector}:`, finalError);
-            }
-          }
-        }
+        console.error(`[AutoMountAll] Failed to mount ${appId}:`, error);
+        // Continue with next component
       }
     } else {
-      console.warn(
-        `[VueMountApp] No valid DOM elements found for ${selector} (${elements.length} elements exist but not properly connected)`
-      );
+      console.log(`[AutoMountAll] No elements found for: ${selectors.join(', ')}`);
     }
-  };
+  });
 
-  // Wait for DOM to be ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', tryMount);
-  } else {
-    // DOM is already ready, mount immediately
-    tryMount();
-  }
+  console.log('[AutoMountAll] Auto-mount complete');
 }

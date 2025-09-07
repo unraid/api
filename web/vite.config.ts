@@ -104,7 +104,7 @@ export default defineConfig({
     emptyOutDir: true,
     manifest: false, // Disable Vite's manifest since we generate our own
     lib: {
-      entry: fileURLToPath(new URL('./src/components/component-registry.ts', import.meta.url)),
+      entry: fileURLToPath(new URL('./src/components/Wrapper/auto-mount.ts', import.meta.url)),
       name: 'UnraidStandaloneApps',
       fileName: 'standalone-apps',
       formats: ['es'],
@@ -138,8 +138,8 @@ export default defineConfig({
         ws: true,
         secure: false,
         // Important: preserve the host header
-        configure: (proxy, options) => {
-          proxy.on('proxyReq', (proxyReq, req, res) => {
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
             proxyReq.setHeader('X-Forwarded-Host', 'localhost:3000');
             proxyReq.setHeader('X-Forwarded-Proto', 'http');
             proxyReq.setHeader('X-Forwarded-For', '127.0.0.1');

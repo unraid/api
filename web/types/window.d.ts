@@ -1,4 +1,4 @@
-import type { getMountedApp, mountVueApp } from '~/components/Wrapper/mount-engine';
+import type { autoMountComponent, getMountedApp, mountVueApp } from '~/components/Wrapper/mount-engine';
 import type { client as apolloClient } from '~/helpers/create-apollo-client';
 import type { parse } from 'graphql';
 import type { Component } from 'vue';
@@ -19,6 +19,7 @@ declare global {
     UnraidComponents: Record<string, Component>;
     mountVueApp: typeof mountVueApp;
     getMountedApp: typeof getMountedApp;
+    autoMountComponent: typeof autoMountComponent;
 
     // Dynamic mount functions created at runtime
     // These are generated for each component in componentMappings

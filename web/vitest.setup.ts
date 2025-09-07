@@ -4,7 +4,7 @@ import { beforeEach, vi } from 'vitest';
 
 // Mock WebSocket for test environment
 if (!global.WebSocket) {
-  global.WebSocket = vi.fn().mockImplementation(() => ({
+  const mockWebSocket = vi.fn().mockImplementation(() => ({
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     close: vi.fn(),
@@ -15,6 +15,14 @@ if (!global.WebSocket) {
     CLOSING: 2,
     CLOSED: 3,
   }));
+
+  // Add static properties to match WebSocket interface
+  Object.defineProperty(mockWebSocket, 'CONNECTING', { value: 0 });
+  Object.defineProperty(mockWebSocket, 'OPEN', { value: 1 });
+  Object.defineProperty(mockWebSocket, 'CLOSING', { value: 2 });
+  Object.defineProperty(mockWebSocket, 'CLOSED', { value: 3 });
+
+  global.WebSocket = mockWebSocket as unknown as typeof WebSocket;
 }
 
 beforeEach(() => {

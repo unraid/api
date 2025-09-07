@@ -8,6 +8,10 @@ export interface ButtonProps {
   size?: ButtonVariants['size'];
   class?: string;
   disabled?: boolean;
+  as?: string;
+  href?: string | null;
+  target?: string | null;
+  rel?: string | null;
 }
 
 const props = withDefaults(defineProps<ButtonProps>(), {
@@ -50,7 +54,21 @@ const handleKeydown = (event: KeyboardEvent) => {
 </script>
 
 <template>
+  <a
+    v-if="as === 'a'"
+    :class="buttonClass"
+    :href="href"
+    :target="target"
+    :rel="rel"
+    :tabindex="disabled ? -1 : 0"
+    :aria-disabled="disabled"
+    @click="handleClick"
+    @keydown="handleKeydown"
+  >
+    <slot />
+  </a>
   <span
+    v-else
     :class="buttonClass"
     role="button"
     :tabindex="disabled ? -1 : 0"

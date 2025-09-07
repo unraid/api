@@ -5,7 +5,7 @@ interface Props {
   manageActions?: Array<Array<{ label: string; icon: string; onClick?: () => void }>>;
 }
 
-const _props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   autostartValue: true,
   showAutostart: true,
   manageActions: () => [

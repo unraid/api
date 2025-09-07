@@ -6,13 +6,17 @@
     "paths": {
       "@/*": ["./src/*"],
       "~/*": ["./src/*"],
-      "#build/ui": ["./node_modules/@nuxt/ui/.nuxt/ui"]
+      "~/types/*": ["./types/*"],
+      "#build/ui": ["./node_modules/@nuxt/ui/.nuxt/ui"],
+      "#imports": ["./.nuxt/imports"],
+      "#components": ["./.nuxt/components"]
     }
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
+    "src/**/*.d.ts",
     "components/**/*.vue",
     "components/**/*.ts",
     "pages/**/*.vue",
@@ -20,8 +24,10 @@
     "helpers/**/*.ts",
     "store/**/*.ts",
     "types/**/*.d.ts",
+    "types/**/*.ts",
     "auto-imports.d.ts",
-    "components.d.ts"
+    "components.d.ts",
+    "server/**/*.ts"
   ],
   "exclude": ["node_modules", "dist"]
 }

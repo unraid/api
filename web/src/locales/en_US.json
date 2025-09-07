@@ -400,5 +400,7 @@
   "Login session expired. Please try again": "Login session expired. Please try again",
   "Network error. Please check your connection": "Network error. Please check your connection",
   "SSO login failed. Please try again": "SSO login failed. Please try again",
-  "Error fetching token": "Error fetching token"
+  "Error fetching token": "Error fetching token",
+  "Visit Unraid website": "Visit Unraid website",
+  "Version Information": "Version Information"
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { storeToRefs } from 'pinia';
 
 import ActivationModal from '~/components/Activation/ActivationModal.vue';
 import UpdateOsChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
@@ -13,9 +13,16 @@ import { useUpdateOsStore } from '~/store/updateOs';
 
 const { t } = useI18n();
 
-const { callbackStatus } = storeToRefs(useCallbackActionsStore());
-const { trialModalVisible } = storeToRefs(useTrialStore());
-const { updateOsModalVisible, changelogModalVisible } = storeToRefs(useUpdateOsStore());
+// In standalone mounting context without Suspense, we need to use computed
+// to safely access store properties that may be initialized asynchronously
+const callbackStore = useCallbackActionsStore();
+const trialStore = useTrialStore();
+const updateOsStore = useUpdateOsStore();
+
+const callbackStatus = computed(() => callbackStore.callbackStatus);
+const trialModalVisible = computed(() => trialStore.trialModalVisible);
+const updateOsModalVisible = computed(() => updateOsStore.updateOsModalVisible);
+const changelogModalVisible = computed(() => updateOsStore.changelogModalVisible);
 </script>
 
 <template>
