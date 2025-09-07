@@ -202,7 +202,7 @@ watch(isDarkMode, () => {
             ref="iframeRef"
             :src="actualIframeSrc"
             class="h-full w-full rounded-md border-0"
-            sandbox="allow-scripts allow-same-origin allow-top-navigation"
+            sandbox="allow-scripts allow-same-origin"
             title="Unraid Changelog"
           />
         </div>
@@ -248,6 +248,8 @@ watch(isDarkMode, () => {
             :href="currentIframeUrl || currentRelease?.changelogPretty"
             :icon-right="ArrowTopRightOnSquareIcon"
             aria-label="View on Docs"
+            target="_blank"
+            rel="noopener"
           />
         </div>
 
