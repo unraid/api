@@ -36,6 +36,7 @@ export type IniSlot = {
     size: string;
     sizeSb: string;
     slots: string;
+    spundown: string;
     status: SlotStatus;
     temp: string;
     type: SlotType;
@@ -82,6 +83,7 @@ export const parse: StateFileToIniParserMap['disks'] = (disksIni) =>
                 fsType: slot.fsType ?? null,
                 format: slot.format === '-' ? null : slot.format,
                 transport: slot.transport ?? null,
+                isSpinning: slot.spundown ? slot.spundown === '0' : null,
             };
             // @TODO Zod Parse This
             return result;

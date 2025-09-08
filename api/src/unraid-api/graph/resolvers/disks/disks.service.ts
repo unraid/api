@@ -1,14 +1,11 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { join } from 'path';
 
 import type { Systeminformation } from 'systeminformation';
 import { Store } from '@reduxjs/toolkit';
 import { execa } from 'execa';
 import { blockDevices, diskLayout } from 'systeminformation';
 
-import type { IniSlot } from '@app/store/state-parsers/slots.js';
-import { toBoolean } from '@app/core/utils/index.js';
-import { parseConfig } from '@app/core/utils/misc/parse-config.js';
+import { ArrayDisk } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import {
     Disk,
     DiskFsType,
@@ -20,15 +17,6 @@ import { batchProcess } from '@app/utils.js';
 @Injectable()
 export class DisksService {
     public constructor(@Inject('STORE') private readonly store: Store) {}
-
-    private getDisksIni(): Record<string, IniSlot> {
-        const { paths } = this.store.getState();
-        const filePath = join(paths.states, 'disks.ini');
-        return parseConfig<Record<string, IniSlot>>({
-            filePath,
-            type: 'ini',
-        });
-    }
 
     public async getTemperature(device: string): Promise<number | null> {
         try {
@@ -68,7 +56,7 @@ export class DisksService {
     private async parseDisk(
         disk: Systeminformation.DiskLayoutData,
         partitionsToParse: Systeminformation.BlockDevicesData[],
-        disksIni: Record<string, IniSlot>
+        arrayDisks: ArrayDisk[]
     ): Promise<Omit<Disk, 'temperature'>> {
         const partitions = partitionsToParse
             // Only get partitions from this disk
@@ -132,7 +120,7 @@ export class DisksService {
                 mappedInterfaceType = DiskInterfaceType.UNKNOWN;
         }
 
-        const diskIni = Object.values(disksIni).find((d) => d.id.trim() === disk.serialNum.trim());
+        const arrayDisk = arrayDisks.find((d) => d.id.trim() === disk.serialNum.trim());
 
         return {
             ...disk,
@@ -142,7 +130,7 @@ export class DisksService {
                 DiskSmartStatus.UNKNOWN,
             interfaceType: mappedInterfaceType,
             partitions,
-            isSpinning: diskIni ? diskIni.spundown === '0' : false,
+            isSpinning: arrayDisk?.isSpinning ?? false,
         };
     }
 
@@ -153,9 +141,10 @@ export class DisksService {
         const partitions = await blockDevices().then((devices) =>
             devices.filter((device) => device.type === 'part')
         );
-        const disksIni = this.getDisksIni();
+        const { emhttp } = this.store.getState();
+        const arrayDisks = emhttp.disks;
         const { data } = await batchProcess(await diskLayout(), async (disk) =>
-            this.parseDisk(disk, partitions, disksIni)
+            this.parseDisk(disk, partitions, arrayDisks)
         );
         return data;
     }
