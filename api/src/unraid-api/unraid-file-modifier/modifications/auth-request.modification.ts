@@ -2,10 +2,7 @@ import { readFile } from 'fs/promises';
 import { join } from 'node:path';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
-import {
-    FileModification,
-    ShouldApplyWithReason,
-} from '@app/unraid-api/unraid-file-modifier/file-modification.js';
+import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
 export default class AuthRequestModification extends FileModification {
     public filePath: string = '/usr/local/emhttp/auth-request.php' as const;
@@ -14,13 +11,13 @@ export default class AuthRequestModification extends FileModification {
     id: string = 'auth-request';
 
     /**
-     * Get the list of .js files in the given directory
-     * @param dir - The directory to search for .js files
-     * @returns The list of .js files in the given directory
+     * Get the list of .js and .css files in the given directory
+     * @param dir - The directory to search for .js and .css files
+     * @returns The list of .js and .css files in the given directory
      */
-    private getJsFiles = async (dir: string) => {
+    private getAssetFiles = async (dir: string) => {
         const { glob } = await import('glob');
-        const files = await glob(join(dir, '**/*.js'));
+        const files = await glob(join(dir, '**/*.{js,css}'));
         const baseDir = '/usr/local/emhttp';
         return files.map((file) => (file.startsWith(baseDir) ? file.slice(baseDir.length) : file));
     };
@@ -40,10 +37,12 @@ export default class AuthRequestModification extends FileModification {
      */
     protected async generatePatch(overridePath?: string): Promise<string> {
         const { getters } = await import('@app/store/index.js');
-        const jsFiles = await this.getJsFiles(this.webComponentsDirectory);
-        this.logger.debug(`Found ${jsFiles.length} .js files in ${this.webComponentsDirectory}`);
+        const assetFiles = await this.getAssetFiles(this.webComponentsDirectory);
+        this.logger.debug(
+            `Found ${assetFiles.length} asset files (.js and .css) in ${this.webComponentsDirectory}`
+        );
 
-        const filesToAdd = [getters.paths().webgui.logo.assetPath, ...jsFiles];
+        const filesToAdd = [getters.paths().webgui.logo.assetPath, ...assetFiles];
 
         if (!(await fileExists(this.filePath))) {
             throw new Error(`File ${this.filePath} not found.`);
