@@ -138,3 +138,8 @@
   color: inherit;
 }
 
+/* Style for Unraid progress frame */
+iframe#progressFrame {
+  background-color: var(--background-color);
+}
+
