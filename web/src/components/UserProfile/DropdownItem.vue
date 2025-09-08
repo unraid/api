@@ -24,7 +24,6 @@ const showExternalIconOnHover = computed(
 
 const buttonClass = computed(() => {
   const classes = [
-    'block',
     'text-left',
     'text-sm',
     'w-full',
@@ -36,17 +35,6 @@ const buttonClass = computed(() => {
     'px-2',
     'py-2',
     'h-auto',
-    'font-medium',
-    'ring-offset-background',
-    'transition-colors',
-    'focus-visible:outline-hidden',
-    'focus-visible:ring-2',
-    'focus-visible:ring-ring',
-    'focus-visible:ring-offset-2',
-    'hover:bg-accent',
-    'hover:text-accent-foreground',
-    'no-underline',
-    'text-current',
   ];
 
   if (!props.item?.emphasize) {
@@ -61,34 +49,18 @@ const buttonClass = computed(() => {
   if (props.rounded) {
     classes.push('rounded-md');
   }
-  if (props.item?.disabled) {
-    classes.push('pointer-events-none', 'opacity-50');
-  }
 
   return classes.join(' ');
 });
 </script>
 
 <template>
-  <a
-    v-if="item?.href && !item?.click"
-    :href="item.href"
-    :target="item?.external ? '_blank' : undefined"
-    :rel="item?.external ? 'noopener noreferrer' : undefined"
-    :class="buttonClass"
-  >
-    <span class="inline-flex flex-row items-center gap-x-2 leading-snug">
-      <component :is="item?.icon" class="h-4 w-4 shrink-0 text-current" aria-hidden="true" />
-      {{ t(item?.text, item?.textParams ?? []) }}
-    </span>
-    <ArrowTopRightOnSquareIcon
-      v-if="showExternalIconOnHover"
-      class="ml-2 h-4 w-4 shrink-0 fill-current text-white opacity-0 transition-opacity duration-200 ease-in-out group-hover:opacity-100"
-    />
-  </a>
   <Button
-    v-else
+    :as="item?.click ? 'button' : 'a'"
     :disabled="item?.disabled"
+    :href="item?.href ?? null"
+    :target="item?.external ? '_blank' : null"
+    :rel="item?.external ? 'noopener noreferrer' : null"
     variant="ghost"
     :class="buttonClass"
     @click.stop="item?.click ? item?.click(item?.clickParams ?? []) : null"
