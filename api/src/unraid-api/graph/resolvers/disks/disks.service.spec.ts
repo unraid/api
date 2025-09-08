@@ -6,6 +6,7 @@ import { blockDevices, diskLayout } from 'systeminformation';
 // Vitest imports
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { store } from '@app/store/index.js';
 import {
     ArrayDisk,
     ArrayDiskStatus,
@@ -29,6 +30,11 @@ vi.mock('@app/utils.js', () => ({
         return { data, errors: [] };
     }),
 }));
+vi.mock('@app/store/index.js', () => ({
+    store: {
+        getState: vi.fn(),
+    },
+}));
 
 // Remove explicit type assertions for mocks
 const mockExeca = execa as any; // Using 'any' for simplicity with complex mock setups
@@ -38,7 +44,6 @@ const mockBatchProcess = batchProcess as any;
 
 describe('DisksService', () => {
     let service: DisksService;
-    let mockStore: any;
 
     // Mock ArrayDisk data from state
     const mockArrayDisks: ArrayDisk[] = [
@@ -300,25 +305,18 @@ describe('DisksService', () => {
         // Reset mocks before each test using vi
         vi.clearAllMocks();
 
-        mockStore = {
-            getState: vi.fn(() => ({
-                paths: {
-                    states: 'dev/states',
-                },
-                emhttp: {
-                    disks: mockArrayDisks,
-                },
-            })),
-        };
+        // Setup default store state
+        vi.mocked(store.getState).mockReturnValue({
+            paths: {
+                states: 'dev/states',
+            },
+            emhttp: {
+                disks: mockArrayDisks,
+            },
+        } as any);
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [
-                DisksService,
-                {
-                    provide: 'STORE',
-                    useValue: mockStore,
-                },
-            ],
+            providers: [DisksService],
         }).compile();
 
         service = module.get<DisksService>(DisksService);
@@ -349,7 +347,7 @@ describe('DisksService', () => {
 
             expect(mockDiskLayout).toHaveBeenCalledTimes(1);
             expect(mockBlockDevices).toHaveBeenCalledTimes(1);
-            expect(mockStore.getState).toHaveBeenCalledTimes(1);
+            expect(store.getState).toHaveBeenCalledTimes(1);
             expect(mockBatchProcess).toHaveBeenCalledTimes(1);
 
             expect(disks).toHaveLength(mockDiskLayoutData.length);
@@ -382,14 +380,14 @@ describe('DisksService', () => {
         });
 
         it('should handle empty state gracefully', async () => {
-            mockStore.getState.mockReturnValue({
+            vi.mocked(store.getState).mockReturnValue({
                 paths: {
                     states: 'dev/states',
                 },
                 emhttp: {
                     disks: [],
                 },
-            });
+            } as any);
 
             const disks = await service.getDisks();
 
@@ -408,14 +406,14 @@ describe('DisksService', () => {
                 id: '  S4ENNF0N123456  ', // spaces around ID
             };
 
-            mockStore.getState.mockReturnValue({
+            vi.mocked(store.getState).mockReturnValue({
                 paths: {
                     states: 'dev/states',
                 },
                 emhttp: {
                     disks: disksWithSpaces,
                 },
-            });
+            } as any);
 
             const disks = await service.getDisks();
             const disk = disks.find((d) => d.id === 'S4ENNF0N123456');
@@ -450,13 +448,13 @@ describe('DisksService', () => {
         });
 
         it('should use state data instead of reloading config file', async () => {
-            const getStateSpy = vi.spyOn(mockStore, 'getState');
+            const getStateSpy = vi.spyOn(store, 'getState');
 
             await service.getDisks();
 
             expect(getStateSpy).toHaveBeenCalled();
             // Verify we're accessing the state exactly once
-            expect(mockStore.getState).toHaveBeenCalledTimes(1);
+            expect(store.getState).toHaveBeenCalledTimes(1);
         });
 
         it('should handle empty disk layout or block devices', async () => {

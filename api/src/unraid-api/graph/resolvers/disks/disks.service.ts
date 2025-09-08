@@ -1,10 +1,10 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import type { Systeminformation } from 'systeminformation';
-import { Store } from '@reduxjs/toolkit';
 import { execa } from 'execa';
 import { blockDevices, diskLayout } from 'systeminformation';
 
+import { store } from '@app/store/index.js';
 import { ArrayDisk } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import {
     Disk,
@@ -16,8 +16,6 @@ import { batchProcess } from '@app/utils.js';
 
 @Injectable()
 export class DisksService {
-    public constructor(@Inject('STORE') private readonly store: Store) {}
-
     public async getTemperature(device: string): Promise<number | null> {
         try {
             const { stdout } = await execa('smartctl', ['-A', device]);
@@ -141,7 +139,7 @@ export class DisksService {
         const partitions = await blockDevices().then((devices) =>
             devices.filter((device) => device.type === 'part')
         );
-        const { emhttp } = this.store.getState();
+        const { emhttp } = store.getState();
         const arrayDisks = emhttp.disks;
         const { data } = await batchProcess(await diskLayout(), async (disk) =>
             this.parseDisk(disk, partitions, arrayDisks)
