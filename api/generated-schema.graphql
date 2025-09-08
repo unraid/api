@@ -139,6 +139,9 @@ type ArrayDisk implements Node {
   """ata | nvme | usb | (others)"""
   transport: String
   color: ArrayDiskFsColor
+
+  """Whether the disk is currently spinning"""
+  isSpinning: Boolean
 }
 
 interface Node {
@@ -346,6 +349,9 @@ type Disk implements Node {
 
   """The partitions on the disk"""
   partitions: [DiskPartition!]!
+
+  """Whether the disk is spinning or not"""
+  isSpinning: Boolean!
 }
 
 """The type of interface the disk uses to connect to the system"""

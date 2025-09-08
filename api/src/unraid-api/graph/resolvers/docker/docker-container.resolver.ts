@@ -5,6 +5,7 @@ import { Resource } from '@unraid/shared/graphql.model.js';
 import { AuthAction, UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { AppError } from '@app/core/errors/app-error.js';
+import { UseFeatureFlag } from '@app/unraid-api/decorators/use-feature-flag.decorator.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 
@@ -13,6 +14,7 @@ export class DockerContainerResolver {
     private readonly logger = new Logger(DockerContainerResolver.name);
     constructor(private readonly dockerManifestService: DockerManifestService) {}
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
@@ -27,6 +29,7 @@ export class DockerContainerResolver {
         }
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
@@ -36,6 +39,7 @@ export class DockerContainerResolver {
         return this.dockerManifestService.isRebuildReady(container.hostConfig?.networkMode);
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,

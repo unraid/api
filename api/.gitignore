@@ -93,3 +93,6 @@ dev/local-session
 
 # local OIDC config for testing - contains secrets
 dev/configs/oidc.local.json
+
+# local api keys
+dev/keys/*

@@ -4,6 +4,7 @@ import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
+import { UseFeatureFlag } from '@app/unraid-api/decorators/use-feature-flag.decorator.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import {
     Docker,
@@ -56,6 +57,7 @@ export class DockerResolver {
         return this.dockerService.getNetworks({ skipCache });
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
@@ -65,6 +67,7 @@ export class DockerResolver {
         return this.dockerOrganizerService.resolveOrganizer();
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
@@ -83,6 +86,7 @@ export class DockerResolver {
         return this.dockerOrganizerService.resolveOrganizer(organizer);
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
@@ -99,6 +103,7 @@ export class DockerResolver {
         return this.dockerOrganizerService.resolveOrganizer(organizer);
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
@@ -111,6 +116,7 @@ export class DockerResolver {
         return this.dockerOrganizerService.resolveOrganizer(organizer);
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
@@ -127,6 +133,7 @@ export class DockerResolver {
         return this.dockerOrganizerService.resolveOrganizer(organizer);
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
