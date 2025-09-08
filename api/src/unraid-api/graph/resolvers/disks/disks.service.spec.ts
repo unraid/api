@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import type { Systeminformation } from 'systeminformation';
@@ -6,7 +7,6 @@ import { blockDevices, diskLayout } from 'systeminformation';
 // Vitest imports
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { store } from '@app/store/index.js';
 import {
     ArrayDisk,
     ArrayDiskStatus,
@@ -30,11 +30,6 @@ vi.mock('@app/utils.js', () => ({
         return { data, errors: [] };
     }),
 }));
-vi.mock('@app/store/index.js', () => ({
-    store: {
-        getState: vi.fn(),
-    },
-}));
 
 // Remove explicit type assertions for mocks
 const mockExeca = execa as any; // Using 'any' for simplicity with complex mock setups
@@ -44,6 +39,7 @@ const mockBatchProcess = batchProcess as any;
 
 describe('DisksService', () => {
     let service: DisksService;
+    let configService: ConfigService;
 
     // Mock ArrayDisk data from state
     const mockArrayDisks: ArrayDisk[] = [
@@ -305,21 +301,28 @@ describe('DisksService', () => {
         // Reset mocks before each test using vi
         vi.clearAllMocks();
 
-        // Setup default store state
-        vi.mocked(store.getState).mockReturnValue({
-            paths: {
-                states: 'dev/states',
-            },
-            emhttp: {
-                disks: mockArrayDisks,
-            },
-        } as any);
+        // Create mock ConfigService
+        const mockConfigService = {
+            get: vi.fn().mockImplementation((key: string, defaultValue?: any) => {
+                if (key === 'store.emhttp.disks') {
+                    return mockArrayDisks;
+                }
+                return defaultValue;
+            }),
+        };
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [DisksService],
+            providers: [
+                DisksService,
+                {
+                    provide: ConfigService,
+                    useValue: mockConfigService,
+                },
+            ],
         }).compile();
 
         service = module.get<DisksService>(DisksService);
+        configService = module.get<ConfigService>(ConfigService);
 
         // Setup default mock implementations
         mockDiskLayout.mockResolvedValue(mockDiskLayoutData);
@@ -347,7 +350,7 @@ describe('DisksService', () => {
 
             expect(mockDiskLayout).toHaveBeenCalledTimes(1);
             expect(mockBlockDevices).toHaveBeenCalledTimes(1);
-            expect(store.getState).toHaveBeenCalledTimes(1);
+            expect(configService.get).toHaveBeenCalledWith('store.emhttp.disks', []);
             expect(mockBatchProcess).toHaveBeenCalledTimes(1);
 
             expect(disks).toHaveLength(mockDiskLayoutData.length);
@@ -380,14 +383,12 @@ describe('DisksService', () => {
         });
 
         it('should handle empty state gracefully', async () => {
-            vi.mocked(store.getState).mockReturnValue({
-                paths: {
-                    states: 'dev/states',
-                },
-                emhttp: {
-                    disks: [],
-                },
-            } as any);
+            vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: any) => {
+                if (key === 'store.emhttp.disks') {
+                    return [];
+                }
+                return defaultValue;
+            });
 
             const disks = await service.getDisks();
 
@@ -406,14 +407,12 @@ describe('DisksService', () => {
                 id: '  S4ENNF0N123456  ', // spaces around ID
             };
 
-            vi.mocked(store.getState).mockReturnValue({
-                paths: {
-                    states: 'dev/states',
-                },
-                emhttp: {
-                    disks: disksWithSpaces,
-                },
-            } as any);
+            vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: any) => {
+                if (key === 'store.emhttp.disks') {
+                    return disksWithSpaces;
+                }
+                return defaultValue;
+            });
 
             const disks = await service.getDisks();
             const disk = disks.find((d) => d.id === 'S4ENNF0N123456');
@@ -447,14 +446,11 @@ describe('DisksService', () => {
             });
         });
 
-        it('should use state data instead of reloading config file', async () => {
-            const getStateSpy = vi.spyOn(store, 'getState');
-
+        it('should use ConfigService to get state data', async () => {
             await service.getDisks();
 
-            expect(getStateSpy).toHaveBeenCalled();
-            // Verify we're accessing the state exactly once
-            expect(store.getState).toHaveBeenCalledTimes(1);
+            // Verify we're accessing the state through ConfigService
+            expect(configService.get).toHaveBeenCalledWith('store.emhttp.disks', []);
         });
 
         it('should handle empty disk layout or block devices', async () => {
