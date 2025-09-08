@@ -55,7 +55,7 @@
     "@jsonforms/vue-vanilla": "3.6.0",
     "@tailwindcss/cli": "4.1.12",
     "@vueuse/core": "13.8.0",
-    "ajv-errors": "^3.0.0",
+    "ajv-errors": "3.0.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "dompurify": "3.2.6",

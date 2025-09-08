@@ -22,7 +22,7 @@
     "@nestjs/graphql": "13.1.0",
     "nest-authz": "2.17.0",
     "typescript": "5.9.2",
-    "pify": "^6.1.0"
+    "pify": "6.1.0"
   },
   "peerDependencies": {
     "@nestjs/common": "11.1.6",

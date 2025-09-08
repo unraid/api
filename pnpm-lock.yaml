@@ -713,7 +713,7 @@ importers:
         specifier: 2.17.0
         version: 2.17.0(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2)
       pify:
-        specifier: ^6.1.0
+        specifier: 6.1.0
         version: 6.1.0
       typescript:
         specifier: 5.9.2
@@ -786,7 +786,7 @@ importers:
         specifier: 2.17.0
         version: 2.17.0(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2)
       pify:
-        specifier: ^6.1.0
+        specifier: 6.1.0
         version: 6.1.0
       rimraf:
         specifier: 6.0.1
@@ -871,7 +871,7 @@ importers:
         specifier: 13.8.0
         version: 13.8.0(vue@3.5.20(typescript@5.9.2))
       ajv-errors:
-        specifier: ^3.0.0
+        specifier: 3.0.0
         version: 3.0.0(ajv@8.17.1)
       class-variance-authority:
         specifier: 0.7.1
@@ -1098,7 +1098,7 @@ importers:
         specifier: 8.17.1
         version: 8.17.1
       ansi_up:
-        specifier: ^6.0.6
+        specifier: 6.0.6
         version: 6.0.6
       class-variance-authority:
         specifier: 0.7.1
@@ -1158,7 +1158,7 @@ importers:
         specifier: 11.1.11
         version: 11.1.11(vue@3.5.20(typescript@5.9.2))
       vue-router:
-        specifier: ^4.5.1
+        specifier: 4.5.1
         version: 4.5.1(vue@3.5.20(typescript@5.9.2))
       vue-web-component-wrapper:
         specifier: 1.7.7
@@ -1261,7 +1261,7 @@ importers:
         specifier: 10.4.0
         version: 10.4.0(@typescript-eslint/parser@8.41.0(eslint@9.34.0(jiti@2.5.1))(typescript@5.9.2))(eslint@9.34.0(jiti@2.5.1))(vue-eslint-parser@10.2.0(eslint@9.34.0(jiti@2.5.1)))
       globals:
-        specifier: ^16.3.0
+        specifier: 16.3.0
         version: 16.3.0
       happy-dom:
         specifier: 18.0.1
@@ -1392,6 +1392,7 @@ packages:
 
   '@apollo/server-gateway-interface@1.1.1':
     resolution: {integrity: sha512-pGwCl/po6+rxRmDMFgozKQo2pbsSwE91TpsDBAOgf74CRDPXHHtM88wbwjab0wMMZh95QfR45GGyDIdhY24bkQ==}
+    deprecated: '@apollo/server-gateway-interface v1 is part of Apollo Server v4, which is deprecated and will transition to end-of-life on January 26, 2026. As long as you are already using a non-EOL version of Node.js, upgrading to v2 should take only a few minutes. See https://www.apollographql.com/docs/apollo-server/previous-versions for details.'
     peerDependencies:
       graphql: 16.11.0
 
@@ -1405,6 +1406,7 @@ packages:
   '@apollo/server@4.12.2':
     resolution: {integrity: sha512-jKRlf+sBMMdKYrjMoiWKne42Eb6paBfDOr08KJnUaeaiyWFj+/040FjVPQI7YGLfdwnYIsl1NUUqS2UdgezJDg==}
     engines: {node: '>=14.16.0'}
+    deprecated: Apollo Server v4 is deprecated and will transition to end-of-life on January 26, 2026. As long as you are already using a non-EOL version of Node.js, upgrading to v5 should take only a few minutes. See https://www.apollographql.com/docs/apollo-server/previous-versions for details.
     peerDependencies:
       graphql: 16.11.0
 
