@@ -1,0 +1,390 @@
+<script setup lang="ts">
+import { ref, watchEffect } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useMutation, useQuery } from '@vue/apollo-composable';
+
+import {
+  ChevronDownIcon,
+  ClipboardDocumentIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  LinkIcon,
+} from '@heroicons/vue/24/solid';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Badge,
+  Button,
+  CardWrapper,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuRoot,
+  DropdownMenuTrigger,
+  Input,
+  PageContainer,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@unraid/ui';
+import { extractGraphQLErrorMessage } from '~/helpers/functions';
+
+import type { ApiKeyFragment, AuthAction, Role } from '~/composables/gql/graphql';
+
+import { DELETE_API_KEY } from '~/components/ApiKey/apikey.mutation';
+import { API_KEY_FRAGMENT, GET_API_KEY_META, GET_API_KEYS } from '~/components/ApiKey/apikey.query';
+import ApiKeyCreate from '~/components/ApiKey/ApiKeyCreate.vue';
+import EffectivePermissions from '~/components/ApiKey/EffectivePermissions.vue';
+import { useFragment } from '~/composables/gql/fragment-masking';
+import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
+import { useApiKeyStore } from '~/store/apiKey';
+import { generateScopes } from '~/utils/authorizationLink';
+
+const { result, refetch } = useQuery(GET_API_KEYS);
+
+const apiKeyStore = useApiKeyStore();
+const { createdKey } = storeToRefs(apiKeyStore);
+const apiKeys = ref<ApiKeyFragment[]>([]);
+
+// Local modal state
+const showCreateModal = ref(false);
+const editingKey = ref<ApiKeyFragment | null>(null);
+
+watchEffect(() => {
+  const baseKeys: ApiKeyFragment[] =
+    result.value?.apiKeys.map((key) => useFragment(API_KEY_FRAGMENT, key)) || [];
+
+  if (createdKey.value) {
+    const existingKeyIndex = baseKeys.findIndex((key) => key.id === createdKey.value?.id);
+    if (existingKeyIndex >= 0) {
+      baseKeys[existingKeyIndex] = createdKey.value;
+    } else {
+      baseKeys.unshift(createdKey.value);
+    }
+
+    // Don't automatically show keys - keep them hidden by default
+  }
+
+  apiKeys.value = baseKeys;
+});
+
+const metaQuery = useQuery(GET_API_KEY_META);
+const possibleRoles = ref<string[]>([]);
+const possiblePermissions = ref<{ resource: string; actions: AuthAction[] }[]>([]);
+watchEffect(() => {
+  possibleRoles.value = metaQuery.result.value?.apiKeyPossibleRoles || [];
+  // Cast actions to AuthAction[] since GraphQL returns string[] but we know they're AuthAction values
+  possiblePermissions.value = (metaQuery.result.value?.apiKeyPossiblePermissions || []).map((p) => ({
+    resource: p.resource,
+    actions: p.actions as AuthAction[],
+  }));
+});
+
+const showKey = ref<Record<string, boolean>>({});
+const { copyWithNotification, copied } = useClipboardWithToast();
+
+// Template input state
+const showTemplateInput = ref(false);
+const templateUrl = ref('');
+const templateError = ref('');
+
+const { mutate: deleteKey } = useMutation(DELETE_API_KEY);
+
+const deleteError = ref<string | null>(null);
+
+function toggleShowKey(keyId: string) {
+  showKey.value[keyId] = !showKey.value[keyId];
+}
+
+function openCreateModal(key: ApiKeyFragment | ApiKeyFragment | null = null) {
+  apiKeyStore.clearCreatedKey();
+  editingKey.value = key as ApiKeyFragment | null;
+  showCreateModal.value = true;
+}
+
+function handleKeyCreated(key: ApiKeyFragment) {
+  // Add the new key to the list
+  apiKeys.value.unshift(key);
+  showCreateModal.value = false;
+  editingKey.value = null;
+}
+
+function handleKeyUpdated(key: ApiKeyFragment) {
+  // Update the key in the list
+  const index = apiKeys.value.findIndex((k) => k.id === key.id);
+  if (index >= 0) {
+    apiKeys.value[index] = key;
+  }
+  showCreateModal.value = false;
+  editingKey.value = null;
+}
+
+async function openCreateFromTemplate() {
+  showTemplateInput.value = true;
+  templateUrl.value = '';
+  templateError.value = '';
+}
+
+function cancelTemplateInput() {
+  showTemplateInput.value = false;
+  templateUrl.value = '';
+  templateError.value = '';
+}
+
+function applyTemplate() {
+  templateError.value = '';
+
+  try {
+    // Parse the template URL or query string
+    let url: URL;
+
+    if (templateUrl.value.startsWith('http://') || templateUrl.value.startsWith('https://')) {
+      // Full URL provided
+      url = new URL(templateUrl.value);
+    } else if (templateUrl.value.startsWith('?')) {
+      // Query string only
+      url = new URL(window.location.origin + templateUrl.value);
+    } else {
+      // Try to parse as query string without ?
+      url = new URL(window.location.origin + '?' + templateUrl.value);
+    }
+
+    // Extract query parameters
+    const params = url.searchParams;
+
+    // Navigate to the authorization page with these params using window.location
+    const authUrl = new URL('/Tools/ApiKeyAuthorize', window.location.origin);
+    params.forEach((value, key) => {
+      authUrl.searchParams.append(key, value);
+    });
+    window.location.href = authUrl.toString();
+
+    cancelTemplateInput();
+  } catch (_err) {
+    templateError.value = 'Invalid template URL or query string. Please check the format and try again.';
+  }
+}
+
+async function _deleteKey(_id: string) {
+  if (!window.confirm('Are you sure you want to delete this API key? This action cannot be undone.'))
+    return;
+  deleteError.value = null;
+  try {
+    await deleteKey({ input: { ids: [_id] } });
+    await refetch();
+  } catch (err: unknown) {
+    deleteError.value = extractGraphQLErrorMessage(err);
+  }
+}
+
+async function copyKeyValue(keyValue: string) {
+  await copyWithNotification(keyValue, 'API key copied to clipboard');
+}
+
+async function copyKeyTemplate(key: ApiKeyFragment) {
+  try {
+    // Generate scopes using the same logic as DeveloperAuthorizationLink
+    const scopes = generateScopes(
+      (key.roles as Role[]) || [],
+      key.permissions?.map((p) => ({
+        resource: p.resource,
+        actions: p.actions as AuthAction[],
+      })) || []
+    );
+
+    // Build URL parameters for the template
+    const urlParams = new URLSearchParams({
+      name: key.name,
+      scopes: scopes.join(','),
+    });
+
+    if (key.description) {
+      urlParams.set('description', key.description);
+    }
+
+    // Don't include redirect_uri for templates
+    const templateQueryString = '?' + urlParams.toString();
+    await copyWithNotification(templateQueryString, 'Template copied to clipboard');
+  } catch (error) {
+    console.error('Failed to copy template:', error);
+  }
+}
+</script>
+
+<template>
+  <PageContainer>
+    <div>
+      <div class="mb-6 flex items-center justify-between">
+        <h2 class="text-2xl font-bold tracking-tight">API Keys</h2>
+        <DropdownMenuRoot>
+          <DropdownMenuTrigger as-child>
+            <Button variant="primary">
+              Create API Key
+              <ChevronDownIcon class="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem @click="openCreateModal(null)"> Create New </DropdownMenuItem>
+            <DropdownMenuItem @click="openCreateFromTemplate"> Create from Template </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenuRoot>
+      </div>
+      <div
+        v-if="deleteError"
+        class="border-destructive bg-destructive/10 text-destructive mb-4 rounded border p-3"
+      >
+        {{ deleteError }}
+      </div>
+      <div v-if="apiKeys.length" class="mb-6 flex flex-col gap-4">
+        <div v-for="key in apiKeys" :key="key.id" class="w-full">
+          <CardWrapper :padding="false">
+            <div class="overflow-hidden p-4">
+              <div class="flex flex-col gap-2">
+                <div class="max-w-[250px] truncate text-sm md:max-w-md">
+                  <b>ID:</b> {{ key.id.split(':')[1] }}
+                </div>
+                <div class="text-sm"><b>Name:</b> {{ key.name }}</div>
+                <div v-if="key.description" class="text-sm">
+                  <b>Description:</b> {{ key.description }}
+                </div>
+                <div v-if="key.roles.length" class="flex flex-wrap items-center gap-2">
+                  <span class="text-sm"><b>Roles:</b></span>
+                  <Badge v-for="role in key.roles" :key="role" variant="blue" size="xs">{{
+                    role
+                  }}</Badge>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-green-700"><b>API Key:</b></span>
+                  <div class="relative max-w-[300px] flex-1">
+                    <Input
+                      :model-value="showKey[key.id] ? key.key : '••••••••••••••••••••••••••••••••'"
+                      class="w-full rounded px-2 py-1 pr-10 font-mono text-xs"
+                      readonly
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      class="absolute inset-y-0 right-2 h-auto w-auto px-1 text-gray-500 hover:text-gray-700"
+                      @click="toggleShowKey(key.id)"
+                    >
+                      <component :is="showKey[key.id] ? EyeSlashIcon : EyeIcon" class="h-5 w-5" />
+                    </Button>
+                  </div>
+                  <TooltipProvider>
+                    <Tooltip :delay-duration="0">
+                      <TooltipTrigger>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          class="h-8 w-8"
+                          @click="copyKeyValue(key.key)"
+                        >
+                          <ClipboardDocumentIcon class="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{{ copied ? 'Copied!' : 'Copy to clipboard...' }}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+              <div
+                v-if="key.permissions?.length || key.roles?.length"
+                class="border-muted mt-4 border-t pt-4"
+              >
+                <Accordion type="single" collapsible class="w-full">
+                  <AccordionItem :value="'permissions-' + key.id">
+                    <AccordionTrigger>
+                      <span class="text-sm font-semibold">Effective Permissions</span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div class="overflow-auto py-2">
+                        <EffectivePermissions
+                          :roles="key.roles"
+                          :raw-permissions="
+                            key.permissions?.map((p) => ({
+                              resource: p.resource,
+                              actions: p.actions,
+                            })) || []
+                          "
+                          :show-header="false"
+                        />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+              <div class="border-muted mt-4 flex flex-wrap gap-2 border-t pt-4">
+                <Button variant="secondary" size="sm" @click="openCreateModal(key)">Edit</Button>
+                <TooltipProvider>
+                  <Tooltip :delay-duration="0">
+                    <TooltipTrigger as-child>
+                      <Button variant="outline" size="sm" @click="copyKeyTemplate(key)">
+                        <LinkIcon class="mr-1 h-4 w-4" />
+                        Copy Template
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Copy a shareable template with these permissions</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <Button variant="destructive" size="sm" @click="_deleteKey(key.id)">Delete</Button>
+              </div>
+            </div>
+          </CardWrapper>
+        </div>
+      </div>
+      <div v-else class="mb-6 flex flex-col gap-4">
+        <p class="text-sm">No API keys found</p>
+      </div>
+
+      <!-- Template Input Dialog -->
+      <Dialog v-model:open="showTemplateInput">
+        <DialogContent class="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create from Template</DialogTitle>
+            <DialogDescription>
+              Paste a template URL or query string to pre-fill the API key creation form with
+              permissions.
+            </DialogDescription>
+          </DialogHeader>
+          <div class="space-y-4">
+            <Input
+              v-model="templateUrl"
+              placeholder="Paste template URL or query string (e.g., ?name=MyApp&scopes=role:admin)"
+              @keydown.enter="applyTemplate"
+            />
+            <div
+              v-if="templateError"
+              class="border-destructive bg-destructive/10 text-destructive rounded border p-3 text-sm"
+            >
+              {{ templateError }}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" @click="cancelTemplateInput">Cancel</Button>
+            <Button @click="applyTemplate">Apply Template</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <!-- API Key Create Modal -->
+      <ApiKeyCreate
+        v-model:open="showCreateModal"
+        :editing-key="editingKey"
+        @created="handleKeyCreated"
+        @updated="handleKeyUpdated"
+      />
+    </div>
+  </PageContainer>
+</template>

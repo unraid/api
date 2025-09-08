@@ -1,0 +1,96 @@
+/**
+ * Tailwind v4 Theme Variants
+ * Defines theme-specific CSS variables that can be switched via classes
+ * These are applied dynamically based on the theme selected in GraphQL
+ */
+
+/* Default/White Theme */
+:root,
+.theme-white {
+  --header-text-primary: #ffffff;
+  --header-text-secondary: #999999;
+  --header-background-color: #1c1b1b;
+  --header-gradient-start: rgba(28, 27, 27, 0);
+  --header-gradient-end: rgba(28, 27, 27, 0.7);
+  --ui-border-muted: hsl(240 5% 20%);
+  --color-border: #383735;
+  --color-alpha: #ff8c2f;
+  --color-beta: #1c1b1b;
+  --color-gamma: #ffffff;
+  --color-gamma-opaque: rgba(255, 255, 255, 0.3);
+}
+
+/* Black Theme */
+.theme-black,
+.theme-black.dark {
+  --header-text-primary: #1c1b1b;
+  --header-text-secondary: #999999;
+  --header-background-color: #f2f2f2;
+  --header-gradient-start: rgba(242, 242, 242, 0);
+  --header-gradient-end: rgba(242, 242, 242, 0.7);
+  --ui-border-muted: hsl(240 5.9% 90%);
+  --color-border: #e0e0e0;
+  --color-alpha: #ff8c2f;
+  --color-beta: #f2f2f2;
+  --color-gamma: #1c1b1b;
+  --color-gamma-opaque: rgba(28, 27, 27, 0.3);
+}
+
+/* Gray Theme */
+.theme-gray {
+  --header-text-primary: #ffffff;
+  --header-text-secondary: #999999;
+  --header-background-color: #1c1b1b;
+  --header-gradient-start: rgba(28, 27, 27, 0);
+  --header-gradient-end: rgba(28, 27, 27, 0.7);
+  --ui-border-muted: hsl(240 5% 25%);
+  --color-border: #383735;
+  --color-alpha: #ff8c2f;
+  --color-beta: #383735;
+  --color-gamma: #ffffff;
+  --color-gamma-opaque: rgba(255, 255, 255, 0.3);
+}
+
+/* Azure Theme */
+.theme-azure {
+  --header-text-primary: #1c1b1b;
+  --header-text-secondary: #999999;
+  --header-background-color: #f2f2f2;
+  --header-gradient-start: rgba(242, 242, 242, 0);
+  --header-gradient-end: rgba(242, 242, 242, 0.7);
+  --ui-border-muted: hsl(210 40% 80%);
+  --color-border: #5a8bb8;
+  --color-alpha: #ff8c2f;
+  --color-beta: #e7f2f8;
+  --color-gamma: #336699;
+  --color-gamma-opaque: rgba(51, 102, 153, 0.3);
+}
+
+/* Dark Mode Overrides */
+.dark {
+  --ui-border-muted: hsl(240 5% 20%);
+  --color-border: #383735;
+}
+
+/* 
+ * Dynamic color variables for user overrides from GraphQL
+ * These are set via JavaScript and override the theme defaults
+ */
+.has-custom-header-text {
+  --header-text-primary: var(--custom-header-text-primary);
+  --color-header-text-primary: var(--custom-header-text-primary);
+}
+
+.has-custom-header-meta {
+  --header-text-secondary: var(--custom-header-text-secondary);
+  --color-header-text-secondary: var(--custom-header-text-secondary);
+}
+
+.has-custom-header-bg {
+  --header-background-color: var(--custom-header-background-color);
+  --color-header-background: var(--custom-header-background-color);
+  --header-gradient-start: var(--custom-header-gradient-start);
+  --header-gradient-end: var(--custom-header-gradient-end);
+  --color-header-gradient-start: var(--custom-header-gradient-start);
+  --color-header-gradient-end: var(--custom-header-gradient-end);
+}

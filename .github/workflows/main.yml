@@ -333,7 +333,6 @@ jobs:
           echo VITE_CONNECT=${{ secrets.VITE_CONNECT }} >> .env
           echo VITE_UNRAID_NET=${{ secrets.VITE_UNRAID_NET }} >> .env
           echo VITE_CALLBACK_KEY=${{ secrets.VITE_CALLBACK_KEY }} >> .env
-          cat .env
 
       - name: Install Node
         uses: actions/setup-node@v4
@@ -385,7 +384,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: unraid-wc-rich
-          path: web/.nuxt/standalone-apps
+          path: web/dist
 
   build-plugin-staging-pr:
     name: Build and Deploy Plugin

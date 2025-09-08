@@ -1,9 +1,8 @@
 #!/usr/bin/env node
-
 import fs from 'fs';
 import path from 'path';
 
-const distPath = '.nuxt/standalone-apps';
+const distPath = 'dist';
 const manifestPath = path.join(distPath, 'standalone.manifest.json');
 
 // Check if directory exists
@@ -16,7 +15,7 @@ if (!fs.existsSync(distPath)) {
 const files = fs.readdirSync(distPath);
 const manifest = {};
 
-files.forEach(file => {
+files.forEach((file) => {
   if (file.endsWith('.js') || file.endsWith('.css')) {
     const key = file.replace(/\.(js|css)$/, '.$1');
     manifest[key] = {

@@ -4,20 +4,23 @@
 
 import { useQuery } from '@vue/apollo-composable';
 import { flushPromises, mount } from '@vue/test-utils';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import type { Mock, MockInstance } from 'vitest';
 
 import SsoButtons from '~/components/sso/SsoButtons.vue';
 
 // Mock the child components
 const SsoProviderButtonStub = {
-  template: '<button @click="handleClick" :disabled="disabled">{{ provider.buttonText || `Sign in with ${provider.name}` }}</button>',
+  template:
+    '<button @click="handleClick" :disabled="disabled">{{ provider.buttonText || `Sign in with ${provider.name}` }}</button>',
   props: ['provider', 'disabled', 'onClick'],
   methods: {
     handleClick(this: { onClick: (id: string) => void; provider: { id: string } }) {
       this.onClick(this.provider.id);
-    }
-  }
+    },
+  },
 };
 
 // Mock the GraphQL composable
@@ -131,16 +134,16 @@ describe('SsoButtons', () => {
 
   it('renders provider buttons when OIDC providers are available', async () => {
     const mockProviders = [
-      { 
-        id: 'unraid-net', 
+      {
+        id: 'unraid-net',
         name: 'Unraid.net',
         buttonText: 'Log In With Unraid.net',
         buttonIcon: null,
         buttonVariant: 'secondary',
-        buttonStyle: null
-      }
+        buttonStyle: null,
+      },
     ];
-    
+
     mockUseQuery.mockReturnValue({
       result: { value: { publicOidcProviders: mockProviders } },
       refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
@@ -148,18 +151,18 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { 
+        stubs: {
           SsoProviderButton: SsoProviderButtonStub,
-          Button: { template: '<button><slot /></button>' }
+          Button: { template: '<button><slot /></button>' },
         },
       },
     });
-    
+
     // Wait for the API check to complete
     await flushPromises();
     vi.runAllTimers();
     await flushPromises();
-    
+
     expect(wrapper.text()).toContain('or');
     expect(wrapper.text()).toContain('Log In With Unraid.net');
   });
@@ -172,26 +175,27 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { 
+        stubs: {
           SsoProviderButton: SsoProviderButtonStub,
-          Button: { template: '<button><slot /></button>' }
+          Button: { template: '<button><slot /></button>' },
         },
       },
     });
-    
+
     await flushPromises();
     vi.runAllTimers();
     await flushPromises();
-    
+
     expect(wrapper.text()).not.toContain('or');
     expect(wrapper.findAll('button')).toHaveLength(0);
   });
 
   it('shows checking message while API is being polled', async () => {
-    const refetchMock = vi.fn()
+    const refetchMock = vi
+      .fn()
       .mockRejectedValueOnce(new Error('API not available'))
       .mockResolvedValueOnce({ data: { publicOidcProviders: [] } });
-    
+
     mockUseQuery.mockReturnValue({
       result: { value: null },
       refetch: refetchMock,
@@ -199,36 +203,36 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { 
+        stubs: {
           SsoProviderButton: SsoProviderButtonStub,
-          Button: { template: '<button><slot /></button>' }
+          Button: { template: '<button><slot /></button>' },
         },
       },
     });
-    
+
     expect(wrapper.text()).toContain('Checking authentication options...');
-    
+
     // Advance timers to trigger the polling
     await flushPromises();
     vi.advanceTimersByTime(2000);
     await flushPromises();
-    
+
     // After successful API response, checking message should disappear
     expect(wrapper.text()).not.toContain('Checking authentication options...');
   });
 
   it('navigates to the OIDC provider URL on button click', async () => {
     const mockProviders = [
-      { 
-        id: 'unraid-net', 
+      {
+        id: 'unraid-net',
         name: 'Unraid.net',
         buttonText: 'Log In With Unraid.net',
         buttonIcon: null,
         buttonVariant: 'secondary',
-        buttonStyle: null
-      }
+        buttonStyle: null,
+      },
     ];
-    
+
     mockUseQuery.mockReturnValue({
       result: { value: { publicOidcProviders: mockProviders } },
       refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
@@ -236,13 +240,13 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { 
+        stubs: {
           SsoProviderButton: SsoProviderButtonStub,
-          Button: { template: '<button><slot /></button>' }
+          Button: { template: '<button><slot /></button>' },
         },
       },
     });
-    
+
     await flushPromises();
     vi.runAllTimers();
     await flushPromises();
@@ -263,20 +267,20 @@ describe('SsoButtons', () => {
 
   it('handles OIDC callback with token successfully', async () => {
     const mockProviders = [
-      { 
-        id: 'unraid-net', 
+      {
+        id: 'unraid-net',
         name: 'Unraid.net',
-        buttonText: 'Log In With Unraid.net'
-      }
+        buttonText: 'Log In With Unraid.net',
+      },
     ];
-    
+
     mockUseQuery.mockReturnValue({
       result: { value: { publicOidcProviders: mockProviders } },
       refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
     });
 
     const mockToken = 'mock_access_token_123';
-    mockLocation.search = '';  // No query params - using hash instead
+    mockLocation.search = ''; // No query params - using hash instead
     mockLocation.pathname = '/login';
     mockLocationHref = `http://mock-origin.com/login#token=${mockToken}`;
     mockLocation.hash = `#token=${mockToken}`;
@@ -284,9 +288,9 @@ describe('SsoButtons', () => {
     // Mount the component so that onMounted hook is called
     mount(SsoButtons, {
       global: {
-        stubs: { 
+        stubs: {
           SsoProviderButton: SsoProviderButtonStub,
-          Button: { template: '<button><slot /></button>' }
+          Button: { template: '<button><slot /></button>' },
         },
       },
     });
@@ -303,29 +307,29 @@ describe('SsoButtons', () => {
 
   it('handles OIDC callback error from backend', async () => {
     const mockProviders = [
-      { 
-        id: 'unraid-net', 
+      {
+        id: 'unraid-net',
         name: 'Unraid.net',
-        buttonText: 'Log In With Unraid.net'
-      }
+        buttonText: 'Log In With Unraid.net',
+      },
     ];
-    
+
     mockUseQuery.mockReturnValue({
       result: { value: { publicOidcProviders: mockProviders } },
       refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
     });
 
     const errorMessage = 'Authentication failed';
-    mockLocation.search = '';  // No query params - using hash instead
+    mockLocation.search = ''; // No query params - using hash instead
     mockLocation.pathname = '/login';
     mockLocationHref = `http://mock-origin.com/login#error=${encodeURIComponent(errorMessage)}`;
     mockLocation.hash = `#error=${encodeURIComponent(errorMessage)}`;
-    
+
     const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { 
+        stubs: {
           SsoProviderButton: SsoProviderButtonStub,
-          Button: { template: '<button><slot /></button>' }
+          Button: { template: '<button><slot /></button>' },
         },
       },
     });
@@ -338,7 +342,7 @@ describe('SsoButtons', () => {
 
     expect(mockForm.style.display).toBe('block');
     expect(mockForm.requestSubmit).not.toHaveBeenCalled();
-    
+
     // The URL cleanup happens with both hash and query params being removed
     const expectedUrl = mockLocation.pathname;
     expect(mockHistory.replaceState).toHaveBeenCalledWith({}, 'Mock Title', expectedUrl);
@@ -346,13 +350,13 @@ describe('SsoButtons', () => {
 
   it('redirects to OIDC callback endpoint when code and state are present', async () => {
     const mockProviders = [
-      { 
-        id: 'unraid-net', 
+      {
+        id: 'unraid-net',
         name: 'Unraid.net',
-        buttonText: 'Log In With Unraid.net'
-      }
+        buttonText: 'Log In With Unraid.net',
+      },
     ];
-    
+
     mockUseQuery.mockReturnValue({
       result: { value: { publicOidcProviders: mockProviders } },
       refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
@@ -366,9 +370,9 @@ describe('SsoButtons', () => {
 
     mount(SsoButtons, {
       global: {
-        stubs: { 
+        stubs: {
           SsoProviderButton: SsoProviderButtonStub,
-          Button: { template: '<button><slot /></button>' }
+          Button: { template: '<button><slot /></button>' },
         },
       },
     });
@@ -382,21 +386,21 @@ describe('SsoButtons', () => {
 
   it('handles HTTPS with non-standard port correctly', async () => {
     const mockProviders = [
-      { 
-        id: 'tsidp', 
+      {
+        id: 'tsidp',
         name: 'Tailscale IDP',
         buttonText: 'Sign in with Tailscale',
         buttonIcon: null,
         buttonVariant: 'secondary',
-        buttonStyle: null
-      }
+        buttonStyle: null,
+      },
     ];
-    
+
     // Set up location with HTTPS and non-standard port
     mockLocation.protocol = 'https:';
     mockLocation.host = 'unraid.mytailnet.ts.net:1443';
     mockLocation.origin = 'https://unraid.mytailnet.ts.net:1443';
-    
+
     mockUseQuery.mockReturnValue({
       result: { value: { publicOidcProviders: mockProviders } },
       refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
@@ -404,13 +408,13 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { 
+        stubs: {
           SsoProviderButton: SsoProviderButtonStub,
-          Button: { template: '<button><slot /></button>' }
+          Button: { template: '<button><slot /></button>' },
         },
       },
     });
-    
+
     await flushPromises();
     vi.runAllTimers();
     await flushPromises();
@@ -424,7 +428,7 @@ describe('SsoButtons', () => {
     const expectedUrl = `/graphql/api/auth/oidc/authorize/tsidp?state=${encodeURIComponent(generatedState)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
     expect(mockLocation.href).toBe(expectedUrl);
-    
+
     // Reset location mock for other tests
     mockLocation.protocol = 'http:';
     mockLocation.host = 'mock-origin.com';
@@ -433,24 +437,24 @@ describe('SsoButtons', () => {
 
   it('handles multiple OIDC providers', async () => {
     const mockProviders = [
-      { 
-        id: 'unraid-net', 
+      {
+        id: 'unraid-net',
         name: 'Unraid.net',
         buttonText: 'Log In With Unraid.net',
         buttonIcon: null,
         buttonVariant: 'secondary',
-        buttonStyle: null
+        buttonStyle: null,
       },
-      { 
-        id: 'google', 
+      {
+        id: 'google',
         name: 'Google',
         buttonText: 'Sign in with Google',
         buttonIcon: 'https://google.com/icon.png',
         buttonVariant: 'outline',
-        buttonStyle: 'background: white;'
-      }
+        buttonStyle: 'background: white;',
+      },
     ];
-    
+
     mockUseQuery.mockReturnValue({
       result: { value: { publicOidcProviders: mockProviders } },
       refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
@@ -458,17 +462,17 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { 
+        stubs: {
           SsoProviderButton: SsoProviderButtonStub,
-          Button: { template: '<button><slot /></button>' }
+          Button: { template: '<button><slot /></button>' },
         },
       },
     });
-    
+
     await flushPromises();
     vi.runAllTimers();
     await flushPromises();
-    
+
     const buttons = wrapper.findAll('button');
     expect(buttons).toHaveLength(2);
     expect(wrapper.text()).toContain('Log In With Unraid.net');

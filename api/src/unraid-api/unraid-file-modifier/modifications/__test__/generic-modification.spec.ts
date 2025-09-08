@@ -8,6 +8,7 @@ import { describe, expect, test, vi } from 'vitest';
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification.js';
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification.js';
+import DisplaySettingsModification from '@app/unraid-api/unraid-file-modifier/modifications/display-settings.modification.js';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
 import RcNginxModification from '@app/unraid-api/unraid-file-modifier/modifications/rc-nginx.modification.js';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
@@ -34,6 +35,12 @@ const patchTestCases: ModificationTestCase[] = [
         fileUrl:
             'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/Notifications.page',
         fileName: 'Notifications.page',
+    },
+    {
+        ModificationClass: DisplaySettingsModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/DisplaySettings.page',
+        fileName: 'DisplaySettings.page',
     },
     {
         ModificationClass: SSOFileModification,

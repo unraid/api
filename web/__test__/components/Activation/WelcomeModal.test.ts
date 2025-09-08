@@ -12,7 +12,7 @@ import type { ComposerTranslation } from 'vue-i18n';
 import WelcomeModal from '~/components/Activation/WelcomeModal.ce.vue';
 
 vi.mock('@unraid/ui', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@unraid/ui')>();
+  const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
     Dialog: {
@@ -226,17 +226,16 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     vi.useRealTimers();
   });
 
-
   it('shows modal on login page even when isInitialSetup is false', async () => {
     Object.defineProperty(window, 'location', {
       value: { pathname: '/login' },
       writable: true,
     });
     mockWelcomeModalDataStore.isInitialSetup.value = false;
-    
+
     const wrapper = await mountComponent();
     const dialog = wrapper.findComponent({ name: 'Dialog' });
-    
+
     expect(dialog.exists()).toBe(true);
   });
 
@@ -246,10 +245,10 @@ describe('Activation/WelcomeModal.ce.vue', () => {
       writable: true,
     });
     mockWelcomeModalDataStore.isInitialSetup.value = true;
-    
+
     const wrapper = await mountComponent();
     const dialog = wrapper.findComponent({ name: 'Dialog' });
-    
+
     expect(dialog.exists()).toBe(true);
   });
 
@@ -259,10 +258,10 @@ describe('Activation/WelcomeModal.ce.vue', () => {
       writable: true,
     });
     mockWelcomeModalDataStore.isInitialSetup.value = false;
-    
+
     const wrapper = await mountComponent();
     const dialog = wrapper.findComponent({ name: 'Dialog' });
-    
+
     expect(dialog.exists()).toBe(true);
     expect(dialog.props('modelValue')).toBe(false);
   });

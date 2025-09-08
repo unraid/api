@@ -2,8 +2,8 @@
  * Purchase store test coverage
  */
 
-import { createPinia, setActivePinia } from 'pinia';
 import { ref } from 'vue';
+import { createPinia, setActivePinia } from 'pinia';
 
 import { PURCHASE_CALLBACK } from '~/helpers/urls';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

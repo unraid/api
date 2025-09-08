@@ -1361,6 +1361,12 @@ type CpuLoad {
 
   """The percentage of time the CPU spent servicing hardware interrupts."""
   percentIrq: Float!
+
+  """The percentage of time the CPU spent running virtual machines (guest)."""
+  percentGuest: Float!
+
+  """The percentage of CPU time stolen by the hypervisor."""
+  percentSteal: Float!
 }
 
 type CpuUtilization implements Node {

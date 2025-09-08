@@ -85,22 +85,22 @@
   --color-primary-950: #431407;
 
   /* Header colors */
-  --color-header-text-primary: var(--header-text-primary);
-  --color-header-text-secondary: var(--header-text-secondary);
-  --color-header-background-color: var(--header-background-color);
+  --color-header-text-primary: #1c1c1c;
+  --color-header-text-secondary: #999999;
+  --color-header-background: #f2f2f2;
 
-  /* Legacy colors */
-  --color-alpha: var(--color-alpha);
-  --color-beta: var(--color-beta);
-  --color-gamma: var(--color-gamma);
-  --color-gamma-opaque: var(--color-gamma-opaque);
-  --color-customgradient-start: var(--color-customgradient-start);
-  --color-customgradient-end: var(--color-customgradient-end);
+  /* Legacy colors - defaults (overridden by theme-variants.css) */
+  --color-alpha: #ff8c2f;
+  --color-beta: #f2f2f2;
+  --color-gamma: #999999;
+  --color-gamma-opaque: rgba(153, 153, 153, 0.5);
+  --color-customgradient-start: rgba(242, 242, 242, 0);
+  --color-customgradient-end: rgba(242, 242, 242, 0.85);
 
-  /* Gradients */
-  --color-header-gradient-start: var(--header-gradient-start);
-  --color-header-gradient-end: var(--header-gradient-end);
-  --color-banner-gradient: var(--banner-gradient);
+  /* Gradients - defaults (overridden by theme-variants.css) */
+  --color-header-gradient-start: rgba(242, 242, 242, 0);
+  --color-header-gradient-end: rgba(242, 242, 242, 0.85);
+  --color-banner-gradient: none;
 
   /* Font sizes */
   --font-10px: 10px;

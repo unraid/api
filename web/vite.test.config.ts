@@ -1,6 +1,7 @@
-import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
 import { resolve } from 'path';
+
+import vue from '@vitejs/plugin-vue';
+import { defineConfig } from 'vite';
 
 export default defineConfig({
   plugins: [vue()],
@@ -17,7 +18,7 @@ export default defineConfig({
     alias: {
       '~': resolve(__dirname, './'),
       '@': resolve(__dirname, './'),
-      'vue': 'vue/dist/vue.esm-bundler.js',
+      vue: 'vue/dist/vue.esm-bundler.js',
     },
   },
   optimizeDeps: {

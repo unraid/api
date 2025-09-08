@@ -1,9 +1,5 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
 
-
-
-
-
 const config: CodegenConfig = {
   overwrite: true,
   documents: ['./**/**/*.ts'],
@@ -24,7 +20,7 @@ const config: CodegenConfig = {
     },
   },
   generates: {
-    'composables/gql/': {
+    'src/composables/gql/': {
       preset: 'client',
       config: {
         useTypeImports: true,

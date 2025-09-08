@@ -11,7 +11,7 @@ fi
 server_name="$1"
 
 # Source directory paths
-standalone_directory=".nuxt/standalone-apps/"
+standalone_directory="dist/"
 
 # Check what we have to deploy
 has_standalone=false

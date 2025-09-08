@@ -99,7 +99,7 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           pattern: unraid-wc-rich
-          path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt
+          path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone
           merge-multiple: true
       - name: Download Unraid API
         uses: actions/download-artifact@v5

@@ -817,19 +817,31 @@ describe('useServerStore', () => {
       expect(store.trialWithin5DaysOfExpiration).toBe(false);
 
       // Trial expiring in 3 days
-      store.setServer({ state: 'TRIAL' as ServerState, expireTime: dayjs().add(3, 'day').unix() * 1000 });
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        expireTime: dayjs().add(3, 'day').unix() * 1000,
+      });
       expect(store.trialWithin5DaysOfExpiration).toBe(true);
 
       // Trial expiring in exactly 5 days
-      store.setServer({ state: 'TRIAL' as ServerState, expireTime: dayjs().add(5, 'day').unix() * 1000 });
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        expireTime: dayjs().add(5, 'day').unix() * 1000,
+      });
       expect(store.trialWithin5DaysOfExpiration).toBe(true);
 
       // Trial expiring in 7 days (to ensure it's clearly outside the 5-day window)
-      store.setServer({ state: 'TRIAL' as ServerState, expireTime: dayjs().add(7, 'day').unix() * 1000 });
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        expireTime: dayjs().add(7, 'day').unix() * 1000,
+      });
       expect(store.trialWithin5DaysOfExpiration).toBe(false);
 
       // Trial already expired
-      store.setServer({ state: 'TRIAL' as ServerState, expireTime: dayjs().subtract(1, 'day').unix() * 1000 });
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        expireTime: dayjs().subtract(1, 'day').unix() * 1000,
+      });
       expect(store.trialWithin5DaysOfExpiration).toBe(false);
     });
 
@@ -946,13 +958,17 @@ describe('useServerStore', () => {
 
           let trialMessage = '';
           if (store.trialExtensionEligibleInsideRenewalWindow) {
-            trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>Your trial is expiring soon. When it expires, <strong>the array will stop</strong>. You may extend your trial now, purchase a license key, or wait until expiration to take action.</p>';
+            trialMessage =
+              '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>Your trial is expiring soon. When it expires, <strong>the array will stop</strong>. You may extend your trial now, purchase a license key, or wait until expiration to take action.</p>';
           } else if (store.trialExtensionIneligibleInsideRenewalWindow) {
-            trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>Your trial is expiring soon and you have used all available extensions. When it expires, <strong>the array will stop</strong>. To continue using Unraid OS, you must purchase a license key.</p>';
+            trialMessage =
+              '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>Your trial is expiring soon and you have used all available extensions. When it expires, <strong>the array will stop</strong>. To continue using Unraid OS, you must purchase a license key.</p>';
           } else if (store.trialExtensionEligibleOutsideRenewalWindow) {
-            trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>When your <em>Trial</em> expires, <strong>the array will stop</strong>. At that point you may either purchase a license key or request a <em>Trial</em> extension.</p>';
+            trialMessage =
+              '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>When your <em>Trial</em> expires, <strong>the array will stop</strong>. At that point you may either purchase a license key or request a <em>Trial</em> extension.</p>';
           } else {
-            trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>You have used all available trial extensions. When your <em>Trial</em> expires, <strong>the array will stop</strong>. To continue using Unraid OS after expiration, you must purchase a license key.</p>';
+            trialMessage =
+              '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>You have used all available trial extensions. When your <em>Trial</em> expires, <strong>the array will stop</strong>. To continue using Unraid OS after expiration, you must purchase a license key.</p>';
           }
 
           return {
@@ -979,8 +995,12 @@ describe('useServerStore', () => {
         regGen: 2,
         expireTime: dayjs().add(3, 'day').unix() * 1000,
       });
-      expect(store.stateData.message).toContain('Your trial is expiring soon and you have used all available extensions');
-      expect(store.stateData.message).toContain('To continue using Unraid OS, you must purchase a license key');
+      expect(store.stateData.message).toContain(
+        'Your trial is expiring soon and you have used all available extensions'
+      );
+      expect(store.stateData.message).toContain(
+        'To continue using Unraid OS, you must purchase a license key'
+      );
 
       // Test case 3: Eligible outside renewal window
       store.setServer({
@@ -988,7 +1008,9 @@ describe('useServerStore', () => {
         regGen: 0,
         expireTime: dayjs().add(10, 'day').unix() * 1000,
       });
-      expect(store.stateData.message).toContain('At that point you may either purchase a license key or request a <em>Trial</em> extension');
+      expect(store.stateData.message).toContain(
+        'At that point you may either purchase a license key or request a <em>Trial</em> extension'
+      );
 
       // Test case 4: Ineligible outside renewal window
       store.setServer({
@@ -997,7 +1019,9 @@ describe('useServerStore', () => {
         expireTime: dayjs().add(10, 'day').unix() * 1000,
       });
       expect(store.stateData.message).toContain('You have used all available trial extensions');
-      expect(store.stateData.message).toContain('To continue using Unraid OS after expiration, you must purchase a license key');
+      expect(store.stateData.message).toContain(
+        'To continue using Unraid OS after expiration, you must purchase a license key'
+      );
     });
 
     it('should include trial extend action only when eligible inside renewal window', () => {
@@ -1060,7 +1084,9 @@ describe('useServerStore', () => {
         registered: true,
         connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
       });
-      expect(store.stateData.actions?.some((action: { name: string }) => action.name === 'trialExtend')).toBe(true);
+      expect(
+        store.stateData.actions?.some((action: { name: string }) => action.name === 'trialExtend')
+      ).toBe(true);
 
       // Test case 2: Not eligible inside renewal window - should NOT include trialExtend action
       store.setServer({
@@ -1070,7 +1096,9 @@ describe('useServerStore', () => {
         registered: true,
         connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
       });
-      expect(store.stateData.actions?.some((action: { name: string }) => action.name === 'trialExtend')).toBe(false);
+      expect(
+        store.stateData.actions?.some((action: { name: string }) => action.name === 'trialExtend')
+      ).toBe(false);
 
       // Test case 3: Eligible outside renewal window - should NOT include trialExtend action
       store.setServer({
@@ -1080,7 +1108,9 @@ describe('useServerStore', () => {
         registered: true,
         connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
       });
-      expect(store.stateData.actions?.some((action: { name: string }) => action.name === 'trialExtend')).toBe(false);
+      expect(
+        store.stateData.actions?.some((action: { name: string }) => action.name === 'trialExtend')
+      ).toBe(false);
     });
   });
 });

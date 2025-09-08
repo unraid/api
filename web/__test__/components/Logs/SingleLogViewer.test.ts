@@ -1,14 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mount, flushPromises } from '@vue/test-utils';
 import { nextTick } from 'vue';
-import DOMPurify from 'isomorphic-dompurify';
-import { AnsiUp } from 'ansi_up';
 import { useQuery } from '@vue/apollo-composable';
+import { flushPromises, mount } from '@vue/test-utils';
+
+import { AnsiUp } from 'ansi_up';
+import DOMPurify from 'isomorphic-dompurify';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import SingleLogViewer from '~/components/Logs/SingleLogViewer.vue';
-import { 
-  createMockUseQuery, 
-  createMockLogFileQuery
-} from '../../helpers/apollo-mocks';
+import { createMockLogFileQuery, createMockUseQuery } from '../../helpers/apollo-mocks';
 
 // Mock the UI components
 vi.mock('@unraid/ui', () => ({
@@ -16,24 +15,24 @@ vi.mock('@unraid/ui', () => ({
   Tooltip: { template: '<div><slot /></div>' },
   TooltipContent: { template: '<div><slot /></div>' },
   TooltipProvider: { template: '<div><slot /></div>' },
-  TooltipTrigger: { template: '<div><slot /></div>' }
+  TooltipTrigger: { template: '<div><slot /></div>' },
 }));
 
 // Mock the GraphQL query
 vi.mock('@vue/apollo-composable', () => ({
   useApolloClient: vi.fn(() => ({
     client: {
-      query: vi.fn()
-    }
+      query: vi.fn(),
+    },
   })),
-  useQuery: vi.fn()
+  useQuery: vi.fn(),
 }));
 
 // Mock the theme store
 vi.mock('~/store/theme', () => ({
   useThemeStore: vi.fn(() => ({
-    darkMode: false
-  }))
+    darkMode: false,
+  })),
 }));
 
 describe('SingleLogViewer - ANSI Color Support', () => {
@@ -52,48 +51,48 @@ describe('SingleLogViewer - ANSI Color Support', () => {
         {
           input: '\x1b[31mRed text\x1b[0m',
           expected: '<span class="ansi-red-fg">Red text</span>',
-          description: 'red foreground'
+          description: 'red foreground',
         },
         {
           input: '\x1b[32mGreen text\x1b[0m',
           expected: '<span class="ansi-green-fg">Green text</span>',
-          description: 'green foreground'
+          description: 'green foreground',
         },
         {
           input: '\x1b[33mYellow text\x1b[0m',
           expected: '<span class="ansi-yellow-fg">Yellow text</span>',
-          description: 'yellow foreground'
+          description: 'yellow foreground',
         },
         {
           input: '\x1b[34mBlue text\x1b[0m',
           expected: '<span class="ansi-blue-fg">Blue text</span>',
-          description: 'blue foreground'
+          description: 'blue foreground',
         },
         {
           input: '\x1b[91mBright red\x1b[0m',
           expected: '<span class="ansi-bright-red-fg">Bright red</span>',
-          description: 'bright red foreground'
+          description: 'bright red foreground',
         },
         {
           input: '\x1b[41mRed background\x1b[0m',
           expected: '<span class="ansi-red-bg">Red background</span>',
-          description: 'red background'
+          description: 'red background',
         },
         {
           input: '\x1b[1mBold text\x1b[0m',
           expected: '<span style="font-weight:bold">Bold text</span>',
-          description: 'bold text (ansi_up uses inline style for bold)'
+          description: 'bold text (ansi_up uses inline style for bold)',
         },
         {
           input: '\x1b[3mItalic text\x1b[0m',
           expected: '<span style="font-style:italic">Italic text</span>',
-          description: 'italic text (ansi_up uses inline style for italic)'
+          description: 'italic text (ansi_up uses inline style for italic)',
         },
         {
           input: '\x1b[4mUnderlined text\x1b[0m',
           expected: '<span style="text-decoration:underline">Underlined text</span>',
-          description: 'underlined text (ansi_up uses inline style for underline)'
-        }
+          description: 'underlined text (ansi_up uses inline style for underline)',
+        },
       ];
 
       testCases.forEach(({ input, expected, description }) => {
@@ -104,7 +103,8 @@ describe('SingleLogViewer - ANSI Color Support', () => {
 
     it('should handle multiple ANSI codes in one string', () => {
       const input = '\x1b[31mRed\x1b[0m \x1b[32mGreen\x1b[0m \x1b[34mBlue\x1b[0m';
-      const expected = '<span class="ansi-red-fg">Red</span> <span class="ansi-green-fg">Green</span> <span class="ansi-blue-fg">Blue</span>';
+      const expected =
+        '<span class="ansi-red-fg">Red</span> <span class="ansi-green-fg">Green</span> <span class="ansi-blue-fg">Blue</span>';
       const result = ansiConverter.ansi_to_html(input);
       expect(result).toBe(expected);
     });
@@ -118,10 +118,10 @@ describe('SingleLogViewer - ANSI Color Support', () => {
     });
 
     it('should escape HTML entities for security', () => {
-      const input = '\x1b[31m<script>alert("XSS")</script>\x1b[0m';
+      const input = '\x1b[31m<img src=x onerror=alert(1)>\x1b[0m';
       const result = ansiConverter.ansi_to_html(input);
-      expect(result).not.toContain('<script>');
-      expect(result).toContain('&lt;script&gt;');
+      expect(result).not.toContain('<img');
+      expect(result).toContain('&lt;img');
     });
   });
 
@@ -130,7 +130,7 @@ describe('SingleLogViewer - ANSI Color Support', () => {
       const htmlWithClasses = '<span class="ansi-red-fg">Red text</span>';
       const sanitized = DOMPurify.sanitize(htmlWithClasses, {
         ALLOWED_TAGS: ['span', 'br'],
-        ALLOWED_ATTR: ['class']
+        ALLOWED_ATTR: ['class'],
       });
       expect(sanitized).toBe(htmlWithClasses);
     });
@@ -139,16 +139,16 @@ describe('SingleLogViewer - ANSI Color Support', () => {
       const htmlWithStyles = '<span style="color: red;">Red text</span>';
       const sanitized = DOMPurify.sanitize(htmlWithStyles, {
         ALLOWED_TAGS: ['span', 'br'],
-        ALLOWED_ATTR: ['class']  // Note: 'style' is not allowed
+        ALLOWED_ATTR: ['class'], // Note: 'style' is not allowed
       });
       expect(sanitized).toBe('<span>Red text</span>');
     });
 
     it('should remove dangerous tags while preserving safe content', () => {
-      const dangerous = '<span class="ansi-red-fg">Safe</span><script>alert("XSS")</script>';
+      const dangerous = '<span class="ansi-red-fg">Safe</span><img src="x" onerror="alert(1)">';
       const sanitized = DOMPurify.sanitize(dangerous, {
         ALLOWED_TAGS: ['span', 'br'],
-        ALLOWED_ATTR: ['class']
+        ALLOWED_ATTR: ['class'],
       });
       expect(sanitized).toBe('<span class="ansi-red-fg">Safe</span>');
     });
@@ -157,7 +157,7 @@ describe('SingleLogViewer - ANSI Color Support', () => {
       const complex = '<span class="ansi-bold"><span class="ansi-red-fg">Bold Red</span></span>';
       const sanitized = DOMPurify.sanitize(complex, {
         ALLOWED_TAGS: ['span', 'br'],
-        ALLOWED_ATTR: ['class']
+        ALLOWED_ATTR: ['class'],
       });
       expect(sanitized).toBe(complex);
     });
@@ -168,12 +168,12 @@ describe('SingleLogViewer - ANSI Color Support', () => {
       // Mock useQuery to return empty data for this test
       // @ts-expect-error Mock implementation for testing
       vi.mocked(useQuery).mockReturnValue(createMockUseQuery());
-      
+
       const wrapper = mount(SingleLogViewer, {
         props: {
           logFilePath: '/test/log.txt',
           lineCount: 100,
-          autoScroll: false
+          autoScroll: false,
         },
         global: {
           stubs: {
@@ -181,17 +181,17 @@ describe('SingleLogViewer - ANSI Color Support', () => {
             Tooltip: true,
             TooltipContent: true,
             TooltipProvider: true,
-            TooltipTrigger: true
-          }
-        }
+            TooltipTrigger: true,
+          },
+        },
       });
 
       // Wait for component to mount
       await nextTick();
-      
+
       // Check that the component mounts without errors
       expect(wrapper.exists()).toBe(true);
-      
+
       wrapper.unmount();
     });
   });
@@ -206,7 +206,7 @@ describe('SingleLogViewer - ANSI Color Support', () => {
       // Create mock data
       const content = '\x1b[31m[ERROR]\x1b[0m Failed to connect\n\x1b[32m[SUCCESS]\x1b[0m Connected';
       const mockQuery = createMockLogFileQuery(content, 2, 1);
-      
+
       // Mock useQuery to return our data
       // @ts-expect-error Mock implementation for testing
       vi.mocked(useQuery).mockReturnValue(mockQuery);
@@ -215,13 +215,13 @@ describe('SingleLogViewer - ANSI Color Support', () => {
         props: {
           logFilePath: '/test/log.txt',
           lineCount: 100,
-          autoScroll: false
-        }
+          autoScroll: false,
+        },
       });
 
       // Wait for the component to mount and process initial data
       await wrapper.vm.$nextTick();
-      
+
       // Trigger the watcher by modifying the result
       // @ts-expect-error Accessing mock properties
       if (mockQuery.result.value) {
@@ -229,21 +229,21 @@ describe('SingleLogViewer - ANSI Color Support', () => {
         mockQuery.result.value = {
           logFile: {
             content,
-            totalLines: 2, 
-            startLine: 1
-          }
+            totalLines: 2,
+            startLine: 1,
+          },
         };
       }
-      
+
       // Wait for watchers to process
       await wrapper.vm.$nextTick();
       await flushPromises();
       await wrapper.vm.$nextTick();
-      
+
       // Get the pre element that contains the log content
       const preElement = wrapper.find('pre.hljs');
       expect(preElement.exists()).toBe(true);
-      
+
       // Check that the rendered HTML contains the CSS classes
       const html = preElement.html();
       if (!html.includes('ansi-red-fg')) {
@@ -254,7 +254,7 @@ describe('SingleLogViewer - ANSI Color Support', () => {
       expect(html).toContain('[ERROR]');
       expect(html).toContain('ansi-green-fg');
       expect(html).toContain('[SUCCESS]');
-      
+
       wrapper.unmount();
     });
 
@@ -268,13 +268,13 @@ describe('SingleLogViewer - ANSI Color Support', () => {
         props: {
           logFilePath: '/test/log.txt',
           lineCount: 100,
-          autoScroll: false
-        }
+          autoScroll: false,
+        },
       });
 
       // Wait for mount and trigger the watcher
       await wrapper.vm.$nextTick();
-      
+
       // @ts-expect-error Accessing mock properties
       if (mockQuery.result.value) {
         // @ts-expect-error Modifying mock properties
@@ -282,30 +282,31 @@ describe('SingleLogViewer - ANSI Color Support', () => {
           logFile: {
             content,
             totalLines: 1,
-            startLine: 1
-          }
+            startLine: 1,
+          },
         };
       }
-      
+
       // Wait for processing
       await wrapper.vm.$nextTick();
       await flushPromises();
       await wrapper.vm.$nextTick();
-      
+
       const preElement = wrapper.find('pre.hljs');
       expect(preElement.exists()).toBe(true);
-      
+
       const html = preElement.html();
       expect(html).toContain('Plain text');
       expect(html).toContain('ansi-yellow-fg');
       expect(html).toContain('Warning');
       expect(html).toContain('more plain text');
-      
+
       wrapper.unmount();
     });
 
     it('should apply client-side filtering while preserving ANSI colors', async () => {
-      const content = '\x1b[31m[ERROR]\x1b[0m Connection failed\n\x1b[32m[INFO]\x1b[0m Connected\n\x1b[31m[ERROR]\x1b[0m Timeout';
+      const content =
+        '\x1b[31m[ERROR]\x1b[0m Connection failed\n\x1b[32m[INFO]\x1b[0m Connected\n\x1b[31m[ERROR]\x1b[0m Timeout';
       const mockQuery = createMockLogFileQuery(content, 3, 1);
       // @ts-expect-error Mock implementation for testing
       vi.mocked(useQuery).mockReturnValue(mockQuery);
@@ -315,13 +316,13 @@ describe('SingleLogViewer - ANSI Color Support', () => {
           logFilePath: '/test/log.txt',
           lineCount: 100,
           autoScroll: false,
-          clientFilter: 'ERROR'
-        }
+          clientFilter: 'ERROR',
+        },
       });
 
       // Wait for mount and trigger the watcher
       await wrapper.vm.$nextTick();
-      
+
       // @ts-expect-error Accessing mock properties
       if (mockQuery.result.value) {
         // @ts-expect-error Modifying mock properties
@@ -329,19 +330,19 @@ describe('SingleLogViewer - ANSI Color Support', () => {
           logFile: {
             content,
             totalLines: 3,
-            startLine: 1
-          }
+            startLine: 1,
+          },
         };
       }
-      
+
       // Wait for processing
       await wrapper.vm.$nextTick();
       await flushPromises();
       await wrapper.vm.$nextTick();
-      
+
       const preElement = wrapper.find('pre.hljs');
       expect(preElement.exists()).toBe(true);
-      
+
       const html = preElement.html();
       // Should contain ERROR lines with red color
       expect(html).toContain('ansi-red-fg');
@@ -349,7 +350,7 @@ describe('SingleLogViewer - ANSI Color Support', () => {
       // Should not contain INFO line (due to filter)
       expect(html).not.toContain('INFO');
       expect(html).not.toContain('ansi-green-fg');
-      
+
       wrapper.unmount();
     });
   });
@@ -367,7 +368,7 @@ describe('SingleLogViewer - ANSI Color Support', () => {
         .join('\n');
 
       const result = ansiConverter.ansi_to_html(largeInput);
-      
+
       // Should contain the expected number of color spans
       const colorMatches = result.match(/class="ansi-/g);
       expect(colorMatches).toHaveLength(lines);
@@ -382,9 +383,9 @@ describe('SingleLogViewer - ANSI Color Support', () => {
 
       const sanitized = DOMPurify.sanitize(largeHtml, {
         ALLOWED_TAGS: ['span', 'br'],
-        ALLOWED_ATTR: ['class']
+        ALLOWED_ATTR: ['class'],
       });
-      
+
       // Should preserve all spans
       const spanMatches = sanitized.match(/<span/g);
       expect(spanMatches).toHaveLength(lines);
