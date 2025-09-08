@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import type { Systeminformation } from 'systeminformation';
 import { execa } from 'execa';
 import { blockDevices, diskLayout } from 'systeminformation';
 
+import { ArrayDisk } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import {
     Disk,
     DiskFsType,
@@ -14,6 +16,7 @@ import { batchProcess } from '@app/utils.js';
 
 @Injectable()
 export class DisksService {
+    constructor(private readonly configService: ConfigService) {}
     public async getTemperature(device: string): Promise<number | null> {
         try {
             const { stdout } = await execa('smartctl', ['-A', device]);
@@ -51,7 +54,8 @@ export class DisksService {
 
     private async parseDisk(
         disk: Systeminformation.DiskLayoutData,
-        partitionsToParse: Systeminformation.BlockDevicesData[]
+        partitionsToParse: Systeminformation.BlockDevicesData[],
+        arrayDisks: ArrayDisk[]
     ): Promise<Omit<Disk, 'temperature'>> {
         const partitions = partitionsToParse
             // Only get partitions from this disk
@@ -115,6 +119,8 @@ export class DisksService {
                 mappedInterfaceType = DiskInterfaceType.UNKNOWN;
         }
 
+        const arrayDisk = arrayDisks.find((d) => d.id.trim() === disk.serialNum.trim());
+
         return {
             ...disk,
             id: disk.serialNum, // Ensure id is set
@@ -123,6 +129,7 @@ export class DisksService {
                 DiskSmartStatus.UNKNOWN,
             interfaceType: mappedInterfaceType,
             partitions,
+            isSpinning: arrayDisk?.isSpinning ?? false,
         };
     }
 
@@ -133,9 +140,9 @@ export class DisksService {
         const partitions = await blockDevices().then((devices) =>
             devices.filter((device) => device.type === 'part')
         );
-
+        const arrayDisks = this.configService.get<ArrayDisk[]>('store.emhttp.disks', []);
         const { data } = await batchProcess(await diskLayout(), async (disk) =>
-            this.parseDisk(disk, partitions)
+            this.parseDisk(disk, partitions, arrayDisks)
         );
         return data;
     }
