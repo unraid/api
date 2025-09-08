@@ -1,8 +1,9 @@
 /* 
  * Tailwind v4 configuration with Nuxt UI v3
+ * Using scoped selectors to prevent breaking Unraid WebGUI
  */
 
-/* Import Tailwind CSS and Nuxt UI as per v3 documentation */
+/* Import all dependencies at root level */
 @import "tailwindcss";
 @import "@nuxt/ui";
 @import 'tw-animate-css';
@@ -13,16 +14,26 @@
 @source "../../../unraid-ui/src/**/*.{vue,ts,js,tsx,jsx}";
 
 /* 
- * Minimal styles for our components
- * Using @layer to ensure these have lower priority than Tailwind utilities
+ * Override Tailwind's global resets to only apply within .unapi
+ * We use high-specificity selectors to counteract Tailwind's global styles
  */
 
 @layer base {
-  /* Box-sizing for proper layout */
+  /* Neutralize Tailwind's global resets for non-.unapi elements */
+  body *:not(.unapi *) {
+    all: revert-layer;
+  }
+
+  /* Reapply Tailwind-like resets only within .unapi */
   .unapi *,
   .unapi *::before,
   .unapi *::after {
     box-sizing: border-box;
+    border-width: 0;
+    border-style: solid;
+    border-color: theme('borderColor.DEFAULT', currentColor);
+    margin: 0;
+    padding: 0;
   }
 
   /* Override Unraid's button styles for Nuxt UI components */
@@ -124,7 +135,7 @@
   }
 }
 
-/* Override link styles inside .unapi - outside of layer for higher specificity */
+/* Override link styles inside .unapi */
 .unapi a,
 .unapi a:link,
 .unapi a:visited {
@@ -138,3 +149,9 @@
   color: inherit;
 }
 
+/* Note: Tailwind utilities will apply globally but should be used with .unapi prefix in HTML */
+
+/* Style for Unraid progress frame */
+iframe#progressFrame {
+  background-color: var(--background-color);
+}
