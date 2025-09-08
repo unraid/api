@@ -11,6 +11,19 @@ import type { Subscription } from "rxjs";
 import { ConfigFileHandler } from "../util/config-file-handler.js";
 import { ConfigDefinition } from "../util/config-definition.js";
 
+export type ConfigSubscription = {
+  /**
+   * Called when the config changes.
+   * To prevent race conditions, a config is not provided to the callback.
+   */
+  next?: () => Promise<void>;
+
+  /**
+   * Called when an error occurs within the subscriber.
+   */
+  error?: (error: unknown) => Promise<void>;
+};
+
 /**
  * Abstract base class for persisting configuration objects to JSON files.
  *
@@ -44,7 +57,7 @@ export abstract class ConfigFilePersister<T extends object>
 
   /**
    * Creates a new ConfigFilePersister instance.
-   * 
+   *
    * @param configService The NestJS ConfigService instance for reactive config management
    */
   constructor(protected readonly configService: ConfigService) {
@@ -67,8 +80,17 @@ export abstract class ConfigFilePersister<T extends object>
   abstract configKey(): string;
 
   /**
+   * Support feature flagging or dynamic toggling of config persistence.
+   *
+   * @returns Whether the config is enabled. Defaults to true.
+   */
+  enabled(): boolean {
+    return true;
+  }
+
+  /**
    * Returns a `structuredClone` of the current config object.
-   * 
+   *
    * @param assertExists - Whether to throw an error if the config does not exist. Defaults to true.
    * @returns The current config object, or the default config if assertExists is false & no config exists
    */
@@ -90,7 +112,7 @@ export abstract class ConfigFilePersister<T extends object>
 
   /**
    * Replaces the current config with a new one. Will trigger a persistence attempt.
-   * 
+   *
    * @param config - The new config object
    */
   replaceConfig(config: T) {
@@ -101,7 +123,7 @@ export abstract class ConfigFilePersister<T extends object>
   /**
    * Returns the absolute path to the configuration file.
    * Combines `PATHS_CONFIG_MODULES` environment variable with the filename.
-   * 
+   *
    * @throws Error if `PATHS_CONFIG_MODULES` environment variable is not set
    */
   configPath(): string {
@@ -135,32 +157,26 @@ export abstract class ConfigFilePersister<T extends object>
     this.logger.verbose(`Config path: ${this.configPath()}`);
     await this.loadOrMigrateConfig();
 
-    this.configObserver = this.configService.changes$
-      .pipe(bufferTime(25))
-      .subscribe({
-        next: async (changes) => {
-          const configChanged = changes.some(({ path }) =>
-            path?.startsWith(this.configKey())
-          );
-          if (configChanged) {
-            await this.persist();
-          }
-        },
-        error: (err) => {
-          this.logger.error("Error receiving config changes:", err);
-        },
-      });
+    this.configObserver = this.subscribe({
+      next: async () => {
+        await this.persist();
+      },
+      error: async (err) => {
+        this.logger.error(err, "Error receiving config changes");
+      },
+    });
   }
 
   /**
    * Persists configuration to disk with change detection optimization.
-   * 
+   *
    * @param config - The config object to persist (defaults to current config from service)
    * @returns `true` if persisted to disk, `false` if skipped or failed
    */
   async persist(
     config = this.configService.get(this.configKey())
   ): Promise<boolean> {
+    if (!this.enabled()) return false;
     if (!config) {
       this.logger.warn(`Cannot persist undefined config`);
       return false;
@@ -169,9 +185,37 @@ export abstract class ConfigFilePersister<T extends object>
   }
 
   /**
+   * Subscribe to config changes. Changes are buffered for 25ms to prevent race conditions.
+   *
+   * When enabled() returns false, the `next` callback will not be called.
+   *
+   * @param subscription - The subscription to add
+   * @returns rxjs Subscription
+   */
+  subscribe(subscription: ConfigSubscription) {
+    return this.configService.changes$.pipe(bufferTime(25)).subscribe({
+      next: async (changes) => {
+        if (!subscription.next) return;
+        const configChanged = changes.some(({ path }) =>
+          path?.startsWith(this.configKey())
+        );
+        if (configChanged && this.enabled()) {
+          await subscription.next();
+        }
+      },
+      error: async (err) => {
+        if (subscription.error) {
+          await subscription.error(err);
+        }
+      },
+    });
+  }
+
+  /**
    * Load or migrate configuration and set it in ConfigService.
    */
   private async loadOrMigrateConfig() {
+    if (!this.enabled()) return;
     const config = await this.fileHandler.loadConfig();
     this.configService.set(this.configKey(), config);
     return this.persist(config);
