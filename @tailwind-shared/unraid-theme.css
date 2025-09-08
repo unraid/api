@@ -84,10 +84,10 @@
   --color-primary-900: #7c2d12;
   --color-primary-950: #431407;
 
-  /* Header colors */
-  --color-header-text-primary: #1c1c1c;
-  --color-header-text-secondary: #999999;
-  --color-header-background: #f2f2f2;
+  /* Header colors - defaults will be overridden by theme */
+  --color-header-text-primary: var(--header-text-primary, #1c1c1c);
+  --color-header-text-secondary: var(--header-text-secondary, #999999);
+  --color-header-background: var(--header-background-color, #f2f2f2);
 
   /* Legacy colors - defaults (overridden by theme-variants.css) */
   --color-alpha: #ff8c2f;
