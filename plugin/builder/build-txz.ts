@@ -10,32 +10,34 @@ import { cleanupTxzFiles } from "./utils/cleanup";
 import { apiDir } from "./utils/paths";
 import { getVendorBundleName, getVendorFullPath } from "./build-vendor-store";
 import { getAssetUrl } from "./utils/bucket-urls";
+import { validateStandaloneManifest, getStandaloneManifestPath } from "./utils/manifest-validator";
 
 
-// Recursively search for manifest files
+// Check for manifest files in expected locations
 const findManifestFiles = async (dir: string): Promise<string[]> => {
+  const files: string[] = [];
+  
+  // Check standalone subdirectory (preferred)
   try {
-    const entries = await readdir(dir, { withFileTypes: true });
-    const files: string[] = [];
-
+    const standaloneDir = join(dir, "standalone");
+    const entries = await readdir(standaloneDir, { withFileTypes: true });
     for (const entry of entries) {
-      const fullPath = join(dir, entry.name);
-      if (entry.isDirectory()) {
-        try {
-          files.push(...(await findManifestFiles(fullPath)));
-        } catch (error) {
-          // Log and continue if a subdirectory can't be read
-          console.warn(`Warning: Could not read directory ${fullPath}: ${error.message}`);
-        }
-      } else if (
-        entry.isFile() &&
-        entry.name === "standalone.manifest.json"
-      ) {
-        files.push(entry.name);
+      if (entry.isFile() && entry.name === "standalone.manifest.json") {
+        files.push("standalone/standalone.manifest.json");
       }
     }
-
-    return files;
+  } catch (error) {
+    // Directory doesn't exist, continue checking other locations
+  }
+  
+  // Check root directory for backwards compatibility
+  try {
+    const entries = await readdir(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isFile() && entry.name === "standalone.manifest.json") {
+        files.push("standalone.manifest.json");
+      }
+    }
   } catch (error) {
     if (error.code === 'ENOENT') {
       console.warn(`Directory does not exist: ${dir}`);
@@ -43,6 +45,8 @@ const findManifestFiles = async (dir: string): Promise<string[]> => {
     }
     throw error; // Re-throw other errors
   }
+  
+  return files;
 };
 
 // Function to store vendor archive information in a recoverable location
@@ -123,15 +127,40 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
   }
 
   const manifestFiles = await findManifestFiles(webcomponentDir);
-  const hasStandaloneManifest = manifestFiles.includes("standalone.manifest.json");
+  const hasStandaloneManifest = manifestFiles.some(file => 
+    file === "standalone.manifest.json" || file === "standalone/standalone.manifest.json"
+  );
 
   // Only require standalone.manifest.json for new standalone apps
   if (!hasStandaloneManifest) {
     console.log("Existing Manifest Files:", manifestFiles);
     throw new Error(
       `Webcomponents missing required file: standalone.manifest.json - ` +
-      `run 'pnpm build' in web to generate standalone.manifest.json`
+      `run 'pnpm build' in web to generate standalone.manifest.json in the standalone/ subdirectory`
     );
+  }
+  
+  // Validate the manifest contents
+  const manifestPath = getStandaloneManifestPath(webcomponentDir);
+  if (manifestPath) {
+    const validation = await validateStandaloneManifest(manifestPath);
+    
+    if (!validation.isValid) {
+      console.error("Standalone manifest validation failed:");
+      validation.errors.forEach(error => console.error(`  ❌ ${error}`));
+      if (validation.warnings.length > 0) {
+        console.warn("Warnings:");
+        validation.warnings.forEach(warning => console.warn(`  ⚠️  ${warning}`));
+      }
+      throw new Error("Standalone manifest validation failed. See errors above.");
+    }
+    
+    if (validation.warnings.length > 0) {
+      console.warn("Standalone manifest validation warnings:");
+      validation.warnings.forEach(warning => console.warn(`  ⚠️  ${warning}`));
+    }
+    
+    console.log("✅ Standalone manifest validation passed");
   }
 
   if (!existsSync(apiDir)) {

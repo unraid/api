@@ -27,10 +27,10 @@ CONTAINER_NAME="plugin-builder"
 
 # Create the directory if it doesn't exist
 # This is to prevent errors when mounting volumes in docker compose
-NUXT_COMPONENTS_DIR="../web/.nuxt/nuxt-custom-elements/dist/unraid-components"
-if [ ! -d "$NUXT_COMPONENTS_DIR" ]; then
-  echo "Creating directory $NUXT_COMPONENTS_DIR for Docker volume mount..."
-  mkdir -p "$NUXT_COMPONENTS_DIR"
+WEB_DIST_DIR="../web/dist"
+if [ ! -d "$WEB_DIST_DIR" ]; then
+  echo "Creating directory $WEB_DIST_DIR for Docker volume mount..."
+  mkdir -p "$WEB_DIST_DIR"
 fi
 
 # Stop any running plugin-builder container first

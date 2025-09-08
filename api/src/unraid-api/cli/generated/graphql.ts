@@ -448,20 +448,6 @@ export enum ConfigErrorState {
   WITHDRAWN = 'WITHDRAWN'
 }
 
-export type ConfigFile = {
-  __typename?: 'ConfigFile';
-  content: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  path: Scalars['String']['output'];
-  /** Human-readable file size (e.g., "1.5 KB", "2.3 MB") */
-  sizeReadable: Scalars['String']['output'];
-};
-
-export type ConfigFilesResponse = {
-  __typename?: 'ConfigFilesResponse';
-  files: Array<ConfigFile>;
-};
-
 export type Connect = Node & {
   __typename?: 'Connect';
   /** The status of dynamic remote access */
@@ -553,12 +539,16 @@ export type CoreVersions = {
 /** CPU load for a single core */
 export type CpuLoad = {
   __typename?: 'CpuLoad';
+  /** The percentage of time the CPU spent running virtual machines (guest). */
+  percentGuest: Scalars['Float']['output'];
   /** The percentage of time the CPU was idle. */
   percentIdle: Scalars['Float']['output'];
   /** The percentage of time the CPU spent servicing hardware interrupts. */
   percentIrq: Scalars['Float']['output'];
   /** The percentage of time the CPU spent on low-priority (niced) user space processes. */
   percentNice: Scalars['Float']['output'];
+  /** The percentage of CPU time stolen by the hypervisor. */
+  percentSteal: Scalars['Float']['output'];
   /** The percentage of time the CPU spent in kernel space. */
   percentSystem: Scalars['Float']['output'];
   /** The total CPU load on a single core, in percent. */
@@ -1645,7 +1635,6 @@ export type PublicPartnerInfo = {
 
 export type Query = {
   __typename?: 'Query';
-  allConfigFiles: ConfigFilesResponse;
   apiKey?: Maybe<ApiKey>;
   /** All possible permissions for API keys */
   apiKeyPossiblePermissions: Array<Permission>;
@@ -1655,7 +1644,6 @@ export type Query = {
   array: UnraidArray;
   cloud: Cloud;
   config: Config;
-  configFile?: Maybe<ConfigFile>;
   connect: Connect;
   customization?: Maybe<Customization>;
   disk: Disk;
@@ -1716,11 +1704,6 @@ export type Query = {
 
 export type QueryApiKeyArgs = {
   id: Scalars['PrefixedID']['input'];
-};
-
-
-export type QueryConfigFileArgs = {
-  name: Scalars['String']['input'];
 };
 
 

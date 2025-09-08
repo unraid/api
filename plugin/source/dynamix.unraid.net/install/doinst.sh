@@ -25,3 +25,9 @@ backup_file_if_exists usr/local/unraid-api/.env
 cp usr/local/unraid-api/.env.production usr/local/unraid-api/.env
 
 # auto-generated actions from makepkg:
+( cd usr/local/bin ; rm -rf corepack )
+( cd usr/local/bin ; ln -sf ../lib/node_modules/corepack/dist/corepack.js corepack )
+( cd usr/local/bin ; rm -rf npm )
+( cd usr/local/bin ; ln -sf ../lib/node_modules/npm/bin/npm-cli.js npm )
+( cd usr/local/bin ; rm -rf npx )
+( cd usr/local/bin ; ln -sf ../lib/node_modules/npm/bin/npx-cli.js npx )
