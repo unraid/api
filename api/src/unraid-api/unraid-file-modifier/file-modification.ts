@@ -5,7 +5,7 @@ import { access, readFile, unlink, writeFile } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 
 import { applyPatch, createPatch, parsePatch, reversePatch } from 'diff';
-import { coerce, compare, gte } from 'semver';
+import { coerce, compare, gte, lte } from 'semver';
 
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
 
@@ -259,29 +259,53 @@ export abstract class FileModification {
         return patch;
     }
 
-    protected async isUnraidVersionGreaterThanOrEqualTo(
-        version: string = '7.2.0', // Defaults to the version of Unraid that includes the API by default
+    private async compareUnraidVersion(
+        version: string,
+        compareFn: typeof gte | typeof lte,
         { includePrerelease = true }: { includePrerelease?: boolean } = {}
     ): Promise<boolean> {
         const unraidVersion = coerce(await getUnraidVersion(), { includePrerelease });
         const comparedVersion = coerce(version, { includePrerelease });
+
         if (!unraidVersion) {
             throw new Error(`Failed to compare Unraid version - missing unraid version`);
         }
         if (!comparedVersion) {
             throw new Error(`Failed to compare Unraid version - missing comparison version`);
         }
-        // If includePrerelease and base versions are equal, treat prerelease as greater
+
+        // Special handling for prerelease versions when base versions are equal
         if (includePrerelease) {
             const baseUnraid = `${unraidVersion.major}.${unraidVersion.minor}.${unraidVersion.patch}`;
             const baseCompared = `${comparedVersion.major}.${comparedVersion.minor}.${comparedVersion.patch}`;
+
             if (baseUnraid === baseCompared) {
-                // If unraidVersion has prerelease and comparedVersion does not, treat as greater
-                if (unraidVersion.prerelease.length && !comparedVersion.prerelease.length) {
-                    return true;
+                const unraidHasPrerelease = unraidVersion.prerelease.length > 0;
+                const comparedHasPrerelease = comparedVersion.prerelease.length > 0;
+
+                // If one has prerelease and the other doesn't, handle specially
+                if (unraidHasPrerelease && !comparedHasPrerelease) {
+                    // For gte: prerelease is considered greater than stable
+                    // For lte: prerelease is considered less than stable
+                    return compareFn === gte;
                 }
             }
         }
-        return gte(unraidVersion, comparedVersion);
+
+        return compareFn(unraidVersion, comparedVersion);
+    }
+
+    protected async isUnraidVersionGreaterThanOrEqualTo(
+        version: string = '7.2.0', // Defaults to the version of Unraid that includes the API by default
+        { includePrerelease = true }: { includePrerelease?: boolean } = {}
+    ): Promise<boolean> {
+        return this.compareUnraidVersion(version, gte, { includePrerelease });
+    }
+
+    protected async isUnraidVersionLessThanOrEqualTo(
+        version: string,
+        { includePrerelease = true }: { includePrerelease?: boolean } = {}
+    ): Promise<boolean> {
+        return this.compareUnraidVersion(version, lte, { includePrerelease });
     }
 }

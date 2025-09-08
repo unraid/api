@@ -2,7 +2,10 @@ import { readFile } from 'fs/promises';
 import { join } from 'node:path';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
-import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
+import {
+    FileModification,
+    ShouldApplyWithReason,
+} from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
 export default class AuthRequestModification extends FileModification {
     public filePath: string = '/usr/local/emhttp/auth-request.php' as const;
@@ -28,6 +31,30 @@ export default class AuthRequestModification extends FileModification {
      */
     protected async getPregeneratedPatch(): Promise<string | null> {
         return null;
+    }
+
+    /**
+     * Check if this modification should be applied based on Unraid version
+     * Only apply for Unraid versions up to 7.2.0-beta.2.3
+     */
+    async shouldApply(): Promise<ShouldApplyWithReason> {
+        // Apply for versions up to and including 7.2.0-beta.2.3
+        const maxVersion = '7.2.0-beta.2.3';
+        const isCompatibleVersion = await this.isUnraidVersionLessThanOrEqualTo(maxVersion, {
+            includePrerelease: true,
+        });
+
+        if (!isCompatibleVersion) {
+            return {
+                shouldApply: false,
+                reason: `Auth request modification only applies to Unraid versions up to ${maxVersion}`,
+            };
+        }
+
+        return {
+            shouldApply: true,
+            reason: `Auth request modification needed for Unraid version <= ${maxVersion}`,
+        };
     }
 
     /**
