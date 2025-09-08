@@ -29,9 +29,7 @@ const findManifestFiles = async (dir: string): Promise<string[]> => {
         }
       } else if (
         entry.isFile() &&
-        (entry.name === "manifest.json" || 
-         entry.name === "ui.manifest.json" || 
-         entry.name === "standalone.manifest.json")
+        entry.name === "standalone.manifest.json"
       ) {
         files.push(entry.name);
       }
@@ -125,22 +123,14 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
   }
 
   const manifestFiles = await findManifestFiles(webcomponentDir);
-  const hasManifest = manifestFiles.includes("manifest.json");
   const hasStandaloneManifest = manifestFiles.includes("standalone.manifest.json");
-  const hasUiManifest = manifestFiles.includes("ui.manifest.json");
 
-  // Accept either manifest.json (old web components) or standalone.manifest.json (new standalone apps)
-  if ((!hasManifest && !hasStandaloneManifest) || !hasUiManifest) {
+  // Only require standalone.manifest.json for new standalone apps
+  if (!hasStandaloneManifest) {
     console.log("Existing Manifest Files:", manifestFiles);
-    const missingFiles: string[] = [];
-    if (!hasManifest && !hasStandaloneManifest) missingFiles.push("manifest.json or standalone.manifest.json");
-    if (!hasUiManifest) missingFiles.push("ui.manifest.json");
-    
     throw new Error(
-      `Webcomponents missing required file(s): ${missingFiles.join(", ")} - ` +
-      `${!hasUiManifest ? "run 'pnpm build:wc' in unraid-ui for ui.manifest.json" : ""}` +
-      `${(!hasManifest && !hasStandaloneManifest) && !hasUiManifest ? " and " : ""}` +
-      `${(!hasManifest && !hasStandaloneManifest) ? "run 'pnpm build' in web for standalone.manifest.json" : ""}`
+      `Webcomponents missing required file: standalone.manifest.json - ` +
+      `run 'pnpm build' in web to generate standalone.manifest.json`
     );
   }
 
