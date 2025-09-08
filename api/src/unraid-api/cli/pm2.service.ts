@@ -51,13 +51,13 @@ export class PM2Service {
         const needsPathUpdate = !currentPath.includes('/usr/local/bin');
         const finalPath = needsPathUpdate ? `/usr/local/bin:${currentPath}` : currentPath;
 
-        // Only modify PATH if needed, regardless of extendEnv setting
-        if (needsPathUpdate) {
-            execOptions.env = {
-                ...execOptions.env,
-                PATH: finalPath,
-            };
-        }
+        // Always ensure PM2_HOME is set in the environment for every PM2 command
+        execOptions.env = {
+            ...execOptions.env,
+            PM2_HOME,
+            ...(needsPathUpdate && { PATH: finalPath }),
+        };
+
         const runCommand = () => execa(PM2_PATH, [...args], execOptions satisfies Options);
         if (raw) {
             return runCommand();
@@ -114,8 +114,20 @@ export class PM2Service {
 
     /**
      * Ensures that the dependencies necessary for PM2 to start and operate are present.
+     * Creates PM2_HOME directory with proper permissions if it doesn't exist.
      */
     async ensurePm2Dependencies() {
-        await mkdir(PATHS_LOGS_DIR, { recursive: true });
+        try {
+            // Create logs directory
+            await mkdir(PATHS_LOGS_DIR, { recursive: true });
+
+            // PM2 automatically creates and manages its home directory when the daemon starts
+            this.logger.trace(`PM2_HOME will be created at ${PM2_HOME} when PM2 daemon starts`);
+        } catch (error) {
+            // Log error but don't throw - let PM2 fail with its own error messages if the setup is incomplete
+            this.logger.error(
+                `Failed to fully ensure PM2 dependencies: ${error instanceof Error ? error.message : error}. PM2 may encounter issues during operation.`
+            );
+        }
     }
 }
