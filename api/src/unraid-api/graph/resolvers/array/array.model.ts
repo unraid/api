@@ -126,6 +126,9 @@ export class ArrayDisk extends Node {
 
     @Field(() => ArrayDiskFsColor, { nullable: true })
     color?: ArrayDiskFsColor | null;
+
+    @Field(() => Boolean, { nullable: true, description: 'Whether the disk is currently spinning' })
+    isSpinning?: boolean | null;
 }
 
 @ObjectType({

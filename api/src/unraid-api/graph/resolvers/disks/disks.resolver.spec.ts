@@ -66,6 +66,7 @@ describe('DisksResolver', () => {
                     smartStatus: DiskSmartStatus.OK,
                     temperature: -1,
                     partitions: [],
+                    isSpinning: false,
                 },
             ];
             mockDisksService.getDisks.mockResolvedValue(mockResult);
@@ -92,6 +93,7 @@ describe('DisksResolver', () => {
             const mockDisk: Disk = {
                 id: 'SERIAL123',
                 device: '/dev/sda',
+                isSpinning: false,
                 type: 'SSD',
                 name: 'Samsung SSD 860 EVO 1TB',
                 vendor: 'Samsung',
