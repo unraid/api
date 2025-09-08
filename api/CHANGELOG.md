@@ -1,5 +1,22 @@
 # Changelog
 
+## [4.20.0](https://github.com/unraid/api/compare/v4.19.1...v4.20.0) (2025-09-08)
+
+
+### Features
+
+* **disks:** add isSpinning field to Disk type ([#1527](https://github.com/unraid/api/issues/1527)) ([193be3d](https://github.com/unraid/api/commit/193be3df3672514be9904e3d4fbdff776470afc0))
+
+
+### Bug Fixes
+
+* better component loading to prevent per-page strange behavior ([095c222](https://github.com/unraid/api/commit/095c2221c94f144f8ad410a69362b15803765531))
+* **deps:** pin dependencies ([#1669](https://github.com/unraid/api/issues/1669)) ([413db4b](https://github.com/unraid/api/commit/413db4bd30a06aa69d3ca86e793782854f822589))
+* **plugin:** add fallback for unraid-api stop in deprecation cleanup ([#1668](https://github.com/unraid/api/issues/1668)) ([797bf50](https://github.com/unraid/api/commit/797bf50ec702ebc8244ff71a8ef1a80ea5cd2169))
+* prepend 'v' to API version in workflow dispatch inputs ([f0cffbd](https://github.com/unraid/api/commit/f0cffbdc7ac36e7037ab60fe9dddbb2cab4a5e10))
+* progress frame background color fix ([#1672](https://github.com/unraid/api/issues/1672)) ([785f1f5](https://github.com/unraid/api/commit/785f1f5eb1a1cc8b41f6eb502e4092d149cfbd80))
+* properly override header values ([#1673](https://github.com/unraid/api/issues/1673)) ([aecf70f](https://github.com/unraid/api/commit/aecf70ffad60c83074347d3d6ec23f73acbd1aee))
+
 ## [4.19.1](https://github.com/unraid/api/compare/v4.19.0...v4.19.1) (2025-09-05)
 
 
