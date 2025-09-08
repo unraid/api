@@ -29,12 +29,13 @@ perform_connect_cleanup() {
   if [ -f "/boot/config/plugins/dynamix.my.servers/configs/connect.json" ] || [ -f "/boot/config/plugins/dynamix.my.servers/myservers.cfg" ]; then
     # Stop unraid-api
     printf "\nStopping unraid-api. Please wait...\n"
-    output=$(/etc/rc.d/rc.unraid-api stop --delete 2>&1)
-    if [ -z "$output" ]; then
-      echo "Waiting for unraid-api to stop..."
-      sleep 5  # Give it time to stop
+    if [ -f "/etc/rc.d/rc.unraid-api" ]; then
+      /etc/rc.d/rc.unraid-api stop 2>&1
+    elif command -v unraid-api >/dev/null 2>&1; then
+      unraid-api stop 2>&1
+    else
+      echo "⚠️ Warning: Neither /etc/rc.d/rc.unraid-api nor unraid-api command found"
     fi
-    echo "Stopped unraid-api: $output"
     
     # Sign out of Unraid Connect (we'll use curl directly from shell)
     # We need to extract the username from connect.json or myservers.cfg and the registration key
