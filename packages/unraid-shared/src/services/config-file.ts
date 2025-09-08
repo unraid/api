@@ -154,6 +154,7 @@ export abstract class ConfigFilePersister<T extends object>
    * Loads config from disk and sets up reactive change subscription.
    */
   async onModuleInit() {
+    if (!this.enabled()) return;
     this.logger.verbose(`Config path: ${this.configPath()}`);
     await this.loadOrMigrateConfig();
 
@@ -176,7 +177,10 @@ export abstract class ConfigFilePersister<T extends object>
   async persist(
     config = this.configService.get(this.configKey())
   ): Promise<boolean> {
-    if (!this.enabled()) return false;
+    if (!this.enabled()) {
+      this.logger.verbose(`Config is disabled, skipping persistence`);
+      return false;
+    }
     if (!config) {
       this.logger.warn(`Cannot persist undefined config`);
       return false;
