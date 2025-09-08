@@ -37,7 +37,7 @@ jobs:
           EOF
       - run: npm install html-escaper@2 xml2js
       - name: Update Plugin Changelog
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
