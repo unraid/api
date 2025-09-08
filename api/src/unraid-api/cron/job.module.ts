@@ -8,5 +8,6 @@ import { ScheduleModule } from '@nestjs/schedule';
  */
 @Module({
     imports: [ScheduleModule.forRoot()],
+    exports: [ScheduleModule],
 })
 export class JobModule {}
