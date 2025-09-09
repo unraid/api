@@ -106,14 +106,14 @@ onMounted(() => {
 
     <div class="relative z-10 flex h-full flex-row items-center justify-end gap-x-2">
       <div
-        class="text-header-text-primary relative flex flex-col-reverse items-center border-0 text-base md:flex-row md:items-center"
+        class="text-header-text-primary relative flex flex-col-reverse items-center border-0 text-base md:!flex-row md:!items-center"
       >
         <template v-if="description && theme?.descriptionShow">
           <span
-            class="hidden text-center text-base md:!inline-flex md:items-center md:text-right"
+            class="hidden text-center text-base md:!inline-flex md:!items-center md:!text-right"
             v-html="description"
           />
-          <span class="text-header-text-secondary hidden px-2 md:!inline-flex md:items-center"
+          <span class="text-header-text-secondary hidden px-2 md:!inline-flex md:!items-center"
             >&bull;</span
           >
         </template>

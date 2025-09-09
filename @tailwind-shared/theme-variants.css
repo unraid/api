@@ -75,18 +75,19 @@
 /* 
  * Dynamic color variables for user overrides from GraphQL
  * These are set via JavaScript and override the theme defaults
+ * Using :root with class for higher specificity to override theme classes
  */
-.has-custom-header-text {
+:root.has-custom-header-text {
   --header-text-primary: var(--custom-header-text-primary);
   --color-header-text-primary: var(--custom-header-text-primary);
 }
 
-.has-custom-header-meta {
+:root.has-custom-header-meta {
   --header-text-secondary: var(--custom-header-text-secondary);
   --color-header-text-secondary: var(--custom-header-text-secondary);
 }
 
-.has-custom-header-bg {
+:root.has-custom-header-bg {
   --header-background-color: var(--custom-header-background-color);
   --color-header-background: var(--custom-header-background-color);
   --header-gradient-start: var(--custom-header-gradient-start);
