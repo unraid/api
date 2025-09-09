@@ -416,6 +416,7 @@ jobs:
     name: Build and Deploy Production Plugin
     needs:
       - release-please
+      - build-api
     uses: ./.github/workflows/build-plugin.yml
     with:
       RELEASE_CREATED: true
