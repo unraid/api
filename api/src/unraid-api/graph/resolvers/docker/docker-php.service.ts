@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 
+import { z } from 'zod';
+
 import { phpLoader } from '@app/core/utils/plugins/php-loader.js';
 
 type StatusItem = { name: string; updateStatus: 0 | 1 | 2 | 3 };
@@ -22,14 +24,16 @@ type ExplicitStatusItem = {
  * These types reflect the structure of the /var/lib/docker/unraid-update-status.json file,
  * which is not controlled by the Unraid API.
  */
-export type CachedStatusEntry = {
+const CachedStatusEntrySchema = z.object({
     /** sha256 digest - "sha256:..." */
-    local: string;
+    local: z.string(),
     /** sha256 digest - "sha256:..." */
-    remote: string;
+    remote: z.string(),
     /** whether update is available (true), not available (false), or unknown (null) */
-    status: 'true' | 'false' | null;
-};
+    status: z.enum(['true', 'false']).nullable(),
+});
+const CachedStatusSchema = z.record(z.string(), CachedStatusEntrySchema);
+export type CachedStatusEntry = z.infer<typeof CachedStatusEntrySchema>;
 
 @Injectable()
 export class DockerPhpService {
@@ -42,28 +46,20 @@ export class DockerPhpService {
      * @param cacheFile
      * @returns
      */
-    async readCachedUpdateStatus(cacheFile = '/var/lib/docker/unraid-update-status.json') {
+    async readCachedUpdateStatus(
+        cacheFile = '/var/lib/docker/unraid-update-status.json'
+    ): Promise<Record<string, CachedStatusEntry>> {
         try {
             const cache = await readFile(cacheFile, 'utf8');
             const cacheData = JSON.parse(cache);
-            if (this.validateCacheData(cacheData)) return cacheData;
+            const { success, data } = CachedStatusSchema.safeParse(cacheData);
+            if (success) return data;
             this.logger.warn(cacheData, 'Invalid cached update status');
             return {};
         } catch (error) {
             this.logger.warn(error, 'Failed to read cached update status');
             return {};
         }
-    }
-
-    private validateCacheData(cacheData: unknown): cacheData is Record<string, CachedStatusEntry> {
-        return (
-            typeof cacheData === 'object' &&
-            cacheData !== null &&
-            Object.values(cacheData).every(
-                (entry) =>
-                    typeof entry === 'object' && entry !== null && 'local' in entry && 'remote' in entry
-            )
-        );
     }
 
     /**----------------------
