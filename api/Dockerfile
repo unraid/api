@@ -1,7 +1,7 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-FROM node:22.19.0-bookworm-slim AS development
+FROM node:22.18.0-bookworm-slim AS development
 
 # Install build tools and dependencies
 RUN apt-get update -y && apt-get install -y \
