@@ -5,8 +5,8 @@ import { CronExpression } from '@nestjs/schedule';
 import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
 import { validateCronExpression } from 'cron';
 
+import { FeatureFlags } from '@app/consts.js';
 import { AppError } from '@app/core/errors/app-error.js';
-import { ENABLE_NEXT_DOCKER_RELEASE } from '@app/environment.js';
 import { DockerConfig } from '@app/unraid-api/graph/resolvers/docker/docker-config.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 
@@ -17,7 +17,7 @@ export class DockerConfigService extends ConfigFilePersister<DockerConfig> {
     }
 
     enabled(): boolean {
-        return ENABLE_NEXT_DOCKER_RELEASE;
+        return FeatureFlags.ENABLE_NEXT_DOCKER_RELEASE;
     }
 
     configKey(): string {

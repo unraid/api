@@ -3,8 +3,8 @@ import { ConfigService } from '@nestjs/config';
 
 import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
 
+import { FeatureFlags } from '@app/consts.js';
 import { AppError } from '@app/core/errors/app-error.js';
-import { ENABLE_NEXT_DOCKER_RELEASE } from '@app/environment.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 import {
     DEFAULT_ORGANIZER_ROOT_ID,
@@ -20,7 +20,7 @@ export class DockerOrganizerConfigService extends ConfigFilePersister<OrganizerV
     }
 
     enabled(): boolean {
-        return ENABLE_NEXT_DOCKER_RELEASE;
+        return FeatureFlags.ENABLE_NEXT_DOCKER_RELEASE;
     }
 
     configKey(): string {
