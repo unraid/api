@@ -122,3 +122,26 @@ jobs:
           echo "PR URL remains: https://preview.dl.unraid.net/unraid-api/tag/PR${{ steps.pr_number.outputs.pr_number }}/dynamix.unraid.net.plg"
           echo "Redirects users to staging: https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.plg"
           echo "Users updating from this PR version will automatically switch to staging"
+
+      - name: Comment on PR about staging redirect
+        if: github.event_name == 'pull_request'
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          comment-tag: pr-closed-staging
+          mode: recreate
+          message: |
+            ## 🔄 PR Merged - Plugin Redirected to Staging
+            
+            This PR has been merged and the preview plugin has been updated to redirect to the staging version.
+            
+            **For users testing this PR:**
+            - Your plugin will automatically update to the staging version on the next update check
+            - The staging version includes all merged changes from this PR
+            - No manual intervention required
+            
+            **Staging URL:**
+            ```
+            https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.plg
+            ```
+            
+            Thank you for testing! 🚀
