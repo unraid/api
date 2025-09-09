@@ -1,59 +1,45 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { CronExpression } from '@nestjs/schedule';
 
 import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
+import { validateCronExpression } from 'cron';
 
+import { FeatureFlags } from '@app/consts.js';
 import { AppError } from '@app/core/errors/app-error.js';
+import { DockerConfig } from '@app/unraid-api/graph/resolvers/docker/docker-config.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
-import {
-    DEFAULT_ORGANIZER_ROOT_ID,
-    DEFAULT_ORGANIZER_VIEW_ID,
-} from '@app/unraid-api/organizer/organizer.js';
-import { OrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
-import { validateOrganizerIntegrity } from '@app/unraid-api/organizer/organizer.validation.js';
 
 @Injectable()
-export class DockerConfigService extends ConfigFilePersister<OrganizerV1> {
+export class DockerConfigService extends ConfigFilePersister<DockerConfig> {
     constructor(configService: ConfigService) {
         super(configService);
     }
 
+    enabled(): boolean {
+        return FeatureFlags.ENABLE_NEXT_DOCKER_RELEASE;
+    }
+
     configKey(): string {
-        return 'dockerOrganizer';
+        return 'docker';
     }
 
     fileName(): string {
-        return 'docker.organizer.json';
+        return 'docker.config.json';
     }
 
-    defaultConfig(): OrganizerV1 {
+    defaultConfig(): DockerConfig {
         return {
-            version: 1,
-            resources: {},
-            views: {
-                default: {
-                    id: DEFAULT_ORGANIZER_VIEW_ID,
-                    name: 'Default',
-                    root: DEFAULT_ORGANIZER_ROOT_ID,
-                    entries: {
-                        root: {
-                            type: 'folder',
-                            id: DEFAULT_ORGANIZER_ROOT_ID,
-                            name: 'Root',
-                            children: [],
-                        },
-                    },
-                },
-            },
+            updateCheckCronSchedule: CronExpression.EVERY_DAY_AT_6AM,
         };
     }
 
-    async validate(config: object): Promise<OrganizerV1> {
-        const organizer = await validateObject(OrganizerV1, config);
-        const { isValid, errors } = await validateOrganizerIntegrity(organizer);
-        if (!isValid) {
-            throw new AppError(`Docker organizer validation failed: ${JSON.stringify(errors, null, 2)}`);
+    async validate(config: object): Promise<DockerConfig> {
+        const dockerConfig = await validateObject(DockerConfig, config);
+        const cronExpression = validateCronExpression(dockerConfig.updateCheckCronSchedule);
+        if (!cronExpression.valid) {
+            throw new AppError(`Cron expression not supported: ${dockerConfig.updateCheckCronSchedule}`);
         }
-        return organizer;
+        return dockerConfig;
     }
 }
