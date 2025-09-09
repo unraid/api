@@ -46,11 +46,24 @@ export class DockerPhpService {
         try {
             const cache = await readFile(cacheFile, 'utf8');
             const cacheData = JSON.parse(cache);
-            return cacheData as Record<string, CachedStatusEntry>;
+            if (this.validateCacheData(cacheData)) return cacheData;
+            this.logger.warn(cacheData, 'Invalid cached update status');
+            return {};
         } catch (error) {
             this.logger.warn(error, 'Failed to read cached update status');
             return {};
         }
+    }
+
+    private validateCacheData(cacheData: unknown): cacheData is Record<string, CachedStatusEntry> {
+        return (
+            typeof cacheData === 'object' &&
+            cacheData !== null &&
+            Object.values(cacheData).every(
+                (entry) =>
+                    typeof entry === 'object' && entry !== null && 'local' in entry && 'remote' in entry
+            )
+        );
     }
 
     /**----------------------
