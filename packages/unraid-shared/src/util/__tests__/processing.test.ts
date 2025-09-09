@@ -291,21 +291,5 @@ describe('AsyncMutex', () => {
       expect(result).toBe('outer');
       expect(outerOp).toHaveBeenCalledTimes(1);
     });
-
-    it('should maintain type safety with generic operations', async () => {
-      const mutex = new AsyncMutex<string>();
-      
-      const stringOp = vi.fn().mockResolvedValue('string');
-      const numberOp = vi.fn().mockResolvedValue(42);
-      const booleanOp = vi.fn().mockResolvedValue(true);
-
-      const stringResult: string = await mutex.do(stringOp);
-      const numberResult: number = await mutex.do(numberOp);
-      const booleanResult: boolean = await mutex.do(booleanOp);
-
-      expect(stringResult).toBe('string');
-      expect(numberResult).toBe(42);
-      expect(booleanResult).toBe(true);
-    });
   });
 });

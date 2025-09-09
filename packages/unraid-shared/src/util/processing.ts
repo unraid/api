@@ -66,7 +66,7 @@ type AsyncOperation<T> = () => Promise<T>;
  * const data2 = await dataLoader.do(); // If first promise is finished, a new fetch is executed
  */
 export class AsyncMutex<T = unknown> {
-  private currentOperation: Promise<any> | null = null;
+  private currentOperation: Promise<T> | null = null;
   private defaultOperation?: AsyncOperation<T>;
 
   /**
@@ -98,12 +98,6 @@ export class AsyncMutex<T = unknown> {
   }
 
   /**
-   * Executes the default operation if one was provided in the constructor.
-   * @returns Promise that resolves with the result of the default operation
-   * @throws Error if no default operation was set in the constructor
-   */
-  do(): Promise<T>;
-  /**
    * Executes the provided operation, ensuring only one runs at a time.
    *
    * If an operation is already running, all subsequent calls will receive
@@ -126,19 +120,16 @@ export class AsyncMutex<T = unknown> {
    * await promise1;
    * const newPromise = mutex.do(() => fetch('/api/new')); // This will execute
    */
-  do<U>(operation: AsyncOperation<U>): Promise<U>;
-  do<U = T>(operation?: AsyncOperation<U>): Promise<U | T> {
-    if (!operation && !this.defaultOperation) {
+  do(operation?: AsyncOperation<T>): Promise<T> {
+    if (this.currentOperation) {
+      return this.currentOperation;
+    }
+    const op = operation ?? this.defaultOperation;
+    if (!op) {
       return Promise.reject(
         new Error("No operation provided and no default operation set")
       );
     }
-
-    if (this.currentOperation) {
-      return this.currentOperation;
-    }
-
-    const op = (operation || this.defaultOperation) as AsyncOperation<U | T>;
     const safeOp = () => {
       try {
         return op();
@@ -146,12 +137,12 @@ export class AsyncMutex<T = unknown> {
         return Promise.reject(error);
       }
     };
+
     const promise = safeOp().finally(() => {
       if (this.currentOperation === promise) {
         this.currentOperation = null;
       }
     });
-
     this.currentOperation = promise;
     return promise;
   }
