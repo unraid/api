@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.20.3](https://github.com/unraid/api/compare/v4.20.2...v4.20.3) (2025-09-09)
+
+
+### Bug Fixes
+
+* header background color issues fixed on 7.2 - thanks Nick! ([73c1100](https://github.com/unraid/api/commit/73c1100d0ba396fe4342f8ce7561017ab821e68b))
+
 ## [4.20.2](https://github.com/unraid/api/compare/v4.20.1...v4.20.2) (2025-09-09)
 
 
