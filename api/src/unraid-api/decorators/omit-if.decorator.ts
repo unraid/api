@@ -25,7 +25,7 @@ export const OMIT_IF_METADATA_KEY = 'omitIf';
 export function OmitIf(condition: boolean | (() => boolean)): MethodDecorator & PropertyDecorator {
     const shouldOmit = typeof condition === 'function' ? condition() : condition;
 
-    return (target: any, propertyKey?: string | symbol, descriptor?: PropertyDescriptor) => {
+    return (target: object, propertyKey?: string | symbol, descriptor?: PropertyDescriptor) => {
         if (shouldOmit) {
             SetMetadata(OMIT_IF_METADATA_KEY, true)(
                 target,
