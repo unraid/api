@@ -1,4 +1,9 @@
-name: Push Staging Plugin on PR Close
+name: Replace PR Plugin with Staging Redirect on Merge
+
+# This workflow runs when a PR is merged and replaces the PR-specific plugin 
+# with a redirect version that points to the main staging URL.
+# This ensures users who installed the PR version will automatically 
+# update to the staging version on their next update check.
 
 on:
   pull_request:
@@ -17,7 +22,7 @@ on:
         default: true
 
 jobs:
-  push-staging:
+  push-staging-redirect:
     if: (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || (github.event_name == 'workflow_dispatch' && inputs.pr_merged == true)
     runs-on: ubuntu-latest
     permissions:
@@ -45,11 +50,12 @@ jobs:
           name: unraid-plugin-.*
           path: connect-files
           pr: ${{ steps.pr_number.outputs.pr_number }}
+          workflow: main.yml
           workflow_conclusion: success
-          workflow_search: true
           search_artifacts: true
+          if_no_artifact_found: fail
 
-      - name: Update Downloaded Staging Plugin to New Date
+      - name: Update Downloaded Plugin to Redirect to Staging
         run: |
           # Find the .plg file in the downloaded artifact
           plgfile=$(find connect-files -name "*.plg" -type f | head -1)
@@ -60,23 +66,59 @@ jobs:
           fi
 
           echo "Found plugin file: $plgfile"
-          version=$(date +"%Y.%m.%d.%H%M")
-          sed -i -E "s#(<!ENTITY version \").*(\">)#\1${version}\2#g" "${plgfile}" || exit 1
+          
+          # Get current version and bump it with current timestamp
+          current_version=$(grep '<!ENTITY version' "${plgfile}" | sed -E 's/.*"(.*)".*/\1/')
+          echo "Current version: ${current_version}"
+          
+          # Create new version with current timestamp (ensures it's newer)
+          new_version=$(date +"%Y.%m.%d.%H%M")
+          echo "New redirect version: ${new_version}"
+          
+          # Update version to trigger update
+          sed -i -E "s#(<!ENTITY version \").*(\">)#\1${new_version}\2#g" "${plgfile}" || exit 1
                 
-          # Change the plugin url to point to staging
+          # Change the plugin url to point to staging - users will switch to staging on next update
           url="https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.plg"
           sed -i -E "s#(<!ENTITY plugin_url \").*?(\">)#\1${url}\2#g" "${plgfile}" || exit 1
-          cat "${plgfile}"
+          
+          echo "Modified plugin to redirect to: ${url}"
+          echo "Version bumped from ${current_version} to ${new_version}"
+          
           mkdir -p pr-release
           mv "${plgfile}" pr-release/dynamix.unraid.net.plg
 
-      - name: Upload to Cloudflare
-        uses: jakejarvis/s3-sync-action@v0.5.1
+      - name: Clean up old PR artifacts from Cloudflare
         env:
-          AWS_S3_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
-          AWS_S3_BUCKET: ${{ secrets.CF_BUCKET_PREVIEW }}
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
-          AWS_REGION: "auto"
-          SOURCE_DIR: pr-release
-          DEST_DIR: unraid-api/tag/PR${{ steps.pr_number.outputs.pr_number }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          # Delete all existing files in the PR directory first (txz, plg, etc.)
+          aws s3 rm s3://${{ secrets.CF_BUCKET_PREVIEW }}/unraid-api/tag/PR${{ steps.pr_number.outputs.pr_number }}/ \
+            --recursive \
+            --endpoint-url ${{ secrets.CF_ENDPOINT }}
+          
+          echo "✅ Cleaned up old PR artifacts"
+
+      - name: Upload PR Redirect Plugin to Cloudflare
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          # Upload only the redirect plugin file
+          aws s3 cp pr-release/dynamix.unraid.net.plg \
+            s3://${{ secrets.CF_BUCKET_PREVIEW }}/unraid-api/tag/PR${{ steps.pr_number.outputs.pr_number }}/dynamix.unraid.net.plg \
+            --endpoint-url ${{ secrets.CF_ENDPOINT }} \
+            --content-encoding none \
+            --acl public-read
+          
+          echo "✅ Uploaded redirect plugin"
+
+      - name: Output redirect information
+        run: |
+          echo "✅ PR plugin replaced with staging redirect version"
+          echo "PR URL remains: https://preview.dl.unraid.net/unraid-api/tag/PR${{ steps.pr_number.outputs.pr_number }}/dynamix.unraid.net.plg"
+          echo "Redirects users to staging: https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.plg"
+          echo "Users updating from this PR version will automatically switch to staging"
