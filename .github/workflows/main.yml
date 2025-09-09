@@ -11,24 +11,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  release-please:
-    name: Release Please
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        # Only run release-please on pushes to main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-      - id: release
-        uses: googleapis/release-please-action@v4
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    outputs:
-      releases_created: ${{ steps.release.outputs.releases_created || 'false' }}
-      tag_name: ${{ steps.release.outputs.tag_name || '' }}
   test-api:
     name: Test API
     defaults:
@@ -386,10 +368,32 @@ jobs:
           name: unraid-wc-rich
           path: web/dist
 
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    # Only run on pushes to main AND after tests pass
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - test-api
+      - build-api
+      - build-web
+      - build-unraid-ui-webcomponents
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - id: release
+        uses: googleapis/release-please-action@v4
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created || 'false' }}
+      tag_name: ${{ steps.release.outputs.tag_name || '' }}
+
   build-plugin-staging-pr:
     name: Build and Deploy Plugin
     needs:
-      - release-please
       - build-api
       - build-web
       - build-unraid-ui-webcomponents
@@ -412,10 +416,6 @@ jobs:
     name: Build and Deploy Production Plugin
     needs:
       - release-please
-      - build-api
-      - build-web
-      - build-unraid-ui-webcomponents
-      - test-api
     uses: ./.github/workflows/build-plugin.yml
     with:
       RELEASE_CREATED: true
