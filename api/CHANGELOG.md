@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.20.2](https://github.com/unraid/api/compare/v4.20.1...v4.20.2) (2025-09-09)
+
+
+### Bug Fixes
+
+* trigger deployment ([a27453f](https://github.com/unraid/api/commit/a27453fda81e4eeb07f257e60516bebbbc27cf7a))
+
 ## [4.20.1](https://github.com/unraid/api/compare/v4.20.0...v4.20.1) (2025-09-09)
 
 
