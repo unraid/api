@@ -1,4 +1,3 @@
-import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { describe, expect, it, vi } from 'vitest';

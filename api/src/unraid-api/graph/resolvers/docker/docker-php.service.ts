@@ -4,21 +4,12 @@ import { readFile } from 'fs/promises';
 import { z } from 'zod';
 
 import { phpLoader } from '@app/core/utils/plugins/php-loader.js';
+import {
+    ExplicitStatusItem,
+    UpdateStatus,
+} from '@app/unraid-api/graph/resolvers/docker/docker-update-status.model.js';
 
 type StatusItem = { name: string; updateStatus: 0 | 1 | 2 | 3 };
-
-/** Note that these values propogate down to api consumers, so be aware of breaking changes. */
-enum UpdateStatus {
-    UP_TO_DATE = 'UP_TO_DATE',
-    UPDATE_AVAILABLE = 'UPDATE_AVAILABLE',
-    REBUILD_READY = 'REBUILD_READY',
-    UNKNOWN = 'UNKNOWN',
-}
-
-type ExplicitStatusItem = {
-    name: string;
-    updateStatus: UpdateStatus;
-};
 
 /**
  * These types reflect the structure of the /var/lib/docker/unraid-update-status.json file,

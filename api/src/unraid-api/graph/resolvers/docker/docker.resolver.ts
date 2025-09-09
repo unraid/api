@@ -2,10 +2,10 @@ import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
-import { GraphQLJSON } from 'graphql-scalars';
 
 import { UseFeatureFlag } from '@app/unraid-api/decorators/use-feature-flag.decorator.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
+import { ExplicitStatusItem } from '@app/unraid-api/graph/resolvers/docker/docker-update-status.model.js';
 import {
     Docker,
     DockerContainer,
@@ -138,7 +138,7 @@ export class DockerResolver {
         action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
     })
-    @ResolveField(() => GraphQLJSON)
+    @ResolveField(() => [ExplicitStatusItem])
     public async containerUpdateStatuses() {
         return this.dockerPhpService.getContainerUpdateStatuses();
     }
