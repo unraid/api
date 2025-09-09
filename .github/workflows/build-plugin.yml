@@ -183,3 +183,40 @@ jobs:
             ```
             ${{ inputs.BASE_URL }}/tag/${{ inputs.TAG }}/dynamix.unraid.net.plg
             ```
+
+      - name: Clean up old preview builds
+        if: inputs.RELEASE_CREATED == 'false' && github.event_name == 'push'
+        continue-on-error: true
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          echo "🧹 Cleaning up old preview builds (keeping last 7 days)..."
+          
+          # Calculate cutoff date (7 days ago)
+          CUTOFF_DATE=$(date -d "7 days ago" +"%Y.%m.%d")
+          echo "Deleting builds older than: ${CUTOFF_DATE}"
+          
+          # List and delete old timestamped .txz files
+          OLD_FILES=$(aws s3 ls "s3://${{ secrets.CF_BUCKET_PREVIEW }}/unraid-api/" \
+            --endpoint-url ${{ secrets.CF_ENDPOINT }} --recursive | \
+            grep -E "dynamix\.unraid\.net-[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{4}\.txz" | \
+            awk '{print $4}' || true)
+          
+          DELETED_COUNT=0
+          if [ -n "$OLD_FILES" ]; then
+            while IFS= read -r file; do
+              if [[ $file =~ ([0-9]{4}\.[0-9]{2}\.[0-9]{2})\.[0-9]{4}\.txz ]]; then
+                FILE_DATE="${BASH_REMATCH[1]}"
+                if [[ "$FILE_DATE" < "$CUTOFF_DATE" ]]; then
+                  echo "Deleting old build: $(basename "$file")"
+                  aws s3 rm "s3://${{ secrets.CF_BUCKET_PREVIEW }}/${file}" \
+                    --endpoint-url ${{ secrets.CF_ENDPOINT }} || true
+                  ((DELETED_COUNT++))
+                fi
+              fi
+            done <<< "$OLD_FILES"
+          fi
+          
+          echo "✅ Deleted ${DELETED_COUNT} old builds"
