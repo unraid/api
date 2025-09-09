@@ -40,5 +40,5 @@
     "nodemon": "3.1.10",
     "vitest": "3.2.4"
   },
-  "packageManager": "pnpm@10.15.1"
+  "packageManager": "pnpm@10.15.0"
 }
