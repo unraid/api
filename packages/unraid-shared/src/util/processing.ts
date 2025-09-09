@@ -137,8 +137,7 @@ export class AsyncMutex<T = unknown> {
     }
 
     const op = (operation || this.defaultOperation) as AsyncOperation<U | T>;
-    
-    const promise = op().finally(() => {
+    const promise = Promise.resolve().then(op).finally(() => {
       if (this.currentOperation === promise) {
         this.currentOperation = null;
       }
