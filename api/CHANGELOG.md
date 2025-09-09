@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.20.4](https://github.com/unraid/api/compare/v4.20.3...v4.20.4) (2025-09-09)
+
+
+### Bug Fixes
+
+* staging PR plugin fixes + UI issues on 7.2 beta ([b79b44e](https://github.com/unraid/api/commit/b79b44e95c65a124313814ab55b0d0a745a799c7))
+
 ## [4.20.3](https://github.com/unraid/api/compare/v4.20.2...v4.20.3) (2025-09-09)
 
 
