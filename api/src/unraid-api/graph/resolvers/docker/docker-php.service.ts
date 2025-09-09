@@ -8,6 +8,7 @@ import {
     ExplicitStatusItem,
     UpdateStatus,
 } from '@app/unraid-api/graph/resolvers/docker/docker-update-status.model.js';
+import { parseDockerPushCalls } from '@app/unraid-api/graph/resolvers/docker/utils/docker-push-parser.js';
 
 type StatusItem = { name: string; updateStatus: 0 | 1 | 2 | 3 };
 
@@ -82,14 +83,11 @@ export class DockerPhpService {
      *------------------------**/
 
     private parseStatusesFromDockerPush(js: string): ExplicitStatusItem[] {
-        const items: ExplicitStatusItem[] = [];
-        const re = /docker\.push\(\{[^}]*name:'([^']+)'[^}]*update:(\d)[^}]*\}\);/g;
-        for (const m of js.matchAll(re)) {
-            const name = m[1];
-            const updateStatus = Number(m[2]) as StatusItem['updateStatus'];
-            items.push({ name, updateStatus: this.updateStatusToString(updateStatus) });
-        }
-        return items;
+        const matches = parseDockerPushCalls(js);
+        return matches.map(({ name, updateStatus }) => ({
+            name,
+            updateStatus: this.updateStatusToString(updateStatus as StatusItem['updateStatus']),
+        }));
     }
 
     private updateStatusToString(updateStatus: 0): UpdateStatus.UP_TO_DATE;
