@@ -97,7 +97,7 @@ describe('RCloneApiService', () => {
         mockPRetry.mockResolvedValue(undefined);
 
         service = new RCloneApiService();
-        await service.onModuleInit();
+        await service.onApplicationBootstrap();
 
         // Reset the mock after initialization to prepare for test-specific responses
         mockGot.post.mockClear();
@@ -432,6 +432,97 @@ describe('RCloneApiService', () => {
             await expect(service.getProviders()).rejects.toThrow(
                 'Unknown error calling RClone API (config/providers) with params {}: unknown error'
             );
+        });
+    });
+
+    describe('checkRcloneBinaryExists', () => {
+        beforeEach(() => {
+            // Create a new service instance without initializing for these tests
+            service = new RCloneApiService();
+        });
+
+        it('should return true when rclone version is 1.70.0', async () => {
+            mockExeca.mockResolvedValueOnce({
+                stdout: 'rclone v1.70.0\n- os/version: darwin 14.0 (64 bit)\n- os/kernel: 23.0.0 (arm64)',
+                stderr: '',
+            } as any);
+
+            const result = await (service as any).checkRcloneBinaryExists();
+
+            expect(result).toBe(true);
+        });
+
+        it('should return true when rclone version is newer than 1.70.0', async () => {
+            mockExeca.mockResolvedValueOnce({
+                stdout: 'rclone v1.75.2\n- os/version: darwin 14.0 (64 bit)\n- os/kernel: 23.0.0 (arm64)',
+                stderr: '',
+            } as any);
+
+            const result = await (service as any).checkRcloneBinaryExists();
+
+            expect(result).toBe(true);
+        });
+
+        it('should return false when rclone version is older than 1.70.0', async () => {
+            mockExeca.mockResolvedValueOnce({
+                stdout: 'rclone v1.69.0\n- os/version: darwin 14.0 (64 bit)\n- os/kernel: 23.0.0 (arm64)',
+                stderr: '',
+            } as any);
+
+            const result = await (service as any).checkRcloneBinaryExists();
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when rclone version is much older', async () => {
+            mockExeca.mockResolvedValueOnce({
+                stdout: 'rclone v1.50.0\n- os/version: darwin 14.0 (64 bit)\n- os/kernel: 23.0.0 (arm64)',
+                stderr: '',
+            } as any);
+
+            const result = await (service as any).checkRcloneBinaryExists();
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when version cannot be parsed', async () => {
+            mockExeca.mockResolvedValueOnce({
+                stdout: 'rclone unknown version format',
+                stderr: '',
+            } as any);
+
+            const result = await (service as any).checkRcloneBinaryExists();
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false when rclone binary is not found', async () => {
+            const error = new Error('Command not found') as any;
+            error.code = 'ENOENT';
+            mockExeca.mockRejectedValueOnce(error);
+
+            const result = await (service as any).checkRcloneBinaryExists();
+
+            expect(result).toBe(false);
+        });
+
+        it('should return false and log error for other exceptions', async () => {
+            mockExeca.mockRejectedValueOnce(new Error('Some other error'));
+
+            const result = await (service as any).checkRcloneBinaryExists();
+
+            expect(result).toBe(false);
+        });
+
+        it('should handle beta/rc versions correctly', async () => {
+            mockExeca.mockResolvedValueOnce({
+                stdout: 'rclone v1.70.0-beta.1\n- os/version: darwin 14.0 (64 bit)\n- os/kernel: 23.0.0 (arm64)',
+                stderr: '',
+            } as any);
+
+            const result = await (service as any).checkRcloneBinaryExists();
+
+            expect(result).toBe(true);
         });
     });
 });
