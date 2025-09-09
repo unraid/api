@@ -110,10 +110,10 @@ onMounted(() => {
       >
         <template v-if="description && theme?.descriptionShow">
           <span
-            class="hidden text-center text-base md:inline-flex md:items-center md:text-right"
+            class="hidden text-center text-base md:!inline-flex md:items-center md:text-right"
             v-html="description"
           />
-          <span class="text-header-text-secondary hidden px-2 md:inline-flex md:items-center"
+          <span class="text-header-text-secondary hidden px-2 md:!inline-flex md:items-center"
             >&bull;</span
           >
         </template>
