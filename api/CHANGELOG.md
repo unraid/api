@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.20.1](https://github.com/unraid/api/compare/v4.20.0...v4.20.1) (2025-09-09)
+
+
+### Bug Fixes
+
+* adjust header styles to fix flashing and width issues - thanks ZarZ ([4759b3d](https://github.com/unraid/api/commit/4759b3d0b3fb6bc71636f75f807cd6f4f62305d1))
+
 ## [4.20.0](https://github.com/unraid/api/compare/v4.19.1...v4.20.0) (2025-09-08)
 
 
