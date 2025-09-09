@@ -110,3 +110,6 @@ export const PATHS_CONFIG_MODULES =
 
 export const PATHS_LOCAL_SESSION_FILE =
     process.env.PATHS_LOCAL_SESSION_FILE ?? '/var/run/unraid-api/local-session';
+
+/** feature flag for the upcoming docker release */
+export const ENABLE_NEXT_DOCKER_RELEASE = process.env.ENABLE_NEXT_DOCKER_RELEASE === 'true';

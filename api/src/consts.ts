@@ -2,7 +2,7 @@ import { join } from 'path';
 
 import type { JSONWebKeySet } from 'jose';
 
-import { PORT } from '@app/environment.js';
+import { ENABLE_NEXT_DOCKER_RELEASE, PORT } from '@app/environment.js';
 
 export const getInternalApiAddress = (isHttp = true, nginxPort = 80) => {
     const envPort = PORT;
@@ -79,3 +79,14 @@ export const KEYSERVER_VALIDATION_ENDPOINT = 'https://keys.lime-technology.com/v
 
 /** Set the max retries for the GraphQL Client */
 export const MAX_RETRIES_FOR_LINEAR_BACKOFF = 100;
+
+/**
+ * Feature flags are used to conditionally enable or disable functionality in the Unraid API.
+ *
+ * Keys are human readable feature flag names -- will be used to construct error messages.
+ *
+ * Values are boolean/truthy values.
+ */
+export const FeatureFlags = Object.freeze({
+    ENABLE_NEXT_DOCKER_RELEASE,
+});

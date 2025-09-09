@@ -12,6 +12,7 @@ import { NoUnusedVariablesRule } from 'graphql';
 
 import { ENVIRONMENT } from '@app/environment.js';
 import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
+import { omitIfSchemaTransformer } from '@app/unraid-api/decorators/omit-if.decorator.js';
 
 // Import enum registrations to ensure they're registered with GraphQL
 import '@app/unraid-api/graph/auth/auth-action.enum.js';
@@ -64,7 +65,12 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                     },
                     // Only add transform when not in test environment to avoid GraphQL version conflicts
                     transformSchema:
-                        process.env.NODE_ENV === 'test' ? undefined : usePermissionsSchemaTransformer,
+                        process.env.NODE_ENV === 'test'
+                            ? undefined
+                            : (schema) => {
+                                  const schemaWithPermissions = usePermissionsSchemaTransformer(schema);
+                                  return omitIfSchemaTransformer(schemaWithPermissions);
+                              },
                     validationRules: [NoUnusedVariablesRule],
                 };
             },

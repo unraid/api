@@ -3,10 +3,11 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/docker-organizer.service.js';
+import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
 
 describe('DockerResolver', () => {
     let resolver: DockerResolver;
@@ -26,7 +27,13 @@ describe('DockerResolver', () => {
                 {
                     provide: DockerOrganizerService,
                     useValue: {
-                        getResolvedOrganizer: vi.fn(),
+                        resolveOrganizer: vi.fn(),
+                    },
+                },
+                {
+                    provide: DockerPhpService,
+                    useValue: {
+                        getContainerUpdateStatuses: vi.fn(),
                     },
                 },
             ],

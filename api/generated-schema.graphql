@@ -139,6 +139,9 @@ type ArrayDisk implements Node {
   """ata | nvme | usb | (others)"""
   transport: String
   color: ArrayDiskFsColor
+
+  """Whether the disk is currently spinning"""
+  isSpinning: Boolean
 }
 
 interface Node {
@@ -346,6 +349,9 @@ type Disk implements Node {
 
   """The partitions on the disk"""
   partitions: [DiskPartition!]!
+
+  """Whether the disk is spinning or not"""
+  isSpinning: Boolean!
 }
 
 """The type of interface the disk uses to connect to the system"""
@@ -1044,6 +1050,19 @@ enum ThemeName {
   white
 }
 
+type ExplicitStatusItem {
+  name: String!
+  updateStatus: UpdateStatus!
+}
+
+"""Update status of a container."""
+enum UpdateStatus {
+  UP_TO_DATE
+  UPDATE_AVAILABLE
+  REBUILD_READY
+  UNKNOWN
+}
+
 type ContainerPort {
   ip: String
   privatePort: Port
@@ -1083,6 +1102,8 @@ type DockerContainer implements Node {
   networkSettings: JSON
   mounts: [JSON!]
   autoStart: Boolean!
+  isUpdateAvailable: Boolean
+  isRebuildReady: Boolean
 }
 
 enum ContainerState {
@@ -1113,6 +1134,7 @@ type Docker implements Node {
   containers(skipCache: Boolean! = false): [DockerContainer!]!
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
   organizer: ResolvedOrganizerV1!
+  containerUpdateStatuses: [ExplicitStatusItem!]!
 }
 
 type ResolvedOrganizerView {
@@ -2413,6 +2435,7 @@ type Mutation {
   setDockerFolderChildren(folderId: String, childrenIds: [String!]!): ResolvedOrganizerV1!
   deleteDockerEntries(entryIds: [String!]!): ResolvedOrganizerV1!
   moveDockerEntriesToFolder(sourceEntryIds: [String!]!, destinationFolderId: String!): ResolvedOrganizerV1!
+  refreshDockerDigests: Boolean!
 
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!

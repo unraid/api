@@ -3,21 +3,25 @@ import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
-import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/docker-organizer.service.js';
+import { UseFeatureFlag } from '@app/unraid-api/decorators/use-feature-flag.decorator.js';
+import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
+import { ExplicitStatusItem } from '@app/unraid-api/graph/resolvers/docker/docker-update-status.model.js';
 import {
     Docker,
     DockerContainer,
     DockerNetwork,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
 import { DEFAULT_ORGANIZER_ROOT_ID } from '@app/unraid-api/organizer/organizer.js';
-import { OrganizerV1, ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
+import { ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
 
 @Resolver(() => Docker)
 export class DockerResolver {
     constructor(
         private readonly dockerService: DockerService,
-        private readonly dockerOrganizerService: DockerOrganizerService
+        private readonly dockerOrganizerService: DockerOrganizerService,
+        private readonly dockerPhpService: DockerPhpService
     ) {}
 
     @UsePermissions({
@@ -53,6 +57,7 @@ export class DockerResolver {
         return this.dockerService.getNetworks({ skipCache });
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
@@ -62,6 +67,7 @@ export class DockerResolver {
         return this.dockerOrganizerService.resolveOrganizer();
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
@@ -80,6 +86,7 @@ export class DockerResolver {
         return this.dockerOrganizerService.resolveOrganizer(organizer);
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
@@ -96,6 +103,7 @@ export class DockerResolver {
         return this.dockerOrganizerService.resolveOrganizer(organizer);
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
@@ -108,6 +116,7 @@ export class DockerResolver {
         return this.dockerOrganizerService.resolveOrganizer(organizer);
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.DOCKER,
@@ -122,5 +131,15 @@ export class DockerResolver {
             destinationFolderId,
         });
         return this.dockerOrganizerService.resolveOrganizer(organizer);
+    }
+
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DOCKER,
+    })
+    @ResolveField(() => [ExplicitStatusItem])
+    public async containerUpdateStatuses() {
+        return this.dockerPhpService.getContainerUpdateStatuses();
     }
 }
