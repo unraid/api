@@ -34,7 +34,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ci": "vitest run",
-    "test:standalone": "pnpm run build && vite --config vite.test.config.ts"
+    "test:standalone": "pnpm run build && vite --config vite.test.config.ts",
+    "// i18n": "",
+    "i18n:extract": "vue-i18n-extract report --vueFiles './src/**/*.{vue,ts,js}' --languageFiles './src/locales/*.json'",
+    "i18n:missing": "vue-i18n-extract report --vueFiles './src/**/*.{vue,ts,js}' --languageFiles './src/locales/*.json' --output missing.json && cat missing.json"
   },
   "devDependencies": {
     "@eslint/js": "9.34.0",
@@ -84,6 +87,7 @@
     "vitest": "3.2.4",
     "vue": "3.5.20",
     "vue-eslint-parser": "10.2.0",
+    "vue-i18n-extract": "github:Spittal/vue-i18n-extract",
     "vue-tsc": "3.0.6"
   },
   "dependencies": {

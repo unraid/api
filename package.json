@@ -16,7 +16,11 @@
     "check": "manypkg check",
     "sync-webgui-repo": "node web/scripts/sync-webgui-repo.js",
     "preinstall": "npx check-node-version --node 22 || echo '❌ Node.js 22 required. See readme.md Prerequisites section.'",
-    "postinstall": "simple-git-hooks"
+    "postinstall": "simple-git-hooks",
+    "i18n:extract": "pnpm --filter ./web i18n:extract",
+    "crowdin:upload": "crowdin upload sources",
+    "crowdin:download": "crowdin download",
+    "crowdin:sync": "pnpm i18n:extract && crowdin upload sources && crowdin download"
   },
   "pnpm": {
     "overrides": {
@@ -56,6 +60,7 @@
     "ignore": "7.0.5"
   },
   "devDependencies": {
+    "@crowdin/cli": "^4.11.0",
     "lint-staged": "16.1.5",
     "simple-git-hooks": "2.13.1"
   },

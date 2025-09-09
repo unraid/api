@@ -1,0 +1,20 @@
+{
+  "isNotEmpty": "{{property}} should not be empty",
+  "isEmail": "{{property}} must be a valid email",
+  "isString": "{{property}} must be a string",
+  "isNumber": "{{property}} must be a number",
+  "isBoolean": "{{property}} must be a boolean",
+  "isArray": "{{property}} must be an array",
+  "isObject": "{{property}} must be an object",
+  "isEnum": "{{property}} must be one of: {{values}}",
+  "minLength": "{{property}} must be at least {{min}} characters",
+  "maxLength": "{{property}} must not exceed {{max}} characters",
+  "min": "{{property}} must be at least {{min}}",
+  "max": "{{property}} must not exceed {{max}}",
+  "matches": "{{property}} format is invalid",
+  "isUUID": "{{property}} must be a valid UUID",
+  "isURL": "{{property}} must be a valid URL",
+  "isIP": "{{property}} must be a valid IP address",
+  "isPort": "{{property}} must be a valid port number",
+  "isPath": "{{property}} must be a valid path"
+}

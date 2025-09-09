@@ -1,0 +1,29 @@
+{
+  "hello": "Hello",
+  "welcome": "Welcome to Unraid API",
+  "server": {
+    "started": "Server started successfully",
+    "stopped": "Server stopped",
+    "error": "Server error occurred"
+  },
+  "auth": {
+    "unauthorized": "Unauthorized access",
+    "forbidden": "Access forbidden",
+    "invalidToken": "Invalid authentication token",
+    "tokenExpired": "Authentication token expired",
+    "loginSuccess": "Login successful",
+    "logoutSuccess": "Logout successful"
+  },
+  "docker": {
+    "containerStarted": "Container {{name}} started",
+    "containerStopped": "Container {{name}} stopped",
+    "containerRemoved": "Container {{name}} removed",
+    "imageDeleted": "Image {{name}} deleted"
+  },
+  "vm": {
+    "started": "Virtual machine {{name}} started",
+    "stopped": "Virtual machine {{name}} stopped",
+    "paused": "Virtual machine {{name}} paused",
+    "resumed": "Virtual machine {{name}} resumed"
+  }
+}

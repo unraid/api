@@ -9,6 +9,7 @@ import { LoggerModule } from 'nestjs-pino';
 
 import { apiLogger } from '@app/core/log.js';
 import { LOG_LEVEL } from '@app/environment.js';
+import { AppI18nModule } from '@app/i18n/i18n.module.js';
 import { PubSubModule } from '@app/unraid-api/app/pubsub.module.js';
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { AuthenticationGuard } from '@app/unraid-api/auth/authentication.guard.js';
@@ -23,6 +24,7 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
     imports: [
         GlobalDepsModule,
         LegacyConfigModule,
+        AppI18nModule,
         PubSubModule,
         ScheduleModule.forRoot(),
         LoggerModule.forRoot({

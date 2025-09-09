@@ -1,0 +1,38 @@
+{
+  "notFound": "Resource not found",
+  "internalError": "Internal server error",
+  "badRequest": "Bad request",
+  "validation": {
+    "required": "{{field}} is required",
+    "invalid": "{{field}} is invalid",
+    "minLength": "{{field}} must be at least {{min}} characters",
+    "maxLength": "{{field}} must not exceed {{max}} characters",
+    "email": "Invalid email format",
+    "numeric": "{{field}} must be a number",
+    "range": "{{field}} must be between {{min}} and {{max}}"
+  },
+  "docker": {
+    "containerNotFound": "Container {{id}} not found",
+    "imageNotFound": "Image {{id}} not found",
+    "networkNotFound": "Network {{id}} not found",
+    "volumeNotFound": "Volume {{id}} not found",
+    "operationFailed": "Docker operation failed: {{error}}"
+  },
+  "vm": {
+    "notFound": "Virtual machine {{name}} not found",
+    "invalidState": "Invalid VM state for operation",
+    "operationFailed": "VM operation failed: {{error}}"
+  },
+  "plugin": {
+    "notFound": "Plugin {{name}} not found",
+    "installFailed": "Failed to install plugin {{name}}",
+    "uninstallFailed": "Failed to uninstall plugin {{name}}",
+    "invalidManifest": "Invalid plugin manifest"
+  },
+  "file": {
+    "notFound": "File not found: {{path}}",
+    "accessDenied": "Access denied: {{path}}",
+    "readError": "Failed to read file: {{path}}",
+    "writeError": "Failed to write file: {{path}}"
+  }
+}
