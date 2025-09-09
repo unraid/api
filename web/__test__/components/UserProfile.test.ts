@@ -322,8 +322,8 @@ describe('UserProfile.ce.vue', () => {
     themeStore.theme!.descriptionShow = true;
     await wrapper.vm.$nextTick();
 
-    // Look for the description in a span element
-    let descriptionElement = wrapper.find('span.text-center.md\\:text-right');
+    // Look for the description in a span element with v-html directive
+    let descriptionElement = wrapper.find('span.hidden.text-center.text-base');
     expect(descriptionElement.exists()).toBe(true);
     expect(descriptionElement.html()).toContain(initialServerData.description);
 
@@ -331,13 +331,13 @@ describe('UserProfile.ce.vue', () => {
     await wrapper.vm.$nextTick();
 
     // When descriptionShow is false, the element should not exist
-    descriptionElement = wrapper.find('span.text-center.md\\:text-right');
+    descriptionElement = wrapper.find('span.hidden.text-center.text-base');
     expect(descriptionElement.exists()).toBe(false);
 
     themeStore.theme!.descriptionShow = true;
     await wrapper.vm.$nextTick();
 
-    descriptionElement = wrapper.find('span.text-center.md\\:text-right');
+    descriptionElement = wrapper.find('span.hidden.text-center.text-base');
     expect(descriptionElement.exists()).toBe(true);
     expect(descriptionElement.html()).toContain(initialServerData.description);
   });
