@@ -7,7 +7,7 @@ import { useQuery } from '@vue/apollo-composable';
 import { Button, Dialog, Input } from '@unraid/ui';
 import { SERVER_INFO_QUERY } from '~/pages/login.query';
 
-import SsoButtonCe from '~/components/SsoButton.ce.vue';
+import SsoButtonCe from '~/components/SsoButton.standalone.vue';
 
 const { t } = useI18n();
 const { result } = useQuery(SERVER_INFO_QUERY);

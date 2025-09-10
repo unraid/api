@@ -8,7 +8,7 @@ import { BrandButton } from '@unraid/ui';
 import { createTestingPinia } from '@pinia/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import DownloadApiLogs from '~/components/DownloadApiLogs.ce.vue';
+import DownloadApiLogs from '~/components/DownloadApiLogs.standalone.vue';
 
 vi.mock('~/helpers/urls', () => ({
   CONNECT_FORUMS: new URL('http://mock-forums.local'),

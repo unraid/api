@@ -46,14 +46,14 @@ const mockLocation = {
 
 vi.stubGlobal('location', mockLocation);
 
-describe('ThemeSwitcher.ce.vue', () => {
+describe('ThemeSwitcher.standalone.vue', () => {
   let consoleDebugSpy: MockInstance;
   let consoleLogSpy: MockInstance;
   let consoleErrorSpy: MockInstance;
   let ThemeSwitcher: unknown;
 
   beforeEach(async () => {
-    ThemeSwitcher = (await import('~/components/ThemeSwitcher.ce.vue')).default;
+    ThemeSwitcher = (await import('~/components/ThemeSwitcher.standalone.vue')).default;
 
     vi.useFakeTimers();
     vi.clearAllMocks();

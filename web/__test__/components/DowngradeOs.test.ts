@@ -8,7 +8,7 @@ import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import DowngradeOs from '~/components/DowngradeOs.ce.vue';
+import DowngradeOs from '~/components/DowngradeOs.standalone.vue';
 import { useServerStore } from '~/store/server';
 
 vi.mock('crypto-js/aes', () => ({

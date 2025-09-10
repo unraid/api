@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { MockInstance } from 'vitest';
 
-import ColorSwitcher from '~/components/ColorSwitcher.ce.vue';
+import ColorSwitcher from '~/components/ColorSwitcher.standalone.vue';
 import { useThemeStore } from '~/store/theme';
 
 // Explicitly mock @unraid/ui to ensure we use the actual components

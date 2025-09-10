@@ -9,10 +9,10 @@ import '~/assets/main.css';
 
 // Static imports for critical components that are always present
 // These are included in the main bundle for faster initial render
-import HeaderOsVersionCe from '@/components/HeaderOsVersion.ce.vue';
-import ModalsCe from '@/components/Modals.ce.vue';
-import ThemeSwitcherCe from '@/components/ThemeSwitcher.ce.vue';
-import UserProfileCe from '@/components/UserProfile.ce.vue';
+import HeaderOsVersionCe from '@/components/HeaderOsVersion.standalone.vue';
+import ModalsCe from '@/components/Modals.standalone.vue';
+import ThemeSwitcherCe from '@/components/ThemeSwitcher.standalone.vue';
+import UserProfileCe from '@/components/UserProfile.standalone.vue';
 
 // Type for Vue component module
 type VueComponentModule = { default: object } | object;
@@ -31,17 +31,17 @@ export type ComponentMapping = {
 // Page-specific components use dynamic imports (lazy loaded)
 export const componentMappings: ComponentMapping[] = [
   {
-    loader: () => import('../Auth.ce.vue'),
+    loader: () => import('../Auth.standalone.vue'),
     selector: 'unraid-auth',
     appId: 'auth',
   },
   {
-    loader: () => import('../ConnectSettings/ConnectSettings.ce.vue'),
+    loader: () => import('../ConnectSettings/ConnectSettings.standalone.vue'),
     selector: 'unraid-connect-settings',
     appId: 'connect-settings',
   },
   {
-    loader: () => import('../DownloadApiLogs.ce.vue'),
+    loader: () => import('../DownloadApiLogs.standalone.vue'),
     selector: 'unraid-download-api-logs',
     appId: 'download-api-logs',
   },
@@ -61,42 +61,42 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'user-profile',
   },
   {
-    loader: () => import('../Registration.ce.vue'),
+    loader: () => import('../Registration.standalone.vue'),
     selector: 'unraid-registration',
     appId: 'registration',
   },
   {
-    loader: () => import('../WanIpCheck.ce.vue'),
+    loader: () => import('../WanIpCheck.standalone.vue'),
     selector: 'unraid-wan-ip-check',
     appId: 'wan-ip-check',
   },
   {
-    loader: () => import('../CallbackHandler.ce.vue'),
+    loader: () => import('../CallbackHandler.standalone.vue'),
     selector: 'unraid-callback-handler',
     appId: 'callback-handler',
   },
   {
-    loader: () => import('../Logs/LogViewer.ce.vue'),
+    loader: () => import('../Logs/LogViewer.standalone.vue'),
     selector: 'unraid-log-viewer',
     appId: 'log-viewer',
   },
   {
-    loader: () => import('../SsoButton.ce.vue'),
+    loader: () => import('../SsoButton.standalone.vue'),
     selector: 'unraid-sso-button',
     appId: 'sso-button',
   },
   {
-    loader: () => import('../Activation/WelcomeModal.ce.vue'),
+    loader: () => import('../Activation/WelcomeModal.standalone.vue'),
     selector: 'unraid-welcome-modal',
     appId: 'welcome-modal',
   },
   {
-    loader: () => import('../UpdateOs.ce.vue'),
+    loader: () => import('../UpdateOs.standalone.vue'),
     selector: 'unraid-update-os',
     appId: 'update-os',
   },
   {
-    loader: () => import('../DowngradeOs.ce.vue'),
+    loader: () => import('../DowngradeOs.standalone.vue'),
     selector: 'unraid-downgrade-os',
     appId: 'downgrade-os',
   },
@@ -106,22 +106,22 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'dev-settings',
   },
   {
-    loader: () => import('../ApiKeyPage.ce.vue'),
+    loader: () => import('../ApiKeyPage.standalone.vue'),
     selector: ['unraid-apikey-page', 'unraid-api-key-manager'],
     appId: 'apikey-page',
   },
   {
-    loader: () => import('../ApiKeyAuthorize.ce.vue'),
+    loader: () => import('../ApiKeyAuthorize.standalone.vue'),
     selector: 'unraid-apikey-authorize',
     appId: 'apikey-authorize',
   },
   {
-    loader: () => import('../DevModalTest.ce.vue'),
+    loader: () => import('../DevModalTest.standalone.vue'),
     selector: 'unraid-dev-modal-test',
     appId: 'dev-modal-test',
   },
   {
-    loader: () => import('../LayoutViews/Detail/DetailTest.ce.vue'),
+    loader: () => import('../LayoutViews/Detail/DetailTest.standalone.vue'),
     selector: 'unraid-detail-test',
     appId: 'detail-test',
   },
@@ -131,7 +131,7 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'theme-switcher',
   },
   {
-    loader: () => import('../ColorSwitcher.ce.vue'),
+    loader: () => import('../ColorSwitcher.standalone.vue'),
     selector: 'unraid-color-switcher',
     appId: 'color-switcher',
   },
