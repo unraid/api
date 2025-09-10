@@ -298,7 +298,7 @@ const modalWidth = computed(() => {
           <!-- OS Update highlight section -->
           <div v-if="available || availableWithRenewal" class="flex flex-col items-center gap-4 py-4">
             <div class="bg-primary/10 flex items-center justify-center rounded-full p-4">
-              <ArrowDownTrayIcon class="text-primary h-12 w-12" />
+              <ArrowDownTrayIcon class="text-primary h-8 w-8" />
             </div>
             <div class="text-center">
               <h2 class="text-foreground text-3xl font-bold">
@@ -313,6 +313,17 @@ const modalWidth = computed(() => {
               >
                 {{ t('Requires verification to update') }}
               </p>
+            </div>
+            <div class="mt-4 border-t pt-4">
+              <div
+                class="hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
+                @click="ignoreThisRelease = !ignoreThisRelease"
+              >
+                <Switch v-model="ignoreThisRelease" @click.stop />
+                <Label class="text-muted-foreground cursor-pointer text-sm">
+                  {{ t('Ignore this release until next reboot') }}
+                </Label>
+              </div>
             </div>
           </div>
 
@@ -334,19 +345,8 @@ const modalWidth = computed(() => {
             />
           </div>
 
-          <div v-if="available || availableWithRenewal" class="border-t pt-4">
-            <div
-              class="hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
-              @click="ignoreThisRelease = !ignoreThisRelease"
-            >
-              <Switch v-model="ignoreThisRelease" @click.stop />
-              <Label class="text-muted-foreground cursor-pointer text-sm">
-                {{ t('Ignore this release until next reboot') }}
-              </Label>
-            </div>
-          </div>
           <div
-            v-else-if="updateOsIgnoredReleases.length > 0"
+            v-if="updateOsIgnoredReleases.length > 0 && !(available || availableWithRenewal)"
             class="mx-auto flex w-full max-w-[640px] flex-col gap-2"
           >
             <h3 class="text-left text-base font-semibold italic">
@@ -371,13 +371,16 @@ const modalWidth = computed(() => {
             )
           "
         >
-          <div :class="cn('xs:!flex-row flex flex-col-reverse justify-start gap-2')">
+          <div
+            v-if="actionButtons"
+            :class="cn('xs:!flex-row flex flex-col-reverse justify-start gap-3')"
+          >
             <Button variant="ghost" @click="accountStore.updateOs()">
               <ArrowTopRightOnSquareIcon class="mr-2 h-4 w-4" />
-              {{ t('Select Version or Opt Into Beta') }}
+              {{ t('Manage Update Settings') }}
             </Button>
           </div>
-          <div v-if="actionButtons" :class="cn('xs:!flex-row flex flex-col justify-end gap-2')">
+          <div v-if="actionButtons" :class="cn('xs:!flex-row flex flex-col justify-end gap-3')">
             <template v-for="item in actionButtons" :key="item.text">
               <TooltipProvider v-if="ignoreThisRelease && item.text === 'Close'">
                 <Tooltip :delay-duration="300">

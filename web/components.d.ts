@@ -31,6 +31,7 @@ declare module 'vue' {
     ChangelogModal: typeof import('./src/components/UpdateOs/ChangelogModal.vue')['default']
     CheckUpdateResponseModal: typeof import('./src/components/UpdateOs/CheckUpdateResponseModal.vue')['default']
     'ColorSwitcher.standalone': typeof import('./src/components/ColorSwitcher.standalone.vue')['default']
+    ConfirmDialog: typeof import('./src/components/ConfirmDialog.vue')['default']
     'ConnectSettings.standalone': typeof import('./src/components/ConnectSettings/ConnectSettings.standalone.vue')['default']
     Console: typeof import('./src/components/Docker/Console.vue')['default']
     Detail: typeof import('./src/components/LayoutViews/Detail/Detail.vue')['default']
