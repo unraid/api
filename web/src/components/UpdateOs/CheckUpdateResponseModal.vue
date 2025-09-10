@@ -375,10 +375,30 @@ const modalWidth = computed(() => {
             v-if="actionButtons"
             :class="cn('xs:!flex-row flex flex-col-reverse justify-start gap-3')"
           >
-            <Button variant="ghost" @click="accountStore.updateOs()">
-              <ArrowTopRightOnSquareIcon class="mr-2 h-4 w-4" />
-              {{ t('More options') }}
-            </Button>
+            <TooltipProvider>
+              <Tooltip :delay-duration="0">
+                <TooltipTrigger as-child>
+                  <Button variant="ghost" @click="accountStore.updateOs()">
+                    <ArrowTopRightOnSquareIcon class="mr-2 h-4 w-4" />
+                    {{ t('More options') }}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent class="max-w-xs">
+                  <div class="flex items-start gap-2">
+                    <ArrowTopRightOnSquareIcon
+                      class="text-muted-foreground mt-0.5 h-4 w-4 flex-shrink-0"
+                    />
+                    <p class="text-left text-sm">
+                      {{
+                        t(
+                          'Manage update preferences including beta access and version selection at account.unraid.net'
+                        )
+                      }}
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <div v-if="actionButtons" :class="cn('xs:!flex-row flex flex-col justify-end gap-3')">
             <template v-for="item in actionButtons" :key="item.text">
