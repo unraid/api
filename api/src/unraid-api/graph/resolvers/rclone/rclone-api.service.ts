@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import crypto from 'crypto';
 import { ChildProcess } from 'node:child_process';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
@@ -7,6 +7,7 @@ import { dirname, join } from 'node:path';
 import { execa } from 'execa';
 import got, { HTTPError } from 'got';
 import pRetry from 'p-retry';
+import semver from 'semver';
 
 import { sanitizeParams } from '@app/core/log.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
@@ -25,7 +26,7 @@ import {
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 
 @Injectable()
-export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
+export class RCloneApiService implements OnApplicationBootstrap, OnModuleDestroy {
     private isInitialized: boolean = false;
     private readonly logger = new Logger(RCloneApiService.name);
     private rcloneSocketPath: string = '';
@@ -44,7 +45,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         return this.isInitialized;
     }
 
-    async onModuleInit(): Promise<void> {
+    async onApplicationBootstrap(): Promise<void> {
         // RClone startup disabled - early return
         if (ENVIRONMENT === 'production') {
             this.logger.debug('RClone startup is disabled');
@@ -239,12 +240,41 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     }
 
     /**
-     * Checks if the RClone binary is available on the system
+     * Checks if the RClone binary is available on the system and meets minimum version requirements
      */
     private async checkRcloneBinaryExists(): Promise<boolean> {
         try {
-            await execa('rclone', ['version']);
-            this.logger.debug('RClone binary is available on the system.');
+            const result = await execa('rclone', ['version']);
+            const versionOutput = result.stdout.trim();
+
+            // Extract raw version string (format: "rclone vX.XX.X" or "rclone vX.XX.X-beta.X")
+            const versionMatch = versionOutput.match(/rclone v([\d.\-\w]+)/);
+            if (!versionMatch) {
+                this.logger.error('Unable to parse RClone version from output');
+                return false;
+            }
+
+            const rawVersion = versionMatch[1];
+
+            // Use semver.coerce to get base semver from prerelease versions
+            const coercedVersion = semver.coerce(rawVersion);
+            if (!coercedVersion) {
+                this.logger.error(`Failed to parse RClone version: raw="${rawVersion}"`);
+                return false;
+            }
+
+            const minimumVersion = '1.70.0';
+
+            if (!semver.gte(coercedVersion, minimumVersion)) {
+                this.logger.error(
+                    `RClone version ${rawVersion} (coerced: ${coercedVersion}) is too old. Minimum required version is ${minimumVersion}`
+                );
+                return false;
+            }
+
+            this.logger.debug(
+                `RClone binary is available on the system (version ${rawVersion}, coerced: ${coercedVersion}).`
+            );
             return true;
         } catch (error: unknown) {
             if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
