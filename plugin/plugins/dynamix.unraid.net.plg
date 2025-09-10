@@ -409,42 +409,111 @@ exit 0
       PKG_FILE="&source;"      # Full path to the package file including .txz extension
       PKG_URL="&txz_url;"      # URL where package was downloaded from
       PKG_NAME="&txz_name;"    # Name of the package file
+      CONNECT_API_VERSION="&api_version;" # Version of API included with Connect
     <![CDATA[
-# Install the Slackware package
-echo "Installing package..."
-# Clean up any old package txz files if they don't match our current version
-for txz_file in /boot/config/plugins/dynamix.my.servers/dynamix.unraid.net-*.txz; do
-  if [ -f "$txz_file" ] && [ "$txz_file" != "${PKG_FILE}" ]; then
-    echo "Removing old package file: $txz_file"
-    rm -f "$txz_file"
+# Function to compare version numbers
+# Returns 0 if version1 > version2, 1 if version1 < version2, 2 if equal
+compare_versions() {
+  local ver1="$1"
+  local ver2="$2"
+  
+  # Remove any 'v' prefix
+  ver1="${ver1#v}"
+  ver2="${ver2#v}"
+  
+  # Split versions by dots
+  IFS='.' read -r -a ver1_parts <<< "$ver1"
+  IFS='.' read -r -a ver2_parts <<< "$ver2"
+  
+  # Compare each part
+  for i in {0..2}; do
+    local part1="${ver1_parts[$i]:-0}"
+    local part2="${ver2_parts[$i]:-0}"
+    
+    if [ "$part1" -gt "$part2" ]; then
+      return 0  # ver1 > ver2
+    elif [ "$part1" -lt "$part2" ]; then
+      return 1  # ver1 < ver2
+    fi
+  done
+  
+  return 2  # versions are equal
+}
+
+# Check if API is already installed and get its version
+CURRENT_API_VERSION=""
+if [ -f "/usr/local/share/dynamix.unraid.net/config/vendor_archive.json" ] && command -v jq >/dev/null 2>&1; then
+  CURRENT_API_VERSION=$(jq -r '.api_version' "/usr/local/share/dynamix.unraid.net/config/vendor_archive.json" 2>/dev/null)
+fi
+
+# If we have both versions, compare them
+SKIP_API_INSTALL=false
+if [ -n "$CURRENT_API_VERSION" ] && [ "$CURRENT_API_VERSION" != "null" ] && [ -n "$CONNECT_API_VERSION" ]; then
+  echo "Current API version on server: $CURRENT_API_VERSION"
+  echo "Connect wants to install API version: $CONNECT_API_VERSION"
+  
+  compare_versions "$CURRENT_API_VERSION" "$CONNECT_API_VERSION"
+  result=$?
+  
+  if [ $result -eq 0 ]; then
+    echo "⚠️ WARNING: Server has a newer API version ($CURRENT_API_VERSION) than Connect ($CONNECT_API_VERSION)"
+    echo "Skipping API package installation to prevent downgrade"
+    
+    # Send notification to user
+    /usr/local/emhttp/webGui/scripts/notify \
+      -e "Unraid Connect" \
+      -s "API Version Conflict Detected" \
+      -d "Your server has API version $CURRENT_API_VERSION installed, which is newer than the version included with Connect ($CONNECT_API_VERSION). The API installation has been skipped to prevent a downgrade. Connect remains installed but may have limited functionality." \
+      -i "warning"
+    
+    SKIP_API_INSTALL=true
+  elif [ $result -eq 2 ]; then
+    echo "API versions match - proceeding with installation"
+  else
+    echo "Connect has a newer API version - proceeding with upgrade"
   fi
-done
-
-# Remove existing node_modules directory
-echo "Cleaning up existing node_modules directory..."
-if [ -d "/usr/local/unraid-api/node_modules" ]; then
-  echo "Removing: /usr/local/unraid-api/node_modules"
-  rm -rf "/usr/local/unraid-api/node_modules"
 fi
 
-# Clear existing unraid-components directory contents to ensure clean installation
-echo "Cleaning up existing unraid-components directory..."
-DIR="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
-if [ -d "$DIR" ]; then
-  echo "Clearing contents of: $DIR"
-  rm -rf "$DIR"/*
-fi
+if [ "$SKIP_API_INSTALL" = false ]; then
+  # Install the Slackware package
+  echo "Installing package..."
+  # Clean up any old package txz files if they don't match our current version
+  for txz_file in /boot/config/plugins/dynamix.my.servers/dynamix.unraid.net-*.txz; do
+    if [ -f "$txz_file" ] && [ "$txz_file" != "${PKG_FILE}" ]; then
+      echo "Removing old package file: $txz_file"
+      rm -f "$txz_file"
+    fi
+  done
 
-# Install the package using the explicit file path
-upgradepkg --install-new --reinstall "${PKG_FILE}"
-if [ $? -ne 0 ]; then
-  echo "⚠️ Package installation failed"
-  exit 1
-fi
+  # Remove existing node_modules directory
+  echo "Cleaning up existing node_modules directory..."
+  if [ -d "/usr/local/unraid-api/node_modules" ]; then
+    echo "Removing: /usr/local/unraid-api/node_modules"
+    rm -rf "/usr/local/unraid-api/node_modules"
+  fi
 
-if [[ -n "$TAG" && "$TAG" != "" ]]; then
-  printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect (%s)**@' "$TAG"
-  sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
+  # Clear existing unraid-components directory contents to ensure clean installation
+  echo "Cleaning up existing unraid-components directory..."
+  DIR="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
+  if [ -d "$DIR" ]; then
+    echo "Clearing contents of: $DIR"
+    rm -rf "$DIR"/*
+  fi
+
+  # Install the package using the explicit file path
+  upgradepkg --install-new --reinstall "${PKG_FILE}"
+  if [ $? -ne 0 ]; then
+    echo "⚠️ Package installation failed"
+    exit 1
+  fi
+
+  if [[ -n "$TAG" && "$TAG" != "" ]]; then
+    printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect (%s)**@' "$TAG"
+    sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
+  fi
+else
+  echo "API package installation skipped due to version conflict"
+  echo "Connect plugin remains installed but API was not modified"
 fi
 
 exit 0
