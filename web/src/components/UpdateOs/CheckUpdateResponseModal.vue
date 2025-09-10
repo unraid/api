@@ -314,7 +314,7 @@ const modalWidth = computed(() => {
                 {{ t('Requires verification to update') }}
               </p>
             </div>
-            <div class="mt-4 border-t pt-4">
+            <div class="mt-4">
               <div
                 class="hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
                 @click="ignoreThisRelease = !ignoreThisRelease"
@@ -377,7 +377,7 @@ const modalWidth = computed(() => {
           >
             <Button variant="ghost" @click="accountStore.updateOs()">
               <ArrowTopRightOnSquareIcon class="mr-2 h-4 w-4" />
-              {{ t('Manage Update Settings') }}
+              {{ t('More options') }}
             </Button>
           </div>
           <div v-if="actionButtons" :class="cn('xs:!flex-row flex flex-col justify-end gap-3')">
