@@ -2,25 +2,32 @@
 # Unraid API Installation Verification Script
 # Checks that critical files are installed correctly
 
-# Function to check for ZSH as the default shell
-check_zsh() {
-  # We are forcing the script to run in bash, so we can check if the parent process is ZSH
-  # We must use ps -o comm= $$ to get the name of the shell running this script
-  # Then we use ps -o comm= -p $PPID to get the name of the parent process
-  # If the parent process is ZSH, we need to error out
-  local parent_shell
-  parent_shell=$(ps -o comm= -p $$)
-  if [[ "$parent_shell" == "zsh" ]]; then
-    echo "Unsupported shell detected: Your system is configured to use ZSH as the default shell for scripts." >&2
-    echo "This can cause issues with Unraid." >&2
-    echo "Please configure ZSH to only activate for interactive shells." >&2
-    echo "You can do this by moving your ZSH configuration from ~/.profile or /etc/profile to ~/.zshrc or /etc/zshrc." >&2
+# Function to check for non-bash shells
+check_shell() {
+  # This script runs with #!/bin/bash shebang
+  # On Unraid, users may configure bash to load other shells through .bashrc
+  # We check if the current process ($$) is actually bash, not another shell
+  # Using $$ is correct here - we need to detect if THIS process is running the expected bash
+  local current_shell
+  current_shell=$(ps -o comm= -p $$)
+  
+  # Remove any path and get just the shell name
+  current_shell=$(basename "$current_shell")
+  
+  if [[ "$current_shell" != "bash" ]]; then
+    echo "Unsupported shell detected: $current_shell" >&2
+    echo "Unraid scripts require bash but your system is configured to use $current_shell for scripts." >&2
+    echo "This can cause infinite loops or unexpected behavior when Unraid scripts execute." >&2
+    echo "Please configure $current_shell to only activate for interactive shells." >&2
+    echo "Add this check to your ~/.bashrc or /etc/profile before starting $current_shell:" >&2
+    echo "  [[ \$- == *i* ]] && exec $current_shell" >&2
+    echo "This ensures $current_shell only starts for interactive sessions, not scripts." >&2
     exit 1
   fi
 }
 
-# Run ZSH check first
-check_zsh
+# Run shell check first
+check_shell
 
 echo "Performing comprehensive installation verification..."
 
