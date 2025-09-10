@@ -1,6 +1,6 @@
 {
   "name": "@unraid/ui",
-  "version": "4.20.4",
+  "version": "4.21.0",
   "private": true,
   "license": "GPL-2.0-or-later",
   "type": "module",
