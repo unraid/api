@@ -263,8 +263,8 @@ importers:
         specifier: 6.6.4
         version: 6.6.4
       p-retry:
-        specifier: 6.2.1
-        version: 6.2.1
+        specifier: 7.0.0
+        version: 7.0.0
       passport-custom:
         specifier: 1.1.1
         version: 1.1.1
@@ -4243,9 +4243,6 @@ packages:
 
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
-
-  '@types/retry@0.12.2':
-    resolution: {integrity: sha512-XISRgDJ2Tc5q4TRqvgJtzsRkFYNJzZrhTdtMoGVBttwzzQJkPnS3WWTFc7kuDRoPtPakl+T+OfdEUjYJj7Jbow==}
 
   '@types/semver@7.7.0':
     resolution: {integrity: sha512-k107IF4+Xr7UHjwDc7Cfd6PRQfbdkiRabXGRjo07b4WyPahFBZCZ1sE+BNxYIJPPg73UkfOsVOLwqVc/6ETrIA==}
@@ -8329,10 +8326,6 @@ packages:
     resolution: {integrity: sha512-tJLxrKJhO2ukZ5z0gyjY1zPh3Rh88Ej9P7jNrZiHMUXHae1yvI2imgOZtL1TO8TW6biMMKfTtAOoEJANgtWBMQ==}
     engines: {node: '>=12'}
 
-  luxon@3.7.1:
-    resolution: {integrity: sha512-RkRWjA926cTvz5rAb1BqyWkKbbjzCGchDUIKMCUvNi17j6f6j8uHGDV82Aqcqtzd+icoYpELmG3ksgGiFNNcNg==}
-    engines: {node: '>=12'}
-
   lz-string@1.5.0:
     resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
     hasBin: true
@@ -8918,9 +8911,9 @@ packages:
     resolution: {integrity: sha512-/bjOqmgETBYB5BoEeGVea8dmvHb2m9GLy1E9W43yeyfP6QQCZGFNa+XRceJEuDB6zqr+gKpIAmlLebMpykw/MQ==}
     engines: {node: '>=10'}
 
-  p-retry@6.2.1:
-    resolution: {integrity: sha512-hEt02O4hUct5wtwg4H4KcWgDdm+l1bOaEy/hWzd8xtXB9BqxTWBBhb+2ImAtH4Cv4rPjV76xN3Zumqk3k3AhhQ==}
-    engines: {node: '>=16.17'}
+  p-retry@7.0.0:
+    resolution: {integrity: sha512-3BgO9rjULJYyr0Y0pcsG7FZ+7JB/hfOODO8kx9ppumiO5jprUF92WK/Y7Q0xppZtq4VhTcPiVq7qWLQfIV5aKQ==}
+    engines: {node: '>=20'}
 
   p-timeout@6.1.4:
     resolution: {integrity: sha512-MyIV3ZA/PmyBN/ud8vV9XzwTrNtR4jFrObymZYnZqMmW0zA8Z17vnT0rBgFE/TlohB+YCHqXMgZzb3Csp49vqg==}
@@ -14840,8 +14833,6 @@ snapshots:
 
   '@types/resolve@1.20.2': {}
 
-  '@types/retry@0.12.2': {}
-
   '@types/semver@7.7.0': {}
 
   '@types/send@0.17.4':
@@ -19317,8 +19308,6 @@ snapshots:
 
   luxon@3.6.1: {}
 
-  luxon@3.7.1: {}
-
   lz-string@1.5.0: {}
 
   magic-regexp@0.10.0:
@@ -19909,11 +19898,9 @@ snapshots:
     dependencies:
       aggregate-error: 3.1.0
 
-  p-retry@6.2.1:
+  p-retry@7.0.0:
     dependencies:
-      '@types/retry': 0.12.2
       is-network-error: 1.1.0
-      retry: 0.13.1
 
   p-timeout@6.1.4:
     optional: true
