@@ -2,6 +2,33 @@
 # Unraid API Installation Verification Script
 # Checks that critical files are installed correctly
 
+# Function to check for non-bash shells
+check_shell() {
+  # This script runs with #!/bin/bash shebang
+  # On Unraid, users may configure bash to load other shells through .bashrc
+  # We check if the current process ($$) is actually bash, not another shell
+  # Using $$ is correct here - we need to detect if THIS process is running the expected bash
+  local current_shell
+  current_shell=$(ps -o comm= -p $$)
+  
+  # Remove any path and get just the shell name
+  current_shell=$(basename "$current_shell")
+  
+  if [[ "$current_shell" != "bash" ]]; then
+    echo "Unsupported shell detected: $current_shell" >&2
+    echo "Unraid scripts require bash but your system is configured to use $current_shell for scripts." >&2
+    echo "This can cause infinite loops or unexpected behavior when Unraid scripts execute." >&2
+    echo "Please configure $current_shell to only activate for interactive shells." >&2
+    echo "Add this check to your ~/.bashrc or /etc/profile before starting $current_shell:" >&2
+    echo "  [[ \$- == *i* ]] && exec $current_shell" >&2
+    echo "This ensures $current_shell only starts for interactive sessions, not scripts." >&2
+    exit 1
+  fi
+}
+
+# Run shell check first
+check_shell
+
 echo "Performing comprehensive installation verification..."
 
 # Define critical files to check (POSIX-compliant, no arrays)
