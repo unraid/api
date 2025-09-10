@@ -250,26 +250,36 @@ export class RCloneApiService implements OnApplicationBootstrap, OnModuleDestroy
     private async checkRcloneBinaryExists(): Promise<boolean> {
         try {
             const result = await execa('rclone', ['version']);
-            const versionOutput = result.stdout;
+            const versionOutput = result.stdout.trim();
 
-            // Parse version from output (format: "rclone vX.XX.X")
-            const versionMatch = versionOutput.match(/rclone v(\d+\.\d+\.\d+)/);
+            // Extract raw version string (format: "rclone vX.XX.X" or "rclone vX.XX.X-beta.X")
+            const versionMatch = versionOutput.match(/rclone v([\d.\-\w]+)/);
             if (!versionMatch) {
                 this.logger.error('Unable to parse RClone version from output');
                 return false;
             }
 
-            const currentVersion = versionMatch[1];
+            const rawVersion = versionMatch[1];
+
+            // Use semver.coerce to get base semver from prerelease versions
+            const coercedVersion = semver.coerce(rawVersion);
+            if (!coercedVersion) {
+                this.logger.error(`Failed to parse RClone version: raw="${rawVersion}"`);
+                return false;
+            }
+
             const minimumVersion = '1.70.0';
 
-            if (!semver.gte(currentVersion, minimumVersion)) {
+            if (!semver.gte(coercedVersion, minimumVersion)) {
                 this.logger.error(
-                    `RClone version ${currentVersion} is too old. Minimum required version is ${minimumVersion}`
+                    `RClone version ${rawVersion} (coerced: ${coercedVersion}) is too old. Minimum required version is ${minimumVersion}`
                 );
                 return false;
             }
 
-            this.logger.debug(`RClone binary is available on the system (version ${currentVersion}).`);
+            this.logger.debug(
+                `RClone binary is available on the system (version ${rawVersion}, coerced: ${coercedVersion}).`
+            );
             return true;
         } catch (error: unknown) {
             if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
