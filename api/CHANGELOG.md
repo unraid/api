@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.21.0](https://github.com/unraid/api/compare/v4.20.4...v4.21.0) (2025-09-10)
+
+
+### Features
+
+* add zsh shell detection to install script ([#1539](https://github.com/unraid/api/issues/1539)) ([50ea2a3](https://github.com/unraid/api/commit/50ea2a3ffb82b30152fb85e0fb9b0d178d596efe))
+* **api:** determine if docker container has update ([#1582](https://github.com/unraid/api/issues/1582)) ([e57d81e](https://github.com/unraid/api/commit/e57d81e0735772758bb85e0b3c89dce15c56635e))
+
+
+### Bug Fixes
+
+* white on white login text ([ae4d3ec](https://github.com/unraid/api/commit/ae4d3ecbc417454ae3c6e02018f8e4c49bbfc902))
+
 ## [4.20.4](https://github.com/unraid/api/compare/v4.20.3...v4.20.4) (2025-09-09)
 
 
