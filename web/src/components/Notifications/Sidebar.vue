@@ -59,7 +59,7 @@ const confirmAndArchiveAll = async () => {
     title: 'Archive All Notifications',
     description: 'This will archive all notifications on your Unraid server. Continue?',
     confirmText: 'Archive All',
-    confirmVariant: 'default',
+    confirmVariant: 'primary',
   });
   if (confirmed) {
     await archiveAll();

@@ -5,7 +5,7 @@ export interface ConfirmOptions {
   description?: string;
   confirmText?: string;
   cancelText?: string;
-  confirmVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  confirmVariant?: 'primary' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
 }
 
 interface ConfirmState extends ConfirmOptions {
@@ -22,7 +22,7 @@ export function useConfirm() {
         ...options,
         confirmText: options.confirmText ?? 'Confirm',
         cancelText: options.cancelText ?? 'Cancel',
-        confirmVariant: options.confirmVariant ?? 'default',
+        confirmVariant: options.confirmVariant ?? 'primary',
         resolve,
       };
       isOpen.value = true;
