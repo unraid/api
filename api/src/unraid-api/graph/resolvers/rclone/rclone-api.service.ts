@@ -1,9 +1,4 @@
-import {
-    Injectable,
-    Logger,
-    OnApplicationBootstrap,
-    OnModuleDestroy,
-} from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import crypto from 'crypto';
 import { ChildProcess } from 'node:child_process';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
