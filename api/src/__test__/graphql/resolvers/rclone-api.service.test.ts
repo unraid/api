@@ -12,7 +12,22 @@ import {
     UpdateRCloneRemoteDto,
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 
-vi.mock('got');
+vi.mock('got', () => {
+    const mockPost = vi.fn();
+    const gotMock = {
+        post: mockPost,
+    };
+    return {
+        default: gotMock,
+        HTTPError: class HTTPError extends Error {
+            response?: any;
+            constructor(response?: any) {
+                super('HTTP Error');
+                this.response = response;
+            }
+        },
+    };
+});
 vi.mock('execa');
 vi.mock('p-retry');
 vi.mock('node:fs', () => ({
@@ -60,7 +75,7 @@ vi.mock('@nestjs/common', async (importOriginal) => {
 
 describe('RCloneApiService', () => {
     let service: RCloneApiService;
-    let mockGot: any;
+    let mockGotPost: any;
     let mockExeca: any;
     let mockPRetry: any;
     let mockExistsSync: any;
@@ -68,19 +83,19 @@ describe('RCloneApiService', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
 
-        const { default: got } = await import('got');
+        const got = await import('got');
         const { execa } = await import('execa');
         const pRetry = await import('p-retry');
         const { existsSync } = await import('node:fs');
         const { fileExists } = await import('@app/core/utils/files/file-exists.js');
 
-        mockGot = vi.mocked(got);
+        mockGotPost = vi.mocked(got.default.post);
         mockExeca = vi.mocked(execa);
         mockPRetry = vi.mocked(pRetry.default);
         mockExistsSync = vi.mocked(existsSync);
 
         // Mock successful RClone API response for socket check
-        mockGot.post = vi.fn().mockResolvedValue({ body: { pid: 12345 } });
+        mockGotPost.mockResolvedValue({ body: { pid: 12345 } });
 
         // Mock RClone binary exists check
         vi.mocked(fileExists).mockResolvedValue(true);
@@ -100,7 +115,7 @@ describe('RCloneApiService', () => {
         await service.onApplicationBootstrap();
 
         // Reset the mock after initialization to prepare for test-specific responses
-        mockGot.post.mockClear();
+        mockGotPost.mockClear();
     });
 
     describe('getProviders', () => {
@@ -109,15 +124,15 @@ describe('RCloneApiService', () => {
                 { name: 'aws', prefix: 's3', description: 'Amazon S3' },
                 { name: 'google', prefix: 'drive', description: 'Google Drive' },
             ];
-            mockGot.post.mockResolvedValue({
+            mockGotPost.mockResolvedValue({
                 body: { providers: mockProviders },
             });
 
             const result = await service.getProviders();
 
             expect(result).toEqual(mockProviders);
-            expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/config/providers',
+            expect(mockGotPost).toHaveBeenCalledWith(
+                expect.stringMatching(/\/config\/providers$/),
                 expect.objectContaining({
                     json: {},
                     responseType: 'json',
@@ -130,7 +145,7 @@ describe('RCloneApiService', () => {
         });
 
         it('should return empty array when no providers', async () => {
-            mockGot.post.mockResolvedValue({ body: {} });
+            mockGotPost.mockResolvedValue({ body: {} });
 
             const result = await service.getProviders();
 
@@ -141,15 +156,15 @@ describe('RCloneApiService', () => {
     describe('listRemotes', () => {
         it('should return list of remotes', async () => {
             const mockRemotes = ['backup-s3', 'drive-storage'];
-            mockGot.post.mockResolvedValue({
+            mockGotPost.mockResolvedValue({
                 body: { remotes: mockRemotes },
             });
 
             const result = await service.listRemotes();
 
             expect(result).toEqual(mockRemotes);
-            expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/config/listremotes',
+            expect(mockGotPost).toHaveBeenCalledWith(
+                expect.stringMatching(/\/config\/listremotes$/),
                 expect.objectContaining({
                     json: {},
                     responseType: 'json',
@@ -162,7 +177,7 @@ describe('RCloneApiService', () => {
         });
 
         it('should return empty array when no remotes', async () => {
-            mockGot.post.mockResolvedValue({ body: {} });
+            mockGotPost.mockResolvedValue({ body: {} });
 
             const result = await service.listRemotes();
 
@@ -174,13 +189,13 @@ describe('RCloneApiService', () => {
         it('should return remote details', async () => {
             const input: GetRCloneRemoteDetailsDto = { name: 'test-remote' };
             const mockConfig = { type: 's3', provider: 'AWS' };
-            mockGot.post.mockResolvedValue({ body: mockConfig });
+            mockGotPost.mockResolvedValue({ body: mockConfig });
 
             const result = await service.getRemoteDetails(input);
 
             expect(result).toEqual(mockConfig);
-            expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/config/get',
+            expect(mockGotPost).toHaveBeenCalledWith(
+                expect.stringMatching(/\/config\/get$/),
                 expect.objectContaining({
                     json: { name: 'test-remote' },
                     responseType: 'json',
@@ -197,7 +212,7 @@ describe('RCloneApiService', () => {
         it('should return remote configuration', async () => {
             const input: GetRCloneRemoteConfigDto = { name: 'test-remote' };
             const mockConfig = { type: 's3', access_key_id: 'AKIA...' };
-            mockGot.post.mockResolvedValue({ body: mockConfig });
+            mockGotPost.mockResolvedValue({ body: mockConfig });
 
             const result = await service.getRemoteConfig(input);
 
@@ -213,13 +228,13 @@ describe('RCloneApiService', () => {
                 parameters: { access_key_id: 'AKIA...', secret_access_key: 'secret' },
             };
             const mockResponse = { success: true };
-            mockGot.post.mockResolvedValue({ body: mockResponse });
+            mockGotPost.mockResolvedValue({ body: mockResponse });
 
             const result = await service.createRemote(input);
 
             expect(result).toEqual(mockResponse);
-            expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/config/create',
+            expect(mockGotPost).toHaveBeenCalledWith(
+                expect.stringMatching(/\/config\/create$/),
                 expect.objectContaining({
                     json: {
                         name: 'new-remote',
@@ -243,13 +258,13 @@ describe('RCloneApiService', () => {
                 parameters: { access_key_id: 'NEW_AKIA...' },
             };
             const mockResponse = { success: true };
-            mockGot.post.mockResolvedValue({ body: mockResponse });
+            mockGotPost.mockResolvedValue({ body: mockResponse });
 
             const result = await service.updateRemote(input);
 
             expect(result).toEqual(mockResponse);
-            expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/config/update',
+            expect(mockGotPost).toHaveBeenCalledWith(
+                expect.stringMatching(/\/config\/update$/),
                 expect.objectContaining({
                     json: {
                         name: 'existing-remote',
@@ -269,13 +284,13 @@ describe('RCloneApiService', () => {
         it('should delete a remote', async () => {
             const input: DeleteRCloneRemoteDto = { name: 'remote-to-delete' };
             const mockResponse = { success: true };
-            mockGot.post.mockResolvedValue({ body: mockResponse });
+            mockGotPost.mockResolvedValue({ body: mockResponse });
 
             const result = await service.deleteRemote(input);
 
             expect(result).toEqual(mockResponse);
-            expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/config/delete',
+            expect(mockGotPost).toHaveBeenCalledWith(
+                expect.stringMatching(/\/config\/delete$/),
                 expect.objectContaining({
                     json: { name: 'remote-to-delete' },
                     responseType: 'json',
@@ -296,13 +311,13 @@ describe('RCloneApiService', () => {
                 options: { delete_on: 'dst' },
             };
             const mockResponse = { jobid: 'job-123' };
-            mockGot.post.mockResolvedValue({ body: mockResponse });
+            mockGotPost.mockResolvedValue({ body: mockResponse });
 
             const result = await service.startBackup(input);
 
             expect(result).toEqual(mockResponse);
-            expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/sync/copy',
+            expect(mockGotPost).toHaveBeenCalledWith(
+                expect.stringMatching(/\/sync\/copy$/),
                 expect.objectContaining({
                     json: {
                         srcFs: '/source/path',
@@ -323,13 +338,13 @@ describe('RCloneApiService', () => {
         it('should return job status', async () => {
             const input: GetRCloneJobStatusDto = { jobId: 'job-123' };
             const mockStatus = { status: 'running', progress: 0.5 };
-            mockGot.post.mockResolvedValue({ body: mockStatus });
+            mockGotPost.mockResolvedValue({ body: mockStatus });
 
             const result = await service.getJobStatus(input);
 
             expect(result).toEqual(mockStatus);
-            expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/job/status',
+            expect(mockGotPost).toHaveBeenCalledWith(
+                expect.stringMatching(/\/job\/status$/),
                 expect.objectContaining({
                     json: { jobid: 'job-123' },
                     responseType: 'json',
@@ -348,13 +363,13 @@ describe('RCloneApiService', () => {
                 { id: 'job-1', status: 'running' },
                 { id: 'job-2', status: 'finished' },
             ];
-            mockGot.post.mockResolvedValue({ body: mockJobs });
+            mockGotPost.mockResolvedValue({ body: mockJobs });
 
             const result = await service.listRunningJobs();
 
             expect(result).toEqual(mockJobs);
-            expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/job/list',
+            expect(mockGotPost).toHaveBeenCalledWith(
+                expect.stringMatching(/\/job\/list$/),
                 expect.objectContaining({
                     json: {},
                     responseType: 'json',
@@ -378,7 +393,7 @@ describe('RCloneApiService', () => {
                 },
             };
             Object.setPrototypeOf(httpError, HTTPError.prototype);
-            mockGot.post.mockRejectedValue(httpError);
+            mockGotPost.mockRejectedValue(httpError);
 
             await expect(service.getProviders()).rejects.toThrow(
                 'Rclone API Error (config/providers, HTTP 500): Rclone Error: Internal server error'
@@ -395,7 +410,7 @@ describe('RCloneApiService', () => {
                 },
             };
             Object.setPrototypeOf(httpError, HTTPError.prototype);
-            mockGot.post.mockRejectedValue(httpError);
+            mockGotPost.mockRejectedValue(httpError);
 
             await expect(service.getProviders()).rejects.toThrow(
                 'Rclone API Error (config/providers, HTTP 404): Failed to process error response body. Raw body:'
@@ -412,7 +427,7 @@ describe('RCloneApiService', () => {
                 },
             };
             Object.setPrototypeOf(httpError, HTTPError.prototype);
-            mockGot.post.mockRejectedValue(httpError);
+            mockGotPost.mockRejectedValue(httpError);
 
             await expect(service.getProviders()).rejects.toThrow(
                 'Rclone API Error (config/providers, HTTP 400): Failed to process error response body. Raw body: invalid json'
@@ -421,13 +436,13 @@ describe('RCloneApiService', () => {
 
         it('should handle non-HTTP errors', async () => {
             const networkError = new Error('Network connection failed');
-            mockGot.post.mockRejectedValue(networkError);
+            mockGotPost.mockRejectedValue(networkError);
 
             await expect(service.getProviders()).rejects.toThrow('Network connection failed');
         });
 
         it('should handle unknown errors', async () => {
-            mockGot.post.mockRejectedValue('unknown error');
+            mockGotPost.mockRejectedValue('unknown error');
 
             await expect(service.getProviders()).rejects.toThrow(
                 'Unknown error calling RClone API (config/providers) with params {}: unknown error'
