@@ -63,7 +63,7 @@ function calculateTitle(partnerName: string | null) {
     : 'Welcome to Unraid!';
 }
 
-describe('WelcomeModal.ce.vue', () => {
+describe('WelcomeModal.standalone.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockPartnerName.mockReturnValue(null);

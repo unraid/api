@@ -12,7 +12,7 @@ import type { VueWrapper } from '@vue/test-utils';
 import type { ServerconnectPluginInstalled } from '~/types/server';
 import type { Pinia } from 'pinia';
 
-import Registration from '~/components/Registration.ce.vue';
+import Registration from '~/components/Registration.standalone.vue';
 import { usePurchaseStore } from '~/store/purchase';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
@@ -116,7 +116,7 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t }),
 }));
 
-describe('Registration.ce.vue', () => {
+describe('Registration.standalone.vue', () => {
   let wrapper: VueWrapper<unknown>;
   let pinia: Pinia;
   let serverStore: ReturnType<typeof useServerStore>;

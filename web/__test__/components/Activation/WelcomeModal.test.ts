@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ComposerTranslation } from 'vue-i18n';
 
-import WelcomeModal from '~/components/Activation/WelcomeModal.ce.vue';
+import WelcomeModal from '~/components/Activation/WelcomeModal.standalone.vue';
 
 vi.mock('@unraid/ui', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
@@ -76,7 +76,7 @@ vi.mock('~/store/theme', () => ({
   useThemeStore: () => mockThemeStore,
 }));
 
-describe('Activation/WelcomeModal.ce.vue', () => {
+describe('Activation/WelcomeModal.standalone.vue', () => {
   let mockSetProperty: ReturnType<typeof vi.fn>;
   let mockQuerySelector: ReturnType<typeof vi.fn>;
 

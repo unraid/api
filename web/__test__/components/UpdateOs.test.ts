@@ -8,7 +8,7 @@ import { mount } from '@vue/test-utils';
 import { createTestingPinia } from '@pinia/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import UpdateOs from '~/components/UpdateOs.ce.vue';
+import UpdateOs from '~/components/UpdateOs.standalone.vue';
 
 vi.mock('@unraid/ui', () => ({
   PageContainer: { template: '<div><slot /></div>' },
@@ -61,7 +61,7 @@ const UpdateOsThirdPartyDriversStub = {
   props: ['t'],
 };
 
-describe('UpdateOs.ce.vue', () => {
+describe('UpdateOs.standalone.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRebootType.value = '';

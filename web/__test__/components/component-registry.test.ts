@@ -1,55 +1,55 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock all the component imports
-vi.mock('~/components/Auth.ce.vue', () => ({
+vi.mock('~/components/Auth.standalone.vue', () => ({
   default: { name: 'MockAuth', template: '<div>Auth</div>' },
 }));
-vi.mock('~/components/ConnectSettings/ConnectSettings.ce.vue', () => ({
+vi.mock('~/components/ConnectSettings/ConnectSettings.standalone.vue', () => ({
   default: { name: 'MockConnectSettings', template: '<div>ConnectSettings</div>' },
 }));
-vi.mock('~/components/DownloadApiLogs.ce.vue', () => ({
+vi.mock('~/components/DownloadApiLogs.standalone.vue', () => ({
   default: { name: 'MockDownloadApiLogs', template: '<div>DownloadApiLogs</div>' },
 }));
-vi.mock('~/components/HeaderOsVersion.ce.vue', () => ({
+vi.mock('~/components/HeaderOsVersion.standalone.vue', () => ({
   default: { name: 'MockHeaderOsVersion', template: '<div>HeaderOsVersion</div>' },
 }));
-vi.mock('~/components/Modals.ce.vue', () => ({
+vi.mock('~/components/Modals.standalone.vue', () => ({
   default: { name: 'MockModals', template: '<div>Modals</div>' },
 }));
-vi.mock('~/components/UserProfile.ce.vue', () => ({
+vi.mock('~/components/UserProfile.standalone.vue', () => ({
   default: { name: 'MockUserProfile', template: '<div>UserProfile</div>' },
 }));
-vi.mock('~/components/UpdateOs.ce.vue', () => ({
+vi.mock('~/components/UpdateOs.standalone.vue', () => ({
   default: { name: 'MockUpdateOs', template: '<div>UpdateOs</div>' },
 }));
-vi.mock('~/components/DowngradeOs.ce.vue', () => ({
+vi.mock('~/components/DowngradeOs.standalone.vue', () => ({
   default: { name: 'MockDowngradeOs', template: '<div>DowngradeOs</div>' },
 }));
-vi.mock('~/components/Registration.ce.vue', () => ({
+vi.mock('~/components/Registration.standalone.vue', () => ({
   default: { name: 'MockRegistration', template: '<div>Registration</div>' },
 }));
-vi.mock('~/components/WanIpCheck.ce.vue', () => ({
+vi.mock('~/components/WanIpCheck.standalone.vue', () => ({
   default: { name: 'MockWanIpCheck', template: '<div>WanIpCheck</div>' },
 }));
-vi.mock('~/components/Activation/WelcomeModal.ce.vue', () => ({
+vi.mock('~/components/Activation/WelcomeModal.standalone.vue', () => ({
   default: { name: 'MockWelcomeModal', template: '<div>WelcomeModal</div>' },
 }));
-vi.mock('~/components/SsoButton.ce.vue', () => ({
+vi.mock('~/components/SsoButton.standalone.vue', () => ({
   default: { name: 'MockSsoButton', template: '<div>SsoButton</div>' },
 }));
-vi.mock('~/components/Logs/LogViewer.ce.vue', () => ({
+vi.mock('~/components/Logs/LogViewer.standalone.vue', () => ({
   default: { name: 'MockLogViewer', template: '<div>LogViewer</div>' },
 }));
-vi.mock('~/components/ThemeSwitcher.ce.vue', () => ({
+vi.mock('~/components/ThemeSwitcher.standalone.vue', () => ({
   default: { name: 'MockThemeSwitcher', template: '<div>ThemeSwitcher</div>' },
 }));
-vi.mock('~/components/ApiKeyPage.ce.vue', () => ({
+vi.mock('~/components/ApiKeyPage.standalone.vue', () => ({
   default: { name: 'MockApiKeyPage', template: '<div>ApiKeyPage</div>' },
 }));
-vi.mock('~/components/DevModalTest.ce.vue', () => ({
+vi.mock('~/components/DevModalTest.standalone.vue', () => ({
   default: { name: 'MockDevModalTest', template: '<div>DevModalTest</div>' },
 }));
-vi.mock('~/components/ApiKeyAuthorize.ce.vue', () => ({
+vi.mock('~/components/ApiKeyAuthorize.standalone.vue', () => ({
   default: { name: 'MockApiKeyAuthorize', template: '<div>ApiKeyAuthorize</div>' },
 }));
 vi.mock('~/components/UnraidToaster.vue', () => ({

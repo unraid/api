@@ -14,7 +14,7 @@ import type { VueWrapper } from '@vue/test-utils';
 import type { Error as CustomApiError } from '~/store/errors';
 import type { ServerUpdateOsResponse } from '~/types/server';
 
-import HeaderOsVersion from '~/components/HeaderOsVersion.ce.vue';
+import HeaderOsVersion from '~/components/HeaderOsVersion.standalone.vue';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 

@@ -4,7 +4,7 @@
 
 For legacy compatibility, Unraid ships web components to the webgui. These components
 are written as Vue and turned into web components as a build step. By convention,
-Vue components that are built as top-level web components are suffixed with `*.ce.vue`
+Vue components that are built as top-level web components are suffixed with `*.standalone.vue`
 for "**c**ustom **e**lement", which comes from the tool used for compilation: `nuxt-custom-elements`.
 
 Note: `nuxt-custom-elements` is currently pinned to a specific version because

@@ -11,7 +11,7 @@ import { watchDebounced } from '@vueuse/core';
 import { BrandButton, jsonFormsAjv, jsonFormsRenderers, Label, SettingsGrid } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 
-import Auth from '~/components/Auth.ce.vue';
+import Auth from '~/components/Auth.standalone.vue';
 // unified settings values are returned as JSON, so use a generic record type
 // import type { ConnectSettingsValues } from '~/composables/gql/graphql';
 
@@ -20,7 +20,7 @@ import {
   updateConnectSettings,
 } from '~/components/ConnectSettings/graphql/settings.query';
 import OidcDebugLogs from '~/components/ConnectSettings/OidcDebugLogs.vue';
-import DownloadApiLogs from '~/components/DownloadApiLogs.ce.vue';
+import DownloadApiLogs from '~/components/DownloadApiLogs.standalone.vue';
 import { useServerStore } from '~/store/server';
 
 // Disable automatic attribute inheritance

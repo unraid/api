@@ -10,16 +10,16 @@ import AES from 'crypto-js/aes';
 
 import type { SendPayloads } from '@unraid/shared-callbacks';
 
-import WelcomeModalCe from '~/components/Activation/WelcomeModal.ce.vue';
-import ConnectSettingsCe from '~/components/ConnectSettings/ConnectSettings.ce.vue';
-import DowngradeOsCe from '~/components/DowngradeOs.ce.vue';
-import HeaderOsVersionCe from '~/components/HeaderOsVersion.ce.vue';
-import LogViewerCe from '~/components/Logs/LogViewer.ce.vue';
-import ModalsCe from '~/components/Modals.ce.vue';
-import RegistrationCe from '~/components/Registration.ce.vue';
-import SsoButtonCe from '~/components/SsoButton.ce.vue';
-import UpdateOsCe from '~/components/UpdateOs.ce.vue';
-import UserProfileCe from '~/components/UserProfile.ce.vue';
+import WelcomeModalCe from '~/components/Activation/WelcomeModal.standalone.vue';
+import ConnectSettingsCe from '~/components/ConnectSettings/ConnectSettings.standalone.vue';
+import DowngradeOsCe from '~/components/DowngradeOs.standalone.vue';
+import HeaderOsVersionCe from '~/components/HeaderOsVersion.standalone.vue';
+import LogViewerCe from '~/components/Logs/LogViewer.standalone.vue';
+import ModalsCe from '~/components/Modals.standalone.vue';
+import RegistrationCe from '~/components/Registration.standalone.vue';
+import SsoButtonCe from '~/components/SsoButton.standalone.vue';
+import UpdateOsCe from '~/components/UpdateOs.standalone.vue';
+import UserProfileCe from '~/components/UserProfile.standalone.vue';
 import { useThemeStore } from '~/store/theme';
 
 const serverStore = useDummyServerStore();

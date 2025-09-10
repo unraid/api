@@ -11,7 +11,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ServerconnectPluginInstalled } from '~/types/server';
 
-import Auth from '~/components/Auth.ce.vue';
+import Auth from '~/components/Auth.standalone.vue';
 import { useServerStore } from '~/store/server';
 
 vi.mock('vue-i18n', () => ({
