@@ -1,5 +1,6 @@
 <!-- Adapted from: https://github.com/othneildrew/Best-README-Template -->
 <!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
+
 <a id="readme-top"></a>
 
 <!-- PROJECT SHIELDS -->
@@ -91,9 +92,10 @@
 </details>
 
 <!-- ABOUT THE PROJECT -->
+
 ## About The Project
 
-<!-- [![Product Name Screen Shot][product-screenshot]](https://unraid.net) 
+<!-- [![Product Name Screen Shot][product-screenshot]](https://unraid.net)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
@@ -108,6 +110,7 @@
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- GETTING STARTED -->
+
 ## Getting Started
 
 This section will guide you through the steps necessary to get the monorepo projects running and
@@ -117,13 +120,32 @@ communicating with each other.
 
 Make sure the following software is installed before proceeding.
 
-* Bash
-* Docker (for macOS folks, Orbstack works too)
-* [Node.js (v22)][Node-url]
-* [Just](https://github.com/casey/just) (optional)
-* libvirt (macOS folks can run `brew install libvirt`)
-* rclone (for development)
-* An [Unraid][Unraid-url] server for development
+- Bash
+- Docker (for macOS folks, Orbstack works too)
+- [Node.js (v22)][Node-url]
+- [pnpm](https://pnpm.io/) (v9.0+) - Install with `npm install -g pnpm`
+- [Just](https://github.com/casey/just) (optional)
+- libvirt (macOS folks can run `brew install libvirt`)
+- rclone (v1.70+) - **Important:** Version 1.70 or higher is required
+- jq - JSON processor for scripts
+- An [Unraid][Unraid-url] server for development
+
+#### Ubuntu/WSL Users
+
+For Ubuntu or WSL users, note that the default Ubuntu repositories may have older versions of rclone. You'll need rclone v1.70 or higher, which can be obtained from the [rclone releases page](https://github.com/rclone/rclone/releases).
+
+#### Verify Prerequisites
+
+After installation, verify your dependencies:
+
+```sh
+# Verify installations and versions
+node --version  # Should be v22.x
+pnpm --version  # Should be v9.0+
+rclone version  # Should be v1.70+
+jq --version    # Should be installed
+docker --version  # Should be installed
+```
 
 #### Alternative: Using Nix Flake
 
@@ -154,25 +176,86 @@ Once you have your key pair, add your public SSH key to your Unraid server:
    cd api
    ```
 
-    If using Nix, enter the development environment:
-
-    ```sh
-    nix develop
-    ```
-
-2. Run the monorepo setup command.
+   If using Nix, enter the development environment:
 
    ```sh
-    pnpm install
+   nix develop
    ```
 
-3. Run the build watcher to build the components and serve a local plugin file that can be installed on your Unraid server.
+2. Install dependencies and verify they're correctly installed:
 
    ```sh
-   pnpm build:watch
+   # Install all monorepo dependencies
+   pnpm install
+   
+   # The install script will automatically check for required dependencies
+   # and their versions (rclone v1.70+, jq, pnpm, etc.)
    ```
 
-   Navigate to Plugins->Install and install the local plugin file that is output to the console.
+3. Build the project:
+
+   ```sh
+   # Build individual packages first (from root directory)
+   cd api && pnpm build && cd ..
+   cd web && pnpm build && cd ..
+   
+   # Then build the plugin if needed
+   cd plugin && pnpm build && cd ..
+   ```
+
+   Note: The packages must be built in order as the plugin depends on the API build artifacts.
+
+### Development Modes
+
+The project supports two development modes:
+
+#### Mode 1: Build Watcher with Local Plugin
+
+This mode builds the plugin continuously and serves it locally for installation on your Unraid server:
+
+```sh
+# From the root directory (api/)
+pnpm build:watch
+```
+
+This command will output a local plugin URL that you can install on your Unraid server by navigating to Plugins → Install Plugin. Be aware it will take a *while* to build the first time.
+
+#### Mode 2: Development Servers
+
+For active development with hot-reload:
+
+```sh
+# From the root directory - runs all dev servers concurrently
+pnpm dev
+```
+
+Or run individual development servers:
+
+```sh
+# API server (GraphQL backend at http://localhost:3001)
+cd api && pnpm dev
+
+# Web interface (Nuxt frontend at http://localhost:3000) 
+cd web && pnpm dev
+```
+
+### Building the Full Plugin
+
+To build the complete plugin package (.plg file):
+
+```sh
+# From the root directory (api/)
+pnpm build:plugin
+
+# The plugin will be created in plugin/dynamix.unraid.net.plg
+```
+
+To deploy the plugin to your Unraid server:
+
+```sh
+# Replace SERVER_IP with your Unraid server's IP address
+pnpm unraid:deploy SERVER_IP
+```
 
 > [!TIP]
 > View other workflows (local dev, etc.) in the [Developer Workflows](./api/docs/developer/workflows.md)
@@ -180,6 +263,7 @@ Once you have your key pair, add your public SSH key to your Unraid server:
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- USAGE EXAMPLES -->
+
 ## Usage
 
 See [How to Use the API](./api/docs/public/how-to-use-the-api.md).
@@ -201,6 +285,7 @@ See the [open issues](https://github.com/unraid/api/issues) for a full list of p
 <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
 <!-- CONTRIBUTING -->
+
 ## Contributing
 
 For a complete guide on contributing to the project, including our code of conduct and development process, please see our [Contributing Guide](./CONTRIBUTING.md). Please read this before contributing.
@@ -209,28 +294,30 @@ For a complete guide on contributing to the project, including our code of condu
 
 For more information about development workflows, repository organization, and other technical details, please refer to the developer documentation inside this repository:
 
-* [Development Guide](./api/docs/developer/development.md) - Setup, building, and debugging instructions
-* [Development Workflows](./api/docs/developer/workflows.md) - Detailed workflows for local development, building, and deployment
-* [Repository Organization](./api/docs/developer/repo-organization.md) - High-level architecture and project structure
+- [Development Guide](./api/docs/developer/development.md) - Setup, building, and debugging instructions
+- [Development Workflows](./api/docs/developer/workflows.md) - Detailed workflows for local development, building, and deployment
+- [Repository Organization](./api/docs/developer/repo-organization.md) - High-level architecture and project structure
 
 ### Work Intent Process
 
 Before starting development work on this project, you must submit a Work Intent and have it approved by a core developer. This helps prevent duplicate work and ensures changes align with the project's goals.
 
 1. **Create a Work Intent**
-   * Go to [Issues → New Issue → Work Intent](https://github.com/unraid/api/issues/new?template=work_intent.md)
-   * Fill out the brief template describing what you want to work on
-   * The issue will be automatically labeled as `work-intent` and `unapproved`
+
+   - Go to [Issues → New Issue → Work Intent](https://github.com/unraid/api/issues/new?template=work_intent.md)
+   - Fill out the brief template describing what you want to work on
+   - The issue will be automatically labeled as `work-intent` and `unapproved`
 
 2. **Wait for Approval**
-   * A core developer will review your Work Intent
-   * They may ask questions or suggest changes
-   * Once approved, the `unapproved` label will be removed
+
+   - A core developer will review your Work Intent
+   - They may ask questions or suggest changes
+   - Once approved, the `unapproved` label will be removed
 
 3. **Begin Development**
-   * Only start coding after your Work Intent is approved
-   * Follow the approach outlined in your approved Work Intent
-   * Reference the Work Intent in your future PR
+   - Only start coding after your Work Intent is approved
+   - Follow the approach outlined in your approved Work Intent
+   - Reference the Work Intent in your future PR
 
 ---
 
@@ -254,14 +341,16 @@ Don't forget to give the project a star! Thanks again!
 </a>
 
 <!-- Community & Acknowledgements -->
+
 ## Community
 
 🌐 [Forums](https://forums.unraid.net/)  
-💬 [Discord](https://discord.unraid.net/)  
+💬 [Discord](https://discord.unraid.net/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- CONTACT -->
+
 ## Contact
 
 [@UnraidOfficial](https://twitter.com/UnraidOfficial) - <contact@unraid.net>
@@ -272,6 +361,7 @@ Project Link: [https://github.com/unraid/api](https://github.com/unraid/api)
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
 [contributors-shield]: https://img.shields.io/github/contributors/unraid/api.svg?style=for-the-badge
 [contributors-url]: https://github.com/unraid/api/graphs/contributors
 [forks-shield]: https://img.shields.io/github/forks/unraid/api.svg?style=for-the-badge

@@ -241,6 +241,8 @@ export type ArrayDisk = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54. */
   idx: Scalars['Int']['output'];
+  /** Whether the disk is currently spinning */
+  isSpinning?: Maybe<Scalars['Boolean']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   /** Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk. */
   numErrors?: Maybe<Scalars['BigInt']['output']>;
@@ -607,6 +609,8 @@ export type Disk = Node & {
   id: Scalars['PrefixedID']['output'];
   /** The interface type of the disk */
   interfaceType: DiskInterfaceType;
+  /** Whether the disk is spinning or not */
+  isSpinning: Scalars['Boolean']['output'];
   /** The model name of the disk */
   name: Scalars['String']['output'];
   /** The partitions on the disk */
@@ -674,6 +678,7 @@ export enum DiskSmartStatus {
 
 export type Docker = Node & {
   __typename?: 'Docker';
+  containerUpdateStatuses: Array<ExplicitStatusItem>;
   containers: Array<DockerContainer>;
   id: Scalars['PrefixedID']['output'];
   networks: Array<DockerNetwork>;
@@ -699,6 +704,8 @@ export type DockerContainer = Node & {
   id: Scalars['PrefixedID']['output'];
   image: Scalars['String']['output'];
   imageId: Scalars['String']['output'];
+  isRebuildReady?: Maybe<Scalars['Boolean']['output']>;
+  isUpdateAvailable?: Maybe<Scalars['Boolean']['output']>;
   labels?: Maybe<Scalars['JSON']['output']>;
   mounts?: Maybe<Array<Scalars['JSON']['output']>>;
   names: Array<Scalars['String']['output']>;
@@ -768,6 +775,12 @@ export type EnableDynamicRemoteAccessInput = {
   enabled: Scalars['Boolean']['input'];
   /** The AccessURL Input for dynamic remote access */
   url: AccessUrlInput;
+};
+
+export type ExplicitStatusItem = {
+  __typename?: 'ExplicitStatusItem';
+  name: Scalars['String']['output'];
+  updateStatus: UpdateStatus;
 };
 
 export type Flash = Node & {
@@ -1225,6 +1238,7 @@ export type Mutation = {
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
   recalculateOverview: NotificationOverview;
+  refreshDockerDigests: Scalars['Boolean']['output'];
   /** Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required. */
   removePlugin: Scalars['Boolean']['output'];
   setDockerFolderChildren: ResolvedOrganizerV1;
@@ -2259,6 +2273,14 @@ export type UpdateSettingsResponse = {
   /** Warning messages about configuration issues found during validation */
   warnings?: Maybe<Array<Scalars['String']['output']>>;
 };
+
+/** Update status of a container. */
+export enum UpdateStatus {
+  REBUILD_READY = 'REBUILD_READY',
+  UNKNOWN = 'UNKNOWN',
+  UPDATE_AVAILABLE = 'UPDATE_AVAILABLE',
+  UP_TO_DATE = 'UP_TO_DATE'
+}
 
 export type Uptime = {
   __typename?: 'Uptime';
