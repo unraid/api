@@ -3,7 +3,6 @@ import {
     Logger,
     OnApplicationBootstrap,
     OnModuleDestroy,
-    OnModuleInit,
 } from '@nestjs/common';
 import crypto from 'crypto';
 import { ChildProcess } from 'node:child_process';
