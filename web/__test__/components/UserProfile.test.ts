@@ -11,7 +11,7 @@ import type { VueWrapper } from '@vue/test-utils';
 import type { Server, ServerconnectPluginInstalled, ServerState } from '~/types/server';
 import type { Pinia } from 'pinia';
 
-import UserProfile from '~/components/UserProfile.ce.vue';
+import UserProfile from '~/components/UserProfile.standalone.vue';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
@@ -101,7 +101,7 @@ const stubs = {
   UpcDropdownTrigger: { template: '<button data-testid="dropdown-trigger"></button>' },
 };
 
-describe('UserProfile.ce.vue', () => {
+describe('UserProfile.standalone.vue', () => {
   let wrapper: VueWrapper<InstanceType<typeof UserProfile>>;
   let pinia: Pinia;
   let serverStore: ReturnType<typeof useServerStore>;

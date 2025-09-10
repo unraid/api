@@ -5,8 +5,8 @@ import { storeToRefs } from 'pinia';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { useWelcomeModalDataStore } from '~/components/Activation/store/welcomeModalData';
-import WelcomeModalCe from '~/components/Activation/WelcomeModal.ce.vue';
-import ModalsCe from '~/components/Modals.ce.vue';
+import WelcomeModalCe from '~/components/Activation/WelcomeModal.standalone.vue';
+import ModalsCe from '~/components/Modals.standalone.vue';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
 const welcomeModalRef = ref<InstanceType<typeof WelcomeModalCe>>();

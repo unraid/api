@@ -93,7 +93,7 @@ const WanIpCheckStub = defineComponent({
   },
 });
 
-describe('WanIpCheck.ce.vue', () => {
+describe('WanIpCheck.standalone.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
