@@ -15,13 +15,12 @@ import {
   BrandLoading,
   Button,
   cn,
-  DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogRoot,
-  DialogTitle,
   Label,
+  ResponsiveModal,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
   Switch,
   Tooltip,
   TooltipContent,
@@ -117,13 +116,6 @@ const modalCopy = computed((): ModalCopy | null => {
     return {
       title: props.t('Checking for OS updates...'),
     };
-  }
-
-  // Use the release date
-  let formattedReleaseDate = '';
-  if (availableReleaseDate.value) {
-    // build string with prefix
-    formattedReleaseDate = props.t('Release date {0}', [userFormattedReleaseDate.value]);
   }
 
   if (availableWithRenewal.value) {
@@ -283,18 +275,24 @@ const modalWidth = computed(() => {
 </script>
 
 <template>
-  <DialogRoot :open="open" @update:open="(value) => !value && close()">
-    <DialogContent :class="modalWidth" :show-close-button="!checkForUpdatesLoading">
-      <DialogHeader v-if="modalCopy?.title">
-        <DialogTitle>
+  <ResponsiveModal
+    :open="open"
+    :dialog-class="modalWidth"
+    :sheet-class="'h-full'"
+    :show-close-button="!checkForUpdatesLoading"
+    @update:open="(value) => !value && close()"
+  >
+    <div class="flex h-full flex-col">
+      <ResponsiveModalHeader v-if="modalCopy?.title">
+        <ResponsiveModalTitle>
           {{ modalCopy.title }}
-        </DialogTitle>
+        </ResponsiveModalTitle>
         <DialogDescription v-if="modalCopy?.description">
           <span v-html="modalCopy.description" />
         </DialogDescription>
-      </DialogHeader>
+      </ResponsiveModalHeader>
 
-      <div v-if="renderMainSlot" class="flex flex-col gap-6">
+      <div v-if="renderMainSlot" class="flex flex-1 flex-col gap-6 overflow-y-auto px-6">
         <BrandLoading v-if="checkForUpdatesLoading" class="mx-auto w-[150px]" />
         <div v-else class="flex flex-col gap-y-6">
           <!-- OS Update highlight section -->
@@ -364,7 +362,7 @@ const modalWidth = computed(() => {
         </div>
       </div>
 
-      <DialogFooter>
+      <ResponsiveModalFooter>
         <div
           :class="
             cn(
@@ -418,7 +416,7 @@ const modalWidth = computed(() => {
             </template>
           </div>
         </div>
-      </DialogFooter>
-    </DialogContent>
-  </DialogRoot>
+      </ResponsiveModalFooter>
+    </div>
+  </ResponsiveModal>
 </template>
