@@ -171,7 +171,7 @@ const actionButtons = computed((): BrandButtonProps[] | null => {
   }
 
   // update not available or no action buttons default closing
-  if (!available.value) {
+  if (!available.value && !availableWithRenewal.value) {
     return null;
   }
 
@@ -380,7 +380,7 @@ const modalWidth = computed(() => {
                 <TooltipTrigger as-child>
                   <Button variant="ghost" @click="accountStore.updateOs()">
                     <ArrowTopRightOnSquareIcon class="mr-2 h-4 w-4" />
-                    {{ t('Choose from other updates like beta access or specific versions of Unraid') }}
+                    {{ t('More Options') }}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent class="max-w-xs">

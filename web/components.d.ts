@@ -98,6 +98,8 @@ declare module 'vue' {
     SsoButtons: typeof import('./src/components/sso/SsoButtons.vue')['default']
     SsoProviderButton: typeof import('./src/components/sso/SsoProviderButton.vue')['default']
     Status: typeof import('./src/components/UpdateOs/Status.vue')['default']
+    'TestThemeSwitcher.standalone': typeof import('./src/components/TestThemeSwitcher.standalone.vue')['default']
+    'TestUpdateModal.standalone': typeof import('./src/components/UpdateOs/TestUpdateModal.standalone.vue')['default']
     'ThemeSwitcher.standalone': typeof import('./src/components/ThemeSwitcher.standalone.vue')['default']
     ThirdPartyDrivers: typeof import('./src/components/UpdateOs/ThirdPartyDrivers.vue')['default']
     Trial: typeof import('./src/components/UserProfile/Trial.vue')['default']

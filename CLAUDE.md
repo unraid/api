@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is the Unraid API monorepo containing multiple packages that provide API functionality for Unraid servers. It uses pnpm workspaces with the following structure:
 
 - `/api` - Core NestJS API server with GraphQL
-- `/web` - Nuxt.js frontend application
+- `/web` - Vue 3 frontend application
 - `/unraid-ui` - Vue 3 component library
 - `/plugin` - Unraid plugin package (.plg)
 - `/packages` - Shared packages and API plugins
@@ -128,9 +128,6 @@ Enables GraphQL playground at `http://tower.local/graphql`
 - **Use Mocks Correctly**: Mocks should be used as nouns, not verbs.
 
 #### Vue Component Testing
-
-- This is a Nuxt.js app but we are testing with vitest outside of the Nuxt environment
-- Nuxt is currently set to auto import so some vue files may need compute or ref imported
 - Use pnpm when running terminal commands and stay within the web directory
 - Tests are located under `web/__test__`, run with `pnpm test`
 - Use `mount` from Vue Test Utils for component testing
