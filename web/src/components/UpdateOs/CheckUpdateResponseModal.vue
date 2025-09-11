@@ -99,6 +99,9 @@ watch(updateOsIgnoredReleases, (newVal, oldVal) => {
   }
 });
 
+// Get the localized 'Close' text for comparison
+const localizedCloseText = computed(() => props.t('Close'));
+
 const notificationsSettings = computed(() => {
   return !updateOsNotificationsEnabled.value
     ? props.t(
@@ -402,7 +405,7 @@ const modalWidth = computed(() => {
           </div>
           <div v-if="actionButtons" :class="cn('xs:!flex-row flex flex-col justify-end gap-3')">
             <template v-for="item in actionButtons" :key="item.text">
-              <TooltipProvider v-if="ignoreThisRelease && item.text === 'Close'">
+              <TooltipProvider v-if="ignoreThisRelease && item.text === localizedCloseText">
                 <Tooltip :delay-duration="300">
                   <TooltipTrigger as-child>
                     <BrandButton
@@ -410,8 +413,8 @@ const modalWidth = computed(() => {
                       :icon="item.icon"
                       :icon-right="item.iconRight"
                       :icon-right-hover-display="item.iconRightHoverDisplay"
-                      :text="t(item.text ?? '')"
-                      :title="item.title ? t(item.title) : undefined"
+                      :text="item.text ?? ''"
+                      :title="item.title ? item.title : undefined"
                       @click="item.click?.()"
                     />
                   </TooltipTrigger>
@@ -432,8 +435,8 @@ const modalWidth = computed(() => {
                 :icon="item.icon"
                 :icon-right="item.iconRight"
                 :icon-right-hover-display="item.iconRightHoverDisplay"
-                :text="t(item.text ?? '')"
-                :title="item.title ? t(item.title) : undefined"
+                :text="item.text ?? ''"
+                :title="item.title ? item.title : undefined"
                 @click="item.click?.()"
               />
             </template>

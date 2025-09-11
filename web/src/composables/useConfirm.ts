@@ -17,6 +17,13 @@ const state = shallowRef<ConfirmState | null>(null);
 
 export function useConfirm() {
   const confirm = (options: ConfirmOptions): Promise<boolean> => {
+    // Resolve any existing dialog promise with false before opening a new one
+    if (state.value?.resolve) {
+      const previousResolve = state.value.resolve;
+      previousResolve(false);
+      state.value = null;
+    }
+
     return new Promise((resolve) => {
       state.value = {
         ...options,
