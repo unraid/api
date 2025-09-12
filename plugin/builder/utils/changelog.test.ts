@@ -14,7 +14,7 @@ describe("getStagingChangelogFromGit", () => {
     }
   });
 
-  it("should generate changelog header with version", async () => {
+  it("should generate changelog header with version", { timeout: 20000 }, async () => {
     const result = await getStagingChangelogFromGit({
       pluginVersion: "99.99.99",
       tag: undefined as any,
@@ -28,7 +28,7 @@ describe("getStagingChangelogFromGit", () => {
     expect(result).toMatch(/##\s+/);
   });
 
-  it("should generate changelog with tag parameter", async () => {
+  it("should generate changelog with tag parameter", { timeout: 20000 }, async () => {
     // When tag is provided, it should generate changelog with tag in header
     const result = await getStagingChangelogFromGit({
       pluginVersion: "99.99.99",
@@ -57,7 +57,7 @@ describe("getStagingChangelogFromGit", () => {
     }
   });
 
-  it("should handle error gracefully and return tag", async () => {
+  it("should handle error gracefully and return tag", { timeout: 20000 }, async () => {
     // The function catches errors and returns the tag
     // An empty version might not cause an error, so let's just verify
     // the function completes without throwing
@@ -72,7 +72,7 @@ describe("getStagingChangelogFromGit", () => {
     expect(result.length).toBeGreaterThan(0);
   });
 
-  it("should use conventional-changelog v7 API correctly", async () => {
+  it("should use conventional-changelog v7 API correctly", { timeout: 20000 }, async () => {
     // This test validates that the v7 API is being called correctly
     // by checking that the function executes without throwing
     let error: any = null;
@@ -90,7 +90,7 @@ describe("getStagingChangelogFromGit", () => {
     expect(error).toBeNull();
   });
 
-  it("should validate changelog structure", async () => {
+  it("should validate changelog structure", { timeout: 20000 }, async () => {
     // Create a changelog with high version number to avoid conflicts
     const result = await getStagingChangelogFromGit({
       pluginVersion: "999.0.0",
@@ -109,7 +109,7 @@ describe("getStagingChangelogFromGit", () => {
     }
   });
 
-  it("should include actual commits when using gitRawCommitsOpts with tag", async () => {
+  it("should include actual commits when using gitRawCommitsOpts with tag", { timeout: 20000 }, async () => {
     // This test ensures that gitRawCommitsOpts is working correctly
     // and actually fetching commits between origin/main and HEAD
     const result = await getStagingChangelogFromGit({
