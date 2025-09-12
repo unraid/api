@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { execSync } from "child_process";
-import { getStagingChangelogFromGit } from "./changelog";
+import { getStagingChangelogFromGit } from "./changelog.js";
 
-describe("getStagingChangelogFromGit", () => {
+describe.sequential("getStagingChangelogFromGit", () => {
   let currentCommitMessage: string | null = null;
 
   beforeAll(() => {
@@ -129,11 +129,33 @@ describe("getStagingChangelogFromGit", () => {
     // The changelog should have a proper markdown header
     expect(result).toMatch(/^##\s+/);
     
-    // Check if we're in a git repo with commits ahead of main
-    const { execSync } = require("child_process");
+    // Check if we're in a git repo with commits ahead of the base branch
     let commitCount = 0;
     try {
-      commitCount = parseInt(execSync("git rev-list --count origin/main..HEAD", { encoding: "utf8" }).trim());
+      // Try to detect the base branch (same logic as in changelog.ts)
+      let baseBranch = "origin/main";
+      try {
+        const originHead = execSync("git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null", { 
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "ignore"]
+        }).trim();
+        if (originHead) {
+          baseBranch = originHead.replace("refs/remotes/", "");
+        }
+      } catch {
+        // Try common branches
+        const branches = ["origin/main", "origin/master", "origin/develop"];
+        for (const branch of branches) {
+          try {
+            execSync(`git rev-parse --verify ${branch} 2>/dev/null`, { stdio: "ignore" });
+            baseBranch = branch;
+            break;
+          } catch {
+            // Continue to next branch
+          }
+        }
+      }
+      commitCount = parseInt(execSync(`git rev-list --count ${baseBranch}..HEAD`, { encoding: "utf8" }).trim());
     } catch {
       // If we can't determine, we'll check for minimal content
     }
