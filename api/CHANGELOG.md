@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.22.1](https://github.com/unraid/api/compare/v4.22.0...v4.22.1) (2025-09-12)
+
+
+### Bug Fixes
+
+* set input color in SSO field rather than inside of the main.css ([01d353f](https://github.com/unraid/api/commit/01d353fa08a3df688b37a495a204605138f7f71d))
+
 ## [4.22.0](https://github.com/unraid/api/compare/v4.21.0...v4.22.0) (2025-09-12)
 
 
