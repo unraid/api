@@ -47,4 +47,9 @@ onUnmounted(() => {
   <SsoButtons @sso-status="handleSsoStatus" />
 </template>
 
-<!-- Font size overrides are handled in component-registry.ts for custom elements -->
+<style>
+/* Global input text color when SSO button is present (for login page) */
+body:has(unraid-sso-button) input {
+  color: #1b1b1b !important;
+}
+</style>
