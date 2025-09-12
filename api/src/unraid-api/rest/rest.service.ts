@@ -31,6 +31,8 @@ export class RestService {
 
     async getLogs(): Promise<ReadStream> {
         const logPath = getters.paths()['log-base'];
+        const graphqlApiLog = '/var/log/graphql-api.log';
+
         try {
             await this.saveApiReport(join(logPath, 'report.json'));
         } catch (error) {
@@ -41,7 +43,17 @@ export class RestService {
         const logPathExists = Boolean(await stat(logPath).catch(() => null));
         if (logPathExists) {
             try {
-                await execa('tar', ['-czf', zipToWrite, logPath]);
+                // Build tar command arguments
+                const tarArgs = ['-czf', zipToWrite, logPath];
+
+                // Check if graphql-api.log exists and add it to the archive
+                const graphqlLogExists = Boolean(await stat(graphqlApiLog).catch(() => null));
+                if (graphqlLogExists) {
+                    tarArgs.push(graphqlApiLog);
+                    this.logger.debug('Including graphql-api.log in archive');
+                }
+
+                await execa('tar', tarArgs);
                 const tarFileExists = Boolean(await stat(zipToWrite).catch(() => null));
 
                 if (tarFileExists) {
