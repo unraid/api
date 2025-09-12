@@ -6,12 +6,15 @@ import type { Component } from 'vue';
 
 // Import CSS for bundling - this ensures Tailwind styles are included
 import '~/assets/main.css';
+// Import @unraid/ui styles which includes vue-sonner styles
+import '@unraid/ui/styles';
 
 // Static imports for critical components that are always present
 // These are included in the main bundle for faster initial render
 import HeaderOsVersionCe from '@/components/HeaderOsVersion.standalone.vue';
 import ModalsCe from '@/components/Modals.standalone.vue';
 import ThemeSwitcherCe from '@/components/ThemeSwitcher.standalone.vue';
+import UnraidToaster from '@/components/UnraidToaster.vue';
 import UserProfileCe from '@/components/UserProfile.standalone.vue';
 
 // Type for Vue component module
@@ -136,7 +139,7 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'color-switcher',
   },
   {
-    loader: () => import('../UnraidToaster.vue'),
+    component: UnraidToaster, // Static import - toaster styles need to be in main bundle
     selector: ['unraid-toaster', 'uui-toaster'],
     appId: 'toaster',
   },

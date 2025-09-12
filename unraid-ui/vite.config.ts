@@ -31,6 +31,8 @@ export default function createConfig() {
         external: [
           'vue',
           'tailwindcss',
+          'ajv',
+          'ajv-errors',
           ...(process.env.npm_lifecycle_script?.includes('storybook') ? [/^storybook\//] : []),
         ],
         input: {
