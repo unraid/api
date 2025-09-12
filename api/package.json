@@ -53,7 +53,7 @@
     "dependencies": {
         "@apollo/client": "3.14.0",
         "@apollo/server": "4.12.2",
-        "@as-integrations/fastify": "2.1.1",
+        "@as-integrations/fastify": "3.0.0",
         "@fastify/cookie": "11.0.2",
         "@fastify/helmet": "13.0.1",
         "@graphql-codegen/client-preset": "5.0.0",
