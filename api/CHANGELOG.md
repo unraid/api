@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.0.0](https://github.com/unraid/api/compare/v4.22.1...v5.0.0) (2025-09-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **deps:** Use Record\<PropertyKey, never> instead of {} for empty object type
+
+### Bug Fixes
+
+* **deps:** update graphqlcodegenerator monorepo (major) ([#1689](https://github.com/unraid/api/issues/1689)) ([b5b067a](https://github.com/unraid/api/commit/b5b067ae036ff316bc9c4f3d27b916fd93612df3))
+
 ## [4.22.1](https://github.com/unraid/api/compare/v4.22.0...v4.22.1) (2025-09-12)
 
 
