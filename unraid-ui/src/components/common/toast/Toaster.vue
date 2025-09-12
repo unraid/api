@@ -1,8 +1,16 @@
 <script lang="ts" setup>
 import { onMounted } from 'vue';
 import { Toaster as Sonner, toast, type ToasterProps } from 'vue-sonner';
+import 'vue-sonner/style.css';
 
-const props = defineProps<ToasterProps>();
+// Accept theme as a prop, default to 'light' if not provided
+interface Props extends ToasterProps {
+  theme?: 'light' | 'dark' | 'system';
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  theme: 'light',
+});
 
 onMounted(() => {
   globalThis.toast = toast;
@@ -27,3 +35,17 @@ onMounted(() => {
     }"
   />
 </template>
+
+<style>
+/* Override styles for Unraid environment */
+[data-sonner-toast] [data-close-button] {
+  min-width: inherit !important;
+}
+
+/* Override Unraid webgui docker icon styles on sonner containers */
+[data-sonner-toast] [data-icon]:before,
+[data-sonner-toast] .fa-docker:before {
+  font-family: inherit !important;
+  content: '' !important;
+}
+</style>
