@@ -1,5 +1,23 @@
 # Changelog
 
+## [4.22.0](https://github.com/unraid/api/compare/v4.21.0...v4.22.0) (2025-09-12)
+
+
+### Features
+
+* improved update ui ([#1691](https://github.com/unraid/api/issues/1691)) ([a59b363](https://github.com/unraid/api/commit/a59b363ebc1e660f854c55d50fc02c823c2fd0cc))
+
+
+### Bug Fixes
+
+* **deps:** update dependency camelcase-keys to v10 ([#1687](https://github.com/unraid/api/issues/1687)) ([95faeaa](https://github.com/unraid/api/commit/95faeaa2f39bf7bd16502698d7530aaa590b286d))
+* **deps:** update dependency p-retry to v7 ([#1608](https://github.com/unraid/api/issues/1608)) ([c782cf0](https://github.com/unraid/api/commit/c782cf0e8710c6690050376feefda3edb30dd549))
+* **deps:** update dependency uuid to v13 ([#1688](https://github.com/unraid/api/issues/1688)) ([2fef10c](https://github.com/unraid/api/commit/2fef10c94aae910e95d9f5bcacf7289e2cca6ed9))
+* **deps:** update dependency vue-sonner to v2 ([#1475](https://github.com/unraid/api/issues/1475)) ([f95ca9c](https://github.com/unraid/api/commit/f95ca9c9cb69725dcf3bb4bcbd0b558a2074e311))
+* display settings fix for languages on less than 7.2-beta.2.3 ([#1696](https://github.com/unraid/api/issues/1696)) ([03dae7c](https://github.com/unraid/api/commit/03dae7ce66b3409593eeee90cd5b56e2a920ca44))
+* hide reset help option when sso is being checked ([#1695](https://github.com/unraid/api/issues/1695)) ([222ced7](https://github.com/unraid/api/commit/222ced7518d40c207198a3b8548f0e024bc865b0))
+* progressFrame white on black ([0990b89](https://github.com/unraid/api/commit/0990b898bd02c231153157c20d5142e5fd4513cd))
+
 ## [4.21.0](https://github.com/unraid/api/compare/v4.20.4...v4.21.0) (2025-09-10)
 
 
