@@ -39,9 +39,22 @@ describe("getStagingChangelogFromGit", () => {
     expect(typeof result).toBe("string");
     expect(result).toContain("test-tag-99");
     
-    // Changelog may be empty if no commits between origin/main and HEAD
-    // But should at least have a version header
+    // Should have a version header
     expect(result).toMatch(/##\s+/);
+    
+    // IMPORTANT: Verify that actual commits are included in the changelog
+    // This ensures the gitRawCommitsOpts is working correctly
+    // The changelog should include commits if there are any between origin/main and HEAD
+    // We check for common changelog patterns that indicate actual content
+    if (result.length > 100) {
+      // If we have a substantial changelog, it should contain commit information
+      expect(
+        result.includes("### Features") || 
+        result.includes("### Bug Fixes") || 
+        result.includes("### ") ||
+        result.includes("* ") // Commit entries typically start with asterisk
+      ).toBe(true);
+    }
   });
 
   it("should handle error gracefully and return tag", async () => {
@@ -93,6 +106,54 @@ describe("getStagingChangelogFromGit", () => {
       expect(result).toMatch(/##\s+\[?v999-test/);
       // Should be valid markdown with proper line breaks
       expect(result).toMatch(/\n/);
+    }
+  });
+
+  it("should include actual commits when using gitRawCommitsOpts with tag", async () => {
+    // This test ensures that gitRawCommitsOpts is working correctly
+    // and actually fetching commits between origin/main and HEAD
+    const result = await getStagingChangelogFromGit({
+      pluginVersion: "99.99.99",
+      tag: "CI-TEST",
+    });
+
+    expect(result).toBeDefined();
+    expect(typeof result).toBe("string");
+    
+    // The header should contain the tag
+    expect(result).toContain("CI-TEST");
+    
+    // Critical: The changelog should NOT be just the tag (error fallback)
+    expect(result).not.toBe("CI-TEST");
+    
+    // The changelog should have a proper markdown header
+    expect(result).toMatch(/^##\s+/);
+    
+    // Check if we're in a git repo with commits ahead of main
+    const { execSync } = require("child_process");
+    let commitCount = 0;
+    try {
+      commitCount = parseInt(execSync("git rev-list --count origin/main..HEAD", { encoding: "utf8" }).trim());
+    } catch {
+      // If we can't determine, we'll check for minimal content
+    }
+    
+    // If there are commits on this branch, the changelog MUST include them
+    if (commitCount > 0) {
+      // The changelog must be more than just a header
+      // A minimal header is "## CI-TEST (2025-09-12)\n\n" which is ~30 chars
+      expect(result.length).toBeGreaterThan(50);
+      
+      // Should have actual commit content
+      const hasCommitContent = 
+        result.includes("### ") || // Section headers like ### Features
+        result.includes("* ") ||   // Commit bullet points
+        result.includes("- ");     // Alternative bullet style
+      
+      if (!hasCommitContent) {
+        throw new Error(`Expected changelog to contain commits but got only: ${result.substring(0, 100)}...`);
+      }
+      expect(hasCommitContent).toBe(true);
     }
   });
 });
