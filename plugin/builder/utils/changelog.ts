@@ -10,13 +10,18 @@ export const getStagingChangelogFromGit = async ({
     const generator = new ConventionalChangelog()
       .loadPreset("conventionalcommits")
       .context({
-        version: pluginVersion,
+        version: tag || pluginVersion,
         ...(tag && {
           linkCompare: false,
         }),
       })
       .options({
         releaseCount: tag ? 0 : 1,
+        ...(tag && {
+          writerOpts: {
+            headerPartial: `## [${tag}](https://github.com/unraid/api/${tag})\n\n`,
+          },
+        }),
       });
 
     // Set commit range if tag is provided
@@ -25,14 +30,6 @@ export const getStagingChangelogFromGit = async ({
         from: "origin/main",
         to: "HEAD",
       });
-    }
-
-    // Set custom header partial if tag is provided
-    if (tag) {
-      const config = await generator['_preset'];
-      if (config?.writerOpts) {
-        config.writerOpts.headerPartial = `## [${tag}](https://github.com/unraid/api/${tag})\n\n`;
-      }
     }
 
     let changelog = "";

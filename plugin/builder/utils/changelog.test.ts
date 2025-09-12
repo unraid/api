@@ -29,7 +29,7 @@ describe("getStagingChangelogFromGit", () => {
   });
 
   it("should generate changelog with tag parameter", async () => {
-    // When tag is provided, it should generate changelog
+    // When tag is provided, it should generate changelog with tag in header
     const result = await getStagingChangelogFromGit({
       pluginVersion: "99.99.99",
       tag: "test-tag-99",
@@ -37,7 +37,7 @@ describe("getStagingChangelogFromGit", () => {
 
     expect(result).toBeDefined();
     expect(typeof result).toBe("string");
-    expect(result).toContain("99.99.99");
+    expect(result).toContain("test-tag-99");
     
     // Changelog may be empty if no commits between origin/main and HEAD
     // But should at least have a version header
@@ -89,8 +89,8 @@ describe("getStagingChangelogFromGit", () => {
     
     // Verify basic markdown structure
     if (result.length > 50) {
-      // Should have version header
-      expect(result).toMatch(/##\s+\[?999\.0\.0/);
+      // Should have tag in header when tag is provided
+      expect(result).toMatch(/##\s+\[?v999-test/);
       // Should be valid markdown with proper line breaks
       expect(result).toMatch(/\n/);
     }
