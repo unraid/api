@@ -141,7 +141,7 @@
         "strftime": "0.10.3",
         "systeminformation": "5.27.8",
         "undici": "7.15.0",
-        "uuid": "11.1.0",
+        "uuid": "13.0.0",
         "ws": "8.18.3",
         "zen-observable-ts": "1.1.0",
         "zod": "3.25.76"
