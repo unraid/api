@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: ".nvmrc"
 
@@ -174,7 +174,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: ".nvmrc"
 
@@ -251,7 +251,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: ".nvmrc"
 
@@ -317,7 +317,7 @@ jobs:
           echo VITE_CALLBACK_KEY=${{ secrets.VITE_CALLBACK_KEY }} >> .env
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version-file: ".nvmrc"
 
