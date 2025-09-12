@@ -146,6 +146,7 @@
 /* Style for Unraid progress frame */
 iframe#progressFrame {
   background-color: var(--background-color);
+  color-scheme: light;
 }
 
 /* Global input text color when SSO button is present (for login page) */
