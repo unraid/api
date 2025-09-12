@@ -21,16 +21,12 @@ export const getStagingChangelogFromGit = async ({
           writerOpts: {
             headerPartial: `## [${tag}](https://github.com/unraid/api/${tag})\n\n`,
           },
+          gitRawCommitsOpts: {
+            from: "origin/main",
+            to: "HEAD",
+          },
         }),
       });
-
-    // Set commit range if tag is provided
-    if (tag) {
-      generator.commits({
-        from: "origin/main",
-        to: "HEAD",
-      });
-    }
 
     let changelog = "";
     for await (const chunk of generator.write()) {
