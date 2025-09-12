@@ -2,27 +2,30 @@
 import { computed, onBeforeMount, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 
+import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
 import {
   ArrowTopRightOnSquareIcon,
   CogIcon,
   EyeIcon,
   IdentificationIcon,
   KeyIcon,
-  XMarkIcon,
 } from '@heroicons/vue/24/solid';
 import {
   BrandButton,
   BrandLoading,
   Button,
   cn,
-  DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogRoot,
-  DialogTitle,
   Label,
+  ResponsiveModal,
+  ResponsiveModalFooter,
+  ResponsiveModalHeader,
+  ResponsiveModalTitle,
   Switch,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from '@unraid/ui';
 
 import type { BrandButtonProps } from '@unraid/ui';
@@ -96,6 +99,9 @@ watch(updateOsIgnoredReleases, (newVal, oldVal) => {
   }
 });
 
+// Get the localized 'Close' text for comparison
+const localizedCloseText = computed(() => props.t('Close'));
+
 const notificationsSettings = computed(() => {
   return !updateOsNotificationsEnabled.value
     ? props.t(
@@ -115,30 +121,18 @@ const modalCopy = computed((): ModalCopy | null => {
     };
   }
 
-  // Use the release date
-  let formattedReleaseDate = '';
-  if (availableReleaseDate.value) {
-    // build string with prefix
-    formattedReleaseDate = props.t('Release date {0}', [userFormattedReleaseDate.value]);
-  }
-
   if (availableWithRenewal.value) {
     const description = regUpdatesExpired.value
       ? `${props.t('Eligible for updates released on or before {0}.', [formattedRegExp.value])} ${props.t('Extend your license to access the latest updates.')}`
       : props.t('Eligible for free feature updates until {0}', [formattedRegExp.value]);
     return {
-      title: props.t('Unraid OS {0} Released', [availableWithRenewal.value]),
-      description: `<p>${formattedReleaseDate}</p><p>${description}</p>`,
+      title: props.t('Update Available'),
+      description: description,
     };
   } else if (available.value) {
-    const description = availableRequiresAuth.value
-      ? props.t('Release requires verification to update')
-      : undefined;
     return {
-      title: props.t('Unraid OS {0} Update Available', [available.value]),
-      description: description
-        ? `<p>${formattedReleaseDate}</p><p>${description}</p>`
-        : formattedReleaseDate,
+      title: props.t('Update Available'),
+      description: undefined,
     };
   } else if (!available.value && !availableWithRenewal.value) {
     return {
@@ -169,8 +163,18 @@ const extraLinks = computed((): BrandButtonProps[] => {
 });
 
 const actionButtons = computed((): BrandButtonProps[] | null => {
+  // If ignoring release, show close button as primary action
+  if (ignoreThisRelease.value && (available.value || availableWithRenewal.value)) {
+    return [
+      {
+        click: () => close(),
+        text: props.t('Close'),
+      },
+    ];
+  }
+
   // update not available or no action buttons default closing
-  if (!available.value || ignoreThisRelease.value) {
+  if (!available.value && !availableWithRenewal.value) {
     return null;
   }
 
@@ -274,20 +278,58 @@ const modalWidth = computed(() => {
 </script>
 
 <template>
-  <DialogRoot :open="open" @update:open="(value) => !value && close()">
-    <DialogContent :class="modalWidth" :show-close-button="!checkForUpdatesLoading">
-      <DialogHeader v-if="modalCopy?.title">
-        <DialogTitle>
+  <ResponsiveModal
+    :open="open"
+    :dialog-class="modalWidth"
+    :sheet-class="'h-full'"
+    :show-close-button="!checkForUpdatesLoading"
+    @update:open="(value) => !value && close()"
+  >
+    <div class="flex h-full flex-col">
+      <ResponsiveModalHeader v-if="modalCopy?.title">
+        <ResponsiveModalTitle>
           {{ modalCopy.title }}
-        </DialogTitle>
+        </ResponsiveModalTitle>
         <DialogDescription v-if="modalCopy?.description">
           <span v-html="modalCopy.description" />
         </DialogDescription>
-      </DialogHeader>
+      </ResponsiveModalHeader>
 
-      <div v-if="renderMainSlot" class="flex flex-col gap-4">
+      <div v-if="renderMainSlot" class="flex flex-1 flex-col gap-6 overflow-y-auto px-6">
         <BrandLoading v-if="checkForUpdatesLoading" class="mx-auto w-[150px]" />
-        <div v-else class="flex flex-col gap-y-4">
+        <div v-else class="flex flex-col gap-y-6">
+          <!-- OS Update highlight section -->
+          <div v-if="available || availableWithRenewal" class="flex flex-col items-center gap-4 py-4">
+            <div class="bg-primary/10 flex items-center justify-center rounded-full p-4">
+              <ArrowDownTrayIcon class="text-primary h-8 w-8" />
+            </div>
+            <div class="text-center">
+              <h2 class="text-foreground text-3xl font-bold">
+                {{ availableWithRenewal || available }}
+              </h2>
+              <p v-if="userFormattedReleaseDate" class="text-muted-foreground mt-2 text-center text-sm">
+                Released on {{ userFormattedReleaseDate }}
+              </p>
+              <p
+                v-if="availableRequiresAuth && !availableWithRenewal"
+                class="mt-2 text-center text-sm text-amber-500"
+              >
+                {{ t('Requires verification to update') }}
+              </p>
+            </div>
+            <div class="mt-4">
+              <div
+                class="hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors"
+                @click="ignoreThisRelease = !ignoreThisRelease"
+              >
+                <Switch v-model="ignoreThisRelease" @click.stop />
+                <Label class="text-muted-foreground cursor-pointer text-sm">
+                  {{ t('Ignore this release until next reboot') }}
+                </Label>
+              </div>
+            </div>
+          </div>
+
           <div
             v-if="extraLinks.length > 0"
             :class="cn('xs:!flex-row flex flex-col justify-center gap-2')"
@@ -295,7 +337,7 @@ const modalWidth = computed(() => {
             <BrandButton
               v-for="item in extraLinks"
               :key="item.text"
-              :btn-style="item.variant ?? undefined"
+              :variant="item.variant ?? undefined"
               :href="item.href ?? undefined"
               :icon="item.icon"
               :icon-right="item.iconRight"
@@ -306,23 +348,8 @@ const modalWidth = computed(() => {
             />
           </div>
 
-          <div v-if="available || availableWithRenewal" class="mx-auto">
-            <div class="flex items-center justify-center gap-2 rounded p-2">
-              <Switch
-                v-model="ignoreThisRelease"
-                :class="
-                  ignoreThisRelease
-                    ? 'from-unraid-red to-orange bg-linear-to-r'
-                    : 'data-[state=unchecked]:bg-opacity-10 data-[state=unchecked]:bg-foreground data-[state=unchecked]:bg-transparent'
-                "
-              />
-              <Label class="text-base">
-                {{ t('Ignore this release until next reboot') }}
-              </Label>
-            </div>
-          </div>
           <div
-            v-else-if="updateOsIgnoredReleases.length > 0"
+            v-if="updateOsIgnoredReleases.length > 0 && !(available || availableWithRenewal)"
             class="mx-auto flex w-full max-w-[640px] flex-col gap-2"
           >
             <h3 class="text-left text-base font-semibold italic">
@@ -338,7 +365,7 @@ const modalWidth = computed(() => {
         </div>
       </div>
 
-      <DialogFooter>
+      <ResponsiveModalFooter>
         <div
           :class="
             cn(
@@ -347,31 +374,75 @@ const modalWidth = computed(() => {
             )
           "
         >
-          <div :class="cn('xs:!flex-row flex flex-col-reverse justify-start gap-2')">
-            <Button variant="ghost" @click="close">
-              <XMarkIcon class="mr-2 h-4 w-4" />
-              {{ t('Close') }}
-            </Button>
-            <Button variant="ghost" @click="accountStore.updateOs()">
-              <ArrowTopRightOnSquareIcon class="mr-2 h-4 w-4" />
-              {{ t('More options') }}
-            </Button>
+          <div
+            v-if="actionButtons"
+            :class="cn('xs:!flex-row flex flex-col-reverse justify-start gap-3')"
+          >
+            <TooltipProvider>
+              <Tooltip :delay-duration="0">
+                <TooltipTrigger as-child>
+                  <Button variant="ghost" @click="accountStore.updateOs()">
+                    <ArrowTopRightOnSquareIcon class="mr-2 h-4 w-4" />
+                    {{ t('More Options') }}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent class="max-w-xs">
+                  <div class="flex items-start gap-2">
+                    <ArrowTopRightOnSquareIcon
+                      class="text-muted-foreground mt-0.5 h-4 w-4 flex-shrink-0"
+                    />
+                    <p class="text-left text-sm">
+                      {{
+                        t(
+                          'Manage update preferences including beta access and version selection at account.unraid.net'
+                        )
+                      }}
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
-          <div v-if="actionButtons" :class="cn('xs:!flex-row flex flex-col justify-end gap-2')">
-            <BrandButton
-              v-for="item in actionButtons"
-              :key="item.text"
-              :btn-style="item.variant ?? undefined"
-              :icon="item.icon"
-              :icon-right="item.iconRight"
-              :icon-right-hover-display="item.iconRightHoverDisplay"
-              :text="t(item.text ?? '')"
-              :title="item.title ? t(item.title) : undefined"
-              @click="item.click?.()"
-            />
+          <div v-if="actionButtons" :class="cn('xs:!flex-row flex flex-col justify-end gap-3')">
+            <template v-for="item in actionButtons" :key="item.text">
+              <TooltipProvider v-if="ignoreThisRelease && item.text === localizedCloseText">
+                <Tooltip :delay-duration="300">
+                  <TooltipTrigger as-child>
+                    <BrandButton
+                      :variant="item.variant ?? undefined"
+                      :icon="item.icon"
+                      :icon-right="item.iconRight"
+                      :icon-right-hover-display="item.iconRightHoverDisplay"
+                      :text="item.text ?? ''"
+                      :title="item.title ? item.title : undefined"
+                      @click="item.click?.()"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      {{
+                        t(
+                          'You can opt back in to an ignored release by clicking on the Check for Updates button in the header anytime'
+                        )
+                      }}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <BrandButton
+                v-else
+                :variant="item.variant ?? undefined"
+                :icon="item.icon"
+                :icon-right="item.iconRight"
+                :icon-right-hover-display="item.iconRightHoverDisplay"
+                :text="item.text ?? ''"
+                :title="item.title ? item.title : undefined"
+                @click="item.click?.()"
+              />
+            </template>
           </div>
         </div>
-      </DialogFooter>
-    </DialogContent>
-  </DialogRoot>
+      </ResponsiveModalFooter>
+    </div>
+  </ResponsiveModal>
 </template>

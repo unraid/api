@@ -21,6 +21,7 @@ import {
 } from '@unraid/ui';
 import { Settings } from 'lucide-vue-next';
 
+import ConfirmDialog from '~/components/ConfirmDialog.vue';
 import {
   archiveAllNotifications,
   deleteArchivedNotifications,
@@ -37,10 +38,12 @@ import NotificationsList from '~/components/Notifications/List.vue';
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
 import { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
+import { useConfirm } from '~/composables/useConfirm';
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
 const { mutate: recalculateOverview } = useMutation(resetOverview);
+const { confirm } = useConfirm();
 const importance = ref<Importance | undefined>(undefined);
 
 const filterItems = [
@@ -52,17 +55,26 @@ const filterItems = [
 ];
 
 const confirmAndArchiveAll = async () => {
-  if (confirm('This will archive all notifications on your Unraid server. Continue?')) {
+  const confirmed = await confirm({
+    title: 'Archive All Notifications',
+    description: 'This will archive all notifications on your Unraid server. Continue?',
+    confirmText: 'Archive All',
+    confirmVariant: 'primary',
+  });
+  if (confirmed) {
     await archiveAll();
   }
 };
 
 const confirmAndDeleteArchives = async () => {
-  if (
-    confirm(
-      'This will permanently delete all archived notifications currently on your Unraid server. Continue?'
-    )
-  ) {
+  const confirmed = await confirm({
+    title: 'Delete All Archived Notifications',
+    description:
+      'This will permanently delete all archived notifications currently on your Unraid server. This action cannot be undone.',
+    confirmText: 'Delete All',
+    confirmVariant: 'destructive',
+  });
+  if (confirmed) {
     await deleteArchives();
   }
 };
@@ -230,4 +242,7 @@ const prepareToViewNotifications = () => {
       </div>
     </SheetContent>
   </Sheet>
+
+  <!-- Global Confirm Dialog -->
+  <ConfirmDialog />
 </template>

@@ -140,4 +140,14 @@ export const componentMappings: ComponentMapping[] = [
     selector: ['unraid-toaster', 'uui-toaster'],
     appId: 'toaster',
   },
+  {
+    loader: () => import('../UpdateOs/TestUpdateModal.standalone.vue'),
+    selector: 'unraid-test-update-modal',
+    appId: 'test-update-modal',
+  },
+  {
+    loader: () => import('../TestThemeSwitcher.standalone.vue'),
+    selector: 'unraid-test-theme-switcher',
+    appId: 'test-theme-switcher',
+  },
 ];

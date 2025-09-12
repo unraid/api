@@ -51,7 +51,7 @@ const classes = computed(() => {
 });
 
 const needsBrandGradientBackground = computed(() => {
-  return ['outline-solid', 'outline-primary'].includes(props.variant ?? '');
+  return ['outline', 'outline-solid', 'outline-primary'].includes(props.variant ?? '');
 });
 
 const isLink = computed(() => Boolean(props.href));
