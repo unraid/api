@@ -1,6 +1,9 @@
 import { readFile } from 'node:fs/promises';
 
-import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
+import {
+    FileModification,
+    ShouldApplyWithReason,
+} from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
 export default class DisplaySettingsModification extends FileModification {
     id: string = 'display-settings';
@@ -33,5 +36,16 @@ export default class DisplaySettingsModification extends FileModification {
         const newContent = await this.applyToSource(fileContent);
 
         return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
+    }
+
+    async shouldApply(): Promise<ShouldApplyWithReason> {
+        const superShouldApply = await super.shouldApply();
+        if (!superShouldApply.shouldApply) {
+            return superShouldApply;
+        }
+        return {
+            shouldApply: true,
+            reason: 'Display settings modification needed for Unraid version <= 7.2.0-beta.2.3',
+        };
     }
 }
