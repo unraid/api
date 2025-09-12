@@ -337,7 +337,7 @@ const modalWidth = computed(() => {
             <BrandButton
               v-for="item in extraLinks"
               :key="item.text"
-              :btn-style="item.variant ?? undefined"
+              :variant="item.variant ?? undefined"
               :href="item.href ?? undefined"
               :icon="item.icon"
               :icon-right="item.iconRight"
@@ -409,7 +409,7 @@ const modalWidth = computed(() => {
                 <Tooltip :delay-duration="300">
                   <TooltipTrigger as-child>
                     <BrandButton
-                      :btn-style="item.variant ?? undefined"
+                      :variant="item.variant ?? undefined"
                       :icon="item.icon"
                       :icon-right="item.iconRight"
                       :icon-right-hover-display="item.iconRightHoverDisplay"
@@ -431,7 +431,7 @@ const modalWidth = computed(() => {
               </TooltipProvider>
               <BrandButton
                 v-else
-                :btn-style="item.variant ?? undefined"
+                :variant="item.variant ?? undefined"
                 :icon="item.icon"
                 :icon-right="item.iconRight"
                 :icon-right-hover-display="item.iconRightHoverDisplay"
