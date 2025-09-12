@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import SsoProviderButton from '~/components/sso/SsoProviderButton.vue';
 import { useSsoAuth } from '~/components/sso/useSsoAuth';
 import { useSsoProviders } from '~/components/sso/useSsoProviders';
+
+const emit = defineEmits<{
+  'sso-status': [status: { checking: boolean; loading: boolean }];
+}>();
 
 const { t } = useI18n();
 const { oidcProviders, hasProviders, checkingApi } = useSsoProviders();
@@ -13,6 +17,15 @@ const { currentState, error, navigateToProvider } = useSsoAuth();
 const showError = computed(() => currentState.value === 'error');
 const showOr = computed(() => (currentState.value === 'idle' || showError.value) && hasProviders.value);
 const isLoading = computed(() => currentState.value === 'loading');
+
+// Emit status changes
+watch(
+  [checkingApi, isLoading],
+  ([checking, loading]) => {
+    emit('sso-status', { checking, loading });
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
