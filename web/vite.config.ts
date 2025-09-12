@@ -129,6 +129,10 @@ export default defineConfig({
     terserOptions: sharedTerserOptions,
   },
 
+  optimizeDeps: {
+    include: ['ajv', 'ajv-errors', 'ajv-formats'],
+  },
+
   server: {
     port: 3000,
     proxy: {

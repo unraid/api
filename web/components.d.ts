@@ -34,6 +34,7 @@ declare module 'vue' {
     ConfirmDialog: typeof import('./src/components/ConfirmDialog.vue')['default']
     'ConnectSettings.standalone': typeof import('./src/components/ConnectSettings/ConnectSettings.standalone.vue')['default']
     Console: typeof import('./src/components/Docker/Console.vue')['default']
+    'CpuStats.standalone': typeof import('./src/components/CpuStats/CpuStats.standalone.vue')['default']
     Detail: typeof import('./src/components/LayoutViews/Detail/Detail.vue')['default']
     DetailContentHeader: typeof import('./src/components/LayoutViews/Detail/DetailContentHeader.vue')['default']
     DetailLeftNavigation: typeof import('./src/components/LayoutViews/Detail/DetailLeftNavigation.vue')['default']

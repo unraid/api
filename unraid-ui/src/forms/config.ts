@@ -1,5 +1,5 @@
 import { createAjv } from '@jsonforms/core';
-import type Ajv from 'ajv';
+import type { Ajv } from 'ajv';
 import addErrors from 'ajv-errors';
 
 export interface JsonFormsConfig {

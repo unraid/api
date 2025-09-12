@@ -153,4 +153,9 @@ export const componentMappings: ComponentMapping[] = [
     selector: 'unraid-test-theme-switcher',
     appId: 'test-theme-switcher',
   },
+  {
+    loader: () => import('../CpuStats/CpuStats.standalone.vue'),
+    selector: 'unraid-cpu-stats',
+    appId: 'cpu-stats',
+  },
 ];

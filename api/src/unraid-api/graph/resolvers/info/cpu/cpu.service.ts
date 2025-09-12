@@ -29,16 +29,16 @@ export class CpuService {
 
         return {
             id: 'info/cpu-load',
-            percentTotal: loadData.currentLoad,
+            percentTotal: Math.floor(loadData.currentLoad),
             cpus: loadData.cpus.map((cpu) => ({
-                percentTotal: cpu.load,
-                percentUser: cpu.loadUser,
-                percentSystem: cpu.loadSystem,
-                percentNice: cpu.loadNice,
-                percentIdle: cpu.loadIdle,
-                percentIrq: cpu.loadIrq,
-                percentGuest: cpu.loadGuest || 0,
-                percentSteal: cpu.loadSteal || 0,
+                percentTotal: Math.floor(cpu.load),
+                percentUser: Math.floor(cpu.loadUser),
+                percentSystem: Math.floor(cpu.loadSystem),
+                percentNice: Math.floor(cpu.loadNice),
+                percentIdle: Math.floor(cpu.loadIdle),
+                percentIrq: Math.floor(cpu.loadIrq),
+                percentGuest: Math.floor(cpu.loadGuest || 0),
+                percentSteal: Math.floor(cpu.loadSteal || 0),
             })),
         };
     }

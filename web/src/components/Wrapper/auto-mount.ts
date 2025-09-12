@@ -3,7 +3,21 @@
 
 import { provideApolloClient } from '@vue/apollo-composable';
 
-import { ensureTeleportContainer } from '@unraid/ui';
+// Copy the ensureTeleportContainer function to avoid importing from @unraid/ui
+// which causes ESM/CommonJS issues with ajv-errors
+function ensureTeleportContainer(): HTMLElement {
+  const containerId = 'unraid-teleport-container';
+  let container = document.getElementById(containerId);
+  if (!container) {
+    container = document.createElement('div');
+    container.id = containerId;
+    container.style.position = 'relative';
+    container.classList.add('unapi');
+    container.style.zIndex = '999999';
+    document.body.appendChild(container);
+  }
+  return container;
+}
 import {
   autoMountAllComponents,
   autoMountComponent,

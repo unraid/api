@@ -28,6 +28,8 @@ type Documents = {
     "\n  query GetPermissionsForRoles($roles: [Role!]!) {\n    getPermissionsForRoles(roles: $roles) {\n      resource\n      actions\n    }\n  }\n": typeof types.GetPermissionsForRolesDocument,
     "\n  query Unified {\n    settings {\n      unified {\n        id\n        dataSchema\n        uiSchema\n        values\n      }\n    }\n  }\n": typeof types.UnifiedDocument,
     "\n  mutation UpdateConnectSettings($input: JSON!) {\n    updateSettings(input: $input) {\n      restartRequired\n      values\n    }\n  }\n": typeof types.UpdateConnectSettingsDocument,
+    "\n  query GetCpuInfo {\n    info {\n      cpu {\n        id\n        manufacturer\n        brand\n        vendor\n        family\n        model\n      }\n    }\n  }\n": typeof types.GetCpuInfoDocument,
+    "\n  subscription CpuMetrics {\n    systemMetricsCpu {\n      id\n      percentTotal\n      cpus {\n        percentTotal\n        percentUser\n        percentSystem\n      }\n    }\n  }\n": typeof types.CpuMetricsDocument,
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": typeof types.LogFilesDocument,
     "\n  query LogFileContent($path: String!, $lines: Int, $startLine: Int) {\n    logFile(path: $path, lines: $lines, startLine: $startLine) {\n      path\n      content\n      totalLines\n      startLine\n    }\n  }\n": typeof types.LogFileContentDocument,
     "\n  subscription LogFileSubscription($path: String!) {\n    logFile(path: $path) {\n      path\n      content\n      totalLines\n    }\n  }\n": typeof types.LogFileSubscriptionDocument,
@@ -73,6 +75,8 @@ const documents: Documents = {
     "\n  query GetPermissionsForRoles($roles: [Role!]!) {\n    getPermissionsForRoles(roles: $roles) {\n      resource\n      actions\n    }\n  }\n": types.GetPermissionsForRolesDocument,
     "\n  query Unified {\n    settings {\n      unified {\n        id\n        dataSchema\n        uiSchema\n        values\n      }\n    }\n  }\n": types.UnifiedDocument,
     "\n  mutation UpdateConnectSettings($input: JSON!) {\n    updateSettings(input: $input) {\n      restartRequired\n      values\n    }\n  }\n": types.UpdateConnectSettingsDocument,
+    "\n  query GetCpuInfo {\n    info {\n      cpu {\n        id\n        manufacturer\n        brand\n        vendor\n        family\n        model\n      }\n    }\n  }\n": types.GetCpuInfoDocument,
+    "\n  subscription CpuMetrics {\n    systemMetricsCpu {\n      id\n      percentTotal\n      cpus {\n        percentTotal\n        percentUser\n        percentSystem\n      }\n    }\n  }\n": types.CpuMetricsDocument,
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": types.LogFilesDocument,
     "\n  query LogFileContent($path: String!, $lines: Int, $startLine: Int) {\n    logFile(path: $path, lines: $lines, startLine: $startLine) {\n      path\n      content\n      totalLines\n      startLine\n    }\n  }\n": types.LogFileContentDocument,
     "\n  subscription LogFileSubscription($path: String!) {\n    logFile(path: $path) {\n      path\n      content\n      totalLines\n    }\n  }\n": types.LogFileSubscriptionDocument,
@@ -174,6 +178,14 @@ export function graphql(source: "\n  query Unified {\n    settings {\n      unif
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation UpdateConnectSettings($input: JSON!) {\n    updateSettings(input: $input) {\n      restartRequired\n      values\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateConnectSettings($input: JSON!) {\n    updateSettings(input: $input) {\n      restartRequired\n      values\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query GetCpuInfo {\n    info {\n      cpu {\n        id\n        manufacturer\n        brand\n        vendor\n        family\n        model\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetCpuInfo {\n    info {\n      cpu {\n        id\n        manufacturer\n        brand\n        vendor\n        family\n        model\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  subscription CpuMetrics {\n    systemMetricsCpu {\n      id\n      percentTotal\n      cpus {\n        percentTotal\n        percentUser\n        percentSystem\n      }\n    }\n  }\n"): (typeof documents)["\n  subscription CpuMetrics {\n    systemMetricsCpu {\n      id\n      percentTotal\n      cpus {\n        percentTotal\n        percentUser\n        percentSystem\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
