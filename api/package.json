@@ -1,6 +1,6 @@
 {
     "name": "@unraid/api",
-    "version": "4.22.1",
+    "version": "5.0.0",
     "main": "src/cli/index.ts",
     "type": "module",
     "corepack": {
