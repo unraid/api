@@ -205,7 +205,7 @@
         "rollup-plugin-node-externals": "8.1.0",
         "supertest": "7.1.4",
         "tsx": "4.20.5",
-        "type-fest": "4.41.0",
+        "type-fest": "5.0.0",
         "typescript": "5.9.2",
         "typescript-eslint": "8.41.0",
         "unplugin-swc": "1.5.7",
