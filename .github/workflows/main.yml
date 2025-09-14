@@ -204,7 +204,7 @@ jobs:
         id: buildnumber
         uses: onyxmueller/build-tag-number@v1
         with:
-          token: ${{secrets.github_token}}
+          token: ${{github.token}}
           prefix: ${{steps.vars.outputs.PACKAGE_LOCK_VERSION}}
 
       - name: Build
