@@ -123,7 +123,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#test-app',
         appId: 'test-app',
-        component: TestComponent,
+        loader: () => Promise.resolve({ default: TestComponent }),
       });
 
       const app = mountUnifiedApp();
@@ -148,7 +148,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#test-app',
         appId: 'test-app',
-        component: TestComponent,
+        loader: () => Promise.resolve({ default: TestComponent }),
       });
 
       mountUnifiedApp();
@@ -165,7 +165,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#test-app',
         appId: 'test-app',
-        component: TestComponent,
+        loader: () => Promise.resolve({ default: TestComponent }),
       });
 
       mountUnifiedApp();
@@ -183,7 +183,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#test-app',
         appId: 'test-app',
-        component: TestComponent,
+        loader: () => Promise.resolve({ default: TestComponent }),
       });
 
       mountUnifiedApp();
@@ -204,7 +204,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: ['#app1', '.app-alt'],
         appId: 'multi-selector',
-        component: TestComponent,
+        loader: () => Promise.resolve({ default: TestComponent }),
       });
 
       mountUnifiedApp();
@@ -251,7 +251,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#already-mounted',
         appId: 'already-mounted',
-        component: TestComponent,
+        loader: () => Promise.resolve({ default: TestComponent }),
       });
 
       mountUnifiedApp();
@@ -264,7 +264,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#non-existent',
         appId: 'non-existent',
-        component: TestComponent,
+        loader: () => Promise.resolve({ default: TestComponent }),
       });
 
       const app = mountUnifiedApp();
@@ -319,7 +319,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#wrapped-app',
         appId: 'wrapped-app',
-        component: TestComponent,
+        loader: () => Promise.resolve({ default: TestComponent }),
       });
 
       mountUnifiedApp();
@@ -342,12 +342,12 @@ describe('mount-engine', () => {
         {
           selector: '#app1',
           appId: 'app1',
-          component: TestComponent,
+          loader: () => Promise.resolve({ default: TestComponent }),
         },
         {
           selector: '#app2',
           appId: 'app2',
-          component: TestComponent,
+          loader: () => Promise.resolve({ default: TestComponent }),
         }
       );
 
@@ -373,7 +373,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#auto-app',
         appId: 'auto-app',
-        component: TestComponent,
+        loader: () => Promise.resolve({ default: TestComponent }),
       });
 
       autoMountAllComponents();
@@ -429,7 +429,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#global-app',
         appId: 'global-app',
-        component: TestComponent,
+        loader: () => Promise.resolve({ default: TestComponent }),
       });
 
       mountUnifiedApp();
@@ -454,7 +454,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#perf-app',
         appId: 'perf-app',
-        component: TestComponent,
+        loader: () => Promise.resolve({ default: TestComponent }),
       });
 
       mountUnifiedApp();

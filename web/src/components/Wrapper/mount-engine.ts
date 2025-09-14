@@ -10,7 +10,7 @@ import { client } from '~/helpers/create-apollo-client';
 import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
 import en_US from '~/locales/en_US.json';
 
-import type { Component, App as VueApp } from 'vue';
+import type { App as VueApp } from 'vue';
 
 // Import Pinia for use in Vue apps
 import { globalPinia } from '~/store/globalPinia';
@@ -134,22 +134,13 @@ export function mountUnifiedApp() {
     for (const sel of selectors) {
       const element = document.querySelector(sel) as HTMLElement;
       if (element && !element.hasAttribute('data-vue-mounted')) {
-        // Get component (resolve if it's a loader)
-        let component: Component;
-        if ('component' in mapping && mapping.component) {
-          component = mapping.component;
-        } else if ('loader' in mapping && mapping.loader) {
-          // Create async component from loader
-          component = defineAsyncComponent({
-            loader: async () => {
-              const module = await mapping.loader!();
-              return 'default' in module ? module.default : module;
-            },
-          });
-        } else {
-          console.error(`[UnifiedMount] Invalid mapping for ${appId}`);
-          continue;
-        }
+        // Create async component from loader (all components now use async loading)
+        const component = defineAsyncComponent({
+          loader: async () => {
+            const module = await mapping.loader();
+            return 'default' in module ? module.default : module;
+          },
+        });
 
         // Parse props from element
         const props = parsePropsFromElement(element);

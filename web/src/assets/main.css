@@ -143,6 +143,13 @@
 
 /* Note: Tailwind utilities will apply globally but should be used with .unapi prefix in HTML */
 
+/* Ensure unraid-modals container has extremely high z-index */
+unraid-modals.unapi {
+  position: relative;
+  z-index: 999999;
+  isolation: isolate;
+}
+
 /* Style for Unraid progress frame */
 iframe#progressFrame {
   background-color: var(--background-color);

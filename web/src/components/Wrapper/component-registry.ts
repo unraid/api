@@ -2,40 +2,22 @@
 // This module defines all web components and their mappings
 // Actual mounting is handled by mount-engine.ts
 
-import type { Component } from 'vue';
-
 // Import CSS for bundling - this ensures Tailwind styles are included
 import '~/assets/main.css';
 // Import @unraid/ui styles which includes vue-sonner styles
 import '@unraid/ui/styles';
 
-// Static imports only for truly critical components (modals, toaster)
-import ModalsCe from '@/components/Modals.standalone.vue';
-import UnraidToaster from '@/components/UnraidToaster.vue';
-
 // Type for Vue component module
 type VueComponentModule = { default: object } | object;
 
-// Type for component mappings
+// Type for component mappings - all components use async loading
 export type ComponentMapping = {
   selector: string | string[]; // Can be a single selector or array of selector aliases
   appId: string;
-} & (
-  | { component: Component } // Static import
-  | { loader: () => Promise<VueComponentModule> } // Dynamic import
-);
+  loader: () => Promise<VueComponentModule>; // All components use dynamic import
+};
 
-// Priority levels for component mounting
-export const MOUNT_PRIORITY = {
-  CRITICAL: 0, // Mount immediately (modals, toaster)
-  HIGH: 1, // Mount soon (header components)
-  NORMAL: 2, // Mount when idle
-  LOW: 3, // Mount last
-} as const;
-
-// Define component mappings with priority
-// Critical components use static imports (already loaded)
-// Page-specific components use dynamic imports (lazy loaded)
+// Define component mappings - all components use async loading for consistency
 export const componentMappings: ComponentMapping[] = [
   {
     loader: () => import('../Auth.standalone.vue'),
@@ -58,7 +40,7 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'header-os-version',
   },
   {
-    component: ModalsCe, // Static import - global modals
+    loader: () => import('@/components/Modals.standalone.vue'),
     selector: ['unraid-modals', '#modals', 'modals-direct'], // All possible modal selectors
     appId: 'modals',
   },
@@ -143,7 +125,7 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'color-switcher',
   },
   {
-    component: UnraidToaster, // Static import - toaster styles need to be in main bundle
+    loader: () => import('@/components/UnraidToaster.vue'),
     selector: ['unraid-toaster', 'uui-toaster'],
     appId: 'toaster',
   },
