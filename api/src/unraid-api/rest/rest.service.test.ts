@@ -7,6 +7,7 @@ import { Readable } from 'node:stream';
 import { execa, ExecaError } from 'execa';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { ApiReportData } from '@app/unraid-api/cli/api-report.service.js';
 import {
     getBannerPathIfPresent,
     getCasePathIfPresent,
@@ -219,14 +220,25 @@ describe('RestService', () => {
 
     describe('saveApiReport', () => {
         it('should generate and save API report', async () => {
-            const mockReport = {
-                version: '1.0',
-                timestamp: Date.now(),
-                connectionStatus: { online: true },
-                system: { os: 'test' },
-                connect: {},
-                apiStatus: {},
-                configuration: {},
+            const mockReport: ApiReportData = {
+                timestamp: new Date().toISOString(),
+                connectionStatus: { running: 'yes' },
+                system: {
+                    name: 'Test Server',
+                    version: '6.12.0',
+                    machineId: 'test-machine-id',
+                },
+                connect: {
+                    installed: false,
+                },
+                config: {
+                    valid: true,
+                },
+                services: {
+                    cloud: null,
+                    minigraph: null,
+                    allServices: [],
+                },
             };
             const mockPath = '/test/report.json';
 
