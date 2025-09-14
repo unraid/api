@@ -9,13 +9,9 @@ import '~/assets/main.css';
 // Import @unraid/ui styles which includes vue-sonner styles
 import '@unraid/ui/styles';
 
-// Static imports for critical components that are always present
-// These are included in the main bundle for faster initial render
-import HeaderOsVersionCe from '@/components/HeaderOsVersion.standalone.vue';
+// Static imports only for truly critical components (modals, toaster)
 import ModalsCe from '@/components/Modals.standalone.vue';
-import ThemeSwitcherCe from '@/components/ThemeSwitcher.standalone.vue';
 import UnraidToaster from '@/components/UnraidToaster.vue';
-import UserProfileCe from '@/components/UserProfile.standalone.vue';
 
 // Type for Vue component module
 type VueComponentModule = { default: object } | object;
@@ -29,7 +25,15 @@ export type ComponentMapping = {
   | { loader: () => Promise<VueComponentModule> } // Dynamic import
 );
 
-// Define component mappings
+// Priority levels for component mounting
+export const MOUNT_PRIORITY = {
+  CRITICAL: 0, // Mount immediately (modals, toaster)
+  HIGH: 1, // Mount soon (header components)
+  NORMAL: 2, // Mount when idle
+  LOW: 3, // Mount last
+} as const;
+
+// Define component mappings with priority
 // Critical components use static imports (already loaded)
 // Page-specific components use dynamic imports (lazy loaded)
 export const componentMappings: ComponentMapping[] = [
@@ -49,7 +53,7 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'download-api-logs',
   },
   {
-    component: HeaderOsVersionCe, // Static import - always present in header
+    loader: () => import('@/components/HeaderOsVersion.standalone.vue'),
     selector: 'unraid-header-os-version',
     appId: 'header-os-version',
   },
@@ -59,7 +63,7 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'modals',
   },
   {
-    component: UserProfileCe, // Static import - always present in header
+    loader: () => import('@/components/UserProfile.standalone.vue'),
     selector: 'unraid-user-profile',
     appId: 'user-profile',
   },
@@ -129,7 +133,7 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'detail-test',
   },
   {
-    component: ThemeSwitcherCe, // Static import - theme switcher
+    loader: () => import('@/components/ThemeSwitcher.standalone.vue'),
     selector: 'unraid-theme-switcher',
     appId: 'theme-switcher',
   },

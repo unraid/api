@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { useQuery } from '@vue/apollo-composable';
+import { useLazyQuery } from '@vue/apollo-composable';
 
 import {
   ArrowTopRightOnSquareIcon,
@@ -34,11 +34,15 @@ import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 const { t } = useI18n();
 const { copyWithNotification } = useClipboardWithToast();
 
+// Defer logo cleanup to avoid blocking mount
 onMounted(() => {
-  const logoWrapper = document.querySelector('.logo');
-  logoWrapper?.classList.remove('logo');
+  nextTick(() => {
+    const logoWrapper = document.querySelector('.logo');
+    logoWrapper?.classList.remove('logo');
+  });
 });
 
+// Initialize all stores - they're needed for the UI
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
@@ -48,10 +52,21 @@ const { osVersion, rebootType, stateDataError } = storeToRefs(serverStore);
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootTypeText } = storeToRefs(updateOsActionsStore);
 
-// Query for version information
-const { result: versionsResult } = useQuery(INFO_VERSIONS_QUERY, null, {
+// Use lazy query and only load when dropdown is opened
+const { load: loadVersions, result: versionsResult } = useLazyQuery(INFO_VERSIONS_QUERY, {
   fetchPolicy: 'cache-first',
 });
+
+// Track if we've loaded the versions yet
+const hasLoadedVersions = ref(false);
+
+// Load version data only when dropdown is opened
+const handleDropdownOpen = (open: boolean) => {
+  if (open && !hasLoadedVersions.value) {
+    hasLoadedVersions.value = true;
+    loadVersions();
+  }
+};
 
 // Use versions endpoint as primary source, fallback to store
 const displayOsVersion = computed(
@@ -174,7 +189,7 @@ const updateOsStatus = computed(() => {
     </a>
 
     <div class="mt-2 flex flex-wrap justify-start gap-2">
-      <DropdownMenuRoot>
+      <DropdownMenuRoot @update:open="handleDropdownOpen">
         <DropdownMenuTrigger as-child>
           <Button
             variant="link"
