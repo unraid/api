@@ -50,7 +50,8 @@ update_auth_request() {
   local server_name="$1"
   # SSH into server and update auth-request.php
   ssh "root@${server_name}" /bin/bash -s << 'EOF'
-    set -o pipefail
+    set -euo pipefail
+    set -o errtrace
     AUTH_REQUEST_FILE='/usr/local/emhttp/auth-request.php'
     UNRAID_COMPS_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/'
 
@@ -102,7 +103,7 @@ update_auth_request() {
       }
 
       awk -v files_to_add="$(printf '%s\n' "${FILES_TO_ADD[@]}" | sed "s/'/\\\\'/g" | sort -u | awk '{printf "  \047%s\047,\n", $0}')" '
-        /\$arrWhitelist\s*=\s*\[/ {
+        /\$arrWhitelist[[:space:]]*=[[:space:]]*\[/ {
           print $0
           print files_to_add
           next
@@ -116,6 +117,15 @@ update_auth_request() {
 
       # Clean up intermediate file
       rm -f "$TEMP_FILE.stage1"
+
+      # Verify whitelist entries were actually injected
+      if [ ${#FILES_TO_ADD[@]} -gt 0 ]; then
+        if ! grep -qF "${FILES_TO_ADD[0]}" "$TEMP_FILE"; then
+          echo "Failed to inject whitelist entries" >&2
+          rm -f "$TEMP_FILE"
+          exit 1
+        fi
+      fi
 
       # Check temp file is non-empty
       if [ ! -s "$TEMP_FILE" ]; then
