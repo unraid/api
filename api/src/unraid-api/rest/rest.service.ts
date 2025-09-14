@@ -4,6 +4,7 @@ import { createReadStream } from 'node:fs';
 import { stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import type { ExecaError } from 'execa';
 import { execa } from 'execa';
 
 import {
@@ -53,16 +54,52 @@ export class RestService {
                     this.logger.debug('Including graphql-api.log in archive');
                 }
 
-                await execa('tar', tarArgs);
+                // Execute tar with timeout and capture output
+                await execa('tar', tarArgs, {
+                    timeout: 60000, // 60 seconds timeout for tar operation
+                    reject: true, // Throw on non-zero exit (default behavior)
+                });
+
                 const tarFileExists = Boolean(await stat(zipToWrite).catch(() => null));
 
                 if (tarFileExists) {
                     return createReadStream(zipToWrite);
                 } else {
-                    throw new Error('Failed to create log zip');
+                    throw new Error(
+                        'Failed to create log zip - tar file not found after successful command'
+                    );
                 }
             } catch (error) {
-                throw new Error('Failed to create logs');
+                // Build detailed error message with execa's built-in error info
+                let errorMessage = 'Failed to create logs archive';
+
+                if (error && typeof error === 'object' && 'command' in error) {
+                    const execaError = error as ExecaError;
+
+                    if (execaError.timedOut) {
+                        errorMessage = `Tar command timed out after 60 seconds. Command: ${execaError.command}`;
+                    } else if (execaError.exitCode !== undefined) {
+                        errorMessage = `Tar command failed with exit code ${execaError.exitCode}. Command: ${execaError.command}`;
+                    }
+
+                    // Add stderr/stdout if available
+                    if (execaError.stderr) {
+                        errorMessage += `. Stderr: ${execaError.stderr}`;
+                    }
+                    if (execaError.stdout) {
+                        errorMessage += `. Stdout: ${execaError.stdout}`;
+                    }
+
+                    // Include the short message from execa
+                    if (execaError.shortMessage) {
+                        errorMessage += `. Details: ${execaError.shortMessage}`;
+                    }
+                } else if (error instanceof Error) {
+                    errorMessage += `: ${error.message}`;
+                }
+
+                this.logger.error(errorMessage, error);
+                throw new Error(errorMessage);
             }
         } else {
             throw new Error('No logs to download');
