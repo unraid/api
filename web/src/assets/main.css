@@ -87,6 +87,7 @@
   .unapi p {
     margin: 0;
     padding: 0;
+    text-align: unset;
   }
 
   /* Reset UL styles to prevent default browser styling */

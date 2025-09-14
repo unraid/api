@@ -40,7 +40,7 @@ if [ "$has_standalone" = true ]; then
   rsync -avz --delete -e "ssh" "$standalone_directory" "root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
   standalone_exit_code=$?
   # If standalone rsync failed, update exit_code
-  if [ $standalone_exit_code -ne 0 ]; then
+  if [ "$standalone_exit_code" -ne 0 ]; then
     exit_code=$standalone_exit_code
   fi
 fi
@@ -49,7 +49,8 @@ fi
 update_auth_request() {
   local server_name="$1"
   # SSH into server and update auth-request.php
-  ssh "root@${server_name}" bash -s << 'EOF'
+  ssh "root@${server_name}" /bin/bash -s << 'EOF'
+    set -o pipefail
     AUTH_REQUEST_FILE='/usr/local/emhttp/auth-request.php'
     UNRAID_COMPS_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/'
 
@@ -76,8 +77,9 @@ update_auth_request() {
       # Clean up any existing temp file
       rm -f "$TEMP_FILE"
       
-      # Process the file through both stages using a pipeline
+      # Process the file through both stages
       # First remove existing web component entries, then add new ones
+      # Use a simpler approach without relying on PIPESTATUS
       awk '
         BEGIN { in_array = 0 }
         /\$arrWhitelist\s*=\s*\[/ {
@@ -93,7 +95,12 @@ update_auth_request() {
         !in_array || !/\/plugins\/dynamix\.my\.servers\/unraid-components\/.*\.(m?js|css)/ {
           print $0
         }
-      ' "$AUTH_REQUEST_FILE" | \
+      ' "$AUTH_REQUEST_FILE" > "$TEMP_FILE.stage1" || {
+        echo "Failed to process $AUTH_REQUEST_FILE (stage 1)" >&2
+        rm -f "$TEMP_FILE.stage1"
+        exit 1
+      }
+
       awk -v files_to_add="$(printf '%s\n' "${FILES_TO_ADD[@]}" | sed "s/'/\\\\'/g" | sort -u | awk '{printf "  \047%s\047,\n", $0}')" '
         /\$arrWhitelist\s*=\s*\[/ {
           print $0
@@ -101,11 +108,18 @@ update_auth_request() {
           next
         }
         { print }
-      ' > "$TEMP_FILE"
-      
-      # Check pipeline succeeded and temp file is non-empty
-      if [ ${PIPESTATUS[0]} -ne 0 ] || [ ${PIPESTATUS[1]} -ne 0 ] || [ ! -s "$TEMP_FILE" ]; then
-        echo "Failed to process $AUTH_REQUEST_FILE" >&2
+      ' "$TEMP_FILE.stage1" > "$TEMP_FILE" || {
+        echo "Failed to process $AUTH_REQUEST_FILE (stage 2)" >&2
+        rm -f "$TEMP_FILE.stage1" "$TEMP_FILE"
+        exit 1
+      }
+
+      # Clean up intermediate file
+      rm -f "$TEMP_FILE.stage1"
+
+      # Check temp file is non-empty
+      if [ ! -s "$TEMP_FILE" ]; then
+        echo "Failed to process $AUTH_REQUEST_FILE - empty result" >&2
         rm -f "$TEMP_FILE"
         exit 1
       fi
@@ -136,7 +150,7 @@ update_auth_request "$server_name"
 auth_request_exit_code=$?
 
 # If auth request update failed, update exit_code
-if [ $auth_request_exit_code -ne 0 ]; then
+if [ "$auth_request_exit_code" -ne 0 ]; then
   exit_code=$auth_request_exit_code
 fi
 

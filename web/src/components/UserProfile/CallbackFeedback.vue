@@ -333,19 +333,22 @@ const showUpdateEligibility = computed(() => {
       </div>
 
       <template v-if="updateOsStatus === 'confirming' && !stateDataError">
-        <div class="my-4 flex flex-col gap-y-2 text-center">
+        <div class="my-4 flex flex-col gap-y-2">
           <div class="flex flex-col gap-y-1">
-            <p class="text-lg">
+            <p class="text-center text-lg">
               {{ t('Current Version: Unraid {0}', [osVersion]) }}
             </p>
 
             <ChevronDoubleDownIcon class="mx-auto h-8 w-8 animate-pulse fill-current opacity-50" />
 
-            <p class="text-lg">
+            <p class="text-center text-lg">
               {{ t('New Version: {0}', [callbackUpdateRelease?.name]) }}
             </p>
 
-            <p v-if="!callbackUpdateRelease?.version?.includes('+')" class="text-sm italic opacity-75">
+            <p
+              v-if="!callbackUpdateRelease?.version?.includes('+')"
+              class="text-center text-sm italic opacity-75"
+            >
               {{
                 callbackTypeDowngrade
                   ? t('This downgrade will require a reboot')
