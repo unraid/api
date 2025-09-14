@@ -28,10 +28,6 @@ vi.mock('~/components/Wrapper/component-registry', () => ({
 }));
 
 // Mock dependencies
-const mockEnsureTeleportContainer = vi.fn();
-vi.mock('@unraid/ui', () => ({
-  ensureTeleportContainer: mockEnsureTeleportContainer,
-}));
 
 const mockI18n = {
   global: {},

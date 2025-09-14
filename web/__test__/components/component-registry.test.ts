@@ -100,10 +100,7 @@ vi.mock('graphql', () => ({
 }));
 
 // Mock @unraid/ui
-const mockEnsureTeleportContainer = vi.fn();
-vi.mock('@unraid/ui', () => ({
-  ensureTeleportContainer: mockEnsureTeleportContainer,
-}));
+vi.mock('@unraid/ui', () => ({}));
 
 describe('component-registry', () => {
   beforeEach(() => {
