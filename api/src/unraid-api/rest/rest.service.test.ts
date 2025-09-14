@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import type { ReadStream, Stats } from 'node:fs';
 import { createReadStream } from 'node:fs';
 import { stat, writeFile } from 'node:fs/promises';
+import { Readable } from 'node:stream';
 
 import { execa, ExecaError } from 'execa';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -59,10 +61,10 @@ describe('RestService', () => {
         });
 
         it('should create and return log archive successfully', async () => {
-            const mockStream = { pipe: vi.fn() };
+            const mockStream: ReadStream = Readable.from([]) as ReadStream;
             vi.mocked(stat).mockImplementation((path) => {
                 if (path === mockLogPath || path === mockZipPath) {
-                    return Promise.resolve({ isFile: () => true } as any);
+                    return Promise.resolve({ isFile: () => true } as unknown as Stats);
                 }
                 return Promise.reject(new Error('File not found'));
             });
@@ -71,7 +73,7 @@ describe('RestService', () => {
                 stderr: '',
                 exitCode: 0,
             } as any);
-            vi.mocked(createReadStream).mockReturnValue(mockStream as any);
+            vi.mocked(createReadStream).mockReturnValue(mockStream);
 
             const result = await service.getLogs();
 
@@ -86,7 +88,7 @@ describe('RestService', () => {
         it('should include graphql-api.log when it exists', async () => {
             vi.mocked(stat).mockImplementation((path) => {
                 if (path === mockLogPath || path === mockGraphqlApiLog || path === mockZipPath) {
-                    return Promise.resolve({ isFile: () => true } as any);
+                    return Promise.resolve({ isFile: () => true } as unknown as Stats);
                 }
                 return Promise.reject(new Error('File not found'));
             });
@@ -95,7 +97,7 @@ describe('RestService', () => {
                 stderr: '',
                 exitCode: 0,
             } as any);
-            vi.mocked(createReadStream).mockReturnValue({} as any);
+            vi.mocked(createReadStream).mockReturnValue(Readable.from([]) as ReadStream);
 
             await service.getLogs();
 
@@ -112,7 +114,7 @@ describe('RestService', () => {
         it('should handle timeout errors with detailed message', async () => {
             vi.mocked(stat).mockImplementation((path) => {
                 if (path === mockLogPath) {
-                    return Promise.resolve({ isFile: () => true } as any);
+                    return Promise.resolve({ isFile: () => true } as unknown as Stats);
                 }
                 return Promise.reject(new Error('File not found'));
             });
@@ -133,7 +135,7 @@ describe('RestService', () => {
         it('should handle command failure with exit code and stderr', async () => {
             vi.mocked(stat).mockImplementation((path) => {
                 if (path === mockLogPath) {
-                    return Promise.resolve({ isFile: () => true } as any);
+                    return Promise.resolve({ isFile: () => true } as unknown as Stats);
                 }
                 return Promise.reject(new Error('File not found'));
             });
@@ -155,7 +157,7 @@ describe('RestService', () => {
         it('should handle case when tar succeeds but zip file is not created', async () => {
             vi.mocked(stat).mockImplementation((path) => {
                 if (path === mockLogPath) {
-                    return Promise.resolve({ isFile: () => true } as any);
+                    return Promise.resolve({ isFile: () => true } as unknown as Stats);
                 }
                 // Zip file doesn't exist after tar command
                 return Promise.reject(new Error('File not found'));
@@ -180,7 +182,7 @@ describe('RestService', () => {
         it('should handle generic errors', async () => {
             vi.mocked(stat).mockImplementation((path) => {
                 if (path === mockLogPath) {
-                    return Promise.resolve({ isFile: () => true } as any);
+                    return Promise.resolve({ isFile: () => true } as unknown as Stats);
                 }
                 return Promise.reject(new Error('File not found'));
             });
@@ -196,7 +198,7 @@ describe('RestService', () => {
         it('should handle errors with stdout in addition to stderr', async () => {
             vi.mocked(stat).mockImplementation((path) => {
                 if (path === mockLogPath) {
-                    return Promise.resolve({ isFile: () => true } as any);
+                    return Promise.resolve({ isFile: () => true } as unknown as Stats);
                 }
                 return Promise.reject(new Error('File not found'));
             });
@@ -295,10 +297,10 @@ describe('RestService', () => {
     describe('getCustomizationStream', () => {
         it('should return read stream for banner', async () => {
             const mockPath = '/path/to/banner.png';
-            const mockStream = { pipe: vi.fn() };
+            const mockStream: ReadStream = Readable.from([]) as ReadStream;
 
             vi.mocked(getBannerPathIfPresent).mockResolvedValue(mockPath);
-            vi.mocked(createReadStream).mockReturnValue(mockStream as any);
+            vi.mocked(createReadStream).mockReturnValue(mockStream);
 
             const result = await service.getCustomizationStream('banner');
 
@@ -309,10 +311,10 @@ describe('RestService', () => {
 
         it('should return read stream for case', async () => {
             const mockPath = '/path/to/case.png';
-            const mockStream = { pipe: vi.fn() };
+            const mockStream: ReadStream = Readable.from([]) as ReadStream;
 
             vi.mocked(getCasePathIfPresent).mockResolvedValue(mockPath);
-            vi.mocked(createReadStream).mockReturnValue(mockStream as any);
+            vi.mocked(createReadStream).mockReturnValue(mockStream);
 
             const result = await service.getCustomizationStream('case');
 
