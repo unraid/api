@@ -51,10 +51,6 @@
   "exclude": [
     "node_modules",
     "**/*.copy.vue",
-    "**/*copy.vue",
-    "**/*.test.ts",
-    "**/*.spec.ts",
-    "**/*.test.tsx",
-    "**/*.spec.tsx"
+    "**/*copy.vue"
   ]
 }

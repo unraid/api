@@ -3,13 +3,7 @@
 
 import { provideApolloClient } from '@vue/apollo-composable';
 
-import { ensureTeleportContainer } from '@unraid/ui';
-import {
-  autoMountAllComponents,
-  autoMountComponent,
-  getMountedApp,
-  mountVueApp,
-} from '@/components/Wrapper/mount-engine';
+import { autoMountAllComponents } from '@/components/Wrapper/mount-engine';
 import { client as apolloClient } from '~/helpers/create-apollo-client';
 import { parse } from 'graphql';
 
@@ -22,10 +16,6 @@ function initializeGlobalDependencies() {
   // Provide Apollo client globally for all components
   provideApolloClient(apolloClient);
 
-  // Pre-create the teleport container to avoid mounting issues
-  // This ensures the container exists before any components try to teleport to it
-  ensureTeleportContainer();
-
   // Initialize theme once per page load
   // This loads theme from GraphQL and applies Tailwind v4 classes
   initializeTheme().catch((error: unknown) => {
@@ -33,9 +23,8 @@ function initializeGlobalDependencies() {
   });
 
   // Expose utility functions on window for debugging/external use
-  window.mountVueApp = mountVueApp;
-  window.getMountedApp = getMountedApp;
-  window.autoMountComponent = autoMountComponent;
+  // With unified app, these are no longer needed
+  // Access the unified app via window.__unifiedApp instead
 
   // Expose Apollo client on window for global access
   window.apolloClient = apolloClient;

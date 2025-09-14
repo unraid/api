@@ -57,16 +57,12 @@ vi.mock('~/components/UnraidToaster.vue', () => ({
 }));
 
 // Mock mount-engine module
-const mockAutoMountComponent = vi.fn();
 const mockAutoMountAllComponents = vi.fn();
-const mockMountVueApp = vi.fn();
-const mockGetMountedApp = vi.fn();
+const mockMountUnifiedApp = vi.fn();
 
 vi.mock('~/components/Wrapper/mount-engine', () => ({
-  autoMountComponent: mockAutoMountComponent,
   autoMountAllComponents: mockAutoMountAllComponents,
-  mountVueApp: mockMountVueApp,
-  getMountedApp: mockGetMountedApp,
+  mountUnifiedApp: mockMountUnifiedApp,
 }));
 
 // Mock theme initializer
@@ -104,10 +100,7 @@ vi.mock('graphql', () => ({
 }));
 
 // Mock @unraid/ui
-const mockEnsureTeleportContainer = vi.fn();
-vi.mock('@unraid/ui', () => ({
-  ensureTeleportContainer: mockEnsureTeleportContainer,
-}));
+vi.mock('@unraid/ui', () => ({}));
 
 describe('component-registry', () => {
   beforeEach(() => {
@@ -151,10 +144,12 @@ describe('component-registry', () => {
       expect(mockInitializeTheme).toHaveBeenCalled();
     });
 
-    it('should ensure teleport container exists', async () => {
+    it('should mount unified app with components', async () => {
       await import('~/components/Wrapper/auto-mount');
 
-      expect(mockEnsureTeleportContainer).toHaveBeenCalled();
+      // The unified app architecture no longer requires teleport container setup per component
+      // Instead it uses a unified approach
+      expect(mockAutoMountAllComponents).toHaveBeenCalled();
     });
   });
 
@@ -188,26 +183,29 @@ describe('component-registry', () => {
     it('should expose utility functions globally', async () => {
       await import('~/components/Wrapper/auto-mount');
 
-      expect(window.mountVueApp).toBe(mockMountVueApp);
-      expect(window.getMountedApp).toBe(mockGetMountedApp);
-      expect(window.autoMountComponent).toBe(mockAutoMountComponent);
+      // With unified app architecture, these are exposed instead:
+      expect(window.apolloClient).toBe(mockApolloClient);
+      expect(window.gql).toBe(mockParse);
+      expect(window.graphqlParse).toBe(mockParse);
+      // The unified app itself is exposed via window.__unifiedApp after mounting
     });
 
-    it('should expose mountVueApp function globally', async () => {
+    it('should not expose legacy mount functions', async () => {
       await import('~/components/Wrapper/auto-mount');
 
-      // Check that mountVueApp is exposed
-      expect(typeof window.mountVueApp).toBe('function');
-
-      // Note: Dynamic mount functions are no longer created automatically
-      // They would be created via mountVueApp calls
+      // These functions are no longer exposed in the unified app architecture
+      expect(window.mountVueApp).toBeUndefined();
+      expect(window.getMountedApp).toBeUndefined();
+      expect(window.autoMountComponent).toBeUndefined();
     });
 
-    it('should expose autoMountComponent function globally', async () => {
+    it('should expose apollo client and graphql utilities', async () => {
       await import('~/components/Wrapper/auto-mount');
 
-      // Check that autoMountComponent is exposed
-      expect(typeof window.autoMountComponent).toBe('function');
+      // Check that Apollo client and GraphQL utilities are exposed
+      expect(window.apolloClient).toBeDefined();
+      expect(typeof window.gql).toBe('function');
+      expect(typeof window.graphqlParse).toBe('function');
     });
   });
 });

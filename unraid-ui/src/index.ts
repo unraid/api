@@ -15,6 +15,3 @@ export * from '@/lib/utils';
 export { default as useTeleport } from '@/composables/useTeleport';
 export { useToast } from '@/composables/useToast';
 export type { ToastInstance } from '@/composables/useToast';
-
-// Helpers
-export { ensureTeleportContainer } from '@/helpers/ensure-teleport-container';
