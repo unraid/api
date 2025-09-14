@@ -142,8 +142,12 @@ describe('Modals.standalone.vue', () => {
     // changelogModalVisible is computed based on releaseForUpdate
     updateOsStore.setReleaseForUpdate({
       version: '6.13.0',
+      name: 'Unraid 6.13.0',
+      date: '2024-01-01',
       isNewer: true,
       isEligible: true,
+      changelog: null,
+      sha256: null,
     });
 
     await nextTick();
@@ -192,8 +196,12 @@ describe('Modals.standalone.vue', () => {
     updateOsStore.setModalOpen(true);
     updateOsStore.setReleaseForUpdate({
       version: '6.13.0',
+      name: 'Unraid 6.13.0',
+      date: '2024-01-01',
       isNewer: true,
       isEligible: true,
+      changelog: null,
+      sha256: null,
     });
 
     await nextTick();
