@@ -28,9 +28,14 @@ jobs:
         with:
           latest: true
           prerelease: false
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
         with:
-          node-version: '22.18.0'
+          run_install: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: 'pnpm'
       - run: |
           cat << 'EOF' > release-notes.txt
           ${{ steps.release-info.outputs.body }}
