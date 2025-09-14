@@ -53,9 +53,7 @@ const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootTypeText } = storeToRefs(updateOsActionsStore);
 
 // Use lazy query and only load when dropdown is opened
-const { load: loadVersions, result: versionsResult } = useLazyQuery(INFO_VERSIONS_QUERY, {
-  fetchPolicy: 'cache-first',
-});
+const { load: loadVersions, result: versionsResult } = useLazyQuery(INFO_VERSIONS_QUERY);
 
 // Track if we've loaded the versions yet
 const hasLoadedVersions = ref(false);

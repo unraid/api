@@ -351,7 +351,7 @@ describe('mount-engine', () => {
         }
       );
 
-      const app = mountUnifiedApp();
+      mountUnifiedApp();
 
       // Both components should be mounted with the same app context
       expect(element1.querySelector('.test-component')).toBeTruthy();
@@ -436,7 +436,7 @@ describe('mount-engine', () => {
 
       expect(window.__mountedComponents).toBeDefined();
       expect(Array.isArray(window.__mountedComponents)).toBe(true);
-      expect(window.__mountedComponents.length).toBe(1);
+      expect(window.__mountedComponents!.length).toBe(1);
     });
 
     it('should expose globalPinia globally', () => {
