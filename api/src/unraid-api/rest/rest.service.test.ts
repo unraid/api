@@ -5,6 +5,10 @@ import { stat, writeFile } from 'node:fs/promises';
 import { execa, ExecaError } from 'execa';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import {
+    getBannerPathIfPresent,
+    getCasePathIfPresent,
+} from '@app/core/utils/images/image-file-helpers.js';
 import { getters } from '@app/store/index.js';
 import { ApiReportService } from '@app/unraid-api/cli/api-report.service.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
@@ -31,7 +35,7 @@ describe('RestService', () => {
                 {
                     provide: ApiReportService,
                     useValue: {
-                        getReport: vi.fn(),
+                        generateReport: vi.fn(),
                     },
                 },
             ],
@@ -187,6 +191,146 @@ describe('RestService', () => {
             await expect(service.getLogs()).rejects.toThrow(
                 'Failed to create logs archive: Unexpected error'
             );
+        });
+
+        it('should handle errors with stdout in addition to stderr', async () => {
+            vi.mocked(stat).mockImplementation((path) => {
+                if (path === mockLogPath) {
+                    return Promise.resolve({ isFile: () => true } as any);
+                }
+                return Promise.reject(new Error('File not found'));
+            });
+
+            const execError = new Error('Command failed') as ExecaError;
+            execError.exitCode = 1;
+            execError.command =
+                'tar -czf /usr/local/emhttp/logs/unraid-api.tar.gz /usr/local/emhttp/logs/unraid-api';
+            execError.stderr = 'tar: Error';
+            execError.stdout = 'Processing archive...';
+            execError.shortMessage = 'Command failed with exit code 1';
+
+            vi.mocked(execa).mockRejectedValue(execError);
+
+            await expect(service.getLogs()).rejects.toThrow('Stdout: Processing archive');
+        });
+    });
+
+    describe('saveApiReport', () => {
+        it('should generate and save API report', async () => {
+            const mockReport = {
+                version: '1.0',
+                timestamp: Date.now(),
+                connectionStatus: { online: true },
+                system: { os: 'test' },
+                connect: {},
+                apiStatus: {},
+                configuration: {},
+            };
+            const mockPath = '/test/report.json';
+
+            vi.mocked(apiReportService.generateReport).mockResolvedValue(mockReport);
+            vi.mocked(writeFile).mockResolvedValue(undefined);
+
+            await service.saveApiReport(mockPath);
+
+            expect(apiReportService.generateReport).toHaveBeenCalled();
+            expect(writeFile).toHaveBeenCalledWith(
+                mockPath,
+                JSON.stringify(mockReport, null, 2),
+                'utf-8'
+            );
+        });
+
+        it('should handle errors when generating report', async () => {
+            const mockPath = '/test/report.json';
+
+            vi.mocked(apiReportService.generateReport).mockRejectedValue(
+                new Error('Report generation failed')
+            );
+
+            // Should not throw, just log warning
+            await expect(service.saveApiReport(mockPath)).resolves.toBeUndefined();
+            expect(apiReportService.generateReport).toHaveBeenCalled();
+        });
+    });
+
+    describe('getCustomizationPath', () => {
+        it('should return banner path when type is banner', async () => {
+            const mockBannerPath = '/path/to/banner.png';
+            vi.mocked(getBannerPathIfPresent).mockResolvedValue(mockBannerPath);
+
+            const result = await service.getCustomizationPath('banner');
+
+            expect(getBannerPathIfPresent).toHaveBeenCalled();
+            expect(result).toBe(mockBannerPath);
+        });
+
+        it('should return case path when type is case', async () => {
+            const mockCasePath = '/path/to/case.png';
+            vi.mocked(getCasePathIfPresent).mockResolvedValue(mockCasePath);
+
+            const result = await service.getCustomizationPath('case');
+
+            expect(getCasePathIfPresent).toHaveBeenCalled();
+            expect(result).toBe(mockCasePath);
+        });
+
+        it('should return null when no banner found', async () => {
+            vi.mocked(getBannerPathIfPresent).mockResolvedValue(null);
+
+            const result = await service.getCustomizationPath('banner');
+
+            expect(result).toBeNull();
+        });
+
+        it('should return null when no case found', async () => {
+            vi.mocked(getCasePathIfPresent).mockResolvedValue(null);
+
+            const result = await service.getCustomizationPath('case');
+
+            expect(result).toBeNull();
+        });
+    });
+
+    describe('getCustomizationStream', () => {
+        it('should return read stream for banner', async () => {
+            const mockPath = '/path/to/banner.png';
+            const mockStream = { pipe: vi.fn() };
+
+            vi.mocked(getBannerPathIfPresent).mockResolvedValue(mockPath);
+            vi.mocked(createReadStream).mockReturnValue(mockStream as any);
+
+            const result = await service.getCustomizationStream('banner');
+
+            expect(getBannerPathIfPresent).toHaveBeenCalled();
+            expect(createReadStream).toHaveBeenCalledWith(mockPath);
+            expect(result).toBe(mockStream);
+        });
+
+        it('should return read stream for case', async () => {
+            const mockPath = '/path/to/case.png';
+            const mockStream = { pipe: vi.fn() };
+
+            vi.mocked(getCasePathIfPresent).mockResolvedValue(mockPath);
+            vi.mocked(createReadStream).mockReturnValue(mockStream as any);
+
+            const result = await service.getCustomizationStream('case');
+
+            expect(getCasePathIfPresent).toHaveBeenCalled();
+            expect(createReadStream).toHaveBeenCalledWith(mockPath);
+            expect(result).toBe(mockStream);
+        });
+
+        it('should throw error when no banner found', async () => {
+            vi.mocked(getBannerPathIfPresent).mockResolvedValue(null);
+
+            await expect(service.getCustomizationStream('banner')).rejects.toThrow('No banner found');
+        });
+
+        it('should throw error when no case found', async () => {
+            vi.mocked(getCasePathIfPresent).mockResolvedValue(null);
+
+            await expect(service.getCustomizationStream('case')).rejects.toThrow('No case found');
         });
     });
 });
