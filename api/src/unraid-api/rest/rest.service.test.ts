@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { createReadStream } from 'node:fs';
 import { stat, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
 
 import { execa, ExecaError } from 'execa';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
