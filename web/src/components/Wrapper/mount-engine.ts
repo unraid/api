@@ -1,4 +1,4 @@
-import { createApp, createVNode, defineAsyncComponent, h, render } from 'vue';
+import { createApp, createVNode, h, render } from 'vue';
 import { createI18n } from 'vue-i18n';
 import { DefaultApolloClient } from '@vue/apollo-composable';
 import UApp from '@nuxt/ui/components/App.vue';
@@ -134,13 +134,14 @@ export function mountUnifiedApp() {
     for (const sel of selectors) {
       const element = document.querySelector(sel) as HTMLElement;
       if (element && !element.hasAttribute('data-vue-mounted')) {
-        // Create async component from loader (all components now use async loading)
-        const component = defineAsyncComponent({
-          loader: async () => {
-            const module = await mapping.loader();
-            return 'default' in module ? module.default : module;
-          },
-        });
+        // Get the async component from mapping
+        const component = mapping.component;
+
+        // Skip if no component is defined
+        if (!component) {
+          console.error(`[UnifiedMount] No component defined for ${appId}`);
+          continue;
+        }
 
         // Parse props from element
         const props = parsePropsFromElement(element);

@@ -114,7 +114,7 @@ describe('mount-engine', () => {
   });
 
   describe('mountUnifiedApp', () => {
-    it('should create and mount a unified app with shared context', () => {
+    it('should create and mount a unified app with shared context', async () => {
       // Add a component mapping
       const element = document.createElement('div');
       element.id = 'test-app';
@@ -123,7 +123,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#test-app',
         appId: 'test-app',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        component: TestComponent,
       });
 
       const app = mountUnifiedApp();
@@ -132,14 +132,18 @@ describe('mount-engine', () => {
       expect(mockI18n.install).toHaveBeenCalled();
       expect(mockGlobalPinia.install).toHaveBeenCalled();
 
+      // Wait for async component to render
+      await vi.waitFor(() => {
+        expect(element.querySelector('.test-component')).toBeTruthy();
+      });
+
       // Check that component was rendered
-      expect(element.querySelector('.test-component')).toBeTruthy();
       expect(element.textContent).toContain('Hello');
       expect(element.getAttribute('data-vue-mounted')).toBe('true');
       expect(element.classList.contains('unapi')).toBe(true);
     });
 
-    it('should parse props from element attributes', () => {
+    it('should parse props from element attributes', async () => {
       const element = document.createElement('div');
       element.id = 'test-app';
       element.setAttribute('message', 'Attribute Message');
@@ -148,12 +152,15 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#test-app',
         appId: 'test-app',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        component: TestComponent,
       });
 
       mountUnifiedApp();
 
-      expect(element.textContent).toContain('Attribute Message');
+      // Wait for async component to render
+      await vi.waitFor(() => {
+        expect(element.textContent).toContain('Attribute Message');
+      });
     });
 
     it('should handle JSON props from attributes', () => {
@@ -165,7 +172,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#test-app',
         appId: 'test-app',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        component: TestComponent,
       });
 
       mountUnifiedApp();
@@ -183,7 +190,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#test-app',
         appId: 'test-app',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        component: TestComponent,
       });
 
       mountUnifiedApp();
@@ -191,7 +198,7 @@ describe('mount-engine', () => {
       expect(element.getAttribute('message')).toBe('{&quot;text&quot;: &quot;Encoded&quot;}');
     });
 
-    it('should handle multiple selector aliases', () => {
+    it('should handle multiple selector aliases', async () => {
       const element1 = document.createElement('div');
       element1.id = 'app1';
       document.body.appendChild(element1);
@@ -204,13 +211,17 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: ['#app1', '.app-alt'],
         appId: 'multi-selector',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        component: TestComponent,
       });
 
       mountUnifiedApp();
 
+      // Wait for async component to render
+      await vi.waitFor(() => {
+        expect(element1.querySelector('.test-component')).toBeTruthy();
+      });
+
       // Only the first matching element should be mounted
-      expect(element1.querySelector('.test-component')).toBeTruthy();
       expect(element1.getAttribute('data-vue-mounted')).toBe('true');
 
       // Second element should not be mounted (first match wins)
@@ -223,22 +234,17 @@ describe('mount-engine', () => {
       element.id = 'async-app';
       document.body.appendChild(element);
 
-      // Mock async component loader
-      const asyncLoader = vi.fn().mockResolvedValue({
-        default: TestComponent,
-      });
-
       mockComponentMappings.push({
         selector: '#async-app',
         appId: 'async-app',
-        loader: asyncLoader,
+        component: TestComponent,
       });
 
       mountUnifiedApp();
 
-      // Wait for async component to load
+      // Wait for component to mount
       await vi.waitFor(() => {
-        expect(asyncLoader).toHaveBeenCalled();
+        expect(element.querySelector('.test-component')).toBeTruthy();
       });
     });
 
@@ -251,7 +257,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#already-mounted',
         appId: 'already-mounted',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        component: TestComponent,
       });
 
       mountUnifiedApp();
@@ -264,7 +270,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#non-existent',
         appId: 'non-existent',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        component: TestComponent,
       });
 
       const app = mountUnifiedApp();
@@ -275,12 +281,12 @@ describe('mount-engine', () => {
       expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
 
-    it('should error on invalid component mapping', () => {
+    it('should error on invalid component mapping', async () => {
       const element = document.createElement('div');
       element.id = 'invalid-app';
       document.body.appendChild(element);
 
-      // Invalid mapping - no component or loader
+      // Invalid mapping - no component
       mockComponentMappings.push({
         selector: '#invalid-app',
         appId: 'invalid-app',
@@ -288,7 +294,14 @@ describe('mount-engine', () => {
 
       mountUnifiedApp();
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('[UnifiedMount] Invalid mapping for invalid-app');
+      // Should log error for missing component
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[UnifiedMount] No component defined for invalid-app'
+      );
+
+      // Component should not be rendered without a valid component
+      expect(element.querySelector('.test-component')).toBeFalsy();
+      expect(element.getAttribute('data-vue-mounted')).toBeNull();
     });
 
     it('should create hidden root element if not exists', () => {
@@ -311,7 +324,7 @@ describe('mount-engine', () => {
       expect(rootElement).toBe(existingRoot);
     });
 
-    it('should wrap components in UApp for Nuxt UI support', () => {
+    it('should wrap components in UApp for Nuxt UI support', async () => {
       const element = document.createElement('div');
       element.id = 'wrapped-app';
       document.body.appendChild(element);
@@ -319,17 +332,21 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#wrapped-app',
         appId: 'wrapped-app',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        component: TestComponent,
       });
 
       mountUnifiedApp();
 
+      // Wait for async component to render
+      await vi.waitFor(() => {
+        expect(element.querySelector('.u-app')).toBeTruthy();
+      });
+
       // Check that UApp wrapper is present
-      expect(element.querySelector('.u-app')).toBeTruthy();
       expect(element.querySelector('.u-app .test-component')).toBeTruthy();
     });
 
-    it('should share app context across all components', () => {
+    it('should share app context across all components', async () => {
       const element1 = document.createElement('div');
       element1.id = 'app1';
       document.body.appendChild(element1);
@@ -342,20 +359,22 @@ describe('mount-engine', () => {
         {
           selector: '#app1',
           appId: 'app1',
-          loader: () => Promise.resolve({ default: TestComponent }),
+          component: TestComponent,
         },
         {
           selector: '#app2',
           appId: 'app2',
-          loader: () => Promise.resolve({ default: TestComponent }),
+          component: TestComponent,
         }
       );
 
       mountUnifiedApp();
 
-      // Both components should be mounted with the same app context
-      expect(element1.querySelector('.test-component')).toBeTruthy();
-      expect(element2.querySelector('.test-component')).toBeTruthy();
+      // Wait for async components to render
+      await vi.waitFor(() => {
+        expect(element1.querySelector('.test-component')).toBeTruthy();
+        expect(element2.querySelector('.test-component')).toBeTruthy();
+      });
 
       // Only one Pinia instance should be installed
       expect(mockGlobalPinia.install).toHaveBeenCalledTimes(1);
@@ -365,7 +384,7 @@ describe('mount-engine', () => {
   });
 
   describe('autoMountAllComponents', () => {
-    it('should call mountUnifiedApp', () => {
+    it('should call mountUnifiedApp', async () => {
       const element = document.createElement('div');
       element.id = 'auto-app';
       document.body.appendChild(element);
@@ -373,12 +392,15 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#auto-app',
         appId: 'auto-app',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        component: TestComponent,
       });
 
       autoMountAllComponents();
 
-      expect(element.querySelector('.test-component')).toBeTruthy();
+      // Wait for async component to render
+      await vi.waitFor(() => {
+        expect(element.querySelector('.test-component')).toBeTruthy();
+      });
     });
   });
 
@@ -429,7 +451,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#global-app',
         appId: 'global-app',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        component: TestComponent,
       });
 
       mountUnifiedApp();
@@ -454,7 +476,7 @@ describe('mount-engine', () => {
       mockComponentMappings.push({
         selector: '#perf-app',
         appId: 'perf-app',
-        loader: () => Promise.resolve({ default: TestComponent }),
+        component: TestComponent,
       });
 
       mountUnifiedApp();
