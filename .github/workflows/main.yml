@@ -21,35 +21,22 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v5
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
       - name: Install Node
         uses: actions/setup-node@v5
         with:
           node-version-file: ".nvmrc"
+          cache: 'pnpm'
 
       - name: Cache APT Packages
         uses: awalsh128/cache-apt-pkgs-action@v1.5.3
         with:
           packages: bash procps python3 libvirt-dev jq zstd git build-essential libvirt-daemon-system php-cli
           version: 1.0
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
 
       - name: PNPM Install
         run: pnpm install --frozen-lockfile
@@ -173,29 +160,16 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v5
 
-      - name: Install Node
-        uses: actions/setup-node@v5
-        with:
-          node-version-file: ".nvmrc"
-
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
           run_install: false
 
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
+      - name: Install Node
+        uses: actions/setup-node@v5
         with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version-file: ".nvmrc"
+          cache: 'pnpm'
 
       - name: Cache APT Packages
         uses: awalsh128/cache-apt-pkgs-action@v1.5.3
@@ -250,29 +224,16 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v5
 
-      - name: Install Node
-        uses: actions/setup-node@v5
-        with:
-          node-version-file: ".nvmrc"
-
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
           run_install: false
 
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
+      - name: Install Node
+        uses: actions/setup-node@v5
         with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version-file: ".nvmrc"
+          cache: 'pnpm'
 
       - name: Cache APT Packages
         uses: awalsh128/cache-apt-pkgs-action@v1.5.3
@@ -316,29 +277,16 @@ jobs:
           echo VITE_UNRAID_NET=${{ secrets.VITE_UNRAID_NET }} >> .env
           echo VITE_CALLBACK_KEY=${{ secrets.VITE_CALLBACK_KEY }} >> .env
 
-      - name: Install Node
-        uses: actions/setup-node@v5
-        with:
-          node-version-file: ".nvmrc"
-
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
           run_install: false
 
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
+      - name: Install Node
+        uses: actions/setup-node@v5
         with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version-file: ".nvmrc"
+          cache: 'pnpm'
 
       - name: PNPM Install
         run: |
