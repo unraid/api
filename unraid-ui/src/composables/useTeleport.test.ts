@@ -1,9 +1,9 @@
 import useTeleport from '@/composables/useTeleport';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { computed } from 'vue';
 
-// Mock Vue's computed
-vi.mock('vue', () => ({
+// Mock Vue's computed while preserving other exports
+vi.mock('vue', async () => ({
+  ...(await vi.importActual('vue')),
   computed: vi.fn((fn) => {
     const result = { value: fn() };
     return result;
@@ -162,8 +162,8 @@ describe('useTeleport', () => {
     modalsDiv.id = 'modals';
     document.body.appendChild(modalsDiv);
 
-    // Re-evaluate computed
-    const newValue = (computed as unknown as { mock: { calls: unknown[] } }).mock.calls[0][0]();
-    expect(newValue).toBe('#modals');
+    // Recreate the composable to test updated DOM state
+    const { teleportTarget: newTeleportTarget } = useTeleport();
+    expect(newTeleportTarget.value).toBe('#modals');
   });
 });
