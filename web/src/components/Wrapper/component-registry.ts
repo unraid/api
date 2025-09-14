@@ -19,7 +19,18 @@ export type ComponentMapping = {
 };
 
 // Define component mappings - all components use async loading for consistency
+// Priority components (header, user profile) are listed first for faster mounting
 export const componentMappings: ComponentMapping[] = [
+  {
+    component: defineAsyncComponent(() => import('@/components/HeaderOsVersion.standalone.vue')),
+    selector: 'unraid-header-os-version',
+    appId: 'header-os-version',
+  },
+  {
+    component: defineAsyncComponent(() => import('@/components/UserProfile.standalone.vue')),
+    selector: 'unraid-user-profile',
+    appId: 'user-profile',
+  },
   {
     component: defineAsyncComponent(() => import('../Auth.standalone.vue')),
     selector: 'unraid-auth',
@@ -36,19 +47,9 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'download-api-logs',
   },
   {
-    component: defineAsyncComponent(() => import('@/components/HeaderOsVersion.standalone.vue')),
-    selector: 'unraid-header-os-version',
-    appId: 'header-os-version',
-  },
-  {
     component: defineAsyncComponent(() => import('@/components/Modals.standalone.vue')),
     selector: ['unraid-modals', '#modals', 'modals-direct'], // All possible modal selectors
     appId: 'modals',
-  },
-  {
-    component: defineAsyncComponent(() => import('@/components/UserProfile.standalone.vue')),
-    selector: 'unraid-user-profile',
-    appId: 'user-profile',
   },
   {
     component: defineAsyncComponent(() => import('../Registration.standalone.vue')),

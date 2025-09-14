@@ -126,6 +126,7 @@ export function mountUnifiedApp() {
   // Now render components to their locations using the shared context
   const mountedComponents: Array<{ element: HTMLElement; unmount: () => void }> = [];
 
+  // Components are already in priority order in component-registry
   componentMappings.forEach((mapping) => {
     const { selector, appId } = mapping;
     const selectors = Array.isArray(selector) ? selector : [selector];
