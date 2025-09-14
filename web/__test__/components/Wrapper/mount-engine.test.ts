@@ -2,30 +2,32 @@ import { defineComponent, h } from 'vue';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { ComponentMapping } from '~/components/Wrapper/component-registry';
 import type { MockInstance } from 'vitest';
-import type { App as VueApp } from 'vue';
 
-// Extend HTMLElement to include Vue's internal properties (matching the source file)
-interface HTMLElementWithVue extends HTMLElement {
-  __vueParentComponent?: {
-    appContext?: {
-      app?: VueApp;
-    };
-  };
-}
-
-// We'll manually mock createApp only in specific tests that need it
-vi.mock('vue', async () => {
-  const actual = await vi.importActual<typeof import('vue')>('vue');
-  return {
-    ...actual,
-  };
-});
-
-const mockEnsureTeleportContainer = vi.fn();
-vi.mock('@unraid/ui', () => ({
-  ensureTeleportContainer: mockEnsureTeleportContainer,
+// Mock @nuxt/ui components
+vi.mock('@nuxt/ui/components/App.vue', () => ({
+  default: defineComponent({
+    name: 'UApp',
+    setup(_, { slots }) {
+      return () => h('div', { class: 'u-app' }, slots.default?.());
+    },
+  }),
 }));
+
+vi.mock('@nuxt/ui/vue-plugin', () => ({
+  default: {
+    install: vi.fn(),
+  },
+}));
+
+// Mock component registry
+const mockComponentMappings: ComponentMapping[] = [];
+vi.mock('~/components/Wrapper/component-registry', () => ({
+  componentMappings: mockComponentMappings,
+}));
+
+// Mock dependencies
 
 const mockI18n = {
   global: {},
@@ -60,26 +62,22 @@ vi.mock('~/helpers/i18n-utils', () => ({
   createHtmlEntityDecoder: vi.fn(() => (str: string) => str),
 }));
 
-// CSS is now bundled separately by Vite, no inline imports
-
 describe('mount-engine', () => {
-  let mountVueApp: typeof import('~/components/Wrapper/mount-engine').mountVueApp;
-  let unmountVueApp: typeof import('~/components/Wrapper/mount-engine').unmountVueApp;
-  let getMountedApp: typeof import('~/components/Wrapper/mount-engine').getMountedApp;
-  let autoMountComponent: typeof import('~/components/Wrapper/mount-engine').autoMountComponent;
+  let mountUnifiedApp: typeof import('~/components/Wrapper/mount-engine').mountUnifiedApp;
+  let autoMountAllComponents: typeof import('~/components/Wrapper/mount-engine').autoMountAllComponents;
   let TestComponent: ReturnType<typeof defineComponent>;
   let consoleWarnSpy: MockInstance;
   let consoleErrorSpy: MockInstance;
-  let consoleInfoSpy: MockInstance;
-  let consoleDebugSpy: MockInstance;
-  let testContainer: HTMLDivElement;
 
   beforeEach(async () => {
+    // Clear component mappings
+    mockComponentMappings.length = 0;
+
+    // Import fresh module
+    vi.resetModules();
     const module = await import('~/components/Wrapper/mount-engine');
-    mountVueApp = module.mountVueApp;
-    unmountVueApp = module.unmountVueApp;
-    getMountedApp = module.getMountedApp;
-    autoMountComponent = module.autoMountComponent;
+    mountUnifiedApp = module.mountUnifiedApp;
+    autoMountAllComponents = module.autoMountAllComponents;
 
     TestComponent = defineComponent({
       name: 'TestComponent',
@@ -96,526 +94,319 @@ describe('mount-engine', () => {
 
     consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    consoleInfoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
-    consoleDebugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
-
-    testContainer = document.createElement('div');
-    testContainer.id = 'test-container';
-    document.body.appendChild(testContainer);
 
     vi.clearAllMocks();
 
-    // Clear mounted apps from previous tests
-    if (window.mountedApps) {
-      window.mountedApps.clear();
-    }
+    // Clean up DOM
+    document.body.innerHTML = '';
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
     document.body.innerHTML = '';
-    if (window.mountedApps) {
-      window.mountedApps.clear();
+    // Clean up global references
+    if (window.__unifiedApp) {
+      delete window.__unifiedApp;
+    }
+    if (window.__mountedComponents) {
+      delete window.__mountedComponents;
     }
   });
 
-  describe('mountVueApp', () => {
-    it('should mount a Vue app to a single element', () => {
+  describe('mountUnifiedApp', () => {
+    it('should create and mount a unified app with shared context', async () => {
+      // Add a component mapping
       const element = document.createElement('div');
-      element.id = 'app';
+      element.id = 'test-app';
       document.body.appendChild(element);
 
-      const app = mountVueApp({
+      mockComponentMappings.push({
+        selector: '#test-app',
+        appId: 'test-app',
         component: TestComponent,
-        selector: '#app',
       });
 
+      const app = mountUnifiedApp();
+
       expect(app).toBeTruthy();
-      expect(element.querySelector('.test-component')).toBeTruthy();
-      expect(element.textContent).toBe('Hello');
-      expect(mockEnsureTeleportContainer).toHaveBeenCalled();
-    });
+      expect(mockI18n.install).toHaveBeenCalled();
+      expect(mockGlobalPinia.install).toHaveBeenCalled();
 
-    it('should mount with custom props', () => {
-      const element = document.createElement('div');
-      element.id = 'app';
-      document.body.appendChild(element);
-
-      const app = mountVueApp({
-        component: TestComponent,
-        selector: '#app',
-        props: { message: 'Custom Message' },
+      // Wait for async component to render
+      await vi.waitFor(() => {
+        expect(element.querySelector('.test-component')).toBeTruthy();
       });
 
-      expect(app).toBeTruthy();
-      expect(element.textContent).toBe('Custom Message');
+      // Check that component was rendered
+      expect(element.textContent).toContain('Hello');
+      expect(element.getAttribute('data-vue-mounted')).toBe('true');
+      expect(element.classList.contains('unapi')).toBe(true);
     });
 
-    it('should parse props from element attributes', () => {
+    it('should parse props from element attributes', async () => {
       const element = document.createElement('div');
-      element.id = 'app';
+      element.id = 'test-app';
       element.setAttribute('message', 'Attribute Message');
       document.body.appendChild(element);
 
-      const app = mountVueApp({
+      mockComponentMappings.push({
+        selector: '#test-app',
+        appId: 'test-app',
         component: TestComponent,
-        selector: '#app',
       });
 
-      expect(app).toBeTruthy();
-      expect(element.textContent).toBe('Attribute Message');
+      mountUnifiedApp();
+
+      // Wait for async component to render
+      await vi.waitFor(() => {
+        expect(element.textContent).toContain('Attribute Message');
+      });
     });
 
-    it('should parse JSON props from attributes', () => {
+    it('should handle JSON props from attributes', () => {
       const element = document.createElement('div');
-      element.id = 'app';
+      element.id = 'test-app';
       element.setAttribute('message', '{"text": "JSON Message"}');
       document.body.appendChild(element);
 
-      const app = mountVueApp({
+      mockComponentMappings.push({
+        selector: '#test-app',
+        appId: 'test-app',
         component: TestComponent,
-        selector: '#app',
       });
 
-      expect(app).toBeTruthy();
+      mountUnifiedApp();
+
+      // The component receives the parsed JSON object
       expect(element.getAttribute('message')).toBe('{"text": "JSON Message"}');
     });
 
     it('should handle HTML-encoded JSON in attributes', () => {
       const element = document.createElement('div');
-      element.id = 'app';
+      element.id = 'test-app';
       element.setAttribute('message', '{&quot;text&quot;: &quot;Encoded&quot;}');
       document.body.appendChild(element);
 
-      const app = mountVueApp({
+      mockComponentMappings.push({
+        selector: '#test-app',
+        appId: 'test-app',
         component: TestComponent,
-        selector: '#app',
       });
 
-      expect(app).toBeTruthy();
+      mountUnifiedApp();
+
       expect(element.getAttribute('message')).toBe('{&quot;text&quot;: &quot;Encoded&quot;}');
     });
 
-    it('should mount to multiple elements', () => {
+    it('should handle multiple selector aliases', async () => {
       const element1 = document.createElement('div');
-      element1.className = 'multi-mount';
+      element1.id = 'app1';
       document.body.appendChild(element1);
 
       const element2 = document.createElement('div');
-      element2.className = 'multi-mount';
+      element2.className = 'app-alt';
       document.body.appendChild(element2);
 
-      const app = mountVueApp({
+      // Component with multiple selector aliases - only first match mounts
+      mockComponentMappings.push({
+        selector: ['#app1', '.app-alt'],
+        appId: 'multi-selector',
         component: TestComponent,
-        selector: '.multi-mount',
       });
 
-      expect(app).toBeTruthy();
-      expect(element1.querySelector('.test-component')).toBeTruthy();
-      expect(element2.querySelector('.test-component')).toBeTruthy();
+      mountUnifiedApp();
+
+      // Wait for async component to render
+      await vi.waitFor(() => {
+        expect(element1.querySelector('.test-component')).toBeTruthy();
+      });
+
+      // Only the first matching element should be mounted
+      expect(element1.getAttribute('data-vue-mounted')).toBe('true');
+
+      // Second element should not be mounted (first match wins)
+      expect(element2.querySelector('.test-component')).toBeFalsy();
+      expect(element2.getAttribute('data-vue-mounted')).toBeNull();
     });
 
-    it('should use shadow root when specified', () => {
+    it('should handle async component loaders', async () => {
       const element = document.createElement('div');
-      element.id = 'shadow-app';
+      element.id = 'async-app';
       document.body.appendChild(element);
 
-      const app = mountVueApp({
+      mockComponentMappings.push({
+        selector: '#async-app',
+        appId: 'async-app',
         component: TestComponent,
-        selector: '#shadow-app',
-        useShadowRoot: true,
       });
 
-      expect(app).toBeTruthy();
-      expect(element.shadowRoot).toBeTruthy();
-      expect(element.shadowRoot?.querySelector('#app')).toBeTruthy();
-      expect(element.shadowRoot?.querySelector('.test-component')).toBeTruthy();
+      mountUnifiedApp();
+
+      // Wait for component to mount
+      await vi.waitFor(() => {
+        expect(element.querySelector('.test-component')).toBeTruthy();
+      });
     });
 
-    it('should clean up existing Vue attributes', () => {
+    it('should skip already mounted elements', () => {
       const element = document.createElement('div');
-      element.id = 'app';
+      element.id = 'already-mounted';
       element.setAttribute('data-vue-mounted', 'true');
-      element.setAttribute('data-v-app', '');
-      element.setAttribute('data-server-rendered', 'true');
-      element.setAttribute('data-v-123', '');
       document.body.appendChild(element);
 
-      mountVueApp({
+      mockComponentMappings.push({
+        selector: '#already-mounted',
+        appId: 'already-mounted',
         component: TestComponent,
-        selector: '#app',
       });
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[VueMountApp] Element #app has Vue attributes but no content, cleaning up'
-      );
+      mountUnifiedApp();
+
+      // Should not mount to already mounted element
+      expect(element.querySelector('.test-component')).toBeFalsy();
     });
 
-    it('should handle elements with problematic child nodes', () => {
-      const element = document.createElement('div');
-      element.id = 'app';
-      element.appendChild(document.createTextNode('   '));
-      element.appendChild(document.createComment('test comment'));
-      document.body.appendChild(element);
-
-      const app = mountVueApp({
-        component: TestComponent,
-        selector: '#app',
-      });
-
-      expect(app).toBeTruthy();
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[VueMountApp] Cleaning up problematic nodes in #app before mounting'
-      );
-    });
-
-    it('should return null when no elements found', () => {
-      const app = mountVueApp({
-        component: TestComponent,
+    it('should handle missing elements gracefully', () => {
+      mockComponentMappings.push({
         selector: '#non-existent',
+        appId: 'non-existent',
+        component: TestComponent,
       });
 
-      expect(app).toBeNull();
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[VueMountApp] No elements found for any selector: #non-existent'
+      const app = mountUnifiedApp();
+
+      // Should still create the app successfully
+      expect(app).toBeTruthy();
+      // No errors should be thrown
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+    });
+
+    it('should error on invalid component mapping', async () => {
+      const element = document.createElement('div');
+      element.id = 'invalid-app';
+      document.body.appendChild(element);
+
+      // Invalid mapping - no component
+      mockComponentMappings.push({
+        selector: '#invalid-app',
+        appId: 'invalid-app',
+      } as ComponentMapping);
+
+      mountUnifiedApp();
+
+      // Should log error for missing component
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        '[UnifiedMount] No component defined for invalid-app'
       );
-    });
 
-    it('should add unapi class to mounted elements', () => {
-      const element = document.createElement('div');
-      element.id = 'app';
-      document.body.appendChild(element);
-
-      mountVueApp({
-        component: TestComponent,
-        selector: '#app',
-      });
-
-      expect(element.classList.contains('unapi')).toBe(true);
-      expect(element.getAttribute('data-vue-mounted')).toBe('true');
-    });
-
-    it('should skip disconnected elements during multi-mount', () => {
-      const element1 = document.createElement('div');
-      element1.className = 'multi';
-      document.body.appendChild(element1);
-
-      const element2 = document.createElement('div');
-      element2.className = 'multi';
-      // This element is NOT added to the document
-
-      // Create a third element and manually add it to element1 to simulate DOM issues
-      const orphanedChild = document.createElement('span');
-      element1.appendChild(orphanedChild);
-      // Now remove element1 from DOM temporarily to trigger the warning
-      element1.remove();
-
-      // Add element1 back
-      document.body.appendChild(element1);
-
-      // Create elements matching the selector
-      document.body.innerHTML = '';
-      const validElement = document.createElement('div');
-      validElement.className = 'multi';
-      document.body.appendChild(validElement);
-
-      const disconnectedElement = document.createElement('div');
-      disconnectedElement.className = 'multi';
-      const container = document.createElement('div');
-      container.appendChild(disconnectedElement);
-      // Now disconnectedElement has a parent but that parent is not in the document
-
-      const app = mountVueApp({
-        component: TestComponent,
-        selector: '.multi',
-      });
-
-      expect(app).toBeTruthy();
-      // The app should mount only to the connected element
-      expect(validElement.querySelector('.test-component')).toBeTruthy();
-    });
-  });
-
-  describe('unmountVueApp', () => {
-    it('should unmount a mounted app', () => {
-      const element = document.createElement('div');
-      element.id = 'app';
-      document.body.appendChild(element);
-
-      const app = mountVueApp({
-        component: TestComponent,
-        selector: '#app',
-        appId: 'test-app',
-      });
-
-      expect(app).toBeTruthy();
-      expect(getMountedApp('test-app')).toBe(app);
-
-      const result = unmountVueApp('test-app');
-      expect(result).toBe(true);
-      expect(getMountedApp('test-app')).toBeUndefined();
-    });
-
-    it('should clean up data attributes on unmount', () => {
-      const element = document.createElement('div');
-      element.id = 'app';
-      document.body.appendChild(element);
-
-      mountVueApp({
-        component: TestComponent,
-        selector: '#app',
-        appId: 'test-app',
-      });
-
-      expect(element.getAttribute('data-vue-mounted')).toBe('true');
-      expect(element.classList.contains('unapi')).toBe(true);
-
-      unmountVueApp('test-app');
-
+      // Component should not be rendered without a valid component
+      expect(element.querySelector('.test-component')).toBeFalsy();
       expect(element.getAttribute('data-vue-mounted')).toBeNull();
     });
 
-    it('should unmount cloned apps', () => {
+    it('should create hidden root element if not exists', () => {
+      mountUnifiedApp();
+
+      const rootElement = document.getElementById('unraid-unified-root');
+      expect(rootElement).toBeTruthy();
+      expect(rootElement?.style.display).toBe('none');
+    });
+
+    it('should reuse existing root element', () => {
+      // Create root element first
+      const existingRoot = document.createElement('div');
+      existingRoot.id = 'unraid-unified-root';
+      document.body.appendChild(existingRoot);
+
+      mountUnifiedApp();
+
+      const rootElement = document.getElementById('unraid-unified-root');
+      expect(rootElement).toBe(existingRoot);
+    });
+
+    it('should wrap components in UApp for Nuxt UI support', async () => {
+      const element = document.createElement('div');
+      element.id = 'wrapped-app';
+      document.body.appendChild(element);
+
+      mockComponentMappings.push({
+        selector: '#wrapped-app',
+        appId: 'wrapped-app',
+        component: TestComponent,
+      });
+
+      mountUnifiedApp();
+
+      // Wait for async component to render
+      await vi.waitFor(() => {
+        expect(element.querySelector('.u-app')).toBeTruthy();
+      });
+
+      // Check that UApp wrapper is present
+      expect(element.querySelector('.u-app .test-component')).toBeTruthy();
+    });
+
+    it('should share app context across all components', async () => {
       const element1 = document.createElement('div');
-      element1.className = 'multi';
+      element1.id = 'app1';
       document.body.appendChild(element1);
 
       const element2 = document.createElement('div');
-      element2.className = 'multi';
+      element2.id = 'app2';
       document.body.appendChild(element2);
 
-      mountVueApp({
-        component: TestComponent,
-        selector: '.multi',
-        appId: 'multi-app',
-      });
-
-      const result = unmountVueApp('multi-app');
-      expect(result).toBe(true);
-    });
-
-    it('should remove shadow root containers', () => {
-      const element = document.createElement('div');
-      element.id = 'shadow-app';
-      document.body.appendChild(element);
-
-      mountVueApp({
-        component: TestComponent,
-        selector: '#shadow-app',
-        appId: 'shadow-app',
-        useShadowRoot: true,
-      });
-
-      expect(element.shadowRoot?.querySelector('#app')).toBeTruthy();
-
-      unmountVueApp('shadow-app');
-
-      expect(element.shadowRoot?.querySelector('#app')).toBeFalsy();
-    });
-
-    it('should warn when unmounting non-existent app', () => {
-      const result = unmountVueApp('non-existent');
-      expect(result).toBe(false);
-      expect(consoleWarnSpy).toHaveBeenCalledWith('[VueMountApp] No app found with id: non-existent');
-    });
-
-    it('should handle unmount errors gracefully', () => {
-      const element = document.createElement('div');
-      element.id = 'app';
-      document.body.appendChild(element);
-
-      const app = mountVueApp({
-        component: TestComponent,
-        selector: '#app',
-        appId: 'test-app',
-      });
-
-      // Force an error by corrupting the app
-      if (app) {
-        (app as { unmount: () => void }).unmount = () => {
-          throw new Error('Unmount error');
-        };
-      }
-
-      const result = unmountVueApp('test-app');
-      expect(result).toBe(true);
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[VueMountApp] Error unmounting app test-app:',
-        expect.any(Error)
+      mockComponentMappings.push(
+        {
+          selector: '#app1',
+          appId: 'app1',
+          component: TestComponent,
+        },
+        {
+          selector: '#app2',
+          appId: 'app2',
+          component: TestComponent,
+        }
       );
-    });
-  });
 
-  describe('getMountedApp', () => {
-    it('should return mounted app by id', () => {
-      const element = document.createElement('div');
-      element.id = 'app';
-      document.body.appendChild(element);
+      mountUnifiedApp();
 
-      const app = mountVueApp({
-        component: TestComponent,
-        selector: '#app',
-        appId: 'test-app',
+      // Wait for async components to render
+      await vi.waitFor(() => {
+        expect(element1.querySelector('.test-component')).toBeTruthy();
+        expect(element2.querySelector('.test-component')).toBeTruthy();
       });
 
-      expect(getMountedApp('test-app')).toBe(app);
-    });
-
-    it('should return undefined for non-existent app', () => {
-      expect(getMountedApp('non-existent')).toBeUndefined();
+      // Only one Pinia instance should be installed
+      expect(mockGlobalPinia.install).toHaveBeenCalledTimes(1);
+      // Only one i18n instance should be installed
+      expect(mockI18n.install).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('autoMountComponent', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    it('should auto-mount when DOM is ready', async () => {
+  describe('autoMountAllComponents', () => {
+    it('should call mountUnifiedApp', async () => {
       const element = document.createElement('div');
       element.id = 'auto-app';
       document.body.appendChild(element);
 
-      autoMountComponent(TestComponent, '#auto-app');
-
-      await vi.runAllTimersAsync();
-
-      expect(element.querySelector('.test-component')).toBeTruthy();
-    });
-
-    it('should wait for DOMContentLoaded if document is loading', async () => {
-      Object.defineProperty(document, 'readyState', {
-        value: 'loading',
-        writable: true,
-      });
-
-      const element = document.createElement('div');
-      element.id = 'auto-app';
-      document.body.appendChild(element);
-
-      autoMountComponent(TestComponent, '#auto-app');
-
-      expect(element.querySelector('.test-component')).toBeFalsy();
-
-      Object.defineProperty(document, 'readyState', {
-        value: 'complete',
-        writable: true,
-      });
-
-      document.dispatchEvent(new Event('DOMContentLoaded'));
-      await vi.runAllTimersAsync();
-
-      expect(element.querySelector('.test-component')).toBeTruthy();
-    });
-
-    it('should skip auto-mount for already mounted modals', async () => {
-      const element1 = document.createElement('div');
-      element1.id = 'modals';
-      document.body.appendChild(element1);
-
-      mountVueApp({
+      mockComponentMappings.push({
+        selector: '#auto-app',
+        appId: 'auto-app',
         component: TestComponent,
-        selector: '#modals',
-        appId: 'modals',
       });
 
-      autoMountComponent(TestComponent, '#modals');
-      await vi.runAllTimersAsync();
+      autoMountAllComponents();
 
-      expect(consoleDebugSpy).toHaveBeenCalledWith(
-        '[VueMountApp] Component already mounted as modals for selector #modals, returning existing instance'
-      );
-    });
-
-    it('should mount immediately for all selectors', async () => {
-      const element = document.createElement('div');
-      element.id = 'unraid-connect-settings';
-      document.body.appendChild(element);
-
-      autoMountComponent(TestComponent, '#unraid-connect-settings');
-
-      // Component should mount immediately without delay
-      await vi.runAllTimersAsync();
-      expect(element.querySelector('.test-component')).toBeTruthy();
-    });
-
-    it('should mount even when element is hidden', async () => {
-      const element = document.createElement('div');
-      element.id = 'hidden-app';
-      element.style.display = 'none';
-      document.body.appendChild(element);
-
-      autoMountComponent(TestComponent, '#hidden-app');
-      await vi.runAllTimersAsync();
-
-      // Hidden elements should still mount successfully
-      expect(element.querySelector('.test-component')).toBeTruthy();
-      expect(consoleWarnSpy).not.toHaveBeenCalledWith(
-        expect.stringContaining('No valid DOM elements found')
-      );
-    });
-
-    it('should handle nextSibling errors with retry', async () => {
-      const element = document.createElement('div');
-      element.id = 'error-app';
-      element.setAttribute('data-vue-mounted', 'true');
-      element.setAttribute('data-v-app', '');
-      document.body.appendChild(element);
-
-      // Simulate the element having Vue instance references which cause nextSibling errors
-      const mockVueInstance = { appContext: { app: {} as VueApp } };
-      (element as HTMLElementWithVue).__vueParentComponent = mockVueInstance;
-
-      // Add an invalid child that will trigger cleanup
-      const textNode = document.createTextNode('  ');
-      element.appendChild(textNode);
-
-      autoMountComponent(TestComponent, '#error-app');
-      await vi.runAllTimersAsync();
-
-      // Should detect and clean up existing Vue state
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining(
-          '[VueMountApp] Element #error-app has Vue attributes but no content, cleaning up'
-        )
-      );
-
-      // Should successfully mount after cleanup
-      expect(element.querySelector('.test-component')).toBeTruthy();
-    });
-
-    it('should pass options to mountVueApp', async () => {
-      const element = document.createElement('div');
-      element.id = 'options-app';
-      document.body.appendChild(element);
-
-      autoMountComponent(TestComponent, '#options-app', {
-        props: { message: 'Auto Mount Message' },
-        useShadowRoot: true,
+      // Wait for async component to render
+      await vi.waitFor(() => {
+        expect(element.querySelector('.test-component')).toBeTruthy();
       });
-
-      await vi.runAllTimersAsync();
-
-      expect(element.shadowRoot).toBeTruthy();
-      expect(element.shadowRoot?.textContent).toContain('Auto Mount Message');
     });
   });
 
   describe('i18n setup', () => {
     it('should setup i18n with default locale', () => {
-      const element = document.createElement('div');
-      element.id = 'i18n-app';
-      document.body.appendChild(element);
-
-      mountVueApp({
-        component: TestComponent,
-        selector: '#i18n-app',
-      });
-
+      mountUnifiedApp();
       expect(mockI18n.install).toHaveBeenCalled();
     });
 
@@ -627,14 +418,7 @@ describe('mount-engine', () => {
         JSON.stringify(localeData)
       );
 
-      const element = document.createElement('div');
-      element.id = 'i18n-app';
-      document.body.appendChild(element);
-
-      mountVueApp({
-        component: TestComponent,
-        selector: '#i18n-app',
-      });
+      mountUnifiedApp();
 
       delete (window as unknown as Record<string, unknown>).LOCALE_DATA;
     });
@@ -642,14 +426,7 @@ describe('mount-engine', () => {
     it('should handle locale data parsing errors', () => {
       (window as unknown as Record<string, unknown>).LOCALE_DATA = 'invalid json';
 
-      const element = document.createElement('div');
-      element.id = 'i18n-app';
-      document.body.appendChild(element);
-
-      mountVueApp({
-        component: TestComponent,
-        selector: '#i18n-app',
-      });
+      mountUnifiedApp();
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         '[VueMountApp] error parsing messages',
@@ -660,65 +437,52 @@ describe('mount-engine', () => {
     });
   });
 
-  describe('error recovery', () => {
-    it('should attempt recovery from nextSibling error', async () => {
-      vi.useFakeTimers();
+  describe('global exposure', () => {
+    it('should expose unified app globally', () => {
+      const app = mountUnifiedApp();
+      expect(window.__unifiedApp).toBe(app);
+    });
 
+    it('should expose mounted components globally', () => {
       const element = document.createElement('div');
-      element.id = 'recovery-app';
+      element.id = 'global-app';
       document.body.appendChild(element);
 
-      // Create a mock Vue app that throws on first mount attempt
-      let mountAttempt = 0;
-      const mockApp = {
-        use: vi.fn().mockReturnThis(),
-        provide: vi.fn().mockReturnThis(),
-        mount: vi.fn().mockImplementation(() => {
-          mountAttempt++;
-          if (mountAttempt === 1) {
-            const error = new TypeError('Cannot read property nextSibling of null');
-            throw error;
-          }
-          return mockApp;
-        }),
-        unmount: vi.fn(),
-        version: '3.0.0',
-        config: { globalProperties: {} },
-      };
-
-      // Mock createApp using module mock
-      const vueModule = await import('vue');
-      vi.spyOn(vueModule, 'createApp').mockReturnValue(mockApp as never);
-
-      mountVueApp({
+      mockComponentMappings.push({
+        selector: '#global-app',
+        appId: 'global-app',
         component: TestComponent,
-        selector: '#recovery-app',
-        appId: 'recovery-app',
       });
 
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        '[VueMountApp] Attempting recovery from nextSibling error for #recovery-app'
-      );
+      mountUnifiedApp();
 
-      await vi.advanceTimersByTimeAsync(10);
-
-      expect(consoleInfoSpy).toHaveBeenCalledWith(
-        '[VueMountApp] Successfully recovered from nextSibling error for #recovery-app'
-      );
-
-      vi.useRealTimers();
-    });
-  });
-
-  describe('global exposure', () => {
-    it('should expose mountedApps globally', () => {
-      expect(window.mountedApps).toBeDefined();
-      expect(window.mountedApps).toBeInstanceOf(Map);
+      expect(window.__mountedComponents).toBeDefined();
+      expect(Array.isArray(window.__mountedComponents)).toBe(true);
+      expect(window.__mountedComponents!.length).toBe(1);
     });
 
     it('should expose globalPinia globally', () => {
       expect(window.globalPinia).toBeDefined();
       expect(window.globalPinia).toBe(mockGlobalPinia);
+    });
+  });
+
+  describe('performance debugging', () => {
+    it('should not log timing by default', () => {
+      const element = document.createElement('div');
+      element.id = 'perf-app';
+      document.body.appendChild(element);
+
+      mockComponentMappings.push({
+        selector: '#perf-app',
+        appId: 'perf-app',
+        component: TestComponent,
+      });
+
+      mountUnifiedApp();
+
+      // Should not log timing information when PERF_DEBUG is false
+      expect(consoleWarnSpy).not.toHaveBeenCalledWith(expect.stringContaining('[UnifiedMount] Mounted'));
     });
   });
 });

@@ -104,6 +104,7 @@ eslint.configs.recommended, ...tseslint.configs.recommended, // TypeScript Files
     parser: tseslint.parser,
     parserOptions: {
       ...commonLanguageOptions,
+      tsconfigRootDir: import.meta.dirname,
       ecmaFeatures: {
         jsx: true,
       },
@@ -128,6 +129,7 @@ eslint.configs.recommended, ...tseslint.configs.recommended, // TypeScript Files
     parserOptions: {
       ...commonLanguageOptions,
       parser: tseslint.parser,
+      tsconfigRootDir: import.meta.dirname,
       ecmaFeatures: {
         jsx: true,
       },

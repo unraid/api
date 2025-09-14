@@ -156,4 +156,28 @@ describe('HeaderOsVersion', () => {
 
     expect(findUpdateStatusComponent()).toBeNull();
   });
+
+  it('removes logo class from logo wrapper on mount', async () => {
+    // Create a mock logo element
+    const logoElement = document.createElement('div');
+    logoElement.classList.add('logo');
+    document.body.appendChild(logoElement);
+
+    // Mount component
+    const newWrapper = mount(HeaderOsVersion, {
+      global: {
+        plugins: [testingPinia],
+      },
+    });
+
+    // Wait for nextTick to allow onMounted to complete
+    await nextTick();
+    await nextTick(); // Double nextTick since onMounted uses nextTick internally
+
+    expect(logoElement.classList.contains('logo')).toBe(false);
+
+    // Cleanup
+    newWrapper.unmount();
+    document.body.removeChild(logoElement);
+  });
 });

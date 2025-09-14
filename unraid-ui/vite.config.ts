@@ -19,6 +19,17 @@ export default function createConfig() {
             dts({
               insertTypesEntry: true,
               include: ['src/**/*.ts', 'src/**/*.vue'],
+              exclude: [
+                'src/**/*.test.ts',
+                'src/**/*.spec.ts',
+                'src/**/*.test.tsx',
+                'src/**/*.spec.tsx',
+                'src/**/*.test.vue',
+                'src/**/*.spec.vue',
+                'src/**/*.stories.*',
+                'src/**/*.stories.{ts,tsx,vue}',
+                'src/**/__tests__/**',
+              ],
               outDir: 'dist',
               rollupTypes: true,
               copyDtsFiles: true,

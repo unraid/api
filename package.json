@@ -63,8 +63,17 @@
     "pre-commit": "pnpm lint-staged"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,vue}": [
-      "pnpm lint:fix"
+    "api/**/*.{js,ts}": [
+      "pnpm --filter api lint:fix"
+    ],
+    "web/**/*.{js,ts,tsx,vue}": [
+      "pnpm --filter web lint:fix"
+    ],
+    "unraid-ui/**/*.{js,ts,tsx,vue}": [
+      "pnpm --filter @unraid/ui lint:fix"
+    ],
+    "packages/**/*.{js,ts}": [
+      "eslint --fix"
     ]
   },
   "packageManager": "pnpm@10.15.0"

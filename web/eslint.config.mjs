@@ -103,6 +103,7 @@ export default [
       parser: tseslint.parser,
       parserOptions: {
         ...commonLanguageOptions,
+        tsconfigRootDir: import.meta.dirname,
         ecmaFeatures: {
           jsx: true,
         },
@@ -128,6 +129,7 @@ export default [
       parserOptions: {
         ...commonLanguageOptions,
         parser: tseslint.parser,
+        tsconfigRootDir: import.meta.dirname,
         ecmaFeatures: {
           jsx: true,
         },
