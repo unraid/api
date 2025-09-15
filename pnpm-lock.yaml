@@ -813,7 +813,7 @@ importers:
         specifier: 7.1.1
         version: 7.1.1(conventional-commits-filter@5.0.0)
       conventional-changelog-conventionalcommits:
-        specifier: ^9.1.0
+        specifier: 9.1.0
         version: 9.1.0
       date-fns:
         specifier: 4.1.0
