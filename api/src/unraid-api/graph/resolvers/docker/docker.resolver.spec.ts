@@ -95,4 +95,117 @@ describe('DockerResolver', () => {
         expect(result).toEqual(mockContainers);
         expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: false, size: false });
     });
+
+    it('should request size when sizeRootFs field is requested', async () => {
+        const mockContainers: DockerContainer[] = [
+            {
+                id: '1',
+                autoStart: false,
+                command: 'test',
+                names: ['test-container'],
+                created: 1234567890,
+                image: 'test-image',
+                imageId: 'test-image-id',
+                ports: [],
+                sizeRootFs: 1024000,
+                state: ContainerState.EXITED,
+                status: 'Exited',
+            },
+        ];
+        vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
+
+        const mockInfoWithSize = {
+            fieldNodes: [
+                {
+                    selectionSet: {
+                        selections: [
+                            {
+                                kind: 'Field',
+                                name: { value: 'sizeRootFs' },
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as any;
+
+        const result = await resolver.containers(false, mockInfoWithSize);
+        expect(result).toEqual(mockContainers);
+        expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: false, size: true });
+    });
+
+    it('should request size when inline fragment is present', async () => {
+        const mockContainers: DockerContainer[] = [];
+        vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
+
+        const mockInfoWithFragment = {
+            fieldNodes: [
+                {
+                    selectionSet: {
+                        selections: [
+                            {
+                                kind: 'InlineFragment',
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as any;
+
+        await resolver.containers(false, mockInfoWithFragment);
+        expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: false, size: true });
+    });
+
+    it('should request size when fragment spread is present', async () => {
+        const mockContainers: DockerContainer[] = [];
+        vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
+
+        const mockInfoWithFragmentSpread = {
+            fieldNodes: [
+                {
+                    selectionSet: {
+                        selections: [
+                            {
+                                kind: 'FragmentSpread',
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as any;
+
+        await resolver.containers(false, mockInfoWithFragmentSpread);
+        expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: false, size: true });
+    });
+
+    it('should not request size when other fields are requested', async () => {
+        const mockContainers: DockerContainer[] = [];
+        vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
+
+        const mockInfoWithOtherFields = {
+            fieldNodes: [
+                {
+                    selectionSet: {
+                        selections: [
+                            {
+                                kind: 'Field',
+                                name: { value: 'id' },
+                            },
+                            {
+                                kind: 'Field',
+                                name: { value: 'names' },
+                            },
+                            {
+                                kind: 'Field',
+                                name: { value: 'state' },
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as any;
+
+        await resolver.containers(false, mockInfoWithOtherFields);
+        expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: false, size: false });
+    });
 });
