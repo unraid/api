@@ -125,15 +125,22 @@ jobs:
             --content-encoding none \
             --acl public-read
 
-      - name: Actions for Discord
-        uses: Ilshidur/action-discord@0.4.0
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.PUBLIC_DISCORD_RELEASE_ENDPOINT }}
+      - name: Discord Webhook Notification
+        uses: tsickert/discord-webhook@v7.0.0
         with:
-          args: |
-            🚀 **Unraid API Release ${{ inputs.version }}**
-            
-            View Release: https://github.com/${{ github.repository }}/releases/tag/${{ inputs.version }}
-            
-            **Changelog:**
+          webhook-url: ${{ secrets.PUBLIC_DISCORD_RELEASE_ENDPOINT }}
+          username: "Unraid API Bot"
+          avatar-url: "https://craftassets.unraid.net/uploads/logos/un-mark-gradient.png"
+          embed-title: "🚀 Unraid API ${{ inputs.version }} Released!"
+          embed-url: "https://github.com/${{ github.repository }}/releases/tag/${{ inputs.version }}"
+          embed-description: |
+            A new version of Unraid API has been released!
+
+            **Version:** `${{ inputs.version }}`
+            **Release Page:** [View on GitHub](https://github.com/${{ github.repository }}/releases/tag/${{ inputs.version }})
+
+            **📋 Changelog:**
             ${{ steps.release-info.outputs.body }}
+          embed-color: 16734296
+          embed-footer-text: "Unraid API • Automated Release"
+          embed-timestamp: true
