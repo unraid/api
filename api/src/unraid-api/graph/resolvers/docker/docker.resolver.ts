@@ -16,6 +16,7 @@ import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.ser
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
 import { DEFAULT_ORGANIZER_ROOT_ID } from '@app/unraid-api/organizer/organizer.js';
 import { ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
+import { GraphQLFieldHelper } from '@app/unraid-api/utils/graphql-field-helper.js';
 
 @Resolver(() => Docker)
 export class DockerResolver {
@@ -45,8 +46,7 @@ export class DockerResolver {
         @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean,
         @Info() info: GraphQLResolveInfo
     ) {
-        // Check if sizeRootFs field is requested in the query
-        const requestsSize = this.isFieldRequested(info, 'sizeRootFs');
+        const requestsSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeRootFs');
         return this.dockerService.getContainers({ skipCache, size: requestsSize });
     }
 
@@ -145,22 +145,5 @@ export class DockerResolver {
     @ResolveField(() => [ExplicitStatusItem])
     public async containerUpdateStatuses() {
         return this.dockerPhpService.getContainerUpdateStatuses();
-    }
-
-    private isFieldRequested(info: GraphQLResolveInfo, fieldName: string): boolean {
-        const selections = info.fieldNodes[0]?.selectionSet?.selections;
-        if (!selections) return false;
-
-        for (const selection of selections) {
-            if (selection.kind === 'Field' && selection.name.value === fieldName) {
-                return true;
-            }
-            // Check nested selections for fragments
-            if (selection.kind === 'InlineFragment' || selection.kind === 'FragmentSpread') {
-                // For simplicity, if we see fragments, assume the field might be requested
-                return true;
-            }
-        }
-        return false;
     }
 }
