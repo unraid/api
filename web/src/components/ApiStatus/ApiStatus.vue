@@ -1,15 +1,16 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 
-import { toast } from 'sonner';
-
 const apiStatus = ref<string>('');
 const isRunning = ref<boolean>(false);
 const isLoading = ref<boolean>(false);
 const isRestarting = ref<boolean>(false);
+const statusMessage = ref<string>('');
+const messageType = ref<'success' | 'error' | 'info' | ''>('');
 
 const checkStatus = async () => {
   isLoading.value = true;
+  statusMessage.value = '';
   try {
     const response = await fetch('/plugins/dynamix.my.servers/include/unraid-api.php', {
       method: 'POST',
@@ -28,6 +29,8 @@ const checkStatus = async () => {
     console.error('Failed to get API status:', error);
     apiStatus.value = 'Error fetching status';
     isRunning.value = false;
+    statusMessage.value = 'Failed to fetch API status';
+    messageType.value = 'error';
   } finally {
     isLoading.value = false;
   }
@@ -41,7 +44,8 @@ const restartApi = async () => {
   if (!confirmed) return;
 
   isRestarting.value = true;
-  toast.info('Restarting API service...');
+  statusMessage.value = 'Restarting API service...';
+  messageType.value = 'info';
 
   try {
     const response = await fetch('/plugins/dynamix.my.servers/include/unraid-api.php', {
@@ -54,16 +58,19 @@ const restartApi = async () => {
 
     const data = await response.json();
     if (data.success) {
-      toast.success('API service restart initiated. Please wait a few seconds.');
+      statusMessage.value = 'API service restart initiated. Please wait a few seconds.';
+      messageType.value = 'success';
       setTimeout(() => {
         checkStatus();
       }, 3000);
     } else {
-      toast.error(data.error || 'Failed to restart API service');
+      statusMessage.value = data.error || 'Failed to restart API service';
+      messageType.value = 'error';
     }
   } catch (error) {
     console.error('Failed to restart API:', error);
-    toast.error('Failed to restart API service');
+    statusMessage.value = 'Failed to restart API service';
+    messageType.value = 'error';
   } finally {
     isRestarting.value = false;
   }
@@ -75,125 +82,58 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="api-status-container">
-    <div class="api-status-header">
+  <div class="bg-muted border-muted my-4 rounded-lg border p-6">
+    <div class="mb-4">
       <h3 class="mb-2 text-lg font-semibold">API Service Status</h3>
-      <div class="status-indicator">
-        <span class="status-label">Status:</span>
-        <span :class="['status-value', isRunning ? 'text-green-500' : 'text-orange-500']">
+      <div class="flex items-center gap-2 text-sm">
+        <span class="font-medium">Status:</span>
+        <span :class="['font-semibold', isRunning ? 'text-green-500' : 'text-orange-500']">
           {{ isLoading ? 'Loading...' : isRunning ? 'Running' : 'Not Running' }}
         </span>
       </div>
     </div>
 
-    <div class="api-status-details">
-      <pre class="status-output">{{ apiStatus }}</pre>
+    <div class="my-4">
+      <pre
+        class="max-h-52 overflow-y-auto rounded bg-black p-4 font-mono text-xs break-words whitespace-pre-wrap text-white"
+        >{{ apiStatus }}</pre
+      >
     </div>
 
-    <div class="api-status-actions">
-      <button @click="checkStatus" :disabled="isLoading" class="btn btn-secondary">
+    <div
+      v-if="statusMessage"
+      :class="[
+        'my-4 rounded px-4 py-3 text-sm',
+        messageType === 'success' && 'bg-green-500 text-white',
+        messageType === 'error' && 'bg-red-500 text-white',
+        messageType === 'info' && 'bg-blue-500 text-white',
+      ]"
+    >
+      {{ statusMessage }}
+    </div>
+
+    <div class="mt-4 flex gap-4">
+      <button
+        @click="checkStatus"
+        :disabled="isLoading"
+        class="bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+      >
         {{ isLoading ? 'Refreshing...' : 'Refresh Status' }}
       </button>
-      <button @click="restartApi" :disabled="isRestarting" class="btn btn-danger">
+      <button
+        @click="restartApi"
+        :disabled="isRestarting"
+        class="bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+      >
         {{ isRestarting ? 'Restarting...' : 'Restart API' }}
       </button>
     </div>
 
-    <div class="api-status-help">
-      <p class="mt-4 text-sm text-gray-600">
+    <div class="border-muted mt-6 border-t pt-4">
+      <p class="text-muted-foreground text-sm">
         View the current status of the Unraid API service and restart if needed. Use this to debug API
         connection issues.
       </p>
     </div>
   </div>
 </template>
-
-<style scoped>
-.api-status-container {
-  background-color: var(--background-secondary);
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin: 1rem 0;
-}
-
-.api-status-header {
-  margin-bottom: 1rem;
-}
-
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.95rem;
-}
-
-.status-label {
-  font-weight: 500;
-}
-
-.status-value {
-  font-weight: 600;
-}
-
-.api-status-details {
-  margin: 1rem 0;
-}
-
-.status-output {
-  background-color: #1a1a1a;
-  color: #e0e0e0;
-  padding: 1rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  max-height: 200px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  font-family: 'Courier New', monospace;
-}
-
-.api-status-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  transition: opacity 0.2s;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-secondary {
-  background-color: #4a5568;
-  color: white;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  background-color: #2d3748;
-}
-
-.btn-danger {
-  background-color: #e53e3e;
-  color: white;
-}
-
-.btn-danger:hover:not(:disabled) {
-  background-color: #c53030;
-}
-
-.api-status-help {
-  border-top: 1px solid var(--border-color);
-  padding-top: 1rem;
-  margin-top: 1.5rem;
-}
-</style>
