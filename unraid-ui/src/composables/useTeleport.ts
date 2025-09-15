@@ -1,31 +1,24 @@
-import { computed } from 'vue';
+import { onMounted, ref } from 'vue';
+
+let virtualModalContainer: HTMLDivElement | null = null;
+
+const ensureVirtualContainer = () => {
+  if (!virtualModalContainer) {
+    virtualModalContainer = document.createElement('div');
+    virtualModalContainer.id = 'unraid-api-modals-virtual';
+    virtualModalContainer.className = 'unapi';
+    virtualModalContainer.style.position = 'relative';
+    virtualModalContainer.style.zIndex = '999999';
+    document.body.appendChild(virtualModalContainer);
+  }
+  return virtualModalContainer;
+};
 
 const useTeleport = () => {
-  // Computed property that finds the correct teleport target
-  const teleportTarget = computed(() => {
-    // #modals should be unique (id), but let's be defensive
-    const modalsElement = document.getElementById('modals');
-    if (modalsElement) return `#modals`;
+  const teleportTarget = ref<string>('#unraid-api-modals-virtual');
 
-    // Find only mounted unraid-modals components (data-vue-mounted="true")
-    // This ensures we don't target unmounted or duplicate elements
-    const mountedModals = document.querySelector('unraid-modals[data-vue-mounted="true"]');
-    if (mountedModals) {
-      // Check if it has the inner #modals div
-      const innerModals = mountedModals.querySelector('#modals');
-      if (innerModals && innerModals.id) {
-        return `#${innerModals.id}`;
-      }
-      // Use the mounted component itself as fallback
-      // Add a unique identifier if it doesn't have one
-      if (!mountedModals.id) {
-        mountedModals.id = 'unraid-modals-teleport-target';
-      }
-      return `#${mountedModals.id}`;
-    }
-
-    // Final fallback to body - modals component not mounted yet
-    return 'body';
+  onMounted(() => {
+    ensureVirtualContainer();
   });
 
   return {
