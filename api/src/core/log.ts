@@ -1,7 +1,7 @@
 import pino from 'pino';
 import pretty from 'pino-pretty';
 
-import { API_VERSION, LOG_LEVEL, LOG_TYPE, PATHS_LOGS_FILE, SUPPRESS_LOGS } from '@app/environment.js';
+import { API_VERSION, LOG_LEVEL, LOG_TYPE, SUPPRESS_LOGS } from '@app/environment.js';
 
 export const levels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const;
 
@@ -17,30 +17,27 @@ const nullDestination = pino.destination({
 
 export const logDestination =
     process.env.SUPPRESS_LOGS === 'true' ? nullDestination : pino.destination();
-const localFileDestination = pino.destination({
-    dest: PATHS_LOGS_FILE,
-    sync: true,
-});
-
+// Since PM2 captures stdout and writes to the log file, we should not colorize stdout
+// to avoid ANSI escape codes in the log file
 const stream = SUPPRESS_LOGS
     ? nullDestination
     : LOG_TYPE === 'pretty'
       ? pretty({
             singleLine: true,
             hideObject: false,
-            colorize: true,
-            colorizeObjects: true,
+            colorize: false, // No colors since PM2 writes stdout to file
+            colorizeObjects: false,
             levelFirst: false,
             ignore: 'hostname,pid',
             destination: logDestination,
             translateTime: 'HH:mm:ss',
             customPrettifiers: {
                 time: (timestamp: string | object) => `[${timestamp}`,
-                level: (logLevel: string | object, key: string, log: any, extras: any) => {
-                    // Use labelColorized which preserves the colors
-                    const { labelColorized } = extras;
+                level: (_logLevel: string | object, _key: string, log: any, extras: any) => {
+                    // Use label instead of labelColorized for non-colored output
+                    const { label } = extras;
                     const context = log.context || log.logger || 'app';
-                    return `${labelColorized} ${context}]`;
+                    return `${label} ${context}]`;
                 },
             },
             messageFormat: (log: any, messageKey: string) => {
@@ -98,7 +95,7 @@ export const keyServerLogger = logger.child({ logger: 'key-server' });
 export const remoteAccessLogger = logger.child({ logger: 'remote-access' });
 export const remoteQueryLogger = logger.child({ logger: 'remote-query' });
 export const apiLogger = logger.child({ logger: 'api' });
-export const pluginLogger = logger.child({ logger: 'plugin', stream: localFileDestination });
+export const pluginLogger = logger.child({ logger: 'plugin' });
 
 export const loggers = [
     internalLogger,
