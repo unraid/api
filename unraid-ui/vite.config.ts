@@ -42,8 +42,6 @@ export default function createConfig() {
         external: [
           'vue',
           'tailwindcss',
-          'ajv',
-          'ajv-errors',
           ...(process.env.npm_lifecycle_script?.includes('storybook') ? [/^storybook\//] : []),
         ],
         input: {
@@ -87,6 +85,9 @@ export default function createConfig() {
         '@/types': resolve(__dirname, './src/types'),
         '@/theme': resolve(__dirname, './src/theme'),
       },
+    },
+    optimizeDeps: {
+      include: ['ajv', 'ajv-errors'],
     },
     test: {
       environment: 'happy-dom',

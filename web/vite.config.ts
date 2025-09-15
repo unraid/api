@@ -92,6 +92,15 @@ export default defineConfig({
     },
   },
 
+  optimizeDeps: {
+    include: ['ajv', 'ajv-errors'],
+    esbuildOptions: {
+      define: {
+        global: 'globalThis',
+      },
+    },
+  },
+
   define: {
     ...sharedDefine,
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
