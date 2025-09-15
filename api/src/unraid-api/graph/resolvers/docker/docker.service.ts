@@ -72,6 +72,8 @@ export class DockerService {
     }
 
     public transformContainer(container: Docker.ContainerInfo): DockerContainer {
+        const sizeValue = (container as Docker.ContainerInfo & { SizeRootFs?: number }).SizeRootFs;
+
         const transformed: DockerContainer = {
             id: container.Id,
             names: container.Names,
@@ -87,7 +89,7 @@ export class DockerService {
                     ContainerPortType[port.Type.toUpperCase() as keyof typeof ContainerPortType] ||
                     ContainerPortType.TCP,
             })),
-            sizeRootFs: (container as Docker.ContainerInfo & { SizeRootFs?: number }).SizeRootFs,
+            sizeRootFs: sizeValue,
             labels: container.Labels ?? {},
             state:
                 typeof container.State === 'string'

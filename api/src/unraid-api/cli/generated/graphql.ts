@@ -711,8 +711,8 @@ export type DockerContainer = Node & {
   names: Array<Scalars['String']['output']>;
   networkSettings?: Maybe<Scalars['JSON']['output']>;
   ports: Array<ContainerPort>;
-  /** Total size of all the files in the container */
-  sizeRootFs?: Maybe<Scalars['Int']['output']>;
+  /** Total size of all the files in the container in bytes */
+  sizeRootFs?: Maybe<Scalars['BigInt']['output']>;
   state: ContainerState;
   status: Scalars['String']['output'];
 };
