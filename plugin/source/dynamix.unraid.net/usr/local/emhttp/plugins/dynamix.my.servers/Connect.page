@@ -600,4 +600,8 @@ _(GraphQL API Developer Sandbox)_:
 
 <!-- start unraid-api section -->
 <unraid-connect-settings></unraid-connect-settings>
+
+<!-- API Status Manager -->
+<unraid-api-status-manager></unraid-api-status-manager>
+
 <!-- end unraid-api section -->
