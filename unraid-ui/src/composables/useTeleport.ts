@@ -18,12 +18,7 @@ const useTeleport = () => {
   const teleportTarget = ref<string>('#unraid-api-modals-virtual');
 
   onMounted(() => {
-    const existingModals = document.getElementById('modals');
-    if (existingModals) {
-      teleportTarget.value = '#modals';
-    } else {
-      ensureVirtualContainer();
-    }
+    ensureVirtualContainer();
   });
 
   return {
