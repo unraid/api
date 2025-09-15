@@ -33,7 +33,8 @@ export class StartCommand extends CommandRunner {
             { tag: 'PM2 Start', raw: true, extendEnv: true, env },
             'start',
             ECOSYSTEM_PATH,
-            '--update-env'
+            '--update-env',
+            '--mini-list'
         );
         if (stdout) {
             this.logger.log(stdout.toString());

@@ -35,7 +35,8 @@ export class RestartCommand extends CommandRunner {
                 { tag: 'PM2 Restart', raw: true, extendEnv: true, env },
                 'restart',
                 ECOSYSTEM_PATH,
-                '--update-env'
+                '--update-env',
+                '--mini-list'
             );
 
             if (stderr) {

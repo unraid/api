@@ -22,33 +22,50 @@ const localFileDestination = pino.destination({
     sync: true,
 });
 
+// Create a multistream to send logs to both console (with colors) and file (without colors)
+const streams: pino.StreamEntry[] = [];
+
+// Add console stream with colors if pretty mode
+if (!SUPPRESS_LOGS) {
+    if (LOG_TYPE === 'pretty') {
+        streams.push({
+            stream: pretty({
+                singleLine: true,
+                hideObject: false,
+                colorize: true,
+                colorizeObjects: true,
+                levelFirst: false,
+                ignore: 'hostname,pid',
+                destination: logDestination,
+                translateTime: 'HH:mm:ss',
+                customPrettifiers: {
+                    time: (timestamp: string | object) => `[${timestamp}`,
+                    level: (logLevel: string | object, key: string, log: any, extras: any) => {
+                        // Use labelColorized which preserves the colors
+                        const { labelColorized } = extras;
+                        const context = log.context || log.logger || 'app';
+                        return `${labelColorized} ${context}]`;
+                    },
+                },
+                messageFormat: (log: any, messageKey: string) => {
+                    const msg = log[messageKey] || log.msg || '';
+                    return msg;
+                },
+            }),
+        });
+    } else {
+        streams.push({ stream: logDestination });
+    }
+}
+
+// Add file stream without colors
+streams.push({ stream: localFileDestination });
+
 const stream = SUPPRESS_LOGS
     ? nullDestination
-    : LOG_TYPE === 'pretty'
-      ? pretty({
-            singleLine: true,
-            hideObject: false,
-            colorize: true,
-            colorizeObjects: true,
-            levelFirst: false,
-            ignore: 'hostname,pid',
-            destination: logDestination,
-            translateTime: 'HH:mm:ss',
-            customPrettifiers: {
-                time: (timestamp: string | object) => `[${timestamp}`,
-                level: (logLevel: string | object, key: string, log: any, extras: any) => {
-                    // Use labelColorized which preserves the colors
-                    const { labelColorized } = extras;
-                    const context = log.context || log.logger || 'app';
-                    return `${labelColorized} ${context}]`;
-                },
-            },
-            messageFormat: (log: any, messageKey: string) => {
-                const msg = log[messageKey] || log.msg || '';
-                return msg;
-            },
-        })
-      : logDestination;
+    : streams.length === 1
+      ? streams[0].stream
+      : pino.multistream(streams);
 
 export const logger = pino(
     {
@@ -98,7 +115,7 @@ export const keyServerLogger = logger.child({ logger: 'key-server' });
 export const remoteAccessLogger = logger.child({ logger: 'remote-access' });
 export const remoteQueryLogger = logger.child({ logger: 'remote-query' });
 export const apiLogger = logger.child({ logger: 'api' });
-export const pluginLogger = logger.child({ logger: 'plugin', stream: localFileDestination });
+export const pluginLogger = logger.child({ logger: 'plugin' });
 
 export const loggers = [
     internalLogger,
