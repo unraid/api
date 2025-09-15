@@ -6,11 +6,19 @@
 check_shell() {
   # This script runs with #!/bin/bash shebang
   # On Unraid, users may configure bash to load other shells through .bashrc
-  # We check if the current process ($$) is actually bash, not another shell
-  # Using $$ is correct here - we need to detect if THIS process is running the expected bash
+  # We need to check if the interpreter running this script is actually bash
+  # Use readlink on /proc to find the actual interpreter, not the script name
   local current_shell
-  current_shell=$(ps -o comm= -p $$)
-  
+
+  # Get the actual interpreter from /proc
+  if [ -e "/proc/$$/exe" ]; then
+    current_shell=$(readlink "/proc/$$/exe")
+  else
+    # Fallback to checking the current process if /proc isn't available
+    # Note: This may return the script name on some systems
+    current_shell=$(ps -o comm= -p $$)
+  fi
+
   # Remove any path and get just the shell name
   current_shell=$(basename "$current_shell")
   

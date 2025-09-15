@@ -33,8 +33,9 @@
     "env:validate": "test -f .env || (echo 'Error: .env file missing. Run npm run env:init first' && exit 1)",
     "env:clean": "rm -f .env",
     "// Testing": "",
-    "test": "vitest && pnpm run test:extractor",
-    "test:extractor": "bash ./tests/test-extractor.sh"
+    "test": "vitest && pnpm run test:extractor && pnpm run test:shell-detection",
+    "test:extractor": "bash ./tests/test-extractor.sh",
+    "test:shell-detection": "bash ./tests/test-shell-detection.sh"
   },
   "devDependencies": {
     "http-server": "14.1.1",
