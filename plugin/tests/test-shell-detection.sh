@@ -57,8 +57,9 @@ check_shell() {
   if [ -e "/proc/$$/exe" ]; then
     current_shell=$(readlink "/proc/$$/exe")
   else
-    # Fallback to checking the parent process if /proc isn't available
-    current_shell=$(ps -o comm= -p $PPID)
+    # Fallback to checking the current process if /proc isn't available
+    # Note: This may return the script name on some systems
+    current_shell=$(ps -o comm= -p $$)
   fi
 
   # Remove any path and get just the shell name
@@ -106,7 +107,7 @@ fi
 
 # Test 3: Simulate non-bash shell (if available)
 echo "Test 3: Non-bash shell simulation"
-if command -v sh >/dev/null 2>&1 && [ "$(readlink -f $(command -v sh))" != "$(readlink -f $(command -v bash))" ]; then
+if command -v sh >/dev/null 2>&1 && [ "$(readlink -f "$(command -v sh)")" != "$(readlink -f "$(command -v bash)")" ]; then
     TEMP_SCRIPT=$(mktemp)
     # Create a test that will fail if sh is detected
     cat << 'EOF' > "$TEMP_SCRIPT"
