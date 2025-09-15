@@ -86,7 +86,7 @@ export class DockerService {
                     ContainerPortType[port.Type.toUpperCase() as keyof typeof ContainerPortType] ||
                     ContainerPortType.TCP,
             })),
-            sizeRootFs: undefined,
+            sizeRootFs: (container as Docker.ContainerInfo & { SizeRootFs?: number }).SizeRootFs,
             labels: container.Labels ?? {},
             state:
                 typeof container.State === 'string'
@@ -109,7 +109,7 @@ export class DockerService {
         {
             skipCache = false,
             all = true,
-            size = true,
+            size = false,
             ...listOptions
         }: Partial<ContainerListingOptions> = { skipCache: false }
     ): Promise<DockerContainer[]> {

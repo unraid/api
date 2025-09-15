@@ -159,7 +159,7 @@ describe('DockerService', () => {
 
         expect(mockListContainers).toHaveBeenCalledWith({
             all: true,
-            size: true,
+            size: false,
         });
         expect(mockCacheManager.set).toHaveBeenCalled(); // Ensure cache is set
     });

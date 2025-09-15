@@ -1,7 +1,8 @@
-import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Info, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
+import { GraphQLResolveInfo } from 'graphql';
 
 import { UseFeatureFlag } from '@app/unraid-api/decorators/use-feature-flag.decorator.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
@@ -41,9 +42,12 @@ export class DockerResolver {
     })
     @ResolveField(() => [DockerContainer])
     public async containers(
-        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
+        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean,
+        @Info() info: GraphQLResolveInfo
     ) {
-        return this.dockerService.getContainers({ skipCache });
+        // Check if sizeRootFs field is requested in the query
+        const requestsSize = this.isFieldRequested(info, 'sizeRootFs');
+        return this.dockerService.getContainers({ skipCache, size: requestsSize });
     }
 
     @UsePermissions({
@@ -141,5 +145,22 @@ export class DockerResolver {
     @ResolveField(() => [ExplicitStatusItem])
     public async containerUpdateStatuses() {
         return this.dockerPhpService.getContainerUpdateStatuses();
+    }
+
+    private isFieldRequested(info: GraphQLResolveInfo, fieldName: string): boolean {
+        const selections = info.fieldNodes[0]?.selectionSet?.selections;
+        if (!selections) return false;
+
+        for (const selection of selections) {
+            if (selection.kind === 'Field' && selection.name.value === fieldName) {
+                return true;
+            }
+            // Check nested selections for fragments
+            if (selection.kind === 'InlineFragment' || selection.kind === 'FragmentSpread') {
+                // For simplicity, if we see fragments, assume the field might be requested
+                return true;
+            }
+        }
+        return false;
     }
 }

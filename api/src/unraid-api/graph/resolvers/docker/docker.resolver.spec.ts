@@ -81,8 +81,18 @@ describe('DockerResolver', () => {
         ];
         vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
 
-        const result = await resolver.containers(false);
+        const mockInfo = {
+            fieldNodes: [
+                {
+                    selectionSet: {
+                        selections: [],
+                    },
+                },
+            ],
+        } as any;
+
+        const result = await resolver.containers(false, mockInfo);
         expect(result).toEqual(mockContainers);
-        expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: false });
+        expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: false, size: false });
     });
 });
