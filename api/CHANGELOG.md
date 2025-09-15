@@ -1,5 +1,16 @@
 # Changelog
 
+## [4.22.2](https://github.com/unraid/api/compare/v4.22.1...v4.22.2) (2025-09-15)
+
+
+### Bug Fixes
+
+* **deps:** pin dependency conventional-changelog-conventionalcommits to 9.1.0 ([#1697](https://github.com/unraid/api/issues/1697)) ([9a86c61](https://github.com/unraid/api/commit/9a86c615da2e975f568922fa012cc29b3f9cde0e))
+* **deps:** update dependency filenamify to v7 ([#1703](https://github.com/unraid/api/issues/1703)) ([b80988a](https://github.com/unraid/api/commit/b80988aaabebc4b8dbf2bf31f0764bf2f28e1575))
+* **deps:** update graphqlcodegenerator monorepo (major) ([#1689](https://github.com/unraid/api/issues/1689)) ([ba4a43a](https://github.com/unraid/api/commit/ba4a43aec863fc30c47dd17370d74daed7f84703))
+* false positive on verify_install script being external shell ([#1704](https://github.com/unraid/api/issues/1704)) ([31a255c](https://github.com/unraid/api/commit/31a255c9281b29df983d0f5d0475cd5a69790a48))
+* improve vue mount speed by 10x ([c855caa](https://github.com/unraid/api/commit/c855caa9b2d4d63bead1a992f5c583e00b9ba843))
+
 ## [4.22.1](https://github.com/unraid/api/compare/v4.22.0...v4.22.1) (2025-09-12)
 
 
