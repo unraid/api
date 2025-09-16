@@ -35,7 +35,7 @@ export const WebguiState = request.url('/plugins/dynamix.my.servers/data/server-
  */
 export interface WebguiUnraidApiCommandPayload {
   csrf_token: string;
-  command: 'report' | 'restart' | 'start';
+  command: 'report' | 'restart' | 'start' | 'status';
   param1?: '-v' | '-vv';
 }
 export const WebguiUnraidApiCommand = async (payload: WebguiUnraidApiCommandPayload) => {

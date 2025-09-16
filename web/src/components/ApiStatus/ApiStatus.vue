@@ -1,6 +1,11 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 
+import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
+import { useServerStore } from '~/store/server';
+
+const serverStore = useServerStore();
+
 const apiStatus = ref<string>('');
 const isRunning = ref<boolean>(false);
 const isLoading = ref<boolean>(false);
@@ -12,18 +17,17 @@ const checkStatus = async () => {
   isLoading.value = true;
   statusMessage.value = '';
   try {
-    const response = await fetch('/plugins/dynamix.my.servers/include/unraid-api.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'command=status',
+    const response = await WebguiUnraidApiCommand({
+      csrf_token: serverStore.csrf,
+      command: 'status',
     });
 
-    const data = await response.json();
-    if (data.result) {
-      apiStatus.value = data.result;
-      isRunning.value = data.result.includes('running') || data.result.includes('active');
+    if (response?.result) {
+      apiStatus.value = response.result;
+      isRunning.value =
+        response.result.includes('running') ||
+        response.result.includes('active') ||
+        response.result.includes('status : online');
     }
   } catch (error) {
     console.error('Failed to get API status:', error);
@@ -48,23 +52,19 @@ const restartApi = async () => {
   messageType.value = 'info';
 
   try {
-    const response = await fetch('/plugins/dynamix.my.servers/include/unraid-api.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'command=restart',
+    const response = await WebguiUnraidApiCommand({
+      csrf_token: serverStore.csrf,
+      command: 'restart',
     });
 
-    const data = await response.json();
-    if (data.success) {
+    if (response?.success) {
       statusMessage.value = 'API service restart initiated. Please wait a few seconds.';
       messageType.value = 'success';
       setTimeout(() => {
         checkStatus();
       }, 3000);
     } else {
-      statusMessage.value = data.error || 'Failed to restart API service';
+      statusMessage.value = response?.error || 'Failed to restart API service';
       messageType.value = 'error';
     }
   } catch (error) {
