@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.23.0](https://github.com/unraid/api/compare/v4.22.2...v4.23.0) (2025-09-16)
+
+
+### Features
+
+* add unraid api status manager ([#1708](https://github.com/unraid/api/issues/1708)) ([1d9ce0a](https://github.com/unraid/api/commit/1d9ce0aa3d067726c2c880929408c68f53e13e0d))
+
+
+### Bug Fixes
+
+* **logging:** remove colorized logs ([#1705](https://github.com/unraid/api/issues/1705)) ([1d2c670](https://github.com/unraid/api/commit/1d2c6701ce56b1d40afdb776065295e9273d08e9))
+* no sizeRootFs unless queried ([#1710](https://github.com/unraid/api/issues/1710)) ([9714b21](https://github.com/unraid/api/commit/9714b21c5c07160b92a11512e8b703908adb0620))
+* use virtual-modal-container ([#1709](https://github.com/unraid/api/issues/1709)) ([44b4d77](https://github.com/unraid/api/commit/44b4d77d803aa724968307cfa463f7c440791a10))
+
 ## [4.22.2](https://github.com/unraid/api/compare/v4.22.1...v4.22.2) (2025-09-15)
 
 
