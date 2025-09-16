@@ -17,6 +17,7 @@ const config: CodegenConfig = {
             URL: 'URL',
             Port: 'number',
             UUID: 'string',
+            BigInt: 'number',
         },
         scalarSchemas: {
             URL: 'z.instanceof(URL)',
@@ -24,6 +25,7 @@ const config: CodegenConfig = {
             JSON: 'z.record(z.string(), z.any())',
             Port: 'z.number()',
             UUID: 'z.string()',
+            BigInt: 'z.number()',
         },
     },
     generates: {
