@@ -1,0 +1,9 @@
+Menu="ManagementAccess:99"
+Title="Unraid API Status"
+Icon="icon-u-globe"
+Tag="globe"
+---
+<!-- API Status Manager -->
+<unraid-api-status-manager></unraid-api-status-manager>
+
+<!-- end unraid-api section -->

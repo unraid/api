@@ -1,5 +1,5 @@
 Menu="ManagementAccess:100"
-Title="Unraid API"
+Title="Unraid API Settings"
 Icon="icon-u-globe"
 Tag="globe"
 ---
@@ -596,12 +596,10 @@ $(function() {
 _(Unraid API extra origins)_:
 _(Connect Remote Access)_:
 _(GraphQL API Developer Sandbox)_:
+_(OIDC Configuration)_:
+
 </div>
 
 <!-- start unraid-api section -->
 <unraid-connect-settings></unraid-connect-settings>
 
-<!-- API Status Manager -->
-<unraid-api-status-manager></unraid-api-status-manager>
-
-<!-- end unraid-api section -->
