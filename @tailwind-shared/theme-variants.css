@@ -12,7 +12,6 @@
   --header-background-color: #1c1b1b;
   --header-gradient-start: rgba(28, 27, 27, 0);
   --header-gradient-end: rgba(28, 27, 27, 0.7);
-  --ui-border-muted: hsl(240 5% 20%);
   --color-border: #383735;
   --color-alpha: #ff8c2f;
   --color-beta: #1c1b1b;
@@ -28,7 +27,6 @@
   --header-background-color: #f2f2f2;
   --header-gradient-start: rgba(242, 242, 242, 0);
   --header-gradient-end: rgba(242, 242, 242, 0.7);
-  --ui-border-muted: hsl(240 5.9% 90%);
   --color-border: #e0e0e0;
   --color-alpha: #ff8c2f;
   --color-beta: #f2f2f2;
@@ -43,7 +41,6 @@
   --header-background-color: #1c1b1b;
   --header-gradient-start: rgba(28, 27, 27, 0);
   --header-gradient-end: rgba(28, 27, 27, 0.7);
-  --ui-border-muted: hsl(240 5% 25%);
   --color-border: #383735;
   --color-alpha: #ff8c2f;
   --color-beta: #383735;
@@ -58,7 +55,6 @@
   --header-background-color: #f2f2f2;
   --header-gradient-start: rgba(242, 242, 242, 0);
   --header-gradient-end: rgba(242, 242, 242, 0.7);
-  --ui-border-muted: hsl(210 40% 80%);
   --color-border: #5a8bb8;
   --color-alpha: #ff8c2f;
   --color-beta: #e7f2f8;
@@ -68,7 +64,6 @@
 
 /* Dark Mode Overrides */
 .dark {
-  --ui-border-muted: hsl(240 5% 20%);
   --color-border: #383735;
 }
 
