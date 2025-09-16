@@ -143,4 +143,3 @@ jobs:
             ${{ steps.release-info.outputs.body }}
           embed-color: 16734296
           embed-footer-text: "Unraid API • Automated Release"
-          embed-timestamp: true
