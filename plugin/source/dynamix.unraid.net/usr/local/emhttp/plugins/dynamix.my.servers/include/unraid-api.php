@@ -39,6 +39,7 @@ $validCommands = [
   'start',
   'restart',
   'stop',
+  'status',
   'report',
   'wanip'
 ];
@@ -68,7 +69,12 @@ switch ($command) {
     response_complete(200, array('result' => $output), $output);
     break;
   case 'restart':
-    exec('unraid-api restart 2>/dev/null', $output, $retval);
+    exec('/etc/rc.d/rc.unraid-api restart 2>&1', $output, $retval);
+    $output = implode(PHP_EOL, $output);
+    response_complete(200, array('success' => ($retval === 0), 'result' => $output, 'error' => ($retval !== 0 ? $output : null)), $output);
+    break;
+  case 'status':
+    exec('unraid-api status 2>&1', $output, $retval);
     $output = implode(PHP_EOL, $output);
     response_complete(200, array('result' => $output), $output);
     break;

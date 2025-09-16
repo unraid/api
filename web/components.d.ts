@@ -16,6 +16,8 @@ declare module 'vue' {
     ApiKeyCreate: typeof import('./src/components/ApiKey/ApiKeyCreate.vue')['default']
     ApiKeyManager: typeof import('./src/components/ApiKey/ApiKeyManager.vue')['default']
     'ApiKeyPage.standalone': typeof import('./src/components/ApiKeyPage.standalone.vue')['default']
+    ApiStatus: typeof import('./src/components/ApiStatus/ApiStatus.vue')['default']
+    'ApiStatus.standalone': typeof import('./src/components/ApiStatus/ApiStatus.standalone.vue')['default']
     'Auth.standalone': typeof import('./src/components/Auth.standalone.vue')['default']
     Avatar: typeof import('./src/components/Brand/Avatar.vue')['default']
     Beta: typeof import('./src/components/UserProfile/Beta.vue')['default']
