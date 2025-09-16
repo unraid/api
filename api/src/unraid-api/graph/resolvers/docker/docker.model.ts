@@ -1,7 +1,7 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Node } from '@unraid/shared/graphql.model.js';
-import { GraphQLJSON, GraphQLPort } from 'graphql-scalars';
+import { GraphQLBigInt, GraphQLJSON, GraphQLPort } from 'graphql-scalars';
 
 export enum ContainerPortType {
     TCP = 'TCP',
@@ -89,7 +89,10 @@ export class DockerContainer extends Node {
     @Field(() => [ContainerPort])
     ports!: ContainerPort[];
 
-    @Field(() => Int, { nullable: true, description: 'Total size of all the files in the container' })
+    @Field(() => GraphQLBigInt, {
+        nullable: true,
+        description: 'Total size of all files in the container (in bytes)',
+    })
     sizeRootFs?: number;
 
     @Field(() => GraphQLJSON, { nullable: true })

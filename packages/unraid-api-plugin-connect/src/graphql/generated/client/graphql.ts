@@ -731,10 +731,17 @@ export type RemoteGraphQlEventFragmentFragment = { __typename?: 'RemoteGraphQLEv
 export type EventsSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type EventsSubscription = { __typename?: 'Subscription', events?: Array<{ __typename: 'ClientConnectedEvent', connectedEvent: EventType, connectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | { __typename: 'ClientDisconnectedEvent', disconnectedEvent: EventType, disconnectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | { __typename: 'ClientPingEvent' } | { __typename: 'RemoteAccessEvent' } | (
-    { __typename: 'RemoteGraphQLEvent' }
-    & { ' $fragmentRefs'?: { 'RemoteGraphQlEventFragmentFragment': RemoteGraphQlEventFragmentFragment } }
-  ) | { __typename: 'UpdateEvent' }> | null };
+export type EventsSubscription = { __typename?: 'Subscription', events?: Array<
+    | { __typename: 'ClientConnectedEvent', connectedEvent: EventType, connectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } }
+    | { __typename: 'ClientDisconnectedEvent', disconnectedEvent: EventType, disconnectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } }
+    | { __typename: 'ClientPingEvent' }
+    | { __typename: 'RemoteAccessEvent' }
+    | (
+      { __typename: 'RemoteGraphQLEvent' }
+      & { ' $fragmentRefs'?: { 'RemoteGraphQlEventFragmentFragment': RemoteGraphQlEventFragmentFragment } }
+    )
+    | { __typename: 'UpdateEvent' }
+  > | null };
 
 export type SendRemoteGraphQlResponseMutationVariables = Exact<{
   input: RemoteGraphQlServerInput;

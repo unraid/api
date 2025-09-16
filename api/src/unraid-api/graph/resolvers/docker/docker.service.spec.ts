@@ -109,6 +109,65 @@ describe('DockerService', () => {
         expect(service).toBeDefined();
     });
 
+    it('should use separate cache keys for containers with and without size', async () => {
+        const mockContainersWithoutSize = [
+            {
+                Id: 'abc123',
+                Names: ['/test-container'],
+                Image: 'test-image',
+                ImageID: 'test-image-id',
+                Command: 'test',
+                Created: 1234567890,
+                State: 'exited',
+                Status: 'Exited',
+                Ports: [],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: {},
+                Mounts: [],
+            },
+        ];
+
+        const mockContainersWithSize = [
+            {
+                Id: 'abc123',
+                Names: ['/test-container'],
+                Image: 'test-image',
+                ImageID: 'test-image-id',
+                Command: 'test',
+                Created: 1234567890,
+                State: 'exited',
+                Status: 'Exited',
+                Ports: [],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: {},
+                Mounts: [],
+                SizeRootFs: 1024000,
+            },
+        ];
+
+        // First call without size
+        mockListContainers.mockResolvedValue(mockContainersWithoutSize);
+        mockCacheManager.get.mockResolvedValue(undefined);
+
+        await service.getContainers({ size: false });
+
+        expect(mockCacheManager.set).toHaveBeenCalledWith('docker_containers', expect.any(Array), 60000);
+
+        // Second call with size
+        mockListContainers.mockResolvedValue(mockContainersWithSize);
+        mockCacheManager.get.mockResolvedValue(undefined);
+
+        await service.getContainers({ size: true });
+
+        expect(mockCacheManager.set).toHaveBeenCalledWith(
+            'docker_containers_with_size',
+            expect.any(Array),
+            60000
+        );
+    });
+
     it('should get containers', async () => {
         const mockContainers = [
             {
@@ -159,7 +218,7 @@ describe('DockerService', () => {
 
         expect(mockListContainers).toHaveBeenCalledWith({
             all: true,
-            size: true,
+            size: false,
         });
         expect(mockCacheManager.set).toHaveBeenCalled(); // Ensure cache is set
     });

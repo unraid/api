@@ -15,7 +15,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   /** The `BigInt` scalar type represents non-fractional signed whole numeric values. */
-  BigInt: { input: any; output: any; }
+  BigInt: { input: number; output: number; }
   /** A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format. */
   DateTime: { input: string; output: string; }
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
@@ -711,8 +711,8 @@ export type DockerContainer = Node & {
   names: Array<Scalars['String']['output']>;
   networkSettings?: Maybe<Scalars['JSON']['output']>;
   ports: Array<ContainerPort>;
-  /** Total size of all the files in the container */
-  sizeRootFs?: Maybe<Scalars['Int']['output']>;
+  /** Total size of all files in the container (in bytes) */
+  sizeRootFs?: Maybe<Scalars['BigInt']['output']>;
   state: ContainerState;
   status: Scalars['String']['output'];
 };

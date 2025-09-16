@@ -1,5 +1,6 @@
-import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Info, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
+import type { GraphQLResolveInfo } from 'graphql';
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
@@ -15,6 +16,7 @@ import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.ser
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
 import { DEFAULT_ORGANIZER_ROOT_ID } from '@app/unraid-api/organizer/organizer.js';
 import { ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
+import { GraphQLFieldHelper } from '@app/unraid-api/utils/graphql-field-helper.js';
 
 @Resolver(() => Docker)
 export class DockerResolver {
@@ -41,9 +43,11 @@ export class DockerResolver {
     })
     @ResolveField(() => [DockerContainer])
     public async containers(
-        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
+        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean,
+        @Info() info: GraphQLResolveInfo
     ) {
-        return this.dockerService.getContainers({ skipCache });
+        const requestsSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeRootFs');
+        return this.dockerService.getContainers({ skipCache, size: requestsSize });
     }
 
     @UsePermissions({

@@ -31,6 +31,7 @@ export class DockerService {
     private readonly logger = new Logger(DockerService.name);
 
     public static readonly CONTAINER_CACHE_KEY = 'docker_containers';
+    public static readonly CONTAINER_WITH_SIZE_CACHE_KEY = 'docker_containers_with_size';
     public static readonly NETWORK_CACHE_KEY = 'docker_networks';
     public static readonly CACHE_TTL_SECONDS = 60; // Cache for 60 seconds
 
@@ -71,6 +72,8 @@ export class DockerService {
     }
 
     public transformContainer(container: Docker.ContainerInfo): DockerContainer {
+        const sizeValue = (container as Docker.ContainerInfo & { SizeRootFs?: number }).SizeRootFs;
+
         const transformed: DockerContainer = {
             id: container.Id,
             names: container.Names,
@@ -86,7 +89,7 @@ export class DockerService {
                     ContainerPortType[port.Type.toUpperCase() as keyof typeof ContainerPortType] ||
                     ContainerPortType.TCP,
             })),
-            sizeRootFs: undefined,
+            sizeRootFs: sizeValue,
             labels: container.Labels ?? {},
             state:
                 typeof container.State === 'string'
@@ -109,21 +112,23 @@ export class DockerService {
         {
             skipCache = false,
             all = true,
-            size = true,
+            size = false,
             ...listOptions
         }: Partial<ContainerListingOptions> = { skipCache: false }
     ): Promise<DockerContainer[]> {
+        const cacheKey = size
+            ? DockerService.CONTAINER_WITH_SIZE_CACHE_KEY
+            : DockerService.CONTAINER_CACHE_KEY;
+
         if (!skipCache) {
-            const cachedContainers = await this.cacheManager.get<DockerContainer[]>(
-                DockerService.CONTAINER_CACHE_KEY
-            );
+            const cachedContainers = await this.cacheManager.get<DockerContainer[]>(cacheKey);
             if (cachedContainers) {
-                this.logger.debug('Using docker container cache');
+                this.logger.debug(`Using docker container cache (${size ? 'with' : 'without'} size)`);
                 return cachedContainers;
             }
         }
 
-        this.logger.debug('Updating docker container cache');
+        this.logger.debug(`Updating docker container cache (${size ? 'with' : 'without'} size)`);
         const rawContainers =
             (await this.client
                 .listContainers({
@@ -136,11 +141,7 @@ export class DockerService {
         this.autoStarts = await this.getAutoStarts();
         const containers = rawContainers.map((container) => this.transformContainer(container));
 
-        await this.cacheManager.set(
-            DockerService.CONTAINER_CACHE_KEY,
-            containers,
-            DockerService.CACHE_TTL_SECONDS * 1000
-        );
+        await this.cacheManager.set(cacheKey, containers, DockerService.CACHE_TTL_SECONDS * 1000);
         return containers;
     }
 
@@ -191,15 +192,18 @@ export class DockerService {
     }
 
     public async clearContainerCache(): Promise<void> {
-        await this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY);
-        this.logger.debug('Invalidated container cache due to external event.');
+        await Promise.all([
+            this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY),
+            this.cacheManager.del(DockerService.CONTAINER_WITH_SIZE_CACHE_KEY),
+        ]);
+        this.logger.debug('Invalidated container caches due to external event.');
     }
 
     public async start(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
         await container.start();
-        await this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY);
-        this.logger.debug(`Invalidated container cache after starting ${id}`);
+        await this.clearContainerCache();
+        this.logger.debug(`Invalidated container caches after starting ${id}`);
         const containers = await this.getContainers({ skipCache: true });
         const updatedContainer = containers.find((c) => c.id === id);
         if (!updatedContainer) {
@@ -213,8 +217,8 @@ export class DockerService {
     public async stop(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
         await container.stop({ t: 10 });
-        await this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY);
-        this.logger.debug(`Invalidated container cache after stopping ${id}`);
+        await this.clearContainerCache();
+        this.logger.debug(`Invalidated container caches after stopping ${id}`);
 
         let containers = await this.getContainers({ skipCache: true });
         let updatedContainer: DockerContainer | undefined;

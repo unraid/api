@@ -71,9 +71,6 @@
     ],
     "unraid-ui/**/*.{js,ts,tsx,vue}": [
       "pnpm --filter @unraid/ui lint:fix"
-    ],
-    "packages/**/*.{js,ts}": [
-      "eslint --fix"
     ]
   },
   "packageManager": "pnpm@10.15.0"

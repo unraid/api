@@ -17,6 +17,7 @@ const config: CodegenConfig = {
       Port: 'number',
       UUID: 'string',
       PrefixedID: 'string',
+      BigInt: 'number',
     },
   },
   generates: {

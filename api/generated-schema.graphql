@@ -1093,8 +1093,8 @@ type DockerContainer implements Node {
   created: Int!
   ports: [ContainerPort!]!
 
-  """Total size of all the files in the container"""
-  sizeRootFs: Int
+  """Total size of all files in the container (in bytes)"""
+  sizeRootFs: BigInt
   labels: JSON
   state: ContainerState!
   status: String!
