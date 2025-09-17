@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.23.1](https://github.com/unraid/api/compare/v4.23.0...v4.23.1) (2025-09-17)
+
+
+### Bug Fixes
+
+* cleanup ini parser logic with better fallbacks ([#1713](https://github.com/unraid/api/issues/1713)) ([1691362](https://github.com/unraid/api/commit/16913627de9497a5d2f71edb710cec6e2eb9f890))
+
 ## [4.23.0](https://github.com/unraid/api/compare/v4.22.2...v4.23.0) (2025-09-16)
 
 
