@@ -215,11 +215,13 @@ export function enrichFlatEntries(
  *
  * @param view - The flat organizer view to resolve
  * @param resources - The collection of all available resources
+ * @param iconMap - Optional map of resource IDs to icon URLs
  * @returns A resolved view with nested objects instead of ID references
  */
 export function resolveOrganizerView(
     view: OrganizerView,
-    resources: OrganizerV1['resources']
+    resources: OrganizerV1['resources'],
+    iconMap?: Map<string, string>
 ): ResolvedOrganizerView {
     const flatEntries = enrichFlatEntries(view, resources);
 
@@ -237,13 +239,17 @@ export function resolveOrganizerView(
  * are replaced with actual objects for frontend convenience.
  *
  * @param organizer - The flat organizer structure to resolve
+ * @param iconMap - Optional map of resource IDs to icon URLs
  * @returns A resolved organizer with nested objects instead of ID references
  */
-export function resolveOrganizer(organizer: OrganizerV1): ResolvedOrganizerV1 {
+export function resolveOrganizer(
+    organizer: OrganizerV1,
+    iconMap?: Map<string, string>
+): ResolvedOrganizerV1 {
     const resolvedViews: ResolvedOrganizerView[] = [];
 
     for (const [viewId, view] of Object.entries(organizer.views)) {
-        resolvedViews.push(resolveOrganizerView(view, organizer.resources));
+        resolvedViews.push(resolveOrganizerView(view, organizer.resources, iconMap));
     }
 
     return {

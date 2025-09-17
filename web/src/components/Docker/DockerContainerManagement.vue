@@ -411,41 +411,18 @@ const [transitionContainerRef] = useAutoAnimate({
         <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div class="text-base font-medium">Docker Containers</div>
           <div class="flex items-center gap-2">
-            <UButton
-              size="xs"
-              variant="ghost"
-              icon="i-lucide-refresh-cw"
-              :loading="loading"
-              @click="refreshContainers"
-            />
-            <UButton
-              size="xs"
-              color="primary"
-              variant="solid"
-              icon="i-lucide-plus"
-              :disabled="props.disabled"
-              @click="handleAddContainerClick"
-            >
+            <UButton size="xs" variant="ghost" icon="i-lucide-refresh-cw" :loading="loading"
+              @click="refreshContainers" />
+            <UButton size="xs" color="primary" variant="solid" icon="i-lucide-plus" :disabled="props.disabled"
+              @click="handleAddContainerClick">
               Add Container
             </UButton>
-            <UButton
-              size="xs"
-              color="neutral"
-              variant="outline"
-              icon="i-lucide-list-checks"
-              :disabled="loading"
-              @click="openAutostartSettings"
-            >
+            <UButton size="xs" color="neutral" variant="outline" icon="i-lucide-list-checks" :disabled="loading"
+              @click="openAutostartSettings">
               Customize Start Order
             </UButton>
-            <UButton
-              size="xs"
-              color="neutral"
-              variant="outline"
-              icon="i-lucide-hard-drive"
-              :disabled="props.disabled"
-              @click="showSizesModal = true"
-            >
+            <UButton size="xs" color="neutral" variant="outline" icon="i-lucide-hard-drive" :disabled="props.disabled"
+              @click="showSizesModal = true">
               Container Size
             </UButton>
           </div>
@@ -454,56 +431,28 @@ const [transitionContainerRef] = useAutoAnimate({
           <DockerOrphanedAlert :orphaned-containers="orphanedContainers" @refresh="refreshContainers" />
         </div>
         <div v-if="lanPortConflicts.length" class="mb-4">
-          <DockerPortConflictsAlert
-            :lan-conflicts="lanPortConflicts"
-            @container:select="handleConflictContainerAction"
-          />
+          <DockerPortConflictsAlert :lan-conflicts="lanPortConflicts"
+            @container:select="handleConflictContainerAction" />
         </div>
-        <UAlert
-          v-if="error"
-          color="error"
-          title="Failed to load Docker containers"
-          :description="error.message"
-          icon="i-lucide-alert-circle"
-          class="mb-4"
-        >
+        <UAlert v-if="error" color="error" title="Failed to load Docker containers" :description="error.message"
+          icon="i-lucide-alert-circle" class="mb-4">
           <template #actions>
             <div class="flex gap-2">
-              <UButton size="xs" variant="soft" :loading="loading" @click="refetch({ skipCache: true })"
-                >Retry</UButton
-              >
-              <UButton
-                size="xs"
-                variant="outline"
-                :loading="resettingMappings"
-                @click="handleResetAndRetry"
-                >Reset &amp; Retry</UButton
-              >
+              <UButton size="xs" variant="soft" :loading="loading" @click="refetch({ skipCache: true })">Retry</UButton>
+              <UButton size="xs" variant="outline" :loading="resettingMappings" @click="handleResetAndRetry">Reset &amp;
+                Retry</UButton>
             </div>
           </template>
         </UAlert>
         <div>
-          <DockerContainersTable
-            :containers="containers"
-            :flat-entries="flatEntries"
-            :root-folder-id="rootFolderId"
-            :view-prefs="viewPrefs"
-            :loading="loading"
-            :active-id="activeId"
-            :selected-ids="selectedIds"
-            @created-folder="refreshContainers"
-            @row:click="handleTableRowClick"
-            @update:selectedIds="handleUpdateSelectedIds"
-          />
+          <DockerContainersTable :containers="containers" :flat-entries="flatEntries" :root-folder-id="rootFolderId"
+            :view-prefs="viewPrefs" :loading="loading" :active-id="activeId" :selected-ids="selectedIds"
+            @created-folder="refreshContainers" @row:click="handleTableRowClick"
+            @update:selectedIds="handleUpdateSelectedIds" />
         </div>
       </template>
-      <DockerAutostartSettings
-        v-else
-        :containers="containers"
-        :loading="loading"
-        :refresh="refreshContainers"
-        @close="closeAutostartSettings"
-      />
+      <DockerAutostartSettings v-else :containers="containers" :loading="loading" :refresh="refreshContainers"
+        @close="closeAutostartSettings" />
     </div>
 
     <div v-else class="grid gap-6 md:grid-cols-[280px_1fr]">
@@ -511,27 +460,14 @@ const [transitionContainerRef] = useAutoAnimate({
         <template #header>
           <div class="flex items-center justify-between">
             <div class="font-medium">Containers</div>
-            <UButton
-              size="xs"
-              variant="ghost"
-              icon="i-lucide-refresh-cw"
-              :loading="loading"
-              @click="refreshContainers"
-            />
+            <UButton size="xs" variant="ghost" icon="i-lucide-refresh-cw" :loading="loading"
+              @click="refreshContainers" />
           </div>
         </template>
         <USkeleton v-if="loading" class="h-6 w-full" :ui="{ rounded: 'rounded' }" />
-        <DockerSidebarTree
-          v-else
-          :containers="containers"
-          :flat-entries="flatEntries"
-          :root-folder-id="rootFolderId"
-          :selected-ids="selectedIds"
-          :active-id="activeId"
-          :disabled="props.disabled || loading"
-          @item:click="handleSidebarClick"
-          @item:select="handleSidebarSelect"
-        />
+        <DockerSidebarTree v-else :containers="containers" :flat-entries="flatEntries" :root-folder-id="rootFolderId"
+          :selected-ids="selectedIds" :active-id="activeId" :disabled="props.disabled || loading"
+          @item:click="handleSidebarClick" @item:select="handleSidebarSelect" />
       </UCard>
 
       <div v-if="shouldUseLegacyEditPage">
@@ -540,50 +476,25 @@ const [transitionContainerRef] = useAutoAnimate({
             <div class="flex flex-col gap-3">
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
-                  <UButton
-                    size="xs"
-                    variant="ghost"
-                    icon="i-lucide-arrow-left"
-                    @click="goBackToOverview"
-                  />
+                  <UButton size="xs" variant="ghost" icon="i-lucide-arrow-left" @click="goBackToOverview" />
                   <div class="font-medium">
                     {{ stripLeadingSlash(activeContainer?.names?.[0]) || 'Container' }}
                   </div>
                 </div>
-                <UBadge
-                  v-if="activeContainer?.state"
-                  :label="activeContainer.state"
-                  color="primary"
-                  variant="subtle"
-                />
+                <UBadge v-if="activeContainer?.state" :label="activeContainer.state" color="primary" variant="subtle" />
               </div>
-              <UTabs
-                v-model="legacyPaneTab"
-                :items="legacyPaneTabs"
-                variant="link"
-                color="primary"
-                size="md"
-                :ui="{ list: 'gap-1' }"
-              />
+              <UTabs v-model="legacyPaneTab" :items="legacyPaneTabs" variant="link" color="primary" size="md"
+                :ui="{ list: 'gap-1' }" />
             </div>
           </template>
-          <div
-            v-show="legacyPaneTab === 'overview'"
-            :class="['relative', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
-          >
+          <div v-show="legacyPaneTab === 'overview'"
+            :class="['relative', { 'pointer-events-none opacity-50': isDetailsDisabled }]">
             <ContainerOverviewCard :container="activeContainer" :loading="isDetailsLoading" />
           </div>
-          <div
-            v-show="legacyPaneTab === 'settings'"
-            :class="['relative min-h-[60vh]', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
-          >
-            <iframe
-              v-if="legacyEditUrl"
-              :key="legacyEditUrl"
-              :src="legacyEditUrl"
-              class="h-[70vh] w-full border-0"
-              loading="lazy"
-            />
+          <div v-show="legacyPaneTab === 'settings'"
+            :class="['relative min-h-[60vh]', { 'pointer-events-none opacity-50': isDetailsDisabled }]">
+            <iframe v-if="legacyEditUrl" :key="legacyEditUrl" :src="legacyEditUrl" class="h-[70vh] w-full border-0"
+              loading="lazy" />
             <div v-else class="flex h-[70vh] items-center justify-center text-sm text-neutral-500">
               Unable to load container settings for this entry.
             </div>
@@ -591,34 +502,17 @@ const [transitionContainerRef] = useAutoAnimate({
               <USkeleton class="h-6 w-6" />
             </div>
           </div>
-          <div
-            v-show="legacyPaneTab === 'logs'"
-            :class="['flex h-[70vh] flex-col', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
-          >
-            <LogViewerToolbar
-              v-model:filter-text="logFilterText"
-              :show-refresh="false"
-              @refresh="handleLogRefresh"
-            />
-            <SingleDockerLogViewer
-              v-if="activeContainer"
-              ref="logViewerRef"
-              :container-name="stripLeadingSlash(activeContainer.names?.[0])"
-              :auto-scroll="logAutoScroll"
-              :client-filter="logFilterText"
-              class="h-full flex-1"
-            />
+          <div v-show="legacyPaneTab === 'logs'"
+            :class="['flex h-[70vh] flex-col', { 'pointer-events-none opacity-50': isDetailsDisabled }]">
+            <LogViewerToolbar v-model:filter-text="logFilterText" :show-refresh="false" @refresh="handleLogRefresh" />
+            <SingleDockerLogViewer v-if="activeContainer" ref="logViewerRef"
+              :container-name="stripLeadingSlash(activeContainer.names?.[0])" :auto-scroll="logAutoScroll"
+              :client-filter="logFilterText" class="h-full flex-1" />
           </div>
-          <div
-            v-show="legacyPaneTab === 'console'"
-            :class="['h-[70vh]', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
-          >
-            <DockerConsoleViewer
-              v-if="activeContainer"
-              :container-name="activeContainerName"
-              :shell="activeContainer.shell ?? 'sh'"
-              class="h-full"
-            />
+          <div v-show="legacyPaneTab === 'console'"
+            :class="['h-[70vh]', { 'pointer-events-none opacity-50': isDetailsDisabled }]">
+            <DockerConsoleViewer v-if="activeContainer" :container-name="activeContainerName"
+              :shell="activeContainer.shell ?? 'sh'" class="h-full" />
           </div>
         </UCard>
       </div>
@@ -628,20 +522,10 @@ const [transitionContainerRef] = useAutoAnimate({
           <template #header>
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2">
-                <UButton
-                  size="xs"
-                  variant="ghost"
-                  icon="i-lucide-arrow-left"
-                  @click="goBackToOverview"
-                />
+                <UButton size="xs" variant="ghost" icon="i-lucide-arrow-left" @click="goBackToOverview" />
                 <div class="font-medium">Overview</div>
               </div>
-              <UBadge
-                v-if="activeContainer?.state"
-                :label="activeContainer.state"
-                color="primary"
-                variant="subtle"
-              />
+              <UBadge v-if="activeContainer?.state" :label="activeContainer.state" color="primary" variant="subtle" />
             </div>
           </template>
           <div class="relative">
@@ -680,12 +564,8 @@ const [transitionContainerRef] = useAutoAnimate({
             <div class="font-medium">Logs</div>
           </template>
           <div :class="['h-96', { 'pointer-events-none opacity-50': isDetailsDisabled }]">
-            <SingleDockerLogViewer
-              v-if="activeContainer"
-              :container-name="stripLeadingSlash(activeContainer.names?.[0])"
-              :auto-scroll="true"
-              class="h-full"
-            />
+            <SingleDockerLogViewer v-if="activeContainer"
+              :container-name="stripLeadingSlash(activeContainer.names?.[0])" :auto-scroll="true" class="h-full" />
           </div>
         </UCard>
       </div>

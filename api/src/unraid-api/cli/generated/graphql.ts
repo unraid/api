@@ -1886,6 +1886,7 @@ export type Query = {
   disk: Disk;
   disks: Array<Disk>;
   docker: Docker;
+  dockerContainerOverviewForm: DockerContainerOverviewForm;
   flash: Flash;
   /** Get JSON Schema for API key creation form */
   getApiKeyCreationFormSchema: ApiKeyFormSettings;
@@ -1946,6 +1947,11 @@ export type QueryApiKeyArgs = {
 
 export type QueryDiskArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryDockerContainerOverviewFormArgs = {
+  skipCache?: Scalars['Boolean']['input'];
 };
 
 

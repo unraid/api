@@ -280,10 +280,10 @@ const columns = computed<TableColumn<TreeRow<AutostartEntry>>[]>(() => {
         if (!entry) return row.original.name;
         const badge = entry.container.state
           ? h(UBadge, {
-              label: entry.container.state,
-              variant: 'subtle',
-              size: 'sm',
-            })
+            label: entry.container.state,
+            variant: 'subtle',
+            size: 'sm',
+          })
           : null;
         return h('div', { class: 'flex items-center justify-between gap-3 pr-2' }, [
           h('span', { class: 'font-medium' }, row.original.name),
@@ -364,46 +364,23 @@ const columns = computed<TableColumn<TreeRow<AutostartEntry>>[]>(() => {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <UButton
-          size="sm"
-          variant="soft"
-          icon="i-lucide-toggle-right"
-          :disabled="!hasSelection || saving"
-          @click="handleBulkToggle"
-        >
+        <UButton size="sm" variant="soft" icon="i-lucide-toggle-right" :disabled="!hasSelection || saving"
+          @click="handleBulkToggle">
           Toggle Auto Start
         </UButton>
-        <UButton
-          size="sm"
-          variant="ghost"
-          icon="i-lucide-arrow-left"
-          :disabled="saving"
-          @click="handleClose"
-        >
+        <UButton size="sm" variant="ghost" icon="i-lucide-arrow-left" :disabled="saving" @click="handleClose">
           Back to Overview
         </UButton>
       </div>
     </div>
 
-    <div
-      v-if="errorMessage"
-      class="border-destructive/30 bg-destructive/10 text-destructive rounded-md border px-4 py-2 text-sm"
-    >
+    <div v-if="errorMessage"
+      class="border-destructive/30 bg-destructive/10 text-destructive rounded-md border px-4 py-2 text-sm">
       {{ errorMessage }}
     </div>
 
-    <BaseTreeTable
-      :data="treeData"
-      :columns="columns"
-      :loading="saving"
-      :enable-drag-drop="true"
-      :busy-row-ids="busyRowIds"
-      :can-expand="() => false"
-      :can-select="(row: any) => row.type === 'container'"
-      :can-drag="() => true"
-      :can-drop-inside="() => false"
-      v-model:selected-ids="selectedIds"
-      @row:drop="handleDrop"
-    />
+    <BaseTreeTable :data="treeData" :columns="columns" :loading="saving" :enable-drag-drop="true"
+      :busy-row-ids="busyRowIds" :can-expand="() => false" :can-select="(row: any) => row.type === 'container'"
+      :can-drag="() => true" :can-drop-inside="() => false" v-model:selected-ids="selectedIds" @row:drop="handleDrop" />
   </div>
 </template>

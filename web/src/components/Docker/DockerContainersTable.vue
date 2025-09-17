@@ -625,79 +625,39 @@ const rowActionDropdownUi = {
 
 <template>
   <div class="w-full">
-    <BaseTreeTable
-      ref="baseTableRef"
-      :data="treeData"
-      :columns="columns"
-      :loading="loading"
-      :compact="compact"
-      :active-id="activeId"
-      :selected-ids="selectedIds"
-      :busy-row-ids="busyRowIds"
-      :enable-drag-drop="!!flatEntries"
-      enable-resizing
-      v-model:column-sizing="columnSizing"
-      v-model:column-order="columnOrder"
-      :searchable-keys="DOCKER_SEARCHABLE_KEYS"
-      :search-accessor="dockerSearchAccessor"
+    <BaseTreeTable ref="baseTableRef" :data="treeData" :columns="columns" :loading="loading" :compact="compact"
+      :active-id="activeId" :selected-ids="selectedIds" :busy-row-ids="busyRowIds" :enable-drag-drop="!!flatEntries"
+      enable-resizing v-model:column-sizing="columnSizing" v-model:column-order="columnOrder"
+      :searchable-keys="DOCKER_SEARCHABLE_KEYS" :search-accessor="dockerSearchAccessor"
       :can-expand="(row: TreeRow<DockerContainer>) => row.type === 'folder'"
       :can-select="(row: TreeRow<DockerContainer>) => row.type === 'container'"
-      :can-drag="(row: TreeRow<DockerContainer>) => row.type === 'container' || row.type === 'folder'"
-      :can-drop-inside="
-        (row: TreeRow<DockerContainer>) => row.type === 'container' || row.type === 'folder'
-      "
-      @row:click="handleRowClick"
-      @row:contextmenu="handleRowContextMenu"
-      @row:select="handleRowSelect"
-      @row:drop="handleDropOnRow"
-      @update:selected-ids="handleUpdateSelectedIds"
-    >
-      <template
-        #toolbar="{
-          selectedCount: count,
-          globalFilter: filterText,
-          setGlobalFilter,
-          columnOrder: tableColumnOrder,
-        }"
-      >
+      :can-drag="(row: TreeRow<DockerContainer>) => row.type === 'container' || row.type === 'folder'" :can-drop-inside="(row: TreeRow<DockerContainer>) => row.type === 'container' || row.type === 'folder'
+        " @row:click="handleRowClick" @row:contextmenu="handleRowContextMenu" @row:select="handleRowSelect"
+      @row:drop="handleDropOnRow" @update:selected-ids="handleUpdateSelectedIds">
+      <template #toolbar="{
+        selectedCount: count,
+        globalFilter: filterText,
+        setGlobalFilter,
+        columnOrder: tableColumnOrder,
+      }">
         <div :class="['mb-4 flex flex-wrap items-center gap-2', compact ? 'sm:px-0.5' : '']">
-          <UInput
-            :model-value="filterText"
-            :size="compact ? 'sm' : 'md'"
-            :class="['max-w-sm flex-1', compact ? 'min-w-[8ch]' : 'min-w-[12ch]']"
-            :placeholder="dockerFilterHelpText"
-            :title="dockerFilterHelpText"
-            @update:model-value="setGlobalFilter"
-          />
-          <TableColumnMenu
-            v-if="!compact"
-            :table="baseTableRef"
-            :column-order="tableColumnOrder"
-            @change="persistCurrentColumnVisibility"
-            @update:column-order="(order) => (columnOrder = order)"
-          />
-          <UDropdownMenu
-            :items="bulkItems"
-            size="md"
-            :ui="{
-              content: 'overflow-x-hidden z-40',
-              item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
-            }"
-          >
-            <UButton
-              color="neutral"
-              variant="outline"
-              :size="compact ? 'sm' : 'md'"
-              trailing-icon="i-lucide-chevron-down"
-            >
+          <UInput :model-value="filterText" :size="compact ? 'sm' : 'md'"
+            :class="['max-w-sm flex-1', compact ? 'min-w-[8ch]' : 'min-w-[12ch]']" :placeholder="dockerFilterHelpText"
+            :title="dockerFilterHelpText" @update:model-value="setGlobalFilter" />
+          <TableColumnMenu v-if="!compact" :table="baseTableRef" :column-order="tableColumnOrder"
+            @change="persistCurrentColumnVisibility" @update:column-order="(order) => (columnOrder = order)" />
+          <UDropdownMenu :items="bulkItems" size="md" :ui="{
+            content: 'overflow-x-hidden z-40',
+            item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
+          }">
+            <UButton color="neutral" variant="outline" :size="compact ? 'sm' : 'md'"
+              trailing-icon="i-lucide-chevron-down">
               Actions{{ count > 0 ? ` (${count})` : '' }}
             </UButton>
           </UDropdownMenu>
         </div>
-        <div
-          v-if="isUpdatingContainers && activeUpdateSummary"
-          class="border-primary/30 bg-primary/5 text-primary my-2 flex items-center gap-2 rounded border px-3 py-2 text-sm"
-        >
+        <div v-if="isUpdatingContainers && activeUpdateSummary"
+          class="border-primary/30 bg-primary/5 text-primary my-2 flex items-center gap-2 rounded border px-3 py-2 text-sm">
           <span class="i-lucide-loader-2 text-primary animate-spin" />
           <span>Updating {{ activeUpdateSummary }}...</span>
         </div>
@@ -705,74 +665,42 @@ const rowActionDropdownUi = {
     </BaseTreeTable>
 
     <!-- Context Menu -->
-    <UDropdownMenu
-      v-model:open="contextMenu.isOpen.value"
-      :items="contextMenu.items.value"
-      size="md"
-      :popper="contextMenu.popperOptions"
-      :ui="rowActionDropdownUi"
-    >
-      <div
-        class="fixed h-px w-px"
-        :style="{ top: `${contextMenu.position.value.y}px`, left: `${contextMenu.position.value.x}px` }"
-      />
+    <UDropdownMenu v-model:open="contextMenu.isOpen.value" :items="contextMenu.items.value" size="md"
+      :popper="contextMenu.popperOptions" :ui="rowActionDropdownUi">
+      <div class="fixed h-px w-px"
+        :style="{ top: `${contextMenu.position.value.y}px`, left: `${contextMenu.position.value.x}px` }" />
     </UDropdownMenu>
 
     <!-- Logs Modal -->
-    <DockerLogViewerModal
-      v-model:open="logs.logsModalOpen.value"
-      v-model:active-session-id="logs.activeLogSessionId.value"
-      :sessions="logs.logSessions.value"
-      :active-session="logs.activeLogSession.value"
-      @remove-session="logs.removeLogSession"
-      @toggle-follow="logs.toggleActiveLogFollow"
-    />
+    <DockerLogViewerModal v-model:open="logs.logsModalOpen.value"
+      v-model:active-session-id="logs.activeLogSessionId.value" :sessions="logs.logSessions.value"
+      :active-session="logs.activeLogSession.value" @remove-session="logs.removeLogSession"
+      @toggle-follow="logs.toggleActiveLogFollow" />
 
     <!-- Move to Folder Modal -->
-    <MoveToFolderModal
-      :open="folderOps.moveOpen"
-      :loading="moving || creating || deleting"
-      :folders="visibleFolders"
-      :expanded-folders="expandedFolders"
-      :selected-folder-id="folderOps.selectedFolderId"
-      :root-folder-id="rootFolderId"
-      :renaming-folder-id="folderOps.renamingFolderId"
-      :rename-value="folderOps.renameValue"
-      @update:open="folderOps.moveOpen = $event"
+    <MoveToFolderModal :open="folderOps.moveOpen" :loading="moving || creating || deleting" :folders="visibleFolders"
+      :expanded-folders="expandedFolders" :selected-folder-id="folderOps.selectedFolderId"
+      :root-folder-id="rootFolderId" :renaming-folder-id="folderOps.renamingFolderId"
+      :rename-value="folderOps.renameValue" @update:open="folderOps.moveOpen = $event"
       @update:selected-folder-id="folderOps.selectedFolderId = $event"
-      @update:rename-value="folderOps.renameValue = $event"
-      @toggle-expand="toggleExpandFolder"
-      @create-folder="handleCreateFolderInMoveModal"
-      @delete-folder="folderOps.handleDeleteFolder"
-      @start-rename="folderOps.startRenameFolder"
-      @commit-rename="folderOps.commitRenameFolder"
-      @cancel-rename="folderOps.cancelRename"
-      @confirm="folderOps.confirmMove(() => (folderOps.moveOpen = false))"
-    />
+      @update:rename-value="folderOps.renameValue = $event" @toggle-expand="toggleExpandFolder"
+      @create-folder="handleCreateFolderInMoveModal" @delete-folder="folderOps.handleDeleteFolder"
+      @start-rename="folderOps.startRenameFolder" @commit-rename="folderOps.commitRenameFolder"
+      @cancel-rename="folderOps.cancelRename" @confirm="folderOps.confirmMove(() => (folderOps.moveOpen = false))" />
 
     <!-- Start/Stop Confirm Modal -->
-    <ConfirmActionsModal
-      :open="containerActions.confirmStartStopOpen.value"
-      :groups="confirmStartStopGroups"
+    <ConfirmActionsModal :open="containerActions.confirmStartStopOpen.value" :groups="confirmStartStopGroups"
       @update:open="containerActions.confirmStartStopOpen.value = $event"
-      @confirm="containerActions.confirmStartStop(() => {})"
-    />
+      @confirm="containerActions.confirmStartStop(() => { })" />
 
     <!-- Pause/Resume Confirm Modal -->
-    <ConfirmActionsModal
-      :open="containerActions.confirmPauseResumeOpen.value"
-      :groups="confirmPauseResumeGroups"
+    <ConfirmActionsModal :open="containerActions.confirmPauseResumeOpen.value" :groups="confirmPauseResumeGroups"
       @update:open="containerActions.confirmPauseResumeOpen.value = $event"
-      @confirm="containerActions.confirmPauseResume(() => {})"
-    />
+      @confirm="containerActions.confirmPauseResume(() => { })" />
 
     <!-- Remove Container Modal -->
-    <RemoveContainerModal
-      :open="removeContainerModalOpen"
-      :container-name="containerToRemoveName"
-      :loading="removingContainer"
-      @update:open="removeContainerModalOpen = $event"
-      @confirm="handleConfirmRemoveContainer"
-    />
+    <RemoveContainerModal :open="removeContainerModalOpen" :container-name="containerToRemoveName"
+      :loading="removingContainer" @update:open="removeContainerModalOpen = $event"
+      @confirm="handleConfirmRemoveContainer" />
   </div>
 </template>

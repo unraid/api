@@ -8,9 +8,12 @@ import {
     registerEnumType,
 } from '@nestjs/graphql';
 
+import { type Layout } from '@jsonforms/core';
 import { Node } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { GraphQLBigInt, GraphQLJSON, GraphQLPort } from 'graphql-scalars';
+
+import { DataSlice } from '@app/unraid-api/types/json-forms.js';
 
 export enum ContainerPortType {
     TCP = 'TCP',

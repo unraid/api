@@ -482,12 +482,12 @@ const processedColumns = computed<TableColumn<TreeRow<T>>[]>(() => {
       const header = wrapColumnHeaderRenderer(originalHeader);
       const cell = (col as { cell?: unknown }).cell
         ? ({ row }: { row: TableInstanceRow<T> }) => {
-            const cellFn = (col as { cell: (args: unknown) => VNode | string | number }).cell;
+          const cellFn = (col as { cell: (args: unknown) => VNode | string | number }).cell;
 
-            const enhancedRow = enhanceRowInstance(row as unknown as TableInstanceRow<T>);
-            const content = typeof cellFn === 'function' ? cellFn({ row: enhancedRow }) : cellFn;
-            return createCellWrapper(enhancedRow, content as VNode, colIndex + baseColumnIndex);
-          }
+          const enhancedRow = enhanceRowInstance(row as unknown as TableInstanceRow<T>);
+          const content = typeof cellFn === 'function' ? cellFn({ row: enhancedRow }) : cellFn;
+          return createCellWrapper(enhancedRow, content as VNode, colIndex + baseColumnIndex);
+        }
         : undefined;
 
       return {
@@ -541,48 +541,28 @@ function enhanceRowInstance(row: TableInstanceRow<T>): EnhancedRow<T> {
 </script>
 
 <template>
-  <div
-    class="w-full"
-    ref="tableContainerRef"
-    @dragover.capture="handleContainerDragOver"
-    @drop.capture="handleContainerDrop"
-  >
-    <slot
-      name="toolbar"
-      :selected-count="selectedCount"
-      :global-filter="globalFilter"
-      :column-visibility="columnVisibility"
-      :column-order="columnOrderState"
-      :row-selection="rowSelection"
-      :set-global-filter="setGlobalFilter"
-    >
+  <div class="w-full" ref="tableContainerRef" @dragover.capture="handleContainerDragOver"
+    @drop.capture="handleContainerDrop">
+    <slot name="toolbar" :selected-count="selectedCount" :global-filter="globalFilter"
+      :column-visibility="columnVisibility" :column-order="columnOrderState" :row-selection="rowSelection"
+      :set-global-filter="setGlobalFilter">
       <div v-if="!compact" class="mb-3 flex items-center gap-2">
         <slot name="toolbar-start" />
         <slot name="toolbar-end" />
       </div>
     </slot>
 
-    <UTable
-      ref="tableRef"
-      v-model:row-selection="rowSelection"
-      v-model:column-visibility="columnVisibility"
-      v-model:column-sizing="columnSizing"
-      v-model:column-order="columnOrderState"
-      :data="flattenedData"
-      :columns="processedColumns"
-      :get-row-id="(row: any) => row.id"
+    <UTable ref="tableRef" v-model:row-selection="rowSelection" v-model:column-visibility="columnVisibility"
+      v-model:column-sizing="columnSizing" v-model:column-order="columnOrderState" :data="flattenedData"
+      :columns="processedColumns" :get-row-id="(row: any) => row.id"
       :get-row-can-select="(row: any) => canSelectRow(row.original)"
       :column-filters-options="{ filterFromLeafRows: true }"
-      :column-sizing-options="{ enableColumnResizing: enableResizing, columnResizeMode: 'onChange' }"
-      :loading="loading"
+      :column-sizing-options="{ enableColumnResizing: enableResizing, columnResizeMode: 'onChange' }" :loading="loading"
       :ui="{
         td: 'p-0 empty:p-0',
         thead: compact ? 'hidden' : '',
         th: (compact ? 'hidden ' : '') + 'p-0',
-      }"
-      sticky
-      class="base-tree-table flex-1 pb-2"
-    />
+      }" sticky class="base-tree-table flex-1 pb-2" />
 
     <div v-if="!loading && filteredData.length === 0" class="py-8 text-center text-gray-500">
       <slot name="empty">No items found</slot>
