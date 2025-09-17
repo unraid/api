@@ -1,6 +1,10 @@
 import type { StateFileToIniParserMap } from '@app/store/types.js';
 import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/types/ini.js';
 import { toNumber } from '@app/core/utils/index.js';
+import {
+    iniBooleanOrAutoToJsBoolean,
+    iniBooleanToJsBoolean,
+} from '@app/core/utils/parsers/ini-boolean-parser.js';
 import { ArrayState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import { DiskFsType } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import {
@@ -157,36 +161,6 @@ export type VarIni = {
     useUpnp: IniStringBoolean;
 };
 
-const iniBooleanToJsBoolean = (value: string, defaultValue?: boolean) => {
-    if (value === 'no' || value === 'false') {
-        return false;
-    }
-
-    if (value === 'yes' || value === 'true') {
-        return true;
-    }
-
-    if (defaultValue !== undefined) {
-        return defaultValue;
-    }
-
-    throw new Error(`Value "${value}" is not false/true or no/yes.`);
-};
-
-const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto) => {
-    try {
-        // Either it'll return true/false or throw
-        return iniBooleanToJsBoolean(value as IniStringBoolean);
-    } catch {
-        // Auto or null
-        if (value === 'auto') {
-            return null;
-        }
-    }
-
-    throw new Error(`Value "${value as string}" is not auto/no/yes.`);
-};
-
 const safeParseMdState = (mdState: string | undefined): ArrayState => {
     if (!mdState || typeof mdState !== 'string') {
         return ArrayState.STOPPED;
@@ -210,7 +184,7 @@ export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
         ...iniFile,
         defaultFsType: DiskFsType[iniFile.defaultFsType] || DiskFsType.XFS,
         mdState: safeParseMdState(iniFile.mdState),
-        bindMgt: iniBooleanOrAutoToJsBoolean(iniFile.bindMgt),
+        bindMgt: iniBooleanOrAutoToJsBoolean(iniFile.bindMgt) ?? null,
         cacheNumDevices: toNumber(iniFile.cacheNumDevices),
         cacheSbNumDisks: toNumber(iniFile.cacheSbNumDisks),
         configValid: iniBooleanToJsBoolean(iniFile.configValid, false),
@@ -221,8 +195,8 @@ export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
         fsCopyPrcnt: toNumber(iniFile.fsCopyPrcnt),
         fsNumMounted: toNumber(iniFile.fsNumMounted),
         fsNumUnmountable: toNumber(iniFile.fsNumUnmountable),
-        hideDotFiles: iniBooleanToJsBoolean(iniFile.hideDotFiles),
-        localMaster: iniBooleanToJsBoolean(iniFile.localMaster),
+        hideDotFiles: iniBooleanToJsBoolean(iniFile.hideDotFiles, false),
+        localMaster: iniBooleanToJsBoolean(iniFile.localMaster, false),
         maxArraysz: toNumber(iniFile.maxArraysz),
         maxCachesz: toNumber(iniFile.maxCachesz),
         mdNumDisabled: toNumber(iniFile.mdNumDisabled),
@@ -254,34 +228,34 @@ export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
         regState:
             RegistrationState[(iniFile.regCheck || iniFile.regTy || '').toUpperCase()] ??
             RegistrationState.EGUID,
-        safeMode: iniBooleanToJsBoolean(iniFile.safeMode),
-        sbClean: iniBooleanToJsBoolean(iniFile.sbClean),
+        safeMode: iniBooleanToJsBoolean(iniFile.safeMode, false),
+        sbClean: iniBooleanToJsBoolean(iniFile.sbClean, false),
         sbEvents: toNumber(iniFile.sbEvents),
         sbNumDisks: toNumber(iniFile.sbNumDisks),
         sbSynced: toNumber(iniFile.sbSynced),
         sbSynced2: toNumber(iniFile.sbSynced2),
         sbSyncErrs: toNumber(iniFile.sbSyncErrs),
-        shareAvahiEnabled: iniBooleanToJsBoolean(iniFile.shareAvahiEnabled),
-        shareCacheEnabled: iniBooleanToJsBoolean(iniFile.shareCacheEnabled),
+        shareAvahiEnabled: iniBooleanToJsBoolean(iniFile.shareAvahiEnabled, false),
+        shareCacheEnabled: iniBooleanToJsBoolean(iniFile.shareCacheEnabled, false),
         shareCount: toNumber(iniFile.shareCount),
-        shareMoverActive: iniBooleanToJsBoolean(iniFile.shareMoverActive),
-        shareMoverLogging: iniBooleanToJsBoolean(iniFile.shareMoverLogging),
+        shareMoverActive: iniBooleanToJsBoolean(iniFile.shareMoverActive, false),
+        shareMoverLogging: iniBooleanToJsBoolean(iniFile.shareMoverLogging, false),
         shareNfsCount: toNumber(iniFile.shareNfsCount),
-        shareNfsEnabled: iniBooleanToJsBoolean(iniFile.shareNfsEnabled),
+        shareNfsEnabled: iniBooleanToJsBoolean(iniFile.shareNfsEnabled, false),
         shareSmbCount: toNumber(iniFile.shareSmbCount),
         shareSmbEnabled: ['yes', 'ads'].includes(iniFile.shareSmbEnabled),
         shareSmbMode: iniFile.shareSmbEnabled === 'ads' ? 'active-directory' : 'workgroup',
         shutdownTimeout: toNumber(iniFile.shutdownTimeout),
         spindownDelay: toNumber(iniFile.spindownDelay),
-        spinupGroups: iniBooleanToJsBoolean(iniFile.spinupGroups),
-        startArray: iniBooleanToJsBoolean(iniFile.startArray),
+        spinupGroups: iniBooleanToJsBoolean(iniFile.spinupGroups, false),
+        startArray: iniBooleanToJsBoolean(iniFile.startArray, false),
         sysArraySlots: toNumber(iniFile.sysArraySlots),
         sysCacheSlots: toNumber(iniFile.sysCacheSlots),
         sysFlashSlots: toNumber(iniFile.sysFlashSlots),
-        useNtp: iniBooleanToJsBoolean(iniFile.useNtp),
-        useSsh: iniBooleanToJsBoolean(iniFile.useSsh),
-        useSsl: iniBooleanOrAutoToJsBoolean(iniFile.useSsl),
-        useTelnet: iniBooleanToJsBoolean(iniFile.useTelnet),
-        useUpnp: iniBooleanToJsBoolean(iniFile.useUpnp),
+        useNtp: iniBooleanToJsBoolean(iniFile.useNtp, false),
+        useSsh: iniBooleanToJsBoolean(iniFile.useSsh, false),
+        useSsl: iniBooleanOrAutoToJsBoolean(iniFile.useSsl) ?? null,
+        useTelnet: iniBooleanToJsBoolean(iniFile.useTelnet, false),
+        useUpnp: iniBooleanToJsBoolean(iniFile.useUpnp, false),
     };
 };
