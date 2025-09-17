@@ -156,4 +156,9 @@ export const componentMappings: ComponentMapping[] = [
     selector: 'unraid-api-status-manager',
     appId: 'api-status-manager',
   },
+  {
+    component: defineAsyncComponent(() => import('../Docker/DockerContainerOverview.standalone.vue')),
+    selector: 'unraid-docker-container-overview',
+    appId: 'docker-container-overview',
+  },
 ];
