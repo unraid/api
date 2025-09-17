@@ -6,7 +6,7 @@ sidebar_position: 2
 
 # Using the Unraid API
 
-:::tip[Quick Start]
+:::tip\[Quick Start]
 The Unraid API provides a powerful GraphQL interface for managing your server. This guide covers authentication, common queries, and best practices.
 :::
 
@@ -16,7 +16,7 @@ The Unraid API provides a GraphQL interface that allows you to interact with you
 
 ### Web GUI Method (Recommended)
 
-:::info[Preferred Method]
+:::info\[Preferred Method]
 Using the Web GUI is the easiest way to enable the GraphQL sandbox.
 :::
 
@@ -24,9 +24,9 @@ Using the Web GUI is the easiest way to enable the GraphQL sandbox.
 2. Enable the **GraphQL Sandbox** toggle
 3. Access the GraphQL playground by navigating to:
 
-    ```txt
-    http://YOUR_SERVER_IP/graphql
-    ```
+   ```txt
+   http://YOUR_SERVER_IP/graphql
+   ```
 
 ### CLI Method
 
@@ -44,7 +44,7 @@ unraid-api developer
 
 ## 🔑 Authentication
 
-:::warning[Required for Most Operations]
+:::warning\[Required for Most Operations]
 Most queries and mutations require authentication. Always include appropriate credentials in your requests.
 :::
 
@@ -57,32 +57,33 @@ You can authenticate using:
 ### Managing API Keys
 
 <tabs>
-<tabItem value="gui" label="Web GUI (Recommended)" default>
+  <tabItem value="gui" label="Web GUI (Recommended)" default>
 
-Navigate to **Settings** → **Management Access** → **API Keys** in your Unraid web interface to:
+    Navigate to **Settings** → **Management Access** → **API Keys** in your Unraid web interface to:
 
-- View existing API keys
-- Create new API keys
-- Manage permissions and roles
-- Revoke or regenerate keys
+    - View existing API keys
+    - Create new API keys
+    - Manage permissions and roles
+    - Revoke or regenerate keys
 
-</tabItem>
-<tabItem value="cli" label="CLI Method">
+  </tabItem>
 
-You can also use the CLI to create an API key:
+  <tabItem value="cli" label="CLI Method">
 
-```bash
-unraid-api apikey --create
-```
+    You can also use the CLI to create an API key:
 
-Follow the prompts to set:
+    ```bash
+    unraid-api apikey --create
+    ```
 
-- Name
-- Description
-- Roles
-- Permissions
+    Follow the prompts to set:
 
-</tabItem>
+    - Name
+    - Description
+    - Roles
+    - Permissions
+
+  </tabItem>
 </tabs>
 
 ### Using API Keys
@@ -213,17 +214,19 @@ Available roles:
 
 ## ✨ Best Practices
 
-:::tip[Pro Tips]
+:::tip\[Pro Tips]
+
 1. Use the Apollo Sandbox to explore the schema and test queries
 2. Start with small queries and gradually add fields as needed
 3. Monitor your query complexity to maintain performance
 4. Use appropriate roles and permissions for your API keys
 5. Keep your API keys secure and rotate them periodically
+
 :::
 
 ## ⏱️ Rate Limiting
 
-:::caution[Rate Limits]
+:::caution\[Rate Limits]
 The API implements rate limiting to prevent abuse. Ensure your applications handle rate limit responses appropriately.
 :::
 
@@ -245,7 +248,8 @@ The API returns standard GraphQL errors in the following format:
 
 ## 📚 Additional Resources
 
-:::info[Learn More]
+:::info\[Learn More]
+
 - Use the Apollo Sandbox's schema explorer to browse all available types and fields
 - Check the documentation tab in Apollo Sandbox for detailed field descriptions
 - Monitor the API's health using `unraid-api status`

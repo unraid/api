@@ -10,27 +10,27 @@ Applications can request API access to an Unraid server by redirecting users to 
 
 1. **Application initiates request**: The app redirects the user to:
 
-    ```
-    https://[unraid-server]/ApiKeyAuthorize?name=MyApp&scopes=docker:read,vm:*&redirect_uri=https://myapp.com/callback&state=abc123
-    ```
+   ```
+   https://[unraid-server]/ApiKeyAuthorize?name=MyApp&scopes=docker:read,vm:*&redirect_uri=https://myapp.com/callback&state=abc123
+   ```
 
 2. **User authentication**: If not already logged in, the user is redirected to login first (standard Unraid auth)
 
 3. **Consent screen**: User sees:
-    - Application name and description
-    - Requested permissions (with checkboxes to approve/deny specific scopes)
-    - API key name field (pre-filled)
-    - Authorize & Cancel buttons
+   - Application name and description
+   - Requested permissions (with checkboxes to approve/deny specific scopes)
+   - API key name field (pre-filled)
+   - Authorize & Cancel buttons
 
 4. **API key creation**: Upon authorization:
-    - API key is created with approved scopes
-    - Key is displayed to the user
-    - If `redirect_uri` is provided, user is redirected back with the key
+   - API key is created with approved scopes
+   - Key is displayed to the user
+   - If `redirect_uri` is provided, user is redirected back with the key
 
 5. **Callback**: App receives the API key:
-    ```
-    https://myapp.com/callback?api_key=xxx&state=abc123
-    ```
+   ```
+   https://myapp.com/callback?api_key=xxx&state=abc123
+   ```
 
 ## Query Parameters
 

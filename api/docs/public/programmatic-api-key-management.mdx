@@ -17,7 +17,7 @@ The `unraid-api apikey` command supports both interactive and non-interactive mo
 - Temporary access provisioning
 - Infrastructure as code workflows
 
-:::tip[Quick Start]
+:::tip\[Quick Start]
 Jump to the [Complete Workflow Example](#complete-workflow-example) to see everything in action.
 :::
 
@@ -59,7 +59,7 @@ If a key with the same name exists, use `--overwrite`:
 unraid-api apikey --create --name "existing key" --roles ADMIN --overwrite --json
 ```
 
-:::warning[Key Replacement]
+:::warning\[Key Replacement]
 The `--overwrite` flag will permanently replace the existing key. The old key will be immediately invalidated.
 :::
 
@@ -198,7 +198,7 @@ echo "Deployment completed successfully"
 
 ## Best Practices
 
-:::info[Security Best Practices]
+:::info\[Security Best Practices]
 **Minimal Permissions**
 
 - Use specific permissions instead of ADMIN role when possible
@@ -209,7 +209,8 @@ echo "Deployment completed successfully"
 - Always clean up temporary keys after use
 - Store API keys securely (environment variables, secrets management)
 - Use descriptive names and descriptions for audit trails
-  :::
+
+:::
 
 ### Error Handling
 
@@ -227,7 +228,7 @@ echo "Deployment completed successfully"
 
 ### Common Issues
 
-:::note[Common Error Messages]
+:::note\[Common Error Messages]
 
 **"API key name must contain only letters, numbers, and spaces"**
 
