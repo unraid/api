@@ -126,64 +126,72 @@ export function mountUnifiedApp() {
   // Now render components to their locations using the shared context
   const mountedComponents: Array<{ element: HTMLElement; unmount: () => void }> = [];
 
-  // Components are already in priority order in component-registry
+  // Batch all selector queries first to identify which components are needed
+  const componentsToMount: Array<{ mapping: (typeof componentMappings)[0]; element: HTMLElement }> = [];
+
   componentMappings.forEach((mapping) => {
-    const { selector, appId } = mapping;
+    const { selector } = mapping;
     const selectors = Array.isArray(selector) ? selector : [selector];
 
     // Find first matching element
     for (const sel of selectors) {
       const element = document.querySelector(sel) as HTMLElement;
       if (element && !element.hasAttribute('data-vue-mounted')) {
-        // Get the async component from mapping
-        const component = mapping.component;
-
-        // Skip if no component is defined
-        if (!component) {
-          console.error(`[UnifiedMount] No component defined for ${appId}`);
-          continue;
-        }
-
-        // Parse props from element
-        const props = parsePropsFromElement(element);
-
-        // Wrap component in UApp for Nuxt UI support
-        const wrappedComponent = {
-          name: `${appId}-wrapper`,
-          setup() {
-            return () =>
-              h(
-                UApp,
-                {},
-                {
-                  default: () => h(component, props),
-                }
-              );
-          },
-        };
-
-        // Create vnode with shared app context
-        const vnode = createVNode(wrappedComponent);
-        vnode.appContext = app._context; // Share the app context
-
-        // Clear the element and render the component into it
-        element.innerHTML = '';
-        render(vnode, element);
-
-        // Mark as mounted
-        element.setAttribute('data-vue-mounted', 'true');
-        element.classList.add('unapi');
-
-        // Store for cleanup
-        mountedComponents.push({
-          element,
-          unmount: () => render(null, element),
-        });
-
+        componentsToMount.push({ mapping, element });
         break;
       }
     }
   });
+
+  // Now mount only the components that exist
+  componentsToMount.forEach(({ mapping, element }) => {
+    const { appId } = mapping;
+    const component = mapping.component;
+
+    // Skip if no component is defined
+    if (!component) {
+      console.error(`[UnifiedMount] No component defined for ${appId}`);
+      return;
+    }
+
+    // Parse props from element
+    const props = parsePropsFromElement(element);
+
+    // Wrap component in UApp for Nuxt UI support
+    const wrappedComponent = {
+      name: `${appId}-wrapper`,
+      setup() {
+        return () =>
+          h(
+            UApp,
+            {},
+            {
+              default: () => h(component, props),
+            }
+          );
+      },
+    };
+
+    // Create vnode with shared app context
+    const vnode = createVNode(wrappedComponent);
+    vnode.appContext = app._context; // Share the app context
+
+    // Clear the element and render the component into it
+    element.innerHTML = '';
+    render(vnode, element);
+
+    // Mark as mounted
+    element.setAttribute('data-vue-mounted', 'true');
+    element.classList.add('unapi');
+
+    // Store for cleanup
+    mountedComponents.push({
+      element,
+      unmount: () => render(null, element),
+    });
+  });
+
+  console.debug(`[UnifiedMount] Mounted ${mountedComponents.length} components`);
 
   // Store reference for debugging
   if (typeof window !== 'undefined') {
