@@ -13,6 +13,7 @@ import type {
   ResolvedOrganizerFolder,
 } from '@/composables/gql/graphql';
 import type { TableColumn } from '@nuxt/ui';
+import type { VNode } from 'vue';
 
 interface Props {
   containers: DockerContainer[];
@@ -27,7 +28,9 @@ const props = withDefaults(defineProps<Props>(), {
 const UButton = resolveComponent('UButton');
 const UCheckbox = resolveComponent('UCheckbox');
 const UBadge = resolveComponent('UBadge');
+const UInput = resolveComponent('UInput');
 const UDropdownMenu = resolveComponent('UDropdownMenu');
+const UContextMenu = resolveComponent('UContextMenu');
 
 function formatPorts(container?: DockerContainer | null): string {
   if (!container) return '';
@@ -107,6 +110,30 @@ const treeData = computed<TreeRow[]>(() => {
   return props.containers.map((container) => toContainerTreeRow(container));
 });
 
+type DropdownMenuItem = { label: string; icon: string; onSelect: (e?: Event) => void; as?: string };
+type DropdownMenuItems = DropdownMenuItem[][];
+
+function wrapCell(row: { original: TreeRow }, child: VNode) {
+  const content = h('div', { 'data-row-id': row.original.id, class: 'block w-full h-full px-3 py-2' }, [
+    child,
+  ]);
+  if ((row.original as TreeRow).type === 'container') {
+    return h(
+      UContextMenu,
+      {
+        items: getRowActionItems(row.original as TreeRow),
+        size: 'md',
+        ui: {
+          content: 'overflow-x-hidden z-50',
+          item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
+        },
+      },
+      { default: () => content }
+    );
+  }
+  return content;
+}
+
 const columns = computed<TableColumn<TreeRow>[]>(() => {
   const cols: TableColumn<TreeRow>[] = [
     {
@@ -123,28 +150,34 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
       cell: ({ row }) => {
         switch ((row.original as TreeRow).type) {
           case 'container':
-            return h(UCheckbox, {
-              modelValue: row.getIsSelected(),
-              'onUpdate:modelValue': (value: boolean | 'indeterminate') => row.toggleSelected(!!value),
-              'aria-label': 'Select row',
-            });
+            return wrapCell(
+              row,
+              h(UCheckbox, {
+                modelValue: row.getIsSelected(),
+                'onUpdate:modelValue': (value: boolean | 'indeterminate') => row.toggleSelected(!!value),
+                'aria-label': 'Select row',
+              })
+            );
           case 'folder':
-            return h(UButton, {
-              color: 'neutral',
-              size: 'md',
-              variant: 'ghost',
-              icon: 'i-lucide-chevron-down',
-              square: true,
-              'aria-label': 'Expand',
-              class: 'p-0',
-              ui: {
-                leadingIcon: [
-                  'transition-transform mt-0.5 -rotate-90',
-                  row.getIsExpanded() ? 'duration-200 rotate-0' : '',
-                ],
-              },
-              onClick: () => row.toggleExpanded(),
-            });
+            return wrapCell(
+              row,
+              h(UButton, {
+                color: 'neutral',
+                size: 'md',
+                variant: 'ghost',
+                icon: 'i-lucide-chevron-down',
+                square: true,
+                'aria-label': 'Expand',
+                class: 'p-0',
+                ui: {
+                  leadingIcon: [
+                    'transition-transform mt-0.5 -rotate-90',
+                    row.getIsExpanded() ? 'duration-200 rotate-0' : '',
+                  ],
+                },
+                onClick: () => row.toggleExpanded(),
+              })
+            );
           default:
             return h('span');
         }
@@ -154,17 +187,22 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
       meta: { class: { th: 'w-10', td: 'w-10' } },
     },
     {
-      id: 'title',
+      accessorKey: 'name',
       header: 'Name',
       cell: ({ row }) => {
         const depth = row.depth;
         const indent = h('span', { class: 'inline-block', style: { width: `calc(${depth} * 1rem)` } });
         const isFolder = (row.original as TreeRow).type === 'folder';
-        return h('div', { class: 'truncate flex items-center' }, [
-          indent,
-          h('span', { class: 'max-w-[40ch] truncate font-medium' }, row.original.name),
-          isFolder ? h('span') : null,
-        ]);
+        const content = h(
+          'div',
+          { class: 'truncate flex items-center', 'data-row-id': row.original.id },
+          [
+            indent,
+            h('span', { class: 'max-w-[40ch] truncate font-medium' }, row.original.name),
+            isFolder ? h('span') : null,
+          ]
+        );
+        return wrapCell(row, content);
       },
       meta: { class: { td: 'w-[40ch] truncate', th: 'w-[45ch]' } },
     },
@@ -178,44 +216,89 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
           [ContainerState.RUNNING]: 'success' as const,
           [ContainerState.EXITED]: 'neutral' as const,
         }[state];
-        return h(
-          UBadge,
-          {
-            color,
-          },
-          () => state
+        return wrapCell(
+          row,
+          h(
+            UBadge,
+            {
+              color,
+            },
+            () => state
+          )
         );
       },
     },
     {
       accessorKey: 'ports',
       header: 'Ports',
-      cell: ({ row }) => (row.original.type === 'folder' ? '' : String(row.getValue('ports') || '')),
+      cell: ({ row }) =>
+        row.original.type === 'folder'
+          ? ''
+          : wrapCell(row, h('span', null, String(row.getValue('ports') || ''))),
     },
     {
       accessorKey: 'autoStart',
       header: 'Auto Start',
-      cell: ({ row }) => (row.original.type === 'folder' ? '' : String(row.getValue('autoStart') || '')),
+      cell: ({ row }) =>
+        row.original.type === 'folder'
+          ? ''
+          : wrapCell(row, h('span', null, String(row.getValue('autoStart') || ''))),
     },
     {
       accessorKey: 'updates',
       header: 'Updates',
-      cell: ({ row }) => (row.original.type === 'folder' ? '' : String(row.getValue('updates') || '')),
+      cell: ({ row }) =>
+        row.original.type === 'folder'
+          ? ''
+          : wrapCell(row, h('span', null, String(row.getValue('updates') || ''))),
+    },
+    {
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => {
+        if ((row.original as TreeRow).type === 'folder') return '';
+        const items = getRowActionItems(row.original as TreeRow);
+        return wrapCell(
+          row,
+          h(
+            UDropdownMenu,
+            {
+              items,
+              size: 'md',
+              ui: {
+                content: 'overflow-x-hidden z-10',
+                item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
+              },
+            },
+            {
+              default: () =>
+                h(UButton, {
+                  color: 'neutral',
+                  variant: 'ghost',
+                  icon: 'i-lucide-more-vertical',
+                  square: true,
+                  'aria-label': 'Row actions',
+                }),
+            }
+          )
+        );
+      },
+      enableSorting: false,
+      enableHiding: false,
+      meta: { class: { th: 'w-8', td: 'w-8 text-right' } },
     },
   ];
   return cols;
 });
 
 const rowSelection = ref<Record<string, boolean>>({});
+type NuxtUITableRef = { table?: { getSelectedRowModel: () => { rows: unknown[] } } } | null;
+const tableRef = ref<NuxtUITableRef>(null);
 const selectedCount = computed<number>(() => {
-  const containerIds: string[] = treeData.value
-    .flatMap(function collect(row): TreeRow[] {
-      if (row.type === 'container') return [row];
-      return (row.children || []).flatMap(collect);
-    })
-    .map((r) => r.id);
-  return containerIds.filter((id) => !!rowSelection.value[id]).length;
+  return Object.values(rowSelection.value).filter(Boolean).length;
 });
+
+const globalFilter = ref('');
 
 const emit = defineEmits<{
   (e: 'created-folder'): void;
@@ -244,23 +327,140 @@ async function handleCreateFolder() {
   rowSelection.value = {};
   emit('created-folder');
 }
+
+function getSelectedContainerIds(): string[] {
+  return treeData.value
+    .flatMap(function collect(row): TreeRow[] {
+      if (row.type === 'container') return [row];
+      return (row.children || []).flatMap(collect);
+    })
+    .filter((r) => rowSelection.value[r.id])
+    .map((r) => r.id);
+}
+
+declare global {
+  interface Window {
+    toast?: {
+      success: (title: string, options?: { description?: string }) => void;
+      error?: (title: string, options?: { description?: string }) => void;
+    };
+  }
+}
+
+function showToast(message: string) {
+  window.toast?.success(message);
+}
+
+function handleBulkAction(action: string) {
+  const ids = getSelectedContainerIds();
+  if (ids.length === 0) return;
+  showToast(`${action} (${ids.length})`);
+}
+
+// helper removed; no longer used
+
+// removed unused types
+// ContextRef type removed; no longer used
+
+// no-op: replaced by row-wrapped UContextMenu
+
+// Removed programmatic context menu open logic in favor of wrapping row with UContextMenu
+
+function handleRowAction(row: TreeRow, action: string) {
+  if (row.type !== 'container') return;
+  showToast(`${action}: ${row.name}`);
+}
+
+const bulkItems = computed<DropdownMenuItems>(() => [
+  [
+    {
+      label: 'Move to folder',
+      icon: 'i-lucide-folder',
+      as: 'button',
+      onSelect: () => handleBulkAction('Move to folder'),
+    },
+    {
+      label: 'Start / Stop',
+      icon: 'i-lucide-power',
+      as: 'button',
+      onSelect: () => handleBulkAction('Start / Stop'),
+    },
+    {
+      label: 'Pause / Resume',
+      icon: 'i-lucide-pause',
+      as: 'button',
+      onSelect: () => handleBulkAction('Pause / Resume'),
+    },
+  ],
+]);
+
+function getRowActionItems(row: TreeRow): DropdownMenuItems {
+  return [
+    [
+      {
+        label: 'Move to folder',
+        icon: 'i-lucide-folder',
+        as: 'button',
+        onSelect: () => handleRowAction(row, 'Move to folder'),
+      },
+      {
+        label: 'Start / Stop',
+        icon: 'i-lucide-power',
+        as: 'button',
+        onSelect: () => handleRowAction(row, 'Start / Stop'),
+      },
+      {
+        label: 'Pause / Resume',
+        icon: 'i-lucide-pause',
+        as: 'button',
+        onSelect: () => handleRowAction(row, 'Pause / Resume'),
+      },
+    ],
+    [
+      {
+        label: 'Manage Settings',
+        icon: 'i-lucide-settings',
+        as: 'button',
+        onSelect: () => handleRowAction(row, 'Manage Settings'),
+      },
+    ],
+  ];
+}
 </script>
 
 <template>
   <div class="w-full">
     <div class="mb-3 flex items-center gap-2">
-      <Button size="sm" :disabled="selectedCount === 0 || creating" @click="handleCreateFolder">
-        Create folder ({{ selectedCount }})
-      </Button>
+      <UInput v-model="globalFilter" class="max-w-sm min-w-[12ch]" placeholder="Filter..." />
+      <UDropdownMenu
+        :items="bulkItems"
+        size="md"
+        :ui="{
+          content: 'overflow-x-hidden z-10',
+          item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
+        }"
+      >
+        <UButton
+          color="primary"
+          variant="outline"
+          size="md"
+          trailing-icon="i-lucide-chevron-down"
+          :disabled="selectedCount === 0"
+        >
+          Actions ({{ selectedCount }})
+        </UButton>
+      </UDropdownMenu>
     </div>
     <UTable
-      ref="table"
+      ref="tableRef"
       v-model:row-selection="rowSelection"
+      v-model:global-filter="globalFilter"
       :data="treeData"
       :columns="columns"
       :get-sub-rows="(row: any) => row.children"
+      :column-filters-options="{ filterFromLeafRows: true }"
       :loading="loading"
-      :ui="{ td: 'empty:p-0' }"
+      :ui="{ td: 'p-0 empty:p-0' }"
       sticky
       class="flex-1"
     />
