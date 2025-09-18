@@ -10,8 +10,6 @@ import { client } from '~/helpers/create-apollo-client';
 import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
 import en_US from '~/locales/en_US.json';
 
-import type { App as VueApp } from 'vue';
-
 // Import Pinia for use in Vue apps
 import { globalPinia } from '~/store/globalPinia';
 
@@ -22,7 +20,7 @@ const apolloClient = (typeof window !== 'undefined' && window.apolloClient) || c
 declare global {
   interface Window {
     globalPinia: typeof globalPinia;
-    __unifiedApp?: VueApp;
+    LOCALE_DATA?: string;
   }
 }
 
@@ -38,7 +36,7 @@ function setupI18n() {
 
   // Check for window locale data
   if (typeof window !== 'undefined') {
-    const windowLocaleData = (window as unknown as { LOCALE_DATA?: string }).LOCALE_DATA || null;
+    const windowLocaleData = window.LOCALE_DATA || null;
     if (windowLocaleData) {
       try {
         parsedMessages = JSON.parse(decodeURIComponent(windowLocaleData));
@@ -80,9 +78,10 @@ function parsePropsFromElement(element: Element): Record<string, unknown> {
     }
 
     const value = attr.value;
+    const first = value.trimStart()[0];
 
     // Try to parse JSON values (handles HTML-encoded JSON)
-    if (value[0] === '{' || value[0] === '[') {
+    if (first === '{' || first === '[') {
       try {
         // Decode HTML entities first
         const decoded = value
@@ -201,7 +200,7 @@ export function mountUnifiedApp() {
     vnode.appContext = app._context; // Share the app context
 
     // Clear the element and render the component into it
-    element.innerHTML = '';
+    element.replaceChildren();
     render(vnode, element);
 
     // Mark as mounted
@@ -222,5 +221,5 @@ export function mountUnifiedApp() {
 
 // Replace the old autoMountAllComponents with the new unified approach
 export function autoMountAllComponents() {
-  mountUnifiedApp();
+  return mountUnifiedApp();
 }
