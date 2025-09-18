@@ -105,12 +105,7 @@ describe('mount-engine', () => {
     vi.restoreAllMocks();
     document.body.innerHTML = '';
     // Clean up global references
-    if (window.__unifiedApp) {
-      delete window.__unifiedApp;
-    }
-    if (window.__mountedComponents) {
-      delete window.__mountedComponents;
-    }
+    // Clean up any window references if needed
   });
 
   describe('mountUnifiedApp', () => {
@@ -438,29 +433,6 @@ describe('mount-engine', () => {
   });
 
   describe('global exposure', () => {
-    it('should expose unified app globally', () => {
-      const app = mountUnifiedApp();
-      expect(window.__unifiedApp).toBe(app);
-    });
-
-    it('should expose mounted components globally', () => {
-      const element = document.createElement('div');
-      element.id = 'global-app';
-      document.body.appendChild(element);
-
-      mockComponentMappings.push({
-        selector: '#global-app',
-        appId: 'global-app',
-        component: TestComponent,
-      });
-
-      mountUnifiedApp();
-
-      expect(window.__mountedComponents).toBeDefined();
-      expect(Array.isArray(window.__mountedComponents)).toBe(true);
-      expect(window.__mountedComponents!.length).toBe(1);
-    });
-
     it('should expose globalPinia globally', () => {
       expect(window.globalPinia).toBeDefined();
       expect(window.globalPinia).toBe(mockGlobalPinia);

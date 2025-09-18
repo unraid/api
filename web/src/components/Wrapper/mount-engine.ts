@@ -64,19 +64,25 @@ function setupI18n() {
 
 // Helper function to parse props from HTML attributes
 function parsePropsFromElement(element: Element): Record<string, unknown> {
+  // Early exit if no attributes
+  if (!element.hasAttributes()) return {};
+
   const props: Record<string, unknown> = {};
+  // Pre-compile attribute skip list into a Set for O(1) lookup
+  const skipAttrs = new Set(['class', 'id', 'style', 'data-vue-mounted']);
 
   for (const attr of element.attributes) {
     const name = attr.name;
-    const value = attr.value;
 
     // Skip Vue internal attributes and common HTML attributes
-    if (name.startsWith('data-v-') || name === 'class' || name === 'id' || name === 'style') {
+    if (skipAttrs.has(name) || name.startsWith('data-v-')) {
       continue;
     }
 
+    const value = attr.value;
+
     // Try to parse JSON values (handles HTML-encoded JSON)
-    if (value.startsWith('{') || value.startsWith('[')) {
+    if (value[0] === '{' || value[0] === '[') {
       try {
         // Decode HTML entities first
         const decoded = value
@@ -129,16 +135,34 @@ export function mountUnifiedApp() {
   // Batch all selector queries first to identify which components are needed
   const componentsToMount: Array<{ mapping: (typeof componentMappings)[0]; element: HTMLElement }> = [];
 
+  // Build a map of all selectors to their mappings for quick lookup
+  const selectorToMapping = new Map<string, (typeof componentMappings)[0]>();
   componentMappings.forEach((mapping) => {
-    const { selector } = mapping;
-    const selectors = Array.isArray(selector) ? selector : [selector];
+    const selectors = Array.isArray(mapping.selector) ? mapping.selector : [mapping.selector];
+    selectors.forEach((sel) => selectorToMapping.set(sel, mapping));
+  });
 
-    // Find first matching element
-    for (const sel of selectors) {
-      const element = document.querySelector(sel) as HTMLElement;
-      if (element && !element.hasAttribute('data-vue-mounted')) {
-        componentsToMount.push({ mapping, element });
-        break;
+  // Query all selectors at once
+  const allSelectors = Array.from(selectorToMapping.keys()).join(',');
+
+  // Early exit if no selectors to query
+  if (!allSelectors) {
+    console.debug('[UnifiedMount] Mounted 0 components');
+    return app;
+  }
+
+  const foundElements = document.querySelectorAll(allSelectors);
+  const processedMappings = new Set<(typeof componentMappings)[0]>();
+
+  foundElements.forEach((element) => {
+    if (!element.hasAttribute('data-vue-mounted')) {
+      // Find which mapping this element belongs to
+      for (const [selector, mapping] of selectorToMapping) {
+        if (element.matches(selector) && !processedMappings.has(mapping)) {
+          componentsToMount.push({ mapping, element: element as HTMLElement });
+          processedMappings.add(mapping);
+          break;
+        }
       }
     }
   });
@@ -192,12 +216,6 @@ export function mountUnifiedApp() {
   });
 
   console.debug(`[UnifiedMount] Mounted ${mountedComponents.length} components`);
-
-  // Store reference for debugging
-  if (typeof window !== 'undefined') {
-    window.__unifiedApp = app;
-    window.__mountedComponents = mountedComponents;
-  }
 
   return app;
 }
