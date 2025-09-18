@@ -23,9 +23,6 @@ function initializeGlobalDependencies() {
   });
 
   // Expose utility functions on window for debugging/external use
-  // With unified app, these are no longer needed
-  // Access the unified app via window.__unifiedApp instead
-
   // Expose Apollo client on window for global access
   window.apolloClient = apolloClient;
 

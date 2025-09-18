@@ -1,5 +1,5 @@
+import type { ApolloClient } from '@apollo/client/core';
 import type { autoMountComponent, getMountedApp, mountVueApp } from '~/components/Wrapper/mount-engine';
-import type { client as apolloClient } from '~/helpers/create-apollo-client';
 import type { parse } from 'graphql';
 import type { Component } from 'vue';
 
@@ -11,7 +11,7 @@ import type { Component } from 'vue';
 declare global {
   interface Window {
     // Apollo GraphQL client and utilities
-    apolloClient: typeof apolloClient;
+    apolloClient?: ApolloClient<unknown>;
     gql: typeof parse;
     graphqlParse: typeof parse;
 
