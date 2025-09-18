@@ -8,6 +8,8 @@ import { CREATE_DOCKER_FOLDER } from '@/components/Docker/docker-create-folder.m
 import { DELETE_DOCKER_ENTRIES } from '@/components/Docker/docker-delete-entries.mutation';
 import { MOVE_DOCKER_ENTRIES_TO_FOLDER } from '@/components/Docker/docker-move-entries.mutation';
 import { SET_DOCKER_FOLDER_CHILDREN } from '@/components/Docker/docker-set-folder-children.mutation';
+import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-container.mutation';
+import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container.mutation';
 import { ContainerState } from '@/composables/gql/graphql';
 
 import type {
@@ -16,7 +18,7 @@ import type {
   ResolvedOrganizerFolder,
 } from '@/composables/gql/graphql';
 import type { TableColumn } from '@nuxt/ui';
-import type { VNode } from 'vue';
+import type { Component, VNode } from 'vue';
 
 interface Props {
   containers: DockerContainer[];
@@ -35,6 +37,7 @@ const UInput = resolveComponent('UInput');
 const UDropdownMenu = resolveComponent('UDropdownMenu');
 const UContextMenu = resolveComponent('UContextMenu');
 const UModal = resolveComponent('UModal');
+const USkeleton = resolveComponent('USkeleton') as Component;
 
 function formatPorts(container?: DockerContainer | null): string {
   if (!container) return '';
@@ -61,6 +64,7 @@ type TreeRow = {
   autoStart?: string;
   updates?: string;
   children?: TreeRow[];
+  containerId?: string;
 };
 
 function toContainerTreeRow(meta: DockerContainer | null | undefined, fallbackName?: string): TreeRow {
@@ -76,6 +80,7 @@ function toContainerTreeRow(meta: DockerContainer | null | undefined, fallbackNa
     ports: formatPorts(meta || undefined),
     autoStart: meta?.autoStart ? 'On' : 'Off',
     updates: updatesParts.join(' / ') || '—',
+    containerId: meta?.id,
   };
 }
 
@@ -93,6 +98,7 @@ function buildTree(entry: ResolvedOrganizerEntry): TreeRow | null {
     const meta = entry.meta as DockerContainer | null | undefined;
     const row = toContainerTreeRow(meta, entry.name || undefined);
     row.id = entry.id;
+    row.containerId = meta?.id;
     return row;
   }
   return {
@@ -118,9 +124,15 @@ type DropdownMenuItem = { label: string; icon: string; onSelect: (e?: Event) => 
 type DropdownMenuItems = DropdownMenuItem[][];
 
 function wrapCell(row: { original: TreeRow }, child: VNode) {
-  const content = h('div', { 'data-row-id': row.original.id, class: 'block w-full h-full px-3 py-2' }, [
-    child,
-  ]);
+  const isBusy = busyRowIds.value.has((row.original as TreeRow).id);
+  const content = h(
+    'div',
+    {
+      'data-row-id': row.original.id,
+      class: `block w-full h-full px-3 py-2 ${isBusy ? 'opacity-50 pointer-events-none select-none' : ''}`,
+    },
+    [child]
+  );
   if ((row.original as TreeRow).type === 'container') {
     return h(
       UContextMenu,
@@ -216,19 +228,17 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
       cell: ({ row }) => {
         if (row.original.type === 'folder') return '';
         const state = row.original.state ?? '';
+        const isBusy = busyRowIds.value.has(row.original.id);
         const color = {
           [ContainerState.RUNNING]: 'success' as const,
           [ContainerState.EXITED]: 'neutral' as const,
         }[state];
+        if (isBusy) {
+          return wrapCell(row, h(USkeleton, { class: 'h-5 w-20' }));
+        }
         return wrapCell(
           row,
-          h(
-            UBadge,
-            {
-              color,
-            },
-            () => state
-          )
+          h(UBadge, { color }, () => state)
         );
       },
     },
@@ -312,6 +322,8 @@ const { mutate: createFolderMutation, loading: creating } = useMutation(CREATE_D
 const { mutate: moveEntriesMutation, loading: moving } = useMutation(MOVE_DOCKER_ENTRIES_TO_FOLDER);
 const { mutate: deleteEntriesMutation, loading: deleting } = useMutation(DELETE_DOCKER_ENTRIES);
 const { mutate: setFolderChildrenMutation } = useMutation(SET_DOCKER_FOLDER_CHILDREN);
+const { mutate: startContainerMutation } = useMutation(START_DOCKER_CONTAINER);
+const { mutate: stopContainerMutation } = useMutation(STOP_DOCKER_CONTAINER);
 
 const moveOpen = ref(false);
 const selectedFolderId = ref<string>('');
@@ -322,6 +334,144 @@ const renameValue = ref<string>('');
 const newTreeFolderName = ref<string>('');
 
 const rootFolderId = computed<string>(() => props.organizerRoot?.id || '');
+// Busy/disabled rows while performing start/stop
+const busyRowIds = ref<Set<string>>(new Set());
+
+function setRowsBusy(ids: string[], busy: boolean) {
+  const next = new Set(busyRowIds.value);
+  for (const id of ids) {
+    if (busy) next.add(id);
+    else next.delete(id);
+  }
+  busyRowIds.value = next;
+}
+
+function getRowById(targetId: string): TreeRow | undefined {
+  function walk(rows: TreeRow[]): TreeRow | undefined {
+    for (const r of rows) {
+      if (r.id === targetId) return r;
+      if (r.children?.length) {
+        const found = walk(r.children as TreeRow[]);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  }
+  return walk(treeData.value);
+}
+
+function classifyStartStop(ids: string[]) {
+  const toStart: { id: string; containerId: string; name: string }[] = [];
+  const toStop: { id: string; containerId: string; name: string }[] = [];
+  for (const id of ids) {
+    const row = getRowById(id);
+    if (!row || row.type !== 'container') continue;
+    const containerId = row.containerId || row.id;
+    const state = row.state as string | undefined;
+    const name = row.name;
+    if (state === ContainerState.RUNNING) toStop.push({ id, containerId, name });
+    else toStart.push({ id, containerId, name });
+  }
+  return { toStart, toStop };
+}
+
+async function runStartStopBatch(
+  toStart: { id: string; containerId: string; name: string }[],
+  toStop: { id: string; containerId: string; name: string }[]
+) {
+  const totalOps = toStop.length + toStart.length;
+  let completed = 0;
+  // Execute sequentially; attach refetch to the final operation only
+  for (const item of toStop) {
+    completed++;
+    const isLast = completed === totalOps;
+    await stopContainerMutation(
+      { id: item.containerId },
+      isLast
+        ? {
+            refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+            awaitRefetchQueries: true,
+          }
+        : { awaitRefetchQueries: false }
+    );
+  }
+  for (const item of toStart) {
+    completed++;
+    const isLast = completed === totalOps;
+    await startContainerMutation(
+      { id: item.containerId },
+      isLast
+        ? {
+            refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+            awaitRefetchQueries: true,
+          }
+        : { awaitRefetchQueries: false }
+    );
+  }
+}
+
+async function handleRowStartStop(row: TreeRow) {
+  if (row.type !== 'container') return;
+  const containerId = row.containerId || row.id;
+  if (!containerId) return;
+  setRowsBusy([row.id], true);
+  try {
+    const isRunning = row.state === ContainerState.RUNNING;
+    const mutate = isRunning ? stopContainerMutation : startContainerMutation;
+    await mutate(
+      { id: containerId },
+      {
+        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+        awaitRefetchQueries: true,
+      }
+    );
+  } finally {
+    setRowsBusy([row.id], false);
+  }
+}
+
+// Bulk Start/Stop handling with mixed confirmation
+const confirmStartStopOpen = ref(false);
+const confirmToStart = ref<{ name: string }[]>([]);
+const confirmToStop = ref<{ name: string }[]>([]);
+let pendingStartStopIds: string[] = [];
+
+function openStartStop(ids?: string[]) {
+  const sources = ids ?? getSelectedContainerIds();
+  if (sources.length === 0) return;
+  const { toStart, toStop } = classifyStartStop(sources);
+  const isMixed = toStart.length > 0 && toStop.length > 0;
+  if (isMixed) {
+    pendingStartStopIds = sources;
+    confirmToStart.value = toStart.map((i) => ({ name: i.name }));
+    confirmToStop.value = toStop.map((i) => ({ name: i.name }));
+    confirmStartStopOpen.value = true;
+    return;
+  }
+  // Single-type selection: run immediately with busy rows
+  setRowsBusy(sources, true);
+  runStartStopBatch(toStart, toStop)
+    .then(() => showToast('Action completed'))
+    .finally(() => {
+      setRowsBusy(sources, false);
+      rowSelection.value = {};
+    });
+}
+
+async function confirmStartStop(close: () => void) {
+  const { toStart, toStop } = classifyStartStop(pendingStartStopIds);
+  setRowsBusy(pendingStartStopIds, true);
+  try {
+    await runStartStopBatch(toStart, toStop);
+    showToast('Action completed');
+    rowSelection.value = {};
+  } finally {
+    setRowsBusy(pendingStartStopIds, false);
+    confirmStartStopOpen.value = false;
+    pendingStartStopIds = [];
+    close();
+  }
+}
 
 type FolderNode = { id: string; name: string; children: FolderNode[] };
 
@@ -540,7 +690,12 @@ function showToast(message: string) {
 
 function handleBulkAction(action: string) {
   const ids = getSelectedContainerIds();
+  console.log('ids', ids);
   if (ids.length === 0) return;
+  if (action === 'Start / Stop') {
+    openStartStop(ids);
+    return;
+  }
   showToast(`${action} (${ids.length})`);
 }
 
@@ -555,6 +710,10 @@ function handleBulkAction(action: string) {
 
 function handleRowAction(row: TreeRow, action: string) {
   if (row.type !== 'container') return;
+  if (action === 'Start / Stop') {
+    handleRowStartStop(row);
+    return;
+  }
   showToast(`${action}: ${row.name}`);
 }
 
@@ -644,6 +803,7 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
       v-model:global-filter="globalFilter"
       :data="treeData"
       :columns="columns"
+      :get-row-id="(row: any) => row.id"
       :get-sub-rows="(row: any) => row.children"
       :column-filters-options="{ filterFromLeafRows: true }"
       :loading="loading"
@@ -754,6 +914,33 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
         >
           Confirm
         </UButton>
+      </template>
+    </UModal>
+
+    <UModal
+      v-model:open="confirmStartStopOpen"
+      title="Confirm actions"
+      :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50' }"
+    >
+      <template #body>
+        <div class="space-y-3">
+          <div v-if="confirmToStop.length" class="space-y-1">
+            <div class="text-sm font-medium">Will stop</div>
+            <ul class="list-disc pl-5 text-sm text-gray-600 dark:text-gray-300">
+              <li v-for="item in confirmToStop" :key="item.name" class="truncate">{{ item.name }}</li>
+            </ul>
+          </div>
+          <div v-if="confirmToStart.length" class="space-y-1">
+            <div class="text-sm font-medium">Will start</div>
+            <ul class="list-disc pl-5 text-sm text-gray-600 dark:text-gray-300">
+              <li v-for="item in confirmToStart" :key="item.name" class="truncate">{{ item.name }}</li>
+            </ul>
+          </div>
+        </div>
+      </template>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="outline" @click="close">Cancel</UButton>
+        <UButton @click="confirmStartStop(close)">Confirm</UButton>
       </template>
     </UModal>
   </div>
