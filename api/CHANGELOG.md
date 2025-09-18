@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.24.0](https://github.com/unraid/api/compare/v4.23.1...v4.24.0) (2025-09-18)
+
+
+### Features
+
+* improve dom content loading by being more efficient about component mounting ([#1716](https://github.com/unraid/api/issues/1716)) ([d8b166e](https://github.com/unraid/api/commit/d8b166e4b6a718e07783d9c8ac8393b50ec89ae3))
+
 ## [4.23.1](https://github.com/unraid/api/compare/v4.23.0...v4.23.1) (2025-09-17)
 
 
