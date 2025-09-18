@@ -2,9 +2,12 @@
 import { computed, h, ref, resolveComponent } from 'vue';
 import { useMutation } from '@vue/apollo-composable';
 
-import { Button } from '@unraid/ui';
+// removed unused Button import
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
 import { CREATE_DOCKER_FOLDER } from '@/components/Docker/docker-create-folder.mutation';
+import { DELETE_DOCKER_ENTRIES } from '@/components/Docker/docker-delete-entries.mutation';
+import { MOVE_DOCKER_ENTRIES_TO_FOLDER } from '@/components/Docker/docker-move-entries.mutation';
+import { SET_DOCKER_FOLDER_CHILDREN } from '@/components/Docker/docker-set-folder-children.mutation';
 import { ContainerState } from '@/composables/gql/graphql';
 
 import type {
@@ -31,6 +34,7 @@ const UBadge = resolveComponent('UBadge');
 const UInput = resolveComponent('UInput');
 const UDropdownMenu = resolveComponent('UDropdownMenu');
 const UContextMenu = resolveComponent('UContextMenu');
+const UModal = resolveComponent('UModal');
 
 function formatPorts(container?: DockerContainer | null): string {
   if (!container) return '';
@@ -266,7 +270,7 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
               items,
               size: 'md',
               ui: {
-                content: 'overflow-x-hidden z-10',
+                content: 'overflow-x-hidden z-50',
                 item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
               },
             },
@@ -305,37 +309,220 @@ const emit = defineEmits<{
 }>();
 
 const { mutate: createFolderMutation, loading: creating } = useMutation(CREATE_DOCKER_FOLDER);
+const { mutate: moveEntriesMutation, loading: moving } = useMutation(MOVE_DOCKER_ENTRIES_TO_FOLDER);
+const { mutate: deleteEntriesMutation, loading: deleting } = useMutation(DELETE_DOCKER_ENTRIES);
+const { mutate: setFolderChildrenMutation } = useMutation(SET_DOCKER_FOLDER_CHILDREN);
 
-async function handleCreateFolder() {
-  const name = window.prompt('New folder name');
-  if (!name) return;
-  const childrenIds = treeData.value
-    .flatMap(function collect(row): TreeRow[] {
-      if (row.type === 'container') return [row];
-      return (row.children || []).flatMap(collect);
-    })
-    .filter((r) => rowSelection.value[r.id])
-    .map((r) => r.id);
-  if (childrenIds.length === 0) return;
-  await createFolderMutation(
-    { name, childrenIds },
+const moveOpen = ref(false);
+const selectedFolderId = ref<string>('');
+const pendingMoveSourceIds = ref<string[]>([]);
+const expandedFolders = ref<Set<string>>(new Set());
+const renamingFolderId = ref<string>('');
+const renameValue = ref<string>('');
+const newTreeFolderName = ref<string>('');
+
+const rootFolderId = computed<string>(() => props.organizerRoot?.id || '');
+
+type FolderNode = { id: string; name: string; children: FolderNode[] };
+
+function buildFolderOnlyTree(entry?: ResolvedOrganizerFolder | null): FolderNode | null {
+  if (!entry) return null;
+  const folders: FolderNode[] = [];
+  for (const child of entry.children || []) {
+    if ((child as ResolvedOrganizerEntry).__typename === 'ResolvedOrganizerFolder') {
+      const sub = buildFolderOnlyTree(child as ResolvedOrganizerFolder);
+      if (sub) folders.push(sub);
+    }
+  }
+  return { id: entry.id, name: entry.name, children: folders };
+}
+
+const folderTree = computed<FolderNode | null>(() => buildFolderOnlyTree(props.organizerRoot));
+
+type FlatFolderRow = { id: string; name: string; depth: number; hasChildren: boolean };
+
+function flattenVisibleFolders(
+  node: FolderNode | null,
+  depth = 0,
+  out: FlatFolderRow[] = []
+): FlatFolderRow[] {
+  if (!node) return out;
+  out.push({ id: node.id, name: node.name, depth, hasChildren: node.children.length > 0 });
+  if (expandedFolders.value.has(node.id)) {
+    for (const child of node.children) flattenVisibleFolders(child, depth + 1, out);
+  }
+  return out;
+}
+
+const visibleFolders = computed<FlatFolderRow[]>(() => flattenVisibleFolders(folderTree.value));
+
+const parentById = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {};
+  function walk(node?: ResolvedOrganizerFolder | null, parentId?: string) {
+    if (!node) return;
+    if (parentId) map[node.id] = parentId;
+    for (const child of node.children || []) {
+      if ((child as ResolvedOrganizerEntry).__typename === 'ResolvedOrganizerFolder') {
+        walk(child as ResolvedOrganizerFolder, node.id);
+      }
+    }
+  }
+  walk(props.organizerRoot, undefined);
+  return map;
+});
+
+const folderChildrenIds = computed<Record<string, string[]>>(() => {
+  const map: Record<string, string[]> = {};
+  function walk(node?: ResolvedOrganizerFolder | null) {
+    if (!node) return;
+    map[node.id] = (node.children || []).map((c) => {
+      const entry = c as ResolvedOrganizerEntry;
+      return (entry as { id: string }).id;
+    });
+    for (const child of node.children || []) {
+      if ((child as ResolvedOrganizerEntry).__typename === 'ResolvedOrganizerFolder') {
+        walk(child as ResolvedOrganizerFolder);
+      }
+    }
+  }
+  walk(props.organizerRoot);
+  return map;
+});
+
+function getSelectedEntryIds(): string[] {
+  return Object.entries(rowSelection.value)
+    .filter(([, selected]) => !!selected)
+    .map(([id]) => id);
+}
+
+function openMoveModal(ids?: string[]) {
+  const sources = ids ?? getSelectedEntryIds();
+  console.log('sources', sources);
+  if (sources.length === 0) return;
+  pendingMoveSourceIds.value = sources;
+  selectedFolderId.value = rootFolderId.value || '';
+  expandedFolders.value = new Set([rootFolderId.value]);
+  renamingFolderId.value = '';
+  renameValue.value = '';
+  newTreeFolderName.value = '';
+  moveOpen.value = true;
+}
+
+async function confirmMove(close: () => void) {
+  const ids = pendingMoveSourceIds.value;
+  if (ids.length === 0) return;
+  if (!selectedFolderId.value) return;
+  await moveEntriesMutation(
+    { destinationFolderId: selectedFolderId.value, sourceEntryIds: ids },
     {
       refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
       awaitRefetchQueries: true,
     }
   );
   rowSelection.value = {};
-  emit('created-folder');
+  showToast('Moved to folder');
+  close();
 }
 
+async function handleCreateFolderInTree() {
+  const name = newTreeFolderName.value.trim();
+  if (!name) return;
+  await createFolderMutation(
+    {
+      name,
+      parentId: selectedFolderId.value || rootFolderId.value,
+      childrenIds: pendingMoveSourceIds.value,
+    },
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
+  );
+  emit('created-folder');
+  showToast('Folder created');
+  newTreeFolderName.value = '';
+  expandedFolders.value.add(selectedFolderId.value || rootFolderId.value);
+}
+
+function startRenameFolder(id: string, currentName: string) {
+  if (!id || id === rootFolderId.value) return;
+  renamingFolderId.value = id;
+  renameValue.value = currentName;
+}
+
+async function commitRenameFolder(id: string) {
+  const newName = renameValue.value.trim();
+  if (!id || !newName || newName === id) {
+    renamingFolderId.value = '';
+    renameValue.value = '';
+    return;
+  }
+  const parentId = parentById.value[id] || rootFolderId.value;
+  const children = folderChildrenIds.value[id] || [];
+  // 1) Create new folder with same children under same parent
+  await createFolderMutation(
+    { name: newName, parentId, childrenIds: children },
+    { awaitRefetchQueries: true }
+  );
+  // 2) Clear old folder children to avoid cascading deletion of descendants
+  await setFolderChildrenMutation({ folderId: id, childrenIds: [] }, { awaitRefetchQueries: true });
+  // 3) Delete the now-empty old folder
+  await deleteEntriesMutation(
+    { entryIds: [id] },
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
+  );
+  renamingFolderId.value = '';
+  renameValue.value = '';
+  selectedFolderId.value = newName;
+  showToast('Folder renamed');
+}
+
+async function handleDeleteFolder() {
+  const id = selectedFolderId.value;
+  if (!id || id === rootFolderId.value) return;
+  if (!confirm('Delete this folder? Contents will move to root.')) return;
+  await deleteEntriesMutation(
+    { entryIds: [id] },
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
+  );
+  selectedFolderId.value = rootFolderId.value;
+  showToast('Folder deleted');
+}
+
+function toggleExpandFolder(id: string) {
+  const set = new Set(expandedFolders.value);
+  if (set.has(id)) set.delete(id);
+  else set.add(id);
+  expandedFolders.value = set;
+}
+
+// removed unused handleCreateFolder; creation handled in modal
+
 function getSelectedContainerIds(): string[] {
-  return treeData.value
-    .flatMap(function collect(row): TreeRow[] {
-      if (row.type === 'container') return [row];
-      return (row.children || []).flatMap(collect);
-    })
-    .filter((r) => rowSelection.value[r.id])
-    .map((r) => r.id);
+  const collected = new Set<string>();
+
+  function collectContainers(row: TreeRow, includeAll: boolean): void {
+    const isSelected = !!rowSelection.value[row.id];
+    const shouldInclude = includeAll || isSelected;
+
+    if (row.type === 'container') {
+      if (shouldInclude) collected.add(row.id);
+      return;
+    }
+    // folder
+    const children = row.children || [];
+    const propagate = shouldInclude; // selecting a folder selects all descendants
+    for (const child of children) collectContainers(child as TreeRow, propagate);
+  }
+
+  for (const root of treeData.value) collectContainers(root, false);
+  return Array.from(collected);
 }
 
 declare global {
@@ -377,7 +564,7 @@ const bulkItems = computed<DropdownMenuItems>(() => [
       label: 'Move to folder',
       icon: 'i-lucide-folder',
       as: 'button',
-      onSelect: () => handleBulkAction('Move to folder'),
+      onSelect: () => openMoveModal(),
     },
     {
       label: 'Start / Stop',
@@ -401,7 +588,7 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
         label: 'Move to folder',
         icon: 'i-lucide-folder',
         as: 'button',
-        onSelect: () => handleRowAction(row, 'Move to folder'),
+        onSelect: () => openMoveModal([row.id]),
       },
       {
         label: 'Start / Stop',
@@ -436,7 +623,7 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
         :items="bulkItems"
         size="md"
         :ui="{
-          content: 'overflow-x-hidden z-10',
+          content: 'overflow-x-hidden z-40',
           item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
         }"
       >
@@ -467,5 +654,107 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
     <div v-if="!loading && treeData.length === 0" class="py-8 text-center text-gray-500">
       No containers found
     </div>
+
+    <UModal
+      v-model:open="moveOpen"
+      title="Move to folder"
+      :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50' }"
+    >
+      <template #body>
+        <div class="space-y-3">
+          <div class="flex items-center gap-2">
+            <UInput v-model="newTreeFolderName" placeholder="New folder name" class="flex-1" />
+            <UButton
+              size="sm"
+              color="neutral"
+              variant="outline"
+              :disabled="!newTreeFolderName.trim()"
+              @click="handleCreateFolderInTree"
+              >Create</UButton
+            >
+            <UButton
+              size="sm"
+              color="neutral"
+              variant="outline"
+              :disabled="!selectedFolderId || selectedFolderId === rootFolderId"
+              @click="handleDeleteFolder"
+              >Delete</UButton
+            >
+          </div>
+
+          <div class="border-default rounded border">
+            <div
+              v-for="row in visibleFolders"
+              :key="row.id"
+              :data-id="row.id"
+              class="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              <UButton
+                v-if="row.hasChildren"
+                color="neutral"
+                size="xs"
+                variant="ghost"
+                icon="i-lucide-chevron-right"
+                :class="expandedFolders.has(row.id) ? 'rotate-90' : ''"
+                square
+                @click="toggleExpandFolder(row.id)"
+              />
+              <span v-else class="inline-block w-5" />
+
+              <input type="radio" :value="row.id" v-model="selectedFolderId" class="accent-primary" />
+
+              <div
+                :style="{ paddingLeft: `calc(${row.depth} * 0.75rem)` }"
+                class="flex min-w-0 flex-1 items-center gap-2"
+              >
+                <span class="i-lucide-folder text-gray-500" />
+                <template v-if="renamingFolderId === row.id">
+                  <input
+                    v-model="renameValue"
+                    class="border-default bg-default flex-1 rounded border px-2 py-1"
+                    @keydown.enter.prevent="commitRenameFolder(row.id)"
+                    @keydown.esc.prevent="
+                      renamingFolderId = '';
+                      renameValue = '';
+                    "
+                    @blur="commitRenameFolder(row.id)"
+                    autofocus
+                  />
+                </template>
+                <template v-else>
+                  <span class="truncate">{{ row.name }}</span>
+                </template>
+              </div>
+
+              <UDropdownMenu
+                :items="[
+                  [
+                    {
+                      label: 'Rename',
+                      icon: 'i-lucide-pencil',
+                      as: 'button',
+                      onSelect: () => startRenameFolder(row.id, row.name),
+                    },
+                  ],
+                ]"
+                :ui="{ content: 'z-50' }"
+              >
+                <UButton color="neutral" variant="ghost" icon="i-lucide-more-vertical" square />
+              </UDropdownMenu>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="outline" @click="close">Cancel</UButton>
+        <UButton
+          :loading="moving || creating || deleting"
+          :disabled="!selectedFolderId"
+          @click="confirmMove(close)"
+        >
+          Confirm
+        </UButton>
+      </template>
+    </UModal>
   </div>
 </template>
