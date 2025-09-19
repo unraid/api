@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h, ref, resolveComponent } from 'vue';
+import { computed, h, ref, resolveComponent, watch } from 'vue';
 import { useMutation } from '@vue/apollo-composable';
 
 // removed unused Button import
@@ -122,7 +122,15 @@ const treeData = computed<TreeRow[]>(() => {
   return props.containers.map((container) => toContainerTreeRow(container));
 });
 
-type DropdownMenuItem = { label: string; icon: string; onSelect: (e?: Event) => void; as?: string };
+type ActionDropdownItem = { label: string; icon?: string; onSelect?: (e?: Event) => void; as?: string };
+type CheckboxDropdownItem = {
+  label: string;
+  type: 'checkbox';
+  checked?: boolean;
+  onUpdateChecked?: (checked: boolean) => void;
+  onSelect?: (e?: Event) => void;
+};
+type DropdownMenuItem = ActionDropdownItem | CheckboxDropdownItem;
 type DropdownMenuItems = DropdownMenuItem[][];
 
 function wrapCell(row: { original: TreeRow }, child: VNode) {
@@ -316,6 +324,50 @@ const selectedCount = computed<number>(() => {
 });
 
 const globalFilter = ref('');
+
+const columnVisibility = ref<Record<string, boolean>>({});
+
+watch(
+  columnVisibility,
+  (value) => {
+    console.log('Visible columns changed:', value);
+  },
+  { deep: true }
+);
+
+const columnsMenuItems = computed<DropdownMenuItems>(() => {
+  const keysFromColumns = (columns.value || [])
+    .map((col: TableColumn<TreeRow>) => {
+      type ColumnIdKey = { id?: string; accessorKey?: string; enableHiding?: boolean };
+      const { id, accessorKey, enableHiding } = col as ColumnIdKey;
+      const key = id ?? accessorKey;
+      if (!key) return null;
+      if (enableHiding === false) return null;
+      return String(key);
+    })
+    .filter(Boolean) as string[];
+
+  const fallbackKeys = ['name', 'state', 'ports', 'autoStart', 'updates'];
+  const keys = (keysFromColumns.length ? keysFromColumns : fallbackKeys).filter(
+    (k) => k !== 'select' && k !== 'actions'
+  );
+
+  const list = keys.map((id) => {
+    const currentVisible = columnVisibility.value[id] !== false;
+    return {
+      label: id,
+      icon: currentVisible ? 'i-lucide-check' : undefined,
+      as: 'button',
+      onSelect(e?: Event) {
+        e?.preventDefault?.();
+        const next = !currentVisible;
+        columnVisibility.value = { ...columnVisibility.value, [id]: next };
+      },
+    } as ActionDropdownItem;
+  });
+
+  return [list];
+});
 
 const emit = defineEmits<{
   (e: 'created-folder'): void;
@@ -903,6 +955,11 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
   <div class="w-full">
     <div class="mb-3 flex items-center gap-2">
       <UInput v-model="globalFilter" class="max-w-sm min-w-[12ch]" placeholder="Filter..." />
+      <UDropdownMenu :items="columnsMenuItems" size="md" :ui="{ content: 'z-40' }">
+        <UButton color="neutral" variant="outline" size="md" trailing-icon="i-lucide-chevron-down">
+          Columns
+        </UButton>
+      </UDropdownMenu>
       <UDropdownMenu
         :items="bulkItems"
         size="md"
@@ -926,6 +983,7 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
       ref="tableRef"
       v-model:row-selection="rowSelection"
       v-model:global-filter="globalFilter"
+      v-model:column-visibility="columnVisibility"
       :data="treeData"
       :columns="columns"
       :get-row-id="(row: any) => row.id"
