@@ -525,6 +525,7 @@ export enum ContainerPortType {
 
 export enum ContainerState {
   EXITED = 'EXITED',
+  PAUSED = 'PAUSED',
   RUNNING = 'RUNNING'
 }
 
@@ -732,10 +733,19 @@ export type DockerContainerOverviewForm = {
 
 export type DockerMutations = {
   __typename?: 'DockerMutations';
+  /** Pause (Suspend) a container */
+  pause: DockerContainer;
   /** Start a container */
   start: DockerContainer;
   /** Stop a container */
   stop: DockerContainer;
+  /** Unpause (Resume) a container */
+  unpause: DockerContainer;
+};
+
+
+export type DockerMutationsPauseArgs = {
+  id: Scalars['PrefixedID']['input'];
 };
 
 
@@ -745,6 +755,11 @@ export type DockerMutationsStartArgs = {
 
 
 export type DockerMutationsStopArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+export type DockerMutationsUnpauseArgs = {
   id: Scalars['PrefixedID']['input'];
 };
 

@@ -7,9 +7,11 @@ import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.que
 import { CREATE_DOCKER_FOLDER } from '@/components/Docker/docker-create-folder.mutation';
 import { DELETE_DOCKER_ENTRIES } from '@/components/Docker/docker-delete-entries.mutation';
 import { MOVE_DOCKER_ENTRIES_TO_FOLDER } from '@/components/Docker/docker-move-entries.mutation';
+import { PAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-pause-container.mutation';
 import { SET_DOCKER_FOLDER_CHILDREN } from '@/components/Docker/docker-set-folder-children.mutation';
 import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-container.mutation';
 import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container.mutation';
+import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-container.mutation';
 import { ContainerState } from '@/composables/gql/graphql';
 
 import type {
@@ -231,6 +233,7 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
         const isBusy = busyRowIds.value.has(row.original.id);
         const color = {
           [ContainerState.RUNNING]: 'success' as const,
+          [ContainerState.PAUSED]: 'warning' as const,
           [ContainerState.EXITED]: 'neutral' as const,
         }[state];
         if (isBusy) {
@@ -324,6 +327,8 @@ const { mutate: deleteEntriesMutation, loading: deleting } = useMutation(DELETE_
 const { mutate: setFolderChildrenMutation } = useMutation(SET_DOCKER_FOLDER_CHILDREN);
 const { mutate: startContainerMutation } = useMutation(START_DOCKER_CONTAINER);
 const { mutate: stopContainerMutation } = useMutation(STOP_DOCKER_CONTAINER);
+const { mutate: pauseContainerMutation } = useMutation(PAUSE_DOCKER_CONTAINER);
+const { mutate: unpauseContainerMutation } = useMutation(UNPAUSE_DOCKER_CONTAINER);
 
 const moveOpen = ref(false);
 const selectedFolderId = ref<string>('');
@@ -427,6 +432,118 @@ async function handleRowStartStop(row: TreeRow) {
     );
   } finally {
     setRowsBusy([row.id], false);
+  }
+}
+
+// Pause/Resume single row
+async function handleRowPauseResume(row: TreeRow) {
+  if (row.type !== 'container') return;
+  const containerId = row.containerId || row.id;
+  if (!containerId) return;
+  setRowsBusy([row.id], true);
+  try {
+    const isPaused = row.state === ContainerState.PAUSED;
+    const mutate = isPaused ? unpauseContainerMutation : pauseContainerMutation;
+    await mutate(
+      { id: containerId },
+      {
+        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+        awaitRefetchQueries: true,
+      }
+    );
+  } finally {
+    setRowsBusy([row.id], false);
+  }
+}
+
+// Bulk Pause/Resume handling with mixed confirmation
+const confirmPauseResumeOpen = ref(false);
+const confirmToPause = ref<{ name: string }[]>([]);
+const confirmToResume = ref<{ name: string }[]>([]);
+let pendingPauseResumeIds: string[] = [];
+
+function classifyPauseResume(ids: string[]) {
+  const toPause: { id: string; containerId: string; name: string }[] = [];
+  const toResume: { id: string; containerId: string; name: string }[] = [];
+  for (const id of ids) {
+    const row = getRowById(id);
+    if (!row || row.type !== 'container') continue;
+    const containerId = row.containerId || row.id;
+    const state = row.state as string | undefined;
+    const name = row.name;
+    if (state === ContainerState.PAUSED) toResume.push({ id, containerId, name });
+    else if (state === ContainerState.RUNNING) toPause.push({ id, containerId, name });
+  }
+  return { toPause, toResume };
+}
+
+async function runPauseResumeBatch(
+  toPause: { id: string; containerId: string; name: string }[],
+  toResume: { id: string; containerId: string; name: string }[]
+) {
+  const totalOps = toPause.length + toResume.length;
+  let completed = 0;
+  for (const item of toPause) {
+    completed++;
+    const isLast = completed === totalOps;
+    await pauseContainerMutation(
+      { id: item.containerId },
+      isLast
+        ? {
+            refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+            awaitRefetchQueries: true,
+          }
+        : { awaitRefetchQueries: false }
+    );
+  }
+  for (const item of toResume) {
+    completed++;
+    const isLast = completed === totalOps;
+    await unpauseContainerMutation(
+      { id: item.containerId },
+      isLast
+        ? {
+            refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+            awaitRefetchQueries: true,
+          }
+        : { awaitRefetchQueries: false }
+    );
+  }
+}
+
+function openPauseResume(ids?: string[]) {
+  const sources = ids ?? getSelectedContainerIds();
+  if (sources.length === 0) return;
+  const { toPause, toResume } = classifyPauseResume(sources);
+  const isMixed = toPause.length > 0 && toResume.length > 0;
+  if (isMixed) {
+    pendingPauseResumeIds = sources;
+    confirmToPause.value = toPause.map((i) => ({ name: i.name }));
+    confirmToResume.value = toResume.map((i) => ({ name: i.name }));
+    confirmPauseResumeOpen.value = true;
+    return;
+  }
+  setRowsBusy(sources, true);
+  runPauseResumeBatch(toPause, toResume)
+    .then(() => showToast('Action completed'))
+    .finally(() => {
+      setRowsBusy(sources, false);
+      rowSelection.value = {};
+    });
+}
+
+async function confirmPauseResume(close: () => void) {
+  const { toPause, toResume } = classifyPauseResume(pendingPauseResumeIds);
+  setRowsBusy(pendingPauseResumeIds, true);
+  try {
+    await runPauseResumeBatch(toPause, toResume);
+    showToast('Action completed');
+    rowSelection.value = {};
+  } finally {
+    setRowsBusy(pendingPauseResumeIds, false);
+    confirmPauseResumeOpen.value = false;
+    pendingPauseResumeIds = [];
+    close();
   }
 }
 
@@ -696,6 +813,10 @@ function handleBulkAction(action: string) {
     openStartStop(ids);
     return;
   }
+  if (action === 'Pause / Resume') {
+    openPauseResume(ids);
+    return;
+  }
   showToast(`${action} (${ids.length})`);
 }
 
@@ -712,6 +833,10 @@ function handleRowAction(row: TreeRow, action: string) {
   if (row.type !== 'container') return;
   if (action === 'Start / Stop') {
     handleRowStartStop(row);
+    return;
+  }
+  if (action === 'Pause / Resume') {
+    handleRowPauseResume(row);
     return;
   }
   showToast(`${action}: ${row.name}`);
@@ -941,6 +1066,33 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
       <template #footer="{ close }">
         <UButton color="neutral" variant="outline" @click="close">Cancel</UButton>
         <UButton @click="confirmStartStop(close)">Confirm</UButton>
+      </template>
+    </UModal>
+
+    <UModal
+      v-model:open="confirmPauseResumeOpen"
+      title="Confirm actions"
+      :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50' }"
+    >
+      <template #body>
+        <div class="space-y-3">
+          <div v-if="confirmToPause.length" class="space-y-1">
+            <div class="text-sm font-medium">Will pause</div>
+            <ul class="list-disc pl-5 text-sm text-gray-600 dark:text-gray-300">
+              <li v-for="item in confirmToPause" :key="item.name" class="truncate">{{ item.name }}</li>
+            </ul>
+          </div>
+          <div v-if="confirmToResume.length" class="space-y-1">
+            <div class="text-sm font-medium">Will resume</div>
+            <ul class="list-disc pl-5 text-sm text-gray-600 dark:text-gray-300">
+              <li v-for="item in confirmToResume" :key="item.name" class="truncate">{{ item.name }}</li>
+            </ul>
+          </div>
+        </div>
+      </template>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="outline" @click="close">Cancel</UButton>
+        <UButton @click="confirmPauseResume(close)">Confirm</UButton>
       </template>
     </UModal>
   </div>

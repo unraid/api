@@ -1,7 +1,10 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
+import { type Layout } from '@jsonforms/core';
 import { Node } from '@unraid/shared/graphql.model.js';
 import { GraphQLBigInt, GraphQLJSON, GraphQLPort } from 'graphql-scalars';
+
+import { DataSlice } from '@app/unraid-api/types/json-forms.js';
 
 export enum ContainerPortType {
     TCP = 'TCP',
@@ -29,6 +32,7 @@ export class ContainerPort {
 
 export enum ContainerState {
     RUNNING = 'RUNNING',
+    PAUSED = 'PAUSED',
     EXITED = 'EXITED',
 }
 
@@ -171,4 +175,19 @@ export class Docker extends Node {
 
     @Field(() => [DockerNetwork])
     networks!: DockerNetwork[];
+}
+
+@ObjectType()
+export class DockerContainerOverviewForm {
+    @Field(() => ID)
+    id!: string;
+
+    @Field(() => GraphQLJSON)
+    dataSchema!: { properties: DataSlice; type: 'object' };
+
+    @Field(() => GraphQLJSON)
+    uiSchema!: Layout;
+
+    @Field(() => GraphQLJSON)
+    data!: Record<string, any>;
 }

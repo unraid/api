@@ -243,4 +243,60 @@ export class DockerService {
         await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
         return updatedContainer;
     }
+
+    public async pause(id: string): Promise<DockerContainer> {
+        const container = this.client.getContainer(id);
+        await container.pause();
+        await this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY);
+        this.logger.debug(`Invalidated container cache after pausing ${id}`);
+
+        let containers = await this.getContainers({ skipCache: true });
+        let updatedContainer: DockerContainer | undefined;
+        for (let i = 0; i < 5; i++) {
+            await sleep(500);
+            containers = await this.getContainers({ skipCache: true });
+            updatedContainer = containers.find((c) => c.id === id);
+            this.logger.debug(
+                `Container ${id} state after pause attempt ${i + 1}: ${updatedContainer?.state}`
+            );
+            if (updatedContainer?.state === ContainerState.PAUSED) {
+                break;
+            }
+        }
+
+        if (!updatedContainer) {
+            throw new Error(`Container ${id} not found after pausing`);
+        }
+        const appInfo = await this.getAppInfo();
+        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
+        return updatedContainer;
+    }
+
+    public async unpause(id: string): Promise<DockerContainer> {
+        const container = this.client.getContainer(id);
+        await container.unpause();
+        await this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY);
+        this.logger.debug(`Invalidated container cache after unpausing ${id}`);
+
+        let containers = await this.getContainers({ skipCache: true });
+        let updatedContainer: DockerContainer | undefined;
+        for (let i = 0; i < 5; i++) {
+            await sleep(500);
+            containers = await this.getContainers({ skipCache: true });
+            updatedContainer = containers.find((c) => c.id === id);
+            this.logger.debug(
+                `Container ${id} state after unpause attempt ${i + 1}: ${updatedContainer?.state}`
+            );
+            if (updatedContainer?.state === ContainerState.RUNNING) {
+                break;
+            }
+        }
+
+        if (!updatedContainer) {
+            throw new Error(`Container ${id} not found after unpausing`);
+        }
+        const appInfo = await this.getAppInfo();
+        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
+        return updatedContainer;
+    }
 }
