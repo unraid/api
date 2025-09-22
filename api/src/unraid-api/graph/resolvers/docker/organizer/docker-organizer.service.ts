@@ -51,8 +51,14 @@ export class DockerOrganizerService {
         private readonly dockerService: DockerService
     ) {}
 
-    async getResources(opts?: ContainerListOptions): Promise<OrganizerV1['resources']> {
-        const containers = await this.dockerService.getContainers(opts);
+    async getResources(
+        opts?: Partial<ContainerListOptions> & { skipCache?: boolean }
+    ): Promise<OrganizerV1['resources']> {
+        const { skipCache = false, ...listOptions } = opts ?? {};
+        const containers = await this.dockerService.getContainers({
+            skipCache,
+            ...(listOptions as any),
+        });
         return containerListToResourcesObject(containers);
     }
 
@@ -74,17 +80,20 @@ export class DockerOrganizerService {
         return newOrganizer;
     }
 
-    async syncAndGetOrganizer(): Promise<OrganizerV1> {
+    async syncAndGetOrganizer(opts?: { skipCache?: boolean }): Promise<OrganizerV1> {
         let organizer = this.dockerConfigService.getConfig();
-        organizer.resources = await this.getResources();
+        organizer.resources = await this.getResources(opts);
         organizer = await this.syncDefaultView(organizer, organizer.resources);
         organizer = await this.dockerConfigService.validate(organizer);
         this.dockerConfigService.replaceConfig(organizer);
         return organizer;
     }
 
-    async resolveOrganizer(organizer?: OrganizerV1): Promise<ResolvedOrganizerV1> {
-        organizer ??= await this.syncAndGetOrganizer();
+    async resolveOrganizer(
+        organizer?: OrganizerV1,
+        opts?: { skipCache?: boolean }
+    ): Promise<ResolvedOrganizerV1> {
+        organizer ??= await this.syncAndGetOrganizer(opts);
         return resolveOrganizer(organizer);
     }
 
@@ -192,7 +201,10 @@ export class DockerOrganizerService {
         const newOrganizer = structuredClone(organizer);
 
         deleteOrganizerEntries(newOrganizer.views.default, entryIds, { mutate: true });
-        addMissingResourcesToView(newOrganizer.resources, newOrganizer.views.default);
+        newOrganizer.views.default = addMissingResourcesToView(
+            newOrganizer.resources,
+            newOrganizer.views.default
+        );
 
         const validated = await this.dockerConfigService.validate(newOrganizer);
         this.dockerConfigService.replaceConfig(validated);
