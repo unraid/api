@@ -44,10 +44,11 @@ export class DockerFormService {
                 type: 'object',
                 properties: dataSchema,
             },
-            uiSchema,
-            data: {
-                containers: tableData,
+            uiSchema: {
+                type: 'VerticalLayout',
+                elements: [uiSchema],
             },
+            data: tableData,
         };
     }
 
@@ -99,72 +100,11 @@ export class DockerFormService {
 
     private createUiSchema(): UISchemaElement {
         return {
-            type: 'VerticalLayout',
-            elements: [
-                {
-                    type: 'Control',
-                    scope: '#/properties/containers',
-                    options: {
-                        detail: {
-                            type: 'HorizontalLayout',
-                            elements: [
-                                {
-                                    type: 'Control',
-                                    scope: '#/properties/name',
-                                    options: {
-                                        trim: true,
-                                        readonly: true,
-                                    },
-                                },
-                                {
-                                    type: 'Control',
-                                    scope: '#/properties/state',
-                                    options: {
-                                        readonly: true,
-                                        format: 'badge',
-                                    },
-                                },
-                                {
-                                    type: 'Control',
-                                    scope: '#/properties/status',
-                                    options: {
-                                        readonly: true,
-                                    },
-                                },
-                                {
-                                    type: 'Control',
-                                    scope: '#/properties/image',
-                                    options: {
-                                        readonly: true,
-                                        trim: true,
-                                    },
-                                },
-                                {
-                                    type: 'Control',
-                                    scope: '#/properties/ports',
-                                    options: {
-                                        readonly: true,
-                                    },
-                                },
-                                {
-                                    type: 'Control',
-                                    scope: '#/properties/autoStart',
-                                    options: {
-                                        readonly: true,
-                                    },
-                                },
-                                {
-                                    type: 'Control',
-                                    scope: '#/properties/network',
-                                    options: {
-                                        readonly: true,
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                },
-            ],
+            type: 'Control',
+            scope: '#',
+            options: {
+                variant: 'table',
+            },
         };
     }
 }
