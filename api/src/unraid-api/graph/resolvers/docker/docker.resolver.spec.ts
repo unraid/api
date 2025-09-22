@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
@@ -29,6 +30,12 @@ describe('DockerResolver', () => {
                     useValue: {
                         getContainers: vi.fn(),
                         getNetworks: vi.fn(),
+                    },
+                },
+                {
+                    provide: DockerFormService,
+                    useValue: {
+                        getContainerOverviewForm: vi.fn(),
                     },
                 },
                 {

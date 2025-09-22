@@ -695,6 +695,11 @@ export type DockerNetworksArgs = {
   skipCache?: Scalars['Boolean']['input'];
 };
 
+
+export type DockerOrganizerArgs = {
+  skipCache?: Scalars['Boolean']['input'];
+};
+
 export type DockerContainer = Node & {
   __typename?: 'DockerContainer';
   autoStart: Scalars['Boolean']['output'];
@@ -715,6 +720,14 @@ export type DockerContainer = Node & {
   sizeRootFs?: Maybe<Scalars['BigInt']['output']>;
   state: ContainerState;
   status: Scalars['String']['output'];
+};
+
+export type DockerContainerOverviewForm = {
+  __typename?: 'DockerContainerOverviewForm';
+  data: Scalars['JSON']['output'];
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['ID']['output'];
+  uiSchema: Scalars['JSON']['output'];
 };
 
 export type DockerMutations = {
@@ -1663,6 +1676,7 @@ export type Query = {
   disk: Disk;
   disks: Array<Disk>;
   docker: Docker;
+  dockerContainerOverviewForm: DockerContainerOverviewForm;
   flash: Flash;
   /** Get JSON Schema for API key creation form */
   getApiKeyCreationFormSchema: ApiKeyFormSettings;
@@ -1723,6 +1737,11 @@ export type QueryApiKeyArgs = {
 
 export type QueryDiskArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryDockerContainerOverviewFormArgs = {
+  skipCache?: Scalars['Boolean']['input'];
 };
 
 

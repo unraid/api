@@ -862,6 +862,12 @@ type DockerMutations {
 
   """Stop a container"""
   stop(id: PrefixedID!): DockerContainer!
+
+  """Pause (Suspend) a container"""
+  pause(id: PrefixedID!): DockerContainer!
+
+  """Unpause (Resume) a container"""
+  unpause(id: PrefixedID!): DockerContainer!
 }
 
 type VmMutations {
@@ -1108,6 +1114,7 @@ type DockerContainer implements Node {
 
 enum ContainerState {
   RUNNING
+  PAUSED
   EXITED
 }
 
@@ -1133,8 +1140,15 @@ type Docker implements Node {
   id: PrefixedID!
   containers(skipCache: Boolean! = false): [DockerContainer!]!
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
-  organizer: ResolvedOrganizerV1!
+  organizer(skipCache: Boolean! = false): ResolvedOrganizerV1!
   containerUpdateStatuses: [ExplicitStatusItem!]!
+}
+
+type DockerContainerOverviewForm {
+  id: ID!
+  dataSchema: JSON!
+  uiSchema: JSON!
+  data: JSON!
 }
 
 type ResolvedOrganizerView {
@@ -2388,6 +2402,7 @@ type Query {
   publicPartnerInfo: PublicPartnerInfo
   publicTheme: Theme!
   docker: Docker!
+  dockerContainerOverviewForm(skipCache: Boolean! = false): DockerContainerOverviewForm!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
   rclone: RCloneBackupSettings!
