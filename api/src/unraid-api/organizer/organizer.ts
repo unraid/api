@@ -58,10 +58,25 @@ export function addMissingResourcesToView(
     };
     const root = view.entries[view.root]! as OrganizerFolder;
     const rootChildren = new Set(root.children);
+    // Track if a resource id is already referenced in any folder
+    const referencedIds = new Set<string>();
+    Object.values(view.entries).forEach((entry) => {
+        if (entry.type === 'folder') {
+            for (const childId of entry.children) referencedIds.add(childId);
+        }
+    });
 
     Object.entries(resources).forEach(([id, resource]) => {
-        if (!view.entries[id]) {
+        const existsInEntries = Boolean(view.entries[id]);
+        const isReferencedSomewhere = referencedIds.has(id);
+
+        // Ensure a ref entry exists for the resource id
+        if (!existsInEntries) {
             view.entries[id] = resourceToResourceRef(resource, (resource) => resource.id);
+        }
+
+        // Only add to root if the resource is not already referenced elsewhere
+        if (!isReferencedSomewhere) {
             rootChildren.add(id);
         }
     });
