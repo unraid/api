@@ -263,4 +263,39 @@ describe('addMissingResourcesToView', () => {
         expect(result.entries['key-different-from-id'].id).toBe('actual-resource-id');
         expect((result.entries['root1'] as OrganizerFolder).children).toContain('key-different-from-id');
     });
+
+    it("does not re-add resources to root if they're already referenced in any folder", () => {
+        const resources: OrganizerV1['resources'] = {
+            resourceA: { id: 'resourceA', type: 'container', name: 'A' },
+            resourceB: { id: 'resourceB', type: 'container', name: 'B' },
+        };
+
+        const originalView: OrganizerView = {
+            id: 'view1',
+            name: 'Test View',
+            root: 'root1',
+            entries: {
+                root1: {
+                    id: 'root1',
+                    type: 'folder',
+                    name: 'Root',
+                    children: ['stuff'],
+                },
+                stuff: {
+                    id: 'stuff',
+                    type: 'folder',
+                    name: 'Stuff',
+                    children: ['resourceA', 'resourceB'],
+                },
+                resourceA: { id: 'resourceA', type: 'ref', target: 'resourceA' },
+                resourceB: { id: 'resourceB', type: 'ref', target: 'resourceB' },
+            },
+        };
+
+        const result = addMissingResourcesToView(resources, originalView);
+
+        // Root should still only contain the 'stuff' folder, not the resources
+        const rootChildren = (result.entries['root1'] as OrganizerFolder).children;
+        expect(rootChildren).toEqual(['stuff']);
+    });
 });
