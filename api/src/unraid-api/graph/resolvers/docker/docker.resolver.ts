@@ -5,11 +5,13 @@ import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { UseFeatureFlag } from '@app/unraid-api/decorators/use-feature-flag.decorator.js';
+import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { ExplicitStatusItem } from '@app/unraid-api/graph/resolvers/docker/docker-update-status.model.js';
 import {
     Docker,
     DockerContainer,
+    DockerContainerOverviewForm,
     DockerNetwork,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
@@ -22,6 +24,7 @@ import { GraphQLFieldHelper } from '@app/unraid-api/utils/graphql-field-helper.j
 export class DockerResolver {
     constructor(
         private readonly dockerService: DockerService,
+        private readonly dockerFormService: DockerFormService,
         private readonly dockerOrganizerService: DockerOrganizerService,
         private readonly dockerPhpService: DockerPhpService
     ) {}
@@ -61,14 +64,27 @@ export class DockerResolver {
         return this.dockerService.getNetworks({ skipCache });
     }
 
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DOCKER,
+    })
+    @Query(() => DockerContainerOverviewForm)
+    public async dockerContainerOverviewForm(
+        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
+    ) {
+        return this.dockerFormService.getContainerOverviewForm(skipCache);
+    }
+
     @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
     })
     @ResolveField(() => ResolvedOrganizerV1)
-    public async organizer() {
-        return this.dockerOrganizerService.resolveOrganizer();
+    public async organizer(
+        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
+    ) {
+        return this.dockerOrganizerService.resolveOrganizer(undefined, { skipCache });
     }
 
     @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
