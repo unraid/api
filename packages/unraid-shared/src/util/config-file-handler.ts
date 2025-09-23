@@ -52,6 +52,9 @@ export class ConfigFileHandler<T extends object> {
   async loadConfig(): Promise<T> {
     const defaultConfig = this.definition.defaultConfig();
 
+    const configPath = this.definition.configPath();
+    const configFileExists = await fileExists(configPath);
+
     try {
       const fileConfig = await this.readConfigFile();
       return await this.definition.validate({
@@ -59,7 +62,13 @@ export class ConfigFileHandler<T extends object> {
         ...fileConfig,
       });
     } catch (error) {
-      this.logger.debug(error, "Error loading config. Attempting to migrate...");
+      if (!configFileExists) {
+        this.logger.debug(
+          `No existing config found at '${configPath}'. Attempting migration...`
+        );
+      } else {
+        this.logger.warn(error, "Error loading config. Attempting to migrate...");
+      }
 
       try {
         const migratedConfig = await this.definition.migrateConfig();
@@ -80,11 +89,11 @@ export class ConfigFileHandler<T extends object> {
   /**
    * Reads and validates configuration from file.
    *
-   * @param configPath - Path to config file (defaults to `configPath()`)
    * @returns Validated configuration object from disk
    * @throws Error if file doesn't exist, contains invalid JSON, or fails validation
    */
-  async readConfigFile(configPath = this.definition.configPath()): Promise<T> {
+  async readConfigFile(): Promise<T> {
+    const configPath = this.definition.configPath();
     if (!(await fileExists(configPath))) {
       throw new Error(`Config file does not exist at '${configPath}'`);
     }
