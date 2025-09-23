@@ -482,6 +482,13 @@ if [ "$SKIP_API_INSTALL" = false ]; then
     rm -rf "/usr/local/unraid-api/node_modules"
   fi
 
+  # Clean up pkgtools removal logs left behind by prior uninstall operations
+  REMOVE_PKG_LOG_DIR="/var/log/pkgtools/removed_packages/dynamix.unraid.net"
+  if [ -d "$REMOVE_PKG_LOG_DIR" ]; then
+    echo "Cleaning up pkgtools removed_packages logs..."
+    find "$REMOVE_PKG_LOG_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+  fi
+
   # Clear existing unraid-components directory contents to ensure clean installation
   echo "Cleaning up existing unraid-components directory..."
   DIR="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
