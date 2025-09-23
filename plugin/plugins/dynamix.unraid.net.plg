@@ -480,7 +480,7 @@ if [ "$SKIP_API_INSTALL" = false ]; then
   if [ -d "/usr/local/unraid-api/node_modules" ]; then
     echo "Removing: /usr/local/unraid-api/node_modules"
     rm -rf "/usr/local/unraid-api/node_modules"
-    fi
+  fi
 
   # Clean up pkgtools removal logs left behind by prior uninstall operations
   REMOVE_PKG_LOG_DIR="/var/log/pkgtools/removed_packages/dynamix.unraid.net"
