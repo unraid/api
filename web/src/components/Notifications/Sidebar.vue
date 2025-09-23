@@ -212,7 +212,7 @@ const prepareToViewNotifications = () => {
                 :key="option.label"
                 :variant="importance === option.value ? 'pill-orange' : 'pill-gray'"
                 size="sm"
-                class="px-2"
+                class="h-8 px-3"
                 :aria-pressed="importance === option.value"
                 @click="importance = option.value"
               >
