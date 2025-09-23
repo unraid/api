@@ -28,6 +28,7 @@ import { getRequest } from '@app/utils.js';
         CasbinModule,
         AuthZModule.register({
             imports: [CasbinModule],
+            enablePossession: false,
             enforcerProvider: {
                 provide: AUTHZ_ENFORCER,
                 useFactory: async (casbinService: CasbinService) => {
