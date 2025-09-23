@@ -211,7 +211,8 @@ const prepareToViewNotifications = () => {
                 v-for="option in filterOptions"
                 :key="option.label"
                 :variant="importance === option.value ? 'pill-orange' : 'pill-gray'"
-                class="text-xs"
+                size="sm"
+                class="px-2"
                 :aria-pressed="importance === option.value"
                 @click="importance = option.value"
               >
