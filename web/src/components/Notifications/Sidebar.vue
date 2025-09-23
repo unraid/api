@@ -4,7 +4,6 @@ import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
 import {
   Button,
-  Select,
   Sheet,
   SheetContent,
   SheetHeader,
@@ -46,9 +45,8 @@ const { mutate: recalculateOverview } = useMutation(resetOverview);
 const { confirm } = useConfirm();
 const importance = ref<Importance | undefined>(undefined);
 
-const filterItems = [
-  { type: 'label' as const, label: 'Notification Types' },
-  { label: 'All Types', value: 'all' },
+const filterOptions: Array<{ label: string; value?: Importance }> = [
+  { label: 'All Types' },
   { label: 'Alert', value: Importance.ALERT },
   { label: 'Info', value: Importance.INFO },
   { label: 'Warning', value: Importance.WARNING },
@@ -204,17 +202,22 @@ const prepareToViewNotifications = () => {
           </div>
 
           <div class="mt-2 flex items-center justify-between gap-2 px-3">
-            <Select
-              :items="filterItems"
-              placeholder="Filter By"
-              class="h-8 px-3 text-sm"
-              @update:model-value="
-                (val: unknown) => {
-                  const strVal = String(val);
-                  importance = strVal === 'all' || !strVal ? undefined : (strVal as Importance);
-                }
-              "
-            />
+            <div
+              class="flex flex-wrap items-center gap-2"
+              role="group"
+              aria-label="Filter notifications by type"
+            >
+              <Button
+                v-for="option in filterOptions"
+                :key="option.label"
+                :variant="importance === option.value ? 'pill-orange' : 'pill-gray'"
+                class="text-xs"
+                :aria-pressed="importance === option.value"
+                @click="importance = option.value"
+              >
+                {{ option.label }}
+              </Button>
+            </div>
             <TooltipProvider>
               <Tooltip :delay-duration="0">
                 <TooltipTrigger as-child>
