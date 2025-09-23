@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.24.1](https://github.com/unraid/api/compare/v4.24.0...v4.24.1) (2025-09-23)
+
+
+### Bug Fixes
+
+* cleanup leftover removed packages on upgrade ([#1719](https://github.com/unraid/api/issues/1719)) ([9972a5f](https://github.com/unraid/api/commit/9972a5f178f9a251e6c129d85c5f11cfd25e6281))
+* enhance version comparison logic in installation script ([d9c561b](https://github.com/unraid/api/commit/d9c561bfebed0c553fe4bfa26b088ae71ca59755))
+* issue with incorrect permissions on viewer / other roles ([378cdb7](https://github.com/unraid/api/commit/378cdb7f102f63128dd236c13f1a3745902d5a2c))
+
 ## [4.24.0](https://github.com/unraid/api/compare/v4.23.1...v4.24.0) (2025-09-18)
 
 
