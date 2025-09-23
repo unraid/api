@@ -417,10 +417,20 @@ compare_versions() {
   local ver1="$1"
   local ver2="$2"
 
+  # Normalize versions: drop leading 'v' and ignore build metadata (+...) for semver parity
+  local norm_ver1="${ver1#v}"
+  norm_ver1="${norm_ver1%%+*}"
+  local norm_ver2="${ver2#v}"
+  norm_ver2="${norm_ver2%%+*}"
+
+  if [ "$norm_ver1" = "$norm_ver2" ]; then
+    return 2
+  fi
+
   # Use PHP's version_compare which handles semantic versioning properly
-  result=$(php -r "
-    \$v1 = ltrim('$ver1', 'v');
-    \$v2 = ltrim('$ver2', 'v');
+  result=$(PHP_VER1="$norm_ver1" PHP_VER2="$norm_ver2" php -r "
+    \$v1 = getenv('PHP_VER1');
+    \$v2 = getenv('PHP_VER2');
     \$cmp = version_compare(\$v1, \$v2);
     if (\$cmp > 0) echo '0';
     elseif (\$cmp < 0) echo '1';
