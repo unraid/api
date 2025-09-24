@@ -47,6 +47,24 @@ const UContextMenu = resolveComponent('UContextMenu');
 const UModal = resolveComponent('UModal');
 const USkeleton = resolveComponent('USkeleton') as Component;
 
+// --- Drag and Drop state ---
+type DropArea = 'before' | 'after' | 'inside';
+const draggingIds = ref<string[]>([]);
+const dragOverState = ref<{ rowId: string; area: DropArea | null } | null>(null);
+
+function isDraggingId(id: string): boolean {
+  return draggingIds.value.includes(id);
+}
+
+function computeDropArea(e: DragEvent, el: HTMLElement): DropArea {
+  const rect = el.getBoundingClientRect();
+  const y = e.clientY - rect.top;
+  const threshold = Math.max(8, rect.height * 0.3);
+  if (y < threshold) return 'before';
+  if (y > rect.height - threshold) return 'after';
+  return 'inside';
+}
+
 function formatPorts(container?: DockerContainer | null): string {
   if (!container) return '';
   return container.ports
@@ -128,6 +146,23 @@ const treeData = computed<TreeRow[]>(() => {
   return props.containers.map((container) => toContainerTreeRow(container));
 });
 
+// Map every entry id (folders and resources) to its parent folder id for organizer trees
+const entryParentById = computed<Record<string, string>>(() => {
+  const map: Record<string, string> = {};
+  function walk(node?: ResolvedOrganizerFolder | null) {
+    if (!node) return;
+    for (const child of node.children || []) {
+      const id = (child as { id?: string }).id as string | undefined;
+      if (id) map[id] = node.id;
+      if ((child as ResolvedOrganizerEntry).__typename === 'ResolvedOrganizerFolder') {
+        walk(child as ResolvedOrganizerFolder);
+      }
+    }
+  }
+  walk(props.organizerRoot);
+  return map;
+});
+
 type ActionDropdownItem = { label: string; icon?: string; onSelect?: (e?: Event) => void; as?: string };
 type CheckboxDropdownItem = {
   label: string;
@@ -142,18 +177,75 @@ type DropdownMenuItems = DropdownMenuItem[][];
 function wrapCell(row: { original: TreeRow; depth?: number }, child: VNode) {
   const isBusy = busyRowIds.value.has((row.original as TreeRow).id);
   const isActive = props.activeId !== null && props.activeId === (row.original as TreeRow).id;
+  const over = dragOverState.value?.rowId === row.original.id ? dragOverState.value.area : null;
   const content = h(
     'div',
     {
       'data-row-id': row.original.id,
+      draggable:
+        (row.original as TreeRow).type === 'container' || (row.original as TreeRow).type === 'folder',
       class: `block w-full h-full px-3 py-2 ${
         isBusy ? 'opacity-50 pointer-events-none select-none' : ''
       } ${isActive ? 'bg-primary-50 dark:bg-primary-950/30' : ''} ${
         (row.original as TreeRow).type === 'container' ? 'cursor-pointer' : ''
+      } ${
+        over === 'before'
+          ? 'border-t-2 border-primary'
+          : over === 'after'
+            ? 'border-b-2 border-primary'
+            : over === 'inside'
+              ? 'ring-2 ring-primary/40'
+              : ''
       }`,
       onClick: () => {
         const r = row.original as TreeRow;
         emit('row:click', { id: r.id, type: r.type, name: r.name, containerId: r.containerId });
+      },
+      onDragstart: (e: DragEvent) => {
+        if (isBusy) return;
+        const r = row.original as TreeRow;
+        const selected = getSelectedEntryIds();
+        const ids =
+          selected.length && isDraggingId(r.id)
+            ? selected
+            : selected.length && (rowSelection.value[r.id] || false)
+              ? selected
+              : [r.id];
+        draggingIds.value = Array.from(new Set(ids));
+        try {
+          e.dataTransfer?.setData('text/plain', draggingIds.value.join(','));
+          if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+        } catch (err) {
+          // ignore
+        }
+      },
+      onDragover: (e: DragEvent) => {
+        // Allow dropping if something is being dragged
+        if (!draggingIds.value.length) return;
+        // Prevent dropping onto self in ways that do nothing (still allow to get proper area for siblings)
+        e.preventDefault();
+        const targetEl = e.currentTarget as HTMLElement;
+        const area = computeDropArea(e, targetEl);
+        dragOverState.value = { rowId: row.original.id, area };
+      },
+      onDragleave: () => {
+        if (dragOverState.value?.rowId === row.original.id) dragOverState.value = null;
+      },
+      onDrop: async (e: DragEvent) => {
+        e.preventDefault();
+        const r = row.original as TreeRow;
+        const targetEl = e.currentTarget as HTMLElement;
+        const area = computeDropArea(e, targetEl);
+        const ids = draggingIds.value.length
+          ? draggingIds.value
+          : (e.dataTransfer?.getData('text/plain') || '').split(',').filter(Boolean);
+        await handleDropOnRow(r, area, ids);
+        draggingIds.value = [];
+        dragOverState.value = null;
+      },
+      onDragend: () => {
+        draggingIds.value = [];
+        dragOverState.value = null;
       },
     },
     [child]
@@ -803,6 +895,150 @@ const folderChildrenIds = computed<Record<string, string[]>>(() => {
   walk(props.organizerRoot);
   return map;
 });
+
+function getFolderChildrenList(folderId: string): string[] {
+  return [...(folderChildrenIds.value[folderId] || [])];
+}
+
+function computeInsertIndex(children: string[], targetId: string, area: DropArea): number {
+  const idx = Math.max(0, children.indexOf(targetId));
+  return area === 'before' ? idx : idx + 1;
+}
+
+async function reorderWithinFolder(
+  folderId: string,
+  movingIds: string[],
+  targetId: string,
+  area: DropArea
+) {
+  const current = getFolderChildrenList(folderId);
+  const removeSet = new Set(movingIds);
+  const filtered = current.filter((id) => !removeSet.has(id));
+  const insertIndex = computeInsertIndex(filtered, targetId, area);
+  const finalIds = [
+    ...filtered.slice(0, insertIndex),
+    ...movingIds.filter((id) => id !== targetId),
+    ...filtered.slice(insertIndex),
+  ];
+  await setFolderChildrenMutation(
+    { folderId, childrenIds: finalIds },
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
+  );
+}
+
+async function moveAcrossFoldersWithPosition(
+  destinationFolderId: string,
+  movingIds: string[],
+  targetId: string,
+  area: DropArea
+) {
+  await moveEntriesMutation(
+    { destinationFolderId, sourceEntryIds: movingIds },
+    { awaitRefetchQueries: true }
+  );
+  const current = getFolderChildrenList(destinationFolderId).filter((id) => !movingIds.includes(id));
+  const insertIndex = computeInsertIndex(current, targetId, area);
+  const finalIds = [
+    ...current.slice(0, insertIndex),
+    ...movingIds.filter((id) => id !== targetId),
+    ...current.slice(insertIndex),
+  ];
+  await setFolderChildrenMutation(
+    { folderId: destinationFolderId, childrenIds: finalIds },
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
+  );
+}
+
+async function moveIntoFolder(destinationFolderId: string, movingIds: string[]) {
+  const current = getFolderChildrenList(destinationFolderId).filter((id) => !movingIds.includes(id));
+  const finalIds = [...current, ...movingIds];
+  // If entries are already in this folder, simple reorder will handle; ensure removal from other parents if needed
+  const allInSameParent = movingIds.every(
+    (id) => (entryParentById.value[id] || rootFolderId.value) === destinationFolderId
+  );
+  if (!allInSameParent) {
+    await moveEntriesMutation(
+      { destinationFolderId, sourceEntryIds: movingIds },
+      { awaitRefetchQueries: true }
+    );
+  }
+  await setFolderChildrenMutation(
+    { folderId: destinationFolderId, childrenIds: finalIds },
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
+  );
+}
+
+async function createFolderFromDrop(containerEntryId: string, movingIds: string[]) {
+  const parentId = entryParentById.value[containerEntryId] || rootFolderId.value;
+  const parentChildren = getFolderChildrenList(parentId);
+  const targetIndex = parentChildren.indexOf(containerEntryId);
+  const name = window.prompt('New folder name?')?.trim();
+  if (!name) return;
+  await createFolderMutation(
+    { name, parentId, childrenIds: [] },
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
+  );
+  const toMove = [containerEntryId, ...movingIds.filter((id) => id !== containerEntryId)];
+  await moveEntriesMutation(
+    { destinationFolderId: name, sourceEntryIds: toMove },
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
+  );
+  const updated = getFolderChildrenList(parentId).filter((id) => !toMove.includes(id));
+  const final = [
+    ...updated.slice(0, Math.max(0, targetIndex)),
+    name,
+    ...updated.slice(Math.max(0, targetIndex)),
+  ];
+  await setFolderChildrenMutation(
+    { folderId: parentId, childrenIds: final },
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
+  );
+  showToast('Folder created');
+}
+
+async function handleDropOnRow(target: TreeRow, area: DropArea, movingIds: string[]) {
+  if (!props.organizerRoot) return;
+  if (!movingIds.length) return;
+  if (movingIds.includes(target.id)) return;
+  if (target.type === 'folder' && area === 'inside') {
+    await moveIntoFolder(target.id, movingIds);
+    rowSelection.value = {};
+    return;
+  }
+  if (target.type === 'container' && area === 'inside') {
+    await createFolderFromDrop(target.id, movingIds);
+    rowSelection.value = {};
+    return;
+  }
+  const parentId = entryParentById.value[target.id] || rootFolderId.value;
+  const sameParent = movingIds.every(
+    (id) => (entryParentById.value[id] || rootFolderId.value) === parentId
+  );
+  if (sameParent) {
+    await reorderWithinFolder(parentId, movingIds, target.id, area);
+  } else {
+    await moveAcrossFoldersWithPosition(parentId, movingIds, target.id, area);
+  }
+  rowSelection.value = {};
+}
 
 function getSelectedEntryIds(): string[] {
   return Object.entries(rowSelection.value)
