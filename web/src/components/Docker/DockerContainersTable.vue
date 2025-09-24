@@ -250,21 +250,18 @@ function wrapCell(row: { original: TreeRow; depth?: number }, child: VNode) {
     },
     [child]
   );
-  if ((row.original as TreeRow).type === 'container') {
-    return h(
-      UContextMenu,
-      {
-        items: getRowActionItems(row.original as TreeRow),
-        size: 'md',
-        ui: {
-          content: 'overflow-x-hidden z-50',
-          item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
-        },
+  return h(
+    UContextMenu,
+    {
+      items: getRowActionItems(row.original as TreeRow),
+      size: 'md',
+      ui: {
+        content: 'overflow-x-hidden z-50',
+        item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
       },
-      { default: () => content }
-    );
-  }
-  return content;
+    },
+    { default: () => content }
+  );
 }
 
 const columns = computed<TableColumn<TreeRow>[]>(() => {
@@ -405,7 +402,6 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
       id: 'actions',
       header: '',
       cell: ({ row }) => {
-        if ((row.original as TreeRow).type === 'folder') return '';
         const items = getRowActionItems(row.original as TreeRow);
         return wrapCell(
           row,
@@ -1250,6 +1246,24 @@ const bulkItems = computed<DropdownMenuItems>(() => [
 ]);
 
 function getRowActionItems(row: TreeRow): DropdownMenuItems {
+  if (row.type === 'folder') {
+    return [
+      [
+        {
+          label: 'Rename',
+          icon: 'i-lucide-pencil',
+          as: 'button',
+          onSelect: () => renameFolderInteractive(row.id, row.name),
+        },
+        {
+          label: 'Delete',
+          icon: 'i-lucide-trash',
+          as: 'button',
+          onSelect: () => deleteFolderById(row.id),
+        },
+      ],
+    ];
+  }
   return [
     [
       {
@@ -1280,6 +1294,40 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
       },
     ],
   ];
+}
+
+async function renameFolderInteractive(id: string, currentName: string) {
+  if (!id || id === rootFolderId.value) return;
+  const proposed = window.prompt('New folder name?', currentName)?.trim();
+  if (!proposed || proposed === id) return;
+  const parentId = parentById.value[id] || rootFolderId.value;
+  const children = folderChildrenIds.value[id] || [];
+  await createFolderMutation(
+    { name: proposed, parentId, childrenIds: children },
+    { awaitRefetchQueries: true }
+  );
+  await setFolderChildrenMutation({ folderId: id, childrenIds: [] }, { awaitRefetchQueries: true });
+  await deleteEntriesMutation(
+    { entryIds: [id] },
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
+  );
+  showToast('Folder renamed');
+}
+
+async function deleteFolderById(id: string) {
+  if (!id || id === rootFolderId.value) return;
+  if (!confirm('Delete this folder? Contents will move to root.')) return;
+  await deleteEntriesMutation(
+    { entryIds: [id] },
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
+  );
+  showToast('Folder deleted');
 }
 </script>
 
