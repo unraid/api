@@ -26,10 +26,16 @@ interface Props {
   containers: DockerContainer[];
   organizerRoot?: ResolvedOrganizerFolder;
   loading?: boolean;
+  compact?: boolean;
+  activeId?: string | null;
+  selectedIds?: string[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
+  compact: false,
+  activeId: null,
+  selectedIds: () => [],
 });
 
 const UButton = resolveComponent('UButton');
@@ -133,13 +139,22 @@ type CheckboxDropdownItem = {
 type DropdownMenuItem = ActionDropdownItem | CheckboxDropdownItem;
 type DropdownMenuItems = DropdownMenuItem[][];
 
-function wrapCell(row: { original: TreeRow }, child: VNode) {
+function wrapCell(row: { original: TreeRow; depth?: number }, child: VNode) {
   const isBusy = busyRowIds.value.has((row.original as TreeRow).id);
+  const isActive = props.activeId !== null && props.activeId === (row.original as TreeRow).id;
   const content = h(
     'div',
     {
       'data-row-id': row.original.id,
-      class: `block w-full h-full px-3 py-2 ${isBusy ? 'opacity-50 pointer-events-none select-none' : ''}`,
+      class: `block w-full h-full px-3 py-2 ${
+        isBusy ? 'opacity-50 pointer-events-none select-none' : ''
+      } ${isActive ? 'bg-primary-50 dark:bg-primary-950/30' : ''} ${
+        (row.original as TreeRow).type === 'container' ? 'cursor-pointer' : ''
+      }`,
+      onClick: () => {
+        const r = row.original as TreeRow;
+        emit('row:click', { id: r.id, type: r.type, name: r.name, containerId: r.containerId });
+      },
     },
     [child]
   );
@@ -165,14 +180,16 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
     {
       id: 'select',
       header: ({ table }) =>
-        h(UCheckbox, {
-          modelValue: table.getIsSomePageRowsSelected()
-            ? 'indeterminate'
-            : table.getIsAllPageRowsSelected(),
-          'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
-            table.toggleAllPageRowsSelected(!!value),
-          'aria-label': 'Select all',
-        }),
+        props.compact
+          ? ''
+          : h(UCheckbox, {
+              modelValue: table.getIsSomePageRowsSelected()
+                ? 'indeterminate'
+                : table.getIsAllPageRowsSelected(),
+              'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
+                table.toggleAllPageRowsSelected(!!value),
+              'aria-label': 'Select all',
+            }),
       cell: ({ row }) => {
         switch ((row.original as TreeRow).type) {
           case 'container':
@@ -180,8 +197,20 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
               row,
               h(UCheckbox, {
                 modelValue: row.getIsSelected(),
-                'onUpdate:modelValue': (value: boolean | 'indeterminate') => row.toggleSelected(!!value),
+                'onUpdate:modelValue': (value: boolean | 'indeterminate') => {
+                  const next = !!value;
+                  row.toggleSelected(next);
+                  const r = row.original as TreeRow;
+                  emit('row:select', {
+                    id: r.id,
+                    type: r.type,
+                    name: r.name,
+                    containerId: r.containerId,
+                    selected: next,
+                  });
+                },
                 'aria-label': 'Select row',
+                onClick: (e: Event) => e.stopPropagation(),
               })
             );
           case 'folder':
@@ -201,7 +230,10 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
                     row.getIsExpanded() ? 'duration-200 rotate-0' : '',
                   ],
                 },
-                onClick: () => row.toggleExpanded(),
+                onClick: (e: Event) => {
+                  e.stopPropagation();
+                  row.toggleExpanded();
+                },
               })
             );
           default:
@@ -214,7 +246,7 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
     },
     {
       accessorKey: 'name',
-      header: 'Name',
+      header: props.compact ? '' : 'Name',
       cell: ({ row }) => {
         const depth = row.depth;
         const indent = h('span', { class: 'inline-block', style: { width: `calc(${depth} * 1rem)` } });
@@ -335,6 +367,23 @@ watch(
   { deep: true }
 );
 
+// Compact mode defaults: only select + name columns visible
+watch(
+  () => props.compact,
+  (isCompact) => {
+    if (isCompact) {
+      columnVisibility.value = {
+        state: false,
+        ports: false,
+        autoStart: false,
+        updates: false,
+        actions: false,
+      };
+    }
+  },
+  { immediate: true }
+);
+
 const columnsMenuItems = computed<DropdownMenuItems>(() => {
   const keysFromColumns = (columns.value || [])
     .map((col: TableColumn<TreeRow>) => {
@@ -371,7 +420,54 @@ const columnsMenuItems = computed<DropdownMenuItems>(() => {
 
 const emit = defineEmits<{
   (e: 'created-folder'): void;
+  (
+    e: 'row:click',
+    payload: { id: string; type: 'container' | 'folder'; name: string; containerId?: string }
+  ): void;
+  (
+    e: 'row:select',
+    payload: {
+      id: string;
+      type: 'container' | 'folder';
+      name: string;
+      containerId?: string;
+      selected: boolean;
+    }
+  ): void;
+  (e: 'update:selectedIds', value: string[]): void;
 }>();
+
+function flattenContainerRows(rows: TreeRow[]): TreeRow[] {
+  const out: TreeRow[] = [];
+  for (const r of rows) {
+    if (r.type === 'container') out.push(r);
+    if (r.children && r.children.length) out.push(...flattenContainerRows(r.children as TreeRow[]));
+  }
+  return out;
+}
+
+// Sync external selectedIds into table rowSelection
+watch(
+  [() => props.selectedIds, treeData],
+  () => {
+    const target = new Set(props.selectedIds || []);
+    const next: Record<string, boolean> = {};
+    for (const r of flattenContainerRows(treeData.value)) {
+      next[r.id] = target.has(r.id);
+    }
+    rowSelection.value = next;
+  },
+  { immediate: true }
+);
+
+// Emit external selectedIds when selection changes
+watch(
+  rowSelection,
+  () => {
+    emit('update:selectedIds', getSelectedContainerIds());
+  },
+  { deep: true }
+);
 
 const { mutate: createFolderMutation, loading: creating } = useMutation(CREATE_DOCKER_FOLDER);
 const { mutate: moveEntriesMutation, loading: moving } = useMutation(MOVE_DOCKER_ENTRIES_TO_FOLDER);
@@ -953,7 +1049,7 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
 
 <template>
   <div class="w-full">
-    <div class="mb-3 flex items-center gap-2">
+    <div v-if="!compact" class="mb-3 flex items-center gap-2">
       <UInput v-model="globalFilter" class="max-w-sm min-w-[12ch]" placeholder="Filter..." />
       <UDropdownMenu :items="columnsMenuItems" size="md" :ui="{ content: 'z-40' }">
         <UButton color="neutral" variant="outline" size="md" trailing-icon="i-lucide-chevron-down">
@@ -990,7 +1086,7 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
       :get-sub-rows="(row: any) => row.children"
       :column-filters-options="{ filterFromLeafRows: true }"
       :loading="loading"
-      :ui="{ td: 'p-0 empty:p-0' }"
+      :ui="{ td: 'p-0 empty:p-0', thead: compact ? 'hidden' : '', th: compact ? 'hidden' : '' }"
       sticky
       class="flex-1"
     />
