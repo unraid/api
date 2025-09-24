@@ -1372,7 +1372,7 @@ async function deleteFolderById(id: string) {
       :loading="loading"
       :ui="{ td: 'p-0 empty:p-0', thead: compact ? 'hidden' : '', th: compact ? 'hidden' : '' }"
       sticky
-      class="flex-1"
+      class="flex-1 pb-2"
     />
     <div v-if="!loading && treeData.length === 0" class="py-8 text-center text-gray-500">
       No containers found
