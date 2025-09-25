@@ -1,10 +1,11 @@
 import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
-import { useLazyQuery } from '@vue/apollo-composable';
+import { useQuery } from '@vue/apollo-composable';
 
 import { defaultColors } from '~/themes/default';
 import hexToRgba from 'hex-to-rgba';
 
+import type { GetThemeQuery } from '~/composables/gql/graphql';
 import type { Theme, ThemeVariables } from '~/themes/types';
 
 import { graphql } from '~/composables/gql/gql';
@@ -26,21 +27,58 @@ export const GET_THEME_QUERY = graphql(`
   }
 `);
 
+const DEFAULT_THEME: Theme = {
+  name: 'white',
+  banner: false,
+  bannerGradient: false,
+  bgColor: '',
+  descriptionShow: false,
+  metaColor: '',
+  textColor: '',
+};
+
 export const useThemeStore = defineStore('theme', () => {
   // State
-  const theme = ref<Theme>({
-    name: 'white',
-    banner: false,
-    bannerGradient: false,
-    bgColor: '',
-    descriptionShow: false,
-    metaColor: '',
-    textColor: '',
-  });
-
-  const { load } = useLazyQuery(GET_THEME_QUERY);
+  const theme = ref<Theme>({ ...DEFAULT_THEME });
 
   const activeColorVariables = ref<ThemeVariables>(defaultColors.white);
+  const hasServerTheme = ref(false);
+
+  const { result, onResult, onError } = useQuery<GetThemeQuery>(GET_THEME_QUERY, null, {
+    fetchPolicy: 'cache-and-network',
+    nextFetchPolicy: 'cache-first',
+  });
+
+  const applyThemeFromQuery = (publicTheme?: GetThemeQuery['publicTheme'] | null) => {
+    if (!publicTheme) {
+      return;
+    }
+
+    hasServerTheme.value = true;
+    theme.value = {
+      name: publicTheme.name?.toLowerCase() ?? DEFAULT_THEME.name,
+      banner: publicTheme.showBannerImage ?? DEFAULT_THEME.banner,
+      bannerGradient: publicTheme.showBannerGradient ?? DEFAULT_THEME.bannerGradient,
+      bgColor: publicTheme.headerBackgroundColor ?? DEFAULT_THEME.bgColor,
+      descriptionShow: publicTheme.showHeaderDescription ?? DEFAULT_THEME.descriptionShow,
+      metaColor: publicTheme.headerSecondaryTextColor ?? DEFAULT_THEME.metaColor,
+      textColor: publicTheme.headerPrimaryTextColor ?? DEFAULT_THEME.textColor,
+    };
+  };
+
+  onResult(({ data }) => {
+    if (data?.publicTheme) {
+      applyThemeFromQuery(data.publicTheme);
+    }
+  });
+
+  if (result.value?.publicTheme) {
+    applyThemeFromQuery(result.value.publicTheme);
+  }
+
+  onError((err) => {
+    console.warn('Failed to load theme from server, keeping existing theme:', err);
+  });
 
   // Getters
   // Apply dark mode for gray and black themes
@@ -56,38 +94,17 @@ export const useThemeStore = defineStore('theme', () => {
     const end = theme.value?.bgColor ? 'var(--header-gradient-end)' : 'var(--header-background-color)';
     return `background-image: linear-gradient(90deg, ${start} 0, ${end} 90%);`;
   });
+
   // Actions
-  const setTheme = async (data?: Theme) => {
+  const setTheme = (data?: Partial<Theme>) => {
     if (data) {
-      theme.value = data;
-    } else {
-      try {
-        const result = await load();
-        if (result && result.publicTheme) {
-          theme.value = {
-            name: result.publicTheme.name?.toLowerCase() || 'white',
-            banner: result.publicTheme.showBannerImage ?? false,
-            bannerGradient: result.publicTheme.showBannerGradient ?? false,
-            bgColor: result.publicTheme.headerBackgroundColor || '',
-            descriptionShow: result.publicTheme.showHeaderDescription ?? false,
-            metaColor: result.publicTheme.headerSecondaryTextColor || '',
-            textColor: result.publicTheme.headerPrimaryTextColor || '',
-          };
-          return;
-        }
-      } catch (error) {
-        console.warn('Failed to load theme from server, using default:', error);
+      if (hasServerTheme.value) {
+        return;
       }
 
-      // Single fallback for both no data and error cases
       theme.value = {
-        name: 'white',
-        banner: false,
-        bannerGradient: false,
-        bgColor: '',
-        descriptionShow: false,
-        metaColor: '',
-        textColor: '',
+        ...theme.value,
+        ...data,
       };
     }
   };
