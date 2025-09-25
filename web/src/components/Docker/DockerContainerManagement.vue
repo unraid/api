@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useQuery } from '@vue/apollo-composable';
 
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
@@ -25,9 +26,136 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
 });
 
+function tryUseRoute(): ReturnType<typeof useRoute> | null {
+  try {
+    const maybeRoute = useRoute();
+    return maybeRoute ?? null;
+  } catch (_err) {
+    return null;
+  }
+}
+
+function tryUseRouter(): ReturnType<typeof useRouter> | null {
+  try {
+    const maybeRouter = useRouter();
+    return maybeRouter ?? null;
+  } catch (_err) {
+    return null;
+  }
+}
+
+const route = tryUseRoute();
+const router = tryUseRouter();
+const hasRouter = Boolean(route && router);
+
 const selectedIds = ref<string[]>([]);
 const activeId = ref<string | null>(null);
 const isSwitching = ref(false);
+
+const ROUTE_QUERY_KEY = 'container';
+const SWITCH_DELAY_MS = 150;
+let switchTimeout: ReturnType<typeof setTimeout> | null = null;
+let syncingFromRoute = false;
+let removePopstateListener: (() => void) | null = null;
+
+function normalizeContainerQuery(value: unknown): string | null {
+  if (Array.isArray(value))
+    return value.find((entry) => typeof entry === 'string' && entry.length) || null;
+  return typeof value === 'string' && value.length ? value : null;
+}
+
+function setActiveContainer(id: string | null) {
+  if (activeId.value === id) return;
+
+  if (switchTimeout) {
+    clearTimeout(switchTimeout);
+    switchTimeout = null;
+  }
+
+  if (id) {
+    isSwitching.value = true;
+    switchTimeout = setTimeout(() => {
+      isSwitching.value = false;
+      switchTimeout = null;
+    }, SWITCH_DELAY_MS);
+  } else {
+    isSwitching.value = false;
+  }
+
+  activeId.value = id;
+}
+
+if (hasRouter) {
+  watch(
+    () => normalizeContainerQuery(route!.query[ROUTE_QUERY_KEY]),
+    (routeId) => {
+      if (routeId === activeId.value) return;
+      syncingFromRoute = true;
+      setActiveContainer(routeId);
+      syncingFromRoute = false;
+    },
+    { immediate: true }
+  );
+
+  watch(activeId, (nextId) => {
+    if (syncingFromRoute) return;
+    const currentRouteId = normalizeContainerQuery(route!.query[ROUTE_QUERY_KEY]);
+    if (nextId === currentRouteId) return;
+
+    const nextQuery = { ...route!.query } as Record<string, unknown>;
+    if (nextId) nextQuery[ROUTE_QUERY_KEY] = nextId;
+    else delete nextQuery[ROUTE_QUERY_KEY];
+
+    router!.push({ path: route!.path, query: nextQuery, hash: route!.hash }).catch(() => {
+      /* ignore redundant navigation */
+    });
+  });
+} else if (typeof window !== 'undefined') {
+  const readLocationQuery = () => {
+    const params = new URLSearchParams(window.location.search);
+    return normalizeContainerQuery(params.get(ROUTE_QUERY_KEY));
+  };
+
+  const initialId = readLocationQuery();
+  if (initialId) {
+    syncingFromRoute = true;
+    setActiveContainer(initialId);
+    syncingFromRoute = false;
+  }
+
+  const handlePopstate = () => {
+    const idFromLocation = readLocationQuery();
+    if (idFromLocation === activeId.value) return;
+    syncingFromRoute = true;
+    setActiveContainer(idFromLocation);
+    syncingFromRoute = false;
+  };
+
+  window.addEventListener('popstate', handlePopstate);
+  removePopstateListener = () => window.removeEventListener('popstate', handlePopstate);
+
+  watch(activeId, (nextId) => {
+    if (syncingFromRoute) return;
+    const current = readLocationQuery();
+    if (nextId === current) return;
+
+    const url = new URL(window.location.href);
+    if (nextId) url.searchParams.set(ROUTE_QUERY_KEY, nextId);
+    else url.searchParams.delete(ROUTE_QUERY_KEY);
+    window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  });
+}
+
+onBeforeUnmount(() => {
+  if (switchTimeout) {
+    clearTimeout(switchTimeout);
+    switchTimeout = null;
+  }
+  if (removePopstateListener) {
+    removePopstateListener();
+    removePopstateListener = null;
+  }
+});
 
 const { result, loading, refetch } = useQuery<{
   docker: {
@@ -74,12 +202,7 @@ function handleTableRowClick(payload: {
   containerId?: string;
 }) {
   if (payload.type !== 'container') return;
-  if (activeId.value === payload.id) return;
-  isSwitching.value = true;
-  activeId.value = payload.id;
-  setTimeout(() => {
-    isSwitching.value = false;
-  }, 150);
+  setActiveContainer(payload.id);
 }
 
 function handleUpdateSelectedIds(ids: string[]) {
@@ -87,17 +210,11 @@ function handleUpdateSelectedIds(ids: string[]) {
 }
 
 function goBackToOverview() {
-  activeId.value = null;
+  setActiveContainer(null);
 }
 
 function handleSidebarClick(item: { id: string }) {
-  if (activeId.value === item.id) return;
-  isSwitching.value = true;
-  activeId.value = item.id;
-  // simulate fetch delay; real details queries will naturally set loading
-  setTimeout(() => {
-    isSwitching.value = false;
-  }, 150);
+  setActiveContainer(item.id);
 }
 
 function handleSidebarSelect(item: { id: string; selected: boolean }) {
