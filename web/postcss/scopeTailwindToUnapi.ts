@@ -110,11 +110,9 @@ function prefixSelector(selector: string, scope: string): string {
     return `${scope}${trimmed.slice(':root'.length)}`;
   }
 
-  const hasCombinator = /[\s>+~]/.test(trimmed);
+  const firstToken = trimmed.split(/[\s>+~]/, 1)[0] ?? '';
   const shouldMergeWithScope =
-    !hasCombinator &&
-    !trimmed.includes('\\:') &&
-    MERGE_WITH_SCOPE_PATTERNS.some((pattern) => pattern.test(trimmed));
+    !firstToken.includes('\\:') && MERGE_WITH_SCOPE_PATTERNS.some((pattern) => pattern.test(firstToken));
 
   if (shouldMergeWithScope) {
     return `${scope}${trimmed}`;
@@ -136,13 +134,26 @@ export const scopeTailwindToUnapi: PluginCreator<ScopeOptions> = (options: Scope
         return;
       }
 
-      const selectors = rule.selectors;
-      if (!selectors?.length) {
+      const hasSelectorArray = Array.isArray(rule.selectors);
+      let selectors: string[] = [];
+
+      if (hasSelectorArray && rule.selectors) {
+        selectors = rule.selectors;
+      } else if (rule.selector) {
+        selectors = [rule.selector];
+      }
+
+      if (!selectors.length) {
         return;
       }
 
       const scopedSelectors = selectors.map((selector: string) => prefixSelector(selector, scope));
-      rule.selectors = scopedSelectors;
+
+      if (hasSelectorArray) {
+        rule.selectors = scopedSelectors;
+      } else {
+        rule.selector = scopedSelectors.join(', ');
+      }
     },
   };
 };
