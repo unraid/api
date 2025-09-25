@@ -1,7 +1,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Utility defaults for web components (when we were using shadow DOM) */
-:host {
+:host,
+.unapi {
     --tw-divide-y-reverse: 0;
     --tw-border-style: solid;
     --tw-font-weight: initial;
@@ -61,7 +62,7 @@
 }
 */
 
-body {
+.unapi {
     --color-alpha: #1c1b1b;
     --color-beta: #f2f2f2;
     --color-gamma: #999999;
@@ -73,13 +74,14 @@ body {
     --ring-shadow: 0 0 var(--color-beta);
   }
 
-button:not(:disabled),
-[role='button']:not(:disabled) {
+.unapi button:not(:disabled),
+.unapi [role='button']:not(:disabled) {
   cursor: pointer;
 }
 
 /* Font size overrides for SSO button component */
-unraid-sso-button {
+.unapi unraid-sso-button,
+unraid-sso-button.unapi {
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
   --text-base: 1rem;
