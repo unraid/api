@@ -12,6 +12,7 @@ import en_US from '~/locales/en_US.json';
 
 // Import Pinia for use in Vue apps
 import { globalPinia } from '~/store/globalPinia';
+import { useThemeStore } from '~/store/theme';
 
 // Ensure Apollo client is singleton
 const apolloClient = (typeof window !== 'undefined' && window.apolloClient) || client;
@@ -118,6 +119,8 @@ export function mountUnifiedApp() {
   app.use(ui);
   app.provide(DefaultApolloClient, apolloClient);
 
+  const themeStore = useThemeStore();
+
   // Mount the app to establish context
   let rootElement = document.getElementById('unraid-unified-root');
   if (!rootElement) {
@@ -213,6 +216,9 @@ export function mountUnifiedApp() {
       unmount: () => render(null, element),
     });
   });
+
+  // Re-apply theme classes/variables now that new scoped roots exist
+  themeStore.setCssVars();
 
   console.debug(`[UnifiedMount] Mounted ${mountedComponents.length} components`);
 

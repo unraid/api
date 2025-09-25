@@ -141,19 +141,31 @@ export const useThemeStore = defineStore('theme', () => {
     }
 
     requestAnimationFrame(() => {
-      // Apply theme classes to documentElement for Tailwind v4
-      const root = document.documentElement;
+      const scopedTargets: HTMLElement[] = [
+        document.documentElement,
+        ...Array.from(document.querySelectorAll<HTMLElement>('.unapi')),
+      ];
 
-      // Remove all existing theme and custom classes
-      root.className = root.className
-        .split(' ')
-        .filter((c) => !c.startsWith('theme-') && c !== 'dark' && !c.startsWith('has-custom-'))
-        .join(' ');
+      const cleanClassList = (classList: string) =>
+        classList
+          .split(' ')
+          .filter((c) => !c.startsWith('theme-') && c !== 'dark' && !c.startsWith('has-custom-'))
+          .filter(Boolean)
+          .join(' ');
 
-      // Add new theme classes
-      [...themeClasses, ...customClasses].forEach((cls) => root.classList.add(cls));
+      // Apply theme and custom classes to html element and all .unapi roots
+      scopedTargets.forEach((target) => {
+        target.className = cleanClassList(target.className);
+        [...themeClasses, ...customClasses].forEach((cls) => target.classList.add(cls));
 
-      // Also apply dark class to body for compatibility
+        if (darkMode.value) {
+          target.classList.add('dark');
+        } else {
+          target.classList.remove('dark');
+        }
+      });
+
+      // Maintain dark mode flag on body for legacy components
       if (darkMode.value) {
         document.body.classList.add('dark');
       } else {
@@ -162,10 +174,12 @@ export const useThemeStore = defineStore('theme', () => {
 
       // Only apply dynamic CSS variables for custom user values
       // All theme defaults are handled by classes in @tailwind-shared/theme-variants.css
-      if (Object.keys(dynamicVars).length > 0) {
-        // Apply to root element for global availability
-        Object.entries(dynamicVars).forEach(([key, value]) => {
-          document.documentElement.style.setProperty(key, value);
+      const hasDynamicVars = Object.keys(dynamicVars).length > 0;
+      if (hasDynamicVars) {
+        scopedTargets.forEach((target) => {
+          Object.entries(dynamicVars).forEach(([key, value]) => {
+            target.style.setProperty(key, value);
+          });
         });
       }
 
