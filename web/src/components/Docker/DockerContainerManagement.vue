@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
 
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
+import DockerContainersTable from '@/components/Docker/DockerContainersTable.vue';
 import DockerSidebarTree from '@/components/Docker/DockerSidebarTree.vue';
 import DockerEdit from '@/components/Docker/Edit.vue';
 import DockerLogs from '@/components/Docker/Logs.vue';
@@ -28,7 +29,7 @@ const selectedIds = ref<string[]>([]);
 const activeId = ref<string | null>(null);
 const isSwitching = ref(false);
 
-const { result, loading, error, refetch } = useQuery<{
+const { result, loading, refetch } = useQuery<{
   docker: {
     id: string;
     organizer: {
@@ -42,11 +43,14 @@ const { result, loading, error, refetch } = useQuery<{
   };
 }>(GET_DOCKER_CONTAINERS, {
   fetchPolicy: 'cache-and-network',
+  variables: { skipCache: true },
 });
 
 const organizerRoot = computed(
   () => result.value?.docker?.organizer?.views?.[0]?.root as ResolvedOrganizerFolder | undefined
 );
+
+const containers = computed<DockerContainer[]>(() => result.value?.docker?.containers || []);
 
 function findContainerResourceById(
   entry: ResolvedOrganizerEntry | undefined,
@@ -63,27 +67,28 @@ function findContainerResourceById(
   return undefined;
 }
 
-function findFirstContainerId(entry?: ResolvedOrganizerEntry | null): string | null {
-  if (!entry) return null;
-  if (entry.__typename === 'OrganizerContainerResource') return entry.id;
-  if (entry.__typename === 'ResolvedOrganizerFolder') {
-    for (const child of entry.children) {
-      const found = findFirstContainerId(child);
-      if (found) return found;
-    }
-  }
-  return null;
+function handleTableRowClick(payload: {
+  id: string;
+  type: 'container' | 'folder';
+  name: string;
+  containerId?: string;
+}) {
+  if (payload.type !== 'container') return;
+  if (activeId.value === payload.id) return;
+  isSwitching.value = true;
+  activeId.value = payload.id;
+  setTimeout(() => {
+    isSwitching.value = false;
+  }, 150);
 }
 
-watch(
-  () => organizerRoot.value,
-  (root) => {
-    if (!activeId.value) {
-      activeId.value = findFirstContainerId(root);
-    }
-  },
-  { immediate: true }
-);
+function handleUpdateSelectedIds(ids: string[]) {
+  selectedIds.value = ids;
+}
+
+function goBackToOverview() {
+  activeId.value = null;
+}
 
 function handleSidebarClick(item: { id: string }) {
   if (activeId.value === item.id) return;
@@ -143,89 +148,117 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
 </script>
 
 <template>
-  <div class="grid gap-6 md:grid-cols-[280px_1fr]">
-    <UCard>
-      <template #header>
-        <div class="flex items-center justify-between">
-          <div class="font-medium">Containers</div>
-          <UButton
-            size="xs"
-            variant="ghost"
-            icon="i-lucide-refresh-cw"
-            :loading="loading"
-            @click="
-              () => {
-                refetch({ skipCache: true });
-              }
-            "
-          />
-        </div>
-      </template>
-
-      <USkeleton v-if="loading && !organizerRoot" class="h-6 w-full" :ui="{ rounded: 'rounded' }" />
-      <DockerSidebarTree
-        v-else
-        :root="organizerRoot"
-        :selected-ids="selectedIds"
+  <div>
+    <div v-if="!activeId">
+      <div class="mb-4 flex items-center justify-between">
+        <div class="text-base font-medium">Docker Containers</div>
+        <UButton
+          size="xs"
+          variant="ghost"
+          icon="i-lucide-refresh-cw"
+          :loading="loading"
+          @click="refetch({ skipCache: true })"
+        />
+      </div>
+      <DockerContainersTable
+        :containers="containers"
+        :organizer-root="organizerRoot"
+        :loading="loading"
         :active-id="activeId"
-        :disabled="props.disabled || loading"
-        @item:click="handleSidebarClick"
-        @item:select="handleSidebarSelect"
+        :selected-ids="selectedIds"
+        @created-folder="() => refetch({ skipCache: true })"
+        @row:click="handleTableRowClick"
+        @update:selectedIds="handleUpdateSelectedIds"
       />
-    </UCard>
+    </div>
 
-    <div>
-      <UCard class="mb-4">
+    <div v-else class="grid gap-6 md:grid-cols-[280px_1fr]">
+      <UCard>
         <template #header>
           <div class="flex items-center justify-between">
-            <div class="font-medium">Overview</div>
-            <UBadge
-              v-if="activeContainer?.state"
-              :label="activeContainer.state"
-              color="primary"
-              variant="subtle"
+            <div class="font-medium">Containers</div>
+            <UButton
+              size="xs"
+              variant="ghost"
+              icon="i-lucide-refresh-cw"
+              :loading="loading"
+              @click="refetch({ skipCache: true })"
             />
           </div>
         </template>
-        <div class="relative">
-          <div v-if="isDetailsLoading" class="pointer-events-none opacity-50">
-            <DockerOverview :item="detailsItem" :details="details" />
-          </div>
-          <DockerOverview v-else :item="detailsItem" :details="details" />
-          <div v-if="isDetailsLoading" class="absolute inset-0 grid place-items-center">
-            <ULoader class="h-6 w-6" />
-          </div>
-        </div>
+        <USkeleton v-if="loading && !organizerRoot" class="h-6 w-full" :ui="{ rounded: 'rounded' }" />
+        <DockerSidebarTree
+          v-else
+          :root="organizerRoot"
+          :selected-ids="selectedIds"
+          :active-id="activeId"
+          :disabled="props.disabled || loading"
+          @item:click="handleSidebarClick"
+          @item:select="handleSidebarSelect"
+        />
       </UCard>
 
-      <div class="3xl:grid-cols-2 grid gap-4">
-        <UCard>
+      <div>
+        <UCard class="mb-4">
           <template #header>
-            <div class="font-medium">Preview</div>
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <UButton
+                  size="xs"
+                  variant="ghost"
+                  icon="i-lucide-arrow-left"
+                  @click="goBackToOverview"
+                />
+                <div class="font-medium">Overview</div>
+              </div>
+              <UBadge
+                v-if="activeContainer?.state"
+                :label="activeContainer.state"
+                color="primary"
+                variant="subtle"
+              />
+            </div>
           </template>
-          <div :class="{ 'pointer-events-none opacity-50': isDetailsDisabled }">
-            <DockerPreview :item="detailsItem" :port="details?.containerPort || undefined" />
+          <div class="relative">
+            <div v-if="isDetailsLoading" class="pointer-events-none opacity-50">
+              <DockerOverview :item="detailsItem" :details="details" />
+            </div>
+            <DockerOverview v-else :item="detailsItem" :details="details" />
+            <div v-if="isDetailsLoading" class="absolute inset-0 grid place-items-center">
+              <USkeleton class="h-6 w-6" />
+            </div>
           </div>
         </UCard>
 
-        <UCard>
+        <div class="3xl:grid-cols-2 grid gap-4">
+          <UCard>
+            <template #header>
+              <div class="font-medium">Preview</div>
+            </template>
+            <div :class="{ 'pointer-events-none opacity-50': isDetailsDisabled }">
+              <DockerPreview :item="detailsItem" :port="details?.containerPort || undefined" />
+            </div>
+          </UCard>
+
+          <UCard>
+            <template #header>
+              <div class="font-medium">Edit</div>
+            </template>
+            <div :class="{ 'pointer-events-none opacity-50': isDetailsDisabled }">
+              <DockerEdit :item="detailsItem" />
+            </div>
+          </UCard>
+        </div>
+
+        <UCard class="mt-4">
           <template #header>
-            <div class="font-medium">Edit</div>
+            <div class="font-medium">Logs</div>
           </template>
           <div :class="{ 'pointer-events-none opacity-50': isDetailsDisabled }">
-            <DockerEdit :item="detailsItem" />
+            <DockerLogs :item="detailsItem" />
           </div>
         </UCard>
       </div>
-
-      <UCard class="mt-4">
-        <template #header>
-          <div class="font-medium">Logs</div>
-        </template>
-        <div :class="{ 'pointer-events-none opacity-50': isDetailsDisabled }">
-          <DockerLogs :item="detailsItem" />
-        </div>
-      </UCard>
     </div>
   </div>
 </template>
