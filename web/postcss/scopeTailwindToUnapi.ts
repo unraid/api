@@ -1,4 +1,27 @@
-import type { AtRule, Container, PluginCreator, Rule } from 'postcss';
+interface Container {
+  type: string;
+  parent?: Container;
+}
+
+interface Rule extends Container {
+  selector?: string;
+  selectors?: string[];
+}
+
+interface AtRule extends Container {
+  name: string;
+  params: string;
+}
+
+type PostcssPlugin = {
+  postcssPlugin: string;
+  Rule?(rule: Rule): void;
+};
+
+type PluginCreator<T> = {
+  (opts?: T): PostcssPlugin;
+  postcss?: boolean;
+};
 
 export interface ScopeOptions {
   scope?: string;
@@ -12,7 +35,7 @@ const DEFAULT_INCLUDE_ROOT = true;
 
 const KEYFRAME_AT_RULES = new Set(['keyframes']);
 const NON_SCOPED_AT_RULES = new Set(['font-face', 'page']);
-const MERGE_WITH_SCOPE_PATTERNS = [/^\.theme-/, /^\.has-custom-/, /^\.dark\b/];
+const MERGE_WITH_SCOPE_PATTERNS: RegExp[] = [/^\.theme-/, /^\.has-custom-/, /^\.dark\b/];
 
 function shouldScopeRule(rule: Rule, targetLayers: Set<string>, includeRootRules: boolean): boolean {
   // Skip rules without selectors (e.g. @font-face) or nested keyframe steps
@@ -44,7 +67,7 @@ function shouldScopeRule(rule: Rule, targetLayers: Set<string>, includeRootRules
         inspectedLayer = true;
         const layerNames = currentAtRule.params
           .split(',')
-          .map((name) => name.trim())
+          .map((name: string) => name.trim())
           .filter(Boolean);
         if (includeAllLayers) {
           return true;
@@ -100,15 +123,15 @@ function prefixSelector(selector: string, scope: string): string {
   return `${scope} ${trimmed}`;
 }
 
-export const scopeTailwindToUnapi: PluginCreator<ScopeOptions> = (options = {}) => {
+export const scopeTailwindToUnapi: PluginCreator<ScopeOptions> = (options: ScopeOptions = {}) => {
   const scope = options.scope ?? DEFAULT_SCOPE;
   const layers = options.layers ?? DEFAULT_LAYERS;
   const includeRootRules = options.includeRoot ?? DEFAULT_INCLUDE_ROOT;
-  const targetLayers = new Set(layers);
+  const targetLayers = new Set<string>(layers);
 
   return {
     postcssPlugin: 'scope-tailwind-to-unapi',
-    Rule(rule) {
+    Rule(rule: Rule) {
       if (!shouldScopeRule(rule, targetLayers, includeRootRules)) {
         return;
       }
@@ -118,7 +141,7 @@ export const scopeTailwindToUnapi: PluginCreator<ScopeOptions> = (options = {}) 
         return;
       }
 
-      const scopedSelectors = selectors.map((selector) => prefixSelector(selector, scope));
+      const scopedSelectors = selectors.map((selector: string) => prefixSelector(selector, scope));
       rule.selectors = scopedSelectors;
     },
   };
