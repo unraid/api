@@ -197,7 +197,14 @@ function wrapCell(row: { original: TreeRow; depth?: number }, child: VNode) {
               ? 'ring-2 ring-primary/40'
               : ''
       }`,
-      onClick: () => {
+      onClick: (e: MouseEvent) => {
+        const target = e.target as HTMLElement | null;
+        if (
+          target &&
+          target.closest('input,button,textarea,a,[role=checkbox],[role=button],[data-stop-row-click]')
+        ) {
+          return;
+        }
         const r = row.original as TreeRow;
         emit('row:click', { id: r.id, type: r.type, name: r.name, containerId: r.containerId });
       },
@@ -268,39 +275,58 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
   const cols: TableColumn<TreeRow>[] = [
     {
       id: 'select',
-      header: ({ table }) =>
-        props.compact
-          ? ''
-          : h(UCheckbox, {
-              modelValue: table.getIsSomePageRowsSelected()
-                ? 'indeterminate'
-                : table.getIsAllPageRowsSelected(),
-              'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
-                table.toggleAllPageRowsSelected(!!value),
-              'aria-label': 'Select all',
-            }),
+      header: () => {
+        if (props.compact) return '';
+        const containers = flattenContainerRows(treeData.value);
+        const totalSelectable = containers.length;
+        const selectedIds = Object.entries(rowSelection.value)
+          .filter(([, selected]) => selected)
+          .map(([id]) => id);
+        const selectedSet = new Set(selectedIds);
+        const selectedCount = containers.reduce(
+          (count, row) => (selectedSet.has(row.id) ? count + 1 : count),
+          0
+        );
+        const allSelected = totalSelectable > 0 && selectedCount === totalSelectable;
+        const someSelected = selectedCount > 0 && !allSelected;
+        return h(UCheckbox, {
+          modelValue: someSelected ? 'indeterminate' : allSelected,
+          'onUpdate:modelValue': () => {
+            const target = someSelected || allSelected ? false : true;
+            const next: Record<string, boolean> = {};
+            if (target) {
+              for (const row of containers) next[row.id] = true;
+            }
+            rowSelection.value = next;
+          },
+          'aria-label': 'Select all',
+        });
+      },
       cell: ({ row }) => {
         switch ((row.original as TreeRow).type) {
           case 'container':
             return wrapCell(
               row,
-              h(UCheckbox, {
-                modelValue: row.getIsSelected(),
-                'onUpdate:modelValue': (value: boolean | 'indeterminate') => {
-                  const next = !!value;
-                  row.toggleSelected(next);
-                  const r = row.original as TreeRow;
-                  emit('row:select', {
-                    id: r.id,
-                    type: r.type,
-                    name: r.name,
-                    containerId: r.containerId,
-                    selected: next,
-                  });
-                },
-                'aria-label': 'Select row',
-                onClick: (e: Event) => e.stopPropagation(),
-              })
+              h('span', { 'data-stop-row-click': 'true' }, [
+                h(UCheckbox, {
+                  modelValue: row.getIsSelected(),
+                  'onUpdate:modelValue': (value: boolean | 'indeterminate') => {
+                    const next = !!value;
+                    row.toggleSelected(next);
+                    const r = row.original as TreeRow;
+                    emit('row:select', {
+                      id: r.id,
+                      type: r.type,
+                      name: r.name,
+                      containerId: r.containerId,
+                      selected: next,
+                    });
+                  },
+                  'aria-label': 'Select row',
+                  role: 'checkbox',
+                  onClick: (e: Event) => e.stopPropagation(),
+                }),
+              ])
             );
           case 'folder':
             return wrapCell(
@@ -525,6 +551,13 @@ const emit = defineEmits<{
   (e: 'update:selectedIds', value: string[]): void;
 }>();
 
+function arraysEqualAsSets(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const setA = new Set(a);
+  for (const id of b) if (!setA.has(id)) return false;
+  return true;
+}
+
 function flattenContainerRows(rows: TreeRow[]): TreeRow[] {
   const out: TreeRow[] = [];
   for (const r of rows) {
@@ -534,11 +567,21 @@ function flattenContainerRows(rows: TreeRow[]): TreeRow[] {
   return out;
 }
 
-// Sync external selectedIds into table rowSelection
+// Sync external selectedIds into table rowSelection (driven only by prop changes)
 watch(
-  [() => props.selectedIds, treeData],
-  () => {
-    const target = new Set(props.selectedIds || []);
+  () => props.selectedIds,
+  (newVal) => {
+    if (
+      arraysEqualAsSets(
+        newVal || [],
+        Object.entries(rowSelection.value)
+          .filter(([, s]) => s)
+          .map(([id]) => id)
+      )
+    ) {
+      return;
+    }
+    const target = new Set(newVal || []);
     const next: Record<string, boolean> = {};
     for (const r of flattenContainerRows(treeData.value)) {
       next[r.id] = target.has(r.id);
@@ -546,6 +589,20 @@ watch(
     rowSelection.value = next;
   },
   { immediate: true }
+);
+
+// When tree changes, preserve existing selection for still-present rows
+watch(
+  treeData,
+  () => {
+    const valid = new Set(flattenContainerRows(treeData.value).map((r) => r.id));
+    const next: Record<string, boolean> = {};
+    for (const [id, selected] of Object.entries(rowSelection.value)) {
+      if (valid.has(id) && selected) next[id] = true;
+    }
+    rowSelection.value = next;
+  },
+  { deep: false }
 );
 
 // Emit external selectedIds when selection changes
@@ -1368,6 +1425,7 @@ async function deleteFolderById(id: string) {
       :columns="columns"
       :get-row-id="(row: any) => row.id"
       :get-sub-rows="(row: any) => row.children"
+      :get-row-can-select="(row: any) => row.original.type === 'container'"
       :column-filters-options="{ filterFromLeafRows: true }"
       :loading="loading"
       :ui="{ td: 'p-0 empty:p-0', thead: compact ? 'hidden' : '', th: compact ? 'hidden' : '' }"
