@@ -1,4 +1,4 @@
-import { ExecutionContext, Type, UnauthorizedException } from '@nestjs/common';
+import { ExecutionContext, Type } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host.js';
 
@@ -10,6 +10,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { CasbinService } from '@app/unraid-api/auth/casbin/casbin.service.js';
 import { CASBIN_MODEL } from '@app/unraid-api/auth/casbin/model.js';
 import { BASE_POLICY } from '@app/unraid-api/auth/casbin/policy.js';
+import { resolveSubjectFromUser } from '@app/unraid-api/auth/casbin/resolve-subject.util.js';
 import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
 import { VmMutationsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.mutations.resolver.js';
@@ -67,14 +68,8 @@ describe('AuthZGuard + Casbin policies', () => {
             batchApproval: BatchApproval.ALL,
             userFromContext: (ctx: ExecutionContext) => {
                 const request = getRequest(ctx) as TestRequest | undefined;
-                const user: TestUser = request?.user ?? {};
-                const roles = user.roles ?? [];
 
-                if (!Array.isArray(roles)) {
-                    throw new UnauthorizedException('User roles must be an array');
-                }
-
-                return typeof user.id === 'string' && user.id.length > 0 ? user.id : roles.join(',');
+                return resolveSubjectFromUser(request?.user);
             },
         });
     });
