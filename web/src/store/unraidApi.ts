@@ -58,6 +58,8 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
 
     pendingRestartPromise = restartTask.finally(() => {
       pendingRestartPromise = null;
+      // Reset to connecting so UI can move out of the restarting state if no other updates fire
+      unraidApiStatus.value = 'connecting';
     });
 
     return pendingRestartPromise;

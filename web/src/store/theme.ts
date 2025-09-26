@@ -37,6 +37,17 @@ const DEFAULT_THEME: Theme = {
   textColor: '',
 };
 
+const DYNAMIC_VAR_KEYS = [
+  '--custom-header-text-primary',
+  '--custom-header-text-secondary',
+  '--custom-header-background-color',
+  '--custom-header-gradient-start',
+  '--custom-header-gradient-end',
+  '--banner-gradient',
+] as const;
+
+type DynamicVarKey = (typeof DYNAMIC_VAR_KEYS)[number];
+
 export const useThemeStore = defineStore('theme', () => {
   // State
   const theme = ref<Theme>({ ...DEFAULT_THEME });
@@ -126,7 +137,7 @@ export const useThemeStore = defineStore('theme', () => {
 
     // Only set CSS variables for dynamic/user-configured values from GraphQL
     // Static theme values are handled by Tailwind v4 theme classes in @tailwind-shared
-    const dynamicVars: Record<string, string> = {};
+    const dynamicVars: Partial<Record<DynamicVarKey, string>> = {};
 
     // User-configured colors from webGUI @ /Settings/DisplaySettings
     if (theme.value.textColor) {
@@ -191,14 +202,22 @@ export const useThemeStore = defineStore('theme', () => {
 
       // Only apply dynamic CSS variables for custom user values
       // All theme defaults are handled by classes in @tailwind-shared/theme-variants.css
-      const hasDynamicVars = Object.keys(dynamicVars).length > 0;
-      if (hasDynamicVars) {
-        scopedTargets.forEach((target) => {
-          Object.entries(dynamicVars).forEach(([key, value]) => {
+      const activeDynamicKeys = Object.keys(dynamicVars) as DynamicVarKey[];
+
+      scopedTargets.forEach((target) => {
+        activeDynamicKeys.forEach((key) => {
+          const value = dynamicVars[key];
+          if (value !== undefined) {
             target.style.setProperty(key, value);
-          });
+          }
         });
-      }
+
+        DYNAMIC_VAR_KEYS.forEach((key) => {
+          if (!Object.prototype.hasOwnProperty.call(dynamicVars, key)) {
+            target.style.removeProperty(key);
+          }
+        });
+      });
 
       // Store active variables for reference (from defaultColors for compatibility)
       const customTheme = { ...defaultColors[selectedTheme] };

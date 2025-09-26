@@ -76,16 +76,23 @@ switch ($command) {
     }
 
     // Use a lockfile to avoid concurrently running restart commands
-    $acquiredWithoutBlocking = flock($lockHandle, LOCK_EX | LOCK_NB);
-    if (!$acquiredWithoutBlocking) {
-      if (flock($lockHandle, LOCK_EX)) {
-        flock($lockHandle, LOCK_UN);
+    $wouldBlock = null;
+    error_clear_last();
+    $acquiredLock = flock($lockHandle, LOCK_EX | LOCK_NB, $wouldBlock);
+    if (!$acquiredLock) {
+      if (!empty($wouldBlock)) {
         fclose($lockHandle);
         response_complete(200, array('success' => true, 'result' => 'Unraid API restart already in progress'), 'Restart already in progress');
       }
 
+      $lastError = error_get_last();
+      $errorMessage = 'Unable to acquire restart lock';
+      if (!empty($lastError['message'])) {
+        $errorMessage .= ': ' . $lastError['message'];
+      }
+
       fclose($lockHandle);
-      response_complete(500, array('error' => 'Unable to acquire restart lock'), 'Unable to acquire restart lock');
+      response_complete(500, array('error' => $errorMessage), $errorMessage);
     }
 
     $pid = getmypid();
