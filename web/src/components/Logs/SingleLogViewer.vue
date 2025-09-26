@@ -325,7 +325,7 @@ defineExpose({ refreshLogContent });
 </script>
 
 <template>
-  <div class="flex h-full max-h-full flex-col overflow-hidden">
+  <div class="log-viewer flex h-full max-h-full flex-col overflow-hidden">
     <div
       class="bg-muted text-muted-foreground flex shrink-0 items-center justify-between px-4 py-2 text-xs"
     >
@@ -412,9 +412,8 @@ defineExpose({ refreshLogContent });
 
 <style scoped>
 /* Define CSS variables for both light and dark themes */
-:root {
+.log-viewer {
   /* Light theme colors (default) - adjusted for better readability */
-  --log-background: transparent;
   --log-keyword-color: hsl(var(--destructive) / 0.9); /* Slightly dimmed */
   --log-string-color: hsl(var(--primary) / 0.7); /* Dimmed primary color */
   --log-comment-color: hsl(var(--muted-foreground));
@@ -431,7 +430,6 @@ defineExpose({ refreshLogContent });
 
 /* Dark theme colors - use slightly different color combinations for better visibility */
 .theme-dark {
-  --log-background: transparent;
   --log-keyword-color: hsl(var(--destructive) / 0.9);
   --log-string-color: hsl(var(--primary) / 0.9);
   --log-comment-color: hsl(var(--muted-foreground) / 0.9);
@@ -444,11 +442,6 @@ defineExpose({ refreshLogContent });
   --log-error-bg: hsl(350, 100%, 40% / 0.15);
   --log-warning-bg: hsl(50, 100%, 50% / 0.15);
   --log-success-bg: hsl(120, 100%, 40% / 0.15);
-}
-
-/* Add some basic styling for the highlighted logs */
-.hljs {
-  background: var(--log-background);
 }
 
 /* Style for error messages */

@@ -5,6 +5,9 @@ import { OBJ_TO_STR } from '~/helpers/functions';
 
 import type { BrandButtonProps } from '@unraid/ui';
 import type { Server } from '~/types/server';
+import type { UserProfileLink } from '~/types/userProfile';
+
+export type ErrorAction = BrandButtonProps | UserProfileLink;
 
 export type ErrorType =
   | 'account'
@@ -17,7 +20,7 @@ export type ErrorType =
   | 'unraidApiState';
 
 export interface Error {
-  actions?: BrandButtonProps[];
+  actions?: ErrorAction[];
   debugServer?: Server;
   forumLink?: boolean;
   heading: string; // if adding new errors be sure to add translations key value pairs

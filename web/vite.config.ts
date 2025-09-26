@@ -8,6 +8,7 @@ import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
 import removeConsole from 'vite-plugin-remove-console';
 
+import scopeTailwindToUnapi from './postcss/scopeTailwindToUnapi';
 import { serveStaticHtml } from './vite-plugin-serve-static';
 
 const dropConsole = process.env.VITE_ALLOW_CONSOLE_LOGS !== 'true';
@@ -82,6 +83,12 @@ export default defineConfig({
         ]
       : []),
   ],
+
+  css: {
+    postcss: {
+      plugins: [scopeTailwindToUnapi()],
+    },
+  },
 
   resolve: {
     alias: {

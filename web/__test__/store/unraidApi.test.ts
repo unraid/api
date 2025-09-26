@@ -126,12 +126,18 @@ describe('UnraidApi Store', () => {
       store.unraidApiStatus = 'offline';
       await nextTick();
 
+      expect(mockErrorsStore.removeErrorByRef).toHaveBeenCalledWith('unraidApiOffline');
       expect(mockErrorsStore.setError).toHaveBeenCalledWith({
         heading: 'Warning: API is offline!',
         message: 'The Unraid API is currently offline.',
         ref: 'unraidApiOffline',
         level: 'warning',
         type: 'unraidApiState',
+        actions: [
+          expect.objectContaining({
+            text: 'Restart unraid-api',
+          }),
+        ],
       });
     });
 
@@ -209,6 +215,28 @@ describe('UnraidApi Store', () => {
         command: 'restart',
       });
       expect(store.unraidApiStatus).toBe('restarting');
+    });
+
+    it('should reuse existing restart promise when restart is already running', async () => {
+      const { WebguiUnraidApiCommand } = await import('~/composables/services/webgui');
+      const mockWebguiCommand = vi.mocked(WebguiUnraidApiCommand);
+
+      let resolveCommand: (() => void) | undefined;
+      const commandPromise = new Promise<void>((resolve) => {
+        resolveCommand = resolve;
+      });
+
+      mockWebguiCommand.mockReturnValueOnce(commandPromise);
+
+      store.unraidApiStatus = 'online';
+
+      const firstCallPromise = store.restartUnraidApiClient();
+      const secondCallPromise = store.restartUnraidApiClient();
+
+      expect(mockWebguiCommand).toHaveBeenCalledTimes(1);
+
+      resolveCommand?.();
+      await Promise.all([firstCallPromise, secondCallPromise]);
     });
 
     it('should handle error during restart', async () => {

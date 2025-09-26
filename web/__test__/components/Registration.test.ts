@@ -30,6 +30,8 @@ vi.mock('@vue/apollo-composable', () => ({
   useQuery: () => ({
     result: { value: {} },
     loading: { value: false },
+    onResult: vi.fn(),
+    onError: vi.fn(),
   }),
   useLazyQuery: () => ({
     result: { value: {} },

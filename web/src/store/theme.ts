@@ -1,10 +1,11 @@
 import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
-import { useLazyQuery } from '@vue/apollo-composable';
+import { useQuery } from '@vue/apollo-composable';
 
 import { defaultColors } from '~/themes/default';
 import hexToRgba from 'hex-to-rgba';
 
+import type { GetThemeQuery } from '~/composables/gql/graphql';
 import type { Theme, ThemeVariables } from '~/themes/types';
 
 import { graphql } from '~/composables/gql/gql';
@@ -26,21 +27,69 @@ export const GET_THEME_QUERY = graphql(`
   }
 `);
 
+const DEFAULT_THEME: Theme = {
+  name: 'white',
+  banner: false,
+  bannerGradient: false,
+  bgColor: '',
+  descriptionShow: false,
+  metaColor: '',
+  textColor: '',
+};
+
+const DYNAMIC_VAR_KEYS = [
+  '--custom-header-text-primary',
+  '--custom-header-text-secondary',
+  '--custom-header-background-color',
+  '--custom-header-gradient-start',
+  '--custom-header-gradient-end',
+  '--banner-gradient',
+] as const;
+
+type DynamicVarKey = (typeof DYNAMIC_VAR_KEYS)[number];
+
 export const useThemeStore = defineStore('theme', () => {
   // State
-  const theme = ref<Theme>({
-    name: 'white',
-    banner: false,
-    bannerGradient: false,
-    bgColor: '',
-    descriptionShow: false,
-    metaColor: '',
-    textColor: '',
-  });
-
-  const { load } = useLazyQuery(GET_THEME_QUERY);
+  const theme = ref<Theme>({ ...DEFAULT_THEME });
 
   const activeColorVariables = ref<ThemeVariables>(defaultColors.white);
+  const hasServerTheme = ref(false);
+
+  const { result, onResult, onError } = useQuery<GetThemeQuery>(GET_THEME_QUERY, null, {
+    fetchPolicy: 'cache-and-network',
+    nextFetchPolicy: 'cache-first',
+  });
+
+  const applyThemeFromQuery = (publicTheme?: GetThemeQuery['publicTheme'] | null) => {
+    if (!publicTheme) {
+      return;
+    }
+
+    hasServerTheme.value = true;
+    theme.value = {
+      name: publicTheme.name?.toLowerCase() ?? DEFAULT_THEME.name,
+      banner: publicTheme.showBannerImage ?? DEFAULT_THEME.banner,
+      bannerGradient: publicTheme.showBannerGradient ?? DEFAULT_THEME.bannerGradient,
+      bgColor: publicTheme.headerBackgroundColor ?? DEFAULT_THEME.bgColor,
+      descriptionShow: publicTheme.showHeaderDescription ?? DEFAULT_THEME.descriptionShow,
+      metaColor: publicTheme.headerSecondaryTextColor ?? DEFAULT_THEME.metaColor,
+      textColor: publicTheme.headerPrimaryTextColor ?? DEFAULT_THEME.textColor,
+    };
+  };
+
+  onResult(({ data }) => {
+    if (data?.publicTheme) {
+      applyThemeFromQuery(data.publicTheme);
+    }
+  });
+
+  if (result.value?.publicTheme) {
+    applyThemeFromQuery(result.value.publicTheme);
+  }
+
+  onError((err) => {
+    console.warn('Failed to load theme from server, keeping existing theme:', err);
+  });
 
   // Getters
   // Apply dark mode for gray and black themes
@@ -56,38 +105,17 @@ export const useThemeStore = defineStore('theme', () => {
     const end = theme.value?.bgColor ? 'var(--header-gradient-end)' : 'var(--header-background-color)';
     return `background-image: linear-gradient(90deg, ${start} 0, ${end} 90%);`;
   });
+
   // Actions
-  const setTheme = async (data?: Theme) => {
+  const setTheme = (data?: Partial<Theme>) => {
     if (data) {
-      theme.value = data;
-    } else {
-      try {
-        const result = await load();
-        if (result && result.publicTheme) {
-          theme.value = {
-            name: result.publicTheme.name?.toLowerCase() || 'white',
-            banner: result.publicTheme.showBannerImage ?? false,
-            bannerGradient: result.publicTheme.showBannerGradient ?? false,
-            bgColor: result.publicTheme.headerBackgroundColor || '',
-            descriptionShow: result.publicTheme.showHeaderDescription ?? false,
-            metaColor: result.publicTheme.headerSecondaryTextColor || '',
-            textColor: result.publicTheme.headerPrimaryTextColor || '',
-          };
-          return;
-        }
-      } catch (error) {
-        console.warn('Failed to load theme from server, using default:', error);
+      if (hasServerTheme.value) {
+        return;
       }
 
-      // Single fallback for both no data and error cases
       theme.value = {
-        name: 'white',
-        banner: false,
-        bannerGradient: false,
-        bgColor: '',
-        descriptionShow: false,
-        metaColor: '',
-        textColor: '',
+        ...theme.value,
+        ...data,
       };
     }
   };
@@ -109,7 +137,7 @@ export const useThemeStore = defineStore('theme', () => {
 
     // Only set CSS variables for dynamic/user-configured values from GraphQL
     // Static theme values are handled by Tailwind v4 theme classes in @tailwind-shared
-    const dynamicVars: Record<string, string> = {};
+    const dynamicVars: Partial<Record<DynamicVarKey, string>> = {};
 
     // User-configured colors from webGUI @ /Settings/DisplaySettings
     if (theme.value.textColor) {
@@ -141,19 +169,31 @@ export const useThemeStore = defineStore('theme', () => {
     }
 
     requestAnimationFrame(() => {
-      // Apply theme classes to documentElement for Tailwind v4
-      const root = document.documentElement;
+      const scopedTargets: HTMLElement[] = [
+        document.documentElement,
+        ...Array.from(document.querySelectorAll<HTMLElement>('.unapi')),
+      ];
 
-      // Remove all existing theme and custom classes
-      root.className = root.className
-        .split(' ')
-        .filter((c) => !c.startsWith('theme-') && c !== 'dark' && !c.startsWith('has-custom-'))
-        .join(' ');
+      const cleanClassList = (classList: string) =>
+        classList
+          .split(' ')
+          .filter((c) => !c.startsWith('theme-') && c !== 'dark' && !c.startsWith('has-custom-'))
+          .filter(Boolean)
+          .join(' ');
 
-      // Add new theme classes
-      [...themeClasses, ...customClasses].forEach((cls) => root.classList.add(cls));
+      // Apply theme and custom classes to html element and all .unapi roots
+      scopedTargets.forEach((target) => {
+        target.className = cleanClassList(target.className);
+        [...themeClasses, ...customClasses].forEach((cls) => target.classList.add(cls));
 
-      // Also apply dark class to body for compatibility
+        if (darkMode.value) {
+          target.classList.add('dark');
+        } else {
+          target.classList.remove('dark');
+        }
+      });
+
+      // Maintain dark mode flag on body for legacy components
       if (darkMode.value) {
         document.body.classList.add('dark');
       } else {
@@ -162,12 +202,22 @@ export const useThemeStore = defineStore('theme', () => {
 
       // Only apply dynamic CSS variables for custom user values
       // All theme defaults are handled by classes in @tailwind-shared/theme-variants.css
-      if (Object.keys(dynamicVars).length > 0) {
-        // Apply to root element for global availability
-        Object.entries(dynamicVars).forEach(([key, value]) => {
-          document.documentElement.style.setProperty(key, value);
+      const activeDynamicKeys = Object.keys(dynamicVars) as DynamicVarKey[];
+
+      scopedTargets.forEach((target) => {
+        activeDynamicKeys.forEach((key) => {
+          const value = dynamicVars[key];
+          if (value !== undefined) {
+            target.style.setProperty(key, value);
+          }
         });
-      }
+
+        DYNAMIC_VAR_KEYS.forEach((key) => {
+          if (!Object.prototype.hasOwnProperty.call(dynamicVars, key)) {
+            target.style.removeProperty(key);
+          }
+        });
+      });
 
       // Store active variables for reference (from defaultColors for compatibility)
       const customTheme = { ...defaultColors[selectedTheme] };
