@@ -3,7 +3,7 @@
   "version": "4.25.0",
   "private": true,
   "dependencies": {
-    "commander": "14.0.0",
+    "commander": "14.0.1",
     "conventional-changelog": "7.1.1",
     "conventional-changelog-conventionalcommits": "9.1.0",
     "date-fns": "4.1.0",
