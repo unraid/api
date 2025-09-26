@@ -97,8 +97,6 @@ onNotificationAdded(({ data }) => {
   if (notif.timestamp) {
     latestNotificationTimestamp.value = notif.timestamp;
   }
-  // probably smart to leave this log outside the if-block for the initial release
-  console.log('incoming notification', notif);
   if (!globalThis.toast) {
     return;
   }
@@ -201,38 +199,46 @@ const prepareToViewNotifications = () => {
             </TabsContent>
           </div>
 
-          <div class="mt-2 flex items-center justify-between gap-2 px-3">
-            <div
-              class="flex flex-wrap items-center gap-2"
-              role="group"
-              aria-label="Filter notifications by type"
-            >
-              <Button
-                v-for="option in filterOptions"
-                :key="option.label"
-                :variant="importance === option.value ? 'pill-orange' : 'pill-gray'"
-                size="sm"
-                class="h-8 px-3"
-                :aria-pressed="importance === option.value"
-                @click="importance = option.value"
+          <div class="mt-3 flex items-start justify-between gap-3 px-3">
+            <div class="flex min-w-0 flex-1 flex-col gap-2">
+              <div
+                class="border-border/60 bg-muted/60 flex flex-wrap items-center gap-1 rounded-xl border p-1"
+                role="group"
               >
-                {{ option.label }}
-              </Button>
+                <Button
+                  v-for="option in filterOptions"
+                  :key="option.label"
+                  variant="ghost"
+                  size="sm"
+                  class="h-8 rounded-lg border border-transparent px-3 text-xs font-medium transition-colors"
+                  :class="
+                    importance === option.value
+                      ? 'border-border bg-background text-foreground'
+                      : 'text-muted-foreground hover:border-border/60 hover:bg-muted/40 hover:text-foreground'
+                  "
+                  :aria-pressed="importance === option.value"
+                  @click="importance = option.value"
+                >
+                  {{ option.label }}
+                </Button>
+              </div>
             </div>
-            <TooltipProvider>
-              <Tooltip :delay-duration="0">
-                <TooltipTrigger as-child>
-                  <a href="/Settings/Notifications">
-                    <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
-                      <Settings class="h-4 w-4" />
-                    </Button>
-                  </a>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Edit Notification Settings</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <div class="shrink-0">
+              <TooltipProvider>
+                <Tooltip :delay-duration="0">
+                  <TooltipTrigger as-child>
+                    <a href="/Settings/Notifications">
+                      <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
+                        <Settings class="h-4 w-4" />
+                      </Button>
+                    </a>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Edit Notification Settings</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
 
           <TabsContent value="unread" class="min-h-0 flex-1 flex-col">
