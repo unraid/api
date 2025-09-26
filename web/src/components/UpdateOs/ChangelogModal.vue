@@ -96,19 +96,34 @@ const iframeSrc = computed(() => {
   }
 
   try {
-    const entryTarget = docsChangelogUrl.value;
-    let url: URL;
+    const entryTarget = docsChangelogUrl.value.trim();
+    if (!entryTarget) {
+      return null;
+    }
+
+    let entryUrl: URL;
 
     try {
-      url = new URL(entryTarget);
+      entryUrl = new URL(entryTarget);
+      const protocol = entryUrl.protocol.toLowerCase();
+      if (protocol !== 'http:' && protocol !== 'https:') {
+        return null;
+      }
+      if (entryUrl.origin !== DOCS.origin) {
+        return null;
+      }
     } catch (error) {
-      url = new URL(entryTarget, DOCS);
+      entryUrl = new URL(entryTarget, DOCS);
+      if (entryUrl.origin !== DOCS.origin) {
+        return null;
+      }
     }
+
+    const entryValue = `${entryUrl.pathname}${entryUrl.search}${entryUrl.hash}`;
+    const url = new URL(entryValue, DOCS);
 
     url.searchParams.set('embed', '1');
     url.searchParams.set('theme', isDarkMode.value ? 'dark' : 'light');
-    const isDocsHost = url.origin === DOCS.origin;
-    const entryValue = isDocsHost ? `${url.pathname}${url.search}${url.hash}` : entryTarget;
     url.searchParams.set('entry', entryValue);
 
     return url.toString();

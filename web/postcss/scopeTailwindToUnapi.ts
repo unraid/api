@@ -38,18 +38,22 @@ const NON_SCOPED_AT_RULES = new Set(['font-face', 'page']);
 const MERGE_WITH_SCOPE_PATTERNS: RegExp[] = [/^\.theme-/, /^\.has-custom-/, /^\.dark\b/];
 
 function shouldScopeRule(rule: Rule, targetLayers: Set<string>, includeRootRules: boolean): boolean {
+  const hasSelectorString = typeof rule.selector === 'string' && rule.selector.length > 0;
+  const hasSelectorArray = Array.isArray(rule.selectors) && rule.selectors.length > 0;
+
   // Skip rules without selectors (e.g. @font-face) or nested keyframe steps
-  if (!rule.selector) {
+  if (!hasSelectorString && !hasSelectorArray) {
     return false;
   }
 
   const directParent = rule.parent;
   if (directParent?.type === 'atrule') {
     const parentAtRule = directParent as AtRule;
-    if (KEYFRAME_AT_RULES.has(parentAtRule.name)) {
+    const parentAtRuleName = parentAtRule.name.toLowerCase();
+    if (KEYFRAME_AT_RULES.has(parentAtRuleName) || parentAtRuleName.endsWith('keyframes')) {
       return false;
     }
-    if (NON_SCOPED_AT_RULES.has(parentAtRule.name)) {
+    if (NON_SCOPED_AT_RULES.has(parentAtRuleName)) {
       return false;
     }
   }
@@ -58,13 +62,11 @@ function shouldScopeRule(rule: Rule, targetLayers: Set<string>, includeRootRules
 
   // Traverse ancestors to find the enclosing @layer declaration
   let current: Container | undefined = rule.parent ?? undefined;
-  let inspectedLayer = false;
 
   while (current) {
     if (current.type === 'atrule') {
       const currentAtRule = current as AtRule;
       if (currentAtRule.name === 'layer') {
-        inspectedLayer = true;
         const layerNames = currentAtRule.params
           .split(',')
           .map((name: string) => name.trim())
@@ -79,7 +81,7 @@ function shouldScopeRule(rule: Rule, targetLayers: Set<string>, includeRootRules
   }
 
   // If the rule is not inside any @layer, treat it as root-level CSS
-  return includeRootRules && !inspectedLayer;
+  return includeRootRules;
 }
 
 function hasScope(selector: string, scope: string): boolean {
