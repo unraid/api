@@ -41,13 +41,28 @@ import { getRequest } from '@app/utils.js';
 
                 try {
                     const request = getRequest(ctx);
-                    const roles = request?.user?.roles || [];
+                    const user = request?.user;
+
+                    if (!user) {
+                        throw new UnauthorizedException('Request user context missing');
+                    }
+
+                    const roles = user.roles ?? [];
 
                     if (!Array.isArray(roles)) {
                         throw new UnauthorizedException('User roles must be an array');
                     }
 
-                    return roles.join(',');
+                    const subject =
+                        typeof user.id === 'string' && user.id.trim().length > 0
+                            ? user.id
+                            : roles.join(',');
+
+                    if (!subject) {
+                        throw new UnauthorizedException('User identifier is required');
+                    }
+
+                    return subject;
                 } catch (error) {
                     logger.error('Failed to extract user context', error);
                     throw new UnauthorizedException('Failed to authenticate user');
