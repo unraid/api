@@ -69,8 +69,38 @@ switch ($command) {
     response_complete(200, array('result' => $output), $output);
     break;
   case 'restart':
+    $lockFilePath = '/var/run/unraid-api-restart.lock';
+    $lockHandle = @fopen($lockFilePath, 'c');
+    if ($lockHandle === false) {
+      response_complete(500, array('error' => 'Unable to open restart lock file'), 'Unable to open restart lock file');
+    }
+
+    // Use a lockfile to avoid concurrently running restart commands
+    $acquiredWithoutBlocking = flock($lockHandle, LOCK_EX | LOCK_NB);
+    if (!$acquiredWithoutBlocking) {
+      if (flock($lockHandle, LOCK_EX)) {
+        flock($lockHandle, LOCK_UN);
+        fclose($lockHandle);
+        response_complete(200, array('success' => true, 'result' => 'Unraid API restart already in progress'), 'Restart already in progress');
+      }
+
+      fclose($lockHandle);
+      response_complete(500, array('error' => 'Unable to acquire restart lock'), 'Unable to acquire restart lock');
+    }
+
+    $pid = getmypid();
+    if ($pid !== false) {
+      ftruncate($lockHandle, 0);
+      fwrite($lockHandle, (string)$pid);
+      fflush($lockHandle);
+    }
+
     exec('/etc/rc.d/rc.unraid-api restart 2>&1', $output, $retval);
     $output = implode(PHP_EOL, $output);
+
+    flock($lockHandle, LOCK_UN);
+    fclose($lockHandle);
+
     response_complete(200, array('success' => ($retval === 0), 'result' => $output, 'error' => ($retval !== 0 ? $output : null)), $output);
     break;
   case 'status':

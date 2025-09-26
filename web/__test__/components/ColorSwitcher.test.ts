@@ -2,7 +2,7 @@
  * ColorSwitcher Component Test Coverage
  */
 
-import { nextTick } from 'vue';
+import { nextTick, ref } from 'vue';
 import { setActivePinia } from 'pinia';
 import { mount } from '@vue/test-utils';
 
@@ -14,6 +14,15 @@ import type { MockInstance } from 'vitest';
 
 import ColorSwitcher from '~/components/ColorSwitcher.standalone.vue';
 import { useThemeStore } from '~/store/theme';
+
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: () => ({
+    result: ref(null),
+    loading: ref(false),
+    onResult: vi.fn(),
+    onError: vi.fn(),
+  }),
+}));
 
 // Explicitly mock @unraid/ui to ensure we use the actual components
 vi.mock('@unraid/ui', async (importOriginal) => {

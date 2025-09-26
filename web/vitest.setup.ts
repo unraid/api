@@ -1,6 +1,24 @@
+import { ref } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 
 import { beforeEach, vi } from 'vitest';
+
+vi.mock('@vue/apollo-composable', async () => {
+  const actual =
+    await vi.importActual<typeof import('@vue/apollo-composable')>('@vue/apollo-composable');
+
+  const useQueryMock = vi.fn(() => ({
+    result: ref(null),
+    loading: ref(false),
+    onResult: vi.fn(),
+    onError: vi.fn(),
+  }));
+
+  return {
+    ...actual,
+    useQuery: useQueryMock,
+  };
+});
 
 // Mock WebSocket for test environment
 if (!global.WebSocket) {

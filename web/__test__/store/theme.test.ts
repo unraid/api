@@ -2,7 +2,7 @@
  * Theme store test coverage
  */
 
-import { nextTick } from 'vue';
+import { nextTick, ref } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 
 import { defaultColors } from '~/themes/default';
@@ -10,6 +10,15 @@ import hexToRgba from 'hex-to-rgba';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useThemeStore } from '~/store/theme';
+
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: () => ({
+    result: ref(null),
+    loading: ref(false),
+    onResult: vi.fn(),
+    onError: vi.fn(),
+  }),
+}));
 
 vi.mock('hex-to-rgba', () => ({
   default: vi.fn((hex, opacity) => `rgba(mock-${hex}-${opacity})`),

@@ -16,35 +16,52 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
   const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
   const unraidApiClient = ref<ApolloClientType<NormalizedCacheObject> | null>(client);
+  let pendingRestartPromise: Promise<void> | null = null;
 
   // const unraidApiErrors = ref<any[]>([]);
   const unraidApiStatus = ref<'connecting' | 'offline' | 'online' | 'restarting'>('connecting');
   const prioritizeCorsError = ref(false); // Ensures we don't overwrite this specific error message with a non-descriptive network error message
 
-  const offlineError = computed(() => {
-    if (unraidApiStatus.value === 'offline') {
-      return new Error('The Unraid API is currently offline.');
+  /**
+   * Can both start and restart the unraid-api depending on its current status
+   */
+  const restartUnraidApiClient = () => {
+    if (pendingRestartPromise) {
+      return pendingRestartPromise;
     }
-  });
-  // maintains an error in global store while api is offline
-  watch(
-    offlineError,
-    (error) => {
-      const errorId = 'unraidApiOffline';
-      if (error) {
-        errorsStore.setError({
-          heading: 'Warning: API is offline!',
-          message: error.message,
-          ref: errorId,
-          level: 'warning',
-          type: 'unraidApiState',
+
+    const command = unraidApiStatus.value === 'offline' ? 'start' : 'restart';
+    unraidApiStatus.value = 'restarting';
+
+    const restartTask = (async () => {
+      try {
+        await WebguiUnraidApiCommand({
+          csrf_token: serverStore.csrf,
+          command,
         });
-      } else {
-        errorsStore.removeErrorByRef(errorId);
+      } catch (error) {
+        let errorMessage = 'Unknown error';
+        if (typeof error === 'string') {
+          errorMessage = error.toUpperCase();
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        errorsStore.setError({
+          heading: 'Error: unraid-api restart',
+          message: errorMessage,
+          level: 'error',
+          ref: 'restartUnraidApiClient',
+          type: 'request',
+        });
       }
-    },
-    { immediate: true }
-  );
+    })();
+
+    pendingRestartPromise = restartTask.finally(() => {
+      pendingRestartPromise = null;
+    });
+
+    return pendingRestartPromise;
+  };
 
   const unraidApiRestartAction = computed((): UserProfileLink | undefined => {
     const { connectPluginInstalled, stateDataError } = serverStore;
@@ -58,6 +75,34 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       text: 'Restart unraid-api',
     };
   });
+
+  const offlineError = computed(() => {
+    if (unraidApiStatus.value === 'offline') {
+      return new Error('The Unraid API is currently offline.');
+    }
+    return undefined;
+  });
+
+  // maintains an error in global store while api is offline
+  watch(
+    [offlineError, unraidApiRestartAction],
+    ([error, restartAction]) => {
+      const errorId = 'unraidApiOffline';
+      errorsStore.removeErrorByRef(errorId);
+
+      if (error) {
+        errorsStore.setError({
+          heading: 'Warning: API is offline!',
+          message: error.message,
+          ref: errorId,
+          level: 'warning',
+          type: 'unraidApiState',
+          actions: restartAction ? [restartAction] : undefined,
+        });
+      }
+    },
+    { immediate: true }
+  );
 
   /**
    * Automatically called when an apiKey is unset in the serverStore
@@ -73,33 +118,6 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     }
     unraidApiClient.value = null;
     unraidApiStatus.value = 'offline';
-  };
-  /**
-   * Can both start and restart the unraid-api depending on it's current status
-   */
-  const restartUnraidApiClient = async () => {
-    const command = unraidApiStatus.value === 'offline' ? 'start' : 'restart';
-    unraidApiStatus.value = 'restarting';
-    try {
-      await WebguiUnraidApiCommand({
-        csrf_token: serverStore.csrf,
-        command,
-      });
-    } catch (error) {
-      let errorMessage = 'Unknown error';
-      if (typeof error === 'string') {
-        errorMessage = error.toUpperCase();
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      errorsStore.setError({
-        heading: 'Error: unraid-api restart',
-        message: errorMessage,
-        level: 'error',
-        ref: 'restartUnraidApiClient',
-        type: 'request',
-      });
-    }
   };
 
   return {
