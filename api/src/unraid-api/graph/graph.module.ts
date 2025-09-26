@@ -49,6 +49,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                             extra,
                         };
                     },
+                    fieldResolverEnhancers: ['guards'],
                     plugins: [
                         createDynamicIntrospectionPlugin(isSandboxEnabled),
                         createSandboxPlugin(),
