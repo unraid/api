@@ -11,7 +11,7 @@
     "html-sloppy-escaper": "0.1.0",
     "semver": "7.7.2",
     "tsx": "4.20.5",
-    "zod": "3.25.76",
+    "zod": "4.1.11",
     "zx": "8.8.1"
   },
   "type": "module",
