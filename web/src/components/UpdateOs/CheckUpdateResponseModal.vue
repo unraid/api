@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia';
 import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
 import {
   ArrowTopRightOnSquareIcon,
+  CheckCircleIcon,
   CogIcon,
   EyeIcon,
   IdentificationIcon,
@@ -56,6 +57,7 @@ const {
   regExp,
   regUpdatesExpired,
   dateTimeFormat,
+  osVersion,
   updateOsIgnoredReleases,
   updateOsNotificationsEnabled,
   updateOsResponse,
@@ -162,7 +164,7 @@ const extraLinks = computed((): BrandButtonProps[] => {
   return buttons;
 });
 
-const actionButtons = computed((): BrandButtonProps[] | null => {
+const actionButtons = computed((): BrandButtonProps[] => {
   // If ignoring release, show close button as primary action
   if (ignoreThisRelease.value && (available.value || availableWithRenewal.value)) {
     return [
@@ -173,12 +175,12 @@ const actionButtons = computed((): BrandButtonProps[] | null => {
     ];
   }
 
-  // update not available or no action buttons default closing
-  if (!available.value && !availableWithRenewal.value) {
-    return null;
-  }
-
   const buttons: BrandButtonProps[] = [];
+
+  // update not available or no action buttons default to empty array
+  if (!available.value && !availableWithRenewal.value) {
+    return buttons;
+  }
 
   // update available but not stable branch - should link out to account update callback
   // if availableWithRenewal.value is true, then we need to renew the license before we can update so don't show the verify button
@@ -219,6 +221,10 @@ const actionButtons = computed((): BrandButtonProps[] | null => {
   return buttons;
 });
 
+const showNoUpdateContent = computed(() => {
+  return !checkForUpdatesLoading.value && !available.value && !availableWithRenewal.value;
+});
+
 const close = () => {
   // close it
   updateOsStore.setModalOpen(false);
@@ -231,12 +237,14 @@ const close = () => {
 };
 
 const renderMainSlot = computed(() => {
-  return !!(
-    checkForUpdatesLoading.value ||
-    available.value ||
-    availableWithRenewal.value ||
-    extraLinks.value?.length > 0 ||
-    updateOsIgnoredReleases.value.length > 0
+  return (
+    !!(
+      checkForUpdatesLoading.value ||
+      available.value ||
+      availableWithRenewal.value ||
+      extraLinks.value?.length > 0 ||
+      updateOsIgnoredReleases.value.length > 0
+    ) || showNoUpdateContent.value
   );
 });
 
@@ -330,6 +338,22 @@ const modalWidth = computed(() => {
             </div>
           </div>
 
+          <div v-if="showNoUpdateContent" class="flex flex-col items-center gap-4 py-6 text-center">
+            <div class="bg-primary/10 flex items-center justify-center rounded-full p-4">
+              <CheckCircleIcon class="text-primary h-10 w-10" />
+            </div>
+            <div class="space-y-2">
+              <p v-if="osVersion" class="text-muted-foreground text-center text-sm font-semibold">
+                {{ t('Current Version {0}', [osVersion]) }}
+              </p>
+              <p
+                v-if="modalCopy?.description"
+                class="text-muted-foreground text-xs sm:text-sm"
+                v-html="modalCopy.description"
+              />
+            </div>
+          </div>
+
           <div
             v-if="extraLinks.length > 0"
             :class="cn('xs:!flex-row flex flex-col justify-center gap-2')"
@@ -370,14 +394,13 @@ const modalWidth = computed(() => {
           :class="
             cn(
               'mx-auto flex w-full gap-2',
-              actionButtons ? 'xs:!flex-row flex-col-reverse justify-between' : 'justify-center'
+              actionButtons.length > 0
+                ? 'xs:!flex-row flex-col-reverse justify-between'
+                : 'justify-center'
             )
           "
         >
-          <div
-            v-if="actionButtons"
-            :class="cn('xs:!flex-row flex flex-col-reverse justify-start gap-3')"
-          >
+          <div :class="cn('xs:!flex-row mt-2 flex flex-col-reverse justify-start gap-3')">
             <TooltipProvider>
               <Tooltip :delay-duration="0">
                 <TooltipTrigger as-child>
@@ -403,7 +426,10 @@ const modalWidth = computed(() => {
               </Tooltip>
             </TooltipProvider>
           </div>
-          <div v-if="actionButtons" :class="cn('xs:!flex-row flex flex-col justify-end gap-3')">
+          <div
+            v-if="actionButtons.length > 0"
+            :class="cn('xs:!flex-row flex flex-col justify-end gap-3')"
+          >
             <template v-for="item in actionButtons" :key="item.text">
               <TooltipProvider v-if="ignoreThisRelease && item.text === localizedCloseText">
                 <Tooltip :delay-duration="300">
