@@ -52,7 +52,7 @@
         "ws": "8.18.3"
     },
     "peerDependencies": {
-        "@apollo/client": "3.14.0",
+        "@apollo/client": "4.0.6",
         "@graphql-tools/utils": "10.9.1",
         "@jsonforms/core": "3.6.0",
         "@nestjs/common": "11.1.6",

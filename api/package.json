@@ -51,8 +51,8 @@
         "unraid-api": "dist/cli.js"
     },
     "dependencies": {
-        "@apollo/client": "3.14.0",
-        "@apollo/server": "4.12.2",
+        "@apollo/client": "4.0.6",
+        "@apollo/server": "5.0.0",
         "@as-integrations/fastify": "2.1.1",
         "@fastify/cookie": "11.0.2",
         "@fastify/helmet": "13.0.1",
