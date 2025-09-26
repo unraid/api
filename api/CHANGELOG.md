@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.25.0](https://github.com/unraid/api/compare/v4.24.1...v4.25.0) (2025-09-26)
+
+
+### Features
+
+* add Tailwind scoping plugin and integrate into Vite config ([#1722](https://github.com/unraid/api/issues/1722)) ([b7afaf4](https://github.com/unraid/api/commit/b7afaf463243b073e1ab1083961a16a12ac6c4a3))
+* notification filter controls pill buttons ([#1718](https://github.com/unraid/api/issues/1718)) ([661865f](https://github.com/unraid/api/commit/661865f97611cf802f239fde8232f3109281dde6))
+
+
+### Bug Fixes
+
+* enable auth guard for nested fields - thanks [@ingel81](https://github.com/ingel81) ([7bdeca8](https://github.com/unraid/api/commit/7bdeca8338a3901f15fde06fd7aede3b0c16e087))
+* enhance user context validation in auth module ([#1726](https://github.com/unraid/api/issues/1726)) ([cd5eff1](https://github.com/unraid/api/commit/cd5eff11bcb4398581472966cb7ec124eac7ad0a))
+
 ## [4.24.1](https://github.com/unraid/api/compare/v4.24.0...v4.24.1) (2025-09-23)
 
 
