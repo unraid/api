@@ -144,7 +144,7 @@
         "uuid": "13.0.0",
         "ws": "8.18.3",
         "zen-observable-ts": "1.1.0",
-        "zod": "3.25.76"
+        "zod": "4.1.11"
     },
     "peerDependencies": {
         "unraid-api-plugin-connect": "workspace:*"
