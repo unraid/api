@@ -304,13 +304,6 @@ exit 0
           -d "Unraid Connect plugin has been marked for removal. Please reboot your server to complete the uninstallation." \
           -i "warning"
         
-        # Remove the plugin file so it won't be installed on reboot
-        PLUGIN_FILE="/boot/config/plugins/${MAINNAME}.plg"
-        if [ -f "$PLUGIN_FILE" ]; then
-          echo "Removing plugin file: $PLUGIN_FILE"
-          rm -f "$PLUGIN_FILE"
-        fi
-        
         echo "Plugin marked for removal. Reboot required to complete uninstallation."
       else
         # Original removal method for older versions
