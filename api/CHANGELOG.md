@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.25.1](https://github.com/unraid/api/compare/v4.25.0...v4.25.1) (2025-09-30)
+
+
+### Bug Fixes
+
+* add cache busting to web component extractor ([#1731](https://github.com/unraid/api/issues/1731)) ([0d165a6](https://github.com/unraid/api/commit/0d165a608740505bdc505dcf69fb615225969741))
+* Connect won't appear within Apps - Previous Apps ([#1727](https://github.com/unraid/api/issues/1727)) ([d73953f](https://github.com/unraid/api/commit/d73953f8ff3d7425c0aed32d16236ededfd948e1))
+
 ## [4.25.0](https://github.com/unraid/api/compare/v4.24.1...v4.25.0) (2025-09-26)
 
 
