@@ -35,16 +35,6 @@ class WebComponentsExtractor
         return preg_replace('/[^a-zA-Z0-9-]/', '-', $input);
     }
 
-    private function appendVersionQuery(string $path, string $version): string
-    {
-        if ($version === '') {
-            return $path;
-        }
-
-        $separator = strpos($path, '?') !== false ? '&' : '?';
-        return $path . $separator . 'v=' . rawurlencode($version);
-    }
-
     public function getManifestContents(string $manifestPath): array
     {
         $contents = @file_get_contents($manifestPath);
@@ -72,14 +62,6 @@ class WebComponentsExtractor
             $subfolder = $this->getRelativePath($manifestPath);
             
             // Process each entry in the manifest
-            $version = '';
-            if (isset($manifest['ts'])) {
-                $versionValue = $manifest['ts'];
-                if (is_string($versionValue) || is_numeric($versionValue)) {
-                    $version = (string) $versionValue;
-                }
-            }
-
             foreach ($manifest as $key => $entry) {
                 if ($key === 'ts') {
                     continue;
@@ -91,7 +73,7 @@ class WebComponentsExtractor
                 
                 // Build the file path
                 $filePath = ($subfolder ? $subfolder . '/' : '') . $entry['file'];
-                $fullPath = $this->appendVersionQuery($this->getAssetPath($filePath), $version);
+                $fullPath = $this->getAssetPath($filePath);
                 
                 // Determine file type and generate appropriate tag
                 $extension = pathinfo($entry['file'], PATHINFO_EXTENSION);
@@ -112,7 +94,7 @@ class WebComponentsExtractor
                         foreach ($entry['css'] as $cssFile) {
                             if (!is_string($cssFile) || $cssFile === '') continue;
                             $cssPath = ($subfolder ? $subfolder . '/' : '') . $cssFile;
-                            $cssFull = $this->appendVersionQuery($this->getAssetPath($cssPath), $version);
+                            $cssFull = $this->getAssetPath($cssPath);
                             $cssId = htmlspecialchars(
                                 'unraid-' . $sanitizedSubfolder . $sanitizedKey . '-css-' . $this->sanitizeForId(basename($cssFile)),
                                 ENT_QUOTES,

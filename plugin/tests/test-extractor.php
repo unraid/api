@@ -14,6 +14,8 @@ class ExtractorTest {
     private $passed = 0;
     private $failed = 0;
     private $verbose = false;
+    private $standaloneJsFile = 'standalone-apps-AbCdEf12.js';
+    private $standaloneCssFile = 'standalone-apps-ZyXwVuTs.css';
     
     // Color codes for terminal output
     const RED = "\033[0;31m";
@@ -46,13 +48,13 @@ class ExtractorTest {
         
         // Create test manifest files
         file_put_contents($this->componentDir . '/standalone-apps/standalone.manifest.json', json_encode([
-            'standalone-apps-RlN0czLV.css' => [
-                'file' => 'standalone-apps-RlN0czLV.css',
-                'src' => 'standalone-apps-RlN0czLV.css'
+            $this->standaloneCssFile => [
+                'file' => $this->standaloneCssFile,
+                'src' => $this->standaloneCssFile
             ],
-            'standalone-apps.js' => [
-                'file' => 'standalone-apps.js',
-                'src' => 'standalone-apps.js',
+            $this->standaloneJsFile => [
+                'file' => $this->standaloneJsFile,
+                'src' => $this->standaloneJsFile,
                 'css' => ['app-styles.css', 'theme.css']
             ],
             'ts' => 1234567890
@@ -144,8 +146,8 @@ class ExtractorTest {
         echo "Test: Script Tag Generation\n";
         echo "----------------------------\n";
         $this->test(
-            "Generates script tag for standalone-apps.js",
-            strpos($output, 'script id="unraid-standalone-apps-standalone-apps-js"') !== false
+            "Generates script tag for hashed standalone JS",
+            strpos($output, 'script id="unraid-standalone-apps-' . $this->sanitizeForExpectedId($this->standaloneJsFile) . '"') !== false
         );
         $this->test(
             "Generates script tag for components.mjs",
@@ -160,8 +162,8 @@ class ExtractorTest {
         echo "\nTest: CSS Link Generation\n";
         echo "--------------------------\n";
         $this->test(
-            "Generates link tag for standalone CSS",
-            strpos($output, 'link id="unraid-standalone-apps-standalone-apps-RlN0czLV-css"') !== false
+            "Generates link tag for hashed standalone CSS",
+            strpos($output, 'link id="unraid-standalone-apps-' . $this->sanitizeForExpectedId($this->standaloneCssFile) . '"') !== false
         );
         $this->test(
             "Generates link tag for UI styles",
@@ -209,7 +211,7 @@ class ExtractorTest {
         echo "------------------------\n";
         $this->test(
             "Correctly constructs standalone-apps path",
-            strpos($output, '/plugins/dynamix.my.servers/unraid-components/standalone-apps/standalone-apps.js') !== false
+            strpos($output, '/plugins/dynamix.my.servers/unraid-components/standalone-apps/' . $this->standaloneJsFile) !== false
         );
         $this->test(
             "Correctly constructs ui-components path",
@@ -274,11 +276,11 @@ class ExtractorTest {
         echo "--------------------------------\n";
         $this->test(
             "Loads CSS from JS entry css array (app-styles.css)",
-            strpos($output, 'id="unraid-standalone-apps-standalone-apps-js-css-app-styles-css"') !== false
+            strpos($output, 'id="unraid-standalone-apps-' . $this->sanitizeForExpectedId($this->standaloneJsFile) . '-css-app-styles-css"') !== false
         );
         $this->test(
             "Loads CSS from JS entry css array (theme.css)",
-            strpos($output, 'id="unraid-standalone-apps-standalone-apps-js-css-theme-css"') !== false
+            strpos($output, 'id="unraid-standalone-apps-' . $this->sanitizeForExpectedId($this->standaloneJsFile) . '-css-theme-css"') !== false
         );
         $this->test(
             "CSS from manifest has correct href path (app-styles.css)",
@@ -343,6 +345,11 @@ class ExtractorTest {
             is_dir($path) ? $this->removeDirectory($path) : unlink($path);
         }
         rmdir($dir);
+    }
+
+    private function sanitizeForExpectedId(string $input): string
+    {
+        return preg_replace('/[^a-zA-Z0-9-]/', '-', $input);
     }
     
     private function reportResults() {
