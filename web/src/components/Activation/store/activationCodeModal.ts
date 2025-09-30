@@ -10,7 +10,7 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 export const useActivationCodeModalStore = defineStore('activationCodeModal', () => {
   const isHidden = useSessionStorage<boolean | null>(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, null);
 
-  const { isFreshInstall } = storeToRefs(useActivationCodeDataStore());
+  const { isFreshInstall, activationCode } = storeToRefs(useActivationCodeDataStore());
   const { callbackData } = storeToRefs(useCallbackActionsStore());
 
   const setIsHidden = (value: boolean | null) => {
@@ -30,8 +30,13 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
     if (isHidden.value === false) {
       return true;
     }
-    // Default visibility logic (show if not explicitly hidden AND fresh install AND no callback data)
-    return isHidden.value === null && isFreshInstall.value && !callbackData.value;
+    // Default visibility logic (show if not explicitly hidden AND fresh install AND no callback data AND activation code is present)
+    return (
+      isHidden.value === null &&
+      isFreshInstall.value &&
+      !callbackData.value &&
+      Boolean(activationCode.value?.code)
+    );
   });
 
   /**
