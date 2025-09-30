@@ -63,6 +63,9 @@ class WebComponentsExtractor
             
             // Process each entry in the manifest
             foreach ($manifest as $key => $entry) {
+                if ($key === 'ts') {
+                    continue;
+                }
                 // Skip if not an array with a 'file' key
                 if (!is_array($entry) || !isset($entry['file']) || empty($entry['file'])) {
                     continue;

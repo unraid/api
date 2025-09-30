@@ -128,12 +128,11 @@ export default defineConfig({
     rollupOptions: {
       output: {
         format: 'es',
-        entryFileNames: 'standalone-apps.js',
+        entryFileNames: 'standalone-apps-[hash].js',
         chunkFileNames: '[name]-[hash].js',
         assetFileNames: (assetInfo) => {
-          // Keep CSS files with predictable names
           if (assetInfo.name?.endsWith('.css')) {
-            return 'standalone-apps.css';
+            return 'standalone-apps-[hash][extname]';
           }
           return '[name]-[hash][extname]';
         },
