@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.25.2](https://github.com/unraid/api/compare/v4.25.1...v4.25.2) (2025-09-30)
+
+
+### Bug Fixes
+
+* enhance activation code modal visibility logic ([#1733](https://github.com/unraid/api/issues/1733)) ([e57ec00](https://github.com/unraid/api/commit/e57ec00627e54ce76d903fd0fa8686ad02b393f3))
+
 ## [4.25.1](https://github.com/unraid/api/compare/v4.25.0...v4.25.1) (2025-09-30)
 
 
