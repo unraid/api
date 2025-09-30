@@ -25,6 +25,7 @@ describe('ActivationCodeModal Store', () => {
   let store: ReturnType<typeof useActivationCodeModalStore>;
   let mockIsHidden: ReturnType<typeof ref>;
   let mockIsFreshInstall: ReturnType<typeof ref>;
+  let mockActivationCode: ReturnType<typeof ref>;
   let mockCallbackData: ReturnType<typeof ref>;
 
   beforeEach(() => {
@@ -38,11 +39,13 @@ describe('ActivationCodeModal Store', () => {
 
     mockIsHidden = ref(null);
     mockIsFreshInstall = ref(false);
+    mockActivationCode = ref(null);
     mockCallbackData = ref(null);
 
     vi.mocked(useSessionStorage).mockReturnValue(mockIsHidden);
     vi.mocked(useActivationCodeDataStore).mockReturnValue({
       isFreshInstall: mockIsFreshInstall,
+      activationCode: mockActivationCode,
     } as unknown as ReturnType<typeof useActivationCodeDataStore>);
     vi.mocked(useCallbackActionsStore).mockReturnValue({
       callbackData: mockCallbackData,
@@ -56,6 +59,7 @@ describe('ActivationCodeModal Store', () => {
     vi.resetAllMocks();
     mockIsHidden.value = null;
     mockIsFreshInstall.value = false;
+    mockActivationCode.value = null;
     mockCallbackData.value = null;
   });
 
@@ -86,6 +90,7 @@ describe('ActivationCodeModal Store', () => {
     it('should be visible when fresh install and not explicitly hidden', () => {
       mockIsHidden.value = null;
       mockIsFreshInstall.value = true;
+      mockActivationCode.value = { code: '12345' };
       mockCallbackData.value = null;
 
       expect(store.isVisible).toBe(true);
@@ -104,9 +109,18 @@ describe('ActivationCodeModal Store', () => {
       expect(store.isVisible).toBe(false);
     });
 
+    it('should not be visible when activation code is missing', () => {
+      mockIsHidden.value = null;
+      mockIsFreshInstall.value = true;
+      mockActivationCode.value = null;
+
+      expect(store.isVisible).toBe(false);
+    });
+
     it('should not be visible when callback data exists', () => {
       mockIsHidden.value = null;
       mockIsFreshInstall.value = true;
+      mockActivationCode.value = { code: '12345' };
       mockCallbackData.value = { someData: 'test' };
 
       expect(store.isVisible).toBe(false);
