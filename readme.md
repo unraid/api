@@ -21,6 +21,8 @@
 [![LinkedIn][linkedin-shield]][linkedin-url]
 [![Codecov][codecov-shield]][codecov-url]
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/unraid/api)
+
 </div>
 <!-- PROJECT LOGO -->
 <br />
