@@ -166,7 +166,6 @@ describe('Modals.standalone.vue', () => {
       'UpcTrial',
       'UpdateOsCheckUpdateResponseModal',
       'UpdateOsChangelogModal',
-      'ActivationModal',
     ];
 
     components.forEach((componentName) => {

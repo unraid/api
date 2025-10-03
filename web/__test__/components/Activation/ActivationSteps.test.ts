@@ -7,6 +7,7 @@ import { mount } from '@vue/test-utils';
 import { describe, expect, it, vi } from 'vitest';
 
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
+import { createTestI18n } from '../../utils/i18n';
 
 interface Props {
   activeStep?: number;
@@ -59,6 +60,9 @@ describe('ActivationSteps', () => {
   const mountComponent = (props: Props = {}) => {
     return mount(ActivationSteps, {
       props,
+      global: {
+        plugins: [createTestI18n()],
+      },
     });
   };
 

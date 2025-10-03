@@ -9,7 +9,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import UpdateOs from '~/components/UpdateOs.standalone.vue';
-import { testTranslate } from '../utils/i18n';
+import { createTestI18n } from '../utils/i18n';
 
 vi.mock('@unraid/ui', () => ({
   PageContainer: { template: '<div><slot /></div>' },
@@ -31,13 +31,6 @@ const mockServerStore = {
 };
 vi.mock('~/store/server', () => ({
   useServerStore: () => mockServerStore,
-}));
-
-const mockT = vi.fn(testTranslate);
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: mockT,
-  }),
 }));
 
 // Mock window.location
@@ -68,7 +61,6 @@ describe('UpdateOs.standalone.vue', () => {
     mockRebootType.value = '';
     mockSetRebootVersion.mockClear();
     mockAccountStore.updateOs.mockClear();
-    mockT.mockClear().mockImplementation(testTranslate);
     window.location.pathname = '/some/other/path';
   });
 
@@ -77,7 +69,7 @@ describe('UpdateOs.standalone.vue', () => {
     mount(UpdateOs, {
       props: { rebootVersion: testVersion },
       global: {
-        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
         stubs: {
           // Rely on @unraid/ui mock for PageContainer
           UpdateOsStatus: UpdateOsStatusStub,
@@ -92,7 +84,7 @@ describe('UpdateOs.standalone.vue', () => {
   it('calls setRebootVersion with empty string if prop not provided', () => {
     mount(UpdateOs, {
       global: {
-        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
         stubs: {
           // Rely on @unraid/ui mock for PageContainer
           UpdateOsStatus: UpdateOsStatusStub,
@@ -111,7 +103,7 @@ describe('UpdateOs.standalone.vue', () => {
 
       const wrapper = mount(UpdateOs, {
         global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })],
+          plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
           stubs: {
             // Rely on @unraid/ui mock for PageContainer & BrandLoading
             UpdateOsStatus: UpdateOsStatusStub,
@@ -141,7 +133,7 @@ describe('UpdateOs.standalone.vue', () => {
 
       const wrapper = mount(UpdateOs, {
         global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })],
+          plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
           stubs: {
             // Rely on @unraid/ui mock for PageContainer & BrandLoading
             UpdateOsStatus: UpdateOsStatusStub,
@@ -164,7 +156,7 @@ describe('UpdateOs.standalone.vue', () => {
 
       const wrapper = mount(UpdateOs, {
         global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })],
+          plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
           stubs: {
             // Rely on @unraid/ui mock for PageContainer & BrandLoading
             UpdateOsStatus: UpdateOsStatusStub,
@@ -187,7 +179,7 @@ describe('UpdateOs.standalone.vue', () => {
       mockRebootType.value = 'downgrade';
       const wrapper = mount(UpdateOs, {
         global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })],
+          plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
           stubs: {
             UpdateOsStatus: UpdateOsStatusStub,
             UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
@@ -207,7 +199,7 @@ describe('UpdateOs.standalone.vue', () => {
       mockRebootType.value = 'thirdPartyDriversDownloading';
       const wrapper = mount(UpdateOs, {
         global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })],
+          plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
           stubs: {
             UpdateOsStatus: UpdateOsStatusStub,
             UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
@@ -224,7 +216,7 @@ describe('UpdateOs.standalone.vue', () => {
       mockRebootType.value = 'update';
       const wrapper = mount(UpdateOs, {
         global: {
-          plugins: [createTestingPinia({ createSpy: vi.fn })],
+          plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
           stubs: {
             UpdateOsStatus: UpdateOsStatusStub,
             UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,

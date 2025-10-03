@@ -31,6 +31,6 @@ const changelogModalVisible = computed(() => updateOsStore.changelogModalVisible
     <UpcTrial :t="t" :open="trialModalVisible" />
     <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
     <UpdateOsChangelogModal :t="t" :open="changelogModalVisible" />
-    <ActivationModal :t="t" />
+    <ActivationModal />
   </div>
 </template>

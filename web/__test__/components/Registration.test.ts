@@ -16,7 +16,7 @@ import Registration from '~/components/Registration.standalone.vue';
 import { usePurchaseStore } from '~/store/purchase';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
-import { testTranslate } from '../utils/i18n';
+import { createTestI18n, testTranslate } from '../utils/i18n';
 
 vi.mock('crypto-js/aes.js', () => ({ default: {} }));
 
@@ -26,6 +26,17 @@ vi.mock('@unraid/shared-callbacks', () => ({
     watcher: vi.fn(),
   })),
 }));
+
+// Mock vue-i18n for store tests
+vi.mock('vue-i18n', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-i18n')>();
+  return {
+    ...actual,
+    useI18n: () => ({
+      t: testTranslate,
+    }),
+  };
+});
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: () => ({
@@ -115,14 +126,6 @@ vi.mock('~/composables/dateTime', () => ({
 
 const t = testTranslate;
 
-vi.mock('vue-i18n', async (importOriginal) => {
-  const actual = (await importOriginal()) as typeof import('vue-i18n');
-  return {
-    ...actual,
-    useI18n: () => ({ t }),
-  };
-});
-
 describe('Registration.standalone.vue', () => {
   let wrapper: VueWrapper<unknown>;
   let pinia: Pinia;
@@ -172,7 +175,7 @@ describe('Registration.standalone.vue', () => {
     // Mount after store setup
     wrapper = mount(Registration, {
       global: {
-        plugins: [pinia],
+        plugins: [pinia, createTestI18n()],
         stubs: {
           ShieldCheckIcon: { template: '<div class="shield-check-icon"/>' },
           ShieldExclamationIcon: { template: '<div class="shield-exclamation-icon"/>' },

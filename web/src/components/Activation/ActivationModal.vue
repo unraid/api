@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
@@ -7,7 +8,6 @@ import { BrandButton, Dialog } from '@unraid/ui';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 
 import type { BrandButtonProps } from '@unraid/ui';
-import type { ComposerTranslation } from 'vue-i18n';
 
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
@@ -16,11 +16,7 @@ import { useActivationCodeModalStore } from '~/components/Activation/store/activ
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
 
-export interface Props {
-  t: ComposerTranslation;
-}
-
-const props = defineProps<Props>();
+const { t } = useI18n();
 
 const modalStore = useActivationCodeModalStore();
 const { isVisible, isHidden } = storeToRefs(modalStore);
@@ -29,9 +25,9 @@ const purchaseStore = usePurchaseStore();
 
 useThemeStore();
 
-const title = computed<string>(() => props.t('activation.activationModal.letSActivateYourUnraidOs'));
+const title = computed<string>(() => t('activation.activationModal.letSActivateYourUnraidOs'));
 const description = computed<string>(() =>
-  props.t('activation.activationModal.onTheFollowingScreenYourLicense')
+  t('activation.activationModal.onTheFollowingScreenYourLicense')
 );
 const docsButtons = computed<BrandButtonProps[]>(() => {
   return [
@@ -41,7 +37,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       href: DOCS_URL_LICENSING_FAQ,
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: props.t('activation.activationModal.moreAboutLicensing'),
+      text: t('activation.activationModal.moreAboutLicensing'),
     },
     {
       variant: 'underline',
@@ -49,7 +45,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       href: DOCS_URL_ACCOUNT,
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: props.t('activation.activationModal.moreAboutUnraidNetAccounts'),
+      text: t('activation.activationModal.moreAboutUnraidNetAccounts'),
     },
   ];
 });
