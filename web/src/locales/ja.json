@@ -303,7 +303,7 @@
   "registration.messages.yourLicenseKeySOsUpdate": "<p>ライセンスキーのOSアップデートの適用期間が切れました。期限切れ後にリリースされたアップデートを有効にするためにライセンスキーを更新してください。</p>",
   "registration.messages.yourServerWillNotBeUsable": "<p>登録キーを購入するか、無料の30日間の<em>トライアル</em>キーをインストールするまで、サーバーは使用できません。<em>トライアル</em>キーは、Unleashed登録キーの全機能を提供します。</p><p>登録キーはUSBフラッシュブートデバイスのシリアル番号(GUID)に結び付けられます。少なくとも1GBの高品質なブランドのデバイスを使用してください。</p><p>注: USBメモリカードリーダーは、ほとんどのものが一意のシリアル番号を示さないため、一般的にサポートされていません。</p><p><strong>重要:</strong></p><ul class='list-disc pl-16px'><li>サーバーの時間が5分以内に正確であることを確認してください</li><li>DNSサーバーが指定されていることを確認してください</li></ul>",
   "registration.messages.yourTrialKeyIncludesAllThe": "<p>トライアルキーにはUnleashedキーのすべての機能とデバイスサポートが含まれています。</p><p>トライアルが期限切れになった後も、次にアレイを停止したり、サーバーを再起動したりするまでサーバーは通常どおり機能します。</p><p>その時点でライセンスキーを購入するか、<em>トライアル</em>を延長することができます。</p>",
-  "registration.messages.yourTrialKeyRequiresAnInternet": "<p>トライアルキーはインターネット接続を必要とします。</p><p><a href='/Settings/NetworkSettings' class='underline'>設定 > ネットワークを確認してください</a></p>",
+  "registration.messages.yourTrialKeyRequiresAnInternet": "<p>体験版キーはインターネット接続が必要です。</p><p><a href='/Settings/NetworkSettings' class='underline'>設定 > ネットワークを確認してください</a></p>",
   "registration.osUpdateEligibility": "OS更新の適用資格",
   "registration.outOfAllowedDevicesUpgradeYour": "{0}/{1} 許可されたデバイス—キーをアップグレードしてより多くのデバイスをサポート",
   "registration.outOfDevices": "{0}/{1} デバイス",
