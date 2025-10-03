@@ -11,6 +11,10 @@ import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/
 import { createLabeledControl } from '@app/unraid-api/graph/utils/form-utils.js';
 import { SettingSlice } from '@app/unraid-api/types/json-forms.js';
 
+const API_SETTINGS_I18N = {
+    sandbox: 'jsonforms.apiSettings.sandbox',
+} as const;
+
 @Injectable()
 export class ApiSettings {
     private readonly logger = new Logger(ApiSettings.name);
@@ -83,6 +87,7 @@ export class ApiSettings {
             properties: {
                 sandbox: {
                     type: 'boolean',
+                    i18n: API_SETTINGS_I18N.sandbox,
                     title: 'Enable Developer Sandbox',
                     default: false,
                 },
@@ -95,6 +100,7 @@ export class ApiSettings {
                     controlOptions: {
                         toggle: true,
                     },
+                    i18nKey: API_SETTINGS_I18N.sandbox,
                 }),
             ],
         };

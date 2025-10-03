@@ -2,6 +2,8 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import { glob } from 'glob';
+import ts from 'typescript';
 
 async function loadExtractor() {
   const module = await import('vue-i18n-extract');
@@ -22,6 +24,56 @@ async function readJson(filePath) {
 async function writeJson(filePath, data) {
   const json = JSON.stringify(data, null, 2) + '\n';
   await writeFile(filePath, json, 'utf8');
+}
+
+async function collectJsonFormsKeys() {
+  const apiSourceRoot = path.resolve(process.cwd(), '../api/src');
+  const ignorePatterns = [
+    '**/__tests__/**',
+    '**/__test__/**',
+    '**/*.spec.ts',
+    '**/*.spec.js',
+    '**/*.test.ts',
+    '**/*.test.js',
+  ];
+
+  let files = [];
+  try {
+    files = await glob('**/*.ts', {
+      cwd: apiSourceRoot,
+      ignore: ignorePatterns,
+      absolute: true,
+    });
+  } catch (error) {
+    console.warn('[i18n] Failed to enumerate API source files for jsonforms keys.', error);
+    return new Set();
+  }
+
+  const keys = new Set();
+  await Promise.all(
+    files.map(async (file) => {
+      try {
+        const content = await readFile(file, 'utf8');
+        const sourceFile = ts.createSourceFile(file, content, ts.ScriptTarget.Latest, true);
+
+        const visit = (node) => {
+          if (ts.isStringLiteralLike(node)) {
+            const text = node.text;
+            if (text.startsWith('jsonforms.')) {
+              keys.add(text);
+            }
+          }
+          ts.forEachChild(node, visit);
+        };
+
+        visit(sourceFile);
+      } catch (error) {
+        console.warn(`[i18n] Failed to process ${file} for jsonforms keys.`, error);
+      }
+    })
+  );
+
+  return keys;
 }
 
 async function main() {
@@ -88,6 +140,9 @@ async function main() {
 
   const englishData = await readJson(englishDescriptor.absPath);
   const englishMissing = missingByLocale.get(englishLocale) ?? new Set();
+
+  const jsonFormsKeys = await collectJsonFormsKeys();
+  jsonFormsKeys.forEach((key) => englishMissing.add(key));
 
   let addedEnglish = 0;
   for (const key of englishMissing) {

@@ -10,6 +10,7 @@ import { watchDebounced } from '@vueuse/core';
 
 import { BrandButton, jsonFormsAjv, jsonFormsRenderers, Label, SettingsGrid } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
+import { useJsonFormsI18n } from '~/helpers/jsonforms-i18n';
 
 import Auth from '~/components/Auth.standalone.vue';
 // unified settings values are returned as JSON, so use a generic record type
@@ -90,6 +91,7 @@ const jsonFormsConfig = {
 };
 
 const renderers = [...jsonFormsRenderers];
+const jsonFormsI18n = useJsonFormsI18n();
 
 /** Called when the user clicks the "Apply" button */
 const submitSettingsUpdate = async () => {
@@ -125,6 +127,7 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
         :data="formState"
         :config="jsonFormsConfig"
         :ajv="jsonFormsAjv"
+        :i18n="jsonFormsI18n"
         :readonly="isUpdating"
         @change="onChange"
       />

@@ -21,6 +21,47 @@ import {
 } from '@app/unraid-api/graph/utils/form-utils.js';
 import { SettingSlice } from '@app/unraid-api/types/json-forms.js';
 
+const OIDC_I18N = {
+    provider: {
+        id: 'jsonforms.oidc.provider.id',
+        name: 'jsonforms.oidc.provider.name',
+        clientId: 'jsonforms.oidc.provider.clientId',
+        clientSecret: 'jsonforms.oidc.provider.clientSecret',
+        issuer: 'jsonforms.oidc.provider.issuer',
+        scopes: 'jsonforms.oidc.provider.scopes',
+        discoveryToggle: 'jsonforms.oidc.provider.discoveryToggle',
+        authorizationEndpoint: 'jsonforms.oidc.provider.authorizationEndpoint',
+        tokenEndpoint: 'jsonforms.oidc.provider.tokenEndpoint',
+        userInfoEndpoint: 'jsonforms.oidc.provider.userInfoEndpoint',
+        jwksUri: 'jsonforms.oidc.provider.jwksUri',
+    },
+    restrictions: {
+        sectionTitle: 'jsonforms.oidc.restrictions.title',
+        sectionHelp: 'jsonforms.oidc.restrictions.help',
+        allowedDomains: 'jsonforms.oidc.restrictions.allowedDomains',
+        allowedEmails: 'jsonforms.oidc.restrictions.allowedEmails',
+        allowedUserIds: 'jsonforms.oidc.restrictions.allowedUserIds',
+        workspaceDomain: 'jsonforms.oidc.restrictions.workspaceDomain',
+    },
+    rules: {
+        mode: 'jsonforms.oidc.rules.mode',
+        claim: 'jsonforms.oidc.rules.claim',
+        operator: 'jsonforms.oidc.rules.operator',
+        value: 'jsonforms.oidc.rules.value',
+        collection: 'jsonforms.oidc.rules.collection',
+        sectionTitle: 'jsonforms.oidc.rules.title',
+        sectionDescription: 'jsonforms.oidc.rules.description',
+    },
+    buttons: {
+        text: 'jsonforms.oidc.buttons.text',
+        icon: 'jsonforms.oidc.buttons.icon',
+        variant: 'jsonforms.oidc.buttons.variant',
+        style: 'jsonforms.oidc.buttons.style',
+        sectionTitle: 'jsonforms.oidc.buttons.title',
+        sectionDescription: 'jsonforms.oidc.buttons.description',
+    },
+} as const;
+
 export interface OidcConfig {
     providers: OidcProvider[];
     defaultAllowedOrigins?: string[];
@@ -624,27 +665,32 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                         properties: {
                             id: {
                                 type: 'string',
+                                i18n: OIDC_I18N.provider.id,
                                 title: 'Provider ID',
                                 description: 'Unique identifier for the provider',
                                 pattern: '^[a-zA-Z0-9._-]+$',
                             },
                             name: {
                                 type: 'string',
+                                i18n: OIDC_I18N.provider.name,
                                 title: 'Provider Name',
                                 description: 'Display name for the provider',
                             },
                             clientId: {
                                 type: 'string',
+                                i18n: OIDC_I18N.provider.clientId,
                                 title: 'Client ID',
                                 description: 'OAuth2 client ID registered with the provider',
                             },
                             clientSecret: {
                                 type: 'string',
+                                i18n: OIDC_I18N.provider.clientSecret,
                                 title: 'Client Secret',
                                 description: 'OAuth2 client secret (if required)',
                             },
                             issuer: {
                                 type: 'string',
+                                i18n: OIDC_I18N.provider.issuer,
                                 title: 'Issuer URL',
                                 format: 'uri',
                                 allOf: [
@@ -669,6 +715,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     { type: 'string', minLength: 1, format: 'uri' },
                                     { type: 'string', maxLength: 0 },
                                 ],
+                                i18n: OIDC_I18N.provider.authorizationEndpoint,
                                 title: 'Authorization Endpoint',
                                 description: 'Optional - will be auto-discovered if not provided',
                             },
@@ -677,6 +724,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     { type: 'string', minLength: 1, format: 'uri' },
                                     { type: 'string', maxLength: 0 },
                                 ],
+                                i18n: OIDC_I18N.provider.tokenEndpoint,
                                 title: 'Token Endpoint',
                                 description: 'Optional - will be auto-discovered if not provided',
                             },
@@ -685,12 +733,14 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     { type: 'string', minLength: 1, format: 'uri' },
                                     { type: 'string', maxLength: 0 },
                                 ],
+                                i18n: OIDC_I18N.provider.jwksUri,
                                 title: 'JWKS URI',
                                 description: 'Optional - will be auto-discovered if not provided',
                             },
                             scopes: {
                                 type: 'array',
                                 items: { type: 'string' },
+                                i18n: OIDC_I18N.provider.scopes,
                                 title: 'Scopes',
                                 default: ['openid', 'profile', 'email'],
                                 description: 'OAuth2 scopes to request',
@@ -709,6 +759,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     allowedDomains: {
                                         type: 'array',
                                         items: { type: 'string' },
+                                        i18n: OIDC_I18N.restrictions.emails,
                                         title: 'Allowed Email Domains',
                                         description:
                                             'Email domains that are allowed to login (e.g., company.com)',
@@ -716,6 +767,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     allowedEmails: {
                                         type: 'array',
                                         items: { type: 'string' },
+                                        i18n: OIDC_I18N.restrictions.emails,
                                         title: 'Specific Email Addresses',
                                         description:
                                             'Specific email addresses that are allowed to login',
@@ -723,12 +775,14 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     allowedUserIds: {
                                         type: 'array',
                                         items: { type: 'string' },
+                                        i18n: OIDC_I18N.restrictions.userIds,
                                         title: 'Allowed User IDs',
                                         description:
                                             'Specific user IDs (sub claim) that are allowed to login',
                                     },
                                     googleWorkspaceDomain: {
                                         type: 'string',
+                                        i18n: OIDC_I18N.restrictions.workspaceDomain,
                                         title: 'Google Workspace Domain',
                                         description:
                                             'Restrict to users from a specific Google Workspace domain',
@@ -737,6 +791,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                             },
                             authorizationRuleMode: {
                                 type: 'string',
+                                i18n: OIDC_I18N.rules.mode,
                                 title: 'Rule Mode',
                                 enum: ['or', 'and'],
                                 default: 'or',
@@ -750,29 +805,34 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     properties: {
                                         claim: {
                                             type: 'string',
+                                            i18n: OIDC_I18N.rules.claim,
                                             title: 'Claim',
                                             description: 'JWT claim to check',
                                         },
                                         operator: {
                                             type: 'string',
+                                            i18n: OIDC_I18N.rules.operator,
                                             title: 'Operator',
                                             enum: ['equals', 'contains', 'endsWith', 'startsWith'],
                                         },
                                         value: {
                                             type: 'array',
                                             items: { type: 'string' },
+                                            i18n: OIDC_I18N.rules.value,
                                             title: 'Values',
                                             description: 'Values to match against',
                                         },
                                     },
                                     required: ['claim', 'operator', 'value'],
                                 },
+                                i18n: OIDC_I18N.rules.collection,
                                 title: 'Claim Rules',
                                 description:
                                     'Define authorization rules based on claims in the ID token. Rule mode can be configured: OR logic (any rule matches) or AND logic (all rules must match).',
                             },
                             buttonText: {
                                 type: 'string',
+                                i18n: OIDC_I18N.buttons.text,
                                 title: 'Button Text',
                                 description: 'Custom text for the login button',
                             },
@@ -781,11 +841,13 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     { type: 'string', minLength: 1 },
                                     { type: 'string', maxLength: 0 },
                                 ],
+                                i18n: OIDC_I18N.buttons.icon,
                                 title: 'Button Icon URL',
                                 description: 'URL or base64 encoded icon for the login button',
                             },
                             buttonVariant: {
                                 type: 'string',
+                                i18n: OIDC_I18N.buttons.variant,
                                 title: 'Button Style',
                                 enum: [
                                     'primary',
@@ -800,6 +862,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                             },
                             buttonStyle: {
                                 type: 'string',
+                                i18n: OIDC_I18N.buttons.style,
                                 title: 'Custom CSS Styles',
                                 description:
                                     'Custom inline CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;")',
@@ -872,6 +935,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                             schema: { const: 'unraid.net' },
                                                         },
                                                     },
+                                                    i18nKey: OIDC_I18N.provider.id,
                                                 }),
                                                 createSimpleLabeledControl({
                                                     scope: '#/properties/name',
@@ -888,6 +952,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                             schema: { const: 'unraid.net' },
                                                         },
                                                     },
+                                                    i18nKey: OIDC_I18N.provider.name,
                                                 }),
                                                 createSimpleLabeledControl({
                                                     scope: '#/properties/clientId',
@@ -903,6 +968,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                             schema: { const: 'unraid.net' },
                                                         },
                                                     },
+                                                    i18nKey: OIDC_I18N.provider.clientId,
                                                 }),
                                                 createSimpleLabeledControl({
                                                     scope: '#/properties/clientSecret',
@@ -919,6 +985,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                             schema: { const: 'unraid.net' },
                                                         },
                                                     },
+                                                    i18nKey: OIDC_I18N.provider.clientSecret,
                                                 }),
                                                 createSimpleLabeledControl({
                                                     scope: '#/properties/issuer',
@@ -935,6 +1002,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                             schema: { const: 'unraid.net' },
                                                         },
                                                     },
+                                                    i18nKey: OIDC_I18N.provider.issuer,
                                                 }),
                                                 createSimpleLabeledControl({
                                                     scope: '#/properties/scopes',
@@ -952,6 +1020,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                             schema: { const: 'unraid.net' },
                                                         },
                                                     },
+                                                    i18nKey: OIDC_I18N.provider.scopes,
                                                 }),
                                             ],
                                         },
@@ -979,6 +1048,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                     controlOptions: {
                                                         inputType: 'url',
                                                     },
+                                                    i18nKey: OIDC_I18N.provider.authorizationEndpoint,
                                                     rule: {
                                                         effect: RuleEffect.HIDE,
                                                         condition: {
@@ -994,6 +1064,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                     controlOptions: {
                                                         inputType: 'url',
                                                     },
+                                                    i18nKey: OIDC_I18N.provider.tokenEndpoint,
                                                     rule: {
                                                         effect: RuleEffect.HIDE,
                                                         condition: {
@@ -1009,6 +1080,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                     controlOptions: {
                                                         inputType: 'url',
                                                     },
+                                                    i18nKey: OIDC_I18N.provider.jwksUri,
                                                     rule: {
                                                         effect: RuleEffect.HIDE,
                                                         condition: {
@@ -1035,6 +1107,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                     description:
                                                         'Choose between simple presets or advanced rule configuration',
                                                     controlOptions: {},
+                                                    i18nKey: OIDC_I18N.rules.mode,
                                                 }),
                                                 // Simple Authorization Fields (shown when mode is 'simple')
                                                 {
@@ -1055,6 +1128,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                                     'Configure who can login using simple presets. At least one field must be configured.',
                                                                 format: 'title',
                                                             },
+                                                            i18n: OIDC_I18N.restrictions.sectionTitle,
                                                         },
                                                         createSimpleLabeledControl({
                                                             scope: '#/properties/simpleAuthorization/properties/allowedDomains',
@@ -1066,6 +1140,8 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                                 inputType: 'text',
                                                                 placeholder: 'company.com',
                                                             },
+                                                            i18nKey:
+                                                                OIDC_I18N.restrictions.allowedDomains,
                                                         }),
                                                         createSimpleLabeledControl({
                                                             scope: '#/properties/simpleAuthorization/properties/allowedEmails',
@@ -1077,6 +1153,8 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                                 inputType: 'email',
                                                                 placeholder: 'user@example.com',
                                                             },
+                                                            i18nKey:
+                                                                OIDC_I18N.restrictions.allowedEmails,
                                                         }),
                                                         createSimpleLabeledControl({
                                                             scope: '#/properties/simpleAuthorization/properties/allowedUserIds',
@@ -1088,6 +1166,8 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                                 inputType: 'text',
                                                                 placeholder: 'user-id-123',
                                                             },
+                                                            i18nKey:
+                                                                OIDC_I18N.restrictions.allowedUserIds,
                                                         }),
                                                         // Google-specific field (shown only for Google providers)
                                                         {
@@ -1109,6 +1189,9 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                                         inputType: 'text',
                                                                         placeholder: 'company.com',
                                                                     },
+                                                                    i18nKey:
+                                                                        OIDC_I18N.restrictions
+                                                                            .workspaceDomain,
                                                                 }),
                                                             ],
                                                         },
@@ -1141,6 +1224,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                                 description:
                                                                     'Define authorization rules based on claims in the ID token. Rule mode can be configured: OR logic (any rule matches) or AND logic (all rules must match).',
                                                             },
+                                                            i18n: OIDC_I18N.rules.sectionTitle,
                                                         },
                                                         createSimpleLabeledControl({
                                                             scope: '#/properties/authorizationRuleMode',
@@ -1148,6 +1232,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                             description:
                                                                 'How to evaluate multiple rules: OR (any rule passes) or AND (all rules must pass)',
                                                             controlOptions: {},
+                                                            i18nKey: OIDC_I18N.rules.mode,
                                                         }),
                                                         {
                                                             type: 'Control',
@@ -1168,6 +1253,8 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                                                 inputType: 'text',
                                                                                 placeholder: 'email',
                                                                             },
+                                                                            i18nKey:
+                                                                                OIDC_I18N.rules.claim,
                                                                         }),
                                                                         createSimpleLabeledControl({
                                                                             scope: '#/properties/operator',
@@ -1175,6 +1262,8 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                                             description:
                                                                                 'How to compare the claim value',
                                                                             controlOptions: {},
+                                                                            i18nKey:
+                                                                                OIDC_I18N.rules.operator,
                                                                         }),
                                                                         createSimpleLabeledControl({
                                                                             scope: '#/properties/value',
@@ -1187,9 +1276,12 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                                                 placeholder:
                                                                                     '@company.com',
                                                                             },
+                                                                            i18nKey:
+                                                                                OIDC_I18N.rules.value,
                                                                         }),
                                                                     ],
                                                                 },
+                                                                i18n: OIDC_I18N.rules.collection,
                                                             },
                                                         },
                                                     ],
@@ -1203,6 +1295,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                     title: 'Button Customization',
                                                     description:
                                                         'Customize the appearance of the login button',
+                                                    i18n: OIDC_I18N.buttons.sectionTitle,
                                                 },
                                             },
                                             rule: {
@@ -1221,6 +1314,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                         inputType: 'text',
                                                         placeholder: 'Sign in with Provider',
                                                     },
+                                                    i18nKey: OIDC_I18N.buttons.text,
                                                 }),
                                                 createSimpleLabeledControl({
                                                     scope: '#/properties/buttonIcon',
@@ -1230,12 +1324,14 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                     controlOptions: {
                                                         inputType: 'url',
                                                     },
+                                                    i18nKey: OIDC_I18N.buttons.icon,
                                                 }),
                                                 createSimpleLabeledControl({
                                                     scope: '#/properties/buttonVariant',
                                                     label: 'Button Style:',
                                                     description: 'Visual style of the login button',
                                                     controlOptions: {},
+                                                    i18nKey: OIDC_I18N.buttons.variant,
                                                 }),
                                                 createSimpleLabeledControl({
                                                     scope: '#/properties/buttonStyle',
@@ -1247,6 +1343,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                         placeholder:
                                                             'background-color: #3b82f6; border-color: #3b82f6; color: white; transition: all 0.2s;',
                                                     },
+                                                    i18nKey: OIDC_I18N.buttons.style,
                                                 }),
                                             ],
                                         },

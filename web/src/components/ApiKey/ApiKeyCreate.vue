@@ -19,6 +19,7 @@ import {
 } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
+import { useJsonFormsI18n } from '~/helpers/jsonforms-i18n';
 
 import type { ApolloError } from '@apollo/client/errors';
 import type { FragmentType } from '~/composables/gql/fragment-masking';
@@ -103,6 +104,7 @@ const formData = ref<FormData>({
   roles: [],
 } as FormData);
 const formValid = ref(false);
+const jsonFormsI18n = useJsonFormsI18n();
 
 // Use clipboard for copying
 const { copyWithNotification, copied } = useClipboardWithToast();
@@ -465,6 +467,7 @@ const copyApiKey = async () => {
           :renderers="jsonFormsRenderers"
           :data="formData"
           :ajv="jsonFormsAjv"
+          :i18n="jsonFormsI18n"
           @change="
             ({ data, errors }) => {
               formData = data;
