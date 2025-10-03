@@ -1,14 +1,16 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, cn } from '@unraid/ui';
 
 import type { ServerStateDataAction } from '~/types/server';
-import type { ComposerTranslation } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
+
+const { t } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -16,7 +18,6 @@ const props = withDefaults(
     filterBy?: string[] | undefined;
     filterOut?: string[] | undefined;
     maxWidth?: boolean;
-    t: ComposerTranslation;
   }>(),
   {
     actions: undefined,
