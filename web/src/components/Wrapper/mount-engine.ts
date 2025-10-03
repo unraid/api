@@ -1,5 +1,4 @@
 import { createApp, createVNode, h, render } from 'vue';
-import { createI18n } from 'vue-i18n';
 import { DefaultApolloClient } from '@vue/apollo-composable';
 import UApp from '@nuxt/ui/components/App.vue';
 import ui from '@nuxt/ui/vue-plugin';
@@ -7,8 +6,7 @@ import ui from '@nuxt/ui/vue-plugin';
 // Import component registry (only imported here to avoid ordering issues)
 import { componentMappings } from '@/components/Wrapper/component-registry';
 import { client } from '~/helpers/create-apollo-client';
-import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
-import en_US from '~/locales/en_US.json';
+import { createI18nInstance, ensureLocale, getWindowLocale } from '~/helpers/i18n-loader';
 
 // Import Pinia for use in Vue apps
 import { globalPinia } from '~/store/globalPinia';
@@ -21,7 +19,7 @@ const apolloClient = (typeof window !== 'undefined' && window.apolloClient) || c
 declare global {
   interface Window {
     globalPinia: typeof globalPinia;
-    LOCALE_DATA?: string;
+    LOCALE?: string;
   }
 }
 
@@ -30,35 +28,9 @@ if (typeof window !== 'undefined') {
 }
 
 function setupI18n() {
-  const defaultLocale = 'en_US';
-  let parsedLocale = '';
-  let parsedMessages = {};
-  let nonDefaultLocale = false;
-
-  // Check for window locale data
-  if (typeof window !== 'undefined') {
-    const windowLocaleData = window.LOCALE_DATA || null;
-    if (windowLocaleData) {
-      try {
-        parsedMessages = JSON.parse(decodeURIComponent(windowLocaleData));
-        parsedLocale = Object.keys(parsedMessages)[0];
-        nonDefaultLocale = parsedLocale !== defaultLocale;
-      } catch (error) {
-        console.error('[VueMountApp] error parsing messages', error);
-      }
-    }
-  }
-
-  return createI18n({
-    legacy: false,
-    locale: nonDefaultLocale ? parsedLocale : defaultLocale,
-    fallbackLocale: defaultLocale,
-    messages: {
-      en_US,
-      ...(nonDefaultLocale ? parsedMessages : {}),
-    },
-    postTranslation: createHtmlEntityDecoder(),
-  });
+  const i18n = createI18nInstance();
+  void ensureLocale(i18n, getWindowLocale());
+  return i18n;
 }
 
 // Helper function to parse props from HTML attributes

@@ -29,14 +29,6 @@ vi.mock('~/components/Wrapper/component-registry', () => ({
 
 // Mock dependencies
 
-const mockI18n = {
-  global: {},
-  install: vi.fn(),
-};
-vi.mock('vue-i18n', () => ({
-  createI18n: vi.fn(() => mockI18n),
-}));
-
 const mockApolloClient = { query: vi.fn(), mutate: vi.fn() };
 vi.mock('~/helpers/create-apollo-client', () => ({
   client: mockApolloClient,
@@ -54,12 +46,22 @@ vi.mock('~/store/globalPinia', () => ({
   globalPinia: mockGlobalPinia,
 }));
 
-vi.mock('~/locales/en_US.json', () => ({
-  default: { test: 'Test Message' },
-}));
+const mockI18n = {
+  global: {
+    locale: { value: 'en_US' },
+    availableLocales: ['en_US'],
+    setLocaleMessage: vi.fn(),
+  },
+  install: vi.fn(),
+};
+const mockCreateI18nInstance = vi.fn(() => mockI18n);
+const mockEnsureLocale = vi.fn();
+const mockGetWindowLocale = vi.fn<[], string | undefined>(() => undefined);
 
-vi.mock('~/helpers/i18n-utils', () => ({
-  createHtmlEntityDecoder: vi.fn(() => (str: string) => str),
+vi.mock('~/helpers/i18n-loader', () => ({
+  createI18nInstance: mockCreateI18nInstance,
+  ensureLocale: mockEnsureLocale,
+  getWindowLocale: mockGetWindowLocale,
 }));
 
 describe('mount-engine', () => {
@@ -75,6 +77,14 @@ describe('mount-engine', () => {
 
     // Import fresh module
     vi.resetModules();
+    mockCreateI18nInstance.mockClear();
+    mockEnsureLocale.mockClear();
+    mockGetWindowLocale.mockReset();
+    mockGetWindowLocale.mockReturnValue(undefined);
+    mockI18n.install.mockClear();
+    mockI18n.global.locale.value = 'en_US';
+    mockI18n.global.availableLocales = ['en_US'];
+    mockI18n.global.setLocaleMessage.mockClear();
     const module = await import('~/components/Wrapper/mount-engine');
     mountUnifiedApp = module.mountUnifiedApp;
     autoMountAllComponents = module.autoMountAllComponents;
@@ -402,33 +412,17 @@ describe('mount-engine', () => {
   describe('i18n setup', () => {
     it('should setup i18n with default locale', () => {
       mountUnifiedApp();
+      expect(mockCreateI18nInstance).toHaveBeenCalled();
+      expect(mockEnsureLocale).toHaveBeenCalledWith(mockI18n, undefined);
       expect(mockI18n.install).toHaveBeenCalled();
     });
 
-    it('should parse window locale data', () => {
-      const localeData = {
-        fr_FR: { test: 'Message de test' },
-      };
-      (window as unknown as Record<string, unknown>).LOCALE_DATA = encodeURIComponent(
-        JSON.stringify(localeData)
-      );
+    it('should request window locale when available', () => {
+      mockGetWindowLocale.mockReturnValue('ja_JP');
 
       mountUnifiedApp();
 
-      delete (window as unknown as Record<string, unknown>).LOCALE_DATA;
-    });
-
-    it('should handle locale data parsing errors', () => {
-      (window as unknown as Record<string, unknown>).LOCALE_DATA = 'invalid json';
-
-      mountUnifiedApp();
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        '[VueMountApp] error parsing messages',
-        expect.any(Error)
-      );
-
-      delete (window as unknown as Record<string, unknown>).LOCALE_DATA;
+      expect(mockEnsureLocale).toHaveBeenCalledWith(mockI18n, 'ja_JP');
     });
   });
 

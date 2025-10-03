@@ -6,6 +6,7 @@
     "build": "pnpm -r build",
     "build:watch": "pnpm -r --parallel --filter '!@unraid/ui' build:watch",
     "codegen": "pnpm -r codegen",
+    "i18n:extract": "pnpm --filter @unraid/api i18n:extract && pnpm --filter @unraid/web i18n:extract",
     "dev": "pnpm -r dev",
     "unraid:deploy": "pnpm -r unraid:deploy",
     "test": "pnpm -r test",

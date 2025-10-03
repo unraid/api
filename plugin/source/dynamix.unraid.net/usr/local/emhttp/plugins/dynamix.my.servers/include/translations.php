@@ -13,13 +13,13 @@
  *
  * This file is used to generate the translations for the Vue3 based web components.
  *
- * These key value pairs are derived from web/locales/en_US.json.
- * We use the en_US.json file as the source of truth for the translations.
+ * These key value pairs are derived from web/locales/en.json.
+ * We use the en.json file as the source of truth for the translations.
  * This file is then used to generate the translations for the web components and delivered to them via PHP as a JSON object in myservers2.php (my favorite file name).
  * The web components then use the translations to display the appropriate text to the user.
  *
  * Workflow is as follows:
- * 1. Create a new translation in en_US.json
+ * 1. Create a new translation in en.json
  * 2. Create a new translation in this file
  * 3. Open unraid/lang-en_US and add the new translation to the appropriate file – typically translations.txt.
  * 3a. This is done so that the translation is available to the rest of the Unraid webgui.

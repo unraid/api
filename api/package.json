@@ -30,6 +30,8 @@
         "// GraphQL Codegen": "",
         "codegen": "graphql-codegen --config codegen.ts",
         "codegen:watch": "graphql-codegen --config codegen.ts --watch",
+        "// Internationalization": "",
+        "i18n:extract": "node ./scripts/extract-translations.mjs",
         "// Code Quality": "",
         "lint": "eslint --config .eslintrc.ts src/",
         "lint:fix": "eslint --fix --config .eslintrc.ts src/",
