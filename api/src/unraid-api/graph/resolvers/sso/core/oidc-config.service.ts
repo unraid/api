@@ -759,7 +759,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     allowedDomains: {
                                         type: 'array',
                                         items: { type: 'string' },
-                                        i18n: OIDC_I18N.restrictions.emails,
+                                        i18n: OIDC_I18N.restrictions.allowedDomains,
                                         title: 'Allowed Email Domains',
                                         description:
                                             'Email domains that are allowed to login (e.g., company.com)',
@@ -767,7 +767,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     allowedEmails: {
                                         type: 'array',
                                         items: { type: 'string' },
-                                        i18n: OIDC_I18N.restrictions.emails,
+                                        i18n: OIDC_I18N.restrictions.allowedEmails,
                                         title: 'Specific Email Addresses',
                                         description:
                                             'Specific email addresses that are allowed to login',
@@ -775,7 +775,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     allowedUserIds: {
                                         type: 'array',
                                         items: { type: 'string' },
-                                        i18n: OIDC_I18N.restrictions.userIds,
+                                        i18n: OIDC_I18N.restrictions.allowedUserIds,
                                         title: 'Allowed User IDs',
                                         description:
                                             'Specific user IDs (sub claim) that are allowed to login',

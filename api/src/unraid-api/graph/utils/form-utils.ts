@@ -135,6 +135,7 @@ export function createAccordionLayout({
                 accordion?: {
                     title?: string;
                     description?: string;
+                    i18n?: string;
                 };
             };
         }
