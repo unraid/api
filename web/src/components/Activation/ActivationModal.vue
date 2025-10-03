@@ -29,11 +29,9 @@ const purchaseStore = usePurchaseStore();
 
 useThemeStore();
 
-const title = computed<string>(() => props.t("Let's activate your Unraid OS License"));
+const title = computed<string>(() => props.t('activation.activationModal.letSActivateYourUnraidOs'));
 const description = computed<string>(() =>
-  props.t(
-    `On the following screen, your license will be activated. You'll then create an Unraid.net Account to manage your license going forward.`
-  )
+  props.t('activation.activationModal.onTheFollowingScreenYourLicense')
 );
 const docsButtons = computed<BrandButtonProps[]>(() => {
   return [
@@ -43,7 +41,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       href: DOCS_URL_LICENSING_FAQ,
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: props.t('More about Licensing'),
+      text: props.t('activation.activationModal.moreAboutLicensing'),
     },
     {
       variant: 'underline',
@@ -51,7 +49,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       href: DOCS_URL_ACCOUNT,
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: props.t('More about Unraid.net Accounts'),
+      text: props.t('activation.activationModal.moreAboutUnraidNetAccounts'),
     },
   ];
 });
@@ -81,7 +79,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       <div class="flex flex-col">
         <div class="mx-auto mb-10">
           <BrandButton
-            :text="t('Activate Now')"
+            :text="t('activation.activationModal.activateNow')"
             :icon-right="ArrowTopRightOnSquareIcon"
             @click="purchaseStore.activate"
           />

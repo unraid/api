@@ -21,7 +21,7 @@ const accountStore = useAccountStore();
       :variant="variant"
       :icon="ArrowPathIcon"
       :icon-right="ArrowTopRightOnSquareIcon"
-      :text="t('Check for OS Updates')"
+      :text="t('updateOs.callbackButton.checkForOsUpdates')"
       class="flex-0"
       @click="accountStore.updateOs()"
     />

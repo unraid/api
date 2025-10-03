@@ -23,7 +23,7 @@ defineProps<{
     <BrandButton
       v-if="keyLinkedStatus !== 'linked' && keyLinkedStatus !== 'checking'"
       variant="none"
-      :title="t('Refresh')"
+      :title="t('registration.keyLinkedStatus.refresh')"
       class="group"
       @click="replaceRenewStore.check(true)"
     >
@@ -48,8 +48,8 @@ defineProps<{
         :external="true"
         :icon="LinkIcon"
         :icon-right="ArrowTopRightOnSquareIcon"
-        :text="t('Link Key')"
-        :title="t('Learn more and link your key to your account')"
+        :text="t('registration.keyLinkedStatus.linkKey')"
+        :title="t('registration.keyLinkedStatus.learnMoreAndLinkYourKey')"
         class="text-sm"
         @click="accountStore.linkKey"
       />
@@ -58,7 +58,7 @@ defineProps<{
         variant="underline"
         :external="true"
         :icon-right="ArrowTopRightOnSquareIcon"
-        :text="t('Learn More')"
+        :text="t('registration.keyLinkedStatus.learnMore')"
         class="text-sm"
         @click="accountStore.myKeys"
       />

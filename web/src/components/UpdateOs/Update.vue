@@ -52,7 +52,7 @@ const heading = computed(() => {
   if (available.value && updateButton?.value?.text && updateButton?.value?.textParams) {
     return props.t(updateButton?.value.text, updateButton?.value.textParams);
   }
-  return props.t('Check for OS Updates');
+  return props.t('updateOs.callbackButton.checkForOsUpdates');
 });
 
 const headingIcon = computed(() => {
@@ -63,27 +63,27 @@ const headingIcon = computed(() => {
 });
 
 const flashBackupCopy = computed(() => {
-  const base = props.t('We recommend backing up your USB Flash Boot Device before starting the update.');
+  const base = props.t('updateOs.update.weRecommendBackingUpYourUsb');
   if (connectPluginInstalled.value && flashBackupActivated.value) {
     return `${base}
-      ${props.t('You have already activated the Flash Backup feature via the Unraid Connect plugin.')}
-      ${props.t('Go to Tools > Management Access to ensure your backup is up-to-date.')}
-      ${props.t('You can also manually create a new backup by clicking the Create Flash Backup button.')}
+      ${props.t('updateOs.update.youHaveAlreadyActivatedTheFlash')}
+      ${props.t('connect.flashBackup.goToToolsManagementAccessTo2')}
+      ${props.t('updateOs.update.youCanAlsoManuallyCreateA')}
     `;
   }
   if (connectPluginInstalled.value && !flashBackupActivated.value) {
     return `${base}
-      ${props.t('You have not activated the Flash Backup feature via the Unraid Connect plugin.')}
-      ${props.t('Go to Tools > Management Access to activate the Flash Backup feature and ensure your backup is up-to-date.')}
-      ${props.t('You can also manually create a new backup by clicking the Create Flash Backup button.')}
+      ${props.t('updateOs.update.youHaveNotActivatedTheFlash')}
+      ${props.t('connect.flashBackup.goToToolsManagementAccessTo')}
+      ${props.t('updateOs.update.youCanAlsoManuallyCreateA')}
     `;
   }
-  return `${base} ${props.t('You can manually create a backup by clicking the Create Flash Backup button.')}`;
+  return `${base} ${props.t('updateOs.update.youCanManuallyCreateABackup')}`;
 });
 
 const acknowledgeBackup = ref<boolean>(false);
 const flashBackupBasicStatus = ref<'complete' | 'ready' | 'started'>('ready');
-const flashBackupText = computed(() => props.t('Create Flash Backup'));
+const flashBackupText = computed(() => props.t('updateOs.update.createFlashBackup'));
 const startFlashBackup = () => {
   console.debug('[startFlashBackup]', Date.now());
   if (typeof window.flashBackup === 'function') {
@@ -91,12 +91,7 @@ const startFlashBackup = () => {
     window.flashBackup();
     checkFlashBackupStatus();
   } else {
-    alert(
-      props.t(
-        'Flash Backup is not available. Navigate to {0}/Main/Settings/Flash to try again then come back to this page.',
-        [window.location.origin]
-      )
-    );
+    alert(props.t('updateOs.update.flashBackupIsNotAvailableNavigate', [window.location.origin]));
   }
 };
 /**
@@ -154,11 +149,7 @@ watchEffect(() => {
 
         <div class="prose text-base leading-relaxed whitespace-normal opacity-75">
           <p>
-            {{
-              t(
-                'Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.'
-              )
-            }}
+            {{ t('updateOs.update.receiveTheLatestAndGreatestFor') }}
           </p>
           <p v-if="available">
             {{ flashBackupCopy }}
@@ -179,7 +170,7 @@ watchEffect(() => {
           />
 
           <p v-if="flashBackupBasicStatus === 'started'" class="shrink text-xs italic opacity-75">
-            {{ t('Backing up...this may take a few minutes') }}
+            {{ t('updateOs.update.backingUpThisMayTakeA') }}
           </p>
 
           <SwitchGroup as="div">
@@ -235,7 +226,7 @@ watchEffect(() => {
                 </span>
               </Switch>
               <SwitchLabel class="text-sm">
-                {{ t('I have made a Flash Backup') }}
+                {{ t('updateOs.update.iHaveMadeAFlashBackup') }}
               </SwitchLabel>
             </div>
           </SwitchGroup>
@@ -247,12 +238,8 @@ watchEffect(() => {
           :icon="EyeIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :name="updateButton?.name"
-          :text="t('View Available Updates')"
-          :title="
-            !acknowledgeBackup
-              ? t('Acklowledge that you have made a Flash Backup to enable this action')
-              : ''
-          "
+          :text="t('updateOs.update.viewAvailableUpdates')"
+          :title="!acknowledgeBackup ? t('updateOs.update.acklowledgeThatYouHaveMadeA') : ''"
           class="flex-none"
           @click="updateButton?.click"
         />

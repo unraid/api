@@ -97,7 +97,7 @@ const computedVerticalCenter = computed<string>(() => {
         >
           <div
             :class="cn('fixed inset-0 z-0 transition-opacity', overlayColor, overlayOpacity)"
-            :title="showCloseX ? t('Click to close modal') : undefined"
+            :title="showCloseX ? t('modal.clickToCloseModal') : undefined"
             @click="!disableOverlayClose ? closeModal : undefined"
           />
         </TransitionChild>
@@ -126,7 +126,7 @@ const computedVerticalCenter = computed<string>(() => {
                 variant="ghost"
                 size="icon"
                 class="text-foreground hover:bg-unraid-red focus:bg-unraid-red rounded-md hover:text-white focus:text-white"
-                :aria-label="t('Close')"
+                :aria-label="t('common.close')"
                 @click="closeModal"
               >
                 <XMarkIcon class="h-6 w-6" aria-hidden="true" />

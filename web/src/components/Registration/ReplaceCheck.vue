@@ -22,7 +22,7 @@ defineProps<{
     <BrandButton
       v-if="!replaceStatusOutput"
       :icon="KeyIcon"
-      :text="t('Check Eligibility')"
+      :text="t('registration.replaceCheck.checkEligibility')"
       class="grow"
       @click="replaceRenewStore.check"
     />
@@ -37,7 +37,7 @@ defineProps<{
         :external="true"
         :href="DOCS_REGISTRATION_REPLACE_KEY.toString()"
         :icon-right="ArrowTopRightOnSquareIcon"
-        :text="t('Learn More')"
+        :text="t('registration.keyLinkedStatus.learnMore')"
         class="text-sm"
       />
     </span>

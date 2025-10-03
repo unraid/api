@@ -435,10 +435,10 @@ const copyApiKey = async () => {
             ? 'Authorize API Key Access'
             : editingKey
               ? t
-                ? t('Edit API Key')
+                ? t('apiKey.apiKeyCreate.editApiKey')
                 : 'Edit API Key'
               : t
-                ? t('Create API Key')
+                ? t('apiKey.apiKeyCreate.createApiKey')
                 : 'Create API Key'
         }}
       </ResponsiveModalTitle>
