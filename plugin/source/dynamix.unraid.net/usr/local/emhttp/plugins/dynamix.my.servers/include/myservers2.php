@@ -10,12 +10,11 @@
  */
 $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 require_once("$docroot/plugins/dynamix.my.servers/include/state.php");
-require_once("$docroot/plugins/dynamix.my.servers/include/translations.php");
 
 $serverState = new ServerState();
-$wCTranslations = new WebComponentTranslations();
+$locale = $_SESSION['locale'] ?? 'en_US';
 ?>
 <script>
-window.LOCALE_DATA = '<?= $wCTranslations->getTranslationsJson(true) ?>';
+window.LOCALE = <?= json_encode($locale, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
 </script>
 <unraid-user-profile server="<?= $serverState->getServerStateJsonForHtmlAttr() ?>"></unraid-user-profile>
