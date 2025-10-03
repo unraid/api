@@ -28,7 +28,7 @@ export function createSimpleLabeledControl({
     } as LabelElement;
 
     if (i18nKey) {
-        (labelElement as any).i18n = `${i18nKey}.label`;
+        (labelElement as any).i18n = i18nKey;
     }
 
     const controlElement = {
@@ -87,7 +87,7 @@ export function createLabeledControl({
     } as LabelElement;
 
     if (i18nKey) {
-        (labelElement as any).i18n = `${i18nKey}.label`;
+        (labelElement as any).i18n = i18nKey;
     }
 
     const controlElement = {
