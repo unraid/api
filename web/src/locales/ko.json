@@ -303,7 +303,7 @@
   "registration.messages.yourLicenseKeySOsUpdate": "OS 업데이트 적격이 만료되었습니다. 만료 이후 출시된 업데이트를 활성화하려면 라이선스 키를 갱신하세요.",
   "registration.messages.yourServerWillNotBeUsable": "<p>등록 키를 구매하거나 무료 30일 <em>체험</em> 키를 설치할 때까지 서버를 사용할 수 없습니다. <em>체험</em> 키는 Unleashed Registration 키의 모든 기능을 제공합니다.</p><p>등록 키는 당신의 USB Flash 부트 장치의 일련 번호(GUID)에 연결됩니다. 최소 1GB 크기의 고품질 브랜드 장치를 사용하세요.</p><p>참고: 일반적으로 USB 메모리 카드 리더는 고유한 일련 번호를 제공하지 않기 때문에 지원되지 않습니다.</p><p><strong>중요:</strong></p><ul class='list-disc pl-16px'><li>서버 시간이 5분 이내에 정확한지 확인해 주세요</li><li>DNS 서버가 지정되어 있는지 확인해 주세요</li></ul>",
   "registration.messages.yourTrialKeyIncludesAllThe": "<p>당신의 <em>체험</em> 키는 <em>Unleashed</em> 키의 모든 기능과 장치 지원을 포함합니다.</p><p>당신의 <em>체험</em>이 만료에 도달하면, 당신의 서버는 <strong>정상적으로 작동합니다</strong> 다음에 배열을 중지하거나 서버를 재부팅할 때까지는.</p><p>그 시점에 라이센스 키를 구매하거나 <em>체험</em> 확장을 요청할 수 있습니다.</p>",
-  "registration.messages.yourTrialKeyRequiresAnInternet": "<p>당신의 <em>체험</em> 키는 인터넷 연결이 필요합니다.</p><p><a href='/Settings/NetworkSettings class='underline'>설정 > 네트워크를 확인하세요</a></p>",
+  "registration.messages.yourTrialKeyRequiresAnInternet": "<p>귀하의 평가판 키는 인터넷 연결이 필요합니다.</p><p><a href='/Settings/NetworkSettings' class='underline'>설정 > 네트워크를 확인하십시오</a></p>",
   "registration.osUpdateEligibility": "OS 업데이트 적격성",
   "registration.outOfAllowedDevicesUpgradeYour": "허용된 장치 중 {0} 개 – 더 많은 장치를 지원하기 위해 키를 업그레이드하세요",
   "registration.outOfDevices": "장치 {0}개 중 {1}개",
