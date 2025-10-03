@@ -145,10 +145,12 @@ async function main() {
   const jsonFormsKeys = await collectJsonFormsKeys();
   jsonFormsKeys.forEach((key) => englishMissing.add(key));
 
+  const missingValuePlaceholder = null;
+
   let addedEnglish = 0;
   for (const key of englishMissing) {
     if (!(key in englishData)) {
-      englishData[key] = key;
+      englishData[key] = missingValuePlaceholder;
       addedEnglish += 1;
     }
   }
@@ -186,7 +188,7 @@ async function main() {
     let added = 0;
     for (const key of missingKeys) {
       if (!(key in localeData)) {
-        localeData[key] = englishData[key] ?? key;
+        localeData[key] = englishData[key] ?? missingValuePlaceholder;
         added += 1;
       }
     }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import {
   ArrowPathIcon,
@@ -38,11 +39,33 @@ const props = withDefaults(
     showPresets: false,
     presetFilter: 'none',
     presetFilters: () => [],
-    filterPlaceholder: 'Filter logs...',
-    filterLabel: 'Filter',
+    filterPlaceholder: '',
+    filterLabel: '',
     compact: false,
   }
 );
+
+const { t } = useI18n();
+
+const resolvedFilterPlaceholder = computed(() => props.filterPlaceholder || t('logs.filterPlaceholder'));
+
+const resolvedFilterLabel = computed(() => props.filterLabel || t('logs.filterLabel'));
+
+const defaultPresetFilters = computed<SelectItemType[]>(() => [
+  { value: 'none', label: t('logs.presets.none') },
+  { value: 'OIDC', label: t('logs.presets.oidc') },
+  { value: 'ERROR', label: t('logs.presets.error') },
+  { value: 'WARNING', label: t('logs.presets.warning') },
+  { value: 'AUTH', label: t('logs.presets.auth') },
+]);
+
+const resolvedPresetFilters = computed(() =>
+  props.presetFilters.length ? props.presetFilters : defaultPresetFilters.value
+);
+
+const refreshTitle = computed(() => t('logs.refreshLogs'));
+
+const toggleLabel = computed(() => (props.isExpanded ? t('logs.hideLogs') : t('logs.showLogs')));
 
 const emit = defineEmits<{
   'update:filterText': [value: string];
@@ -86,9 +109,9 @@ const handleRefresh = () => {
             v-model="filterValue"
             v-model:preset="presetValue"
             :show-presets="showPresets"
-            :preset-filters="presetFilters"
-            :placeholder="filterPlaceholder"
-            :label="compact || (!title && !description) ? filterLabel : ''"
+            :preset-filters="resolvedPresetFilters"
+            :placeholder="resolvedFilterPlaceholder"
+            :label="compact || (!title && !description) ? resolvedFilterLabel : ''"
             :input-class="compact ? 'h-7 text-sm' : 'h-8'"
           />
         </div>
@@ -97,7 +120,7 @@ const handleRefresh = () => {
           v-if="showRefresh"
           variant="outline"
           :size="compact ? 'sm' : 'sm'"
-          title="Refresh logs"
+          :title="refreshTitle"
           @click="handleRefresh"
         >
           <ArrowPathIcon :class="compact ? 'h-3 w-3' : 'h-4 w-4'" />
@@ -113,7 +136,7 @@ const handleRefresh = () => {
             :is="isExpanded ? EyeSlashIcon : EyeIcon"
             :class="compact ? 'h-3 w-3' : 'h-4 w-4'"
           />
-          <span v-if="!compact" class="ml-2">{{ isExpanded ? 'Hide' : 'Show' }} Logs</span>
+          <span v-if="!compact" class="ml-2">{{ toggleLabel }}</span>
         </Button>
 
         <Button
