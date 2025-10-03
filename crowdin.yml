@@ -4,6 +4,6 @@ base_path: .
 preserve_hierarchy: true
 files:
   - source: /web/src/locales/en.json
-    translation: /web/src/locales/%locale_with_underscore%.json
+    translation: /web/src/locales/%two_letters_code%.json
   - source: /api/src/i18n/en.json
-    translation: /api/src/i18n/%locale%.json
+    translation: /api/src/i18n/%two_letters_code%.json
