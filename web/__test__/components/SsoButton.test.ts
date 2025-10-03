@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock, MockInstance } from 'vitest';
 
 import SsoButtons from '~/components/sso/SsoButtons.vue';
+import { testTranslate } from '../utils/i18n';
 
 // Mock the child components
 const SsoProviderButtonStub = {
@@ -29,7 +30,7 @@ vi.mock('@vue/apollo-composable', () => ({
 }));
 
 // Mock vue-i18n
-const t = (key: string) => key;
+const t = testTranslate;
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t }),
 }));

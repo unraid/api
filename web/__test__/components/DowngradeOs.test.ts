@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import DowngradeOs from '~/components/DowngradeOs.standalone.vue';
 import { useServerStore } from '~/store/server';
+import { createTestI18n, testTranslate } from '../utils/i18n';
 
 vi.mock('crypto-js/aes', () => ({
   default: {},
@@ -30,11 +31,15 @@ vi.mock('@unraid/ui', async (importOriginal) => {
   };
 });
 
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: (key: string) => key,
-  }),
-}));
+vi.mock('vue-i18n', async (importOriginal) => {
+  const actual = (await importOriginal()) as typeof import('vue-i18n');
+  return {
+    ...actual,
+    useI18n: () => ({
+      t: testTranslate,
+    }),
+  };
+});
 
 const PageContainerStub = {
   template: '<div><slot /></div>',
@@ -71,6 +76,7 @@ describe('DowngradeOs', () => {
         rebootVersion: rebootVersionProp,
       },
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           PageContainer: PageContainerStub,
           UpdateOsStatus: UpdateOsStatusStub,
@@ -87,6 +93,7 @@ describe('DowngradeOs', () => {
   it('renders UpdateOsStatus with initial props', () => {
     const wrapper = mount(DowngradeOs, {
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           PageContainer: PageContainerStub,
           UpdateOsStatus: UpdateOsStatusStub,
@@ -114,6 +121,7 @@ describe('DowngradeOs', () => {
         restoreReleaseDate: '2023-01-01',
       },
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           PageContainer: PageContainerStub,
           UpdateOsStatus: UpdateOsStatusStub,
@@ -139,6 +147,7 @@ describe('DowngradeOs', () => {
     const wrapper = mount(DowngradeOs, {
       props: {},
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           PageContainer: PageContainerStub,
           UpdateOsStatus: UpdateOsStatusStub,

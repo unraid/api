@@ -6,28 +6,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import CheckUpdateResponseModal from '~/components/UpdateOs/CheckUpdateResponseModal.vue';
+import { testTranslate } from '../utils/i18n';
 
-const translate: ComposerTranslation = ((key: string, params?: unknown) => {
-  if (Array.isArray(params) && params.length > 0) {
-    return params.reduce<string>(
-      (result, value, index) => result.replace(`{${index}}`, String(value)),
-      key
-    );
-  }
-
-  if (params && typeof params === 'object') {
-    return Object.entries(params as Record<string, unknown>).reduce<string>(
-      (result, [placeholder, value]) => result.replace(`{${placeholder}}`, String(value)),
-      key
-    );
-  }
-
-  if (typeof params === 'number') {
-    return key.replace('{0}', String(params));
-  }
-
-  return key;
-}) as ComposerTranslation;
+const translate = testTranslate as ComposerTranslation;
 
 vi.mock('@unraid/ui', () => ({
   BrandButton: {
@@ -208,6 +189,9 @@ describe('CheckUpdateResponseModal', () => {
   });
 
   it('renders loading state while checking for updates', () => {
+    expect(translate('updateOs.checkUpdateResponseModal.checkingForOsUpdates')).toBe(
+      'Checking for OS updates...'
+    );
     checkForUpdatesLoading.value = true;
 
     const wrapper = mountModal();

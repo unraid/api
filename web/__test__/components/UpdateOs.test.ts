@@ -9,6 +9,7 @@ import { createTestingPinia } from '@pinia/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import UpdateOs from '~/components/UpdateOs.standalone.vue';
+import { testTranslate } from '../utils/i18n';
 
 vi.mock('@unraid/ui', () => ({
   PageContainer: { template: '<div><slot /></div>' },
@@ -32,7 +33,7 @@ vi.mock('~/store/server', () => ({
   useServerStore: () => mockServerStore,
 }));
 
-const mockT = vi.fn((key: string) => key);
+const mockT = vi.fn(testTranslate);
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: mockT,
@@ -67,7 +68,7 @@ describe('UpdateOs.standalone.vue', () => {
     mockRebootType.value = '';
     mockSetRebootVersion.mockClear();
     mockAccountStore.updateOs.mockClear();
-    mockT.mockClear().mockImplementation((key: string) => key);
+    mockT.mockClear().mockImplementation(testTranslate);
     window.location.pathname = '/some/other/path';
   });
 
