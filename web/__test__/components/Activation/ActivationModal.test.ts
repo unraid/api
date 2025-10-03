@@ -10,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import ActivationModal from '~/components/Activation/ActivationModal.vue';
+import { testTranslate } from '../../utils/i18n';
 
 vi.mock('@unraid/ui', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
@@ -36,7 +37,7 @@ vi.mock('@unraid/ui', async (importOriginal) => {
   };
 });
 
-const mockT = (key: string, args?: unknown[]) => (args ? `${key} ${JSON.stringify(args)}` : key);
+const mockT = testTranslate;
 
 const mockComponents = {
   ActivationPartnerLogo: {

@@ -16,6 +16,7 @@ import Registration from '~/components/Registration.standalone.vue';
 import { usePurchaseStore } from '~/store/purchase';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
+import { testTranslate } from '../utils/i18n';
 
 vi.mock('crypto-js/aes.js', () => ({ default: {} }));
 
@@ -112,11 +113,15 @@ vi.mock('~/composables/dateTime', () => ({
   })),
 }));
 
-const t = (key: string) => key;
+const t = testTranslate;
 
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t }),
-}));
+vi.mock('vue-i18n', async (importOriginal) => {
+  const actual = (await importOriginal()) as typeof import('vue-i18n');
+  return {
+    ...actual,
+    useI18n: () => ({ t }),
+  };
+});
 
 describe('Registration.standalone.vue', () => {
   let wrapper: VueWrapper<unknown>;
