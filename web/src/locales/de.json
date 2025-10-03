@@ -303,7 +303,7 @@
   "registration.messages.yourLicenseKeySOsUpdate": "Die OS-Update-Berechtigung Ihres Lizenzschlüssels ist abgelaufen. Bitte erneuern Sie Ihren Lizenzschlüssel, um Updates freizuschalten, die nach Ihrem Ablaufdatum veröffentlicht wurden.",
   "registration.messages.yourServerWillNotBeUsable": "<p>Ihr Server kann nicht genutzt werden, bis Sie einen Registrierungsschlüssel erwerben oder einen kostenlosen <em>Trial</em>-Schlüssel für 30 Tage installieren. Ein <em>Trial</em>-Schlüssel bietet alle Funktionen eines Unleashed-Regist ...",
   "registration.messages.yourTrialKeyIncludesAllThe": "<p>Ihr <em>Trial</em>-Schlüssel beinhaltet alle Funktionen und Geräteunterstützung eines <em>Unleashed</em>-Schlüssels.</p><p>Nach Ablauf des <em>Trials</em> funktioniert Ihr Server <strong>weiterhin normal</strong> bis zum nächsten Stoppen ...",
-  "registration.messages.yourTrialKeyRequiresAnInternet": "<p>Ihr <em>Trial</em>-Schlüssel erfordert eine Internetverbindung.</p><p><a href='/Settings/NetworkSettings class='underline'>Bitte überprüfen Sie die Einstellungen > Netzwerk</a></p>",
+  "registration.messages.yourTrialKeyRequiresAnInternet": "<p>Ihr Testschlüssel erfordert eine Internetverbindung.</p><p><a href='/Settings/NetworkSettings' class='underline'>Bitte überprüfen Sie Einstellungen > Netzwerk</a></p>",
   "registration.osUpdateEligibility": "OS-Update-Berechtigung",
   "registration.outOfAllowedDevicesUpgradeYour": "{0} von {1} zugelassenen Geräten – aktualisieren Sie Ihren Schlüssel, um mehr Geräte zu unterstützen",
   "registration.outOfDevices": "{0} von {1} Geräten",
