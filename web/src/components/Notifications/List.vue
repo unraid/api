@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 
@@ -57,6 +58,8 @@ const notifications = computed(() => {
   return list.filter((n) => n.type === props.type);
 });
 
+const { t } = useI18n();
+
 // saves timestamp of latest visible notification to local storage
 const { latestSeenTimestamp } = useHaveSeenNotifications();
 watch(
@@ -89,12 +92,34 @@ async function onLoadMore() {
     canLoadMore.value = false;
   }
 }
+
+const importanceLabel = computed(() => {
+  switch (props.importance) {
+    case 'ALERT':
+      return t('notifications.importance.alert');
+    case 'WARNING':
+      return t('notifications.importance.warning');
+    case 'INFO':
+      return t('notifications.importance.info');
+    default:
+      return '';
+  }
+});
+
+const noNotificationsMessage = computed(() => {
+  if (!props.importance) {
+    return t('notifications.list.noNotifications');
+  }
+  return t('notifications.list.noNotificationsWithImportance', {
+    importance: importanceLabel.value.toLowerCase(),
+  });
+});
 </script>
 
 <template>
   <div
     v-if="notifications?.length > 0"
-    v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore }]"
+    v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore.value }]"
     class="flex min-h-0 flex-1 flex-col overflow-y-scroll px-3"
   >
     <TransitionGroup
@@ -117,14 +142,14 @@ async function onLoadMore() {
       <LoadingSpinner />
     </div>
     <div v-if="!canLoadMore" class="text-secondary-foreground grid place-content-center py-3">
-      You've reached the end...
+      {{ t('notifications.list.reachedEnd') }}
     </div>
   </div>
 
   <LoadingError v-else :loading="loading" :error="offlineError ?? error" @retry="refetch">
     <div v-if="notifications?.length === 0" class="contents">
       <CheckIcon class="h-10 translate-y-3 text-green-600" />
-      {{ `No ${props.importance?.toLowerCase() ?? ''} notifications to see here!` }}
+      {{ noNotificationsMessage }}
     </div>
   </LoadingError>
 </template>
