@@ -67,8 +67,8 @@ const output = computed(() => {
     };
   }
   return {
-    title: t('Server Up Since {0}', [formatted.value]),
-    text: t('Uptime {0}', [readableDiff.value]),
+    title: t('userProfile.uptimeExpire.serverUpSince', [formatted.value]),
+    text: t('userProfile.uptimeExpire.uptime', [readableDiff.value]),
   };
 });
 </script>

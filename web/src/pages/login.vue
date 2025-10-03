@@ -122,17 +122,17 @@ const executeCliCommand = async () => {
               <input
                 name="username"
                 type="text"
-                :placeholder="t('Username')"
+                :placeholder="t('auth.login.username')"
                 autocapitalize="none"
                 autocomplete="off"
                 spellcheck="false"
                 autofocus
                 required
               />
-              <input name="password" type="password" :placeholder="t('Password')" required />
+              <input name="password" type="password" :placeholder="t('auth.login.password')" required />
             </p>
             <p>
-              <button type="submit" class="button button--small">{{ t('Login') }}</button>
+              <button type="submit" class="button button--small">{{ t('auth.login.login') }}</button>
             </p>
           </form>
           <!-- SSO Button will show when GraphQL query isSSOEnabled returns true -->
@@ -143,7 +143,7 @@ const executeCliCommand = async () => {
           href="https://docs.unraid.net/go/lost-root-password/"
           target="_blank"
           class="password-recovery"
-          >{{ t('Password recovery') }}</a
+          >{{ t('auth.login.passwordRecovery') }}</a
         >
       </div>
     </section>

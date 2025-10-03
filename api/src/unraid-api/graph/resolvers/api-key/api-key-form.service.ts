@@ -12,6 +12,24 @@ import {
     createSimpleLabeledControl,
 } from '@app/unraid-api/graph/utils/form-utils.js';
 
+const API_KEY_I18N = {
+    name: 'jsonforms.apiKey.name',
+    description: 'jsonforms.apiKey.description',
+    roles: 'jsonforms.apiKey.roles',
+    permissionPresets: 'jsonforms.apiKey.permissionPresets',
+    customPermissions: {
+        root: 'jsonforms.apiKey.customPermissions',
+        resources: 'jsonforms.apiKey.customPermissions.resources',
+        actions: 'jsonforms.apiKey.customPermissions.actions',
+    },
+    permissions: {
+        header: 'jsonforms.apiKey.permissions.header',
+        description: 'jsonforms.apiKey.permissions.description',
+        subheader: 'jsonforms.apiKey.permissions.subheader',
+        help: 'jsonforms.apiKey.permissions.help',
+    },
+} as const;
+
 // Helper to get GraphQL enum names for JSON Schema
 // GraphQL expects the enum names (keys) not the values
 function getAuthActionEnumNames(): string[] {
@@ -82,6 +100,7 @@ export class ApiKeyFormService {
             properties: {
                 name: {
                     type: 'string',
+                    i18n: API_KEY_I18N.name,
                     title: 'API Key Name',
                     description: 'A descriptive name for this API key',
                     minLength: 1,
@@ -89,12 +108,14 @@ export class ApiKeyFormService {
                 },
                 description: {
                     type: 'string',
+                    i18n: API_KEY_I18N.description,
                     title: 'Description',
                     description: 'Optional description of what this key is used for',
                     maxLength: 500,
                 },
                 roles: {
                     type: 'array',
+                    i18n: API_KEY_I18N.roles,
                     title: 'Roles',
                     description: 'Select one or more roles to grant pre-defined permission sets',
                     items: {
@@ -105,6 +126,7 @@ export class ApiKeyFormService {
                 },
                 permissionPresets: {
                     type: 'string',
+                    i18n: API_KEY_I18N.permissionPresets,
                     title: 'Add Permission Preset',
                     description: 'Quick add common permission sets',
                     enum: [
@@ -119,6 +141,7 @@ export class ApiKeyFormService {
                 },
                 customPermissions: {
                     type: 'array',
+                    i18n: API_KEY_I18N.customPermissions.root,
                     title: 'Permissions',
                     description: 'Configure specific permissions',
                     items: {
@@ -126,6 +149,7 @@ export class ApiKeyFormService {
                         properties: {
                             resources: {
                                 type: 'array',
+                                i18n: API_KEY_I18N.customPermissions.resources,
                                 title: 'Resources',
                                 items: {
                                     type: 'string',
@@ -137,6 +161,7 @@ export class ApiKeyFormService {
                             },
                             actions: {
                                 type: 'array',
+                                i18n: API_KEY_I18N.customPermissions.actions,
                                 title: 'Actions',
                                 items: {
                                     type: 'string',
@@ -167,6 +192,7 @@ export class ApiKeyFormService {
                     controlOptions: {
                         inputType: 'text',
                     },
+                    i18nKey: API_KEY_I18N.name,
                 }),
                 createLabeledControl({
                     scope: '#/properties/description',
@@ -177,6 +203,7 @@ export class ApiKeyFormService {
                         multi: true,
                         rows: 3,
                     },
+                    i18nKey: API_KEY_I18N.description,
                 }),
                 // Permissions section header
                 {
@@ -185,6 +212,7 @@ export class ApiKeyFormService {
                     options: {
                         format: 'title',
                     },
+                    i18n: API_KEY_I18N.permissions.header,
                 } as LabelElement,
                 {
                     type: 'Label',
@@ -192,6 +220,7 @@ export class ApiKeyFormService {
                     options: {
                         format: 'description',
                     },
+                    i18n: API_KEY_I18N.permissions.description,
                 } as LabelElement,
                 // Roles selection
                 createLabeledControl({
@@ -210,6 +239,7 @@ export class ApiKeyFormService {
                         ),
                         descriptions: this.getRoleDescriptions(),
                     },
+                    i18nKey: API_KEY_I18N.roles,
                 }),
                 // Separator for permissions
                 {
@@ -218,6 +248,7 @@ export class ApiKeyFormService {
                     options: {
                         format: 'subtitle',
                     },
+                    i18n: API_KEY_I18N.permissions.subheader,
                 } as LabelElement,
                 {
                     type: 'Label',
@@ -225,6 +256,7 @@ export class ApiKeyFormService {
                     options: {
                         format: 'description',
                     },
+                    i18n: API_KEY_I18N.permissions.help,
                 } as LabelElement,
                 // Permission preset dropdown
                 createLabeledControl({
@@ -242,6 +274,7 @@ export class ApiKeyFormService {
                             network_admin: 'Network Admin (Network & Services Control)',
                         },
                     },
+                    i18nKey: API_KEY_I18N.permissionPresets,
                 }),
                 // Custom permissions array - following OIDC pattern exactly
                 {
@@ -269,6 +302,7 @@ export class ApiKeyFormService {
                                             {}
                                         ),
                                     },
+                                    i18nKey: API_KEY_I18N.customPermissions.resources,
                                 }),
                                 createSimpleLabeledControl({
                                     scope: '#/properties/actions',
@@ -278,6 +312,7 @@ export class ApiKeyFormService {
                                         multiple: true,
                                         labels: getAuthActionLabels(),
                                     },
+                                    i18nKey: API_KEY_I18N.customPermissions.actions,
                                 }),
                             ],
                         },

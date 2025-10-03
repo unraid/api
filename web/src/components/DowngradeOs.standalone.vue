@@ -45,7 +45,7 @@ const { rebootType, osVersionBranch } = storeToRefs(serverStore);
 
 const subtitle = computed(() => {
   if (rebootType.value === 'update') {
-    return t('Please finish the initiated update to enable a downgrade.');
+    return t('downgradeOs.pleaseFinishTheInitiatedUpdateTo');
   }
   return '';
 });
@@ -61,7 +61,7 @@ onBeforeMount(() => {
   <div>
     <PageContainer>
       <UpdateOsStatus
-        :title="t('Downgrade Unraid OS')"
+        :title="t('downgradeOs.downgradeUnraidOs')"
         :subtitle="subtitle"
         :downgrade-not-available="restoreVersion === '' && rebootType === ''"
         :show-external-downgrade="showExternalDowngrade"

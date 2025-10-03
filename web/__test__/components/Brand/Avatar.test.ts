@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Avatar from '~/components/Brand/Avatar.vue';
 import BrandMark from '~/components/Brand/Mark.vue';
 import { useServerStore } from '~/store/server';
+import { createTestI18n, testTranslate } from '../../utils/i18n';
 
 vi.mock('crypto-js/aes.js', () => ({
   default: {},
@@ -17,6 +18,17 @@ vi.mock('@unraid/shared-callbacks', () => ({
     watcher: vi.fn(),
   })),
 }));
+
+// Mock vue-i18n for store tests
+vi.mock('vue-i18n', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-i18n')>();
+  return {
+    ...actual,
+    useI18n: () => ({
+      t: testTranslate,
+    }),
+  };
+});
 
 describe('Avatar', () => {
   let serverStore: ReturnType<typeof useServerStore>;
@@ -39,7 +51,7 @@ describe('Avatar', () => {
 
     const wrapper = mount(Avatar, {
       global: {
-        plugins: [pinia],
+        plugins: [pinia, createTestI18n()],
         stubs: {
           BrandMark: true,
         },
@@ -57,7 +69,7 @@ describe('Avatar', () => {
 
     const wrapper = mount(Avatar, {
       global: {
-        plugins: [pinia],
+        plugins: [pinia, createTestI18n()],
         stubs: {
           BrandMark: true,
         },
@@ -75,7 +87,7 @@ describe('Avatar', () => {
 
     const wrapper = mount(Avatar, {
       global: {
-        plugins: [pinia],
+        plugins: [pinia, createTestI18n()],
         stubs: {
           BrandMark: true,
         },
@@ -94,7 +106,7 @@ describe('Avatar', () => {
 
     const wrapper = mount(Avatar, {
       global: {
-        plugins: [pinia],
+        plugins: [pinia, createTestI18n()],
         stubs: {
           BrandMark: true,
         },

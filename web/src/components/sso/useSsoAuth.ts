@@ -127,12 +127,12 @@ export function useSsoAuth() {
       // Error if we have mismatched state
       if (code && state && state !== sessionState) {
         currentState.value = 'error';
-        error.value = t('Invalid callback parameters');
+        error.value = t('sso.useSsoAuth.invalidCallbackParameters');
       }
     } catch (err) {
       console.error('Error fetching token', err);
       currentState.value = 'error';
-      error.value = t('Error fetching token');
+      error.value = t('sso.useSsoAuth.errorFetchingToken');
       reEnableFormOnError();
     }
   };

@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import SingleLogViewer from '~/components/Logs/SingleLogViewer.vue';
 import { createMockLogFileQuery, createMockUseQuery } from '../../helpers/apollo-mocks';
+import { createTestI18n } from '../../utils/i18n';
 
 // Mock the UI components
 vi.mock('@unraid/ui', () => ({
@@ -176,6 +177,7 @@ describe('SingleLogViewer - ANSI Color Support', () => {
           autoScroll: false,
         },
         global: {
+          plugins: [createTestI18n()],
           stubs: {
             Button: true,
             Tooltip: true,
@@ -216,6 +218,9 @@ describe('SingleLogViewer - ANSI Color Support', () => {
           logFilePath: '/test/log.txt',
           lineCount: 100,
           autoScroll: false,
+        },
+        global: {
+          plugins: [createTestI18n()],
         },
       });
 
@@ -270,6 +275,9 @@ describe('SingleLogViewer - ANSI Color Support', () => {
           lineCount: 100,
           autoScroll: false,
         },
+        global: {
+          plugins: [createTestI18n()],
+        },
       });
 
       // Wait for mount and trigger the watcher
@@ -317,6 +325,9 @@ describe('SingleLogViewer - ANSI Color Support', () => {
           lineCount: 100,
           autoScroll: false,
           clientFilter: 'ERROR',
+        },
+        global: {
+          plugins: [createTestI18n()],
         },
       });
 

@@ -29,23 +29,23 @@ const trialStatusCopy = computed((): TrialStatusCopy | null => {
   switch (trialStatus.value) {
     case 'failed':
       return {
-        heading: props.t('Trial Key Creation Failed'),
-        subheading: props.t('Error creatiing a trial key. Please try again later.'),
+        heading: props.t('userProfile.trial.trialKeyCreationFailed'),
+        subheading: props.t('userProfile.trial.errorCreatiingATrialKeyPlease'),
       };
     case 'trialExtend':
       return {
-        heading: props.t('Extending your free trial by 15 days'),
-        subheading: props.t('Please keep this window open'),
+        heading: props.t('userProfile.trial.extendingYourFreeTrialByDays'),
+        subheading: props.t('userProfile.trial.pleaseKeepThisWindowOpen'),
       };
     case 'trialStart':
       return {
-        heading: props.t('Starting your free 30 day trial'),
-        subheading: props.t('Please keep this window open'),
+        heading: props.t('userProfile.trial.startingYourFreeDayTrial'),
+        subheading: props.t('userProfile.trial.pleaseKeepThisWindowOpen'),
       };
     case 'success':
       return {
-        heading: props.t('Trial Key Created'),
-        subheading: props.t('Please wait while the page reloads to install your trial key'),
+        heading: props.t('userProfile.trial.trialKeyCreated'),
+        subheading: props.t('userProfile.trial.pleaseWaitWhileThePageReloads'),
       };
     case 'ready':
     default:
@@ -81,10 +81,10 @@ const close = () => {
           <Button
             variant="link"
             class="mx-2 inline-block h-auto p-0 text-xs tracking-wide underline opacity-60 transition hover:opacity-100 focus:opacity-100"
-            :title="t('Close Modal')"
+            :title="t('common.closeModal')"
             @click="close"
           >
-            {{ t('Close') }}
+            {{ t('common.close') }}
           </Button>
         </div>
       </div>

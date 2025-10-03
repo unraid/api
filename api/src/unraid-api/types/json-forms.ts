@@ -14,7 +14,11 @@ import { merge } from 'lodash-es';
 /**
  * JSON schema properties.
  */
-export type DataSlice = Record<string, JsonSchema>;
+export type I18nJsonSchema = JsonSchema & {
+    i18n?: string;
+};
+
+export type DataSlice = Record<string, I18nJsonSchema>;
 
 /**
  * A JSONForms UI schema element.

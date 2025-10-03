@@ -78,8 +78,8 @@ const manageUnraidNetAccount = computed((): UserProfileLink => {
       emit('close-dropdown');
     },
     icon: UserIcon,
-    text: t('Manage Unraid.net Account'),
-    title: t('Manage Unraid.net Account in new tab'),
+    text: t('userProfile.dropdownContent.manageUnraidNetAccount'),
+    title: t('userProfile.dropdownContent.manageUnraidNetAccountInNew'),
   };
 });
 
@@ -90,7 +90,7 @@ const updateOsCheckForUpdatesButton = computed((): UserProfileLink => {
       emit('close-dropdown');
     },
     icon: ArrowPathIcon,
-    text: t('Check for Update'),
+    text: t('userProfile.dropdownContent.checkForUpdate'),
   };
 });
 const updateOsResponseModalOpenButton = computed((): UserProfileLink => {
@@ -102,8 +102,8 @@ const updateOsResponseModalOpenButton = computed((): UserProfileLink => {
     emphasize: true,
     icon: BellAlertIcon,
     text: osUpdateAvailableWithRenewal.value
-      ? t('Unraid OS {0} Released', [osUpdateAvailableWithRenewal.value])
-      : t('Unraid OS {0} Update Available', [osUpdateAvailable.value]),
+      ? t('headerOsVersion.unraidOsReleased', [osUpdateAvailableWithRenewal.value])
+      : t('headerOsVersion.unraidOsUpdateAvailable', [osUpdateAvailable.value]),
   };
 });
 const rebootDetectedButton = computed((): UserProfileLink => {
@@ -115,8 +115,8 @@ const rebootDetectedButton = computed((): UserProfileLink => {
     icon: ExclamationTriangleIcon,
     text:
       rebootType.value === 'downgrade'
-        ? t('Reboot Required for Downgrade')
-        : t('Reboot Required for Update'),
+        ? t('userProfile.dropdownContent.rebootRequiredForDowngrade')
+        : t('userProfile.dropdownContent.rebootRequiredForUpdate'),
   };
 });
 
@@ -142,8 +142,8 @@ const links = computed((): UserProfileLink[] => {
           {
             href: WEBGUI_TOOLS_REGISTRATION.toString(),
             icon: KeyIcon,
-            text: t('OS Update Eligibility Expired'),
-            title: t('Go to Tools > Registration to Learn More'),
+            text: t('userProfile.dropdownContent.osUpdateEligibilityExpired'),
+            title: t('registration.general.goToToolsRegistrationToLearn'),
           },
         ]
       : []),
@@ -159,8 +159,8 @@ const links = computed((): UserProfileLink[] => {
             external: true,
             href: CONNECT_DASHBOARD.toString(),
             icon: ArrowTopRightOnSquareIcon,
-            text: t('Go to Connect'),
-            title: t('Opens Connect in new tab'),
+            text: t('connect.general.goToConnect'),
+            title: t('userProfile.dropdownContent.opensConnectInNewTab'),
           },
           ...[manageUnraidNetAccount.value],
           ...signOutAction.value,
@@ -169,8 +169,8 @@ const links = computed((): UserProfileLink[] => {
     {
       href: WEBGUI_CONNECT_SETTINGS.toString(),
       icon: CogIcon,
-      text: t('Settings'),
-      title: t('Go to API Settings'),
+      text: t('userProfile.dropdownContent.settings'),
+      title: t('userProfile.dropdownContent.goToApiSettings'),
     },
   ];
 });
@@ -193,8 +193,8 @@ const unraidConnectWelcome = computed(() => {
     !stateDataError.value
   ) {
     return {
-      heading: t('Thank you for installing Connect!'),
-      message: t('Sign In to your Unraid.net account to get started'),
+      heading: t('userProfile.dropdownContent.thankYouForInstallingConnect'),
+      message: t('userProfile.dropdownContent.signInToYourUnraidNet'),
     };
   }
   return undefined;

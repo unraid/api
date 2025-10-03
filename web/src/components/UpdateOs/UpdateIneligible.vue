@@ -39,9 +39,9 @@ const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(
 
 const heading = computed((): string => {
   if (availableWithRenewal.value) {
-    return props.t('Unraid OS {0} Released', [availableWithRenewal.value]);
+    return props.t('headerOsVersion.unraidOsReleased', [availableWithRenewal.value]);
   }
-  return props.t('License Key Updates Expired');
+  return props.t('updateOs.updateIneligible.licenseKeyUpdatesExpired');
 });
 
 const text = computed(() => {
@@ -93,8 +93,8 @@ watchEffect(() => {
           :external="renewAction?.external"
           :icon="renewAction.icon"
           :icon-right="ArrowTopRightOnSquareIcon"
-          :text="t('Extend License')"
-          :title="t('Pay your annual fee to continue receiving OS updates.')"
+          :text="t('updateOs.updateIneligible.extendLicense')"
+          :title="t('updateOs.updateIneligible.payYourAnnualFeeToContinue')"
           class="grow"
           @click="renewAction.click?.()"
         />
@@ -103,7 +103,7 @@ watchEffect(() => {
           href="/Tools/Registration"
           :icon="WrenchScrewdriverIcon"
           :icon-right="ArrowSmallRightIcon"
-          :text="t('Learn more and fix')"
+          :text="t('updateOs.updateIneligible.learnMoreAndFix')"
           class="flex-none" /> -->
 
         <BrandButton
@@ -113,7 +113,7 @@ watchEffect(() => {
           :icon="EyeIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :name="updateButton?.name"
-          :text="t('View Changelog')"
+          :text="t('updateOs.updateIneligible.viewChangelog')"
           class="flex-none"
           @click="updateButton?.click"
         />

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { MagnifyingGlassIcon } from '@heroicons/vue/24/outline';
 import { Input, Label, Select } from '@unraid/ui';
@@ -20,18 +21,30 @@ const props = withDefaults(
   {
     preset: 'none',
     showPresets: false,
-    presetFilters: () => [
-      { value: 'none', label: 'No Filter' },
-      { value: 'OIDC', label: 'OIDC Logs' },
-      { value: 'ERROR', label: 'Errors' },
-      { value: 'WARNING', label: 'Warnings' },
-      { value: 'AUTH', label: 'Authentication' },
-    ],
-    placeholder: 'Filter logs...',
-    label: 'Filter',
+    presetFilters: () => [],
+    placeholder: '',
+    label: '',
     showIcon: true,
     inputClass: '',
   }
+);
+
+const { t } = useI18n();
+
+const resolvedPlaceholder = computed(() => props.placeholder || t('logs.filterPlaceholder'));
+
+const resolvedLabel = computed(() => props.label || t('logs.filterLabel'));
+
+const defaultPresetFilters = computed<SelectItemType[]>(() => [
+  { value: 'none', label: t('logs.presets.none') },
+  { value: 'OIDC', label: t('logs.presets.oidc') },
+  { value: 'ERROR', label: t('logs.presets.error') },
+  { value: 'WARNING', label: t('logs.presets.warning') },
+  { value: 'AUTH', label: t('logs.presets.auth') },
+]);
+
+const resolvedPresetFilters = computed(() =>
+  props.presetFilters.length ? props.presetFilters : defaultPresetFilters.value
 );
 
 const emit = defineEmits<{
@@ -60,19 +73,25 @@ const presetValue = computed({
 <template>
   <div class="flex items-end gap-2">
     <div v-if="showPresets" class="min-w-[150px]">
-      <Label v-if="label" :for="`preset-filter-${$.uid}`">Quick {{ label }}</Label>
+      <Label v-if="resolvedLabel" :for="`preset-filter-${$.uid}`">
+        {{ t('logs.quickFilterLabel', { label: resolvedLabel }) }}
+      </Label>
       <Select
         :id="`preset-filter-${$.uid}`"
         v-model="presetValue"
-        :items="presetFilters"
-        placeholder="Select filter"
+        :items="resolvedPresetFilters"
+        :placeholder="t('logs.selectFilterPlaceholder')"
         class="w-full"
       />
     </div>
 
     <div class="relative flex-1">
-      <Label v-if="label && !showPresets" :for="`filter-input-${$.uid}`">{{ label }}</Label>
-      <Label v-else-if="label && showPresets" :for="`filter-input-${$.uid}`">Custom {{ label }}</Label>
+      <Label v-if="resolvedLabel && !showPresets" :for="`filter-input-${$.uid}`">
+        {{ resolvedLabel }}
+      </Label>
+      <Label v-else-if="resolvedLabel && showPresets" :for="`filter-input-${$.uid}`">
+        {{ t('logs.customFilterLabel', { label: resolvedLabel }) }}
+      </Label>
       <div class="relative">
         <MagnifyingGlassIcon
           v-if="showIcon"
@@ -82,7 +101,7 @@ const presetValue = computed({
           :id="`filter-input-${$.uid}`"
           v-model="filterText"
           type="text"
-          :placeholder="placeholder"
+          :placeholder="resolvedPlaceholder"
           :class="[showIcon ? 'pl-8' : '', inputClass]"
         />
       </div>

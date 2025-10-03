@@ -150,7 +150,7 @@ const showRawChangelog = computed<boolean>(() => {
   >
     <ResponsiveModalHeader>
       <ResponsiveModalTitle>
-        {{ t('Unraid OS {0} Changelog', [currentRelease.version]) }}
+        {{ t('updateOs.changelogModal.unraidOsChangelog', [currentRelease.version]) }}
       </ResponsiveModalTitle>
     </ResponsiveModalHeader>
 
@@ -184,7 +184,7 @@ const showRawChangelog = computed<boolean>(() => {
           class="flex min-h-[25rem] w-full flex-col justify-center text-center sm:min-w-[40rem]"
         >
           <BrandLoading class="mx-auto mt-6 w-[15rem]" />
-          <p>{{ props.t('Loading changelog…') }}</p>
+          <p>{{ props.t('updateOs.changelogModal.loadingChangelog') }}</p>
         </div>
       </div>
     </div>
@@ -213,7 +213,7 @@ const showRawChangelog = computed<boolean>(() => {
             :icon-right="ArrowTopRightOnSquareIcon"
             @click="purchaseStore.renew()"
           >
-            {{ props.t('Extend License to Update') }}
+            {{ props.t('updateOs.changelogModal.extendLicenseToUpdate') }}
           </BrandButton>
           <BrandButton
             v-else-if="currentRelease?.sha256"
@@ -221,7 +221,7 @@ const showRawChangelog = computed<boolean>(() => {
             :icon-right="ArrowRightIcon"
             @click="fetchAndConfirmInstall(currentRelease.sha256)"
           >
-            {{ props.t('Continue') }}
+            {{ props.t('common.continue') }}
           </BrandButton>
         </template>
       </div>

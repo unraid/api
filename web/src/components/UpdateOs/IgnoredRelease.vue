@@ -36,8 +36,8 @@ const evenBgColor = computed(() => {
     <BrandButton
       variant="underline"
       :icon-right="XMarkIcon"
-      :text="t('Remove')"
-      :title="t('Remove from ignore list')"
+      :text="t('updateOs.ignoredRelease.remove')"
+      :title="t('updateOs.ignoredRelease.removeFromIgnoreList')"
       @click="serverStore.updateOsRemoveIgnoredRelease(label)"
     />
   </div>

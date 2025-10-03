@@ -3,6 +3,7 @@ declare global {
   interface Window {
     __unifiedApp?: unknown;
     __mountedComponents?: Array<{ element: HTMLElement; unmount: () => void }>;
+    LOCALE?: string;
   }
 }
 

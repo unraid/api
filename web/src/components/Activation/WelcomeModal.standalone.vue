@@ -31,15 +31,11 @@ const { setTheme } = useThemeStore();
 
 const title = computed<string>(() =>
   partnerInfo.value?.partnerName
-    ? t(`Welcome to your new {0} system, powered by Unraid!`, [partnerInfo.value?.partnerName])
-    : t('Welcome to Unraid!')
+    ? t('activation.welcomeModal.welcomeToYourNewSystemPowered', [partnerInfo.value?.partnerName])
+    : t('activation.welcomeModal.welcomeToUnraid')
 );
 
-const description = computed<string>(() =>
-  t(
-    `First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`
-  )
-);
+const description = computed<string>(() => t('activation.welcomeModal.firstYouLlCreateYourDevice'));
 
 const isLoginPage = computed(() => window.location.pathname.includes('login'));
 
@@ -105,7 +101,11 @@ defineExpose({
 
         <div class="flex flex-col">
           <div class="mx-auto mb-10">
-            <BrandButton :text="t('Create a password')" :disabled="loading" @click="dropdownHide" />
+            <BrandButton
+              :text="t('activation.welcomeModal.createAPassword')"
+              :disabled="loading"
+              @click="dropdownHide"
+            />
           </div>
 
           <ActivationSteps :active-step="1" class="mt-6" />

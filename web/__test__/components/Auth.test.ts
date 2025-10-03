@@ -13,12 +13,17 @@ import type { ServerconnectPluginInstalled } from '~/types/server';
 
 import Auth from '~/components/Auth.standalone.vue';
 import { useServerStore } from '~/store/server';
+import { createTestI18n, testTranslate } from '../utils/i18n';
 
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: (key: string) => key,
-  }),
-}));
+vi.mock('vue-i18n', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('vue-i18n')>();
+  return {
+    ...actual,
+    useI18n: () => ({
+      t: testTranslate,
+    }),
+  };
+});
 
 vi.mock('crypto-js/aes', () => ({
   default: {},
@@ -65,7 +70,7 @@ describe('Auth Component', () => {
   it('displays an authentication button when authAction is available', async () => {
     const wrapper = mount(Auth, {
       global: {
-        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
       },
     });
 
@@ -89,7 +94,7 @@ describe('Auth Component', () => {
   it('displays error messages when stateData.error is true', () => {
     const wrapper = mount(Auth, {
       global: {
-        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
       },
     });
 
@@ -113,7 +118,7 @@ describe('Auth Component', () => {
   it('calls the click handler when button is clicked', async () => {
     const wrapper = mount(Auth, {
       global: {
-        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
       },
     });
 
@@ -134,7 +139,7 @@ describe('Auth Component', () => {
   it('does not render button when authAction is undefined', () => {
     const wrapper = mount(Auth, {
       global: {
-        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
       },
     });
 

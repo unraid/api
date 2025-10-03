@@ -18,13 +18,9 @@ const downloadUrl = computed(() => {
 <template>
   <div class="flex max-w-3xl flex-col gap-y-4 whitespace-normal">
     <p class="text-start text-sm">
-      {{ t('The primary method of support for Unraid Connect is through our forums and Discord.') }}
-      {{
-        t(
-          'If you are asked to supply logs, please open a support request on our Contact Page and reply to the email message you receive with your logs attached.'
-        )
-      }}
-      {{ t('The logs may contain sensitive information so do not post them publicly.') }}
+      {{ t('downloadApiLogs.thePrimaryMethodOfSupportFor') }}
+      {{ t('downloadApiLogs.ifYouAreAskedToSupply') }}
+      {{ t('downloadApiLogs.theLogsMayContainSensitiveInformation') }}
     </p>
     <span class="flex flex-col gap-y-4">
       <div class="flex">
@@ -35,7 +31,7 @@ const downloadUrl = computed(() => {
           :href="downloadUrl.toString()"
           :icon="ArrowDownTrayIcon"
           size="12px"
-          :text="t('Download unraid-api Logs')"
+          :text="t('downloadApiLogs.downloadUnraidApiLogs')"
         />
       </div>
 
@@ -46,7 +42,7 @@ const downloadUrl = computed(() => {
           rel="noopener noreferrer"
           class="inline-flex flex-row items-center justify-start gap-2 text-[#486dba] hover:text-[#3b5ea9] hover:underline focus:text-[#3b5ea9] focus:underline"
         >
-          {{ t('Unraid Connect Forums') }}
+          {{ t('downloadApiLogs.unraidConnectForums') }}
           <ArrowTopRightOnSquareIcon class="w-4" />
         </a>
         <a
@@ -55,7 +51,7 @@ const downloadUrl = computed(() => {
           rel="noopener noreferrer"
           class="inline-flex flex-row items-center justify-start gap-2 text-[#486dba] hover:text-[#3b5ea9] hover:underline focus:text-[#3b5ea9] focus:underline"
         >
-          {{ t('Unraid Discord') }}
+          {{ t('downloadApiLogs.unraidDiscord') }}
           <ArrowTopRightOnSquareIcon class="w-4" />
         </a>
         <a
@@ -64,7 +60,7 @@ const downloadUrl = computed(() => {
           rel="noopener noreferrer"
           class="inline-flex flex-row items-center justify-start gap-2 text-[#486dba] hover:text-[#3b5ea9] hover:underline focus:text-[#3b5ea9] focus:underline"
         >
-          {{ t('Unraid Contact Page') }}
+          {{ t('downloadApiLogs.unraidContactPage') }}
           <ArrowTopRightOnSquareIcon class="w-4" />
         </a>
       </div>
