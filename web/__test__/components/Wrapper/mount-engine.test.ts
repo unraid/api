@@ -56,7 +56,7 @@ const mockI18n = {
 };
 const mockCreateI18nInstance = vi.fn(() => mockI18n);
 const mockEnsureLocale = vi.fn();
-const mockGetWindowLocale = vi.fn<[], string | undefined>(() => undefined);
+const mockGetWindowLocale = vi.fn<() => string | undefined>(() => undefined);
 
 vi.mock('~/helpers/i18n-loader', () => ({
   createI18nInstance: mockCreateI18nInstance,
