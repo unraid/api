@@ -42,7 +42,10 @@ export default tseslint.config(
                 'ignorePackages',
                 {
                     js: 'always',
-                    ts: 'always',
+                    mjs: 'always',
+                    cjs: 'always',
+                    ts: 'never',
+                    tsx: 'never',
                 },
             ],
             'no-restricted-globals': [
