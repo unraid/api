@@ -10,29 +10,40 @@ export function createSimpleLabeledControl({
     description,
     controlOptions,
     rule,
+    i18nKey,
 }: {
     scope: string;
     label: string;
     description?: string;
     controlOptions?: ControlElement['options'];
     rule?: Rule;
+    i18nKey?: string;
 }): Layout {
+    const labelElement = {
+        type: 'Label',
+        text: label,
+        options: {
+            description,
+        },
+    } as LabelElement;
+
+    if (i18nKey) {
+        (labelElement as any).i18n = `${i18nKey}.label`;
+    }
+
+    const controlElement = {
+        type: 'Control',
+        scope: scope,
+        options: controlOptions,
+    } as ControlElement;
+
+    if (i18nKey) {
+        (controlElement as any).i18n = i18nKey;
+    }
+
     const layout: Layout = {
         type: 'VerticalLayout',
-        elements: [
-            {
-                type: 'Label',
-                text: label,
-                options: {
-                    description,
-                },
-            } as LabelElement,
-            {
-                type: 'Control',
-                scope: scope,
-                options: controlOptions,
-            } as ControlElement,
-        ],
+        elements: [labelElement, controlElement],
     };
 
     // Add rule if provided
@@ -56,6 +67,7 @@ export function createLabeledControl({
     layoutType = 'UnraidSettingsLayout',
     rule,
     passScopeToLayout = false,
+    i18nKey,
 }: {
     scope: string;
     label: string;
@@ -66,19 +78,29 @@ export function createLabeledControl({
     layoutType?: 'UnraidSettingsLayout' | 'VerticalLayout' | 'HorizontalLayout';
     rule?: Rule;
     passScopeToLayout?: boolean;
+    i18nKey?: string;
 }): Layout {
-    const elements: Array<LabelElement | ControlElement> = [
-        {
-            type: 'Label',
-            text: label,
-            options: { ...labelOptions, description },
-        } as LabelElement,
-        {
-            type: 'Control',
-            scope: scope,
-            options: controlOptions,
-        } as ControlElement,
-    ];
+    const labelElement = {
+        type: 'Label',
+        text: label,
+        options: { ...labelOptions, description },
+    } as LabelElement;
+
+    if (i18nKey) {
+        (labelElement as any).i18n = `${i18nKey}.label`;
+    }
+
+    const controlElement = {
+        type: 'Control',
+        scope: scope,
+        options: controlOptions,
+    } as ControlElement;
+
+    if (i18nKey) {
+        (controlElement as any).i18n = i18nKey;
+    }
+
+    const elements: Array<LabelElement | ControlElement> = [labelElement, controlElement];
 
     const layout: Layout = {
         type: layoutType,
