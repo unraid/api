@@ -2,6 +2,7 @@
  * @todo Check OS and Connect Plugin versions against latest via API every session
  */
 import { computed, ref, toRefs, watch, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { defineStore, storeToRefs } from 'pinia';
 import { useLazyQuery } from '@vue/apollo-composable';
 
@@ -53,6 +54,7 @@ import { useThemeStore } from '~/store/theme';
 import { useUnraidApiStore } from '~/store/unraidApi';
 
 export const useServerStore = defineStore('server', () => {
+  const { t } = useI18n();
   const accountStore = useAccountStore();
   const errorsStore = useErrorsStore();
   const purchaseStore = usePurchaseStore();
@@ -68,9 +70,9 @@ export const useServerStore = defineStore('server', () => {
   const computedArray = computed(() => {
     if (arrayWarning.value) {
       if (array.value?.state === 'Stopped') {
-        return 'Stopped. The Array will not start until the above issue is resolved.';
+        return t('server.array.warning.stopped');
       }
-      return 'Started. If stopped, the Array will not restart until the above issue is resolved.';
+      return t('server.array.warning.started');
     }
     return array.value?.state;
   });
@@ -338,7 +340,7 @@ export const useServerStore = defineStore('server', () => {
     );
     return {
       disable,
-      title: disable ? 'Requires the local unraid-api to be running successfully' : '',
+      title: disable ? t('server.actions.disabledTitle') : '',
     };
   });
 
@@ -351,7 +353,7 @@ export const useServerStore = defineStore('server', () => {
       external: true,
       icon: KeyIcon,
       name: 'purchase',
-      text: 'Purchase Key',
+      text: t('server.actions.purchaseKey'),
       title: serverActionsDisable.value.title,
     };
   });
@@ -364,7 +366,7 @@ export const useServerStore = defineStore('server', () => {
       external: true,
       icon: KeyIcon,
       name: 'upgrade',
-      text: 'Upgrade Key',
+      text: t('server.actions.upgradeKey'),
       title: serverActionsDisable.value.title,
     };
   });
@@ -377,7 +379,7 @@ export const useServerStore = defineStore('server', () => {
       external: true,
       icon: KeyIcon,
       name: 'recover',
-      text: 'Recover Key',
+      text: t('server.actions.recoverKey'),
       title: serverActionsDisable.value.title,
     };
   });
@@ -395,7 +397,9 @@ export const useServerStore = defineStore('server', () => {
       external: true,
       icon: KeyIcon,
       name: activationCode.value?.code ? 'activate' : 'redeem',
-      text: activationCode.value?.code ? 'Activate Now' : 'Redeem Activation Code',
+      text: activationCode.value?.code
+        ? t('server.actions.activateNow')
+        : t('server.actions.redeemActivationCode'),
       title: serverActionsDisable.value.title,
     };
   });
@@ -408,7 +412,7 @@ export const useServerStore = defineStore('server', () => {
       external: true,
       icon: KeyIcon,
       name: 'renew',
-      text: 'Extend License to Enable OS Updates',
+      text: t('server.actions.extendLicenseForUpdates'),
       title: serverActionsDisable.value.title,
     };
   });
@@ -420,7 +424,7 @@ export const useServerStore = defineStore('server', () => {
       external: true,
       icon: KeyIcon,
       name: 'replace',
-      text: 'Replace Key',
+      text: t('server.actions.replaceKey'),
     };
   });
   const signInAction = computed((): ServerStateDataAction => {
@@ -432,7 +436,7 @@ export const useServerStore = defineStore('server', () => {
       external: true,
       icon: GlobeAltIcon,
       name: 'signIn',
-      text: 'Sign In with Unraid.net Account',
+      text: t('server.actions.signIn'),
       title: serverActionsDisable.value.title,
     };
   });
@@ -443,7 +447,7 @@ export const useServerStore = defineStore('server', () => {
     const disabled: boolean = !keyfile.value || serverActionsDisable.value.disable;
     let title = '';
     if (!keyfile.value) {
-      title = 'Sign Out requires a keyfile';
+      title = t('server.actions.signOutRequiresKeyfile');
     }
     if (serverActionsDisable.value.disable) {
       title = serverActionsDisable.value.title;
@@ -456,7 +460,7 @@ export const useServerStore = defineStore('server', () => {
       external: true,
       icon: ArrowRightOnRectangleIcon,
       name: 'signOut',
-      text: 'Sign Out of Unraid.net',
+      text: t('server.actions.signOut'),
       title,
     };
   });
@@ -469,7 +473,7 @@ export const useServerStore = defineStore('server', () => {
       external: true,
       icon: KeyIcon,
       name: 'trialExtend',
-      text: 'Extend Trial',
+      text: t('server.actions.extendTrial'),
       title: serverActionsDisable.value.title,
     };
   });
@@ -482,7 +486,7 @@ export const useServerStore = defineStore('server', () => {
       external: true,
       icon: KeyIcon,
       name: 'trialStart',
-      text: 'Start Free 30 Day Trial',
+      text: t('server.actions.startTrial'),
       title: serverActionsDisable.value.title,
     };
   });
@@ -498,25 +502,20 @@ export const useServerStore = defineStore('server', () => {
             ...[trialStartAction.value, purchaseAction.value, redeemAction.value, recoverAction.value],
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
-          humanReadable: 'No Keyfile',
-          heading: "Let's Unleash Your Hardware",
-          message:
-            '<p>Choose an option below, then use our <a href="https://unraid.net/getting-started" target="_blank" rel="noreffer noopener">Getting Started Guide</a> to configure your array in less than 15 minutes.</p>',
+          humanReadable: t('server.state.enokeyfile.humanReadable'),
+          heading: t('server.state.enokeyfile.heading'),
+          message: t('server.state.enokeyfile.message'),
         };
       case 'TRIAL':
         if (trialExtensionEligibleInsideRenewalWindow.value) {
-          trialMessage =
-            '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>Your trial is expiring soon. When it expires, <strong>the array will stop</strong>. You may extend your trial now, purchase a license key, or wait until expiration to take action.</p>';
+          trialMessage = t('server.state.trial.messageEligibleInsideRenewal');
         } else if (trialExtensionIneligibleInsideRenewalWindow.value) {
-          trialMessage =
-            '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>Your trial is expiring soon and you have used all available extensions. When it expires, <strong>the array will stop</strong>. To continue using Unraid OS, you must purchase a license key.</p>';
+          trialMessage = t('server.state.trial.messageIneligibleInsideRenewal');
         } else if (trialExtensionEligibleOutsideRenewalWindow.value) {
-          trialMessage =
-            '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>When your <em>Trial</em> expires, <strong>the array will stop</strong>. At that point you may either purchase a license key or request a <em>Trial</em> extension.</p>';
+          trialMessage = t('server.state.trial.messageEligibleOutsideRenewal');
         } else {
           // would be trialExtensionIneligibleOutsideRenewalWindow if it wasn't an else conditionally
-          trialMessage =
-            '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>You have used all available trial extensions. When your <em>Trial</em> expires, <strong>the array will stop</strong>. To continue using Unraid OS after expiration, you must purchase a license key.</p>';
+          trialMessage = t('server.state.trial.messageIneligibleOutsideRenewal');
         }
 
         return {
@@ -526,8 +525,8 @@ export const useServerStore = defineStore('server', () => {
             ...(trialExtensionEligibleInsideRenewalWindow.value ? [trialExtendAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
-          humanReadable: 'Trial',
-          heading: 'Thank you for choosing Unraid OS!',
+          humanReadable: t('server.state.trial.humanReadable'),
+          heading: t('server.headings.thankYou'),
           message: trialMessage,
         };
       case 'EEXPIRED':
@@ -539,11 +538,11 @@ export const useServerStore = defineStore('server', () => {
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
-          humanReadable: 'Trial Expired',
-          heading: 'Your Trial has expired',
+          humanReadable: t('server.state.trialExpired.humanReadable'),
+          heading: t('server.state.trialExpired.heading'),
           message: trialExtensionEligible.value
-            ? '<p>To continue using Unraid OS you may purchase a license key. Alternately, you may request a Trial extension.</p>'
-            : '<p>You have used all your Trial extensions. To continue using Unraid OS you may purchase a license key.</p>',
+            ? t('server.state.trialExpired.messageEligible')
+            : t('server.state.trialExpired.messageIneligible'),
         };
       case 'BASIC':
       case 'STARTER':
@@ -554,13 +553,16 @@ export const useServerStore = defineStore('server', () => {
             ...[upgradeAction.value],
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
-          humanReadable: state.value === 'BASIC' ? 'Basic' : 'Starter',
-          heading: 'Thank you for choosing Unraid OS!',
+          humanReadable:
+            state.value === 'BASIC'
+              ? t('server.state.basic.humanReadable')
+              : t('server.state.starter.humanReadable'),
+          heading: t('server.headings.thankYou'),
           message:
             !registered.value && connectPluginInstalled.value
-              ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
+              ? t('server.state.shared.connectRegistrationPrompt')
               : guidRegistered.value
-                ? '<p>To support more storage devices as your server grows, click Upgrade Key.</p>'
+                ? t('server.state.shared.upgradeKeyPrompt')
                 : '',
         };
       case 'PLUS':
@@ -570,13 +572,13 @@ export const useServerStore = defineStore('server', () => {
             ...[upgradeAction.value],
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
-          humanReadable: 'Plus',
-          heading: 'Thank you for choosing Unraid OS!',
+          humanReadable: t('server.state.plus.humanReadable'),
+          heading: t('server.headings.thankYou'),
           message:
             !registered.value && connectPluginInstalled.value
-              ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
+              ? t('server.state.shared.connectRegistrationPrompt')
               : guidRegistered.value
-                ? '<p>To support more storage devices as your server grows, click Upgrade Key.</p>'
+                ? t('server.state.shared.upgradeKeyPrompt')
                 : '',
         };
       case 'PRO':
@@ -590,27 +592,27 @@ export const useServerStore = defineStore('server', () => {
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable:
-            state.value === 'PRO' ? 'Pro' : state.value === 'LIFETIME' ? 'Lifetime' : 'Unleashed',
-          heading: 'Thank you for choosing Unraid OS!',
+            state.value === 'PRO'
+              ? t('server.state.pro.humanReadable')
+              : state.value === 'LIFETIME'
+                ? t('server.state.lifetime.humanReadable')
+                : t('server.state.unleashed.humanReadable'),
+          heading: t('server.headings.thankYou'),
           message:
             !registered.value && connectPluginInstalled.value
-              ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
+              ? t('server.state.shared.connectRegistrationPrompt')
               : '',
         };
       case 'EGUID':
         if (guidReplaceable.value) {
-          messageEGUID =
-            '<p>Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.</p>';
+          messageEGUID = t('server.state.eguid.messageAlreadyReplaced');
         } else if (guidReplaceable.value === false && guidBlacklisted.value) {
-          messageEGUID =
-            '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key.</p><p>Your Unraid registration key is ineligible for replacement as it is blacklisted.</p>';
+          messageEGUID = t('server.state.eguid.messageBlacklisted');
         } else if (guidReplaceable.value === false && !guidBlacklisted.value) {
-          messageEGUID =
-            '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key.</p><p>Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.</p>';
+          messageEGUID = t('server.state.eguid.messageRecentReplacement');
         } else {
           // basically guidReplaceable.value === null
-          messageEGUID =
-            '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device.</p><p>You may also attempt to Purchase or Replace your key.</p>';
+          messageEGUID = t('server.state.eguid.messageMismatch');
         }
         return {
           actions: [
@@ -619,8 +621,8 @@ export const useServerStore = defineStore('server', () => {
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
-          humanReadable: 'Flash GUID Error',
-          heading: 'Registration key / USB Flash GUID mismatch',
+          humanReadable: t('server.state.eguid.humanReadable'),
+          heading: t('server.state.eguid.heading'),
           message: messageEGUID,
         };
       case 'EGUID1':
@@ -631,10 +633,9 @@ export const useServerStore = defineStore('server', () => {
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
-          humanReadable: 'Multiple License Keys Present',
-          heading: 'Multiple License Keys Present',
-          message:
-            '<p>There are multiple license key files present on your USB flash device and none of them correspond to the USB Flash boot device. Please remove all key files, except the one you want to replace, from the /config directory on your USB Flash boot device.</p><p>Alternately you may purchase a license key for this USB flash device.</p><p>If you want to replace one of your license keys with a new key bound to this USB Flash device, please first remove all other key files first.</p>',
+          humanReadable: t('server.state.eguid1.humanReadable'),
+          heading: t('server.state.eguid1.heading'),
+          message: t('server.state.eguid1.message'),
           // signInToFix: true, // @todo is this needed?
         };
       case 'ENOKEYFILE2':
@@ -645,11 +646,11 @@ export const useServerStore = defineStore('server', () => {
             ...(registered.value ? [signOutAction.value] : []),
           ],
           error: true,
-          humanReadable: 'Missing key file',
-          heading: 'Missing key file',
+          humanReadable: t('server.state.enokeyfile2.humanReadable'),
+          heading: t('server.state.enokeyfile2.heading'),
           message: connectPluginInstalled.value
-            ? '<p>Your license key file is corrupted or missing. The key file should be located in the /config directory on your USB Flash boot device.</p><p>You may attempt to recover your key with your Unraid.net account.</p><p>If this was an expired Trial installation, you may purchase a license key.</p>'
-            : '<p>Your license key file is corrupted or missing. The key file should be located in the /config directory on your USB Flash boot device.</p><p>If you do not have a backup copy of your license key file you may attempt to recover your key.</p><p>If this was an expired Trial installation, you may purchase a license key.</p>',
+            ? t('server.state.enokeyfile2.messageWithConnect')
+            : t('server.state.enokeyfile2.messageWithoutConnect'),
         };
       case 'ETRIAL':
         return {
@@ -659,10 +660,9 @@ export const useServerStore = defineStore('server', () => {
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
-          humanReadable: 'Invalid installation',
-          heading: 'Invalid installation',
-          message:
-            '<p>It is not possible to use a Trial key with an existing Unraid OS installation.</p><p>You may purchase a license key corresponding to this USB Flash device to continue using this installation.</p>',
+          humanReadable: t('server.state.etrial.humanReadable'),
+          heading: t('server.state.etrial.heading'),
+          message: t('server.state.etrial.message'),
         };
       case 'ENOKEYFILE1':
         return {
@@ -672,9 +672,9 @@ export const useServerStore = defineStore('server', () => {
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
-          humanReadable: 'No Keyfile',
-          heading: 'No USB flash configuration data',
-          message: '<p>There is a problem with your USB Flash device</p>',
+          humanReadable: t('server.state.enokeyfile.humanReadable'),
+          heading: t('server.state.enokeyfile1.heading'),
+          message: t('server.state.enokeyfile1.message'),
         };
       case 'ENOFLASH':
       case 'ENOFLASH1':
@@ -686,48 +686,44 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOFLASH7':
         return {
           error: true,
-          humanReadable: 'No Flash',
-          heading: 'Cannot access your USB Flash boot device',
-          message: '<p>There is a physical problem accessing your USB Flash boot device</p>',
+          humanReadable: t('server.state.enoflash.humanReadable'),
+          heading: t('server.state.enoflash.heading'),
+          message: t('server.state.enoflash.message'),
         };
       case 'EBLACKLISTED':
         return {
           error: true,
-          humanReadable: 'BLACKLISTED',
-          heading: 'Blacklisted USB Flash GUID',
-          message:
-            '<p>This USB Flash boot device has been blacklisted. This can occur as a result of transferring your license key to a replacement USB Flash device, and you are currently booted from your old USB Flash device.</p><p>A USB Flash device may also be blacklisted if we discover the serial number is not unique – this is common with USB card readers.</p>',
+          humanReadable: t('server.state.eblacklisted.humanReadable'),
+          heading: t('server.state.eblacklisted.heading'),
+          message: t('server.state.eblacklisted.message'),
         };
       case 'EBLACKLISTED1':
         return {
           error: true,
-          humanReadable: 'BLACKLISTED',
-          heading: 'USB Flash device error',
-          message:
-            '<p>This USB Flash device has an invalid GUID. Please try a different USB Flash device</p>',
+          humanReadable: t('server.state.eblacklisted.humanReadable'),
+          heading: t('server.state.eblacklisted1.heading'),
+          message: t('server.state.eblacklisted1.message'),
         };
       case 'EBLACKLISTED2':
         return {
           error: true,
-          humanReadable: 'BLACKLISTED',
-          heading: 'USB Flash has no serial number',
-          message:
-            '<p>This USB Flash boot device has been blacklisted. This can occur as a result of transferring your license key to a replacement USB Flash device, and you are currently booted from your old USB Flash device.</p><p>A USB Flash device may also be blacklisted if we discover the serial number is not unique – this is common with USB card readers.</p>',
+          humanReadable: t('server.state.eblacklisted.humanReadable'),
+          heading: t('server.state.eblacklisted2.heading'),
+          message: t('server.state.eblacklisted.message'),
         };
       case 'ENOCONN':
         return {
           error: true,
-          humanReadable: 'Trial Requires Internet Connection',
-          heading: 'Cannot validate Unraid Trial key',
-          message:
-            '<p>Your Trial key requires an internet connection.</p><p><a href="/Settings/NetworkSettings" class="underline">Please check Settings > Network</a></p>',
+          humanReadable: t('server.state.enoconn.humanReadable'),
+          heading: t('server.state.enoconn.heading'),
+          message: t('server.state.enoconn.message'),
         };
       default:
         return {
           error: true,
-          humanReadable: 'Stale',
-          heading: 'Stale Server',
-          message: '<p>Please refresh the page to ensure you load your latest configuration</p>',
+          humanReadable: t('server.state.default.humanReadable'),
+          heading: t('server.state.default.heading'),
+          message: t('server.state.default.message'),
         };
     }
   });
@@ -746,7 +742,7 @@ export const useServerStore = defineStore('server', () => {
             });
           },
           icon: QuestionMarkCircleIcon,
-          text: 'Contact Support',
+          text: t('server.actions.contactSupport'),
         },
       ],
       debugServer: serverDebugPayload.value,
@@ -814,15 +810,14 @@ export const useServerStore = defineStore('server', () => {
         //   };
         case 'INELIGIBLE':
           return {
-            heading: 'Ineligible for OS Version',
+            heading: t('server.configError.ineligible.heading'),
             level: 'error',
-            message:
-              'Your License Key does not support this OS Version. OS build date greater than key expiration. Please consider extending your registration key.',
+            message: t('server.configError.ineligible.message'),
             actions: [
               {
                 href: WEBGUI_TOOLS_REGISTRATION.toString(),
                 icon: CogIcon,
-                text: 'Learn More at Tools > Registration',
+                text: t('server.configError.ineligible.action'),
               },
             ],
             ref: 'configError',
@@ -830,31 +825,30 @@ export const useServerStore = defineStore('server', () => {
           };
         case 'INVALID':
           return {
-            heading: 'Too Many Devices',
+            heading: t('server.configError.invalid.heading'),
             level: 'error',
-            message:
-              'You have exceeded the number of devices allowed for your license. Please remove a device to start the array, or upgrade your key to support more devices.',
+            message: t('server.configError.invalid.message'),
             ref: 'configError',
             type: 'server',
           };
         case 'NO_KEY_SERVER':
           return {
-            heading: 'Check Network Connection',
+            heading: t('server.configError.noKeyServer.heading'),
             level: 'error',
-            message: 'Unable to validate your trial key. Please check your network connection.',
+            message: t('server.configError.noKeyServer.message'),
             ref: 'configError',
             type: 'server',
           };
         case 'WITHDRAWN':
           return {
-            heading: 'OS Version Withdrawn',
+            heading: t('server.configError.withdrawn.heading'),
             level: 'error',
-            message: 'This OS release should not be run. OS Update Required.',
+            message: t('server.configError.withdrawn.message'),
             actions: [
               {
                 href: WEBGUI_TOOLS_UPDATE.toString(),
                 icon: ArrowPathIcon,
-                text: 'Check for Update',
+                text: t('server.configError.withdrawn.action'),
               },
             ],
             ref: 'configError',
@@ -890,12 +884,12 @@ export const useServerStore = defineStore('server', () => {
             external: true,
             href: 'https://forums.unraid.net/topic/112073-my-servers-releases/#comment-1154449',
             icon: InformationCircleIcon,
-            text: 'Learn More',
+            text: t('common.learnMore'),
           },
         ],
-        heading: 'Unraid Connect Install Failed',
+        heading: t('server.pluginInstallFailed.heading'),
         level: 'error',
-        message: 'Rebooting will likely solve this.',
+        message: t('server.pluginInstallFailed.message'),
         ref: 'pluginInstallFailed',
         type: 'server',
       };
@@ -921,20 +915,19 @@ export const useServerStore = defineStore('server', () => {
             {
               href: WEBGUI_SETTINGS_MANAGMENT_ACCESS.toString(),
               icon: CogIcon,
-              text: 'Go to Management Access Now',
+              text: t('server.deprecatedSsl.managementAccess'),
             },
             {
               external: true,
               href: 'https://unraid.net/blog/ssl-certificate-update',
               icon: InformationCircleIcon,
-              text: 'Learn More',
+              text: t('common.learnMore'),
             },
           ],
           forumLink: true,
-          heading: 'SSL certificates for unraid.net deprecated',
+          heading: t('server.deprecatedSsl.heading'),
           level: 'error',
-          message:
-            'On January 1st, 2023 SSL certificates for unraid.net were deprecated. You MUST provision a new SSL certificate to use our new myunraid.net domain. You can do this on the Settings > Management Access page.',
+          message: t('server.deprecatedSsl.message'),
           ref: 'deprecatedUnraidSSL',
           type: 'server',
         }
@@ -970,11 +963,11 @@ export const useServerStore = defineStore('server', () => {
             });
           },
           icon: QuestionMarkCircleIcon,
-          text: 'Contact Support',
+          text: t('server.actions.contactSupport'),
         },
       ],
       debugServer: serverDebugPayload.value,
-      heading: 'Unraid Connect Error',
+      heading: t('server.cloudError.heading'),
       level: 'error',
       message: cloud.value?.error ?? '',
       ref: 'cloudError',
