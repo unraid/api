@@ -1,9 +1,6 @@
 <script lang="ts" setup>
-// import { useI18n } from 'vue-i18n';
-
-// const { t } = useI18n();
-
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 import { watchDebounced } from '@vueuse/core';
@@ -62,6 +59,8 @@ const {
 const isUpdating = ref(false);
 const actualRestartRequired = ref(false);
 
+const { t } = useI18n();
+
 // prevent ui flash if loading finishes too fast
 watchDebounced(
   mutateSettingsLoading,
@@ -76,8 +75,10 @@ watchDebounced(
 // show a toast when the update is done
 onMutateSettingsDone((result) => {
   actualRestartRequired.value = result.data?.updateSettings?.restartRequired ?? false;
-  globalThis.toast.success('Updated API Settings', {
-    description: actualRestartRequired.value ? 'The API is restarting...' : undefined,
+  globalThis.toast.success(t('connectSettings.updatedApiSettingsToast'), {
+    description: actualRestartRequired.value
+      ? t('connectSettings.apiRestartingToastDescription')
+      : undefined,
   });
 });
 
@@ -111,10 +112,10 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
     <!-- common api-related actions -->
     <SettingsGrid>
       <template v-if="connectPluginInstalled">
-        <Label>Account Status:</Label>
+        <Label>{{ t('connectSettings.accountStatusLabel') }}</Label>
         <Auth />
       </template>
-      <Label>Download Unraid API Logs:</Label>
+      <Label>{{ t('downloadApiLogs.downloadUnraidApiLogs') }}:</Label>
       <DownloadApiLogs />
     </SettingsGrid>
     <!-- auto-generated settings form -->
@@ -137,14 +138,15 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
       <!-- form submission & fallback reaction message -->
       <div class="grid-cols-settings mt-6 grid items-baseline gap-y-6">
         <div class="text-end text-sm">
-          <p v-if="isUpdating">Applying Settings...</p>
+          <p v-if="isUpdating">{{ t('connectSettings.applyingSettings') }}</p>
         </div>
         <div class="col-start-2 max-w-3xl space-y-4">
           <BrandButton padding="lean" size="12px" class="leading-normal" @click="submitSettingsUpdate">
-            Apply
+            {{ t('connectSettings.apply') }}
           </BrandButton>
           <p v-if="mutateSettingsError" class="text-unraid-red-500 text-sm">
-            ✕ Error: {{ mutateSettingsError.message }}
+            <span aria-hidden="true">✕</span>
+            {{ t('common.error') }}: {{ mutateSettingsError.message }}
           </p>
         </div>
       </div>
