@@ -110,10 +110,10 @@ const mutatedParsedChangelog = computed(() => {
   >
     <div v-if="parseChangelogFailed" class="prose flex flex-col gap-4 text-center">
       <h2 class="text-unraid-red text-lg font-semibold italic">
-        {{ props.t(`Error Parsing Changelog • {0}`, [parseChangelogFailed]) }}
+        {{ props.t('updateOs.rawChangelogRenderer.errorParsingChangelog', [parseChangelogFailed]) }}
       </h2>
       <p>
-        {{ props.t(`It's highly recommended to review the changelog before continuing your update`) }}
+        {{ props.t('updateOs.rawChangelogRenderer.itSHighlyRecommendedToReview') }}
       </p>
       <div v-if="props.changelogPretty" class="flex self-center">
         <BrandButton
@@ -122,7 +122,7 @@ const mutatedParsedChangelog = computed(() => {
           :external="true"
           :icon-right="ArrowTopRightOnSquareIcon"
         >
-          {{ props.t('View Changelog on Docs') }}
+          {{ props.t('updateOs.rawChangelogRenderer.viewChangelogOnDocs') }}
         </BrandButton>
       </div>
     </div>
@@ -134,10 +134,10 @@ const mutatedParsedChangelog = computed(() => {
       <span
         class="border-t-unraid-red mx-auto h-8 w-8 animate-spin rounded-full border-2 border-gray-300"
       />
-      <p class="ml-2">{{ props.t('Loading changelog...') }}</p>
+      <p class="ml-2">{{ props.t('updateOs.rawChangelogRenderer.loadingChangelog') }}</p>
     </div>
     <div v-else class="py-8 text-center">
-      <p>{{ props.t('No changelog content available') }}</p>
+      <p>{{ props.t('updateOs.rawChangelogRenderer.noChangelogContentAvailable') }}</p>
     </div>
   </div>
 </template>

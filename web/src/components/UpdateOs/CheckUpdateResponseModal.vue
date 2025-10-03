@@ -102,13 +102,11 @@ watch(updateOsIgnoredReleases, (newVal, oldVal) => {
 });
 
 // Get the localized 'Close' text for comparison
-const localizedCloseText = computed(() => props.t('Close'));
+const localizedCloseText = computed(() => props.t('common.close'));
 
 const notificationsSettings = computed(() => {
   return !updateOsNotificationsEnabled.value
-    ? props.t(
-        'Go to Settings > Notifications to enable automatic OS update notifications for future releases.'
-      )
+    ? props.t('updateOs.checkUpdateResponseModal.goToSettingsNotificationsToEnable')
     : undefined;
 });
 
@@ -119,26 +117,28 @@ interface ModalCopy {
 const modalCopy = computed((): ModalCopy | null => {
   if (checkForUpdatesLoading.value) {
     return {
-      title: props.t('Checking for OS updates...'),
+      title: props.t('updateOs.checkUpdateResponseModal.checkingForOsUpdates'),
     };
   }
 
   if (availableWithRenewal.value) {
     const description = regUpdatesExpired.value
-      ? `${props.t('Eligible for updates released on or before {0}.', [formattedRegExp.value])} ${props.t('Extend your license to access the latest updates.')}`
-      : props.t('Eligible for free feature updates until {0}', [formattedRegExp.value]);
+      ? `${props.t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [formattedRegExp.value])} ${props.t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
+      : props.t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
+          formattedRegExp.value,
+        ]);
     return {
-      title: props.t('Update Available'),
+      title: props.t('headerOsVersion.updateAvailable2'),
       description: description,
     };
   } else if (available.value) {
     return {
-      title: props.t('Update Available'),
+      title: props.t('headerOsVersion.updateAvailable2'),
       description: undefined,
     };
   } else if (!available.value && !availableWithRenewal.value) {
     return {
-      title: props.t('Unraid OS is up-to-date'),
+      title: props.t('updateOs.checkUpdateResponseModal.unraidOsIsUpToDate'),
       description: notificationsSettings.value ?? undefined,
     };
   }
@@ -157,7 +157,7 @@ const extraLinks = computed((): BrandButtonProps[] => {
       variant: 'outline',
       href: '/Settings/Notifications',
       icon: CogIcon,
-      text: props.t('Enable update notifications'),
+      text: props.t('updateOs.checkUpdateResponseModal.enableUpdateNotifications'),
     });
   }
 
@@ -170,7 +170,7 @@ const actionButtons = computed((): BrandButtonProps[] => {
     return [
       {
         click: () => close(),
-        text: props.t('Close'),
+        text: props.t('common.close'),
       },
     ];
   }
@@ -188,7 +188,7 @@ const actionButtons = computed((): BrandButtonProps[] => {
     buttons.push({
       click: async () => await accountStore.updateOs(),
       icon: IdentificationIcon,
-      text: props.t('Verify to Update'),
+      text: props.t('updateOs.checkUpdateResponseModal.verifyToUpdate'),
     });
 
     return buttons;
@@ -201,8 +201,8 @@ const actionButtons = computed((): BrandButtonProps[] => {
       click: async () => await updateOsStore.setReleaseForUpdate(updateOsResponse.value ?? null),
       icon: EyeIcon,
       text: availableWithRenewal.value
-        ? props.t('View Changelog')
-        : props.t('View Changelog to Start Update'),
+        ? props.t('updateOs.updateIneligible.viewChangelog')
+        : props.t('updateOs.checkUpdateResponseModal.viewChangelogToStartUpdate'),
     });
   }
 
@@ -213,8 +213,8 @@ const actionButtons = computed((): BrandButtonProps[] => {
       icon: KeyIcon,
       iconRight: ArrowTopRightOnSquareIcon,
       iconRightHoverDisplay: false,
-      text: props.t('Extend License'),
-      title: props.t('Pay your annual fee to continue receiving OS updates.'),
+      text: props.t('updateOs.updateIneligible.extendLicense'),
+      title: props.t('updateOs.updateIneligible.payYourAnnualFeeToContinue'),
     });
   }
 
@@ -322,7 +322,7 @@ const modalWidth = computed(() => {
                 v-if="availableRequiresAuth && !availableWithRenewal"
                 class="mt-2 text-center text-sm text-amber-500"
               >
-                {{ t('Requires verification to update') }}
+                {{ t('updateOs.checkUpdateResponseModal.requiresVerificationToUpdate') }}
               </p>
             </div>
             <div class="mt-4">
@@ -332,7 +332,7 @@ const modalWidth = computed(() => {
               >
                 <Switch v-model="ignoreThisRelease" @click.stop />
                 <Label class="text-muted-foreground cursor-pointer text-sm">
-                  {{ t('Ignore this release until next reboot') }}
+                  {{ t('updateOs.checkUpdateResponseModal.ignoreThisReleaseUntilNextReboot') }}
                 </Label>
               </div>
             </div>
@@ -344,7 +344,7 @@ const modalWidth = computed(() => {
             </div>
             <div class="space-y-2">
               <p v-if="osVersion" class="text-muted-foreground text-center text-sm font-semibold">
-                {{ t('Current Version {0}', [osVersion]) }}
+                {{ t('updateOs.checkUpdateResponseModal.currentVersion', [osVersion]) }}
               </p>
               <p
                 v-if="modalCopy?.description"
@@ -377,7 +377,7 @@ const modalWidth = computed(() => {
             class="mx-auto flex w-full max-w-[640px] flex-col gap-2"
           >
             <h3 class="text-left text-base font-semibold italic">
-              {{ t('Ignored Releases') }}
+              {{ t('updateOs.checkUpdateResponseModal.ignoredReleases') }}
             </h3>
             <UpdateOsIgnoredRelease
               v-for="ignoredRelease in updateOsIgnoredReleases"
@@ -406,7 +406,7 @@ const modalWidth = computed(() => {
                 <TooltipTrigger as-child>
                   <Button variant="ghost" @click="accountStore.updateOs()">
                     <ArrowTopRightOnSquareIcon class="mr-2 h-4 w-4" />
-                    {{ t('More Options') }}
+                    {{ t('updateOs.checkUpdateResponseModal.moreOptions') }}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent class="max-w-xs">
@@ -416,9 +416,7 @@ const modalWidth = computed(() => {
                     />
                     <p class="text-left text-sm">
                       {{
-                        t(
-                          'Manage update preferences including beta access and version selection at account.unraid.net'
-                        )
+                        t('updateOs.checkUpdateResponseModal.manageUpdatePreferencesIncludingBetaAccess')
                       }}
                     </p>
                   </div>
@@ -446,11 +444,7 @@ const modalWidth = computed(() => {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>
-                      {{
-                        t(
-                          'You can opt back in to an ignored release by clicking on the Check for Updates button in the header anytime'
-                        )
-                      }}
+                      {{ t('updateOs.checkUpdateResponseModal.youCanOptBackInTo') }}
                     </p>
                   </TooltipContent>
                 </Tooltip>

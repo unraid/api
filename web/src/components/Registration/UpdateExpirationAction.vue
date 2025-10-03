@@ -38,11 +38,15 @@ const output = computed(() => {
   }
   return {
     text: regUpdatesExpired.value
-      ? `${props.t('Eligible for updates released on or before {0}.', [formattedRegExp.value])} ${props.t('Extend your license to access the latest updates.')}`
-      : props.t('Eligible for free feature updates until {0}', [formattedRegExp.value]),
+      ? `${props.t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [formattedRegExp.value])} ${props.t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
+      : props.t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
+          formattedRegExp.value,
+        ]),
     title: regUpdatesExpired.value
-      ? props.t('Ineligible as of {0}', [readableDiffRegExp.value])
-      : props.t('Eligible for free feature updates for {0}', [readableDiffRegExp.value]),
+      ? props.t('registration.updateExpirationAction.ineligibleAsOf', [readableDiffRegExp.value])
+      : props.t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesFor', [
+          readableDiffRegExp.value,
+        ]),
   };
 });
 </script>
@@ -53,18 +57,14 @@ const output = computed(() => {
 
     <p class="text-sm opacity-90">
       <template v-if="renewStatus === 'installed'">
-        {{
-          t(
-            'Your license key was automatically renewed and installed. Reload the page to see updated details.'
-          )
-        }}
+        {{ t('registration.updateExpirationAction.yourLicenseKeyWasAutomaticallyRenewed') }}
       </template>
     </p>
     <div class="flex flex-wrap items-start justify-between gap-2">
       <BrandButton
         v-if="renewStatus === 'installed'"
         :icon="ArrowPathIcon"
-        :text="t('Reload Page')"
+        :text="t('registration.updateExpirationAction.reloadPage')"
         class="grow"
         @click="reload"
       />
@@ -75,8 +75,8 @@ const output = computed(() => {
         :icon="renewAction.icon"
         :icon-right="ArrowTopRightOnSquareIcon"
         :icon-right-hover-display="true"
-        :text="t('Extend License')"
-        :title="t('Pay your annual fee to continue receiving OS updates.')"
+        :text="t('updateOs.updateIneligible.extendLicense')"
+        :title="t('updateOs.updateIneligible.payYourAnnualFeeToContinue')"
         class="grow"
         @click="renewAction.click?.()"
       />
@@ -86,7 +86,7 @@ const output = computed(() => {
         :external="true"
         :href="DOCS_REGISTRATION_LICENSING.toString()"
         :icon-right="ArrowTopRightOnSquareIcon"
-        :text="t('Learn More')"
+        :text="t('registration.keyLinkedStatus.learnMore')"
         class="text-sm"
       />
     </div>

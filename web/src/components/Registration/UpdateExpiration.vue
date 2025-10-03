@@ -32,11 +32,15 @@ const output = computed(() => {
   }
   return {
     text: regUpdatesExpired.value
-      ? `${props.t('Eligible for updates released on or before {0}.', [outputDateTimeFormatted.value])} ${props.t('Extend your license to access the latest updates.')}`
-      : props.t('Eligible for free feature updates until {0}', [outputDateTimeFormatted.value]),
+      ? `${props.t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [outputDateTimeFormatted.value])} ${props.t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
+      : props.t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
+          outputDateTimeFormatted.value,
+        ]),
     title: regUpdatesExpired.value
-      ? props.t('Ineligible as of {0}', [outputDateTimeReadableDiff.value])
-      : props.t('Eligible for free feature updates for {0}', [outputDateTimeReadableDiff.value]),
+      ? props.t('registration.updateExpirationAction.ineligibleAsOf', [outputDateTimeReadableDiff.value])
+      : props.t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesFor', [
+          outputDateTimeReadableDiff.value,
+        ]),
   };
 });
 </script>
