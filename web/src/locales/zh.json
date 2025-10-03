@@ -303,7 +303,7 @@
   "registration.messages.yourLicenseKeySOsUpdate": "您的许可证密钥的OS更新资格已过期。请更新您的许可证密钥以启用到期后发布的更新。",
   "registration.messages.yourServerWillNotBeUsable": "<p>您的服务器在未购买注册密钥或安装免费的30天<em>试用</em>密钥之前将无法使用。<em>试用</em>密钥提供与Unleashed注册密钥相同的功能。</p><p>注册密钥与您的USB Flash启动设备序列号（GUID）绑定。请使用至少1GB大小的高质量品牌设备。</p><p>注意：USB存储卡读卡器通常不受支持，因为大多数没有提供唯一的序列号。</p><p><strong>重要提示：</strong></p><ul class='list-disc pl-16px'><li>请确保您的服务器时间在5分钟内准确</li><li>请确保指定了DNS服务器</li></ul>",
   "registration.messages.yourTrialKeyIncludesAllThe": "<p>您的<em>试用</em>密钥包含Unleashed密钥的所有功能和设备支持。</p><p>当您的<em>试用</em>到期时，您的服务器<strong>仍将正常运行</strong>，直到下次停止阵列或重启服务器。</p><p>此时，您可以购买许可证密钥或请求<em>试用</em>扩展。</p>",
-  "registration.messages.yourTrialKeyRequiresAnInternet": "<p>您的试用密钥需要互联网连接。</p><p><a href='/Settings/NetworkSettings class='underline'>请检查设置>网络</a></p>",
+  "registration.messages.yourTrialKeyRequiresAnInternet": "<p>您的试用密钥需要联网。</p><p><a href='/Settings/NetworkSettings' class='underline'>请检查设置 &gt; 网络</a></p>",
   "registration.osUpdateEligibility": "OS更新资格",
   "registration.outOfAllowedDevicesUpgradeYour": "{0} 出于 {1} 允许的设备 – 请升级您的密钥以支持更多设备",
   "registration.outOfDevices": "{0} 出于 {1} 设备",
