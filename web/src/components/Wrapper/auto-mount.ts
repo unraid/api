@@ -45,6 +45,11 @@ if (typeof window !== 'undefined') {
     // DOM is already ready
     autoMountAllComponents();
   }
+
+  // In dev, set a mock session cookie so requests are authenticated
+  if (import.meta.env.DEV) {
+    document.cookie = 'unraid_session_cookie=mockusersession; path=/; SameSite=Lax';
+  }
 }
 
 // Export for manual initialization if needed
