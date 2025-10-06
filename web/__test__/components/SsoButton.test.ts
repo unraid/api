@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock, MockInstance } from 'vitest';
 
 import SsoButtons from '~/components/sso/SsoButtons.vue';
-import { createTestI18n, testTranslate } from '../utils/i18n';
+import { createTestI18n } from '../utils/i18n';
 
 // Mock the child components
 const SsoProviderButtonStub = {

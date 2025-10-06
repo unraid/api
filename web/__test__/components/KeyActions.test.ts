@@ -27,8 +27,6 @@ vi.mock('@unraid/shared-callbacks', () => ({
   })),
 }));
 
-const t = (key: string) => `${key}`;
-
 describe('KeyActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
