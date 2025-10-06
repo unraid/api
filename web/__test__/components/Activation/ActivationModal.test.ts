@@ -7,8 +7,6 @@ import { mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import ActivationModal from '~/components/Activation/ActivationModal.vue';
 import { createTestI18n, testTranslate } from '../../utils/i18n';
 

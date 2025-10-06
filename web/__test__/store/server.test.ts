@@ -19,7 +19,7 @@ import type {
 
 import { WebguiState } from '~/composables/services/webgui';
 import { useServerStore } from '~/store/server';
-import { createTestI18n, testTranslate } from '../utils/i18n';
+import { testTranslate } from '../utils/i18n';
 
 // Mock vue-i18n for store tests
 vi.mock('vue-i18n', () => ({
