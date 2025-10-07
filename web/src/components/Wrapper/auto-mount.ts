@@ -35,6 +35,11 @@ function initializeGlobalDependencies() {
 
 // Initialize when DOM is ready
 if (typeof window !== 'undefined') {
+  // In dev, set a mock session cookie so requests are authenticated
+  if (import.meta.env.DEV) {
+    document.cookie = 'unraid_session_cookie=mockusersession; path=/; SameSite=Lax';
+  }
+
   // Initialize global dependencies
   initializeGlobalDependencies();
 
