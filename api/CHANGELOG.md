@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.25.3](https://github.com/unraid/api/compare/v4.25.2...v4.25.3) (2025-10-07)
+
+
+### Bug Fixes
+
+* api auth from web during local dev ([#1743](https://github.com/unraid/api/issues/1743)) ([754966d](https://github.com/unraid/api/commit/754966d5d34824608fb3c9f774b79612272d5d87))
+
 ## [4.25.2](https://github.com/unraid/api/compare/v4.25.1...v4.25.2) (2025-09-30)
 
 
