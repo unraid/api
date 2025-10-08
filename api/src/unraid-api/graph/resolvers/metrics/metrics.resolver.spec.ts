@@ -163,6 +163,7 @@ describe('MetricsResolver', () => {
 
             const testModule = new MetricsResolver(
                 cpuService,
+                {} as any,
                 memoryService,
                 subscriptionTracker as any,
                 {} as any
