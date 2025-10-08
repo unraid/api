@@ -5,7 +5,8 @@ import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { CpuUtilization } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
+import { CpuPowerService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-power.service.js';
+import { CpuPower, CpuUtilization } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { MemoryUtilization } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
@@ -17,6 +18,7 @@ import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subsc
 export class MetricsResolver implements OnModuleInit {
     constructor(
         private readonly cpuService: CpuService,
+        private readonly cpuPowerService: CpuPowerService,
         private readonly memoryService: MemoryService,
         private readonly subscriptionTracker: SubscriptionTrackerService,
         private readonly subscriptionHelper: SubscriptionHelperService
@@ -31,6 +33,15 @@ export class MetricsResolver implements OnModuleInit {
                 pubsub.publish(PUBSUB_CHANNEL.CPU_UTILIZATION, { systemMetricsCpu: payload });
             },
             1000
+        );
+        // Register CPU power polling with 1 second interval
+        this.subscriptionTracker.registerTopic(
+            PUBSUB_CHANNEL.CPU_POWER,
+            async () => {
+                const payload = await this.cpuPowerService.generateCpuPower();
+                pubsub.publish(PUBSUB_CHANNEL.CPU_POWER, { systemMetricsCpuPower: payload });
+            },
+            5000
         );
 
         // Register memory polling with 2 second interval
@@ -75,6 +86,18 @@ export class MetricsResolver implements OnModuleInit {
     })
     public async systemMetricsCpuSubscription() {
         return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
+    }
+
+    @Subscription(() => CpuPower, {
+        name: 'systemMetricsCpuPower',
+        resolve: (value) => value.systemMetricsCpuPower,
+    })
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
+    public async systemMetricsCpuPowerSubscription() {
+        return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.CPU_POWER);
     }
 
     @Subscription(() => MemoryUtilization, {
