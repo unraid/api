@@ -127,6 +127,7 @@ describe('CpuService', () => {
                     l3: 12582912,
                 },
                 flags: ['fpu', 'vme', 'de', 'pse', 'tsc', 'msr', 'pae', 'mce', 'cx8'],
+                power: { id: 'info/cpu-power' },
             });
         });
 
