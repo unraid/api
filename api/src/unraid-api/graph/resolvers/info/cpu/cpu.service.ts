@@ -1,11 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { constants as fsConstants } from 'node:fs';
+import { access, readdir, readFile } from 'node:fs/promises';
+import { basename, join } from 'node:path';
 
 import { cpu, cpuFlags, currentLoad } from 'systeminformation';
 
+import { CpuPowerService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-power.service.js';
 import { CpuUtilization, InfoCpu } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
 
 @Injectable()
 export class CpuService {
+    private readonly logger = new Logger(CpuService.name);
+
+    constructor(private readonly cpuPowerService: CpuPowerService) {}
+
     async generateCpu(): Promise<InfoCpu> {
         const { cores, physicalCores, speedMin, speedMax, stepping, ...rest } = await cpu();
         const flags = await cpuFlags()
@@ -18,6 +26,7 @@ export class CpuService {
             cores: physicalCores,
             threads: cores,
             flags,
+            power: await this.cpuPowerService.generateCpuPower(),
             stepping: Number(stepping),
             speedmin: speedMin || -1,
             speedmax: speedMax || -1,
