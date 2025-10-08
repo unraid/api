@@ -49,6 +49,18 @@ export class CpuUtilization extends Node {
 }
 
 @ObjectType({ implements: () => Node })
+export class CpuPower extends Node {
+    @Field(() => Float, { nullable: true, description: 'CPU power in watts' })
+    totalPower?: number;
+
+    @Field(() => [Float], {
+        nullable: true,
+        description: 'CPU power in watts for each physical processor',
+    })
+    coresPower?: number[];
+}
+
+@ObjectType({ implements: () => Node })
 export class InfoCpu extends Node {
     @Field(() => String, { nullable: true, description: 'CPU manufacturer' })
     manufacturer?: string;
@@ -91,6 +103,9 @@ export class InfoCpu extends Node {
 
     @Field(() => Int, { nullable: true, description: 'Number of physical processors' })
     processors?: number;
+
+    @Field(() => CpuPower, { nullable: true, description: 'CPU power information' })
+    power?: CpuPower;
 
     @Field(() => String, { nullable: true, description: 'CPU socket type' })
     socket?: string;
