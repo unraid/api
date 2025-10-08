@@ -21,7 +21,7 @@
           <div class="space-y-4">
             <DispatchRenderer
               :schema="layout.schema"
-              :uischema="element as UISchemaElement"
+              :uischema="element as unknown as UISchemaElement"
               :path="layout.path || ''"
               :enabled="layout.enabled"
               :renderers="layout.renderers"
@@ -44,11 +44,10 @@ import {
 import { jsonFormsAjv } from '@/forms/config';
 import type { BaseUISchemaElement, Labelable, Layout, UISchemaElement } from '@jsonforms/core';
 import { isVisible } from '@jsonforms/core';
-import { DispatchRenderer, useJsonFormsLayout } from '@jsonforms/vue';
-import type { RendererProps } from '@jsonforms/vue';
+import { DispatchRenderer, rendererProps, useJsonFormsLayout } from '@jsonforms/vue';
 import { computed, inject } from 'vue';
 
-const props = defineProps<RendererProps<Layout>>();
+const props = defineProps(rendererProps<Layout>());
 
 // Use the JsonForms layout composable - returns layout with all necessary props
 const { layout } = useJsonFormsLayout(props);
@@ -58,7 +57,7 @@ const jsonFormsContext = inject('jsonforms') as { core?: { data?: unknown } } | 
 
 // Get elements to render - filter out invisible elements based on rules
 const elements = computed(() => {
-  const allElements = props.uischema?.elements || [];
+  const allElements = props.uischema.elements || [];
 
   // Filter elements based on visibility rules
   return allElements.filter((element) => {
@@ -72,7 +71,7 @@ const elements = computed(() => {
     try {
       // Get the root data from JSONForms context for rule evaluation
       const rootData = jsonFormsContext?.core?.data || {};
-      const formData = props.data || rootData;
+      const formData = (layout.value?.data as unknown) ?? rootData;
       const formPath = props.path || layout.value.path || '';
 
       const visible = isVisible(element, formData, formPath, jsonFormsAjv);
@@ -85,12 +84,12 @@ const elements = computed(() => {
 });
 
 // Extract accordion configuration from options
-const accordionOptions = computed(() => props.uischema?.options?.accordion || {});
+const accordionOptions = computed(() => props.uischema.options?.accordion || {});
 
 // Determine which items should be open by default
 const defaultOpenItems = computed(() => {
   const defaultOpen = accordionOptions.value?.defaultOpen;
-  const allElements = props.uischema?.elements || [];
+  const allElements = props.uischema.elements || [];
 
   // Helper function to map original index to filtered position
   const mapOriginalToFiltered = (originalIndex: number): number | null => {
@@ -128,7 +127,7 @@ const defaultOpenItems = computed(() => {
 });
 
 // Get title for accordion item from element options
-const getAccordionTitle = (element: UISchemaElement, index: number): string => {
+const getAccordionTitle = (element: BaseUISchemaElement, index: number): string => {
   const el = element as BaseUISchemaElement & Labelable;
   const options = el.options;
   const accordionTitle = options?.accordion?.title;
@@ -138,9 +137,8 @@ const getAccordionTitle = (element: UISchemaElement, index: number): string => {
 };
 
 // Get description for accordion item from element options
-const getAccordionDescription = (element: UISchemaElement, _index: number): string => {
-  const el = element as BaseUISchemaElement;
-  const options = el.options;
+const getAccordionDescription = (element: BaseUISchemaElement, _index: number): string => {
+  const options = element.options;
   const accordionDescription = options?.accordion?.description;
   const description = options?.description;
   return accordionDescription || description || '';

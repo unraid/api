@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useApolloClient, useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 
@@ -19,6 +20,8 @@ const isDarkMode = computed(() => themeStore.darkMode);
 
 // Use shared highlighting logic
 const { highlightContent } = useContentHighlighting();
+
+const { t } = useI18n();
 
 const props = defineProps<{
   logFilePath: string;
@@ -223,7 +226,7 @@ const downloadLogFile = async () => {
     });
 
     if (!result.data?.logFile?.content) {
-      throw new Error('Failed to fetch log content');
+      throw new Error(t('logs.singleViewer.fetchLogContentFailure'));
     }
 
     // Create a blob with the content
@@ -244,7 +247,11 @@ const downloadLogFile = async () => {
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error('Error downloading log file:', error);
-    alert(`Error downloading log file: ${error instanceof Error ? error.message : String(error)}`);
+    alert(
+      t('logs.singleViewer.errorDownloadingLogFile', {
+        error: error instanceof Error ? error.message : String(error),
+      })
+    );
   } finally {
     state.isDownloading = false;
   }
@@ -330,7 +337,7 @@ defineExpose({ refreshLogContent });
       class="bg-muted text-muted-foreground flex shrink-0 items-center justify-between px-4 py-2 text-xs"
     >
       <div class="flex items-center gap-2">
-        <span>Total lines: {{ totalLines }}</span>
+        <span>{{ t('logs.singleViewer.totalLines', { count: totalLines }) }}</span>
         <TooltipProvider v-if="state.isSubscriptionActive">
           <Tooltip :delay-duration="300">
             <TooltipTrigger as-child>
@@ -340,12 +347,18 @@ defineExpose({ refreshLogContent });
               />
             </TooltipTrigger>
             <TooltipContent>
-              <p>Watching log file</p>
+              <p>{{ t('logs.singleViewer.watchingLogFileTooltip') }}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
-      <span>{{ state.isAtTop ? 'Showing all available lines' : 'Scroll up to load more' }}</span>
+      <span>
+        {{
+          state.isAtTop
+            ? t('logs.singleViewer.showingAllLines')
+            : t('logs.singleViewer.scrollUpToLoadMore')
+        }}
+      </span>
       <div class="flex gap-2">
         <Button
           variant="outline"
@@ -357,11 +370,15 @@ defineExpose({ refreshLogContent });
             :class="{ 'animate-pulse': state.isDownloading }"
             aria-hidden="true"
           />
-          <span class="text-sm">{{ state.isDownloading ? 'Downloading...' : 'Download' }}</span>
+          <span class="text-sm">
+            {{
+              state.isDownloading ? t('logs.singleViewer.downloading') : t('logs.singleViewer.download')
+            }}
+          </span>
         </Button>
         <Button variant="outline" :disabled="loadingLogContent" @click="refreshLogContent">
           <ArrowPathIcon class="mr-1 h-3 w-3" aria-hidden="true" />
-          <span class="text-sm">Refresh</span>
+          <span class="text-sm">{{ t('logs.singleViewer.refresh') }}</span>
         </Button>
       </div>
     </div>
@@ -370,14 +387,14 @@ defineExpose({ refreshLogContent });
       v-if="loadingLogContent && !state.isLoadingMore"
       class="text-muted-foreground flex flex-1 items-center justify-center p-4"
     >
-      Loading log content...
+      {{ t('logs.singleViewer.loadingLogContent') }}
     </div>
 
     <div
       v-else-if="logContentError"
       class="text-destructive flex flex-1 items-center justify-center p-4"
     >
-      Error loading log content: {{ logContentError.message }}
+      {{ t('logs.singleViewer.errorLoadingLogContent', { error: logContentError.message }) }}
     </div>
 
     <div
@@ -397,7 +414,7 @@ defineExpose({ refreshLogContent });
       >
         <div class="text-primary-foreground flex items-center justify-center p-2 text-xs">
           <ArrowPathIcon class="mr-2 h-3 w-3 animate-spin" aria-hidden="true" />
-          Loading more lines...
+          {{ t('logs.singleViewer.loadingMoreLines') }}
         </div>
       </div>
 

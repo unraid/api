@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock, MockInstance } from 'vitest';
 
 import SsoButtons from '~/components/sso/SsoButtons.vue';
+import { createTestI18n } from '../utils/i18n';
 
 // Mock the child components
 const SsoProviderButtonStub = {
@@ -26,12 +27,6 @@ const SsoProviderButtonStub = {
 // Mock the GraphQL composable
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn(),
-}));
-
-// Mock vue-i18n
-const t = (key: string) => key;
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t }),
 }));
 
 // Mock the GraphQL query
@@ -151,6 +146,7 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           SsoProviderButton: SsoProviderButtonStub,
           Button: { template: '<button><slot /></button>' },
@@ -175,6 +171,7 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           SsoProviderButton: SsoProviderButtonStub,
           Button: { template: '<button><slot /></button>' },
@@ -203,6 +200,7 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           SsoProviderButton: SsoProviderButtonStub,
           Button: { template: '<button><slot /></button>' },
@@ -240,6 +238,7 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           SsoProviderButton: SsoProviderButtonStub,
           Button: { template: '<button><slot /></button>' },
@@ -288,6 +287,7 @@ describe('SsoButtons', () => {
     // Mount the component so that onMounted hook is called
     mount(SsoButtons, {
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           SsoProviderButton: SsoProviderButtonStub,
           Button: { template: '<button><slot /></button>' },
@@ -327,6 +327,7 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           SsoProviderButton: SsoProviderButtonStub,
           Button: { template: '<button><slot /></button>' },
@@ -370,6 +371,7 @@ describe('SsoButtons', () => {
 
     mount(SsoButtons, {
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           SsoProviderButton: SsoProviderButtonStub,
           Button: { template: '<button><slot /></button>' },
@@ -408,6 +410,7 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           SsoProviderButton: SsoProviderButtonStub,
           Button: { template: '<button><slot /></button>' },
@@ -462,6 +465,7 @@ describe('SsoButtons', () => {
 
     const wrapper = mount(SsoButtons, {
       global: {
+        plugins: [createTestI18n()],
         stubs: {
           SsoProviderButton: SsoProviderButtonStub,
           Button: { template: '<button><slot /></button>' },

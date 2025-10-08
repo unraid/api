@@ -44,10 +44,14 @@ const showExpireTime = computed(
             :disabled="unraidApiStatus === 'connecting' || unraidApiStatus === 'restarting'"
             :icon="unraidApiStatus === 'restarting' ? BrandLoadingIcon : unraidApiRestartAction?.icon"
             :text="
-              unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')
+              unraidApiStatus === 'restarting'
+                ? t('userProfile.dropdownLaunchpad.restartingUnraidApi')
+                : t('userProfile.dropdownLaunchpad.restartUnraidApi')
             "
             :title="
-              unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')
+              unraidApiStatus === 'restarting'
+                ? t('userProfile.dropdownLaunchpad.restartingUnraidApi')
+                : t('userProfile.dropdownLaunchpad.restartUnraidApi')
             "
             @click="unraidApiRestartAction?.click?.()"
           />

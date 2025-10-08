@@ -130,7 +130,7 @@ const flashDriveItems = computed((): RegistrationItemProps[] => {
     ...(guid.value
       ? [
           {
-            label: t('Flash GUID'),
+            label: t('registration.flashGuid'),
             text: guid.value,
           },
         ]
@@ -138,7 +138,7 @@ const flashDriveItems = computed((): RegistrationItemProps[] => {
     ...(flashVendor.value
       ? [
           {
-            label: t('Flash Vendor'),
+            label: t('registration.flashVendor'),
             text: flashVendor.value,
           },
         ]
@@ -146,7 +146,7 @@ const flashDriveItems = computed((): RegistrationItemProps[] => {
     ...(flashProduct.value
       ? [
           {
-            label: t('Flash Product'),
+            label: t('registration.flashProduct'),
             text: flashProduct.value,
           },
         ]
@@ -154,7 +154,7 @@ const flashDriveItems = computed((): RegistrationItemProps[] => {
     ...(state.value === 'EGUID'
       ? [
           {
-            label: t('Registered GUID'),
+            label: t('registration.registeredGuid'),
             text: regGuid.value,
           },
         ]
@@ -167,7 +167,7 @@ const licenseItems = computed((): RegistrationItemProps[] => {
     ...(computedArray.value
       ? [
           {
-            label: t('Array status'),
+            label: t('registration.arrayStatus'),
             text: computedArray.value,
             warning: arrayWarning.value,
           },
@@ -176,7 +176,7 @@ const licenseItems = computed((): RegistrationItemProps[] => {
     ...(regTy.value
       ? [
           {
-            label: t('License key type'),
+            label: t('registration.licenseKeyType'),
             text: regTy.value,
           },
         ]
@@ -184,7 +184,7 @@ const licenseItems = computed((): RegistrationItemProps[] => {
     ...(regTo.value
       ? [
           {
-            label: t('Registered to'),
+            label: t('registration.registeredTo'),
             text: regTo.value,
           },
         ]
@@ -192,7 +192,7 @@ const licenseItems = computed((): RegistrationItemProps[] => {
     ...(regTo.value && regTm.value && formattedRegTm.value
       ? [
           {
-            label: t('Registered on'),
+            label: t('registration.registeredOn'),
             text: formattedRegTm.value,
           },
         ]
@@ -201,7 +201,7 @@ const licenseItems = computed((): RegistrationItemProps[] => {
       ? [
           {
             error: state.value === 'EEXPIRED',
-            label: t('Trial expiration'),
+            label: t('registration.trialExpiration'),
             component: UserProfileUptimeExpire,
             componentProps: {
               forExpire: true,
@@ -215,7 +215,7 @@ const licenseItems = computed((): RegistrationItemProps[] => {
     ...(showUpdateEligibility.value
       ? [
           {
-            label: t('OS Update Eligibility'),
+            label: t('registration.osUpdateEligibility'),
             warning: regUpdatesExpired.value,
             component: RegistrationUpdateExpirationAction,
             componentProps: { t },
@@ -227,15 +227,15 @@ const licenseItems = computed((): RegistrationItemProps[] => {
       ? [
           {
             error: tooManyDevices.value,
-            label: t('Attached Storage Devices'),
+            label: t('registration.attachedStorageDevices'),
             text: tooManyDevices.value
-              ? t('{0} out of {1} allowed devices – upgrade your key to support more devices', [
+              ? t('registration.outOfAllowedDevicesUpgradeYour', [
                   deviceCount.value,
                   computedRegDevs.value,
                 ])
-              : t('{0} out of {1} devices', [
+              : t('registration.outOfDevices', [
                   deviceCount.value,
-                  computedRegDevs.value === -1 ? t('unlimited') : computedRegDevs.value,
+                  computedRegDevs.value === -1 ? t('registration.unlimited') : computedRegDevs.value,
                 ]),
           },
         ]
@@ -248,7 +248,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
     ...(showLinkedAndTransferStatus.value
       ? [
           {
-            label: t('Transfer License to New Flash'),
+            label: t('registration.transferLicenseToNewFlash'),
             component: RegistrationReplaceCheck,
             componentProps: { t },
           },
@@ -257,7 +257,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
     ...(regTo.value && showLinkedAndTransferStatus.value
       ? [
           {
-            label: t('Linked to Unraid.net account'),
+            label: t('registration.linkedToUnraidNetAccount'),
             component: RegistrationKeyLinkedStatus,
             componentProps: { t },
           },
@@ -314,7 +314,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
             v-if="flashDriveItems.length > 0"
             class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
           >
-            <h4 class="mb-3 text-lg font-semibold">{{ t('Flash Drive') }}</h4>
+            <h4 class="mb-3 text-lg font-semibold">{{ t('registration.flashDrive') }}</h4>
             <SettingsGrid>
               <template v-for="item in flashDriveItems" :key="item.label">
                 <div class="flex items-center gap-x-2 font-semibold">
@@ -333,7 +333,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
             v-if="licenseItems.length > 0"
             class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
           >
-            <h4 class="mb-3 text-lg font-semibold">{{ t('License') }}</h4>
+            <h4 class="mb-3 text-lg font-semibold">{{ t('registration.license') }}</h4>
             <SettingsGrid>
               <template v-for="item in licenseItems" :key="item.label">
                 <div class="flex items-center gap-x-2 font-semibold">
@@ -365,7 +365,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
             v-if="actionItems.length > 0"
             class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
           >
-            <h4 class="mb-3 text-lg font-semibold">{{ t('Actions') }}</h4>
+            <h4 class="mb-3 text-lg font-semibold">{{ t('registration.actions') }}</h4>
             <SettingsGrid>
               <template
                 v-for="item in actionItems"

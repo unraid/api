@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import LogViewerToolbar from '@/components/Logs/LogViewerToolbar.vue';
 import SingleLogViewer from '@/components/Logs/SingleLogViewer.vue';
@@ -14,6 +15,8 @@ const logFilePath = '/var/log/graphql-api.log';
 const refreshLogs = () => {
   logViewerRef.value?.refreshLogContent();
 };
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -21,11 +24,11 @@ const refreshLogs = () => {
     <LogViewerToolbar
       v-model:filter-text="filterText"
       v-model:is-expanded="showLogs"
-      title="OIDC Debug Logs"
-      description="View real-time OIDC authentication and configuration logs"
+      :title="t('connectSettings.oidcDebugLogsTitle')"
+      :description="t('connectSettings.oidcDebugLogsDescription')"
       :show-toggle="true"
       :show-refresh="true"
-      filter-placeholder="Filter logs..."
+      :filter-placeholder="t('logs.filterPlaceholder')"
       @refresh="refreshLogs"
     />
 
@@ -43,11 +46,15 @@ const refreshLogs = () => {
       </div>
       <div class="text-muted-foreground mt-2 flex items-center justify-between text-xs">
         <span>
-          {{ filterText ? `Filtering logs for: "${filterText}"` : 'Showing all log entries' }}
+          {{
+            filterText
+              ? t('connectSettings.filteringLogsFor', { filter: filterText })
+              : t('connectSettings.showingAllLogEntries')
+          }}
         </span>
         <label class="flex cursor-pointer items-center gap-2">
           <input v-model="autoScroll" type="checkbox" class="rounded border-gray-300" />
-          <span>Auto-scroll</span>
+          <span>{{ t('connectSettings.autoScroll') }}</span>
         </label>
       </div>
     </div>

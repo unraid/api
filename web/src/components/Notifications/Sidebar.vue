@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
 import {
@@ -45,18 +46,20 @@ const { mutate: recalculateOverview } = useMutation(resetOverview);
 const { confirm } = useConfirm();
 const importance = ref<Importance | undefined>(undefined);
 
-const filterOptions: Array<{ label: string; value?: Importance }> = [
-  { label: 'All Types' },
-  { label: 'Alert', value: Importance.ALERT },
-  { label: 'Info', value: Importance.INFO },
-  { label: 'Warning', value: Importance.WARNING },
-];
+const { t } = useI18n();
+
+const filterOptions = computed<Array<{ label: string; value?: Importance }>>(() => [
+  { label: t('notifications.sidebar.filters.all') },
+  { label: t('notifications.sidebar.filters.alert'), value: Importance.ALERT },
+  { label: t('notifications.sidebar.filters.info'), value: Importance.INFO },
+  { label: t('notifications.sidebar.filters.warning'), value: Importance.WARNING },
+]);
 
 const confirmAndArchiveAll = async () => {
   const confirmed = await confirm({
-    title: 'Archive All Notifications',
-    description: 'This will archive all notifications on your Unraid server. Continue?',
-    confirmText: 'Archive All',
+    title: t('notifications.sidebar.confirmArchiveAll.title'),
+    description: t('notifications.sidebar.confirmArchiveAll.description'),
+    confirmText: t('notifications.sidebar.confirmArchiveAll.confirmText'),
     confirmVariant: 'primary',
   });
   if (confirmed) {
@@ -66,10 +69,9 @@ const confirmAndArchiveAll = async () => {
 
 const confirmAndDeleteArchives = async () => {
   const confirmed = await confirm({
-    title: 'Delete All Archived Notifications',
-    description:
-      'This will permanently delete all archived notifications currently on your Unraid server. This action cannot be undone.',
-    confirmText: 'Delete All',
+    title: t('notifications.sidebar.confirmDeleteAll.title'),
+    description: t('notifications.sidebar.confirmDeleteAll.description'),
+    confirmText: t('notifications.sidebar.confirmDeleteAll.confirmText'),
     confirmVariant: 'destructive',
   });
   if (confirmed) {
@@ -108,7 +110,7 @@ onNotificationAdded(({ data }) => {
   };
   const toast = funcMapping[notif.importance];
   const createOpener = () => ({
-    label: 'Open',
+    label: t('notifications.sidebar.toastOpen'),
     onClick: () => window.location.assign(notif.link as string),
   });
 
@@ -143,7 +145,7 @@ const prepareToViewNotifications = () => {
   <Sheet>
     <SheetTrigger as-child>
       <Button variant="header" size="header" @click="prepareToViewNotifications">
-        <span class="sr-only">Notifications</span>
+        <span class="sr-only">{{ t('notifications.sidebar.openButtonSr') }}</span>
         <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
       </Button>
     </SheetTrigger>
@@ -153,24 +155,24 @@ const prepareToViewNotifications = () => {
     >
       <div class="relative flex h-full w-full flex-col">
         <SheetHeader class="ml-1 items-baseline gap-1 px-3 pb-2">
-          <SheetTitle class="text-2xl">Notifications</SheetTitle>
+          <SheetTitle class="text-2xl">{{ t('notifications.sidebar.title') }}</SheetTitle>
         </SheetHeader>
         <Tabs
           default-value="unread"
           class="flex min-h-0 flex-1 flex-col"
-          aria-label="Notification filters"
+          :aria-label="t('notifications.sidebar.statusTabsAria')"
         >
           <div class="flex flex-row flex-wrap items-center justify-between gap-3 px-3">
-            <TabsList class="flex" aria-label="Filter notifications by status">
+            <TabsList class="flex" :aria-label="t('notifications.sidebar.statusTabsListAria')">
               <TabsTrigger value="unread" as-child>
                 <Button variant="ghost" size="sm" class="inline-flex items-center gap-1 px-3 py-1">
-                  <span>Unread</span>
+                  <span>{{ t('notifications.sidebar.unreadTab') }}</span>
                   <span v-if="overview" class="font-normal">({{ overview.unread.total }})</span>
                 </Button>
               </TabsTrigger>
               <TabsTrigger value="archived" as-child>
                 <Button variant="ghost" size="sm" class="inline-flex items-center gap-1 px-3 py-1">
-                  <span>Archived</span>
+                  <span>{{ t('notifications.sidebar.archivedTab') }}</span>
                   <span v-if="overview" class="font-normal">({{ readArchivedCount }})</span>
                 </Button>
               </TabsTrigger>
@@ -183,7 +185,7 @@ const prepareToViewNotifications = () => {
                 class="text-foreground hover:text-destructive transition-none"
                 @click="confirmAndArchiveAll"
               >
-                Archive All
+                {{ t('notifications.sidebar.archiveAllAction') }}
               </Button>
             </TabsContent>
             <TabsContent value="archived" class="flex-col items-end">
@@ -194,7 +196,7 @@ const prepareToViewNotifications = () => {
                 class="text-foreground hover:text-destructive transition-none"
                 @click="confirmAndDeleteArchives"
               >
-                Delete All
+                {{ t('notifications.sidebar.deleteAllAction') }}
               </Button>
             </TabsContent>
           </div>
@@ -207,7 +209,7 @@ const prepareToViewNotifications = () => {
               >
                 <Button
                   v-for="option in filterOptions"
-                  :key="option.label"
+                  :key="option.value ?? 'all'"
                   variant="ghost"
                   size="sm"
                   class="h-8 rounded-lg border border-transparent px-3 text-xs font-medium transition-colors"
@@ -234,7 +236,7 @@ const prepareToViewNotifications = () => {
                     </a>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Edit Notification Settings</p>
+                    <p>{{ t('notifications.sidebar.editSettingsTooltip') }}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

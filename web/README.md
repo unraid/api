@@ -63,3 +63,8 @@ Both `VITE_ALLOW_CONSOLE_LOGS` and `VITE_TAILWIND_BASE_FONT_SIZE` should never b
 ## Interfacing with `unraid-api`
 
 @todo [Apollo VueJS Guide on Colocating Fragments](https://v4.apollo.vuejs.org/guide-composable/fragments.html#colocating-fragments)
+
+## Internationalization
+
+- The WebGUI now exposes the active locale as `window.LOCALE`; the app loads the matching bundle from `src/locales` at runtime and falls back to `en_US`.
+- Run `pnpm --filter @unraid/web i18n:extract` to add any missing translation keys discovered in Vue components to `src/locales/en.json`. Other locale files receive English fallbacks for new keys so translators can keep them in sync.

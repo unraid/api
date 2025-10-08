@@ -12,6 +12,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ServerStateDataAction, ServerStateDataActionType } from '~/types/server';
 
 import KeyActions from '~/components/KeyActions.vue';
+import { createTestI18n } from '../utils/i18n';
 
 import '../mocks/ui-components';
 
@@ -26,8 +27,6 @@ vi.mock('@unraid/shared-callbacks', () => ({
   })),
 }));
 
-const t = (key: string) => `translated_${key}`;
-
 describe('KeyActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -40,25 +39,26 @@ describe('KeyActions', () => {
 
     const wrapper = mount(KeyActions, {
       props: {
-        t,
         actions,
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 
     const buttons = wrapper.findAllComponents(BrandButton);
 
     expect(buttons.length).toBe(1);
-    expect(buttons[0].text()).toContain('translated_Custom Action 1');
+    expect(buttons[0].text()).toContain('Custom Action 1');
   });
 
   it('renders an empty list container when actions array is empty', () => {
     const wrapper = mount(KeyActions, {
       props: {
-        t,
         actions: [],
       },
       global: {
-        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
       },
     });
 
@@ -74,8 +74,10 @@ describe('KeyActions', () => {
 
     const wrapper = mount(KeyActions, {
       props: {
-        t,
         actions,
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 
@@ -96,8 +98,10 @@ describe('KeyActions', () => {
 
     const wrapper = mount(KeyActions, {
       props: {
-        t,
         actions,
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 
@@ -114,17 +118,19 @@ describe('KeyActions', () => {
 
     const wrapper = mount(KeyActions, {
       props: {
-        t,
         actions,
         filterBy: ['purchase', 'upgrade'],
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 
     const buttons = wrapper.findAllComponents(BrandButton);
 
     expect(buttons.length).toBe(2);
-    expect(buttons[0].text()).toContain('translated_Action 1');
-    expect(buttons[1].text()).toContain('translated_Action 3');
+    expect(buttons[0].text()).toContain('Action 1');
+    expect(buttons[1].text()).toContain('Action 3');
   });
 
   it('filters out actions using filterOut prop', () => {
@@ -136,17 +142,19 @@ describe('KeyActions', () => {
 
     const wrapper = mount(KeyActions, {
       props: {
-        t,
         actions,
         filterOut: ['redeem'],
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 
     const buttons = wrapper.findAllComponents(BrandButton);
 
     expect(buttons.length).toBe(2);
-    expect(buttons[0].text()).toContain('translated_Action 1');
-    expect(buttons[1].text()).toContain('translated_Action 3');
+    expect(buttons[0].text()).toContain('Action 1');
+    expect(buttons[1].text()).toContain('Action 3');
   });
 
   it('applies maxWidth styling when maxWidth prop is true', () => {
@@ -156,9 +164,11 @@ describe('KeyActions', () => {
 
     const wrapper = mount(KeyActions, {
       props: {
-        t,
         actions,
         maxWidth: true,
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 
@@ -183,15 +193,17 @@ describe('KeyActions', () => {
 
     const wrapper = mount(KeyActions, {
       props: {
-        t,
         actions,
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 
     const button = wrapper.findComponent(BrandButton);
 
-    expect(button.props('text')).toBe('translated_Test Action');
-    expect(button.props('title')).toBe('translated_Action Title');
+    expect(button.props('text')).toBe('Test Action');
+    expect(button.props('title')).toBe('Action Title');
     expect(button.props('href')).toBe('/test-link');
     expect(button.props('external')).toBe(true);
     expect(button.props('disabled')).toBe(true);

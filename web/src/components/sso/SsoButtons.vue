@@ -32,13 +32,13 @@ watch(
   <div class="sso-buttons-container">
     <template v-if="checkingApi">
       <div class="my-1 flex w-full flex-col gap-1">
-        <p class="text-center text-gray-500">{{ t('Checking authentication options...') }}</p>
+        <p class="text-center text-gray-500">{{ t('sso.ssoButtons.checkingAuthenticationOptions') }}</p>
       </div>
     </template>
 
     <template v-else-if="hasProviders">
       <div class="my-1 flex w-full flex-col gap-2">
-        <p v-if="showOr" class="text-center">{{ t('or') }}</p>
+        <p v-if="showOr" class="text-center">{{ t('sso.ssoButtons.or') }}</p>
         <p v-if="showError" class="text-center text-red-500">{{ error }}</p>
 
         <!-- All OIDC Providers -->

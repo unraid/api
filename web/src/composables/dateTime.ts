@@ -71,25 +71,25 @@ const useDateTimeHelper = (
     const result = [];
 
     if (years) {
-      result.push(t('year', years));
+      result.push(t('composables.dateTime.year', years));
     }
     if (months) {
-      result.push(t('month', months));
+      result.push(t('composables.dateTime.month', months));
     }
     if (days) {
-      result.push(t('day', days));
+      result.push(t('composables.dateTime.day', days));
     }
     if (hours) {
-      result.push(t('hour', hours));
+      result.push(t('composables.dateTime.hour', hours));
     }
     if (minutes) {
-      result.push(t('minute', minutes));
+      result.push(t('composables.dateTime.minute', minutes));
     }
     if (seconds && ((!years && !months && !days && !hours && !minutes) || displaySeconds)) {
-      result.push(t('second', seconds));
+      result.push(t('composables.dateTime.second', seconds));
     }
     if (firstDateWasLater) {
-      result.push(t('ago'));
+      result.push(t('composables.dateTime.ago'));
     }
     return result.join(' ');
   };

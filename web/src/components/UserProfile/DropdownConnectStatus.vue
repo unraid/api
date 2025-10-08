@@ -30,7 +30,7 @@ const status = computed((): StatusOutput | undefined => {
     return {
       icon: brandLoading,
       iconClasses: 'w-4',
-      text: props.t('Loading…'),
+      text: props.t('common.loading2'),
       textClasses: 'italic',
     };
   }
@@ -38,7 +38,7 @@ const status = computed((): StatusOutput | undefined => {
     return {
       icon: brandLoading,
       iconClasses: 'w-4',
-      text: props.t('Restarting unraid-api…'),
+      text: props.t('userProfile.dropdownLaunchpad.restartingUnraidApi'),
       textClasses: 'italic',
     };
   }
@@ -46,14 +46,14 @@ const status = computed((): StatusOutput | undefined => {
     return {
       icon: ExclamationTriangleIcon,
       iconClasses: 'text-red-500 w-4 h-4',
-      text: props.t('unraid-api is offline'),
+      text: props.t('userProfile.dropdownConnectStatus.unraidApiIsOffline'),
     };
   }
   if (unraidApiStatus.value === 'online') {
     return {
       icon: CheckCircleIcon,
       iconClasses: 'text-green-600 w-4 h-4',
-      text: props.t('Connected'),
+      text: props.t('userProfile.dropdownConnectStatus.connected'),
     };
   }
   return undefined;

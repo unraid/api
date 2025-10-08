@@ -17,6 +17,7 @@ import type { ServerUpdateOsResponse } from '~/types/server';
 import HeaderOsVersion from '~/components/HeaderOsVersion.standalone.vue';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
+import { createTestI18n, testTranslate } from '../utils/i18n';
 
 vi.mock('crypto-js/aes', () => ({ default: {} }));
 vi.mock('@unraid/shared-callbacks', () => ({
@@ -60,31 +61,15 @@ vi.mock('~/helpers/urls', async (importOriginal) => {
   };
 });
 
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: (key: string, params?: unknown) => {
-      if (params && Array.isArray(params)) {
-        let result = key;
-        params.forEach((val, index) => {
-          result = result.replace(`{${index}}`, String(val));
-        });
-
-        return result;
-      }
-
-      const keyMap: Record<string, string> = {
-        'Reboot Required for Update': 'Reboot Required for Update',
-        'Reboot Required for Downgrade': 'Reboot Required for Downgrade',
-        'Updating 3rd party drivers': 'Updating 3rd party drivers',
-        'Update Available': 'Update Available',
-        'Update Released': 'Update Released',
-        'View release notes': 'View release notes',
-      };
-
-      return keyMap[key] ?? key;
-    },
-  }),
-}));
+vi.mock('vue-i18n', async (importOriginal) => {
+  const actual = (await importOriginal()) as typeof import('vue-i18n');
+  return {
+    ...actual,
+    useI18n: () => ({
+      t: testTranslate,
+    }),
+  };
+});
 
 describe('HeaderOsVersion', () => {
   let wrapper: VueWrapper<unknown>;
@@ -113,7 +98,7 @@ describe('HeaderOsVersion', () => {
 
     wrapper = mount(HeaderOsVersion, {
       global: {
-        plugins: [testingPinia],
+        plugins: [testingPinia, createTestI18n()],
       },
     });
   });
@@ -168,7 +153,7 @@ describe('HeaderOsVersion', () => {
     // Mount component
     const newWrapper = mount(HeaderOsVersion, {
       global: {
-        plugins: [testingPinia],
+        plugins: [testingPinia, createTestI18n()],
       },
     });
 

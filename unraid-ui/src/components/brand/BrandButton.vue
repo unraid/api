@@ -37,7 +37,9 @@ const props = withDefaults(defineProps<BrandButtonProps>(), {
   title: '',
 });
 
-defineEmits(['click']);
+const emit = defineEmits<{
+  (event: 'click'): void;
+}>();
 
 const classes = computed(() => {
   return {
@@ -56,6 +58,31 @@ const needsBrandGradientBackground = computed(() => {
 
 const isLink = computed(() => Boolean(props.href));
 const isButton = computed(() => !isLink.value);
+
+const triggerClick = () => {
+  if (props.click) {
+    props.click();
+  } else {
+    emit('click');
+  }
+};
+
+const handleClick = () => {
+  if (!props.disabled) {
+    triggerClick();
+  }
+};
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (!isButton.value || props.disabled) {
+    return;
+  }
+
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    triggerClick();
+  }
+};
 </script>
 
 <template>
@@ -69,17 +96,8 @@ const isButton = computed(() => !isLink.value);
     :target="external ? '_blank' : ''"
     :class="classes.button"
     :title="title"
-    @click="!disabled && (click ?? $emit('click'))"
-    @keydown="
-      isButton &&
-      !disabled &&
-      ((e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          (click ?? $emit('click'))();
-        }
-      })
-    "
+    @click="handleClick"
+    @keydown="handleKeydown"
   >
     <div
       v-if="variant === 'fill'"

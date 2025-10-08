@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
@@ -7,7 +8,6 @@ import { BrandButton, Dialog } from '@unraid/ui';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 
 import type { BrandButtonProps } from '@unraid/ui';
-import type { ComposerTranslation } from 'vue-i18n';
 
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
@@ -16,11 +16,7 @@ import { useActivationCodeModalStore } from '~/components/Activation/store/activ
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
 
-export interface Props {
-  t: ComposerTranslation;
-}
-
-const props = defineProps<Props>();
+const { t } = useI18n();
 
 const modalStore = useActivationCodeModalStore();
 const { isVisible, isHidden } = storeToRefs(modalStore);
@@ -29,11 +25,9 @@ const purchaseStore = usePurchaseStore();
 
 useThemeStore();
 
-const title = computed<string>(() => props.t("Let's activate your Unraid OS License"));
+const title = computed<string>(() => t('activation.activationModal.letSActivateYourUnraidOs'));
 const description = computed<string>(() =>
-  props.t(
-    `On the following screen, your license will be activated. You'll then create an Unraid.net Account to manage your license going forward.`
-  )
+  t('activation.activationModal.onTheFollowingScreenYourLicense')
 );
 const docsButtons = computed<BrandButtonProps[]>(() => {
   return [
@@ -43,7 +37,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       href: DOCS_URL_LICENSING_FAQ,
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: props.t('More about Licensing'),
+      text: t('activation.activationModal.moreAboutLicensing'),
     },
     {
       variant: 'underline',
@@ -51,7 +45,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       href: DOCS_URL_ACCOUNT,
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: props.t('More about Unraid.net Accounts'),
+      text: t('activation.activationModal.moreAboutUnraidNetAccounts'),
     },
   ];
 });
@@ -81,7 +75,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       <div class="flex flex-col">
         <div class="mx-auto mb-10">
           <BrandButton
-            :text="t('Activate Now')"
+            :text="t('activation.activationModal.activateNow')"
             :icon-right="ArrowTopRightOnSquareIcon"
             @click="purchaseStore.activate"
           />
