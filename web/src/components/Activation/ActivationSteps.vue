@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 
-import { CheckIcon, KeyIcon, ServerStackIcon } from '@heroicons/vue/24/outline';
+import { CheckIcon, ClockIcon, KeyIcon, ServerStackIcon } from '@heroicons/vue/24/outline';
 import {
+  ClockIcon as ClockIconSolid,
   KeyIcon as KeyIconSolid,
   LockClosedIcon,
   ServerStackIcon as ServerStackIconSolid,
@@ -21,12 +21,14 @@ import type { Component } from 'vue';
 
 type StepState = 'inactive' | 'active' | 'completed';
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     activeStep?: number;
+    showActivationStep?: boolean;
   }>(),
   {
     activeStep: 1,
+    showActivationStep: true,
   }
 );
 
@@ -41,9 +43,7 @@ interface Step {
   };
 }
 
-const { t } = useI18n();
-
-const steps = computed<Step[]>(() => [
+const allSteps: readonly Step[] = [
   {
     step: 1,
     title: t('activation.activationSteps.createDevicePassword'),
@@ -56,8 +56,18 @@ const steps = computed<Step[]>(() => [
   },
   {
     step: 2,
-    title: t('activation.activationSteps.activateLicense'),
-    description: t('activation.activationSteps.createAnUnraidNetAccountAnd'),
+    title: 'Configure Basic Settings',
+    description: 'Set up system preferences',
+    icon: {
+      inactive: ClockIcon,
+      active: ClockIconSolid,
+      completed: CheckIcon,
+    },
+  },
+  {
+    step: 3,
+    title: 'Activate License',
+    description: 'Create an Unraid.net account and activate your key',
     icon: {
       inactive: KeyIcon,
       active: KeyIconSolid,
@@ -65,16 +75,28 @@ const steps = computed<Step[]>(() => [
     },
   },
   {
-    step: 3,
-    title: t('activation.activationSteps.unleashYourHardware'),
-    description: t('activation.activationSteps.deviceIsReadyToConfigure'),
+    step: 4,
+    title: 'Unleash Your Hardware',
+    description: 'Device is ready to configure',
     icon: {
       inactive: ServerStackIcon,
       active: ServerStackIconSolid,
       completed: CheckIcon,
     },
   },
-]);
+] as const;
+
+const steps = computed(() => {
+  if (props.showActivationStep) {
+    return allSteps;
+  }
+  return allSteps
+    .filter((step) => step.step !== 3)
+    .map((step, index) => ({
+      ...step,
+      step: index + 1,
+    }));
+});
 </script>
 
 <template>

@@ -18,7 +18,8 @@ const apolloClient = (typeof window !== 'undefined' && window.apolloClient) || c
 declare global {
   interface Window {
     globalPinia: typeof globalPinia;
-    LOCALE?: string;
+    themeStore: ReturnType<typeof useThemeStore>;
+    LOCALE_DATA?: string;
   }
 }
 
