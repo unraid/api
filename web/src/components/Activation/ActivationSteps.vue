@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { CheckIcon, KeyIcon, ServerStackIcon } from '@heroicons/vue/24/outline';
+import { computed } from 'vue';
+
+import { CheckIcon, ClockIcon, KeyIcon, ServerStackIcon } from '@heroicons/vue/24/outline';
 import {
+  ClockIcon as ClockIconSolid,
   KeyIcon as KeyIconSolid,
   LockClosedIcon,
   ServerStackIcon as ServerStackIconSolid,
@@ -18,12 +21,14 @@ import type { Component } from 'vue';
 
 type StepState = 'inactive' | 'active' | 'completed';
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     activeStep?: number;
+    showActivationStep?: boolean;
   }>(),
   {
     activeStep: 1,
+    showActivationStep: true,
   }
 );
 
@@ -37,7 +42,8 @@ interface Step {
     completed: Component;
   };
 }
-const steps: readonly Step[] = [
+
+const allSteps: readonly Step[] = [
   {
     step: 1,
     title: 'Create Device Password',
@@ -50,6 +56,16 @@ const steps: readonly Step[] = [
   },
   {
     step: 2,
+    title: 'Configure Basic Settings',
+    description: 'Set up system preferences',
+    icon: {
+      inactive: ClockIcon,
+      active: ClockIconSolid,
+      completed: CheckIcon,
+    },
+  },
+  {
+    step: 3,
     title: 'Activate License',
     description: 'Create an Unraid.net account and activate your key',
     icon: {
@@ -59,7 +75,7 @@ const steps: readonly Step[] = [
     },
   },
   {
-    step: 3,
+    step: 4,
     title: 'Unleash Your Hardware',
     description: 'Device is ready to configure',
     icon: {
@@ -69,6 +85,18 @@ const steps: readonly Step[] = [
     },
   },
 ] as const;
+
+const steps = computed(() => {
+  if (props.showActivationStep) {
+    return allSteps;
+  }
+  return allSteps
+    .filter((step) => step.step !== 3)
+    .map((step, index) => ({
+      ...step,
+      step: index + 1,
+    }));
+});
 </script>
 
 <template>
