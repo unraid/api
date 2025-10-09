@@ -116,6 +116,7 @@
     "@vue/apollo-composable": "4.2.2",
     "@vueuse/components": "13.8.0",
     "@vueuse/integrations": "13.8.0",
+    "@vvo/tzdb": "^6.186.0",
     "ajv": "8.17.1",
     "ansi_up": "6.0.6",
     "class-variance-authority": "0.7.1",
