@@ -2201,6 +2201,21 @@ type PublicOidcProvider {
   buttonStyle: String
 }
 
+"""System time configuration and current status"""
+type SystemTime {
+  """Current server time in ISO-8601 format (UTC)"""
+  currentTime: String!
+
+  """IANA timezone identifier currently in use"""
+  timeZone: String!
+
+  """Whether NTP/PTP time synchronization is enabled"""
+  useNtp: Boolean!
+
+  """Configured NTP servers (empty strings indicate unused slots)"""
+  ntpServers: [String!]!
+}
+
 type UPSBattery {
   """
   Battery charge level as a percentage (0-100). Unit: percent (%). Example: 100 means battery is fully charged
@@ -2633,6 +2648,9 @@ type Query {
   """Validate an OIDC session token (internal use for CLI validation)"""
   validateOidcSession(token: String!): OidcSessionValidation!
   metrics: Metrics!
+
+  """Retrieve current system time configuration"""
+  systemTime: SystemTime!
   upsDevices: [UPSDevice!]!
   upsDeviceById(id: String!): UPSDevice
   upsConfiguration: UPSConfiguration!
@@ -2696,6 +2714,9 @@ type Mutation {
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
   updateSettings(input: JSON!): UpdateSettingsResponse!
+
+  """Update system time configuration"""
+  updateSystemTime(input: UpdateSystemTimeInput!): SystemTime!
   configureUps(config: UPSConfigInput!): Boolean!
 
   """
@@ -2736,6 +2757,24 @@ input InitiateFlashBackupInput {
   Additional options for the backup operation, such as --dry-run or --transfers.
   """
   options: JSON
+}
+
+input UpdateSystemTimeInput {
+  """New IANA timezone identifier to apply"""
+  timeZone: String
+
+  """Enable or disable NTP-based synchronization"""
+  useNtp: Boolean
+
+  """
+  Ordered list of up to four NTP servers. Supply empty strings to clear positions.
+  """
+  ntpServers: [String!]
+
+  """
+  Manual date/time to apply when disabling NTP, expected format YYYY-MM-DD HH:mm:ss
+  """
+  manualDateTime: String
 }
 
 input UPSConfigInput {
