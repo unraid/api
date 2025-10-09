@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
@@ -11,6 +10,7 @@ import type { BrandButtonProps } from '@unraid/ui';
 
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
+import ActivationTimezoneStep from '~/components/Activation/ActivationTimezoneStep.vue';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { usePurchaseStore } from '~/store/purchase';
@@ -20,12 +20,22 @@ const { t } = useI18n();
 
 const modalStore = useActivationCodeModalStore();
 const { isVisible, isHidden } = storeToRefs(modalStore);
-const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
+const { partnerInfo, activationCode } = storeToRefs(useActivationCodeDataStore());
 const purchaseStore = usePurchaseStore();
 
 useThemeStore();
 
-const title = computed<string>(() => t('activation.activationModal.letSActivateYourUnraidOs'));
+const hasActivationCode = computed(() => Boolean(activationCode.value?.code));
+
+const currentStep = ref<'timezone' | 'activation'>('timezone');
+const activeStepNumber = computed(() => {
+  if (currentStep.value === 'timezone') {
+    return 2;
+  }
+  return hasActivationCode.value ? 3 : 2;
+});
+
+const title = computed<string>(() => props.t("Let's activate your Unraid OS License"));
 const description = computed<string>(() =>
   t('activation.activationModal.onTheFollowingScreenYourLicense')
 );
@@ -49,6 +59,22 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
     },
   ];
 });
+
+const handleTimezoneComplete = () => {
+  if (hasActivationCode.value) {
+    currentStep.value = 'activation';
+  } else {
+    modalStore.setIsHidden(true);
+  }
+};
+
+const handleTimezoneSkip = () => {
+  if (hasActivationCode.value) {
+    currentStep.value = 'activation';
+  } else {
+    modalStore.setIsHidden(true);
+  }
+};
 </script>
 
 <template>
@@ -66,26 +92,51 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
         <ActivationPartnerLogo :partner-info="partnerInfo" />
       </div>
 
-      <h1 class="mt-4 text-center text-xl font-semibold sm:text-2xl">{{ title }}</h1>
+      <div v-if="currentStep === 'timezone'" class="flex w-full flex-col items-center">
+        <div class="mt-6 flex w-full flex-col gap-6">
+          <ActivationSteps
+            :active-step="activeStepNumber"
+            :show-activation-step="hasActivationCode"
+            class="mb-6"
+          />
 
-      <div class="mx-auto my-12 text-center sm:max-w-xl">
-        <p class="text-center text-lg opacity-75 sm:text-xl">{{ description }}</p>
+          <div class="my-12">
+            <ActivationTimezoneStep
+              :t="t"
+              :on-complete="handleTimezoneComplete"
+              :on-skip="handleTimezoneSkip"
+              :show-skip="hasActivationCode"
+            />
+          </div>
+        </div>
       </div>
 
-      <div class="flex flex-col">
-        <div class="mx-auto mb-10">
-          <BrandButton
-            :text="t('activation.activationModal.activateNow')"
-            :icon-right="ArrowTopRightOnSquareIcon"
-            @click="purchaseStore.activate"
-          />
+      <div v-else-if="currentStep === 'activation'" class="flex w-full flex-col items-center">
+        <h1 class="mt-4 text-center text-xl font-semibold sm:text-2xl">{{ title }}</h1>
+
+        <div class="mx-auto my-12 text-center sm:max-w-xl">
+          <p class="text-center text-lg opacity-75 sm:text-xl">{{ description }}</p>
         </div>
 
-        <div class="mt-6 flex flex-col gap-6">
-          <ActivationSteps :active-step="2" class="mb-6" />
+        <div class="flex flex-col">
+          <div class="mx-auto mb-10">
+            <BrandButton
+              :text="t('Activate Now')"
+              :icon-right="ArrowTopRightOnSquareIcon"
+              @click="purchaseStore.activate"
+            />
+          </div>
 
-          <div class="mx-auto flex w-full flex-col justify-center gap-4 sm:flex-row">
-            <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
+          <div class="mt-6 flex flex-col gap-6">
+            <ActivationSteps
+              :active-step="activeStepNumber"
+              :show-activation-step="hasActivationCode"
+              class="mb-6"
+            />
+
+            <div class="mx-auto flex w-full flex-col justify-center gap-4 sm:flex-row">
+              <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
+            </div>
           </div>
         </div>
       </div>
