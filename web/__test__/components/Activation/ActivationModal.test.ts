@@ -44,7 +44,11 @@ const mockComponents = {
   },
   ActivationSteps: {
     template: '<div data-testid="activation-steps" :active-step="activeStep"></div>',
-    props: ['activeStep'],
+    props: ['activeStep', 'showActivationStep'],
+  },
+  ActivationTimezoneStep: {
+    template: '<div data-testid="timezone-step"></div>',
+    props: ['t', 'onComplete', 'onSkip', 'showSkip'],
   },
 };
 
@@ -53,6 +57,7 @@ const mockActivationCodeDataStore = {
     hasPartnerLogo: false,
     partnerName: null as string | null,
   }),
+  activationCode: ref({ code: 'TEST-CODE-123' }),
 };
 
 let handleKeydown: ((e: KeyboardEvent) => void) | null = null;
@@ -173,15 +178,10 @@ describe('Activation/ActivationModal.vue', () => {
     expect(wrapper.html()).toContain('data-testid="partner-logo"');
   });
 
-  it('calls activate method when Activate Now button is clicked', async () => {
+  it('renders timezone step initially when activation code is present', async () => {
     const wrapper = mountComponent();
-    const button = wrapper.find('[data-testid="brand-button"]');
 
-    expect(button.exists()).toBe(true);
-
-    await button.trigger('click');
-
-    expect(mockPurchaseStore.activate).toHaveBeenCalledTimes(1);
+    expect(wrapper.html()).toContain('data-testid="timezone-step"');
   });
 
   it('handles Konami code sequence to close modal and redirect', async () => {

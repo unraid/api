@@ -109,12 +109,12 @@ describe('ActivationCodeModal Store', () => {
       expect(store.isVisible).toBe(false);
     });
 
-    it('should not be visible when activation code is missing', () => {
+    it('should be visible when activation code is missing on fresh install (for timezone setup)', () => {
       mockIsHidden.value = null;
       mockIsFreshInstall.value = true;
       mockActivationCode.value = null;
 
-      expect(store.isVisible).toBe(false);
+      expect(store.isVisible).toBe(true);
     });
 
     it('should not be visible when callback data exists', () => {
