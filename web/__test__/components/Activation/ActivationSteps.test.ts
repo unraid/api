@@ -11,6 +11,7 @@ import { createTestI18n } from '../../utils/i18n';
 
 interface Props {
   activeStep?: number;
+  showActivationStep?: boolean;
 }
 
 vi.mock('@unraid/ui', () => ({
@@ -46,11 +47,13 @@ vi.mock('@unraid/ui', () => ({
 
 vi.mock('@heroicons/vue/24/outline', () => ({
   CheckIcon: { template: '<div data-testid="check-icon" />' },
+  ClockIcon: { template: '<div data-testid="clock-icon" />' },
   KeyIcon: { template: '<div data-testid="key-icon" />' },
   ServerStackIcon: { template: '<div data-testid="server-stack-icon" />' },
 }));
 
 vi.mock('@heroicons/vue/24/solid', () => ({
+  ClockIcon: { template: '<div data-testid="clock-icon-solid" />' },
   KeyIcon: { template: '<div data-testid="key-icon-solid" />' },
   LockClosedIcon: { template: '<div data-testid="lock-closed-icon" />' },
   ServerStackIcon: { template: '<div data-testid="server-stack-icon-solid" />' },
@@ -66,22 +69,25 @@ describe('ActivationSteps', () => {
     });
   };
 
-  it('renders all three steps with correct titles and descriptions', () => {
+  it('renders all four steps with correct titles and descriptions', () => {
     const wrapper = mountComponent();
     const titles = wrapper.findAll('[data-testid="stepper-title"]');
     const descriptions = wrapper.findAll('[data-testid="stepper-description"]');
 
-    expect(titles).toHaveLength(3);
-    expect(descriptions).toHaveLength(3);
+    expect(titles).toHaveLength(4);
+    expect(descriptions).toHaveLength(4);
 
     expect(titles[0].text()).toBe('Create Device Password');
     expect(descriptions[0].text()).toBe('Secure your device');
 
-    expect(titles[1].text()).toBe('Activate License');
-    expect(descriptions[1].text()).toBe('Create an Unraid.net account and activate your key');
+    expect(titles[1].text()).toBe('Configure Basic Settings');
+    expect(descriptions[1].text()).toBe('Set up system preferences');
 
-    expect(titles[2].text()).toBe('Unleash Your Hardware');
-    expect(descriptions[2].text()).toBe('Device is ready to configure');
+    expect(titles[2].text()).toBe('Activate License');
+    expect(descriptions[2].text()).toBe('Create an Unraid.net account and activate your key');
+
+    expect(titles[3].text()).toBe('Unleash Your Hardware');
+    expect(descriptions[3].text()).toBe('Device is ready to configure');
   });
 
   it('uses default activeStep of 1 when not provided', () => {
@@ -94,5 +100,18 @@ describe('ActivationSteps', () => {
     const wrapper = mountComponent({ activeStep: 2 });
 
     expect(wrapper.find('[data-testid="stepper"]').attributes('default-value')).toBe('2');
+  });
+
+  it('hides activation step when showActivationStep is false', () => {
+    const wrapper = mountComponent({ showActivationStep: false });
+    const titles = wrapper.findAll('[data-testid="stepper-title"]');
+    const descriptions = wrapper.findAll('[data-testid="stepper-description"]');
+
+    expect(titles).toHaveLength(3);
+    expect(descriptions).toHaveLength(3);
+
+    expect(titles[0].text()).toBe('Create Device Password');
+    expect(titles[1].text()).toBe('Configure Basic Settings');
+    expect(titles[2].text()).toBe('Unleash Your Hardware');
   });
 });
