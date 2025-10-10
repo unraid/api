@@ -52,11 +52,13 @@ const error = ref<string | null>(null);
 const { install } = useInstallPlugin();
 
 const togglePlugin = (pluginId: string) => {
-  if (selectedPlugins.value.has(pluginId)) {
-    selectedPlugins.value.delete(pluginId);
+  const next = new Set(selectedPlugins.value);
+  if (next.has(pluginId)) {
+    next.delete(pluginId);
   } else {
-    selectedPlugins.value.add(pluginId);
+    next.add(pluginId);
   }
+  selectedPlugins.value = next;
 };
 
 const handleInstall = async () => {
