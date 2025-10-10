@@ -560,6 +560,17 @@ export type CpuLoad = {
   percentUser: Scalars['Float']['output'];
 };
 
+export type CpuPackages = Node & {
+  __typename?: 'CpuPackages';
+  id: Scalars['PrefixedID']['output'];
+  /** Power draw per package (W) */
+  power: Array<Scalars['Float']['output']>;
+  /** Temperature per package (°C) */
+  temp: Array<Scalars['Float']['output']>;
+  /** Total CPU package power draw (W) */
+  totalPower: Scalars['Float']['output'];
+};
+
 export type CpuUtilization = Node & {
   __typename?: 'CpuUtilization';
   /** CPU load for each core */
@@ -589,6 +600,19 @@ export type Customization = {
   activationCode?: Maybe<ActivationCode>;
   partnerInfo?: Maybe<PublicPartnerInfo>;
   theme: Theme;
+};
+
+/** Customization related mutations */
+export type CustomizationMutations = {
+  __typename?: 'CustomizationMutations';
+  /** Update the UI theme (writes dynamix.cfg) */
+  setTheme: Theme;
+};
+
+
+/** Customization related mutations */
+export type CustomizationMutationsSetThemeArgs = {
+  theme: ThemeName;
 };
 
 export type DeleteApiKeyInput = {
@@ -1065,6 +1089,7 @@ export type InfoCpu = Node & {
   manufacturer?: Maybe<Scalars['String']['output']>;
   /** CPU model */
   model?: Maybe<Scalars['String']['output']>;
+  packages: CpuPackages;
   /** Number of physical processors */
   processors?: Maybe<Scalars['Int']['output']>;
   /** CPU revision */
@@ -1081,6 +1106,8 @@ export type InfoCpu = Node & {
   stepping?: Maybe<Scalars['Int']['output']>;
   /** Number of CPU threads */
   threads?: Maybe<Scalars['Int']['output']>;
+  /** Per-package array of core/thread pairs, e.g. [[[0,1],[2,3]], [[4,5],[6,7]]] */
+  topology: Array<Array<Array<Scalars['Int']['output']>>>;
   /** CPU vendor */
   vendor?: Maybe<Scalars['String']['output']>;
   /** CPU voltage */
@@ -1282,6 +1309,8 @@ export type InfoVersions = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Software package versions */
   packages?: Maybe<PackageVersions>;
+  /** OS upgrade information */
+  upgrade: UpgradeInfo;
 };
 
 export type InitiateFlashBackupInput = {
@@ -1422,6 +1451,7 @@ export type Mutation = {
   createDockerFolderWithItems: ResolvedOrganizerV1;
   /** Creates a new notification record */
   createNotification: Notification;
+  customization: CustomizationMutations;
   /** Deletes all archived notifications on server. */
   deleteArchivedNotifications: NotificationOverview;
   deleteDockerEntries: ResolvedOrganizerV1;
@@ -1454,6 +1484,8 @@ export type Mutation = {
   updateApiSettings: ConnectSettingsValues;
   updateDockerViewPreferences: ResolvedOrganizerV1;
   updateSettings: UpdateSettingsResponse;
+  /** Update system time configuration */
+  updateSystemTime: SystemTime;
   vm: VmMutations;
 };
 
@@ -1597,6 +1629,11 @@ export type MutationUpdateDockerViewPreferencesArgs = {
 
 export type MutationUpdateSettingsArgs = {
   input: Scalars['JSON']['input'];
+};
+
+
+export type MutationUpdateSystemTimeArgs = {
+  input: UpdateSystemTimeInput;
 };
 
 export type Network = Node & {
@@ -1928,6 +1965,8 @@ export type Query = {
   services: Array<Service>;
   settings: Settings;
   shares: Array<Share>;
+  /** Retrieve current system time configuration */
+  systemTime: SystemTime;
   upsConfiguration: UpsConfiguration;
   upsDeviceById?: Maybe<UpsDevice>;
   upsDevices: Array<UpsDevice>;
@@ -2269,6 +2308,7 @@ export type Subscription = {
   parityHistorySubscription: ParityCheck;
   serversSubscription: Server;
   systemMetricsCpu: CpuUtilization;
+  systemMetricsCpuTelemetry: CpuPackages;
   systemMetricsMemory: MemoryUtilization;
   upsUpdates: UpsDevice;
 };
@@ -2276,6 +2316,19 @@ export type Subscription = {
 
 export type SubscriptionLogFileArgs = {
   path: Scalars['String']['input'];
+};
+
+/** System time configuration and current status */
+export type SystemTime = {
+  __typename?: 'SystemTime';
+  /** Current server time in ISO-8601 format (UTC) */
+  currentTime: Scalars['String']['output'];
+  /** Configured NTP servers (empty strings indicate unused slots) */
+  ntpServers: Array<Scalars['String']['output']>;
+  /** IANA timezone identifier currently in use */
+  timeZone: Scalars['String']['output'];
+  /** Whether NTP/PTP time synchronization is enabled */
+  useNtp: Scalars['Boolean']['output'];
 };
 
 /** Tailscale exit node connection status */
@@ -2547,6 +2600,27 @@ export enum UpdateStatus {
   UPDATE_AVAILABLE = 'UPDATE_AVAILABLE',
   UP_TO_DATE = 'UP_TO_DATE'
 }
+
+export type UpdateSystemTimeInput = {
+  /** Manual date/time to apply when disabling NTP, expected format YYYY-MM-DD HH:mm:ss */
+  manualDateTime?: InputMaybe<Scalars['String']['input']>;
+  /** Ordered list of up to four NTP servers. Supply empty strings to clear positions. */
+  ntpServers?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** New IANA timezone identifier to apply */
+  timeZone?: InputMaybe<Scalars['String']['input']>;
+  /** Enable or disable NTP-based synchronization */
+  useNtp?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type UpgradeInfo = {
+  __typename?: 'UpgradeInfo';
+  /** Current OS version */
+  currentVersion?: Maybe<Scalars['String']['output']>;
+  /** Whether the OS version has changed since last boot */
+  isUpgrade: Scalars['Boolean']['output'];
+  /** Previous OS version before upgrade */
+  previousVersion?: Maybe<Scalars['String']['output']>;
+};
 
 export type Uptime = {
   __typename?: 'Uptime';

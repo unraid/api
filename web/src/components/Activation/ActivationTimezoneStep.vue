@@ -12,7 +12,9 @@ export interface Props {
   t: ComposerTranslation;
   onComplete: () => void;
   onSkip?: () => void;
+  onBack?: () => void;
   showSkip?: boolean;
+  showBack?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -91,6 +93,10 @@ const handleSubmit = async () => {
 const handleSkip = () => {
   props.onSkip?.();
 };
+
+const handleBack = () => {
+  props.onBack?.();
+};
 </script>
 
 <template>
@@ -114,6 +120,14 @@ const handleSkip = () => {
     </div>
 
     <div class="flex gap-4">
+      <BrandButton
+        v-if="onBack && showBack"
+        :text="t('Back')"
+        variant="outline"
+        :disabled="isSaving"
+        @click="handleBack"
+      />
+      <div class="flex-1" />
       <BrandButton
         v-if="onSkip && showSkip"
         :text="t('Skip')"

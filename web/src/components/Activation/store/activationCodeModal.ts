@@ -26,8 +26,10 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
    * 4. it's not been explicitly hidden (isHidden === null)
    *
    * Shows for:
-   * - Fresh installs with activation code (timezone → activation flow)
-   * - Fresh installs without activation code (timezone only)
+   * - Fresh installs with activation code (timezone → plugins → activation flow)
+   * - Fresh installs without activation code (timezone → plugins)
+   *
+   * Note: Upgrade onboarding visibility is checked separately in the modal via upgradeOnboardingStore
    */
   const isVisible = computed<boolean>(() => {
     if (isHidden.value === false) {

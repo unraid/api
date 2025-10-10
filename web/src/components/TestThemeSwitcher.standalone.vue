@@ -13,8 +13,8 @@ const { theme } = storeToRefs(themeStore);
 
 // Available theme options
 const items = [
-  { value: 'white', label: 'Light' },
-  { value: 'black', label: 'Dark' },
+  { value: 'white', label: 'White' },
+  { value: 'black', label: 'Black' },
   { value: 'azure', label: 'Azure' },
   { value: 'gray', label: 'Gray' },
 ];

@@ -7,6 +7,7 @@ import {
     CoreVersions,
     InfoVersions,
     PackageVersions,
+    UpgradeInfo,
 } from '@app/unraid-api/graph/resolvers/info/versions/versions.model.js';
 
 @Resolver(() => InfoVersions)
@@ -44,5 +45,21 @@ export class VersionsResolver {
             console.error('Failed to get package versions:', error);
             return null;
         }
+    }
+
+    @ResolveField(() => UpgradeInfo)
+    upgrade(): UpgradeInfo {
+        const currentVersion = this.configService.get<string>('store.emhttp.var.version');
+        const lastSeenVersion = this.configService.get<string>('api.lastSeenOsVersion');
+
+        const isUpgrade = Boolean(
+            lastSeenVersion && currentVersion && lastSeenVersion !== currentVersion
+        );
+
+        return {
+            isUpgrade,
+            previousVersion: isUpgrade ? lastSeenVersion : undefined,
+            currentVersion: currentVersion || undefined,
+        };
     }
 }

@@ -17,6 +17,7 @@ const createDefaultConfig = (): ApiConfig => ({
     sandbox: false,
     ssoSubIds: [],
     plugins: [],
+    lastSeenOsVersion: undefined,
 });
 
 /**
@@ -87,6 +88,20 @@ export class ApiConfigPersistence
 
     async onApplicationBootstrap() {
         this.configService.set('api.version', API_VERSION);
+        await this.trackOsVersionUpgrade();
+    }
+
+    private async trackOsVersionUpgrade() {
+        const currentOsVersion = this.configService.get<string>('store.emhttp.var.version');
+        const lastSeenOsVersion = this.configService.get<string>('api.lastSeenOsVersion');
+
+        if (currentOsVersion && currentOsVersion !== lastSeenOsVersion) {
+            this.configService.set('api.lastSeenOsVersion', currentOsVersion);
+            const currentConfig = this.configService.get<ApiConfig>('api');
+            if (currentConfig) {
+                await this.persist(currentConfig);
+            }
+        }
     }
 
     async migrateConfig(): Promise<ApiConfig> {

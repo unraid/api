@@ -1964,6 +1964,17 @@ type PackageVersions {
   docker: String
 }
 
+type UpgradeInfo {
+  """Whether the OS version has changed since last boot"""
+  isUpgrade: Boolean!
+
+  """Previous OS version before upgrade"""
+  previousVersion: String
+
+  """Current OS version"""
+  currentVersion: String
+}
+
 type InfoVersions implements Node {
   id: PrefixedID!
 
@@ -1972,6 +1983,9 @@ type InfoVersions implements Node {
 
   """Software package versions"""
   packages: PackageVersions
+
+  """OS upgrade information"""
+  upgrade: UpgradeInfo!
 }
 
 type Info implements Node {
