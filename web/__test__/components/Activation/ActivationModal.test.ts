@@ -47,9 +47,13 @@ const mockComponents = {
     template: '<div data-testid="activation-steps" :active-step="activeStep"></div>',
     props: ['activeStep', 'showActivationStep'],
   },
+  ActivationPluginsStep: {
+    template: '<div data-testid="plugins-step"></div>',
+    props: ['t', 'onComplete', 'onSkip', 'onBack', 'showSkip', 'showBack'],
+  },
   ActivationTimezoneStep: {
     template: '<div data-testid="timezone-step"></div>',
-    props: ['t', 'onComplete', 'onSkip', 'showSkip'],
+    props: ['t', 'onComplete', 'onSkip', 'onBack', 'showSkip', 'showBack'],
   },
 };
 
@@ -59,6 +63,7 @@ const mockActivationCodeDataStore = {
     partnerName: null as string | null,
   }),
   activationCode: ref({ code: 'TEST-CODE-123' }),
+  isFreshInstall: ref(true),
 };
 
 let handleKeydown: ((e: KeyboardEvent) => void) | null = null;
@@ -76,6 +81,14 @@ const mockActivationCodeModalStore = {
 
 const mockPurchaseStore = {
   activate: vi.fn(),
+};
+
+const mockUpgradeOnboardingStore = {
+  shouldShowUpgradeOnboarding: ref(false),
+  upgradeSteps: ref([]),
+  currentVersion: ref('7.0.0'),
+  previousVersion: ref('6.12.0'),
+  setIsHidden: vi.fn(),
 };
 
 // Mock all imports
@@ -99,6 +112,10 @@ vi.mock('~/components/Activation/store/activationCodeData', () => ({
   useActivationCodeDataStore: () => mockActivationCodeDataStore,
 }));
 
+vi.mock('~/components/Activation/store/upgradeOnboarding', () => ({
+  useUpgradeOnboardingStore: () => mockUpgradeOnboardingStore,
+}));
+
 vi.mock('~/store/purchase', () => ({
   usePurchaseStore: () => mockPurchaseStore,
 }));
@@ -110,6 +127,18 @@ vi.mock('~/store/theme', () => ({
 vi.mock('@heroicons/vue/24/solid', () => ({
   ArrowTopRightOnSquareIcon: {},
 }));
+
+vi.mock('@nuxt/ui', async (importOriginal) => {
+  const actual = (await importOriginal()) as Record<string, unknown>;
+  return {
+    ...actual,
+    UStepper: {
+      name: 'UStepper',
+      props: ['modelValue', 'items', 'orientation'],
+      template: '<div data-testid="u-stepper"></div>',
+    },
+  };
+});
 
 const originalAddEventListener = window.addEventListener;
 window.addEventListener = vi.fn((event: string, handler: EventListenerOrEventListenerObject) => {
