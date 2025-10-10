@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import { CheckIcon, ClockIcon, KeyIcon, ServerStackIcon } from '@heroicons/vue/24/outline';
+import {
+  CheckIcon,
+  ClockIcon,
+  KeyIcon,
+  PuzzlePieceIcon,
+  ServerStackIcon,
+} from '@heroicons/vue/24/outline';
 import {
   ClockIcon as ClockIconSolid,
   KeyIcon as KeyIconSolid,
   LockClosedIcon,
+  PuzzlePieceIcon as PuzzlePieceIconSolid,
   ServerStackIcon as ServerStackIconSolid,
 } from '@heroicons/vue/24/solid';
 import {
@@ -56,8 +63,8 @@ const allSteps: readonly Step[] = [
   },
   {
     step: 2,
-    title: 'Configure Basic Settings',
-    description: 'Set up system preferences',
+    title: 'Set Time Zone',
+    description: 'Configure system time',
     icon: {
       inactive: ClockIcon,
       active: ClockIconSolid,
@@ -66,6 +73,16 @@ const allSteps: readonly Step[] = [
   },
   {
     step: 3,
+    title: 'Install Essential Plugins',
+    description: 'Add helpful plugins',
+    icon: {
+      inactive: PuzzlePieceIcon,
+      active: PuzzlePieceIconSolid,
+      completed: CheckIcon,
+    },
+  },
+  {
+    step: 4,
     title: 'Activate License',
     description: 'Create an Unraid.net account and activate your key',
     icon: {
@@ -75,7 +92,7 @@ const allSteps: readonly Step[] = [
     },
   },
   {
-    step: 4,
+    step: 5,
     title: 'Unleash Your Hardware',
     description: 'Device is ready to configure',
     icon: {
@@ -91,7 +108,7 @@ const steps = computed(() => {
     return allSteps;
   }
   return allSteps
-    .filter((step) => step.step !== 3)
+    .filter((step) => step.step !== 4)
     .map((step, index) => ({
       ...step,
       step: index + 1,
