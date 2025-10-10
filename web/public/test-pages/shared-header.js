@@ -20,6 +20,15 @@
           </div>
           <div class="test-header-right">
             <div class="server-state-selector">
+              <label>Theme:</label>
+              <select id="theme-select">
+                <option value="white">White</option>
+                <option value="black">Black</option>
+                <option value="gray">Gray</option>
+                <option value="azure">Azure</option>
+              </select>
+            </div>
+            <div class="server-state-selector">
               <label>Server State:</label>
               <select id="server-state-select">
                 <option value="default">Default (Pro)</option>
@@ -356,23 +365,81 @@
     document.head.appendChild(baseFontStyle);
   };
 
+  // Function to load Unraid theme CSS files
+  window.loadUnraidTheme = function (theme) {
+    const selectedTheme = theme || localStorage.getItem('unraid-test-theme') || 'white';
+
+    // Save theme preference
+    localStorage.setItem('unraid-test-theme', selectedTheme);
+
+    // Remove existing theme CSS
+    document.querySelectorAll('[data-unraid-theme]').forEach((el) => el.remove());
+
+    const baseUrl =
+      'https://raw.githubusercontent.com/unraid/webgui/refs/heads/master/emhttp/plugins/dynamix/styles';
+
+    // Load CSS files in order
+    const cssFiles = [
+      { href: `${baseUrl}/default-base.css`, id: 'unraid-base' },
+      { href: `${baseUrl}/default-dynamix.css`, id: 'unraid-dynamix' },
+      { href: `${baseUrl}/themes/${selectedTheme}.css`, id: 'unraid-theme' },
+    ];
+
+    cssFiles.forEach(({ href, id }) => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      link.id = id;
+      link.setAttribute('data-unraid-theme', 'true');
+      document.head.appendChild(link);
+    });
+
+    if (window.testLog) {
+      window.testLog(`Loaded Unraid ${selectedTheme} theme`, 'info');
+    }
+  };
+
   // Auto-inject and initialize when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       window.setBaseFontSize();
+      window.loadUnraidTheme();
       window.injectSharedHeader();
       // Get page title from existing h1 or title tag
       const existingTitle =
         document.querySelector('h1')?.textContent ||
         document.title.replace(' - Unraid Component Test', '');
       window.initializeSharedHeader(existingTitle);
+
+      // Setup theme selector
+      const themeSelect = document.getElementById('theme-select');
+      if (themeSelect) {
+        const savedTheme = localStorage.getItem('unraid-test-theme') || 'white';
+        themeSelect.value = savedTheme;
+
+        themeSelect.addEventListener('change', (e) => {
+          window.loadUnraidTheme(e.target.value);
+        });
+      }
     });
   } else {
     window.setBaseFontSize();
+    window.loadUnraidTheme();
     window.injectSharedHeader();
     const existingTitle =
       document.querySelector('h1')?.textContent ||
       document.title.replace(' - Unraid Component Test', '');
     window.initializeSharedHeader(existingTitle);
+
+    // Setup theme selector
+    const themeSelect = document.getElementById('theme-select');
+    if (themeSelect) {
+      const savedTheme = localStorage.getItem('unraid-test-theme') || 'white';
+      themeSelect.value = savedTheme;
+
+      themeSelect.addEventListener('change', (e) => {
+        window.loadUnraidTheme(e.target.value);
+      });
+    }
   }
 })();

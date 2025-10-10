@@ -96,34 +96,44 @@
     body.dark .category-header {
       background: #374151;
     }
-    .dark-mode-toggle {
+    .theme-selector {
       position: fixed;
       top: 20px;
       right: 20px;
       z-index: 1000;
       background: #1f2937;
       color: white;
-      border: none;
-      padding: 10px 20px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 15px;
       border-radius: 8px;
       cursor: pointer;
       font-size: 14px;
       font-weight: 500;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       transition: all 0.3s ease;
+      min-width: 140px;
+      text-align: left;
     }
-    body.dark .dark-mode-toggle {
+    body.dark .theme-selector {
       background: #f3f4f6;
       color: #1f2937;
+      border-color: rgba(0, 0, 0, 0.1);
     }
-    .dark-mode-toggle:hover {
+    .theme-selector:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .theme-selector::after {
+      content: '▼';
+      float: right;
+      margin-left: 8px;
+      font-size: 10px;
+      opacity: 0.7;
     }
   </style>
 </head>
 <body>
-  <button class="dark-mode-toggle" id="darkModeToggle">🌙 Dark Mode</button>
+  <button class="theme-selector" id="themeSelector">🎨 White</button>
   <div class="container">
     <!-- Authentication & User -->
     <div class="category-header">👤 Authentication & User</div>
@@ -391,44 +401,62 @@
         }
       }
       
-      // Dark mode toggle - syncs with theme store
+      // Theme selector - cycles through all 4 Unraid themes
       // The theme store is exposed globally by mount-engine.ts and controls:
       // - CSS variables for colors
       // - .dark class on html, body, and all .unapi elements
-      // - Theme variants (theme-white, theme-gray, theme-black)
+      // - Theme variants (theme-white, theme-gray, theme-black, theme-azure)
       // All Vue components automatically inherit the theme via this system
-      const darkModeToggle = $('#darkModeToggle');
+      const themeSelector = $('#themeSelector');
       
-      function updateDarkModeButton() {
+      const themes = [
+        { name: 'white', label: '🤍 White', icon: '☀️' },
+        { name: 'black', label: '🖤 Black', icon: '🌙' },
+        { name: 'gray', label: '🩶 Gray', icon: '☁️' },
+        { name: 'azure', label: '💙 Azure', icon: '🌊' }
+      ];
+      
+      function updateThemeButton() {
         if (window.themeStore) {
-          const isDark = window.themeStore.darkMode;
-          darkModeToggle.text(isDark ? '☀️ Light Mode' : '🌙 Dark Mode');
+          const currentTheme = window.themeStore.theme.name;
+          const theme = themes.find(t => t.name === currentTheme) || themes[0];
+          themeSelector.text(theme.label);
         }
       }
       
       const waitForThemeStore = setInterval(function() {
         if (window.themeStore) {
           clearInterval(waitForThemeStore);
-          updateDarkModeButton();
+          updateThemeButton();
           log('Theme store connected');
         }
       }, 100);
       
-      darkModeToggle.on('click', function() {
+      themeSelector.on('click', function() {
         if (!window.themeStore) {
           log('ERROR: Theme store not available');
           return;
         }
         
         const currentTheme = window.themeStore.theme.name;
-        const isDarkTheme = currentTheme === 'gray' || currentTheme === 'black';
-        const newTheme = isDarkTheme ? 'white' : 'gray';
+        const currentIndex = themes.findIndex(t => t.name === currentTheme);
+        const nextIndex = (currentIndex + 1) % themes.length;
+        const nextTheme = themes[nextIndex];
         
-        window.themeStore.theme.name = newTheme;
+        // Update theme name and trigger CSS application
+        // Direct mutation + explicit setCssVars() call ensures proper application
+        // even when accessed outside Vue's reactivity context (via window)
+        window.themeStore.theme.name = nextTheme.name;
+        
+        // setCssVars() applies to the theme store which:
+        // - Applies .dark class for gray/black themes (via darkMode computed)
+        // - Applies .theme-{name} class for theme variants
+        // - Sets CSS variables for custom colors
+        // - Updates document.documentElement and all .unapi elements
         window.themeStore.setCssVars();
         
-        updateDarkModeButton();
-        log('Theme changed to: ' + newTheme);
+        updateThemeButton();
+        log('Theme changed to: ' + nextTheme.name + ' (all Unraid components updated)');
       });
       
       // Test notification
