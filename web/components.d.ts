@@ -11,6 +11,7 @@ declare module 'vue' {
     ActivationModal: typeof import('./src/components/Activation/ActivationModal.vue')['default']
     ActivationPartnerLogo: typeof import('./src/components/Activation/ActivationPartnerLogo.vue')['default']
     ActivationPartnerLogoImg: typeof import('./src/components/Activation/ActivationPartnerLogoImg.vue')['default']
+    ActivationPluginsStep: typeof import('./src/components/Activation/ActivationPluginsStep.vue')['default']
     ActivationSteps: typeof import('./src/components/Activation/ActivationSteps.vue')['default']
     ActivationTimezoneStep: typeof import('./src/components/Activation/ActivationTimezoneStep.vue')['default']
     'ApiKeyAuthorize.standalone': typeof import('./src/components/ApiKeyAuthorize.standalone.vue')['default']

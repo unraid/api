@@ -79,13 +79,13 @@ const handleSubmit = async () => {
         timeZone: selectedTimeZone.value,
       },
     });
-    props.onComplete();
   } catch (err) {
-    error.value = props.t('Failed to update timezone. Please try again.');
-    console.error('Failed to update timezone:', err);
+    console.warn('Failed to update timezone, continuing anyway:', err);
   } finally {
     isSaving.value = false;
   }
+
+  props.onComplete();
 };
 
 const handleSkip = () => {
