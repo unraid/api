@@ -19,7 +19,7 @@ const readCsrfTokenFromVarIni = async (): Promise<string | undefined> => {
         const parsed = ini.parse(iniContents) as { csrf_token?: string };
         return parsed?.csrf_token;
     } catch (error) {
-        appLogger.debug(`Unable to read CSRF token from ${VAR_INI_PATH}: %o`, error);
+        appLogger.debug({ error }, `Unable to read CSRF token from ${VAR_INI_PATH}`);
         return undefined;
     }
 };
