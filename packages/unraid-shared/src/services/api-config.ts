@@ -26,4 +26,9 @@ export class ApiConfig {
   @IsArray()
   @IsString({ each: true })
   plugins!: string[];
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  lastSeenOsVersion?: string;
 }

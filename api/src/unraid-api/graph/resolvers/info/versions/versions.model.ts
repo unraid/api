@@ -41,6 +41,18 @@ export class PackageVersions {
     docker?: string;
 }
 
+@ObjectType()
+export class UpgradeInfo {
+    @Field(() => Boolean, { description: 'Whether the OS version has changed since last boot' })
+    isUpgrade!: boolean;
+
+    @Field(() => String, { nullable: true, description: 'Previous OS version before upgrade' })
+    previousVersion?: string;
+
+    @Field(() => String, { nullable: true, description: 'Current OS version' })
+    currentVersion?: string;
+}
+
 @ObjectType({ implements: () => Node })
 export class InfoVersions extends Node {
     @Field(() => CoreVersions, { description: 'Core system versions' })
@@ -48,4 +60,7 @@ export class InfoVersions extends Node {
 
     @Field(() => PackageVersions, { nullable: true, description: 'Software package versions' })
     packages?: PackageVersions;
+
+    @Field(() => UpgradeInfo, { description: 'OS upgrade information' })
+    upgrade!: UpgradeInfo;
 }
