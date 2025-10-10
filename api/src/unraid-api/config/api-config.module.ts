@@ -1,4 +1,4 @@
-import { Injectable, Module, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Module, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
 import { ConfigService, registerAs } from '@nestjs/config';
 import path from 'path';
 
@@ -56,8 +56,10 @@ export const apiConfig = registerAs<ApiConfig>('api', loadApiConfig);
 @Injectable()
 export class ApiConfigPersistence
     extends ConfigFilePersister<ApiConfig>
-    implements OnApplicationBootstrap
+    implements OnApplicationBootstrap, OnApplicationShutdown
 {
+    private currentOsVersion: string | undefined;
+
     constructor(configService: ConfigService) {
         super(configService);
     }
@@ -88,19 +90,18 @@ export class ApiConfigPersistence
 
     async onApplicationBootstrap() {
         this.configService.set('api.version', API_VERSION);
-        await this.trackOsVersionUpgrade();
+        this.currentOsVersion = this.configService.get<string>('store.emhttp.var.version');
     }
 
-    private async trackOsVersionUpgrade() {
-        const currentOsVersion = this.configService.get<string>('store.emhttp.var.version');
-        const lastSeenOsVersion = this.configService.get<string>('api.lastSeenOsVersion');
+    async onApplicationShutdown() {
+        if (!this.currentOsVersion) {
+            return;
+        }
 
-        if (currentOsVersion && currentOsVersion !== lastSeenOsVersion) {
-            this.configService.set('api.lastSeenOsVersion', currentOsVersion);
-            const currentConfig = this.configService.get<ApiConfig>('api');
-            if (currentConfig) {
-                await this.persist(currentConfig);
-            }
+        const apiConfig = this.configService.get<ApiConfig>('api');
+        if (apiConfig) {
+            apiConfig.lastSeenOsVersion = this.currentOsVersion;
+            await this.persist(apiConfig);
         }
     }
 
