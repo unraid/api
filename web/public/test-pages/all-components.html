@@ -286,6 +286,7 @@
         <div class="component-mount">
           <button id="test-activation-modal" class="test-btn" style="margin: 5px;">Show Activation Modal</button>
           <button id="test-activation-with-code" class="test-btn" style="margin: 5px;">Show w/ Activation Code</button>
+          <button id="test-plugins-step" class="test-btn" style="margin: 5px;">Show Plugins Step</button>
         </div>
       </div>
 
@@ -564,6 +565,32 @@
           }
         } else {
           log('ERROR: globalPinia or apolloClient not available');
+        }
+      });
+      
+      // Test plugins step directly
+      $('#test-plugins-step').on('click', function() {
+        console.log('Button clicked: test-plugins-step');
+        log('Opening activation modal at plugins step...');
+        if (window.globalPinia) {
+          const activationModalStore = window.globalPinia._s.get('activationCodeModal');
+          if (activationModalStore) {
+            activationModalStore.setIsHidden(false);
+            log('Modal opened, now setting step to plugins...');
+            
+            setTimeout(() => {
+              if (window.__activationModalDebug) {
+                window.__activationModalDebug.currentStep.value = 'plugins';
+                log('Step changed to: ' + window.__activationModalDebug.currentStep.value);
+              } else {
+                log('ERROR: __activationModalDebug not available');
+              }
+            }, 500);
+          } else {
+            log('ERROR: Activation modal store not found');
+          }
+        } else {
+          log('ERROR: globalPinia not available');
         }
       });
       

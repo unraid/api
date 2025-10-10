@@ -10,6 +10,7 @@ import type { BrandButtonProps } from '@unraid/ui';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
+import ActivationPluginsStep from '~/components/Activation/ActivationPluginsStep.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
 import ActivationTimezoneStep from '~/components/Activation/ActivationTimezoneStep.vue';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
@@ -32,12 +33,33 @@ useThemeStore();
 
 const hasActivationCode = computed(() => Boolean(activationCode.value?.code));
 
-const currentStep = ref<'timezone' | 'activation'>('timezone');
+const currentStep = ref<'timezone' | 'plugins' | 'activation'>('timezone');
+
+if (import.meta.env.DEV) {
+  console.log('[ActivationModal] Initial step:', currentStep.value);
+  console.log('[ActivationModal] Has activation code:', hasActivationCode.value);
+  console.log('[ActivationModal] Is visible:', isVisible.value);
+
+  interface ActivationModalDebug {
+    currentStep: typeof currentStep;
+    hasActivationCode: typeof hasActivationCode;
+    isVisible: typeof isVisible;
+  }
+
+  (window as Window & { __activationModalDebug?: ActivationModalDebug }).__activationModalDebug = {
+    currentStep,
+    hasActivationCode,
+    isVisible,
+  };
+}
 const activeStepNumber = computed(() => {
   if (currentStep.value === 'timezone') {
     return 2;
   }
-  return hasActivationCode.value ? 3 : 2;
+  if (currentStep.value === 'plugins') {
+    return 3;
+  }
+  return hasActivationCode.value ? 4 : 3;
 });
 
 const title = computed<string>(() => props.t("Let's activate your Unraid OS License"));
@@ -68,6 +90,15 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
 });
 
 const handleTimezoneComplete = () => {
+  console.log('[ActivationModal] Timezone complete, moving to plugins');
+  currentStep.value = 'plugins';
+};
+
+const handleTimezoneSkip = () => {
+  currentStep.value = 'plugins';
+};
+
+const handlePluginsComplete = () => {
   if (hasActivationCode.value) {
     currentStep.value = 'activation';
   } else {
@@ -75,7 +106,7 @@ const handleTimezoneComplete = () => {
   }
 };
 
-const handleTimezoneSkip = () => {
+const handlePluginsSkip = () => {
   if (hasActivationCode.value) {
     currentStep.value = 'activation';
   } else {
@@ -112,6 +143,25 @@ const handleTimezoneSkip = () => {
               :t="t"
               :on-complete="handleTimezoneComplete"
               :on-skip="handleTimezoneSkip"
+              :show-skip="false"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div v-else-if="currentStep === 'plugins'" class="flex w-full flex-col items-center">
+        <div class="mt-6 flex w-full flex-col gap-6">
+          <ActivationSteps
+            :active-step="activeStepNumber"
+            :show-activation-step="hasActivationCode"
+            class="mb-6"
+          />
+
+          <div class="my-12">
+            <ActivationPluginsStep
+              :t="t"
+              :on-complete="handlePluginsComplete"
+              :on-skip="handlePluginsSkip"
               :show-skip="hasActivationCode"
             />
           </div>
