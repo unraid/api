@@ -11,6 +11,11 @@
       margin: 0;
       padding: 20px;
       background: #f3f4f6;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body.dark {
+      background: #111827;
+      color: #f9fafb;
     }
     .container {
       max-width: 1200px;
@@ -28,12 +33,21 @@
       border-radius: 8px;
       padding: 20px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    body.dark .component-card {
+      background: #1f2937;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.5);
     }
     .component-card h3 {
       margin: 0 0 10px 0;
       color: #1f2937;
       font-size: 16px;
       font-weight: 600;
+      transition: color 0.3s ease;
+    }
+    body.dark .component-card h3 {
+      color: #f9fafb;
     }
     .component-card .selector {
       font-family: monospace;
@@ -44,6 +58,11 @@
       padding: 4px 8px;
       border-radius: 4px;
       display: inline-block;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body.dark .component-card .selector {
+      background: #374151;
+      color: #9ca3af;
     }
     .component-mount {
       min-height: 50px;
@@ -51,6 +70,10 @@
       border-radius: 4px;
       padding: 10px;
       position: relative;
+      transition: border-color 0.3s ease;
+    }
+    body.dark .component-mount {
+      border-color: #374151;
     }
     .status {
       position: absolute;
@@ -68,10 +91,49 @@
       border-radius: 4px;
       margin: 30px 0 15px 0;
       font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    body.dark .category-header {
+      background: #374151;
+    }
+    .theme-selector {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: #1f2937;
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+      min-width: 140px;
+      text-align: left;
+    }
+    body.dark .theme-selector {
+      background: #f3f4f6;
+      color: #1f2937;
+      border-color: rgba(0, 0, 0, 0.1);
+    }
+    .theme-selector:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .theme-selector::after {
+      content: '▼';
+      float: right;
+      margin-left: 8px;
+      font-size: 10px;
+      opacity: 0.7;
     }
   </style>
 </head>
 <body>
+  <button class="theme-selector" id="themeSelector">🎨 White</button>
   <div class="container">
     <!-- Authentication & User -->
     <div class="category-header">👤 Authentication & User</div>
@@ -229,6 +291,16 @@
       </div>
 
       <div class="component-card">
+        <h3>Activation Modal Tests</h3>
+        <span class="selector">Interactive Tests</span>
+        <div class="component-mount">
+          <button id="test-activation-modal" class="test-btn" style="margin: 5px;">Show Activation Modal</button>
+          <button id="test-activation-with-code" class="test-btn" style="margin: 5px;">Show w/ Activation Code</button>
+          <button id="test-plugins-step" class="test-btn" style="margin: 5px;">Show Plugins Step</button>
+        </div>
+      </div>
+
+      <div class="component-card">
         <h3>Toaster</h3>
         <span class="selector">&lt;unraid-toaster&gt;</span>
         <div class="component-mount">
@@ -239,7 +311,7 @@
 
     <!-- Test Controls -->
     <div class="category-header">🎮 Test Controls</div>
-    <div style="background: white; padding: 20px; border-radius: 8px; margin-top: 15px;">
+    <div class="test-controls-container">
       <h3>jQuery Interaction Tests</h3>
       <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
         <button id="test-notification" class="test-btn">Trigger Notification</button>
@@ -251,7 +323,7 @@
       
       <div style="margin-top: 20px;">
         <h4>Console Output</h4>
-        <div id="test-output" style="background: #1f2937; color: #10b981; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; min-height: 100px; max-height: 200px; overflow-y: auto;">
+        <div id="test-output">
           > Ready for testing...
         </div>
       </div>
@@ -270,6 +342,40 @@
     }
     .test-btn:hover {
       background: #2563eb;
+    }
+    .test-controls-container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 15px;
+      transition: background-color 0.3s ease;
+    }
+    body.dark .test-controls-container {
+      background: #1f2937;
+    }
+    .test-controls-container h3,
+    .test-controls-container h4 {
+      transition: color 0.3s ease;
+    }
+    body.dark .test-controls-container h3,
+    body.dark .test-controls-container h4 {
+      color: #f9fafb;
+    }
+    #test-output {
+      background: #1f2937;
+      color: #10b981;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      min-height: 100px;
+      max-height: 200px;
+      overflow-y: auto;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    body.dark #test-output {
+      background: #111827;
+      color: #34d399;
     }
   </style>
 
@@ -295,6 +401,64 @@
         }
       }
       
+      // Theme selector - cycles through all 4 Unraid themes
+      // The theme store is exposed globally by mount-engine.ts and controls:
+      // - CSS variables for colors
+      // - .dark class on html, body, and all .unapi elements
+      // - Theme variants (theme-white, theme-gray, theme-black, theme-azure)
+      // All Vue components automatically inherit the theme via this system
+      const themeSelector = $('#themeSelector');
+      
+      const themes = [
+        { name: 'white', label: '🤍 White', icon: '☀️' },
+        { name: 'black', label: '🖤 Black', icon: '🌙' },
+        { name: 'gray', label: '🩶 Gray', icon: '☁️' },
+        { name: 'azure', label: '💙 Azure', icon: '🌊' }
+      ];
+      
+      function updateThemeButton() {
+        if (window.themeStore) {
+          const currentTheme = window.themeStore.theme.name;
+          const theme = themes.find(t => t.name === currentTheme) || themes[0];
+          themeSelector.text(theme.label);
+        }
+      }
+      
+      const waitForThemeStore = setInterval(function() {
+        if (window.themeStore) {
+          clearInterval(waitForThemeStore);
+          updateThemeButton();
+          log('Theme store connected');
+        }
+      }, 100);
+      
+      themeSelector.on('click', function() {
+        if (!window.themeStore) {
+          log('ERROR: Theme store not available');
+          return;
+        }
+        
+        const currentTheme = window.themeStore.theme.name;
+        const currentIndex = themes.findIndex(t => t.name === currentTheme);
+        const nextIndex = (currentIndex + 1) % themes.length;
+        const nextTheme = themes[nextIndex];
+        
+        // Update theme name and trigger CSS application
+        // Direct mutation + explicit setCssVars() call ensures proper application
+        // even when accessed outside Vue's reactivity context (via window)
+        window.themeStore.theme.name = nextTheme.name;
+        
+        // setCssVars() applies to the theme store which:
+        // - Applies .dark class for gray/black themes (via darkMode computed)
+        // - Applies .theme-{name} class for theme variants
+        // - Sets CSS variables for custom colors
+        // - Updates document.documentElement and all .unapi elements
+        window.themeStore.setCssVars();
+        
+        updateThemeButton();
+        log('Theme changed to: ' + nextTheme.name + ' (all Unraid components updated)');
+      });
+      
       // Test notification
       $('#test-notification').on('click', function() {
         log('Triggering notification...');
@@ -319,10 +483,21 @@
       
       // Test theme toggle
       $('#test-theme').on('click', function() {
+        if (!window.themeStore) {
+          log('ERROR: Theme store not available');
+          return;
+        }
+        
         log('Toggling theme...');
-        const currentTheme = $('body').hasClass('dark') ? 'light' : 'dark';
-        $('body').toggleClass('dark');
-        log('Theme changed to: ' + currentTheme);
+        const currentTheme = window.themeStore.theme.name;
+        const isDarkTheme = currentTheme === 'gray' || currentTheme === 'black';
+        const newTheme = isDarkTheme ? 'white' : 'gray';
+        
+        window.themeStore.theme.name = newTheme;
+        window.themeStore.setCssVars();
+        updateDarkModeButton();
+        
+        log('Theme changed to: ' + newTheme);
       });
       
       // Test profile update
@@ -348,6 +523,106 @@
         $('unraid-connect-settings').attr('initial-settings', JSON.stringify(settings));
         log('Settings updated: ' + JSON.stringify(settings));
       });
+      
+      // Test activation modal (no code)
+      $('#test-activation-modal').on('click', function() {
+        console.log('Button clicked: test-activation-modal');
+        log('Opening activation modal (timezone only)...');
+        log('globalPinia available: ' + !!window.globalPinia);
+        if (window.globalPinia) {
+          log('Pinia stores: ' + Array.from(window.globalPinia._s.keys()).join(', '));
+          const activationModalStore = window.globalPinia._s.get('activationCodeModal');
+          if (activationModalStore) {
+            activationModalStore.setIsHidden(false);
+            log('Activation modal opened (no activation code)');
+          } else {
+            log('ERROR: Activation modal store not found');
+          }
+        } else {
+          log('ERROR: globalPinia not available');
+        }
+      });
+      
+      // Test activation modal with fake code
+      $('#test-activation-with-code').on('click', function() {
+        console.log('Button clicked: test-activation-with-code');
+        log('Opening activation modal with fake activation code...');
+        log('globalPinia: ' + !!window.globalPinia + ', apolloClient: ' + !!window.apolloClient);
+        if (window.globalPinia && window.apolloClient) {
+          const activationModalStore = window.globalPinia._s.get('activationCodeModal');
+          const apolloClient = window.apolloClient;
+          
+          if (activationModalStore) {
+            try {
+              log('Modifying Apollo cache...');
+              // Directly modify the Apollo cache ROOT_QUERY
+              apolloClient.cache.modify({
+                id: apolloClient.cache.identify({ __typename: 'Query' }),
+                fields: {
+                  customization(existingCustomization) {
+                    const existing = existingCustomization || { __typename: 'Customization' };
+                    return {
+                      ...existing,
+                      activationCode: {
+                        __typename: 'ActivationCode',
+                        code: 'FAKE-TEST-CODE-12345',
+                        partnerName: 'Test Partner',
+                        serverName: null,
+                        sysModel: null,
+                        comment: null,
+                        header: null,
+                        headermetacolor: null,
+                        background: null,
+                        showBannerGradient: null,
+                        theme: null,
+                      },
+                    };
+                  },
+                },
+              });
+              
+              log('Cache modified, opening modal...');
+              activationModalStore.setIsHidden(false);
+              log('Activation modal opened WITH activation code');
+            } catch (error) {
+              log('ERROR: ' + error.message);
+              console.error('Full error:', error);
+            }
+          } else {
+            log('ERROR: Activation modal store not found');
+          }
+        } else {
+          log('ERROR: globalPinia or apolloClient not available');
+        }
+      });
+      
+      // Test plugins step directly
+      $('#test-plugins-step').on('click', function() {
+        console.log('Button clicked: test-plugins-step');
+        log('Opening activation modal at plugins step...');
+        if (window.globalPinia) {
+          const activationModalStore = window.globalPinia._s.get('activationCodeModal');
+          if (activationModalStore) {
+            activationModalStore.setIsHidden(false);
+            log('Modal opened, now setting step to plugins...');
+            
+            setTimeout(() => {
+              if (window.__activationModalDebug) {
+                window.__activationModalDebug.currentStep.value = 'plugins';
+                log('Step changed to: ' + window.__activationModalDebug.currentStep.value);
+              } else {
+                log('ERROR: __activationModalDebug not available');
+              }
+            }, 500);
+          } else {
+            log('ERROR: Activation modal store not found');
+          }
+        } else {
+          log('ERROR: globalPinia not available');
+        }
+      });
+      
+      log('Activation modal test buttons registered');
       
       // Listen for component events
       $(document).on('unraid:theme-changed', function(e, data) {

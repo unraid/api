@@ -21,6 +21,7 @@ const apolloClient = (typeof window !== 'undefined' && window.apolloClient) || c
 declare global {
   interface Window {
     globalPinia: typeof globalPinia;
+    themeStore: ReturnType<typeof useThemeStore>;
     LOCALE_DATA?: string;
   }
 }
@@ -120,6 +121,10 @@ export function mountUnifiedApp() {
   app.provide(DefaultApolloClient, apolloClient);
 
   const themeStore = useThemeStore();
+
+  if (typeof window !== 'undefined') {
+    window.themeStore = themeStore;
+  }
 
   // Mount the app to establish context
   let rootElement = document.getElementById('unraid-unified-root');

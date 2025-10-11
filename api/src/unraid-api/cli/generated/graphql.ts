@@ -1086,6 +1086,8 @@ export type InfoVersions = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Software package versions */
   packages?: Maybe<PackageVersions>;
+  /** OS upgrade information */
+  upgrade: UpgradeInfo;
 };
 
 export type InitiateFlashBackupInput = {
@@ -1249,6 +1251,8 @@ export type Mutation = {
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
   updateSettings: UpdateSettingsResponse;
+  /** Update system time configuration */
+  updateSystemTime: SystemTime;
   vm: VmMutations;
 };
 
@@ -1360,6 +1364,11 @@ export type MutationUpdateApiSettingsArgs = {
 
 export type MutationUpdateSettingsArgs = {
   input: Scalars['JSON']['input'];
+};
+
+
+export type MutationUpdateSystemTimeArgs = {
+  input: UpdateSystemTimeInput;
 };
 
 export type Network = Node & {
@@ -1705,6 +1714,8 @@ export type Query = {
   services: Array<Service>;
   settings: Settings;
   shares: Array<Share>;
+  /** Retrieve current system time configuration */
+  systemTime: SystemTime;
   upsConfiguration: UpsConfiguration;
   upsDeviceById?: Maybe<UpsDevice>;
   upsDevices: Array<UpsDevice>;
@@ -2062,6 +2073,19 @@ export type SubscriptionLogFileArgs = {
   path: Scalars['String']['input'];
 };
 
+/** System time configuration and current status */
+export type SystemTime = {
+  __typename?: 'SystemTime';
+  /** Current server time in ISO-8601 format (UTC) */
+  currentTime: Scalars['String']['output'];
+  /** Configured NTP servers (empty strings indicate unused slots) */
+  ntpServers: Array<Scalars['String']['output']>;
+  /** IANA timezone identifier currently in use */
+  timeZone: Scalars['String']['output'];
+  /** Whether NTP/PTP time synchronization is enabled */
+  useNtp: Scalars['Boolean']['output'];
+};
+
 /** Temperature unit */
 export enum Temperature {
   CELSIUS = 'CELSIUS',
@@ -2281,6 +2305,27 @@ export enum UpdateStatus {
   UPDATE_AVAILABLE = 'UPDATE_AVAILABLE',
   UP_TO_DATE = 'UP_TO_DATE'
 }
+
+export type UpdateSystemTimeInput = {
+  /** Manual date/time to apply when disabling NTP, expected format YYYY-MM-DD HH:mm:ss */
+  manualDateTime?: InputMaybe<Scalars['String']['input']>;
+  /** Ordered list of up to four NTP servers. Supply empty strings to clear positions. */
+  ntpServers?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** New IANA timezone identifier to apply */
+  timeZone?: InputMaybe<Scalars['String']['input']>;
+  /** Enable or disable NTP-based synchronization */
+  useNtp?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type UpgradeInfo = {
+  __typename?: 'UpgradeInfo';
+  /** Current OS version */
+  currentVersion?: Maybe<Scalars['String']['output']>;
+  /** Whether the OS version has changed since last boot */
+  isUpgrade: Scalars['Boolean']['output'];
+  /** Previous OS version before upgrade */
+  previousVersion?: Maybe<Scalars['String']['output']>;
+};
 
 export type Uptime = {
   __typename?: 'Uptime';

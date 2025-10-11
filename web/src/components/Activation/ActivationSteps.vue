@@ -1,115 +1,80 @@
 <script setup lang="ts">
-import { CheckIcon, KeyIcon, ServerStackIcon } from '@heroicons/vue/24/outline';
-import {
-  KeyIcon as KeyIconSolid,
-  LockClosedIcon,
-  ServerStackIcon as ServerStackIconSolid,
-} from '@heroicons/vue/24/solid';
-import {
-  Button,
-  Stepper,
-  StepperDescription,
-  StepperItem,
-  StepperTitle,
-  StepperTrigger,
-} from '@unraid/ui';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
-import type { Component } from 'vue';
-
-type StepState = 'inactive' | 'active' | 'completed';
-
-withDefaults(
+const props = withDefaults(
   defineProps<{
     activeStep?: number;
+    showActivationStep?: boolean;
   }>(),
   {
     activeStep: 1,
+    showActivationStep: true,
   }
 );
 
-interface Step {
-  step: number;
+interface StepItem {
   title: string;
   description: string;
-  icon: {
-    inactive: Component;
-    active: Component;
-    completed: Component;
-  };
+  icon?: string;
 }
-const steps: readonly Step[] = [
+
+const allSteps: StepItem[] = [
   {
-    step: 1,
     title: 'Create Device Password',
     description: 'Secure your device',
-    icon: {
-      inactive: LockClosedIcon,
-      active: LockClosedIcon,
-      completed: CheckIcon,
-    },
+    icon: 'i-heroicons-lock-closed',
   },
   {
-    step: 2,
+    title: 'Set Time Zone',
+    description: 'Configure system time',
+    icon: 'i-heroicons-clock',
+  },
+  {
+    title: 'Install Essential Plugins',
+    description: 'Add helpful plugins',
+    icon: 'i-heroicons-puzzle-piece',
+  },
+  {
     title: 'Activate License',
     description: 'Create an Unraid.net account and activate your key',
-    icon: {
-      inactive: KeyIcon,
-      active: KeyIconSolid,
-      completed: CheckIcon,
-    },
+    icon: 'i-heroicons-key',
   },
   {
-    step: 3,
     title: 'Unleash Your Hardware',
     description: 'Device is ready to configure',
-    icon: {
-      inactive: ServerStackIcon,
-      active: ServerStackIconSolid,
-      completed: CheckIcon,
-    },
+    icon: 'i-heroicons-server-stack',
   },
-] as const;
+];
+
+const steps = computed(() => {
+  if (props.showActivationStep) {
+    return allSteps;
+  }
+  return allSteps.filter((_, index) => index !== 3);
+});
+
+const currentStepIndex = computed(() => props.activeStep - 1);
+
+const isMobile = ref(false);
+
+const checkScreenSize = () => {
+  isMobile.value = window.innerWidth < 768;
+};
+
+onMounted(() => {
+  checkScreenSize();
+  window.addEventListener('resize', checkScreenSize);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkScreenSize);
+});
+
+const orientation = computed(() => (isMobile.value ? 'vertical' : 'horizontal'));
 </script>
 
 <template>
-  <Stepper :default-value="activeStep" class="text-foreground flex w-full items-start gap-2 text-base">
-    <StepperItem
-      v-for="step in steps"
-      :key="step.step"
-      v-slot="{ state }: { state: StepState }"
-      class="relative flex w-full flex-col items-center justify-center data-disabled:opacity-100"
-      :step="step.step"
-      :disabled="true"
-    >
-      <StepperTrigger>
-        <div class="flex items-center justify-center">
-          <Button
-            :variant="state === 'completed' ? 'primary' : state === 'active' ? 'primary' : 'outline'"
-            size="md"
-            :class="`z-10 rounded-full ${
-              state !== 'inactive'
-                ? 'ring-offset-background ring-2 ring-offset-2 *:cursor-default ' +
-                  (state === 'completed' ? 'ring-success' : 'ring-primary')
-                : ''
-            }`"
-            :disabled="state === 'inactive'"
-          >
-            <component :is="step.icon[state]" class="size-4" />
-          </Button>
-        </div>
-
-        <div class="mt-2 flex flex-col items-center text-center">
-          <StepperTitle
-            :class="[state === 'active' && 'text-primary']"
-            class="text-2xs font-semibold transition"
-          >
-            {{ step.title }}
-          </StepperTitle>
-          <StepperDescription class="text-2xs font-normal">
-            {{ step.description }}
-          </StepperDescription>
-        </div>
-      </StepperTrigger>
-    </StepperItem>
-  </Stepper>
+  <div class="mx-auto w-full max-w-4xl px-4">
+    <UStepper :model-value="currentStepIndex" :items="steps" :orientation="orientation" class="w-full" />
+  </div>
 </template>
