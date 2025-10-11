@@ -9,10 +9,10 @@
     "date-fns": "4.1.0",
     "glob": "11.0.3",
     "html-sloppy-escaper": "0.1.0",
-    "semver": "7.7.2",
-    "tsx": "4.20.5",
+    "semver": "7.7.3",
+    "tsx": "4.20.6",
     "zod": "3.25.76",
-    "zx": "8.8.1"
+    "zx": "8.8.4"
   },
   "type": "module",
   "license": "GPL-2.0-or-later",
@@ -42,5 +42,5 @@
     "nodemon": "3.1.10",
     "vitest": "3.2.4"
   },
-  "packageManager": "pnpm@10.15.0"
+  "packageManager": "pnpm@10.18.2"
 }
