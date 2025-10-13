@@ -3,6 +3,8 @@ import { ResolveField, Resolver } from '@nestjs/graphql';
 
 import { versions } from 'systeminformation';
 
+import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
+import { buildUpgradeInfoFromSnapshot } from '@app/unraid-api/graph/resolvers/info/versions/upgrade-info.util.js';
 import {
     CoreVersions,
     InfoVersions,
@@ -12,7 +14,10 @@ import {
 
 @Resolver(() => InfoVersions)
 export class VersionsResolver {
-    constructor(private readonly configService: ConfigService) {}
+    constructor(
+        private readonly configService: ConfigService,
+        private readonly onboardingTracker: OnboardingTracker
+    ) {}
 
     @ResolveField(() => CoreVersions)
     core(): CoreVersions {
@@ -48,34 +53,8 @@ export class VersionsResolver {
     }
 
     @ResolveField(() => UpgradeInfo)
-    upgrade(): UpgradeInfo {
-        const currentVersion =
-            this.configService.get<string>('onboardingTracker.currentVersion') ??
-            this.configService.get<string>('store.emhttp.var.version');
-        const lastSeenVersion =
-            this.configService.get<string>('onboardingTracker.lastTrackedVersion') ??
-            this.configService.get<string>('api.lastSeenOsVersion');
-        const completedStepsMap =
-            this.configService.get<Record<string, { version: string }>>(
-                'onboardingTracker.completedSteps'
-            ) ?? {};
-
-        const completedSteps =
-            currentVersion && completedStepsMap
-                ? Object.entries(completedStepsMap)
-                      .filter(([, value]) => value?.version === currentVersion)
-                      .map(([stepId]) => stepId)
-                : [];
-
-        const isUpgrade = Boolean(
-            lastSeenVersion && currentVersion && lastSeenVersion !== currentVersion
-        );
-
-        return {
-            isUpgrade,
-            previousVersion: isUpgrade ? lastSeenVersion : undefined,
-            currentVersion: currentVersion || undefined,
-            completedSteps,
-        };
+    async upgrade(): Promise<UpgradeInfo> {
+        const snapshot = await this.onboardingTracker.getUpgradeSnapshot();
+        return buildUpgradeInfoFromSnapshot(snapshot);
     }
 }

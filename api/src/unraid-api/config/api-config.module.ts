@@ -18,7 +18,6 @@ const createDefaultConfig = (): ApiConfig => ({
     sandbox: false,
     ssoSubIds: [],
     plugins: [],
-    lastSeenOsVersion: undefined,
 });
 
 /**

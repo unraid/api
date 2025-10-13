@@ -13,15 +13,15 @@ This system shows contextual onboarding steps to users when they upgrade their U
    - Automatically updates `lastSeenOsVersion` when version changes
    - Persists to `/boot/config/modules/api.json`
 
-2. **GraphQL API** - `api/src/unraid-api/graph/resolvers/info/versions/`
-   - Exposes `info.versions.upgrade` field with:
-     - `isUpgrade`: Boolean indicating if OS version changed
-     - `previousVersion`: Last seen OS version
-     - `currentVersion`: Current OS version
+2. **GraphQL API** - `api/src/unraid-api/graph/resolvers/customization/`
+   - Exposes `activationOnboarding` query which returns:
+     - `isUpgrade`, `previousVersion`, `currentVersion`
+     - Ordered step definitions (id, required, introducedIn)
+     - `completed` flag per step and `hasPendingSteps`
 
 ### Frontend (Web)
 
-1. **Release Configuration** - `releaseConfigs.ts`
+1. **Release Configuration** - `@unraid/shared/release-configs.ts`
    - Define which steps to show for specific version upgrades
    - Support conditional steps with async functions
    - Example:
@@ -43,8 +43,8 @@ This system shows contextual onboarding steps to users when they upgrade their U
    ```
 
 2. **Upgrade Onboarding Store** - `store/upgradeOnboarding.ts`
-   - Queries upgrade info from GraphQL
-   - Evaluates release config to determine which steps to show
+   - Queries `activationOnboarding`
+   - Uses returned step metadata to decide which components to render
    - Provides `shouldShowUpgradeOnboarding` computed property
 
 3. **Unified Activation Modal** - `ActivationModal.vue`
@@ -72,7 +72,7 @@ export interface Props {
 
 ### 2. Add Step ID Type
 
-In `releaseConfigs.ts`, update the step ID type:
+In `@unraid/shared/release-configs.ts`, update the step ID type:
 ```typescript
 export interface ReleaseStepConfig {
   id: 'timezone' | 'plugins' | 'your-new-step';
@@ -97,7 +97,7 @@ In `ActivationModal.vue`, add a section:
 
 ### 4. Configure for Release
 
-In `releaseConfigs.ts`, add to `releaseConfigs` array:
+In `@unraid/shared/release-configs.ts`, add to `releaseConfigs` array:
 
 ```typescript
 {
@@ -123,12 +123,13 @@ The `ActivationModal` is already integrated into the app and automatically handl
 To test the upgrade flow:
 
 1. Edit `/boot/config/modules/api.json` and set `lastSeenOsVersion` to an older version
-2. Restart the API
-3. The modal should appear on next page load with relevant steps
+2. Ensure an activation code exists (or remove it to test conditional logic)
+3. Restart the API
+4. The modal should appear on next page load with relevant steps from `activationOnboarding`
 
 ## Notes
 
-- Fresh installs (no `lastSeenOsVersion`) won't trigger upgrade onboarding
+- Fresh installs (no `lastTrackedVersion`) won't trigger upgrade onboarding until steps exist
 - The modal automatically switches between fresh install and upgrade modes
 - Each mode can be dismissed independently (stored in sessionStorage)
 - Version comparison uses semver for reliable ordering

@@ -21,6 +21,7 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
         bufferLogs: false,
         ...(LOG_LEVEL !== 'TRACE' ? { logger: false } : {}),
     });
+    app.enableShutdownHooks(['SIGINT', 'SIGTERM', 'SIGQUIT']);
 
     // Enable validation globally
     app.useGlobalPipes(
