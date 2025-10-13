@@ -11,11 +11,11 @@ import { UPGRADE_INFO_QUERY } from '~/components/Activation/upgradeInfo.query';
 const UPGRADE_ONBOARDING_HIDDEN_KEY = 'upgrade-onboarding-hidden';
 
 export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => {
-  const { result: upgradeInfoResult, loading: upgradeInfoLoading } = useQuery(
-    UPGRADE_INFO_QUERY,
-    {},
-    { errorPolicy: 'all' }
-  );
+  const {
+    result: upgradeInfoResult,
+    loading: upgradeInfoLoading,
+    refetch,
+  } = useQuery(UPGRADE_INFO_QUERY, {}, { errorPolicy: 'all' });
 
   const isHidden = useSessionStorage<boolean>(UPGRADE_ONBOARDING_HIDDEN_KEY, false);
 
@@ -26,19 +26,26 @@ export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => 
   const currentVersion = computed(
     () => upgradeInfoResult.value?.info?.versions?.upgrade?.currentVersion
   );
+  const completedSteps = computed(
+    () => upgradeInfoResult.value?.info?.versions?.upgrade?.completedSteps ?? []
+  );
 
-  const upgradeSteps = ref<ReleaseStepConfig[]>([]);
+  const allUpgradeSteps = ref<ReleaseStepConfig[]>([]);
 
   watch(
     [isUpgrade, previousVersion, currentVersion],
     async ([isUpgradeValue, prevVersion, currVersion]) => {
       if (isUpgradeValue && prevVersion && currVersion) {
-        upgradeSteps.value = await getUpgradeSteps(prevVersion, currVersion);
+        allUpgradeSteps.value = await getUpgradeSteps(prevVersion, currVersion);
       } else {
-        upgradeSteps.value = [];
+        allUpgradeSteps.value = [];
       }
     },
     { immediate: true }
+  );
+
+  const upgradeSteps = computed(() =>
+    allUpgradeSteps.value.filter((step) => !completedSteps.value.includes(step.id))
   );
 
   const shouldShowUpgradeOnboarding = computed(() => {
@@ -54,9 +61,11 @@ export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => 
     isUpgrade,
     previousVersion,
     currentVersion,
+    completedSteps,
     upgradeSteps,
     shouldShowUpgradeOnboarding,
     isHidden,
     setIsHidden,
+    refetchUpgradeInfo: refetch,
   };
 });

@@ -51,6 +51,12 @@ export class UpgradeInfo {
 
     @Field(() => String, { nullable: true, description: 'Current OS version' })
     currentVersion?: string;
+
+    @Field(() => [String], {
+        description: 'Onboarding step identifiers completed for the current OS version',
+        defaultValue: [],
+    })
+    completedSteps!: string[];
 }
 
 @ObjectType({ implements: () => Node })
