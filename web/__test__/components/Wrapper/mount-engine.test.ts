@@ -55,7 +55,7 @@ const mockI18n = {
   install: vi.fn(),
 };
 const mockCreateI18nInstance = vi.fn(() => mockI18n);
-const mockEnsureLocale = vi.fn();
+const mockEnsureLocale = vi.fn().mockResolvedValue('en_US');
 const mockGetWindowLocale = vi.fn<() => string | undefined>(() => undefined);
 
 vi.mock('~/helpers/i18n-loader', () => ({
@@ -131,7 +131,7 @@ describe('mount-engine', () => {
         component: TestComponent,
       });
 
-      const app = mountUnifiedApp();
+      const app = await mountUnifiedApp();
 
       expect(app).toBeTruthy();
       expect(mockI18n.install).toHaveBeenCalled();
@@ -160,7 +160,7 @@ describe('mount-engine', () => {
         component: TestComponent,
       });
 
-      mountUnifiedApp();
+      await mountUnifiedApp();
 
       // Wait for async component to render
       await vi.waitFor(() => {
@@ -168,7 +168,7 @@ describe('mount-engine', () => {
       });
     });
 
-    it('should handle JSON props from attributes', () => {
+    it('should handle JSON props from attributes', async () => {
       const element = document.createElement('div');
       element.id = 'test-app';
       element.setAttribute('message', '{"text": "JSON Message"}');
@@ -180,13 +180,13 @@ describe('mount-engine', () => {
         component: TestComponent,
       });
 
-      mountUnifiedApp();
+      await mountUnifiedApp();
 
       // The component receives the parsed JSON object
       expect(element.getAttribute('message')).toBe('{"text": "JSON Message"}');
     });
 
-    it('should handle HTML-encoded JSON in attributes', () => {
+    it('should handle HTML-encoded JSON in attributes', async () => {
       const element = document.createElement('div');
       element.id = 'test-app';
       element.setAttribute('message', '{&quot;text&quot;: &quot;Encoded&quot;}');
@@ -198,7 +198,7 @@ describe('mount-engine', () => {
         component: TestComponent,
       });
 
-      mountUnifiedApp();
+      await mountUnifiedApp();
 
       expect(element.getAttribute('message')).toBe('{&quot;text&quot;: &quot;Encoded&quot;}');
     });
@@ -219,7 +219,7 @@ describe('mount-engine', () => {
         component: TestComponent,
       });
 
-      mountUnifiedApp();
+      await mountUnifiedApp();
 
       // Wait for async component to render
       await vi.waitFor(() => {
@@ -245,7 +245,7 @@ describe('mount-engine', () => {
         component: TestComponent,
       });
 
-      mountUnifiedApp();
+      await mountUnifiedApp();
 
       // Wait for component to mount
       await vi.waitFor(() => {
@@ -253,7 +253,7 @@ describe('mount-engine', () => {
       });
     });
 
-    it('should skip already mounted elements', () => {
+    it('should skip already mounted elements', async () => {
       const element = document.createElement('div');
       element.id = 'already-mounted';
       element.setAttribute('data-vue-mounted', 'true');
@@ -265,20 +265,20 @@ describe('mount-engine', () => {
         component: TestComponent,
       });
 
-      mountUnifiedApp();
+      await mountUnifiedApp();
 
       // Should not mount to already mounted element
       expect(element.querySelector('.test-component')).toBeFalsy();
     });
 
-    it('should handle missing elements gracefully', () => {
+    it('should handle missing elements gracefully', async () => {
       mockComponentMappings.push({
         selector: '#non-existent',
         appId: 'non-existent',
         component: TestComponent,
       });
 
-      const app = mountUnifiedApp();
+      const app = await mountUnifiedApp();
 
       // Should still create the app successfully
       expect(app).toBeTruthy();
@@ -297,7 +297,7 @@ describe('mount-engine', () => {
         appId: 'invalid-app',
       } as ComponentMapping);
 
-      mountUnifiedApp();
+      await mountUnifiedApp();
 
       // Should log error for missing component
       expect(consoleErrorSpy).toHaveBeenCalledWith(
@@ -309,21 +309,21 @@ describe('mount-engine', () => {
       expect(element.getAttribute('data-vue-mounted')).toBeNull();
     });
 
-    it('should create hidden root element if not exists', () => {
-      mountUnifiedApp();
+    it('should create hidden root element if not exists', async () => {
+      await mountUnifiedApp();
 
       const rootElement = document.getElementById('unraid-unified-root');
       expect(rootElement).toBeTruthy();
       expect(rootElement?.style.display).toBe('none');
     });
 
-    it('should reuse existing root element', () => {
+    it('should reuse existing root element', async () => {
       // Create root element first
       const existingRoot = document.createElement('div');
       existingRoot.id = 'unraid-unified-root';
       document.body.appendChild(existingRoot);
 
-      mountUnifiedApp();
+      await mountUnifiedApp();
 
       const rootElement = document.getElementById('unraid-unified-root');
       expect(rootElement).toBe(existingRoot);
@@ -340,7 +340,7 @@ describe('mount-engine', () => {
         component: TestComponent,
       });
 
-      mountUnifiedApp();
+      await mountUnifiedApp();
 
       // Wait for async component to render
       await vi.waitFor(() => {
@@ -373,7 +373,7 @@ describe('mount-engine', () => {
         }
       );
 
-      mountUnifiedApp();
+      await mountUnifiedApp();
 
       // Wait for async components to render
       await vi.waitFor(() => {
@@ -400,7 +400,7 @@ describe('mount-engine', () => {
         component: TestComponent,
       });
 
-      autoMountAllComponents();
+      await autoMountAllComponents();
 
       // Wait for async component to render
       await vi.waitFor(() => {
@@ -410,17 +410,17 @@ describe('mount-engine', () => {
   });
 
   describe('i18n setup', () => {
-    it('should setup i18n with default locale', () => {
-      mountUnifiedApp();
+    it('should setup i18n with default locale', async () => {
+      await mountUnifiedApp();
       expect(mockCreateI18nInstance).toHaveBeenCalled();
       expect(mockEnsureLocale).toHaveBeenCalledWith(mockI18n, undefined);
       expect(mockI18n.install).toHaveBeenCalled();
     });
 
-    it('should request window locale when available', () => {
+    it('should request window locale when available', async () => {
       mockGetWindowLocale.mockReturnValue('ja_JP');
 
-      mountUnifiedApp();
+      await mountUnifiedApp();
 
       expect(mockEnsureLocale).toHaveBeenCalledWith(mockI18n, 'ja_JP');
     });
@@ -434,7 +434,7 @@ describe('mount-engine', () => {
   });
 
   describe('performance debugging', () => {
-    it('should not log timing by default', () => {
+    it('should not log timing by default', async () => {
       const element = document.createElement('div');
       element.id = 'perf-app';
       document.body.appendChild(element);
@@ -445,7 +445,7 @@ describe('mount-engine', () => {
         component: TestComponent,
       });
 
-      mountUnifiedApp();
+      await mountUnifiedApp();
 
       // Should not log timing information when PERF_DEBUG is false
       expect(consoleWarnSpy).not.toHaveBeenCalledWith(expect.stringContaining('[UnifiedMount] Mounted'));
