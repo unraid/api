@@ -1,14 +1,14 @@
 <script setup lang="ts">
 // eslint-disable vue/no-v-html
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import type { UserProfileLink } from '~/types/userProfile';
-import type { ComposerTranslation } from 'vue-i18n';
 
 import UpcDropdownItem from '~/components/UserProfile/DropdownItem.vue';
 import { useErrorsStore } from '~/store/errors';
 
-defineProps<{ t: ComposerTranslation }>();
+const { t } = useI18n();
 
 const errorsStore = useErrorsStore();
 const { errors } = storeToRefs(errorsStore);
@@ -30,7 +30,7 @@ const { errors } = storeToRefs(errorsStore);
       />
       <nav v-if="error.actions">
         <li v-for="(link, idx) in error.actions" :key="`link_${idx}`">
-          <UpcDropdownItem :item="link as UserProfileLink" :rounded="false" :t="t" />
+          <UpcDropdownItem :item="link as UserProfileLink" :rounded="false" />
         </li>
       </nav>
     </li>

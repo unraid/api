@@ -218,7 +218,6 @@ const licenseItems = computed((): RegistrationItemProps[] => {
             label: t('registration.osUpdateEligibility'),
             warning: regUpdatesExpired.value,
             component: RegistrationUpdateExpirationAction,
-            componentProps: { t },
             componentOpacity: !regUpdatesExpired.value,
           },
         ]

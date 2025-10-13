@@ -1,27 +1,24 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-
-import type { ComposerTranslation } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 
 export interface Props {
   componentIs?: string;
-  t: ComposerTranslation;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  componentIs: 'p',
-});
+const { componentIs = 'p' } = defineProps<Props>();
 
+const { t } = useI18n();
 const serverStore = useServerStore();
 const { dateTimeFormat, regExp, regUpdatesExpired } = storeToRefs(serverStore);
 
 const { outputDateTimeReadableDiff, outputDateTimeFormatted } = useDateTimeHelper(
   dateTimeFormat.value,
-  props.t,
+  t,
   true,
   regExp.value
 );
@@ -32,13 +29,13 @@ const output = computed(() => {
   }
   return {
     text: regUpdatesExpired.value
-      ? `${props.t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [outputDateTimeFormatted.value])} ${props.t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
-      : props.t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
+      ? `${t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [outputDateTimeFormatted.value])} ${t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
+      : t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
           outputDateTimeFormatted.value,
         ]),
     title: regUpdatesExpired.value
-      ? props.t('registration.updateExpirationAction.ineligibleAsOf', [outputDateTimeReadableDiff.value])
-      : props.t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesFor', [
+      ? t('registration.updateExpirationAction.ineligibleAsOf', [outputDateTimeReadableDiff.value])
+      : t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesFor', [
           outputDateTimeReadableDiff.value,
         ]),
   };

@@ -1,20 +1,16 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon, KeyIcon } from '@heroicons/vue/24/solid';
 import { Badge, BrandButton } from '@unraid/ui';
 import { DOCS_REGISTRATION_REPLACE_KEY } from '~/helpers/urls';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 
+const { t } = useI18n();
 const replaceRenewStore = useReplaceRenewStore();
 const { replaceStatusOutput } = storeToRefs(replaceRenewStore);
-
-defineProps<{
-  t: ComposerTranslation;
-}>();
 </script>
 
 <template>

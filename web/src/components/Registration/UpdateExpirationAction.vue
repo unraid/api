@@ -1,23 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import { DOCS_REGISTRATION_LICENSING } from '~/helpers/urls';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import RegistrationUpdateExpiration from '~/components/Registration/UpdateExpiration.vue';
 import useDateTimeHelper from '~/composables/dateTime';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 
-export interface Props {
-  t: ComposerTranslation;
-}
-
-const props = defineProps<Props>();
+const { t } = useI18n();
 
 const replaceRenewStore = useReplaceRenewStore();
 const serverStore = useServerStore();
@@ -30,7 +25,7 @@ const reload = () => {
 };
 
 const { outputDateTimeReadableDiff: readableDiffRegExp, outputDateTimeFormatted: formattedRegExp } =
-  useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
+  useDateTimeHelper(dateTimeFormat.value, t, true, regExp.value);
 
 const output = computed(() => {
   if (!regExp.value) {
@@ -38,13 +33,13 @@ const output = computed(() => {
   }
   return {
     text: regUpdatesExpired.value
-      ? `${props.t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [formattedRegExp.value])} ${props.t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
-      : props.t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
+      ? `${t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [formattedRegExp.value])} ${t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
+      : t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
           formattedRegExp.value,
         ]),
     title: regUpdatesExpired.value
-      ? props.t('registration.updateExpirationAction.ineligibleAsOf', [readableDiffRegExp.value])
-      : props.t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesFor', [
+      ? t('registration.updateExpirationAction.ineligibleAsOf', [readableDiffRegExp.value])
+      : t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesFor', [
           readableDiffRegExp.value,
         ]),
   };
@@ -53,7 +48,7 @@ const output = computed(() => {
 
 <template>
   <div v-if="output" class="flex flex-col gap-2">
-    <RegistrationUpdateExpiration :t="t" />
+    <RegistrationUpdateExpiration />
 
     <p class="text-sm opacity-90">
       <template v-if="renewStatus === 'installed'">

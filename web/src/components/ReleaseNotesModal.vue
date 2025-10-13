@@ -1,21 +1,20 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, BrandLoading } from '@unraid/ui';
 import { getReleaseNotesUrl } from '~/helpers/urls';
-
-import type { ComposerTranslation } from 'vue-i18n';
 
 import Modal from '~/components/Modal.vue';
 
 export interface Props {
   open: boolean;
   version: string;
-  t: ComposerTranslation;
 }
 
 const props = defineProps<Props>();
+const { t } = useI18n();
 const emit = defineEmits<{
   close: [];
 }>();
@@ -42,7 +41,6 @@ const handleClose = () => {
     max-width="max-w-6xl"
     :open="open"
     :show-close-x="true"
-    :t="t"
     :tall-content="true"
     :title="`Unraid OS ${version} Release Notes`"
     :disable-overlay-close="false"

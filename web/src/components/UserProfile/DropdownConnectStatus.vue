@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { computed, h } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { CheckCircleIcon, ExclamationTriangleIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
 import { BrandLoading } from '@unraid/ui';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import UpcDropdownItem from '~/components/UserProfile/DropdownItem.vue';
 import { useServerStore } from '~/store/server';
 import { useUnraidApiStore } from '~/store/unraidApi';
 
-const props = defineProps<{ t: ComposerTranslation }>();
+const { t } = useI18n();
 
 const { username } = storeToRefs(useServerStore());
 
@@ -30,7 +29,7 @@ const status = computed((): StatusOutput | undefined => {
     return {
       icon: brandLoading,
       iconClasses: 'w-4',
-      text: props.t('common.loading2'),
+      text: t('common.loading2'),
       textClasses: 'italic',
     };
   }
@@ -38,7 +37,7 @@ const status = computed((): StatusOutput | undefined => {
     return {
       icon: brandLoading,
       iconClasses: 'w-4',
-      text: props.t('userProfile.dropdownLaunchpad.restartingUnraidApi'),
+      text: t('userProfile.dropdownLaunchpad.restartingUnraidApi'),
       textClasses: 'italic',
     };
   }
@@ -46,14 +45,14 @@ const status = computed((): StatusOutput | undefined => {
     return {
       icon: ExclamationTriangleIcon,
       iconClasses: 'text-red-500 w-4 h-4',
-      text: props.t('userProfile.dropdownConnectStatus.unraidApiIsOffline'),
+      text: t('userProfile.dropdownConnectStatus.unraidApiIsOffline'),
     };
   }
   if (unraidApiStatus.value === 'online') {
     return {
       icon: CheckCircleIcon,
       iconClasses: 'text-green-600 w-4 h-4',
-      text: props.t('userProfile.dropdownConnectStatus.connected'),
+      text: t('userProfile.dropdownConnectStatus.connected'),
     };
   }
   return undefined;
@@ -72,6 +71,6 @@ const statusItemClasses = 'text-sm flex flex-row justify-start items-center gap-
     {{ status.text }}
   </li>
   <li v-if="unraidApiRestartAction" class="w-full">
-    <UpcDropdownItem :item="unraidApiRestartAction" :t="t" />
+    <UpcDropdownItem :item="unraidApiRestartAction" />
   </li>
 </template>

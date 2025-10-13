@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 import { Button, cn } from '@unraid/ui';
 import { TransitionChild, TransitionRoot } from '@headlessui/vue';
-
-import type { ComposerTranslation } from 'vue-i18n';
 
 export interface Props {
   centerContent?: boolean;
@@ -15,7 +14,6 @@ export interface Props {
   open?: boolean;
   showCloseX?: boolean;
   success?: boolean;
-  t: ComposerTranslation;
   tallContent?: boolean;
   title?: string;
   titleInMain?: boolean;
@@ -26,6 +24,7 @@ export interface Props {
   disableShadow?: boolean;
   disableOverlayClose?: boolean;
 }
+const { t } = useI18n();
 const props = withDefaults(defineProps<Props>(), {
   centerContent: true,
   description: '',

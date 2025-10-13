@@ -225,26 +225,26 @@ const unraidConnectWelcome = computed(() => {
       </template>
     </header>
     <ul class="list-reset flex flex-col gap-y-1 p-0">
-      <DropdownConnectStatus v-if="showConnectStatus" :t="t" />
-      <DropdownError v-if="showErrors" :t="t" />
+      <DropdownConnectStatus v-if="showConnectStatus" />
+      <DropdownError v-if="showErrors" />
 
       <li v-if="showKeyline" class="my-2">
         <Keyline />
       </li>
 
       <li v-if="!registered && connectPluginInstalled">
-        <DropdownItem :item="signInAction[0]" :t="t" />
+        <DropdownItem :item="signInAction[0]" />
       </li>
 
       <template v-if="filteredKeyActions">
         <li v-for="action in filteredKeyActions" :key="action.name">
-          <DropdownItem :item="action" :t="t" />
+          <DropdownItem :item="action" />
         </li>
       </template>
 
       <template v-if="links.length">
         <li v-for="(link, index) in links" :key="`link_${index}`">
-          <DropdownItem :item="link" :t="t" />
+          <DropdownItem :item="link" />
         </li>
       </template>
     </ul>

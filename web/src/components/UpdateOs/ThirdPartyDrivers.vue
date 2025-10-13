@@ -1,16 +1,13 @@
 <script lang="ts" setup>
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { CardWrapper } from '@unraid/ui';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
-defineProps<{
-  t: ComposerTranslation;
-}>();
+const { t } = useI18n();
 
 const { rebootTypeText } = storeToRefs(useUpdateOsActionsStore());
 </script>

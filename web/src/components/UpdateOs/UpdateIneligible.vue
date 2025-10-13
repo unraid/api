@@ -81,7 +81,7 @@ watchEffect(() => {
         </h3>
 
         <h4 class="text-lg font-semibold italic">
-          <RegistrationUpdateExpiration :t="t" />
+          <RegistrationUpdateExpiration />
         </h4>
 
         <div class="prose text-base leading-relaxed whitespace-normal text-black" v-html="text" />

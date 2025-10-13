@@ -1,22 +1,21 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { BrandLoading, Button } from '@unraid/ui';
-
-import type { ComposerTranslation } from 'vue-i18n';
 
 import Modal from '~/components/Modal.vue';
 import { useTrialStore } from '~/store/trial';
 
 export interface Props {
   open?: boolean;
-  t: ComposerTranslation;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   open: false,
 });
+const { t } = useI18n();
 
 const trialStore = useTrialStore();
 const { trialModalLoading, trialStatus } = storeToRefs(trialStore);

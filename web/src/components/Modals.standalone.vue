@@ -28,7 +28,7 @@ const changelogModalVisible = computed(() => updateOsStore.changelogModalVisible
 <template>
   <div id="modals" ref="modals" class="relative z-[999999]">
     <UpcCallbackFeedback :t="t" :open="callbackStatus !== 'ready'" />
-    <UpcTrial :t="t" :open="trialModalVisible" />
+    <UpcTrial :open="trialModalVisible" />
     <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
     <UpdateOsChangelogModal :t="t" :open="changelogModalVisible" />
     <ActivationModal />

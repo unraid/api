@@ -1,21 +1,17 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon, LinkIcon } from '@heroicons/vue/24/solid';
 import { Badge, BrandButton } from '@unraid/ui';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import { useAccountStore } from '~/store/account';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 
+const { t } = useI18n();
 const accountStore = useAccountStore();
 const replaceRenewStore = useReplaceRenewStore();
 const { keyLinkedStatus, keyLinkedOutput } = storeToRefs(replaceRenewStore);
-
-defineProps<{
-  t: ComposerTranslation;
-}>();
 </script>
 
 <template>

@@ -288,7 +288,7 @@ const showUpdateEligibility = computed(() => {
             </p>
           </div>
           <div v-if="showUpdateEligibility" class="mt-1 italic opacity-75">
-            <RegistrationUpdateExpiration v-if="refreshServerStateStatus === 'done'" :t="t" />
+            <RegistrationUpdateExpiration v-if="refreshServerStateStatus === 'done'" />
             <p v-else>
               {{ t('userProfile.callbackFeedback.calculatingOsUpdateEligibility') }}
             </p>

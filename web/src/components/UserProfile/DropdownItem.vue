@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { Button } from '@unraid/ui';
 
 import type { ServerStateDataAction } from '~/types/server';
 import type { UserProfileLink } from '~/types/userProfile';
-import type { ComposerTranslation } from 'vue-i18n';
 
 export interface Props {
   item: ServerStateDataAction | UserProfileLink;
   rounded?: boolean;
-  t: ComposerTranslation;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   rounded: true,
 });
+const { t } = useI18n();
 
 const showExternalIconOnHover = computed(
   () => props.item?.external && props.item.icon !== ArrowTopRightOnSquareIcon
