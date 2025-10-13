@@ -15,14 +15,7 @@ export const MOVE_DOCKER_ITEMS_TO_POSITION = gql`
       views {
         id
         name
-        root {
-          __typename
-          ... on ResolvedOrganizerFolder {
-            id
-            name
-            type
-          }
-        }
+        rootId
         flatEntries {
           id
           type

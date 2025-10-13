@@ -4,8 +4,6 @@ import { resolveOrganizer } from '@app/unraid-api/organizer/organizer.js';
 import {
     OrganizerResource,
     OrganizerV1,
-    ResolvedOrganizerEntryType,
-    ResolvedOrganizerFolder,
     ResolvedOrganizerV1,
 } from '@app/unraid-api/organizer/organizer.model.js';
 
@@ -72,36 +70,48 @@ describe('Organizer Resolver', () => {
         const defaultView = resolved.views[0];
         expect(defaultView.id).toBe('default');
         expect(defaultView.name).toBe('Default View');
-        expect(defaultView.root.type).toBe('folder');
+        expect(defaultView.rootId).toBe('root-folder');
 
-        if (defaultView.root.type === 'folder') {
-            const rootFolder = defaultView.root as ResolvedOrganizerFolder;
-            expect(rootFolder.name).toBe('Root');
-            expect(rootFolder.children).toHaveLength(2);
+        // Check flatEntries structure
+        const flatEntries = defaultView.flatEntries;
+        expect(flatEntries).toHaveLength(4);
 
-            // First child should be the resolved container1
-            const firstChild = rootFolder.children[0];
-            expect(firstChild.type).toBe('container');
-            expect(firstChild.id).toBe('container1');
-            expect(firstChild.name).toBe('My Container');
+        // Root folder
+        const rootEntry = flatEntries[0];
+        expect(rootEntry.id).toBe('root-folder');
+        expect(rootEntry.type).toBe('folder');
+        expect(rootEntry.name).toBe('Root');
+        expect(rootEntry.depth).toBe(0);
+        expect(rootEntry.parentId).toBeUndefined();
+        expect(rootEntry.childrenIds).toEqual(['container1-ref', 'subfolder']);
 
-            // Second child should be the resolved subfolder
-            const secondChild = rootFolder.children[1];
-            expect(secondChild.type).toBe('folder');
-            if (secondChild.type === 'folder') {
-                const subFolder = secondChild as ResolvedOrganizerFolder;
-                expect(subFolder.name).toBe('Subfolder');
-                expect(subFolder.children).toHaveLength(1);
+        // First child (container1-ref resolved to container)
+        const container1Entry = flatEntries[1];
+        expect(container1Entry.id).toBe('container1-ref');
+        expect(container1Entry.type).toBe('container');
+        expect(container1Entry.name).toBe('My Container');
+        expect(container1Entry.depth).toBe(1);
+        expect(container1Entry.parentId).toBe('root-folder');
 
-                const nestedChild = subFolder.children[0];
-                expect(nestedChild.type).toBe('container');
-                expect(nestedChild.id).toBe('container2');
-                expect(nestedChild.name).toBe('Another Container');
-            }
-        }
+        // Subfolder
+        const subfolderEntry = flatEntries[2];
+        expect(subfolderEntry.id).toBe('subfolder');
+        expect(subfolderEntry.type).toBe('folder');
+        expect(subfolderEntry.name).toBe('Subfolder');
+        expect(subfolderEntry.depth).toBe(1);
+        expect(subfolderEntry.parentId).toBe('root-folder');
+        expect(subfolderEntry.childrenIds).toEqual(['container2-ref']);
+
+        // Nested container
+        const container2Entry = flatEntries[3];
+        expect(container2Entry.id).toBe('container2-ref');
+        expect(container2Entry.type).toBe('container');
+        expect(container2Entry.name).toBe('Another Container');
+        expect(container2Entry.depth).toBe(2);
+        expect(container2Entry.parentId).toBe('subfolder');
     });
 
-    test('should throw error for missing resource', () => {
+    test('should handle missing resource gracefully', () => {
         const organizer: OrganizerV1 = {
             version: 1,
             resources: {},
@@ -127,12 +137,19 @@ describe('Organizer Resolver', () => {
             },
         };
 
-        expect(() => resolveOrganizer(organizer)).toThrow(
-            "Resource with id 'nonexistent-resource' not found"
-        );
+        const resolved = resolveOrganizer(organizer);
+        const flatEntries = resolved.views[0].flatEntries;
+        
+        // Should have 2 entries: root folder and the ref (kept as ref type since resource not found)
+        expect(flatEntries).toHaveLength(2);
+        
+        const missingRefEntry = flatEntries[1];
+        expect(missingRefEntry.id).toBe('missing-ref');
+        expect(missingRefEntry.type).toBe('ref'); // Stays as ref when resource not found
+        expect(missingRefEntry.meta).toBeUndefined();
     });
 
-    test('should throw error for missing entry', () => {
+    test('should skip missing entries gracefully', () => {
         const organizer: OrganizerV1 = {
             version: 1,
             resources: {},
@@ -153,9 +170,12 @@ describe('Organizer Resolver', () => {
             },
         };
 
-        expect(() => resolveOrganizer(organizer)).toThrow(
-            "Entry with id 'nonexistent-entry' not found in view"
-        );
+        const resolved = resolveOrganizer(organizer);
+        const flatEntries = resolved.views[0].flatEntries;
+        
+        // Should only have root folder, missing entry is skipped
+        expect(flatEntries).toHaveLength(1);
+        expect(flatEntries[0].id).toBe('root-folder');
     });
 
     test('should resolve empty folders correctly', () => {
@@ -207,30 +227,27 @@ describe('Organizer Resolver', () => {
         const defaultView = resolved.views[0];
         expect(defaultView.id).toBe('default');
         expect(defaultView.name).toBe('Default View');
-        expect(defaultView.root.type).toBe('folder');
+        expect(defaultView.rootId).toBe('root');
 
-        if (defaultView.root.type === 'folder') {
-            const rootFolder = defaultView.root as ResolvedOrganizerFolder;
-            expect(rootFolder.name).toBe('Root');
-            expect(rootFolder.children).toHaveLength(2);
+        const flatEntries = defaultView.flatEntries;
+        expect(flatEntries).toHaveLength(3);
 
-            // First child should be the resolved container
-            const firstChild = rootFolder.children[0];
-            expect(firstChild.type).toBe('container');
-            expect(firstChild.id).toBe('container1');
+        // Root folder
+        expect(flatEntries[0].id).toBe('root');
+        expect(flatEntries[0].type).toBe('folder');
+        expect(flatEntries[0].name).toBe('Root');
 
-            // Second child should be the resolved empty folder
-            const secondChild = rootFolder.children[1];
-            expect(secondChild.type).toBe('folder');
-            expect(secondChild.id).toBe('empty-folder');
+        // First child - resolved container
+        expect(flatEntries[1].id).toBe('container1-ref');
+        expect(flatEntries[1].type).toBe('container');
+        expect(flatEntries[1].name).toBe('My Container');
 
-            if (secondChild.type === 'folder') {
-                const emptyFolder = secondChild as ResolvedOrganizerFolder;
-                expect(emptyFolder.name).toBe('Empty Folder');
-                expect(emptyFolder.children).toEqual([]);
-                expect(emptyFolder.children).toHaveLength(0);
-            }
-        }
+        // Second child - empty folder
+        expect(flatEntries[2].id).toBe('empty-folder');
+        expect(flatEntries[2].type).toBe('folder');
+        expect(flatEntries[2].name).toBe('Empty Folder');
+        expect(flatEntries[2].childrenIds).toEqual([]);
+        expect(flatEntries[2].hasChildren).toBe(false);
     });
 
     test('should handle real-world scenario with containers and empty folder', () => {
@@ -314,24 +331,19 @@ describe('Organizer Resolver', () => {
         expect(resolved.views).toHaveLength(1);
 
         const defaultView = resolved.views[0];
-        expect(defaultView.root.type).toBe('folder');
+        expect(defaultView.rootId).toBe('root');
 
-        if (defaultView.root.type === 'folder') {
-            const rootFolder = defaultView.root as ResolvedOrganizerFolder;
-            expect(rootFolder.children).toHaveLength(4);
+        const flatEntries = defaultView.flatEntries;
+        expect(flatEntries).toHaveLength(5); // root + 3 containers + empty folder
 
-            // Last child should be the empty folder (not an empty object)
-            const lastChild = rootFolder.children[3];
-            expect(lastChild).not.toEqual({}); // This should NOT be an empty object
-            expect(lastChild.type).toBe('folder');
-            expect(lastChild.id).toBe('new-folder');
-
-            if (lastChild.type === 'folder') {
-                const newFolder = lastChild as ResolvedOrganizerFolder;
-                expect(newFolder.name).toBe('new-folder');
-                expect(newFolder.children).toEqual([]);
-            }
-        }
+        // Last entry should be the empty folder (not missing or malformed)
+        const lastEntry = flatEntries[4];
+        expect(lastEntry).toBeDefined();
+        expect(lastEntry.type).toBe('folder');
+        expect(lastEntry.id).toBe('new-folder');
+        expect(lastEntry.name).toBe('new-folder');
+        expect(lastEntry.childrenIds).toEqual([]);
+        expect(lastEntry.hasChildren).toBe(false);
     });
 
     test('should handle nested empty folders correctly', () => {
@@ -373,31 +385,28 @@ describe('Organizer Resolver', () => {
         expect(resolved.views).toHaveLength(1);
 
         const defaultView = resolved.views[0];
-        expect(defaultView.root.type).toBe('folder');
+        expect(defaultView.rootId).toBe('root');
 
-        if (defaultView.root.type === 'folder') {
-            const rootFolder = defaultView.root as ResolvedOrganizerFolder;
-            expect(rootFolder.children).toHaveLength(1);
+        const flatEntries = defaultView.flatEntries;
+        expect(flatEntries).toHaveLength(3);
 
-            const level1Folder = rootFolder.children[0];
-            expect(level1Folder.type).toBe('folder');
-            expect(level1Folder.id).toBe('level1-folder');
+        // Root
+        expect(flatEntries[0].id).toBe('root');
+        expect(flatEntries[0].depth).toBe(0);
 
-            if (level1Folder.type === 'folder') {
-                const level1 = level1Folder as ResolvedOrganizerFolder;
-                expect(level1.children).toHaveLength(1);
+        // Level 1 folder
+        expect(flatEntries[1].id).toBe('level1-folder');
+        expect(flatEntries[1].type).toBe('folder');
+        expect(flatEntries[1].depth).toBe(1);
+        expect(flatEntries[1].parentId).toBe('root');
 
-                const level2Folder = level1.children[0];
-                expect(level2Folder.type).toBe('folder');
-                expect(level2Folder.id).toBe('level2-folder');
-
-                if (level2Folder.type === 'folder') {
-                    const level2 = level2Folder as ResolvedOrganizerFolder;
-                    expect(level2.children).toEqual([]);
-                    expect(level2.children).toHaveLength(0);
-                }
-            }
-        }
+        // Level 2 folder (empty)
+        expect(flatEntries[2].id).toBe('level2-folder');
+        expect(flatEntries[2].type).toBe('folder');
+        expect(flatEntries[2].depth).toBe(2);
+        expect(flatEntries[2].parentId).toBe('level1-folder');
+        expect(flatEntries[2].childrenIds).toEqual([]);
+        expect(flatEntries[2].hasChildren).toBe(false);
     });
 
     test('should validate that all resolved objects have proper structure', () => {
@@ -443,30 +452,24 @@ describe('Organizer Resolver', () => {
 
         const resolved: ResolvedOrganizerV1 = resolveOrganizer(organizer);
 
-        // Recursively validate that all objects have proper structure
-        function validateResolvedEntry(entry: ResolvedOrganizerEntryType) {
+        // Validate that all flat entries have proper structure
+        const flatEntries = resolved.views[0].flatEntries;
+        expect(flatEntries).toHaveLength(3); // root + container + empty folder
+
+        flatEntries.forEach((entry) => {
             expect(entry).toBeDefined();
             expect(entry).not.toEqual({});
             expect(entry).toHaveProperty('id');
             expect(entry).toHaveProperty('type');
             expect(entry).toHaveProperty('name');
+            expect(entry).toHaveProperty('depth');
+            expect(entry).toHaveProperty('childrenIds');
             expect(typeof entry.id).toBe('string');
             expect(typeof entry.type).toBe('string');
             expect(typeof entry.name).toBe('string');
-
-            if (entry.type === 'folder') {
-                const folder = entry as ResolvedOrganizerFolder;
-                expect(folder).toHaveProperty('children');
-                expect(Array.isArray(folder.children)).toBe(true);
-
-                // Recursively validate children
-                folder.children.forEach((child) => validateResolvedEntry(child));
-            }
-        }
-
-        if (resolved.views[0].root.type === 'folder') {
-            validateResolvedEntry(resolved.views[0].root);
-        }
+            expect(typeof entry.depth).toBe('number');
+            expect(Array.isArray(entry.childrenIds)).toBe(true);
+        });
     });
 
     test('should maintain object identity and not return empty objects', () => {
@@ -510,22 +513,19 @@ describe('Organizer Resolver', () => {
 
         const resolved: ResolvedOrganizerV1 = resolveOrganizer(organizer);
 
-        if (resolved.views[0].root.type === 'folder') {
-            const rootFolder = resolved.views[0].root as ResolvedOrganizerFolder;
-            expect(rootFolder.children).toHaveLength(3);
+        const flatEntries = resolved.views[0].flatEntries;
+        expect(flatEntries).toHaveLength(4); // root + 3 empty folders
 
-            // Ensure none of the children are empty objects
-            rootFolder.children.forEach((child, index) => {
-                expect(child).not.toEqual({});
-                expect(child.type).toBe('folder');
-                expect(child.id).toBe(`empty${index + 1}`);
-                expect(child.name).toBe(`Empty ${index + 1}`);
-
-                if (child.type === 'folder') {
-                    const folder = child as ResolvedOrganizerFolder;
-                    expect(folder.children).toEqual([]);
-                }
-            });
-        }
+        // Ensure none of the entries are malformed
+        const emptyFolders = flatEntries.slice(1); // Skip root
+        emptyFolders.forEach((entry, index) => {
+            expect(entry).not.toEqual({});
+            expect(entry).toBeDefined();
+            expect(entry.type).toBe('folder');
+            expect(entry.id).toBe(`empty${index + 1}`);
+            expect(entry.name).toBe(`Empty ${index + 1}`);
+            expect(entry.childrenIds).toEqual([]);
+            expect(entry.hasChildren).toBe(false);
+        });
     });
 });
