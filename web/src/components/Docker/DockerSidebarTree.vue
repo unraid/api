@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-
 import DockerContainersTable from '@/components/Docker/DockerContainersTable.vue';
+
+import type { DockerContainer, FlatOrganizerEntry } from '@/composables/gql/graphql';
 
 interface Emits {
   (e: 'item:click', item: { id: string; type: string; name: string }): void;
@@ -9,20 +9,24 @@ interface Emits {
 }
 
 interface Props {
+  containers?: DockerContainer[];
+  flatEntries?: FlatOrganizerEntry[];
+  rootFolderId?: string;
   selectedIds?: string[];
   activeId?: string | null;
   disabled?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  containers: () => [],
+  flatEntries: undefined,
+  rootFolderId: 'root',
   selectedIds: () => [],
   activeId: null,
   disabled: false,
 });
 
 const emit = defineEmits<Emits>();
-
-const containers = computed(() => []);
 
 function onRowClick(payload: {
   id: string;
@@ -56,7 +60,9 @@ function onRowSelect(payload: {
 <template>
   <div class="space-y-2">
     <DockerContainersTable
-      :containers="containers"
+      :containers="props.containers"
+      :flat-entries="props.flatEntries"
+      :root-folder-id="props.rootFolderId"
       compact
       :active-id="activeId"
       :selected-ids="selectedIds"
