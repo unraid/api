@@ -132,6 +132,7 @@ export type AddRoleForApiKeyInput = {
 export type ApiConfig = {
   __typename?: 'ApiConfig';
   extraOrigins: Array<Scalars['String']['output']>;
+  lastSeenOsVersion?: Maybe<Scalars['String']['output']>;
   plugins: Array<Scalars['String']['output']>;
   sandbox?: Maybe<Scalars['Boolean']['output']>;
   ssoSubIds: Array<Scalars['String']['output']>;
@@ -432,6 +433,12 @@ export type CloudResponse = {
   error?: Maybe<Scalars['String']['output']>;
   ip?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
+};
+
+/** Input for marking an upgrade onboarding step as completed */
+export type CompleteUpgradeStepInput = {
+  /** Identifier of the onboarding step to mark completed */
+  stepId: Scalars['String']['input'];
 };
 
 export type Config = Node & {
@@ -1236,6 +1243,7 @@ export type Mutation = {
   /** Initiates a flash drive backup using a configured remote. */
   initiateFlashBackup: FlashBackupStatus;
   moveDockerEntriesToFolder: ResolvedOrganizerV1;
+  onboarding: OnboardingMutations;
   parityCheck: ParityCheckMutations;
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
@@ -1505,6 +1513,19 @@ export type OidcSessionValidation = {
   __typename?: 'OidcSessionValidation';
   username?: Maybe<Scalars['String']['output']>;
   valid: Scalars['Boolean']['output'];
+};
+
+/** Onboarding related mutations */
+export type OnboardingMutations = {
+  __typename?: 'OnboardingMutations';
+  /** Mark an upgrade onboarding step as completed for the current OS version */
+  completeUpgradeStep: UpgradeInfo;
+};
+
+
+/** Onboarding related mutations */
+export type OnboardingMutationsCompleteUpgradeStepArgs = {
+  input: CompleteUpgradeStepInput;
 };
 
 export type OrganizerContainerResource = {
@@ -2319,6 +2340,8 @@ export type UpdateSystemTimeInput = {
 
 export type UpgradeInfo = {
   __typename?: 'UpgradeInfo';
+  /** Onboarding step identifiers completed for the current OS version */
+  completedSteps: Array<Scalars['String']['output']>;
   /** Current OS version */
   currentVersion?: Maybe<Scalars['String']['output']>;
   /** Whether the OS version has changed since last boot */

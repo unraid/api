@@ -9,7 +9,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { API_VERSION, PATHS_CONFIG_MODULES } from '@app/environment.js';
 import { ApiConfigPersistence, loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
-import { OsVersionTracker } from '@app/unraid-api/config/os-version-tracker.module.js';
+import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
 
 vi.mock('@app/core/utils/files/file-exists.js', () => ({
     fileExists: vi.fn(),
@@ -104,16 +104,20 @@ describe('ApiConfigPersistence', () => {
     });
 });
 
-describe('OsVersionTracker', () => {
-    const trackerPath = path.join(PATHS_CONFIG_MODULES, 'os-version-tracker.json');
+describe('OnboardingTracker', () => {
+    const trackerPath = path.join(PATHS_CONFIG_MODULES, 'onboarding-tracker.json');
     let configService: ConfigService;
     let setMock: ReturnType<typeof vi.fn>;
+    let configStore: Record<string, unknown>;
 
     beforeEach(() => {
-        setMock = vi.fn();
+        configStore = {};
+        setMock = vi.fn((key: string, value: unknown) => {
+            configStore[key] = value;
+        });
         configService = {
             set: setMock,
-            get: vi.fn(),
+            get: vi.fn((key: string) => configStore[key]),
             getOrThrow: vi.fn(),
         } as any;
 
@@ -121,7 +125,7 @@ describe('OsVersionTracker', () => {
         mockAtomicWriteFile.mockReset();
     });
 
-    it('persists current version when tracker is missing', async () => {
+    it('defers persisting last seen version until shutdown', async () => {
         mockReadFile.mockImplementation(async (filePath) => {
             if (filePath === '/etc/unraid-version') {
                 return 'version="7.2.0-beta.3.4"\n';
@@ -129,12 +133,17 @@ describe('OsVersionTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OsVersionTracker(configService);
+        const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
-        expect(setMock).toHaveBeenCalledWith('api.currentOsVersion', '7.2.0-beta.3.4');
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', '7.2.0-beta.3.4');
         expect(setMock).toHaveBeenCalledWith('store.emhttp.var.version', '7.2.0-beta.3.4');
-        expect(setMock).toHaveBeenCalledWith('api.lastSeenOsVersion', undefined);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', undefined);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.completedSteps', {});
+        expect(configStore['api.lastSeenOsVersion']).toBeUndefined();
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+
+        await tracker.onApplicationShutdown();
 
         expect(mockAtomicWriteFile).toHaveBeenCalledWith(
             trackerPath,
@@ -152,30 +161,130 @@ describe('OsVersionTracker', () => {
                 return JSON.stringify({
                     lastTrackedVersion: '6.12.0',
                     updatedAt: '2024-01-01T00:00:00.000Z',
+                    completedSteps: {
+                        timezone: {
+                            version: '6.12.0',
+                            completedAt: '2024-01-02T00:00:00.000Z',
+                        },
+                    },
                 });
             }
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OsVersionTracker(configService);
+        const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
-        expect(setMock).toHaveBeenCalledWith('api.currentOsVersion', '6.12.0');
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', '6.12.0');
         expect(setMock).toHaveBeenCalledWith('store.emhttp.var.version', '6.12.0');
-        expect(setMock).toHaveBeenCalledWith('api.lastSeenOsVersion', '6.12.0');
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', '6.12.0');
+        expect(setMock).toHaveBeenCalledWith(
+            'onboardingTracker.completedSteps',
+            expect.objectContaining({
+                timezone: expect.objectContaining({ version: '6.12.0' }),
+            })
+        );
+        expect(configStore['api.lastSeenOsVersion']).toBe('6.12.0');
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+
+        await tracker.onApplicationShutdown();
+
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+    });
+
+    it('keeps previous version available to signal upgrade until shutdown', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === '/etc/unraid-version') {
+                return 'version="7.1.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '7.0.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {},
+                });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        const snapshot = tracker.getUpgradeSnapshot();
+        expect(snapshot.currentVersion).toBe('7.1.0');
+        expect(snapshot.lastTrackedVersion).toBe('7.0.0');
+        expect(snapshot.completedSteps).toEqual([]);
+
+        expect(configStore['onboardingTracker.lastTrackedVersion']).toBe('7.0.0');
+        expect(configStore['store.emhttp.var.version']).toBe('7.1.0');
+        expect(configStore['onboardingTracker.completedSteps']).toEqual({});
+        expect(configStore['api.lastSeenOsVersion']).toBe('7.0.0');
+
         expect(mockAtomicWriteFile).not.toHaveBeenCalled();
     });
 
     it('handles missing version file gracefully', async () => {
         mockReadFile.mockRejectedValue(new Error('permission denied'));
 
-        const tracker = new OsVersionTracker(configService);
+        const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
-        expect(setMock).toHaveBeenCalledWith('api.currentOsVersion', undefined);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', undefined);
         expect(setMock).toHaveBeenCalledWith('store.emhttp.var.version', undefined);
-        expect(setMock).toHaveBeenCalledWith('api.lastSeenOsVersion', undefined);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', undefined);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.completedSteps', {});
         expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+        expect(configStore['api.lastSeenOsVersion']).toBeUndefined();
+    });
+
+    it('marks onboarding steps complete for the current version without clearing upgrade flag', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === '/etc/unraid-version') {
+                return 'version="7.2.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '6.12.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {},
+                });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        expect(configStore['store.emhttp.var.version']).toBe('7.2.0');
+        expect(configStore['onboardingTracker.lastTrackedVersion']).toBe('6.12.0');
+        expect(configStore['api.lastSeenOsVersion']).toBe('6.12.0');
+
+        setMock.mockClear();
+        mockAtomicWriteFile.mockReset();
+
+        const snapshot = await tracker.markStepCompleted('timezone');
+
+        expect(snapshot.currentVersion).toBe('7.2.0');
+        expect(snapshot.completedSteps).toContain('timezone');
+        expect(snapshot.lastTrackedVersion).toBe('6.12.0');
+
+        expect(mockAtomicWriteFile).toHaveBeenCalledWith(
+            trackerPath,
+            expect.stringContaining('"timezone"'),
+            { mode: 0o644 }
+        );
+
+        expect(setMock).toHaveBeenCalledWith(
+            'onboardingTracker.completedSteps',
+            expect.objectContaining({
+                timezone: expect.objectContaining({ version: '7.2.0' }),
+            })
+        );
+
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', '6.12.0');
+
+        const postSnapshot = tracker.getUpgradeSnapshot();
+        expect(postSnapshot.lastTrackedVersion).toBe('6.12.0');
     });
 });
 

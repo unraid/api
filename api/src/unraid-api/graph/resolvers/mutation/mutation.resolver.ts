@@ -4,6 +4,7 @@ import {
     ApiKeyMutations,
     ArrayMutations,
     DockerMutations,
+    OnboardingMutations,
     ParityCheckMutations,
     RCloneMutations,
     RootMutations,
@@ -40,5 +41,10 @@ export class RootMutationsResolver {
     @Mutation(() => RCloneMutations, { name: 'rclone' })
     rclone(): RCloneMutations {
         return new RCloneMutations();
+    }
+
+    @Mutation(() => OnboardingMutations, { name: 'onboarding' })
+    onboarding(): OnboardingMutations {
+        return new OnboardingMutations();
     }
 }
