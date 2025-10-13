@@ -14,7 +14,6 @@ import { writeFile } from 'atomically';
 import { PATHS_CONFIG_MODULES } from '@app/environment.js';
 
 const TRACKER_FILE_NAME = 'onboarding-tracker.json';
-const LEGACY_TRACKER_FILE_NAME = 'os-version-tracker.json';
 const CONFIG_PREFIX = 'onboardingTracker';
 const OS_VERSION_FILE_PATH = '/etc/unraid-version';
 
@@ -39,7 +38,6 @@ export type UpgradeProgressSnapshot = {
 export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationShutdown {
     private readonly logger = new Logger(OnboardingTracker.name);
     private readonly trackerPath = path.join(PATHS_CONFIG_MODULES, TRACKER_FILE_NAME);
-    private readonly legacyTrackerPath = path.join(PATHS_CONFIG_MODULES, LEGACY_TRACKER_FILE_NAME);
     private state: TrackerState = {};
     private sessionLastTrackedVersion?: string;
     private currentVersion?: string;
@@ -181,28 +179,6 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
             return JSON.parse(content) as TrackerState;
         } catch (error) {
             this.logger.debug(error, `Unable to read onboarding tracker state at ${this.trackerPath}`);
-
-            const legacyState = await this.readLegacyTrackerState();
-            if (legacyState) {
-                return legacyState;
-            }
-
-            return undefined;
-        }
-    }
-
-    private async readLegacyTrackerState(): Promise<TrackerState | undefined> {
-        try {
-            const content = await readFile(this.legacyTrackerPath, 'utf8');
-            this.logger.log(
-                `Loaded legacy onboarding tracker state from ${LEGACY_TRACKER_FILE_NAME}; will persist to ${TRACKER_FILE_NAME}`
-            );
-            return JSON.parse(content) as TrackerState;
-        } catch (error) {
-            this.logger.debug(
-                error,
-                `Unable to read legacy onboarding tracker state at ${this.legacyTrackerPath}`
-            );
             return undefined;
         }
     }
