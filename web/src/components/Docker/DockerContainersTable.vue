@@ -113,6 +113,8 @@ function toContainerTreeRow(
 const flatEntriesRef = computed(() => props.flatEntries);
 const containersRef = computed(() => props.containers);
 
+const rootFolderId = computed<string>(() => props.rootFolderId || 'root');
+
 const { treeData, entryParentById, folderChildrenIds, parentById, positionById, getRowById } =
   useTreeData<DockerContainer>({
     flatEntries: flatEntriesRef,
@@ -123,8 +125,6 @@ const { treeData, entryParentById, folderChildrenIds, parentById, positionById, 
 const { visibleFolders, expandedFolders, toggleExpandFolder, setExpandedFolders } = useFolderTree({
   flatEntries: flatEntriesRef,
 });
-
-const rootFolderId = computed<string>(() => props.rootFolderId || 'root');
 const busyRowIds = ref<Set<string>>(new Set());
 
 function setRowsBusy(ids: string[], busy: boolean) {

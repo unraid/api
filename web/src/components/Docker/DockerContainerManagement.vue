@@ -284,6 +284,9 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
         <USkeleton v-if="loading" class="h-6 w-full" :ui="{ rounded: 'rounded' }" />
         <DockerSidebarTree
           v-else
+          :containers="containers"
+          :flat-entries="flatEntries"
+          :root-folder-id="rootFolderId"
           :selected-ids="selectedIds"
           :active-id="activeId"
           :disabled="props.disabled || loading"
