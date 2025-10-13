@@ -15,7 +15,7 @@ import { PATHS_CONFIG_MODULES } from '@app/environment.js';
 
 const TRACKER_FILE_NAME = 'onboarding-tracker.json';
 const CONFIG_PREFIX = 'onboardingTracker';
-const OS_VERSION_FILE_PATH = '/etc/unraid-version';
+const DEFAULT_OS_VERSION_FILE_PATH = '/etc/unraid-version';
 
 type CompletedStepState = {
     version: string;
@@ -41,8 +41,14 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
     private state: TrackerState = {};
     private sessionLastTrackedVersion?: string;
     private currentVersion?: string;
+    private readonly versionFilePath: string;
 
-    constructor(private readonly configService: ConfigService) {}
+    constructor(private readonly configService: ConfigService) {
+        const unraidDataDir = this.configService.get<string>('PATHS_UNRAID_DATA');
+        this.versionFilePath = unraidDataDir
+            ? path.join(unraidDataDir, 'unraid-version')
+            : DEFAULT_OS_VERSION_FILE_PATH;
+    }
 
     async onApplicationBootstrap() {
         this.currentVersion = await this.readCurrentVersion();
@@ -164,11 +170,11 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
 
     private async readCurrentVersion(): Promise<string | undefined> {
         try {
-            const contents = await readFile(OS_VERSION_FILE_PATH, 'utf8');
+            const contents = await readFile(this.versionFilePath, 'utf8');
             const match = contents.match(/^\s*version\s*=\s*"([^"]+)"\s*$/m);
             return match?.[1]?.trim() || undefined;
         } catch (error) {
-            this.logger.error(error, `Failed to read current OS version from ${OS_VERSION_FILE_PATH}`);
+            this.logger.error(error, `Failed to read current OS version from ${this.versionFilePath}`);
             return undefined;
         }
     }
