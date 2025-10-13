@@ -20,6 +20,7 @@ declare module 'vue' {
     'ApiStatus.standalone': typeof import('./src/components/ApiStatus/ApiStatus.standalone.vue')['default']
     'Auth.standalone': typeof import('./src/components/Auth.standalone.vue')['default']
     Avatar: typeof import('./src/components/Brand/Avatar.vue')['default']
+    BaseTreeTable: typeof import('./src/components/Common/BaseTreeTable.vue')['default']
     Beta: typeof import('./src/components/UserProfile/Beta.vue')['default']
     CallbackButton: typeof import('./src/components/UpdateOs/CallbackButton.vue')['default']
     CallbackFeedback: typeof import('./src/components/UserProfile/CallbackFeedback.vue')['default']

@@ -2,7 +2,7 @@
 import { computed, h, ref, resolveComponent, watch } from 'vue';
 import { useMutation } from '@vue/apollo-composable';
 
-// removed unused Button import
+import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
 import { CREATE_DOCKER_FOLDER } from '@/components/Docker/docker-create-folder.mutation';
 import { DELETE_DOCKER_ENTRIES } from '@/components/Docker/docker-delete-entries.mutation';
@@ -13,14 +13,20 @@ import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-contain
 import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container.mutation';
 import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-container.mutation';
 import { ContainerState } from '@/composables/gql/graphql';
+import { useContainerActions } from '@/composables/useContainerActions';
+import { useFolderOperations } from '@/composables/useFolderOperations';
+import { useFolderTree } from '@/composables/useFolderTree';
+import { useTreeData } from '@/composables/useTreeData';
 
 import type {
   DockerContainer,
   ResolvedOrganizerEntry,
   ResolvedOrganizerFolder,
 } from '@/composables/gql/graphql';
+import type { DropEvent } from '@/composables/useDragDrop';
+import type { TreeRow } from '@/composables/useTreeData';
 import type { TableColumn } from '@nuxt/ui';
-import type { Component, VNode } from 'vue';
+import type { Component } from 'vue';
 
 interface Props {
   containers: DockerContainer[];
@@ -39,31 +45,30 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const UButton = resolveComponent('UButton');
-const UCheckbox = resolveComponent('UCheckbox');
 const UBadge = resolveComponent('UBadge');
 const UInput = resolveComponent('UInput');
 const UDropdownMenu = resolveComponent('UDropdownMenu');
-const UContextMenu = resolveComponent('UContextMenu');
 const UModal = resolveComponent('UModal');
 const USkeleton = resolveComponent('USkeleton') as Component;
 
-// --- Drag and Drop state ---
-type DropArea = 'before' | 'after' | 'inside';
-const draggingIds = ref<string[]>([]);
-const dragOverState = ref<{ rowId: string; area: DropArea | null } | null>(null);
-
-function isDraggingId(id: string): boolean {
-  return draggingIds.value.includes(id);
-}
-
-function computeDropArea(e: DragEvent, el: HTMLElement): DropArea {
-  const rect = el.getBoundingClientRect();
-  const y = e.clientY - rect.top;
-  const threshold = Math.max(8, rect.height * 0.3);
-  if (y < threshold) return 'before';
-  if (y > rect.height - threshold) return 'after';
-  return 'inside';
-}
+const emit = defineEmits<{
+  (e: 'created-folder'): void;
+  (
+    e: 'row:click',
+    payload: { id: string; type: 'container' | 'folder'; name: string; containerId?: string }
+  ): void;
+  (
+    e: 'row:select',
+    payload: {
+      id: string;
+      type: 'container' | 'folder';
+      name: string;
+      containerId?: string;
+      selected: boolean;
+    }
+  ): void;
+  (e: 'update:selectedIds', value: string[]): void;
+}>();
 
 function formatPorts(container?: DockerContainer | null): string {
   if (!container) return '';
@@ -81,19 +86,10 @@ function formatPorts(container?: DockerContainer | null): string {
     .join(', ');
 }
 
-type TreeRow = {
-  id: string;
-  type: 'folder' | 'container';
-  name: string;
-  state?: string;
-  ports?: string;
-  autoStart?: string;
-  updates?: string;
-  children?: TreeRow[];
-  containerId?: string;
-};
-
-function toContainerTreeRow(meta: DockerContainer | null | undefined, fallbackName?: string): TreeRow {
+function toContainerTreeRow(
+  meta: DockerContainer | null | undefined,
+  fallbackName?: string
+): TreeRow<DockerContainer> {
   const name = meta?.names?.[0]?.replace(/^\//, '') || fallbackName || 'Unknown';
   const updatesParts: string[] = [];
   if (meta?.isUpdateAvailable) updatesParts.push('Update');
@@ -107,19 +103,11 @@ function toContainerTreeRow(meta: DockerContainer | null | undefined, fallbackNa
     autoStart: meta?.autoStart ? 'On' : 'Off',
     updates: updatesParts.join(' / ') || '—',
     containerId: meta?.id,
+    meta: meta || undefined,
   };
 }
 
-function buildTree(entry: ResolvedOrganizerEntry): TreeRow | null {
-  if (entry.__typename === 'ResolvedOrganizerFolder') {
-    const folder = entry as ResolvedOrganizerFolder;
-    return {
-      id: folder.id,
-      type: 'folder',
-      name: folder.name,
-      children: (folder.children || []).map((child) => buildTree(child)).filter(Boolean) as TreeRow[],
-    };
-  }
+function buildDockerTreeRow(entry: ResolvedOrganizerEntry): TreeRow<DockerContainer> | null {
   if (entry.__typename === 'OrganizerContainerResource') {
     const meta = entry.meta as DockerContainer | null | undefined;
     const row = toContainerTreeRow(meta, entry.name || undefined);
@@ -138,244 +126,56 @@ function buildTree(entry: ResolvedOrganizerEntry): TreeRow | null {
   };
 }
 
-const treeData = computed<TreeRow[]>(() => {
-  if (props.organizerRoot) {
-    const root = props.organizerRoot;
-    return (root.children || []).map((child) => buildTree(child)).filter(Boolean) as TreeRow[];
-  }
-  return props.containers.map((container) => toContainerTreeRow(container));
+const organizerRootRef = computed(() => {
+  if (!props.organizerRoot) return undefined;
+  return {
+    id: props.organizerRoot.id,
+    name: props.organizerRoot.name,
+    children: props.organizerRoot.children,
+  };
 });
 
-// Map every entry id (folders and resources) to its parent folder id for organizer trees
-const entryParentById = computed<Record<string, string>>(() => {
-  const map: Record<string, string> = {};
-  function walk(node?: ResolvedOrganizerFolder | null) {
-    if (!node) return;
-    for (const child of node.children || []) {
-      const id = (child as { id?: string }).id as string | undefined;
-      if (id) map[id] = node.id;
-      if ((child as ResolvedOrganizerEntry).__typename === 'ResolvedOrganizerFolder') {
-        walk(child as ResolvedOrganizerFolder);
-      }
-    }
-  }
-  walk(props.organizerRoot);
-  return map;
+const containersRef = computed(() => props.containers);
+
+const { treeData, entryParentById, folderChildrenIds, parentById, getRowById } =
+  useTreeData<DockerContainer>({
+    organizerRoot: organizerRootRef,
+    flatData: containersRef,
+    buildTreeRow: (entry) => buildDockerTreeRow(entry as ResolvedOrganizerEntry),
+    buildFlatRow: toContainerTreeRow,
+  });
+
+const { visibleFolders, expandedFolders, toggleExpandFolder, setExpandedFolders } = useFolderTree({
+  organizerRoot: organizerRootRef,
 });
 
-type ActionDropdownItem = { label: string; icon?: string; onSelect?: (e?: Event) => void; as?: string };
-type CheckboxDropdownItem = {
-  label: string;
-  type: 'checkbox';
-  checked?: boolean;
-  onUpdateChecked?: (checked: boolean) => void;
-  onSelect?: (e?: Event) => void;
-};
-type DropdownMenuItem = ActionDropdownItem | CheckboxDropdownItem;
-type DropdownMenuItems = DropdownMenuItem[][];
+const rootFolderId = computed<string>(() => props.organizerRoot?.id || '');
+const busyRowIds = ref<Set<string>>(new Set());
 
-function wrapCell(row: { original: TreeRow; depth?: number }, child: VNode) {
-  const isBusy = busyRowIds.value.has((row.original as TreeRow).id);
-  const isActive = props.activeId !== null && props.activeId === (row.original as TreeRow).id;
-  const over = dragOverState.value?.rowId === row.original.id ? dragOverState.value.area : null;
-  const content = h(
-    'div',
-    {
-      'data-row-id': row.original.id,
-      draggable:
-        (row.original as TreeRow).type === 'container' || (row.original as TreeRow).type === 'folder',
-      class: `block w-full h-full px-3 py-2 ${
-        isBusy ? 'opacity-50 pointer-events-none select-none' : ''
-      } ${isActive ? 'bg-primary-50 dark:bg-primary-950/30' : ''} ${
-        (row.original as TreeRow).type === 'container' ? 'cursor-pointer' : ''
-      } ${
-        over === 'before'
-          ? 'border-t-2 border-primary'
-          : over === 'after'
-            ? 'border-b-2 border-primary'
-            : over === 'inside'
-              ? 'ring-2 ring-primary/40'
-              : ''
-      }`,
-      onClick: (e: MouseEvent) => {
-        const target = e.target as HTMLElement | null;
-        if (
-          target &&
-          target.closest('input,button,textarea,a,[role=checkbox],[role=button],[data-stop-row-click]')
-        ) {
-          return;
-        }
-        const r = row.original as TreeRow;
-        emit('row:click', { id: r.id, type: r.type, name: r.name, containerId: r.containerId });
-      },
-      onDragstart: (e: DragEvent) => {
-        if (isBusy) return;
-        const r = row.original as TreeRow;
-        const selected = getSelectedEntryIds();
-        const ids =
-          selected.length && isDraggingId(r.id)
-            ? selected
-            : selected.length && (rowSelection.value[r.id] || false)
-              ? selected
-              : [r.id];
-        draggingIds.value = Array.from(new Set(ids));
-        try {
-          e.dataTransfer?.setData('text/plain', draggingIds.value.join(','));
-          if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
-        } catch (err) {
-          // ignore
-        }
-      },
-      onDragover: (e: DragEvent) => {
-        // Allow dropping if something is being dragged
-        if (!draggingIds.value.length) return;
-        // Prevent dropping onto self in ways that do nothing (still allow to get proper area for siblings)
-        e.preventDefault();
-        const targetEl = e.currentTarget as HTMLElement;
-        const area = computeDropArea(e, targetEl);
-        dragOverState.value = { rowId: row.original.id, area };
-      },
-      onDragleave: () => {
-        if (dragOverState.value?.rowId === row.original.id) dragOverState.value = null;
-      },
-      onDrop: async (e: DragEvent) => {
-        e.preventDefault();
-        const r = row.original as TreeRow;
-        const targetEl = e.currentTarget as HTMLElement;
-        const area = computeDropArea(e, targetEl);
-        const ids = draggingIds.value.length
-          ? draggingIds.value
-          : (e.dataTransfer?.getData('text/plain') || '').split(',').filter(Boolean);
-        await handleDropOnRow(r, area, ids);
-        draggingIds.value = [];
-        dragOverState.value = null;
-      },
-      onDragend: () => {
-        draggingIds.value = [];
-        dragOverState.value = null;
-      },
-    },
-    [child]
-  );
-  return h(
-    UContextMenu,
-    {
-      items: getRowActionItems(row.original as TreeRow),
-      size: 'md',
-      ui: {
-        content: 'overflow-x-hidden z-50',
-        item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
-      },
-    },
-    { default: () => content }
-  );
+function setRowsBusy(ids: string[], busy: boolean) {
+  const next = new Set(busyRowIds.value);
+  for (const id of ids) {
+    if (busy) next.add(id);
+    else next.delete(id);
+  }
+  busyRowIds.value = next;
 }
 
-const columns = computed<TableColumn<TreeRow>[]>(() => {
-  const cols: TableColumn<TreeRow>[] = [
-    {
-      id: 'select',
-      header: () => {
-        if (props.compact) return '';
-        const containers = flattenContainerRows(treeData.value);
-        const totalSelectable = containers.length;
-        const selectedIds = Object.entries(rowSelection.value)
-          .filter(([, selected]) => selected)
-          .map(([id]) => id);
-        const selectedSet = new Set(selectedIds);
-        const selectedCount = containers.reduce(
-          (count, row) => (selectedSet.has(row.id) ? count + 1 : count),
-          0
-        );
-        const allSelected = totalSelectable > 0 && selectedCount === totalSelectable;
-        const someSelected = selectedCount > 0 && !allSelected;
-        return h(UCheckbox, {
-          modelValue: someSelected ? 'indeterminate' : allSelected,
-          'onUpdate:modelValue': () => {
-            const target = someSelected || allSelected ? false : true;
-            const next: Record<string, boolean> = {};
-            if (target) {
-              for (const row of containers) next[row.id] = true;
-            }
-            rowSelection.value = next;
-          },
-          'aria-label': 'Select all',
-        });
-      },
-      cell: ({ row }) => {
-        switch ((row.original as TreeRow).type) {
-          case 'container':
-            return wrapCell(
-              row,
-              h('span', { 'data-stop-row-click': 'true' }, [
-                h(UCheckbox, {
-                  modelValue: row.getIsSelected(),
-                  'onUpdate:modelValue': (value: boolean | 'indeterminate') => {
-                    const next = !!value;
-                    row.toggleSelected(next);
-                    const r = row.original as TreeRow;
-                    emit('row:select', {
-                      id: r.id,
-                      type: r.type,
-                      name: r.name,
-                      containerId: r.containerId,
-                      selected: next,
-                    });
-                  },
-                  'aria-label': 'Select row',
-                  role: 'checkbox',
-                  onClick: (e: Event) => e.stopPropagation(),
-                }),
-              ])
-            );
-          case 'folder':
-            return wrapCell(
-              row,
-              h(UButton, {
-                color: 'neutral',
-                size: 'md',
-                variant: 'ghost',
-                icon: 'i-lucide-chevron-down',
-                square: true,
-                'aria-label': 'Expand',
-                class: 'p-0',
-                ui: {
-                  leadingIcon: [
-                    'transition-transform mt-0.5 -rotate-90',
-                    row.getIsExpanded() ? 'duration-200 rotate-0' : '',
-                  ],
-                },
-                onClick: (e: Event) => {
-                  e.stopPropagation();
-                  row.toggleExpanded();
-                },
-              })
-            );
-          default:
-            return h('span');
-        }
-      },
-      enableSorting: false,
-      enableHiding: false,
-      meta: { class: { th: 'w-10', td: 'w-10' } },
-    },
+const globalFilter = ref('');
+const columnVisibility = ref<Record<string, boolean>>({});
+
+const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
+  const cols: TableColumn<TreeRow<DockerContainer>>[] = [
     {
       accessorKey: 'name',
       header: props.compact ? '' : 'Name',
       cell: ({ row }) => {
         const depth = row.depth;
         const indent = h('span', { class: 'inline-block', style: { width: `calc(${depth} * 1rem)` } });
-        const isFolder = (row.original as TreeRow).type === 'folder';
-        const content = h(
-          'div',
-          { class: 'truncate flex items-center', 'data-row-id': row.original.id },
-          [
-            indent,
-            h('span', { class: 'max-w-[40ch] truncate font-medium' }, row.original.name),
-            isFolder ? h('span') : null,
-          ]
-        );
-        return wrapCell(row, content);
+        return h('div', { class: 'truncate flex items-center', 'data-row-id': row.original.id }, [
+          indent,
+          h('span', { class: 'max-w-[40ch] truncate font-medium' }, row.original.name),
+        ]);
       },
       meta: { class: { td: 'w-[40ch] truncate', th: 'w-[45ch]' } },
     },
@@ -386,72 +186,61 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
         if (row.original.type === 'folder') return '';
         const state = row.original.state ?? '';
         const isBusy = busyRowIds.value.has(row.original.id);
-        const color = {
-          [ContainerState.RUNNING]: 'success' as const,
-          [ContainerState.PAUSED]: 'warning' as const,
-          [ContainerState.EXITED]: 'neutral' as const,
-        }[state];
+        const colorMap: Record<string, 'success' | 'warning' | 'neutral'> = {
+          [ContainerState.RUNNING]: 'success',
+          [ContainerState.PAUSED]: 'warning',
+          [ContainerState.EXITED]: 'neutral',
+        };
+        const color = colorMap[state] || 'neutral';
         if (isBusy) {
-          return wrapCell(row, h(USkeleton, { class: 'h-5 w-20' }));
+          return h(USkeleton, { class: 'h-5 w-20' });
         }
-        return wrapCell(
-          row,
-          h(UBadge, { color }, () => state)
-        );
+        return h(UBadge, { color }, () => state);
       },
     },
     {
       accessorKey: 'ports',
       header: 'Ports',
       cell: ({ row }) =>
-        row.original.type === 'folder'
-          ? ''
-          : wrapCell(row, h('span', null, String(row.getValue('ports') || ''))),
+        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('ports') || '')),
     },
     {
       accessorKey: 'autoStart',
       header: 'Auto Start',
       cell: ({ row }) =>
-        row.original.type === 'folder'
-          ? ''
-          : wrapCell(row, h('span', null, String(row.getValue('autoStart') || ''))),
+        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('autoStart') || '')),
     },
     {
       accessorKey: 'updates',
       header: 'Updates',
       cell: ({ row }) =>
-        row.original.type === 'folder'
-          ? ''
-          : wrapCell(row, h('span', null, String(row.getValue('updates') || ''))),
+        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('updates') || '')),
     },
     {
       id: 'actions',
       header: '',
       cell: ({ row }) => {
-        const items = getRowActionItems(row.original as TreeRow);
-        return wrapCell(
-          row,
-          h(
-            UDropdownMenu,
-            {
-              items,
-              size: 'md',
-              ui: {
-                content: 'overflow-x-hidden z-50',
-                item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
-              },
+        const items = getRowActionItems(row.original as TreeRow<DockerContainer>);
+        return h(
+          UDropdownMenu,
+          {
+            items,
+            size: 'md',
+            ui: {
+              content: 'overflow-x-hidden z-50',
+              item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
             },
-            {
-              default: () =>
-                h(UButton, {
-                  color: 'neutral',
-                  variant: 'ghost',
-                  icon: 'i-lucide-more-vertical',
-                  square: true,
-                  'aria-label': 'Row actions',
-                }),
-            }
-          )
+          },
+          {
+            default: () =>
+              h(UButton, {
+                color: 'neutral',
+                variant: 'ghost',
+                icon: 'i-lucide-more-vertical',
+                square: true,
+                'aria-label': 'Row actions',
+              }),
+          }
         );
       },
       enableSorting: false,
@@ -462,26 +251,6 @@ const columns = computed<TableColumn<TreeRow>[]>(() => {
   return cols;
 });
 
-const rowSelection = ref<Record<string, boolean>>({});
-type NuxtUITableRef = { table?: { getSelectedRowModel: () => { rows: unknown[] } } } | null;
-const tableRef = ref<NuxtUITableRef>(null);
-const selectedCount = computed<number>(() => {
-  return Object.values(rowSelection.value).filter(Boolean).length;
-});
-
-const globalFilter = ref('');
-
-const columnVisibility = ref<Record<string, boolean>>({});
-
-watch(
-  columnVisibility,
-  (value) => {
-    console.log('Visible columns changed:', value);
-  },
-  { deep: true }
-);
-
-// Compact mode defaults: only select + name columns visible
 watch(
   () => props.compact,
   (isCompact) => {
@@ -498,9 +267,12 @@ watch(
   { immediate: true }
 );
 
+type ActionDropdownItem = { label: string; icon?: string; onSelect?: (e?: Event) => void; as?: string };
+type DropdownMenuItems = ActionDropdownItem[][];
+
 const columnsMenuItems = computed<DropdownMenuItems>(() => {
   const keysFromColumns = (columns.value || [])
-    .map((col: TableColumn<TreeRow>) => {
+    .map((col: TableColumn<TreeRow<DockerContainer>>) => {
       type ColumnIdKey = { id?: string; accessorKey?: string; enableHiding?: boolean };
       const { id, accessorKey, enableHiding } = col as ColumnIdKey;
       const key = id ?? accessorKey;
@@ -532,88 +304,6 @@ const columnsMenuItems = computed<DropdownMenuItems>(() => {
   return [list];
 });
 
-const emit = defineEmits<{
-  (e: 'created-folder'): void;
-  (
-    e: 'row:click',
-    payload: { id: string; type: 'container' | 'folder'; name: string; containerId?: string }
-  ): void;
-  (
-    e: 'row:select',
-    payload: {
-      id: string;
-      type: 'container' | 'folder';
-      name: string;
-      containerId?: string;
-      selected: boolean;
-    }
-  ): void;
-  (e: 'update:selectedIds', value: string[]): void;
-}>();
-
-function arraysEqualAsSets(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) return false;
-  const setA = new Set(a);
-  for (const id of b) if (!setA.has(id)) return false;
-  return true;
-}
-
-function flattenContainerRows(rows: TreeRow[]): TreeRow[] {
-  const out: TreeRow[] = [];
-  for (const r of rows) {
-    if (r.type === 'container') out.push(r);
-    if (r.children && r.children.length) out.push(...flattenContainerRows(r.children as TreeRow[]));
-  }
-  return out;
-}
-
-// Sync external selectedIds into table rowSelection (driven only by prop changes)
-watch(
-  () => props.selectedIds,
-  (newVal) => {
-    if (
-      arraysEqualAsSets(
-        newVal || [],
-        Object.entries(rowSelection.value)
-          .filter(([, s]) => s)
-          .map(([id]) => id)
-      )
-    ) {
-      return;
-    }
-    const target = new Set(newVal || []);
-    const next: Record<string, boolean> = {};
-    for (const r of flattenContainerRows(treeData.value)) {
-      next[r.id] = target.has(r.id);
-    }
-    rowSelection.value = next;
-  },
-  { immediate: true }
-);
-
-// When tree changes, preserve existing selection for still-present rows
-watch(
-  treeData,
-  () => {
-    const valid = new Set(flattenContainerRows(treeData.value).map((r) => r.id));
-    const next: Record<string, boolean> = {};
-    for (const [id, selected] of Object.entries(rowSelection.value)) {
-      if (valid.has(id) && selected) next[id] = true;
-    }
-    rowSelection.value = next;
-  },
-  { deep: false }
-);
-
-// Emit external selectedIds when selection changes
-watch(
-  rowSelection,
-  () => {
-    emit('update:selectedIds', getSelectedContainerIds());
-  },
-  { deep: true }
-);
-
 const { mutate: createFolderMutation, loading: creating } = useMutation(CREATE_DOCKER_FOLDER);
 const { mutate: moveEntriesMutation, loading: moving } = useMutation(MOVE_DOCKER_ENTRIES_TO_FOLDER);
 const { mutate: deleteEntriesMutation, loading: deleting } = useMutation(DELETE_DOCKER_ENTRIES);
@@ -623,337 +313,65 @@ const { mutate: stopContainerMutation } = useMutation(STOP_DOCKER_CONTAINER);
 const { mutate: pauseContainerMutation } = useMutation(PAUSE_DOCKER_CONTAINER);
 const { mutate: unpauseContainerMutation } = useMutation(UNPAUSE_DOCKER_CONTAINER);
 
-const moveOpen = ref(false);
-const selectedFolderId = ref<string>('');
-const pendingMoveSourceIds = ref<string[]>([]);
-const expandedFolders = ref<Set<string>>(new Set());
-const renamingFolderId = ref<string>('');
-const renameValue = ref<string>('');
-const newTreeFolderName = ref<string>('');
-
-const rootFolderId = computed<string>(() => props.organizerRoot?.id || '');
-// Busy/disabled rows while performing start/stop
-const busyRowIds = ref<Set<string>>(new Set());
-
-function setRowsBusy(ids: string[], busy: boolean) {
-  const next = new Set(busyRowIds.value);
-  for (const id of ids) {
-    if (busy) next.add(id);
-    else next.delete(id);
-  }
-  busyRowIds.value = next;
-}
-
-function getRowById(targetId: string): TreeRow | undefined {
-  function walk(rows: TreeRow[]): TreeRow | undefined {
-    for (const r of rows) {
-      if (r.id === targetId) return r;
-      if (r.children?.length) {
-        const found = walk(r.children as TreeRow[]);
-        if (found) return found;
-      }
-    }
-    return undefined;
-  }
-  return walk(treeData.value);
-}
-
-function classifyStartStop(ids: string[]) {
-  const toStart: { id: string; containerId: string; name: string }[] = [];
-  const toStop: { id: string; containerId: string; name: string }[] = [];
-  for (const id of ids) {
-    const row = getRowById(id);
-    if (!row || row.type !== 'container') continue;
-    const containerId = row.containerId || row.id;
-    const state = row.state as string | undefined;
-    const name = row.name;
-    if (state === ContainerState.RUNNING) toStop.push({ id, containerId, name });
-    else toStart.push({ id, containerId, name });
-  }
-  return { toStart, toStop };
-}
-
-async function runStartStopBatch(
-  toStart: { id: string; containerId: string; name: string }[],
-  toStop: { id: string; containerId: string; name: string }[]
-) {
-  const totalOps = toStop.length + toStart.length;
-  let completed = 0;
-  // Execute sequentially; attach refetch to the final operation only
-  for (const item of toStop) {
-    completed++;
-    const isLast = completed === totalOps;
-    await stopContainerMutation(
-      { id: item.containerId },
-      isLast
-        ? {
-            refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-            awaitRefetchQueries: true,
-          }
-        : { awaitRefetchQueries: false }
-    );
-  }
-  for (const item of toStart) {
-    completed++;
-    const isLast = completed === totalOps;
-    await startContainerMutation(
-      { id: item.containerId },
-      isLast
-        ? {
-            refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-            awaitRefetchQueries: true,
-          }
-        : { awaitRefetchQueries: false }
-    );
+declare global {
+  interface Window {
+    toast?: {
+      success: (title: string, options?: { description?: string }) => void;
+      error?: (title: string, options?: { description?: string }) => void;
+    };
   }
 }
 
-async function handleRowStartStop(row: TreeRow) {
-  if (row.type !== 'container') return;
-  const containerId = row.containerId || row.id;
-  if (!containerId) return;
-  setRowsBusy([row.id], true);
-  try {
-    const isRunning = row.state === ContainerState.RUNNING;
-    const mutate = isRunning ? stopContainerMutation : startContainerMutation;
-    await mutate(
-      { id: containerId },
-      {
-        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-        awaitRefetchQueries: true,
-      }
-    );
-  } finally {
-    setRowsBusy([row.id], false);
-  }
+function showToast(message: string) {
+  window.toast?.success(message);
 }
 
-// Pause/Resume single row
-async function handleRowPauseResume(row: TreeRow) {
-  if (row.type !== 'container') return;
-  const containerId = row.containerId || row.id;
-  if (!containerId) return;
-  setRowsBusy([row.id], true);
-  try {
-    const isPaused = row.state === ContainerState.PAUSED;
-    const mutate = isPaused ? unpauseContainerMutation : pauseContainerMutation;
-    await mutate(
-      { id: containerId },
-      {
-        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-        awaitRefetchQueries: true,
-      }
-    );
-  } finally {
-    setRowsBusy([row.id], false);
-  }
-}
-
-// Bulk Pause/Resume handling with mixed confirmation
-const confirmPauseResumeOpen = ref(false);
-const confirmToPause = ref<{ name: string }[]>([]);
-const confirmToResume = ref<{ name: string }[]>([]);
-let pendingPauseResumeIds: string[] = [];
-
-function classifyPauseResume(ids: string[]) {
-  const toPause: { id: string; containerId: string; name: string }[] = [];
-  const toResume: { id: string; containerId: string; name: string }[] = [];
-  for (const id of ids) {
-    const row = getRowById(id);
-    if (!row || row.type !== 'container') continue;
-    const containerId = row.containerId || row.id;
-    const state = row.state as string | undefined;
-    const name = row.name;
-    if (state === ContainerState.PAUSED) toResume.push({ id, containerId, name });
-    else if (state === ContainerState.RUNNING) toPause.push({ id, containerId, name });
-  }
-  return { toPause, toResume };
-}
-
-async function runPauseResumeBatch(
-  toPause: { id: string; containerId: string; name: string }[],
-  toResume: { id: string; containerId: string; name: string }[]
-) {
-  const totalOps = toPause.length + toResume.length;
-  let completed = 0;
-  for (const item of toPause) {
-    completed++;
-    const isLast = completed === totalOps;
-    await pauseContainerMutation(
-      { id: item.containerId },
-      isLast
-        ? {
-            refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-            awaitRefetchQueries: true,
-          }
-        : { awaitRefetchQueries: false }
-    );
-  }
-  for (const item of toResume) {
-    completed++;
-    const isLast = completed === totalOps;
-    await unpauseContainerMutation(
-      { id: item.containerId },
-      isLast
-        ? {
-            refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-            awaitRefetchQueries: true,
-          }
-        : { awaitRefetchQueries: false }
-    );
-  }
-}
-
-function openPauseResume(ids?: string[]) {
-  const sources = ids ?? getSelectedContainerIds();
-  if (sources.length === 0) return;
-  const { toPause, toResume } = classifyPauseResume(sources);
-  const isMixed = toPause.length > 0 && toResume.length > 0;
-  if (isMixed) {
-    pendingPauseResumeIds = sources;
-    confirmToPause.value = toPause.map((i) => ({ name: i.name }));
-    confirmToResume.value = toResume.map((i) => ({ name: i.name }));
-    confirmPauseResumeOpen.value = true;
-    return;
-  }
-  setRowsBusy(sources, true);
-  runPauseResumeBatch(toPause, toResume)
-    .then(() => showToast('Action completed'))
-    .finally(() => {
-      setRowsBusy(sources, false);
-      rowSelection.value = {};
-    });
-}
-
-async function confirmPauseResume(close: () => void) {
-  const { toPause, toResume } = classifyPauseResume(pendingPauseResumeIds);
-  setRowsBusy(pendingPauseResumeIds, true);
-  try {
-    await runPauseResumeBatch(toPause, toResume);
-    showToast('Action completed');
-    rowSelection.value = {};
-  } finally {
-    setRowsBusy(pendingPauseResumeIds, false);
-    confirmPauseResumeOpen.value = false;
-    pendingPauseResumeIds = [];
-    close();
-  }
-}
-
-// Bulk Start/Stop handling with mixed confirmation
-const confirmStartStopOpen = ref(false);
-const confirmToStart = ref<{ name: string }[]>([]);
-const confirmToStop = ref<{ name: string }[]>([]);
-let pendingStartStopIds: string[] = [];
-
-function openStartStop(ids?: string[]) {
-  const sources = ids ?? getSelectedContainerIds();
-  if (sources.length === 0) return;
-  const { toStart, toStop } = classifyStartStop(sources);
-  const isMixed = toStart.length > 0 && toStop.length > 0;
-  if (isMixed) {
-    pendingStartStopIds = sources;
-    confirmToStart.value = toStart.map((i) => ({ name: i.name }));
-    confirmToStop.value = toStop.map((i) => ({ name: i.name }));
-    confirmStartStopOpen.value = true;
-    return;
-  }
-  // Single-type selection: run immediately with busy rows
-  setRowsBusy(sources, true);
-  runStartStopBatch(toStart, toStop)
-    .then(() => showToast('Action completed'))
-    .finally(() => {
-      setRowsBusy(sources, false);
-      rowSelection.value = {};
-    });
-}
-
-async function confirmStartStop(close: () => void) {
-  const { toStart, toStop } = classifyStartStop(pendingStartStopIds);
-  setRowsBusy(pendingStartStopIds, true);
-  try {
-    await runStartStopBatch(toStart, toStop);
-    showToast('Action completed');
-    rowSelection.value = {};
-  } finally {
-    setRowsBusy(pendingStartStopIds, false);
-    confirmStartStopOpen.value = false;
-    pendingStartStopIds = [];
-    close();
-  }
-}
-
-type FolderNode = { id: string; name: string; children: FolderNode[] };
-
-function buildFolderOnlyTree(entry?: ResolvedOrganizerFolder | null): FolderNode | null {
-  if (!entry) return null;
-  const folders: FolderNode[] = [];
-  for (const child of entry.children || []) {
-    if ((child as ResolvedOrganizerEntry).__typename === 'ResolvedOrganizerFolder') {
-      const sub = buildFolderOnlyTree(child as ResolvedOrganizerFolder);
-      if (sub) folders.push(sub);
-    }
-  }
-  return { id: entry.id, name: entry.name, children: folders };
-}
-
-const folderTree = computed<FolderNode | null>(() => buildFolderOnlyTree(props.organizerRoot));
-
-type FlatFolderRow = { id: string; name: string; depth: number; hasChildren: boolean };
-
-function flattenVisibleFolders(
-  node: FolderNode | null,
-  depth = 0,
-  out: FlatFolderRow[] = []
-): FlatFolderRow[] {
-  if (!node) return out;
-  out.push({ id: node.id, name: node.name, depth, hasChildren: node.children.length > 0 });
-  if (expandedFolders.value.has(node.id)) {
-    for (const child of node.children) flattenVisibleFolders(child, depth + 1, out);
-  }
-  return out;
-}
-
-const visibleFolders = computed<FlatFolderRow[]>(() => flattenVisibleFolders(folderTree.value));
-
-const parentById = computed<Record<string, string>>(() => {
-  const map: Record<string, string> = {};
-  function walk(node?: ResolvedOrganizerFolder | null, parentId?: string) {
-    if (!node) return;
-    if (parentId) map[node.id] = parentId;
-    for (const child of node.children || []) {
-      if ((child as ResolvedOrganizerEntry).__typename === 'ResolvedOrganizerFolder') {
-        walk(child as ResolvedOrganizerFolder, node.id);
-      }
-    }
-  }
-  walk(props.organizerRoot, undefined);
-  return map;
+const folderOps = useFolderOperations({
+  rootFolderId,
+  folderChildrenIds,
+  parentById,
+  visibleFolders,
+  expandedFolders,
+  setExpandedFolders,
+  createFolderMutation,
+  deleteFolderMutation: deleteEntriesMutation,
+  setFolderChildrenMutation,
+  moveEntriesMutation,
+  refetchQuery: { query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } },
+  onSuccess: showToast,
 });
 
-const folderChildrenIds = computed<Record<string, string[]>>(() => {
-  const map: Record<string, string[]> = {};
-  function walk(node?: ResolvedOrganizerFolder | null) {
-    if (!node) return;
-    map[node.id] = (node.children || []).map((c) => {
-      const entry = c as ResolvedOrganizerEntry;
-      return (entry as { id: string }).id;
-    });
-    for (const child of node.children || []) {
-      if ((child as ResolvedOrganizerEntry).__typename === 'ResolvedOrganizerFolder') {
-        walk(child as ResolvedOrganizerFolder);
-      }
-    }
-  }
-  walk(props.organizerRoot);
-  return map;
+const containerActions = useContainerActions({
+  getRowById,
+  treeData,
+  setRowsBusy,
+  startMutation: startContainerMutation,
+  stopMutation: stopContainerMutation,
+  pauseMutation: pauseContainerMutation,
+  unpauseMutation: unpauseContainerMutation,
+  refetchQuery: { query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } },
+  onSuccess: showToast,
 });
+
+const canCreateFolder = computed(() => (folderOps.newTreeFolderName.value || '').trim().length > 0);
+const canDeleteFolder = computed(
+  () => folderOps.selectedFolderId.value && folderOps.selectedFolderId.value !== rootFolderId.value
+);
+
+const confirmToStop = computed(() => containerActions.confirmToStop.value || []);
+const confirmToStart = computed(() => containerActions.confirmToStart.value || []);
+const confirmToPause = computed(() => containerActions.confirmToPause.value || []);
+const confirmToResume = computed(() => containerActions.confirmToResume.value || []);
 
 function getFolderChildrenList(folderId: string): string[] {
   return [...(folderChildrenIds.value[folderId] || [])];
 }
 
-function computeInsertIndex(children: string[], targetId: string, area: DropArea): number {
+function computeInsertIndex(
+  children: string[],
+  targetId: string,
+  area: 'before' | 'after' | 'inside'
+): number {
   const idx = Math.max(0, children.indexOf(targetId));
   return area === 'before' ? idx : idx + 1;
 }
@@ -962,7 +380,7 @@ async function reorderWithinFolder(
   folderId: string,
   movingIds: string[],
   targetId: string,
-  area: DropArea
+  area: 'before' | 'after' | 'inside'
 ) {
   const current = getFolderChildrenList(folderId);
   const removeSet = new Set(movingIds);
@@ -986,11 +404,14 @@ async function moveAcrossFoldersWithPosition(
   destinationFolderId: string,
   movingIds: string[],
   targetId: string,
-  area: DropArea
+  area: 'before' | 'after' | 'inside'
 ) {
   await moveEntriesMutation(
     { destinationFolderId, sourceEntryIds: movingIds },
-    { awaitRefetchQueries: true }
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
   );
   const current = getFolderChildrenList(destinationFolderId).filter((id) => !movingIds.includes(id));
   const insertIndex = computeInsertIndex(current, targetId, area);
@@ -1009,20 +430,8 @@ async function moveAcrossFoldersWithPosition(
 }
 
 async function moveIntoFolder(destinationFolderId: string, movingIds: string[]) {
-  const current = getFolderChildrenList(destinationFolderId).filter((id) => !movingIds.includes(id));
-  const finalIds = [...current, ...movingIds];
-  // If entries are already in this folder, simple reorder will handle; ensure removal from other parents if needed
-  const allInSameParent = movingIds.every(
-    (id) => (entryParentById.value[id] || rootFolderId.value) === destinationFolderId
-  );
-  if (!allInSameParent) {
-    await moveEntriesMutation(
-      { destinationFolderId, sourceEntryIds: movingIds },
-      { awaitRefetchQueries: true }
-    );
-  }
-  await setFolderChildrenMutation(
-    { folderId: destinationFolderId, childrenIds: finalIds },
+  await moveEntriesMutation(
+    { destinationFolderId, sourceEntryIds: movingIds },
     {
       refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
       awaitRefetchQueries: true,
@@ -1067,18 +476,19 @@ async function createFolderFromDrop(containerEntryId: string, movingIds: string[
   showToast('Folder created');
 }
 
-async function handleDropOnRow(target: TreeRow, area: DropArea, movingIds: string[]) {
+async function handleDropOnRow(event: DropEvent<DockerContainer>) {
   if (!props.organizerRoot) return;
+  const { target, area, sourceIds: movingIds } = event;
+
   if (!movingIds.length) return;
   if (movingIds.includes(target.id)) return;
+
   if (target.type === 'folder' && area === 'inside') {
     await moveIntoFolder(target.id, movingIds);
-    rowSelection.value = {};
     return;
   }
   if (target.type === 'container' && area === 'inside') {
     await createFolderFromDrop(target.id, movingIds);
-    rowSelection.value = {};
     return;
   }
   const parentId = entryParentById.value[target.id] || rootFolderId.value;
@@ -1090,190 +500,39 @@ async function handleDropOnRow(target: TreeRow, area: DropArea, movingIds: strin
   } else {
     await moveAcrossFoldersWithPosition(parentId, movingIds, target.id, area);
   }
-  rowSelection.value = {};
 }
 
 function getSelectedEntryIds(): string[] {
-  return Object.entries(rowSelection.value)
-    .filter(([, selected]) => !!selected)
-    .map(([id]) => id);
-}
-
-function openMoveModal(ids?: string[]) {
-  const sources = ids ?? getSelectedEntryIds();
-  console.log('sources', sources);
-  if (sources.length === 0) return;
-  pendingMoveSourceIds.value = sources;
-  selectedFolderId.value = rootFolderId.value || '';
-  expandedFolders.value = new Set([rootFolderId.value]);
-  renamingFolderId.value = '';
-  renameValue.value = '';
-  newTreeFolderName.value = '';
-  moveOpen.value = true;
-}
-
-async function confirmMove(close: () => void) {
-  const ids = pendingMoveSourceIds.value;
-  if (ids.length === 0) return;
-  if (!selectedFolderId.value) return;
-  await moveEntriesMutation(
-    { destinationFolderId: selectedFolderId.value, sourceEntryIds: ids },
-    {
-      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-      awaitRefetchQueries: true,
-    }
-  );
-  rowSelection.value = {};
-  showToast('Moved to folder');
-  close();
+  return props.selectedIds;
 }
 
 async function handleCreateFolderInTree() {
-  const name = newTreeFolderName.value.trim();
-  if (!name) return;
-  await createFolderMutation(
-    {
-      name,
-      parentId: selectedFolderId.value || rootFolderId.value,
-      childrenIds: pendingMoveSourceIds.value,
-    },
-    {
-      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-      awaitRefetchQueries: true,
-    }
-  );
+  await folderOps.handleCreateFolderInTree();
   emit('created-folder');
-  showToast('Folder created');
-  newTreeFolderName.value = '';
-  expandedFolders.value.add(selectedFolderId.value || rootFolderId.value);
-}
-
-function startRenameFolder(id: string, currentName: string) {
-  if (!id || id === rootFolderId.value) return;
-  renamingFolderId.value = id;
-  renameValue.value = currentName;
-}
-
-async function commitRenameFolder(id: string) {
-  const newName = renameValue.value.trim();
-  if (!id || !newName || newName === id) {
-    renamingFolderId.value = '';
-    renameValue.value = '';
-    return;
-  }
-  const parentId = parentById.value[id] || rootFolderId.value;
-  const children = folderChildrenIds.value[id] || [];
-  // 1) Create new folder with same children under same parent
-  await createFolderMutation(
-    { name: newName, parentId, childrenIds: children },
-    { awaitRefetchQueries: true }
-  );
-  // 2) Clear old folder children to avoid cascading deletion of descendants
-  await setFolderChildrenMutation({ folderId: id, childrenIds: [] }, { awaitRefetchQueries: true });
-  // 3) Delete the now-empty old folder
-  await deleteEntriesMutation(
-    { entryIds: [id] },
-    {
-      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-      awaitRefetchQueries: true,
-    }
-  );
-  renamingFolderId.value = '';
-  renameValue.value = '';
-  selectedFolderId.value = newName;
-  showToast('Folder renamed');
-}
-
-async function handleDeleteFolder() {
-  const id = selectedFolderId.value;
-  if (!id || id === rootFolderId.value) return;
-  if (!confirm('Delete this folder? Contents will move to root.')) return;
-  await deleteEntriesMutation(
-    { entryIds: [id] },
-    {
-      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-      awaitRefetchQueries: true,
-    }
-  );
-  selectedFolderId.value = rootFolderId.value;
-  showToast('Folder deleted');
-}
-
-function toggleExpandFolder(id: string) {
-  const set = new Set(expandedFolders.value);
-  if (set.has(id)) set.delete(id);
-  else set.add(id);
-  expandedFolders.value = set;
-}
-
-// removed unused handleCreateFolder; creation handled in modal
-
-function getSelectedContainerIds(): string[] {
-  const collected = new Set<string>();
-
-  function collectContainers(row: TreeRow, includeAll: boolean): void {
-    const isSelected = !!rowSelection.value[row.id];
-    const shouldInclude = includeAll || isSelected;
-
-    if (row.type === 'container') {
-      if (shouldInclude) collected.add(row.id);
-      return;
-    }
-    // folder
-    const children = row.children || [];
-    const propagate = shouldInclude; // selecting a folder selects all descendants
-    for (const child of children) collectContainers(child as TreeRow, propagate);
-  }
-
-  for (const root of treeData.value) collectContainers(root, false);
-  return Array.from(collected);
-}
-
-declare global {
-  interface Window {
-    toast?: {
-      success: (title: string, options?: { description?: string }) => void;
-      error?: (title: string, options?: { description?: string }) => void;
-    };
-  }
-}
-
-function showToast(message: string) {
-  window.toast?.success(message);
 }
 
 function handleBulkAction(action: string) {
-  const ids = getSelectedContainerIds();
-  console.log('ids', ids);
+  const ids = getSelectedEntryIds();
   if (ids.length === 0) return;
   if (action === 'Start / Stop') {
-    openStartStop(ids);
+    containerActions.openStartStop(ids);
     return;
   }
   if (action === 'Pause / Resume') {
-    openPauseResume(ids);
+    containerActions.openPauseResume(ids);
     return;
   }
   showToast(`${action} (${ids.length})`);
 }
 
-// helper removed; no longer used
-
-// removed unused types
-// ContextRef type removed; no longer used
-
-// no-op: replaced by row-wrapped UContextMenu
-
-// Removed programmatic context menu open logic in favor of wrapping row with UContextMenu
-
-function handleRowAction(row: TreeRow, action: string) {
+function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   if (row.type !== 'container') return;
   if (action === 'Start / Stop') {
-    handleRowStartStop(row);
+    containerActions.handleRowStartStop(row);
     return;
   }
   if (action === 'Pause / Resume') {
-    handleRowPauseResume(row);
+    containerActions.handleRowPauseResume(row);
     return;
   }
   showToast(`${action}: ${row.name}`);
@@ -1285,7 +544,7 @@ const bulkItems = computed<DropdownMenuItems>(() => [
       label: 'Move to folder',
       icon: 'i-lucide-folder',
       as: 'button',
-      onSelect: () => openMoveModal(),
+      onSelect: () => folderOps.openMoveModal(getSelectedEntryIds()),
     },
     {
       label: 'Start / Stop',
@@ -1302,7 +561,7 @@ const bulkItems = computed<DropdownMenuItems>(() => [
   ],
 ]);
 
-function getRowActionItems(row: TreeRow): DropdownMenuItems {
+function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
   if (row.type === 'folder') {
     return [
       [
@@ -1310,13 +569,13 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
           label: 'Rename',
           icon: 'i-lucide-pencil',
           as: 'button',
-          onSelect: () => renameFolderInteractive(row.id, row.name),
+          onSelect: () => folderOps.renameFolderInteractive(row.id, row.name),
         },
         {
           label: 'Delete',
           icon: 'i-lucide-trash',
           as: 'button',
-          onSelect: () => deleteFolderById(row.id),
+          onSelect: () => folderOps.deleteFolderById(row.id),
         },
       ],
     ];
@@ -1327,7 +586,7 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
         label: 'Move to folder',
         icon: 'i-lucide-folder',
         as: 'button',
-        onSelect: () => openMoveModal([row.id]),
+        onSelect: () => folderOps.openMoveModal([row.id]),
       },
       {
         label: 'Start / Stop',
@@ -1352,104 +611,85 @@ function getRowActionItems(row: TreeRow): DropdownMenuItems {
     ],
   ];
 }
-
-async function renameFolderInteractive(id: string, currentName: string) {
-  if (!id || id === rootFolderId.value) return;
-  const proposed = window.prompt('New folder name?', currentName)?.trim();
-  if (!proposed || proposed === id) return;
-  const parentId = parentById.value[id] || rootFolderId.value;
-  const children = folderChildrenIds.value[id] || [];
-  await createFolderMutation(
-    { name: proposed, parentId, childrenIds: children },
-    { awaitRefetchQueries: true }
-  );
-  await setFolderChildrenMutation({ folderId: id, childrenIds: [] }, { awaitRefetchQueries: true });
-  await deleteEntriesMutation(
-    { entryIds: [id] },
-    {
-      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-      awaitRefetchQueries: true,
-    }
-  );
-  showToast('Folder renamed');
-}
-
-async function deleteFolderById(id: string) {
-  if (!id || id === rootFolderId.value) return;
-  if (!confirm('Delete this folder? Contents will move to root.')) return;
-  await deleteEntriesMutation(
-    { entryIds: [id] },
-    {
-      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-      awaitRefetchQueries: true,
-    }
-  );
-  showToast('Folder deleted');
-}
 </script>
 
 <template>
   <div class="w-full">
-    <div v-if="!compact" class="mb-3 flex items-center gap-2">
-      <UInput v-model="globalFilter" class="max-w-sm min-w-[12ch]" placeholder="Filter..." />
-      <UDropdownMenu :items="columnsMenuItems" size="md" :ui="{ content: 'z-40' }">
-        <UButton color="neutral" variant="outline" size="md" trailing-icon="i-lucide-chevron-down">
-          Columns
-        </UButton>
-      </UDropdownMenu>
-      <UDropdownMenu
-        :items="bulkItems"
-        size="md"
-        :ui="{
-          content: 'overflow-x-hidden z-40',
-          item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
-        }"
-      >
-        <UButton
-          color="primary"
-          variant="outline"
-          size="md"
-          trailing-icon="i-lucide-chevron-down"
-          :disabled="selectedCount === 0"
-        >
-          Actions ({{ selectedCount }})
-        </UButton>
-      </UDropdownMenu>
-    </div>
-    <UTable
-      ref="tableRef"
-      v-model:row-selection="rowSelection"
-      v-model:global-filter="globalFilter"
-      v-model:column-visibility="columnVisibility"
+    <BaseTreeTable
       :data="treeData"
       :columns="columns"
-      :get-row-id="(row: any) => row.id"
-      :get-sub-rows="(row: any) => row.children"
-      :get-row-can-select="(row: any) => row.original.type === 'container'"
-      :column-filters-options="{ filterFromLeafRows: true }"
       :loading="loading"
-      :ui="{ td: 'p-0 empty:p-0', thead: compact ? 'hidden' : '', th: compact ? 'hidden' : '' }"
-      sticky
-      class="flex-1 pb-2"
-    />
-    <div v-if="!loading && treeData.length === 0" class="py-8 text-center text-gray-500">
-      No containers found
-    </div>
+      :compact="compact"
+      :active-id="activeId"
+      :selected-ids="selectedIds"
+      :busy-row-ids="busyRowIds"
+      :enable-drag-drop="!!organizerRoot"
+      @row:click="
+        (payload) =>
+          emit('row:click', {
+            id: payload.id,
+            type: payload.type as 'container' | 'folder',
+            name: payload.name,
+            containerId: payload.meta?.id,
+          })
+      "
+      @row:select="
+        (payload) =>
+          emit('row:select', {
+            id: payload.id,
+            type: payload.type as 'container' | 'folder',
+            name: payload.name,
+            containerId: payload.meta?.id,
+            selected: payload.selected,
+          })
+      "
+      @row:drop="handleDropOnRow"
+      @update:selected-ids="(ids) => emit('update:selectedIds', ids)"
+    >
+      <template #toolbar="{ selectedCount: count }">
+        <div v-if="!compact" class="mb-3 flex items-center gap-2">
+          <UInput v-model="globalFilter" class="max-w-sm min-w-[12ch]" placeholder="Filter..." />
+          <UDropdownMenu :items="columnsMenuItems" size="md" :ui="{ content: 'z-40' }">
+            <UButton color="neutral" variant="outline" size="md" trailing-icon="i-lucide-chevron-down">
+              Columns
+            </UButton>
+          </UDropdownMenu>
+          <UDropdownMenu
+            :items="bulkItems"
+            size="md"
+            :ui="{
+              content: 'overflow-x-hidden z-40',
+              item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
+            }"
+          >
+            <UButton
+              color="primary"
+              variant="outline"
+              size="md"
+              trailing-icon="i-lucide-chevron-down"
+              :disabled="count === 0"
+            >
+              Actions ({{ count }})
+            </UButton>
+          </UDropdownMenu>
+        </div>
+      </template>
+    </BaseTreeTable>
 
     <UModal
-      v-model:open="moveOpen"
+      v-model:open="folderOps.moveOpen"
       title="Move to folder"
       :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50' }"
     >
       <template #body>
         <div class="space-y-3">
           <div class="flex items-center gap-2">
-            <UInput v-model="newTreeFolderName" placeholder="New folder name" class="flex-1" />
+            <UInput v-model="folderOps.newTreeFolderName" placeholder="New folder name" class="flex-1" />
             <UButton
               size="sm"
               color="neutral"
               variant="outline"
-              :disabled="!newTreeFolderName.trim()"
+              :disabled="!canCreateFolder"
               @click="handleCreateFolderInTree"
               >Create</UButton
             >
@@ -1457,8 +697,8 @@ async function deleteFolderById(id: string) {
               size="sm"
               color="neutral"
               variant="outline"
-              :disabled="!selectedFolderId || selectedFolderId === rootFolderId"
-              @click="handleDeleteFolder"
+              :disabled="!canDeleteFolder"
+              @click="folderOps.handleDeleteFolder"
               >Delete</UButton
             >
           </div>
@@ -1482,23 +722,31 @@ async function deleteFolderById(id: string) {
               />
               <span v-else class="inline-block w-5" />
 
-              <input type="radio" :value="row.id" v-model="selectedFolderId" class="accent-primary" />
+              <input
+                type="radio"
+                :value="row.id"
+                v-model="folderOps.selectedFolderId"
+                class="accent-primary"
+              />
 
               <div
                 :style="{ paddingLeft: `calc(${row.depth} * 0.75rem)` }"
                 class="flex min-w-0 flex-1 items-center gap-2"
               >
                 <span class="i-lucide-folder text-gray-500" />
-                <template v-if="renamingFolderId === row.id">
+                <!-- @vue-expect-error - Vue auto-unwraps refs in templates -->
+                <template v-if="folderOps.renamingFolderId === row.id">
                   <input
-                    v-model="renameValue"
+                    v-model="folderOps.renameValue"
                     class="border-default bg-default flex-1 rounded border px-2 py-1"
-                    @keydown.enter.prevent="commitRenameFolder(row.id)"
+                    @keydown.enter.prevent="folderOps.commitRenameFolder(row.id)"
                     @keydown.esc.prevent="
-                      renamingFolderId = '';
-                      renameValue = '';
+                      () => {
+                        folderOps.renamingFolderId = '';
+                        folderOps.renameValue = '';
+                      }
                     "
-                    @blur="commitRenameFolder(row.id)"
+                    @blur="folderOps.commitRenameFolder(row.id)"
                     autofocus
                   />
                 </template>
@@ -1514,7 +762,7 @@ async function deleteFolderById(id: string) {
                       label: 'Rename',
                       icon: 'i-lucide-pencil',
                       as: 'button',
-                      onSelect: () => startRenameFolder(row.id, row.name),
+                      onSelect: () => folderOps.startRenameFolder(row.id, row.name),
                     },
                   ],
                 ]"
@@ -1530,8 +778,8 @@ async function deleteFolderById(id: string) {
         <UButton color="neutral" variant="outline" @click="close">Cancel</UButton>
         <UButton
           :loading="moving || creating || deleting"
-          :disabled="!selectedFolderId"
-          @click="confirmMove(close)"
+          :disabled="!folderOps.selectedFolderId"
+          @click="folderOps.confirmMove(close)"
         >
           Confirm
         </UButton>
@@ -1539,7 +787,7 @@ async function deleteFolderById(id: string) {
     </UModal>
 
     <UModal
-      v-model:open="confirmStartStopOpen"
+      v-model:open="containerActions.confirmStartStopOpen"
       title="Confirm actions"
       :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50' }"
     >
@@ -1561,12 +809,12 @@ async function deleteFolderById(id: string) {
       </template>
       <template #footer="{ close }">
         <UButton color="neutral" variant="outline" @click="close">Cancel</UButton>
-        <UButton @click="confirmStartStop(close)">Confirm</UButton>
+        <UButton @click="containerActions.confirmStartStop(close)">Confirm</UButton>
       </template>
     </UModal>
 
     <UModal
-      v-model:open="confirmPauseResumeOpen"
+      v-model:open="containerActions.confirmPauseResumeOpen"
       title="Confirm actions"
       :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50' }"
     >
@@ -1588,7 +836,7 @@ async function deleteFolderById(id: string) {
       </template>
       <template #footer="{ close }">
         <UButton color="neutral" variant="outline" @click="close">Cancel</UButton>
-        <UButton @click="confirmPauseResume(close)">Confirm</UButton>
+        <UButton @click="containerActions.confirmPauseResume(close)">Confirm</UButton>
       </template>
     </UModal>
   </div>
