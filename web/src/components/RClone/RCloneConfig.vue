@@ -4,12 +4,14 @@ import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { Button, jsonFormsAjv, jsonFormsRenderers } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
+import { useJsonFormsI18n } from '~/helpers/jsonforms-i18n';
 
 import { CREATE_REMOTE } from '~/components/RClone/graphql/rclone.mutations';
 import { GET_RCLONE_CONFIG_FORM } from '~/components/RClone/graphql/rclone.query';
 import { useUnraidApiStore } from '~/store/unraidApi';
 
 const { offlineError: _offlineError, unraidApiStatus: _unraidApiStatus } = useUnraidApiStore();
+const jsonFormsI18n = useJsonFormsI18n();
 
 // Define props
 const props = defineProps({
@@ -228,6 +230,7 @@ provide('isSubmitting', isCreating);
           :data="formState"
           :config="jsonFormsConfig"
           :ajv="jsonFormsAjv"
+          :i18n="jsonFormsI18n"
           :readonly="isCreating"
           @change="onChange"
         />

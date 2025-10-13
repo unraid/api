@@ -122,6 +122,11 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'theme-switcher',
   },
   {
+    component: defineAsyncComponent(() => import('@/components/LocaleSwitcher.vue')),
+    selector: 'unraid-locale-switcher',
+    appId: 'locale-switcher',
+  },
+  {
     component: defineAsyncComponent(() => import('../ColorSwitcher.standalone.vue')),
     selector: 'unraid-color-switcher',
     appId: 'color-switcher',

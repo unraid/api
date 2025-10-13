@@ -3,6 +3,7 @@ import { CogIcon } from '@heroicons/vue/24/solid';
 import { Button, Popover, PopoverContent, PopoverTrigger } from '@unraid/ui';
 
 import DummyServerSwitcher from '~/components/DummyServerSwitcher.vue';
+import LocaleSwitcher from '~/components/LocaleSwitcher.vue';
 </script>
 
 <template>
@@ -12,8 +13,11 @@ import DummyServerSwitcher from '~/components/DummyServerSwitcher.vue';
         ><CogIcon class="size-6"
       /></Button>
     </PopoverTrigger>
-    <PopoverContent>
-      <DummyServerSwitcher />
+    <PopoverContent class="w-80">
+      <div class="space-y-4">
+        <LocaleSwitcher />
+        <DummyServerSwitcher />
+      </div>
     </PopoverContent>
   </Popover>
 </template>

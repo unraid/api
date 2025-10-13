@@ -38,6 +38,12 @@ function expandJsonFormsKey(key) {
     return expanded;
   }
 
+  // Don't add .label to keys that already have specific suffixes
+  if (key.endsWith('.title') || key.endsWith('.description')) {
+    expanded.add(key);
+    return expanded;
+  }
+
   expanded.add(key.endsWith('.label') ? key : `${key}.label`);
 
   return expanded;
@@ -325,6 +331,8 @@ async function collectJsonFormsKeys() {
               const parent = node.parent;
               if (ts.isObjectLiteralExpression(parent)) {
                 let labelCandidate;
+                let titleCandidate;
+                let descriptionCandidate;
                 const allowDescriptionExtraction = !key.endsWith('.description');
 
                 for (const prop of parent.properties) {
@@ -335,15 +343,20 @@ async function collectJsonFormsKeys() {
                   if (propName === 'description' && allowDescriptionExtraction) {
                     const descriptionValue = resolveI18nString(constantMap, prop.initializer);
                     if (typeof descriptionValue === 'string' && descriptionValue.length > 0) {
-                      const descriptionKey = `${key}.description`;
-                      keys.add(descriptionKey);
-                      descriptionValues.set(descriptionKey, descriptionValue);
+                      descriptionCandidate = descriptionValue;
+                    }
+                    continue;
+                  }
+                  if (propName === 'title') {
+                    const titleValue = resolveI18nString(constantMap, prop.initializer);
+                    if (typeof titleValue === 'string' && titleValue.length > 0) {
+                      titleCandidate = titleValue;
                     }
                     continue;
                   }
                   if (
                     !labelCandidate &&
-                    (propName === 'label' || propName === 'text' || propName === 'title')
+                    (propName === 'label' || propName === 'text')
                   ) {
                     const resolved = resolveI18nString(constantMap, prop.initializer);
                     if (typeof resolved === 'string' && resolved.length > 0) {
@@ -352,6 +365,21 @@ async function collectJsonFormsKeys() {
                   }
                 }
 
+                // Add title key if we found a title value
+                if (typeof titleCandidate === 'string' && titleCandidate.length > 0) {
+                  const titleKey = `${key}.title`;
+                  keys.add(titleKey);
+                  labelValues.set(titleKey, titleCandidate);
+                }
+
+                // Add description key if we found a description value
+                if (typeof descriptionCandidate === 'string' && descriptionCandidate.length > 0) {
+                  const descriptionKey = `${key}.description`;
+                  keys.add(descriptionKey);
+                  descriptionValues.set(descriptionKey, descriptionCandidate);
+                }
+
+                // Add label key if we found a label value
                 if (typeof labelCandidate === 'string' && labelCandidate.length > 0) {
                   const labelKey = key.endsWith('.label') ? key : `${key}.label`;
                   keys.add(labelKey);
