@@ -17,14 +17,7 @@ export const CREATE_DOCKER_FOLDER_WITH_ITEMS = gql`
       views {
         id
         name
-        root {
-          __typename
-          ... on ResolvedOrganizerFolder {
-            id
-            name
-            type
-          }
-        }
+        rootId
         flatEntries {
           id
           type

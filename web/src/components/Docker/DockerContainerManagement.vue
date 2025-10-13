@@ -11,12 +11,7 @@ import DockerLogs from '@/components/Docker/Logs.vue';
 import DockerOverview from '@/components/Docker/Overview.vue';
 import DockerPreview from '@/components/Docker/Preview.vue';
 
-import type {
-  DockerContainer,
-  OrganizerContainerResource,
-  ResolvedOrganizerEntry,
-  ResolvedOrganizerFolder,
-} from '@/composables/gql/graphql';
+import type { DockerContainer, FlatOrganizerEntry } from '@/composables/gql/graphql';
 
 interface Props {
   disabled?: boolean;
@@ -164,7 +159,8 @@ const { result, loading, refetch } = useQuery<{
       views: Array<{
         id: string;
         name: string;
-        root: ResolvedOrganizerEntry;
+        rootId: string;
+        flatEntries: FlatOrganizerEntry[];
       }>;
     };
     containers: DockerContainer[];
@@ -174,29 +170,10 @@ const { result, loading, refetch } = useQuery<{
   variables: { skipCache: true },
 });
 
-const organizerRoot = computed(
-  () => result.value?.docker?.organizer?.views?.[0]?.root as ResolvedOrganizerFolder | undefined
-);
-
 const flatEntries = computed(() => result.value?.docker?.organizer?.views?.[0]?.flatEntries || []);
-const rootFolderId = computed(() => result.value?.docker?.organizer?.views?.[0]?.root?.id || 'root');
+const rootFolderId = computed(() => result.value?.docker?.organizer?.views?.[0]?.rootId || 'root');
 
 const containers = computed<DockerContainer[]>(() => result.value?.docker?.containers || []);
-
-function findContainerResourceById(
-  entry: ResolvedOrganizerEntry | undefined,
-  id: string
-): ResolvedOrganizerEntry | undefined {
-  if (!entry) return undefined;
-  if (entry.__typename === 'OrganizerContainerResource' && entry.id === id) return entry;
-  if (entry.__typename === 'ResolvedOrganizerFolder') {
-    for (const child of entry.children as ResolvedOrganizerEntry[]) {
-      const found = findContainerResourceById(child, id);
-      if (found) return found;
-    }
-  }
-  return undefined;
-}
 
 function handleTableRowClick(payload: {
   id: string;
@@ -229,11 +206,8 @@ function handleSidebarSelect(item: { id: string; selected: boolean }) {
 
 const activeContainer = computed<DockerContainer | undefined>(() => {
   if (!activeId.value) return undefined;
-  const resource = findContainerResourceById(
-    organizerRoot.value,
-    activeId.value
-  ) as OrganizerContainerResource;
-  return resource?.meta as DockerContainer | undefined;
+  const entry = flatEntries.value.find(e => e.id === activeId.value && e.type === 'container');
+  return entry?.meta as DockerContainer | undefined;
 });
 
 // Details data (mix of real and placeholder until specific queries exist)
@@ -307,10 +281,9 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
             />
           </div>
         </template>
-        <USkeleton v-if="loading && !organizerRoot" class="h-6 w-full" :ui="{ rounded: 'rounded' }" />
+        <USkeleton v-if="loading" class="h-6 w-full" :ui="{ rounded: 'rounded' }" />
         <DockerSidebarTree
           v-else
-          :root="organizerRoot"
           :selected-ids="selectedIds"
           :active-id="activeId"
           :disabled="props.disabled || loading"

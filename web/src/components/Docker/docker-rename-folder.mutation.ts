@@ -7,14 +7,7 @@ export const RENAME_DOCKER_FOLDER = gql`
       views {
         id
         name
-        root {
-          __typename
-          ... on ResolvedOrganizerFolder {
-            id
-            name
-            type
-          }
-        }
+        rootId
         flatEntries {
           id
           type
