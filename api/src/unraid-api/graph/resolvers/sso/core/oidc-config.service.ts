@@ -69,14 +69,8 @@ const OIDC_I18N = {
     },
     // Add missing keys for the form schema
     sso: {
-        providers: {
-            title: 'jsonforms.sso.providers.title',
-            description: 'jsonforms.sso.providers.description',
-        },
-        defaultAllowedOrigins: {
-            title: 'jsonforms.sso.defaultAllowedOrigins.title',
-            description: 'jsonforms.sso.defaultAllowedOrigins.description',
-        },
+        providers: 'jsonforms.sso.providers',
+        defaultAllowedOrigins: 'jsonforms.sso.defaultAllowedOrigins',
     },
 } as const;
 
@@ -651,7 +645,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             default: [],
             description:
                 'Additional trusted redirect origins to allow redirects from custom ports, reverse proxies, Tailscale, etc.',
-            i18n: 'jsonforms.sso.defaultAllowedOrigins',
+            i18n: OIDC_I18N.sso.defaultAllowedOrigins,
         };
 
         // Add the control for defaultAllowedOrigins before the providers control using UnraidSettingsLayout
@@ -891,7 +885,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                     },
                     title: 'OIDC Providers',
                     description: 'Configure OpenID Connect providers for SSO authentication',
-                    i18n: 'jsonforms.sso.providers',
+                    i18n: OIDC_I18N.sso.providers,
                 },
             },
             elements: [
