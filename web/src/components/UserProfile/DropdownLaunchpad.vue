@@ -1,17 +1,16 @@
 <script lang="ts" setup>
 import { computed, h } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { BrandButton, BrandLoading } from '@unraid/ui';
-
-import type { ComposerTranslation } from 'vue-i18n';
 
 import KeyActions from '~/components/KeyActions.vue';
 import UpcUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
 import { useServerStore } from '~/store/server';
 import { useUnraidApiStore } from '~/store/unraidApi';
 
-defineProps<{ t: ComposerTranslation }>();
+const { t } = useI18n();
 
 const BrandLoadingIcon = () => h(BrandLoading, { variant: 'white' });
 
@@ -31,7 +30,7 @@ const showExpireTime = computed(
         class="prose gap-y-2 text-center text-base leading-relaxed whitespace-normal opacity-75"
         v-html="t(stateData.message)"
       />
-      <UpcUptimeExpire v-if="showExpireTime" class="mt-3 text-center opacity-75" :t="t" />
+      <UpcUptimeExpire v-if="showExpireTime" class="mt-3 text-center opacity-75" />
     </header>
     <template v-if="stateData.actions">
       <ul
@@ -44,16 +43,20 @@ const showExpireTime = computed(
             :disabled="unraidApiStatus === 'connecting' || unraidApiStatus === 'restarting'"
             :icon="unraidApiStatus === 'restarting' ? BrandLoadingIcon : unraidApiRestartAction?.icon"
             :text="
-              unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')
+              unraidApiStatus === 'restarting'
+                ? t('userProfile.dropdownLaunchpad.restartingUnraidApi')
+                : t('userProfile.dropdownLaunchpad.restartUnraidApi')
             "
             :title="
-              unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')
+              unraidApiStatus === 'restarting'
+                ? t('userProfile.dropdownLaunchpad.restartingUnraidApi')
+                : t('userProfile.dropdownLaunchpad.restartUnraidApi')
             "
             @click="unraidApiRestartAction?.click?.()"
           />
         </li>
       </ul>
-      <KeyActions :actions="stateData.actions" :t="t" />
+      <KeyActions :actions="stateData.actions" />
     </template>
   </div>
 </template>

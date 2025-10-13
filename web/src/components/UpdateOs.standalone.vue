@@ -42,7 +42,7 @@ const { rebootType } = storeToRefs(serverStore);
 
 const subtitle = computed(() => {
   if (rebootType.value === 'downgrade') {
-    return t('Please finish the initiated downgrade to enable updates.');
+    return t('updateOs.pleaseFinishTheInitiatedDowngradeTo');
   }
   return '';
 });
@@ -68,11 +68,10 @@ onBeforeMount(() => {
     <div v-show="!showLoader">
       <UpdateOsStatus
         :show-update-check="true"
-        :title="t('Update Unraid OS')"
+        :title="t('updateOs.updateUnraidOs')"
         :subtitle="subtitle"
-        :t="t"
       />
-      <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
+      <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" />
     </div>
   </PageContainer>
 </template>

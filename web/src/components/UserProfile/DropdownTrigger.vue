@@ -24,22 +24,22 @@ const showErrorIcon = computed(() => errors.value.length || stateData.value.erro
 
 const text = computed((): string => {
   if (stateData.value.error && state.value !== 'EEXPIRED') {
-    return t('Fix Error');
+    return t('userProfile.callbackFeedback.fixError');
   }
   return '';
 });
 
 const title = computed((): string => {
   if (state.value === 'ENOKEYFILE') {
-    return t('Get Started');
+    return t('userProfile.dropdownTrigger.getStarted');
   }
   if (state.value === 'EEXPIRED') {
-    return t('Trial Expired, see options below');
+    return t('userProfile.dropdownTrigger.trialExpiredSeeOptionsBelow');
   }
   if (showErrorIcon.value) {
-    return t('Learn more about the error');
+    return t('userProfile.dropdownTrigger.learnMoreAboutTheError');
   }
-  return t('Open Dropdown');
+  return t('userProfile.dropdownTrigger.openDropdown');
 });
 </script>
 

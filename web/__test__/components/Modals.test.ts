@@ -16,7 +16,7 @@ import { useUpdateOsStore } from '~/store/updateOs';
 vi.mock('~/components/Activation/ActivationModal.vue', () => ({
   default: {
     name: 'ActivationModal',
-    props: ['t'],
+    props: [],
     template: '<div>ActivationModal</div>',
   },
 }));
@@ -24,7 +24,7 @@ vi.mock('~/components/Activation/ActivationModal.vue', () => ({
 vi.mock('~/components/UpdateOs/ChangelogModal.vue', () => ({
   default: {
     name: 'UpdateOsChangelogModal',
-    props: ['t', 'open'],
+    props: ['open'],
     template: '<div v-if="open">ChangelogModal</div>',
   },
 }));
@@ -32,7 +32,7 @@ vi.mock('~/components/UpdateOs/ChangelogModal.vue', () => ({
 vi.mock('~/components/UpdateOs/CheckUpdateResponseModal.vue', () => ({
   default: {
     name: 'UpdateOsCheckUpdateResponseModal',
-    props: ['t', 'open'],
+    props: ['open'],
     template: '<div v-if="open">CheckUpdateResponseModal</div>',
   },
 }));
@@ -40,7 +40,7 @@ vi.mock('~/components/UpdateOs/CheckUpdateResponseModal.vue', () => ({
 vi.mock('~/components/UserProfile/CallbackFeedback.vue', () => ({
   default: {
     name: 'UpcCallbackFeedback',
-    props: ['t', 'open'],
+    props: ['open'],
     template: '<div v-if="open">CallbackFeedback</div>',
   },
 }));
@@ -48,7 +48,7 @@ vi.mock('~/components/UserProfile/CallbackFeedback.vue', () => ({
 vi.mock('~/components/UserProfile/Trial.vue', () => ({
   default: {
     name: 'UpcTrial',
-    props: ['t', 'open'],
+    props: ['open'],
     template: '<div v-if="open">Trial</div>',
   },
 }));
@@ -160,19 +160,19 @@ describe('Modals.standalone.vue', () => {
     expect(changelogModal.props('open')).toBe(false);
   });
 
-  it('should pass translation function to all modals', () => {
+  it('should render all modal components without t props (using useI18n)', () => {
     const components = [
       'UpcCallbackFeedback',
       'UpcTrial',
       'UpdateOsCheckUpdateResponseModal',
       'UpdateOsChangelogModal',
-      'ActivationModal',
     ];
 
     components.forEach((componentName) => {
       const component = wrapper.findComponent({ name: componentName });
-      expect(component.props('t')).toBeDefined();
-      expect(typeof component.props('t')).toBe('function');
+      expect(component.exists()).toBe(true);
+      // Components now use useI18n internally, so no t prop should be passed
+      expect(component.props('t')).toBeUndefined();
     });
   });
 

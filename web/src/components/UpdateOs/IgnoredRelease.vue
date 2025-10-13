@@ -1,23 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { XMarkIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
-
-import type { ComposerTranslation } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
 export interface Props {
   label?: string;
-  t: ComposerTranslation;
 }
 
-withDefaults(defineProps<Props>(), {
-  label: '',
-});
+const { label = '' } = defineProps<Props>();
+const { t } = useI18n();
 
 const serverStore = useServerStore();
 const { darkMode } = storeToRefs(useThemeStore());
@@ -36,8 +33,8 @@ const evenBgColor = computed(() => {
     <BrandButton
       variant="underline"
       :icon-right="XMarkIcon"
-      :text="t('Remove')"
-      :title="t('Remove from ignore list')"
+      :text="t('updateOs.ignoredRelease.remove')"
+      :title="t('updateOs.ignoredRelease.removeFromIgnoreList')"
       @click="serverStore.updateOsRemoveIgnoredRelease(label)"
     />
   </div>

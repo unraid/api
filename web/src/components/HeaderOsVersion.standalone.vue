@@ -96,13 +96,13 @@ const openApiChangelog = () => {
 
 const copyOsVersion = () => {
   if (displayOsVersion.value) {
-    copyWithNotification(displayOsVersion.value, t('OS version copied to clipboard'));
+    copyWithNotification(displayOsVersion.value, t('headerOsVersion.osVersionCopiedToClipboard'));
   }
 };
 
 const copyApiVersion = () => {
   if (apiVersion.value) {
-    copyWithNotification(apiVersion.value, t('API version copied to clipboard'));
+    copyWithNotification(apiVersion.value, t('headerOsVersion.apiVersionCopiedToClipboard'));
   }
 };
 
@@ -110,13 +110,13 @@ const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => {
   if (partnerInfo.value?.partnerUrl) {
     return {
       href: partnerInfo.value.partnerUrl,
-      title: t('Visit Partner website'),
+      title: t('headerOsVersion.visitPartnerWebsite'),
     };
   }
 
   return {
     href: 'https://unraid.net',
-    title: t('Visit Unraid website'),
+    title: t('headerOsVersion.visitUnraidWebsite'),
   };
 });
 
@@ -159,10 +159,12 @@ const updateOsStatus = computed(() => {
       click: () => {
         updateOsStore.setModalOpen(true);
       },
-      text: availableWithRenewal.value ? t('Update Released') : t('Update Available'),
+      text: availableWithRenewal.value
+        ? t('headerOsVersion.updateReleased')
+        : t('headerOsVersion.updateAvailable2'),
       title: availableWithRenewal.value
-        ? t('Unraid OS {0} Released', [availableWithRenewal.value])
-        : t('Unraid OS {0} Update Available', [available.value]),
+        ? t('headerOsVersion.unraidOsReleased', [availableWithRenewal.value])
+        : t('headerOsVersion.unraidOsUpdateAvailable', [available.value]),
     };
   }
 
@@ -192,7 +194,7 @@ const updateOsStatus = computed(() => {
           <Button
             variant="link"
             class="xs:text-sm text-header-text-secondary hover:text-orange-dark focus:text-orange-dark flex h-auto flex-row items-center gap-x-1 p-0 text-xs leading-none font-semibold hover:underline focus:underline"
-            :title="t('Version Information')"
+            :title="t('headerOsVersion.versionInformation')"
           >
             <InformationCircleIcon :style="{ width: '12px', height: '12px', flexShrink: 0 }" />
             {{ displayOsVersion }}
@@ -201,7 +203,7 @@ const updateOsStatus = computed(() => {
 
         <DropdownMenuContent class="min-w-[200px]" align="start" :side-offset="4">
           <DropdownMenuLabel>
-            {{ t('Version Information') }}
+            {{ t('headerOsVersion.versionInformation') }}
           </DropdownMenuLabel>
 
           <DropdownMenuItem
@@ -211,10 +213,10 @@ const updateOsStatus = computed(() => {
           >
             <span class="flex w-full items-center justify-between">
               <span class="flex items-center gap-x-2">
-                <span>{{ t('Unraid OS') }}</span>
+                <span>{{ t('headerOsVersion.unraidOs') }}</span>
                 <ClipboardDocumentIcon class="h-3 w-3 opacity-60" />
               </span>
-              <span class="font-semibold">{{ displayOsVersion || t('Unknown') }}</span>
+              <span class="font-semibold">{{ displayOsVersion || t('common.unknown') }}</span>
             </span>
           </DropdownMenuItem>
 
@@ -225,10 +227,10 @@ const updateOsStatus = computed(() => {
           >
             <span class="flex w-full items-center justify-between">
               <span class="flex items-center gap-x-2">
-                <span>{{ t('Unraid API') }}</span>
+                <span>{{ t('headerOsVersion.unraidApi') }}</span>
                 <ClipboardDocumentIcon class="h-3 w-3 opacity-60" />
               </span>
-              <span class="font-semibold">{{ apiVersion || t('Unknown') }}</span>
+              <span class="font-semibold">{{ apiVersion || t('common.unknown') }}</span>
             </span>
           </DropdownMenuItem>
 
@@ -237,7 +239,7 @@ const updateOsStatus = computed(() => {
           <DropdownMenuItem @click="showOsReleaseNotesModal = true">
             <span class="flex items-center gap-x-2">
               <InformationCircleIcon class="h-4 w-4" />
-              {{ t('View OS Release Notes') }}
+              {{ t('headerOsVersion.viewOsReleaseNotes') }}
             </span>
           </DropdownMenuItem>
 
@@ -245,7 +247,7 @@ const updateOsStatus = computed(() => {
             <span class="flex w-full items-center justify-between">
               <span class="flex items-center gap-x-2">
                 <DocumentTextIcon class="h-4 w-4" />
-                {{ t('View API Changelog') }}
+                {{ t('headerOsVersion.viewApiChangelog') }}
               </span>
               <ArrowTopRightOnSquareIcon class="h-3 w-3 opacity-60" />
             </span>
@@ -272,7 +274,6 @@ const updateOsStatus = computed(() => {
       :open="showOsReleaseNotesModal"
       :release="currentVersionRelease"
       view-docs-label="Open in new tab"
-      :t="t"
       @close="showOsReleaseNotesModal = false"
     />
   </div>

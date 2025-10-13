@@ -68,6 +68,7 @@ declare module 'vue' {
     Keyline: typeof import('./src/components/UserProfile/Keyline.vue')['default']
     KeyLinkedStatus: typeof import('./src/components/Registration/KeyLinkedStatus.vue')['default']
     List: typeof import('./src/components/Notifications/List.vue')['default']
+    LocaleSwitcher: typeof import('./src/components/LocaleSwitcher.vue')['default']
     LogFilterInput: typeof import('./src/components/Logs/LogFilterInput.vue')['default']
     Logo: typeof import('./src/components/Brand/Logo.vue')['default']
     Logs: typeof import('./src/components/Docker/Logs.vue')['default']

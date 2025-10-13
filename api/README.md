@@ -71,6 +71,10 @@ unraid-api report -vv
 
 If you found this file you're likely a developer. If you'd like to know more about the API and when it's available please join [our discord](https://discord.unraid.net/).
 
+## Internationalization
+
+- Run `pnpm --filter @unraid/api i18n:extract` to scan the Nest.js source for translation helper usages and update `src/i18n/en.json` with any new keys. The extractor keeps existing translations intact and appends new keys with their English source text.
+
 ## License
 
 Copyright Lime Technology Inc. All rights reserved.

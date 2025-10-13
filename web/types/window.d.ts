@@ -49,6 +49,9 @@ declare global {
     downloadDiagnostics?: () => void;
     confirmDowngrade?: () => void;
 
+    // Locale management
+    LOCALE?: string;
+
     // Index signature for any other dynamic mount functions
     [key: `mount${string}`]: ((selector?: string) => unknown) | undefined;
   }

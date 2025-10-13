@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useMutation } from '@vue/apollo-composable';
 import { computedAsync } from '@vueuse/core';
 
@@ -24,6 +25,8 @@ import {
 import { NotificationType } from '~/composables/gql/graphql';
 
 const props = defineProps<NotificationFragmentFragment>();
+
+const { t } = useI18n();
 
 const descriptionMarkup = computedAsync(async () => {
   try {
@@ -119,7 +122,7 @@ const reformattedTimestamp = computed<string>(() => {
       <div class="" v-html="descriptionMarkup" />
     </div>
 
-    <p v-if="mutationError" class="text-red-600">Error: {{ mutationError }}</p>
+    <p v-if="mutationError" class="text-red-600">{{ t('common.error') }}: {{ mutationError }}</p>
 
     <div class="flex items-baseline justify-end gap-4">
       <a
@@ -128,7 +131,7 @@ const reformattedTimestamp = computed<string>(() => {
         class="text-primary inline-flex items-center justify-center text-sm font-medium hover:underline focus:underline"
       >
         <LinkIcon class="mr-2 size-4" />
-        <span class="text-sm">View</span>
+        <span class="text-sm">{{ t('notifications.item.viewLink') }}</span>
       </a>
       <Button
         v-if="type === NotificationType.UNREAD"
@@ -136,7 +139,7 @@ const reformattedTimestamp = computed<string>(() => {
         @click="() => archive.mutate({ id: props.id })"
       >
         <ArchiveBoxIcon class="mr-2 size-4" />
-        <span class="text-sm">Archive</span>
+        <span class="text-sm">{{ t('notifications.item.archive') }}</span>
       </Button>
       <Button
         v-if="type === NotificationType.ARCHIVE"
@@ -144,7 +147,7 @@ const reformattedTimestamp = computed<string>(() => {
         @click="() => deleteNotification.mutate({ id: props.id, type: props.type })"
       >
         <TrashIcon class="mr-2 size-4" />
-        <span class="text-sm">Delete</span>
+        <span class="text-sm">{{ t('notifications.item.delete') }}</span>
       </Button>
     </div>
   </div>

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed, h } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import {
@@ -14,8 +15,6 @@ import {
 import { Badge, BrandLoading, Button } from '@unraid/ui';
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import useDateTimeHelper from '~/composables/dateTime';
 import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
@@ -25,7 +24,6 @@ import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 export interface Props {
   downgradeNotAvailable?: boolean;
   showExternalDowngrade?: boolean;
-  t: ComposerTranslation;
   title?: string;
   subtitle?: string;
 }
@@ -35,6 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
   title: undefined,
   subtitle: undefined,
 });
+const { t } = useI18n();
 
 const accountStore = useAccountStore();
 const serverStore = useServerStore();
@@ -51,7 +50,7 @@ const { ineligibleText, rebootTypeText, status } = storeToRefs(updateOsActionsSt
 const updateAvailable = computed(() => available.value || availableWithRenewal.value);
 
 const { outputDateTimeReadableDiff: readableDiffRegExp, outputDateTimeFormatted: formattedRegExp } =
-  useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
+  useDateTimeHelper(dateTimeFormat.value, t, true, regExp.value);
 
 const regExpOutput = computed(() => {
   if (!regExp.value) {
@@ -59,11 +58,15 @@ const regExpOutput = computed(() => {
   }
   return {
     text: regUpdatesExpired.value
-      ? `${props.t('Eligible for updates released on or before {0}.', [formattedRegExp.value])} ${props.t('Extend your license to access the latest updates.')}`
-      : props.t('Eligible for free feature updates until {0}', [formattedRegExp.value]),
+      ? `${t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [formattedRegExp.value])} ${t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
+      : t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
+          formattedRegExp.value,
+        ]),
     title: regUpdatesExpired.value
-      ? props.t('Ineligible as of {0}', [readableDiffRegExp.value])
-      : props.t('Eligible for free feature updates for {0}', [readableDiffRegExp.value]),
+      ? t('registration.updateExpirationAction.ineligibleAsOf', [readableDiffRegExp.value])
+      : t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesFor', [
+          readableDiffRegExp.value,
+        ]),
   };
 });
 
@@ -82,7 +85,7 @@ const checkButton = computed(() => {
         }
       },
       icon: () => h(ArrowTopRightOnSquareIcon, { style: 'width: 16px; height: 16px;' }),
-      text: props.t('More options'),
+      text: t('updateOs.status.moreOptions'),
     };
   }
 
@@ -92,7 +95,7 @@ const checkButton = computed(() => {
         updateOsStore.localCheckForUpdate();
       },
       icon: () => h(ArrowPathIcon, { style: 'width: 16px; height: 16px;' }),
-      text: props.t('Check for Update'),
+      text: t('userProfile.dropdownContent.checkForUpdate'),
     };
   }
 
@@ -103,8 +106,8 @@ const checkButton = computed(() => {
     },
     icon: () => h(BellAlertIcon, { style: 'width: 16px; height: 16px;' }),
     text: availableWithRenewal.value
-      ? props.t('Unraid OS {0} Released', [availableWithRenewal.value])
-      : props.t('Unraid OS {0} Update Available', [available.value]),
+      ? t('headerOsVersion.unraidOsReleased', [availableWithRenewal.value])
+      : t('headerOsVersion.unraidOsUpdateAvailable', [available.value]),
   };
 });
 
@@ -130,15 +133,17 @@ const navigateToRegistration = () => {
         <Button
           variant="ghost"
           class="h-auto p-0 hover:bg-transparent"
-          :title="t('View release notes')"
-          @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [osVersion]))"
+          :title="t('updateOs.status.viewReleaseNotes')"
+          @click="
+            updateOsActionsStore.viewReleaseNotes(t('updateOs.downgrade.releaseNotes', [osVersion]))
+          "
         >
           <Badge
             :icon="() => h(InformationCircleIcon, { style: 'width: 16px; height: 16px;' })"
             variant="gray"
             size="md"
           >
-            {{ t('Current Version {0}', [osVersion]) }}
+            {{ t('updateOs.checkUpdateResponseModal.currentVersion', [osVersion]) }}
           </Badge>
         </Button>
 
@@ -146,7 +151,7 @@ const navigateToRegistration = () => {
           v-if="ineligibleText && !availableWithRenewal"
           variant="ghost"
           class="h-auto p-0 hover:bg-transparent"
-          :title="t('Learn more and fix')"
+          :title="t('updateOs.updateIneligible.learnMoreAndFix')"
           @click="navigateToRegistration"
         >
           <Badge
@@ -155,7 +160,7 @@ const navigateToRegistration = () => {
             :title="regExpOutput?.text"
             class="underline"
           >
-            {{ t('Key ineligible for future releases') }}
+            {{ t('updateOs.status.keyIneligibleForFutureReleases') }}
           </Badge>
         </Button>
         <Badge
@@ -164,11 +169,11 @@ const navigateToRegistration = () => {
           :icon="ExclamationTriangleIcon"
           :title="regExpOutput?.text"
         >
-          {{ t('Key ineligible for {0}', [availableWithRenewal]) }}
+          {{ t('updateOs.status.keyIneligibleFor', [availableWithRenewal]) }}
         </Badge>
 
         <Badge v-if="status === 'checking'" variant="orange" :icon="LoadingIcon">
-          {{ t('Checking...') }}
+          {{ t('updateOs.status.checking') }}
         </Badge>
         <template v-else>
           <Badge
@@ -182,10 +187,10 @@ const navigateToRegistration = () => {
           >
             {{
               available
-                ? t('Unraid {0} Available', [available])
+                ? t('updateOs.status.unraidAvailable', [available])
                 : availableWithRenewal
-                  ? t('Up-to-date with eligible releases')
-                  : t('Up-to-date')
+                  ? t('updateOs.status.upToDateWithEligibleReleases')
+                  : t('updateOs.status.upToDate')
             }}
           </Badge>
           <Badge
@@ -202,7 +207,7 @@ const navigateToRegistration = () => {
           variant="gray"
           :icon="() => h(XCircleIcon, { style: 'width: 16px; height: 16px;' })"
         >
-          {{ t('No downgrade available') }}
+          {{ t('updateOs.status.noDowngradeAvailable') }}
         </Badge>
       </div>
 
@@ -212,16 +217,16 @@ const navigateToRegistration = () => {
           variant="primary"
           :title="
             rebootType === 'downgrade'
-              ? t('Reboot Now to Downgrade to {0}', [rebootVersion])
-              : t('Reboot Now to Update to {0}', [rebootVersion])
+              ? t('updateOs.status.rebootNowToDowngradeTo', [rebootVersion])
+              : t('updateOs.status.rebootNowToUpdateTo', [rebootVersion])
           "
           @click="updateOsActionsStore.rebootServer()"
         >
           <ArrowPathIcon class="shrink-0" style="width: 16px; height: 16px" />
           {{
             rebootType === 'downgrade'
-              ? t('Reboot Now to Downgrade to {0}', [rebootVersion])
-              : t('Reboot Now to Update to {0}', [rebootVersion])
+              ? t('updateOs.status.rebootNowToDowngradeTo', [rebootVersion])
+              : t('updateOs.status.rebootNowToUpdateTo', [rebootVersion])
           }}
         </Button>
 
@@ -238,11 +243,19 @@ const navigateToRegistration = () => {
         <Button
           v-if="rebootType !== ''"
           variant="pill-gray"
-          :title="t('Cancel {0}', [rebootType === 'downgrade' ? t('Downgrade') : t('Update')])"
+          :title="
+            t('updateOs.status.cancel', [
+              rebootType === 'downgrade' ? t('updateOs.status.downgrade') : t('updateOs.status.update'),
+            ])
+          "
           @click="updateOsStore.cancelUpdate()"
         >
           <XCircleIcon class="shrink-0" style="width: 16px; height: 16px" />
-          {{ t('Cancel {0}', [rebootType === 'downgrade' ? t('Downgrade') : t('Update')]) }}
+          {{
+            t('updateOs.status.cancel', [
+              rebootType === 'downgrade' ? t('updateOs.status.downgrade') : t('updateOs.status.update'),
+            ])
+          }}
         </Button>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { DOCS } from '~/helpers/urls';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import ChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
+import { createTestI18n } from '../utils/i18n';
 
 vi.mock('@unraid/ui', () => ({
   BrandButton: { template: '<button><slot /></button>' },
@@ -24,7 +25,7 @@ vi.mock('@heroicons/vue/24/solid', () => ({
 }));
 
 vi.mock('~/components/UpdateOs/RawChangelogRenderer.vue', () => ({
-  default: { template: '<div />', props: ['changelog', 'version', 'date', 't', 'changelogPretty'] },
+  default: { template: '<div />', props: ['changelog', 'version', 'date', 'changelogPretty'] },
 }));
 
 vi.mock('pinia', async () => {
@@ -94,7 +95,6 @@ describe('ChangelogModal iframeSrc', () => {
   const mountWithChangelog = (changelogPretty: string | null) =>
     mount(ChangelogModal, {
       props: {
-        t: (key: string) => key,
         open: true,
         release: {
           version: '6.12.0',
@@ -103,6 +103,9 @@ describe('ChangelogModal iframeSrc', () => {
           name: 'Unraid OS 6.12.0',
           date: '2024-01-01',
         },
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 

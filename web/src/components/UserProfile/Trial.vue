@@ -1,22 +1,21 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { BrandLoading, Button } from '@unraid/ui';
-
-import type { ComposerTranslation } from 'vue-i18n';
 
 import Modal from '~/components/Modal.vue';
 import { useTrialStore } from '~/store/trial';
 
 export interface Props {
   open?: boolean;
-  t: ComposerTranslation;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   open: false,
 });
+const { t } = useI18n();
 
 const trialStore = useTrialStore();
 const { trialModalLoading, trialStatus } = storeToRefs(trialStore);
@@ -29,23 +28,23 @@ const trialStatusCopy = computed((): TrialStatusCopy | null => {
   switch (trialStatus.value) {
     case 'failed':
       return {
-        heading: props.t('Trial Key Creation Failed'),
-        subheading: props.t('Error creatiing a trial key. Please try again later.'),
+        heading: t('userProfile.trial.trialKeyCreationFailed'),
+        subheading: t('userProfile.trial.errorCreatiingATrialKeyPlease'),
       };
     case 'trialExtend':
       return {
-        heading: props.t('Extending your free trial by 15 days'),
-        subheading: props.t('Please keep this window open'),
+        heading: t('userProfile.trial.extendingYourFreeTrialByDays'),
+        subheading: t('userProfile.trial.pleaseKeepThisWindowOpen'),
       };
     case 'trialStart':
       return {
-        heading: props.t('Starting your free 30 day trial'),
-        subheading: props.t('Please keep this window open'),
+        heading: t('userProfile.trial.startingYourFreeDayTrial'),
+        subheading: t('userProfile.trial.pleaseKeepThisWindowOpen'),
       };
     case 'success':
       return {
-        heading: props.t('Trial Key Created'),
-        subheading: props.t('Please wait while the page reloads to install your trial key'),
+        heading: t('userProfile.trial.trialKeyCreated'),
+        subheading: t('userProfile.trial.pleaseWaitWhileThePageReloads'),
       };
     case 'ready':
     default:
@@ -63,7 +62,6 @@ const close = () => {
 
 <template>
   <Modal
-    :t="t"
     :open="open"
     :title="trialStatusCopy?.heading"
     :description="trialStatusCopy?.subheading"
@@ -81,10 +79,10 @@ const close = () => {
           <Button
             variant="link"
             class="mx-2 inline-block h-auto p-0 text-xs tracking-wide underline opacity-60 transition hover:opacity-100 focus:opacity-100"
-            :title="t('Close Modal')"
+            :title="t('common.closeModal')"
             @click="close"
           >
-            {{ t('Close') }}
+            {{ t('common.close') }}
           </Button>
         </div>
       </div>

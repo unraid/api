@@ -3,31 +3,8 @@ import { mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import CheckUpdateResponseModal from '~/components/UpdateOs/CheckUpdateResponseModal.vue';
-
-const translate: ComposerTranslation = ((key: string, params?: unknown) => {
-  if (Array.isArray(params) && params.length > 0) {
-    return params.reduce<string>(
-      (result, value, index) => result.replace(`{${index}}`, String(value)),
-      key
-    );
-  }
-
-  if (params && typeof params === 'object') {
-    return Object.entries(params as Record<string, unknown>).reduce<string>(
-      (result, [placeholder, value]) => result.replace(`{${placeholder}}`, String(value)),
-      key
-    );
-  }
-
-  if (typeof params === 'number') {
-    return key.replace('{0}', String(params));
-  }
-
-  return key;
-}) as ComposerTranslation;
+import { createTestI18n, testTranslate } from '../utils/i18n';
 
 vi.mock('@unraid/ui', () => ({
   BrandButton: {
@@ -181,7 +158,9 @@ const mountModal = () =>
   mount(CheckUpdateResponseModal, {
     props: {
       open: true,
-      t: translate,
+    },
+    global: {
+      plugins: [createTestI18n()],
     },
   });
 
@@ -208,6 +187,9 @@ describe('CheckUpdateResponseModal', () => {
   });
 
   it('renders loading state while checking for updates', () => {
+    expect(testTranslate('updateOs.checkUpdateResponseModal.checkingForOsUpdates')).toBe(
+      'Checking for OS updates...'
+    );
     checkForUpdatesLoading.value = true;
 
     const wrapper = mountModal();

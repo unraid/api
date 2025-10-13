@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon, ExclamationTriangleIcon, EyeIcon } from '@heroicons/vue/24/solid';
@@ -7,7 +8,6 @@ import { BrandButton, CardWrapper } from '@unraid/ui';
 import dayjs from 'dayjs';
 
 import type { UserProfileLink } from '~/types/userProfile';
-import type { ComposerTranslation } from 'vue-i18n';
 
 import RegistrationUpdateExpiration from '~/components/Registration/UpdateExpiration.vue';
 import useDateTimeHelper from '~/composables/dateTime';
@@ -15,9 +15,7 @@ import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
-const props = defineProps<{
-  t: ComposerTranslation;
-}>();
+const { t } = useI18n();
 
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
@@ -32,20 +30,20 @@ const availableWithRenewalRelease = computed(() =>
 );
 const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(
   dateTimeFormat.value,
-  props.t,
+  t,
   true,
   dayjs(availableWithRenewalRelease.value?.date, 'YYYY-MM-DD').valueOf()
 );
 
 const heading = computed((): string => {
   if (availableWithRenewal.value) {
-    return props.t('Unraid OS {0} Released', [availableWithRenewal.value]);
+    return t('headerOsVersion.unraidOsReleased', [availableWithRenewal.value]);
   }
-  return props.t('License Key Updates Expired');
+  return t('updateOs.updateIneligible.licenseKeyUpdatesExpired');
 });
 
 const text = computed(() => {
-  return props.t(ineligibleText.value, [regTy.value, formattedReleaseDate.value]);
+  return t(ineligibleText.value, [regTy.value, formattedReleaseDate.value]);
 });
 
 const updateButton = ref<UserProfileLink | undefined>();
@@ -81,7 +79,7 @@ watchEffect(() => {
         </h3>
 
         <h4 class="text-lg font-semibold italic">
-          <RegistrationUpdateExpiration :t="t" />
+          <RegistrationUpdateExpiration />
         </h4>
 
         <div class="prose text-base leading-relaxed whitespace-normal text-black" v-html="text" />
@@ -93,8 +91,8 @@ watchEffect(() => {
           :external="renewAction?.external"
           :icon="renewAction.icon"
           :icon-right="ArrowTopRightOnSquareIcon"
-          :text="t('Extend License')"
-          :title="t('Pay your annual fee to continue receiving OS updates.')"
+          :text="t('updateOs.updateIneligible.extendLicense')"
+          :title="t('updateOs.updateIneligible.payYourAnnualFeeToContinue')"
           class="grow"
           @click="renewAction.click?.()"
         />
@@ -103,7 +101,7 @@ watchEffect(() => {
           href="/Tools/Registration"
           :icon="WrenchScrewdriverIcon"
           :icon-right="ArrowSmallRightIcon"
-          :text="t('Learn more and fix')"
+          :text="t('updateOs.updateIneligible.learnMoreAndFix')"
           class="flex-none" /> -->
 
         <BrandButton
@@ -113,7 +111,7 @@ watchEffect(() => {
           :icon="EyeIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :name="updateButton?.name"
-          :text="t('View Changelog')"
+          :text="t('updateOs.updateIneligible.viewChangelog')"
           class="flex-none"
           @click="updateButton?.click"
         />

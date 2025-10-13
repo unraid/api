@@ -45,10 +45,16 @@ if (typeof window !== 'undefined') {
 
   // Auto-mount components when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', autoMountAllComponents);
+    document.addEventListener('DOMContentLoaded', () => {
+      autoMountAllComponents().catch((error: unknown) => {
+        console.error('[AutoMount] Failed to mount components:', error);
+      });
+    });
   } else {
     // DOM is already ready
-    autoMountAllComponents();
+    autoMountAllComponents().catch((error: unknown) => {
+      console.error('[AutoMount] Failed to mount components:', error);
+    });
   }
 }
 

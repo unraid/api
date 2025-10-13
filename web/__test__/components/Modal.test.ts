@@ -11,6 +11,7 @@ import type { MountingOptions, VueWrapper } from '@vue/test-utils';
 import type { Props as ModalProps } from '~/components/Modal.vue';
 
 import Modal from '~/components/Modal.vue';
+import { createTestI18n } from '../utils/i18n';
 
 const mockSetProperty = vi.fn();
 const mockRemoveProperty = vi.fn();
@@ -23,8 +24,6 @@ Object.defineProperty(document.body.style, 'removeProperty', {
   value: mockRemoveProperty,
   writable: true,
 });
-
-const t = (key: string) => key;
 
 describe('Modal', () => {
   let wrapper: VueWrapper<unknown>;
@@ -44,7 +43,6 @@ describe('Modal', () => {
 
     return mount(Modal, {
       props: {
-        t,
         open: true,
         ...(restOptions.props || {}),
       },
@@ -60,6 +58,7 @@ describe('Modal', () => {
           },
           ...(restOptions.global?.stubs || {}),
         },
+        plugins: [createTestI18n()],
         ...(restOptions.global || {}),
       },
       attachTo: restOptions.attachTo,
@@ -69,8 +68,10 @@ describe('Modal', () => {
   it('applies and removes body scroll lock based on open prop', async () => {
     wrapper = mount(Modal, {
       props: {
-        t,
         open: false,
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 
@@ -95,7 +96,7 @@ describe('Modal', () => {
   it('renders description in main content', async () => {
     const testDescription = 'This is the modal description.';
 
-    wrapper = mountModal({ props: { t, description: testDescription } });
+    wrapper = mountModal({ props: { description: testDescription } });
 
     const main = wrapper.find('[class*="max-h-"]');
 
@@ -104,7 +105,7 @@ describe('Modal', () => {
   });
 
   it('does not emit close event on overlay click when disableOverlayClose is true', async () => {
-    wrapper = mountModal({ props: { t, disableOverlayClose: true } });
+    wrapper = mountModal({ props: { disableOverlayClose: true } });
 
     const overlay = wrapper.find('[class*="fixed inset-0 z-0"]');
 
@@ -126,9 +127,11 @@ describe('Modal', () => {
 
     wrapper = mount(Modal, {
       props: {
-        t,
         open: true,
         maxWidth,
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 
@@ -140,9 +143,11 @@ describe('Modal', () => {
   it('applies error and success classes correctly', async () => {
     wrapper = mount(Modal, {
       props: {
-        t,
         open: true,
         error: true,
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 
@@ -166,9 +171,11 @@ describe('Modal', () => {
   it('disables shadow-sm when disableShadow is true', async () => {
     wrapper = mount(Modal, {
       props: {
-        t,
         open: true,
         disableShadow: true,
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 
@@ -183,9 +190,11 @@ describe('Modal', () => {
   it('applies header justification class based on headerJustifyCenter prop', async () => {
     wrapper = mount(Modal, {
       props: {
-        t,
         open: true,
         headerJustifyCenter: false,
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 
@@ -208,10 +217,12 @@ describe('Modal', () => {
 
     wrapper = mount(Modal, {
       props: {
-        t,
         open: true,
         overlayColor,
         overlayOpacity,
+      },
+      global: {
+        plugins: [createTestI18n()],
       },
     });
 

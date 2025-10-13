@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useQuery } from '@vue/apollo-composable';
 
 import { Input, Label, Select, Switch } from '@unraid/ui';
+import convert from 'convert';
 
 import { GET_LOG_FILES } from '~/components/Logs/log.query';
 import LogViewerToolbar from '~/components/Logs/LogViewerToolbar.vue';
@@ -24,27 +26,29 @@ const filterText = ref<string>('');
 const presetFilter = ref<string>('none');
 
 // Available highlight languages
-const highlightLanguages = [
-  { value: 'plaintext', label: 'Plain Text' },
-  { value: 'bash', label: 'Bash/Shell' },
-  { value: 'ini', label: 'INI/Config' },
-  { value: 'xml', label: 'XML/HTML' },
-  { value: 'json', label: 'JSON' },
-  { value: 'yaml', label: 'YAML' },
-  { value: 'nginx', label: 'Nginx' },
-  { value: 'apache', label: 'Apache' },
-  { value: 'javascript', label: 'JavaScript' },
-  { value: 'php', label: 'PHP' },
-];
+const { t } = useI18n();
 
 // Preset filter options
-const presetFilters = [
-  { value: 'none', label: 'No Filter' },
-  { value: 'OIDC', label: 'OIDC Logs' },
-  { value: 'ERROR', label: 'Errors' },
-  { value: 'WARNING', label: 'Warnings' },
-  { value: 'AUTH', label: 'Authentication' },
-];
+const presetFilterOptions = computed(() => [
+  { value: 'none', label: t('logs.presets.none') },
+  { value: 'OIDC', label: t('logs.presets.oidc') },
+  { value: 'ERROR', label: t('logs.presets.error') },
+  { value: 'WARNING', label: t('logs.presets.warning') },
+  { value: 'AUTH', label: t('logs.presets.auth') },
+]);
+
+const highlightLanguageOptions = computed(() => [
+  { value: 'plaintext', label: t('logs.viewer.highlightLanguages.plaintext') },
+  { value: 'bash', label: t('logs.viewer.highlightLanguages.bash') },
+  { value: 'ini', label: t('logs.viewer.highlightLanguages.ini') },
+  { value: 'xml', label: t('logs.viewer.highlightLanguages.xml') },
+  { value: 'json', label: t('logs.viewer.highlightLanguages.json') },
+  { value: 'yaml', label: t('logs.viewer.highlightLanguages.yaml') },
+  { value: 'nginx', label: t('logs.viewer.highlightLanguages.nginx') },
+  { value: 'apache', label: t('logs.viewer.highlightLanguages.apache') },
+  { value: 'javascript', label: t('logs.viewer.highlightLanguages.javascript') },
+  { value: 'php', label: t('logs.viewer.highlightLanguages.php') },
+]);
 
 // Fetch log files
 const {
@@ -61,19 +65,43 @@ const logFiles = computed(() => {
 const logFileOptions = computed(() => {
   return logFiles.value.map((file: LogFile) => ({
     value: file.path,
-    label: `${file.name} (${formatFileSize(file.size)})`,
+    label: t('logs.viewer.logFileOptionLabel', {
+      name: file.name,
+      size: formatFileSize(file.size),
+    }),
   }));
 });
 
+const unitLabels = computed<Record<string, string>>(() => ({
+  B: t('logs.viewer.sizeUnits.bytes'),
+  KB: t('logs.viewer.sizeUnits.kilobytes'),
+  MB: t('logs.viewer.sizeUnits.megabytes'),
+  GB: t('logs.viewer.sizeUnits.gigabytes'),
+  TB: t('logs.viewer.sizeUnits.terabytes'),
+  PB: t('logs.viewer.sizeUnits.petabytes'),
+}));
+
 // Format file size for display
 const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    const unit = unitLabels.value.B;
+    return t('logs.viewer.zeroBytes', { unit });
+  }
 
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  try {
+    const best = convert(bytes, 'B').to('best', 'metric');
+    const formattedValue = new Intl.NumberFormat(undefined, {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 0,
+    }).format(best.quantity as number);
 
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    const unit = unitLabels.value[best.unit] ?? best.unit;
+    return t('logs.viewer.formattedSize', { value: formattedValue, unit });
+  } catch (error) {
+    console.error('[LogViewer] Failed to format file size', error);
+    const unit = unitLabels.value.B;
+    return t('logs.viewer.zeroBytes', { unit });
+  }
 };
 
 // Auto-detect language based on file extension
@@ -127,9 +155,9 @@ watch(presetFilter, (newValue) => {
     <LogViewerToolbar
       v-model:filter-text="filterText"
       v-model:preset-filter="presetFilter"
-      title="Log Viewer"
+      :title="t('logs.viewer.title')"
       :show-presets="true"
-      :preset-filters="presetFilters"
+      :preset-filters="presetFilterOptions"
       :show-toggle="false"
       :show-refresh="false"
     />
@@ -137,17 +165,17 @@ watch(presetFilter, (newValue) => {
     <div class="border-border border-b p-4">
       <div class="flex flex-wrap items-end gap-4">
         <div class="min-w-[200px] flex-1">
-          <Label for="log-file-select">Log File</Label>
+          <Label for="log-file-select">{{ t('logs.viewer.logFileLabel') }}</Label>
           <Select
             v-model="selectedLogFile"
             :items="logFileOptions"
-            placeholder="Select a log file"
+            :placeholder="t('logs.viewer.selectLogFilePlaceholder')"
             class="w-full"
           />
         </div>
 
         <div>
-          <Label for="line-count">Lines</Label>
+          <Label for="line-count">{{ t('logs.viewer.linesLabel') }}</Label>
           <Input
             id="line-count"
             v-model.number="lineCount"
@@ -159,17 +187,17 @@ watch(presetFilter, (newValue) => {
         </div>
 
         <div>
-          <Label for="highlight-language">Syntax</Label>
+          <Label for="highlight-language">{{ t('logs.viewer.syntaxLabel') }}</Label>
           <Select
             v-model="highlightLanguage"
-            :items="highlightLanguages"
-            placeholder="Select language"
+            :items="highlightLanguageOptions"
+            :placeholder="t('logs.viewer.selectLanguagePlaceholder')"
             class="w-full"
           />
         </div>
 
         <div class="flex flex-col gap-2">
-          <Label for="auto-scroll">Auto-scroll</Label>
+          <Label for="auto-scroll">{{ t('logs.viewer.autoScrollLabel') }}</Label>
           <Switch id="auto-scroll" v-model:checked="autoScroll" />
         </div>
       </div>
@@ -180,28 +208,28 @@ watch(presetFilter, (newValue) => {
         v-if="loadingLogFiles"
         class="text-muted-foreground flex h-full items-center justify-center p-4 text-center"
       >
-        Loading log files...
+        {{ t('logs.viewer.loadingLogFiles') }}
       </div>
 
       <div
         v-else-if="logFilesError"
         class="text-destructive flex h-full items-center justify-center p-4 text-center"
       >
-        Error loading log files: {{ logFilesError.message }}
+        {{ t('logs.viewer.errorLoadingLogFiles', { error: logFilesError.message }) }}
       </div>
 
       <div
         v-else-if="logFiles.length === 0"
         class="text-muted-foreground flex h-full items-center justify-center p-4 text-center"
       >
-        No log files found.
+        {{ t('logs.viewer.noLogFiles') }}
       </div>
 
       <div
         v-else-if="!selectedLogFile"
         class="text-muted-foreground flex h-full items-center justify-center p-4 text-center"
       >
-        Please select a log file to view.
+        {{ t('logs.viewer.selectLogFilePrompt') }}
       </div>
 
       <SingleLogViewer

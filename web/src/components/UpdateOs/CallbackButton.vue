@@ -1,16 +1,17 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
+
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 
 import type { BrandButtonProps } from '@unraid/ui';
-import type { ComposerTranslation } from 'vue-i18n';
 
 import { useAccountStore } from '~/store/account';
 
-defineProps<{
+const { variant } = defineProps<{
   variant?: BrandButtonProps['variant'];
-  t: ComposerTranslation;
 }>();
+const { t } = useI18n();
 
 const accountStore = useAccountStore();
 </script>
@@ -21,7 +22,7 @@ const accountStore = useAccountStore();
       :variant="variant"
       :icon="ArrowPathIcon"
       :icon-right="ArrowTopRightOnSquareIcon"
-      :text="t('Check for OS Updates')"
+      :text="t('updateOs.callbackButton.checkForOsUpdates')"
       class="flex-0"
       @click="accountStore.updateOs()"
     />

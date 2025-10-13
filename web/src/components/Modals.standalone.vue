@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 import ActivationModal from '~/components/Activation/ActivationModal.vue';
 import UpdateOsChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
@@ -10,8 +9,6 @@ import UpcTrial from '~/components/UserProfile/Trial.vue';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useTrialStore } from '~/store/trial';
 import { useUpdateOsStore } from '~/store/updateOs';
-
-const { t } = useI18n();
 
 // In standalone mounting context without Suspense, we need to use computed
 // to safely access store properties that may be initialized asynchronously
@@ -27,10 +24,10 @@ const changelogModalVisible = computed(() => updateOsStore.changelogModalVisible
 
 <template>
   <div id="modals" ref="modals" class="relative z-[999999]">
-    <UpcCallbackFeedback :t="t" :open="callbackStatus !== 'ready'" />
-    <UpcTrial :t="t" :open="trialModalVisible" />
-    <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
-    <UpdateOsChangelogModal :t="t" :open="changelogModalVisible" />
-    <ActivationModal :t="t" />
+    <UpcCallbackFeedback :open="callbackStatus !== 'ready'" />
+    <UpcTrial :open="trialModalVisible" />
+    <UpdateOsCheckUpdateResponseModal :open="updateOsModalVisible" />
+    <UpdateOsChangelogModal :open="changelogModalVisible" />
+    <ActivationModal />
   </div>
 </template>

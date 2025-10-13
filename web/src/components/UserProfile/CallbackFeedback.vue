@@ -2,6 +2,7 @@
 // @todo ensure key installs and updateOs can be handled at the same time
 // @todo with multiple actions of key install and update after successful key install, rather than showing default success message, show a message to have them confirm the update
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useClipboard } from '@vueuse/core';
 
@@ -16,8 +17,6 @@ import {
 import { BrandButton, BrandLoading } from '@unraid/ui';
 import { WEBGUI_CONNECT_SETTINGS, WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import Modal from '~/components/Modal.vue';
 import RegistrationUpdateExpiration from '~/components/Registration/UpdateExpiration.vue';
 import UpcCallbackFeedbackStatus from '~/components/UserProfile/CallbackFeedbackStatus.vue';
@@ -30,12 +29,12 @@ import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 export interface Props {
   open?: boolean;
-  t: ComposerTranslation;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   open: false,
 });
+const { t } = useI18n();
 
 const accountStore = useAccountStore();
 const callbackActionsStore = useCallbackActionsStore();
@@ -73,58 +72,56 @@ const isSettingsPage = ref<boolean>(document.location.pathname === '/Settings/Ma
 const heading = computed(() => {
   if (updateOsStatus.value === 'confirming') {
     return callbackTypeDowngrade.value
-      ? props.t('Downgrade Unraid OS confirmation required')
-      : props.t('Update Unraid OS confirmation required');
+      ? t('userProfile.callbackFeedback.downgradeUnraidOsConfirmationRequired')
+      : t('userProfile.callbackFeedback.updateUnraidOsConfirmationRequired');
   }
   switch (callbackStatus.value) {
     case 'error':
-      return props.t('Error');
+      return t('common.error');
     case 'loading':
-      return props.t('Performing actions');
+      return t('userProfile.callbackFeedback.performingActions');
     case 'success':
-      return props.t('Success!');
+      return t('common.success');
   }
   return '';
 });
 const subheading = computed(() => {
   if (updateOsStatus.value === 'confirming') {
     return callbackTypeDowngrade.value
-      ? props.t('Please confirm the downgrade details below')
-      : props.t('Please confirm the update details below');
+      ? t('userProfile.callbackFeedback.pleaseConfirmTheDowngradeDetailsBelow')
+      : t('userProfile.callbackFeedback.pleaseConfirmTheUpdateDetailsBelow');
   }
   if (callbackStatus.value === 'error') {
-    return props.t('Something went wrong'); /** @todo show actual error messages */
+    return t('userProfile.callbackFeedback.somethingWentWrong'); /** @todo show actual error messages */
   }
   if (callbackStatus.value === 'loading') {
-    return props.t('Please keep this window open while we perform some actions');
+    return t('userProfile.callbackFeedback.pleaseKeepThisWindowOpenWhile');
   }
   if (callbackStatus.value === 'success') {
     if (accountActionType.value === 'signIn') {
-      return props.t("You're one step closer to enhancing your Unraid experience");
+      return t('userProfile.callbackFeedback.youReOneStepCloserTo');
     }
     if (keyActionType.value === 'purchase') {
-      return props.t('Thank you for purchasing an Unraid {0} Key!', [keyType.value]);
+      return t('userProfile.callbackFeedback.thankYouForPurchasingAnUnraid', [keyType.value]);
     }
     if (keyActionType.value === 'replace') {
-      return props.t('Your {0} Key has been replaced!', [keyType.value]);
+      return t('userProfile.callbackFeedback.yourKeyHasBeenReplaced', [keyType.value]);
     }
     if (keyActionType.value === 'trialExtend') {
-      return props.t('Your Trial key has been extended!');
+      return t('userProfile.callbackFeedback.yourTrialKeyHasBeenExtended');
     }
     if (keyActionType.value === 'trialStart') {
-      return props.t(
-        'Your free Trial key provides all the functionality of an Unleashed Registration key'
-      );
+      return t('userProfile.callbackFeedback.yourFreeTrialKeyProvidesAll');
     }
     if (keyActionType.value === 'upgrade') {
-      return props.t('Thank you for upgrading to an Unraid {0} Key!', [keyType.value]);
+      return t('userProfile.callbackFeedback.thankYouForUpgradingToAn', [keyType.value]);
     }
     return '';
   }
   return '';
 });
 
-const closeText = computed(() => props.t('Close')); // !connectPluginInstalled.value ? props.t('No thanks') :
+const closeText = computed(() => t('common.close')); // !connectPluginInstalled.value ? t('userProfile.callbackFeedback.noThanks') :
 const close = () => {
   if (callbackStatus.value === 'loading') {
     return;
@@ -145,56 +142,56 @@ const cancelUpdateOs = () => {
 };
 
 const keyInstallStatusCopy = computed((): { text: string } => {
-  let txt1 = props.t('Installing');
-  let txt2 = props.t('Installed');
-  let txt3 = props.t('Install');
+  let txt1 = t('common.installing');
+  let txt2 = t('common.installed');
+  let txt3 = t('common.install');
   switch (keyInstallStatus.value) {
     case 'installing':
       if (keyActionType.value === 'trialExtend') {
-        txt1 = props.t('Installing Extended Trial');
+        txt1 = t('userProfile.callbackFeedback.installingExtendedTrial');
       }
       if (keyActionType.value === 'recover') {
-        txt1 = props.t('Installing Recovered');
+        txt1 = t('userProfile.callbackFeedback.installingRecovered');
       }
       if (keyActionType.value === 'renew') {
-        txt1 = props.t('Installing Extended');
+        txt1 = t('userProfile.callbackFeedback.installingExtended');
       }
       if (keyActionType.value === 'replace') {
-        txt1 = props.t('Installing Replaced');
+        txt1 = t('userProfile.callbackFeedback.installingReplaced');
       }
       return {
-        text: props.t('{0} {1} Key…', [txt1, keyType.value]),
+        text: t('userProfile.callbackFeedback.key', [txt1, keyType.value]),
       };
     case 'success':
       if (keyActionType.value === 'renew' || keyActionType.value === 'trialExtend') {
-        txt2 = props.t('Extension Installed');
+        txt2 = t('userProfile.callbackFeedback.extensionInstalled');
       }
       if (keyActionType.value === 'recover') {
-        txt2 = props.t('Recovered');
+        txt2 = t('userProfile.callbackFeedback.recovered');
       }
       if (keyActionType.value === 'replace') {
-        txt2 = props.t('Replaced');
+        txt2 = t('userProfile.callbackFeedback.replaced');
       }
       return {
-        text: props.t('{1} Key {0} Successfully', [txt2, keyType.value]),
+        text: t('userProfile.callbackFeedback.keySuccessfully', [txt2, keyType.value]),
       };
     case 'failed':
       if (keyActionType.value === 'trialExtend') {
-        txt3 = props.t('Install Extended');
+        txt3 = t('userProfile.callbackFeedback.installExtended');
       }
       if (keyActionType.value === 'recover') {
-        txt3 = props.t('Install Recovered');
+        txt3 = t('userProfile.callbackFeedback.installRecovered');
       }
       if (keyActionType.value === 'replace') {
-        txt3 = props.t('Install Replaced');
+        txt3 = t('userProfile.callbackFeedback.installReplaced');
       }
       return {
-        text: props.t('Failed to {0} {1} Key', [txt3, keyType.value]),
+        text: t('userProfile.callbackFeedback.failedToKey', [txt3, keyType.value]),
       };
     case 'ready':
     default:
       return {
-        text: props.t('Ready to Install Key'),
+        text: t('userProfile.callbackFeedback.readyToInstallKey'),
       };
   }
 });
@@ -203,33 +200,38 @@ const accountActionStatusCopy = computed((): { text: string } => {
   switch (accountActionStatus.value) {
     case 'waiting':
       return {
-        text: accountAction.value?.type === 'signIn' ? props.t('Signing In') : props.t('Signing Out'),
+        text:
+          accountAction.value?.type === 'signIn'
+            ? t('userProfile.callbackFeedback.signingIn2')
+            : t('userProfile.callbackFeedback.signingOut2'),
       };
     case 'updating':
       return {
         text:
           accountAction.value?.type === 'signIn'
-            ? props.t('Signing in {0}…', [accountAction.value.user?.preferred_username])
-            : props.t('Signing out {0}…', [username.value]),
+            ? t('userProfile.callbackFeedback.signingIn', [accountAction.value.user?.preferred_username])
+            : t('userProfile.callbackFeedback.signingOut', [username.value]),
       };
     case 'success':
       return {
         text:
           accountAction.value?.type === 'signIn'
-            ? props.t('{0} Signed In Successfully', [accountAction.value.user?.preferred_username])
-            : props.t('{0} Signed Out Successfully', [username.value]),
+            ? t('userProfile.callbackFeedback.signedInSuccessfully', [
+                accountAction.value.user?.preferred_username,
+              ])
+            : t('userProfile.callbackFeedback.signedOutSuccessfully', [username.value]),
       };
     case 'failed':
       return {
         text:
           accountAction.value?.type === 'signIn'
-            ? props.t('Sign In Failed')
-            : props.t('Sign Out Failed'),
+            ? t('userProfile.callbackFeedback.signInFailed')
+            : t('userProfile.callbackFeedback.signOutFailed'),
       };
     case 'ready':
     default:
       return {
-        text: props.t('Ready to update Connect account configuration'),
+        text: t('userProfile.callbackFeedback.readyToUpdateConnectAccountConfiguration'),
       };
   }
 });
@@ -251,7 +253,6 @@ const showUpdateEligibility = computed(() => {
 
 <template>
   <Modal
-    :t="t"
     :title="heading"
     :description="subheading"
     :open="open"
@@ -275,15 +276,15 @@ const showUpdateEligibility = computed(() => {
           :text="keyInstallStatusCopy.text"
         >
           <div v-if="keyType === 'Trial'" class="mt-1 italic opacity-75">
-            <UpcUptimeExpire v-if="refreshServerStateStatus === 'done'" :for-expire="true" :t="t" />
+            <UpcUptimeExpire v-if="refreshServerStateStatus === 'done'" :for-expire="true" />
             <p v-else>
-              {{ t('Calculating trial expiration…') }}
+              {{ t('userProfile.callbackFeedback.calculatingTrialExpiration') }}
             </p>
           </div>
           <div v-if="showUpdateEligibility" class="mt-1 italic opacity-75">
-            <RegistrationUpdateExpiration v-if="refreshServerStateStatus === 'done'" :t="t" />
+            <RegistrationUpdateExpiration v-if="refreshServerStateStatus === 'done'" />
             <p v-else>
-              {{ t('Calculating OS Update Eligibility…') }}
+              {{ t('userProfile.callbackFeedback.calculatingOsUpdateEligibility') }}
             </p>
           </div>
 
@@ -291,19 +292,19 @@ const showUpdateEligibility = computed(() => {
             <div v-if="isSupported" class="flex justify-center">
               <BrandButton
                 :icon="ClipboardIcon"
-                :text="copied ? t('Copied') : t('Copy Key URL')"
+                :text="copied ? t('common.copied') : t('userProfile.callbackFeedback.copyKeyUrl')"
                 @click="copy(keyUrl)"
               />
             </div>
             <p v-else>
-              {{ t('Copy your Key URL: {0}', [keyUrl]) }}
+              {{ t('userProfile.callbackFeedback.copyYourKeyUrl', [keyUrl]) }}
             </p>
             <p>
               <a
                 href="/Tools/Registration"
                 class="underline opacity-75 transition hover:opacity-100 focus:opacity-100"
               >
-                {{ t('Then go to Tools > Registration to manually install it') }}
+                {{ t('userProfile.callbackFeedback.thenGoToToolsRegistrationTo') }}
               </a>
             </p>
           </template>
@@ -316,7 +317,7 @@ const showUpdateEligibility = computed(() => {
             (keyInstallStatus === 'success' || keyInstallStatus === 'failed')
           "
           :error="true"
-          :text="t('Post Install License Key Error')"
+          :text="t('userProfile.callbackFeedback.postInstallLicenseKeyError')"
         >
           <h4 class="text-left text-lg font-semibold">
             {{ t(stateData.heading) }}
@@ -336,13 +337,13 @@ const showUpdateEligibility = computed(() => {
         <div class="my-4 flex flex-col gap-y-2">
           <div class="flex flex-col gap-y-1">
             <p class="text-center text-lg">
-              {{ t('Current Version: Unraid {0}', [osVersion]) }}
+              {{ t('userProfile.callbackFeedback.currentVersionUnraid', [osVersion]) }}
             </p>
 
             <ChevronDoubleDownIcon class="mx-auto h-8 w-8 animate-pulse fill-current opacity-50" />
 
             <p class="text-center text-lg">
-              {{ t('New Version: {0}', [callbackUpdateRelease?.name]) }}
+              {{ t('userProfile.callbackFeedback.newVersion', [callbackUpdateRelease?.name]) }}
             </p>
 
             <p
@@ -351,8 +352,8 @@ const showUpdateEligibility = computed(() => {
             >
               {{
                 callbackTypeDowngrade
-                  ? t('This downgrade will require a reboot')
-                  : t('This update will require a reboot')
+                  ? t('userProfile.callbackFeedback.thisDowngradeWillRequireAReboot')
+                  : t('userProfile.callbackFeedback.thisUpdateWillRequireAReboot')
               }}
             </p>
           </div>
@@ -370,7 +371,7 @@ const showUpdateEligibility = computed(() => {
               v-if="isSettingsPage"
               class="grow-0"
               :icon="CogIcon"
-              :text="t('Configure Connect Features')"
+              :text="t('userProfile.callbackFeedback.configureConnectFeatures')"
               @click="close"
             />
             <BrandButton
@@ -378,7 +379,7 @@ const showUpdateEligibility = computed(() => {
               class="grow-0"
               :href="WEBGUI_CONNECT_SETTINGS.toString()"
               :icon="CogIcon"
-              :text="t('Configure Connect Features')"
+              :text="t('userProfile.callbackFeedback.configureConnectFeatures')"
             />
           </template>
         </template>
@@ -387,13 +388,15 @@ const showUpdateEligibility = computed(() => {
           <BrandButton
             variant="underline"
             :icon="XMarkIcon"
-            :text="t('Cancel')"
+            :text="t('common.cancel')"
             @click="cancelUpdateOs"
           />
           <BrandButton
             :icon="CheckIcon"
             :text="
-              callbackTypeDowngrade ? t('Confirm and start downgrade') : t('Confirm and start update')
+              callbackTypeDowngrade
+                ? t('userProfile.callbackFeedback.confirmAndStartDowngrade')
+                : t('userProfile.callbackFeedback.confirmAndStartUpdate')
             "
             @click="confirmUpdateOs"
           />
@@ -403,7 +406,7 @@ const showUpdateEligibility = computed(() => {
           <BrandButton
             :href="WEBGUI_TOOLS_REGISTRATION.toString()"
             :icon="WrenchScrewdriverIcon"
-            :text="t('Fix Error')"
+            :text="t('userProfile.callbackFeedback.fixError')"
           />
         </template>
       </div>

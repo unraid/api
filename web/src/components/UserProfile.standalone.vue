@@ -47,7 +47,7 @@ const dropdownOpen = ref(false);
 const { copyWithNotification } = useClipboardWithToast();
 const copyLanIp = async () => {
   if (lanIp.value) {
-    await copyWithNotification(lanIp.value, t('LAN IP Copied'));
+    await copyWithNotification(lanIp.value, t('userProfile.lanIpCopied'));
   }
 };
 
@@ -120,7 +120,7 @@ onMounted(() => {
         <Button
           v-if="lanIp"
           variant="ghost"
-          :title="t('Click to Copy LAN IP {0}', [lanIp])"
+          :title="t('userProfile.clickToCopyLanIp', [lanIp])"
           class="text-header-text-primary flex h-auto items-center p-0 text-base opacity-100 transition-opacity hover:opacity-75 focus:opacity-75"
           @click="copyLanIp()"
         >

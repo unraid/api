@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import WelcomeModal from '~/components/Activation/WelcomeModal.standalone.vue';
+import { testTranslate } from '../../utils/i18n';
 
 vi.mock('@unraid/ui', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
@@ -36,7 +37,7 @@ vi.mock('@unraid/ui', async (importOriginal) => {
   };
 });
 
-const mockT = (key: string, args?: unknown[]) => (args ? `${key} ${JSON.stringify(args)}` : key);
+const mockT = testTranslate;
 
 const mockComponents = {
   ActivationPartnerLogo: {
@@ -126,34 +127,29 @@ describe('Activation/WelcomeModal.standalone.vue', () => {
     return wrapper;
   };
 
-  it('uses the correct title text when no partner name is provided', () => {
-    mountComponent();
+  it('uses the correct title text when no partner name is provided', async () => {
+    const wrapper = await mountComponent();
 
-    expect(mockT('Welcome to Unraid!')).toBe('Welcome to Unraid!');
+    expect(wrapper.find('h1').text()).toBe(testTranslate('activation.welcomeModal.welcomeToUnraid'));
   });
 
-  it('uses the correct title text when partner name is provided', () => {
+  it('uses the correct title text when partner name is provided', async () => {
     mockWelcomeModalDataStore.partnerInfo.value = {
       hasPartnerLogo: true,
       partnerName: 'Test Partner',
     };
-    mountComponent();
+    const wrapper = await mountComponent();
 
-    expect(mockT('Welcome to your new {0} system, powered by Unraid!', ['Test Partner'])).toBe(
-      'Welcome to your new {0} system, powered by Unraid! ["Test Partner"]'
+    expect(wrapper.find('h1').text()).toBe(
+      testTranslate('activation.welcomeModal.welcomeToYourNewSystemPowered', ['Test Partner'])
     );
   });
 
-  it('uses the correct description text', () => {
-    mountComponent();
+  it('uses the correct description text', async () => {
+    const wrapper = await mountComponent();
 
-    const descriptionText = mockT(
-      `First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`
-    );
-
-    expect(descriptionText).toBe(
-      "First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS)."
-    );
+    const description = testTranslate('activation.welcomeModal.firstYouLlCreateYourDevice');
+    expect(wrapper.text()).toContain(description);
   });
 
   it('displays the partner logo when available', async () => {

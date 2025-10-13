@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 import { CheckIcon, KeyIcon, ServerStackIcon } from '@heroicons/vue/24/outline';
 import {
   KeyIcon as KeyIconSolid,
@@ -37,11 +40,14 @@ interface Step {
     completed: Component;
   };
 }
-const steps: readonly Step[] = [
+
+const { t } = useI18n();
+
+const steps = computed<Step[]>(() => [
   {
     step: 1,
-    title: 'Create Device Password',
-    description: 'Secure your device',
+    title: t('activation.activationSteps.createDevicePassword'),
+    description: t('activation.activationSteps.secureYourDevice'),
     icon: {
       inactive: LockClosedIcon,
       active: LockClosedIcon,
@@ -50,8 +56,8 @@ const steps: readonly Step[] = [
   },
   {
     step: 2,
-    title: 'Activate License',
-    description: 'Create an Unraid.net account and activate your key',
+    title: t('activation.activationSteps.activateLicense'),
+    description: t('activation.activationSteps.createAnUnraidNetAccountAnd'),
     icon: {
       inactive: KeyIcon,
       active: KeyIconSolid,
@@ -60,15 +66,15 @@ const steps: readonly Step[] = [
   },
   {
     step: 3,
-    title: 'Unleash Your Hardware',
-    description: 'Device is ready to configure',
+    title: t('activation.activationSteps.unleashYourHardware'),
+    description: t('activation.activationSteps.deviceIsReadyToConfigure'),
     icon: {
       inactive: ServerStackIcon,
       active: ServerStackIconSolid,
       completed: CheckIcon,
     },
   },
-] as const;
+]);
 </script>
 
 <template>
