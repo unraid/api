@@ -17,6 +17,7 @@ import { MetricsModule } from '@app/unraid-api/graph/resolvers/metrics/metrics.m
 import { RootMutationsResolver } from '@app/unraid-api/graph/resolvers/mutation/mutation.resolver.js';
 import { NotificationsModule } from '@app/unraid-api/graph/resolvers/notifications/notifications.module.js';
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
+import { OnboardingMutationsResolver } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.mutation.js';
 import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.resolver.js';
 import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resolver.js';
 import { RCloneModule } from '@app/unraid-api/graph/resolvers/rclone/rclone.module.js';
@@ -63,6 +64,7 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         NotificationsResolver,
         OnlineResolver,
         OwnerResolver,
+        OnboardingMutationsResolver,
         RegistrationResolver,
         RootMutationsResolver,
         ServerResolver,

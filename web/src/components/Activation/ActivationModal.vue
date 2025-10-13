@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useMutation } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, Dialog } from '@unraid/ui';
@@ -12,6 +13,7 @@ import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo
 import ActivationPluginsStep from '~/components/Activation/ActivationPluginsStep.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
 import ActivationTimezoneStep from '~/components/Activation/ActivationTimezoneStep.vue';
+import { COMPLETE_UPGRADE_STEP_MUTATION } from '~/components/Activation/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { useUpgradeOnboardingStore } from '~/components/Activation/store/upgradeOnboarding';
@@ -26,6 +28,7 @@ const { partnerInfo, activationCode, isFreshInstall } = storeToRefs(useActivatio
 const upgradeStore = useUpgradeOnboardingStore();
 const { shouldShowUpgradeOnboarding, upgradeSteps, currentVersion, previousVersion } =
   storeToRefs(upgradeStore);
+const { refetchUpgradeInfo } = upgradeStore;
 const purchaseStore = usePurchaseStore();
 
 useThemeStore();
@@ -131,7 +134,33 @@ const closeModal = () => {
   }
 };
 
-const goToNextStep = () => {
+const { mutate: completeUpgradeStepMutation } = useMutation(COMPLETE_UPGRADE_STEP_MUTATION);
+
+const markUpgradeStepCompleted = async (stepId: string | null) => {
+  if (!isUpgradeMode.value || !stepId) return;
+
+  try {
+    await completeUpgradeStepMutation({ input: { stepId } });
+    await refetchUpgradeInfo();
+  } catch (error) {
+    console.error('[ActivationModal] Failed to mark upgrade step completed', error);
+  }
+};
+
+const goToNextStep = async () => {
+  if (isUpgradeMode.value) {
+    await markUpgradeStepCompleted(currentStep.value);
+
+    if (upgradeSteps.value.length === 0) {
+      closeModal();
+      currentStepIndex.value = 0;
+      return;
+    }
+
+    currentStepIndex.value = Math.min(currentStepIndex.value, upgradeSteps.value.length - 1);
+    return;
+  }
+
   if (currentStepIndex.value < availableSteps.value.length - 1) {
     currentStepIndex.value++;
   } else if (hasActivationCode.value && !isUpgradeMode.value) {
@@ -149,21 +178,21 @@ const goToPreviousStep = () => {
 
 const canGoBack = computed(() => currentStepIndex.value > 0);
 
-const handleTimezoneComplete = () => {
+const handleTimezoneComplete = async () => {
   console.log('[ActivationModal] Timezone complete, moving to next step');
-  goToNextStep();
+  await goToNextStep();
 };
 
-const handleTimezoneSkip = () => {
-  goToNextStep();
+const handleTimezoneSkip = async () => {
+  await goToNextStep();
 };
 
-const handlePluginsComplete = () => {
-  goToNextStep();
+const handlePluginsComplete = async () => {
+  await goToNextStep();
 };
 
-const handlePluginsSkip = () => {
-  goToNextStep();
+const handlePluginsSkip = async () => {
+  await goToNextStep();
 };
 
 const currentStepConfig = computed(() => {
@@ -172,6 +201,21 @@ const currentStepConfig = computed(() => {
   }
   return upgradeSteps.value[currentStepIndex.value];
 });
+
+watch(
+  () => upgradeSteps.value.length,
+  (length) => {
+    if (!isUpgradeMode.value) return;
+    if (length === 0) {
+      currentStepIndex.value = 0;
+      return;
+    }
+
+    if (currentStepIndex.value >= length) {
+      currentStepIndex.value = 0;
+    }
+  }
+);
 </script>
 
 <template>

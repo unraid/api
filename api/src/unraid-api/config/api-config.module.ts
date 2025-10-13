@@ -8,7 +8,7 @@ import { csvStringToArray } from '@unraid/shared/util/data.js';
 
 import { isConnectPluginInstalled } from '@app/connect-plugin-cleanup.js';
 import { API_VERSION, PATHS_CONFIG_MODULES } from '@app/environment.js';
-import { OsVersionTrackerModule } from '@app/unraid-api/config/os-version-tracker.module.js';
+import { OnboardingTrackerModule } from '@app/unraid-api/config/onboarding-tracker.module.js';
 
 export { type ApiConfig };
 
@@ -120,8 +120,8 @@ export class ApiConfigPersistence
 
 // apiConfig should be registered in root config in app.module.ts, not here.
 @Module({
-    imports: [OsVersionTrackerModule],
+    imports: [OnboardingTrackerModule],
     providers: [ApiConfigPersistence],
-    exports: [ApiConfigPersistence, OsVersionTrackerModule],
+    exports: [ApiConfigPersistence, OnboardingTrackerModule],
 })
 export class ApiConfigModule {}

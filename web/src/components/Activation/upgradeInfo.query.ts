@@ -10,6 +10,7 @@ export const UPGRADE_INFO_QUERY = graphql(/* GraphQL */ `
           isUpgrade
           previousVersion
           currentVersion
+          completedSteps
         }
       }
     }

@@ -1,5 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
+import { UpgradeInfo } from '@app/unraid-api/graph/resolvers/info/versions/versions.model.js';
 import { RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 
 /**
@@ -45,6 +46,16 @@ export class RCloneMutations {
     deleteRCloneRemote!: boolean;
 }
 
+@ObjectType({
+    description: 'Onboarding related mutations',
+})
+export class OnboardingMutations {
+    @Field(() => UpgradeInfo, {
+        description: 'Mark an upgrade onboarding step as completed for the current OS version',
+    })
+    completeUpgradeStep!: UpgradeInfo;
+}
+
 @ObjectType()
 export class RootMutations {
     @Field(() => ArrayMutations, { description: 'Array related mutations' })
@@ -67,4 +78,7 @@ export class RootMutations {
 
     @Field(() => RCloneMutations, { description: 'RClone related mutations' })
     rclone: RCloneMutations = new RCloneMutations();
+
+    @Field(() => OnboardingMutations, { description: 'Onboarding related mutations' })
+    onboarding: OnboardingMutations = new OnboardingMutations();
 }

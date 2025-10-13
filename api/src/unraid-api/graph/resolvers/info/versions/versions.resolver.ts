@@ -49,8 +49,23 @@ export class VersionsResolver {
 
     @ResolveField(() => UpgradeInfo)
     upgrade(): UpgradeInfo {
-        const currentVersion = this.configService.get<string>('store.emhttp.var.version');
-        const lastSeenVersion = this.configService.get<string>('api.lastSeenOsVersion');
+        const currentVersion =
+            this.configService.get<string>('onboardingTracker.currentVersion') ??
+            this.configService.get<string>('store.emhttp.var.version');
+        const lastSeenVersion =
+            this.configService.get<string>('onboardingTracker.lastTrackedVersion') ??
+            this.configService.get<string>('api.lastSeenOsVersion');
+        const completedStepsMap =
+            this.configService.get<Record<string, { version: string }>>(
+                'onboardingTracker.completedSteps'
+            ) ?? {};
+
+        const completedSteps =
+            currentVersion && completedStepsMap
+                ? Object.entries(completedStepsMap)
+                      .filter(([, value]) => value?.version === currentVersion)
+                      .map(([stepId]) => stepId)
+                : [];
 
         const isUpgrade = Boolean(
             lastSeenVersion && currentVersion && lastSeenVersion !== currentVersion
@@ -60,6 +75,7 @@ export class VersionsResolver {
             isUpgrade,
             previousVersion: isUpgrade ? lastSeenVersion : undefined,
             currentVersion: currentVersion || undefined,
+            completedSteps,
         };
     }
 }

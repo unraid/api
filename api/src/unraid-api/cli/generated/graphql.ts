@@ -434,6 +434,12 @@ export type CloudResponse = {
   status: Scalars['String']['output'];
 };
 
+/** Input for marking an upgrade onboarding step as completed */
+export type CompleteUpgradeStepInput = {
+  /** Identifier of the onboarding step to mark completed */
+  stepId: Scalars['String']['input'];
+};
+
 export type Config = Node & {
   __typename?: 'Config';
   error?: Maybe<Scalars['String']['output']>;
@@ -1464,6 +1470,7 @@ export type Mutation = {
   moveDockerItemsToPosition: ResolvedOrganizerV1;
   /** Creates a notification if an equivalent unread notification does not already exist. */
   notifyIfUnique?: Maybe<Notification>;
+  onboarding: OnboardingMutations;
   parityCheck: ParityCheckMutations;
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
@@ -1772,6 +1779,19 @@ export type OidcSessionValidation = {
   __typename?: 'OidcSessionValidation';
   username?: Maybe<Scalars['String']['output']>;
   valid: Scalars['Boolean']['output'];
+};
+
+/** Onboarding related mutations */
+export type OnboardingMutations = {
+  __typename?: 'OnboardingMutations';
+  /** Mark an upgrade onboarding step as completed for the current OS version */
+  completeUpgradeStep: UpgradeInfo;
+};
+
+
+/** Onboarding related mutations */
+export type OnboardingMutationsCompleteUpgradeStepArgs = {
+  input: CompleteUpgradeStepInput;
 };
 
 export type Owner = {
@@ -2614,6 +2634,8 @@ export type UpdateSystemTimeInput = {
 
 export type UpgradeInfo = {
   __typename?: 'UpgradeInfo';
+  /** Onboarding step identifiers completed for the current OS version */
+  completedSteps: Array<Scalars['String']['output']>;
   /** Current OS version */
   currentVersion?: Maybe<Scalars['String']['output']>;
   /** Whether the OS version has changed since last boot */

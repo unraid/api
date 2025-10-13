@@ -781,6 +781,70 @@ type Settings implements Node {
   api: ApiConfig!
 }
 
+type CoreVersions {
+  """Unraid version"""
+  unraid: String
+
+  """Unraid API version"""
+  api: String
+
+  """Kernel version"""
+  kernel: String
+}
+
+type PackageVersions {
+  """OpenSSL version"""
+  openssl: String
+
+  """Node.js version"""
+  node: String
+
+  """npm version"""
+  npm: String
+
+  """pm2 version"""
+  pm2: String
+
+  """Git version"""
+  git: String
+
+  """nginx version"""
+  nginx: String
+
+  """PHP version"""
+  php: String
+
+  """Docker version"""
+  docker: String
+}
+
+type UpgradeInfo {
+  """Whether the OS version has changed since last boot"""
+  isUpgrade: Boolean!
+
+  """Previous OS version before upgrade"""
+  previousVersion: String
+
+  """Current OS version"""
+  currentVersion: String
+
+  """Onboarding step identifiers completed for the current OS version"""
+  completedSteps: [String!]!
+}
+
+type InfoVersions implements Node {
+  id: PrefixedID!
+
+  """Core system versions"""
+  core: CoreVersions!
+
+  """Software package versions"""
+  packages: PackageVersions
+
+  """OS upgrade information"""
+  upgrade: UpgradeInfo!
+}
+
 type RCloneDrive {
   """Provider name"""
   name: String!
@@ -1027,6 +1091,20 @@ input CreateRCloneRemoteInput {
 
 input DeleteRCloneRemoteInput {
   name: String!
+}
+
+"""Onboarding related mutations"""
+type OnboardingMutations {
+  """
+  Mark an upgrade onboarding step as completed for the current OS version
+  """
+  completeUpgradeStep(input: CompleteUpgradeStepInput!): UpgradeInfo!
+}
+
+"""Input for marking an upgrade onboarding step as completed"""
+input CompleteUpgradeStepInput {
+  """Identifier of the onboarding step to mark completed"""
+  stepId: String!
 }
 
 type Config implements Node {
@@ -1927,67 +2005,6 @@ type InfoBaseboard implements Node {
   memSlots: Float
 }
 
-type CoreVersions {
-  """Unraid version"""
-  unraid: String
-
-  """Unraid API version"""
-  api: String
-
-  """Kernel version"""
-  kernel: String
-}
-
-type PackageVersions {
-  """OpenSSL version"""
-  openssl: String
-
-  """Node.js version"""
-  node: String
-
-  """npm version"""
-  npm: String
-
-  """pm2 version"""
-  pm2: String
-
-  """Git version"""
-  git: String
-
-  """nginx version"""
-  nginx: String
-
-  """PHP version"""
-  php: String
-
-  """Docker version"""
-  docker: String
-}
-
-type UpgradeInfo {
-  """Whether the OS version has changed since last boot"""
-  isUpgrade: Boolean!
-
-  """Previous OS version before upgrade"""
-  previousVersion: String
-
-  """Current OS version"""
-  currentVersion: String
-}
-
-type InfoVersions implements Node {
-  id: PrefixedID!
-
-  """Core system versions"""
-  core: CoreVersions!
-
-  """Software package versions"""
-  packages: PackageVersions
-
-  """OS upgrade information"""
-  upgrade: UpgradeInfo!
-}
-
 type Info implements Node {
   id: PrefixedID!
 
@@ -2709,6 +2726,7 @@ type Mutation {
   apiKey: ApiKeyMutations!
   customization: CustomizationMutations!
   rclone: RCloneMutations!
+  onboarding: OnboardingMutations!
   createDockerFolder(name: String!, parentId: String, childrenIds: [String!]): ResolvedOrganizerV1!
   setDockerFolderChildren(folderId: String, childrenIds: [String!]!): ResolvedOrganizerV1!
   deleteDockerEntries(entryIds: [String!]!): ResolvedOrganizerV1!
