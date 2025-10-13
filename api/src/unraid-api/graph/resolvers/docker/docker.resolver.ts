@@ -155,6 +155,63 @@ export class DockerResolver {
 
     @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.DOCKER,
+    })
+    @Mutation(() => ResolvedOrganizerV1)
+    public async moveDockerItemsToPosition(
+        @Args('sourceEntryIds', { type: () => [String] }) sourceEntryIds: string[],
+        @Args('destinationFolderId') destinationFolderId: string,
+        @Args('position', { type: () => Number }) position: number
+    ) {
+        const organizer = await this.dockerOrganizerService.moveItemsToPosition({
+            sourceEntryIds,
+            destinationFolderId,
+            position,
+        });
+        return this.dockerOrganizerService.resolveOrganizer(organizer);
+    }
+
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.DOCKER,
+    })
+    @Mutation(() => ResolvedOrganizerV1)
+    public async renameDockerFolder(
+        @Args('folderId') folderId: string,
+        @Args('newName') newName: string
+    ) {
+        const organizer = await this.dockerOrganizerService.renameFolderById({
+            folderId,
+            newName,
+        });
+        return this.dockerOrganizerService.resolveOrganizer(organizer);
+    }
+
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.DOCKER,
+    })
+    @Mutation(() => ResolvedOrganizerV1)
+    public async createDockerFolderWithItems(
+        @Args('name') name: string,
+        @Args('parentId', { nullable: true }) parentId?: string,
+        @Args('sourceEntryIds', { type: () => [String], nullable: true }) sourceEntryIds?: string[],
+        @Args('position', { type: () => Number, nullable: true }) position?: number
+    ) {
+        const organizer = await this.dockerOrganizerService.createFolderWithItems({
+            name,
+            parentId: parentId ?? DEFAULT_ORGANIZER_ROOT_ID,
+            sourceEntryIds: sourceEntryIds ?? [],
+            position,
+        });
+        return this.dockerOrganizerService.resolveOrganizer(organizer);
+    }
+
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
     })
