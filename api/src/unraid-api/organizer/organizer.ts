@@ -1,5 +1,6 @@
 import {
     AnyOrganizerResource,
+    FlatOrganizerEntry,
     OrganizerFolder,
     OrganizerResource,
     OrganizerResourceRef,
@@ -143,11 +144,13 @@ export function resolveOrganizerView(
     resources: OrganizerV1['resources']
 ): ResolvedOrganizerView {
     const resolvedRoot = resolveEntry(view.root, view, resources);
+    const flatEntries = flattenResolvedView(resolvedRoot);
 
     return {
         id: view.id,
         name: view.name,
         root: resolvedRoot,
+        flatEntries,
         prefs: view.prefs,
     };
 }
@@ -170,6 +173,63 @@ export function resolveOrganizer(organizer: OrganizerV1): ResolvedOrganizerV1 {
         version: 1,
         views: resolvedViews,
     };
+}
+
+/**
+ * Flattens a resolved organizer entry into a list of flat entries with metadata.
+ * Each entry includes parent references, depth, position, and path information.
+ *
+ * @param resolved - The resolved organizer entry to flatten
+ * @param parentId - The parent entry ID (optional)
+ * @param depth - The current depth in the tree (default: 0)
+ * @param path - The path from root to this entry (default: [])
+ * @param position - The position in parent's children array (default: 0)
+ * @returns Array of flat organizer entries with enriched metadata
+ */
+export function flattenResolvedView(
+    resolved: ResolvedOrganizerEntryType,
+    parentId?: string,
+    depth = 0,
+    path: string[] = [],
+    position = 0
+): FlatOrganizerEntry[] {
+    const entries: FlatOrganizerEntry[] = [];
+
+    function walk(
+        entry: ResolvedOrganizerEntryType,
+        parent: string | undefined,
+        d: number,
+        p: string[],
+        pos: number
+    ): void {
+        const currentPath = [...p, entry.id];
+        const isFolder = entry.type === 'folder';
+        const children = isFolder ? (entry as ResolvedOrganizerFolder).children : [];
+
+        const flat: FlatOrganizerEntry = {
+            id: entry.id,
+            type: entry.type,
+            name: entry.name,
+            parentId: parent,
+            depth: d,
+            path: currentPath,
+            position: pos,
+            hasChildren: isFolder && children.length > 0,
+            childrenIds: children.map((c) => c.id),
+            meta: entry.type === 'container' ? (entry as any).meta : undefined,
+        };
+
+        entries.push(flat);
+
+        if (isFolder) {
+            children.forEach((child, idx) => {
+                walk(child, entry.id, d + 1, currentPath, idx);
+            });
+        }
+    }
+
+    walk(resolved, parentId, depth, path, position);
+    return entries;
 }
 
 export interface CreateFolderInViewParams {
@@ -587,5 +647,110 @@ export function moveEntriesToFolder(params: MoveEntriesToFolderParams): Organize
         destinationChildren.add(entryId);
     });
     destinationFolder.children = Array.from(destinationChildren);
+    return newView;
+}
+
+export interface MoveItemsToPositionParams {
+    view: OrganizerView;
+    sourceEntryIds: Set<string>;
+    destinationFolderId: string;
+    position: number;
+    resources?: OrganizerV1['resources'];
+}
+
+/**
+ * Moves entries to a specific position within a destination folder.
+ * Combines moveEntriesToFolder with position-based insertion.
+ */
+export function moveItemsToPosition(params: MoveItemsToPositionParams): OrganizerView {
+    const { view, sourceEntryIds, destinationFolderId, position, resources } = params;
+
+    const movedView = moveEntriesToFolder({ view, sourceEntryIds, destinationFolderId });
+
+    const folder = movedView.entries[destinationFolderId] as OrganizerFolder;
+    const movedIds = Array.from(sourceEntryIds);
+    const otherChildren = folder.children.filter((id) => !sourceEntryIds.has(id));
+
+    const insertPos = Math.max(0, Math.min(position, otherChildren.length));
+    const reordered = [
+        ...otherChildren.slice(0, insertPos),
+        ...movedIds,
+        ...otherChildren.slice(insertPos),
+    ];
+
+    folder.children = reordered;
+    return movedView;
+}
+
+export interface RenameFolderParams {
+    view: OrganizerView;
+    folderId: string;
+    newName: string;
+}
+
+/**
+ * Renames a folder by updating its name property.
+ * This is simpler than the current create+delete approach.
+ */
+export function renameFolder(params: RenameFolderParams): OrganizerView {
+    const { view, folderId, newName } = params;
+    const newView = structuredClone(view);
+
+    const entry = newView.entries[folderId];
+    if (!entry) {
+        throw new Error(`Folder with id '${folderId}' not found`);
+    }
+    if (entry.type !== 'folder') {
+        throw new Error(`Entry '${folderId}' is not a folder`);
+    }
+
+    (entry as OrganizerFolder).name = newName;
+    return newView;
+}
+
+export interface CreateFolderWithItemsParams {
+    view: OrganizerView;
+    folderId: string;
+    folderName: string;
+    parentId: string;
+    sourceEntryIds?: string[];
+    position?: number;
+    resources?: OrganizerV1['resources'];
+}
+
+/**
+ * Creates a new folder and optionally moves items into it at a specific position.
+ * Combines createFolder + moveItems + positioning in a single atomic operation.
+ */
+export function createFolderWithItems(params: CreateFolderWithItemsParams): OrganizerView {
+    const { view, folderId, folderName, parentId, sourceEntryIds = [], position, resources } = params;
+
+    let newView = createFolderInView({
+        view,
+        folderId,
+        folderName,
+        parentId,
+        childrenIds: sourceEntryIds,
+    });
+
+    if (sourceEntryIds.length > 0) {
+        newView = moveEntriesToFolder({
+            view: newView,
+            sourceEntryIds: new Set(sourceEntryIds),
+            destinationFolderId: folderId,
+        });
+    }
+
+    if (position !== undefined) {
+        const parent = newView.entries[parentId] as OrganizerFolder;
+        const withoutNewFolder = parent.children.filter((id) => id !== folderId);
+        const insertPos = Math.max(0, Math.min(position, withoutNewFolder.length));
+        parent.children = [
+            ...withoutNewFolder.slice(0, insertPos),
+            folderId,
+            ...withoutNewFolder.slice(insertPos),
+        ];
+    }
+
     return newView;
 }
