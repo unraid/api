@@ -1,5 +1,6 @@
 import { computed, unref } from 'vue';
 
+import type { FlatOrganizerEntry } from '@/composables/gql/graphql';
 import type { MaybeRef } from 'vue';
 
 export interface TreeRow<T = unknown> {
@@ -15,112 +16,88 @@ export interface TreeRow<T = unknown> {
   containerId?: string;
 }
 
-export interface OrganizerEntry {
-  __typename?: string;
-  id: string;
-  name?: string;
-  children?: OrganizerEntry[];
-  meta?: unknown;
-  type?: string;
-}
-
 export interface TreeDataOptions<T> {
-  organizerRoot?: MaybeRef<{ id: string; children?: OrganizerEntry[] } | undefined>;
+  flatEntries?: MaybeRef<FlatOrganizerEntry[] | undefined>;
   flatData?: MaybeRef<T[]>;
-  buildTreeRow: (entry: OrganizerEntry) => TreeRow<T> | null;
   buildFlatRow?: (item: T) => TreeRow<T>;
 }
 
 export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
-  const { organizerRoot, flatData, buildTreeRow, buildFlatRow } = options;
-
-  function buildTree(entry: OrganizerEntry): TreeRow<T> | null {
-    if (entry.__typename?.includes('Folder')) {
-      const children = (entry.children || [])
-        .map((child) => buildTree(child))
-        .filter(Boolean) as TreeRow<T>[];
-
-      return {
-        id: entry.id,
-        type: 'folder',
-        name: entry.name || 'Unnamed',
-        children,
-      };
-    }
-
-    return buildTreeRow(entry);
-  }
+  const { flatEntries, flatData, buildFlatRow } = options;
 
   const treeData = computed<TreeRow<T>[]>(() => {
-    const root = unref(organizerRoot);
-    const flat = unref(flatData);
+    const flat = unref(flatEntries);
+    const fallbackFlat = unref(flatData);
 
-    if (root) {
-      return (root.children || []).map((child) => buildTree(child)).filter(Boolean) as TreeRow<T>[];
+    if (flat && flat.length > 0) {
+      const entriesById = new Map(flat.map((e) => [e.id, e]));
+      const rootEntries: TreeRow<T>[] = [];
+
+      function buildTreeFromFlat(entry: FlatOrganizerEntry): TreeRow<T> {
+        const row: TreeRow<T> = {
+          id: entry.id,
+          type: entry.type,
+          name: entry.name,
+          meta: entry.meta as T,
+          children: [],
+        };
+
+        if (entry.hasChildren) {
+          row.children = entry.childrenIds
+            .map((childId) => entriesById.get(childId))
+            .filter(Boolean)
+            .map((child) => buildTreeFromFlat(child!));
+        }
+
+        return row;
+      }
+
+      for (const entry of flat) {
+        if (!entry.parentId) {
+          rootEntries.push(buildTreeFromFlat(entry));
+        }
+      }
+
+      return rootEntries;
     }
 
-    if (flat && buildFlatRow) {
-      return flat.map(buildFlatRow);
+    if (fallbackFlat && buildFlatRow) {
+      return fallbackFlat.map(buildFlatRow);
     }
 
     return [];
   });
 
   const entryParentById = computed<Record<string, string>>(() => {
-    const map: Record<string, string> = {};
-    const root = unref(organizerRoot);
-
-    function walk(node?: { id: string; children?: OrganizerEntry[] } | null) {
-      if (!node) return;
-      for (const child of node.children || []) {
-        const id = (child as { id?: string }).id;
-        if (id) map[id] = node.id;
-        if ((child as OrganizerEntry).__typename?.includes('Folder')) {
-          walk(child as { id: string; children?: OrganizerEntry[] });
-        }
-      }
-    }
-
-    walk(root);
-    return map;
+    const entries = unref(flatEntries);
+    if (!entries) return {};
+    return Object.fromEntries(
+      entries.filter((e) => e.parentId).map((e) => [e.id, e.parentId!])
+    );
   });
 
   const folderChildrenIds = computed<Record<string, string[]>>(() => {
-    const map: Record<string, string[]> = {};
-    const root = unref(organizerRoot);
-
-    function walk(node?: { id: string; children?: OrganizerEntry[] } | null) {
-      if (!node) return;
-      map[node.id] = (node.children || []).map((c) => (c as { id: string }).id);
-
-      for (const child of node.children || []) {
-        if ((child as OrganizerEntry).__typename?.includes('Folder')) {
-          walk(child as { id: string; children?: OrganizerEntry[] });
-        }
-      }
-    }
-
-    walk(root);
-    return map;
+    const entries = unref(flatEntries);
+    if (!entries) return {};
+    return Object.fromEntries(
+      entries.filter((e) => e.type === 'folder').map((e) => [e.id, e.childrenIds])
+    );
   });
 
   const parentById = computed<Record<string, string>>(() => {
-    const map: Record<string, string> = {};
-    const root = unref(organizerRoot);
+    const entries = unref(flatEntries);
+    if (!entries) return {};
+    return Object.fromEntries(
+      entries
+        .filter((e) => e.type === 'folder' && e.parentId)
+        .map((e) => [e.id, e.parentId!])
+    );
+  });
 
-    function walk(node?: { id: string; children?: OrganizerEntry[] } | null, parentId?: string) {
-      if (!node) return;
-      if (parentId) map[node.id] = parentId;
-
-      for (const child of node.children || []) {
-        if ((child as OrganizerEntry).__typename?.includes('Folder')) {
-          walk(child as { id: string; children?: OrganizerEntry[] }, node.id);
-        }
-      }
-    }
-
-    walk(root, undefined);
-    return map;
+  const positionById = computed<Record<string, number>>(() => {
+    const entries = unref(flatEntries);
+    if (!entries) return {};
+    return Object.fromEntries(entries.map((e) => [e.id, e.position]));
   });
 
   function flattenRows(rows: TreeRow<T>[], filterType?: string): TreeRow<T>[] {
@@ -150,6 +127,7 @@ export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
     entryParentById,
     folderChildrenIds,
     parentById,
+    positionById,
     flattenRows,
     getRowById,
   };

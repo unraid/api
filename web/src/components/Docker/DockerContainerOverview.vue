@@ -32,6 +32,8 @@ const containers = computed<DockerContainer[]>(() => []);
 const organizerRoot = computed(
   () => result.value?.docker?.organizer?.views?.[0]?.root as ResolvedOrganizerFolder | undefined
 );
+const flatEntries = computed(() => result.value?.docker?.organizer?.views?.[0]?.flatEntries || []);
+const rootFolderId = computed(() => result.value?.docker?.organizer?.views?.[0]?.root?.id || 'root');
 
 const handleRefresh = async () => {
   await refetch({ skipCache: true });
@@ -52,7 +54,8 @@ const handleRefresh = async () => {
 
     <DockerContainersTable
       :containers="containers"
-      :organizer-root="organizerRoot"
+      :flat-entries="flatEntries"
+      :root-folder-id="rootFolderId"
       :loading="loading"
       @created-folder="handleRefresh"
     />

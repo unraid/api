@@ -15,126 +15,36 @@ export const GET_DOCKER_CONTAINERS = gql`
               id
               name
               type
-              children {
-                __typename
-                ... on ResolvedOrganizerFolder {
-                  id
-                  name
-                  type
-                  children {
-                    __typename
-                    ... on ResolvedOrganizerFolder {
-                      id
-                      name
-                      type
-                      children {
-                        __typename
-                        ... on ResolvedOrganizerFolder {
-                          id
-                          name
-                          type
-                        }
-                        ... on OrganizerContainerResource {
-                          id
-                          name
-                          type
-                          meta {
-                            id
-                            names
-                            state
-                            status
-                            image
-                            ports {
-                              privatePort
-                              publicPort
-                              type
-                            }
-                            autoStart
-                            hostConfig {
-                              networkMode
-                            }
-                            created
-                            isUpdateAvailable
-                            isRebuildReady
-                          }
-                        }
-                      }
-                    }
-                    ... on OrganizerContainerResource {
-                      id
-                      name
-                      type
-                      meta {
-                        id
-                        names
-                        state
-                        status
-                        image
-                        ports {
-                          privatePort
-                          publicPort
-                          type
-                        }
-                        autoStart
-                        hostConfig {
-                          networkMode
-                        }
-                        created
-                        isUpdateAvailable
-                        isRebuildReady
-                      }
-                    }
-                  }
-                }
-                ... on OrganizerContainerResource {
-                  id
-                  name
-                  type
-                  meta {
-                    id
-                    names
-                    state
-                    status
-                    image
-                    ports {
-                      privatePort
-                      publicPort
-                      type
-                    }
-                    autoStart
-                    hostConfig {
-                      networkMode
-                    }
-                    created
-                    isUpdateAvailable
-                    isRebuildReady
-                  }
-                }
-              }
             }
-            ... on OrganizerContainerResource {
+          }
+          flatEntries {
+            id
+            type
+            name
+            parentId
+            depth
+            position
+            path
+            hasChildren
+            childrenIds
+            meta {
               id
-              name
-              type
-              meta {
-                id
-                names
-                state
-                status
-                image
-                ports {
-                  privatePort
-                  publicPort
-                  type
-                }
-                autoStart
-                hostConfig {
-                  networkMode
-                }
-                created
-                isUpdateAvailable
-                isRebuildReady
+              names
+              state
+              status
+              image
+              ports {
+                privatePort
+                publicPort
+                type
               }
+              autoStart
+              hostConfig {
+                networkMode
+              }
+              created
+              isUpdateAvailable
+              isRebuildReady
             }
           }
         }

@@ -1,13 +1,7 @@
 import { computed, ref, unref } from 'vue';
 
-import type { OrganizerEntry } from '@/composables/useTreeData';
+import type { FlatOrganizerEntry } from '@/composables/gql/graphql';
 import type { MaybeRef } from 'vue';
-
-export interface FolderNode {
-  id: string;
-  name: string;
-  children: FolderNode[];
-}
 
 export interface FlatFolderRow {
   id: string;
@@ -17,61 +11,47 @@ export interface FlatFolderRow {
 }
 
 export interface FolderTreeOptions {
-  organizerRoot?: MaybeRef<{ id: string; name?: string; children?: OrganizerEntry[] } | undefined>;
+  flatEntries?: MaybeRef<FlatOrganizerEntry[] | undefined>;
 }
 
 export function useFolderTree(options: FolderTreeOptions) {
-  const { organizerRoot } = options;
+  const { flatEntries } = options;
 
   const expandedFolders = ref<Set<string>>(new Set());
 
-  function buildFolderOnlyTree(
-    entry?: { id: string; name?: string; children?: OrganizerEntry[] } | null
-  ): FolderNode | null {
-    if (!entry) return null;
-
-    const folders: FolderNode[] = [];
-    for (const child of entry.children || []) {
-      if ((child as OrganizerEntry).__typename?.includes('Folder')) {
-        const sub = buildFolderOnlyTree(
-          child as { id: string; name?: string; children?: OrganizerEntry[] }
-        );
-        if (sub) folders.push(sub);
-      }
-    }
-
-    return { id: entry.id, name: entry.name || 'Unnamed', children: folders };
-  }
-
-  const folderTree = computed<FolderNode | null>(() => {
-    return buildFolderOnlyTree(unref(organizerRoot));
+  const allFolders = computed<FlatOrganizerEntry[]>(() => {
+    const entries = unref(flatEntries);
+    if (!entries) return [];
+    return entries.filter((e) => e.type === 'folder');
   });
 
-  function flattenVisibleFolders(
-    node: FolderNode | null,
-    depth = 0,
-    out: FlatFolderRow[] = []
-  ): FlatFolderRow[] {
-    if (!node) return out;
+  const visibleFolders = computed<FlatFolderRow[]>(() => {
+    const folders = allFolders.value;
+    const visible: FlatFolderRow[] = [];
+    const expanded = expandedFolders.value;
 
-    out.push({
-      id: node.id,
-      name: node.name,
-      depth,
-      hasChildren: node.children.length > 0,
-    });
+    const visibleIds = new Set<string>();
 
-    if (expandedFolders.value.has(node.id)) {
-      for (const child of node.children) {
-        flattenVisibleFolders(child, depth + 1, out);
+    for (const folder of folders) {
+      if (!folder.parentId) {
+        visibleIds.add(folder.id);
+      } else if (visibleIds.has(folder.parentId) && expanded.has(folder.parentId)) {
+        visibleIds.add(folder.id);
       }
     }
 
-    return out;
-  }
+    for (const folder of folders) {
+      if (visibleIds.has(folder.id)) {
+        visible.push({
+          id: folder.id,
+          name: folder.name,
+          depth: folder.depth,
+          hasChildren: folder.hasChildren,
+        });
+      }
+    }
 
-  const visibleFolders = computed<FlatFolderRow[]>(() => {
-    return flattenVisibleFolders(folderTree.value);
+    return visible;
   });
 
   function toggleExpandFolder(id: string) {
@@ -94,7 +74,6 @@ export function useFolderTree(options: FolderTreeOptions) {
   }
 
   return {
-    folderTree,
     visibleFolders,
     expandedFolders,
     toggleExpandFolder,

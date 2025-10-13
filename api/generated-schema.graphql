@@ -1155,6 +1155,7 @@ type ResolvedOrganizerView {
   id: String!
   name: String!
   root: ResolvedOrganizerEntry!
+  flatEntries: [FlatOrganizerEntry!]!
   prefs: JSON
 }
 
@@ -1184,6 +1185,19 @@ type OrganizerResource {
 type ResolvedOrganizerV1 {
   version: Float!
   views: [ResolvedOrganizerView!]!
+}
+
+type FlatOrganizerEntry {
+  id: String!
+  type: String!
+  name: String!
+  parentId: String
+  depth: Float!
+  position: Float!
+  path: [String!]!
+  hasChildren: Boolean!
+  childrenIds: [String!]!
+  meta: DockerContainer
 }
 
 type FlashBackupStatus {
@@ -2469,6 +2483,9 @@ type Mutation {
   setDockerFolderChildren(folderId: String, childrenIds: [String!]!): ResolvedOrganizerV1!
   deleteDockerEntries(entryIds: [String!]!): ResolvedOrganizerV1!
   moveDockerEntriesToFolder(sourceEntryIds: [String!]!, destinationFolderId: String!): ResolvedOrganizerV1!
+  moveDockerItemsToPosition(sourceEntryIds: [String!]!, destinationFolderId: String!, position: Float!): ResolvedOrganizerV1!
+  renameDockerFolder(folderId: String!, newName: String!): ResolvedOrganizerV1!
+  createDockerFolderWithItems(name: String!, parentId: String, sourceEntryIds: [String!], position: Float): ResolvedOrganizerV1!
   refreshDockerDigests: Boolean!
 
   """Initiates a flash drive backup using a configured remote."""
