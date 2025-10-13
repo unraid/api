@@ -27,9 +27,9 @@ if (typeof window !== 'undefined') {
   window.globalPinia = globalPinia;
 }
 
-function setupI18n() {
+async function setupI18n() {
   const i18n = createI18nInstance();
-  void ensureLocale(i18n, getWindowLocale());
+  await ensureLocale(i18n, getWindowLocale());
   return i18n;
 }
 
@@ -77,7 +77,7 @@ function parsePropsFromElement(element: Element): Record<string, unknown> {
 }
 
 // Create and mount unified app with shared context
-export function mountUnifiedApp() {
+export async function mountUnifiedApp() {
   // Create a minimal app just for context sharing
   const app = createApp({
     name: 'UnifiedContextApp',
@@ -85,7 +85,7 @@ export function mountUnifiedApp() {
   });
 
   // Setup everything once
-  const i18n = setupI18n();
+  const i18n = await setupI18n();
   app.use(i18n);
   app.use(globalPinia);
   app.use(ui);
@@ -198,6 +198,6 @@ export function mountUnifiedApp() {
 }
 
 // Replace the old autoMountAllComponents with the new unified approach
-export function autoMountAllComponents() {
-  return mountUnifiedApp();
+export async function autoMountAllComponents() {
+  return await mountUnifiedApp();
 }
