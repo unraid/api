@@ -222,9 +222,9 @@ export class ResolvedOrganizerView {
     @IsString()
     name!: string;
 
-    @Field(() => ResolvedOrganizerEntry)
-    @ValidateNested()
-    root!: ResolvedOrganizerEntryType;
+    @Field()
+    @IsString()
+    rootId!: string;
 
     @Field(() => [FlatOrganizerEntry])
     @IsArray()

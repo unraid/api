@@ -3,15 +3,12 @@ import { computed } from 'vue';
 
 import DockerContainersTable from '@/components/Docker/DockerContainersTable.vue';
 
-import type { ResolvedOrganizerFolder } from '@/composables/gql/graphql';
-
 interface Emits {
   (e: 'item:click', item: { id: string; type: string; name: string }): void;
   (e: 'item:select', item: { id: string; type: string; name: string; selected: boolean }): void;
 }
 
 interface Props {
-  root?: ResolvedOrganizerFolder;
   selectedIds?: string[];
   activeId?: string | null;
   disabled?: boolean;
@@ -60,7 +57,6 @@ function onRowSelect(payload: {
   <div class="space-y-2">
     <DockerContainersTable
       :containers="containers"
-      :organizer-root="root"
       compact
       :active-id="activeId"
       :selected-ids="selectedIds"
