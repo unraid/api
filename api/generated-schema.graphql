@@ -708,6 +708,108 @@ enum Role {
   VIEWER
 }
 
+type PublicPartnerInfo {
+  partnerName: String
+
+  """Indicates if a partner logo exists"""
+  hasPartnerLogo: Boolean!
+  partnerUrl: String
+
+  """
+  The path to the partner logo image on the flash drive, relative to the activation code file
+  """
+  partnerLogoUrl: String
+}
+
+type ActivationCode {
+  code: String
+  partnerName: String
+  partnerUrl: String
+  serverName: String
+  sysModel: String
+  comment: String
+  header: String
+  headermetacolor: String
+  background: String
+  showBannerGradient: Boolean
+  theme: String
+}
+
+type Customization {
+  activationCode: ActivationCode
+  partnerInfo: PublicPartnerInfo
+  theme: Theme!
+}
+
+type ActivationOnboardingStep {
+  """Identifier of the activation onboarding step"""
+  id: ActivationOnboardingStepId!
+
+  """Indicates whether the step is required"""
+  required: Boolean!
+
+  """Indicates whether the step has been completed for the current version"""
+  completed: Boolean!
+
+  """Version of Unraid when this step was introduced"""
+  introducedIn: String
+}
+
+enum ActivationOnboardingStepId {
+  WELCOME
+  TIMEZONE
+  PLUGINS
+  ACTIVATION
+}
+
+type ActivationOnboarding {
+  """Indicates whether the system is currently in an upgrade state"""
+  isUpgrade: Boolean!
+
+  """Previous OS version prior to the current upgrade"""
+  previousVersion: String
+
+  """Current OS version detected by the system"""
+  currentVersion: String
+
+  """Whether there are any remaining activation onboarding steps"""
+  hasPendingSteps: Boolean!
+
+  """Activation onboarding steps relevant to the current system state"""
+  steps: [ActivationOnboardingStep!]!
+}
+
+type Theme {
+  """The theme name"""
+  name: ThemeName!
+
+  """Whether to show the header banner image"""
+  showBannerImage: Boolean!
+
+  """Whether to show the banner gradient"""
+  showBannerGradient: Boolean!
+
+  """Whether to show the description in the header"""
+  showHeaderDescription: Boolean!
+
+  """The background color of the header"""
+  headerBackgroundColor: String
+
+  """The text color of the header"""
+  headerPrimaryTextColor: String
+
+  """The secondary text color of the header"""
+  headerSecondaryTextColor: String
+}
+
+"""The theme name"""
+enum ThemeName {
+  azure
+  black
+  gray
+  white
+}
+
 type SsoSettings implements Node {
   id: PrefixedID!
 
@@ -818,6 +920,26 @@ type PackageVersions {
   docker: String
 }
 
+type UpgradeStep {
+  """Identifier of the onboarding step"""
+  id: String!
+
+  """Whether the step is required to continue"""
+  required: Boolean!
+
+  """Version of Unraid when this step was introduced"""
+  introducedIn: String
+
+  """Display title for the onboarding step"""
+  title: String!
+
+  """Display description for the onboarding step"""
+  description: String!
+
+  """Icon identifier for the onboarding step"""
+  icon: String
+}
+
 type UpgradeInfo {
   """Whether the OS version has changed since last boot"""
   isUpgrade: Boolean!
@@ -830,6 +952,9 @@ type UpgradeInfo {
 
   """Onboarding step identifiers completed for the current OS version"""
   completedSteps: [String!]!
+
+  """Onboarding step definitions applicable to the current upgrade path"""
+  steps: [UpgradeStep!]!
 }
 
 type InfoVersions implements Node {
@@ -1049,14 +1174,6 @@ type CustomizationMutations {
   ): Theme!
 }
 
-"""The theme name"""
-enum ThemeName {
-  azure
-  black
-  gray
-  white
-}
-
 """
 Parity check related mutations, WIP, response types and functionaliy will change
 """
@@ -1104,69 +1221,13 @@ type OnboardingMutations {
 """Input for marking an upgrade onboarding step as completed"""
 input CompleteUpgradeStepInput {
   """Identifier of the onboarding step to mark completed"""
-  stepId: String!
+  stepId: ActivationOnboardingStepId!
 }
 
 type Config implements Node {
   id: PrefixedID!
   valid: Boolean
   error: String
-}
-
-type PublicPartnerInfo {
-  partnerName: String
-
-  """Indicates if a partner logo exists"""
-  hasPartnerLogo: Boolean!
-  partnerUrl: String
-
-  """
-  The path to the partner logo image on the flash drive, relative to the activation code file
-  """
-  partnerLogoUrl: String
-}
-
-type ActivationCode {
-  code: String
-  partnerName: String
-  partnerUrl: String
-  serverName: String
-  sysModel: String
-  comment: String
-  header: String
-  headermetacolor: String
-  background: String
-  showBannerGradient: Boolean
-  theme: String
-}
-
-type Customization {
-  activationCode: ActivationCode
-  partnerInfo: PublicPartnerInfo
-  theme: Theme!
-}
-
-type Theme {
-  """The theme name"""
-  name: ThemeName!
-
-  """Whether to show the header banner image"""
-  showBannerImage: Boolean!
-
-  """Whether to show the banner gradient"""
-  showBannerGradient: Boolean!
-
-  """Whether to show the description in the header"""
-  showHeaderDescription: Boolean!
-
-  """The background color of the header"""
-  headerBackgroundColor: String
-
-  """The text color of the header"""
-  headerPrimaryTextColor: String
-
-  """The secondary text color of the header"""
-  headerSecondaryTextColor: String
 }
 
 type ExplicitStatusItem {
@@ -2654,6 +2715,9 @@ type Query {
   customization: Customization
   publicPartnerInfo: PublicPartnerInfo
   publicTheme: Theme!
+
+  """Activation onboarding steps derived from current system state"""
+  activationOnboarding: ActivationOnboarding!
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!

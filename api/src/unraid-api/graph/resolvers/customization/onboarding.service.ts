@@ -14,13 +14,85 @@ import { getters, store } from '@app/store/index.js';
 import { updateDynamixConfig } from '@app/store/modules/dynamix.js';
 import {
     ActivationCode,
+    ActivationOnboardingStepId,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { Theme, ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 
+export async function findActivationCodeFile(
+    activationDir: string,
+    extension = '.activationcode',
+    logger?: Logger
+): Promise<string | null> {
+    try {
+        await fs.access(activationDir);
+        const files = await fs.readdir(activationDir);
+        const activationFile = files.find((file) => file.endsWith(extension));
+        return activationFile ? path.join(activationDir, activationFile) : null;
+    } catch (error) {
+        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+            logger?.debug?.(
+                `Activation directory ${activationDir} not found when searching for activation code.`
+            );
+        } else if (error instanceof Error) {
+            logger?.error?.('Error accessing activation directory or reading its content.', error);
+        }
+        return null;
+    }
+}
+
+export type ActivationStepContext = {
+    hasActivationCode: boolean;
+    regState?: string;
+};
+
+export type ActivationStepDefinition = {
+    id: ActivationOnboardingStepId;
+    required: boolean;
+    introducedIn: string;
+    condition?: (context: ActivationStepContext) => boolean | Promise<boolean>;
+};
+
+const activationStepDefinitions: ActivationStepDefinition[] = [
+    {
+        id: ActivationOnboardingStepId.WELCOME,
+        required: false,
+        introducedIn: '7.0.0',
+    },
+    {
+        id: ActivationOnboardingStepId.TIMEZONE,
+        required: true,
+        introducedIn: '7.0.0',
+    },
+    {
+        id: ActivationOnboardingStepId.PLUGINS,
+        required: false,
+        introducedIn: '7.0.0',
+    },
+    {
+        id: ActivationOnboardingStepId.ACTIVATION,
+        required: true,
+        introducedIn: '7.0.0',
+        condition: (context) =>
+            context.hasActivationCode && Boolean(context.regState?.startsWith('ENOKEYFILE')),
+    },
+];
+
+export async function resolveActivationStepDefinitions(
+    context: ActivationStepContext
+): Promise<ActivationStepDefinition[]> {
+    const results: ActivationStepDefinition[] = [];
+    for (const definition of activationStepDefinitions) {
+        if (!definition.condition || (await definition.condition(context))) {
+            results.push(definition);
+        }
+    }
+    return results;
+}
+
 @Injectable()
-export class CustomizationService implements OnModuleInit {
-    private readonly logger = new Logger(CustomizationService.name);
+export class OnboardingService implements OnModuleInit {
+    private readonly logger = new Logger(OnboardingService.name);
     private readonly activationJsonExtension = '.activationcode';
     private readonly activationAppliedFilename = 'applied.txt';
     private activationDir!: string;
@@ -50,7 +122,7 @@ export class CustomizationService implements OnModuleInit {
         this.configFile = paths['dynamix-config']?.[1];
         this.identCfg = paths.identConfig;
 
-        this.logger.log('CustomizationService initialized with paths from store.');
+        this.logger.log('OnboardingService initialized with paths from store.');
 
         try {
             // Check if activation dir exists using the initialized path
@@ -94,23 +166,7 @@ export class CustomizationService implements OnModuleInit {
     }
 
     private async getActivationJsonPath(): Promise<string | null> {
-        try {
-            // Check if dir exists first (using the initialized path)
-            await fs.access(this.activationDir);
-
-            const files = await fs.readdir(this.activationDir);
-            const jsonFile = files.find((file) => file.endsWith(this.activationJsonExtension));
-            return jsonFile ? path.join(this.activationDir, jsonFile) : null;
-        } catch (error: unknown) {
-            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-                this.logger.debug(
-                    `Activation directory ${this.activationDir} not found when searching for JSON file.`
-                );
-            } else {
-                this.logger.error('Error accessing activation directory or reading its content.', error);
-            }
-            return null;
-        }
+        return findActivationCodeFile(this.activationDir, this.activationJsonExtension, this.logger);
     }
 
     public async getPublicPartnerInfo(): Promise<PublicPartnerInfo | null> {

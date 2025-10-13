@@ -3,10 +3,11 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
-import { BrandButton, Dialog } from '@unraid/ui';
+import { Dialog } from '@unraid/ui';
 
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
+import ActivationWelcomeStep from '~/components/Activation/ActivationWelcomeStep.vue';
 import { useWelcomeModalDataStore } from '~/components/Activation/store/welcomeModalData';
 import { useThemeStore } from '~/store/theme';
 
@@ -28,14 +29,6 @@ const { setTheme } = useThemeStore();
     console.error('Error setting theme:', error);
   }
 })();
-
-const title = computed<string>(() =>
-  partnerInfo.value?.partnerName
-    ? t('activation.welcomeModal.welcomeToYourNewSystemPowered', [partnerInfo.value?.partnerName])
-    : t('activation.welcomeModal.welcomeToUnraid')
-);
-
-const description = computed<string>(() => t('activation.welcomeModal.firstYouLlCreateYourDevice'));
 
 const isLoginPage = computed(() => window.location.pathname.includes('login'));
 
@@ -93,23 +86,15 @@ defineExpose({
           <ActivationPartnerLogo :partner-info="partnerInfo" />
         </div>
 
-        <h1 class="mt-4 text-center text-xl font-semibold sm:text-2xl">{{ title }}</h1>
+        <ActivationWelcomeStep
+          :t="t"
+          :partner-name="partnerInfo?.partnerName || undefined"
+          :is-initial-setup="isInitialSetup"
+          :on-complete="dropdownHide"
+          :redirect-to-login="true"
+        />
 
-        <div class="mx-auto my-12 text-center sm:max-w-xl">
-          <p class="text-center text-lg opacity-75 sm:text-xl">{{ description }}</p>
-        </div>
-
-        <div class="flex flex-col">
-          <div class="mx-auto mb-10">
-            <BrandButton
-              :text="t('activation.welcomeModal.createAPassword')"
-              :disabled="loading"
-              @click="dropdownHide"
-            />
-          </div>
-
-          <ActivationSteps :active-step="1" class="mt-6" />
-        </div>
+        <ActivationSteps :steps="[]" :active-step-index="0" class="mt-6" />
       </div>
     </Dialog>
   </div>

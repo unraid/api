@@ -119,6 +119,39 @@ export type ActivationCode = {
   theme?: Maybe<Scalars['String']['output']>;
 };
 
+export type ActivationOnboarding = {
+  __typename?: 'ActivationOnboarding';
+  /** Current OS version detected by the system */
+  currentVersion?: Maybe<Scalars['String']['output']>;
+  /** Whether there are any remaining activation onboarding steps */
+  hasPendingSteps: Scalars['Boolean']['output'];
+  /** Indicates whether the system is currently in an upgrade state */
+  isUpgrade: Scalars['Boolean']['output'];
+  /** Previous OS version prior to the current upgrade */
+  previousVersion?: Maybe<Scalars['String']['output']>;
+  /** Activation onboarding steps relevant to the current system state */
+  steps: Array<ActivationOnboardingStep>;
+};
+
+export type ActivationOnboardingStep = {
+  __typename?: 'ActivationOnboardingStep';
+  /** Indicates whether the step has been completed for the current version */
+  completed: Scalars['Boolean']['output'];
+  /** Identifier of the activation onboarding step */
+  id: ActivationOnboardingStepId;
+  /** Version of Unraid when this step was introduced */
+  introducedIn?: Maybe<Scalars['String']['output']>;
+  /** Indicates whether the step is required */
+  required: Scalars['Boolean']['output'];
+};
+
+export enum ActivationOnboardingStepId {
+  ACTIVATION = 'ACTIVATION',
+  PLUGINS = 'PLUGINS',
+  TIMEZONE = 'TIMEZONE',
+  WELCOME = 'WELCOME'
+}
+
 export type AddPermissionInput = {
   actions: Array<AuthAction>;
   resource: Resource;
@@ -437,7 +470,7 @@ export type CloudResponse = {
 /** Input for marking an upgrade onboarding step as completed */
 export type CompleteUpgradeStepInput = {
   /** Identifier of the onboarding step to mark completed */
-  stepId: Scalars['String']['input'];
+  stepId: ActivationOnboardingStepId;
 };
 
 export type Config = Node & {
@@ -1929,6 +1962,8 @@ export type PublicPartnerInfo = {
 
 export type Query = {
   __typename?: 'Query';
+  /** Activation onboarding steps derived from current system state */
+  activationOnboarding: ActivationOnboarding;
   apiKey?: Maybe<ApiKey>;
   /** All possible permissions for API keys */
   apiKeyPossiblePermissions: Array<Permission>;
@@ -2642,6 +2677,24 @@ export type UpgradeInfo = {
   isUpgrade: Scalars['Boolean']['output'];
   /** Previous OS version before upgrade */
   previousVersion?: Maybe<Scalars['String']['output']>;
+  /** Onboarding step definitions applicable to the current upgrade path */
+  steps: Array<UpgradeStep>;
+};
+
+export type UpgradeStep = {
+  __typename?: 'UpgradeStep';
+  /** Display description for the onboarding step */
+  description: Scalars['String']['output'];
+  /** Icon identifier for the onboarding step */
+  icon?: Maybe<Scalars['String']['output']>;
+  /** Identifier of the onboarding step */
+  id: Scalars['String']['output'];
+  /** Version of Unraid when this step was introduced */
+  introducedIn?: Maybe<Scalars['String']['output']>;
+  /** Whether the step is required to continue */
+  required: Scalars['Boolean']['output'];
+  /** Display title for the onboarding step */
+  title: Scalars['String']['output'];
 };
 
 export type Uptime = {
@@ -2935,12 +2988,17 @@ export enum RegistrationType {
   UNLEASHED = 'UNLEASHED'
 }
 
+export type ActivationOnboardingQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ActivationOnboardingQuery = { __typename?: 'Query', activationOnboarding: { __typename?: 'ActivationOnboarding', isUpgrade: boolean, previousVersion?: string | null, currentVersion?: string | null, hasPendingSteps: boolean, steps: Array<{ __typename?: 'ActivationOnboardingStep', id: ActivationOnboardingStepId, required: boolean, completed: boolean, introducedIn?: string | null }> } };
+
 export type CompleteUpgradeStepMutationVariables = Exact<{
   input: CompleteUpgradeStepInput;
 }>;
 
 
-export type CompleteUpgradeStepMutation = { __typename?: 'Mutation', onboarding: { __typename?: 'OnboardingMutations', completeUpgradeStep: { __typename?: 'UpgradeInfo', isUpgrade: boolean, previousVersion?: string | null, currentVersion?: string | null, completedSteps: Array<string> } } };
+export type CompleteUpgradeStepMutation = { __typename?: 'Mutation', onboarding: { __typename?: 'OnboardingMutations', completeUpgradeStep: { __typename?: 'UpgradeInfo', isUpgrade: boolean, previousVersion?: string | null, currentVersion?: string | null, completedSteps: Array<string>, steps: Array<{ __typename?: 'UpgradeStep', id: string, required: boolean, introducedIn?: string | null }> } } };
 
 export type PartnerInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2963,11 +3021,6 @@ export type UpdateSystemTimeMutationVariables = Exact<{
 
 
 export type UpdateSystemTimeMutation = { __typename?: 'Mutation', updateSystemTime: { __typename?: 'SystemTime', currentTime: string, timeZone: string, useNtp: boolean, ntpServers: Array<string> } };
-
-export type UpgradeInfoQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type UpgradeInfoQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: string, versions: { __typename?: 'InfoVersions', id: string, upgrade: { __typename?: 'UpgradeInfo', isUpgrade: boolean, previousVersion?: string | null, currentVersion?: string | null, completedSteps: Array<string> } } } };
 
 export type GetApiKeyCreationFormSchemaQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -3414,12 +3467,12 @@ export const ApiKeyFragmentDoc = {"kind":"Document","definitions":[{"kind":"Frag
 export const NotificationFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationFragmentFragment, unknown>;
 export const NotificationCountFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationCountFragmentFragment, unknown>;
 export const PartialCloudFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<PartialCloudFragment, unknown>;
-export const CompleteUpgradeStepDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CompleteUpgradeStep"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CompleteUpgradeStepInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"completeUpgradeStep"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"isUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"previousVersion"}},{"kind":"Field","name":{"kind":"Name","value":"currentVersion"}},{"kind":"Field","name":{"kind":"Name","value":"completedSteps"}}]}}]}}]}}]} as unknown as DocumentNode<CompleteUpgradeStepMutation, CompleteUpgradeStepMutationVariables>;
+export const ActivationOnboardingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivationOnboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationOnboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"isUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"previousVersion"}},{"kind":"Field","name":{"kind":"Name","value":"currentVersion"}},{"kind":"Field","name":{"kind":"Name","value":"hasPendingSteps"}},{"kind":"Field","name":{"kind":"Name","value":"steps"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"required"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"introducedIn"}}]}}]}}]}}]} as unknown as DocumentNode<ActivationOnboardingQuery, ActivationOnboardingQueryVariables>;
+export const CompleteUpgradeStepDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CompleteUpgradeStep"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CompleteUpgradeStepInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"completeUpgradeStep"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"isUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"previousVersion"}},{"kind":"Field","name":{"kind":"Name","value":"currentVersion"}},{"kind":"Field","name":{"kind":"Name","value":"completedSteps"}},{"kind":"Field","name":{"kind":"Name","value":"steps"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"required"}},{"kind":"Field","name":{"kind":"Name","value":"introducedIn"}}]}}]}}]}}]}}]} as unknown as DocumentNode<CompleteUpgradeStepMutation, CompleteUpgradeStepMutationVariables>;
 export const PartnerInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}}]}}]} as unknown as DocumentNode<PartnerInfoQuery, PartnerInfoQueryVariables>;
 export const PublicWelcomeDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PublicWelcomeData"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"isInitialSetup"}}]}}]} as unknown as DocumentNode<PublicWelcomeDataQuery, PublicWelcomeDataQueryVariables>;
 export const ActivationCodeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regState"}}]}},{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"sysModel"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}},{"kind":"Field","name":{"kind":"Name","value":"header"}},{"kind":"Field","name":{"kind":"Name","value":"headermetacolor"}},{"kind":"Field","name":{"kind":"Name","value":"background"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}}]}},{"kind":"Field","name":{"kind":"Name","value":"partnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}}]}}]}}]} as unknown as DocumentNode<ActivationCodeQuery, ActivationCodeQueryVariables>;
 export const UpdateSystemTimeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSystemTime"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateSystemTimeInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSystemTime"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentTime"}},{"kind":"Field","name":{"kind":"Name","value":"timeZone"}},{"kind":"Field","name":{"kind":"Name","value":"useNtp"}},{"kind":"Field","name":{"kind":"Name","value":"ntpServers"}}]}}]}}]} as unknown as DocumentNode<UpdateSystemTimeMutation, UpdateSystemTimeMutationVariables>;
-export const UpgradeInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"UpgradeInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"versions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"upgrade"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"isUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"previousVersion"}},{"kind":"Field","name":{"kind":"Name","value":"currentVersion"}},{"kind":"Field","name":{"kind":"Name","value":"completedSteps"}}]}}]}}]}}]}}]} as unknown as DocumentNode<UpgradeInfoQuery, UpgradeInfoQueryVariables>;
 export const GetApiKeyCreationFormSchemaDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetApiKeyCreationFormSchema"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getApiKeyCreationFormSchema"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<GetApiKeyCreationFormSchemaQuery, GetApiKeyCreationFormSchemaQueryVariables>;
 export const CreateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"create"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<CreateApiKeyMutation, CreateApiKeyMutationVariables>;
 export const UpdateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<UpdateApiKeyMutation, UpdateApiKeyMutationVariables>;

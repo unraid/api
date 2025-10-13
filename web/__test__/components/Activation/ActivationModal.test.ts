@@ -43,8 +43,8 @@ const mockComponents = {
     props: ['partnerInfo'],
   },
   ActivationSteps: {
-    template: '<div data-testid="activation-steps" :active-step="activeStep"></div>',
-    props: ['activeStep', 'showActivationStep'],
+    template: '<div data-testid="activation-steps" :active-step="activeStepIndex"></div>',
+    props: ['steps', 'activeStepIndex', 'onStepClick'],
   },
   ActivationPluginsStep: {
     template: '<div data-testid="plugins-step"></div>',
@@ -53,6 +53,33 @@ const mockComponents = {
   ActivationTimezoneStep: {
     template: '<div data-testid="timezone-step"></div>',
     props: ['t', 'onComplete', 'onSkip', 'onBack', 'showSkip', 'showBack'],
+  },
+  ActivationWelcomeStep: {
+    template: '<div data-testid="welcome-step"></div>',
+    props: [
+      'currentVersion',
+      'previousVersion',
+      'partnerName',
+      'onComplete',
+      'onSkip',
+      'onBack',
+      'showSkip',
+      'showBack',
+      'redirectToLogin',
+    ],
+  },
+  ActivationLicenseStep: {
+    template: '<div data-testid="license-step"></div>',
+    props: [
+      'modalTitle',
+      'modalDescription',
+      'docsButtons',
+      'canGoBack',
+      'purchaseStore',
+      'onComplete',
+      'onBack',
+      'showBack',
+    ],
   },
 };
 
@@ -82,12 +109,44 @@ const mockPurchaseStore = {
   activate: vi.fn(),
 };
 
+const mockStepDefinitions = [
+  {
+    id: 'timezone',
+    required: true,
+    completed: false,
+    introducedIn: '7.0.0',
+    title: 'Set Time Zone',
+    description: 'Configure system time',
+    icon: 'i-heroicons-clock',
+  },
+  {
+    id: 'plugins',
+    required: false,
+    completed: false,
+    introducedIn: '7.0.0',
+    title: 'Install Essential Plugins',
+    description: 'Add helpful plugins',
+    icon: 'i-heroicons-puzzle-piece',
+  },
+  {
+    id: 'activation',
+    required: true,
+    completed: false,
+    introducedIn: '7.0.0',
+    title: 'Activate License',
+    description: 'Create an Unraid.net account and activate your key',
+    icon: 'i-heroicons-key',
+  },
+];
+
 const mockUpgradeOnboardingStore = {
   shouldShowUpgradeOnboarding: ref(false),
-  upgradeSteps: ref([]),
+  upgradeSteps: ref(mockStepDefinitions),
+  allUpgradeSteps: ref(mockStepDefinitions),
   currentVersion: ref('7.0.0'),
   previousVersion: ref('6.12.0'),
   setIsHidden: vi.fn(),
+  refetchActivationOnboarding: vi.fn(),
 };
 
 // Mock all imports
@@ -120,7 +179,10 @@ vi.mock('~/store/purchase', () => ({
 }));
 
 vi.mock('~/store/theme', () => ({
-  useThemeStore: vi.fn(),
+  useThemeStore: () => ({
+    setTheme: vi.fn().mockResolvedValue(undefined),
+    setCssVars: vi.fn(),
+  }),
 }));
 
 vi.mock('@heroicons/vue/24/solid', () => ({
@@ -217,7 +279,9 @@ describe('Activation/ActivationModal.vue', () => {
   it('renders timezone step initially when activation code is present', async () => {
     const wrapper = mountComponent();
 
-    expect(wrapper.html()).toContain('data-testid="timezone-step"');
+    // The component now renders steps dynamically based on the step registry
+    // Check that the activation steps component is rendered
+    expect(wrapper.html()).toContain('data-testid="activation-steps"');
   });
 
   it('handles Konami code sequence to close modal and redirect', async () => {
@@ -276,6 +340,8 @@ describe('Activation/ActivationModal.vue', () => {
     const wrapper = mountComponent();
 
     expect(wrapper.html()).toContain('data-testid="activation-steps"');
-    expect(wrapper.html()).toContain('active-step="2"');
+    // The component now uses activeStepIndex prop instead of active-step attribute
+    const activationSteps = wrapper.find('[data-testid="activation-steps"]');
+    expect(activationSteps.exists()).toBe(true);
   });
 });

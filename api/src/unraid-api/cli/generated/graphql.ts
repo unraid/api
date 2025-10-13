@@ -119,6 +119,38 @@ export type ActivationCode = {
   theme?: Maybe<Scalars['String']['output']>;
 };
 
+export type ActivationOnboarding = {
+  __typename?: 'ActivationOnboarding';
+  /** Current OS version detected by the system */
+  currentVersion?: Maybe<Scalars['String']['output']>;
+  /** Whether there are any remaining activation onboarding steps */
+  hasPendingSteps: Scalars['Boolean']['output'];
+  /** Indicates whether the system is currently in an upgrade state */
+  isUpgrade: Scalars['Boolean']['output'];
+  /** Previous OS version prior to the current upgrade */
+  previousVersion?: Maybe<Scalars['String']['output']>;
+  /** Activation onboarding steps relevant to the current system state */
+  steps: Array<ActivationOnboardingStep>;
+};
+
+export type ActivationOnboardingStep = {
+  __typename?: 'ActivationOnboardingStep';
+  /** Indicates whether the step has been completed for the current version */
+  completed: Scalars['Boolean']['output'];
+  /** Identifier of the activation onboarding step */
+  id: ActivationOnboardingStepId;
+  /** Version of Unraid when this step was introduced */
+  introducedIn?: Maybe<Scalars['String']['output']>;
+  /** Indicates whether the step is required */
+  required: Scalars['Boolean']['output'];
+};
+
+export enum ActivationOnboardingStepId {
+  ACTIVATION = 'ACTIVATION',
+  PLUGINS = 'PLUGINS',
+  TIMEZONE = 'TIMEZONE'
+}
+
 export type AddPermissionInput = {
   actions: Array<AuthAction>;
   resource: Resource;
@@ -437,7 +469,7 @@ export type CloudResponse = {
 /** Input for marking an upgrade onboarding step as completed */
 export type CompleteUpgradeStepInput = {
   /** Identifier of the onboarding step to mark completed */
-  stepId: Scalars['String']['input'];
+  stepId: ActivationOnboardingStepId;
 };
 
 export type Config = Node & {
@@ -1929,6 +1961,8 @@ export type PublicPartnerInfo = {
 
 export type Query = {
   __typename?: 'Query';
+  /** Activation onboarding steps derived from current system state */
+  activationOnboarding: ActivationOnboarding;
   apiKey?: Maybe<ApiKey>;
   /** All possible permissions for API keys */
   apiKeyPossiblePermissions: Array<Permission>;
@@ -2642,6 +2676,24 @@ export type UpgradeInfo = {
   isUpgrade: Scalars['Boolean']['output'];
   /** Previous OS version before upgrade */
   previousVersion?: Maybe<Scalars['String']['output']>;
+  /** Onboarding step definitions applicable to the current upgrade path */
+  steps: Array<UpgradeStep>;
+};
+
+export type UpgradeStep = {
+  __typename?: 'UpgradeStep';
+  /** Display description for the onboarding step */
+  description: Scalars['String']['output'];
+  /** Icon identifier for the onboarding step */
+  icon?: Maybe<Scalars['String']['output']>;
+  /** Identifier of the onboarding step */
+  id: Scalars['String']['output'];
+  /** Version of Unraid when this step was introduced */
+  introducedIn?: Maybe<Scalars['String']['output']>;
+  /** Whether the step is required to continue */
+  required: Scalars['Boolean']['output'];
+  /** Display title for the onboarding step */
+  title: Scalars['String']['output'];
 };
 
 export type Uptime = {

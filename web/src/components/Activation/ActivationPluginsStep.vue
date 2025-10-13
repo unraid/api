@@ -1,13 +1,11 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { BrandButton } from '@unraid/ui';
 import useInstallPlugin from '@/composables/installPlugin';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 export interface Props {
-  t: ComposerTranslation;
   onComplete: () => void;
   onSkip?: () => void;
   onBack?: () => void;
@@ -16,6 +14,7 @@ export interface Props {
 }
 
 const props = defineProps<Props>();
+const { t } = useI18n();
 
 interface Plugin {
   id: string;

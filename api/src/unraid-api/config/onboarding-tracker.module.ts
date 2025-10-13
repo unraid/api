@@ -10,29 +10,29 @@ import { readFile } from 'fs/promises';
 import path from 'path';
 
 import { writeFile } from 'atomically';
+import { compare } from 'semver';
 
+import type {
+    ActivationStepContext,
+    ActivationStepDefinition,
+} from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 import { PATHS_CONFIG_MODULES } from '@app/environment.js';
+import { getters } from '@app/store/index.js';
+import {
+    type CompletedStepState,
+    type TrackerState,
+    type UpgradeProgressSnapshot,
+    type UpgradeStepState,
+} from '@app/unraid-api/config/onboarding-tracker.model.js';
+import { ActivationOnboardingStepId } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import {
+    findActivationCodeFile,
+    resolveActivationStepDefinitions,
+} from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 
 const TRACKER_FILE_NAME = 'onboarding-tracker.json';
 const CONFIG_PREFIX = 'onboardingTracker';
 const DEFAULT_OS_VERSION_FILE_PATH = '/etc/unraid-version';
-
-type CompletedStepState = {
-    version: string;
-    completedAt: string;
-};
-
-type TrackerState = {
-    lastTrackedVersion?: string;
-    updatedAt?: string;
-    completedSteps?: Record<string, CompletedStepState>;
-};
-
-export type UpgradeProgressSnapshot = {
-    currentVersion?: string;
-    lastTrackedVersion?: string;
-    completedSteps: string[];
-};
 
 @Injectable()
 export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationShutdown {
@@ -86,29 +86,35 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         this.sessionLastTrackedVersion = this.currentVersion;
     }
 
-    getUpgradeSnapshot(): UpgradeProgressSnapshot {
+    async getUpgradeSnapshot(): Promise<UpgradeProgressSnapshot> {
         const currentVersion =
+            this.currentVersion ??
             this.configService.get<string>(`${CONFIG_PREFIX}.currentVersion`) ??
             this.configService.get<string>('store.emhttp.var.version') ??
             undefined;
 
         const lastTrackedVersion =
-            this.configService.get<string>(`${CONFIG_PREFIX}.lastTrackedVersion`) ?? undefined;
+            this.sessionLastTrackedVersion ??
+            this.configService.get<string>(`${CONFIG_PREFIX}.lastTrackedVersion`) ??
+            this.configService.get<string>('api.lastSeenOsVersion') ??
+            undefined;
 
-        const completedSteps =
-            currentVersion && this.state.completedSteps
-                ? this.completedStepsForVersion(currentVersion)
-                : [];
+        await this.ensureStateLoaded();
+
+        const steps = await this.computeStepsForUpgrade(lastTrackedVersion, currentVersion);
+        const completedSteps = this.completedStepsForSteps(steps);
 
         return {
             currentVersion,
             lastTrackedVersion,
             completedSteps,
+            steps,
         };
     }
 
-    async markStepCompleted(stepId: string): Promise<UpgradeProgressSnapshot> {
+    async markStepCompleted(stepId: ActivationOnboardingStepId): Promise<UpgradeProgressSnapshot> {
         const currentVersion =
+            this.currentVersion ??
             this.configService.get<string>(`${CONFIG_PREFIX}.currentVersion`) ??
             this.configService.get<string>('store.emhttp.var.version') ??
             undefined;
@@ -121,15 +127,20 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         }
 
         await this.ensureStateLoaded();
-        const completedSteps = this.state.completedSteps ?? {};
+        const completedSteps =
+            this.state.completedSteps ?? ({} as Record<ActivationOnboardingStepId, CompletedStepState>);
         const existing = completedSteps[stepId];
 
-        if (existing?.version === currentVersion) {
+        const steps = await this.computeStepsForUpgrade(this.sessionLastTrackedVersion, currentVersion);
+        const stepDefinition = steps.find((step) => step.id === stepId);
+        const stepDefinitionVersion = stepDefinition?.introducedIn ?? currentVersion;
+
+        if (this.isCompletionUpToDate(existing?.version, stepDefinitionVersion)) {
             return this.getUpgradeSnapshot();
         }
 
         completedSteps[stepId] = {
-            version: currentVersion,
+            version: stepDefinitionVersion,
             completedAt: new Date().toISOString(),
         };
 
@@ -152,15 +163,87 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         this.state = (await this.readTrackerState()) ?? {};
     }
 
-    private completedStepsForVersion(version: string): string[] {
-        const completedEntries = this.state.completedSteps ?? {};
-        return Object.entries(completedEntries)
-            .filter(([, value]) => value?.version === version)
-            .map(([stepId]) => stepId);
+    private completedStepsForSteps(steps: UpgradeStepState[]): ActivationOnboardingStepId[] {
+        const completedEntries =
+            this.state.completedSteps ?? ({} as Record<ActivationOnboardingStepId, CompletedStepState>);
+        if (steps.length === 0) {
+            return Object.keys(completedEntries).filter((key) =>
+                Object.values(ActivationOnboardingStepId).includes(key as ActivationOnboardingStepId)
+            ) as ActivationOnboardingStepId[];
+        }
+
+        return steps
+            .filter((step) => {
+                const completion = completedEntries[step.id];
+                if (!completion?.version) {
+                    return false;
+                }
+                const definitionVersion = step.introducedIn ?? completion.version;
+                return this.isCompletionUpToDate(completion.version, definitionVersion);
+            })
+            .map((step) => step.id);
+    }
+
+    private async computeStepsForUpgrade(
+        _fromVersion: string | undefined,
+        toVersion: string | undefined
+    ): Promise<UpgradeStepState[]> {
+        if (!toVersion) {
+            return [];
+        }
+
+        try {
+            const context = await this.buildStepContext();
+            const stepConfigs = await resolveActivationStepDefinitions(context);
+            return stepConfigs.map((step) => this.normalizeStep(step, toVersion));
+        } catch (error) {
+            this.logger.error(error, 'Failed to evaluate activation onboarding steps');
+            return [];
+        }
+    }
+
+    private normalizeStep(step: ActivationStepDefinition, fallbackVersion: string): UpgradeStepState {
+        return {
+            id: step.id,
+            required: Boolean(step.required),
+            introducedIn: step.introducedIn ?? fallbackVersion,
+        };
+    }
+
+    private async buildStepContext(): Promise<ActivationStepContext> {
+        const emhttp = getters.emhttp?.() ?? {};
+        const regState = emhttp?.var?.regState as string | undefined;
+
+        const paths = getters.paths?.() ?? {};
+        const activationBase = paths?.activationBase as string | undefined;
+
+        const activationPath =
+            typeof activationBase === 'string' && activationBase.length > 0
+                ? await findActivationCodeFile(activationBase, '.activationcode', this.logger)
+                : null;
+        const hasActivationCode = Boolean(activationPath);
+
+        return {
+            hasActivationCode,
+            regState,
+        };
+    }
+
+    private isCompletionUpToDate(existingVersion: string | undefined, requiredVersion: string): boolean {
+        if (!existingVersion) {
+            return false;
+        }
+
+        try {
+            return compare(existingVersion, requiredVersion) >= 0;
+        } catch {
+            return existingVersion === requiredVersion;
+        }
     }
 
     private syncConfig(currentVersion: string | undefined) {
-        const completedStepsMap = this.state.completedSteps ?? {};
+        const completedStepsMap =
+            this.state.completedSteps ?? ({} as Record<ActivationOnboardingStepId, CompletedStepState>);
         this.configService.set(`${CONFIG_PREFIX}.currentVersion`, currentVersion);
         this.configService.set('store.emhttp.var.version', currentVersion);
         this.configService.set(`${CONFIG_PREFIX}.lastTrackedVersion`, this.sessionLastTrackedVersion);
@@ -204,3 +287,8 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
     exports: [OnboardingTracker],
 })
 export class OnboardingTrackerModule {}
+
+export type {
+    UpgradeProgressSnapshot,
+    UpgradeStepState,
+} from '@app/unraid-api/config/onboarding-tracker.model.js';

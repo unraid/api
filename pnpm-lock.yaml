@@ -739,6 +739,9 @@ importers:
       rxjs:
         specifier: 7.8.2
         version: 7.8.2
+      semver:
+        specifier: 7.7.2
+        version: 7.7.2
       undici:
         specifier: 7.15.0
         version: 7.15.0
@@ -767,6 +770,9 @@ importers:
       '@types/node':
         specifier: 22.18.0
         version: 22.18.0
+      '@types/semver':
+        specifier: 7.7.0
+        version: 7.7.0
       '@types/ws':
         specifier: 8.18.1
         version: 8.18.1

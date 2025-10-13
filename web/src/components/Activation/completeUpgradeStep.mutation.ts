@@ -8,6 +8,11 @@ export const COMPLETE_UPGRADE_STEP_MUTATION = graphql(/* GraphQL */ `
         previousVersion
         currentVersion
         completedSteps
+        steps {
+          id
+          required
+          introducedIn
+        }
       }
     }
   }

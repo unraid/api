@@ -1,55 +1,44 @@
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 import { useSessionStorage } from '@vueuse/core';
 
-import type { ReleaseStepConfig } from '~/components/Activation/releaseConfigs';
+import type { ActivationOnboardingQuery } from '~/composables/gql/graphql';
 
-import { getUpgradeSteps } from '~/components/Activation/releaseConfigs';
-import { UPGRADE_INFO_QUERY } from '~/components/Activation/upgradeInfo.query';
+import { ACTIVATION_ONBOARDING_QUERY } from '~/components/Activation/activationOnboarding.query';
 
 const UPGRADE_ONBOARDING_HIDDEN_KEY = 'upgrade-onboarding-hidden';
 
 export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => {
   const {
-    result: upgradeInfoResult,
-    loading: upgradeInfoLoading,
+    result: activationOnboardingResult,
+    loading: activationOnboardingLoading,
     refetch,
-  } = useQuery(UPGRADE_INFO_QUERY, {}, { errorPolicy: 'all' });
+  } = useQuery(ACTIVATION_ONBOARDING_QUERY, {}, { errorPolicy: 'all' });
 
   const isHidden = useSessionStorage<boolean>(UPGRADE_ONBOARDING_HIDDEN_KEY, false);
 
-  const isUpgrade = computed(() => upgradeInfoResult.value?.info?.versions?.upgrade?.isUpgrade ?? false);
-  const previousVersion = computed(
-    () => upgradeInfoResult.value?.info?.versions?.upgrade?.previousVersion
-  );
-  const currentVersion = computed(
-    () => upgradeInfoResult.value?.info?.versions?.upgrade?.currentVersion
-  );
-  const completedSteps = computed(
-    () => upgradeInfoResult.value?.info?.versions?.upgrade?.completedSteps ?? []
+  const onboardingData = computed<ActivationOnboardingQuery['activationOnboarding'] | undefined>(
+    () => activationOnboardingResult.value?.activationOnboarding
   );
 
-  const allUpgradeSteps = ref<ReleaseStepConfig[]>([]);
+  const isUpgrade = computed(() => onboardingData.value?.isUpgrade ?? false);
+  const previousVersion = computed(() => onboardingData.value?.previousVersion);
+  const currentVersion = computed(() => onboardingData.value?.currentVersion);
 
-  watch(
-    [isUpgrade, previousVersion, currentVersion],
-    async ([isUpgradeValue, prevVersion, currVersion]) => {
-      if (isUpgradeValue && prevVersion && currVersion) {
-        allUpgradeSteps.value = await getUpgradeSteps(prevVersion, currVersion);
-      } else {
-        allUpgradeSteps.value = [];
-      }
-    },
-    { immediate: true }
+  const allUpgradeSteps = computed(
+    () =>
+      onboardingData.value?.steps ?? ([] as ActivationOnboardingQuery['activationOnboarding']['steps'])
   );
 
-  const upgradeSteps = computed(() =>
-    allUpgradeSteps.value.filter((step) => !completedSteps.value.includes(step.id))
+  const upgradeSteps = computed(() => allUpgradeSteps.value.filter((step) => !step.completed));
+
+  const completedSteps = computed(() =>
+    allUpgradeSteps.value.filter((step) => step.completed).map((step) => step.id)
   );
 
   const shouldShowUpgradeOnboarding = computed(() => {
-    return !isHidden.value && isUpgrade.value && upgradeSteps.value.length > 0;
+    return !isHidden.value && (onboardingData.value?.hasPendingSteps ?? false);
   });
 
   const setIsHidden = (value: boolean) => {
@@ -57,15 +46,16 @@ export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => 
   };
 
   return {
-    loading: computed(() => upgradeInfoLoading.value),
+    loading: computed(() => activationOnboardingLoading.value),
     isUpgrade,
     previousVersion,
     currentVersion,
     completedSteps,
+    allUpgradeSteps,
     upgradeSteps,
     shouldShowUpgradeOnboarding,
     isHidden,
     setIsHidden,
-    refetchUpgradeInfo: refetch,
+    refetchActivationOnboarding: refetch,
   };
 });

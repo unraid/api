@@ -38,6 +38,7 @@
         "@types/bun": "1.2.21",
         "@types/lodash-es": "4.17.12",
         "@types/node": "22.18.0",
+        "@types/semver": "7.7.0",
         "@types/ws": "8.18.1",
         "class-transformer": "0.5.1",
         "class-validator": "0.14.2",

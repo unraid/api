@@ -12,7 +12,7 @@ import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { getters } from '@app/store/index.js';
 import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
-import { CustomizationService } from '@app/unraid-api/graph/resolvers/customization/customization.service.js';
+import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 
 // Mocks
 vi.mock('fs/promises');
@@ -96,8 +96,8 @@ vi.mock('@app/core/utils/misc/sleep.js', async () => {
     };
 });
 
-describe('CustomizationService', () => {
-    let service: CustomizationService;
+describe('OnboardingService', () => {
+    let service: OnboardingService;
     let loggerDebugSpy;
     let loggerLogSpy;
     let loggerWarnSpy;
@@ -140,10 +140,10 @@ describe('CustomizationService', () => {
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [CustomizationService],
+            providers: [OnboardingService],
         }).compile();
 
-        service = module.get<CustomizationService>(CustomizationService);
+        service = module.get<OnboardingService>(OnboardingService);
 
         // Mock fileExists needed by customization methods
         vi.mocked(fileExists).mockImplementation(async (p) => {
@@ -354,9 +354,11 @@ describe('CustomizationService', () => {
             vi.mocked(fs.access).mockRejectedValue(error);
             const result = await service.getActivationData();
             expect(result).toBeNull();
+            expect(loggerDebugSpy).toHaveBeenCalledWith('Fetching activation data from disk...');
             expect(loggerDebugSpy).toHaveBeenCalledWith(
-                `Activation directory ${activationDir} not found when searching for JSON file.`
+                `Activation directory ${activationDir} not found when searching for activation code.`
             );
+            expect(loggerDebugSpy).toHaveBeenCalledWith('No activation JSON file found.');
         });
 
         it('should return null if no .activationcode file exists', async () => {
@@ -854,7 +856,7 @@ describe('CustomizationService', () => {
 });
 
 describe('applyActivationCustomizations specific tests', () => {
-    let service: CustomizationService;
+    let service: OnboardingService;
     let loggerLogSpy;
     let loggerWarnSpy;
     let loggerErrorSpy;
@@ -891,9 +893,9 @@ describe('applyActivationCustomizations specific tests', () => {
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [CustomizationService],
+            providers: [OnboardingService],
         }).compile();
-        service = module.get<CustomizationService>(CustomizationService);
+        service = module.get<OnboardingService>(OnboardingService);
 
         // Setup basic service state needed for applyActivationCustomizations tests
         (service as any).activationDir = activationDir;
@@ -1031,8 +1033,8 @@ describe('applyActivationCustomizations specific tests', () => {
 });
 
 // Standalone tests for updateCfgFile utility function within the service
-describe('CustomizationService - updateCfgFile', () => {
-    let service: CustomizationService;
+describe('OnboardingService - updateCfgFile', () => {
+    let service: OnboardingService;
     let loggerLogSpy;
     let loggerErrorSpy;
     const filePath = '/test/config.cfg';
@@ -1044,9 +1046,9 @@ describe('CustomizationService - updateCfgFile', () => {
 
         // Need to compile a module to get an instance, even though we test a private method
         const module: TestingModule = await Test.createTestingModule({
-            providers: [CustomizationService],
+            providers: [OnboardingService],
         }).compile();
-        service = module.get<CustomizationService>(CustomizationService);
+        service = module.get<OnboardingService>(OnboardingService);
 
         // Mock file system operations for updateCfgFile
         vi.mocked(fs.readFile).mockImplementation(async (p) => {

@@ -2,6 +2,8 @@ import { Field, ObjectType } from '@nestjs/graphql';
 
 import { Node } from '@unraid/shared/graphql.model.js';
 
+import { ActivationOnboardingStepId } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+
 @ObjectType()
 export class CoreVersions {
     @Field(() => String, { nullable: true, description: 'Unraid version' })
@@ -42,6 +44,36 @@ export class PackageVersions {
 }
 
 @ObjectType()
+export class UpgradeStep {
+    @Field(() => String, { description: 'Identifier of the onboarding step' })
+    id!: string;
+
+    @Field(() => Boolean, {
+        description: 'Whether the step is required to continue',
+        defaultValue: false,
+    })
+    required!: boolean;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Version of Unraid when this step was introduced',
+    })
+    introducedIn?: string;
+
+    @Field(() => String, { description: 'Display title for the onboarding step' })
+    title!: string;
+
+    @Field(() => String, { description: 'Display description for the onboarding step' })
+    description!: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Icon identifier for the onboarding step',
+    })
+    icon?: string;
+}
+
+@ObjectType()
 export class UpgradeInfo {
     @Field(() => Boolean, { description: 'Whether the OS version has changed since last boot' })
     isUpgrade!: boolean;
@@ -57,6 +89,12 @@ export class UpgradeInfo {
         defaultValue: [],
     })
     completedSteps!: string[];
+
+    @Field(() => [UpgradeStep], {
+        description: 'Onboarding step definitions applicable to the current upgrade path',
+        defaultValue: [],
+    })
+    steps!: UpgradeStep[];
 }
 
 @ObjectType({ implements: () => Node })
