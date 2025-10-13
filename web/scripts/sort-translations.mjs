@@ -6,13 +6,16 @@ import url from 'url';
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const LOCALES_DIR = path.join(__dirname, '..', 'src', 'locales');
 
+// Create a shared collator for consistent sorting across machines and locales
+const collator = new Intl.Collator('en', { sensitivity: 'base' });
+
 function sortValue(value) {
   if (Array.isArray(value)) {
     return value.map(sortValue);
   }
   if (value && typeof value === 'object') {
     return Object.keys(value)
-      .sort((a, b) => a.localeCompare(b))
+      .sort((a, b) => collator.compare(a, b))
       .reduce((acc, key) => {
         acc[key] = sortValue(value[key]);
         return acc;

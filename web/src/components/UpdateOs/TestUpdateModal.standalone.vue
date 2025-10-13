@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 import { Button, Label, Switch } from '@unraid/ui';
 
@@ -10,7 +9,6 @@ import CheckUpdateResponseModal from '~/components/UpdateOs/CheckUpdateResponseM
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 
-const { t } = useI18n();
 const updateOsStore = useUpdateOsStore();
 const serverStore = useServerStore();
 

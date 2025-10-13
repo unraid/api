@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onBeforeMount } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import UpdateOsChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
@@ -8,7 +7,6 @@ import { useUpdateOsStore } from '~/store/updateOs';
 
 const updateOsStore = useUpdateOsStore();
 const { changelogModalVisible } = storeToRefs(updateOsStore);
-const { t } = useI18n();
 
 onBeforeMount(() => {
   // Register custom elements if needed for ColorSwitcherCe

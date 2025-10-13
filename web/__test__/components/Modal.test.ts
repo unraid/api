@@ -25,8 +25,6 @@ Object.defineProperty(document.body.style, 'removeProperty', {
   writable: true,
 });
 
-const t = (key: string) => key;
-
 describe('Modal', () => {
   let wrapper: VueWrapper<unknown>;
 
