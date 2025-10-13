@@ -5,8 +5,10 @@ import { useMutation } from '@vue/apollo-composable';
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
 import { CREATE_DOCKER_FOLDER } from '@/components/Docker/docker-create-folder.mutation';
+import { CREATE_DOCKER_FOLDER_WITH_ITEMS } from '@/components/Docker/docker-create-folder-with-items.mutation';
 import { DELETE_DOCKER_ENTRIES } from '@/components/Docker/docker-delete-entries.mutation';
 import { MOVE_DOCKER_ENTRIES_TO_FOLDER } from '@/components/Docker/docker-move-entries.mutation';
+import { MOVE_DOCKER_ITEMS_TO_POSITION } from '@/components/Docker/docker-move-items-to-position.mutation';
 import { PAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-pause-container.mutation';
 import { SET_DOCKER_FOLDER_CHILDREN } from '@/components/Docker/docker-set-folder-children.mutation';
 import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-container.mutation';
@@ -20,8 +22,7 @@ import { useTreeData } from '@/composables/useTreeData';
 
 import type {
   DockerContainer,
-  ResolvedOrganizerEntry,
-  ResolvedOrganizerFolder,
+  FlatOrganizerEntry,
 } from '@/composables/gql/graphql';
 import type { DropEvent } from '@/composables/useDragDrop';
 import type { TreeRow } from '@/composables/useTreeData';
@@ -30,7 +31,8 @@ import type { Component } from 'vue';
 
 interface Props {
   containers: DockerContainer[];
-  organizerRoot?: ResolvedOrganizerFolder;
+  flatEntries?: FlatOrganizerEntry[];
+  rootFolderId?: string;
   loading?: boolean;
   compact?: boolean;
   activeId?: string | null;
@@ -42,6 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
   compact: false,
   activeId: null,
   selectedIds: () => [],
+  rootFolderId: 'root',
 });
 
 const UButton = resolveComponent('UButton');
@@ -107,49 +110,21 @@ function toContainerTreeRow(
   };
 }
 
-function buildDockerTreeRow(entry: ResolvedOrganizerEntry): TreeRow<DockerContainer> | null {
-  if (entry.__typename === 'OrganizerContainerResource') {
-    const meta = entry.meta as DockerContainer | null | undefined;
-    const row = toContainerTreeRow(meta, entry.name || undefined);
-    row.id = entry.id;
-    row.containerId = meta?.id;
-    return row;
-  }
-  return {
-    id: entry.id as string,
-    type: 'container',
-    name: (entry as unknown as { name?: string }).name || 'Unknown',
-    state: '',
-    ports: '',
-    autoStart: 'Off',
-    updates: '—',
-  };
-}
-
-const organizerRootRef = computed(() => {
-  if (!props.organizerRoot) return undefined;
-  return {
-    id: props.organizerRoot.id,
-    name: props.organizerRoot.name,
-    children: props.organizerRoot.children,
-  };
-});
-
+const flatEntriesRef = computed(() => props.flatEntries);
 const containersRef = computed(() => props.containers);
 
-const { treeData, entryParentById, folderChildrenIds, parentById, getRowById } =
+const { treeData, entryParentById, folderChildrenIds, parentById, positionById, getRowById } =
   useTreeData<DockerContainer>({
-    organizerRoot: organizerRootRef,
+    flatEntries: flatEntriesRef,
     flatData: containersRef,
-    buildTreeRow: (entry) => buildDockerTreeRow(entry as ResolvedOrganizerEntry),
     buildFlatRow: toContainerTreeRow,
   });
 
 const { visibleFolders, expandedFolders, toggleExpandFolder, setExpandedFolders } = useFolderTree({
-  organizerRoot: organizerRootRef,
+  flatEntries: flatEntriesRef,
 });
 
-const rootFolderId = computed<string>(() => props.organizerRoot?.id || '');
+const rootFolderId = computed<string>(() => props.rootFolderId || 'root');
 const busyRowIds = ref<Set<string>>(new Set());
 
 function setRowsBusy(ids: string[], busy: boolean) {
@@ -305,7 +280,9 @@ const columnsMenuItems = computed<DropdownMenuItems>(() => {
 });
 
 const { mutate: createFolderMutation, loading: creating } = useMutation(CREATE_DOCKER_FOLDER);
+const { mutate: createFolderWithItemsMutation } = useMutation(CREATE_DOCKER_FOLDER_WITH_ITEMS);
 const { mutate: moveEntriesMutation, loading: moving } = useMutation(MOVE_DOCKER_ENTRIES_TO_FOLDER);
+const { mutate: moveItemsToPositionMutation } = useMutation(MOVE_DOCKER_ITEMS_TO_POSITION);
 const { mutate: deleteEntriesMutation, loading: deleting } = useMutation(DELETE_DOCKER_ENTRIES);
 const { mutate: setFolderChildrenMutation } = useMutation(SET_DOCKER_FOLDER_CHILDREN);
 const { mutate: startContainerMutation } = useMutation(START_DOCKER_CONTAINER);
@@ -363,72 +340,6 @@ const confirmToStart = computed(() => containerActions.confirmToStart.value || [
 const confirmToPause = computed(() => containerActions.confirmToPause.value || []);
 const confirmToResume = computed(() => containerActions.confirmToResume.value || []);
 
-function getFolderChildrenList(folderId: string): string[] {
-  return [...(folderChildrenIds.value[folderId] || [])];
-}
-
-function computeInsertIndex(
-  children: string[],
-  targetId: string,
-  area: 'before' | 'after' | 'inside'
-): number {
-  const idx = Math.max(0, children.indexOf(targetId));
-  return area === 'before' ? idx : idx + 1;
-}
-
-async function reorderWithinFolder(
-  folderId: string,
-  movingIds: string[],
-  targetId: string,
-  area: 'before' | 'after' | 'inside'
-) {
-  const current = getFolderChildrenList(folderId);
-  const removeSet = new Set(movingIds);
-  const filtered = current.filter((id) => !removeSet.has(id));
-  const insertIndex = computeInsertIndex(filtered, targetId, area);
-  const finalIds = [
-    ...filtered.slice(0, insertIndex),
-    ...movingIds.filter((id) => id !== targetId),
-    ...filtered.slice(insertIndex),
-  ];
-  await setFolderChildrenMutation(
-    { folderId, childrenIds: finalIds },
-    {
-      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-      awaitRefetchQueries: true,
-    }
-  );
-}
-
-async function moveAcrossFoldersWithPosition(
-  destinationFolderId: string,
-  movingIds: string[],
-  targetId: string,
-  area: 'before' | 'after' | 'inside'
-) {
-  await moveEntriesMutation(
-    { destinationFolderId, sourceEntryIds: movingIds },
-    {
-      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-      awaitRefetchQueries: true,
-    }
-  );
-  const current = getFolderChildrenList(destinationFolderId).filter((id) => !movingIds.includes(id));
-  const insertIndex = computeInsertIndex(current, targetId, area);
-  const finalIds = [
-    ...current.slice(0, insertIndex),
-    ...movingIds.filter((id) => id !== targetId),
-    ...current.slice(insertIndex),
-  ];
-  await setFolderChildrenMutation(
-    { folderId: destinationFolderId, childrenIds: finalIds },
-    {
-      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-      awaitRefetchQueries: true,
-    }
-  );
-}
-
 async function moveIntoFolder(destinationFolderId: string, movingIds: string[]) {
   await moveEntriesMutation(
     { destinationFolderId, sourceEntryIds: movingIds },
@@ -441,33 +352,18 @@ async function moveIntoFolder(destinationFolderId: string, movingIds: string[]) 
 
 async function createFolderFromDrop(containerEntryId: string, movingIds: string[]) {
   const parentId = entryParentById.value[containerEntryId] || rootFolderId.value;
-  const parentChildren = getFolderChildrenList(parentId);
-  const targetIndex = parentChildren.indexOf(containerEntryId);
+  const targetPosition = positionById.value[containerEntryId] ?? 0;
   const name = window.prompt('New folder name?')?.trim();
   if (!name) return;
-  await createFolderMutation(
-    { name, parentId, childrenIds: [] },
-    {
-      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-      awaitRefetchQueries: true,
-    }
-  );
+  
   const toMove = [containerEntryId, ...movingIds.filter((id) => id !== containerEntryId)];
-  await moveEntriesMutation(
-    { destinationFolderId: name, sourceEntryIds: toMove },
-    {
-      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-      awaitRefetchQueries: true,
-    }
-  );
-  const updated = getFolderChildrenList(parentId).filter((id) => !toMove.includes(id));
-  const final = [
-    ...updated.slice(0, Math.max(0, targetIndex)),
-    name,
-    ...updated.slice(Math.max(0, targetIndex)),
-  ];
-  await setFolderChildrenMutation(
-    { folderId: parentId, childrenIds: final },
+  await createFolderWithItemsMutation(
+    { 
+      name, 
+      parentId, 
+      sourceEntryIds: toMove,
+      position: targetPosition 
+    },
     {
       refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
       awaitRefetchQueries: true,
@@ -477,7 +373,7 @@ async function createFolderFromDrop(containerEntryId: string, movingIds: string[
 }
 
 async function handleDropOnRow(event: DropEvent<DockerContainer>) {
-  if (!props.organizerRoot) return;
+  if (!props.flatEntries) return;
   const { target, area, sourceIds: movingIds } = event;
 
   if (!movingIds.length) return;
@@ -491,15 +387,22 @@ async function handleDropOnRow(event: DropEvent<DockerContainer>) {
     await createFolderFromDrop(target.id, movingIds);
     return;
   }
+
   const parentId = entryParentById.value[target.id] || rootFolderId.value;
-  const sameParent = movingIds.every(
-    (id) => (entryParentById.value[id] || rootFolderId.value) === parentId
+  const targetPosition = positionById.value[target.id] ?? 0;
+  const position = area === 'before' ? targetPosition : targetPosition + 1;
+  
+  await moveItemsToPositionMutation(
+    { 
+      sourceEntryIds: movingIds,
+      destinationFolderId: parentId,
+      position
+    },
+    {
+      refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+      awaitRefetchQueries: true,
+    }
   );
-  if (sameParent) {
-    await reorderWithinFolder(parentId, movingIds, target.id, area);
-  } else {
-    await moveAcrossFoldersWithPosition(parentId, movingIds, target.id, area);
-  }
 }
 
 function getSelectedEntryIds(): string[] {
@@ -623,7 +526,7 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
       :active-id="activeId"
       :selected-ids="selectedIds"
       :busy-row-ids="busyRowIds"
-      :enable-drag-drop="!!organizerRoot"
+      :enable-drag-drop="!!flatEntries"
       @row:click="
         (payload) =>
           emit('row:click', {

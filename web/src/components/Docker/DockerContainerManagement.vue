@@ -178,6 +178,9 @@ const organizerRoot = computed(
   () => result.value?.docker?.organizer?.views?.[0]?.root as ResolvedOrganizerFolder | undefined
 );
 
+const flatEntries = computed(() => result.value?.docker?.organizer?.views?.[0]?.flatEntries || []);
+const rootFolderId = computed(() => result.value?.docker?.organizer?.views?.[0]?.root?.id || 'root');
+
 const containers = computed<DockerContainer[]>(() => result.value?.docker?.containers || []);
 
 function findContainerResourceById(
@@ -279,7 +282,8 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
       </div>
       <DockerContainersTable
         :containers="containers"
-        :organizer-root="organizerRoot"
+        :flat-entries="flatEntries"
+        :root-folder-id="rootFolderId"
         :loading="loading"
         :active-id="activeId"
         :selected-ids="selectedIds"

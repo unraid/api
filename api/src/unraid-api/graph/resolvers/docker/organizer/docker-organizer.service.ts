@@ -9,10 +9,13 @@ import { DockerOrganizerConfigService } from '@app/unraid-api/graph/resolvers/do
 import {
     addMissingResourcesToView,
     createFolderInView,
+    createFolderWithItems,
     DEFAULT_ORGANIZER_ROOT_ID,
     DEFAULT_ORGANIZER_VIEW_ID,
     deleteOrganizerEntries,
     moveEntriesToFolder,
+    moveItemsToPosition,
+    renameFolder,
     resolveOrganizer,
     setFolderChildrenInView,
 } from '@app/unraid-api/organizer/organizer.js';
@@ -228,6 +231,101 @@ export class DockerOrganizerService {
             view: defaultView,
             sourceEntryIds: new Set(sourceEntryIds),
             destinationFolderId,
+        });
+
+        const validated = await this.dockerConfigService.validate(newOrganizer);
+        this.dockerConfigService.replaceConfig(validated);
+        return validated;
+    }
+
+    async moveItemsToPosition(params: {
+        sourceEntryIds: string[];
+        destinationFolderId: string;
+        position: number;
+    }): Promise<OrganizerV1> {
+        const { sourceEntryIds, destinationFolderId, position } = params;
+        const organizer = await this.syncAndGetOrganizer();
+        const newOrganizer = structuredClone(organizer);
+
+        const defaultView = newOrganizer.views.default;
+        if (!defaultView) {
+            throw new AppError('Default view not found');
+        }
+
+        newOrganizer.views.default = moveItemsToPosition({
+            view: defaultView,
+            sourceEntryIds: new Set(sourceEntryIds),
+            destinationFolderId,
+            position,
+            resources: newOrganizer.resources,
+        });
+
+        const validated = await this.dockerConfigService.validate(newOrganizer);
+        this.dockerConfigService.replaceConfig(validated);
+        return validated;
+    }
+
+    async renameFolderById(params: { folderId: string; newName: string }): Promise<OrganizerV1> {
+        const { folderId, newName } = params;
+        const organizer = await this.syncAndGetOrganizer();
+        const newOrganizer = structuredClone(organizer);
+
+        const defaultView = newOrganizer.views.default;
+        if (!defaultView) {
+            throw new AppError('Default view not found');
+        }
+
+        newOrganizer.views.default = renameFolder({
+            view: defaultView,
+            folderId,
+            newName,
+        });
+
+        const validated = await this.dockerConfigService.validate(newOrganizer);
+        this.dockerConfigService.replaceConfig(validated);
+        return validated;
+    }
+
+    async createFolderWithItems(params: {
+        name: string;
+        parentId?: string;
+        sourceEntryIds?: string[];
+        position?: number;
+    }): Promise<OrganizerV1> {
+        const { name, parentId = DEFAULT_ORGANIZER_ROOT_ID, sourceEntryIds = [], position } = params;
+
+        if (name === DEFAULT_ORGANIZER_ROOT_ID) {
+            throw new AppError(`Folder name '${name}' is reserved`);
+        } else if (name === parentId) {
+            throw new AppError(`Folder ID '${name}' cannot be the same as the parent ID`);
+        } else if (!name) {
+            throw new AppError(`Folder name cannot be empty`);
+        }
+
+        const organizer = await this.syncAndGetOrganizer();
+        const defaultView = organizer.views.default;
+        if (!defaultView) {
+            throw new AppError('Default view not found');
+        }
+
+        const parentEntry = defaultView.entries[parentId];
+        if (!parentEntry || parentEntry.type !== 'folder') {
+            throw new AppError(`Parent '${parentId}' not found or is not a folder`);
+        }
+
+        if (parentEntry.children.includes(name)) {
+            return organizer;
+        }
+
+        const newOrganizer = structuredClone(organizer);
+        newOrganizer.views.default = createFolderWithItems({
+            view: defaultView,
+            folderId: name,
+            folderName: name,
+            parentId,
+            sourceEntryIds,
+            position,
+            resources: newOrganizer.resources,
         });
 
         const validated = await this.dockerConfigService.validate(newOrganizer);

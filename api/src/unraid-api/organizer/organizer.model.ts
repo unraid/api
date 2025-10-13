@@ -226,6 +226,12 @@ export class ResolvedOrganizerView {
     @ValidateNested()
     root!: ResolvedOrganizerEntryType;
 
+    @Field(() => [FlatOrganizerEntry])
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => FlatOrganizerEntry)
+    flatEntries!: FlatOrganizerEntry[];
+
     @Field(() => GraphQLJSON, { nullable: true })
     @IsOptional()
     @IsObject()
@@ -245,4 +251,55 @@ export class ResolvedOrganizerV1 {
     @ValidateNested({ each: true })
     @Type(() => ResolvedOrganizerView)
     views!: ResolvedOrganizerView[];
+}
+
+// ============================================
+// FLAT ORGANIZER ENTRY (for efficient frontend consumption)
+// ============================================
+
+@ObjectType()
+export class FlatOrganizerEntry {
+    @Field()
+    @IsString()
+    id!: string;
+
+    @Field()
+    @IsString()
+    type!: string;
+
+    @Field()
+    @IsString()
+    name!: string;
+
+    @Field({ nullable: true })
+    @IsOptional()
+    @IsString()
+    parentId?: string;
+
+    @Field()
+    @IsNumber()
+    depth!: number;
+
+    @Field()
+    @IsNumber()
+    position!: number;
+
+    @Field(() => [String])
+    @IsArray()
+    @IsString({ each: true })
+    path!: string[];
+
+    @Field()
+    hasChildren!: boolean;
+
+    @Field(() => [String])
+    @IsArray()
+    @IsString({ each: true })
+    childrenIds!: string[];
+
+    @Field(() => DockerContainer, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => DockerContainer)
+    meta?: DockerContainer;
 }
