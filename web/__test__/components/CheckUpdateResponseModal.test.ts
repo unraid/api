@@ -3,12 +3,8 @@ import { mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import CheckUpdateResponseModal from '~/components/UpdateOs/CheckUpdateResponseModal.vue';
-import { testTranslate } from '../utils/i18n';
-
-const translate = testTranslate as ComposerTranslation;
+import { createTestI18n, testTranslate } from '../utils/i18n';
 
 vi.mock('@unraid/ui', () => ({
   BrandButton: {
@@ -162,7 +158,9 @@ const mountModal = () =>
   mount(CheckUpdateResponseModal, {
     props: {
       open: true,
-      t: translate,
+    },
+    global: {
+      plugins: [createTestI18n()],
     },
   });
 
@@ -189,7 +187,7 @@ describe('CheckUpdateResponseModal', () => {
   });
 
   it('renders loading state while checking for updates', () => {
-    expect(translate('updateOs.checkUpdateResponseModal.checkingForOsUpdates')).toBe(
+    expect(testTranslate('updateOs.checkUpdateResponseModal.checkingForOsUpdates')).toBe(
       'Checking for OS updates...'
     );
     checkForUpdatesLoading.value = true;

@@ -79,7 +79,7 @@ function showChangelogFromLocalhost() {
 <template>
   <div class="container mx-auto p-6">
     <h1 class="mb-6 text-2xl font-bold">Changelog</h1>
-    <UpdateOsChangelogModal :t="t" :open="changelogModalVisible" />
+    <UpdateOsChangelogModal :open="changelogModalVisible" />
     <div class="mb-6 flex flex-col gap-4">
       <div class="flex max-w-md flex-col gap-4">
         <button

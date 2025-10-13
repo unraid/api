@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed, onBeforeMount, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
@@ -30,7 +31,6 @@ import {
 } from '@unraid/ui';
 
 import type { BrandButtonProps } from '@unraid/ui';
-import type { ComposerTranslation } from 'vue-i18n';
 
 import UpdateOsIgnoredRelease from '~/components/UpdateOs/IgnoredRelease.vue';
 import useDateTimeHelper from '~/composables/dateTime';
@@ -41,12 +41,12 @@ import { useUpdateOsStore } from '~/store/updateOs';
 
 export interface Props {
   open?: boolean;
-  t: ComposerTranslation;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   open: false,
 });
+const { t } = useI18n();
 
 const accountStore = useAccountStore();
 const purchaseStore = usePurchaseStore();
@@ -81,12 +81,7 @@ const setFormattedRegExp = () => {
     return;
   }
 
-  const { outputDateTimeFormatted } = useDateTimeHelper(
-    dateTimeFormat.value,
-    props.t,
-    true,
-    regExp.value
-  );
+  const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, t, true, regExp.value);
   formattedRegExp.value = outputDateTimeFormatted.value;
 };
 watch(regExp, (_newV) => {
@@ -102,11 +97,11 @@ watch(updateOsIgnoredReleases, (newVal, oldVal) => {
 });
 
 // Get the localized 'Close' text for comparison
-const localizedCloseText = computed(() => props.t('common.close'));
+const localizedCloseText = computed(() => t('common.close'));
 
 const notificationsSettings = computed(() => {
   return !updateOsNotificationsEnabled.value
-    ? props.t('updateOs.checkUpdateResponseModal.goToSettingsNotificationsToEnable')
+    ? t('updateOs.checkUpdateResponseModal.goToSettingsNotificationsToEnable')
     : undefined;
 });
 
@@ -117,28 +112,28 @@ interface ModalCopy {
 const modalCopy = computed((): ModalCopy | null => {
   if (checkForUpdatesLoading.value) {
     return {
-      title: props.t('updateOs.checkUpdateResponseModal.checkingForOsUpdates'),
+      title: t('updateOs.checkUpdateResponseModal.checkingForOsUpdates'),
     };
   }
 
   if (availableWithRenewal.value) {
     const description = regUpdatesExpired.value
-      ? `${props.t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [formattedRegExp.value])} ${props.t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
-      : props.t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
+      ? `${t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [formattedRegExp.value])} ${t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
+      : t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
           formattedRegExp.value,
         ]);
     return {
-      title: props.t('headerOsVersion.updateAvailable2'),
+      title: t('headerOsVersion.updateAvailable2'),
       description: description,
     };
   } else if (available.value) {
     return {
-      title: props.t('headerOsVersion.updateAvailable2'),
+      title: t('headerOsVersion.updateAvailable2'),
       description: undefined,
     };
   } else if (!available.value && !availableWithRenewal.value) {
     return {
-      title: props.t('updateOs.checkUpdateResponseModal.unraidOsIsUpToDate'),
+      title: t('updateOs.checkUpdateResponseModal.unraidOsIsUpToDate'),
       description: notificationsSettings.value ?? undefined,
     };
   }
@@ -157,7 +152,7 @@ const extraLinks = computed((): BrandButtonProps[] => {
       variant: 'outline',
       href: '/Settings/Notifications',
       icon: CogIcon,
-      text: props.t('updateOs.checkUpdateResponseModal.enableUpdateNotifications'),
+      text: t('updateOs.checkUpdateResponseModal.enableUpdateNotifications'),
     });
   }
 
@@ -170,7 +165,7 @@ const actionButtons = computed((): BrandButtonProps[] => {
     return [
       {
         click: () => close(),
-        text: props.t('common.close'),
+        text: t('common.close'),
       },
     ];
   }
@@ -188,7 +183,7 @@ const actionButtons = computed((): BrandButtonProps[] => {
     buttons.push({
       click: async () => await accountStore.updateOs(),
       icon: IdentificationIcon,
-      text: props.t('updateOs.checkUpdateResponseModal.verifyToUpdate'),
+      text: t('updateOs.checkUpdateResponseModal.verifyToUpdate'),
     });
 
     return buttons;
@@ -201,8 +196,8 @@ const actionButtons = computed((): BrandButtonProps[] => {
       click: async () => await updateOsStore.setReleaseForUpdate(updateOsResponse.value ?? null),
       icon: EyeIcon,
       text: availableWithRenewal.value
-        ? props.t('updateOs.updateIneligible.viewChangelog')
-        : props.t('updateOs.checkUpdateResponseModal.viewChangelogToStartUpdate'),
+        ? t('updateOs.updateIneligible.viewChangelog')
+        : t('updateOs.checkUpdateResponseModal.viewChangelogToStartUpdate'),
     });
   }
 
@@ -213,8 +208,8 @@ const actionButtons = computed((): BrandButtonProps[] => {
       icon: KeyIcon,
       iconRight: ArrowTopRightOnSquareIcon,
       iconRightHoverDisplay: false,
-      text: props.t('updateOs.updateIneligible.extendLicense'),
-      title: props.t('updateOs.updateIneligible.payYourAnnualFeeToContinue'),
+      text: t('updateOs.updateIneligible.extendLicense'),
+      title: t('updateOs.updateIneligible.payYourAnnualFeeToContinue'),
     });
   }
 
@@ -260,7 +255,7 @@ const setUserFormattedReleaseDate = () => {
 
   const { outputDateTimeFormatted } = useDateTimeHelper(
     dateTimeFormat.value,
-    props.t,
+    t,
     true,
     availableReleaseDate.value.valueOf()
   );
