@@ -1,11 +1,16 @@
 import { ConfigService } from '@nestjs/config';
+import { readFile } from 'fs/promises';
+import path from 'path';
 
+import type { ApiConfig } from '@unraid/shared/services/api-config.js';
+import { writeFile as atomicWriteFile } from 'atomically';
+import { Subject } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { API_VERSION, PATHS_CONFIG_MODULES } from '@app/environment.js';
 import { ApiConfigPersistence, loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
+import { OsVersionTracker } from '@app/unraid-api/config/os-version-tracker.module.js';
 
-// Mock file utilities
 vi.mock('@app/core/utils/files/file-exists.js', () => ({
     fileExists: vi.fn(),
 }));
@@ -14,185 +19,168 @@ vi.mock('@unraid/shared/util/file.js', () => ({
     fileExists: vi.fn(),
 }));
 
-// Mock fs/promises for file I/O operations
 vi.mock('fs/promises', () => ({
     readFile: vi.fn(),
+}));
+
+vi.mock('atomically', () => ({
     writeFile: vi.fn(),
 }));
+
+const mockReadFile = vi.mocked(readFile);
+const mockAtomicWriteFile = vi.mocked(atomicWriteFile);
 
 describe('ApiConfigPersistence', () => {
     let service: ApiConfigPersistence;
     let configService: ConfigService;
+    let configChanges$: Subject<{ path?: string }>;
+    let setMock: ReturnType<typeof vi.fn>;
+    let getMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
+        configChanges$ = new Subject<{ path?: string }>();
+        setMock = vi.fn();
+        getMock = vi.fn();
+
         configService = {
-            get: vi.fn(),
-            set: vi.fn(),
+            get: getMock,
+            set: setMock,
             getOrThrow: vi.fn().mockReturnValue('test-config-path'),
+            changes$: configChanges$,
         } as any;
 
         service = new ApiConfigPersistence(configService);
     });
 
-    describe('required ConfigFilePersister methods', () => {
-        it('should return correct file name', () => {
-            expect(service.fileName()).toBe('api.json');
-        });
+    it('should return correct file name', () => {
+        expect(service.fileName()).toBe('api.json');
+    });
 
-        it('should return correct config key', () => {
-            expect(service.configKey()).toBe('api');
-        });
+    it('should return correct config key', () => {
+        expect(service.configKey()).toBe('api');
+    });
 
-        it('should return default config', () => {
-            const defaultConfig = service.defaultConfig();
-            expect(defaultConfig).toEqual({
-                version: expect.any(String),
-                extraOrigins: [],
-                sandbox: false,
-                ssoSubIds: [],
-                plugins: [],
-            });
-        });
-
-        it('should migrate config from legacy format', async () => {
-            const mockLegacyConfig = {
-                local: { sandbox: 'yes' },
-                api: { extraOrigins: 'https://example.com,https://test.com' },
-                remote: { ssoSubIds: 'sub1,sub2' },
-            };
-
-            vi.mocked(configService.get).mockReturnValue(mockLegacyConfig);
-
-            const result = await service.migrateConfig();
-
-            expect(result).toEqual({
-                version: expect.any(String),
-                extraOrigins: ['https://example.com', 'https://test.com'],
-                sandbox: true,
-                ssoSubIds: ['sub1', 'sub2'],
-                plugins: [],
-            });
+    it('should return default config', () => {
+        const defaultConfig = service.defaultConfig();
+        expect(defaultConfig).toEqual({
+            version: API_VERSION,
+            extraOrigins: [],
+            sandbox: false,
+            ssoSubIds: [],
+            plugins: [],
+            lastSeenOsVersion: undefined,
         });
     });
 
-    describe('convertLegacyConfig', () => {
-        it('should migrate sandbox from string "yes" to boolean true', () => {
-            const legacyConfig = {
-                local: { sandbox: 'yes' },
-                api: { extraOrigins: '' },
-                remote: { ssoSubIds: '' },
-            };
+    it('should migrate config from legacy format', async () => {
+        const legacyConfig = {
+            local: { sandbox: 'yes' },
+            api: { extraOrigins: 'https://example.com,https://test.com' },
+            remote: { ssoSubIds: 'sub1,sub2' },
+        };
 
-            const result = service.convertLegacyConfig(legacyConfig);
-
-            expect(result.sandbox).toBe(true);
+        getMock.mockImplementation((key: string) => {
+            if (key === 'store.config') {
+                return legacyConfig;
+            }
+            return undefined;
         });
 
-        it('should migrate sandbox from string "no" to boolean false', () => {
-            const legacyConfig = {
-                local: { sandbox: 'no' },
-                api: { extraOrigins: '' },
-                remote: { ssoSubIds: '' },
-            };
+        const result = await service.migrateConfig();
 
-            const result = service.convertLegacyConfig(legacyConfig);
+        expect(result).toEqual({
+            version: API_VERSION,
+            extraOrigins: ['https://example.com', 'https://test.com'],
+            sandbox: true,
+            ssoSubIds: ['sub1', 'sub2'],
+            plugins: [],
+            lastSeenOsVersion: undefined,
+        });
+    });
 
-            expect(result.sandbox).toBe(false);
+    it('sets api.version on bootstrap', async () => {
+        await service.onApplicationBootstrap();
+        expect(setMock).toHaveBeenCalledWith('api.version', API_VERSION);
+    });
+});
+
+describe('OsVersionTracker', () => {
+    const trackerPath = path.join(PATHS_CONFIG_MODULES, 'os-version-tracker.json');
+    let configService: ConfigService;
+    let setMock: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+        setMock = vi.fn();
+        configService = {
+            set: setMock,
+            get: vi.fn(),
+            getOrThrow: vi.fn(),
+        } as any;
+
+        mockReadFile.mockReset();
+        mockAtomicWriteFile.mockReset();
+    });
+
+    it('persists current version when tracker is missing', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === '/etc/unraid-version') {
+                return 'version="7.2.0-beta.3.4"\n';
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        it('should migrate extraOrigins from comma-separated string to array', () => {
-            const legacyConfig = {
-                local: { sandbox: 'no' },
-                api: { extraOrigins: 'https://example.com,https://test.com' },
-                remote: { ssoSubIds: '' },
-            };
+        const tracker = new OsVersionTracker(configService);
+        await tracker.onApplicationBootstrap();
 
-            const result = service.convertLegacyConfig(legacyConfig);
+        expect(setMock).toHaveBeenCalledWith('api.currentOsVersion', '7.2.0-beta.3.4');
+        expect(setMock).toHaveBeenCalledWith('store.emhttp.var.version', '7.2.0-beta.3.4');
+        expect(setMock).toHaveBeenCalledWith('api.lastSeenOsVersion', undefined);
 
-            expect(result.extraOrigins).toEqual(['https://example.com', 'https://test.com']);
+        expect(mockAtomicWriteFile).toHaveBeenCalledWith(
+            trackerPath,
+            expect.stringContaining('"lastTrackedVersion": "7.2.0-beta.3.4"'),
+            { mode: 0o644 }
+        );
+    });
+
+    it('does not rewrite when version has not changed', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === '/etc/unraid-version') {
+                return 'version="6.12.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '6.12.0',
+                    updatedAt: '2024-01-01T00:00:00.000Z',
+                });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        it('should filter out non-HTTP origins from extraOrigins', () => {
-            const legacyConfig = {
-                local: { sandbox: 'no' },
-                api: {
-                    extraOrigins: 'https://example.com,invalid-origin,http://test.com,ftp://bad.com',
-                },
-                remote: { ssoSubIds: '' },
-            };
+        const tracker = new OsVersionTracker(configService);
+        await tracker.onApplicationBootstrap();
 
-            const result = service.convertLegacyConfig(legacyConfig);
+        expect(setMock).toHaveBeenCalledWith('api.currentOsVersion', '6.12.0');
+        expect(setMock).toHaveBeenCalledWith('store.emhttp.var.version', '6.12.0');
+        expect(setMock).toHaveBeenCalledWith('api.lastSeenOsVersion', '6.12.0');
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+    });
 
-            expect(result.extraOrigins).toEqual(['https://example.com', 'http://test.com']);
-        });
+    it('handles missing version file gracefully', async () => {
+        mockReadFile.mockRejectedValue(new Error('permission denied'));
 
-        it('should handle empty extraOrigins string', () => {
-            const legacyConfig = {
-                local: { sandbox: 'no' },
-                api: { extraOrigins: '' },
-                remote: { ssoSubIds: '' },
-            };
+        const tracker = new OsVersionTracker(configService);
+        await tracker.onApplicationBootstrap();
 
-            const result = service.convertLegacyConfig(legacyConfig);
-
-            expect(result.extraOrigins).toEqual([]);
-        });
-
-        it('should migrate ssoSubIds from comma-separated string to array', () => {
-            const legacyConfig = {
-                local: { sandbox: 'no' },
-                api: { extraOrigins: '' },
-                remote: { ssoSubIds: 'user1,user2,user3' },
-            };
-
-            const result = service.convertLegacyConfig(legacyConfig);
-
-            expect(result.ssoSubIds).toEqual(['user1', 'user2', 'user3']);
-        });
-
-        it('should handle empty ssoSubIds string', () => {
-            const legacyConfig = {
-                local: { sandbox: 'no' },
-                api: { extraOrigins: '' },
-                remote: { ssoSubIds: '' },
-            };
-
-            const result = service.convertLegacyConfig(legacyConfig);
-
-            expect(result.ssoSubIds).toEqual([]);
-        });
-
-        it('should handle undefined config sections', () => {
-            const legacyConfig = {};
-
-            const result = service.convertLegacyConfig(legacyConfig);
-
-            expect(result.sandbox).toBe(false);
-            expect(result.extraOrigins).toEqual([]);
-            expect(result.ssoSubIds).toEqual([]);
-        });
-
-        it('should handle complete migration with all fields', () => {
-            const legacyConfig = {
-                local: { sandbox: 'yes' },
-                api: { extraOrigins: 'https://app1.example.com,https://app2.example.com' },
-                remote: { ssoSubIds: 'sub1,sub2,sub3' },
-            };
-
-            const result = service.convertLegacyConfig(legacyConfig);
-
-            expect(result.sandbox).toBe(true);
-            expect(result.extraOrigins).toEqual([
-                'https://app1.example.com',
-                'https://app2.example.com',
-            ]);
-            expect(result.ssoSubIds).toEqual(['sub1', 'sub2', 'sub3']);
-        });
+        expect(setMock).toHaveBeenCalledWith('api.currentOsVersion', undefined);
+        expect(setMock).toHaveBeenCalledWith('store.emhttp.var.version', undefined);
+        expect(setMock).toHaveBeenCalledWith('api.lastSeenOsVersion', undefined);
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
     });
 });
 
 describe('loadApiConfig', () => {
-    beforeEach(async () => {
+    beforeEach(() => {
         vi.clearAllMocks();
     });
 
@@ -200,11 +188,12 @@ describe('loadApiConfig', () => {
         const result = await loadApiConfig();
 
         expect(result).toEqual({
-            version: expect.any(String),
+            version: API_VERSION,
             extraOrigins: [],
             sandbox: false,
             ssoSubIds: [],
             plugins: [],
+            lastSeenOsVersion: undefined,
         });
     });
 
@@ -212,11 +201,12 @@ describe('loadApiConfig', () => {
         const result = await loadApiConfig();
 
         expect(result).toEqual({
-            version: expect.any(String),
+            version: API_VERSION,
             extraOrigins: [],
             sandbox: false,
             ssoSubIds: [],
             plugins: [],
+            lastSeenOsVersion: undefined,
         });
     });
 });

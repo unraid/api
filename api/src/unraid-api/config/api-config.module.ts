@@ -1,4 +1,4 @@
-import { Injectable, Module, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
+import { Injectable, Module, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService, registerAs } from '@nestjs/config';
 import path from 'path';
 
@@ -8,6 +8,7 @@ import { csvStringToArray } from '@unraid/shared/util/data.js';
 
 import { isConnectPluginInstalled } from '@app/connect-plugin-cleanup.js';
 import { API_VERSION, PATHS_CONFIG_MODULES } from '@app/environment.js';
+import { OsVersionTrackerModule } from '@app/unraid-api/config/os-version-tracker.module.js';
 
 export { type ApiConfig };
 
@@ -56,10 +57,8 @@ export const apiConfig = registerAs<ApiConfig>('api', loadApiConfig);
 @Injectable()
 export class ApiConfigPersistence
     extends ConfigFilePersister<ApiConfig>
-    implements OnApplicationBootstrap, OnApplicationShutdown
+    implements OnApplicationBootstrap
 {
-    private currentOsVersion: string | undefined;
-
     constructor(configService: ConfigService) {
         super(configService);
     }
@@ -90,19 +89,6 @@ export class ApiConfigPersistence
 
     async onApplicationBootstrap() {
         this.configService.set('api.version', API_VERSION);
-        this.currentOsVersion = this.configService.get<string>('store.emhttp.var.version');
-    }
-
-    async onApplicationShutdown() {
-        if (!this.currentOsVersion) {
-            return;
-        }
-
-        const apiConfig = this.configService.get<ApiConfig>('api');
-        if (apiConfig) {
-            apiConfig.lastSeenOsVersion = this.currentOsVersion;
-            await this.persist(apiConfig);
-        }
     }
 
     async migrateConfig(): Promise<ApiConfig> {
@@ -134,7 +120,8 @@ export class ApiConfigPersistence
 
 // apiConfig should be registered in root config in app.module.ts, not here.
 @Module({
+    imports: [OsVersionTrackerModule],
     providers: [ApiConfigPersistence],
-    exports: [ApiConfigPersistence],
+    exports: [ApiConfigPersistence, OsVersionTrackerModule],
 })
 export class ApiConfigModule {}
