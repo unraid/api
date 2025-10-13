@@ -106,6 +106,8 @@ describe('ApiConfigPersistence', () => {
 
 describe('OnboardingTracker', () => {
     const trackerPath = path.join(PATHS_CONFIG_MODULES, 'onboarding-tracker.json');
+    const dataDir = '/tmp/unraid-data';
+    const versionFilePath = path.join(dataDir, 'unraid-version');
     let configService: ConfigService;
     let setMock: ReturnType<typeof vi.fn>;
     let configStore: Record<string, unknown>;
@@ -115,6 +117,7 @@ describe('OnboardingTracker', () => {
         setMock = vi.fn((key: string, value: unknown) => {
             configStore[key] = value;
         });
+        configStore['PATHS_UNRAID_DATA'] = dataDir;
         configService = {
             set: setMock,
             get: vi.fn((key: string) => configStore[key]),
@@ -127,7 +130,7 @@ describe('OnboardingTracker', () => {
 
     it('defers persisting last seen version until shutdown', async () => {
         mockReadFile.mockImplementation(async (filePath) => {
-            if (filePath === '/etc/unraid-version') {
+            if (filePath === versionFilePath) {
                 return 'version="7.2.0-beta.3.4"\n';
             }
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
@@ -154,7 +157,7 @@ describe('OnboardingTracker', () => {
 
     it('does not rewrite when version has not changed', async () => {
         mockReadFile.mockImplementation(async (filePath) => {
-            if (filePath === '/etc/unraid-version') {
+            if (filePath === versionFilePath) {
                 return 'version="6.12.0"\n';
             }
             if (filePath === trackerPath) {
@@ -192,9 +195,25 @@ describe('OnboardingTracker', () => {
         expect(mockAtomicWriteFile).not.toHaveBeenCalled();
     });
 
-    it('keeps previous version available to signal upgrade until shutdown', async () => {
+    it('falls back to default version path when data directory is unavailable', async () => {
+        delete configStore['PATHS_UNRAID_DATA'];
+
         mockReadFile.mockImplementation(async (filePath) => {
             if (filePath === '/etc/unraid-version') {
+                return 'version="7.3.0"\n';
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', '7.3.0');
+    });
+
+    it('keeps previous version available to signal upgrade until shutdown', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
                 return 'version="7.1.0"\n';
             }
             if (filePath === trackerPath) {
@@ -239,7 +258,7 @@ describe('OnboardingTracker', () => {
 
     it('marks onboarding steps complete for the current version without clearing upgrade flag', async () => {
         mockReadFile.mockImplementation(async (filePath) => {
-            if (filePath === '/etc/unraid-version') {
+            if (filePath === versionFilePath) {
                 return 'version="7.2.0"\n';
             }
             if (filePath === trackerPath) {
