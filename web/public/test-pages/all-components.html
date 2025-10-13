@@ -297,6 +297,7 @@
           <button id="test-activation-modal" class="test-btn" style="margin: 5px;">Show Activation Modal</button>
           <button id="test-activation-with-code" class="test-btn" style="margin: 5px;">Show w/ Activation Code</button>
           <button id="test-plugins-step" class="test-btn" style="margin: 5px;">Show Plugins Step</button>
+          <button id="test-welcome-modal" class="test-btn" style="margin: 5px;">Show Welcome Modal</button>
         </div>
       </div>
 
@@ -616,6 +617,24 @@
             }, 500);
           } else {
             log('ERROR: Activation modal store not found');
+          }
+        } else {
+          log('ERROR: globalPinia not available');
+        }
+      });
+      
+      // Test welcome modal
+      $('#test-welcome-modal').on('click', function() {
+        console.log('Button clicked: test-welcome-modal');
+        log('Opening welcome modal...');
+        if (window.globalPinia) {
+          // Find the welcome modal component and call its showWelcomeModal method
+          const welcomeModalElement = document.querySelector('unraid-welcome-modal');
+          if (welcomeModalElement && welcomeModalElement.showWelcomeModal) {
+            welcomeModalElement.showWelcomeModal();
+            log('Welcome modal opened');
+          } else {
+            log('ERROR: Welcome modal component not found or showWelcomeModal method not available');
           }
         } else {
           log('ERROR: globalPinia not available');

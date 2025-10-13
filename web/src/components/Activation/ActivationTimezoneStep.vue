@@ -1,15 +1,13 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useMutation } from '@vue/apollo-composable';
 
 import { BrandButton, Select } from '@unraid/ui';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Activation/updateSystemTime.mutation';
 import { getTimeZones } from '@vvo/tzdb';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 export interface Props {
-  t: ComposerTranslation;
   onComplete: () => void;
   onSkip?: () => void;
   onBack?: () => void;
@@ -18,6 +16,7 @@ export interface Props {
 }
 
 const props = defineProps<Props>();
+const { t } = useI18n();
 
 const selectedTimeZone = ref<string>('');
 const isSaving = ref(false);
