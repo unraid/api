@@ -282,7 +282,6 @@ const currentScenario = computed(() => testScenarios.find((s) => s.id === select
           updateOsStore.setModalOpen(val);
         }
       "
-      :t="t"
     />
   </div>
 </template>

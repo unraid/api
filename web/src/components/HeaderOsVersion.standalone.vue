@@ -274,7 +274,6 @@ const updateOsStatus = computed(() => {
       :open="showOsReleaseNotesModal"
       :release="currentVersionRelease"
       view-docs-label="Open in new tab"
-      :t="t"
       @close="showOsReleaseNotesModal = false"
     />
   </div>

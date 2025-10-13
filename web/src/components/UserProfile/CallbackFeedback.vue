@@ -2,6 +2,7 @@
 // @todo ensure key installs and updateOs can be handled at the same time
 // @todo with multiple actions of key install and update after successful key install, rather than showing default success message, show a message to have them confirm the update
 import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useClipboard } from '@vueuse/core';
 
@@ -16,8 +17,6 @@ import {
 import { BrandButton, BrandLoading } from '@unraid/ui';
 import { WEBGUI_CONNECT_SETTINGS, WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import Modal from '~/components/Modal.vue';
 import RegistrationUpdateExpiration from '~/components/Registration/UpdateExpiration.vue';
 import UpcCallbackFeedbackStatus from '~/components/UserProfile/CallbackFeedbackStatus.vue';
@@ -30,12 +29,12 @@ import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 export interface Props {
   open?: boolean;
-  t: ComposerTranslation;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   open: false,
 });
+const { t } = useI18n();
 
 const accountStore = useAccountStore();
 const callbackActionsStore = useCallbackActionsStore();
@@ -73,58 +72,56 @@ const isSettingsPage = ref<boolean>(document.location.pathname === '/Settings/Ma
 const heading = computed(() => {
   if (updateOsStatus.value === 'confirming') {
     return callbackTypeDowngrade.value
-      ? props.t('userProfile.callbackFeedback.downgradeUnraidOsConfirmationRequired')
-      : props.t('userProfile.callbackFeedback.updateUnraidOsConfirmationRequired');
+      ? t('userProfile.callbackFeedback.downgradeUnraidOsConfirmationRequired')
+      : t('userProfile.callbackFeedback.updateUnraidOsConfirmationRequired');
   }
   switch (callbackStatus.value) {
     case 'error':
-      return props.t('common.error');
+      return t('common.error');
     case 'loading':
-      return props.t('userProfile.callbackFeedback.performingActions');
+      return t('userProfile.callbackFeedback.performingActions');
     case 'success':
-      return props.t('common.success');
+      return t('common.success');
   }
   return '';
 });
 const subheading = computed(() => {
   if (updateOsStatus.value === 'confirming') {
     return callbackTypeDowngrade.value
-      ? props.t('userProfile.callbackFeedback.pleaseConfirmTheDowngradeDetailsBelow')
-      : props.t('userProfile.callbackFeedback.pleaseConfirmTheUpdateDetailsBelow');
+      ? t('userProfile.callbackFeedback.pleaseConfirmTheDowngradeDetailsBelow')
+      : t('userProfile.callbackFeedback.pleaseConfirmTheUpdateDetailsBelow');
   }
   if (callbackStatus.value === 'error') {
-    return props.t(
-      'userProfile.callbackFeedback.somethingWentWrong'
-    ); /** @todo show actual error messages */
+    return t('userProfile.callbackFeedback.somethingWentWrong'); /** @todo show actual error messages */
   }
   if (callbackStatus.value === 'loading') {
-    return props.t('userProfile.callbackFeedback.pleaseKeepThisWindowOpenWhile');
+    return t('userProfile.callbackFeedback.pleaseKeepThisWindowOpenWhile');
   }
   if (callbackStatus.value === 'success') {
     if (accountActionType.value === 'signIn') {
-      return props.t('userProfile.callbackFeedback.youReOneStepCloserTo');
+      return t('userProfile.callbackFeedback.youReOneStepCloserTo');
     }
     if (keyActionType.value === 'purchase') {
-      return props.t('userProfile.callbackFeedback.thankYouForPurchasingAnUnraid', [keyType.value]);
+      return t('userProfile.callbackFeedback.thankYouForPurchasingAnUnraid', [keyType.value]);
     }
     if (keyActionType.value === 'replace') {
-      return props.t('userProfile.callbackFeedback.yourKeyHasBeenReplaced', [keyType.value]);
+      return t('userProfile.callbackFeedback.yourKeyHasBeenReplaced', [keyType.value]);
     }
     if (keyActionType.value === 'trialExtend') {
-      return props.t('userProfile.callbackFeedback.yourTrialKeyHasBeenExtended');
+      return t('userProfile.callbackFeedback.yourTrialKeyHasBeenExtended');
     }
     if (keyActionType.value === 'trialStart') {
-      return props.t('userProfile.callbackFeedback.yourFreeTrialKeyProvidesAll');
+      return t('userProfile.callbackFeedback.yourFreeTrialKeyProvidesAll');
     }
     if (keyActionType.value === 'upgrade') {
-      return props.t('userProfile.callbackFeedback.thankYouForUpgradingToAn', [keyType.value]);
+      return t('userProfile.callbackFeedback.thankYouForUpgradingToAn', [keyType.value]);
     }
     return '';
   }
   return '';
 });
 
-const closeText = computed(() => props.t('common.close')); // !connectPluginInstalled.value ? props.t('userProfile.callbackFeedback.noThanks') :
+const closeText = computed(() => t('common.close')); // !connectPluginInstalled.value ? t('userProfile.callbackFeedback.noThanks') :
 const close = () => {
   if (callbackStatus.value === 'loading') {
     return;
@@ -145,56 +142,56 @@ const cancelUpdateOs = () => {
 };
 
 const keyInstallStatusCopy = computed((): { text: string } => {
-  let txt1 = props.t('common.installing');
-  let txt2 = props.t('common.installed');
-  let txt3 = props.t('common.install');
+  let txt1 = t('common.installing');
+  let txt2 = t('common.installed');
+  let txt3 = t('common.install');
   switch (keyInstallStatus.value) {
     case 'installing':
       if (keyActionType.value === 'trialExtend') {
-        txt1 = props.t('userProfile.callbackFeedback.installingExtendedTrial');
+        txt1 = t('userProfile.callbackFeedback.installingExtendedTrial');
       }
       if (keyActionType.value === 'recover') {
-        txt1 = props.t('userProfile.callbackFeedback.installingRecovered');
+        txt1 = t('userProfile.callbackFeedback.installingRecovered');
       }
       if (keyActionType.value === 'renew') {
-        txt1 = props.t('userProfile.callbackFeedback.installingExtended');
+        txt1 = t('userProfile.callbackFeedback.installingExtended');
       }
       if (keyActionType.value === 'replace') {
-        txt1 = props.t('userProfile.callbackFeedback.installingReplaced');
+        txt1 = t('userProfile.callbackFeedback.installingReplaced');
       }
       return {
-        text: props.t('userProfile.callbackFeedback.key', [txt1, keyType.value]),
+        text: t('userProfile.callbackFeedback.key', [txt1, keyType.value]),
       };
     case 'success':
       if (keyActionType.value === 'renew' || keyActionType.value === 'trialExtend') {
-        txt2 = props.t('userProfile.callbackFeedback.extensionInstalled');
+        txt2 = t('userProfile.callbackFeedback.extensionInstalled');
       }
       if (keyActionType.value === 'recover') {
-        txt2 = props.t('userProfile.callbackFeedback.recovered');
+        txt2 = t('userProfile.callbackFeedback.recovered');
       }
       if (keyActionType.value === 'replace') {
-        txt2 = props.t('userProfile.callbackFeedback.replaced');
+        txt2 = t('userProfile.callbackFeedback.replaced');
       }
       return {
-        text: props.t('userProfile.callbackFeedback.keySuccessfully', [txt2, keyType.value]),
+        text: t('userProfile.callbackFeedback.keySuccessfully', [txt2, keyType.value]),
       };
     case 'failed':
       if (keyActionType.value === 'trialExtend') {
-        txt3 = props.t('userProfile.callbackFeedback.installExtended');
+        txt3 = t('userProfile.callbackFeedback.installExtended');
       }
       if (keyActionType.value === 'recover') {
-        txt3 = props.t('userProfile.callbackFeedback.installRecovered');
+        txt3 = t('userProfile.callbackFeedback.installRecovered');
       }
       if (keyActionType.value === 'replace') {
-        txt3 = props.t('userProfile.callbackFeedback.installReplaced');
+        txt3 = t('userProfile.callbackFeedback.installReplaced');
       }
       return {
-        text: props.t('userProfile.callbackFeedback.failedToKey', [txt3, keyType.value]),
+        text: t('userProfile.callbackFeedback.failedToKey', [txt3, keyType.value]),
       };
     case 'ready':
     default:
       return {
-        text: props.t('userProfile.callbackFeedback.readyToInstallKey'),
+        text: t('userProfile.callbackFeedback.readyToInstallKey'),
       };
   }
 });
@@ -205,38 +202,36 @@ const accountActionStatusCopy = computed((): { text: string } => {
       return {
         text:
           accountAction.value?.type === 'signIn'
-            ? props.t('userProfile.callbackFeedback.signingIn2')
-            : props.t('userProfile.callbackFeedback.signingOut2'),
+            ? t('userProfile.callbackFeedback.signingIn2')
+            : t('userProfile.callbackFeedback.signingOut2'),
       };
     case 'updating':
       return {
         text:
           accountAction.value?.type === 'signIn'
-            ? props.t('userProfile.callbackFeedback.signingIn', [
-                accountAction.value.user?.preferred_username,
-              ])
-            : props.t('userProfile.callbackFeedback.signingOut', [username.value]),
+            ? t('userProfile.callbackFeedback.signingIn', [accountAction.value.user?.preferred_username])
+            : t('userProfile.callbackFeedback.signingOut', [username.value]),
       };
     case 'success':
       return {
         text:
           accountAction.value?.type === 'signIn'
-            ? props.t('userProfile.callbackFeedback.signedInSuccessfully', [
+            ? t('userProfile.callbackFeedback.signedInSuccessfully', [
                 accountAction.value.user?.preferred_username,
               ])
-            : props.t('userProfile.callbackFeedback.signedOutSuccessfully', [username.value]),
+            : t('userProfile.callbackFeedback.signedOutSuccessfully', [username.value]),
       };
     case 'failed':
       return {
         text:
           accountAction.value?.type === 'signIn'
-            ? props.t('userProfile.callbackFeedback.signInFailed')
-            : props.t('userProfile.callbackFeedback.signOutFailed'),
+            ? t('userProfile.callbackFeedback.signInFailed')
+            : t('userProfile.callbackFeedback.signOutFailed'),
       };
     case 'ready':
     default:
       return {
-        text: props.t('userProfile.callbackFeedback.readyToUpdateConnectAccountConfiguration'),
+        text: t('userProfile.callbackFeedback.readyToUpdateConnectAccountConfiguration'),
       };
   }
 });
@@ -258,7 +253,6 @@ const showUpdateEligibility = computed(() => {
 
 <template>
   <Modal
-    :t="t"
     :title="heading"
     :description="subheading"
     :open="open"
@@ -282,7 +276,7 @@ const showUpdateEligibility = computed(() => {
           :text="keyInstallStatusCopy.text"
         >
           <div v-if="keyType === 'Trial'" class="mt-1 italic opacity-75">
-            <UpcUptimeExpire v-if="refreshServerStateStatus === 'done'" :for-expire="true" :t="t" />
+            <UpcUptimeExpire v-if="refreshServerStateStatus === 'done'" :for-expire="true" />
             <p v-else>
               {{ t('userProfile.callbackFeedback.calculatingTrialExpiration') }}
             </p>

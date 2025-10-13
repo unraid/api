@@ -28,23 +28,23 @@ const trialStatusCopy = computed((): TrialStatusCopy | null => {
   switch (trialStatus.value) {
     case 'failed':
       return {
-        heading: props.t('userProfile.trial.trialKeyCreationFailed'),
-        subheading: props.t('userProfile.trial.errorCreatiingATrialKeyPlease'),
+        heading: t('userProfile.trial.trialKeyCreationFailed'),
+        subheading: t('userProfile.trial.errorCreatiingATrialKeyPlease'),
       };
     case 'trialExtend':
       return {
-        heading: props.t('userProfile.trial.extendingYourFreeTrialByDays'),
-        subheading: props.t('userProfile.trial.pleaseKeepThisWindowOpen'),
+        heading: t('userProfile.trial.extendingYourFreeTrialByDays'),
+        subheading: t('userProfile.trial.pleaseKeepThisWindowOpen'),
       };
     case 'trialStart':
       return {
-        heading: props.t('userProfile.trial.startingYourFreeDayTrial'),
-        subheading: props.t('userProfile.trial.pleaseKeepThisWindowOpen'),
+        heading: t('userProfile.trial.startingYourFreeDayTrial'),
+        subheading: t('userProfile.trial.pleaseKeepThisWindowOpen'),
       };
     case 'success':
       return {
-        heading: props.t('userProfile.trial.trialKeyCreated'),
-        subheading: props.t('userProfile.trial.pleaseWaitWhileThePageReloads'),
+        heading: t('userProfile.trial.trialKeyCreated'),
+        subheading: t('userProfile.trial.pleaseWaitWhileThePageReloads'),
       };
     case 'ready':
     default:
@@ -62,7 +62,6 @@ const close = () => {
 
 <template>
   <Modal
-    :t="t"
     :open="open"
     :title="trialStatusCopy?.heading"
     :description="trialStatusCopy?.subheading"

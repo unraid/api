@@ -70,9 +70,8 @@ onBeforeMount(() => {
         :show-update-check="true"
         :title="t('updateOs.updateUnraidOs')"
         :subtitle="subtitle"
-        :t="t"
       />
-      <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
+      <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" />
     </div>
   </PageContainer>
 </template>

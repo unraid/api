@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed, h } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import {
@@ -14,8 +15,6 @@ import {
 import { Badge, BrandLoading, Button } from '@unraid/ui';
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import useDateTimeHelper from '~/composables/dateTime';
 import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
@@ -25,7 +24,6 @@ import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 export interface Props {
   downgradeNotAvailable?: boolean;
   showExternalDowngrade?: boolean;
-  t: ComposerTranslation;
   title?: string;
   subtitle?: string;
 }
@@ -35,6 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
   title: undefined,
   subtitle: undefined,
 });
+const { t } = useI18n();
 
 const accountStore = useAccountStore();
 const serverStore = useServerStore();
@@ -51,7 +50,7 @@ const { ineligibleText, rebootTypeText, status } = storeToRefs(updateOsActionsSt
 const updateAvailable = computed(() => available.value || availableWithRenewal.value);
 
 const { outputDateTimeReadableDiff: readableDiffRegExp, outputDateTimeFormatted: formattedRegExp } =
-  useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
+  useDateTimeHelper(dateTimeFormat.value, t, true, regExp.value);
 
 const regExpOutput = computed(() => {
   if (!regExp.value) {
@@ -59,13 +58,13 @@ const regExpOutput = computed(() => {
   }
   return {
     text: regUpdatesExpired.value
-      ? `${props.t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [formattedRegExp.value])} ${props.t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
-      : props.t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
+      ? `${t('registration.updateExpirationAction.eligibleForUpdatesReleasedOnOr', [formattedRegExp.value])} ${t('registration.updateExpirationAction.extendYourLicenseToAccessThe')}`
+      : t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesUntil', [
           formattedRegExp.value,
         ]),
     title: regUpdatesExpired.value
-      ? props.t('registration.updateExpirationAction.ineligibleAsOf', [readableDiffRegExp.value])
-      : props.t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesFor', [
+      ? t('registration.updateExpirationAction.ineligibleAsOf', [readableDiffRegExp.value])
+      : t('registration.updateExpirationAction.eligibleForFreeFeatureUpdatesFor', [
           readableDiffRegExp.value,
         ]),
   };
@@ -86,7 +85,7 @@ const checkButton = computed(() => {
         }
       },
       icon: () => h(ArrowTopRightOnSquareIcon, { style: 'width: 16px; height: 16px;' }),
-      text: props.t('updateOs.status.moreOptions'),
+      text: t('updateOs.status.moreOptions'),
     };
   }
 
@@ -96,7 +95,7 @@ const checkButton = computed(() => {
         updateOsStore.localCheckForUpdate();
       },
       icon: () => h(ArrowPathIcon, { style: 'width: 16px; height: 16px;' }),
-      text: props.t('userProfile.dropdownContent.checkForUpdate'),
+      text: t('userProfile.dropdownContent.checkForUpdate'),
     };
   }
 
@@ -107,8 +106,8 @@ const checkButton = computed(() => {
     },
     icon: () => h(BellAlertIcon, { style: 'width: 16px; height: 16px;' }),
     text: availableWithRenewal.value
-      ? props.t('headerOsVersion.unraidOsReleased', [availableWithRenewal.value])
-      : props.t('headerOsVersion.unraidOsUpdateAvailable', [available.value]),
+      ? t('headerOsVersion.unraidOsReleased', [availableWithRenewal.value])
+      : t('headerOsVersion.unraidOsUpdateAvailable', [available.value]),
   };
 });
 

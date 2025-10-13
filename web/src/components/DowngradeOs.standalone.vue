@@ -65,15 +65,13 @@ onBeforeMount(() => {
         :subtitle="subtitle"
         :downgrade-not-available="restoreVersion === '' && rebootType === ''"
         :show-external-downgrade="showExternalDowngrade"
-        :t="t"
       />
       <UpdateOsDowngrade
         v-if="restoreVersion && rebootType === ''"
         :release-date="restoreReleaseDate"
         :version="restoreVersion"
-        :t="t"
       />
-      <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
+      <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" />
     </PageContainer>
   </div>
 </template>

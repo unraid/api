@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import {
@@ -14,17 +15,16 @@ import { FORUMS_BUG_REPORT } from '~/helpers/urls';
 import dayjs from 'dayjs';
 
 import type { UserProfileLink } from '~/types/userProfile';
-import type { ComposerTranslation } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 const props = defineProps<{
-  t: ComposerTranslation;
   releaseDate: string;
   version: string;
 }>();
+const { t } = useI18n();
 
 const serverStore = useServerStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
@@ -32,7 +32,7 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 const { dateTimeFormat } = storeToRefs(serverStore);
 const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(
   dateTimeFormat.value,
-  props.t,
+  t,
   true,
   dayjs(props.releaseDate, 'YYYY-MM-DD').valueOf()
 );
@@ -43,7 +43,7 @@ const diagnosticsButton = ref<UserProfileLink | undefined>({
   },
   icon: FolderArrowDownIcon,
   name: 'download-diagnostics',
-  text: props.t('updateOs.downgrade.downloadDiagnostics'),
+  text: t('updateOs.downgrade.downloadDiagnostics'),
 });
 
 const downgradeButton = ref<UserProfileLink>({
@@ -51,7 +51,7 @@ const downgradeButton = ref<UserProfileLink>({
     window.confirmDowngrade?.();
   },
   name: 'downgrade',
-  text: props.t('updateOs.downgrade.beginDowngradeTo', [props.version]),
+  text: t('updateOs.downgrade.beginDowngradeTo', [props.version]),
 });
 </script>
 

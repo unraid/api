@@ -5,6 +5,7 @@
  * @todo require valid guid / server state to update
  */
 import { computed, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import {
@@ -19,16 +20,13 @@ import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import dayjs from 'dayjs';
 
 import type { UserProfileLink } from '~/types/userProfile';
-import type { ComposerTranslation } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
-const props = defineProps<{
-  t: ComposerTranslation;
-}>();
+const { t } = useI18n();
 
 const serverStore = useServerStore();
 const { dateTimeFormat, updateOsResponse } = storeToRefs(serverStore);
@@ -41,7 +39,7 @@ const { available } = storeToRefs(updateOsStore);
 
 const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(
   dateTimeFormat.value,
-  props.t,
+  t,
   true,
   dayjs(updateOsResponse.value?.date ?? '', 'YYYY-MM-DD').valueOf()
 );
@@ -50,9 +48,9 @@ const updateButton = ref<UserProfileLink | undefined>();
 
 const heading = computed(() => {
   if (available.value && updateButton?.value?.text && updateButton?.value?.textParams) {
-    return props.t(updateButton?.value.text, updateButton?.value.textParams);
+    return t(updateButton?.value.text, updateButton?.value.textParams);
   }
-  return props.t('updateOs.callbackButton.checkForOsUpdates');
+  return t('updateOs.callbackButton.checkForOsUpdates');
 });
 
 const headingIcon = computed(() => {
@@ -63,27 +61,27 @@ const headingIcon = computed(() => {
 });
 
 const flashBackupCopy = computed(() => {
-  const base = props.t('updateOs.update.weRecommendBackingUpYourUsb');
+  const base = t('updateOs.update.weRecommendBackingUpYourUsb');
   if (connectPluginInstalled.value && flashBackupActivated.value) {
     return `${base}
-      ${props.t('updateOs.update.youHaveAlreadyActivatedTheFlash')}
-      ${props.t('connect.flashBackup.goToToolsManagementAccessTo2')}
-      ${props.t('updateOs.update.youCanAlsoManuallyCreateA')}
+      ${t('updateOs.update.youHaveAlreadyActivatedTheFlash')}
+      ${t('connect.flashBackup.goToToolsManagementAccessTo2')}
+      ${t('updateOs.update.youCanAlsoManuallyCreateA')}
     `;
   }
   if (connectPluginInstalled.value && !flashBackupActivated.value) {
     return `${base}
-      ${props.t('updateOs.update.youHaveNotActivatedTheFlash')}
-      ${props.t('connect.flashBackup.goToToolsManagementAccessTo')}
-      ${props.t('updateOs.update.youCanAlsoManuallyCreateA')}
+      ${t('updateOs.update.youHaveNotActivatedTheFlash')}
+      ${t('connect.flashBackup.goToToolsManagementAccessTo')}
+      ${t('updateOs.update.youCanAlsoManuallyCreateA')}
     `;
   }
-  return `${base} ${props.t('updateOs.update.youCanManuallyCreateABackup')}`;
+  return `${base} ${t('updateOs.update.youCanManuallyCreateABackup')}`;
 });
 
 const acknowledgeBackup = ref<boolean>(false);
 const flashBackupBasicStatus = ref<'complete' | 'ready' | 'started'>('ready');
-const flashBackupText = computed(() => props.t('updateOs.update.createFlashBackup'));
+const flashBackupText = computed(() => t('updateOs.update.createFlashBackup'));
 const startFlashBackup = () => {
   console.debug('[startFlashBackup]', Date.now());
   if (typeof window.flashBackup === 'function') {
@@ -91,7 +89,7 @@ const startFlashBackup = () => {
     window.flashBackup();
     checkFlashBackupStatus();
   } else {
-    alert(props.t('updateOs.update.flashBackupIsNotAvailableNavigate', [window.location.origin]));
+    alert(t('updateOs.update.flashBackupIsNotAvailableNavigate', [window.location.origin]));
   }
 };
 /**
