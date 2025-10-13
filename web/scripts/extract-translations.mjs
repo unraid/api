@@ -354,10 +354,7 @@ async function collectJsonFormsKeys() {
                     }
                     continue;
                   }
-                  if (
-                    !labelCandidate &&
-                    (propName === 'label' || propName === 'text')
-                  ) {
+                  if (!labelCandidate && (propName === 'label' || propName === 'text')) {
                     const resolved = resolveI18nString(constantMap, prop.initializer);
                     if (typeof resolved === 'string' && resolved.length > 0) {
                       labelCandidate = resolved;
