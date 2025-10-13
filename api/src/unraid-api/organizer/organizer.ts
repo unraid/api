@@ -1,6 +1,7 @@
 import {
     AnyOrganizerResource,
     FlatOrganizerEntry,
+    OrganizerContainerResource,
     OrganizerFolder,
     OrganizerResource,
     OrganizerResourceRef,
@@ -85,48 +86,82 @@ export function addMissingResourcesToView(
     return view;
 }
 
+
 /**
- * Recursively resolves an organizer entry (folder or resource ref) into its actual objects.
- * This transforms the flat ID-based structure into a nested object structure for frontend convenience.
+ * Directly enriches flat entries from an organizer view without building an intermediate tree.
+ * This is more efficient than building a tree just to flatten it again.
  *
  * PRECONDITION: The given view is valid (ie. does not contain any cycles or depth issues).
  *
- * @param entryId - The ID of the entry to resolve
- * @param view - The organizer view containing the entry definitions
+ * @param view - The flat organizer view
  * @param resources - The collection of all available resources
- * @returns The resolved entry with actual objects instead of ID references
+ * @returns Array of enriched flat organizer entries with metadata
  */
-function resolveEntry(
-    entryId: string,
+export function enrichFlatEntries(
     view: OrganizerView,
     resources: OrganizerV1['resources']
-): ResolvedOrganizerEntryType {
-    const entry = view.entries[entryId];
+): FlatOrganizerEntry[] {
+    const entries: FlatOrganizerEntry[] = [];
+    const parentMap = new Map<string, string>();
 
-    if (!entry) {
-        throw new Error(`Entry with id '${entryId}' not found in view`);
-    }
-
-    if (entry.type === 'folder') {
-        // Recursively resolve all children
-        const resolvedChildren = entry.children.map((childId) => resolveEntry(childId, view, resources));
-
-        return {
-            id: entry.id,
-            type: 'folder',
-            name: entry.name,
-            children: resolvedChildren,
-        } as ResolvedOrganizerFolder;
-    } else if (entry.type === 'ref') {
-        // Resolve the resource reference
-        const resource = resources[entry.target];
-        if (!resource) {
-            throw new Error(`Resource with id '${entry.target}' not found`);
+    // Build parent map
+    for (const [id, entry] of Object.entries(view.entries)) {
+        if (entry.type === 'folder') {
+            for (const childId of entry.children) {
+                parentMap.set(childId, id);
+            }
         }
-        return resource;
     }
 
-    throw new Error(`Unknown entry type: ${(entry as any).type}`);
+    // Walk from root to maintain order and calculate depth/position
+    function walk(entryId: string, depth: number, path: string[], position: number): void {
+        const entry = view.entries[entryId];
+        if (!entry) return;
+
+        const currentPath = [...path, entryId];
+        const isFolder = entry.type === 'folder';
+        const children = isFolder ? (entry as OrganizerFolder).children : [];
+
+        // Resolve resource if ref
+        let meta: any = undefined;
+        let name = entryId;
+        let type: string = entry.type;
+
+        if (entry.type === 'ref') {
+            const resource = resources[(entry as OrganizerResourceRef).target];
+            if (resource) {
+                if (resource.type === 'container') {
+                    meta = (resource as OrganizerContainerResource).meta;
+                    type = 'container';
+                }
+                name = resource.name;
+            }
+        } else if (entry.type === 'folder') {
+            name = (entry as OrganizerFolder).name;
+        }
+
+        entries.push({
+            id: entryId,
+            type,
+            name,
+            parentId: parentMap.get(entryId),
+            depth,
+            path: currentPath,
+            position,
+            hasChildren: isFolder && children.length > 0,
+            childrenIds: children,
+            meta,
+        });
+
+        if (isFolder) {
+            children.forEach((childId, idx) => {
+                walk(childId, depth + 1, currentPath, idx);
+            });
+        }
+    }
+
+    walk(view.root, 0, [], 0);
+    return entries;
 }
 
 /**
@@ -143,13 +178,12 @@ export function resolveOrganizerView(
     view: OrganizerView,
     resources: OrganizerV1['resources']
 ): ResolvedOrganizerView {
-    const resolvedRoot = resolveEntry(view.root, view, resources);
-    const flatEntries = flattenResolvedView(resolvedRoot);
+    const flatEntries = enrichFlatEntries(view, resources);
 
     return {
         id: view.id,
         name: view.name,
-        root: resolvedRoot,
+        rootId: view.root,
         flatEntries,
         prefs: view.prefs,
     };
@@ -175,62 +209,6 @@ export function resolveOrganizer(organizer: OrganizerV1): ResolvedOrganizerV1 {
     };
 }
 
-/**
- * Flattens a resolved organizer entry into a list of flat entries with metadata.
- * Each entry includes parent references, depth, position, and path information.
- *
- * @param resolved - The resolved organizer entry to flatten
- * @param parentId - The parent entry ID (optional)
- * @param depth - The current depth in the tree (default: 0)
- * @param path - The path from root to this entry (default: [])
- * @param position - The position in parent's children array (default: 0)
- * @returns Array of flat organizer entries with enriched metadata
- */
-export function flattenResolvedView(
-    resolved: ResolvedOrganizerEntryType,
-    parentId?: string,
-    depth = 0,
-    path: string[] = [],
-    position = 0
-): FlatOrganizerEntry[] {
-    const entries: FlatOrganizerEntry[] = [];
-
-    function walk(
-        entry: ResolvedOrganizerEntryType,
-        parent: string | undefined,
-        d: number,
-        p: string[],
-        pos: number
-    ): void {
-        const currentPath = [...p, entry.id];
-        const isFolder = entry.type === 'folder';
-        const children = isFolder ? (entry as ResolvedOrganizerFolder).children : [];
-
-        const flat: FlatOrganizerEntry = {
-            id: entry.id,
-            type: entry.type,
-            name: entry.name,
-            parentId: parent,
-            depth: d,
-            path: currentPath,
-            position: pos,
-            hasChildren: isFolder && children.length > 0,
-            childrenIds: children.map((c) => c.id),
-            meta: entry.type === 'container' ? (entry as any).meta : undefined,
-        };
-
-        entries.push(flat);
-
-        if (isFolder) {
-            children.forEach((child, idx) => {
-                walk(child, entry.id, d + 1, currentPath, idx);
-            });
-        }
-    }
-
-    walk(resolved, parentId, depth, path, position);
-    return entries;
-}
 
 export interface CreateFolderInViewParams {
     view: OrganizerView;

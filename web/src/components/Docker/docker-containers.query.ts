@@ -9,14 +9,7 @@ export const GET_DOCKER_CONTAINERS = gql`
         views {
           id
           name
-          root {
-            __typename
-            ... on ResolvedOrganizerFolder {
-              id
-              name
-              type
-            }
-          }
+          rootId
           flatEntries {
             id
             type

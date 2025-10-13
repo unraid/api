@@ -7,11 +7,7 @@ import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.que
 import DockerContainersTable from '@/components/Docker/DockerContainersTable.vue';
 import { RefreshCwIcon } from 'lucide-vue-next';
 
-import type {
-  DockerContainer,
-  ResolvedOrganizerEntry,
-  ResolvedOrganizerFolder,
-} from '@/composables/gql/graphql';
+import type { DockerContainer, FlatOrganizerEntry } from '@/composables/gql/graphql';
 
 const { result, loading, error, refetch } = useQuery<{
   docker: {
@@ -20,7 +16,8 @@ const { result, loading, error, refetch } = useQuery<{
       views: Array<{
         id: string;
         name: string;
-        root: ResolvedOrganizerEntry;
+        rootId: string;
+        flatEntries: FlatOrganizerEntry[];
       }>;
     };
   };
@@ -29,11 +26,8 @@ const { result, loading, error, refetch } = useQuery<{
 });
 
 const containers = computed<DockerContainer[]>(() => []);
-const organizerRoot = computed(
-  () => result.value?.docker?.organizer?.views?.[0]?.root as ResolvedOrganizerFolder | undefined
-);
 const flatEntries = computed(() => result.value?.docker?.organizer?.views?.[0]?.flatEntries || []);
-const rootFolderId = computed(() => result.value?.docker?.organizer?.views?.[0]?.root?.id || 'root');
+const rootFolderId = computed(() => result.value?.docker?.organizer?.views?.[0]?.rootId || 'root');
 
 const handleRefresh = async () => {
   await refetch({ skipCache: true });
