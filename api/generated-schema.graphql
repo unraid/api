@@ -781,41 +781,6 @@ type Settings implements Node {
   api: ApiConfig!
 }
 
-type RCloneDrive {
-  """Provider name"""
-  name: String!
-
-  """Provider options and configuration schema"""
-  options: JSON!
-}
-
-type RCloneBackupConfigForm {
-  id: ID!
-  dataSchema: JSON!
-  uiSchema: JSON!
-}
-
-type RCloneBackupSettings {
-  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
-  drives: [RCloneDrive!]!
-  remotes: [RCloneRemote!]!
-}
-
-input RCloneConfigFormInput {
-  providerType: String
-  showAdvanced: Boolean = false
-  parameters: JSON
-}
-
-type RCloneRemote {
-  name: String!
-  type: String!
-  parameters: JSON!
-
-  """Complete remote configuration"""
-  config: JSON!
-}
-
 type CoreVersions {
   """Unraid version"""
   unraid: String
@@ -878,6 +843,41 @@ type InfoVersions implements Node {
 
   """OS upgrade information"""
   upgrade: UpgradeInfo!
+}
+
+type RCloneDrive {
+  """Provider name"""
+  name: String!
+
+  """Provider options and configuration schema"""
+  options: JSON!
+}
+
+type RCloneBackupConfigForm {
+  id: ID!
+  dataSchema: JSON!
+  uiSchema: JSON!
+}
+
+type RCloneBackupSettings {
+  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
+  drives: [RCloneDrive!]!
+  remotes: [RCloneRemote!]!
+}
+
+input RCloneConfigFormInput {
+  providerType: String
+  showAdvanced: Boolean = false
+  parameters: JSON
+}
+
+type RCloneRemote {
+  name: String!
+  type: String!
+  parameters: JSON!
+
+  """Complete remote configuration"""
+  config: JSON!
 }
 
 type ArrayMutations {

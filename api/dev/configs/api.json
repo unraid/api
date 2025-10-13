@@ -5,6 +5,5 @@
   "ssoSubIds": [],
   "plugins": [
     "unraid-api-plugin-connect"
-  ],
-  "lastSeenOsVersion": "6.11.2"
+  ]
 }
