@@ -20,10 +20,11 @@ export interface TreeDataOptions<T> {
   flatEntries?: MaybeRef<FlatOrganizerEntry[] | undefined>;
   flatData?: MaybeRef<T[]>;
   buildFlatRow?: (item: T) => TreeRow<T>;
+  unwrapRootFolder?: MaybeRef<boolean | string>;
 }
 
 export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
-  const { flatEntries, flatData, buildFlatRow } = options;
+  const { flatEntries, flatData, buildFlatRow, unwrapRootFolder = true } = options;
 
   const treeData = computed<TreeRow<T>[]>(() => {
     const flat = unref(flatEntries);
@@ -58,6 +59,18 @@ export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
         }
       }
 
+      const unwrap = unref(unwrapRootFolder);
+      if (unwrap) {
+        const rootFolderId = typeof unwrap === 'string' ? unwrap : undefined;
+        if (
+          rootEntries.length === 1 &&
+          rootEntries[0].type === 'folder' &&
+          (!rootFolderId || rootEntries[0].id === rootFolderId)
+        ) {
+          return rootEntries[0].children || [];
+        }
+      }
+
       return rootEntries;
     }
 
@@ -71,9 +84,7 @@ export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
   const entryParentById = computed<Record<string, string>>(() => {
     const entries = unref(flatEntries);
     if (!entries) return {};
-    return Object.fromEntries(
-      entries.filter((e) => e.parentId).map((e) => [e.id, e.parentId!])
-    );
+    return Object.fromEntries(entries.filter((e) => e.parentId).map((e) => [e.id, e.parentId!]));
   });
 
   const folderChildrenIds = computed<Record<string, string[]>>(() => {
@@ -88,9 +99,7 @@ export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
     const entries = unref(flatEntries);
     if (!entries) return {};
     return Object.fromEntries(
-      entries
-        .filter((e) => e.type === 'folder' && e.parentId)
-        .map((e) => [e.id, e.parentId!])
+      entries.filter((e) => e.type === 'folder' && e.parentId).map((e) => [e.id, e.parentId!])
     );
   });
 
