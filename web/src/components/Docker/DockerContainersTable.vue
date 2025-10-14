@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h, ref, resolveComponent, watch } from 'vue';
+import { computed, h, nextTick, ref, resolveComponent, watch } from 'vue';
 import { useMutation } from '@vue/apollo-composable';
 
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
@@ -51,6 +51,10 @@ const UDropdownMenu = resolveComponent('UDropdownMenu');
 const UModal = resolveComponent('UModal');
 const USkeleton = resolveComponent('USkeleton') as Component;
 const UIcon = resolveComponent('UIcon');
+const rowActionDropdownUi = {
+  content: 'overflow-x-hidden z-50',
+  item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
+};
 
 const emit = defineEmits<{
   (e: 'created-folder'): void;
@@ -113,7 +117,7 @@ const containersRef = computed(() => props.containers);
 
 const rootFolderId = computed<string>(() => props.rootFolderId || 'root');
 
-const baseTableRef = ref<InstanceType<typeof BaseTreeTable> | null>(null);
+const baseTableRef = ref<{ columnVisibility?: { value: Record<string, boolean> } } | null>(null);
 
 const searchableKeys = ['name', 'state', 'ports', 'autoStart', 'updates', 'containerId'];
 
@@ -137,7 +141,12 @@ const dockerSearchAccessor = (row: TreeRow<DockerContainer>): unknown[] => {
 
 const columnVisibilityFallback = ref<Record<string, boolean>>({});
 const columnVisibility = computed({
-  get: () => baseTableRef.value?.columnVisibility?.value ?? columnVisibilityFallback.value,
+  get: (): Record<string, boolean> => {
+    if (baseTableRef.value?.columnVisibility) {
+      return baseTableRef.value.columnVisibility.value;
+    }
+    return columnVisibilityFallback.value;
+  },
   set: (value: Record<string, boolean>) => {
     if (baseTableRef.value?.columnVisibility) {
       baseTableRef.value.columnVisibility.value = value;
@@ -265,10 +274,7 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
           {
             items,
             size: 'md',
-            ui: {
-              content: 'overflow-x-hidden z-50',
-              item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
-            },
+            ui: rowActionDropdownUi,
           },
           {
             default: () =>
@@ -308,6 +314,26 @@ watch(
 
 type ActionDropdownItem = { label: string; icon?: string; onSelect?: (e?: Event) => void; as?: string };
 type DropdownMenuItems = ActionDropdownItem[][];
+
+const contextMenuState = ref<{
+  open: boolean;
+  x: number;
+  y: number;
+  items: DropdownMenuItems;
+  rowId: string | null;
+}>({
+  open: false,
+  x: 0,
+  y: 0,
+  items: [] as DropdownMenuItems,
+  rowId: null,
+});
+
+const contextMenuPopper = {
+  strategy: 'fixed' as const,
+  placement: 'bottom-start' as const,
+  offset: 4,
+};
 
 const columnsMenuItems = computed<DropdownMenuItems>(() => {
   const keysFromColumns = (columns.value || [])
@@ -358,8 +384,8 @@ const { mutate: unpauseContainerMutation } = useMutation(UNPAUSE_DOCKER_CONTAINE
 declare global {
   interface Window {
     toast?: {
-      success: (title: string, options?: { description?: string }) => void;
-      error?: (title: string, options?: { description?: string }) => void;
+      success: (title: string, options: { description?: string }) => void;
+      error?: (title: string, options: { description?: string }) => void;
     };
   }
 }
@@ -506,6 +532,36 @@ function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   showToast(`${action}: ${row.name}`);
 }
 
+async function handleRowContextMenu(payload: {
+  id: string;
+  type: string;
+  name: string;
+  meta?: DockerContainer;
+  event: MouseEvent;
+}) {
+  payload.event.preventDefault();
+  payload.event.stopPropagation();
+  const row = getRowById(payload.id, treeData.value);
+  if (!row) return;
+  if (busyRowIds.value.has(row.id)) return;
+
+  const items = getRowActionItems(row as TreeRow<DockerContainer>);
+  if (!items.length) return;
+
+  contextMenuState.value = {
+    open: false,
+    x: payload.event.clientX,
+    y: payload.event.clientY,
+    items,
+    rowId: row.id,
+  };
+
+  await nextTick();
+  if (contextMenuState.value.rowId === row.id) {
+    contextMenuState.value.open = true;
+  }
+}
+
 const bulkItems = computed<DropdownMenuItems>(() => [
   [
     {
@@ -604,6 +660,7 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
             containerId: payload.meta?.id,
           })
       "
+      @row:contextmenu="handleRowContextMenu"
       @row:select="
         (payload) =>
           emit('row:select', {
@@ -651,6 +708,19 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
         </div>
       </template>
     </BaseTreeTable>
+
+    <UDropdownMenu
+      v-model:open="contextMenuState.open"
+      :items="contextMenuState.items"
+      size="md"
+      :popper="contextMenuPopper"
+      :ui="rowActionDropdownUi"
+    >
+      <div
+        class="fixed h-px w-px"
+        :style="{ top: `${contextMenuState.y}px`, left: `${contextMenuState.x}px` }"
+      />
+    </UDropdownMenu>
 
     <UModal
       v-model:open="folderOps.moveOpen"
