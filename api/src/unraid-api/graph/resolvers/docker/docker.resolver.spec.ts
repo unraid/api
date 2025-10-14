@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
+import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
@@ -48,6 +49,18 @@ describe('DockerResolver', () => {
                     provide: DockerPhpService,
                     useValue: {
                         getContainerUpdateStatuses: vi.fn(),
+                    },
+                },
+                {
+                    provide: DockerTemplateScannerService,
+                    useValue: {
+                        scanTemplates: vi.fn().mockResolvedValue({
+                            scanned: 0,
+                            matched: 0,
+                            skipped: 0,
+                            errors: [],
+                        }),
+                        syncMissingContainers: vi.fn().mockResolvedValue(false),
                     },
                 },
             ],

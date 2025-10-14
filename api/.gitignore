@@ -96,3 +96,6 @@ dev/configs/oidc.local.json
 
 # local api keys
 dev/keys/*
+
+# dev docker templates
+dev/docker-templates
