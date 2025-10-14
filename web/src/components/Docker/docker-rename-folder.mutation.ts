@@ -42,4 +42,3 @@ export const RENAME_DOCKER_FOLDER = gql`
     }
   }
 `;
-

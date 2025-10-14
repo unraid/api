@@ -52,4 +52,3 @@ export const CREATE_DOCKER_FOLDER_WITH_ITEMS = gql`
     }
   }
 `;
-

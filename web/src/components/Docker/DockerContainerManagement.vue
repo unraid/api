@@ -206,7 +206,7 @@ function handleSidebarSelect(item: { id: string; selected: boolean }) {
 
 const activeContainer = computed<DockerContainer | undefined>(() => {
   if (!activeId.value) return undefined;
-  const entry = flatEntries.value.find(e => e.id === activeId.value && e.type === 'container');
+  const entry = flatEntries.value.find((e) => e.id === activeId.value && e.type === 'container');
   return entry?.meta as DockerContainer | undefined;
 });
 
