@@ -12,6 +12,19 @@ import type { ComposerTranslation } from 'vue-i18n';
 import WelcomeModal from '~/components/Activation/WelcomeModal.standalone.vue';
 import { testTranslate } from '../../utils/i18n';
 
+type ActivationWelcomeStepStubProps = {
+  t?: ComposerTranslation;
+  partnerName?: string | null;
+  currentVersion?: string;
+  previousVersion?: string;
+  onComplete?: () => void;
+  redirectToLogin?: boolean;
+  onSkip?: () => void;
+  onBack?: () => void;
+  showSkip?: boolean;
+  showBack?: boolean;
+};
+
 vi.mock('@unraid/ui', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
@@ -49,18 +62,66 @@ const mockComponents = {
     props: ['steps', 'activeStepIndex'],
   },
   ActivationWelcomeStep: {
-    template:
-      '<div data-testid="welcome-step"><h1>Welcome to Unraid!</h1><button @click="handleClick">Get Started</button></div>',
-    props: ['t', 'partnerName', 'isInitialSetup', 'onComplete', 'redirectToLogin'],
-    methods: {
-      handleClick() {
-        if (this.redirectToLogin) {
-          window.location.href = '/login';
-        } else {
-          this.onComplete();
+    props: [
+      't',
+      'partnerName',
+      'currentVersion',
+      'previousVersion',
+      'onComplete',
+      'redirectToLogin',
+      'onSkip',
+      'onBack',
+      'showSkip',
+      'showBack',
+    ],
+    setup(props: ActivationWelcomeStepStubProps) {
+      const translate = props.t ?? mockT;
+
+      const buildTitle = () => {
+        if (props.partnerName) {
+          return translate('activation.welcomeModal.welcomeToYourNewSystemPowered', [props.partnerName]);
         }
-      },
+        if (props.currentVersion) {
+          return translate('activation.welcomeModal.welcomeToUnraidVersion', [props.currentVersion]);
+        }
+        return translate('activation.welcomeModal.welcomeToUnraid');
+      };
+
+      const buildDescription = () => {
+        if (props.previousVersion && props.currentVersion) {
+          return translate('activation.welcomeModal.youVeUpgradedFromPrevToCurr', [
+            props.previousVersion,
+            props.currentVersion,
+          ]);
+        }
+        if (props.currentVersion) {
+          return translate('activation.welcomeModal.welcomeToYourUnraidSystem', [props.currentVersion]);
+        }
+        return translate('activation.welcomeModal.getStartedWithYourNewSystem');
+      };
+
+      const handleClick = () => {
+        if (props.redirectToLogin) {
+          window.location.href = '/login';
+          return;
+        }
+        props.onComplete?.();
+      };
+
+      return {
+        title: buildTitle(),
+        description: buildDescription(),
+        buttonText: translate('activation.welcomeModal.getStarted'),
+        handleClick,
+      };
     },
+    template: `
+      <div data-testid="welcome-step">
+        <h1>{{ title }}</h1>
+        <p>{{ description }}</p>
+        <button @click="handleClick">{{ buttonText }}</button>
+      </div>
+    `,
   },
 };
 
@@ -162,7 +223,7 @@ describe('Activation/WelcomeModal.standalone.vue', () => {
   it('uses the correct description text', async () => {
     const wrapper = await mountComponent();
 
-    const description = testTranslate('activation.welcomeModal.firstYouLlCreateYourDevice');
+    const description = testTranslate('activation.welcomeModal.getStartedWithYourNewSystem');
     expect(wrapper.text()).toContain(description);
   });
 

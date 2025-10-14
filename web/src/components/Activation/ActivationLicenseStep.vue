@@ -28,9 +28,9 @@ const { t } = useI18n();
 
     <div class="flex flex-col">
       <div class="mx-auto mb-10 flex gap-4">
-        <BrandButton v-if="canGoBack" :text="t('Back')" variant="outline" @click="onBack?.()" />
+        <BrandButton v-if="canGoBack" :text="t('common.back')" variant="outline" @click="onBack?.()" />
         <BrandButton
-          :text="t('Activate Now')"
+          :text="t('activation.activationModal.activateNow')"
           :icon-right="ArrowTopRightOnSquareIcon"
           @click="purchaseStore.activate"
         />

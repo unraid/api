@@ -67,7 +67,7 @@ onMounted(() => {
 
 const handleSubmit = async () => {
   if (!selectedTimeZone.value) {
-    error.value = props.t('Please select a timezone');
+    error.value = t('activation.timezoneStep.selectTimezoneError');
     return;
   }
 
@@ -100,16 +100,16 @@ const handleBack = () => {
 
 <template>
   <div class="mx-auto flex w-full max-w-md flex-col items-center justify-center">
-    <h2 class="mb-4 text-xl font-semibold">{{ t('Set Your Time Zone') }}</h2>
+    <h2 class="mb-4 text-xl font-semibold">{{ t('activation.timezoneStep.setYourTimeZone') }}</h2>
     <p class="mb-6 text-center text-sm opacity-75">
-      {{ t('Select your time zone to ensure accurate timestamps throughout the system.') }}
+      {{ t('activation.timezoneStep.selectTimezoneDescription') }}
     </p>
 
     <div class="mb-6 w-full">
       <Select
         v-model="selectedTimeZone"
         :items="timeZoneItems"
-        :placeholder="t('Select a timezone')"
+        :placeholder="t('activation.timezoneStep.selectTimezonePlaceholder')"
         class="w-full"
       />
     </div>
@@ -121,7 +121,7 @@ const handleBack = () => {
     <div class="flex gap-4">
       <BrandButton
         v-if="onBack && showBack"
-        :text="t('Back')"
+        :text="t('common.back')"
         variant="outline"
         :disabled="isSaving"
         @click="handleBack"
@@ -129,13 +129,13 @@ const handleBack = () => {
       <div class="flex-1" />
       <BrandButton
         v-if="onSkip && showSkip"
-        :text="t('Skip')"
+        :text="t('common.skip')"
         variant="outline"
         :disabled="isSaving"
         @click="handleSkip"
       />
       <BrandButton
-        :text="t('Continue')"
+        :text="t('common.continue')"
         :disabled="!selectedTimeZone || isSaving"
         :loading="isSaving"
         @click="handleSubmit"

@@ -13,28 +13,31 @@ export const stepComponents: Record<ActivationOnboardingStepId, Component> = {
   ACTIVATION: ActivationLicenseStep,
 };
 
-export const stepMetadata: Record<
-  ActivationOnboardingStepId,
-  { title: string; description: string; icon: string }
-> = {
+export type StepMetadataEntry = {
+  titleKey: string;
+  descriptionKey: string;
+  icon: string;
+};
+
+export const stepMetadata: Record<ActivationOnboardingStepId, StepMetadataEntry> = {
   WELCOME: {
-    title: 'Welcome to Unraid',
-    description: 'Get started with your new Unraid system',
+    titleKey: 'activation.welcomeModal.welcomeToUnraid',
+    descriptionKey: 'activation.welcomeModal.getStartedWithYourNewSystem',
     icon: 'i-heroicons-sparkles',
   },
   TIMEZONE: {
-    title: 'Set Time Zone',
-    description: 'Configure system time',
+    titleKey: 'activation.timezoneStep.setYourTimeZone',
+    descriptionKey: 'activation.timezoneStep.selectTimezoneDescription',
     icon: 'i-heroicons-clock',
   },
   PLUGINS: {
-    title: 'Install Essential Plugins',
-    description: 'Add helpful plugins',
+    titleKey: 'activation.pluginsStep.installEssentialPlugins',
+    descriptionKey: 'activation.pluginsStep.addHelpfulPlugins',
     icon: 'i-heroicons-puzzle-piece',
   },
   ACTIVATION: {
-    title: 'Activate License',
-    description: 'Create an Unraid.net account and activate your key',
+    titleKey: 'activation.activationSteps.activateLicense',
+    descriptionKey: 'activation.activationSteps.createAnUnraidNetAccountAnd',
     icon: 'i-heroicons-key',
   },
 };
