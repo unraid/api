@@ -279,6 +279,22 @@ describe('OnboardingTracker', () => {
         expect(mockAtomicWriteFile).not.toHaveBeenCalled();
     });
 
+    it('still surfaces onboarding steps when version is unavailable', async () => {
+        mockReadFile.mockRejectedValue(new Error('permission denied'));
+
+        const tracker = new OnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        const snapshot = await tracker.getUpgradeSnapshot();
+        expect(snapshot.currentVersion).toBeUndefined();
+        expect(snapshot.steps.map((step) => step.id)).toEqual([
+            ActivationOnboardingStepId.WELCOME,
+            ActivationOnboardingStepId.TIMEZONE,
+            ActivationOnboardingStepId.PLUGINS,
+        ]);
+        expect(snapshot.steps.every((step) => step.introducedIn)).toBe(true);
+    });
+
     it('marks onboarding steps complete for the current version without clearing upgrade flag', async () => {
         mockReadFile.mockImplementation(async (filePath) => {
             if (filePath === versionFilePath) {
