@@ -38,7 +38,8 @@ export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
       function buildTreeFromFlat(entry: FlatOrganizerEntry): TreeRow<T> {
         // When we have pre-flattened entries, reuse buildFlatRow so container-specific fields
         // like state/ports propagate to the tree row instead of staying inside meta.
-        const builtFromMeta = entry.meta && buildFlatRow ? buildFlatRow(entry.meta as T, entry.name) : null;
+        const builtFromMeta =
+          entry.meta && buildFlatRow ? buildFlatRow(entry.meta as T, entry.name) : null;
 
         const row: TreeRow<T> = {
           id: entry.id,
@@ -50,8 +51,15 @@ export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
         };
 
         if (builtFromMeta) {
-          const { id: _id, type: _type, name: _name, children: _children, icon: _icon, meta: _meta, ...rest } =
-            builtFromMeta;
+          const {
+            id: _id,
+            type: _type,
+            name: _name,
+            children: _children,
+            icon: _icon,
+            meta: _meta,
+            ...rest
+          } = builtFromMeta;
           Object.assign(row, rest);
         }
 
