@@ -7,6 +7,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Import the mocked pubsub parts
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
+import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
@@ -79,6 +81,29 @@ const mockCacheManager = {
     del: vi.fn(),
 };
 
+// Mock DockerConfigService
+const mockDockerConfigService = {
+    getConfig: vi.fn().mockReturnValue({
+        updateCheckCronSchedule: '0 6 * * *',
+        templateMappings: {},
+        skipTemplatePaths: [],
+    }),
+    replaceConfig: vi.fn(),
+    validate: vi.fn((config) => Promise.resolve(config)),
+};
+
+// Mock DockerTemplateScannerService
+const mockDockerTemplateScannerService = {
+    bootstrapScan: vi.fn().mockResolvedValue(undefined),
+    scanTemplates: vi.fn().mockResolvedValue({
+        scanned: 0,
+        matched: 0,
+        skipped: 0,
+        errors: [],
+    }),
+    syncMissingContainers: vi.fn().mockResolvedValue(false),
+};
+
 describe('DockerService', () => {
     let service: DockerService;
 
@@ -91,6 +116,13 @@ describe('DockerService', () => {
         mockCacheManager.get.mockReset();
         mockCacheManager.set.mockReset();
         mockCacheManager.del.mockReset();
+        mockDockerConfigService.getConfig.mockReturnValue({
+            updateCheckCronSchedule: '0 6 * * *',
+            templateMappings: {},
+            skipTemplatePaths: [],
+        });
+        mockDockerTemplateScannerService.bootstrapScan.mockResolvedValue(undefined);
+        mockDockerTemplateScannerService.syncMissingContainers.mockResolvedValue(false);
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
@@ -98,6 +130,14 @@ describe('DockerService', () => {
                 {
                     provide: CACHE_MANAGER,
                     useValue: mockCacheManager,
+                },
+                {
+                    provide: DockerConfigService,
+                    useValue: mockDockerConfigService,
+                },
+                {
+                    provide: DockerTemplateScannerService,
+                    useValue: mockDockerTemplateScannerService,
                 },
             ],
         }).compile();

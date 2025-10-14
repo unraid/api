@@ -1,5 +1,12 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import {
+    forwardRef,
+    Inject,
+    Injectable,
+    Logger,
+    OnApplicationBootstrap,
+    OnModuleInit,
+} from '@nestjs/common';
 import { readFile } from 'fs/promises';
 
 import { type Cache } from 'cache-manager';
@@ -9,6 +16,8 @@ import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
 import { getters } from '@app/store/index.js';
+import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
+import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import {
     ContainerPortType,
     ContainerState,
@@ -25,7 +34,7 @@ interface NetworkListingOptions {
 }
 
 @Injectable()
-export class DockerService {
+export class DockerService implements OnApplicationBootstrap {
     private client: Docker;
     private autoStarts: string[] = [];
     private readonly logger = new Logger(DockerService.name);
@@ -33,10 +42,19 @@ export class DockerService {
     public static readonly CONTAINER_CACHE_KEY = 'docker_containers';
     public static readonly CONTAINER_WITH_SIZE_CACHE_KEY = 'docker_containers_with_size';
     public static readonly NETWORK_CACHE_KEY = 'docker_networks';
-    public static readonly CACHE_TTL_SECONDS = 60; // Cache for 60 seconds
+    public static readonly CACHE_TTL_SECONDS = 60;
 
-    constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
+    constructor(
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        private readonly dockerConfigService: DockerConfigService,
+        @Inject(forwardRef(() => DockerTemplateScannerService))
+        private readonly templateScannerService: DockerTemplateScannerService
+    ) {
         this.client = this.getDockerClient();
+    }
+
+    async onApplicationBootstrap() {
+        await this.templateScannerService.bootstrapScan();
     }
 
     public getDockerClient() {
@@ -141,8 +159,21 @@ export class DockerService {
         this.autoStarts = await this.getAutoStarts();
         const containers = rawContainers.map((container) => this.transformContainer(container));
 
-        await this.cacheManager.set(cacheKey, containers, DockerService.CACHE_TTL_SECONDS * 1000);
-        return containers;
+        const config = this.dockerConfigService.getConfig();
+        const containersWithTemplatePaths = containers.map((c) => {
+            const containerName = c.names[0]?.replace(/^\//, '').toLowerCase();
+            return {
+                ...c,
+                templatePath: config.templateMappings?.[containerName] || undefined,
+            };
+        });
+
+        await this.cacheManager.set(
+            cacheKey,
+            containersWithTemplatePaths,
+            DockerService.CACHE_TTL_SECONDS * 1000
+        );
+        return containersWithTemplatePaths;
     }
 
     /**

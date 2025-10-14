@@ -31,6 +31,8 @@ export class DockerConfigService extends ConfigFilePersister<DockerConfig> {
     defaultConfig(): DockerConfig {
         return {
             updateCheckCronSchedule: CronExpression.EVERY_DAY_AT_6AM,
+            templateMappings: {},
+            skipTemplatePaths: [],
         };
     }
 
@@ -40,6 +42,7 @@ export class DockerConfigService extends ConfigFilePersister<DockerConfig> {
         if (!cronExpression.valid) {
             throw new AppError(`Cron expression not supported: ${dockerConfig.updateCheckCronSchedule}`);
         }
+        
         return dockerConfig;
     }
 }
