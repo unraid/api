@@ -20,7 +20,7 @@ export interface TreeRow<T = unknown> {
 export interface TreeDataOptions<T> {
   flatEntries?: MaybeRef<FlatOrganizerEntry[] | undefined>;
   flatData?: MaybeRef<T[]>;
-  buildFlatRow?: (item: T) => TreeRow<T>;
+  buildFlatRow?: (item: T, fallbackName?: string) => TreeRow<T>;
   unwrapRootFolder?: MaybeRef<boolean | string>;
 }
 
@@ -36,14 +36,24 @@ export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
       const rootEntries: TreeRow<T>[] = [];
 
       function buildTreeFromFlat(entry: FlatOrganizerEntry): TreeRow<T> {
+        // When we have pre-flattened entries, reuse buildFlatRow so container-specific fields
+        // like state/ports propagate to the tree row instead of staying inside meta.
+        const builtFromMeta = entry.meta && buildFlatRow ? buildFlatRow(entry.meta as T, entry.name) : null;
+
         const row: TreeRow<T> = {
           id: entry.id,
           type: entry.type,
           name: entry.name,
-          meta: entry.meta as T,
+          meta: (entry.meta as T) ?? builtFromMeta?.meta,
           children: [],
-          icon: entry.icon || undefined,
+          icon: entry.icon || builtFromMeta?.icon || undefined,
         };
+
+        if (builtFromMeta) {
+          const { id: _id, type: _type, name: _name, children: _children, icon: _icon, meta: _meta, ...rest } =
+            builtFromMeta;
+          Object.assign(row, rest);
+        }
 
         if (entry.hasChildren) {
           row.children = entry.childrenIds
@@ -77,7 +87,7 @@ export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
     }
 
     if (fallbackFlat && buildFlatRow) {
-      return fallbackFlat.map(buildFlatRow);
+      return fallbackFlat.map((item) => buildFlatRow(item));
     }
 
     return [];
