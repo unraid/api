@@ -1,11 +1,11 @@
 import { BadRequestException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import * as PhpLoaderModule from '@app/core/utils/plugins/php-loader.js';
-import { getters, store } from '@app/store/index.js';
 import {
     MANUAL_TIME_REGEX,
     UpdateSystemTimeInput,
@@ -20,43 +20,48 @@ const phpLoaderSpy = vi.spyOn(PhpLoaderModule, 'phpLoader');
 
 describe('SystemTimeService', () => {
     let service: SystemTimeService;
-    const emhttpSpy = vi.spyOn(getters, 'emhttp');
-    const pathsSpy = vi.spyOn(getters, 'paths');
-    const dispatchSpy = vi.spyOn(store, 'dispatch');
+    let configService: ConfigService;
 
     beforeEach(async () => {
         vi.clearAllMocks();
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [SystemTimeService],
+            providers: [
+                SystemTimeService,
+                {
+                    provide: ConfigService,
+                    useValue: {
+                        get: vi.fn(),
+                    },
+                },
+            ],
         }).compile();
 
         service = module.get<SystemTimeService>(SystemTimeService);
+        configService = module.get<ConfigService>(ConfigService);
 
-        emhttpSpy.mockReturnValue({
-            var: {
-                timeZone: 'UTC',
-                useNtp: true,
-                ntpServer1: 'time1.google.com',
-                ntpServer2: 'time2.google.com',
-                ntpServer3: '',
-                ntpServer4: '',
-            },
-        } as any);
+        vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: any) => {
+            if (key === 'store.emhttp.var') {
+                return {
+                    timeZone: 'UTC',
+                    useNtp: true,
+                    ntpServer1: 'time1.google.com',
+                    ntpServer2: 'time2.google.com',
+                    ntpServer3: '',
+                    ntpServer4: '',
+                };
+            }
+            if (key === 'store.paths.webGuiBase') {
+                return '/usr/local/emhttp/webGui';
+            }
+            return defaultValue;
+        });
 
-        pathsSpy.mockReturnValue({
-            webGuiBase: '/usr/local/emhttp/webGui',
-        } as any);
-
-        dispatchSpy.mockResolvedValue({} as any);
         vi.mocked(emcmd).mockResolvedValue({ ok: true } as any);
         phpLoaderSpy.mockResolvedValue('');
     });
 
     afterEach(() => {
-        emhttpSpy.mockReset();
-        pathsSpy.mockReset();
-        dispatchSpy.mockReset();
         phpLoaderSpy.mockReset();
     });
 
@@ -70,27 +75,33 @@ describe('SystemTimeService', () => {
 
     it('updates time settings, disables NTP, and triggers timezone reset', async () => {
         const oldState = {
-            var: {
-                timeZone: 'UTC',
-                useNtp: true,
-                ntpServer1: 'pool.ntp.org',
-                ntpServer2: '',
-                ntpServer3: '',
-                ntpServer4: '',
-            },
-        } as any;
+            timeZone: 'UTC',
+            useNtp: true,
+            ntpServer1: 'pool.ntp.org',
+            ntpServer2: '',
+            ntpServer3: '',
+            ntpServer4: '',
+        };
         const newState = {
-            var: {
-                timeZone: 'America/Los_Angeles',
-                useNtp: false,
-                ntpServer1: 'time.google.com',
-                ntpServer2: '',
-                ntpServer3: '',
-                ntpServer4: '',
-            },
-        } as any;
+            timeZone: 'America/Los_Angeles',
+            useNtp: false,
+            ntpServer1: 'time.google.com',
+            ntpServer2: '',
+            ntpServer3: '',
+            ntpServer4: '',
+        };
 
-        emhttpSpy.mockImplementationOnce(() => oldState).mockReturnValue(newState);
+        let callCount = 0;
+        vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: any) => {
+            if (key === 'store.emhttp.var') {
+                callCount++;
+                return callCount === 1 ? oldState : newState;
+            }
+            if (key === 'store.paths.webGuiBase') {
+                return '/usr/local/emhttp/webGui';
+            }
+            return defaultValue;
+        });
 
         const input: UpdateSystemTimeInput = {
             timeZone: 'America/Los_Angeles',
@@ -119,8 +130,6 @@ describe('SystemTimeService', () => {
             file: '/usr/local/emhttp/webGui/include/ResetTZ.php',
             method: 'GET',
         });
-        expect(dispatchSpy).toHaveBeenCalledTimes(1);
-        expect(typeof dispatchSpy.mock.calls[0][0]).toBe('function');
 
         expect(result.timeZone).toBe('America/Los_Angeles');
         expect(result.useNtp).toBe(false);
@@ -143,24 +152,33 @@ describe('SystemTimeService', () => {
 
     it('retains manual mode and generates timestamp when not supplied', async () => {
         const manualState = {
-            var: {
-                timeZone: 'UTC',
-                useNtp: false,
-                ntpServer1: '',
-                ntpServer2: '',
-                ntpServer3: '',
-                ntpServer4: '',
-            },
-        } as any;
+            timeZone: 'UTC',
+            useNtp: false,
+            ntpServer1: '',
+            ntpServer2: '',
+            ntpServer3: '',
+            ntpServer4: '',
+        };
+        const updatedState = {
+            timeZone: 'UTC',
+            useNtp: false,
+            ntpServer1: 'time.cloudflare.com',
+            ntpServer2: '',
+            ntpServer3: '',
+            ntpServer4: '',
+        };
 
-        const manualStateAfter = {
-            var: {
-                ...manualState.var,
-                ntpServer1: 'time.cloudflare.com',
-            },
-        } as any;
-
-        emhttpSpy.mockImplementationOnce(() => manualState).mockReturnValue(manualStateAfter);
+        let callCount = 0;
+        vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: any) => {
+            if (key === 'store.emhttp.var') {
+                callCount++;
+                return callCount === 1 ? manualState : updatedState;
+            }
+            if (key === 'store.paths.webGuiBase') {
+                return '/usr/local/emhttp/webGui';
+            }
+            return defaultValue;
+        });
 
         const result = await service.updateSystemTime({ ntpServers: ['time.cloudflare.com'] });
 

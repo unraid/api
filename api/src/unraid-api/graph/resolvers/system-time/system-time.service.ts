@@ -1,11 +1,10 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { join } from 'node:path';
 
 import type { Var } from '@app/core/types/states/var.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { phpLoader } from '@app/core/utils/plugins/php-loader.js';
-import { getters, store } from '@app/store/index.js';
-import { loadStateFiles } from '@app/store/modules/emhttp.js';
 import {
     SystemTime,
     UpdateSystemTimeInput,
@@ -17,8 +16,10 @@ const MAX_NTP_SERVERS = 4;
 export class SystemTimeService {
     private readonly logger = new Logger(SystemTimeService.name);
 
+    constructor(private readonly configService: ConfigService) {}
+
     public async getSystemTime(): Promise<SystemTime> {
-        const varState = this.getVarState();
+        const varState = this.configService.get<Partial<Var>>('store.emhttp.var', {});
         const ntpServers = this.extractNtpServers(varState);
 
         return {
@@ -30,7 +31,7 @@ export class SystemTimeService {
     }
 
     public async updateSystemTime(input: UpdateSystemTimeInput): Promise<SystemTime> {
-        const current = this.getVarState();
+        const current = this.configService.get<Partial<Var>>('store.emhttp.var', {});
 
         const desiredTimeZone = (input.timeZone ?? current.timeZone)?.trim();
         if (!desiredTimeZone) {
@@ -83,18 +84,7 @@ export class SystemTimeService {
             await this.resetTimezoneWatcher();
         }
 
-        try {
-            await store.dispatch(loadStateFiles());
-        } catch (error) {
-            this.logger.warn('Failed to reload emhttp state after updating system time', error as Error);
-        }
-
         return this.getSystemTime();
-    }
-
-    private getVarState(): Partial<Var> {
-        const state = getters.emhttp();
-        return (state?.var ?? {}) as Partial<Var>;
     }
 
     private extractNtpServers(varState: Partial<Var>): string[] {
@@ -151,7 +141,10 @@ export class SystemTimeService {
     }
 
     private async resetTimezoneWatcher() {
-        const webGuiBase = getters.paths().webGuiBase ?? '/usr/local/emhttp/webGui';
+        const webGuiBase = this.configService.get<string>(
+            'store.paths.webGuiBase',
+            '/usr/local/emhttp/webGui'
+        );
         const scriptPath = join(webGuiBase, 'include', 'ResetTZ.php');
 
         try {
