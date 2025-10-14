@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { Dialog } from '@unraid/ui';
@@ -15,8 +14,6 @@ import { useThemeStore } from '~/store/theme';
 defineOptions({
   inheritAttrs: false,
 });
-
-const { t } = useI18n();
 
 const { partnerInfo, isInitialSetup } = storeToRefs(useWelcomeModalDataStore());
 
