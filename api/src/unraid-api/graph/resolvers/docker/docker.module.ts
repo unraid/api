@@ -7,6 +7,7 @@ import { DockerContainerResolver } from '@app/unraid-api/graph/resolvers/docker/
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
+import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
@@ -24,7 +25,7 @@ import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/o
         DockerManifestService,
         DockerPhpService,
         DockerConfigService,
-        // DockerEventService,
+        DockerTemplateScannerService,
 
         // Jobs
         ContainerStatusJob,

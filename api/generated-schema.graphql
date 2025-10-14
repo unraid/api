@@ -1108,6 +1108,7 @@ type DockerContainer implements Node {
   networkSettings: JSON
   mounts: [JSON!]
   autoStart: Boolean!
+  templatePath: String
   isUpdateAvailable: Boolean
   isRebuildReady: Boolean
 }
@@ -1149,6 +1150,13 @@ type DockerContainerOverviewForm {
   dataSchema: JSON!
   uiSchema: JSON!
   data: JSON!
+}
+
+type DockerTemplateSyncResult {
+  scanned: Int!
+  matched: Int!
+  skipped: Int!
+  errors: [String!]!
 }
 
 type ResolvedOrganizerView {
@@ -2463,6 +2471,7 @@ type Mutation {
   moveDockerItemsToPosition(sourceEntryIds: [String!]!, destinationFolderId: String!, position: Float!): ResolvedOrganizerV1!
   renameDockerFolder(folderId: String!, newName: String!): ResolvedOrganizerV1!
   createDockerFolderWithItems(name: String!, parentId: String, sourceEntryIds: [String!], position: Float): ResolvedOrganizerV1!
+  syncDockerTemplatePaths: DockerTemplateSyncResult!
   refreshDockerDigests: Boolean!
 
   """Initiates a flash drive backup using a configured remote."""

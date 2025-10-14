@@ -111,5 +111,10 @@ export const PATHS_CONFIG_MODULES =
 export const PATHS_LOCAL_SESSION_FILE =
     process.env.PATHS_LOCAL_SESSION_FILE ?? '/var/run/unraid-api/local-session';
 
+export const PATHS_DOCKER_TEMPLATES = process.env.PATHS_DOCKER_TEMPLATES?.split(',') ?? [
+    '/boot/config/plugins/dockerMan/templates-user',
+    '/boot/config/plugins/dockerMan/templates',
+];
+
 /** feature flag for the upcoming docker release */
 export const ENABLE_NEXT_DOCKER_RELEASE = process.env.ENABLE_NEXT_DOCKER_RELEASE === 'true';

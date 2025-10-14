@@ -119,6 +119,9 @@ export class DockerContainer extends Node {
 
     @Field(() => Boolean)
     autoStart!: boolean;
+
+    @Field(() => String, { nullable: true })
+    templatePath?: string;
 }
 
 @ObjectType({ implements: () => Node })

@@ -7,6 +7,8 @@ import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { UseFeatureFlag } from '@app/unraid-api/decorators/use-feature-flag.decorator.js';
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
+import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
+import { DockerTemplateSyncResult } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.model.js';
 import { ExplicitStatusItem } from '@app/unraid-api/graph/resolvers/docker/docker-update-status.model.js';
 import {
     Docker,
@@ -26,7 +28,8 @@ export class DockerResolver {
         private readonly dockerService: DockerService,
         private readonly dockerFormService: DockerFormService,
         private readonly dockerOrganizerService: DockerOrganizerService,
-        private readonly dockerPhpService: DockerPhpService
+        private readonly dockerPhpService: DockerPhpService,
+        private readonly dockerTemplateScannerService: DockerTemplateScannerService
     ) {}
 
     @UsePermissions({
@@ -50,7 +53,9 @@ export class DockerResolver {
         @Info() info: GraphQLResolveInfo
     ) {
         const requestsSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeRootFs');
-        return this.dockerService.getContainers({ skipCache, size: requestsSize });
+        const containers = await this.dockerService.getContainers({ skipCache, size: requestsSize });
+        const wasSynced = await this.dockerTemplateScannerService.syncMissingContainers(containers);
+        return wasSynced ? await this.dockerService.getContainers({ skipCache: true }) : containers;
     }
 
     @UsePermissions({
@@ -218,5 +223,15 @@ export class DockerResolver {
     @ResolveField(() => [ExplicitStatusItem])
     public async containerUpdateStatuses() {
         return this.dockerPhpService.getContainerUpdateStatuses();
+    }
+
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.DOCKER,
+    })
+    @Mutation(() => DockerTemplateSyncResult)
+    public async syncDockerTemplatePaths() {
+        return this.dockerTemplateScannerService.scanTemplates();
     }
 }
