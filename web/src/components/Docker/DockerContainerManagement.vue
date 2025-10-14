@@ -12,6 +12,7 @@ import DockerOverview from '@/components/Docker/Overview.vue';
 import DockerPreview from '@/components/Docker/Preview.vue';
 
 import type { DockerContainer, FlatOrganizerEntry } from '@/composables/gql/graphql';
+import type { LocationQueryRaw } from 'vue-router';
 
 interface Props {
   disabled?: boolean;
@@ -97,7 +98,7 @@ if (hasRouter) {
     const currentRouteId = normalizeContainerQuery(route!.query[ROUTE_QUERY_KEY]);
     if (nextId === currentRouteId) return;
 
-    const nextQuery = { ...route!.query } as Record<string, unknown>;
+    const nextQuery: LocationQueryRaw = { ...route!.query };
     if (nextId) nextQuery[ROUTE_QUERY_KEY] = nextId;
     else delete nextQuery[ROUTE_QUERY_KEY];
 

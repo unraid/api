@@ -44,6 +44,10 @@ const emit = defineEmits<{
     e: 'row:select',
     payload: { id: string; type: string; name: string; selected: boolean; meta?: T }
   ): void;
+  (
+    e: 'row:contextmenu',
+    payload: { id: string; type: string; name: string; meta?: T; event: MouseEvent }
+  ): void;
   (e: 'row:drop', payload: DropEvent<T>): void;
   (e: 'update:selectedIds', value: string[]): void;
 }>();
@@ -147,7 +151,7 @@ function toArray(value: unknown | unknown[]): unknown[] {
   return value !== undefined && value !== null ? [value] : [];
 }
 
-function getRowSearchValues<T>(row: TreeRow<T>): string[] {
+function getRowSearchValues(row: TreeRow<T>): string[] {
   const values: unknown[] = [];
 
   if (props.searchableKeys?.length) {
@@ -178,7 +182,7 @@ function getRowSearchValues<T>(row: TreeRow<T>): string[] {
     .filter((str) => str.trim().length);
 }
 
-function rowMatchesTerm<T>(row: TreeRow<T>, term: string): boolean {
+function rowMatchesTerm(row: TreeRow<T>, term: string): boolean {
   if (!term) return true;
 
   return getRowSearchValues(row)
@@ -186,7 +190,7 @@ function rowMatchesTerm<T>(row: TreeRow<T>, term: string): boolean {
     .some((value) => value.includes(term));
 }
 
-function filterRowsByTerm<T>(rows: TreeRow<T>[], term: string): TreeRow<T>[] {
+function filterRowsByTerm(rows: TreeRow<T>[], term: string): TreeRow<T>[] {
   if (!term) {
     return rows;
   }
@@ -284,6 +288,18 @@ function wrapCellWithRow(row: { original: TreeRow<T>; depth?: number }, cellCont
           }
         : undefined,
       onDragend: props.enableDragDrop ? handleDragEnd : undefined,
+      onContextmenu: (e: MouseEvent) => {
+        const target = e.target as HTMLElement | null;
+        if (
+          target &&
+          target.closest('input,button,textarea,a,[role=checkbox],[role=button],[data-stop-row-click]')
+        ) {
+          return;
+        }
+        e.preventDefault();
+        const r = row.original;
+        emit('row:contextmenu', { id: r.id, type: r.type, name: r.name, meta: r.meta, event: e });
+      },
     },
     [cellContent]
   );
@@ -428,7 +444,7 @@ defineExpose({
     <slot
       name="toolbar"
       :selected-count="selectedCount"
-      :global-filter="globalFilter.value"
+      :global-filter="globalFilter"
       :column-visibility="columnVisibility"
       :row-selection="rowSelection"
       :set-global-filter="setGlobalFilter"
