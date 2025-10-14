@@ -113,6 +113,59 @@ const containersRef = computed(() => props.containers);
 
 const rootFolderId = computed<string>(() => props.rootFolderId || 'root');
 
+const baseTableRef = ref<InstanceType<typeof BaseTreeTable> | null>(null);
+
+const searchableKeys = ['name', 'state', 'ports', 'autoStart', 'updates', 'containerId'];
+
+const dockerSearchAccessor = (row: TreeRow<DockerContainer>): unknown[] => {
+  const meta = row.meta;
+  if (!meta) return [];
+
+  const names = Array.isArray(meta.names)
+    ? meta.names.map((name) => (typeof name === 'string' ? name.replace(/^\//, '') : name))
+    : [];
+  const image = meta.image ? [meta.image] : [];
+  const status = meta.status ? [meta.status] : [];
+  const networkMode = meta.hostConfig?.networkMode ? [meta.hostConfig.networkMode] : [];
+  const labels =
+    meta.labels && typeof meta.labels === 'object'
+      ? Object.entries(meta.labels).flatMap(([key, value]) => [key, String(value)])
+      : [];
+
+  return [...names, ...image, ...status, ...networkMode, ...labels];
+};
+
+const columnVisibilityFallback = ref<Record<string, boolean>>({});
+const columnVisibility = computed({
+  get: () => baseTableRef.value?.columnVisibility?.value ?? columnVisibilityFallback.value,
+  set: (value: Record<string, boolean>) => {
+    if (baseTableRef.value?.columnVisibility) {
+      baseTableRef.value.columnVisibility.value = value;
+    }
+    columnVisibilityFallback.value = value;
+  },
+});
+
+watch(
+  () => baseTableRef.value?.columnVisibility?.value,
+  (value) => {
+    if (value) {
+      columnVisibilityFallback.value = value;
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+watch(
+  baseTableRef,
+  (instance) => {
+    if (instance?.columnVisibility && Object.keys(columnVisibilityFallback.value).length) {
+      instance.columnVisibility.value = { ...columnVisibilityFallback.value };
+    }
+  },
+  { immediate: true }
+);
+
 const { treeData, entryParentById, folderChildrenIds, parentById, positionById, getRowById } =
   useTreeData<DockerContainer>({
     flatEntries: flatEntriesRef,
@@ -133,9 +186,6 @@ function setRowsBusy(ids: string[], busy: boolean) {
   }
   busyRowIds.value = next;
 }
-
-const globalFilter = ref('');
-const columnVisibility = ref<Record<string, boolean>>({});
 
 const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
   const cols: TableColumn<TreeRow<DockerContainer>>[] = [
@@ -285,7 +335,8 @@ const columnsMenuItems = computed<DropdownMenuItems>(() => {
       onSelect(e?: Event) {
         e?.preventDefault?.();
         const next = !currentVisible;
-        columnVisibility.value = { ...columnVisibility.value, [id]: next };
+        const current = columnVisibility.value;
+        columnVisibility.value = { ...current, [id]: next };
       },
     } as ActionDropdownItem;
   });
@@ -533,6 +584,7 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
 <template>
   <div class="w-full">
     <BaseTreeTable
+      ref="baseTableRef"
       :data="treeData"
       :columns="columns"
       :loading="loading"
@@ -541,6 +593,8 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
       :selected-ids="selectedIds"
       :busy-row-ids="busyRowIds"
       :enable-drag-drop="!!flatEntries"
+      :searchable-keys="searchableKeys"
+      :search-accessor="dockerSearchAccessor"
       @row:click="
         (payload) =>
           emit('row:click', {
@@ -563,9 +617,14 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
       @row:drop="handleDropOnRow"
       @update:selected-ids="(ids) => emit('update:selectedIds', ids)"
     >
-      <template #toolbar="{ selectedCount: count }">
+      <template #toolbar="{ selectedCount: count, globalFilter: filterText, setGlobalFilter }">
         <div v-if="!compact" class="mb-3 flex items-center gap-2">
-          <UInput v-model="globalFilter" class="max-w-sm min-w-[12ch]" placeholder="Filter..." />
+          <UInput
+            :model-value="filterText"
+            class="max-w-sm min-w-[12ch]"
+            placeholder="Filter..."
+            @update:model-value="setGlobalFilter"
+          />
           <UDropdownMenu :items="columnsMenuItems" size="md" :ui="{ content: 'z-40' }">
             <UButton color="neutral" variant="outline" size="md" trailing-icon="i-lucide-chevron-down">
               Columns
