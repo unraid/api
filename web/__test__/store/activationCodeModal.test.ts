@@ -1,9 +1,11 @@
-import { ref } from 'vue';
+import { createApp, defineComponent, ref } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import { useSessionStorage } from '@vueuse/core';
 
 import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { App } from 'vue';
 
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
@@ -27,6 +29,8 @@ describe('ActivationCodeModal Store', () => {
   let mockIsFreshInstall: ReturnType<typeof ref>;
   let mockActivationCode: ReturnType<typeof ref>;
   let mockCallbackData: ReturnType<typeof ref>;
+  let app: App<Element> | null = null;
+  let mountTarget: HTMLElement | null = null;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -51,11 +55,29 @@ describe('ActivationCodeModal Store', () => {
       callbackData: mockCallbackData,
     } as unknown as ReturnType<typeof useCallbackActionsStore>);
 
-    setActivePinia(createPinia());
-    store = useActivationCodeModalStore();
+    const pinia = createPinia();
+    setActivePinia(pinia);
+
+    const TestHost = defineComponent({
+      setup() {
+        store = useActivationCodeModalStore();
+        return () => null;
+      },
+    });
+
+    mountTarget = document.createElement('div');
+    app = createApp(TestHost);
+    app.use(pinia);
+    app.mount(mountTarget);
   });
 
   afterEach(() => {
+    if (app) {
+      app.unmount();
+      app = null;
+    }
+    mountTarget = null;
+
     vi.resetAllMocks();
     mockIsHidden.value = null;
     mockIsFreshInstall.value = false;
