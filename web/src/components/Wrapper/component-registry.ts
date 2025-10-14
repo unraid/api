@@ -103,7 +103,7 @@ export const componentMappings: ComponentMapping[] = [
   },
   {
     component: defineAsyncComponent(() => import('../ApiKeyAuthorize.standalone.vue')),
-    selector: 'unraid-apikey-authorize',
+    selector: 'unraid-api-key-authorize',
     appId: 'apikey-authorize',
   },
   {
