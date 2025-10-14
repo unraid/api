@@ -87,9 +87,7 @@ defineExpose({
         </div>
 
         <ActivationWelcomeStep
-          :t="t"
           :partner-name="partnerInfo?.partnerName || undefined"
-          :is-initial-setup="isInitialSetup"
           :on-complete="dropdownHide"
           :redirect-to-login="true"
         />
