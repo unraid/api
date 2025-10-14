@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
+import type { StepMetadataEntry } from '~/components/Activation/stepRegistry';
 import type { ActivationOnboardingQuery, ActivationOnboardingStepId } from '~/composables/gql/graphql';
 
 import { stepMetadata } from '~/components/Activation/stepRegistry';
@@ -22,26 +24,42 @@ interface StepItem {
   icon?: string;
 }
 
+const { t } = useI18n();
+
+// Ensure translation extractor retains keys used via metadata lookups
+t('activation.activationSteps.activateLicense');
+t('activation.activationSteps.createAnUnraidNetAccountAnd');
+t('activation.pluginsStep.addHelpfulPlugins');
+
+const translateStep = (meta: StepMetadataEntry): StepItem => ({
+  title: t(meta.titleKey),
+  description: t(meta.descriptionKey),
+  icon: meta.icon,
+});
+
 const dynamicSteps = computed(() => {
-  const metadataLookup = stepMetadata as Record<ActivationOnboardingStepId, StepItem>;
+  const metadataLookup: Record<ActivationOnboardingStepId, StepMetadataEntry> = stepMetadata;
 
   if (props.steps.length === 0) {
     return [
-      metadataLookup.WELCOME,
-      metadataLookup.TIMEZONE,
-      metadataLookup.PLUGINS,
-      metadataLookup.ACTIVATION,
+      translateStep(metadataLookup.WELCOME),
+      translateStep(metadataLookup.TIMEZONE),
+      translateStep(metadataLookup.PLUGINS),
+      translateStep(metadataLookup.ACTIVATION),
     ];
   }
 
-  return props.steps.map(
-    (step) =>
-      metadataLookup[step.id] ?? {
-        title: step.id,
-        description: '',
-        icon: 'i-heroicons-circle-stack',
-      }
-  );
+  return props.steps.map((step) => {
+    const metadata = metadataLookup[step.id];
+    if (metadata) {
+      return translateStep(metadata);
+    }
+    return {
+      title: step.id,
+      description: '',
+      icon: 'i-heroicons-circle-stack',
+    };
+  });
 });
 
 const includeInitialStep = computed(() => dynamicSteps.value.length > 0);
@@ -51,8 +69,8 @@ const timelineSteps = computed<StepItem[]>(() => {
 
   if (includeInitialStep.value) {
     items.push({
-      title: 'Create Device Password',
-      description: 'Secure your device',
+      title: t('activation.activationSteps.createDevicePassword'),
+      description: t('activation.activationSteps.secureYourDevice'),
       icon: 'i-heroicons-lock-closed',
     });
   }
@@ -60,8 +78,8 @@ const timelineSteps = computed<StepItem[]>(() => {
   items.push(...dynamicSteps.value);
 
   items.push({
-    title: 'Unleash Your Hardware',
-    description: 'Device is ready to configure',
+    title: t('activation.activationSteps.unleashYourHardware'),
+    description: t('activation.activationSteps.deviceIsReadyToConfigure'),
     icon: 'i-heroicons-server-stack',
   });
 
