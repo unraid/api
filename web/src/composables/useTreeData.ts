@@ -14,6 +14,7 @@ export interface TreeRow<T = unknown> {
   autoStart?: string;
   updates?: string;
   containerId?: string;
+  icon?: string;
 }
 
 export interface TreeDataOptions<T> {
@@ -41,6 +42,7 @@ export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
           name: entry.name,
           meta: entry.meta as T,
           children: [],
+          icon: entry.icon || undefined,
         };
 
         if (entry.hasChildren) {
