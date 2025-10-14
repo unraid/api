@@ -50,4 +50,3 @@ export const MOVE_DOCKER_ITEMS_TO_POSITION = gql`
     }
   }
 `;
-
