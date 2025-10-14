@@ -82,7 +82,7 @@ const handleInstall = async () => {
 
     props.onComplete();
   } catch (err) {
-    error.value = props.t('Failed to install plugins. Please try again.');
+    error.value = t('activation.pluginsStep.installFailed');
     console.error('Failed to install plugins:', err);
   } finally {
     isInstalling.value = false;
@@ -100,9 +100,11 @@ const handleBack = () => {
 
 <template>
   <div class="mx-auto flex w-full max-w-2xl flex-col items-center justify-center">
-    <h2 class="mb-4 text-xl font-semibold">{{ t('Install Essential Plugins') }}</h2>
+    <h2 class="mb-4 text-xl font-semibold">
+      {{ t('activation.pluginsStep.installEssentialPlugins') }}
+    </h2>
     <p class="mb-8 text-center text-sm opacity-75">
-      {{ t('Select the plugins you want to install. You can always add more later.') }}
+      {{ t('activation.pluginsStep.selectPluginsDescription') }}
     </p>
 
     <div class="mb-8 flex w-full flex-col gap-4">
@@ -133,7 +135,7 @@ const handleBack = () => {
     <div class="flex gap-4">
       <BrandButton
         v-if="onBack && showBack"
-        :text="t('Back')"
+        :text="t('common.back')"
         variant="outline"
         :disabled="isInstalling"
         @click="handleBack"
@@ -141,13 +143,17 @@ const handleBack = () => {
       <div class="flex-1" />
       <BrandButton
         v-if="onSkip && showSkip"
-        :text="t('Skip')"
+        :text="t('common.skip')"
         variant="outline"
         :disabled="isInstalling"
         @click="handleSkip"
       />
       <BrandButton
-        :text="selectedPlugins.size > 0 ? t('Install & Continue') : t('Continue')"
+        :text="
+          selectedPlugins.size > 0
+            ? t('activation.pluginsStep.installAndContinue')
+            : t('common.continue')
+        "
         :disabled="isInstalling"
         :loading="isInstalling"
         @click="handleInstall"

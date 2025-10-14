@@ -150,11 +150,15 @@ const mockUpgradeOnboardingStore = {
 };
 
 // Mock all imports
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: mockT,
-  }),
-}));
+vi.mock('vue-i18n', async (importOriginal) => {
+  const actual = (await importOriginal()) as typeof import('vue-i18n');
+  return {
+    ...(actual as Record<string, unknown>),
+    useI18n: () => ({
+      t: mockT,
+    }),
+  } as typeof import('vue-i18n');
+});
 
 vi.mock('~/components/Activation/store/activationCodeModal', () => {
   const store = {
@@ -241,15 +245,15 @@ describe('Activation/ActivationModal.vue', () => {
   it('uses the correct title text', () => {
     mountComponent();
 
-    expect(mockT("Let's activate your Unraid OS License")).toBe("Let's activate your Unraid OS License");
+    expect(mockT('activation.activationModal.letSActivateYourUnraidOs')).toBe(
+      "Let's activate your Unraid OS License"
+    );
   });
 
   it('uses the correct description text', () => {
     mountComponent();
 
-    const descriptionText = mockT(
-      `On the following screen, your license will be activated. You'll then create an Unraid.net Account to manage your license going forward.`
-    );
+    const descriptionText = mockT('activation.activationModal.onTheFollowingScreenYourLicense');
 
     expect(descriptionText).toBe(
       "On the following screen, your license will be activated. You'll then create an Unraid.net Account to manage your license going forward."
@@ -258,8 +262,8 @@ describe('Activation/ActivationModal.vue', () => {
 
   it('provides documentation links with correct URLs', () => {
     mountComponent();
-    const licensingText = mockT('More about Licensing');
-    const accountsText = mockT('More about Unraid.net Accounts');
+    const licensingText = mockT('activation.activationModal.moreAboutLicensing');
+    const accountsText = mockT('activation.activationModal.moreAboutUnraidNetAccounts');
 
     expect(licensingText).toBe('More about Licensing');
     expect(accountsText).toBe('More about Unraid.net Accounts');

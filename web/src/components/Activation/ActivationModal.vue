@@ -79,9 +79,9 @@ const currentDynamicStepIndex = computed(() => {
 
 const modalTitle = computed<string>(() => {
   if (shouldShowUpgradeOnboarding.value && upgradeSteps.value.length > 0 && currentVersion.value) {
-    return t('Welcome to Unraid {version}!', { version: currentVersion.value });
+    return t('activation.activationModal.welcomeToUnraidVersion', { version: currentVersion.value });
   }
-  return t("Let's activate your Unraid OS License");
+  return t('activation.activationModal.letSActivateYourUnraidOs');
 });
 
 const modalDescription = computed<string>(() => {
@@ -91,14 +91,12 @@ const modalDescription = computed<string>(() => {
     previousVersion.value &&
     currentVersion.value
   ) {
-    return t("You've upgraded from {prev} to {curr}", {
+    return t('activation.activationModal.youVeUpgradedFromPrevToCurr', {
       prev: previousVersion.value,
       curr: currentVersion.value,
     });
   }
-  return t(
-    `On the following screen, your license will be activated. You'll then create an Unraid.net Account to manage your license going forward.`
-  );
+  return t('activation.activationModal.onTheFollowingScreenYourLicense');
 });
 
 const docsButtons = computed<BrandButtonProps[]>(() => {
@@ -109,7 +107,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       href: DOCS_URL_LICENSING_FAQ,
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: t('More about Licensing'),
+      text: t('activation.activationModal.moreAboutLicensing'),
     },
     {
       variant: 'underline',
@@ -117,7 +115,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       href: DOCS_URL_ACCOUNT,
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: t('More about Unraid.net Accounts'),
+      text: t('activation.activationModal.moreAboutUnraidNetAccounts'),
     },
   ];
 });

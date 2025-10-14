@@ -26,34 +26,37 @@ const { t } = useI18n();
 const modalTitle = computed<string>(() => {
   // Partner context
   if (props.partnerName) {
-    return t('Welcome to your new {0} system, powered by Unraid!', [props.partnerName]);
+    return t('activation.welcomeModal.welcomeToYourNewSystemPowered', [props.partnerName]);
   }
 
   // Version context
   if (props.currentVersion) {
-    return t('Welcome to Unraid {0}!', [props.currentVersion]);
+    return t('activation.welcomeModal.welcomeToUnraidVersion', [props.currentVersion]);
   }
 
-  return t('Welcome to Unraid!');
+  return t('activation.welcomeModal.welcomeToUnraid');
 });
 
 const modalDescription = computed<string>(() => {
   // Upgrade context (has both previous and current version)
   if (props.previousVersion && props.currentVersion) {
-    return t("You've upgraded from {0} to {1}", [props.previousVersion, props.currentVersion]);
+    return t('activation.welcomeModal.youVeUpgradedFromPrevToCurr', [
+      props.previousVersion,
+      props.currentVersion,
+    ]);
   }
 
   // Current version context (has current version but no previous)
   if (props.currentVersion) {
-    return t('Welcome to your Unraid {0} system', [props.currentVersion]);
+    return t('activation.welcomeModal.welcomeToYourUnraidSystem', [props.currentVersion]);
   }
 
   // Default context
-  return t('Get started with your new Unraid system');
+  return t('activation.welcomeModal.getStartedWithYourNewSystem');
 });
 
 const buttonText = computed<string>(() => {
-  return t('Get Started');
+  return t('activation.welcomeModal.getStarted');
 });
 
 const handleComplete = () => {
@@ -75,9 +78,9 @@ const handleComplete = () => {
     </div>
 
     <div class="flex space-x-4">
-      <BrandButton v-if="showBack" :text="t('Back')" variant="outline" @click="onBack" />
+      <BrandButton v-if="showBack" :text="t('common.back')" variant="outline" @click="onBack" />
 
-      <BrandButton v-if="showSkip" :text="t('Skip')" variant="outline" @click="onSkip" />
+      <BrandButton v-if="showSkip" :text="t('common.skip')" variant="outline" @click="onSkip" />
 
       <BrandButton :text="buttonText" @click="handleComplete" />
     </div>

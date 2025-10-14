@@ -18,7 +18,7 @@ defineOptions({
 
 const { t } = useI18n();
 
-const { partnerInfo, loading, isInitialSetup } = storeToRefs(useWelcomeModalDataStore());
+const { partnerInfo, isInitialSetup } = storeToRefs(useWelcomeModalDataStore());
 
 const { setTheme } = useThemeStore();
 
