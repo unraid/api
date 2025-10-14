@@ -187,14 +187,11 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         _fromVersion: string | undefined,
         toVersion: string | undefined
     ): Promise<UpgradeStepState[]> {
-        if (!toVersion) {
-            return [];
-        }
-
+        const fallbackVersion = toVersion ?? 'unknown';
         try {
             const context = await this.buildStepContext();
             const stepConfigs = await resolveActivationStepDefinitions(context);
-            return stepConfigs.map((step) => this.normalizeStep(step, toVersion));
+            return stepConfigs.map((step) => this.normalizeStep(step, fallbackVersion));
         } catch (error) {
             this.logger.error(error, 'Failed to evaluate activation onboarding steps');
             return [];
