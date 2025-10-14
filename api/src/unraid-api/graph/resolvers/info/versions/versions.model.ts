@@ -59,18 +59,6 @@ export class UpgradeStep {
         description: 'Version of Unraid when this step was introduced',
     })
     introducedIn?: string;
-
-    @Field(() => String, { description: 'Display title for the onboarding step' })
-    title!: string;
-
-    @Field(() => String, { description: 'Display description for the onboarding step' })
-    description!: string;
-
-    @Field(() => String, {
-        nullable: true,
-        description: 'Icon identifier for the onboarding step',
-    })
-    icon?: string;
 }
 
 @ObjectType()

@@ -148,7 +148,8 @@ export type ActivationOnboardingStep = {
 export enum ActivationOnboardingStepId {
   ACTIVATION = 'ACTIVATION',
   PLUGINS = 'PLUGINS',
-  TIMEZONE = 'TIMEZONE'
+  TIMEZONE = 'TIMEZONE',
+  WELCOME = 'WELCOME'
 }
 
 export type AddPermissionInput = {
@@ -2682,18 +2683,12 @@ export type UpgradeInfo = {
 
 export type UpgradeStep = {
   __typename?: 'UpgradeStep';
-  /** Display description for the onboarding step */
-  description: Scalars['String']['output'];
-  /** Icon identifier for the onboarding step */
-  icon?: Maybe<Scalars['String']['output']>;
   /** Identifier of the onboarding step */
   id: Scalars['String']['output'];
   /** Version of Unraid when this step was introduced */
   introducedIn?: Maybe<Scalars['String']['output']>;
   /** Whether the step is required to continue */
   required: Scalars['Boolean']['output'];
-  /** Display title for the onboarding step */
-  title: Scalars['String']['output'];
 };
 
 export type Uptime = {

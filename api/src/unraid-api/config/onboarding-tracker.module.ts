@@ -96,7 +96,6 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         const lastTrackedVersion =
             this.sessionLastTrackedVersion ??
             this.configService.get<string>(`${CONFIG_PREFIX}.lastTrackedVersion`) ??
-            this.configService.get<string>('api.lastSeenOsVersion') ??
             undefined;
 
         await this.ensureStateLoaded();
@@ -248,7 +247,6 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         this.configService.set('store.emhttp.var.version', currentVersion);
         this.configService.set(`${CONFIG_PREFIX}.lastTrackedVersion`, this.sessionLastTrackedVersion);
         this.configService.set(`${CONFIG_PREFIX}.completedSteps`, completedStepsMap);
-        this.configService.set('api.lastSeenOsVersion', this.sessionLastTrackedVersion);
     }
 
     private async readCurrentVersion(): Promise<string | undefined> {

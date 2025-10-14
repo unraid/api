@@ -2,16 +2,16 @@
 
 ## Overview
 
-This system shows contextual onboarding steps to users when they upgrade their Unraid OS to a new version. It tracks the last seen OS version in the API config and allows you to define which steps should be shown for specific version upgrades.
+This system shows contextual onboarding steps to users when they upgrade their Unraid OS to a new version. It tracks the last seen OS version using the onboarding tracker state and allows you to define which steps should be shown for specific version upgrades.
 
 ## How It Works
 
 ### Backend (API)
 
-1. **Version Tracking** - `api/src/unraid-api/config/api-config.module.ts`
-   - On boot, compares current OS version with `lastSeenOsVersion` in API config
-   - Automatically updates `lastSeenOsVersion` when version changes
-   - Persists to `/boot/config/modules/api.json`
+1. **Version Tracking** - `api/src/unraid-api/config/onboarding-tracker.module.ts`
+   - On boot, compares current OS version with `lastTrackedVersion` in the onboarding tracker
+   - Automatically updates `lastTrackedVersion` when version changes
+   - Persists to `/boot/config/modules/onboarding-tracker.json`
 
 2. **GraphQL API** - `api/src/unraid-api/graph/resolvers/customization/`
    - Exposes `activationOnboarding` query which returns:
@@ -122,7 +122,7 @@ The `ActivationModal` is already integrated into the app and automatically handl
 
 To test the upgrade flow:
 
-1. Edit `/boot/config/modules/api.json` and set `lastSeenOsVersion` to an older version
+1. Edit `/boot/config/modules/onboarding-tracker.json` and set `lastTrackedVersion` to an older version
 2. Ensure an activation code exists (or remove it to test conditional logic)
 3. Restart the API
 4. The modal should appear on next page load with relevant steps from `activationOnboarding`

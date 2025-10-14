@@ -44,6 +44,7 @@ const mockReadFile = vi.mocked(readFile);
 const mockReaddir = vi.mocked(readdir);
 const mockAccess = vi.mocked(access);
 const mockAtomicWriteFile = vi.mocked(atomicWriteFile);
+type ReaddirResult = Awaited<ReturnType<typeof readdir>>;
 
 describe('ApiConfigPersistence', () => {
     let service: ApiConfigPersistence;
@@ -84,7 +85,6 @@ describe('ApiConfigPersistence', () => {
             ssoSubIds: [],
             plugins: [],
         });
-        expect(defaultConfig.lastSeenOsVersion).toBeUndefined();
     });
 
     it('should migrate config from legacy format', async () => {
@@ -110,7 +110,6 @@ describe('ApiConfigPersistence', () => {
             ssoSubIds: ['sub1', 'sub2'],
             plugins: [],
         });
-        expect(result.lastSeenOsVersion).toBeUndefined();
     });
 
     it('sets api.version on bootstrap', async () => {
@@ -142,7 +141,7 @@ describe('OnboardingTracker', () => {
         mockReadFile.mockReset();
         mockReaddir.mockReset();
         mockAccess.mockReset();
-        mockReaddir.mockResolvedValue([]);
+        mockReaddir.mockResolvedValue([] as unknown as ReaddirResult);
         mockAccess.mockResolvedValue(undefined);
         mockAtomicWriteFile.mockReset();
 
@@ -165,7 +164,6 @@ describe('OnboardingTracker', () => {
         expect(setMock).toHaveBeenCalledWith('store.emhttp.var.version', '7.2.0-beta.3.4');
         expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', undefined);
         expect(setMock).toHaveBeenCalledWith('onboardingTracker.completedSteps', {});
-        expect(configStore['api.lastSeenOsVersion']).toBeUndefined();
         expect(mockAtomicWriteFile).not.toHaveBeenCalled();
 
         await tracker.onApplicationShutdown();
@@ -209,7 +207,6 @@ describe('OnboardingTracker', () => {
                 TIMEZONE: expect.objectContaining({ version: '6.12.0' }),
             })
         );
-        expect(configStore['api.lastSeenOsVersion']).toBe('6.12.0');
         expect(mockAtomicWriteFile).not.toHaveBeenCalled();
 
         await tracker.onApplicationShutdown();
@@ -265,7 +262,6 @@ describe('OnboardingTracker', () => {
         expect(configStore['onboardingTracker.lastTrackedVersion']).toBe('7.0.0');
         expect(configStore['store.emhttp.var.version']).toBe('7.1.0');
         expect(configStore['onboardingTracker.completedSteps']).toEqual({});
-        expect(configStore['api.lastSeenOsVersion']).toBe('7.0.0');
 
         expect(mockAtomicWriteFile).not.toHaveBeenCalled();
     });
@@ -281,7 +277,6 @@ describe('OnboardingTracker', () => {
         expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', undefined);
         expect(setMock).toHaveBeenCalledWith('onboardingTracker.completedSteps', {});
         expect(mockAtomicWriteFile).not.toHaveBeenCalled();
-        expect(configStore['api.lastSeenOsVersion']).toBeUndefined();
     });
 
     it('marks onboarding steps complete for the current version without clearing upgrade flag', async () => {
@@ -304,7 +299,6 @@ describe('OnboardingTracker', () => {
 
         expect(configStore['store.emhttp.var.version']).toBe('7.2.0');
         expect(configStore['onboardingTracker.lastTrackedVersion']).toBe('6.12.0');
-        expect(configStore['api.lastSeenOsVersion']).toBe('6.12.0');
 
         setMock.mockClear();
         mockAtomicWriteFile.mockReset();
@@ -427,7 +421,7 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        mockReaddir.mockResolvedValueOnce(['pending.activationcode']);
+        mockReaddir.mockResolvedValueOnce(['pending.activationcode'] as unknown as ReaddirResult);
         mockEmhttpState.var.regState = 'ENOKEYFILE';
 
         const tracker = new OnboardingTracker(configService);
@@ -463,7 +457,6 @@ describe('loadApiConfig', () => {
             ssoSubIds: [],
             plugins: [],
         });
-        expect(result.lastSeenOsVersion).toBeUndefined();
     });
 
     it('should handle errors gracefully and return defaults', async () => {
@@ -476,6 +469,5 @@ describe('loadApiConfig', () => {
             ssoSubIds: [],
             plugins: [],
         });
-        expect(result.lastSeenOsVersion).toBeUndefined();
     });
 });

@@ -929,15 +929,6 @@ type UpgradeStep {
 
   """Version of Unraid when this step was introduced"""
   introducedIn: String
-
-  """Display title for the onboarding step"""
-  title: String!
-
-  """Display description for the onboarding step"""
-  description: String!
-
-  """Icon identifier for the onboarding step"""
-  icon: String
 }
 
 type UpgradeInfo {
