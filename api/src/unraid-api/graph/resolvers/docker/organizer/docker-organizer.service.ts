@@ -4,6 +4,7 @@ import type { ContainerListOptions } from 'dockerode';
 
 import { AppError } from '@app/core/errors/app-error.js';
 import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { DockerTemplateIconService } from '@app/unraid-api/graph/resolvers/docker/docker-template-icon.service.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { DockerOrganizerConfigService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer-config.service.js';
 import {
@@ -51,7 +52,8 @@ export class DockerOrganizerService {
     private readonly logger = new Logger(DockerOrganizerService.name);
     constructor(
         private readonly dockerConfigService: DockerOrganizerConfigService,
-        private readonly dockerService: DockerService
+        private readonly dockerService: DockerService,
+        private readonly dockerTemplateIconService: DockerTemplateIconService
     ) {}
 
     async getResources(
@@ -97,7 +99,17 @@ export class DockerOrganizerService {
         opts?: { skipCache?: boolean }
     ): Promise<ResolvedOrganizerV1> {
         organizer ??= await this.syncAndGetOrganizer(opts);
-        return resolveOrganizer(organizer);
+
+        const containers = Object.values(organizer.resources)
+            .filter((r) => r.type === 'container')
+            .map((r) => ({
+                id: r.id,
+                templatePath: (r as OrganizerContainerResource).meta?.templatePath,
+            }));
+
+        const iconMap = await this.dockerTemplateIconService.getIconsForContainers(containers);
+
+        return resolveOrganizer(organizer, iconMap);
     }
 
     async createFolder(params: {

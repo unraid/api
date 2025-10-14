@@ -4,8 +4,8 @@ import { useMutation } from '@vue/apollo-composable';
 
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
-import { CREATE_DOCKER_FOLDER } from '@/components/Docker/docker-create-folder.mutation';
 import { CREATE_DOCKER_FOLDER_WITH_ITEMS } from '@/components/Docker/docker-create-folder-with-items.mutation';
+import { CREATE_DOCKER_FOLDER } from '@/components/Docker/docker-create-folder.mutation';
 import { DELETE_DOCKER_ENTRIES } from '@/components/Docker/docker-delete-entries.mutation';
 import { MOVE_DOCKER_ENTRIES_TO_FOLDER } from '@/components/Docker/docker-move-entries.mutation';
 import { MOVE_DOCKER_ITEMS_TO_POSITION } from '@/components/Docker/docker-move-items-to-position.mutation';
@@ -20,10 +20,7 @@ import { useFolderOperations } from '@/composables/useFolderOperations';
 import { useFolderTree } from '@/composables/useFolderTree';
 import { useTreeData } from '@/composables/useTreeData';
 
-import type {
-  DockerContainer,
-  FlatOrganizerEntry,
-} from '@/composables/gql/graphql';
+import type { DockerContainer, FlatOrganizerEntry } from '@/composables/gql/graphql';
 import type { DropEvent } from '@/composables/useDragDrop';
 import type { TreeRow } from '@/composables/useTreeData';
 import type { TableColumn } from '@nuxt/ui';
@@ -53,6 +50,7 @@ const UInput = resolveComponent('UInput');
 const UDropdownMenu = resolveComponent('UDropdownMenu');
 const UModal = resolveComponent('UModal');
 const USkeleton = resolveComponent('USkeleton') as Component;
+const UIcon = resolveComponent('UIcon');
 
 const emit = defineEmits<{
   (e: 'created-folder'): void;
@@ -147,8 +145,24 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
       cell: ({ row }) => {
         const depth = row.depth;
         const indent = h('span', { class: 'inline-block', style: { width: `calc(${depth} * 1rem)` } });
+
+        const iconElement = row.original.icon
+          ? h('img', {
+              src: row.original.icon,
+              class: 'w-5 h-5 mr-2 flex-shrink-0',
+              alt: '',
+              onError: (e: Event) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              },
+            })
+          : h(UIcon, {
+              name: row.original.type === 'folder' ? 'i-lucide-folder' : 'i-lucide-box',
+              class: 'w-5 h-5 mr-2 flex-shrink-0 text-gray-500',
+            });
+
         return h('div', { class: 'truncate flex items-center', 'data-row-id': row.original.id }, [
           indent,
+          iconElement,
           h('span', { class: 'max-w-[40ch] truncate font-medium' }, row.original.name),
         ]);
       },
@@ -355,14 +369,14 @@ async function createFolderFromDrop(containerEntryId: string, movingIds: string[
   const targetPosition = positionById.value[containerEntryId] ?? 0;
   const name = window.prompt('New folder name?')?.trim();
   if (!name) return;
-  
+
   const toMove = [containerEntryId, ...movingIds.filter((id) => id !== containerEntryId)];
   await createFolderWithItemsMutation(
-    { 
-      name, 
-      parentId, 
+    {
+      name,
+      parentId,
       sourceEntryIds: toMove,
-      position: targetPosition 
+      position: targetPosition,
     },
     {
       refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
@@ -391,12 +405,12 @@ async function handleDropOnRow(event: DropEvent<DockerContainer>) {
   const parentId = entryParentById.value[target.id] || rootFolderId.value;
   const targetPosition = positionById.value[target.id] ?? 0;
   const position = area === 'before' ? targetPosition : targetPosition + 1;
-  
+
   await moveItemsToPositionMutation(
-    { 
+    {
       sourceEntryIds: movingIds,
       destinationFolderId: parentId,
-      position
+      position,
     },
     {
       refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],

@@ -20,6 +20,7 @@ export const GET_DOCKER_CONTAINERS = gql`
             path
             hasChildren
             childrenIds
+            icon
             meta {
               id
               names
