@@ -59,4 +59,36 @@ describe('CustomizationResolver', () => {
             ],
         });
     });
+
+    it('omits upgrade metadata when snapshot versions are incomplete', async () => {
+        (onboardingTracker.getUpgradeSnapshot as any).mockResolvedValue({
+            currentVersion: '7.0.1',
+            lastTrackedVersion: undefined,
+            completedSteps: [],
+            steps: [
+                {
+                    id: ActivationOnboardingStepId.TIMEZONE,
+                    required: true,
+                    introducedIn: '7.0.0',
+                },
+            ],
+        });
+
+        const result = await resolver.activationOnboarding();
+
+        expect(result).toEqual({
+            isUpgrade: false,
+            previousVersion: undefined,
+            currentVersion: undefined,
+            hasPendingSteps: true,
+            steps: [
+                {
+                    id: ActivationOnboardingStepId.TIMEZONE,
+                    required: true,
+                    introducedIn: '7.0.0',
+                    completed: false,
+                },
+            ],
+        });
+    });
 });

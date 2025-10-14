@@ -62,17 +62,15 @@ export class CustomizationResolver {
             introducedIn: step.introducedIn,
             completed: snapshot.completedSteps.includes(step.id),
         }));
+        const hasBothVersions = snapshot.lastTrackedVersion != null && snapshot.currentVersion != null;
 
         return {
-            isUpgrade:
-                Boolean(snapshot.lastTrackedVersion) &&
-                Boolean(snapshot.currentVersion) &&
-                snapshot.lastTrackedVersion !== snapshot.currentVersion,
+            isUpgrade: hasBothVersions && snapshot.lastTrackedVersion !== snapshot.currentVersion,
             previousVersion:
-                snapshot.lastTrackedVersion && snapshot.lastTrackedVersion !== snapshot.currentVersion
+                hasBothVersions && snapshot.lastTrackedVersion !== snapshot.currentVersion
                     ? snapshot.lastTrackedVersion
                     : undefined,
-            currentVersion: snapshot.currentVersion,
+            currentVersion: hasBothVersions ? snapshot.currentVersion : undefined,
             hasPendingSteps: steps.some((step) => !step.completed),
             steps,
         };
