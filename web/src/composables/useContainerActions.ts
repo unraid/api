@@ -3,22 +3,21 @@ import { ref } from 'vue';
 import { ContainerState } from '@/composables/gql/graphql';
 
 import type { TreeRow } from '@/composables/useTreeData';
+import type { MutateFunction } from '@vue/apollo-composable';
+import type { DocumentNode } from 'graphql';
 import type { Ref } from 'vue';
 
-interface MutationOptions {
-  refetchQueries?: unknown[];
-  awaitRefetchQueries?: boolean;
-}
+type ContainerMutationFn = MutateFunction<unknown, { id: string }>;
 
 export interface ContainerActionOptions<T = unknown> {
   getRowById: (id: string, rows: TreeRow<T>[]) => TreeRow<T> | undefined;
   treeData: Ref<TreeRow<T>[]>;
   setRowsBusy: (ids: string[], busy: boolean) => void;
-  startMutation: (args: { id: string }, options?: MutationOptions) => Promise<unknown>;
-  stopMutation: (args: { id: string }, options?: MutationOptions) => Promise<unknown>;
-  pauseMutation: (args: { id: string }, options?: MutationOptions) => Promise<unknown>;
-  unpauseMutation: (args: { id: string }, options?: MutationOptions) => Promise<unknown>;
-  refetchQuery: { query: unknown; variables: { skipCache: boolean } };
+  startMutation: ContainerMutationFn;
+  stopMutation: ContainerMutationFn;
+  pauseMutation: ContainerMutationFn;
+  unpauseMutation: ContainerMutationFn;
+  refetchQuery: { query: DocumentNode; variables: { skipCache: boolean } };
   onSuccess?: (message: string) => void;
 }
 
