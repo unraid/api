@@ -362,12 +362,18 @@ describe('Activation/ActivationModal.vue', () => {
         required: true,
         completed: false,
         introducedIn: '7.0.0',
+        title: 'Set Time Zone',
+        description: 'Configure system time',
+        icon: 'i-heroicons-clock',
       },
       {
         id: 'PLUGINS',
         required: false,
         completed: false,
         introducedIn: '7.0.0',
+        title: 'Install Essential Plugins',
+        description: 'Add helpful plugins',
+        icon: 'i-heroicons-puzzle-piece',
       },
     ];
     mockUpgradeOnboardingStore.allUpgradeSteps.value = mockUpgradeOnboardingStore.upgradeSteps.value;
