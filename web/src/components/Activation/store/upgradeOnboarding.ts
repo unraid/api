@@ -1,13 +1,10 @@
 import { computed } from 'vue';
 import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
-import { useSessionStorage } from '@vueuse/core';
 
 import type { ActivationOnboardingQuery } from '~/composables/gql/graphql';
 
 import { ACTIVATION_ONBOARDING_QUERY } from '~/components/Activation/activationOnboarding.query';
-
-const UPGRADE_ONBOARDING_HIDDEN_KEY = 'upgrade-onboarding-hidden';
 
 export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => {
   const {
@@ -15,8 +12,6 @@ export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => 
     loading: activationOnboardingLoading,
     refetch,
   } = useQuery(ACTIVATION_ONBOARDING_QUERY, {}, { errorPolicy: 'all' });
-
-  const isHidden = useSessionStorage<boolean>(UPGRADE_ONBOARDING_HIDDEN_KEY, false);
 
   const onboardingData = computed<ActivationOnboardingQuery['activationOnboarding'] | undefined>(
     () => activationOnboardingResult.value?.activationOnboarding
@@ -38,12 +33,8 @@ export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => 
   );
 
   const shouldShowUpgradeOnboarding = computed(() => {
-    return !isHidden.value && (onboardingData.value?.hasPendingSteps ?? false);
+    return onboardingData.value?.hasPendingSteps ?? false;
   });
-
-  const setIsHidden = (value: boolean) => {
-    isHidden.value = value;
-  };
 
   return {
     loading: computed(() => activationOnboardingLoading.value),
@@ -54,8 +45,6 @@ export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => 
     allUpgradeSteps,
     upgradeSteps,
     shouldShowUpgradeOnboarding,
-    isHidden,
-    setIsHidden,
     refetchActivationOnboarding: refetch,
   };
 });
