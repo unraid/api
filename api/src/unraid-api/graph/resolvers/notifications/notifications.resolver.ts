@@ -49,6 +49,13 @@ export class NotificationsResolver {
         return await this.notificationsService.getNotifications(filters);
     }
 
+    @ResolveField(() => [Notification], {
+        description: 'Deduplicated list of unread warning and alert notifications.',
+    })
+    public async warningsAndAlerts(): Promise<Notification[]> {
+        return this.notificationsService.getWarningsAndAlerts();
+    }
+
     /**============================================
      *               Mutations
      *=============================================**/

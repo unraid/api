@@ -139,10 +139,10 @@ describe('Organizer Resolver', () => {
 
         const resolved = resolveOrganizer(organizer);
         const flatEntries = resolved.views[0].flatEntries;
-        
+
         // Should have 2 entries: root folder and the ref (kept as ref type since resource not found)
         expect(flatEntries).toHaveLength(2);
-        
+
         const missingRefEntry = flatEntries[1];
         expect(missingRefEntry.id).toBe('missing-ref');
         expect(missingRefEntry.type).toBe('ref'); // Stays as ref when resource not found
@@ -172,7 +172,7 @@ describe('Organizer Resolver', () => {
 
         const resolved = resolveOrganizer(organizer);
         const flatEntries = resolved.views[0].flatEntries;
-        
+
         // Should only have root folder, missing entry is skipped
         expect(flatEntries).toHaveLength(1);
         expect(flatEntries[0].id).toBe('root-folder');

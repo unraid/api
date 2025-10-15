@@ -48,6 +48,7 @@ type Documents = {
     "\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    type\n    timestamp\n    formattedTimestamp\n  }\n": typeof types.NotificationFragmentFragmentDoc,
     "\n  fragment NotificationCountFragment on NotificationCounts {\n    total\n    info\n    warning\n    alert\n  }\n": typeof types.NotificationCountFragmentFragmentDoc,
     "\n  query Notifications($filter: NotificationFilter!) {\n    notifications {\n      id\n      list(filter: $filter) {\n        ...NotificationFragment\n      }\n    }\n  }\n": typeof types.NotificationsDocument,
+    "\n  query WarningAndAlertNotifications {\n    notifications {\n      id\n      warningsAndAlerts {\n        ...NotificationFragment\n      }\n    }\n  }\n": typeof types.WarningAndAlertNotificationsDocument,
     "\n  mutation ArchiveNotification($id: PrefixedID!) {\n    archiveNotification(id: $id) {\n      ...NotificationFragment\n    }\n  }\n": typeof types.ArchiveNotificationDocument,
     "\n  mutation ArchiveAllNotifications {\n    archiveAll {\n      unread {\n        total\n      }\n      archive {\n        info\n        warning\n        alert\n        total\n      }\n    }\n  }\n": typeof types.ArchiveAllNotificationsDocument,
     "\n  mutation DeleteNotification($id: PrefixedID!, $type: NotificationType!) {\n    deleteNotification(id: $id, type: $type) {\n      archive {\n        total\n      }\n    }\n  }\n": typeof types.DeleteNotificationDocument,
@@ -107,6 +108,7 @@ const documents: Documents = {
     "\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    type\n    timestamp\n    formattedTimestamp\n  }\n": types.NotificationFragmentFragmentDoc,
     "\n  fragment NotificationCountFragment on NotificationCounts {\n    total\n    info\n    warning\n    alert\n  }\n": types.NotificationCountFragmentFragmentDoc,
     "\n  query Notifications($filter: NotificationFilter!) {\n    notifications {\n      id\n      list(filter: $filter) {\n        ...NotificationFragment\n      }\n    }\n  }\n": types.NotificationsDocument,
+    "\n  query WarningAndAlertNotifications {\n    notifications {\n      id\n      warningsAndAlerts {\n        ...NotificationFragment\n      }\n    }\n  }\n": types.WarningAndAlertNotificationsDocument,
     "\n  mutation ArchiveNotification($id: PrefixedID!) {\n    archiveNotification(id: $id) {\n      ...NotificationFragment\n    }\n  }\n": types.ArchiveNotificationDocument,
     "\n  mutation ArchiveAllNotifications {\n    archiveAll {\n      unread {\n        total\n      }\n      archive {\n        info\n        warning\n        alert\n        total\n      }\n    }\n  }\n": types.ArchiveAllNotificationsDocument,
     "\n  mutation DeleteNotification($id: PrefixedID!, $type: NotificationType!) {\n    deleteNotification(id: $id, type: $type) {\n      archive {\n        total\n      }\n    }\n  }\n": types.DeleteNotificationDocument,
@@ -282,6 +284,10 @@ export function graphql(source: "\n  fragment NotificationCountFragment on Notif
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query Notifications($filter: NotificationFilter!) {\n    notifications {\n      id\n      list(filter: $filter) {\n        ...NotificationFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  query Notifications($filter: NotificationFilter!) {\n    notifications {\n      id\n      list(filter: $filter) {\n        ...NotificationFragment\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query WarningAndAlertNotifications {\n    notifications {\n      id\n      warningsAndAlerts {\n        ...NotificationFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  query WarningAndAlertNotifications {\n    notifications {\n      id\n      warningsAndAlerts {\n        ...NotificationFragment\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
