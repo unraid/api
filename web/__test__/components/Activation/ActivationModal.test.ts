@@ -3,7 +3,7 @@
  */
 
 import { ref } from 'vue';
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -111,7 +111,7 @@ const mockPurchaseStore = {
 
 const mockStepDefinitions = [
   {
-    id: 'timezone',
+    id: 'TIMEZONE',
     required: true,
     completed: false,
     introducedIn: '7.0.0',
@@ -120,7 +120,7 @@ const mockStepDefinitions = [
     icon: 'i-heroicons-clock',
   },
   {
-    id: 'plugins',
+    id: 'PLUGINS',
     required: false,
     completed: false,
     introducedIn: '7.0.0',
@@ -129,7 +129,7 @@ const mockStepDefinitions = [
     icon: 'i-heroicons-puzzle-piece',
   },
   {
-    id: 'activation',
+    id: 'ACTIVATION',
     required: true,
     completed: false,
     introducedIn: '7.0.0',
@@ -145,9 +145,16 @@ const mockUpgradeOnboardingStore = {
   allUpgradeSteps: ref(mockStepDefinitions),
   currentVersion: ref('7.0.0'),
   previousVersion: ref('6.12.0'),
-  setIsHidden: vi.fn(),
-  refetchActivationOnboarding: vi.fn(),
+  refetchActivationOnboarding: vi.fn().mockResolvedValue(undefined),
 };
+
+const mutateMock = vi.fn().mockResolvedValue(undefined);
+
+vi.mock('@vue/apollo-composable', () => ({
+  useMutation: () => ({
+    mutate: mutateMock,
+  }),
+}));
 
 // Mock all imports
 vi.mock('vue-i18n', async (importOriginal) => {
@@ -216,6 +223,8 @@ window.addEventListener = vi.fn((event: string, handler: EventListenerOrEventLis
 describe('Activation/ActivationModal.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mutateMock.mockClear();
+    mockUpgradeOnboardingStore.refetchActivationOnboarding.mockClear();
 
     mockActivationCodeDataStore.partnerInfo.value = {
       hasPartnerLogo: false,
@@ -231,6 +240,11 @@ describe('Activation/ActivationModal.vue', () => {
     });
 
     handleKeydown = null;
+    mockUpgradeOnboardingStore.shouldShowUpgradeOnboarding.value = false;
+    mockUpgradeOnboardingStore.upgradeSteps.value = mockStepDefinitions.map((step) => ({ ...step }));
+    mockUpgradeOnboardingStore.allUpgradeSteps.value = mockStepDefinitions.map((step) => ({
+      ...step,
+    }));
   });
 
   const mountComponent = () => {
@@ -338,6 +352,37 @@ describe('Activation/ActivationModal.vue', () => {
     const wrapper = mountComponent();
 
     expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
+  });
+
+  it('marks pending upgrade steps complete when the modal is closed', async () => {
+    mockUpgradeOnboardingStore.shouldShowUpgradeOnboarding.value = true;
+    mockUpgradeOnboardingStore.upgradeSteps.value = [
+      {
+        id: 'TIMEZONE',
+        required: true,
+        completed: false,
+        introducedIn: '7.0.0',
+      },
+      {
+        id: 'PLUGINS',
+        required: false,
+        completed: false,
+        introducedIn: '7.0.0',
+      },
+    ];
+    mockUpgradeOnboardingStore.allUpgradeSteps.value = mockUpgradeOnboardingStore.upgradeSteps.value;
+
+    const wrapper = mountComponent();
+    const dialog = wrapper.findComponent({ name: 'Dialog' });
+    expect(dialog.exists()).toBe(true);
+
+    dialog.vm.$emit('update:modelValue', false);
+    await flushPromises();
+
+    expect(mutateMock).toHaveBeenCalledTimes(2);
+    expect(mutateMock).toHaveBeenNthCalledWith(1, { input: { stepId: 'TIMEZONE' } });
+    expect(mutateMock).toHaveBeenNthCalledWith(2, { input: { stepId: 'PLUGINS' } });
+    expect(mockUpgradeOnboardingStore.refetchActivationOnboarding).toHaveBeenCalledTimes(1);
   });
 
   it('renders activation steps with correct active step', () => {

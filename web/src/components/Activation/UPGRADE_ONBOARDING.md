@@ -52,7 +52,7 @@ This system shows contextual onboarding steps to users when they upgrade their U
    - Automatically detects which mode based on system state
    - Displays relevant steps for each mode
    - Reuses existing step components (timezone, plugins)
-   - Persists "hidden" state per mode to session storage
+   - Relies on recorded completion status from the onboarding tracker
 
 ## Adding New Steps
 
@@ -131,6 +131,6 @@ To test the upgrade flow:
 
 - Fresh installs (no `lastTrackedVersion`) won't trigger upgrade onboarding until steps exist
 - The modal automatically switches between fresh install and upgrade modes
-- Each mode can be dismissed independently (stored in sessionStorage)
+- Dismissal is tracked through the onboarding mutations so all browsers stay in sync
 - Version comparison uses semver for reliable ordering
 - The same modal component handles both modes for consistency

@@ -120,22 +120,50 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
   ];
 });
 
-const closeModal = () => {
-  upgradeStore.setIsHidden(true);
-  modalStore.setIsHidden(true);
+type MarkUpgradeStepOptions = {
+  skipRefetch?: boolean;
 };
 
 const { mutate: completeUpgradeStepMutation } = useMutation(COMPLETE_UPGRADE_STEP_MUTATION);
 
-const markUpgradeStepCompleted = async (stepId: StepId | null) => {
+const markUpgradeStepCompleted = async (stepId: StepId | null, options: MarkUpgradeStepOptions = {}) => {
   if (!stepId) return;
 
   try {
     await completeUpgradeStepMutation({ input: { stepId } });
-    await refetchActivationOnboarding();
+    if (!options.skipRefetch) {
+      await refetchActivationOnboarding();
+    }
   } catch (error) {
     console.error('[ActivationModal] Failed to mark upgrade step completed', error);
   }
+};
+
+const completePendingUpgradeSteps = async () => {
+  if (!shouldShowUpgradeOnboarding.value) {
+    return;
+  }
+
+  const pendingSteps = upgradeSteps.value.map((step) => step.id as StepId);
+  if (pendingSteps.length === 0) {
+    return;
+  }
+
+  try {
+    for (const stepId of pendingSteps) {
+      await markUpgradeStepCompleted(stepId, { skipRefetch: true });
+    }
+    await refetchActivationOnboarding();
+  } catch (error) {
+    console.error('[ActivationModal] Failed to complete pending upgrade steps', error);
+  }
+};
+
+const closeModal = async () => {
+  if (shouldShowUpgradeOnboarding.value) {
+    await completePendingUpgradeSteps();
+  }
+  modalStore.setIsHidden(true);
 };
 
 const goToNextStep = async () => {
@@ -151,12 +179,12 @@ const goToNextStep = async () => {
       currentStepIndex.value++;
     } else {
       // If we're at the last step, close the modal
-      closeModal();
+      await closeModal();
     }
     return;
   }
 
-  closeModal();
+  await closeModal();
 };
 
 const goToPreviousStep = () => {
@@ -286,7 +314,13 @@ watch(
     :show-close-button="isHidden === false || shouldShowUpgradeOnboarding"
     size="full"
     class="bg-background"
-    @update:model-value="(value) => !value && closeModal()"
+    @update:model-value="
+      async (value) => {
+        if (!value) {
+          await closeModal();
+        }
+      }
+    "
   >
     <div class="flex flex-col items-center justify-start">
       <div v-if="partnerInfo?.hasPartnerLogo && !shouldShowUpgradeOnboarding">
