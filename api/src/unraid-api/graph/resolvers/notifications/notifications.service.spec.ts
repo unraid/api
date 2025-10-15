@@ -356,6 +356,45 @@ describe.sequential('NotificationsService', () => {
         });
     });
 
+    describe('notifyIfUnique', () => {
+        const duplicateData: NotificationData = {
+            title: 'Docker Query Failure',
+            subject: 'Failed to fetch containers from Docker',
+            description: 'Please verify that the Docker service is running.',
+            importance: NotificationImportance.ALERT,
+        };
+
+        it('skips creating duplicate unread notifications', async ({ expect }) => {
+            const created = await service.notifyIfUnique(duplicateData);
+            expect(created).toBeDefined();
+
+            const skipped = await service.notifyIfUnique(duplicateData);
+            expect(skipped).toBeNull();
+
+            const notifications = await service.getNotifications({
+                type: NotificationType.UNREAD,
+                limit: 50,
+                offset: 0,
+            });
+            expect(
+                notifications.filter((notification) => notification.title === duplicateData.title)
+            ).toHaveLength(1);
+        });
+
+        it('creates new notification when no duplicate exists', async ({ expect }) => {
+            const uniqueData: NotificationData = {
+                title: 'UPS Disconnected',
+                subject: 'UPS connection lost',
+                description: 'Reconnect the UPS to restore protection.',
+                importance: NotificationImportance.WARNING,
+            };
+
+            const notification = await service.notifyIfUnique(uniqueData);
+            expect(notification).toBeDefined();
+            expect(notification?.title).toEqual(uniqueData.title);
+        });
+    });
+
     /**--------------------------------------------
      *               CRUD: Update Tests
      *---------------------------------------------**/

@@ -14,9 +14,10 @@ import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.re
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { DockerOrganizerConfigService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer-config.service.js';
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
+import { NotificationsModule } from '@app/unraid-api/graph/resolvers/notifications/notifications.module.js';
 
 @Module({
-    imports: [JobModule],
+    imports: [JobModule, NotificationsModule],
     providers: [
         // Services
         DockerService,

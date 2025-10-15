@@ -1152,6 +1152,65 @@ type DockerContainerOverviewForm {
   data: JSON!
 }
 
+type NotificationCounts {
+  info: Int!
+  warning: Int!
+  alert: Int!
+  total: Int!
+}
+
+type NotificationOverview {
+  unread: NotificationCounts!
+  archive: NotificationCounts!
+}
+
+type Notification implements Node {
+  id: PrefixedID!
+
+  """Also known as 'event'"""
+  title: String!
+  subject: String!
+  description: String!
+  importance: NotificationImportance!
+  link: String
+  type: NotificationType!
+
+  """ISO Timestamp for when the notification occurred"""
+  timestamp: String
+  formattedTimestamp: String
+}
+
+enum NotificationImportance {
+  ALERT
+  INFO
+  WARNING
+}
+
+enum NotificationType {
+  UNREAD
+  ARCHIVE
+}
+
+type Notifications implements Node {
+  id: PrefixedID!
+
+  """A cached overview of the notifications in the system & their severity."""
+  overview: NotificationOverview!
+  list(filter: NotificationFilter!): [Notification!]!
+
+  """
+  Deduplicated list of unread warning and alert notifications, sorted latest first.
+  """
+  warningsAndAlerts: [Notification!]!
+}
+
+input NotificationFilter {
+  importance: NotificationImportance
+  type: NotificationType!
+  offset: Int!
+  limit: Int!
+}
+
 type DockerTemplateSyncResult {
   scanned: Int!
   matched: Int!
@@ -1784,65 +1843,6 @@ type Metrics implements Node {
 
   """Current memory utilization metrics"""
   memory: MemoryUtilization
-}
-
-type NotificationCounts {
-  info: Int!
-  warning: Int!
-  alert: Int!
-  total: Int!
-}
-
-type NotificationOverview {
-  unread: NotificationCounts!
-  archive: NotificationCounts!
-}
-
-type Notification implements Node {
-  id: PrefixedID!
-
-  """Also known as 'event'"""
-  title: String!
-  subject: String!
-  description: String!
-  importance: NotificationImportance!
-  link: String
-  type: NotificationType!
-
-  """ISO Timestamp for when the notification occurred"""
-  timestamp: String
-  formattedTimestamp: String
-}
-
-enum NotificationImportance {
-  ALERT
-  INFO
-  WARNING
-}
-
-enum NotificationType {
-  UNREAD
-  ARCHIVE
-}
-
-type Notifications implements Node {
-  id: PrefixedID!
-
-  """A cached overview of the notifications in the system & their severity."""
-  overview: NotificationOverview!
-  list(filter: NotificationFilter!): [Notification!]!
-
-  """
-  Deduplicated list of unread warning and alert notifications, sorted latest first.
-  """
-  warningsAndAlerts: [Notification!]!
-}
-
-input NotificationFilter {
-  importance: NotificationImportance
-  type: NotificationType!
-  offset: Int!
-  limit: Int!
 }
 
 type Owner {

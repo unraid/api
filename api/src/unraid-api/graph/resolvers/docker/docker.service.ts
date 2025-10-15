@@ -24,6 +24,8 @@ import {
     DockerContainer,
     DockerNetwork,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { NotificationImportance } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
+import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
 interface ContainerListingOptions extends Docker.ContainerListOptions {
     skipCache: boolean;
@@ -48,7 +50,8 @@ export class DockerService implements OnApplicationBootstrap {
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private readonly dockerConfigService: DockerConfigService,
         @Inject(forwardRef(() => DockerTemplateScannerService))
-        private readonly templateScannerService: DockerTemplateScannerService
+        private readonly templateScannerService: DockerTemplateScannerService,
+        private readonly notificationsService: NotificationsService
     ) {
         this.client = this.getDockerClient();
     }
@@ -147,14 +150,16 @@ export class DockerService implements OnApplicationBootstrap {
         }
 
         this.logger.debug(`Updating docker container cache (${size ? 'with' : 'without'} size)`);
-        const rawContainers =
-            (await this.client
-                .listContainers({
-                    all,
-                    size,
-                    ...listOptions,
-                })
-                .catch(catchHandlers.docker)) ?? [];
+        let rawContainers: Docker.ContainerInfo[] = [];
+        try {
+            rawContainers = await this.client.listContainers({
+                all,
+                size,
+                ...listOptions,
+            });
+        } catch (error) {
+            await this.handleDockerListError(error);
+        }
 
         this.autoStarts = await this.getAutoStarts();
         const containers = rawContainers.map((container) => this.transformContainer(container));
@@ -329,5 +334,39 @@ export class DockerService implements OnApplicationBootstrap {
         const appInfo = await this.getAppInfo();
         await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
         return updatedContainer;
+    }
+
+    private async handleDockerListError(error: unknown): Promise<never> {
+        await this.notifyDockerListError(error);
+        catchHandlers.docker(error as NodeJS.ErrnoException);
+        throw error instanceof Error ? error : new Error('Docker list error');
+    }
+
+    private async notifyDockerListError(error: unknown): Promise<void> {
+        const message = this.getDockerErrorMessage(error);
+        const truncatedMessage = message.length > 240 ? `${message.slice(0, 237)}...` : message;
+        try {
+            await this.notificationsService.notifyIfUnique({
+                title: 'Docker Container Query Failure',
+                subject: truncatedMessage,
+                description: `An error occurred while querying Docker containers. ${truncatedMessage}`,
+                importance: NotificationImportance.ALERT,
+            });
+        } catch (notificationError) {
+            this.logger.error(
+                'Failed to send Docker container query failure notification',
+                notificationError as Error
+            );
+        }
+    }
+
+    private getDockerErrorMessage(error: unknown): string {
+        if (error instanceof Error && error.message) {
+            return error.message;
+        }
+        if (typeof error === 'string' && error.length) {
+            return error;
+        }
+        return 'Unknown error occurred.';
     }
 }
