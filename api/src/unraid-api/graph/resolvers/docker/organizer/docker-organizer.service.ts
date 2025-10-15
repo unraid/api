@@ -3,8 +3,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { ContainerListOptions } from 'dockerode';
 
 import { AppError } from '@app/core/errors/app-error.js';
-import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerTemplateIconService } from '@app/unraid-api/graph/resolvers/docker/docker-template-icon.service.js';
+import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { DockerOrganizerConfigService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer-config.service.js';
 import {
