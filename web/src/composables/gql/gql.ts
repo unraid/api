@@ -19,6 +19,9 @@ type Documents = {
     "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n": typeof types.PartnerInfoDocument,
     "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": typeof types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    vars {\n      regState\n    }\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n    }\n  }\n": typeof types.ActivationCodeDocument,
+    "\n  mutation InstallPlugin($input: InstallPluginInput!) {\n    unraidPlugins {\n      installPlugin(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n": typeof types.InstallPluginDocument,
+    "\n  query PluginInstallOperation($operationId: ID!) {\n    pluginInstallOperation(operationId: $operationId) {\n      id\n      url\n      name\n      status\n      createdAt\n      updatedAt\n      finishedAt\n      output\n    }\n  }\n": typeof types.PluginInstallOperationDocument,
+    "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n": typeof types.PluginInstallUpdatesDocument,
     "\n  mutation UpdateSystemTime($input: UpdateSystemTimeInput!) {\n    updateSystemTime(input: $input) {\n      currentTime\n      timeZone\n      useNtp\n      ntpServers\n    }\n  }\n": typeof types.UpdateSystemTimeDocument,
     "\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n": typeof types.GetApiKeyCreationFormSchemaDocument,
     "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKey\n      }\n    }\n  }\n": typeof types.CreateApiKeyDocument,
@@ -52,7 +55,6 @@ type Documents = {
     "\n  query InfoVersions {\n    info {\n      id\n      os {\n        id\n        hostname\n      }\n      versions {\n        id\n        core {\n          unraid\n          api\n        }\n      }\n    }\n  }\n": typeof types.InfoVersionsDocument,
     "\n  query OidcProviders {\n    settings {\n      sso {\n        oidcProviders {\n          id\n          name\n          clientId\n          issuer\n          authorizationEndpoint\n          tokenEndpoint\n          jwksUri\n          scopes\n          authorizationRules {\n            claim\n            operator\n            value\n          }\n          authorizationRuleMode\n          buttonText\n          buttonIcon\n        }\n      }\n    }\n  }\n": typeof types.OidcProvidersDocument,
     "\n  query PublicOidcProviders {\n    publicOidcProviders {\n      id\n      name\n      buttonText\n      buttonIcon\n      buttonVariant\n      buttonStyle\n    }\n  }\n": typeof types.PublicOidcProvidersDocument,
-    "\n  query serverInfo {\n    info {\n      os {\n        hostname\n      }\n    }\n    vars {\n      comment\n    }\n  }\n": typeof types.ServerInfoDocument,
     "\n  mutation ConnectSignIn($input: ConnectSignInInput!) {\n    connectSignIn(input: $input)\n  }\n": typeof types.ConnectSignInDocument,
     "\n  mutation SignOut {\n    connectSignOut\n  }\n": typeof types.SignOutDocument,
     "\n  query IsSSOEnabled {\n    isSSOEnabled\n  }\n": typeof types.IsSsoEnabledDocument,
@@ -67,6 +69,9 @@ const documents: Documents = {
     "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n": types.PartnerInfoDocument,
     "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    vars {\n      regState\n    }\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n    }\n  }\n": types.ActivationCodeDocument,
+    "\n  mutation InstallPlugin($input: InstallPluginInput!) {\n    unraidPlugins {\n      installPlugin(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n": types.InstallPluginDocument,
+    "\n  query PluginInstallOperation($operationId: ID!) {\n    pluginInstallOperation(operationId: $operationId) {\n      id\n      url\n      name\n      status\n      createdAt\n      updatedAt\n      finishedAt\n      output\n    }\n  }\n": types.PluginInstallOperationDocument,
+    "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n": types.PluginInstallUpdatesDocument,
     "\n  mutation UpdateSystemTime($input: UpdateSystemTimeInput!) {\n    updateSystemTime(input: $input) {\n      currentTime\n      timeZone\n      useNtp\n      ntpServers\n    }\n  }\n": types.UpdateSystemTimeDocument,
     "\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n": types.GetApiKeyCreationFormSchemaDocument,
     "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKey\n      }\n    }\n  }\n": types.CreateApiKeyDocument,
@@ -100,7 +105,6 @@ const documents: Documents = {
     "\n  query InfoVersions {\n    info {\n      id\n      os {\n        id\n        hostname\n      }\n      versions {\n        id\n        core {\n          unraid\n          api\n        }\n      }\n    }\n  }\n": types.InfoVersionsDocument,
     "\n  query OidcProviders {\n    settings {\n      sso {\n        oidcProviders {\n          id\n          name\n          clientId\n          issuer\n          authorizationEndpoint\n          tokenEndpoint\n          jwksUri\n          scopes\n          authorizationRules {\n            claim\n            operator\n            value\n          }\n          authorizationRuleMode\n          buttonText\n          buttonIcon\n        }\n      }\n    }\n  }\n": types.OidcProvidersDocument,
     "\n  query PublicOidcProviders {\n    publicOidcProviders {\n      id\n      name\n      buttonText\n      buttonIcon\n      buttonVariant\n      buttonStyle\n    }\n  }\n": types.PublicOidcProvidersDocument,
-    "\n  query serverInfo {\n    info {\n      os {\n        hostname\n      }\n    }\n    vars {\n      comment\n    }\n  }\n": types.ServerInfoDocument,
     "\n  mutation ConnectSignIn($input: ConnectSignInInput!) {\n    connectSignIn(input: $input)\n  }\n": types.ConnectSignInDocument,
     "\n  mutation SignOut {\n    connectSignOut\n  }\n": types.SignOutDocument,
     "\n  query IsSSOEnabled {\n    isSSOEnabled\n  }\n": types.IsSsoEnabledDocument,
@@ -144,6 +148,18 @@ export function graphql(source: "\n  query PublicWelcomeData {\n    publicPartne
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query ActivationCode {\n    vars {\n      regState\n    }\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n    }\n  }\n"): (typeof documents)["\n  query ActivationCode {\n    vars {\n      regState\n    }\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation InstallPlugin($input: InstallPluginInput!) {\n    unraidPlugins {\n      installPlugin(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation InstallPlugin($input: InstallPluginInput!) {\n    unraidPlugins {\n      installPlugin(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query PluginInstallOperation($operationId: ID!) {\n    pluginInstallOperation(operationId: $operationId) {\n      id\n      url\n      name\n      status\n      createdAt\n      updatedAt\n      finishedAt\n      output\n    }\n  }\n"): (typeof documents)["\n  query PluginInstallOperation($operationId: ID!) {\n    pluginInstallOperation(operationId: $operationId) {\n      id\n      url\n      name\n      status\n      createdAt\n      updatedAt\n      finishedAt\n      output\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n"): (typeof documents)["\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -276,10 +292,6 @@ export function graphql(source: "\n  query OidcProviders {\n    settings {\n    
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query PublicOidcProviders {\n    publicOidcProviders {\n      id\n      name\n      buttonText\n      buttonIcon\n      buttonVariant\n      buttonStyle\n    }\n  }\n"): (typeof documents)["\n  query PublicOidcProviders {\n    publicOidcProviders {\n      id\n      name\n      buttonText\n      buttonIcon\n      buttonVariant\n      buttonStyle\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  query serverInfo {\n    info {\n      os {\n        hostname\n      }\n    }\n    vars {\n      comment\n    }\n  }\n"): (typeof documents)["\n  query serverInfo {\n    info {\n      os {\n        hostname\n      }\n    }\n    vars {\n      comment\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
