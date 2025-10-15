@@ -160,6 +160,62 @@ describe('OnboardingTracker', () => {
         mockPathsState.activationBase = '/activation';
     });
 
+    it('marks first boot as completed when no prior state exists', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === trackerPath) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            if (filePath === versionFilePath) {
+                return 'version="7.2.0"\n';
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTracker(configService);
+        const alreadyCompleted = await tracker.ensureFirstBootCompleted();
+
+        expect(alreadyCompleted).toBe(false);
+        expect(mockAtomicWriteFile).toHaveBeenCalledWith(
+            trackerPath,
+            expect.stringContaining('"firstBootCompletedAt"'),
+            { mode: 0o644 }
+        );
+        expect(setMock).toHaveBeenCalledWith(
+            'onboardingTracker.firstBootCompletedAt',
+            expect.any(String)
+        );
+    });
+
+    it('returns true when first boot was already recorded', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    firstBootCompletedAt: '2025-01-01T00:00:00.000Z',
+                });
+            }
+            if (filePath === versionFilePath) {
+                return 'version="7.2.0"\n';
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTracker(configService);
+        const alreadyCompleted = await tracker.ensureFirstBootCompleted();
+
+        expect(alreadyCompleted).toBe(true);
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+        expect(setMock).toHaveBeenCalledWith(
+            'onboardingTracker.firstBootCompletedAt',
+            '2025-01-01T00:00:00.000Z'
+        );
+    });
+
     it('keeps previous version when shutting down with pending steps', async () => {
         mockReadFile.mockImplementation(async (filePath) => {
             if (filePath === versionFilePath) {

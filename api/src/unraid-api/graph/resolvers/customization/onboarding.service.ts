@@ -12,117 +12,51 @@ import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { loadDynamixConfigFromDiskSync } from '@app/store/actions/load-dynamix-config-file.js';
 import { getters, store } from '@app/store/index.js';
 import { updateDynamixConfig } from '@app/store/modules/dynamix.js';
+import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import {
     ActivationCode,
-    ActivationOnboardingStepId,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import { findActivationCodeFile } from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
 import { Theme, ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
-
-export async function findActivationCodeFile(
-    activationDir: string,
-    extension = '.activationcode',
-    logger?: Logger
-): Promise<string | null> {
-    try {
-        await fs.access(activationDir);
-        const files = await fs.readdir(activationDir);
-        const activationFile = files.find((file) => file.endsWith(extension));
-        return activationFile ? path.join(activationDir, activationFile) : null;
-    } catch (error) {
-        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-            logger?.debug?.(
-                `Activation directory ${activationDir} not found when searching for activation code.`
-            );
-        } else if (error instanceof Error) {
-            logger?.error?.('Error accessing activation directory or reading its content.', error);
-        }
-        return null;
-    }
-}
-
-export type ActivationStepContext = {
-    hasActivationCode: boolean;
-    regState?: string;
-};
-
-export type ActivationStepDefinition = {
-    id: ActivationOnboardingStepId;
-    required: boolean;
-    introducedIn: string;
-    condition?: (context: ActivationStepContext) => boolean | Promise<boolean>;
-};
-
-const activationStepDefinitions: ActivationStepDefinition[] = [
-    {
-        id: ActivationOnboardingStepId.WELCOME,
-        required: false,
-        introducedIn: '7.0.0',
-    },
-    {
-        id: ActivationOnboardingStepId.TIMEZONE,
-        required: true,
-        introducedIn: '7.0.0',
-    },
-    {
-        id: ActivationOnboardingStepId.PLUGINS,
-        required: false,
-        introducedIn: '7.0.0',
-    },
-    {
-        id: ActivationOnboardingStepId.ACTIVATION,
-        required: true,
-        introducedIn: '7.0.0',
-        condition: (context) =>
-            context.hasActivationCode && Boolean(context.regState?.startsWith('ENOKEYFILE')),
-    },
-];
-
-export async function resolveActivationStepDefinitions(
-    context: ActivationStepContext
-): Promise<ActivationStepDefinition[]> {
-    const results: ActivationStepDefinition[] = [];
-    for (const definition of activationStepDefinitions) {
-        if (!definition.condition || (await definition.condition(context))) {
-            results.push(definition);
-        }
-    }
-    return results;
-}
 
 @Injectable()
 export class OnboardingService implements OnModuleInit {
     private readonly logger = new Logger(OnboardingService.name);
     private readonly activationJsonExtension = '.activationcode';
-    private readonly activationAppliedFilename = 'applied.txt';
     private activationDir!: string;
-    private hasRunFirstBootSetup!: string;
     private configFile!: string;
     private caseModelCfg!: string;
     private identCfg!: string;
 
     private activationData: ActivationCode | null = null;
 
-    async createOrGetFirstBootSetupFlag(): Promise<boolean> {
+    constructor(private readonly onboardingTracker: OnboardingTracker) {}
+
+    private async ensureFirstBootCompletion(): Promise<boolean> {
         await fs.mkdir(this.activationDir, { recursive: true });
-        if (await fileExists(this.hasRunFirstBootSetup)) {
+        const alreadyCompleted = await this.onboardingTracker.ensureFirstBootCompleted();
+        if (alreadyCompleted) {
             this.logger.log('First boot setup flag file already exists.');
-            return true; // Indicate setup was already done based on flag presence
+            return true;
         }
-        await fs.writeFile(this.hasRunFirstBootSetup, 'true');
         this.logger.log('First boot setup flag file created.');
-        return false; // Indicate setup was just marked as done
+        return false;
     }
 
     async onModuleInit() {
         const paths = getters.paths();
 
         this.activationDir = paths.activationBase;
-        this.hasRunFirstBootSetup = path.join(this.activationDir, this.activationAppliedFilename);
         this.configFile = paths['dynamix-config']?.[1];
         this.identCfg = paths.identConfig;
 
         this.logger.log('OnboardingService initialized with paths from store.');
+
+        if (!this.configFile) {
+            this.logger.error('User dynamix config path missing. Skipping activation setup.');
+            return;
+        }
 
         try {
             // Check if activation dir exists using the initialized path
@@ -140,7 +74,7 @@ export class OnboardingService implements OnModuleInit {
             }
 
             // Proceed with first boot check and activation data retrieval ONLY if dir exists
-            const hasRunFirstBootSetup = await this.createOrGetFirstBootSetupFlag();
+            const hasRunFirstBootSetup = await this.ensureFirstBootCompletion();
             if (hasRunFirstBootSetup) {
                 this.logger.log('First boot setup previously completed, skipping customizations.');
                 return;

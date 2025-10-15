@@ -9,6 +9,7 @@ export type TrackerState = {
     lastTrackedVersion?: string;
     updatedAt?: string;
     completedSteps?: Record<ActivationOnboardingStepId, CompletedStepState>;
+    firstBootCompletedAt?: string;
 };
 
 export type UpgradeStepState = {
