@@ -15,7 +15,7 @@ import { compare } from 'semver';
 import type {
     ActivationStepContext,
     ActivationStepDefinition,
-} from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
+} from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
 import { PATHS_CONFIG_MODULES } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
 import {
@@ -28,7 +28,7 @@ import { ActivationOnboardingStepId } from '@app/unraid-api/graph/resolvers/cust
 import {
     findActivationCodeFile,
     resolveActivationStepDefinitions,
-} from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
+} from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
 
 const TRACKER_FILE_NAME = 'onboarding-tracker.json';
 const CONFIG_PREFIX = 'onboardingTracker';
@@ -117,6 +117,26 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         await this.writeTrackerState(updatedState);
         this.sessionLastTrackedVersion = this.currentVersion;
         await this.clearUpgradeMarker();
+    }
+
+    async ensureFirstBootCompleted(): Promise<boolean> {
+        await this.ensureStateLoaded();
+
+        if (this.state.firstBootCompletedAt) {
+            this.syncConfig(this.currentVersion);
+            return true;
+        }
+
+        const timestamp = new Date().toISOString();
+        const updatedState: TrackerState = {
+            ...this.state,
+            firstBootCompletedAt: timestamp,
+            updatedAt: timestamp,
+        };
+
+        await this.writeTrackerState(updatedState);
+        this.syncConfig(this.currentVersion);
+        return false;
     }
 
     async getUpgradeSnapshot(): Promise<UpgradeProgressSnapshot> {
@@ -337,6 +357,7 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         this.configService.set('store.emhttp.var.version', currentVersion);
         this.configService.set(`${CONFIG_PREFIX}.lastTrackedVersion`, this.sessionLastTrackedVersion);
         this.configService.set(`${CONFIG_PREFIX}.completedSteps`, completedStepsMap);
+        this.configService.set(`${CONFIG_PREFIX}.firstBootCompletedAt`, this.state.firstBootCompletedAt);
     }
 
     private async readCurrentVersion(): Promise<string | undefined> {

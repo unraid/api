@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { getters } from '@app/store/index.js';
+import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 
@@ -96,6 +97,10 @@ vi.mock('@app/core/utils/misc/sleep.js', async () => {
     };
 });
 
+const onboardingTrackerMock = {
+    ensureFirstBootCompleted: vi.fn<() => Promise<boolean>>(),
+};
+
 describe('OnboardingService', () => {
     let service: OnboardingService;
     let loggerDebugSpy;
@@ -106,7 +111,6 @@ describe('OnboardingService', () => {
     // Resolved mock paths
     const activationDir = mockPaths.activationBase;
     const assetsDir = mockPaths.activation.assets;
-    const doneFlag = path.join(activationDir, 'applied.txt');
     const userDynamixCfg = mockPaths['dynamix-config'][1];
     const identCfg = mockPaths.identConfig;
     const webguiImagesDir = mockPaths.webguiImagesBase;
@@ -138,9 +142,27 @@ describe('OnboardingService', () => {
         loggerLogSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
         loggerWarnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+        onboardingTrackerMock.ensureFirstBootCompleted.mockReset();
+        onboardingTrackerMock.ensureFirstBootCompleted.mockResolvedValue(false);
+        vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
+        vi.mocked(fs.access).mockReset();
+        vi.mocked(fs.readdir).mockReset();
+        vi.mocked(fs.readFile).mockReset();
+        vi.mocked(fs.writeFile).mockReset();
+        vi.mocked(fs.copyFile).mockReset();
+        vi.mocked(fileExists).mockReset();
+        vi.mocked(fs.access).mockResolvedValue(undefined as any);
+        vi.mocked(fs.readdir).mockResolvedValue([]);
+        vi.mocked(fs.readFile).mockResolvedValue('');
+        vi.mocked(fs.writeFile).mockResolvedValue(undefined as any);
+        vi.mocked(fs.copyFile).mockResolvedValue(undefined as any);
+        vi.mocked(fileExists).mockResolvedValue(false);
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [OnboardingService],
+            providers: [
+                OnboardingService,
+                { provide: OnboardingTracker, useValue: onboardingTrackerMock },
+            ],
         }).compile();
 
         service = module.get<OnboardingService>(OnboardingService);
@@ -154,6 +176,7 @@ describe('OnboardingService', () => {
 
     afterEach(() => {
         vi.useRealTimers();
+        mockPaths['dynamix-config'] = ['/mock/default.cfg', '/mock/user/dynamix.cfg'];
     });
 
     it('should be defined', () => {
@@ -168,13 +191,9 @@ describe('OnboardingService', () => {
             await service.onModuleInit();
 
             expect(loggerErrorSpy).toHaveBeenCalledWith(
-                'Error accessing activation directory or reading its content.',
-                expect.objectContaining({
-                    message: "Cannot read properties of undefined (reading 'find')",
-                })
+                'User dynamix config path missing. Skipping activation setup.'
             );
-            // The implementation actually calls writeFile to create the flag
-            // so we don't check that it's not called here
+            expect(onboardingTrackerMock.ensureFirstBootCompleted).not.toHaveBeenCalled();
 
             mockPaths['dynamix-config'] = originalDynamixConfig;
         });
@@ -189,7 +208,6 @@ describe('OnboardingService', () => {
                 'Error during activation check/setup on init:',
                 accessError
             );
-            expect(fs.writeFile).not.toHaveBeenCalledWith(doneFlag, 'true'); // Should not proceed
         });
 
         it('should skip setup if activation directory does not exist', async () => {
@@ -204,16 +222,20 @@ describe('OnboardingService', () => {
             expect(loggerLogSpy).toHaveBeenCalledWith(
                 `Activation directory ${activationDir} not found. Skipping activation setup.`
             );
-            expect(vi.mocked(fs.writeFile)).not.toHaveBeenCalledWith(doneFlag, 'true'); // Should not create .done flag
             expect(fs.readdir).not.toHaveBeenCalled(); // Should not try to read dir
         });
 
-        it('should skip customizations if .done flag exists', async () => {
-            vi.mocked(fileExists).mockImplementation(async (p) => p === doneFlag); // .done file exists
+        it('should skip customizations when first boot already completed', async () => {
+            onboardingTrackerMock.ensureFirstBootCompleted.mockResolvedValueOnce(true);
 
             await service.onModuleInit();
 
-            expect(fs.readdir).not.toHaveBeenCalled(); // Should not read activation dir for JSON
+            expect(onboardingTrackerMock.ensureFirstBootCompleted).toHaveBeenCalledTimes(1);
+            expect(fs.readdir).not.toHaveBeenCalled();
+            expect(loggerLogSpy).toHaveBeenCalledWith('First boot setup flag file already exists.');
+            expect(loggerLogSpy).toHaveBeenCalledWith(
+                'First boot setup previously completed, skipping customizations.'
+            );
         });
 
         it('should create flag and apply customizations if activation dir exists and flag is missing', async () => {
@@ -238,7 +260,7 @@ describe('OnboardingService', () => {
             await promise;
 
             // Check .done flag creation
-            expect(fs.writeFile).toHaveBeenCalledWith(doneFlag, 'true');
+            expect(onboardingTrackerMock.ensureFirstBootCompleted).toHaveBeenCalledTimes(1);
             expect(loggerLogSpy).toHaveBeenCalledWith('First boot setup flag file created.');
 
             // Check activation data loaded
@@ -307,8 +329,8 @@ describe('OnboardingService', () => {
             await promise;
 
             // --- Assertions ---
-            // 1. .done flag is still created
-            expect(fs.writeFile).toHaveBeenCalledWith(doneFlag, 'true');
+            // 1. First boot completion is recorded
+            expect(onboardingTrackerMock.ensureFirstBootCompleted).toHaveBeenCalledTimes(1);
             expect(loggerLogSpy).toHaveBeenCalledWith('First boot setup flag file created.');
 
             // 2. Activation data loaded
@@ -469,7 +491,6 @@ describe('OnboardingService', () => {
         beforeEach(() => {
             // Setup service state as if onModuleInit ran successfully before customizations
             (service as any).activationDir = activationDir;
-            (service as any).hasRunFirstBootSetup = doneFlag;
             (service as any).configFile = userDynamixCfg;
             (service as any).caseModelCfg = caseModelCfg;
             (service as any).identCfg = identCfg;
@@ -891,9 +912,15 @@ describe('applyActivationCustomizations specific tests', () => {
         loggerLogSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
         loggerWarnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+        onboardingTrackerMock.ensureFirstBootCompleted.mockReset();
+        onboardingTrackerMock.ensureFirstBootCompleted.mockResolvedValue(false);
+        vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [OnboardingService],
+            providers: [
+                OnboardingService,
+                { provide: OnboardingTracker, useValue: onboardingTrackerMock },
+            ],
         }).compile();
         service = module.get<OnboardingService>(OnboardingService);
 
@@ -1043,10 +1070,16 @@ describe('OnboardingService - updateCfgFile', () => {
         vi.clearAllMocks();
         loggerLogSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+        onboardingTrackerMock.ensureFirstBootCompleted.mockReset();
+        onboardingTrackerMock.ensureFirstBootCompleted.mockResolvedValue(false);
+        vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
 
         // Need to compile a module to get an instance, even though we test a private method
         const module: TestingModule = await Test.createTestingModule({
-            providers: [OnboardingService],
+            providers: [
+                OnboardingService,
+                { provide: OnboardingTracker, useValue: onboardingTrackerMock },
+            ],
         }).compile();
         service = module.get<OnboardingService>(OnboardingService);
 
