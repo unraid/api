@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { BrandButton } from '@unraid/ui';
@@ -46,10 +46,11 @@ const availablePlugins: Plugin[] = [
   },
 ];
 
-const selectedPlugins = ref<Set<string>>(new Set(availablePlugins.map((p) => p.id)));
+const selectedPlugins = ref<Set<string>>(new Set());
 const isInstalling = ref(false);
 const error = ref<string | null>(null);
 const installationLogs = ref<string[]>([]);
+const installationFinished = ref(false);
 
 const { installPlugin } = usePluginInstaller();
 
@@ -61,6 +62,10 @@ const appendLogs = (lines: string[] | string) => {
   }
 };
 
+const resetCompletionState = () => {
+  installationFinished.value = false;
+};
+
 const togglePlugin = (pluginId: string) => {
   const next = new Set(selectedPlugins.value);
   if (next.has(pluginId)) {
@@ -69,10 +74,12 @@ const togglePlugin = (pluginId: string) => {
     next.add(pluginId);
   }
   selectedPlugins.value = next;
+  resetCompletionState();
 };
 
 const handleInstall = async () => {
   if (selectedPlugins.value.size === 0) {
+    installationFinished.value = true;
     props.onComplete();
     return;
   }
@@ -80,6 +87,7 @@ const handleInstall = async () => {
   isInstalling.value = true;
   error.value = null;
   installationLogs.value = [];
+  installationFinished.value = false;
 
   try {
     const pluginsToInstall = availablePlugins.filter((p) => selectedPlugins.value.has(p.id));
@@ -105,10 +113,11 @@ const handleInstall = async () => {
       appendLogs(t('activation.pluginsStep.pluginInstalledMessage', { name: plugin.name }));
     }
 
-    props.onComplete();
+    installationFinished.value = true;
   } catch (err) {
     error.value = t('activation.pluginsStep.installFailed');
     console.error('Failed to install plugins:', err);
+    installationFinished.value = false;
   } finally {
     isInstalling.value = false;
   }
@@ -121,6 +130,39 @@ const handleSkip = () => {
 const handleBack = () => {
   props.onBack?.();
 };
+
+const handlePrimaryAction = async () => {
+  if (installationFinished.value || selectedPlugins.value.size === 0) {
+    props.onComplete();
+    return;
+  }
+
+  if (!isInstalling.value) {
+    await handleInstall();
+  }
+};
+
+const primaryButtonText = computed(() => {
+  if (installationFinished.value) {
+    return t('common.continue');
+  }
+  if (selectedPlugins.value.size > 0) {
+    return t('activation.pluginsStep.installSelected');
+  }
+  return t('common.continue');
+});
+
+const isPrimaryActionDisabled = computed(() => {
+  if (isInstalling.value) {
+    return true;
+  }
+
+  if (installationFinished.value) {
+    return false;
+  }
+
+  return selectedPlugins.value.size === 0;
+});
 </script>
 
 <template>
@@ -184,14 +226,10 @@ const handleBack = () => {
         @click="handleSkip"
       />
       <BrandButton
-        :text="
-          selectedPlugins.size > 0
-            ? t('activation.pluginsStep.installAndContinue')
-            : t('common.continue')
-        "
-        :disabled="isInstalling"
+        :text="primaryButtonText"
+        :disabled="isPrimaryActionDisabled"
         :loading="isInstalling"
-        @click="handleInstall"
+        @click="handlePrimaryAction"
       />
     </div>
   </div>
