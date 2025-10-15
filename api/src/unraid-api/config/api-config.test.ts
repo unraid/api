@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { access, readdir, readFile, writeFile as writeFileFs } from 'fs/promises';
+import { access, readdir, readFile, unlink, writeFile as writeFileFs } from 'fs/promises';
 import path from 'path';
 
 import type { ApiConfig } from '@unraid/shared/services/api-config.js';
@@ -28,6 +28,7 @@ vi.mock('fs/promises', () => ({
     readdir: vi.fn(),
     access: vi.fn(),
     writeFile: vi.fn(),
+    unlink: vi.fn(),
 }));
 
 const mockEmhttpState = { var: { regState: 'PRO' } } as any;
@@ -48,6 +49,7 @@ const mockReadFile = vi.mocked(readFile);
 const mockReaddir = vi.mocked(readdir);
 const mockAccess = vi.mocked(access);
 const mockWriteFileFs = vi.mocked(writeFileFs);
+const mockUnlink = vi.mocked(unlink);
 const mockAtomicWriteFile = vi.mocked(atomicWriteFile);
 type ReaddirResult = Awaited<ReturnType<typeof readdir>>;
 
@@ -151,12 +153,14 @@ describe('OnboardingTracker', () => {
         mockAtomicWriteFile.mockReset();
         mockWriteFileFs.mockReset();
         mockWriteFileFs.mockResolvedValue(undefined);
+        mockUnlink.mockReset();
+        mockUnlink.mockResolvedValue(undefined);
 
         mockEmhttpState.var.regState = 'PRO';
         mockPathsState.activationBase = '/activation';
     });
 
-    it('defers persisting last seen version until shutdown', async () => {
+    it('keeps previous version when shutting down with pending steps', async () => {
         mockReadFile.mockImplementation(async (filePath) => {
             if (filePath === versionFilePath) {
                 return 'version="7.2.0-beta.3.4"\n';
@@ -180,11 +184,9 @@ describe('OnboardingTracker', () => {
 
         await tracker.onApplicationShutdown();
 
-        expect(mockAtomicWriteFile).toHaveBeenCalledWith(
-            trackerPath,
-            expect.stringContaining('"lastTrackedVersion": "7.2.0-beta.3.4"'),
-            { mode: 0o644 }
-        );
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+        expect(mockUnlink).not.toHaveBeenCalled();
+        expect(configStore['onboardingTracker.lastTrackedVersion']).toBeUndefined();
     });
 
     it('does not rewrite when version has not changed', async () => {
@@ -272,7 +274,7 @@ describe('OnboardingTracker', () => {
         const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
-        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.1.0', 'utf8');
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.0.0', 'utf8');
 
         const snapshot = await tracker.getUpgradeSnapshot();
         expect(snapshot.currentVersion).toBe('7.1.0');
@@ -336,7 +338,7 @@ describe('OnboardingTracker', () => {
             ActivationOnboardingStepId.PLUGINS,
         ]);
         expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', '7.1.0');
-        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.2.0', 'utf8');
+        expect(mockWriteFileFs).not.toHaveBeenCalled();
     });
 
     it('still surfaces onboarding steps when version is unavailable', async () => {
@@ -375,10 +377,13 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
+        mockReaddir.mockResolvedValue(['pending.activationcode'] as unknown as ReaddirResult);
+        mockEmhttpState.var.regState = 'ENOKEYFILE_PENDING';
+
         const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
-        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.2.0', 'utf8');
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
 
         expect(configStore['store.emhttp.var.version']).toBe('7.2.0');
         expect(configStore['onboardingTracker.lastTrackedVersion']).toBe('6.12.0');
@@ -395,6 +400,7 @@ describe('OnboardingTracker', () => {
             ActivationOnboardingStepId.WELCOME,
             ActivationOnboardingStepId.TIMEZONE,
             ActivationOnboardingStepId.PLUGINS,
+            ActivationOnboardingStepId.ACTIVATION,
         ]);
 
         expect(mockAtomicWriteFile).toHaveBeenCalledWith(
@@ -418,7 +424,90 @@ describe('OnboardingTracker', () => {
             ActivationOnboardingStepId.WELCOME,
             ActivationOnboardingStepId.TIMEZONE,
             ActivationOnboardingStepId.PLUGINS,
+            ActivationOnboardingStepId.ACTIVATION,
         ]);
+    });
+
+    it('persists the new version on shutdown when required steps are completed', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="7.2.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '6.12.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {
+                        TIMEZONE: {
+                            version: '7.2.0',
+                            completedAt: '2025-01-02T00:00:00.000Z',
+                        },
+                    },
+                });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
+
+        mockAtomicWriteFile.mockClear();
+        mockWriteFileFs.mockClear();
+        mockUnlink.mockClear();
+
+        await tracker.onApplicationShutdown();
+
+        expect(mockAtomicWriteFile).toHaveBeenCalledWith(
+            trackerPath,
+            expect.stringContaining('"lastTrackedVersion": "7.2.0"'),
+            { mode: 0o644 }
+        );
+        expect(mockUnlink).toHaveBeenCalledWith(UPGRADE_MARKER_PATH);
+    });
+
+    it('updates last tracked version when the final required step is completed', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="7.2.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '6.12.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {},
+                });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
+
+        setMock.mockClear();
+        mockAtomicWriteFile.mockClear();
+        mockWriteFileFs.mockClear();
+        mockUnlink.mockClear();
+
+        const snapshot = await tracker.markStepCompleted(ActivationOnboardingStepId.TIMEZONE);
+
+        expect(snapshot.lastTrackedVersion).toBe('7.2.0');
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', '7.2.0');
+        expect(mockAtomicWriteFile).toHaveBeenCalledWith(
+            trackerPath,
+            expect.stringContaining('"lastTrackedVersion": "7.2.0"'),
+            { mode: 0o644 }
+        );
+        expect(mockUnlink).toHaveBeenCalledWith(UPGRADE_MARKER_PATH);
     });
 
     it('retains completed steps across patch upgrades when definitions are unchanged', async () => {
@@ -447,7 +536,7 @@ describe('OnboardingTracker', () => {
         const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
-        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.0.1', 'utf8');
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.0.0', 'utf8');
 
         const snapshot = await tracker.getUpgradeSnapshot();
         expect(snapshot.currentVersion).toBe('7.0.1');
@@ -486,7 +575,7 @@ describe('OnboardingTracker', () => {
         const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
-        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.0.0', 'utf8');
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
 
         const snapshot = await tracker.getUpgradeSnapshot();
         expect(snapshot.currentVersion).toBe('7.0.0');
