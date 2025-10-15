@@ -6,7 +6,7 @@ import {
     OnApplicationShutdown,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { readFile, writeFile as writeFileFs } from 'fs/promises';
+import { readFile, unlink, writeFile as writeFileFs } from 'fs/promises';
 import path from 'path';
 
 import { writeFile } from 'atomically';
@@ -77,7 +77,12 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         this.sessionLastTrackedVersion = inferredLastTrackedVersion;
 
         this.syncConfig(this.currentVersion);
-        await this.writeUpgradeMarker(this.currentVersion);
+        if (!markerVersion) {
+            const markerValue = this.sessionLastTrackedVersion ?? this.currentVersion;
+            if (markerValue) {
+                await this.writeUpgradeMarker(markerValue);
+            }
+        }
     }
 
     async onApplicationShutdown() {
@@ -86,6 +91,19 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         }
 
         await this.ensureStateLoaded();
+
+        const steps = await this.computeStepsForUpgrade(
+            this.sessionLastTrackedVersion,
+            this.currentVersion
+        );
+        const completedEntries =
+            this.state.completedSteps ?? ({} as Record<ActivationOnboardingStepId, CompletedStepState>);
+        const allStepsCompleted = this.areAllStepsCompleted(steps, completedEntries);
+
+        if (!allStepsCompleted) {
+            return;
+        }
+
         if (this.state.lastTrackedVersion === this.currentVersion) {
             return;
         }
@@ -98,6 +116,7 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
 
         await this.writeTrackerState(updatedState);
         this.sessionLastTrackedVersion = this.currentVersion;
+        await this.clearUpgradeMarker();
     }
 
     async getUpgradeSnapshot(): Promise<UpgradeProgressSnapshot> {
@@ -157,13 +176,20 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
             completedAt: new Date().toISOString(),
         };
 
+        const allStepsCompleted = this.areAllStepsCompleted(steps, completedSteps);
+
         const updatedState: TrackerState = {
             ...this.state,
             completedSteps,
             updatedAt: new Date().toISOString(),
+            ...(allStepsCompleted && currentVersion ? { lastTrackedVersion: currentVersion } : {}),
         };
 
         await this.writeTrackerState(updatedState);
+        if (allStepsCompleted && currentVersion) {
+            this.sessionLastTrackedVersion = currentVersion;
+            await this.clearUpgradeMarker();
+        }
         this.syncConfig(currentVersion);
 
         return this.getUpgradeSnapshot();
@@ -201,6 +227,17 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         }
     }
 
+    private async clearUpgradeMarker(): Promise<void> {
+        try {
+            await unlink(UPGRADE_MARKER_PATH);
+        } catch (error) {
+            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+                return;
+            }
+            this.logger.debug(error, 'Failed to remove onboarding upgrade marker');
+        }
+    }
+
     private completedStepsForSteps(steps: UpgradeStepState[]): ActivationOnboardingStepId[] {
         const completedEntries =
             this.state.completedSteps ?? ({} as Record<ActivationOnboardingStepId, CompletedStepState>);
@@ -220,6 +257,23 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
                 return this.isCompletionUpToDate(completion.version, definitionVersion);
             })
             .map((step) => step.id);
+    }
+
+    private areAllStepsCompleted(
+        steps: UpgradeStepState[],
+        completedSteps: Record<ActivationOnboardingStepId, CompletedStepState>
+    ): boolean {
+        return steps.every((step) => {
+            if (!step.required) {
+                return true;
+            }
+            const completion = completedSteps[step.id];
+            if (!completion?.version) {
+                return false;
+            }
+            const definitionVersion = step.introducedIn ?? completion.version;
+            return this.isCompletionUpToDate(completion.version, definitionVersion);
+        });
     }
 
     private async computeStepsForUpgrade(
