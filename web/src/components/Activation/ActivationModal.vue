@@ -222,7 +222,6 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         ...baseProps,
         currentVersion: currentVersion.value,
         previousVersion: previousVersion.value,
-        onComplete: closeModal,
         onSkip: undefined,
         showSkip: false,
       };
