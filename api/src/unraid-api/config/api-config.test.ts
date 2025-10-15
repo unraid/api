@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { access, readdir, readFile } from 'fs/promises';
+import { access, readdir, readFile, writeFile as writeFileFs } from 'fs/promises';
 import path from 'path';
 
 import type { ApiConfig } from '@unraid/shared/services/api-config.js';
@@ -9,7 +9,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { API_VERSION, PATHS_CONFIG_MODULES } from '@app/environment.js';
 import { ApiConfigPersistence, loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
-import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
+import {
+    OnboardingTracker,
+    UPGRADE_MARKER_PATH,
+} from '@app/unraid-api/config/onboarding-tracker.module.js';
 import { ActivationOnboardingStepId } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 
 vi.mock('@app/core/utils/files/file-exists.js', () => ({
@@ -24,6 +27,7 @@ vi.mock('fs/promises', () => ({
     readFile: vi.fn(),
     readdir: vi.fn(),
     access: vi.fn(),
+    writeFile: vi.fn(),
 }));
 
 const mockEmhttpState = { var: { regState: 'PRO' } } as any;
@@ -43,6 +47,7 @@ vi.mock('atomically', () => ({
 const mockReadFile = vi.mocked(readFile);
 const mockReaddir = vi.mocked(readdir);
 const mockAccess = vi.mocked(access);
+const mockWriteFileFs = vi.mocked(writeFileFs);
 const mockAtomicWriteFile = vi.mocked(atomicWriteFile);
 type ReaddirResult = Awaited<ReturnType<typeof readdir>>;
 
@@ -144,6 +149,8 @@ describe('OnboardingTracker', () => {
         mockReaddir.mockResolvedValue([] as unknown as ReaddirResult);
         mockAccess.mockResolvedValue(undefined);
         mockAtomicWriteFile.mockReset();
+        mockWriteFileFs.mockReset();
+        mockWriteFileFs.mockResolvedValue(undefined);
 
         mockEmhttpState.var.regState = 'PRO';
         mockPathsState.activationBase = '/activation';
@@ -154,11 +161,16 @@ describe('OnboardingTracker', () => {
             if (filePath === versionFilePath) {
                 return 'version="7.2.0-beta.3.4"\n';
             }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
         const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.2.0-beta.3.4', 'utf8');
 
         expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', '7.2.0-beta.3.4');
         expect(setMock).toHaveBeenCalledWith('store.emhttp.var.version', '7.2.0-beta.3.4');
@@ -192,11 +204,16 @@ describe('OnboardingTracker', () => {
                     },
                 });
             }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
         const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
 
         expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', '6.12.0');
         expect(setMock).toHaveBeenCalledWith('store.emhttp.var.version', '6.12.0');
@@ -221,6 +238,9 @@ describe('OnboardingTracker', () => {
             if (filePath === '/etc/unraid-version') {
                 return 'version="7.3.0"\n';
             }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
@@ -228,6 +248,7 @@ describe('OnboardingTracker', () => {
         await tracker.onApplicationBootstrap();
 
         expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', '7.3.0');
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.3.0', 'utf8');
     });
 
     it('keeps previous version available to signal upgrade until shutdown', async () => {
@@ -242,11 +263,16 @@ describe('OnboardingTracker', () => {
                     completedSteps: {},
                 });
             }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
         const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.1.0', 'utf8');
 
         const snapshot = await tracker.getUpgradeSnapshot();
         expect(snapshot.currentVersion).toBe('7.1.0');
@@ -277,6 +303,40 @@ describe('OnboardingTracker', () => {
         expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', undefined);
         expect(setMock).toHaveBeenCalledWith('onboardingTracker.completedSteps', {});
         expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+        expect(mockWriteFileFs).not.toHaveBeenCalled();
+    });
+
+    it('uses upgrade marker when tracker version matches current version', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="7.2.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '7.2.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {},
+                });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                return '7.1.0';
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        const snapshot = await tracker.getUpgradeSnapshot();
+        expect(snapshot.currentVersion).toBe('7.2.0');
+        expect(snapshot.lastTrackedVersion).toBe('7.1.0');
+        expect(snapshot.steps.map((step) => step.id)).toEqual([
+            ActivationOnboardingStepId.WELCOME,
+            ActivationOnboardingStepId.TIMEZONE,
+            ActivationOnboardingStepId.PLUGINS,
+        ]);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', '7.1.0');
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.2.0', 'utf8');
     });
 
     it('still surfaces onboarding steps when version is unavailable', async () => {
@@ -284,6 +344,8 @@ describe('OnboardingTracker', () => {
 
         const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).not.toHaveBeenCalled();
 
         const snapshot = await tracker.getUpgradeSnapshot();
         expect(snapshot.currentVersion).toBeUndefined();
@@ -307,11 +369,16 @@ describe('OnboardingTracker', () => {
                     completedSteps: {},
                 });
             }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
         const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.2.0', 'utf8');
 
         expect(configStore['store.emhttp.var.version']).toBe('7.2.0');
         expect(configStore['onboardingTracker.lastTrackedVersion']).toBe('6.12.0');
@@ -371,11 +438,16 @@ describe('OnboardingTracker', () => {
                     },
                 });
             }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
         const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.0.1', 'utf8');
 
         const snapshot = await tracker.getUpgradeSnapshot();
         expect(snapshot.currentVersion).toBe('7.0.1');
@@ -405,11 +477,16 @@ describe('OnboardingTracker', () => {
                     },
                 });
             }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
         const tracker = new OnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.0.0', 'utf8');
 
         const snapshot = await tracker.getUpgradeSnapshot();
         expect(snapshot.currentVersion).toBe('7.0.0');
@@ -433,6 +510,9 @@ describe('OnboardingTracker', () => {
                     updatedAt: '2025-01-01T00:00:00.000Z',
                     completedSteps: {},
                 });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
             }
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });

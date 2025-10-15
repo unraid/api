@@ -6,7 +6,7 @@ import {
     OnApplicationShutdown,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { readFile } from 'fs/promises';
+import { readFile, writeFile as writeFileFs } from 'fs/promises';
 import path from 'path';
 
 import { writeFile } from 'atomically';
@@ -33,6 +33,7 @@ import {
 const TRACKER_FILE_NAME = 'onboarding-tracker.json';
 const CONFIG_PREFIX = 'onboardingTracker';
 const DEFAULT_OS_VERSION_FILE_PATH = '/etc/unraid-version';
+export const UPGRADE_MARKER_PATH = '/tmp/unraid-onboarding-last-version';
 
 @Injectable()
 export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationShutdown {
@@ -56,14 +57,27 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
             this.state = {};
             this.sessionLastTrackedVersion = undefined;
             this.syncConfig(undefined);
+            await this.writeUpgradeMarker(undefined);
             return;
         }
 
+        const markerVersion = await this.readUpgradeMarker();
         const previousState = await this.readTrackerState();
         this.state = previousState ?? {};
-        this.sessionLastTrackedVersion = previousState?.lastTrackedVersion;
+        let inferredLastTrackedVersion = previousState?.lastTrackedVersion;
+
+        if (
+            markerVersion &&
+            markerVersion !== this.currentVersion &&
+            (inferredLastTrackedVersion == null || inferredLastTrackedVersion === this.currentVersion)
+        ) {
+            inferredLastTrackedVersion = markerVersion;
+        }
+
+        this.sessionLastTrackedVersion = inferredLastTrackedVersion;
 
         this.syncConfig(this.currentVersion);
+        await this.writeUpgradeMarker(this.currentVersion);
     }
 
     async onApplicationShutdown() {
@@ -160,6 +174,31 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
             return;
         }
         this.state = (await this.readTrackerState()) ?? {};
+    }
+
+    private async readUpgradeMarker(): Promise<string | undefined> {
+        try {
+            const contents = await readFile(UPGRADE_MARKER_PATH, 'utf8');
+            const version = contents.trim();
+            return version.length > 0 ? version : undefined;
+        } catch (error) {
+            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+                return undefined;
+            }
+            this.logger.debug(error, `Unable to read upgrade marker at ${UPGRADE_MARKER_PATH}`);
+            return undefined;
+        }
+    }
+
+    private async writeUpgradeMarker(version: string | undefined): Promise<void> {
+        try {
+            if (!version) {
+                return;
+            }
+            await writeFileFs(UPGRADE_MARKER_PATH, version, 'utf8');
+        } catch (error) {
+            this.logger.warn(error, 'Failed to persist onboarding upgrade marker');
+        }
     }
 
     private completedStepsForSteps(steps: UpgradeStepState[]): ActivationOnboardingStepId[] {
