@@ -3,7 +3,9 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { BrandButton } from '@unraid/ui';
-import useInstallPlugin from '@/composables/installPlugin';
+
+import usePluginInstaller from '~/components/Activation/usePluginInstaller';
+import { PluginInstallStatus } from '~/composables/gql/graphql';
 
 export interface Props {
   onComplete: () => void;
@@ -47,8 +49,17 @@ const availablePlugins: Plugin[] = [
 const selectedPlugins = ref<Set<string>>(new Set(availablePlugins.map((p) => p.id)));
 const isInstalling = ref(false);
 const error = ref<string | null>(null);
+const installationLogs = ref<string[]>([]);
 
-const { install } = useInstallPlugin();
+const { installPlugin } = usePluginInstaller();
+
+const appendLogs = (lines: string[] | string) => {
+  if (Array.isArray(lines)) {
+    lines.forEach((line) => installationLogs.value.push(line));
+  } else {
+    installationLogs.value.push(lines);
+  }
+};
 
 const togglePlugin = (pluginId: string) => {
   const next = new Set(selectedPlugins.value);
@@ -68,16 +79,30 @@ const handleInstall = async () => {
 
   isInstalling.value = true;
   error.value = null;
+  installationLogs.value = [];
 
   try {
     const pluginsToInstall = availablePlugins.filter((p) => selectedPlugins.value.has(p.id));
 
     for (const plugin of pluginsToInstall) {
-      install({
-        pluginUrl: plugin.url,
-        modalTitle: `Installing ${plugin.name}`,
+      appendLogs(t('activation.pluginsStep.installingPluginMessage', { name: plugin.name }));
+
+      const result = await installPlugin({
+        url: plugin.url,
+        name: plugin.name,
+        forced: true,
+        onEvent: (event) => {
+          if (event.output?.length) {
+            appendLogs(event.output.map((line) => `[${plugin.name}] ${line}`));
+          }
+        },
       });
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      if (result.status !== PluginInstallStatus.SUCCEEDED) {
+        throw new Error(`Plugin installation failed for ${plugin.name}`);
+      }
+
+      appendLogs(t('activation.pluginsStep.pluginInstalledMessage', { name: plugin.name }));
     }
 
     props.onComplete();
@@ -118,6 +143,7 @@ const handleBack = () => {
           :id="plugin.id"
           type="checkbox"
           :checked="selectedPlugins.has(plugin.id)"
+          :disabled="isInstalling"
           @change="() => togglePlugin(plugin.id)"
           class="text-primary focus:ring-primary mt-1 h-5 w-5 cursor-pointer rounded border-gray-300 focus:ring-2"
         />
@@ -126,6 +152,15 @@ const handleBack = () => {
           <div class="text-sm opacity-75">{{ plugin.description }}</div>
         </div>
       </label>
+    </div>
+
+    <div
+      v-if="installationLogs.length > 0"
+      class="border-border bg-muted/40 mb-4 max-h-48 w-full overflow-y-auto rounded border p-3 text-left font-mono text-xs"
+    >
+      <div v-for="(line, index) in installationLogs" :key="`${index}-${line}`">
+        {{ line }}
+      </div>
     </div>
 
     <div v-if="error" class="mb-4 text-sm text-red-500">

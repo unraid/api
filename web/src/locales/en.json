@@ -16,6 +16,8 @@
   "activation.pluginsStep.installAndContinue": "Install & Continue",
   "activation.pluginsStep.installEssentialPlugins": "Install Essential Plugins",
   "activation.pluginsStep.installFailed": "Failed to install plugins. Please try again.",
+  "activation.pluginsStep.installingPluginMessage": "Installing {name}...",
+  "activation.pluginsStep.pluginInstalledMessage": "{name} installed successfully.",
   "activation.pluginsStep.selectPluginsDescription": "Select the plugins you want to install. You can always add more later.",
   "activation.timezoneStep.selectTimezoneDescription": "Select your time zone to ensure accurate timestamps throughout the system.",
   "activation.timezoneStep.selectTimezoneError": "Please select a timezone",
