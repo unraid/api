@@ -675,14 +675,15 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
       @update:selected-ids="(ids) => emit('update:selectedIds', ids)"
     >
       <template #toolbar="{ selectedCount: count, globalFilter: filterText, setGlobalFilter }">
-        <div v-if="!compact" class="mb-3 flex items-center gap-2">
+        <div :class="['flex flex-wrap items-center gap-2', compact ? 'mb-2 px-2 pt-2' : 'mb-3']">
           <UInput
             :model-value="filterText"
-            class="max-w-sm min-w-[12ch]"
+            :size="compact ? 'sm' : 'md'"
+            :class="['max-w-sm flex-1', compact ? 'min-w-[8ch]' : 'min-w-[12ch]']"
             placeholder="Filter..."
             @update:model-value="setGlobalFilter"
           />
-          <UDropdownMenu :items="columnsMenuItems" size="md" :ui="{ content: 'z-40' }">
+          <UDropdownMenu v-if="!compact" :items="columnsMenuItems" size="md" :ui="{ content: 'z-40' }">
             <UButton color="neutral" variant="outline" size="md" trailing-icon="i-lucide-chevron-down">
               Columns
             </UButton>
@@ -698,7 +699,7 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
             <UButton
               color="primary"
               variant="outline"
-              size="md"
+              :size="compact ? 'sm' : 'md'"
               trailing-icon="i-lucide-chevron-down"
               :disabled="count === 0"
             >
