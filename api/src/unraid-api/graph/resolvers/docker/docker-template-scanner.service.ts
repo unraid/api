@@ -65,7 +65,9 @@ export class DockerTemplateScannerService {
         });
 
         if (needsSync.length > 0) {
-            this.logger.log(`Found ${needsSync.length} containers without template mappings, triggering sync`);
+            this.logger.log(
+                `Found ${needsSync.length} containers without template mappings, triggering sync`
+            );
             await this.scanTemplates();
             return true;
         }
@@ -178,7 +180,10 @@ export class DockerTemplateScannerService {
         }
 
         for (const template of templates) {
-            if (template.repository && this.normalizeRepository(template.repository) === containerImage) {
+            if (
+                template.repository &&
+                this.normalizeRepository(template.repository) === containerImage
+            ) {
                 return template;
             }
         }
@@ -203,4 +208,3 @@ export class DockerTemplateScannerService {
         this.dockerConfigService.replaceConfig(updated);
     }
 }
-

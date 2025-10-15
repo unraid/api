@@ -97,6 +97,13 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'dev-settings',
   },
   {
+    component: defineAsyncComponent(
+      () => import('../Notifications/CriticalNotifications.standalone.vue')
+    ),
+    selector: 'unraid-critical-notifications',
+    appId: 'critical-notifications',
+  },
+  {
     component: defineAsyncComponent(() => import('../ApiKeyPage.standalone.vue')),
     selector: ['unraid-apikey-page', 'unraid-api-key-manager'],
     appId: 'apikey-page',

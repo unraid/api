@@ -14,4 +14,3 @@ export class DockerTemplateSyncResult {
     @Field(() => [String])
     errors!: string[];
 }
-

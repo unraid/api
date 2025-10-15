@@ -1,6 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { IsObject, IsOptional, IsArray, IsString } from 'class-validator';
 
+import { IsArray, IsObject, IsOptional, IsString } from 'class-validator';
 import { GraphQLJSON } from 'graphql-scalars';
 
 @ObjectType()

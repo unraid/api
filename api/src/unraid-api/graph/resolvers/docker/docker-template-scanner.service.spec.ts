@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { mkdir, rm, writeFile } from 'fs/promises';
 import { join } from 'path';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
@@ -151,9 +152,7 @@ describe('DockerTemplateScannerService', () => {
                 image: 'test/image:latest',
             } as DockerContainer;
 
-            const templates = [
-                { filePath: '/path/1', name: 'different', repository: 'other/image' },
-            ];
+            const templates = [{ filePath: '/path/1', name: 'different', repository: 'other/image' }];
 
             const result = (service as any).matchContainerToTemplate(container, templates);
 
@@ -424,4 +423,3 @@ describe('DockerTemplateScannerService', () => {
         });
     });
 });
-

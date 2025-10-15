@@ -568,6 +568,49 @@ export class NotificationsService {
     }
 
     /**
+     * Returns a deduplicated list of unread warning and alert notifications.
+     *
+     * Deduplication is based on the combination of importance, title, subject, description, and link.
+     * This ensures repeated notifications with the same user-facing content are only shown once, while
+     * still prioritizing the most recent occurrence of each unique notification.
+     *
+     * @param limit Maximum number of unique notifications to return. Default: 50.
+     */
+    public async getWarningsAndAlerts(limit = 50): Promise<Notification[]> {
+        const { UNREAD } = this.paths();
+        const files = await this.listFilesInFolder(UNREAD);
+        const [notifications] = await this.loadNotificationsFromPaths(files, {
+            type: NotificationType.UNREAD,
+        });
+
+        const deduped: Notification[] = [];
+        const seen = new Set<string>();
+
+        for (const notification of notifications) {
+            if (
+                notification.importance !== NotificationImportance.ALERT &&
+                notification.importance !== NotificationImportance.WARNING
+            ) {
+                continue;
+            }
+
+            const key = this.getDeduplicationKey(notification);
+            if (seen.has(key)) {
+                continue;
+            }
+
+            seen.add(key);
+            deduped.push(notification);
+
+            if (deduped.length >= limit) {
+                break;
+            }
+        }
+
+        return deduped;
+    }
+
+    /**
      * Given a path to a folder, returns the full (absolute) paths of the folder's top-level contents.
      * Sorted latest-first by default.
      *
@@ -790,5 +833,16 @@ export class NotificationsService {
     private sortLatestFirst(a: Notification, b: Notification) {
         const defaultTimestamp = 0;
         return Number(b.timestamp ?? defaultTimestamp) - Number(a.timestamp ?? defaultTimestamp);
+    }
+
+    private getDeduplicationKey(notification: Notification): string {
+        const makePart = (value?: string | null) => (value ?? '').trim();
+        return [
+            notification.importance,
+            makePart(notification.title),
+            makePart(notification.subject),
+            makePart(notification.description),
+            makePart(notification.link),
+        ].join('|');
     }
 }

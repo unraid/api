@@ -34,6 +34,17 @@ export const getNotifications = graphql(/* GraphQL */ `
   }
 `);
 
+export const warningsAndAlerts = graphql(/* GraphQL */ `
+  query WarningAndAlertNotifications {
+    notifications {
+      id
+      warningsAndAlerts {
+        ...NotificationFragment
+      }
+    }
+  }
+`);
+
 export const archiveNotification = graphql(/* GraphQL */ `
   mutation ArchiveNotification($id: PrefixedID!) {
     archiveNotification(id: $id) {

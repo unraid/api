@@ -23,7 +23,9 @@ export class DockerTemplateIconService {
 
             return parsed.Container.Icon || null;
         } catch (error) {
-            this.logger.debug(`Failed to read icon from template ${templatePath}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            this.logger.debug(
+                `Failed to read icon from template ${templatePath}: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
             return null;
         }
     }
@@ -57,4 +59,3 @@ export class DockerTemplateIconService {
         return iconMap;
     }
 }
-

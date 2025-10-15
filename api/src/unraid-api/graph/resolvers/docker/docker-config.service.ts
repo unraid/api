@@ -42,7 +42,7 @@ export class DockerConfigService extends ConfigFilePersister<DockerConfig> {
         if (!cronExpression.valid) {
             throw new AppError(`Cron expression not supported: ${dockerConfig.updateCheckCronSchedule}`);
         }
-        
+
         return dockerConfig;
     }
 }

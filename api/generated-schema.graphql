@@ -1831,6 +1831,11 @@ type Notifications implements Node {
   """A cached overview of the notifications in the system & their severity."""
   overview: NotificationOverview!
   list(filter: NotificationFilter!): [Notification!]!
+
+  """
+  Deduplicated list of unread warning and alert notifications, sorted latest first.
+  """
+  warningsAndAlerts: [Notification!]!
 }
 
 input NotificationFilter {

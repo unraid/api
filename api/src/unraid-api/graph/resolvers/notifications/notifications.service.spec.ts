@@ -289,6 +289,73 @@ describe.sequential('NotificationsService', () => {
         expect(loaded.length).toEqual(3);
     });
 
+    describe('getWarningsAndAlerts', () => {
+        it('deduplicates unread warning and alert notifications', async ({ expect }) => {
+            const duplicateData = {
+                title: 'Array Status',
+                subject: 'Disk 1 is getting warm',
+                description: 'Disk temperature has exceeded threshold.',
+                importance: NotificationImportance.WARNING,
+            } as const;
+
+            // Create duplicate warnings and an alert with different content
+            await createNotification(duplicateData);
+            await createNotification(duplicateData);
+            await createNotification({
+                title: 'UPS Disconnected',
+                subject: 'The UPS connection has been lost',
+                description: 'Reconnect the UPS to restore protection.',
+                importance: NotificationImportance.ALERT,
+            });
+            await createNotification({
+                title: 'Parity Check Complete',
+                subject: 'A parity check has completed successfully',
+                description: 'No sync errors were detected.',
+                importance: NotificationImportance.INFO,
+            });
+
+            const results = await service.getWarningsAndAlerts();
+            const warningMatches = results.filter(
+                (notification) => notification.subject === duplicateData.subject
+            );
+            const alertMatches = results.filter((notification) =>
+                notification.subject.includes('UPS connection')
+            );
+
+            expect(results.length).toEqual(2);
+            expect(warningMatches).toHaveLength(1);
+            expect(alertMatches).toHaveLength(1);
+            expect(
+                results.every((notification) => notification.importance !== NotificationImportance.INFO)
+            ).toBe(true);
+        });
+
+        it('respects the provided limit', async ({ expect }) => {
+            const limit = 2;
+            await createNotification({
+                title: 'Array Warning',
+                subject: 'Disk 2 is getting warm',
+                description: 'Disk temperature has exceeded threshold.',
+                importance: NotificationImportance.WARNING,
+            });
+            await createNotification({
+                title: 'Network Down',
+                subject: 'Ethernet link is down',
+                description: 'Physical link failure detected.',
+                importance: NotificationImportance.ALERT,
+            });
+            await createNotification({
+                title: 'Critical Temperature',
+                subject: 'CPU temperature exceeded',
+                description: 'CPU temperature has exceeded safe operating limits.',
+                importance: NotificationImportance.ALERT,
+            });
+
+            const results = await service.getWarningsAndAlerts(limit);
+            expect(results.length).toEqual(limit);
+        });
+    });
+
     /**--------------------------------------------
      *               CRUD: Update Tests
      *---------------------------------------------**/

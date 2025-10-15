@@ -86,7 +86,6 @@ export function addMissingResourcesToView(
     return view;
 }
 
-
 /**
  * Directly enriches flat entries from an organizer view without building an intermediate tree.
  * This is more efficient than building a tree just to flatten it again.
@@ -227,7 +226,6 @@ export function resolveOrganizer(
         views: resolvedViews,
     };
 }
-
 
 export interface CreateFolderInViewParams {
     view: OrganizerView;
