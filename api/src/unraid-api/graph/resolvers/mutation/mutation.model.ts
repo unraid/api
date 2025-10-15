@@ -2,6 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 
 import { UpgradeInfo } from '@app/unraid-api/graph/resolvers/info/versions/versions.model.js';
 import { RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { PluginInstallOperation } from '@app/unraid-api/graph/resolvers/unraid-plugins/unraid-plugins.model.js';
 
 /**
  * Important:
@@ -56,6 +57,16 @@ export class OnboardingMutations {
     completeUpgradeStep!: UpgradeInfo;
 }
 
+@ObjectType({
+    description: 'Unraid plugin management mutations',
+})
+export class UnraidPluginsMutations {
+    @Field(() => PluginInstallOperation, {
+        description: 'Install an Unraid plugin and track installation progress',
+    })
+    installPlugin!: PluginInstallOperation;
+}
+
 @ObjectType()
 export class RootMutations {
     @Field(() => ArrayMutations, { description: 'Array related mutations' })
@@ -81,4 +92,7 @@ export class RootMutations {
 
     @Field(() => OnboardingMutations, { description: 'Onboarding related mutations' })
     onboarding: OnboardingMutations = new OnboardingMutations();
+
+    @Field(() => UnraidPluginsMutations, { description: 'Unraid plugin related mutations' })
+    unraidPlugins: UnraidPluginsMutations = new UnraidPluginsMutations();
 }
