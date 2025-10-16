@@ -83,10 +83,16 @@ export class UnraidPluginsService {
         }
 
         child.on('error', (error) => {
-            this.handleFailure(operation, error);
+            if (operation.status === PluginInstallStatus.RUNNING) {
+                this.handleFailure(operation, error);
+            }
         });
 
         child.on('close', (code) => {
+            if (operation.status !== PluginInstallStatus.RUNNING) {
+                return;
+            }
+
             if (code === 0) {
                 this.handleSuccess(operation);
             } else {
@@ -150,6 +156,10 @@ export class UnraidPluginsService {
     }
 
     private handleSuccess(operation: OperationState) {
+        if (operation.status !== PluginInstallStatus.RUNNING) {
+            return;
+        }
+
         const timestamp = new Date();
         operation.status = PluginInstallStatus.SUCCEEDED;
         operation.finishedAt = timestamp;
@@ -168,6 +178,10 @@ export class UnraidPluginsService {
     }
 
     private handleFailure(operation: OperationState, error: unknown) {
+        if (operation.status !== PluginInstallStatus.RUNNING) {
+            return;
+        }
+
         const timestamp = new Date();
         operation.status = PluginInstallStatus.FAILED;
         operation.finishedAt = timestamp;
