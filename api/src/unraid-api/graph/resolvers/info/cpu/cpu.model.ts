@@ -39,6 +39,18 @@ export class CpuLoad {
     percentSteal!: number;
 }
 
+@ObjectType()
+export class CpuPackages {
+    @Field(() => Float, { description: 'Total CPU package power draw (W)' })
+    totalpower?: number;
+
+    @Field(() => [Float], { description: 'Power draw per package (W)' })
+    power?: number[];
+
+    @Field(() => [Float], { description: 'Temperature per package (°C)' })
+    temp?: number[];
+}
+
 @ObjectType({ implements: () => Node })
 export class CpuUtilization extends Node {
     @Field(() => Float, { description: 'Total CPU load in percent' })
@@ -115,4 +127,12 @@ export class InfoCpu extends Node {
 
     @Field(() => [String], { nullable: true, description: 'CPU feature flags' })
     flags?: string[];
+
+    @Field(() => [[[Int]]], {
+        description: 'Per-package array of core/thread pairs, e.g. [[[0,1],[2,3]], [[4,5],[6,7]]]',
+    })
+    topology!: number[][][];
+
+    @Field(() => CpuPackages)
+    packages: CpuPackages;
 }
