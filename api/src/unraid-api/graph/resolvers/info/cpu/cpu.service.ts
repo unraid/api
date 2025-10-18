@@ -6,30 +6,54 @@ import { basename, join } from 'node:path';
 import { cpu, cpuFlags, currentLoad } from 'systeminformation';
 
 import { CpuPowerService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-power.service.js';
-import { CpuUtilization, InfoCpu } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
+import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
+import {
+    CpuPackages,
+    CpuUtilization,
+    InfoCpu,
+} from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
 
 @Injectable()
 export class CpuService {
     private readonly logger = new Logger(CpuService.name);
 
-    constructor(private readonly cpuPowerService: CpuPowerService) {}
+    constructor(
+        private readonly cpuPowerService: CpuPowerService,
+        private readonly cpuTopologyService: CpuTopologyService
+    ) {}
 
     async generateCpu(): Promise<InfoCpu> {
-        const { cores, physicalCores, speedMin, speedMax, stepping, ...rest } = await cpu();
+        const { cores, physicalCores, speedMin, speedMax, stepping, processors, ...rest } = await cpu();
         const flags = await cpuFlags()
-            .then((flags) => flags.split(' '))
+            .then((f) => f.split(' '))
             .catch(() => []);
+
+        const packageList = await this.cpuTopologyService.generateTelemetry();
+        const topology = await this.cpuTopologyService.generateTopology();
+
+        // Compute total power
+        const totalpower =
+            Math.round(packageList.reduce((sum, pkg) => sum + (pkg.power ?? 0), 0) * 100) / 100;
+
+        // Build packages object \u2014 plain object matching CpuPackages GraphQL type
+        const packages: CpuPackages = {
+            totalpower,
+            power: packageList.map((pkg) => pkg.power ?? -1),
+            temp: packageList.map((pkg) => pkg.temp ?? -1),
+        };
 
         return {
             id: 'info/cpu',
             ...rest,
             cores: physicalCores,
             threads: cores,
+            processors,
             flags,
-            power: await this.cpuPowerService.generateCpuPower(),
             stepping: Number(stepping),
             speedmin: speedMin || -1,
             speedmax: speedMax || -1,
+            packages,
+            topology,
         };
     }
 
