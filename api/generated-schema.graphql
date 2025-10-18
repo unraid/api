@@ -1411,6 +1411,17 @@ type CpuPower implements Node {
   coresPower: [Float!]
 }
 
+type CpuPackages implements Node {
+  """Total CPU package power draw (W)"""
+  totalpower: number
+
+  """Power draw per package (W)"""
+  power: [Float!]
+
+  """description: 'Temperature per package (°C)"""
+  temp: [Float!]
+}
+
 type InfoCpu implements Node {
   id: PrefixedID!
 
@@ -2656,6 +2667,7 @@ type Subscription {
   logFile(path: String!): LogFileContent!
   systemMetricsCpu: CpuUtilization!
   systemMetricsCpuPower: CpuPower!
+  systemMetricsCpuTelemetry: CpuPackages!
   systemMetricsMemory: MemoryUtilization!
   upsUpdates: UPSDevice!
 }
