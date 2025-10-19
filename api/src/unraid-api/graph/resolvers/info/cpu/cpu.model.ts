@@ -134,5 +134,5 @@ export class InfoCpu extends Node {
     topology!: number[][][];
 
     @Field(() => CpuPackages)
-    packages: CpuPackages;
+    packages!: CpuPackages;
 }
