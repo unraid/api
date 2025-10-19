@@ -28,14 +28,15 @@ export class CpuService {
             .then((f) => f.split(' '))
             .catch(() => []);
 
+        // Gather telemetry
         const packageList = await this.cpuTopologyService.generateTelemetry();
         const topology = await this.cpuTopologyService.generateTopology();
 
-        // Compute total power
+        // Compute total power (2 decimals)
         const totalpower =
             Math.round(packageList.reduce((sum, pkg) => sum + (pkg.power ?? 0), 0) * 100) / 100;
 
-        // Build packages object \u2014 plain object matching CpuPackages GraphQL type
+        // Build CpuPackages object
         const packages: CpuPackages = {
             totalpower,
             power: packageList.map((pkg) => pkg.power ?? -1),
