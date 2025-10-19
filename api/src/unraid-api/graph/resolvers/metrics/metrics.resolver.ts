@@ -1,4 +1,4 @@
-import { OnModuleInit } from '@nestjs/common';
+import { Logger, OnModuleInit } from '@nestjs/common';
 import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
@@ -21,6 +21,7 @@ import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subsc
 
 @Resolver(() => Metrics)
 export class MetricsResolver implements OnModuleInit {
+    private readonly logger = new Logger(MetricsResolver.name);
     constructor(
         private readonly cpuService: CpuService,
         private readonly cpuPowerService: CpuPowerService,
@@ -40,25 +41,28 @@ export class MetricsResolver implements OnModuleInit {
             },
             1000
         );
-        // Register CPU power polling with 5 second interval
+
         this.subscriptionTracker.registerTopic(
             PUBSUB_CHANNEL.CPU_TELEMETRY,
             async () => {
-                // --- Gather telemetry ---
-                const packageList = await this.cpuTopologyService.generateTelemetry();
+                const packageList = (await this.cpuTopologyService.generateTelemetry()) ?? [];
 
-                // --- Compute total power with 2 decimals ---
+                // Compute total power with 2 decimals
                 const totalpower = Number(
                     packageList.reduce((sum, pkg) => sum + (pkg.power ?? 0), 0).toFixed(2)
                 );
 
-                // --- Build CpuPackages object ---
                 const packages: CpuPackages = {
                     totalpower,
                     power: packageList.map((pkg) => pkg.power ?? -1),
                     temp: packageList.map((pkg) => pkg.temp ?? -1),
                 };
-                pubsub.publish(PUBSUB_CHANNEL.CPU_TELEMETRY, { systemMetricsCpuTelemetry: packages });
+                this.logger.debug(`CPU_TELEMETRY payload: ${JSON.stringify(packages)}`);
+
+                // Publish the payload
+                pubsub.publish(PUBSUB_CHANNEL.CPU_TELEMETRY, {
+                    systemMetricsCpuTelemetry: packages,
+                });
             },
             5000
         );
@@ -67,10 +71,21 @@ export class MetricsResolver implements OnModuleInit {
         this.subscriptionTracker.registerTopic(
             PUBSUB_CHANNEL.CPU_POWER,
             async () => {
-                const payload = await this.cpuPowerService.generateCpuPower();
+                const payload = new CpuPower();
+                // --- Gather telemetry ---
+                const packageList = await this.cpuTopologyService.generateTelemetry();
+
+                // --- Compute total power with 2 decimals ---
+                const totalpower = Number(
+                    packageList.reduce((sum, pkg) => sum + (pkg.power ?? 0), 0).toFixed(2)
+                );
+
+                payload.totalPower = totalpower;
+                payload.coresPower = packageList.map((pkg) => pkg.temp ?? -1);
+                //payload.coresTemp = packageList.map((pkg) => pkg.temp ?? -1);
                 pubsub.publish(PUBSUB_CHANNEL.CPU_POWER, { systemMetricsCpuPower: payload });
             },
-            5000
+            1000
         );
 
         // Register memory polling with 2 second interval
@@ -130,7 +145,7 @@ export class MetricsResolver implements OnModuleInit {
     }
 
     @Subscription(() => CpuPackages, {
-        name: 'systemMetricsCpuTelemtry',
+        name: 'systemMetricsCpuTelemetry',
         resolve: (value) => value.systemMetricsCpuTelemetry,
     })
     @UsePermissions({
