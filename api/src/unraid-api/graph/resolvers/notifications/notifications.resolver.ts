@@ -103,6 +103,17 @@ export class NotificationsResolver {
         return this.notificationsService.getOverview();
     }
 
+    @Mutation(() => Notification, {
+        nullable: true,
+        description: 'Creates a notification if an equivalent unread notification does not already exist.',
+    })
+    public notifyIfUnique(
+        @Args('input', { type: () => NotificationData })
+        data: NotificationData
+    ): Promise<Notification | null> {
+        return this.notificationsService.notifyIfUnique(data);
+    }
+
     @Mutation(() => NotificationOverview)
     public async archiveAll(
         @Args('importance', { type: () => NotificationImportance, nullable: true })
@@ -169,5 +180,14 @@ export class NotificationsResolver {
     })
     async notificationsOverview() {
         return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW);
+    }
+
+    @Subscription(() => [Notification])
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.NOTIFICATIONS,
+    })
+    async notificationsWarningsAndAlerts() {
+        return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_WARNINGS_AND_ALERTS);
     }
 }

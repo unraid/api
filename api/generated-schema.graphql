@@ -2436,6 +2436,11 @@ type Mutation {
   """Marks a notification as archived."""
   archiveNotification(id: PrefixedID!): Notification!
   archiveNotifications(ids: [PrefixedID!]!): NotificationOverview!
+
+  """
+  Creates a notification if an equivalent unread notification does not already exist.
+  """
+  notifyIfUnique(input: NotificationData!): Notification
   archiveAll(importance: NotificationImportance): NotificationOverview!
 
   """Marks a notification as unread."""
@@ -2660,6 +2665,7 @@ input AccessUrlInput {
 type Subscription {
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
+  notificationsWarningsAndAlerts: [Notification!]!
   ownerSubscription: Owner!
   serversSubscription: Server!
   parityHistorySubscription: ParityCheck!
