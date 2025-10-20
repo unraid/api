@@ -1,32 +1,34 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useQuery, useSubscription } from '@vue/apollo-composable';
+import { computed, reactive, ref, watch } from 'vue';
+import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
 import { AlertTriangle, Octagon } from 'lucide-vue-next';
 
-import type {
-  NotificationFragmentFragment,
-  WarningAndAlertNotificationsQuery,
-  WarningAndAlertNotificationsQueryVariables,
-} from '~/composables/gql/graphql';
-
 import {
+  archiveNotification,
   NOTIFICATION_FRAGMENT,
   warningsAndAlerts,
 } from '~/components/Notifications/graphql/notification.query';
 import {
   notificationAddedSubscription,
-  notificationOverviewSubscription,
+  warningsAndAlertsSubscription,
 } from '~/components/Notifications/graphql/notification.subscription';
 import { useFragment } from '~/composables/gql';
-import { NotificationImportance } from '~/composables/gql/graphql';
+import {
+  NotificationImportance,
+  type NotificationFragmentFragment,
+  type WarningAndAlertNotificationsQuery,
+  type WarningAndAlertNotificationsQueryVariables,
+} from '~/composables/gql/graphql';
 
-const { result, loading, refetch, error } = useQuery<
+const { result, loading, error, refetch } = useQuery<
   WarningAndAlertNotificationsQuery,
   WarningAndAlertNotificationsQueryVariables
 >(warningsAndAlerts, undefined, {
   fetchPolicy: 'network-only',
 });
+
+const criticalNotifications = ref<NotificationFragmentFragment[]>([]);
 
 const extractNotifications = (
   notifications: NotificationFragmentFragment[] | null | undefined
@@ -37,10 +39,33 @@ const extractNotifications = (
   return useFragment(NOTIFICATION_FRAGMENT, notifications) ?? [];
 };
 
-const notifications = computed<NotificationFragmentFragment[]>(() => {
-  const data = result.value?.notifications?.warningsAndAlerts;
-  return extractNotifications(data);
+const setNotifications = (incoming: NotificationFragmentFragment[] | null | undefined) => {
+  criticalNotifications.value = extractNotifications(incoming);
+};
+
+watch(
+  () => result.value?.notifications?.warningsAndAlerts,
+  (list) => {
+    if (list) {
+      setNotifications(list);
+    } else if (!loading.value) {
+      criticalNotifications.value = [];
+    }
+  },
+  { immediate: true }
+);
+
+const { onResult: onWarningsAndAlerts } = useSubscription(warningsAndAlertsSubscription);
+
+onWarningsAndAlerts(({ data }) => {
+  if (!data) {
+    return;
+  }
+  setNotifications(data.notificationsWarningsAndAlerts);
 });
+
+const { mutate: archiveNotificationMutate } = useMutation(archiveNotification);
+const dismissing = reactive(new Set<string>());
 
 const formatTimestamp = (notification: NotificationFragmentFragment) => {
   if (notification.formattedTimestamp) {
@@ -81,12 +106,33 @@ const importanceMeta: Record<
 };
 
 const enrichedNotifications = computed(() =>
-  notifications.value.map((notification) => ({
+  criticalNotifications.value.map((notification) => ({
     notification,
     displayTimestamp: formatTimestamp(notification),
     meta: importanceMeta[notification.importance],
   }))
 );
+
+const totalCount = computed(() => criticalNotifications.value.length);
+
+const dismissNotification = async (notification: NotificationFragmentFragment) => {
+  if (dismissing.has(notification.id)) {
+    return;
+  }
+  dismissing.add(notification.id);
+  try {
+    await archiveNotificationMutate({
+      id: notification.id,
+    });
+    criticalNotifications.value = criticalNotifications.value.filter(
+      (current) => current.id !== notification.id
+    );
+  } catch (dismissError) {
+    console.error('[CriticalNotifications] Failed to dismiss notification', dismissError);
+  } finally {
+    dismissing.delete(notification.id);
+  }
+};
 
 useSubscription(notificationAddedSubscription, null, {
   onResult: ({ data }) => {
@@ -101,13 +147,36 @@ useSubscription(notificationAddedSubscription, null, {
     ) {
       return;
     }
-    void refetch();
-  },
-});
 
-useSubscription(notificationOverviewSubscription, null, {
-  onResult: () => {
     void refetch();
+
+    if (!globalThis.toast) {
+      return;
+    }
+
+    if (notification.timestamp) {
+      // Trigger the global toast in tandem with the subscription update.
+      const funcMapping: Record<
+        NotificationImportance,
+        (typeof globalThis)['toast']['info' | 'error' | 'warning']
+      > = {
+        [NotificationImportance.ALERT]: globalThis.toast.error,
+        [NotificationImportance.WARNING]: globalThis.toast.warning,
+        [NotificationImportance.INFO]: globalThis.toast.info,
+      };
+      const toast = funcMapping[notification.importance];
+      const createOpener = () => ({
+        label: 'Open',
+        onClick: () => notification.link && window.open(notification.link, '_blank', 'noopener'),
+      });
+
+      requestAnimationFrame(() =>
+        toast(notification.title, {
+          description: notification.subject,
+          action: notification.link ? createOpener() : undefined,
+        })
+      );
+    }
   },
 });
 </script>
@@ -123,12 +192,12 @@ useSubscription(notificationOverviewSubscription, null, {
         v-if="!loading"
         class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
       >
-        {{ notifications.length }}
+        {{ totalCount }}
       </span>
     </header>
 
     <div v-if="error" class="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-      Failed to load notifications. Please try again.
+      Failed to load notifications. {{ error.message ?? '' }}
     </div>
 
     <div v-else-if="loading" class="flex items-center gap-2 text-sm text-gray-500">
@@ -169,15 +238,25 @@ useSubscription(notificationOverviewSubscription, null, {
             </p>
           </div>
         </div>
-        <a
-          v-if="notification.link"
-          :href="notification.link"
-          class="inline-flex w-fit items-center gap-1 text-sm font-medium text-amber-700 hover:text-amber-800"
-          target="_blank"
-          rel="noreferrer"
-        >
-          View details
-        </a>
+        <div class="flex flex-wrap items-center gap-2 pt-1">
+          <a
+            v-if="notification.link"
+            :href="notification.link"
+            class="inline-flex items-center gap-1 rounded-md border border-amber-500 px-3 py-1 text-sm font-medium text-amber-700 transition hover:bg-amber-50"
+            target="_blank"
+            rel="noreferrer"
+          >
+            View Details
+          </a>
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="dismissing.has(notification.id)"
+            @click="dismissNotification(notification)"
+          >
+            {{ dismissing.has(notification.id) ? 'Dismissing…' : 'Dismiss' }}
+          </button>
+        </div>
       </li>
     </ul>
 
