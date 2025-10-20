@@ -124,3 +124,11 @@ export const resetOverview = graphql(/* GraphQL */ `
     }
   }
 `);
+
+export const notifyIfUnique = graphql(/* GraphQL */ `
+  mutation NotifyIfUnique($input: NotificationData!) {
+    notifyIfUnique(input: $input) {
+      ...NotificationFragment
+    }
+  }
+`);
