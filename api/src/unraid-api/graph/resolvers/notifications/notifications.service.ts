@@ -121,6 +121,7 @@ export class NotificationsService {
             pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
                 notificationAdded: notification,
             });
+            void this.publishWarningsAndAlerts();
         }
     }
 
@@ -140,6 +141,20 @@ export class NotificationsService {
         return pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW, {
             notificationsOverview: overview,
         });
+    }
+
+    private async publishWarningsAndAlerts() {
+        try {
+            const warningsAndAlerts = await this.getWarningsAndAlerts();
+            await pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_WARNINGS_AND_ALERTS, {
+                notificationsWarningsAndAlerts: warningsAndAlerts,
+            });
+        } catch (error) {
+            this.logger.error(
+                '[publishWarningsAndAlerts] Failed to broadcast warnings and alerts snapshot',
+                error as Error
+            );
+        }
     }
 
     private increment(importance: NotificationImportance, collector: NotificationCounts) {
@@ -213,6 +228,8 @@ export class NotificationsService {
             // this.logger.debug(`[createNotification] INI: ${ini}`);
             await writeFile(path, ini);
         }
+
+        void this.publishWarningsAndAlerts();
 
         return this.notificationFileToGqlNotification({ id, type: NotificationType.UNREAD }, fileData);
     }
@@ -300,6 +317,9 @@ export class NotificationsService {
 
         this.decrement(notification.importance, NotificationsService.overview[type.toLowerCase()]);
         await this.publishOverview();
+        if (type === NotificationType.UNREAD) {
+            void this.publishWarningsAndAlerts();
+        }
 
         // return both the overview & the deleted notification
         // this helps us reference the deleted notification in-memory if we want
@@ -320,6 +340,10 @@ export class NotificationsService {
             warning: 0,
             total: 0,
         };
+        await this.publishOverview();
+        if (type === NotificationType.UNREAD) {
+            void this.publishWarningsAndAlerts();
+        }
         return this.getOverview();
     }
 
@@ -433,6 +457,8 @@ export class NotificationsService {
         });
         await moveToArchive(notification);
 
+        void this.publishWarningsAndAlerts();
+
         return {
             ...notification,
             type: NotificationType.ARCHIVE,
@@ -458,6 +484,7 @@ export class NotificationsService {
         });
 
         await moveToUnread(notification);
+        void this.publishWarningsAndAlerts();
         return {
             ...notification,
             type: NotificationType.UNREAD,
@@ -482,6 +509,7 @@ export class NotificationsService {
         });
 
         const stats = await batchProcess(notifications, archive);
+        void this.publishWarningsAndAlerts();
         return { ...stats, overview: overviewSnapshot };
     }
 
@@ -504,6 +532,7 @@ export class NotificationsService {
         });
 
         const stats = await batchProcess(notifications, unArchive);
+        void this.publishWarningsAndAlerts();
         return { ...stats, overview: overviewSnapshot };
     }
 
