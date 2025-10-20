@@ -21,7 +21,8 @@
         "build": "rimraf dist && tsc --project tsconfig.build.json",
         "prepare": "npm run build",
         "test": "vitest run",
-        "test:watch": "vitest"
+        "test:watch": "vitest",
+        "unraid:deploy": "./deploy.sh"
     },
     "keywords": [],
     "author": "Lime Technology, Inc. <unraid.net>",
