@@ -127,7 +127,15 @@ describe('CpuService', () => {
                     l3: 12582912,
                 },
                 flags: ['fpu', 'vme', 'de', 'pse', 'tsc', 'msr', 'pae', 'mce', 'cx8'],
-                power: { id: 'info/cpu-power' },
+                packages: {
+                    totalPower: 65.5,
+                    power: [32.5, 33.0],
+                    temp: [45.0, 46.0],
+                },
+                topology: [
+                    [[0, 1], [2, 3]],
+                    [[4, 5], [6, 7]],
+                ],
             });
         });
 
