@@ -103,11 +103,10 @@ describe('CpuService', () => {
                     [6, 7],
                 ],
             ]),
-            generateTelemetry: vi.fn().mockResolvedValue({
-                totalPower: 65.5,
-                power: [32.5, 33.0],
-                temp: [45.0, 46.0],
-            }),
+            generateTelemetry: vi.fn().mockResolvedValue([
+                { power: 32.5, temp: 45.0 },
+                { power: 33.0, temp: 46.0 },
+            ]),
         } as any;
 
         service = new CpuService(cpuTopologyService);
