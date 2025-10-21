@@ -142,10 +142,7 @@ const updateOsStatus = computed(() => {
         color: 'yellow',
         icon: ExclamationTriangleIcon,
       },
-      href:
-        rebootType.value === 'downgrade'
-          ? WEBGUI_TOOLS_DOWNGRADE.toString()
-          : WEBGUI_TOOLS_UPDATE.toString(),
+      href: rebootType.value === 'downgrade' ? WEBGUI_TOOLS_DOWNGRADE : WEBGUI_TOOLS_UPDATE,
       text: t(rebootTypeText.value),
     };
   }

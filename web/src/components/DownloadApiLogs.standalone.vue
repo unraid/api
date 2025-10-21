@@ -8,10 +8,17 @@ import { CONNECT_FORUMS, CONTACT, DISCORD, WEBGUI_GRAPHQL } from '~/helpers/urls
 
 const { t } = useI18n();
 
+const joinPaths = (base: string, path: string) => {
+  const normalizedBase = base.endsWith('/') ? base.slice(0, -1) : base;
+  const normalizedPath = path.startsWith('/') ? path.slice(1) : path;
+  return `${normalizedBase}/${normalizedPath}`;
+};
+
 const downloadUrl = computed(() => {
-  const url = new URL(`/graphql/api/logs`, WEBGUI_GRAPHQL);
-  url.searchParams.append('csrf_token', globalThis.csrf_token);
-  return url;
+  const csrfToken = globalThis.csrf_token ?? '';
+  const downloadPath = joinPaths(WEBGUI_GRAPHQL, '/api/logs');
+  const params = new URLSearchParams({ csrf_token: csrfToken });
+  return `${downloadPath}?${params.toString()}`;
 });
 </script>
 
@@ -28,7 +35,7 @@ const downloadUrl = computed(() => {
           class="shrink-0 grow-0"
           download
           :external="true"
-          :href="downloadUrl.toString()"
+          :href="downloadUrl"
           :icon="ArrowDownTrayIcon"
           size="12px"
           :text="t('downloadApiLogs.downloadUnraidApiLogs')"

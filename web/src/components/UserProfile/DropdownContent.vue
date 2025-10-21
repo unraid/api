@@ -108,10 +108,7 @@ const updateOsResponseModalOpenButton = computed((): UserProfileLink => {
 });
 const rebootDetectedButton = computed((): UserProfileLink => {
   return {
-    href:
-      rebootType.value === 'downgrade'
-        ? WEBGUI_TOOLS_DOWNGRADE.toString()
-        : WEBGUI_TOOLS_UPDATE.toString(),
+    href: rebootType.value === 'downgrade' ? WEBGUI_TOOLS_DOWNGRADE : WEBGUI_TOOLS_UPDATE,
     icon: ExclamationTriangleIcon,
     text:
       rebootType.value === 'downgrade'
@@ -140,7 +137,7 @@ const links = computed((): UserProfileLink[] => {
     ...(regUpdatesExpired.value
       ? [
           {
-            href: WEBGUI_TOOLS_REGISTRATION.toString(),
+            href: WEBGUI_TOOLS_REGISTRATION,
             icon: KeyIcon,
             text: t('userProfile.dropdownContent.osUpdateEligibilityExpired'),
             title: t('registration.general.goToToolsRegistrationToLearn'),
@@ -167,7 +164,7 @@ const links = computed((): UserProfileLink[] => {
         ]
       : [...[manageUnraidNetAccount.value]]),
     {
-      href: WEBGUI_CONNECT_SETTINGS.toString(),
+      href: WEBGUI_CONNECT_SETTINGS,
       icon: CogIcon,
       text: t('userProfile.dropdownContent.settings'),
       title: t('userProfile.dropdownContent.goToApiSettings'),

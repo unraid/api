@@ -104,7 +104,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
 
   const toolsRegistrationAction = computed(() => {
     return {
-      href: WEBGUI_TOOLS_UPDATE.toString(),
+      href: WEBGUI_TOOLS_UPDATE,
       emphasize: true,
       icon: BellAlertIcon,
       name: 'updateOs',

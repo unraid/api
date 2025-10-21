@@ -58,7 +58,8 @@ export class PM2Service {
             ...(needsPathUpdate && { PATH: finalPath }),
         };
 
-        const runCommand = () => execa(PM2_PATH, [...args], execOptions satisfies Options);
+        const pm2Args = args.some((arg) => arg === '--no-color') ? args : ['--no-color', ...args];
+        const runCommand = () => execa(PM2_PATH, pm2Args, execOptions satisfies Options);
         if (raw) {
             return runCommand();
         }

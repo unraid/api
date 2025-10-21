@@ -49,7 +49,7 @@ const subtitle = computed(() => {
 
 /** when we're not prompting for reboot /Tools/Update will automatically send the user to account.unraid.net/server/update-os */
 const showLoader = computed(
-  () => window.location.pathname === WEBGUI_TOOLS_UPDATE.pathname && rebootType.value === ''
+  () => window.location.pathname === WEBGUI_TOOLS_UPDATE && rebootType.value === ''
 );
 
 onBeforeMount(() => {

@@ -113,7 +113,7 @@ const checkButton = computed(() => {
 
 const navigateToRegistration = () => {
   if (typeof window !== 'undefined') {
-    window.location.href = WEBGUI_TOOLS_REGISTRATION.toString();
+    window.location.href = WEBGUI_TOOLS_REGISTRATION;
   }
 };
 </script>
