@@ -1,12 +1,9 @@
-import { F_OK } from 'constants';
-import { access } from 'fs/promises';
+import { createTtlMemoizedLoader } from '@unraid/shared';
 
-import { createAsyncThunk } from '@reduxjs/toolkit';
-
+import type { RecursivePartial } from '@app/types/index.js';
 import { type DynamixConfig } from '@app/core/types/ini.js';
+import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import { parseConfig } from '@app/core/utils/misc/parse-config.js';
-import { type RecursiveNullable, type RecursivePartial } from '@app/types/index.js';
-import { batchProcess } from '@app/utils.js';
 
 /**
  * Loads a configuration file from disk, parses it to a RecursivePartial of the provided type, and returns it.
@@ -16,11 +13,8 @@ import { batchProcess } from '@app/utils.js';
  * @param path The path to the configuration file on disk.
  * @returns A parsed RecursivePartial of the provided type.
  */
-async function loadConfigFile<ConfigType>(path: string): Promise<RecursivePartial<ConfigType>> {
-    const fileIsAccessible = await access(path, F_OK)
-        .then(() => true)
-        .catch(() => false);
-    return fileIsAccessible
+function loadConfigFileSync<ConfigType>(path: string): RecursivePartial<ConfigType> {
+    return fileExistsSync(path)
         ? parseConfig<RecursivePartial<ConfigType>>({
               filePath: path,
               type: 'ini',
@@ -28,21 +22,40 @@ async function loadConfigFile<ConfigType>(path: string): Promise<RecursivePartia
         : {};
 }
 
-/**
- * Load the dynamix.cfg into the store.
- *
- * Note: If the file doesn't exist this will fallback to default values.
- */
-export const loadDynamixConfigFile = createAsyncThunk<
-    RecursiveNullable<RecursivePartial<DynamixConfig>>,
-    string | undefined
->('config/load-dynamix-config-file', async (filePath) => {
-    if (filePath) {
-        return loadConfigFile<DynamixConfig>(filePath);
-    }
-    const store = await import('@app/store/index.js');
-    const paths = store.getters.paths()['dynamix-config'];
-    const { data: configs } = await batchProcess(paths, (path) => loadConfigFile<DynamixConfig>(path));
-    const [defaultConfig = {}, customConfig = {}] = configs;
-    return { ...defaultConfig, ...customConfig };
+type ConfigPaths = readonly (string | undefined | null)[];
+const CACHE_WINDOW_MS = 250;
+
+const memoizedConfigLoader = createTtlMemoizedLoader<
+    RecursivePartial<DynamixConfig>,
+    ConfigPaths,
+    string
+>({
+    ttlMs: CACHE_WINDOW_MS,
+    getCacheKey: (configPaths: ConfigPaths): string => JSON.stringify(configPaths),
+    load: (configPaths: ConfigPaths) => {
+        const validPaths = configPaths.filter((path): path is string => Boolean(path));
+        if (validPaths.length === 0) {
+            return {};
+        }
+        const configFiles = validPaths.map((path) => loadConfigFileSync<DynamixConfig>(path));
+        return configFiles.reduce<RecursivePartial<DynamixConfig>>(
+            (accumulator, configFile) => ({
+                ...accumulator,
+                ...configFile,
+            }),
+            {}
+        );
+    },
 });
+
+/**
+ * Loads dynamix config from disk with TTL caching.
+ *
+ * @param configPaths - Array of config file paths to load and merge
+ * @returns Merged config object from all valid paths
+ */
+export const loadDynamixConfigFromDiskSync = (
+    configPaths: readonly (string | undefined | null)[]
+): RecursivePartial<DynamixConfig> => {
+    return memoizedConfigLoader.get(configPaths);
+};

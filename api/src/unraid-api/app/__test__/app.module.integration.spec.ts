@@ -6,8 +6,7 @@ import { AuthZGuard } from 'nest-authz';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file.js';
-import { store } from '@app/store/index.js';
+import { loadDynamixConfig, store } from '@app/store/index.js';
 import { loadStateFiles } from '@app/store/modules/emhttp.js';
 import { AppModule } from '@app/unraid-api/app/app.module.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
@@ -111,7 +110,7 @@ describe('AppModule Integration Tests', () => {
 
     beforeAll(async () => {
         // Initialize the dynamix config and state files before creating the module
-        await store.dispatch(loadDynamixConfigFile());
+        loadDynamixConfig();
         await store.dispatch(loadStateFiles());
 
         // Debug: Log the CSRF token from the store

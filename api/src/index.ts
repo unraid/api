@@ -18,13 +18,11 @@ import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
 import { environment, PATHS_CONFIG_MODULES, PORT } from '@app/environment.js';
 import * as envVars from '@app/environment.js';
-import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file.js';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event.js';
-import { store } from '@app/store/index.js';
+import { loadDynamixConfig, store } from '@app/store/index.js';
 import { startMiddlewareListeners } from '@app/store/listeners/listener-middleware.js';
 import { loadStateFiles } from '@app/store/modules/emhttp.js';
 import { loadRegistrationKey } from '@app/store/modules/registration.js';
-import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch.js';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch.js';
 import { StateManager } from '@app/store/watch/state-watch.js';
 
@@ -76,16 +74,13 @@ export const viteNodeApp = async () => {
         await store.dispatch(loadRegistrationKey());
 
         // Load my dynamix config file into store
-        await store.dispatch(loadDynamixConfigFile());
+        loadDynamixConfig();
 
         // Start listening to file updates
         StateManager.getInstance();
 
         // Start listening to key file changes
         setupRegistrationKeyWatch();
-
-        // Start listening to dynamix config file changes
-        setupDynamixConfigWatch();
 
         // If port is unix socket, delete old socket before starting http server
         unlinkUnixPort();
