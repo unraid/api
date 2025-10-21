@@ -1401,19 +1401,9 @@ type CpuUtilization implements Node {
   cpus: [CpuLoad!]!
 }
 
-type CpuPower implements Node {
-  id: PrefixedID!
-
-  """CPU power in watts"""
-  totalPower: Float
-
-  """CPU power in watts for each physical processor"""
-  coresPower: [Float!]
-}
-
 type CpuPackages implements Node {
   """Total CPU package power draw (W)"""
-  totalpower: number
+  totalPower: number
 
   """Power draw per package (W)"""
   power: [Float!]
@@ -1467,8 +1457,8 @@ type InfoCpu implements Node {
   """Number of physical processors"""
   processors: Int
 
-  """CPU power information"""
-  power: CpuPower
+  """CPU packages information"""
+  packages: CpuPackages
 
   """CPU socket type"""
   socket: String
@@ -2666,7 +2656,6 @@ type Subscription {
   arraySubscription: UnraidArray!
   logFile(path: String!): LogFileContent!
   systemMetricsCpu: CpuUtilization!
-  systemMetricsCpuPower: CpuPower!
   systemMetricsCpuTelemetry: CpuPackages!
   systemMetricsMemory: MemoryUtilization!
   upsUpdates: UPSDevice!

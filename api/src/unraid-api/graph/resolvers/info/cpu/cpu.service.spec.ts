@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { CpuPowerService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-power.service.js';
+import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 
 vi.mock('systeminformation', () => ({
@@ -89,14 +89,14 @@ vi.mock('systeminformation', () => ({
 
 describe('CpuService', () => {
     let service: CpuService;
-    let cpuPowerService: CpuPowerService;
+    let cpuTopologyService: CpuTopologyService;
 
     beforeEach(() => {
-        cpuPowerService = {
-            generateCpuPower: vi.fn().mockResolvedValue({ id: 'info/cpu-power' }),
+        cpuTopologyService = {
+            generateCpuTotopology: vi.fn().mockResolvedValue({ id: 'info/cpu-topology' }),
         } as any;
 
-        service = new CpuService(cpuPowerService);
+        service = new CpuService(cpuTopologyService);
     });
 
     describe('generateCpu', () => {
