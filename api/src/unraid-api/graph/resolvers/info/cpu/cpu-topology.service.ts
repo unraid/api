@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { promises as fs } from 'fs';
+import { access, readdir, readFile } from 'node:fs/promises';
 import { join } from 'path';
 
 const { readdir, readFile, access } = fs;
