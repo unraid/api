@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { promises as fs } from 'fs';
+import { constants as fsConstants } from 'node:fs';
 import { access, readdir, readFile } from 'node:fs/promises';
 import { join } from 'path';
-
-const { readdir, readFile, access } = fs;
-const { constants: fsConstants } = fs;
 
 @Injectable()
 export class CpuTopologyService {
@@ -196,7 +193,6 @@ export class CpuTopologyService {
 
         const result: {
             id: number;
-            totalPower: number;
             power: number;
             temp: number;
         }[] = [];
@@ -205,7 +201,6 @@ export class CpuTopologyService {
             const entry = powerData[pkgId] ?? {};
             result.push({
                 id: pkgId,
-                totalPower: 0,
                 power: entry.total ?? -1,
                 temp: temps[pkgId] ?? -1,
             });
