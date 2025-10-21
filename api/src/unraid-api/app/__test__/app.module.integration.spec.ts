@@ -110,8 +110,8 @@ describe('AppModule Integration Tests', () => {
 
     beforeAll(async () => {
         // Initialize the dynamix config and state files before creating the module
-        loadDynamixConfig();
         await store.dispatch(loadStateFiles());
+        loadDynamixConfig();
 
         // Debug: Log the CSRF token from the store
         const { getters } = await import('@app/store/index.js');
