@@ -377,7 +377,7 @@ const showUpdateEligibility = computed(() => {
             <BrandButton
               v-else
               class="grow-0"
-              :href="WEBGUI_CONNECT_SETTINGS.toString()"
+              :href="WEBGUI_CONNECT_SETTINGS"
               :icon="CogIcon"
               :text="t('userProfile.callbackFeedback.configureConnectFeatures')"
             />
@@ -404,7 +404,7 @@ const showUpdateEligibility = computed(() => {
 
         <template v-if="stateDataError">
           <BrandButton
-            :href="WEBGUI_TOOLS_REGISTRATION.toString()"
+            :href="WEBGUI_TOOLS_REGISTRATION"
             :icon="WrenchScrewdriverIcon"
             :text="t('userProfile.callbackFeedback.fixError')"
           />

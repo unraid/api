@@ -19,13 +19,12 @@ const DISCORD = new URL('https://discord.unraid.net');
 const PURCHASE_CALLBACK = new URL('/c', UNRAID_NET);
 const UNRAID_NET_SUPPORT = new URL('/support', UNRAID_NET);
 
-const WEBGUI = new URL(import.meta.env.VITE_WEBGUI ?? window.location.origin);
-const WEBGUI_GRAPHQL = new URL('/graphql', WEBGUI);
-const WEBGUI_SETTINGS_MANAGMENT_ACCESS = new URL('/Settings/ManagementAccess', WEBGUI);
-const WEBGUI_CONNECT_SETTINGS = new URL('#UnraidNetSettings', WEBGUI_SETTINGS_MANAGMENT_ACCESS);
-const WEBGUI_TOOLS_DOWNGRADE = new URL('/Tools/Downgrade', WEBGUI);
-const WEBGUI_TOOLS_REGISTRATION = new URL('/Tools/Registration', WEBGUI);
-const WEBGUI_TOOLS_UPDATE = new URL('/Tools/Update', WEBGUI);
+const WEBGUI_GRAPHQL = '/graphql';
+const WEBGUI_SETTINGS_MANAGMENT_ACCESS = '/Settings/ManagementAccess';
+const WEBGUI_CONNECT_SETTINGS = `${WEBGUI_SETTINGS_MANAGMENT_ACCESS}#UnraidNetSettings`;
+const WEBGUI_TOOLS_DOWNGRADE = '/Tools/Downgrade';
+const WEBGUI_TOOLS_REGISTRATION = '/Tools/Registration';
+const WEBGUI_TOOLS_UPDATE = '/Tools/Update';
 
 const OS_RELEASES = new URL(import.meta.env.VITE_OS_RELEASES ?? 'https://releases.unraid.net/os');
 
@@ -66,7 +65,6 @@ export {
   getReleaseNotesUrl,
   DOCS_REGISTRATION_LICENSING,
   DOCS_REGISTRATION_REPLACE_KEY,
-  WEBGUI,
   WEBGUI_CONNECT_SETTINGS,
   WEBGUI_GRAPHQL,
   WEBGUI_SETTINGS_MANAGMENT_ACCESS,

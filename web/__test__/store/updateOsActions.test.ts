@@ -12,9 +12,7 @@ import type { Release } from '~/store/updateOsActions';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 vi.mock('~/helpers/urls', () => ({
-  WEBGUI_TOOLS_UPDATE: {
-    toString: () => 'https://webgui/tools/update',
-  },
+  WEBGUI_TOOLS_UPDATE: 'https://webgui/tools/update',
 }));
 
 const mockUpdateOs = vi.fn();

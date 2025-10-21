@@ -43,7 +43,7 @@ Object.defineProperty(window, 'location', {
 });
 
 vi.mock('~/helpers/urls', () => ({
-  WEBGUI_TOOLS_UPDATE: { pathname: '/Tools/Update' },
+  WEBGUI_TOOLS_UPDATE: '/Tools/Update',
 }));
 
 const UpdateOsStatusStub = {

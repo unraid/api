@@ -17,16 +17,30 @@ declare global {
   }
 }
 
+const HTTP_PROTOCOL_REGEX = /^https?:\/\//i;
+const fallbackOrigin = 'http://localhost';
+
+const buildAbsoluteUrl = (value: string): string => {
+  if (HTTP_PROTOCOL_REGEX.test(value)) {
+    return value;
+  }
+
+  const origin =
+    typeof window !== 'undefined' && window.location?.origin ? window.location.origin : fallbackOrigin;
+
+  return new URL(value, origin).toString();
+};
+
 const getGraphQLEndpoint = () => {
   if (typeof window !== 'undefined' && window.GRAPHQL_ENDPOINT) {
-    return new URL(window.GRAPHQL_ENDPOINT);
+    return buildAbsoluteUrl(window.GRAPHQL_ENDPOINT);
   }
-  return WEBGUI_GRAPHQL;
+  return buildAbsoluteUrl(WEBGUI_GRAPHQL);
 };
 
 const httpEndpoint = getGraphQLEndpoint();
-const wsEndpoint = new URL(httpEndpoint.toString());
-wsEndpoint.protocol = httpEndpoint.protocol === 'https:' ? 'wss:' : 'ws:';
+const wsEndpoint = new URL(httpEndpoint);
+wsEndpoint.protocol = wsEndpoint.protocol === 'https:' ? 'wss:' : 'ws:';
 const DEV_MODE = (globalThis as unknown as { __DEV__: boolean }).__DEV__ ?? false;
 
 const headers = {
@@ -34,7 +48,7 @@ const headers = {
 };
 
 const httpLink = createHttpLink({
-  uri: httpEndpoint.toString(),
+  uri: httpEndpoint,
   headers,
   credentials: 'include',
 });

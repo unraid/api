@@ -815,7 +815,7 @@ export const useServerStore = defineStore('server', () => {
             message: t('server.configError.ineligible.message'),
             actions: [
               {
-                href: WEBGUI_TOOLS_REGISTRATION.toString(),
+                href: WEBGUI_TOOLS_REGISTRATION,
                 icon: CogIcon,
                 text: t('server.configError.ineligible.action'),
               },
@@ -846,7 +846,7 @@ export const useServerStore = defineStore('server', () => {
             message: t('server.configError.withdrawn.message'),
             actions: [
               {
-                href: WEBGUI_TOOLS_UPDATE.toString(),
+                href: WEBGUI_TOOLS_UPDATE,
                 icon: ArrowPathIcon,
                 text: t('server.configError.withdrawn.action'),
               },
@@ -913,7 +913,7 @@ export const useServerStore = defineStore('server', () => {
       ? {
           actions: [
             {
-              href: WEBGUI_SETTINGS_MANAGMENT_ACCESS.toString(),
+              href: WEBGUI_SETTINGS_MANAGMENT_ACCESS,
               icon: CogIcon,
               text: t('server.deprecatedSsl.managementAccess'),
             },

@@ -15,7 +15,7 @@ vi.mock('~/helpers/urls', () => ({
   CONNECT_FORUMS: new URL('http://mock-forums.local'),
   CONTACT: new URL('http://mock-contact.local'),
   DISCORD: new URL('http://mock-discord.local'),
-  WEBGUI_GRAPHQL: new URL('http://mock-webgui.local'),
+  WEBGUI_GRAPHQL: '/graphql',
 }));
 
 vi.mock('vue-i18n', async (importOriginal) => {
@@ -47,15 +47,14 @@ describe('DownloadApiLogs', () => {
     });
 
     // Expected download URL
-    const expectedUrl = new URL('/graphql/api/logs', 'http://mock-webgui.local');
-    expectedUrl.searchParams.append('csrf_token', 'mock-csrf-token');
+    const expectedUrl = '/graphql/api/logs?csrf_token=mock-csrf-token';
 
     // Find the download button
     const downloadButton = wrapper.findComponent(BrandButton);
 
     // Verify download button exists and has correct attributes
     expect(downloadButton.exists()).toBe(true);
-    expect(downloadButton.attributes('href')).toBe(expectedUrl.toString());
+    expect(downloadButton.attributes('href')).toBe(expectedUrl);
     expect(downloadButton.attributes('download')).toBe('');
     expect(downloadButton.attributes('target')).toBe('_blank');
     expect(downloadButton.attributes('rel')).toBe('noopener noreferrer');
