@@ -5,7 +5,6 @@ import { basename, join } from 'node:path';
 
 import { cpu, cpuFlags, currentLoad } from 'systeminformation';
 
-import { CpuPowerService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-power.service.js';
 import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
 import {
     CpuPackages,
@@ -17,10 +16,7 @@ import {
 export class CpuService {
     private readonly logger = new Logger(CpuService.name);
 
-    constructor(
-        private readonly cpuPowerService: CpuPowerService,
-        private readonly cpuTopologyService: CpuTopologyService
-    ) {}
+    constructor(private readonly cpuTopologyService: CpuTopologyService) {}
 
     async generateCpu(): Promise<InfoCpu> {
         const { cores, physicalCores, speedMin, speedMax, stepping, processors, ...rest } = await cpu();
@@ -33,12 +29,12 @@ export class CpuService {
         const topology = await this.cpuTopologyService.generateTopology();
 
         // Compute total power (2 decimals)
-        const totalpower =
+        const totalPower =
             Math.round(packageList.reduce((sum, pkg) => sum + (pkg.power ?? 0), 0) * 100) / 100;
 
         // Build CpuPackages object
         const packages: CpuPackages = {
-            totalpower,
+            totalPower,
             power: packageList.map((pkg) => pkg.power ?? -1),
             temp: packageList.map((pkg) => pkg.temp ?? -1),
         };
