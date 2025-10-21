@@ -192,12 +192,19 @@ export class CpuTopologyService {
         const powerData = await this.getPackagePower();
 
         const maxPkg = Math.max(temps.length - 1, ...Object.keys(powerData).map(Number), 0);
-        const result = [];
+
+        const result: {
+            id: number;
+            totalPower: number;
+            power: number;
+            temp: number;
+        }[] = [];
 
         for (let pkgId = 0; pkgId <= maxPkg; pkgId++) {
             const entry = powerData[pkgId] ?? {};
             result.push({
                 id: pkgId,
+                totalPower: 0,
                 power: entry.total ?? -1,
                 temp: temps[pkgId] ?? -1,
             });

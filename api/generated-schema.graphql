@@ -1403,7 +1403,7 @@ type CpuUtilization implements Node {
 
 type CpuPackages implements Node {
   """Total CPU package power draw (W)"""
-  totalPower: number
+  totalPower: Float!
 
   """Power draw per package (W)"""
   power: [Float!]
