@@ -179,7 +179,7 @@ export class CpuTopologyService {
             results[pkgId][label] = powerW;
         }
 
-        for (const [pkgId, domains] of Object.entries(results)) {
+        for (const domains of Object.values(results)) {
             const total = Object.values(domains).reduce((a, b) => a + b, 0);
             (domains as any)['total'] = Math.round(total * 100) / 100;
         }

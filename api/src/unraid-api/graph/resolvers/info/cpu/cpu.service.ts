@@ -1,7 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { constants as fsConstants } from 'node:fs';
-import { access, readdir, readFile } from 'node:fs/promises';
-import { basename, join } from 'node:path';
+import { Injectable } from '@nestjs/common';
 
 import { cpu, cpuFlags, currentLoad } from 'systeminformation';
 
@@ -14,8 +11,6 @@ import {
 
 @Injectable()
 export class CpuService {
-    private readonly logger = new Logger(CpuService.name);
-
     constructor(private readonly cpuTopologyService: CpuTopologyService) {}
 
     async generateCpu(): Promise<InfoCpu> {
