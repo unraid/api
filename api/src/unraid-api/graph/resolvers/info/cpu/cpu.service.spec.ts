@@ -93,7 +93,21 @@ describe('CpuService', () => {
 
     beforeEach(() => {
         cpuTopologyService = {
-            generateCpuTotopology: vi.fn().mockResolvedValue({ id: 'info/cpu-topology' }),
+            generateTopology: vi.fn().mockResolvedValue([
+                [
+                    [0, 1],
+                    [2, 3],
+                ],
+                [
+                    [4, 5],
+                    [6, 7],
+                ],
+            ]),
+            generateTelemetry: vi.fn().mockResolvedValue({
+                totalPower: 65.5,
+                power: [32.5, 33.0],
+                temp: [45.0, 46.0],
+            }),
         } as any;
 
         service = new CpuService(cpuTopologyService);
