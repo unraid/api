@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.26.0](https://github.com/unraid/api/compare/v4.25.2...v4.26.0) (2025-10-22)
+
+
+### Features
+
+* translations now use crowdin (translate.unraid.net) ([#1739](https://github.com/unraid/api/issues/1739)) ([31c4102](https://github.com/unraid/api/commit/31c41027fc3798e47e81c03cd5cf327f84c8c4d5))
+
+
+### Bug Fixes
+
+* **#1729:** api key authorize component not mounted when on Unraid OS ([e9e271a](https://github.com/unraid/api/commit/e9e271ade5d5ca359025200e1e6f1680dc956c62))
+* api auth from web during local dev ([#1743](https://github.com/unraid/api/issues/1743)) ([754966d](https://github.com/unraid/api/commit/754966d5d34824608fb3c9f774b79612272d5d87))
+* use relative URLs in the web links and fix color in PM2 startup ([#1752](https://github.com/unraid/api/issues/1752)) ([f212dce](https://github.com/unraid/api/commit/f212dce88b847cb6d3187b313c0f8ccae8aadda2))
+
 ## [4.25.2](https://github.com/unraid/api/compare/v4.25.1...v4.25.2) (2025-09-30)
 
 
