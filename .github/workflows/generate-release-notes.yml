@@ -94,7 +94,7 @@ jobs:
                     > "$TEMP_NOTES" 2>/dev/null || true
                   
                   if [ -s "$TEMP_NOTES" ]; then
-                    NOTES=$(cat "$TEMP_NOTES" | sed '1,/^## /d' | sed '/^## /,$d' | sed '/^$/d' | head -c -1)
+                    NOTES=$(cat "$TEMP_NOTES")
                     
                     if [ -n "$NOTES" ]; then
                       echo "✓ Generated changelog with conventional-changelog"
