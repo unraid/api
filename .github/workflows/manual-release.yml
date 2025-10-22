@@ -68,7 +68,11 @@ jobs:
                 echo "❌ Version mismatch in $pkg: $CURRENT_VERSION != $EXPECTED_VERSION"
                 MISMATCHES_FOUND=true
                 
-                jq --arg version "$EXPECTED_VERSION" '.version = $version' "$pkg" > "$pkg.tmp" && mv "$pkg.tmp" "$pkg"
+                # Detect indentation by checking the first property line
+                INDENT_SPACES=$(head -10 "$pkg" | grep '^ *"' | head -1 | sed 's/".*//g' | wc -c)
+                INDENT_SPACES=$((INDENT_SPACES - 1))
+                
+                jq --indent "$INDENT_SPACES" --arg version "$EXPECTED_VERSION" '.version = $version' "$pkg" > "$pkg.tmp" && mv "$pkg.tmp" "$pkg"
                 echo "✓ Updated $pkg to version $EXPECTED_VERSION"
               else
                 echo "✓ $pkg version matches: $CURRENT_VERSION"
