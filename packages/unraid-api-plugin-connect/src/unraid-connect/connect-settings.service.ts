@@ -225,7 +225,7 @@ export class ConnectSettingsService {
             this.configService.set('connect.config.wanport', input.port);
             // when forwarding with upnp, the upnp service will clear & set the wanport as necessary
         }
-        
+
         this.configService.set('connect.config.wanaccess', wanaccessEnabled);
         // do the wanaccess port-override last; it should have the highest precedence
         if (!wanaccessEnabled) {
@@ -244,7 +244,6 @@ export class ConnectSettingsService {
             },
         });
 
-        await this.networkService.reloadNetworkStack();
         return true;
     }
 
