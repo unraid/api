@@ -154,170 +154,15 @@ jobs:
           files: ./coverage/coverage-final.json,../web/coverage/coverage-final.json,../unraid-ui/coverage/coverage-final.json,../packages/unraid-api-plugin-connect/coverage/coverage-final.json,../packages/unraid-shared/coverage/coverage-final.json
           fail_ci_if_error: false
 
-  build-api:
-    name: Build API
-    runs-on: ubuntu-latest
-    outputs:
-      build_number: ${{ steps.buildnumber.outputs.build_number }}
-    defaults:
-      run:
-        working-directory: api
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v5
-
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
-        with:
-          run_install: false
-
-      - name: Install Node
-        uses: actions/setup-node@v5
-        with:
-          node-version-file: ".nvmrc"
-          cache: 'pnpm'
-
-      - name: Cache APT Packages
-        uses: awalsh128/cache-apt-pkgs-action@v1.5.3
-        with:
-          packages: bash procps python3 libvirt-dev jq zstd git build-essential
-          version: 1.0
-
-      - name: PNPM Install
-        run: |
-          cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm run build
-
-      - name: Get Git Short Sha and API version
-        id: vars
-        run: |
-          GIT_SHA=$(git rev-parse --short HEAD)
-          IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
-          PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
-          API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
-          export API_VERSION
-          echo "API_VERSION=${API_VERSION}" >> $GITHUB_ENV
-          echo "PACKAGE_LOCK_VERSION=${PACKAGE_LOCK_VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Generate build number
-        id: buildnumber
-        uses: onyxmueller/build-tag-number@v1
-        with:
-          token: ${{secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN}}
-          prefix: ${{steps.vars.outputs.PACKAGE_LOCK_VERSION}}
-
-      - name: Build
-        run: |
-          pnpm run build:release
-          tar -czf deploy/unraid-api.tgz -C deploy/pack/ .
-
-      - name: Upload tgz to Github artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: unraid-api
-          path: ${{ github.workspace }}/api/deploy/unraid-api.tgz
-
-  build-unraid-ui-webcomponents:
-    name: Build Unraid UI Library (Webcomponent Version)
-    defaults:
-      run:
-        working-directory: unraid-ui
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v5
-
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
-        with:
-          run_install: false
-
-      - name: Install Node
-        uses: actions/setup-node@v5
-        with:
-          node-version-file: ".nvmrc"
-          cache: 'pnpm'
-
-      - name: Cache APT Packages
-        uses: awalsh128/cache-apt-pkgs-action@v1.5.3
-        with:
-          packages: bash procps python3 libvirt-dev jq zstd git build-essential
-          version: 1.0
-
-      - name: Install dependencies
-        run: |
-          cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile --filter @unraid/ui
-
-      - name: Lint
-        run: pnpm run lint
-
-      - name: Build
-        run: pnpm run build:wc
-
-      - name: Upload Artifact to Github
-        uses: actions/upload-artifact@v4
-        with:
-          name: unraid-wc-ui
-          path: unraid-ui/dist-wc/
-
-  build-web:
-    # needs: [build-unraid-ui]
-    name: Build Web App
-    defaults:
-      run:
-        working-directory: web
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v5
-
-      - name: Create env file
-        run: |
-          touch .env
-          echo VITE_ACCOUNT=${{ secrets.VITE_ACCOUNT }} >> .env
-          echo VITE_CONNECT=${{ secrets.VITE_CONNECT }} >> .env
-          echo VITE_UNRAID_NET=${{ secrets.VITE_UNRAID_NET }} >> .env
-          echo VITE_CALLBACK_KEY=${{ secrets.VITE_CALLBACK_KEY }} >> .env
-
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
-        with:
-          run_install: false
-
-      - name: Install Node
-        uses: actions/setup-node@v5
-        with:
-          node-version-file: ".nvmrc"
-          cache: 'pnpm'
-
-      - name: PNPM Install
-        run: |
-          cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile --filter @unraid/web --filter @unraid/ui
-
-      - name: Build Unraid UI
-        run: |
-          cd ${{ github.workspace }}/unraid-ui
-          pnpm run build
-
-      - name: Lint files
-        run: pnpm run lint
-
-      - name: Type Check
-        run: pnpm run type-check
-
-      - name: Build
-        run: pnpm run build
-
-      - name: Upload build to Github artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: unraid-wc-rich
-          path: web/dist
+  build-artifacts:
+    name: Build All Artifacts
+    uses: ./.github/workflows/build-artifacts.yml
+    secrets:
+      VITE_ACCOUNT: ${{ secrets.VITE_ACCOUNT }}
+      VITE_CONNECT: ${{ secrets.VITE_CONNECT }}
+      VITE_UNRAID_NET: ${{ secrets.VITE_UNRAID_NET }}
+      VITE_CALLBACK_KEY: ${{ secrets.VITE_CALLBACK_KEY }}
+      UNRAID_BOT_GITHUB_ADMIN_TOKEN: ${{ secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN }}
 
   release-please:
     name: Release Please
@@ -326,9 +171,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs:
       - test-api
-      - build-api
-      - build-web
-      - build-unraid-ui-webcomponents
+      - build-artifacts
     permissions:
       contents: write
       pull-requests: write
@@ -345,9 +188,7 @@ jobs:
   build-plugin-staging-pr:
     name: Build and Deploy Plugin
     needs:
-      - build-api
-      - build-web
-      - build-unraid-ui-webcomponents
+      - build-artifacts
       - test-api
     uses: ./.github/workflows/build-plugin.yml
     with:
@@ -355,7 +196,7 @@ jobs:
       TAG: ${{ github.event.pull_request.number && format('PR{0}', github.event.pull_request.number) || '' }}
       BUCKET_PATH: ${{ github.event.pull_request.number && format('unraid-api/tag/PR{0}', github.event.pull_request.number) || 'unraid-api' }}
       BASE_URL: "https://preview.dl.unraid.net/unraid-api"
-      BUILD_NUMBER: ${{ needs.build-api.outputs.build_number }}
+      BUILD_NUMBER: ${{ needs.build-artifacts.outputs.build_number }}
     secrets:
       CF_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
       CF_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
@@ -367,7 +208,7 @@ jobs:
     name: Build and Deploy Production Plugin
     needs:
       - release-please
-      - build-api
+      - build-artifacts
     uses: ./.github/workflows/build-plugin.yml
     with:
       RELEASE_CREATED: true
@@ -375,7 +216,7 @@ jobs:
       TAG: ""
       BUCKET_PATH: unraid-api
       BASE_URL: "https://stable.dl.unraid.net/unraid-api"
-      BUILD_NUMBER: ${{ needs.build-api.outputs.build_number }}
+      BUILD_NUMBER: ${{ needs.build-artifacts.outputs.build_number }}
     secrets:
       CF_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
       CF_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
