@@ -26,8 +26,105 @@ permissions:
   pull-requests: write
 
 jobs:
+  validate-version:
+    name: Validate and Update Package Versions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.target_commitish || github.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check and Update Package Versions
+        run: |
+          EXPECTED_VERSION="${{ inputs.version }}"
+          MISMATCHES_FOUND=false
+          
+          PACKAGE_JSONS=(
+            "package.json"
+            "api/package.json"
+            "web/package.json"
+            "unraid-ui/package.json"
+            "plugin/package.json"
+            "packages/unraid-shared/package.json"
+            "packages/unraid-api-plugin-health/package.json"
+            "packages/unraid-api-plugin-generator/package.json"
+            "packages/unraid-api-plugin-connect/package.json"
+          )
+          
+          echo "Checking package.json versions against expected version: ${EXPECTED_VERSION}"
+          
+          for pkg in "${PACKAGE_JSONS[@]}"; do
+            if [ -f "$pkg" ]; then
+              CURRENT_VERSION=$(node -p "require('./$pkg').version")
+              if [ "$CURRENT_VERSION" != "$EXPECTED_VERSION" ]; then
+                echo "❌ Version mismatch in $pkg: $CURRENT_VERSION != $EXPECTED_VERSION"
+                MISMATCHES_FOUND=true
+                
+                node -e "
+                  const fs = require('fs');
+                  const pkg = JSON.parse(fs.readFileSync('$pkg', 'utf8'));
+                  pkg.version = '$EXPECTED_VERSION';
+                  fs.writeFileSync('$pkg', JSON.stringify(pkg, null, 2) + '\n');
+                "
+                echo "✓ Updated $pkg to version $EXPECTED_VERSION"
+              else
+                echo "✓ $pkg version matches: $CURRENT_VERSION"
+              fi
+            fi
+          done
+          
+          if [ "$MISMATCHES_FOUND" = true ]; then
+            echo ""
+            echo "=========================================="
+            echo "Version mismatches found!"
+            echo "=========================================="
+            echo ""
+            echo "Amending the latest commit with version updates..."
+            
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            
+            git add ${PACKAGE_JSONS[@]}
+            git commit --amend --no-edit
+            
+            BRANCH_OR_SHA="${{ inputs.target_commitish || github.ref }}"
+            
+            if git show-ref --verify --quiet "refs/heads/${BRANCH_OR_SHA}"; then
+              echo "Force pushing to branch: ${BRANCH_OR_SHA}"
+              git push origin "HEAD:${BRANCH_OR_SHA}" --force-with-lease
+            else
+              echo "Target is a commit SHA, not a branch. Cannot force push."
+              echo "Please update the package.json versions manually and re-run the workflow."
+              exit 1
+            fi
+            
+            echo ""
+            echo "=========================================="
+            echo "WORKFLOW FAILED"
+            echo "=========================================="
+            echo ""
+            echo "Package versions have been updated and committed."
+            echo "The commit has been force-pushed to the branch."
+            echo "Please re-run the manual release workflow to proceed."
+            echo ""
+            exit 1
+          fi
+          
+          echo ""
+          echo "✓ All package.json versions match the expected version: ${EXPECTED_VERSION}"
+
   build-artifacts:
     name: Build All Artifacts
+    needs:
+      - validate-version
     uses: ./.github/workflows/build-artifacts.yml
     with:
       ref: ${{ inputs.target_commitish || github.ref }}
