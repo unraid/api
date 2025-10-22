@@ -68,12 +68,7 @@ jobs:
                 echo "❌ Version mismatch in $pkg: $CURRENT_VERSION != $EXPECTED_VERSION"
                 MISMATCHES_FOUND=true
                 
-                node -e "
-                  const fs = require('fs');
-                  const pkg = JSON.parse(fs.readFileSync('$pkg', 'utf8'));
-                  pkg.version = '$EXPECTED_VERSION';
-                  fs.writeFileSync('$pkg', JSON.stringify(pkg, null, 2) + '\n');
-                "
+                jq --arg version "$EXPECTED_VERSION" '.version = $version' "$pkg" > "$pkg.tmp" && mv "$pkg.tmp" "$pkg"
                 echo "✓ Updated $pkg to version $EXPECTED_VERSION"
               else
                 echo "✓ $pkg version matches: $CURRENT_VERSION"
