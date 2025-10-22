@@ -1,0 +1,201 @@
+name: Build Artifacts
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: false
+        description: "Git ref to checkout (commit SHA, branch, or tag)"
+      version_override:
+        type: string
+        required: false
+        description: "Override version (for manual releases)"
+    outputs:
+      build_number:
+        description: "Build number for the artifacts"
+        value: ${{ jobs.build-api.outputs.build_number }}
+    secrets:
+      VITE_ACCOUNT:
+        required: true
+      VITE_CONNECT:
+        required: true
+      VITE_UNRAID_NET:
+        required: true
+      VITE_CALLBACK_KEY:
+        required: true
+      UNRAID_BOT_GITHUB_ADMIN_TOKEN:
+        required: false
+
+jobs:
+  build-api:
+    name: Build API
+    runs-on: ubuntu-latest
+    outputs:
+      build_number: ${{ steps.buildnumber.outputs.build_number }}
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Install Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: 'pnpm'
+
+      - name: Cache APT Packages
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.3
+        with:
+          packages: bash procps python3 libvirt-dev jq zstd git build-essential
+          version: 1.0
+
+      - name: PNPM Install
+        run: |
+          cd ${{ github.workspace }}
+          pnpm install --frozen-lockfile
+
+      - name: Get Git Short Sha and API version
+        id: vars
+        run: |
+          GIT_SHA=$(git rev-parse --short HEAD)
+          IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
+          PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
+          API_VERSION=${{ inputs.version_override && format('"{0}"', inputs.version_override) || '${PACKAGE_LOCK_VERSION}' }}
+          if [ -z "${{ inputs.version_override }}" ] && [ -z "$IS_TAGGED" ]; then
+            API_VERSION="${PACKAGE_LOCK_VERSION}+${GIT_SHA}"
+          fi
+          export API_VERSION
+          echo "API_VERSION=${API_VERSION}" >> $GITHUB_ENV
+          echo "PACKAGE_LOCK_VERSION=${PACKAGE_LOCK_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Generate build number
+        id: buildnumber
+        uses: onyxmueller/build-tag-number@v1
+        with:
+          token: ${{ secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN || github.token }}
+          prefix: ${{ inputs.version_override || steps.vars.outputs.PACKAGE_LOCK_VERSION }}
+
+      - name: Build
+        run: |
+          pnpm run build:release
+          tar -czf deploy/unraid-api.tgz -C deploy/pack/ .
+
+      - name: Upload tgz to Github artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: unraid-api
+          path: ${{ github.workspace }}/api/deploy/unraid-api.tgz
+
+  build-unraid-ui-webcomponents:
+    name: Build Unraid UI Library (Webcomponent Version)
+    defaults:
+      run:
+        working-directory: unraid-ui
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Install Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: 'pnpm'
+
+      - name: Cache APT Packages
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.3
+        with:
+          packages: bash procps python3 libvirt-dev jq zstd git build-essential
+          version: 1.0
+
+      - name: Install dependencies
+        run: |
+          cd ${{ github.workspace }}
+          pnpm install --frozen-lockfile --filter @unraid/ui
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Build
+        run: pnpm run build:wc
+
+      - name: Upload Artifact to Github
+        uses: actions/upload-artifact@v4
+        with:
+          name: unraid-wc-ui
+          path: unraid-ui/dist-wc/
+
+  build-web:
+    name: Build Web App
+    defaults:
+      run:
+        working-directory: web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Create env file
+        run: |
+          touch .env
+          echo VITE_ACCOUNT=${{ secrets.VITE_ACCOUNT }} >> .env
+          echo VITE_CONNECT=${{ secrets.VITE_CONNECT }} >> .env
+          echo VITE_UNRAID_NET=${{ secrets.VITE_UNRAID_NET }} >> .env
+          echo VITE_CALLBACK_KEY=${{ secrets.VITE_CALLBACK_KEY }} >> .env
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Install Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: ".nvmrc"
+          cache: 'pnpm'
+
+      - name: PNPM Install
+        run: |
+          cd ${{ github.workspace }}
+          pnpm install --frozen-lockfile --filter @unraid/web --filter @unraid/ui
+
+      - name: Build Unraid UI
+        run: |
+          cd ${{ github.workspace }}/unraid-ui
+          pnpm run build
+
+      - name: Lint files
+        run: pnpm run lint
+
+      - name: Type Check
+        run: pnpm run type-check
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Upload build to Github artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: unraid-wc-rich
+          path: web/dist
+
