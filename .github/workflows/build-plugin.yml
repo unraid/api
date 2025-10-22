@@ -27,6 +27,10 @@ on:
         type: string
         required: true
         description: "Build number for the plugin builds"
+      ref:
+        type: string
+        required: false
+        description: "Git ref (commit SHA, branch, or tag) to checkout"
     secrets:
       CF_ACCESS_KEY_ID:
         required: true
@@ -49,6 +53,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v5
         with:
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
 
       - uses: pnpm/action-setup@v4

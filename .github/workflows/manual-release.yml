@@ -125,6 +125,7 @@ jobs:
       BUCKET_PATH: unraid-api
       BASE_URL: "https://stable.dl.unraid.net/unraid-api"
       BUILD_NUMBER: ${{ needs.build-artifacts.outputs.build_number }}
+      ref: ${{ inputs.target_commitish || github.ref }}
     secrets:
       CF_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
       CF_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
