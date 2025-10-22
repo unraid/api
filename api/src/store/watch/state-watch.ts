@@ -45,6 +45,26 @@ export class StateManager {
         return StateFileKey[parsed.name];
     }
 
+    private async handleStateFileUpdate(eventPath: string, event: 'add' | 'change') {
+        const stateFile = this.getStateFileKeyFromPath(eventPath);
+        if (!stateFile) {
+            emhttpLogger.trace('Failed to resolve a stateFileKey from path: %s', eventPath);
+            return;
+        }
+
+        try {
+            emhttpLogger.debug('Loading state file for %s after %s event', stateFile, event);
+            await store.dispatch(loadSingleStateFile(stateFile));
+        } catch (error: unknown) {
+            emhttpLogger.error(
+                'Failed to load state file: [%s] after %s event\nerror: %o',
+                stateFile,
+                event,
+                error as object
+            );
+        }
+    }
+
     private readonly setupChokidarWatchForState = () => {
         const { states } = getters.paths();
         for (const key of Object.values(StateFileKey)) {
@@ -52,23 +72,8 @@ export class StateManager {
                 const pathToWatch = join(states, `${key}.ini`);
                 emhttpLogger.debug('Setting up watch for path: %s', pathToWatch);
                 const stateWatch = watch(pathToWatch, chokidarOptionsForStateKey(key));
-                stateWatch.on('change', async (path) => {
-                    const stateFile = this.getStateFileKeyFromPath(path);
-                    if (stateFile) {
-                        try {
-                            emhttpLogger.debug('Loading state file for %s', stateFile);
-                            await store.dispatch(loadSingleStateFile(stateFile));
-                        } catch (error: unknown) {
-                            emhttpLogger.error(
-                                'Failed to load state file: [%s]\nerror:  %o',
-                                stateFile,
-                                error as object
-                            );
-                        }
-                    } else {
-                        emhttpLogger.trace('Failed to resolve a stateFileKey from path: %s', path);
-                    }
-                });
+                stateWatch.on('add', async (path) => this.handleStateFileUpdate(path, 'add'));
+                stateWatch.on('change', async (path) => this.handleStateFileUpdate(path, 'change'));
                 this.fileWatchers.push(stateWatch);
             }
         }

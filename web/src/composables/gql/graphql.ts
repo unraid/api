@@ -119,6 +119,39 @@ export type ActivationCode = {
   theme?: Maybe<Scalars['String']['output']>;
 };
 
+export type ActivationOnboarding = {
+  __typename?: 'ActivationOnboarding';
+  /** Current OS version detected by the system */
+  currentVersion?: Maybe<Scalars['String']['output']>;
+  /** Whether there are any remaining activation onboarding steps */
+  hasPendingSteps: Scalars['Boolean']['output'];
+  /** Indicates whether the system is currently in an upgrade state */
+  isUpgrade: Scalars['Boolean']['output'];
+  /** Previous OS version prior to the current upgrade */
+  previousVersion?: Maybe<Scalars['String']['output']>;
+  /** Activation onboarding steps relevant to the current system state */
+  steps: Array<ActivationOnboardingStep>;
+};
+
+export type ActivationOnboardingStep = {
+  __typename?: 'ActivationOnboardingStep';
+  /** Indicates whether the step has been completed for the current version */
+  completed: Scalars['Boolean']['output'];
+  /** Identifier of the activation onboarding step */
+  id: ActivationOnboardingStepId;
+  /** Version of Unraid when this step was introduced */
+  introducedIn?: Maybe<Scalars['String']['output']>;
+  /** Indicates whether the step is required */
+  required: Scalars['Boolean']['output'];
+};
+
+export enum ActivationOnboardingStepId {
+  ACTIVATION = 'ACTIVATION',
+  PLUGINS = 'PLUGINS',
+  TIMEZONE = 'TIMEZONE',
+  WELCOME = 'WELCOME'
+}
+
 export type AddPermissionInput = {
   actions: Array<AuthAction>;
   resource: Resource;
@@ -432,6 +465,12 @@ export type CloudResponse = {
   error?: Maybe<Scalars['String']['output']>;
   ip?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
+};
+
+/** Input for marking an upgrade onboarding step as completed */
+export type CompleteUpgradeStepInput = {
+  /** Identifier of the onboarding step to mark completed */
+  stepId: ActivationOnboardingStepId;
 };
 
 export type Config = Node & {
@@ -1086,6 +1125,8 @@ export type InfoVersions = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Software package versions */
   packages?: Maybe<PackageVersions>;
+  /** OS upgrade information */
+  upgrade: UpgradeInfo;
 };
 
 export type InitiateFlashBackupInput = {
@@ -1097,6 +1138,16 @@ export type InitiateFlashBackupInput = {
   remoteName: Scalars['String']['input'];
   /** Source path to backup (typically the flash drive). */
   sourcePath: Scalars['String']['input'];
+};
+
+/** Input payload for installing a plugin */
+export type InstallPluginInput = {
+  /** Force installation even when plugin is already present. Defaults to true to mirror the existing UI behaviour. */
+  forced?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Optional human-readable plugin name used for logging */
+  name?: InputMaybe<Scalars['String']['input']>;
+  /** Plugin installation URL (.plg) */
+  url: Scalars['String']['input'];
 };
 
 export type KeyFile = {
@@ -1234,6 +1285,7 @@ export type Mutation = {
   /** Initiates a flash drive backup using a configured remote. */
   initiateFlashBackup: FlashBackupStatus;
   moveDockerEntriesToFolder: ResolvedOrganizerV1;
+  onboarding: OnboardingMutations;
   parityCheck: ParityCheckMutations;
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
@@ -1245,10 +1297,13 @@ export type Mutation = {
   setupRemoteAccess: Scalars['Boolean']['output'];
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
+  unraidPlugins: UnraidPluginsMutations;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
   updateSettings: UpdateSettingsResponse;
+  /** Update system time configuration */
+  updateSystemTime: SystemTime;
   vm: VmMutations;
 };
 
@@ -1360,6 +1415,11 @@ export type MutationUpdateApiSettingsArgs = {
 
 export type MutationUpdateSettingsArgs = {
   input: Scalars['JSON']['input'];
+};
+
+
+export type MutationUpdateSystemTimeArgs = {
+  input: UpdateSystemTimeInput;
 };
 
 export type Network = Node & {
@@ -1498,6 +1558,19 @@ export type OidcSessionValidation = {
   valid: Scalars['Boolean']['output'];
 };
 
+/** Onboarding related mutations */
+export type OnboardingMutations = {
+  __typename?: 'OnboardingMutations';
+  /** Mark an upgrade onboarding step as completed for the current OS version */
+  completeUpgradeStep: UpgradeInfo;
+};
+
+
+/** Onboarding related mutations */
+export type OnboardingMutationsCompleteUpgradeStepArgs = {
+  input: CompleteUpgradeStepInput;
+};
+
 export type OrganizerContainerResource = {
   __typename?: 'OrganizerContainerResource';
   id: Scalars['String']['output'];
@@ -1610,6 +1683,48 @@ export type Plugin = {
   version: Scalars['String']['output'];
 };
 
+/** Emitted event representing progress for a plugin installation */
+export type PluginInstallEvent = {
+  __typename?: 'PluginInstallEvent';
+  /** Identifier of the related plugin installation operation */
+  operationId: Scalars['ID']['output'];
+  /** Output lines newly emitted since the previous event */
+  output?: Maybe<Array<Scalars['String']['output']>>;
+  /** Status reported with this event */
+  status: PluginInstallStatus;
+  /** Timestamp when the event was emitted */
+  timestamp: Scalars['DateTime']['output'];
+};
+
+/** Represents a tracked plugin installation operation */
+export type PluginInstallOperation = {
+  __typename?: 'PluginInstallOperation';
+  /** Timestamp when the operation was created */
+  createdAt: Scalars['DateTime']['output'];
+  /** Timestamp when the operation finished, if applicable */
+  finishedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Unique identifier of the operation */
+  id: Scalars['ID']['output'];
+  /** Optional plugin name for display purposes */
+  name?: Maybe<Scalars['String']['output']>;
+  /** Collected output lines generated by the installer (capped at recent lines) */
+  output: Array<Scalars['String']['output']>;
+  /** Current status of the operation */
+  status: PluginInstallStatus;
+  /** Timestamp for the last update to this operation */
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Plugin URL passed to the installer */
+  url: Scalars['String']['output'];
+};
+
+/** Status of a plugin installation operation */
+export enum PluginInstallStatus {
+  FAILED = 'FAILED',
+  QUEUED = 'QUEUED',
+  RUNNING = 'RUNNING',
+  SUCCEEDED = 'SUCCEEDED'
+}
+
 export type PluginManagementInput = {
   /** Whether to treat plugins as bundled plugins. Bundled plugins are installed to node_modules at build time and controlled via config only. */
   bundled?: Scalars['Boolean']['input'];
@@ -1649,6 +1764,8 @@ export type PublicPartnerInfo = {
 
 export type Query = {
   __typename?: 'Query';
+  /** Activation onboarding steps derived from current system state */
+  activationOnboarding: ActivationOnboarding;
   apiKey?: Maybe<ApiKey>;
   /** All possible permissions for API keys */
   apiKeyPossiblePermissions: Array<Permission>;
@@ -1689,6 +1806,10 @@ export type Query = {
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
+  /** Retrieve a plugin installation operation by identifier */
+  pluginInstallOperation?: Maybe<PluginInstallOperation>;
+  /** List all tracked plugin installation operations */
+  pluginInstallOperations: Array<PluginInstallOperation>;
   /** List all installed plugins with their metadata */
   plugins: Array<Plugin>;
   /** Preview the effective permissions for a combination of roles and explicit permissions */
@@ -1705,6 +1826,8 @@ export type Query = {
   services: Array<Service>;
   settings: Settings;
   shares: Array<Share>;
+  /** Retrieve current system time configuration */
+  systemTime: SystemTime;
   upsConfiguration: UpsConfiguration;
   upsDeviceById?: Maybe<UpsDevice>;
   upsDevices: Array<UpsDevice>;
@@ -1740,6 +1863,11 @@ export type QueryLogFileArgs = {
 
 export type QueryOidcProviderArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryPluginInstallOperationArgs = {
+  operationId: Scalars['ID']['input'];
 };
 
 
@@ -2051,6 +2179,7 @@ export type Subscription = {
   notificationsOverview: NotificationOverview;
   ownerSubscription: Owner;
   parityHistorySubscription: ParityCheck;
+  pluginInstallUpdates: PluginInstallEvent;
   serversSubscription: Server;
   systemMetricsCpu: CpuUtilization;
   systemMetricsMemory: MemoryUtilization;
@@ -2060,6 +2189,24 @@ export type Subscription = {
 
 export type SubscriptionLogFileArgs = {
   path: Scalars['String']['input'];
+};
+
+
+export type SubscriptionPluginInstallUpdatesArgs = {
+  operationId: Scalars['ID']['input'];
+};
+
+/** System time configuration and current status */
+export type SystemTime = {
+  __typename?: 'SystemTime';
+  /** Current server time in ISO-8601 format (UTC) */
+  currentTime: Scalars['String']['output'];
+  /** Configured NTP servers (empty strings indicate unused slots) */
+  ntpServers: Array<Scalars['String']['output']>;
+  /** IANA timezone identifier currently in use */
+  timeZone: Scalars['String']['output'];
+  /** Whether NTP/PTP time synchronization is enabled */
+  useNtp: Scalars['Boolean']['output'];
 };
 
 /** Temperature unit */
@@ -2256,6 +2403,19 @@ export type UnraidArray = Node & {
   state: ArrayState;
 };
 
+/** Unraid plugin management mutations */
+export type UnraidPluginsMutations = {
+  __typename?: 'UnraidPluginsMutations';
+  /** Install an Unraid plugin and track installation progress */
+  installPlugin: PluginInstallOperation;
+};
+
+
+/** Unraid plugin management mutations */
+export type UnraidPluginsMutationsInstallPluginArgs = {
+  input: InstallPluginInput;
+};
+
 export type UpdateApiKeyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['PrefixedID']['input'];
@@ -2281,6 +2441,41 @@ export enum UpdateStatus {
   UPDATE_AVAILABLE = 'UPDATE_AVAILABLE',
   UP_TO_DATE = 'UP_TO_DATE'
 }
+
+export type UpdateSystemTimeInput = {
+  /** Manual date/time to apply when disabling NTP, expected format YYYY-MM-DD HH:mm:ss */
+  manualDateTime?: InputMaybe<Scalars['String']['input']>;
+  /** Ordered list of up to four NTP servers. Supply empty strings to clear positions. */
+  ntpServers?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** New IANA timezone identifier to apply */
+  timeZone?: InputMaybe<Scalars['String']['input']>;
+  /** Enable or disable NTP-based synchronization */
+  useNtp?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+export type UpgradeInfo = {
+  __typename?: 'UpgradeInfo';
+  /** Onboarding step identifiers completed for the current OS version */
+  completedSteps: Array<Scalars['String']['output']>;
+  /** Current OS version */
+  currentVersion?: Maybe<Scalars['String']['output']>;
+  /** Whether the OS version has changed since last boot */
+  isUpgrade: Scalars['Boolean']['output'];
+  /** Previous OS version before upgrade */
+  previousVersion?: Maybe<Scalars['String']['output']>;
+  /** Onboarding step definitions applicable to the current upgrade path */
+  steps: Array<UpgradeStep>;
+};
+
+export type UpgradeStep = {
+  __typename?: 'UpgradeStep';
+  /** Identifier of the onboarding step */
+  id: Scalars['String']['output'];
+  /** Version of Unraid when this step was introduced */
+  introducedIn?: Maybe<Scalars['String']['output']>;
+  /** Whether the step is required to continue */
+  required: Scalars['Boolean']['output'];
+};
 
 export type Uptime = {
   __typename?: 'Uptime';
@@ -2573,6 +2768,18 @@ export enum RegistrationType {
   UNLEASHED = 'UNLEASHED'
 }
 
+export type ActivationOnboardingQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ActivationOnboardingQuery = { __typename?: 'Query', activationOnboarding: { __typename?: 'ActivationOnboarding', isUpgrade: boolean, previousVersion?: string | null, currentVersion?: string | null, hasPendingSteps: boolean, steps: Array<{ __typename?: 'ActivationOnboardingStep', id: ActivationOnboardingStepId, required: boolean, completed: boolean, introducedIn?: string | null }> } };
+
+export type CompleteUpgradeStepMutationVariables = Exact<{
+  input: CompleteUpgradeStepInput;
+}>;
+
+
+export type CompleteUpgradeStepMutation = { __typename?: 'Mutation', onboarding: { __typename?: 'OnboardingMutations', completeUpgradeStep: { __typename?: 'UpgradeInfo', isUpgrade: boolean, previousVersion?: string | null, currentVersion?: string | null, completedSteps: Array<string>, steps: Array<{ __typename?: 'UpgradeStep', id: string, required: boolean, introducedIn?: string | null }> } } };
+
 export type PartnerInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -2587,6 +2794,34 @@ export type ActivationCodeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ActivationCodeQuery = { __typename?: 'Query', vars: { __typename?: 'Vars', regState?: RegistrationState | null }, customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', code?: string | null, partnerName?: string | null, serverName?: string | null, sysModel?: string | null, comment?: string | null, header?: string | null, headermetacolor?: string | null, background?: string | null, showBannerGradient?: boolean | null, theme?: string | null } | null, partnerInfo?: { __typename?: 'PublicPartnerInfo', hasPartnerLogo: boolean, partnerName?: string | null, partnerUrl?: string | null, partnerLogoUrl?: string | null } | null } | null };
+
+export type InstallPluginMutationVariables = Exact<{
+  input: InstallPluginInput;
+}>;
+
+
+export type InstallPluginMutation = { __typename?: 'Mutation', unraidPlugins: { __typename?: 'UnraidPluginsMutations', installPlugin: { __typename?: 'PluginInstallOperation', id: string, url: string, name?: string | null, status: PluginInstallStatus, createdAt: string, updatedAt?: string | null, finishedAt?: string | null, output: Array<string> } } };
+
+export type PluginInstallOperationQueryVariables = Exact<{
+  operationId: Scalars['ID']['input'];
+}>;
+
+
+export type PluginInstallOperationQuery = { __typename?: 'Query', pluginInstallOperation?: { __typename?: 'PluginInstallOperation', id: string, url: string, name?: string | null, status: PluginInstallStatus, createdAt: string, updatedAt?: string | null, finishedAt?: string | null, output: Array<string> } | null };
+
+export type PluginInstallUpdatesSubscriptionVariables = Exact<{
+  operationId: Scalars['ID']['input'];
+}>;
+
+
+export type PluginInstallUpdatesSubscription = { __typename?: 'Subscription', pluginInstallUpdates: { __typename?: 'PluginInstallEvent', operationId: string, status: PluginInstallStatus, output?: Array<string> | null, timestamp: string } };
+
+export type UpdateSystemTimeMutationVariables = Exact<{
+  input: UpdateSystemTimeInput;
+}>;
+
+
+export type UpdateSystemTimeMutation = { __typename?: 'Mutation', updateSystemTime: { __typename?: 'SystemTime', currentTime: string, timeZone: string, useNtp: boolean, ntpServers: Array<string> } };
 
 export type GetApiKeyCreationFormSchemaQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2801,11 +3036,6 @@ export type PublicOidcProvidersQueryVariables = Exact<{ [key: string]: never; }>
 
 export type PublicOidcProvidersQuery = { __typename?: 'Query', publicOidcProviders: Array<{ __typename?: 'PublicOidcProvider', id: string, name: string, buttonText?: string | null, buttonIcon?: string | null, buttonVariant?: string | null, buttonStyle?: string | null }> };
 
-export type ServerInfoQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type ServerInfoQuery = { __typename?: 'Query', info: { __typename?: 'Info', os: { __typename?: 'InfoOs', hostname?: string | null } }, vars: { __typename?: 'Vars', comment?: string | null } };
-
 export type ConnectSignInMutationVariables = Exact<{
   input: ConnectSignInInput;
 }>;
@@ -2847,9 +3077,15 @@ export const ApiKeyFragmentDoc = {"kind":"Document","definitions":[{"kind":"Frag
 export const NotificationFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationFragmentFragment, unknown>;
 export const NotificationCountFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationCountFragmentFragment, unknown>;
 export const PartialCloudFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<PartialCloudFragment, unknown>;
+export const ActivationOnboardingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivationOnboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationOnboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"isUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"previousVersion"}},{"kind":"Field","name":{"kind":"Name","value":"currentVersion"}},{"kind":"Field","name":{"kind":"Name","value":"hasPendingSteps"}},{"kind":"Field","name":{"kind":"Name","value":"steps"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"required"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"introducedIn"}}]}}]}}]}}]} as unknown as DocumentNode<ActivationOnboardingQuery, ActivationOnboardingQueryVariables>;
+export const CompleteUpgradeStepDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CompleteUpgradeStep"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CompleteUpgradeStepInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"completeUpgradeStep"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"isUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"previousVersion"}},{"kind":"Field","name":{"kind":"Name","value":"currentVersion"}},{"kind":"Field","name":{"kind":"Name","value":"completedSteps"}},{"kind":"Field","name":{"kind":"Name","value":"steps"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"required"}},{"kind":"Field","name":{"kind":"Name","value":"introducedIn"}}]}}]}}]}}]}}]} as unknown as DocumentNode<CompleteUpgradeStepMutation, CompleteUpgradeStepMutationVariables>;
 export const PartnerInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}}]}}]} as unknown as DocumentNode<PartnerInfoQuery, PartnerInfoQueryVariables>;
 export const PublicWelcomeDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PublicWelcomeData"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"isInitialSetup"}}]}}]} as unknown as DocumentNode<PublicWelcomeDataQuery, PublicWelcomeDataQueryVariables>;
 export const ActivationCodeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regState"}}]}},{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"sysModel"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}},{"kind":"Field","name":{"kind":"Name","value":"header"}},{"kind":"Field","name":{"kind":"Name","value":"headermetacolor"}},{"kind":"Field","name":{"kind":"Name","value":"background"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}}]}},{"kind":"Field","name":{"kind":"Name","value":"partnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}}]}}]}}]} as unknown as DocumentNode<ActivationCodeQuery, ActivationCodeQueryVariables>;
+export const InstallPluginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InstallPlugin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InstallPluginInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraidPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installPlugin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"finishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]}}]} as unknown as DocumentNode<InstallPluginMutation, InstallPluginMutationVariables>;
+export const PluginInstallOperationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PluginInstallOperation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pluginInstallOperation"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"operationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"finishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]} as unknown as DocumentNode<PluginInstallOperationQuery, PluginInstallOperationQueryVariables>;
+export const PluginInstallUpdatesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"PluginInstallUpdates"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pluginInstallUpdates"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"operationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"operationId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"output"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}}]}}]}}]} as unknown as DocumentNode<PluginInstallUpdatesSubscription, PluginInstallUpdatesSubscriptionVariables>;
+export const UpdateSystemTimeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSystemTime"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateSystemTimeInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSystemTime"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentTime"}},{"kind":"Field","name":{"kind":"Name","value":"timeZone"}},{"kind":"Field","name":{"kind":"Name","value":"useNtp"}},{"kind":"Field","name":{"kind":"Name","value":"ntpServers"}}]}}]}}]} as unknown as DocumentNode<UpdateSystemTimeMutation, UpdateSystemTimeMutationVariables>;
 export const GetApiKeyCreationFormSchemaDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetApiKeyCreationFormSchema"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getApiKeyCreationFormSchema"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<GetApiKeyCreationFormSchemaQuery, GetApiKeyCreationFormSchemaQueryVariables>;
 export const CreateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"create"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<CreateApiKeyMutation, CreateApiKeyMutationVariables>;
 export const UpdateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<UpdateApiKeyMutation, UpdateApiKeyMutationVariables>;
@@ -2879,7 +3115,6 @@ export const ListRCloneRemotesDocument = {"kind":"Document","definitions":[{"kin
 export const InfoVersionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"InfoVersions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}},{"kind":"Field","name":{"kind":"Name","value":"versions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"core"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraid"}},{"kind":"Field","name":{"kind":"Name","value":"api"}}]}}]}}]}}]}}]} as unknown as DocumentNode<InfoVersionsQuery, InfoVersionsQueryVariables>;
 export const OidcProvidersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"OidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sso"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"oidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"clientId"}},{"kind":"Field","name":{"kind":"Name","value":"issuer"}},{"kind":"Field","name":{"kind":"Name","value":"authorizationEndpoint"}},{"kind":"Field","name":{"kind":"Name","value":"tokenEndpoint"}},{"kind":"Field","name":{"kind":"Name","value":"jwksUri"}},{"kind":"Field","name":{"kind":"Name","value":"scopes"}},{"kind":"Field","name":{"kind":"Name","value":"authorizationRules"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"claim"}},{"kind":"Field","name":{"kind":"Name","value":"operator"}},{"kind":"Field","name":{"kind":"Name","value":"value"}}]}},{"kind":"Field","name":{"kind":"Name","value":"authorizationRuleMode"}},{"kind":"Field","name":{"kind":"Name","value":"buttonText"}},{"kind":"Field","name":{"kind":"Name","value":"buttonIcon"}}]}}]}}]}}]}}]} as unknown as DocumentNode<OidcProvidersQuery, OidcProvidersQueryVariables>;
 export const PublicOidcProvidersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PublicOidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicOidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"buttonText"}},{"kind":"Field","name":{"kind":"Name","value":"buttonIcon"}},{"kind":"Field","name":{"kind":"Name","value":"buttonVariant"}},{"kind":"Field","name":{"kind":"Name","value":"buttonStyle"}}]}}]}}]} as unknown as DocumentNode<PublicOidcProvidersQuery, PublicOidcProvidersQueryVariables>;
-export const ServerInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}}]}}]} as unknown as DocumentNode<ServerInfoQuery, ServerInfoQueryVariables>;
 export const ConnectSignInDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConnectSignIn"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ConnectSignInInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignIn"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<ConnectSignInMutation, ConnectSignInMutationVariables>;
 export const SignOutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignOut"}}]}}]} as unknown as DocumentNode<SignOutMutation, SignOutMutationVariables>;
 export const IsSsoEnabledDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"IsSSOEnabled"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"isSSOEnabled"}}]}}]} as unknown as DocumentNode<IsSsoEnabledQuery, IsSsoEnabledQueryVariables>;
