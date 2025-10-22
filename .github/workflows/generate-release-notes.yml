@@ -59,7 +59,10 @@ jobs:
               echo "Extracting release notes from CHANGELOG.md for version ${VERSION}"
               
               NOTES=$(awk -v ver="$VERSION" '
-                BEGIN { found=0; capture=0; output="" }
+                BEGIN { 
+                  found=0; capture=0; output="";
+                  gsub(/\./, "\\.", ver);
+                }
                 /^## \[/ {
                   if (capture) exit;
                   if ($0 ~ "\\[" ver "\\]") {
