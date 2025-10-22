@@ -68,10 +68,8 @@ jobs:
                   if ($0 ~ "\\[" ver "\\]") {
                     found=1;
                     capture=1;
-                    next;
                   }
                 }
-                capture && /^## \[/ { exit }
                 capture { 
                   if (output != "") output = output "\n";
                   output = output $0;
