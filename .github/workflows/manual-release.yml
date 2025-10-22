@@ -119,7 +119,7 @@ jobs:
       - build-artifacts
     uses: ./.github/workflows/build-plugin.yml
     with:
-      RELEASE_CREATED: true
+      RELEASE_CREATED: 'true'
       RELEASE_TAG: ${{ needs.create-release.outputs.tag_name }}
       TAG: ""
       BUCKET_PATH: unraid-api

@@ -192,7 +192,7 @@ jobs:
       - test-api
     uses: ./.github/workflows/build-plugin.yml
     with:
-      RELEASE_CREATED: false
+      RELEASE_CREATED: 'false'
       TAG: ${{ github.event.pull_request.number && format('PR{0}', github.event.pull_request.number) || '' }}
       BUCKET_PATH: ${{ github.event.pull_request.number && format('unraid-api/tag/PR{0}', github.event.pull_request.number) || 'unraid-api' }}
       BASE_URL: "https://preview.dl.unraid.net/unraid-api"
@@ -211,7 +211,7 @@ jobs:
       - build-artifacts
     uses: ./.github/workflows/build-plugin.yml
     with:
-      RELEASE_CREATED: true
+      RELEASE_CREATED: 'true'
       RELEASE_TAG: ${{ needs.release-please.outputs.tag_name }}
       TAG: ""
       BUCKET_PATH: unraid-api
