@@ -73,9 +73,9 @@ jobs:
                   if (found) print output;
                   else exit 1;
                 }
-              ' "$CHANGELOG_PATH")
+              ' "$CHANGELOG_PATH") || EXTRACTION_STATUS=$?
               
-              if [ $? -eq 0 ] && [ -n "$NOTES" ]; then
+              if [ ${EXTRACTION_STATUS:-0} -eq 0 ] && [ -n "$NOTES" ]; then
                 echo "✓ Found release notes in CHANGELOG.md"
               else
                 echo "⚠ Version ${VERSION} not found in CHANGELOG.md, generating with conventional-changelog"
