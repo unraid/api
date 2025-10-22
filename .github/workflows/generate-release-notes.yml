@@ -19,6 +19,9 @@ on:
       release_notes:
         description: 'Generated or provided release notes'
         value: ${{ jobs.generate.outputs.release_notes }}
+    secrets:
+      UNRAID_BOT_GITHUB_ADMIN_TOKEN:
+        required: true
 
 jobs:
   generate:
@@ -32,6 +35,7 @@ jobs:
         with:
           ref: ${{ inputs.target_commitish || github.ref }}
           fetch-depth: 0
+          token: ${{ secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -81,6 +85,7 @@ jobs:
                 echo "⚠ Version ${VERSION} not found in CHANGELOG.md, generating with conventional-changelog"
                 
                 PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+                CHANGELOG_GENERATED=false
                 
                 if [ -n "$PREV_TAG" ]; then
                   echo "Generating changelog from ${PREV_TAG}..HEAD using conventional-changelog"
@@ -98,6 +103,25 @@ jobs:
                     
                     if [ -n "$NOTES" ]; then
                       echo "✓ Generated changelog with conventional-changelog"
+                      CHANGELOG_GENERATED=true
+                      
+                      TEMP_CHANGELOG=$(mktemp)
+                      {
+                        if [ -f "$CHANGELOG_PATH" ]; then
+                          head -n 1 "$CHANGELOG_PATH"
+                          echo ""
+                          echo "$NOTES"
+                          echo ""
+                          tail -n +2 "$CHANGELOG_PATH"
+                        else
+                          echo "# Changelog"
+                          echo ""
+                          echo "$NOTES"
+                        fi
+                      } > "$TEMP_CHANGELOG"
+                      
+                      mv "$TEMP_CHANGELOG" "$CHANGELOG_PATH"
+                      echo "✓ Updated CHANGELOG.md with generated notes"
                     else
                       echo "⚠ conventional-changelog produced empty output, using GitHub auto-generation"
                       NOTES=$(gh api repos/${{ github.repository }}/releases/generate-notes \
@@ -122,6 +146,45 @@ jobs:
                     -f tag_name="${TAG_NAME}" \
                     -f target_commitish="${{ inputs.target_commitish || github.sha }}" \
                     --jq '.body' || echo "Release ${VERSION}")
+                fi
+                
+                if [ "$CHANGELOG_GENERATED" = true ]; then
+                  BRANCH_OR_SHA="${{ inputs.target_commitish || github.ref }}"
+                  
+                  if git show-ref --verify --quiet "refs/heads/${BRANCH_OR_SHA}"; then
+                    echo ""
+                    echo "=========================================="
+                    echo "CHANGELOG GENERATED AND COMMITTED"
+                    echo "=========================================="
+                    echo ""
+                    
+                    git config user.name "github-actions[bot]"
+                    git config user.email "github-actions[bot]@users.noreply.github.com"
+                    
+                    BEFORE_SHA=$(git rev-parse HEAD)
+                    
+                    git add "$CHANGELOG_PATH"
+                    git commit -m "chore: add changelog for version ${VERSION}"
+                    git push origin "HEAD:${BRANCH_OR_SHA}"
+                    
+                    AFTER_SHA=$(git rev-parse HEAD)
+                    
+                    echo "✓ Changelog committed and pushed successfully"
+                    echo ""
+                    echo "Previous SHA: ${BEFORE_SHA}"
+                    echo "New SHA:      ${AFTER_SHA}"
+                    echo ""
+                    echo "⚠️  CRITICAL: A new commit was created, but github.sha is immutable."
+                    echo "⚠️  github.sha = ${BEFORE_SHA} (original workflow trigger)"
+                    echo "⚠️  The release tag must point to ${AFTER_SHA} (with changelog)"
+                    echo ""
+                    echo "Re-run this workflow to create the release with the correct commit."
+                    echo ""
+                    exit 1
+                  else
+                    echo "⚠ Target is a commit SHA, not a branch. Cannot push changelog updates."
+                    echo "Changelog was generated but not committed."
+                  fi
                 fi
               fi
             else

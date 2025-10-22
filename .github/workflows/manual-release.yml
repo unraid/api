@@ -155,6 +155,8 @@ jobs:
       version: ${{ inputs.version }}
       target_commitish: ${{ inputs.target_commitish || github.ref }}
       release_notes: ${{ inputs.release_notes }}
+    secrets:
+      UNRAID_BOT_GITHUB_ADMIN_TOKEN: ${{ secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN }}
 
   create-release:
     name: Create GitHub Release (Draft)
