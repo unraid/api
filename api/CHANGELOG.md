@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.25.3](https://github.com/unraid/unraid-api/compare/v4.25.2...v4.25.3) (2025-10-22)
+
+
+### Bug Fixes
+
+* flaky watch on boot drive's dynamix config ([ec7aa06](https://github.com/unraid/unraid-api/commit/ec7aa06d4a5fb1f0e84420266b0b0d7ee09a3663))
+
 ## [4.25.2](https://github.com/unraid/api/compare/v4.25.1...v4.25.2) (2025-09-30)
 
 
