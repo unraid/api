@@ -1,6 +1,6 @@
 {
   "name": "@unraid/create-api-plugin",
-  "version": "1.0.0",
+  "version": "4.25.3",
   "type": "module",
   "bin": {
     "create-api-plugin": "./dist/index.js"
