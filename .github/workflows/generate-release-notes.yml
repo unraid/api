@@ -1,0 +1,146 @@
+name: Generate Release Notes
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Version number (e.g., 4.25.3)'
+        required: true
+        type: string
+      target_commitish:
+        description: 'Commit SHA or branch (leave empty for current HEAD)'
+        required: false
+        type: string
+      release_notes:
+        description: 'Custom release notes (leave empty to auto-generate)'
+        required: false
+        type: string
+    outputs:
+      release_notes:
+        description: 'Generated or provided release notes'
+        value: ${{ jobs.generate.outputs.release_notes }}
+
+jobs:
+  generate:
+    name: Generate Release Notes
+    runs-on: ubuntu-latest
+    outputs:
+      release_notes: ${{ steps.generate_notes.outputs.release_notes }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.target_commitish || github.ref }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate Release Notes
+        id: generate_notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="v${{ inputs.version }}"
+          VERSION="${{ inputs.version }}"
+          
+          if [ -n "${{ inputs.release_notes }}" ]; then
+            NOTES="${{ inputs.release_notes }}"
+          else
+            CHANGELOG_PATH="api/CHANGELOG.md"
+            
+            if [ -f "$CHANGELOG_PATH" ]; then
+              echo "Extracting release notes from CHANGELOG.md for version ${VERSION}"
+              
+              NOTES=$(awk -v ver="$VERSION" '
+                BEGIN { found=0; capture=0; output="" }
+                /^## \[/ {
+                  if (capture) exit;
+                  if ($0 ~ "\\[" ver "\\]") {
+                    found=1;
+                    capture=1;
+                    next;
+                  }
+                }
+                capture && /^## \[/ { exit }
+                capture { 
+                  if (output != "") output = output "\n";
+                  output = output $0;
+                }
+                END {
+                  if (found) print output;
+                  else exit 1;
+                }
+              ' "$CHANGELOG_PATH")
+              
+              if [ $? -eq 0 ] && [ -n "$NOTES" ]; then
+                echo "✓ Found release notes in CHANGELOG.md"
+              else
+                echo "⚠ Version ${VERSION} not found in CHANGELOG.md, generating with conventional-changelog"
+                
+                PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+                
+                if [ -n "$PREV_TAG" ]; then
+                  echo "Generating changelog from ${PREV_TAG}..HEAD using conventional-changelog"
+                  
+                  npm install -g conventional-changelog-cli
+                  
+                  TEMP_NOTES=$(mktemp)
+                  conventional-changelog -p conventionalcommits \
+                    --release-count 1 \
+                    --output-unreleased \
+                    > "$TEMP_NOTES" 2>/dev/null || true
+                  
+                  if [ -s "$TEMP_NOTES" ]; then
+                    NOTES=$(cat "$TEMP_NOTES" | sed '1,/^## /d' | sed '/^## /,$d' | sed '/^$/d' | head -c -1)
+                    
+                    if [ -n "$NOTES" ]; then
+                      echo "✓ Generated changelog with conventional-changelog"
+                    else
+                      echo "⚠ conventional-changelog produced empty output, using GitHub auto-generation"
+                      NOTES=$(gh api repos/${{ github.repository }}/releases/generate-notes \
+                        -f tag_name="${TAG_NAME}" \
+                        -f target_commitish="${{ inputs.target_commitish || github.sha }}" \
+                        -f previous_tag_name="${PREV_TAG}" \
+                        --jq '.body')
+                    fi
+                  else
+                    echo "⚠ conventional-changelog failed, using GitHub auto-generation"
+                    NOTES=$(gh api repos/${{ github.repository }}/releases/generate-notes \
+                      -f tag_name="${TAG_NAME}" \
+                      -f target_commitish="${{ inputs.target_commitish || github.sha }}" \
+                      -f previous_tag_name="${PREV_TAG}" \
+                      --jq '.body')
+                  fi
+                  
+                  rm -f "$TEMP_NOTES"
+                else
+                  echo "⚠ No previous tag found, using GitHub auto-generation"
+                  NOTES=$(gh api repos/${{ github.repository }}/releases/generate-notes \
+                    -f tag_name="${TAG_NAME}" \
+                    -f target_commitish="${{ inputs.target_commitish || github.sha }}" \
+                    --jq '.body' || echo "Release ${VERSION}")
+                fi
+              fi
+            else
+              echo "⚠ CHANGELOG.md not found, using GitHub auto-generation"
+              PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+              
+              if [ -n "$PREV_TAG" ]; then
+                NOTES=$(gh api repos/${{ github.repository }}/releases/generate-notes \
+                  -f tag_name="${TAG_NAME}" \
+                  -f target_commitish="${{ inputs.target_commitish || github.sha }}" \
+                  -f previous_tag_name="${PREV_TAG}" \
+                  --jq '.body')
+              else
+                NOTES="Release ${VERSION}"
+              fi
+            fi
+          fi
+          
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
