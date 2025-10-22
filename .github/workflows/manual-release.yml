@@ -87,46 +87,45 @@ jobs:
             echo "Version mismatches found!"
             echo "=========================================="
             echo ""
-            echo "Amending the latest commit with version updates..."
-            
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            
-            ORIGINAL_SHA=$(git rev-parse HEAD)
-            
-            git add ${PACKAGE_JSONS[@]}
-            git commit --amend --no-edit
-            
-            AMENDED_SHA=$(git rev-parse HEAD)
             
             BRANCH_OR_SHA="${{ inputs.target_commitish || github.ref }}"
             
             if git show-ref --verify --quiet "refs/heads/${BRANCH_OR_SHA}"; then
-              echo "Force pushing to branch: ${BRANCH_OR_SHA}"
-              git push origin "HEAD:${BRANCH_OR_SHA}" --force-with-lease
+              echo "Creating commit with version updates and pushing to branch: ${BRANCH_OR_SHA}"
+              
+              git config user.name "github-actions[bot]"
+              git config user.email "github-actions[bot]@users.noreply.github.com"
+              
+              BEFORE_SHA=$(git rev-parse HEAD)
+              
+              git add ${PACKAGE_JSONS[@]}
+              git commit -m "chore: update package versions to ${{ inputs.version }}"
+              git push origin "HEAD:${BRANCH_OR_SHA}"
+              
+              AFTER_SHA=$(git rev-parse HEAD)
+              
+              echo ""
+              echo "=========================================="
+              echo "WORKFLOW MUST BE RE-RUN"
+              echo "=========================================="
+              echo ""
+              echo "✓ Version updates committed and pushed successfully"
+              echo ""
+              echo "Previous SHA: ${BEFORE_SHA}"
+              echo "New SHA:      ${AFTER_SHA}"
+              echo ""
+              echo "⚠️  CRITICAL: A new commit was created, but github.sha is immutable."
+              echo "⚠️  github.sha = ${BEFORE_SHA} (original workflow trigger)"
+              echo "⚠️  The release tag must point to ${AFTER_SHA} (with version updates)"
+              echo ""
+              echo "Re-run this workflow to create the release with the correct commit."
+              echo ""
+              exit 1
             else
-              echo "Target is a commit SHA, not a branch. Cannot force push."
+              echo "Target is a commit SHA, not a branch. Cannot push version updates."
               echo "Please update the package.json versions manually and re-run the workflow."
               exit 1
             fi
-            
-            echo ""
-            echo "=========================================="
-            echo "WORKFLOW MUST BE RE-RUN"
-            echo "=========================================="
-            echo ""
-            echo "Package versions have been updated and committed."
-            echo "Original SHA: ${ORIGINAL_SHA}"
-            echo "Amended SHA:  ${AMENDED_SHA}"
-            echo ""
-            echo "⚠️  CRITICAL: The commit was amended, creating a new SHA."
-            echo "⚠️  github.sha still points to the old commit (${ORIGINAL_SHA})"
-            echo "⚠️  Tagging/releasing must use the new SHA (${AMENDED_SHA})"
-            echo ""
-            echo "The amended commit has been pushed to the branch."
-            echo "Re-run this workflow to create the release with the correct commit."
-            echo ""
-            exit 1
           fi
           
           echo ""
