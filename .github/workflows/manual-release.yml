@@ -92,8 +92,12 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             
+            ORIGINAL_SHA=$(git rev-parse HEAD)
+            
             git add ${PACKAGE_JSONS[@]}
             git commit --amend --no-edit
+            
+            AMENDED_SHA=$(git rev-parse HEAD)
             
             BRANCH_OR_SHA="${{ inputs.target_commitish || github.ref }}"
             
@@ -108,12 +112,19 @@ jobs:
             
             echo ""
             echo "=========================================="
-            echo "WORKFLOW FAILED"
+            echo "WORKFLOW MUST BE RE-RUN"
             echo "=========================================="
             echo ""
             echo "Package versions have been updated and committed."
-            echo "The commit has been force-pushed to the branch."
-            echo "Please re-run the manual release workflow to proceed."
+            echo "Original SHA: ${ORIGINAL_SHA}"
+            echo "Amended SHA:  ${AMENDED_SHA}"
+            echo ""
+            echo "⚠️  CRITICAL: The commit was amended, creating a new SHA."
+            echo "⚠️  github.sha still points to the old commit (${ORIGINAL_SHA})"
+            echo "⚠️  Tagging/releasing must use the new SHA (${AMENDED_SHA})"
+            echo ""
+            echo "The amended commit has been pushed to the branch."
+            echo "Re-run this workflow to create the release with the correct commit."
             echo ""
             exit 1
           fi
