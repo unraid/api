@@ -12,10 +12,9 @@ on:
         required: false
         type: string
       release_notes:
-        description: 'Release notes/changelog'
+        description: 'Release notes/changelog (leave empty to auto-generate from commits)'
         required: false
         type: string
-        default: 'Manual release'
       prerelease:
         description: 'Mark as prerelease'
         required: false
@@ -41,12 +40,13 @@ jobs:
       UNRAID_BOT_GITHUB_ADMIN_TOKEN: ${{ secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN }}
 
   create-release:
-    name: Create GitHub Release
+    name: Create GitHub Release (Draft)
     runs-on: ubuntu-latest
     needs:
       - build-artifacts
     outputs:
       tag_name: ${{ steps.create_release.outputs.tag_name }}
+      release_notes: ${{ steps.generate_notes.outputs.release_notes }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v5
@@ -54,7 +54,36 @@ jobs:
           ref: ${{ inputs.target_commitish || github.ref }}
           fetch-depth: 0
 
-      - name: Create or Update Release
+      - name: Generate Release Notes
+        id: generate_notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="v${{ inputs.version }}"
+          
+          if [ -n "${{ inputs.release_notes }}" ]; then
+            NOTES="${{ inputs.release_notes }}"
+          else
+            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+            
+            if [ -n "$PREV_TAG" ]; then
+              echo "Generating release notes from ${PREV_TAG}..HEAD"
+              NOTES=$(gh api repos/${{ github.repository }}/releases/generate-notes \
+                -f tag_name="${TAG_NAME}" \
+                -f target_commitish="${{ inputs.target_commitish || github.sha }}" \
+                -f previous_tag_name="${PREV_TAG}" \
+                --jq '.body')
+            else
+              echo "No previous tag found, generating basic release notes"
+              NOTES="Release ${{ inputs.version }}"
+            fi
+          fi
+          
+          echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+          echo "$NOTES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create or Update Release as Draft
         id: create_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -65,18 +94,20 @@ jobs:
           echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
           
           if gh release view "${TAG_NAME}" > /dev/null 2>&1; then
-            echo "Release ${TAG_NAME} already exists, updating..."
+            echo "Release ${TAG_NAME} already exists, updating as draft..."
             gh release edit "${TAG_NAME}" \
-              --notes "${{ inputs.release_notes }}" \
+              --draft \
+              --notes "${{ steps.generate_notes.outputs.release_notes }}" \
               ${{ inputs.prerelease && '--prerelease' || '' }}
           else
-            echo "Creating new release ${TAG_NAME}..."
+            echo "Creating new draft release ${TAG_NAME}..."
             git tag "${TAG_NAME}" "${TARGET}" || true
             git push origin "${TAG_NAME}" || true
             
             gh release create "${TAG_NAME}" \
+              --draft \
               --title "${{ inputs.version }}" \
-              --notes "${{ inputs.release_notes }}" \
+              --notes "${{ steps.generate_notes.outputs.release_notes }}" \
               --target "${TARGET}" \
               ${{ inputs.prerelease && '--prerelease' || '' }}
           fi
@@ -100,4 +131,19 @@ jobs:
       CF_BUCKET_PREVIEW: ${{ secrets.CF_BUCKET_PREVIEW }}
       CF_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
       UNRAID_BOT_GITHUB_ADMIN_TOKEN: ${{ secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN }}
+
+  publish-release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    needs:
+      - create-release
+      - build-plugin-production
+    steps:
+      - name: Publish Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${{ needs.create-release.outputs.tag_name }}"
+          echo "Publishing release ${TAG_NAME}..."
+          gh release edit "${TAG_NAME}" --draft=false --repo ${{ github.repository }}
 
