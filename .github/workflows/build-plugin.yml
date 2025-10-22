@@ -31,6 +31,11 @@ on:
         type: string
         required: false
         description: "Git ref (commit SHA, branch, or tag) to checkout"
+      TRIGGER_PRODUCTION_RELEASE:
+        type: boolean
+        required: false
+        default: false
+        description: "Whether to automatically trigger the release-production workflow (default: false)"
     secrets:
       CF_ACCESS_KEY_ID:
         required: true
@@ -141,7 +146,7 @@ jobs:
           done  
 
       - name: Workflow Dispatch and wait
-        if: inputs.RELEASE_CREATED == 'true'
+        if: inputs.RELEASE_CREATED == 'true' && inputs.TRIGGER_PRODUCTION_RELEASE == true
         uses: the-actions-org/workflow-dispatch@v4.0.0
         with:
           workflow: release-production.yml
