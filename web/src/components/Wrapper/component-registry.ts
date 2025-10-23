@@ -16,6 +16,7 @@ export type ComponentMapping = {
   selector: string | string[]; // Can be a single selector or array of selector aliases
   appId: string;
   component: Component; // The async component
+  decorateContainer?: boolean; // Flag to apply .unapi to the container element
 };
 
 // Define component mappings - all components use async loading for consistency
@@ -162,5 +163,6 @@ export const componentMappings: ComponentMapping[] = [
     component: defineAsyncComponent(() => import('../Docker/DockerContainerOverview.standalone.vue')),
     selector: 'unraid-docker-container-overview',
     appId: 'docker-container-overview',
+    decorateContainer: true,
   },
 ];
