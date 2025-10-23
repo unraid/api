@@ -5,12 +5,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ComponentMapping } from '~/components/Wrapper/component-registry';
 import type { MockInstance } from 'vitest';
 
+let lastUAppPortal: string | undefined;
+
 // Mock @nuxt/ui components
 vi.mock('@nuxt/ui/components/App.vue', () => ({
   default: defineComponent({
     name: 'UApp',
-    setup(_, { slots }) {
-      return () => h('div', { class: 'u-app' }, slots.default?.());
+    props: {
+      portal: {
+        type: String,
+        required: false,
+      },
+    },
+    setup(props, { slots }) {
+      lastUAppPortal = props.portal;
+      return () => h('div', { class: 'u-app', 'data-portal': props.portal ?? '' }, slots.default?.());
     },
   }),
 }));
@@ -77,6 +86,7 @@ describe('mount-engine', () => {
 
     // Import fresh module
     vi.resetModules();
+    lastUAppPortal = undefined;
     mockCreateI18nInstance.mockClear();
     mockEnsureLocale.mockClear();
     mockGetWindowLocale.mockReset();
@@ -109,6 +119,7 @@ describe('mount-engine', () => {
 
     // Clean up DOM
     document.body.innerHTML = '';
+    lastUAppPortal = undefined;
   });
 
   afterEach(() => {
@@ -201,6 +212,46 @@ describe('mount-engine', () => {
       await mountUnifiedApp();
 
       expect(element.getAttribute('message')).toBe('{&quot;text&quot;: &quot;Encoded&quot;}');
+    });
+
+    it('should configure UApp portal within scoped container', async () => {
+      const element = document.createElement('div');
+      element.id = 'portal-app';
+      document.body.appendChild(element);
+
+      mockComponentMappings.push({
+        selector: '#portal-app',
+        appId: 'portal-app',
+        component: TestComponent,
+      });
+
+      await mountUnifiedApp();
+
+      const portalRoot = document.getElementById('unraid-api-modals-virtual');
+      expect(portalRoot).toBeTruthy();
+      expect(portalRoot?.classList.contains('unapi')).toBe(true);
+      expect(lastUAppPortal).toBe('#unraid-api-modals-virtual');
+    });
+
+    it('should decorate the parent container when requested', async () => {
+      const container = document.createElement('div');
+      container.id = 'container';
+      const element = document.createElement('div');
+      element.id = 'test-app';
+      container.appendChild(element);
+      document.body.appendChild(container);
+
+      mockComponentMappings.push({
+        selector: '#test-app',
+        appId: 'test-app',
+        component: TestComponent,
+        decorateContainer: true,
+      });
+
+      await mountUnifiedApp();
+
+      expect(container.classList.contains('unapi')).toBe(true);
+      expect(element.classList.contains('unapi')).toBe(true);
     });
 
     it('should handle multiple selector aliases', async () => {
