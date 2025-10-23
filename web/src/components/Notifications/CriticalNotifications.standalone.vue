@@ -4,6 +4,13 @@ import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
 import { AlertTriangle, Octagon } from 'lucide-vue-next';
 
+import type { FragmentType } from '~/composables/gql';
+import type {
+  NotificationFragmentFragment,
+  WarningAndAlertNotificationsQuery,
+  WarningAndAlertNotificationsQueryVariables,
+} from '~/composables/gql/graphql';
+
 import {
   archiveNotification,
   NOTIFICATION_FRAGMENT,
@@ -14,32 +21,30 @@ import {
   warningsAndAlertsSubscription,
 } from '~/components/Notifications/graphql/notification.subscription';
 import { useFragment } from '~/composables/gql';
-import {
-  NotificationImportance,
-  type NotificationFragmentFragment,
-  type WarningAndAlertNotificationsQuery,
-  type WarningAndAlertNotificationsQueryVariables,
-} from '~/composables/gql/graphql';
+import { NotificationImportance } from '~/composables/gql/graphql';
 
 const { result, loading, error, refetch } = useQuery<
   WarningAndAlertNotificationsQuery,
   WarningAndAlertNotificationsQueryVariables
->(warningsAndAlerts, undefined, {
+>(warningsAndAlerts, {} as WarningAndAlertNotificationsQueryVariables, {
   fetchPolicy: 'network-only',
 });
 
 const criticalNotifications = ref<NotificationFragmentFragment[]>([]);
 
+type NotificationFragmentReference = FragmentType<typeof NOTIFICATION_FRAGMENT>;
+
 const extractNotifications = (
-  notifications: NotificationFragmentFragment[] | null | undefined
+  notifications: readonly NotificationFragmentReference[] | null | undefined
 ): NotificationFragmentFragment[] => {
   if (!notifications?.length) {
     return [];
   }
-  return useFragment(NOTIFICATION_FRAGMENT, notifications) ?? [];
+  const extracted = useFragment(NOTIFICATION_FRAGMENT, notifications);
+  return extracted ? [...extracted] : [];
 };
 
-const setNotifications = (incoming: NotificationFragmentFragment[] | null | undefined) => {
+const setNotifications = (incoming: readonly NotificationFragmentReference[] | null | undefined) => {
   criticalNotifications.value = extractNotifications(incoming);
 };
 
@@ -134,50 +139,50 @@ const dismissNotification = async (notification: NotificationFragmentFragment) =
   }
 };
 
-useSubscription(notificationAddedSubscription, null, {
-  onResult: ({ data }) => {
-    if (!data) {
-      return;
-    }
-    const notification = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
-    if (
-      !notification ||
-      (notification.importance !== NotificationImportance.ALERT &&
-        notification.importance !== NotificationImportance.WARNING)
-    ) {
-      return;
-    }
+const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
 
-    void refetch();
+onNotificationAdded(({ data }) => {
+  if (!data) {
+    return;
+  }
+  const notification = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
+  if (
+    !notification ||
+    (notification.importance !== NotificationImportance.ALERT &&
+      notification.importance !== NotificationImportance.WARNING)
+  ) {
+    return;
+  }
 
-    if (!globalThis.toast) {
-      return;
-    }
+  void refetch();
 
-    if (notification.timestamp) {
-      // Trigger the global toast in tandem with the subscription update.
-      const funcMapping: Record<
-        NotificationImportance,
-        (typeof globalThis)['toast']['info' | 'error' | 'warning']
-      > = {
-        [NotificationImportance.ALERT]: globalThis.toast.error,
-        [NotificationImportance.WARNING]: globalThis.toast.warning,
-        [NotificationImportance.INFO]: globalThis.toast.info,
-      };
-      const toast = funcMapping[notification.importance];
-      const createOpener = () => ({
-        label: 'Open',
-        onClick: () => notification.link && window.open(notification.link, '_blank', 'noopener'),
-      });
+  if (!globalThis.toast) {
+    return;
+  }
 
-      requestAnimationFrame(() =>
-        toast(notification.title, {
-          description: notification.subject,
-          action: notification.link ? createOpener() : undefined,
-        })
-      );
-    }
-  },
+  if (notification.timestamp) {
+    // Trigger the global toast in tandem with the subscription update.
+    const funcMapping: Record<
+      NotificationImportance,
+      (typeof globalThis)['toast']['info' | 'error' | 'warning']
+    > = {
+      [NotificationImportance.ALERT]: globalThis.toast.error,
+      [NotificationImportance.WARNING]: globalThis.toast.warning,
+      [NotificationImportance.INFO]: globalThis.toast.info,
+    };
+    const toast = funcMapping[notification.importance];
+    const createOpener = () => ({
+      label: 'Open',
+      onClick: () => notification.link && window.open(notification.link, '_blank', 'noopener'),
+    });
+
+    requestAnimationFrame(() =>
+      toast(notification.title, {
+        description: notification.subject,
+        action: notification.link ? createOpener() : undefined,
+      })
+    );
+  }
 });
 </script>
 
