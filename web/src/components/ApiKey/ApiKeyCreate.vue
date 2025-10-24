@@ -10,8 +10,6 @@ import {
   AccordionItem,
   AccordionTrigger,
   Button,
-  jsonFormsAjv,
-  jsonFormsRenderers,
   ResponsiveModal,
   ResponsiveModalFooter,
   ResponsiveModalHeader,
@@ -19,7 +17,6 @@ import {
 } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
-import { useJsonFormsI18n } from '~/helpers/jsonforms-i18n';
 
 import type { ApolloError } from '@apollo/client/errors';
 import type { FragmentType } from '~/composables/gql/fragment-masking';
@@ -41,6 +38,7 @@ import EffectivePermissions from '~/components/ApiKey/EffectivePermissions.vue';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { useApiKeyPermissionPresets } from '~/composables/useApiKeyPermissionPresets';
 import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
+import { useJsonFormsDefaults } from '~/composables/useJsonFormsDefaults';
 import { useApiKeyStore } from '~/store/apiKey';
 
 interface Props {
@@ -104,7 +102,12 @@ const formData = ref<FormData>({
   roles: [],
 } as FormData);
 const formValid = ref(false);
-const jsonFormsI18n = useJsonFormsI18n();
+const {
+  ajv: jsonFormsAjv,
+  config: jsonFormsConfig,
+  renderers,
+  i18n: jsonFormsI18n,
+} = useJsonFormsDefaults();
 
 // Use clipboard for copying
 const { copyWithNotification, copied } = useClipboardWithToast();
@@ -464,8 +467,9 @@ const copyApiKey = async () => {
         <JsonForms
           :schema="formSchema.dataSchema"
           :uischema="formSchema.uiSchema"
-          :renderers="jsonFormsRenderers"
+          :renderers="renderers"
           :data="formData"
+          :config="jsonFormsConfig"
           :ajv="jsonFormsAjv"
           :i18n="jsonFormsI18n"
           @change="
