@@ -315,7 +315,7 @@
   "registration.updateExpirationAction.yourLicenseKeyWasAutomaticallyRenewed": "Votre clé de licence a été automatiquement renouvelée et installée. Rechargez la page pour voir les détails mis à jour.",
   "server.actions.activateNow": "Activer Maintenant",
   "server.actions.contactSupport": "Contacter le support",
-  "server.actions.disabledTitle": "Requires the local unraid-api to be running successfully",
+  "server.actions.disabledTitle": "Requiert que l'API locale unraid fonctionne correctement",
   "server.actions.extendLicenseForUpdates": "Étendre la licence pour activer les mises à jour de l'OS",
   "server.actions.extendTrial": "Prolonger l'essai",
   "server.actions.purchaseKey": "Acheter une clé",
