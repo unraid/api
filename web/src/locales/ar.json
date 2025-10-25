@@ -315,7 +315,7 @@
   "registration.updateExpirationAction.yourLicenseKeyWasAutomaticallyRenewed": "تم تجديد مفتاح الترخيص الخاص بك تلقائيًا وتثبيته. أعد تحميل الصفحة لرؤية التفاصيل المحدثة.",
   "server.actions.activateNow": "فعّل الآن",
   "server.actions.contactSupport": "اتصل بالدعم",
-  "server.actions.disabledTitle": "Requires the local unraid-api to be running successfully",
+  "server.actions.disabledTitle": "يتطلب تشغيل واجهة unraid-api المحلية بنجاح",
   "server.actions.extendLicenseForUpdates": "تمديد الترخيص لتمكين تحديثات النظام",
   "server.actions.extendTrial": "تمديد التجربة",
   "server.actions.purchaseKey": "شراء مفتاح",
