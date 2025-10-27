@@ -148,6 +148,16 @@ const verifyLibvirtConnection = async (hypervisor: Hypervisor) => {
     }
 };
 
+// Check if qemu-img is available before running tests
+const isQemuAvailable = () => {
+    try {
+        execSync('qemu-img --version', { stdio: 'ignore' });
+        return true;
+    } catch (error) {
+        return false;
+    }
+};
+
 describe('VmsService', () => {
     let service: VmsService;
     let hypervisor: Hypervisor;
@@ -173,6 +183,14 @@ describe('VmsService', () => {
             </devices>
         </domain>
     `;
+
+    beforeAll(() => {
+        if (!isQemuAvailable()) {
+            throw new Error(
+                'QEMU not available - skipping VM integration tests. Please install QEMU to run these tests.'
+            );
+        }
+    });
 
     beforeAll(async () => {
         // Override the LIBVIRT_URI environment variable for testing

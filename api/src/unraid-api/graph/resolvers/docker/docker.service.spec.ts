@@ -11,6 +11,7 @@ import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/dock
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
 // Mock pubsub
 vi.mock('@app/core/pubsub.js', () => ({
@@ -104,6 +105,11 @@ const mockDockerTemplateScannerService = {
     syncMissingContainers: vi.fn().mockResolvedValue(false),
 };
 
+// Mock NotificationsService
+const mockNotificationsService = {
+    notifyIfUnique: vi.fn().mockResolvedValue(null),
+};
+
 describe('DockerService', () => {
     let service: DockerService;
 
@@ -138,6 +144,10 @@ describe('DockerService', () => {
                 {
                     provide: DockerTemplateScannerService,
                     useValue: mockDockerTemplateScannerService,
+                },
+                {
+                    provide: NotificationsService,
+                    useValue: mockNotificationsService,
                 },
             ],
         }).compile();

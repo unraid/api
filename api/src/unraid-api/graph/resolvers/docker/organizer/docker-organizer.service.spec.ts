@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { DockerTemplateIconService } from '@app/unraid-api/graph/resolvers/docker/docker-template-icon.service.js';
 import {
     ContainerPortType,
     ContainerState,
@@ -214,6 +215,12 @@ describe('DockerOrganizerService', () => {
                                 autoStart: true,
                             },
                         ]),
+                    },
+                },
+                {
+                    provide: DockerTemplateIconService,
+                    useValue: {
+                        getIconsForContainers: vi.fn().mockResolvedValue(new Map()),
                     },
                 },
             ],
