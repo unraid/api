@@ -35,7 +35,8 @@ const DEFAULT_INCLUDE_ROOT = true;
 
 const KEYFRAME_AT_RULES = new Set(['keyframes']);
 const NON_SCOPED_AT_RULES = new Set(['font-face', 'page']);
-const MERGE_WITH_SCOPE_PATTERNS: RegExp[] = [/^\.theme-/, /^\.has-custom-/, /^\.dark\b/];
+const MERGE_WITH_SCOPE_PATTERNS: RegExp[] = [/^\.theme-/, /^\.has-custom-/, /^\.dark\b/, /^\.light\b/];
+const ROOT_ELEMENT_PATTERN = /^(html|body)(?=$|[.#[:\s>+~])/;
 
 function shouldScopeRule(rule: Rule, targetLayers: Set<string>, includeRootRules: boolean): boolean {
   const hasSelectorString = typeof rule.selector === 'string' && rule.selector.length > 0;
@@ -102,6 +103,12 @@ function prefixSelector(selector: string, scope: string): string {
   // Do not prefix :host selectors – they are only valid at the top level
   if (trimmed.startsWith(':host')) {
     return trimmed;
+  }
+
+  const rootElementMatch = trimmed.match(ROOT_ELEMENT_PATTERN);
+  if (rootElementMatch) {
+    const suffix = trimmed.slice(rootElementMatch[0].length);
+    return suffix ? `${scope}${suffix}` : scope;
   }
 
   if (trimmed === ':root') {

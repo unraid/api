@@ -1,4 +1,4 @@
-/* 
+/*
  * Tailwind v4 configuration with Nuxt UI v3
  * Using scoped selectors to prevent breaking Unraid WebGUI
  */
@@ -9,7 +9,8 @@
 /* Import theme and utilities only - no global preflight */
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
-@import "@nuxt/ui"; 
+@import "@nuxt/ui/.nuxt/ui.css" layer(theme);
+@import "@nuxt/ui";
 @import 'tw-animate-css';
 @import '../../../@tailwind-shared/index.css';
 
@@ -17,25 +18,14 @@
 @source "../**/*.{vue,ts,js,tsx,jsx}";
 @source "../../../unraid-ui/src/**/*.{vue,ts,js,tsx,jsx}";
 
-/* 
+/*
  * Scoped base styles for .unapi elements only
  * Import Tailwind's preflight into our custom layer and scope it
  */
 
 @layer unapi-base {
-  /* Scope all Tailwind preflight styles to .unapi */
-  .unapi {
-    @import "tailwindcss/preflight.css";
-  }
-
-  /* Override Unraid's button styles for Nuxt UI components */
-  .unapi button {
-    /* Reset Unraid's button styles */
-    margin: 0 !important;
-    padding: 0;
-    border: none;
-    background: none;
-  }
+  /* Scope Tailwind preflight so Nuxt UI components get default browser resets */
+  @import "tailwindcss/preflight.css";
 
   /* Accessible focus styles for keyboard navigation */
   .unapi button:focus-visible {
@@ -43,21 +33,12 @@
     outline-offset: 2px;
   }
 
-  /* Restore button functionality while removing Unraid's forced styles */
-  .unapi button:not([role="switch"]) {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
   /* Ensure Nuxt UI modal/slideover close buttons work properly */
   .unapi [role="dialog"] button,
   .unapi [data-radix-collection-item] button {
-    margin: 0 !important;
-    background: transparent !important;
-    border: none !important;
+    margin: 0;
+    background: transparent;
+    border: none;
   }
 
   /* Focus styles for dialog buttons */
@@ -94,37 +75,6 @@
   .unapi ul {
     padding-inline-start: 0;
     list-style-type: none;
-  }
-
-  /* Reset toggle/switch button backgrounds */
-  .unapi button[role="switch"],
-  .unapi button[role="switch"][data-state="checked"],
-  .unapi button[role="switch"][data-state="unchecked"] {
-    background-color: transparent;
-    background: transparent;
-    border: 1px solid #ccc;
-  }
-
-  /* Style for checked state */
-  .unapi button[role="switch"][data-state="checked"] {
-    background-color: #ff8c2f; /* Unraid orange */
-  }
-
-  /* Style for unchecked state */
-  .unapi button[role="switch"][data-state="unchecked"] {
-    background-color: #e5e5e5;
-  }
-
-  /* Dark mode toggle styles */
-  .unapi.dark button[role="switch"][data-state="unchecked"],
-  .dark .unapi button[role="switch"][data-state="unchecked"] {
-    background-color: #333;
-    border-color: #555;
-  }
-
-  /* Toggle thumb/handle */
-  .unapi button[role="switch"] span {
-    background-color: white;
   }
 }
 
