@@ -6,6 +6,7 @@ import { Test } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { DevicesResolver } from '@app/unraid-api/graph/resolvers/info/devices/devices.resolver.js';
 import { DevicesService } from '@app/unraid-api/graph/resolvers/info/devices/devices.service.js';
@@ -28,6 +29,7 @@ describe('InfoResolver Integration Tests', () => {
                 InfoResolver,
                 DevicesResolver,
                 CpuService,
+                CpuTopologyService,
                 MemoryService,
                 DevicesService,
                 OsService,

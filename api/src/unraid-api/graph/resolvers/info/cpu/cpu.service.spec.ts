@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 
 vi.mock('systeminformation', () => ({
@@ -88,9 +89,27 @@ vi.mock('systeminformation', () => ({
 
 describe('CpuService', () => {
     let service: CpuService;
+    let cpuTopologyService: CpuTopologyService;
 
     beforeEach(() => {
-        service = new CpuService();
+        cpuTopologyService = {
+            generateTopology: vi.fn().mockResolvedValue([
+                [
+                    [0, 1],
+                    [2, 3],
+                ],
+                [
+                    [4, 5],
+                    [6, 7],
+                ],
+            ]),
+            generateTelemetry: vi.fn().mockResolvedValue([
+                { power: 32.5, temp: 45.0 },
+                { power: 33.0, temp: 46.0 },
+            ]),
+        } as any;
+
+        service = new CpuService(cpuTopologyService);
     });
 
     describe('generateCpu', () => {
@@ -121,6 +140,21 @@ describe('CpuService', () => {
                     l3: 12582912,
                 },
                 flags: ['fpu', 'vme', 'de', 'pse', 'tsc', 'msr', 'pae', 'mce', 'cx8'],
+                packages: {
+                    totalPower: 65.5,
+                    power: [32.5, 33.0],
+                    temp: [45.0, 46.0],
+                },
+                topology: [
+                    [
+                        [0, 1],
+                        [2, 3],
+                    ],
+                    [
+                        [4, 5],
+                        [6, 7],
+                    ],
+                ],
             });
         });
 

@@ -1,11 +1,12 @@
-import { OnModuleInit } from '@nestjs/common';
+import { Logger, OnModuleInit } from '@nestjs/common';
 import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { CpuUtilization } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
+import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
+import { CpuPackages, CpuUtilization } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { MemoryUtilization } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
@@ -15,8 +16,10 @@ import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subsc
 
 @Resolver(() => Metrics)
 export class MetricsResolver implements OnModuleInit {
+    private readonly logger = new Logger(MetricsResolver.name);
     constructor(
         private readonly cpuService: CpuService,
+        private readonly cpuTopologyService: CpuTopologyService,
         private readonly memoryService: MemoryService,
         private readonly subscriptionTracker: SubscriptionTrackerService,
         private readonly subscriptionHelper: SubscriptionHelperService
@@ -31,6 +34,33 @@ export class MetricsResolver implements OnModuleInit {
                 pubsub.publish(PUBSUB_CHANNEL.CPU_UTILIZATION, { systemMetricsCpu: payload });
             },
             1000
+        );
+
+        this.subscriptionTracker.registerTopic(
+            PUBSUB_CHANNEL.CPU_TELEMETRY,
+            async () => {
+                const packageList = (await this.cpuTopologyService.generateTelemetry()) ?? [];
+
+                // Compute total power with 2 decimals
+                const totalPower = Number(
+                    packageList.reduce((sum, pkg) => sum + (pkg.power ?? 0), 0).toFixed(2)
+                );
+
+                const packages: CpuPackages = {
+                    totalPower,
+                    power: packageList.map((pkg) => pkg.power ?? -1),
+                    temp: packageList.map((pkg) => pkg.temp ?? -1),
+                };
+                this.logger.debug(`CPU_TELEMETRY payload: ${JSON.stringify(packages)}`);
+
+                // Publish the payload
+                pubsub.publish(PUBSUB_CHANNEL.CPU_TELEMETRY, {
+                    systemMetricsCpuTelemetry: packages,
+                });
+
+                this.logger.debug(`CPU_TELEMETRY payload2: ${JSON.stringify(packages)}`);
+            },
+            5000
         );
 
         // Register memory polling with 2 second interval
@@ -75,6 +105,18 @@ export class MetricsResolver implements OnModuleInit {
     })
     public async systemMetricsCpuSubscription() {
         return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
+    }
+
+    @Subscription(() => CpuPackages, {
+        name: 'systemMetricsCpuTelemetry',
+        resolve: (value) => value.systemMetricsCpuTelemetry,
+    })
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.INFO,
+    })
+    public async systemMetricsCpuTelemetrySubscription() {
+        return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.CPU_TELEMETRY);
     }
 
     @Subscription(() => MemoryUtilization, {
