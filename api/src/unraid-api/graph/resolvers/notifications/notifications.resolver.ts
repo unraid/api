@@ -105,7 +105,8 @@ export class NotificationsResolver {
 
     @Mutation(() => Notification, {
         nullable: true,
-        description: 'Creates a notification if an equivalent unread notification does not already exist.',
+        description:
+            'Creates a notification if an equivalent unread notification does not already exist.',
     })
     public notifyIfUnique(
         @Args('input', { type: () => NotificationData })
