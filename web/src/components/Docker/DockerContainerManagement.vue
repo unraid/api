@@ -10,6 +10,7 @@ import DockerEdit from '@/components/Docker/Edit.vue';
 import DockerLogs from '@/components/Docker/Logs.vue';
 import DockerOverview from '@/components/Docker/Overview.vue';
 import DockerPreview from '@/components/Docker/Preview.vue';
+import { featureFlags } from '@/helpers/env';
 
 import type { DockerContainer, FlatOrganizerEntry } from '@/composables/gql/graphql';
 import type { LocationQueryRaw } from 'vue-router';
@@ -183,6 +184,24 @@ function handleTableRowClick(payload: {
   containerId?: string;
 }) {
   if (payload.type !== 'container') return;
+
+  if (featureFlags.DOCKER_EDIT_PAGE_NAVIGATION) {
+    const entry = flatEntries.value.find((e) => e.id === payload.id && e.type === 'container');
+    const container = entry?.meta as DockerContainer | undefined;
+    const containerName = (container?.names?.[0] || '').replace(/^\//, '');
+    const templatePath = container?.templatePath;
+
+    if (containerName && templatePath) {
+      const currentPath = window.location.pathname;
+      const basePath = currentPath.substring(
+        0,
+        currentPath.indexOf('?') === -1 ? currentPath.length : currentPath.indexOf('?')
+      );
+      window.location.href = `${basePath}/UpdateContainer?xmlTemplate=edit:${encodeURIComponent(templatePath)}`;
+      return;
+    }
+  }
+
   setActiveContainer(payload.id);
 }
 

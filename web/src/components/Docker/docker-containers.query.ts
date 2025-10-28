@@ -39,6 +39,7 @@ export const GET_DOCKER_CONTAINERS = gql`
               created
               isUpdateAvailable
               isRebuildReady
+              templatePath
             }
           }
         }
