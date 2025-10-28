@@ -96,8 +96,6 @@ export default defineConfig({
       '~': fileURLToPath(new URL('./src', import.meta.url)),
       '~~': fileURLToPath(new URL('./', import.meta.url)),
       '~/': fileURLToPath(new URL('./src/', import.meta.url)),
-      '#build': fileURLToPath(new URL('./node_modules/@nuxt/ui/.nuxt', import.meta.url)),
-      '#build/ui.css': fileURLToPath(new URL('./node_modules/@nuxt/ui/.nuxt/ui.css', import.meta.url)),
     },
   },
 
