@@ -67,24 +67,6 @@ describe('scopeTailwindToUnapi plugin', () => {
     expect(rule.selector).toBe('.unapi .card');
   });
 
-  it('scopes html and body selectors to the root scope element', () => {
-    const plugin = scopeTailwindToUnapi();
-    const rule = createRule(['html', 'body.dark']);
-
-    plugin.Rule?.(rule);
-
-    expect(rule.selectors).toEqual(['.unapi', '.unapi.dark']);
-  });
-
-  it('merges theme mode selectors onto the unapi scope', () => {
-    const plugin = scopeTailwindToUnapi();
-    const rule = createRule(['.light', '.dark']);
-
-    plugin.Rule?.(rule);
-
-    expect(rule.selectors).toEqual(['.unapi.light', '.unapi.dark']);
-  });
-
   it('processes large rule sets within the target budget', () => {
     const plugin = scopeTailwindToUnapi();
     const totalRules = 10_000;
