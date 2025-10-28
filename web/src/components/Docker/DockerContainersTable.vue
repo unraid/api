@@ -16,6 +16,7 @@ import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container
 import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-container.mutation';
 import { ContainerState } from '@/composables/gql/graphql';
 import { useContainerActions } from '@/composables/useContainerActions';
+import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
 import { useFolderOperations } from '@/composables/useFolderOperations';
 import { useFolderTree } from '@/composables/useFolderTree';
 import { useTreeData } from '@/composables/useTreeData';
@@ -519,6 +520,8 @@ function handleBulkAction(action: string) {
   showToast(`${action} (${ids.length})`);
 }
 
+const { navigateToEditPage } = useDockerEditNavigation();
+
 function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   if (row.type !== 'container') return;
   if (action === 'Start / Stop') {
@@ -528,6 +531,12 @@ function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   if (action === 'Pause / Resume') {
     containerActions.handleRowPauseResume(row);
     return;
+  }
+  if (action === 'Manage Settings') {
+    const container = row.meta as DockerContainer | undefined;
+    if (navigateToEditPage(container)) {
+      return;
+    }
   }
   showToast(`${action}: ${row.name}`);
 }
