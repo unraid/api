@@ -10,7 +10,7 @@ import DockerEdit from '@/components/Docker/Edit.vue';
 import DockerLogs from '@/components/Docker/Logs.vue';
 import DockerOverview from '@/components/Docker/Overview.vue';
 import DockerPreview from '@/components/Docker/Preview.vue';
-import { featureFlags } from '@/helpers/env';
+import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
 
 import type { DockerContainer, FlatOrganizerEntry } from '@/composables/gql/graphql';
 import type { LocationQueryRaw } from 'vue-router';
@@ -177,6 +177,8 @@ const rootFolderId = computed(() => result.value?.docker?.organizer?.views?.[0]?
 
 const containers = computed<DockerContainer[]>(() => result.value?.docker?.containers || []);
 
+const { navigateToEditPage } = useDockerEditNavigation();
+
 function handleTableRowClick(payload: {
   id: string;
   type: 'container' | 'folder';
@@ -185,21 +187,11 @@ function handleTableRowClick(payload: {
 }) {
   if (payload.type !== 'container') return;
 
-  if (featureFlags.DOCKER_EDIT_PAGE_NAVIGATION) {
-    const entry = flatEntries.value.find((e) => e.id === payload.id && e.type === 'container');
-    const container = entry?.meta as DockerContainer | undefined;
-    const containerName = (container?.names?.[0] || '').replace(/^\//, '');
-    const templatePath = container?.templatePath;
+  const entry = flatEntries.value.find((e) => e.id === payload.id && e.type === 'container');
+  const container = entry?.meta as DockerContainer | undefined;
 
-    if (containerName && templatePath) {
-      const currentPath = window.location.pathname;
-      const basePath = currentPath.substring(
-        0,
-        currentPath.indexOf('?') === -1 ? currentPath.length : currentPath.indexOf('?')
-      );
-      window.location.href = `${basePath}/UpdateContainer?xmlTemplate=edit:${encodeURIComponent(templatePath)}`;
-      return;
-    }
+  if (navigateToEditPage(container)) {
+    return;
   }
 
   setActiveContainer(payload.id);
