@@ -37,6 +37,43 @@
     background: none;
   }
 
+  /* Reset button-like controls back to UA defaults so Nuxt UI styles win */
+  .unapi button,
+  .unapi button[type='button'],
+  .unapi input[type='button'],
+  .unapi input[type='reset'],
+  .unapi input[type='submit'],
+  .unapi a.button {
+    box-sizing: border-box;
+    font: inherit;
+    min-width: revert;
+    text-transform: revert;
+  }
+
+  /* Reset text inputs so Nuxt UI field styles render correctly */
+  .unapi input[type='text'],
+  .unapi input[type='password'],
+  .unapi input[type='number'],
+  .unapi input[type='url'],
+  .unapi input[type='email'],
+  .unapi input[type='date'],
+  .unapi input[type='file'],
+  .unapi textarea,
+  .unapi .textarea {
+    box-sizing: border-box;
+    font: inherit;
+    color: inherit;
+  }
+
+  /* Clear global table row sizing that fights the tree table layout */
+  .unapi table thead td,
+  .unapi table thead th,
+  .unapi table tbody td,
+  .unapi table tbody th {
+    all: revert;
+    box-sizing: border-box;
+  }
+
   /* Accessible focus styles for keyboard navigation */
   .unapi button:focus-visible {
     outline: 2px solid #ff8c2f;
@@ -45,7 +82,7 @@
 
   /* Restore button functionality while removing Unraid's forced styles */
   .unapi button:not([role="switch"]) {
-    display: inline-flex;
+    /* display: inline-flex; */
     align-items: center;
     justify-content: center;
     cursor: pointer;
