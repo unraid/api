@@ -14,6 +14,7 @@ import { SET_DOCKER_FOLDER_CHILDREN } from '@/components/Docker/docker-set-folde
 import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-container.mutation';
 import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container.mutation';
 import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-container.mutation';
+import { UPDATE_DOCKER_CONTAINER } from '@/components/Docker/docker-update-container.mutation';
 import { ContainerState } from '@/composables/gql/graphql';
 import { useContainerActions } from '@/composables/useContainerActions';
 import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
@@ -52,6 +53,7 @@ const UDropdownMenu = resolveComponent('UDropdownMenu');
 const UModal = resolveComponent('UModal');
 const USkeleton = resolveComponent('USkeleton') as Component;
 const UIcon = resolveComponent('UIcon');
+const UPopover = resolveComponent('UPopover');
 const rowActionDropdownUi = {
   content: 'overflow-x-hidden z-50',
   item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
@@ -288,10 +290,79 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
               class: 'w-5 h-5 mr-2 flex-shrink-0 text-gray-500',
             });
 
+        const hasUpdate =
+          row.original.type === 'container' &&
+          (row.original.meta?.isUpdateAvailable || row.original.meta?.isRebuildReady);
+
+        const updateBadge = hasUpdate
+          ? h(
+              UPopover,
+              {
+                'data-stop-row-click': 'true',
+              },
+              {
+                default: () =>
+                  h(
+                    UBadge,
+                    {
+                      color: 'warning',
+                      variant: 'subtle',
+                      size: 'sm',
+                      class: 'ml-2 cursor-pointer',
+                      'data-stop-row-click': 'true',
+                    },
+                    () => 'Update'
+                  ),
+                content: () =>
+                  h('div', { class: 'min-w-[280px] max-w-sm p-4' }, [
+                    h('div', { class: 'space-y-3' }, [
+                      h('div', { class: 'space-y-1.5' }, [
+                        h('h4', { class: 'font-semibold text-sm' }, 'Update Container'),
+                        h('p', { class: 'text-sm text-gray-600 dark:text-gray-400' }, row.original.name),
+                      ]),
+                      h(
+                        'p',
+                        { class: 'text-sm text-gray-700 dark:text-gray-300' },
+                        row.original.meta?.isUpdateAvailable
+                          ? 'A new image version is available. Would you like to update this container?'
+                          : 'The container configuration has changed. Would you like to rebuild this container?'
+                      ),
+                      h('div', { class: 'flex gap-2 justify-end pt-1' }, [
+                        h(
+                          UButton,
+                          {
+                            color: 'neutral',
+                            variant: 'outline',
+                            size: 'sm',
+                            onClick: (e: Event) => {
+                              e.stopPropagation();
+                            },
+                          },
+                          () => 'Cancel'
+                        ),
+                        h(
+                          UButton,
+                          {
+                            size: 'sm',
+                            onClick: async (e: Event) => {
+                              e.stopPropagation();
+                              await handleUpdateContainer(row.original as TreeRow<DockerContainer>);
+                            },
+                          },
+                          () => 'Update'
+                        ),
+                      ]),
+                    ]),
+                  ]),
+              }
+            )
+          : null;
+
         return h('div', { class: 'truncate flex items-center', 'data-row-id': row.original.id }, [
           indent,
           iconElement,
           h('span', { class: 'max-w-[40ch] truncate font-medium' }, row.original.name),
+          updateBadge,
         ]);
       },
       meta: { class: { td: 'w-[40ch] truncate', th: 'w-[45ch]' } },
@@ -360,12 +431,6 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
         row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('autoStart') || '')),
     },
     {
-      accessorKey: 'updates',
-      header: 'Updates',
-      cell: ({ row }) =>
-        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('updates') || '')),
-    },
-    {
       accessorKey: 'uptime',
       header: 'Uptime',
       cell: ({ row }) =>
@@ -419,7 +484,6 @@ function applyDefaultColumnVisibility(isCompact: boolean) {
       lanPort: false,
       volumes: false,
       autoStart: false,
-      updates: false,
       uptime: false,
       actions: false,
     };
@@ -433,7 +497,6 @@ function applyDefaultColumnVisibility(isCompact: boolean) {
       lanPort: true,
       volumes: false,
       autoStart: true,
-      updates: true,
       uptime: false,
     };
   }
@@ -511,6 +574,7 @@ const { mutate: startContainerMutation } = useMutation(START_DOCKER_CONTAINER);
 const { mutate: stopContainerMutation } = useMutation(STOP_DOCKER_CONTAINER);
 const { mutate: pauseContainerMutation } = useMutation(PAUSE_DOCKER_CONTAINER);
 const { mutate: unpauseContainerMutation } = useMutation(UNPAUSE_DOCKER_CONTAINER);
+const { mutate: updateContainerMutation } = useMutation(UPDATE_DOCKER_CONTAINER);
 
 declare global {
   interface Window {
@@ -523,6 +587,29 @@ declare global {
 
 function showToast(message: string) {
   window.toast?.success(message);
+}
+
+async function handleUpdateContainer(row: TreeRow<DockerContainer>) {
+  if (!row.containerId) return;
+
+  setRowsBusy([row.id], true);
+
+  try {
+    await updateContainerMutation(
+      { id: row.containerId },
+      {
+        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+        awaitRefetchQueries: true,
+      }
+    );
+    showToast(`Successfully updated ${row.name}`);
+  } catch (error) {
+    window.toast?.error?.(`Failed to update ${row.name}`, {
+      description: error instanceof Error ? error.message : 'Unknown error',
+    });
+  } finally {
+    setRowsBusy([row.id], false);
+  }
 }
 
 const folderOps = useFolderOperations({

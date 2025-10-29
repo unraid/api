@@ -868,6 +868,9 @@ type DockerMutations {
 
   """Unpause (Resume) a container"""
   unpause(id: PrefixedID!): DockerContainer!
+
+  """Update a container to the latest image"""
+  updateContainer(id: PrefixedID!): DockerContainer!
 }
 
 type VmMutations {
