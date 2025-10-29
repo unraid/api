@@ -93,7 +93,7 @@
   .unapi [role="dialog"] button,
   .unapi [data-radix-collection-item] button {
     margin: 0 !important;
-    background: transparent !important;
+    /* background: transparent !important; */
     border: none !important;
   }
 

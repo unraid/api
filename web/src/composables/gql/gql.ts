@@ -42,6 +42,7 @@ type Documents = {
     "\n  mutation StartDockerContainer($id: PrefixedID!) {\n    docker {\n      start(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n": typeof types.StartDockerContainerDocument,
     "\n  mutation StopDockerContainer($id: PrefixedID!) {\n    docker {\n      stop(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n": typeof types.StopDockerContainerDocument,
     "\n  mutation UnpauseDockerContainer($id: PrefixedID!) {\n    docker {\n      unpause(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n": typeof types.UnpauseDockerContainerDocument,
+    "\n  mutation UpdateDockerContainer($id: PrefixedID!) {\n    docker {\n      updateContainer(id: $id) {\n        id\n        names\n        state\n        isUpdateAvailable\n        isRebuildReady\n      }\n    }\n  }\n": typeof types.UpdateDockerContainerDocument,
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": typeof types.LogFilesDocument,
     "\n  query LogFileContent($path: String!, $lines: Int, $startLine: Int) {\n    logFile(path: $path, lines: $lines, startLine: $startLine) {\n      path\n      content\n      totalLines\n      startLine\n    }\n  }\n": typeof types.LogFileContentDocument,
     "\n  subscription LogFileSubscription($path: String!) {\n    logFile(path: $path) {\n      path\n      content\n      totalLines\n    }\n  }\n": typeof types.LogFileSubscriptionDocument,
@@ -104,6 +105,7 @@ const documents: Documents = {
     "\n  mutation StartDockerContainer($id: PrefixedID!) {\n    docker {\n      start(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n": types.StartDockerContainerDocument,
     "\n  mutation StopDockerContainer($id: PrefixedID!) {\n    docker {\n      stop(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n": types.StopDockerContainerDocument,
     "\n  mutation UnpauseDockerContainer($id: PrefixedID!) {\n    docker {\n      unpause(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n": types.UnpauseDockerContainerDocument,
+    "\n  mutation UpdateDockerContainer($id: PrefixedID!) {\n    docker {\n      updateContainer(id: $id) {\n        id\n        names\n        state\n        isUpdateAvailable\n        isRebuildReady\n      }\n    }\n  }\n": types.UpdateDockerContainerDocument,
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": types.LogFilesDocument,
     "\n  query LogFileContent($path: String!, $lines: Int, $startLine: Int) {\n    logFile(path: $path, lines: $lines, startLine: $startLine) {\n      path\n      content\n      totalLines\n      startLine\n    }\n  }\n": types.LogFileContentDocument,
     "\n  subscription LogFileSubscription($path: String!) {\n    logFile(path: $path) {\n      path\n      content\n      totalLines\n    }\n  }\n": types.LogFileSubscriptionDocument,
@@ -264,6 +266,10 @@ export function graphql(source: "\n  mutation StopDockerContainer($id: PrefixedI
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation UnpauseDockerContainer($id: PrefixedID!) {\n    docker {\n      unpause(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UnpauseDockerContainer($id: PrefixedID!) {\n    docker {\n      unpause(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateDockerContainer($id: PrefixedID!) {\n    docker {\n      updateContainer(id: $id) {\n        id\n        names\n        state\n        isUpdateAvailable\n        isRebuildReady\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateDockerContainer($id: PrefixedID!) {\n    docker {\n      updateContainer(id: $id) {\n        id\n        names\n        state\n        isUpdateAvailable\n        isRebuildReady\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

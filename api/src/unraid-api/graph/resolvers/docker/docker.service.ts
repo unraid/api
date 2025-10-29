@@ -11,6 +11,7 @@ import { readFile } from 'fs/promises';
 
 import { type Cache } from 'cache-manager';
 import Docker from 'dockerode';
+import { execa } from 'execa';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
@@ -331,6 +332,45 @@ export class DockerService implements OnApplicationBootstrap {
         if (!updatedContainer) {
             throw new Error(`Container ${id} not found after unpausing`);
         }
+        const appInfo = await this.getAppInfo();
+        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
+        return updatedContainer;
+    }
+
+    public async updateContainer(id: string): Promise<DockerContainer> {
+        const containers = await this.getContainers({ skipCache: true });
+        const container = containers.find((c) => c.id === id);
+        if (!container) {
+            throw new Error(`Container ${id} not found`);
+        }
+
+        const containerName = container.names?.[0]?.replace(/^\//, '');
+        if (!containerName) {
+            throw new Error(`Container ${id} has no name`);
+        }
+
+        this.logger.log(`Updating container ${containerName} (${id})`);
+
+        try {
+            await execa(
+                '/usr/local/emhttp/plugins/dynamix.docker.manager/scripts/update_container',
+                [encodeURIComponent(containerName)],
+                { shell: 'bash' }
+            );
+        } catch (error) {
+            this.logger.error(`Failed to update container ${containerName}:`, error);
+            throw new Error(`Failed to update container ${containerName}`);
+        }
+
+        await this.clearContainerCache();
+        this.logger.debug(`Invalidated container caches after updating ${id}`);
+
+        const updatedContainers = await this.getContainers({ skipCache: true });
+        const updatedContainer = updatedContainers.find((c) => c.id === id);
+        if (!updatedContainer) {
+            throw new Error(`Container ${id} not found after update`);
+        }
+
         const appInfo = await this.getAppInfo();
         await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
         return updatedContainer;
