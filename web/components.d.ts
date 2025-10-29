@@ -131,6 +131,7 @@ declare module 'vue' {
     UpdateExpirationAction: typeof import('./src/components/Registration/UpdateExpirationAction.vue')['default']
     UpdateIneligible: typeof import('./src/components/UpdateOs/UpdateIneligible.vue')['default']
     'UpdateOs.standalone': typeof import('./src/components/UpdateOs.standalone.vue')['default']
+    UPopover: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Popover.vue')['default']
     UptimeExpire: typeof import('./src/components/UserProfile/UptimeExpire.vue')['default']
     USelectMenu: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/SelectMenu.vue')['default']
     'UserProfile.standalone': typeof import('./src/components/UserProfile.standalone.vue')['default']

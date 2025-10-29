@@ -48,4 +48,13 @@ export class DockerMutationsResolver {
     public async unpause(@Args('id', { type: () => PrefixedID }) id: string) {
         return this.dockerService.unpause(id);
     }
+
+    @ResolveField(() => DockerContainer, { description: 'Update a container to the latest image' })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.DOCKER,
+    })
+    public async updateContainer(@Args('id', { type: () => PrefixedID }) id: string) {
+        return this.dockerService.updateContainer(id);
+    }
 }
