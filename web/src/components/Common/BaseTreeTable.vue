@@ -219,7 +219,7 @@ const filteredData = computed(() => {
 
   return filterRowsByTerm(treeDataRef.value, term);
 });
-const tableRef = ref<{ table?: { getSelectedRowModel: () => { rows: unknown[] } } } | null>(null);
+const tableRef = ref<{ tableApi?: unknown } | null>(null);
 
 watch(
   () => props.compact,
@@ -431,6 +431,7 @@ const processedColumns = computed<TableColumn<TreeRow<T>>[]>(() => {
 
 defineExpose({
   tableRef,
+  tableApi: computed(() => tableRef.value?.tableApi),
   rowSelection,
   selectedCount,
   globalFilter,

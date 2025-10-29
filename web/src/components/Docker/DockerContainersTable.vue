@@ -76,13 +76,24 @@ const emit = defineEmits<{
   (e: 'update:selectedIds', value: string[]): void;
 }>();
 
-function formatPorts(container?: DockerContainer | null): string {
+function formatExternalPorts(container?: DockerContainer | null): string {
   if (!container) return '';
   return container.ports
+    .filter((port) => port.publicPort)
     .map((port) => {
       if (port.publicPort && port.privatePort) {
         return `${port.publicPort}:${port.privatePort}/${port.type}`;
       }
+      return '';
+    })
+    .filter(Boolean)
+    .join(', ');
+}
+
+function formatInternalPorts(container?: DockerContainer | null): string {
+  if (!container) return '';
+  return container.ports
+    .map((port) => {
       if (port.privatePort) {
         return `${port.privatePort}/${port.type}`;
       }
@@ -90,6 +101,63 @@ function formatPorts(container?: DockerContainer | null): string {
     })
     .filter(Boolean)
     .join(', ');
+}
+
+function formatImage(container?: DockerContainer | null): string {
+  if (!container?.image) return '';
+  const parts = container.image.split(':');
+  return parts.length > 1 ? parts[parts.length - 1] : 'latest';
+}
+
+function formatNetwork(container?: DockerContainer | null): string {
+  if (!container) return '';
+  return container.hostConfig?.networkMode || '';
+}
+
+function formatContainerIp(container?: DockerContainer | null): string {
+  if (!container?.networkSettings) return '';
+  try {
+    const settings = container.networkSettings as Record<string, unknown>;
+    if (settings.Networks && typeof settings.Networks === 'object') {
+      const networks = Object.values(settings.Networks as Record<string, unknown>);
+      const ips = networks.map((net) => (net as Record<string, unknown>).IPAddress).filter(Boolean);
+      return ips.join(', ');
+    }
+    if (settings.IPAddress && typeof settings.IPAddress === 'string') {
+      return settings.IPAddress;
+    }
+  } catch (e) {
+    return '';
+  }
+  return '';
+}
+
+function formatVolumes(container?: DockerContainer | null): string {
+  if (!container?.mounts) return '';
+  try {
+    const mounts = container.mounts as unknown[];
+    return mounts
+      .map((mount) => {
+        const m = mount as Record<string, unknown>;
+        if (m.Type === 'bind' && m.Source && m.Destination) {
+          return `${m.Source} → ${m.Destination}`;
+        }
+        if (m.Type === 'volume' && m.Name && m.Destination) {
+          return `${m.Name} → ${m.Destination}`;
+        }
+        return '';
+      })
+      .filter(Boolean)
+      .join(', ');
+  } catch (e) {
+    return '';
+  }
+}
+
+function formatUptime(container?: DockerContainer | null): string {
+  if (!container?.status) return '';
+  const match = container.status.match(/Up\s+(.+?)(?:\s+\(|$)/i);
+  return match ? match[1] : '';
 }
 
 function toContainerTreeRow(
@@ -105,9 +173,15 @@ function toContainerTreeRow(
     type: 'container',
     name,
     state: meta?.state ?? '',
-    ports: formatPorts(meta || undefined),
+    version: formatImage(meta || undefined),
+    network: formatNetwork(meta || undefined),
+    containerIp: formatContainerIp(meta || undefined),
+    containerPort: formatInternalPorts(meta || undefined),
+    lanPort: formatExternalPorts(meta || undefined),
+    volumes: formatVolumes(meta || undefined),
     autoStart: meta?.autoStart ? 'On' : 'Off',
     updates: updatesParts.join(' / ') || '—',
+    uptime: formatUptime(meta || undefined),
     containerId: meta?.id,
     meta: meta || undefined,
   };
@@ -118,9 +192,39 @@ const containersRef = computed(() => props.containers);
 
 const rootFolderId = computed<string>(() => props.rootFolderId || 'root');
 
-const baseTableRef = ref<{ columnVisibility?: { value: Record<string, boolean> } } | null>(null);
+interface BaseTableInstance {
+  columnVisibility?: { value: Record<string, boolean> };
+  tableApi?: {
+    getAllColumns: () => Array<{
+      id: string;
+      getCanHide: () => boolean;
+      getIsVisible: () => boolean;
+      toggleVisibility: (visible: boolean) => void;
+    }>;
+    getColumn: (id: string) =>
+      | {
+          toggleVisibility: (visible: boolean) => void;
+        }
+      | undefined;
+  };
+}
 
-const searchableKeys = ['name', 'state', 'ports', 'autoStart', 'updates', 'containerId'];
+const baseTableRef = ref<BaseTableInstance | null>(null);
+
+const searchableKeys = [
+  'name',
+  'state',
+  'version',
+  'network',
+  'containerIp',
+  'containerPort',
+  'lanPort',
+  'volumes',
+  'autoStart',
+  'updates',
+  'uptime',
+  'containerId',
+];
 
 const dockerSearchAccessor = (row: TreeRow<DockerContainer>): unknown[] => {
   const meta = row.meta;
@@ -139,42 +243,6 @@ const dockerSearchAccessor = (row: TreeRow<DockerContainer>): unknown[] => {
 
   return [...names, ...image, ...status, ...networkMode, ...labels];
 };
-
-const columnVisibilityFallback = ref<Record<string, boolean>>({});
-const columnVisibility = computed({
-  get: (): Record<string, boolean> => {
-    if (baseTableRef.value?.columnVisibility) {
-      return baseTableRef.value.columnVisibility.value;
-    }
-    return columnVisibilityFallback.value;
-  },
-  set: (value: Record<string, boolean>) => {
-    if (baseTableRef.value?.columnVisibility) {
-      baseTableRef.value.columnVisibility.value = value;
-    }
-    columnVisibilityFallback.value = value;
-  },
-});
-
-watch(
-  () => baseTableRef.value?.columnVisibility?.value,
-  (value) => {
-    if (value) {
-      columnVisibilityFallback.value = value;
-    }
-  },
-  { immediate: true, deep: true }
-);
-
-watch(
-  baseTableRef,
-  (instance) => {
-    if (instance?.columnVisibility && Object.keys(columnVisibilityFallback.value).length) {
-      instance.columnVisibility.value = { ...columnVisibilityFallback.value };
-    }
-  },
-  { immediate: true }
-);
 
 const { treeData, entryParentById, folderChildrenIds, parentById, positionById, getRowById } =
   useTreeData<DockerContainer>({
@@ -248,10 +316,42 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
       },
     },
     {
-      accessorKey: 'ports',
-      header: 'Ports',
+      accessorKey: 'version',
+      header: 'Version',
       cell: ({ row }) =>
-        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('ports') || '')),
+        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('version') || '')),
+    },
+    {
+      accessorKey: 'network',
+      header: 'Network',
+      cell: ({ row }) =>
+        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('network') || '')),
+    },
+    {
+      accessorKey: 'containerIp',
+      header: 'Container IP',
+      cell: ({ row }) =>
+        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('containerIp') || '')),
+    },
+    {
+      accessorKey: 'containerPort',
+      header: 'Container Port',
+      cell: ({ row }) =>
+        row.original.type === 'folder'
+          ? ''
+          : h('span', null, String(row.getValue('containerPort') || '')),
+    },
+    {
+      accessorKey: 'lanPort',
+      header: 'LAN IP:Port',
+      cell: ({ row }) =>
+        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('lanPort') || '')),
+    },
+    {
+      accessorKey: 'volumes',
+      header: 'Volume Mappings',
+      cell: ({ row }) =>
+        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('volumes') || '')),
     },
     {
       accessorKey: 'autoStart',
@@ -264,6 +364,12 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
       header: 'Updates',
       cell: ({ row }) =>
         row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('updates') || '')),
+    },
+    {
+      accessorKey: 'uptime',
+      header: 'Uptime',
+      cell: ({ row }) =>
+        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('uptime') || '')),
     },
     {
       id: 'actions',
@@ -297,20 +403,51 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
   return cols;
 });
 
+const hasAppliedDefaults = ref(false);
+
+function applyDefaultColumnVisibility(isCompact: boolean) {
+  if (!baseTableRef.value?.columnVisibility) return;
+  if (hasAppliedDefaults.value) return;
+
+  if (isCompact) {
+    baseTableRef.value.columnVisibility.value = {
+      state: false,
+      version: false,
+      network: false,
+      containerIp: false,
+      containerPort: false,
+      lanPort: false,
+      volumes: false,
+      autoStart: false,
+      updates: false,
+      uptime: false,
+      actions: false,
+    };
+  } else {
+    baseTableRef.value.columnVisibility.value = {
+      state: true,
+      version: false,
+      network: false,
+      containerIp: false,
+      containerPort: false,
+      lanPort: true,
+      volumes: false,
+      autoStart: true,
+      updates: true,
+      uptime: false,
+    };
+  }
+  hasAppliedDefaults.value = true;
+}
+
 watch(
-  () => props.compact,
-  (isCompact) => {
-    if (isCompact) {
-      columnVisibility.value = {
-        state: false,
-        ports: false,
-        autoStart: false,
-        updates: false,
-        actions: false,
-      };
+  baseTableRef,
+  (ref) => {
+    if (ref?.columnVisibility && !hasAppliedDefaults.value) {
+      applyDefaultColumnVisibility(props.compact);
     }
   },
-  { immediate: true }
+  { immediate: true, flush: 'post' }
 );
 
 type ActionDropdownItem = { label: string; icon?: string; onSelect?: (e?: Event) => void; as?: string };
@@ -337,35 +474,28 @@ const contextMenuPopper = {
 };
 
 const columnsMenuItems = computed<DropdownMenuItems>(() => {
-  const keysFromColumns = (columns.value || [])
-    .map((col: TableColumn<TreeRow<DockerContainer>>) => {
-      type ColumnIdKey = { id?: string; accessorKey?: string; enableHiding?: boolean };
-      const { id, accessorKey, enableHiding } = col as ColumnIdKey;
-      const key = id ?? accessorKey;
-      if (!key) return null;
-      if (enableHiding === false) return null;
-      return String(key);
-    })
-    .filter(Boolean) as string[];
+  if (!baseTableRef.value?.tableApi) return [[]];
 
-  const fallbackKeys = ['name', 'state', 'ports', 'autoStart', 'updates'];
-  const keys = (keysFromColumns.length ? keysFromColumns : fallbackKeys).filter(
-    (k) => k !== 'select' && k !== 'actions'
-  );
+  const availableColumns = baseTableRef.value.tableApi
+    .getAllColumns()
+    .filter((column) => column.getCanHide());
 
-  const list = keys.map((id) => {
-    const currentVisible = columnVisibility.value[id] !== false;
+  const list = availableColumns.map((column) => {
     return {
-      label: id,
-      icon: currentVisible ? 'i-lucide-check' : undefined,
-      as: 'button',
-      onSelect(e?: Event) {
-        e?.preventDefault?.();
-        const next = !currentVisible;
-        const current = columnVisibility.value;
-        columnVisibility.value = { ...current, [id]: next };
+      label: column.id,
+      type: 'checkbox' as const,
+      checked: column.getIsVisible(),
+      onUpdateChecked(checked: boolean) {
+        baseTableRef.value?.tableApi?.getColumn(column.id)?.toggleVisibility(!!checked);
       },
-    } as ActionDropdownItem;
+      onSelect(e: Event) {
+        e.preventDefault();
+      },
+    } as ActionDropdownItem & {
+      type: 'checkbox';
+      checked: boolean;
+      onUpdateChecked: (v: boolean) => void;
+    };
   });
 
   return [list];

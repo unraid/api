@@ -36,6 +36,8 @@ export const GET_DOCKER_CONTAINERS = gql`
               hostConfig {
                 networkMode
               }
+              networkSettings
+              mounts
               created
               isUpdateAvailable
               isRebuildReady

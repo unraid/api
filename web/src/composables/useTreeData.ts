@@ -10,9 +10,15 @@ export interface TreeRow<T = unknown> {
   children?: TreeRow<T>[];
   meta?: T;
   state?: string;
-  ports?: string;
+  version?: string;
+  network?: string;
+  containerIp?: string;
+  containerPort?: string;
+  lanPort?: string;
+  volumes?: string;
   autoStart?: string;
   updates?: string;
+  uptime?: string;
   containerId?: string;
   icon?: string;
 }
