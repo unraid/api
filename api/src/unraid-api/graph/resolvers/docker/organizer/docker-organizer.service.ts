@@ -344,4 +344,24 @@ export class DockerOrganizerService {
         this.dockerConfigService.replaceConfig(validated);
         return validated;
     }
+
+    async updateViewPreferences(params: {
+        viewId?: string;
+        prefs: Record<string, unknown>;
+    }): Promise<OrganizerV1> {
+        const { viewId = DEFAULT_ORGANIZER_VIEW_ID, prefs } = params;
+        const organizer = await this.syncAndGetOrganizer();
+        const newOrganizer = structuredClone(organizer);
+
+        const view = newOrganizer.views[viewId];
+        if (!view) {
+            throw new AppError(`View '${viewId}' not found`);
+        }
+
+        view.prefs = prefs;
+
+        const validated = await this.dockerConfigService.validate(newOrganizer);
+        this.dockerConfigService.replaceConfig(validated);
+        return validated;
+    }
 }

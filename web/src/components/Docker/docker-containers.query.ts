@@ -10,6 +10,7 @@ export const GET_DOCKER_CONTAINERS = gql`
           id
           name
           rootId
+          prefs
           flatEntries {
             id
             type

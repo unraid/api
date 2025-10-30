@@ -2485,6 +2485,7 @@ type Mutation {
   moveDockerItemsToPosition(sourceEntryIds: [String!]!, destinationFolderId: String!, position: Float!): ResolvedOrganizerV1!
   renameDockerFolder(folderId: String!, newName: String!): ResolvedOrganizerV1!
   createDockerFolderWithItems(name: String!, parentId: String, sourceEntryIds: [String!], position: Float): ResolvedOrganizerV1!
+  updateDockerViewPreferences(viewId: String = "default", prefs: JSON!): ResolvedOrganizerV1!
   syncDockerTemplatePaths: DockerTemplateSyncResult!
   refreshDockerDigests: Boolean!
 

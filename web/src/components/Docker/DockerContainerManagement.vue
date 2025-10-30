@@ -162,6 +162,7 @@ const { result, loading, refetch } = useQuery<{
         id: string;
         name: string;
         rootId: string;
+        prefs?: Record<string, unknown> | null;
         flatEntries: FlatOrganizerEntry[];
       }>;
     };
@@ -174,6 +175,7 @@ const { result, loading, refetch } = useQuery<{
 
 const flatEntries = computed(() => result.value?.docker?.organizer?.views?.[0]?.flatEntries || []);
 const rootFolderId = computed(() => result.value?.docker?.organizer?.views?.[0]?.rootId || 'root');
+const viewPrefs = computed(() => result.value?.docker?.organizer?.views?.[0]?.prefs || null);
 
 const containers = computed<DockerContainer[]>(() => result.value?.docker?.containers || []);
 
@@ -270,6 +272,7 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
         :containers="containers"
         :flat-entries="flatEntries"
         :root-folder-id="rootFolderId"
+        :view-prefs="viewPrefs"
         :loading="loading"
         :active-id="activeId"
         :selected-ids="selectedIds"
