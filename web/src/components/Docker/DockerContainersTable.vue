@@ -17,6 +17,7 @@ import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-con
 import { UPDATE_DOCKER_CONTAINER } from '@/components/Docker/docker-update-container.mutation';
 import { ContainerState } from '@/composables/gql/graphql';
 import { useContainerActions } from '@/composables/useContainerActions';
+import { useDockerViewPreferences } from '@/composables/useDockerColumnVisibility';
 import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
 import { useFolderOperations } from '@/composables/useFolderOperations';
 import { useFolderTree } from '@/composables/useFolderTree';
@@ -36,6 +37,7 @@ interface Props {
   compact?: boolean;
   activeId?: string | null;
   selectedIds?: string[];
+  viewPrefs?: Record<string, unknown> | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -258,6 +260,9 @@ const { visibleFolders, expandedFolders, toggleExpandFolder, setExpandedFolders 
 });
 const busyRowIds = ref<Set<string>>(new Set());
 
+const { loadColumnVisibility, mergeServerPreferences, saveColumnVisibility } =
+  useDockerViewPreferences();
+
 function setRowsBusy(ids: string[], busy: boolean) {
   const next = new Set(busyRowIds.value);
   for (const id of ids) {
@@ -314,44 +319,38 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
                     () => 'Update'
                   ),
                 content: () =>
-                  h('div', { class: 'min-w-[280px] max-w-sm p-4' }, [
-                    h('div', { class: 'space-y-3' }, [
-                      h('div', { class: 'space-y-1.5' }, [
-                        h('h4', { class: 'font-semibold text-sm' }, 'Update Container'),
-                        h('p', { class: 'text-sm text-gray-600 dark:text-gray-400' }, row.original.name),
-                      ]),
+                  h('div', { class: 'p-3 space-y-3' }, [
+                    h(
+                      'p',
+                      { class: 'text-sm' },
+                      row.original.meta?.isUpdateAvailable
+                        ? 'Update available. Update container?'
+                        : 'Rebuild ready. Update container?'
+                    ),
+                    h('div', { class: 'flex gap-2 justify-end' }, [
                       h(
-                        'p',
-                        { class: 'text-sm text-gray-700 dark:text-gray-300' },
-                        row.original.meta?.isUpdateAvailable
-                          ? 'A new image version is available. Would you like to update this container?'
-                          : 'The container configuration has changed. Would you like to rebuild this container?'
+                        UButton,
+                        {
+                          color: 'neutral',
+                          variant: 'outline',
+                          size: 'sm',
+                          onClick: (e: Event) => {
+                            e.stopPropagation();
+                          },
+                        },
+                        () => 'Cancel'
                       ),
-                      h('div', { class: 'flex gap-2 justify-end pt-1' }, [
-                        h(
-                          UButton,
-                          {
-                            color: 'neutral',
-                            variant: 'outline',
-                            size: 'sm',
-                            onClick: (e: Event) => {
-                              e.stopPropagation();
-                            },
+                      h(
+                        UButton,
+                        {
+                          size: 'sm',
+                          onClick: async (e: Event) => {
+                            e.stopPropagation();
+                            await handleUpdateContainer(row.original as TreeRow<DockerContainer>);
                           },
-                          () => 'Cancel'
-                        ),
-                        h(
-                          UButton,
-                          {
-                            size: 'sm',
-                            onClick: async (e: Event) => {
-                              e.stopPropagation();
-                              await handleUpdateContainer(row.original as TreeRow<DockerContainer>);
-                            },
-                          },
-                          () => 'Update'
-                        ),
-                      ]),
+                        },
+                        () => 'Confirm'
+                      ),
                     ]),
                   ]),
               }
@@ -468,14 +467,11 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
   return cols;
 });
 
-const hasAppliedDefaults = ref(false);
+const hasAppliedPreferences = ref(false);
 
-function applyDefaultColumnVisibility(isCompact: boolean) {
-  if (!baseTableRef.value?.columnVisibility) return;
-  if (hasAppliedDefaults.value) return;
-
+function getDefaultColumnVisibility(isCompact: boolean): Record<string, boolean> {
   if (isCompact) {
-    baseTableRef.value.columnVisibility.value = {
+    return {
       state: false,
       version: false,
       network: false,
@@ -488,7 +484,7 @@ function applyDefaultColumnVisibility(isCompact: boolean) {
       actions: false,
     };
   } else {
-    baseTableRef.value.columnVisibility.value = {
+    return {
       state: true,
       version: false,
       network: false,
@@ -500,17 +496,53 @@ function applyDefaultColumnVisibility(isCompact: boolean) {
       uptime: false,
     };
   }
-  hasAppliedDefaults.value = true;
+}
+
+function applyColumnVisibilityPreferences() {
+  if (!baseTableRef.value?.columnVisibility) return;
+  if (hasAppliedPreferences.value) return;
+
+  const savedPrefs = loadColumnVisibility();
+  const defaultPrefs = getDefaultColumnVisibility(props.compact);
+
+  baseTableRef.value.columnVisibility.value = savedPrefs || defaultPrefs;
+  hasAppliedPreferences.value = true;
 }
 
 watch(
   baseTableRef,
   (ref) => {
-    if (ref?.columnVisibility && !hasAppliedDefaults.value) {
-      applyDefaultColumnVisibility(props.compact);
+    if (ref?.columnVisibility && !hasAppliedPreferences.value) {
+      applyColumnVisibilityPreferences();
     }
   },
   { immediate: true, flush: 'post' }
+);
+
+watch(
+  () => props.viewPrefs,
+  (prefs) => {
+    if (prefs && hasAppliedPreferences.value) {
+      mergeServerPreferences(prefs);
+      if (baseTableRef.value?.columnVisibility) {
+        const savedPrefs = loadColumnVisibility();
+        if (savedPrefs) {
+          baseTableRef.value.columnVisibility.value = savedPrefs;
+        }
+      }
+    }
+  },
+  { immediate: true }
+);
+
+watch(
+  () => baseTableRef.value?.columnVisibility?.value,
+  (columnVisibility) => {
+    if (columnVisibility && hasAppliedPreferences.value && !props.compact) {
+      saveColumnVisibility(columnVisibility);
+    }
+  },
+  { deep: true }
 );
 
 type ActionDropdownItem = { label: string; icon?: string; onSelect?: (e?: Event) => void; as?: string };

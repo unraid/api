@@ -3,6 +3,7 @@ import { Args, Info, Mutation, Query, ResolveField, Resolver } from '@nestjs/gra
 import type { GraphQLResolveInfo } from 'graphql';
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
+import { GraphQLJSON } from 'graphql-scalars';
 
 import { UseFeatureFlag } from '@app/unraid-api/decorators/use-feature-flag.decorator.js';
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
@@ -211,6 +212,23 @@ export class DockerResolver {
             parentId: parentId ?? DEFAULT_ORGANIZER_ROOT_ID,
             sourceEntryIds: sourceEntryIds ?? [],
             position,
+        });
+        return this.dockerOrganizerService.resolveOrganizer(organizer);
+    }
+
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.DOCKER,
+    })
+    @Mutation(() => ResolvedOrganizerV1)
+    public async updateDockerViewPreferences(
+        @Args('viewId', { nullable: true, defaultValue: 'default' }) viewId: string,
+        @Args('prefs', { type: () => GraphQLJSON }) prefs: Record<string, unknown>
+    ) {
+        const organizer = await this.dockerOrganizerService.updateViewPreferences({
+            viewId,
+            prefs,
         });
         return this.dockerOrganizerService.resolveOrganizer(organizer);
     }
