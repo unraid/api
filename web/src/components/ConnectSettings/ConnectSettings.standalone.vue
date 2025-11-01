@@ -94,6 +94,13 @@ const jsonFormsConfig = {
 const renderers = [...jsonFormsRenderers];
 const jsonFormsI18n = useJsonFormsI18n();
 
+const jsonFormsProps = computed(() => ({
+  renderers,
+  config: jsonFormsConfig,
+  ajv: jsonFormsAjv,
+  i18n: jsonFormsI18n.value,
+}));
+
 /** Called when the user clicks the "Apply" button */
 const submitSettingsUpdate = async () => {
   console.log('[ConnectSettings] trying to update settings to', formState.value);
@@ -122,13 +129,10 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
     <div class="mt-6 pl-3 [&_.vertical-layout]:space-y-6">
       <JsonForms
         v-if="settings"
+        v-bind="jsonFormsProps"
         :schema="settings.dataSchema"
         :uischema="settings.uiSchema"
-        :renderers="renderers"
         :data="formState"
-        :config="jsonFormsConfig"
-        :ajv="jsonFormsAjv"
-        :i18n="jsonFormsI18n"
         :readonly="isUpdating"
         @change="onChange"
       />

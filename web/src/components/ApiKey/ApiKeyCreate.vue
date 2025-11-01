@@ -106,6 +106,20 @@ const formData = ref<FormData>({
 const formValid = ref(false);
 const jsonFormsI18n = useJsonFormsI18n();
 
+const jsonFormsConfig = {
+  restrict: false,
+  trim: false,
+};
+
+const renderers = [...jsonFormsRenderers];
+
+const jsonFormsProps = computed(() => ({
+  renderers,
+  config: jsonFormsConfig,
+  ajv: jsonFormsAjv,
+  i18n: jsonFormsI18n.value,
+}));
+
 // Use clipboard for copying
 const { copyWithNotification, copied } = useClipboardWithToast();
 
@@ -464,10 +478,8 @@ const copyApiKey = async () => {
         <JsonForms
           :schema="formSchema.dataSchema"
           :uischema="formSchema.uiSchema"
-          :renderers="jsonFormsRenderers"
+          v-bind="jsonFormsProps"
           :data="formData"
-          :ajv="jsonFormsAjv"
-          :i18n="jsonFormsI18n"
           @change="
             ({ data, errors }) => {
               formData = data;
