@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
@@ -18,6 +19,7 @@ describe('MetricsResolver', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 MetricsResolver,
+                CpuTopologyService,
                 {
                     provide: CpuService,
                     useValue: {
@@ -163,6 +165,7 @@ describe('MetricsResolver', () => {
 
             const testModule = new MetricsResolver(
                 cpuService,
+                {} as any,
                 memoryService,
                 subscriptionTracker as any,
                 {} as any
@@ -170,7 +173,7 @@ describe('MetricsResolver', () => {
 
             testModule.onModuleInit();
 
-            expect(subscriptionTracker.registerTopic).toHaveBeenCalledTimes(2);
+            expect(subscriptionTracker.registerTopic).toHaveBeenCalledTimes(3);
             expect(subscriptionTracker.registerTopic).toHaveBeenCalledWith(
                 'CPU_UTILIZATION',
                 expect.any(Function),
