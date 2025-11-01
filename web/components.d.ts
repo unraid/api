@@ -8,10 +8,14 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ActivationLicenseStep: typeof import('./src/components/Activation/ActivationLicenseStep.vue')['default']
     ActivationModal: typeof import('./src/components/Activation/ActivationModal.vue')['default']
     ActivationPartnerLogo: typeof import('./src/components/Activation/ActivationPartnerLogo.vue')['default']
     ActivationPartnerLogoImg: typeof import('./src/components/Activation/ActivationPartnerLogoImg.vue')['default']
+    ActivationPluginsStep: typeof import('./src/components/Activation/ActivationPluginsStep.vue')['default']
     ActivationSteps: typeof import('./src/components/Activation/ActivationSteps.vue')['default']
+    ActivationTimezoneStep: typeof import('./src/components/Activation/ActivationTimezoneStep.vue')['default']
+    ActivationWelcomeStep: typeof import('./src/components/Activation/ActivationWelcomeStep.vue')['default']
     'ApiKeyAuthorize.standalone': typeof import('./src/components/ApiKeyAuthorize.standalone.vue')['default']
     ApiKeyCreate: typeof import('./src/components/ApiKey/ApiKeyCreate.vue')['default']
     ApiKeyManager: typeof import('./src/components/ApiKey/ApiKeyManager.vue')['default']
@@ -125,6 +129,7 @@ declare module 'vue' {
     UptimeExpire: typeof import('./src/components/UserProfile/UptimeExpire.vue')['default']
     USelectMenu: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/SelectMenu.vue')['default']
     'UserProfile.standalone': typeof import('./src/components/UserProfile.standalone.vue')['default']
+    UStepper: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Stepper.vue')['default']
     USwitch: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Switch.vue')['default']
     UTabs: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Tabs.vue')['default']
     'WanIpCheck.standalone': typeof import('./src/components/WanIpCheck.standalone.vue')['default']
