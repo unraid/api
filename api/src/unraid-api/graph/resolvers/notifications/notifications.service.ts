@@ -120,6 +120,7 @@ export class NotificationsService {
             pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
                 notificationAdded: notification,
             });
+            void this.publishWarningsAndAlerts();
         }
     }
 
@@ -139,6 +140,20 @@ export class NotificationsService {
         return pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW, {
             notificationsOverview: overview,
         });
+    }
+
+    private async publishWarningsAndAlerts() {
+        try {
+            const warningsAndAlerts = await this.getWarningsAndAlerts();
+            await pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_WARNINGS_AND_ALERTS, {
+                notificationsWarningsAndAlerts: warningsAndAlerts,
+            });
+        } catch (error) {
+            this.logger.error(
+                '[publishWarningsAndAlerts] Failed to broadcast warnings and alerts snapshot',
+                error as Error
+            );
+        }
     }
 
     private increment(importance: NotificationImportance, collector: NotificationCounts) {
@@ -212,6 +227,8 @@ export class NotificationsService {
             // this.logger.debug(`[createNotification] INI: ${ini}`);
             await writeFile(path, ini);
         }
+
+        void this.publishWarningsAndAlerts();
 
         return this.notificationFileToGqlNotification({ id, type: NotificationType.UNREAD }, fileData);
     }
@@ -299,6 +316,9 @@ export class NotificationsService {
 
         this.decrement(notification.importance, NotificationsService.overview[type.toLowerCase()]);
         await this.publishOverview();
+        if (type === NotificationType.UNREAD) {
+            void this.publishWarningsAndAlerts();
+        }
 
         // return both the overview & the deleted notification
         // this helps us reference the deleted notification in-memory if we want
@@ -319,6 +339,10 @@ export class NotificationsService {
             warning: 0,
             total: 0,
         };
+        await this.publishOverview();
+        if (type === NotificationType.UNREAD) {
+            void this.publishWarningsAndAlerts();
+        }
         return this.getOverview();
     }
 
@@ -432,6 +456,8 @@ export class NotificationsService {
         });
         await moveToArchive(notification);
 
+        void this.publishWarningsAndAlerts();
+
         return {
             ...notification,
             type: NotificationType.ARCHIVE,
@@ -457,6 +483,7 @@ export class NotificationsService {
         });
 
         await moveToUnread(notification);
+        void this.publishWarningsAndAlerts();
         return {
             ...notification,
             type: NotificationType.UNREAD,
@@ -481,6 +508,7 @@ export class NotificationsService {
         });
 
         const stats = await batchProcess(notifications, archive);
+        void this.publishWarningsAndAlerts();
         return { ...stats, overview: overviewSnapshot };
     }
 
@@ -503,6 +531,7 @@ export class NotificationsService {
         });
 
         const stats = await batchProcess(notifications, unArchive);
+        void this.publishWarningsAndAlerts();
         return { ...stats, overview: overviewSnapshot };
     }
 
@@ -564,6 +593,64 @@ export class NotificationsService {
 
         const [notifications] = await this.loadNotificationsFromPaths(files, filters);
         return notifications;
+    }
+
+    /**
+     * Creates a notification only if an equivalent unread notification does not already exist.
+     *
+     * @param data The notification data to create.
+     * @returns The created notification, or null if a duplicate was detected.
+     */
+    public async notifyIfUnique(data: NotificationData): Promise<Notification | null> {
+        const fingerprint = this.getNotificationFingerprintFromData(data);
+        const hasDuplicate = await this.hasUnreadNotificationWithFingerprint(fingerprint);
+
+        if (hasDuplicate) {
+            this.logger.verbose(
+                `[notifyIfUnique] Skipping notification creation for duplicate fingerprint: ${fingerprint}`
+            );
+            return null;
+        }
+
+        return this.createNotification(data);
+    }
+
+    /**
+     * Returns a deduplicated list of unread warning and alert notifications.
+     *
+     * Deduplication is based on the combination of importance, title, subject, description, and link.
+     * This ensures repeated notifications with the same user-facing content are only shown once, while
+     * still prioritizing the most recent occurrence of each unique notification.
+     *
+     * @param limit Maximum number of unique notifications to return. Default: 50.
+     */
+    public async getWarningsAndAlerts(limit = 50): Promise<Notification[]> {
+        const notifications = await this.loadUnreadNotifications();
+        const deduped: Notification[] = [];
+        const seen = new Set<string>();
+
+        for (const notification of notifications) {
+            if (
+                notification.importance !== NotificationImportance.ALERT &&
+                notification.importance !== NotificationImportance.WARNING
+            ) {
+                continue;
+            }
+
+            const key = this.getDeduplicationKey(notification);
+            if (seen.has(key)) {
+                continue;
+            }
+
+            seen.add(key);
+            deduped.push(notification);
+
+            if (deduped.length >= limit) {
+                break;
+            }
+        }
+
+        return deduped;
     }
 
     /**
@@ -783,8 +870,57 @@ export class NotificationsService {
      *                           Helpers
      *------------------------------------------------------------------------**/
 
+    private async loadUnreadNotifications(): Promise<Notification[]> {
+        const { UNREAD } = this.paths();
+        const files = await this.listFilesInFolder(UNREAD);
+        const [notifications] = await this.loadNotificationsFromPaths(files, {
+            type: NotificationType.UNREAD,
+        });
+        return notifications;
+    }
+
+    private async hasUnreadNotificationWithFingerprint(fingerprint: string): Promise<boolean> {
+        const notifications = await this.loadUnreadNotifications();
+        return notifications.some(
+            (notification) => this.getDeduplicationKey(notification) === fingerprint
+        );
+    }
+
     private sortLatestFirst(a: Notification, b: Notification) {
         const defaultTimestamp = 0;
         return Number(b.timestamp ?? defaultTimestamp) - Number(a.timestamp ?? defaultTimestamp);
+    }
+
+    private getDeduplicationKey(notification: Notification): string {
+        return this.getNotificationFingerprint(notification);
+    }
+
+    private getNotificationFingerprintFromData(data: NotificationData): string {
+        return this.getNotificationFingerprint({
+            importance: data.importance,
+            title: data.title,
+            subject: data.subject,
+            description: data.description,
+            link: data.link,
+        });
+    }
+
+    private getNotificationFingerprint({
+        importance,
+        title,
+        subject,
+        description,
+        link,
+    }: Pick<Notification, 'importance' | 'title' | 'subject' | 'description'> & {
+        link?: string | null;
+    }): string {
+        const makePart = (value?: string | null) => (value ?? '').trim();
+        return [
+            importance,
+            makePart(title),
+            makePart(subject),
+            makePart(description),
+            makePart(link),
+        ].join('|');
     }
 }

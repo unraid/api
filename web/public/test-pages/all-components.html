@@ -73,6 +73,26 @@
 </head>
 <body>
   <div class="container">
+    <div class="category-header">🔔 Notifications</div>
+    <div class="component-card" style="grid-column: 1 / -1;">
+      <h3>Critical Notifications</h3>
+      <span class="selector">&lt;unraid-critical-notifications&gt;</span>
+      <div class="component-mount">
+        <unraid-critical-notifications></unraid-critical-notifications>
+      </div>
+    </div>
+    <!-- Docker -->
+    <div class="category-header">🐳 Docker</div>
+    <div class="component-grid">
+      <div class="component-card" style="grid-column: 1 / -1;">
+        <h3>Docker Container Overview</h3>
+        <span class="selector">&lt;unraid-docker-container-overview&gt;</span>
+        <div class="component-mount">
+          <unraid-docker-container-overview></unraid-docker-container-overview>
+        </div>
+      </div>
+    </div>
+
     <!-- Authentication & User -->
     <div class="category-header">👤 Authentication & User</div>
     <div class="component-grid">

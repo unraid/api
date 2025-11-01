@@ -4,7 +4,9 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
+import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
+import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
 import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
@@ -63,8 +65,16 @@ describe('DockerModule', () => {
             providers: [
                 DockerResolver,
                 { provide: DockerService, useValue: {} },
+                { provide: DockerFormService, useValue: { getContainerOverviewForm: vi.fn() } },
                 { provide: DockerOrganizerService, useValue: {} },
                 { provide: DockerPhpService, useValue: { getContainerUpdateStatuses: vi.fn() } },
+                {
+                    provide: DockerTemplateScannerService,
+                    useValue: {
+                        scanTemplates: vi.fn(),
+                        syncMissingContainers: vi.fn(),
+                    },
+                },
             ],
         }).compile();
 

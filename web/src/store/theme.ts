@@ -127,11 +127,6 @@ export const useThemeStore = defineStore('theme', () => {
     const themeClasses: string[] = [];
     const customClasses: string[] = [];
 
-    // Apply dark/light mode using Tailwind v4 theme switching
-    if (darkMode.value) {
-      themeClasses.push('dark');
-    }
-
     // Apply theme-specific class for Tailwind v4 theme variants
     themeClasses.push(`theme-${selectedTheme}`);
 

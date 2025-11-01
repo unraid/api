@@ -13,9 +13,24 @@ interface AtRule extends Container {
   params: string;
 }
 
+type WalkAtRulesRoot = {
+  walkAtRules: (name: string, callback: (atRule: AtRule) => void) => void;
+};
+
+type ParentContainer = Container & {
+  insertBefore?: (oldNode: Container, newNode: Container) => void;
+  removeChild?: (node: Container) => void;
+};
+
+type RemovableAtRule = AtRule & {
+  nodes?: Container[];
+  remove?: () => void;
+};
+
 type PostcssPlugin = {
   postcssPlugin: string;
   Rule?(rule: Rule): void;
+  OnceExit?(root: WalkAtRulesRoot): void;
 };
 
 type PluginCreator<T> = {
@@ -156,6 +171,34 @@ export const scopeTailwindToUnapi: PluginCreator<ScopeOptions> = (options: Scope
       } else {
         rule.selector = scopedSelectors.join(', ');
       }
+    },
+    OnceExit(root) {
+      root.walkAtRules('layer', (atRule: AtRule) => {
+        const removableAtRule = atRule as RemovableAtRule;
+        const parent = atRule.parent as ParentContainer | undefined;
+        if (!parent) {
+          return;
+        }
+
+        if (
+          Array.isArray(removableAtRule.nodes) &&
+          removableAtRule.nodes.length > 0 &&
+          typeof (parent as ParentContainer).insertBefore === 'function'
+        ) {
+          const parentContainer = parent as ParentContainer;
+          while (removableAtRule.nodes.length) {
+            const node = removableAtRule.nodes[0]!;
+            parentContainer.insertBefore?.(atRule as unknown as Container, node);
+          }
+        }
+
+        if (typeof removableAtRule.remove === 'function') {
+          removableAtRule.remove();
+          return;
+        }
+
+        (parent as ParentContainer).removeChild?.(atRule as unknown as Container);
+      });
     },
   };
 };
