@@ -1,3 +1,4 @@
+import { computed } from 'vue';
 import { useMutation } from '@vue/apollo-composable';
 import { useDebounceFn, useStorage } from '@vueuse/core';
 
@@ -11,6 +12,7 @@ export function useDockerViewPreferences(viewId = 'default') {
   const storageKey = `docker-view-prefs-${viewId}`;
 
   const localPrefs = useStorage<ViewPreferences>(storageKey, {});
+  const columnVisibilityRef = computed(() => localPrefs.value.columnVisibility);
 
   const { mutate: updatePrefs } = useMutation(UPDATE_DOCKER_VIEW_PREFERENCES);
 
@@ -52,5 +54,6 @@ export function useDockerViewPreferences(viewId = 'default') {
     loadColumnVisibility,
     mergeServerPreferences,
     saveColumnVisibility,
+    columnVisibilityRef,
   };
 }

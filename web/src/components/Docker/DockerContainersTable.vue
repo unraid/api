@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, h, nextTick, ref, resolveComponent, watch } from 'vue';
+import { computed, h, nextTick, ref, resolveComponent, watch, watchEffect } from 'vue';
 import { useMutation } from '@vue/apollo-composable';
 
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
@@ -260,8 +260,7 @@ const { visibleFolders, expandedFolders, toggleExpandFolder, setExpandedFolders 
 });
 const busyRowIds = ref<Set<string>>(new Set());
 
-const { loadColumnVisibility, mergeServerPreferences, saveColumnVisibility } =
-  useDockerViewPreferences();
+const { mergeServerPreferences, saveColumnVisibility, columnVisibilityRef } = useDockerViewPreferences();
 
 function setRowsBusy(ids: string[], busy: boolean) {
   const next = new Set(busyRowIds.value);
@@ -467,7 +466,7 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
   return cols;
 });
 
-const hasAppliedPreferences = ref(false);
+const isApplyingColumnVisibility = ref(false);
 
 function getDefaultColumnVisibility(isCompact: boolean): Record<string, boolean> {
   if (isCompact) {
@@ -498,38 +497,68 @@ function getDefaultColumnVisibility(isCompact: boolean): Record<string, boolean>
   }
 }
 
-function applyColumnVisibilityPreferences() {
-  if (!baseTableRef.value?.columnVisibility) return;
-  if (hasAppliedPreferences.value) return;
+const defaultColumnVisibility = computed(() => getDefaultColumnVisibility(props.compact));
 
-  const savedPrefs = loadColumnVisibility();
-  const defaultPrefs = getDefaultColumnVisibility(props.compact);
+const resolvedColumnVisibility = computed<Record<string, boolean>>(() => ({
+  ...defaultColumnVisibility.value,
+  ...(columnVisibilityRef.value ?? {}),
+}));
 
-  baseTableRef.value.columnVisibility.value = savedPrefs || defaultPrefs;
-  hasAppliedPreferences.value = true;
+function getEffectiveVisibility(
+  visibility: Record<string, boolean> | undefined,
+  columnId: string
+): boolean {
+  if (!visibility) return true;
+  if (Object.prototype.hasOwnProperty.call(visibility, columnId)) {
+    return visibility[columnId];
+  }
+  return true;
 }
 
-watch(
-  baseTableRef,
-  (ref) => {
-    if (ref?.columnVisibility && !hasAppliedPreferences.value) {
-      applyColumnVisibilityPreferences();
+watchEffect(() => {
+  const tableInstance = baseTableRef.value;
+  if (!tableInstance?.columnVisibility) return;
+
+  const target = resolvedColumnVisibility.value;
+  const visibilityRef = tableInstance.columnVisibility;
+  const tableApi = tableInstance.tableApi;
+
+  let applied = false;
+
+  if (tableApi) {
+    for (const column of tableApi.getAllColumns()) {
+      if (!column.getCanHide()) continue;
+      const desired = getEffectiveVisibility(target, column.id);
+      if (column.getIsVisible() !== desired) {
+        applied = true;
+        column.toggleVisibility(desired);
+      }
     }
-  },
-  { immediate: true, flush: 'post' }
-);
+  }
+
+  const current = visibilityRef.value || {};
+  const keys = new Set([...Object.keys(current), ...Object.keys(target)]);
+  for (const key of keys) {
+    if (current[key] !== target[key]) {
+      applied = true;
+      break;
+    }
+  }
+
+  if (!applied) return;
+
+  isApplyingColumnVisibility.value = true;
+  visibilityRef.value = { ...target };
+  nextTick(() => {
+    isApplyingColumnVisibility.value = false;
+  });
+});
 
 watch(
   () => props.viewPrefs,
   (prefs) => {
-    if (prefs && hasAppliedPreferences.value) {
+    if (prefs) {
       mergeServerPreferences(prefs);
-      if (baseTableRef.value?.columnVisibility) {
-        const savedPrefs = loadColumnVisibility();
-        if (savedPrefs) {
-          baseTableRef.value.columnVisibility.value = savedPrefs;
-        }
-      }
     }
   },
   { immediate: true }
@@ -538,9 +567,10 @@ watch(
 watch(
   () => baseTableRef.value?.columnVisibility?.value,
   (columnVisibility) => {
-    if (columnVisibility && hasAppliedPreferences.value && !props.compact) {
-      saveColumnVisibility(columnVisibility);
+    if (!columnVisibility || props.compact || isApplyingColumnVisibility.value) {
+      return;
     }
+    saveColumnVisibility({ ...columnVisibility });
   },
   { deep: true }
 );

@@ -5,7 +5,7 @@ import { join } from 'path';
 
 import { XMLParser } from 'fast-xml-parser';
 
-import { PATHS_DOCKER_TEMPLATES } from '@app/environment.js';
+import { ENABLE_NEXT_DOCKER_RELEASE, PATHS_DOCKER_TEMPLATES } from '@app/environment.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerTemplateSyncResult } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.model.js';
 import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
@@ -33,6 +33,9 @@ export class DockerTemplateScannerService {
 
     @Timeout(5_000)
     async bootstrapScan(attempt = 1, maxAttempts = 5): Promise<void> {
+        if (!ENABLE_NEXT_DOCKER_RELEASE) {
+            return;
+        }
         try {
             this.logger.log(`Starting template scan (attempt ${attempt}/${maxAttempts})`);
             const result = await this.scanTemplates();

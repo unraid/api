@@ -12,7 +12,7 @@ export default class DockerContainersPageModification extends FileModification {
         '/usr/local/emhttp/plugins/dynamix.docker.manager/DockerContainers.page';
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
-        const baseCheck = await super.shouldApply();
+        const baseCheck = await super.shouldApply({ checkOsVersion: false });
         if (!baseCheck.shouldApply) {
             return baseCheck;
         }
