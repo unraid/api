@@ -1,12 +1,5 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import {
-    forwardRef,
-    Inject,
-    Injectable,
-    Logger,
-    OnApplicationBootstrap,
-    OnModuleInit,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 
 import { type Cache } from 'cache-manager';
@@ -18,7 +11,6 @@ import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
 import { getters } from '@app/store/index.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
-import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import {
     ContainerPortType,
     ContainerState,
@@ -37,7 +29,7 @@ interface NetworkListingOptions {
 }
 
 @Injectable()
-export class DockerService implements OnApplicationBootstrap {
+export class DockerService {
     private client: Docker;
     private autoStarts: string[] = [];
     private readonly logger = new Logger(DockerService.name);
@@ -50,15 +42,9 @@ export class DockerService implements OnApplicationBootstrap {
     constructor(
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private readonly dockerConfigService: DockerConfigService,
-        @Inject(forwardRef(() => DockerTemplateScannerService))
-        private readonly templateScannerService: DockerTemplateScannerService,
         private readonly notificationsService: NotificationsService
     ) {
         this.client = this.getDockerClient();
-    }
-
-    async onApplicationBootstrap() {
-        await this.templateScannerService.bootstrapScan();
     }
 
     public getDockerClient() {
