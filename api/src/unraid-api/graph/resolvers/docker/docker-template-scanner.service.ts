@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Timeout } from '@nestjs/schedule';
 import { readdir, readFile } from 'fs/promises';
 import { join } from 'path';
@@ -28,7 +28,6 @@ export class DockerTemplateScannerService {
 
     constructor(
         private readonly dockerConfigService: DockerConfigService,
-        @Inject(forwardRef(() => DockerService))
         private readonly dockerService: DockerService
     ) {}
 
