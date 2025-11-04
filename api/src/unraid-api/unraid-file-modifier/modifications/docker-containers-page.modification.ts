@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
+import { ENABLE_NEXT_DOCKER_RELEASE } from '@app/environment.js';
 import {
     FileModification,
     ShouldApplyWithReason,
@@ -14,6 +15,13 @@ export default class DockerContainersPageModification extends FileModification {
         const baseCheck = await super.shouldApply();
         if (!baseCheck.shouldApply) {
             return baseCheck;
+        }
+
+        if (!ENABLE_NEXT_DOCKER_RELEASE) {
+            return {
+                shouldApply: false,
+                reason: 'ENABLE_NEXT_DOCKER_RELEASE is not enabled, so Docker overview table modification is not applied',
+            };
         }
 
         if (await this.isUnraidVersionGreaterThanOrEqualTo('7.3.0')) {
