@@ -21,10 +21,12 @@ import { useDockerViewPreferences } from '@/composables/useDockerColumnVisibilit
 import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
 import { useFolderOperations } from '@/composables/useFolderOperations';
 import { useFolderTree } from '@/composables/useFolderTree';
+import { usePersistentColumnVisibility } from '@/composables/usePersistentColumnVisibility';
 import { useTreeData } from '@/composables/useTreeData';
 
 import type { DockerContainer, FlatOrganizerEntry } from '@/composables/gql/graphql';
 import type { DropEvent } from '@/composables/useDragDrop';
+import type { ColumnVisibilityTableInstance } from '@/composables/usePersistentColumnVisibility';
 import type { TreeRow } from '@/composables/useTreeData';
 import type { TableColumn } from '@nuxt/ui';
 import type { Component } from 'vue';
@@ -196,27 +198,7 @@ const containersRef = computed(() => props.containers);
 
 const rootFolderId = computed<string>(() => props.rootFolderId || 'root');
 
-interface BaseTableInstance {
-  columnVisibility?: { value: Record<string, boolean> };
-  tableApi?: {
-    getAllColumns: () => Array<{
-      id: string;
-      getCanHide: () => boolean;
-      getIsVisible: () => boolean;
-      toggleVisibility: (visible: boolean) => void;
-    }>;
-    getColumn: (id: string) =>
-      | {
-          toggleVisibility: (visible: boolean) => void;
-        }
-      | undefined;
-    setColumnVisibility?: (
-      updater: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)
-    ) => void;
-  };
-}
-
-const baseTableRef = ref<BaseTableInstance | null>(null);
+const baseTableRef = ref<ColumnVisibilityTableInstance | null>(null);
 
 const searchableKeys = [
   'name',
@@ -505,125 +487,14 @@ const resolvedColumnVisibility = computed<Record<string, boolean>>(() => ({
   ...(columnVisibilityRef.value ?? {}),
 }));
 
-function getEffectiveVisibility(
-  visibility: Record<string, boolean> | undefined | null,
-  columnId: string
-): boolean {
-  if (!visibility) return true;
-  if (Object.prototype.hasOwnProperty.call(visibility, columnId)) {
-    return visibility[columnId];
-  }
-  return true;
-}
-
-function visibilityStatesMatch(
-  current: Record<string, boolean> | null | undefined,
-  target: Record<string, boolean> | null | undefined,
-  columnIds: string[] | undefined
-): boolean {
-  if (!current || !target) return false;
-  const keys =
-    columnIds && columnIds.length > 0
-      ? new Set(columnIds)
-      : new Set([...Object.keys(current), ...Object.keys(target)]);
-  for (const key of keys) {
-    if (getEffectiveVisibility(current, key) !== getEffectiveVisibility(target, key)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function applyColumnVisibility(target: Record<string, boolean>) {
-  const tableInstance = baseTableRef.value;
-  if (!tableInstance?.columnVisibility) return;
-
-  const visibilityRef = tableInstance.columnVisibility;
-  const tableApi = tableInstance.tableApi;
-  const current = visibilityRef.value || {};
-  const columnIds = tableApi
-    ? tableApi
-        .getAllColumns()
-        .filter((column) => column.getCanHide())
-        .map((column) => column.id)
-    : [];
-
-  if (visibilityStatesMatch(current, target, columnIds)) {
-    return;
-  }
-
-  if (tableApi?.setColumnVisibility) {
-    tableApi.setColumnVisibility(() => ({ ...target }));
-  } else {
-    visibilityRef.value = { ...target };
-  }
-}
-
-watch(
-  () => resolvedColumnVisibility.value,
-  (target) => {
-    applyColumnVisibility(target);
-  },
-  { immediate: true, deep: true }
-);
-
-watch(
-  baseTableRef,
-  () => {
-    applyColumnVisibility(resolvedColumnVisibility.value);
-  },
-  { immediate: true, flush: 'post' }
-);
-
-const lastSavedColumnVisibility = ref<Record<string, boolean> | null>(null);
-
-function getHideableColumnIds(): string[] {
-  const tableApi = baseTableRef.value?.tableApi;
-  if (tableApi) {
-    return tableApi
-      .getAllColumns()
-      .filter((column) => column.getCanHide())
-      .map((column) => column.id);
-  }
-  return Object.keys(defaultColumnVisibility.value);
-}
-
-function normalizeColumnVisibilityState(
-  raw: Record<string, boolean> | null | undefined
-): Record<string, boolean> {
-  const ids = getHideableColumnIds();
-  const normalized: Record<string, boolean> = {};
-  for (const id of ids) {
-    normalized[id] = getEffectiveVisibility(raw, id);
-  }
-  return normalized;
-}
-
-function readCurrentColumnVisibility(): Record<string, boolean> | null {
-  const tableApi = baseTableRef.value?.tableApi;
-  if (!tableApi) return null;
-  const record: Record<string, boolean> = {};
-  for (const column of tableApi.getAllColumns()) {
-    if (!column.getCanHide()) continue;
-    record[column.id] = column.getIsVisible();
-  }
-  return record;
-}
-
-async function persistCurrentColumnVisibility() {
-  await nextTick();
-  const current = readCurrentColumnVisibility();
-  if (!current) return;
-  const normalized = normalizeColumnVisibilityState(current);
-  if (
-    lastSavedColumnVisibility.value &&
-    visibilityStatesMatch(normalized, lastSavedColumnVisibility.value, Object.keys(normalized))
-  ) {
-    return;
-  }
-  lastSavedColumnVisibility.value = { ...normalized };
-  saveColumnVisibility({ ...normalized });
-}
+// Keep table visibility in sync with saved preferences and persist optimistic user toggles.
+const { persistCurrentColumnVisibility } = usePersistentColumnVisibility({
+  tableRef: baseTableRef,
+  resolvedVisibility: resolvedColumnVisibility,
+  fallbackVisibility: defaultColumnVisibility,
+  onPersist: (visibility) => saveColumnVisibility({ ...visibility }),
+  isPersistenceEnabled: () => !props.compact,
+});
 
 watch(
   () => props.viewPrefs,
@@ -633,34 +504,6 @@ watch(
     }
   },
   { immediate: true }
-);
-
-watch(
-  () => baseTableRef.value?.columnVisibility?.value,
-  (columnVisibility) => {
-    if (!columnVisibility || props.compact) {
-      return;
-    }
-
-    const columnIds = getHideableColumnIds();
-    const normalizedCurrent = normalizeColumnVisibilityState(columnVisibility);
-
-    if (visibilityStatesMatch(normalizedCurrent, resolvedColumnVisibility.value, columnIds)) {
-      lastSavedColumnVisibility.value = { ...normalizedCurrent };
-      return;
-    }
-
-    if (
-      lastSavedColumnVisibility.value &&
-      visibilityStatesMatch(normalizedCurrent, lastSavedColumnVisibility.value, columnIds)
-    ) {
-      return;
-    }
-
-    lastSavedColumnVisibility.value = { ...normalizedCurrent };
-    saveColumnVisibility({ ...normalizedCurrent });
-  },
-  { deep: true }
 );
 
 type ActionDropdownItem = { label: string; icon?: string; onSelect?: (e?: Event) => void; as?: string };
@@ -699,7 +542,7 @@ const columnsMenuItems = computed<DropdownMenuItems>(() => {
       type: 'checkbox' as const,
       checked: column.getIsVisible(),
       onUpdateChecked(checked: boolean) {
-        baseTableRef.value?.tableApi?.getColumn(column.id)?.toggleVisibility(!!checked);
+        baseTableRef.value?.tableApi?.getColumn?.(column.id)?.toggleVisibility(!!checked);
         void persistCurrentColumnVisibility();
       },
       onSelect(e: Event) {
