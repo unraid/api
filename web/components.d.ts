@@ -47,6 +47,7 @@ declare module 'vue' {
     'DevModalTest.standalone': typeof import('./src/components/DevModalTest.standalone.vue')['default']
     DevSettings: typeof import('./src/components/DevSettings.vue')['default']
     'DevThemeSwitcher.standalone': typeof import('./src/components/DevThemeSwitcher.standalone.vue')['default']
+    DockerAutostartSettings: typeof import('./src/components/Docker/DockerAutostartSettings.vue')['default']
     DockerContainerManagement: typeof import('./src/components/Docker/DockerContainerManagement.vue')['default']
     DockerContainerOverview: typeof import('./src/components/Docker/DockerContainerOverview.vue')['default']
     'DockerContainerOverview.standalone': typeof import('./src/components/Docker/DockerContainerOverview.standalone.vue')['default']
