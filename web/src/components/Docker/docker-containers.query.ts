@@ -4,6 +4,27 @@ export const GET_DOCKER_CONTAINERS = gql`
   query GetDockerContainers($skipCache: Boolean = false) {
     docker {
       id
+      containers(skipCache: $skipCache) {
+        id
+        names
+        state
+        status
+        image
+        created
+        autoStart
+        autoStartOrder
+        autoStartWait
+        ports {
+          privatePort
+          publicPort
+          type
+        }
+        hostConfig {
+          networkMode
+        }
+        networkSettings
+        mounts
+      }
       organizer(skipCache: $skipCache) {
         version
         views {

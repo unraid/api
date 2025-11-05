@@ -869,8 +869,22 @@ type DockerMutations {
   """Unpause (Resume) a container"""
   unpause(id: PrefixedID!): DockerContainer!
 
+  """Update auto-start configuration for Docker containers"""
+  updateAutostartConfiguration(entries: [DockerAutostartEntryInput!]!): Boolean!
+
   """Update a container to the latest image"""
   updateContainer(id: PrefixedID!): DockerContainer!
+}
+
+input DockerAutostartEntryInput {
+  """Docker container identifier"""
+  id: PrefixedID!
+
+  """Whether the container should auto-start"""
+  autoStart: Boolean!
+
+  """Number of seconds to wait after starting the container"""
+  wait: Int
 }
 
 type VmMutations {
@@ -1111,6 +1125,12 @@ type DockerContainer implements Node {
   networkSettings: JSON
   mounts: [JSON!]
   autoStart: Boolean!
+
+  """Zero-based order in the auto-start list"""
+  autoStartOrder: Int
+
+  """Wait time in seconds applied after start"""
+  autoStartWait: Int
   templatePath: String
   isUpdateAvailable: Boolean
   isRebuildReady: Boolean

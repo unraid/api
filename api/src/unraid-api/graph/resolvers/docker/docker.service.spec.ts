@@ -71,8 +71,16 @@ vi.mock('@app/store/index.js', () => ({
 }));
 
 // Mock fs/promises
+const { readFileMock, writeFileMock, unlinkMock } = vi.hoisted(() => ({
+    readFileMock: vi.fn().mockResolvedValue(''),
+    writeFileMock: vi.fn().mockResolvedValue(undefined),
+    unlinkMock: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock('fs/promises', () => ({
-    readFile: vi.fn().mockResolvedValue(''),
+    readFile: readFileMock,
+    writeFile: writeFileMock,
+    unlink: unlinkMock,
 }));
 
 // Mock Cache Manager
@@ -122,6 +130,10 @@ describe('DockerService', () => {
         mockCacheManager.get.mockReset();
         mockCacheManager.set.mockReset();
         mockCacheManager.del.mockReset();
+        readFileMock.mockReset();
+        readFileMock.mockResolvedValue('');
+        writeFileMock.mockReset();
+        unlinkMock.mockReset();
         mockDockerConfigService.getConfig.mockReturnValue({
             updateCheckCronSchedule: '0 6 * * *',
             templateMappings: {},
@@ -248,6 +260,8 @@ describe('DockerService', () => {
             {
                 id: 'abc123def456',
                 autoStart: false,
+                autoStartOrder: undefined,
+                autoStartWait: undefined,
                 command: 'test',
                 created: 1234567890,
                 image: 'test-image',
@@ -303,6 +317,8 @@ describe('DockerService', () => {
         expect(result).toEqual({
             id: 'abc123def456',
             autoStart: false,
+            autoStartOrder: undefined,
+            autoStartWait: undefined,
             command: 'test',
             created: 1234567890,
             image: 'test-image',
@@ -361,6 +377,8 @@ describe('DockerService', () => {
         expect(result).toEqual({
             id: 'abc123def456',
             autoStart: false,
+            autoStartOrder: undefined,
+            autoStartWait: undefined,
             command: 'test',
             created: 1234567890,
             image: 'test-image',
@@ -409,6 +427,79 @@ describe('DockerService', () => {
             'Container not-found not found after stopping'
         );
         expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
+    });
+
+    it('should update auto-start configuration and persist waits', async () => {
+        mockListContainers.mockResolvedValue([
+            {
+                Id: 'abc123',
+                Names: ['/alpha'],
+                Image: 'alpha-image',
+                ImageID: 'alpha-image-id',
+                Command: 'run-alpha',
+                Created: 123,
+                State: 'running',
+                Status: 'Up 1 minute',
+                Ports: [],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: {},
+                Mounts: [],
+            },
+            {
+                Id: 'def456',
+                Names: ['/beta'],
+                Image: 'beta-image',
+                ImageID: 'beta-image-id',
+                Command: 'run-beta',
+                Created: 456,
+                State: 'running',
+                Status: 'Up 1 minute',
+                Ports: [],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: {},
+                Mounts: [],
+            },
+        ]);
+
+        await service.updateAutostartConfiguration([
+            { id: 'abc123', autoStart: true, wait: 15 },
+            { id: 'abc123', autoStart: true, wait: 5 }, // duplicate should be ignored
+            { id: 'def456', autoStart: false, wait: 0 },
+        ]);
+
+        expect(writeFileMock).toHaveBeenCalledWith('/path/to/docker-autostart', 'alpha 15\n', 'utf8');
+        expect(unlinkMock).not.toHaveBeenCalled();
+        expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
+        expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_WITH_SIZE_CACHE_KEY);
+    });
+
+    it('should remove auto-start file when no containers are configured', async () => {
+        mockListContainers.mockResolvedValue([
+            {
+                Id: 'abc123',
+                Names: ['/alpha'],
+                Image: 'alpha-image',
+                ImageID: 'alpha-image-id',
+                Command: 'run-alpha',
+                Created: 123,
+                State: 'running',
+                Status: 'Up 1 minute',
+                Ports: [],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: {},
+                Mounts: [],
+            },
+        ]);
+
+        await service.updateAutostartConfiguration([{ id: 'abc123', autoStart: false, wait: 30 }]);
+
+        expect(writeFileMock).not.toHaveBeenCalled();
+        expect(unlinkMock).toHaveBeenCalledWith('/path/to/docker-autostart');
+        expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
+        expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_WITH_SIZE_CACHE_KEY);
     });
 
     it('should get networks', async () => {

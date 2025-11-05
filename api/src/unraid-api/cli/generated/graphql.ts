@@ -701,9 +701,22 @@ export type DockerOrganizerArgs = {
   skipCache?: Scalars['Boolean']['input'];
 };
 
+export type DockerAutostartEntryInput = {
+  /** Whether the container should auto-start */
+  autoStart: Scalars['Boolean']['input'];
+  /** Docker container identifier */
+  id: Scalars['PrefixedID']['input'];
+  /** Number of seconds to wait after starting the container */
+  wait?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type DockerContainer = Node & {
   __typename?: 'DockerContainer';
   autoStart: Scalars['Boolean']['output'];
+  /** Zero-based order in the auto-start list */
+  autoStartOrder?: Maybe<Scalars['Int']['output']>;
+  /** Wait time in seconds applied after start */
+  autoStartWait?: Maybe<Scalars['Int']['output']>;
   command: Scalars['String']['output'];
   created: Scalars['Int']['output'];
   hostConfig?: Maybe<ContainerHostConfig>;
@@ -742,6 +755,8 @@ export type DockerMutations = {
   stop: DockerContainer;
   /** Unpause (Resume) a container */
   unpause: DockerContainer;
+  /** Update auto-start configuration for Docker containers */
+  updateAutostartConfiguration: Scalars['Boolean']['output'];
   /** Update a container to the latest image */
   updateContainer: DockerContainer;
 };
@@ -764,6 +779,11 @@ export type DockerMutationsStopArgs = {
 
 export type DockerMutationsUnpauseArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type DockerMutationsUpdateAutostartConfigurationArgs = {
+  entries: Array<DockerAutostartEntryInput>;
 };
 
 

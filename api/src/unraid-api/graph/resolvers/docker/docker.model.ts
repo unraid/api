@@ -1,7 +1,8 @@
-import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
 import { Node } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { GraphQLBigInt, GraphQLJSON, GraphQLPort } from 'graphql-scalars';
 
 import { DataSlice } from '@app/unraid-api/types/json-forms.js';
@@ -120,6 +121,12 @@ export class DockerContainer extends Node {
     @Field(() => Boolean)
     autoStart!: boolean;
 
+    @Field(() => Int, { nullable: true, description: 'Zero-based order in the auto-start list' })
+    autoStartOrder?: number;
+
+    @Field(() => Int, { nullable: true, description: 'Wait time in seconds applied after start' })
+    autoStartWait?: number;
+
     @Field(() => String, { nullable: true })
     templatePath?: string;
 }
@@ -193,4 +200,19 @@ export class DockerContainerOverviewForm {
 
     @Field(() => GraphQLJSON)
     data!: Record<string, any>;
+}
+
+@InputType()
+export class DockerAutostartEntryInput {
+    @Field(() => PrefixedID, { description: 'Docker container identifier' })
+    id!: string;
+
+    @Field(() => Boolean, { description: 'Whether the container should auto-start' })
+    autoStart!: boolean;
+
+    @Field(() => Int, {
+        nullable: true,
+        description: 'Number of seconds to wait after starting the container',
+    })
+    wait?: number | null;
 }
