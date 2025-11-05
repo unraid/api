@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useQuery } from '@vue/apollo-composable';
 
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
+import DockerAutostartSettings from '@/components/Docker/DockerAutostartSettings.vue';
 import DockerContainersTable from '@/components/Docker/DockerContainersTable.vue';
 import DockerSidebarTree from '@/components/Docker/DockerSidebarTree.vue';
 import DockerEdit from '@/components/Docker/Edit.vue';
@@ -48,6 +49,7 @@ const hasRouter = Boolean(route && router);
 const selectedIds = ref<string[]>([]);
 const activeId = ref<string | null>(null);
 const isSwitching = ref(false);
+const viewMode = ref<'overview' | 'autostart'>('overview');
 
 const ROUTE_QUERY_KEY = 'container';
 const SWITCH_DELAY_MS = 150;
@@ -181,6 +183,25 @@ const containers = computed<DockerContainer[]>(() => result.value?.docker?.conta
 
 const { navigateToEditPage } = useDockerEditNavigation();
 
+watch(activeId, (id) => {
+  if (id && viewMode.value === 'autostart') {
+    viewMode.value = 'overview';
+  }
+});
+
+function openAutostartSettings() {
+  if (props.disabled) return;
+  viewMode.value = 'autostart';
+}
+
+function closeAutostartSettings() {
+  viewMode.value = 'overview';
+}
+
+async function refreshContainers() {
+  await refetch({ skipCache: true });
+}
+
 function handleTableRowClick(payload: {
   id: string;
   type: 'container' | 'folder';
@@ -258,27 +279,47 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
 <template>
   <div>
     <div v-if="!activeId">
-      <div class="mb-4 flex items-center justify-between">
-        <div class="text-base font-medium">Docker Containers</div>
-        <UButton
-          size="xs"
-          variant="ghost"
-          icon="i-lucide-refresh-cw"
+      <template v-if="viewMode === 'overview'">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div class="text-base font-medium">Docker Containers</div>
+          <div class="flex items-center gap-2">
+            <UButton
+              size="xs"
+              variant="ghost"
+              icon="i-lucide-refresh-cw"
+              :loading="loading"
+              @click="refreshContainers"
+            />
+            <UButton
+              size="xs"
+              variant="outline"
+              icon="i-lucide-list-checks"
+              :disabled="loading"
+              @click="openAutostartSettings"
+            >
+              Customize Start Order
+            </UButton>
+          </div>
+        </div>
+        <DockerContainersTable
+          :containers="containers"
+          :flat-entries="flatEntries"
+          :root-folder-id="rootFolderId"
+          :view-prefs="viewPrefs"
           :loading="loading"
-          @click="refetch({ skipCache: true })"
+          :active-id="activeId"
+          :selected-ids="selectedIds"
+          @created-folder="refreshContainers"
+          @row:click="handleTableRowClick"
+          @update:selectedIds="handleUpdateSelectedIds"
         />
-      </div>
-      <DockerContainersTable
+      </template>
+      <DockerAutostartSettings
+        v-else
         :containers="containers"
-        :flat-entries="flatEntries"
-        :root-folder-id="rootFolderId"
-        :view-prefs="viewPrefs"
         :loading="loading"
-        :active-id="activeId"
-        :selected-ids="selectedIds"
-        @created-folder="() => refetch({ skipCache: true })"
-        @row:click="handleTableRowClick"
-        @update:selectedIds="handleUpdateSelectedIds"
+        :refresh="refreshContainers"
+        @close="closeAutostartSettings"
       />
     </div>
 
@@ -292,7 +333,7 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
               variant="ghost"
               icon="i-lucide-refresh-cw"
               :loading="loading"
-              @click="refetch({ skipCache: true })"
+              @click="refreshContainers"
             />
           </div>
         </template>

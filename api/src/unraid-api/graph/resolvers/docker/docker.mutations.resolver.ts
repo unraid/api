@@ -4,7 +4,11 @@ import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
-import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { UseFeatureFlag } from '@app/unraid-api/decorators/use-feature-flag.decorator.js';
+import {
+    DockerAutostartEntryInput,
+    DockerContainer,
+} from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { DockerMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 
@@ -47,6 +51,22 @@ export class DockerMutationsResolver {
     })
     public async unpause(@Args('id', { type: () => PrefixedID }) id: string) {
         return this.dockerService.unpause(id);
+    }
+
+    @ResolveField(() => Boolean, {
+        description: 'Update auto-start configuration for Docker containers',
+    })
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.DOCKER,
+    })
+    public async updateAutostartConfiguration(
+        @Args('entries', { type: () => [DockerAutostartEntryInput] })
+        entries: DockerAutostartEntryInput[]
+    ) {
+        await this.dockerService.updateAutostartConfiguration(entries);
+        return true;
     }
 
     @ResolveField(() => DockerContainer, { description: 'Update a container to the latest image' })
