@@ -69,6 +69,7 @@ function containersToEntries(containers: DockerContainer[]): AutostartEntry[] {
 }
 
 const entries = ref<AutostartEntry[]>([]);
+const selectedIds = ref<string[]>([]);
 
 watch(
   () => props.containers,
@@ -165,6 +166,20 @@ async function handleWaitChange(entry: AutostartEntry, value: string | number) {
   await persistConfiguration(snapshot);
 }
 
+async function handleBulkToggle() {
+  if (saving.value || !selectedIds.value.length) return;
+  const snapshot = entries.value.map((item) => ({ ...item }));
+  const selected = new Set(selectedIds.value);
+  entries.value.forEach((entry) => {
+    if (!selected.has(entry.id)) return;
+    entry.autoStart = !entry.autoStart;
+    if (!entry.autoStart) {
+      entry.wait = 0;
+    }
+  });
+  await persistConfiguration(snapshot);
+}
+
 async function handleDrop(event: DropEvent<AutostartEntry>) {
   if (mutationLoading.value) return;
   const { target, area, sourceIds } = event;
@@ -197,6 +212,7 @@ const busyRowIds = computed(() => {
 });
 
 const saving = computed(() => props.loading || mutationLoading.value);
+const hasSelection = computed(() => selectedIds.value.length > 0);
 
 const UBadge = resolveComponent('UBadge') as Component;
 const USwitch = resolveComponent('USwitch') as Component;
@@ -226,7 +242,7 @@ const columns = computed<TableColumn<TreeRow<AutostartEntry>>[]>(() => {
           ? h(UBadge, {
               label: entry.container.state,
               variant: 'subtle',
-              size: 'xs',
+              size: 'sm',
             })
           : null;
         return h('div', { class: 'flex items-center justify-between gap-3 pr-2' }, [
@@ -280,15 +296,26 @@ const columns = computed<TableColumn<TreeRow<AutostartEntry>>[]>(() => {
           Drag containers to adjust the auto-start sequence. Changes are saved automatically.
         </p>
       </div>
-      <UButton
-        size="sm"
-        variant="ghost"
-        icon="i-lucide-arrow-left"
-        :disabled="saving"
-        @click="handleClose"
-      >
-        Back to Overview
-      </UButton>
+      <div class="flex items-center gap-2">
+        <UButton
+          size="sm"
+          variant="soft"
+          icon="i-lucide-toggle-right"
+          :disabled="!hasSelection || saving"
+          @click="handleBulkToggle"
+        >
+          Toggle Auto Start
+        </UButton>
+        <UButton
+          size="sm"
+          variant="ghost"
+          icon="i-lucide-arrow-left"
+          :disabled="saving"
+          @click="handleClose"
+        >
+          Back to Overview
+        </UButton>
+      </div>
     </div>
 
     <div
@@ -305,6 +332,7 @@ const columns = computed<TableColumn<TreeRow<AutostartEntry>>[]>(() => {
       :enable-drag-drop="true"
       :busy-row-ids="busyRowIds"
       selectable-type="container"
+      v-model:selected-ids="selectedIds"
       @row:drop="handleDrop"
     />
   </div>
