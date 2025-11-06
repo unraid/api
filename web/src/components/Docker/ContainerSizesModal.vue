@@ -138,7 +138,7 @@ async function handleRefresh() {
   <UModal
     v-model:open="isOpen"
     title="Container Sizes"
-    :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'sm:max-w-4xl' }"
+    :ui="{ footer: 'justify-end', content: 'sm:max-w-4xl' }"
   >
     <template #body>
       <div class="space-y-4">
