@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useQuery } from '@vue/apollo-composable';
 
+import ContainerSizesModal from '@/components/Docker/ContainerSizesModal.vue';
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
 import DockerAutostartSettings from '@/components/Docker/DockerAutostartSettings.vue';
 import DockerContainersTable from '@/components/Docker/DockerContainersTable.vue';
@@ -50,6 +51,7 @@ const selectedIds = ref<string[]>([]);
 const activeId = ref<string | null>(null);
 const isSwitching = ref(false);
 const viewMode = ref<'overview' | 'autostart'>('overview');
+const showSizesModal = ref(false);
 
 const ROUTE_QUERY_KEY = 'container';
 const SWITCH_DELAY_MS = 150;
@@ -322,6 +324,15 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
             >
               Customize Start Order
             </UButton>
+            <UButton
+              size="xs"
+              variant="outline"
+              icon="i-lucide-hard-drive"
+              :disabled="props.disabled"
+              @click="showSizesModal = true"
+            >
+              Container Size
+            </UButton>
           </div>
         </div>
         <DockerContainersTable
@@ -436,5 +447,6 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
         </UCard>
       </div>
     </div>
+    <ContainerSizesModal v-model:open="showSizesModal" />
   </div>
 </template>

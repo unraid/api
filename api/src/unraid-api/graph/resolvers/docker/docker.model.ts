@@ -100,6 +100,18 @@ export class DockerContainer extends Node {
     })
     sizeRootFs?: number;
 
+    @Field(() => GraphQLBigInt, {
+        nullable: true,
+        description: 'Size of writable layer (in bytes)',
+    })
+    sizeRw?: number;
+
+    @Field(() => GraphQLBigInt, {
+        nullable: true,
+        description: 'Size of container logs (in bytes)',
+    })
+    sizeLog?: number;
+
     @Field(() => GraphQLJSON, { nullable: true })
     labels?: Record<string, any>;
 

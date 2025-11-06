@@ -53,8 +53,29 @@ export class DockerResolver {
         @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean,
         @Info() info: GraphQLResolveInfo
     ) {
-        const requestsSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeRootFs');
-        const containers = await this.dockerService.getContainers({ skipCache, size: requestsSize });
+        const requestsRootFsSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeRootFs');
+        const requestsRwSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeRw');
+        const requestsLogSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeLog');
+        const containers = await this.dockerService.getContainers({
+            skipCache,
+            size: requestsRootFsSize || requestsRwSize,
+        });
+
+        if (requestsLogSize) {
+            const names = Array.from(
+                new Set(
+                    containers
+                        .map((container) => container.names?.[0]?.replace(/^\//, '') || null)
+                        .filter((name): name is string => Boolean(name))
+                )
+            );
+            const logSizes = await this.dockerService.getContainerLogSizes(names);
+            containers.forEach((container) => {
+                const normalized = container.names?.[0]?.replace(/^\//, '') || '';
+                container.sizeLog = normalized ? (logSizes.get(normalized) ?? 0) : 0;
+            });
+        }
+
         const wasSynced = await this.dockerTemplateScannerService.syncMissingContainers(containers);
         return wasSynced ? await this.dockerService.getContainers({ skipCache: true }) : containers;
     }
