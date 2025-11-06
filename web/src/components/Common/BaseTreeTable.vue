@@ -7,7 +7,7 @@ import { useRowSelection } from '@/composables/useRowSelection';
 import type { DropEvent } from '@/composables/useDragDrop';
 import type { TreeRow } from '@/composables/useTreeData';
 import type { TableColumn } from '@nuxt/ui';
-import type { Component, VNode } from 'vue';
+import type { Component, VNode, VNodeChild } from 'vue';
 
 type SearchAccessor<T> = (row: TreeRow<T>) => unknown | unknown[];
 
@@ -58,6 +58,8 @@ const UTable = resolveComponent('UTable') as Component;
 
 const treeDataRef = computed(() => props.data);
 const selectedIdsRef = ref(props.selectedIds);
+
+type ColumnHeaderRenderer = TableColumn<TreeRow<T>>['header'];
 
 watch(
   () => props.selectedIds,
@@ -307,6 +309,43 @@ function wrapCellWithRow(row: { original: TreeRow<T>; depth?: number }, cellCont
   return rowWrapper;
 }
 
+function wrapHeaderContent(content: unknown): VNode {
+  let normalized: VNodeChild | undefined;
+
+  if (typeof content === 'number') {
+    normalized = String(content);
+  } else if (typeof content === 'boolean') {
+    normalized = content ? 'true' : undefined;
+  } else if (Array.isArray(content)) {
+    normalized = content as VNodeChild;
+  } else if (content !== null && content !== undefined) {
+    normalized = content as VNodeChild;
+  } else {
+    normalized = undefined;
+  }
+
+  if (normalized === undefined || normalized === null) {
+    return h('div', { class: 'px-3 py-2 flex items-center gap-2 text-left' });
+  }
+
+  return h('div', { class: 'px-3 py-2 flex items-center gap-2 text-left' }, normalized);
+}
+
+function wrapColumnHeaderRenderer(
+  header: ColumnHeaderRenderer | undefined
+): ColumnHeaderRenderer | undefined {
+  if (typeof header === 'function') {
+    return function wrappedHeaderRenderer(this: unknown, ...args: unknown[]) {
+      const result = (header as (...args: unknown[]) => unknown).apply(this, args);
+      return wrapHeaderContent(result);
+    };
+  }
+  if (header !== undefined) {
+    return () => wrapHeaderContent(header);
+  }
+  return undefined;
+}
+
 function createSelectColumn(): TableColumn<TreeRow<T>> {
   return {
     id: 'select',
@@ -326,22 +365,24 @@ function createSelectColumn(): TableColumn<TreeRow<T>> {
       const allSelected = totalSelectable > 0 && selectedCount === totalSelectable;
       const someSelected = selectedCount > 0 && !allSelected;
 
-      return h(UCheckbox, {
-        modelValue: someSelected ? 'indeterminate' : allSelected,
-        'onUpdate:modelValue': () => {
-          const target = someSelected || allSelected ? false : true;
-          const next = { ...rowSelection.value } as Record<string, boolean>;
-          for (const row of containers) {
-            if (target) {
-              next[row.id] = true;
-            } else {
-              delete next[row.id];
+      return wrapHeaderContent(
+        h(UCheckbox, {
+          modelValue: someSelected ? 'indeterminate' : allSelected,
+          'onUpdate:modelValue': () => {
+            const target = someSelected || allSelected ? false : true;
+            const next = { ...rowSelection.value } as Record<string, boolean>;
+            for (const row of containers) {
+              if (target) {
+                next[row.id] = true;
+              } else {
+                delete next[row.id];
+              }
             }
-          }
-          rowSelection.value = next;
-        },
-        'aria-label': 'Select all',
-      });
+            rowSelection.value = next;
+          },
+          'aria-label': 'Select all',
+        })
+      );
     },
     cell: ({ row }) => {
       if (row.original.type === props.selectableType) {
@@ -404,9 +445,10 @@ function createSelectColumn(): TableColumn<TreeRow<T>> {
 const processedColumns = computed<TableColumn<TreeRow<T>>[]>(() => {
   return [
     createSelectColumn(),
-    ...props.columns.map((col) => ({
-      ...col,
-      cell: (col as { cell?: unknown }).cell
+    ...props.columns.map((col) => {
+      const originalHeader = col.header as ColumnHeaderRenderer | undefined;
+      const header = wrapColumnHeaderRenderer(originalHeader) ?? originalHeader;
+      const cell = (col as { cell?: unknown }).cell
         ? ({
             row,
           }: {
@@ -424,8 +466,14 @@ const processedColumns = computed<TableColumn<TreeRow<T>>[]>(() => {
             const content = typeof cellFn === 'function' ? cellFn({ row }) : cellFn;
             return wrapCellWithRow(row, content as VNode);
           }
-        : undefined,
-    })),
+        : undefined;
+
+      return {
+        ...col,
+        header,
+        cell,
+      } as TableColumn<TreeRow<T>>;
+    }),
   ];
 });
 
@@ -469,7 +517,7 @@ defineExpose({
       :loading="loading"
       :ui="{ td: 'p-0 empty:p-0', thead: compact ? 'hidden' : '', th: compact ? 'hidden' : '' }"
       sticky
-      class="flex-1 pb-2"
+      class="base-tree-table flex-1 pb-2"
     />
 
     <div v-if="!loading && filteredData.length === 0" class="py-8 text-center text-gray-500">
@@ -477,3 +525,9 @@ defineExpose({
     </div>
   </div>
 </template>
+
+<style scoped>
+.base-tree-table :deep(th) {
+  padding: 0;
+}
+</style>
