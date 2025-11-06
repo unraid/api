@@ -32,6 +32,7 @@ if (file_exists($statusFilePath)) {
 }
 
 $isConnected = ($connectionStatus === 'CONNECTED') ? true : false;
+$apiVersion = ApiConfig::getApiVersion();
 
 $flashbackup_ini = '/var/local/emhttp/flashbackup.ini';
 
@@ -416,7 +417,7 @@ curl_setopt($ch, CURLOPT_POST, 1);
 curl_setopt($ch, CURLOPT_POSTFIELDS, [
   'keyfile' => $keyfile,
   'version' => _var($var,'version'),
-  'api_version' => _var($mystatus, 'version'),
+  'api_version' => ($apiVersion && $apiVersion !== 'unknown') ? $apiVersion : '',
   'bzfiles' => implode(',', $bzfilehashes)
 ]);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
