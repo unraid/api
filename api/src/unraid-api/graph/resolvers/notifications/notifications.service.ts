@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { readdir, rename, stat, unlink, writeFile } from 'fs/promises';
+import { readdir, readFile, rename, stat, unlink, writeFile } from 'fs/promises';
 import { basename, join } from 'path';
 
 import type { Stats } from 'fs';
@@ -7,6 +7,7 @@ import { FSWatcher, watch } from 'chokidar';
 import { ValidationError } from 'class-validator';
 import { execa } from 'execa';
 import { emptyDir } from 'fs-extra';
+import { decode } from 'html-entities';
 import { encode as encodeIni } from 'ini';
 import { v7 as uuidv7 } from 'uuid';
 
@@ -648,8 +649,11 @@ export class NotificationsService {
      * @throws File system errors (file not found, permission issues) or unexpected validation errors.
      */
     private async loadNotificationFile(path: string, type: NotificationType): Promise<Notification> {
+        const rawContent = await readFile(path, 'utf-8');
+        const decodedContent = decode(rawContent);
+
         const notificationFile = parseConfig<NotificationIni>({
-            filePath: path,
+            file: decodedContent,
             type: 'ini',
         });
 
