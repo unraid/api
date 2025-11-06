@@ -245,6 +245,23 @@ const { visibleFolders, expandedFolders, toggleExpandFolder, setExpandedFolders 
   flatEntries: flatEntriesRef,
 });
 const busyRowIds = ref<Set<string>>(new Set());
+const updatePopoverRowId = ref<string | null>(null);
+const updatingRowIds = ref<Set<string>>(new Set());
+const isUpdatingContainers = computed(() => updatingRowIds.value.size > 0);
+const activeUpdateSummary = computed(() => {
+  if (!updatingRowIds.value.size) return '';
+  const names: string[] = [];
+  for (const id of updatingRowIds.value) {
+    const row = getRowById(id, treeData.value);
+    if (row && row.type === 'container') {
+      names.push(row.name);
+    }
+  }
+  if (!names.length) return '';
+  if (names.length <= 3) return names.join(', ');
+  const summary = names.slice(0, 3).join(', ');
+  return `${summary}, +${names.length - 3} more`;
+});
 
 const { mergeServerPreferences, saveColumnVisibility, columnVisibilityRef } = useDockerViewPreferences();
 
@@ -263,8 +280,10 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
       accessorKey: 'name',
       header: props.compact ? '' : 'Name',
       cell: ({ row }) => {
+        const treeRow = row.original as TreeRow<DockerContainer>;
         const depth = row.depth;
         const indent = h('span', { class: 'inline-block', style: { width: `calc(${depth} * 1rem)` } });
+        const isRowUpdating = updatingRowIds.value.has(treeRow.id);
 
         const iconElement = row.original.icon
           ? h('img', {
@@ -282,13 +301,17 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
 
         const hasUpdate =
           row.original.type === 'container' &&
-          (row.original.meta?.isUpdateAvailable || row.original.meta?.isRebuildReady);
+          (treeRow.meta?.isUpdateAvailable || treeRow.meta?.isRebuildReady);
 
         const updateBadge = hasUpdate
           ? h(
               UPopover,
               {
                 'data-stop-row-click': 'true',
+                open: updatePopoverRowId.value === treeRow.id,
+                'onUpdate:open': (value: boolean) => {
+                  updatePopoverRowId.value = value ? treeRow.id : null;
+                },
               },
               {
                 default: () =>
@@ -298,7 +321,10 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
                       color: 'warning',
                       variant: 'subtle',
                       size: 'sm',
-                      class: 'ml-2 cursor-pointer',
+                      class: [
+                        'ml-2 cursor-pointer',
+                        isRowUpdating ? 'pointer-events-none opacity-60' : '',
+                      ],
                       'data-stop-row-click': 'true',
                     },
                     () => 'Update'
@@ -321,6 +347,7 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
                           size: 'sm',
                           onClick: (e: Event) => {
                             e.stopPropagation();
+                            updatePopoverRowId.value = null;
                           },
                         },
                         () => 'Cancel'
@@ -329,9 +356,13 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
                         UButton,
                         {
                           size: 'sm',
+                          loading: isRowUpdating,
+                          disabled: isRowUpdating,
                           onClick: async (e: Event) => {
                             e.stopPropagation();
-                            await handleUpdateContainer(row.original as TreeRow<DockerContainer>);
+                            if (isRowUpdating) return;
+                            updatePopoverRowId.value = null;
+                            await handleUpdateContainer(treeRow);
                           },
                         },
                         () => 'Confirm'
@@ -342,11 +373,19 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
             )
           : null;
 
-        return h('div', { class: 'truncate flex items-center', 'data-row-id': row.original.id }, [
+        const updateSpinner = isRowUpdating
+          ? h(UIcon, {
+              name: 'i-lucide-loader-2',
+              class: 'ml-2 h-4 w-4 animate-spin text-primary-500',
+            })
+          : null;
+
+        return h('div', { class: 'truncate flex items-center', 'data-row-id': treeRow.id }, [
           indent,
           iconElement,
-          h('span', { class: 'max-w-[40ch] truncate font-medium' }, row.original.name),
+          h('span', { class: 'max-w-[40ch] truncate font-medium' }, treeRow.name),
           updateBadge,
+          updateSpinner,
         ]);
       },
       meta: { class: { td: 'w-[40ch] truncate', th: 'w-[45ch]' } },
@@ -603,6 +642,19 @@ function getContainerRows(ids: string[]): TreeRow<DockerContainer>[] {
   return rows;
 }
 
+const selectedContainerRows = computed(() => getContainerRows(props.selectedIds));
+const hasSelectedContainers = computed(() => selectedContainerRows.value.length > 0);
+function setRowsUpdating(rows: TreeRow<DockerContainer>[], updating: boolean) {
+  if (!rows.length) return;
+  const next = new Set(updatingRowIds.value);
+  for (const row of rows) {
+    if (!row.id) continue;
+    if (updating) next.add(row.id);
+    else next.delete(row.id);
+  }
+  updatingRowIds.value = next;
+}
+
 async function handleCheckForUpdates(rows: TreeRow<DockerContainer>[]) {
   if (!rows.length) return;
 
@@ -631,6 +683,7 @@ async function handleCheckForUpdates(rows: TreeRow<DockerContainer>[]) {
 async function handleUpdateContainer(row: TreeRow<DockerContainer>) {
   if (!row.containerId) return;
 
+  setRowsUpdating([row], true);
   setRowsBusy([row.id], true);
 
   try {
@@ -648,6 +701,39 @@ async function handleUpdateContainer(row: TreeRow<DockerContainer>) {
     });
   } finally {
     setRowsBusy([row.id], false);
+    setRowsUpdating([row], false);
+  }
+}
+
+async function handleBulkUpdateContainers(rows: TreeRow<DockerContainer>[]) {
+  if (!rows.length) return;
+
+  const containerIds = Array.from(
+    new Set(rows.map((row) => row.containerId).filter((id): id is string => Boolean(id)))
+  );
+  if (!containerIds.length) return;
+
+  const entryIds = Array.from(new Set(rows.map((row) => row.id)));
+  setRowsUpdating(rows, true);
+  setRowsBusy(entryIds, true);
+
+  try {
+    await updateContainersMutation(
+      { ids: containerIds },
+      {
+        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+        awaitRefetchQueries: true,
+      }
+    );
+    const count = containerIds.length;
+    showToast(`Successfully updated ${count} container${count === 1 ? '' : 's'}`);
+  } catch (error) {
+    window.toast?.error?.('Failed to update containers', {
+      description: error instanceof Error ? error.message : 'Unknown error',
+    });
+  } finally {
+    setRowsBusy(entryIds, false);
+    setRowsUpdating(rows, false);
   }
 }
 
@@ -773,6 +859,12 @@ function handleBulkAction(action: string) {
     containerActions.openPauseResume(ids);
     return;
   }
+  if (action === 'Update containers') {
+    const containerRows = getContainerRows(ids);
+    if (!containerRows.length) return;
+    void handleBulkUpdateContainers(containerRows);
+    return;
+  }
   if (action === 'Check for updates') {
     const containerRows = getContainerRows(ids);
     if (!containerRows.length) return;
@@ -842,22 +934,31 @@ const bulkItems = computed<DropdownMenuItems>(() => [
       onSelect: () => folderOps.openMoveModal(getSelectedEntryIds()),
     },
     {
+      label: 'Update containers',
+      icon: 'i-lucide-rotate-ccw',
+      as: 'button',
+      disabled: !hasSelectedContainers.value,
+      onSelect: () => handleBulkAction('Update containers'),
+    },
+    {
       label: 'Check for updates',
       icon: 'i-lucide-refresh-cw',
       as: 'button',
-      disabled: checkingForUpdates.value,
+      disabled: checkingForUpdates.value || !hasSelectedContainers.value,
       onSelect: () => handleBulkAction('Check for updates'),
     },
     {
       label: 'Start / Stop',
       icon: 'i-lucide-power',
       as: 'button',
+      disabled: !hasSelectedContainers.value,
       onSelect: () => handleBulkAction('Start / Stop'),
     },
     {
       label: 'Pause / Resume',
       icon: 'i-lucide-pause',
       as: 'button',
+      disabled: !hasSelectedContainers.value,
       onSelect: () => handleBulkAction('Pause / Resume'),
     },
   ],
@@ -984,6 +1085,13 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
               Actions ({{ count }})
             </UButton>
           </UDropdownMenu>
+        </div>
+        <div
+          v-if="isUpdatingContainers && activeUpdateSummary"
+          class="border-primary/30 text-primary-700 dark:border-primary/40 dark:text-primary-200 bg-primary/5 dark:bg-primary/10 my-2 flex items-center gap-2 rounded border px-3 py-2 text-sm"
+        >
+          <span class="i-lucide-loader-2 text-primary-500 dark:text-primary-300 animate-spin" />
+          <span>Updating {{ activeUpdateSummary }}...</span>
         </div>
       </template>
     </BaseTreeTable>
