@@ -1,7 +1,6 @@
 import eslint from '@eslint/js';
 import importPlugin from 'eslint-plugin-import';
 import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
-import prettier from 'eslint-plugin-prettier';
 import vuePlugin from 'eslint-plugin-vue';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
@@ -23,7 +22,6 @@ const commonRules = {
     'error',
     { allowSameFolder: false, rootDir: 'src', prefix: '@' },
   ],
-  'prettier/prettier': 'warn',
   'no-restricted-globals': [
     'error',
     {
@@ -115,7 +113,6 @@ export default [
     },
     plugins: {
       'no-relative-import-paths': noRelativeImportPaths,
-      prettier: prettier,
       import: importPlugin,
     },
     rules: {
@@ -141,7 +138,6 @@ export default [
     },
     plugins: {
       'no-relative-import-paths': noRelativeImportPaths,
-      prettier: prettier,
       import: importPlugin,
       vue: vuePlugin,
     },
@@ -174,7 +170,6 @@ export default [
     },
     plugins: {
       'no-relative-import-paths': noRelativeImportPaths,
-      prettier: prettier,
     },
     rules: {
       ...commonRules,
