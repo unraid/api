@@ -575,12 +575,30 @@ _(Flash backup)_:
 <script>
 changeRemoteAccess($('#remoteAccess'));
 var flashbackupsub = new NchanSubscriber('/sub/flashbackup');
+var initialFlashBackupState = <?=
+    json_encode(
+        $flashbackup_status ?: [],
+        JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP
+    )
+?> || {};
+
+if (Object.keys(initialFlashBackupState).length === 0) {
+  initialFlashBackupState = {
+    activated: 'no',
+    uptodate: 'no',
+    loading: '',
+    error: '',
+    remoteerror: ''
+  };
+}
+
 flashbackupsub.on('message', function(data) {
   var ini = parseINI(data);
 
   buttonStateReset(ini['flashbackup']);
 });
 $(function() {
+  buttonStateReset(initialFlashBackupState);
   flashbackupsub.start();
   if ( typeof caPluginUpdateCheck === "function" ) {
     caPluginUpdateCheck("dynamix.unraid.net.plg",{name:"Unraid Connect"});
@@ -602,4 +620,3 @@ _(OIDC Configuration)_:
 
 <!-- start unraid-api section -->
 <unraid-connect-settings></unraid-connect-settings>
-

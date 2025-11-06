@@ -18,6 +18,7 @@ $cli = php_sapi_name()=='cli';
 
 $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 require_once "$docroot/webGui/include/Wrappers.php";
+require_once "$docroot/webGui/include/publish.php";
 require_once "$docroot/plugins/dynamix.my.servers/include/connect-config.php";
 
 $isRegistered = ConnectConfig::isUserSignedIn();
@@ -76,6 +77,7 @@ function save_flash_backup_state($loading='') {
   $flashbackup_tmp = '/var/local/emhttp/flashbackup.new';
   file_put_contents($flashbackup_tmp, $text);
   rename($flashbackup_tmp, $flashbackup_ini);
+  publish_noDupe('flashbackup', $text);
 }
 
 function default_flash_backup_state() {
