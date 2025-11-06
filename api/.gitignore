@@ -83,6 +83,8 @@ deploy/*
 
 !**/*.login.*
 
+# Local Development Artifacts
+
 # local api configs - don't need project-wide tracking
 dev/connectStatus.json
 dev/configs/*
@@ -96,6 +98,7 @@ dev/configs/oidc.local.json
 
 # local api keys
 dev/keys/*
-
-# dev docker templates
+# mock docker templates
 dev/docker-templates
+# ie unraid notifications
+dev/notifications
