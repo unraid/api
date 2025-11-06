@@ -468,6 +468,16 @@ export class DockerService {
         return updatedContainer;
     }
 
+    public async updateContainers(ids: string[]): Promise<DockerContainer[]> {
+        const uniqueIds = Array.from(new Set(ids.filter((id) => typeof id === 'string' && id.length)));
+        const updatedContainers: DockerContainer[] = [];
+        for (const id of uniqueIds) {
+            const updated = await this.updateContainer(id);
+            updatedContainers.push(updated);
+        }
+        return updatedContainers;
+    }
+
     private async handleDockerListError(error: unknown): Promise<never> {
         await this.notifyDockerListError(error);
         catchHandlers.docker(error as NodeJS.ErrnoException);

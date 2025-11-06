@@ -10,11 +10,12 @@ import { DELETE_DOCKER_ENTRIES } from '@/components/Docker/docker-delete-entries
 import { MOVE_DOCKER_ENTRIES_TO_FOLDER } from '@/components/Docker/docker-move-entries.mutation';
 import { MOVE_DOCKER_ITEMS_TO_POSITION } from '@/components/Docker/docker-move-items-to-position.mutation';
 import { PAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-pause-container.mutation';
+import { REFRESH_DOCKER_DIGESTS } from '@/components/Docker/docker-refresh-digests.mutation';
 import { SET_DOCKER_FOLDER_CHILDREN } from '@/components/Docker/docker-set-folder-children.mutation';
 import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-container.mutation';
 import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container.mutation';
 import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-container.mutation';
-import { UPDATE_DOCKER_CONTAINER } from '@/components/Docker/docker-update-container.mutation';
+import { UPDATE_DOCKER_CONTAINERS } from '@/components/Docker/docker-update-containers.mutation';
 import { ContainerState } from '@/composables/gql/graphql';
 import { useContainerActions } from '@/composables/useContainerActions';
 import { useDockerViewPreferences } from '@/composables/useDockerColumnVisibility';
@@ -506,7 +507,13 @@ watch(
   { immediate: true }
 );
 
-type ActionDropdownItem = { label: string; icon?: string; onSelect?: (e?: Event) => void; as?: string };
+type ActionDropdownItem = {
+  label: string;
+  icon?: string;
+  onSelect?: (e?: Event) => void;
+  as?: string;
+  disabled?: boolean;
+};
 type DropdownMenuItems = ActionDropdownItem[][];
 
 const contextMenuState = ref<{
@@ -568,7 +575,9 @@ const { mutate: startContainerMutation } = useMutation(START_DOCKER_CONTAINER);
 const { mutate: stopContainerMutation } = useMutation(STOP_DOCKER_CONTAINER);
 const { mutate: pauseContainerMutation } = useMutation(PAUSE_DOCKER_CONTAINER);
 const { mutate: unpauseContainerMutation } = useMutation(UNPAUSE_DOCKER_CONTAINER);
-const { mutate: updateContainerMutation } = useMutation(UPDATE_DOCKER_CONTAINER);
+const { mutate: updateContainersMutation } = useMutation(UPDATE_DOCKER_CONTAINERS);
+const { mutate: refreshDockerDigestsMutation, loading: checkingForUpdates } =
+  useMutation(REFRESH_DOCKER_DIGESTS);
 
 declare global {
   interface Window {
@@ -583,14 +592,50 @@ function showToast(message: string) {
   window.toast?.success(message);
 }
 
+function getContainerRows(ids: string[]): TreeRow<DockerContainer>[] {
+  const rows: TreeRow<DockerContainer>[] = [];
+  for (const id of ids) {
+    const row = getRowById(id, treeData.value);
+    if (row && row.type === 'container') {
+      rows.push(row as TreeRow<DockerContainer>);
+    }
+  }
+  return rows;
+}
+
+async function handleCheckForUpdates(rows: TreeRow<DockerContainer>[]) {
+  if (!rows.length) return;
+
+  const entryIds = Array.from(new Set(rows.map((row) => row.id)));
+  setRowsBusy(entryIds, true);
+
+  try {
+    await refreshDockerDigestsMutation(
+      {},
+      {
+        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+        awaitRefetchQueries: true,
+      }
+    );
+    const count = rows.length;
+    showToast(`Checked updates for ${count} container${count === 1 ? '' : 's'}`);
+  } catch (error) {
+    window.toast?.error?.('Failed to check for updates', {
+      description: error instanceof Error ? error.message : 'Unknown error',
+    });
+  } finally {
+    setRowsBusy(entryIds, false);
+  }
+}
+
 async function handleUpdateContainer(row: TreeRow<DockerContainer>) {
   if (!row.containerId) return;
 
   setRowsBusy([row.id], true);
 
   try {
-    await updateContainerMutation(
-      { id: row.containerId },
+    await updateContainersMutation(
+      { ids: [row.containerId] },
       {
         refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
         awaitRefetchQueries: true,
@@ -728,6 +773,12 @@ function handleBulkAction(action: string) {
     containerActions.openPauseResume(ids);
     return;
   }
+  if (action === 'Check for updates') {
+    const containerRows = getContainerRows(ids);
+    if (!containerRows.length) return;
+    void handleCheckForUpdates(containerRows);
+    return;
+  }
   showToast(`${action} (${ids.length})`);
 }
 
@@ -789,6 +840,13 @@ const bulkItems = computed<DropdownMenuItems>(() => [
       icon: 'i-lucide-folder',
       as: 'button',
       onSelect: () => folderOps.openMoveModal(getSelectedEntryIds()),
+    },
+    {
+      label: 'Check for updates',
+      icon: 'i-lucide-refresh-cw',
+      as: 'button',
+      disabled: checkingForUpdates.value,
+      onSelect: () => handleBulkAction('Check for updates'),
     },
     {
       label: 'Start / Stop',

@@ -759,6 +759,8 @@ export type DockerMutations = {
   updateAutostartConfiguration: Scalars['Boolean']['output'];
   /** Update a container to the latest image */
   updateContainer: DockerContainer;
+  /** Update multiple containers to the latest images */
+  updateContainers: Array<DockerContainer>;
 };
 
 
@@ -789,6 +791,11 @@ export type DockerMutationsUpdateAutostartConfigurationArgs = {
 
 export type DockerMutationsUpdateContainerArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type DockerMutationsUpdateContainersArgs = {
+  ids: Array<Scalars['PrefixedID']['input']>;
 };
 
 export type DockerNetwork = Node & {

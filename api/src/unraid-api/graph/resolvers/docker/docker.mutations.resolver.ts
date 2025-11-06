@@ -77,4 +77,18 @@ export class DockerMutationsResolver {
     public async updateContainer(@Args('id', { type: () => PrefixedID }) id: string) {
         return this.dockerService.updateContainer(id);
     }
+
+    @ResolveField(() => [DockerContainer], {
+        description: 'Update multiple containers to the latest images',
+    })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.DOCKER,
+    })
+    public async updateContainers(
+        @Args('ids', { type: () => [PrefixedID] })
+        ids: string[]
+    ) {
+        return this.dockerService.updateContainers(ids);
+    }
 }
