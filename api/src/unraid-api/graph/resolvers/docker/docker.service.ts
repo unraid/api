@@ -12,6 +12,7 @@ import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
 import { getters } from '@app/store/index.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
+import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import {
     ContainerPortType,
     ContainerState,
@@ -50,7 +51,8 @@ export class DockerService {
     constructor(
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private readonly dockerConfigService: DockerConfigService,
-        private readonly notificationsService: NotificationsService
+        private readonly notificationsService: NotificationsService,
+        private readonly dockerManifestService: DockerManifestService
     ) {
         this.client = this.getDockerClient();
     }
@@ -458,7 +460,9 @@ export class DockerService {
         this.logger.debug(`Invalidated container caches after updating ${id}`);
 
         const updatedContainers = await this.getContainers({ skipCache: true });
-        const updatedContainer = updatedContainers.find((c) => c.id === id);
+        const updatedContainer = updatedContainers.find(
+            (c) => c.names?.some((name) => name.replace(/^\//, '') === containerName) || c.id === id
+        );
         if (!updatedContainer) {
             throw new Error(`Container ${id} not found after update`);
         }

@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Import the mocked pubsub parts
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
+import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
@@ -27,30 +28,40 @@ interface DockerError extends NodeJS.ErrnoException {
     address: string;
 }
 
-const mockContainer = {
-    start: vi.fn(),
-    stop: vi.fn(),
-};
+const { mockDockerInstance, mockListContainers, mockGetContainer, mockListNetworks, mockContainer } =
+    vi.hoisted(() => {
+        const mockContainer = {
+            start: vi.fn(),
+            stop: vi.fn(),
+        };
 
-// Create properly typed mock functions
-const mockListContainers = vi.fn();
-const mockGetContainer = vi.fn().mockReturnValue(mockContainer);
-const mockListNetworks = vi.fn();
+        const mockListContainers = vi.fn();
+        const mockGetContainer = vi.fn().mockReturnValue(mockContainer);
+        const mockListNetworks = vi.fn();
 
-const mockDockerInstance = {
-    getContainer: mockGetContainer,
-    listContainers: mockListContainers,
-    listNetworks: mockListNetworks,
-    modem: {
-        Promise: Promise,
-        protocol: 'http',
-        socketPath: '/var/run/docker.sock',
-        headers: {},
-        sshOptions: {
-            agentForward: undefined,
-        },
-    },
-} as unknown as Docker;
+        const mockDockerInstance = {
+            getContainer: mockGetContainer,
+            listContainers: mockListContainers,
+            listNetworks: mockListNetworks,
+            modem: {
+                Promise: Promise,
+                protocol: 'http',
+                socketPath: '/var/run/docker.sock',
+                headers: {},
+                sshOptions: {
+                    agentForward: undefined,
+                },
+            },
+        } as unknown as Docker;
+
+        return {
+            mockDockerInstance,
+            mockListContainers,
+            mockGetContainer,
+            mockListNetworks,
+            mockContainer,
+        };
+    });
 
 vi.mock('dockerode', () => {
     return {
@@ -113,6 +124,10 @@ const mockDockerTemplateScannerService = {
     syncMissingContainers: vi.fn().mockResolvedValue(false),
 };
 
+const mockDockerManifestService = {
+    refreshDigests: vi.fn().mockResolvedValue(true),
+};
+
 // Mock NotificationsService
 const mockNotificationsService = {
     notifyIfUnique: vi.fn().mockResolvedValue(null),
@@ -141,6 +156,8 @@ describe('DockerService', () => {
         });
         mockDockerTemplateScannerService.bootstrapScan.mockResolvedValue(undefined);
         mockDockerTemplateScannerService.syncMissingContainers.mockResolvedValue(false);
+        mockDockerManifestService.refreshDigests.mockReset();
+        mockDockerManifestService.refreshDigests.mockResolvedValue(true);
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
@@ -156,6 +173,10 @@ describe('DockerService', () => {
                 {
                     provide: DockerTemplateScannerService,
                     useValue: mockDockerTemplateScannerService,
+                },
+                {
+                    provide: DockerManifestService,
+                    useValue: mockDockerManifestService,
                 },
                 {
                     provide: NotificationsService,
