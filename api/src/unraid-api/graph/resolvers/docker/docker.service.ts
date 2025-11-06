@@ -1,6 +1,6 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { readFile, unlink, writeFile } from 'fs/promises';
+import { readFile, stat, unlink, writeFile } from 'fs/promises';
 
 import { type Cache } from 'cache-manager';
 import Docker from 'dockerode';
@@ -165,6 +165,7 @@ export class DockerService {
                     ContainerPortType.TCP,
             })),
             sizeRootFs: sizeValue,
+            sizeRw: (container as Docker.ContainerInfo & { SizeRw?: number }).SizeRw,
             labels: container.Labels ?? {},
             state:
                 typeof container.State === 'string'
@@ -235,6 +236,54 @@ export class DockerService {
             DockerService.CACHE_TTL_SECONDS * 1000
         );
         return containersWithTemplatePaths;
+    }
+
+    public async getContainerLogSizes(containerNames: string[]): Promise<Map<string, number>> {
+        const logSizes = new Map<string, number>();
+        if (!Array.isArray(containerNames) || containerNames.length === 0) {
+            return logSizes;
+        }
+
+        for (const rawName of containerNames) {
+            const normalized = (rawName ?? '').replace(/^\//, '');
+            if (!normalized) {
+                logSizes.set(normalized, 0);
+                continue;
+            }
+
+            try {
+                const { stdout } = await execa('docker', [
+                    'inspect',
+                    '--format',
+                    '{{json .LogPath}}',
+                    normalized,
+                ]);
+
+                const trimmed = stdout.trim();
+                if (!trimmed) {
+                    logSizes.set(normalized, 0);
+                    continue;
+                }
+
+                const logPath = JSON.parse(trimmed) as string | null;
+                if (!logPath || typeof logPath !== 'string' || !logPath.length) {
+                    logSizes.set(normalized, 0);
+                    continue;
+                }
+
+                const stats = await stat(logPath).catch(() => null);
+                logSizes.set(normalized, stats?.size ?? 0);
+            } catch (error) {
+                const message =
+                    error instanceof Error ? error.message : String(error ?? 'unknown error');
+                this.logger.debug(
+                    `Failed to determine log size for container ${normalized}: ${message}`
+                );
+                logSizes.set(normalized, 0);
+            }
+        }
+
+        return logSizes;
     }
 
     /**

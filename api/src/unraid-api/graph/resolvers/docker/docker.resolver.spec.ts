@@ -31,6 +31,7 @@ describe('DockerResolver', () => {
                     useValue: {
                         getContainers: vi.fn(),
                         getNetworks: vi.fn(),
+                        getContainerLogSizes: vi.fn(),
                     },
                 },
                 {
@@ -71,6 +72,8 @@ describe('DockerResolver', () => {
 
         // Reset mocks before each test
         vi.clearAllMocks();
+        vi.mocked(GraphQLFieldHelper.isFieldRequested).mockImplementation(() => false);
+        vi.mocked(dockerService.getContainerLogSizes).mockResolvedValue(new Map());
     });
 
     it('should be defined', () => {
@@ -110,13 +113,15 @@ describe('DockerResolver', () => {
             },
         ];
         vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
-        vi.mocked(GraphQLFieldHelper.isFieldRequested).mockReturnValue(false);
+        vi.mocked(GraphQLFieldHelper.isFieldRequested).mockImplementation(() => false);
 
         const mockInfo = {} as any;
 
         const result = await resolver.containers(false, mockInfo);
         expect(result).toEqual(mockContainers);
         expect(GraphQLFieldHelper.isFieldRequested).toHaveBeenCalledWith(mockInfo, 'sizeRootFs');
+        expect(GraphQLFieldHelper.isFieldRequested).toHaveBeenCalledWith(mockInfo, 'sizeRw');
+        expect(GraphQLFieldHelper.isFieldRequested).toHaveBeenCalledWith(mockInfo, 'sizeLog');
         expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: false, size: false });
     });
 
@@ -137,7 +142,9 @@ describe('DockerResolver', () => {
             },
         ];
         vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
-        vi.mocked(GraphQLFieldHelper.isFieldRequested).mockReturnValue(true);
+        vi.mocked(GraphQLFieldHelper.isFieldRequested).mockImplementation((_, field) => {
+            return field === 'sizeRootFs';
+        });
 
         const mockInfo = {} as any;
 
@@ -147,10 +154,60 @@ describe('DockerResolver', () => {
         expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: false, size: true });
     });
 
+    it('should request size when sizeRw field is requested', async () => {
+        const mockContainers: DockerContainer[] = [];
+        vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
+        vi.mocked(GraphQLFieldHelper.isFieldRequested).mockImplementation((_, field) => {
+            return field === 'sizeRw';
+        });
+
+        const mockInfo = {} as any;
+
+        await resolver.containers(false, mockInfo);
+        expect(GraphQLFieldHelper.isFieldRequested).toHaveBeenCalledWith(mockInfo, 'sizeRw');
+        expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: false, size: true });
+    });
+
+    it('should fetch log sizes when sizeLog field is requested', async () => {
+        const mockContainers: DockerContainer[] = [
+            {
+                id: '1',
+                autoStart: false,
+                command: 'test',
+                names: ['/test-container'],
+                created: 1234567890,
+                image: 'test-image',
+                imageId: 'test-image-id',
+                ports: [],
+                state: ContainerState.EXITED,
+                status: 'Exited',
+            },
+        ];
+        vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
+        vi.mocked(GraphQLFieldHelper.isFieldRequested).mockImplementation((_, field) => {
+            if (field === 'sizeLog') return true;
+            return false;
+        });
+
+        const logSizeMap = new Map<string, number>([['test-container', 42]]);
+        vi.mocked(dockerService.getContainerLogSizes).mockResolvedValue(logSizeMap);
+
+        const mockInfo = {} as any;
+
+        const result = await resolver.containers(false, mockInfo);
+
+        expect(GraphQLFieldHelper.isFieldRequested).toHaveBeenCalledWith(mockInfo, 'sizeLog');
+        expect(dockerService.getContainerLogSizes).toHaveBeenCalledWith(['test-container']);
+        expect(result[0]?.sizeLog).toBe(42);
+        expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: false, size: false });
+    });
+
     it('should request size when GraphQLFieldHelper indicates sizeRootFs is requested', async () => {
         const mockContainers: DockerContainer[] = [];
         vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
-        vi.mocked(GraphQLFieldHelper.isFieldRequested).mockReturnValue(true);
+        vi.mocked(GraphQLFieldHelper.isFieldRequested).mockImplementation((_, field) => {
+            return field === 'sizeRootFs';
+        });
 
         const mockInfo = {} as any;
 
@@ -162,7 +219,7 @@ describe('DockerResolver', () => {
     it('should not request size when GraphQLFieldHelper indicates sizeRootFs is not requested', async () => {
         const mockContainers: DockerContainer[] = [];
         vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
-        vi.mocked(GraphQLFieldHelper.isFieldRequested).mockReturnValue(false);
+        vi.mocked(GraphQLFieldHelper.isFieldRequested).mockImplementation(() => false);
 
         const mockInfo = {} as any;
 

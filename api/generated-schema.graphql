@@ -1121,6 +1121,12 @@ type DockerContainer implements Node {
 
   """Total size of all files in the container (in bytes)"""
   sizeRootFs: BigInt
+
+  """Size of writable layer (in bytes)"""
+  sizeRw: BigInt
+
+  """Size of container logs (in bytes)"""
+  sizeLog: BigInt
   labels: JSON
   state: ContainerState!
   status: String!
