@@ -198,6 +198,19 @@ function closeAutostartSettings() {
   viewMode.value = 'overview';
 }
 
+function handleAddContainerClick() {
+  if (props.disabled) return;
+  if (typeof window === 'undefined') return;
+
+  const basePathFromRoute = hasRouter && route ? route.path : null;
+  const rawPath =
+    basePathFromRoute && basePathFromRoute !== '/' ? basePathFromRoute : window.location.pathname;
+  const sanitizedPath = rawPath.replace(/\?.*$/, '').replace(/\/+$/, '');
+  const withoutAdd = sanitizedPath.replace(/\/AddContainer$/i, '');
+  const targetPath = withoutAdd ? `${withoutAdd}/AddContainer` : '/AddContainer';
+  window.location.assign(targetPath);
+}
+
 async function refreshContainers() {
   await refetch({ skipCache: true });
 }
@@ -290,6 +303,16 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
               :loading="loading"
               @click="refreshContainers"
             />
+            <UButton
+              size="xs"
+              color="primary"
+              variant="solid"
+              icon="i-lucide-plus"
+              :disabled="props.disabled"
+              @click="handleAddContainerClick"
+            >
+              Add Container
+            </UButton>
             <UButton
               size="xs"
               variant="outline"
