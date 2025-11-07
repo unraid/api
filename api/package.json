@@ -116,6 +116,7 @@
         "graphql-subscriptions": "3.0.0",
         "graphql-tag": "2.12.6",
         "graphql-ws": "6.0.6",
+        "html-entities": "^2.6.0",
         "ini": "5.0.0",
         "ip": "2.0.1",
         "jose": "6.0.13",

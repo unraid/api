@@ -14,6 +14,16 @@ import {
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
+// Mock fs/promises for unit tests
+vi.mock('fs/promises', async () => {
+    const actual = await vi.importActual<typeof import('fs/promises')>('fs/promises');
+    const mockReadFile = vi.fn();
+    return {
+        ...actual,
+        readFile: mockReadFile,
+    };
+});
+
 // Mock getters.dynamix, Logger, and pubsub
 vi.mock('@app/store/index.js', () => {
     // Create test directory path inside factory function
@@ -61,24 +71,24 @@ const testNotificationsDir = join(tmpdir(), 'unraid-api-test-notifications');
 
 describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     let service: NotificationsService;
+    let mockReadFile: any;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        const fsPromises = await import('fs/promises');
+        mockReadFile = fsPromises.readFile as any;
+        vi.mocked(mockReadFile).mockClear();
         service = new NotificationsService();
     });
 
     it('should load and validate a valid notification file', async () => {
-        const mockNotificationIni: NotificationIni = {
-            timestamp: '1609459200',
-            event: 'Test Event',
-            subject: 'Test Subject',
-            description: 'Test Description',
-            importance: 'alert',
-            link: 'http://example.com',
-        };
+        const mockFileContent = `timestamp=1609459200
+event=Test Event
+subject=Test Subject
+description=Test Description
+importance=alert
+link=http://example.com`;
 
-        vi.spyOn(await import('@app/core/utils/misc/parse-config.js'), 'parseConfig').mockReturnValue(
-            mockNotificationIni
-        );
+        vi.mocked(mockReadFile).mockResolvedValue(mockFileContent);
 
         const result = await (service as any).loadNotificationFile(
             '/test/path/test.notify',
@@ -99,17 +109,12 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     });
 
     it('should return masked warning notification on validation error (missing required fields)', async () => {
-        const invalidNotificationIni: Omit<NotificationIni, 'event'> = {
-            timestamp: '1609459200',
-            // event: 'Missing Event', // missing required field
-            subject: 'Test Subject',
-            description: 'Test Description',
-            importance: 'alert',
-        };
+        const mockFileContent = `timestamp=1609459200
+subject=Test Subject
+description=Test Description
+importance=alert`;
 
-        vi.spyOn(await import('@app/core/utils/misc/parse-config.js'), 'parseConfig').mockReturnValue(
-            invalidNotificationIni
-        );
+        vi.mocked(mockReadFile).mockResolvedValue(mockFileContent);
 
         const result = await (service as any).loadNotificationFile(
             '/test/path/invalid.notify',
@@ -121,17 +126,13 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     });
 
     it('should handle invalid enum values', async () => {
-        const invalidNotificationIni: NotificationIni = {
-            timestamp: '1609459200',
-            event: 'Test Event',
-            subject: 'Test Subject',
-            description: 'Test Description',
-            importance: 'not-a-valid-enum' as any,
-        };
+        const mockFileContent = `timestamp=1609459200
+event=Test Event
+subject=Test Subject
+description=Test Description
+importance=not-a-valid-enum`;
 
-        vi.spyOn(await import('@app/core/utils/misc/parse-config.js'), 'parseConfig').mockReturnValue(
-            invalidNotificationIni
-        );
+        vi.mocked(mockReadFile).mockResolvedValue(mockFileContent);
 
         const result = await (service as any).loadNotificationFile(
             '/test/path/invalid-enum.notify',
@@ -145,16 +146,12 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     });
 
     it('should handle missing description field (should return masked warning notification)', async () => {
-        const mockNotificationIni: Omit<NotificationIni, 'description'> = {
-            timestamp: '1609459200',
-            event: 'Test Event',
-            subject: 'Test Subject',
-            importance: 'normal',
-        };
+        const mockFileContent = `timestamp=1609459200
+event=Test Event
+subject=Test Subject
+importance=normal`;
 
-        vi.spyOn(await import('@app/core/utils/misc/parse-config.js'), 'parseConfig').mockReturnValue(
-            mockNotificationIni
-        );
+        vi.mocked(mockReadFile).mockResolvedValue(mockFileContent);
 
         const result = await (service as any).loadNotificationFile(
             '/test/path/test.notify',
@@ -166,19 +163,15 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     });
 
     it('should preserve passthrough data from notification file (only known fields)', async () => {
-        const mockNotificationIni: NotificationIni & { customField: string } = {
-            timestamp: '1609459200',
-            event: 'Test Event',
-            subject: 'Test Subject',
-            description: 'Test Description',
-            importance: 'normal',
-            link: 'http://example.com',
-            customField: 'custom value',
-        };
+        const mockFileContent = `timestamp=1609459200
+event=Test Event
+subject=Test Subject
+description=Test Description
+importance=normal
+link=http://example.com
+customField=custom value`;
 
-        vi.spyOn(await import('@app/core/utils/misc/parse-config.js'), 'parseConfig').mockReturnValue(
-            mockNotificationIni
-        );
+        vi.mocked(mockReadFile).mockResolvedValue(mockFileContent);
 
         const result = await (service as any).loadNotificationFile(
             '/test/path/test.notify',
@@ -201,17 +194,12 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     });
 
     it('should handle missing timestamp field gracefully', async () => {
-        const mockNotificationIni: Omit<NotificationIni, 'timestamp'> = {
-            // timestamp is missing
-            event: 'Test Event',
-            subject: 'Test Subject',
-            description: 'Test Description',
-            importance: 'alert',
-        };
+        const mockFileContent = `event=Test Event
+subject=Test Subject
+description=Test Description
+importance=alert`;
 
-        vi.spyOn(await import('@app/core/utils/misc/parse-config.js'), 'parseConfig').mockReturnValue(
-            mockNotificationIni
-        );
+        vi.mocked(mockReadFile).mockResolvedValue(mockFileContent);
 
         const result = await (service as any).loadNotificationFile(
             '/test/path/missing-timestamp.notify',
@@ -225,17 +213,13 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     });
 
     it('should handle malformed timestamp field gracefully', async () => {
-        const mockNotificationIni: NotificationIni = {
-            timestamp: 'not-a-timestamp',
-            event: 'Test Event',
-            subject: 'Test Subject',
-            description: 'Test Description',
-            importance: 'alert',
-        };
+        const mockFileContent = `timestamp=not-a-timestamp
+event=Test Event
+subject=Test Subject
+description=Test Description
+importance=alert`;
 
-        vi.spyOn(await import('@app/core/utils/misc/parse-config.js'), 'parseConfig').mockReturnValue(
-            mockNotificationIni
-        );
+        vi.mocked(mockReadFile).mockResolvedValue(mockFileContent);
 
         const result = await (service as any).loadNotificationFile(
             '/test/path/malformed-timestamp.notify',

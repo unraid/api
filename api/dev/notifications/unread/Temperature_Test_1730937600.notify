@@ -1,0 +1,6 @@
+timestamp=1730937600
+event=Temperature Test
+subject=Warning [UNRAID] - High disk temperature detected: 45&#8201;&#176;C
+description=Disk 1 temperature has reached 45&#8201;&#176;C (threshold: 40&#8201;&#176;C)<br><br>Current temperatures:<br>Parity - 32&#8201;&#176;C [OK]<br>Disk 1 - 45&#8201;&#176;C [WARNING]<br>Disk 2 - 38&#8201;&#176;C [OK]<br>Cache - 28&#8201;&#176;C [OK]<br><br>Please check cooling system.
+importance=warning
+
