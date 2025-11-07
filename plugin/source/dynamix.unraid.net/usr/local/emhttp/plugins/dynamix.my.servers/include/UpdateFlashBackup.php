@@ -18,6 +18,7 @@ $cli = php_sapi_name()=='cli';
 
 $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 require_once "$docroot/webGui/include/Wrappers.php";
+require_once "$docroot/webGui/include/publish.php";
 require_once "$docroot/plugins/dynamix.my.servers/include/connect-config.php";
 
 $isRegistered = ConnectConfig::isUserSignedIn();
@@ -32,6 +33,7 @@ if (file_exists($statusFilePath)) {
 }
 
 $isConnected = ($connectionStatus === 'CONNECTED') ? true : false;
+$apiVersion = ApiConfig::getApiVersion();
 
 $flashbackup_ini = '/var/local/emhttp/flashbackup.ini';
 
@@ -75,6 +77,7 @@ function save_flash_backup_state($loading='') {
   $flashbackup_tmp = '/var/local/emhttp/flashbackup.new';
   file_put_contents($flashbackup_tmp, $text);
   rename($flashbackup_tmp, $flashbackup_ini);
+  publish('flashbackup', $text);
 }
 
 function default_flash_backup_state() {
@@ -416,7 +419,7 @@ curl_setopt($ch, CURLOPT_POST, 1);
 curl_setopt($ch, CURLOPT_POSTFIELDS, [
   'keyfile' => $keyfile,
   'version' => _var($var,'version'),
-  'api_version' => _var($mystatus, 'version'),
+  'api_version' => ($apiVersion && $apiVersion !== 'unknown') ? $apiVersion : '',
   'bzfiles' => implode(',', $bzfilehashes)
 ]);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
