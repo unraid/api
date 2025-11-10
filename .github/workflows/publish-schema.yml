@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'api/generated-schema.graphql'
+  workflow_dispatch:
 
 jobs:
   publish-schema:
