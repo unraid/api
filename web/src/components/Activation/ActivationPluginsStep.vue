@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { BrandButton } from '@unraid/ui';
@@ -46,19 +46,44 @@ const availablePlugins: Plugin[] = [
   },
 ];
 
+type PluginStatus = 'pending' | 'installing' | 'success' | 'error';
+
+type PluginState = {
+  status: PluginStatus;
+  logs: string[];
+};
+
+const pluginStates = reactive<Record<string, PluginState>>(
+  Object.fromEntries(
+    availablePlugins.map((plugin) => [
+      plugin.id,
+      {
+        status: 'pending',
+        logs: [],
+      },
+    ])
+  )
+);
+
 const selectedPlugins = ref<Set<string>>(new Set());
 const isInstalling = ref(false);
 const error = ref<string | null>(null);
-const installationLogs = ref<string[]>([]);
 const installationFinished = ref(false);
 
 const { installPlugin } = usePluginInstaller();
 
-const appendLogs = (lines: string[] | string) => {
+const combinedLogs = computed(() => {
+  return availablePlugins.flatMap((plugin) =>
+    pluginStates[plugin.id].logs.map((line) => `[${plugin.name}] ${line}`)
+  );
+});
+
+const appendPluginLogs = (pluginId: string, lines: string[] | string) => {
+  const state = pluginStates[pluginId];
   if (Array.isArray(lines)) {
-    lines.forEach((line) => installationLogs.value.push(line));
+    state.logs.push(...lines);
   } else {
-    installationLogs.value.push(lines);
+    state.logs.push(lines);
   }
 };
 
@@ -70,8 +95,14 @@ const togglePlugin = (pluginId: string) => {
   const next = new Set(selectedPlugins.value);
   if (next.has(pluginId)) {
     next.delete(pluginId);
+    pluginStates[pluginId].status = 'pending';
+    pluginStates[pluginId].logs = [];
   } else {
     next.add(pluginId);
+    if (pluginStates[pluginId].status !== 'pending') {
+      pluginStates[pluginId].status = 'pending';
+      pluginStates[pluginId].logs = [];
+    }
   }
   selectedPlugins.value = next;
   resetCompletionState();
@@ -80,40 +111,62 @@ const togglePlugin = (pluginId: string) => {
 const handleInstall = async () => {
   if (selectedPlugins.value.size === 0) {
     installationFinished.value = true;
-    props.onComplete();
     return;
   }
 
   isInstalling.value = true;
   error.value = null;
-  installationLogs.value = [];
   installationFinished.value = false;
 
   try {
     const pluginsToInstall = availablePlugins.filter((p) => selectedPlugins.value.has(p.id));
 
     for (const plugin of pluginsToInstall) {
-      appendLogs(t('activation.pluginsStep.installingPluginMessage', { name: plugin.name }));
+      const state = pluginStates[plugin.id];
+      state.status = 'installing';
+      state.logs = [];
+      appendPluginLogs(
+        plugin.id,
+        t('activation.pluginsStep.installingPluginMessage', { name: plugin.name })
+      );
 
-      const result = await installPlugin({
-        url: plugin.url,
-        name: plugin.name,
-        forced: true,
-        onEvent: (event) => {
-          if (event.output?.length) {
-            appendLogs(event.output.map((line) => `[${plugin.name}] ${line}`));
-          }
-        },
-      });
+      let result;
+      try {
+        result = await installPlugin({
+          url: plugin.url,
+          name: plugin.name,
+          forced: true,
+          onEvent: (event) => {
+            if (event.output?.length) {
+              appendPluginLogs(plugin.id, event.output);
+            }
+          },
+        });
+      } catch (installError) {
+        state.status = 'error';
+        appendPluginLogs(plugin.id, t('activation.pluginsStep.installFailed'));
+        throw installError;
+      }
 
       if (result.status !== PluginInstallStatus.SUCCEEDED) {
+        state.status = 'error';
+        appendPluginLogs(plugin.id, t('activation.pluginsStep.installFailed'));
         throw new Error(`Plugin installation failed for ${plugin.name}`);
       }
 
-      appendLogs(t('activation.pluginsStep.pluginInstalledMessage', { name: plugin.name }));
+      if (result.output?.length) {
+        appendPluginLogs(plugin.id, result.output);
+      }
+      appendPluginLogs(
+        plugin.id,
+        t('activation.pluginsStep.pluginInstalledMessage', { name: plugin.name })
+      );
+      state.status = 'success';
     }
 
-    installationFinished.value = true;
+    installationFinished.value = pluginsToInstall.every(
+      (plugin) => pluginStates[plugin.id].status === 'success'
+    );
   } catch (err) {
     error.value = t('activation.pluginsStep.installFailed');
     console.error('Failed to install plugins:', err);
@@ -181,26 +234,53 @@ const isPrimaryActionDisabled = computed(() => {
         :for="plugin.id"
         class="border-border bg-card hover:bg-accent/50 flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
       >
-        <input
-          :id="plugin.id"
-          type="checkbox"
-          :checked="selectedPlugins.has(plugin.id)"
-          :disabled="isInstalling"
-          @change="() => togglePlugin(plugin.id)"
-          class="text-primary focus:ring-primary mt-1 h-5 w-5 cursor-pointer rounded border-gray-300 focus:ring-2"
-        />
+        <div class="mt-1 h-5 w-5">
+          <div
+            v-if="pluginStates[plugin.id].status === 'installing'"
+            class="border-primary h-5 w-5 animate-spin rounded-full border-2 border-t-transparent"
+          />
+          <input
+            v-else
+            :id="plugin.id"
+            type="checkbox"
+            :checked="selectedPlugins.has(plugin.id)"
+            :disabled="isInstalling"
+            @change="() => togglePlugin(plugin.id)"
+            class="text-primary focus:ring-primary h-5 w-5 cursor-pointer rounded border-gray-300 focus:ring-2"
+          />
+        </div>
         <div class="flex-1">
-          <div class="font-semibold">{{ plugin.name }}</div>
+          <div class="flex items-center gap-2">
+            <div class="font-semibold">{{ plugin.name }}</div>
+            <span
+              v-if="pluginStates[plugin.id].status === 'installing'"
+              class="text-primary flex items-center gap-1 text-xs"
+            >
+              <span
+                class="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent"
+              />
+              {{ t('activation.pluginsStep.status.installing') }}
+            </span>
+            <span
+              v-else-if="pluginStates[plugin.id].status === 'success'"
+              class="text-xs text-green-600"
+            >
+              {{ t('activation.pluginsStep.status.success') }}
+            </span>
+            <span v-else-if="pluginStates[plugin.id].status === 'error'" class="text-xs text-red-500">
+              {{ t('activation.pluginsStep.status.error') }}
+            </span>
+          </div>
           <div class="text-sm opacity-75">{{ plugin.description }}</div>
         </div>
       </label>
     </div>
 
     <div
-      v-if="installationLogs.length > 0"
+      v-if="combinedLogs.length > 0"
       class="border-border bg-muted/40 mb-4 max-h-48 w-full overflow-y-auto rounded border p-3 text-left font-mono text-xs"
     >
-      <div v-for="(line, index) in installationLogs" :key="`${index}-${line}`">
+      <div v-for="(line, index) in combinedLogs" :key="`${index}-${line}`">
         {{ line }}
       </div>
     </div>
