@@ -77,6 +77,7 @@ describe('ActivationPluginsStep', () => {
       .findAll('[data-testid="brand-button"]')
       .find((button) => button.text().includes('Install'));
     expect(installButton).toBeTruthy();
+    expect(installButton!.text()).toContain('Install Selected');
     await installButton!.trigger('click');
     await flushPromises();
 
@@ -86,6 +87,7 @@ describe('ActivationPluginsStep', () => {
     expect(firstCallArgs?.url).toContain('community.applications');
     expect(props.onComplete).not.toHaveBeenCalled();
     expect(wrapper.html()).toContain('installation started');
+    expect(wrapper.html()).toContain('Installed');
     expect(wrapper.html()).toContain('installed successfully');
 
     const continueButton = wrapper
@@ -119,5 +121,6 @@ describe('ActivationPluginsStep', () => {
 
     expect(props.onComplete).not.toHaveBeenCalled();
     expect(wrapper.html()).toContain('Failed to install plugins. Please try again.');
+    expect(wrapper.html()).toContain('Install failed');
   });
 });
