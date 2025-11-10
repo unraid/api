@@ -1,0 +1,29 @@
+name: Publish GraphQL Schema
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'api/generated-schema.graphql'
+
+jobs:
+  publish-schema:
+    name: Publish Schema to Apollo Studio
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      - name: Install Apollo Rover CLI
+        run: |
+          curl -sSL https://rover.apollo.dev/nix/latest | sh
+          echo "$HOME/.rover/bin" >> $GITHUB_PATH
+
+      - name: Publish schema to Apollo Studio
+        env:
+          APOLLO_KEY: ${{ secrets.APOLLO_KEY }}
+        run: |
+          rover graph publish Unraid-API@current \
+            --schema api/generated-schema.graphql
+
