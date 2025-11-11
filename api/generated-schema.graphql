@@ -870,7 +870,7 @@ type DockerMutations {
   unpause(id: PrefixedID!): DockerContainer!
 
   """Update auto-start configuration for Docker containers"""
-  updateAutostartConfiguration(entries: [DockerAutostartEntryInput!]!): Boolean!
+  updateAutostartConfiguration(entries: [DockerAutostartEntryInput!]!, persistUserPreferences: Boolean): Boolean!
 
   """Update a container to the latest image"""
   updateContainer(id: PrefixedID!): DockerContainer!

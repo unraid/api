@@ -108,6 +108,29 @@ export class DockerService {
         return coerced;
     }
 
+    private buildUserPreferenceLines(
+        entries: DockerAutostartEntryInput[],
+        containerById: Map<string, DockerContainer>
+    ): string[] {
+        const seenNames = new Set<string>();
+        const lines: string[] = [];
+
+        for (const entry of entries) {
+            const container = containerById.get(entry.id);
+            if (!container) {
+                continue;
+            }
+            const primaryName = this.getContainerPrimaryName(container);
+            if (!primaryName || seenNames.has(primaryName)) {
+                continue;
+            }
+            lines.push(`${lines.length}="${primaryName}"`);
+            seenNames.add(primaryName);
+        }
+
+        return lines;
+    }
+
     private getContainerPrimaryName(container: Docker.ContainerInfo | DockerContainer): string | null {
         const names =
             'Names' in container ? container.Names : 'names' in container ? container.names : undefined;
@@ -395,10 +418,16 @@ export class DockerService {
         return updatedContainer;
     }
 
-    public async updateAutostartConfiguration(entries: DockerAutostartEntryInput[]): Promise<void> {
+    public async updateAutostartConfiguration(
+        entries: DockerAutostartEntryInput[],
+        options?: { persistUserPreferences?: boolean }
+    ): Promise<void> {
         const containers = await this.getContainers({ skipCache: true });
         const containerById = new Map(containers.map((container) => [container.id, container]));
-        const autoStartPath = getters.paths()['docker-autostart'];
+        const paths = getters.paths();
+        const autoStartPath = paths['docker-autostart'];
+        const userPrefsPath = paths['docker-userprefs'];
+        const persistUserPreferences = Boolean(options?.persistUserPreferences);
 
         const lines: string[] = [];
         const seenNames = new Set<string>();
@@ -428,6 +457,19 @@ export class DockerService {
                     throw error;
                 }
             });
+        }
+
+        if (persistUserPreferences) {
+            const userPrefsLines = this.buildUserPreferenceLines(entries, containerById);
+            if (userPrefsLines.length) {
+                await writeFile(userPrefsPath, `${userPrefsLines.join('\n')}\n`, 'utf8');
+            } else {
+                await unlink(userPrefsPath)?.catch((error: NodeJS.ErrnoException) => {
+                    if (error.code !== 'ENOENT') {
+                        throw error;
+                    }
+                });
+            }
         }
 
         await this.refreshAutoStartEntries();

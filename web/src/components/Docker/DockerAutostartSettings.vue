@@ -71,6 +71,12 @@ function containersToEntries(containers: DockerContainer[]): AutostartEntry[] {
 const entries = ref<AutostartEntry[]>([]);
 const selectedIds = ref<string[]>([]);
 
+function hasOrderChanged(previous?: AutostartEntry[]) {
+  if (!previous) return false;
+  if (previous.length !== entries.value.length) return true;
+  return previous.some((entry, index) => entry.id !== entries.value[index]?.id);
+}
+
 watch(
   () => props.containers,
   (containers) => {
@@ -119,12 +125,14 @@ const errorMessage = ref<string | null>(null);
 async function persistConfiguration(previousSnapshot?: AutostartEntry[]) {
   try {
     errorMessage.value = null;
+    const persistUserPreferences = hasOrderChanged(previousSnapshot);
     await mutate({
       entries: entries.value.map((entry) => ({
         id: entry.id,
         autoStart: entry.autoStart,
         wait: entry.autoStart ? entry.wait : 0,
       })),
+      persistUserPreferences,
     });
     if (props.refresh) {
       await props.refresh().catch((refreshError: unknown) => {

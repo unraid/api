@@ -6,6 +6,7 @@ exports[`Returns paths 1`] = `
   "unraid-api-base",
   "unraid-data",
   "docker-autostart",
+  "docker-userprefs",
   "docker-socket",
   "rclone-socket",
   "parity-checks",

@@ -86,6 +86,7 @@ vi.mock('@app/store/index.js', () => ({
         docker: vi.fn().mockReturnValue({ containers: [] }),
         paths: vi.fn().mockReturnValue({
             'docker-autostart': '/path/to/docker-autostart',
+            'docker-userprefs': '/path/to/docker-userprefs',
             'docker-socket': '/var/run/docker.sock',
             'var-run': '/var/run',
         }),
@@ -501,16 +502,56 @@ describe('DockerService', () => {
             },
         ]);
 
-        await service.updateAutostartConfiguration([
-            { id: 'abc123', autoStart: true, wait: 15 },
-            { id: 'abc123', autoStart: true, wait: 5 }, // duplicate should be ignored
-            { id: 'def456', autoStart: false, wait: 0 },
-        ]);
+        await service.updateAutostartConfiguration(
+            [
+                { id: 'abc123', autoStart: true, wait: 15 },
+                { id: 'abc123', autoStart: true, wait: 5 }, // duplicate should be ignored
+                { id: 'def456', autoStart: false, wait: 0 },
+            ],
+            { persistUserPreferences: true }
+        );
 
-        expect(writeFileMock).toHaveBeenCalledWith('/path/to/docker-autostart', 'alpha 15\n', 'utf8');
+        expect(writeFileMock).toHaveBeenNthCalledWith(
+            1,
+            '/path/to/docker-autostart',
+            'alpha 15\n',
+            'utf8'
+        );
+        expect(writeFileMock).toHaveBeenNthCalledWith(
+            2,
+            '/path/to/docker-userprefs',
+            '0="alpha"\n1="beta"\n',
+            'utf8'
+        );
         expect(unlinkMock).not.toHaveBeenCalled();
         expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
         expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_WITH_SIZE_CACHE_KEY);
+    });
+
+    it('should skip updating user preferences when persist flag is false', async () => {
+        mockListContainers.mockResolvedValue([
+            {
+                Id: 'abc123',
+                Names: ['/alpha'],
+                Image: 'alpha-image',
+                ImageID: 'alpha-image-id',
+                Command: 'run-alpha',
+                Created: 123,
+                State: 'running',
+                Status: 'Up 1 minute',
+                Ports: [],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: {},
+                Mounts: [],
+            },
+        ]);
+
+        await service.updateAutostartConfiguration([{ id: 'abc123', autoStart: true, wait: 5 }]);
+
+        expect(writeFileMock).toHaveBeenCalledTimes(1);
+        expect(writeFileMock).toHaveBeenCalledWith('/path/to/docker-autostart', 'alpha 5\n', 'utf8');
+        expect(unlinkMock).not.toHaveBeenCalled();
     });
 
     it('should remove auto-start file when no containers are configured', async () => {
@@ -532,9 +573,12 @@ describe('DockerService', () => {
             },
         ]);
 
-        await service.updateAutostartConfiguration([{ id: 'abc123', autoStart: false, wait: 30 }]);
+        await service.updateAutostartConfiguration([{ id: 'abc123', autoStart: false, wait: 30 }], {
+            persistUserPreferences: true,
+        });
 
-        expect(writeFileMock).not.toHaveBeenCalled();
+        expect(writeFileMock).toHaveBeenCalledTimes(1);
+        expect(writeFileMock).toHaveBeenCalledWith('/path/to/docker-userprefs', '0="alpha"\n', 'utf8');
         expect(unlinkMock).toHaveBeenCalledWith('/path/to/docker-autostart');
         expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
         expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_WITH_SIZE_CACHE_KEY);

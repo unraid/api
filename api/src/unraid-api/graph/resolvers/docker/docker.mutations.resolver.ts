@@ -63,9 +63,13 @@ export class DockerMutationsResolver {
     })
     public async updateAutostartConfiguration(
         @Args('entries', { type: () => [DockerAutostartEntryInput] })
-        entries: DockerAutostartEntryInput[]
+        entries: DockerAutostartEntryInput[],
+        @Args('persistUserPreferences', { type: () => Boolean, nullable: true })
+        persistUserPreferences?: boolean
     ) {
-        await this.dockerService.updateAutostartConfiguration(entries);
+        await this.dockerService.updateAutostartConfiguration(entries, {
+            persistUserPreferences,
+        });
         return true;
     }
 

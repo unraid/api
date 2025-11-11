@@ -792,6 +792,7 @@ export type DockerMutationsUnpauseArgs = {
 
 export type DockerMutationsUpdateAutostartConfigurationArgs = {
   entries: Array<DockerAutostartEntryInput>;
+  persistUserPreferences?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
