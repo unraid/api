@@ -84,16 +84,13 @@ const emit = defineEmits<{
 }>();
 
 function formatExternalPorts(container?: DockerContainer | null): string {
+  if (container?.lanIpPorts) {
+    return container.lanIpPorts;
+  }
   if (!container) return '';
   return container.ports
-    .filter((port) => port.publicPort)
-    .map((port) => {
-      if (port.publicPort && port.privatePort) {
-        return `${port.publicPort}:${port.privatePort}/${port.type}`;
-      }
-      return '';
-    })
-    .filter(Boolean)
+    .filter((port) => port.publicPort && port.privatePort)
+    .map((port) => `${port.publicPort}:${port.privatePort}/${port.type}`)
     .join(', ');
 }
 

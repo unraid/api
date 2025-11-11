@@ -69,6 +69,13 @@ vi.mock('dockerode', () => {
     };
 });
 
+const { mockEmhttpGetter } = vi.hoisted(() => ({
+    mockEmhttpGetter: vi.fn().mockReturnValue({
+        networks: [],
+        var: {},
+    }),
+}));
+
 // Mock the store getters
 vi.mock('@app/store/index.js', () => ({
     getters: {
@@ -78,6 +85,7 @@ vi.mock('@app/store/index.js', () => ({
             'docker-socket': '/var/run/docker.sock',
             'var-run': '/var/run',
         }),
+        emhttp: mockEmhttpGetter,
     },
 }));
 
@@ -149,6 +157,11 @@ describe('DockerService', () => {
         readFileMock.mockResolvedValue('');
         writeFileMock.mockReset();
         unlinkMock.mockReset();
+        mockEmhttpGetter.mockReset();
+        mockEmhttpGetter.mockReturnValue({
+            networks: [],
+            var: {},
+        });
         mockDockerConfigService.getConfig.mockReturnValue({
             updateCheckCronSchedule: '0 6 * * *',
             templateMappings: {},

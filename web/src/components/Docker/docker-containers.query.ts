@@ -11,6 +11,7 @@ export const GET_DOCKER_CONTAINERS = gql`
         status
         image
         created
+        lanIpPorts
         autoStart
         autoStartOrder
         autoStartWait
@@ -49,6 +50,7 @@ export const GET_DOCKER_CONTAINERS = gql`
               state
               status
               image
+              lanIpPorts
               ports {
                 privatePort
                 publicPort

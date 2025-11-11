@@ -726,12 +726,18 @@ export type DockerContainer = Node & {
   isRebuildReady?: Maybe<Scalars['Boolean']['output']>;
   isUpdateAvailable?: Maybe<Scalars['Boolean']['output']>;
   labels?: Maybe<Scalars['JSON']['output']>;
+  /** Comma-separated list of LAN-accessible host:port values */
+  lanIpPorts?: Maybe<Scalars['String']['output']>;
   mounts?: Maybe<Array<Scalars['JSON']['output']>>;
   names: Array<Scalars['String']['output']>;
   networkSettings?: Maybe<Scalars['JSON']['output']>;
   ports: Array<ContainerPort>;
+  /** Size of container logs (in bytes) */
+  sizeLog?: Maybe<Scalars['BigInt']['output']>;
   /** Total size of all files in the container (in bytes) */
   sizeRootFs?: Maybe<Scalars['BigInt']['output']>;
+  /** Size of writable layer (in bytes) */
+  sizeRw?: Maybe<Scalars['BigInt']['output']>;
   state: ContainerState;
   status: Scalars['String']['output'];
   templatePath?: Maybe<Scalars['String']['output']>;
