@@ -309,6 +309,8 @@ const dockerSearchAccessor = (row: TreeRow<DockerContainer>): unknown[] => {
   return [...names, ...image, ...status, ...networkMode, ...labels];
 };
 
+const dockerFilterHelpText = `Filter by ${searchableKeys.join(', ')}`;
+
 const { treeData, entryParentById, folderChildrenIds, parentById, positionById, getRowById } =
   useTreeData<DockerContainer>({
     flatEntries: flatEntriesRef,
@@ -1160,7 +1162,8 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
             :model-value="filterText"
             :size="compact ? 'sm' : 'md'"
             :class="['max-w-sm flex-1', compact ? 'min-w-[8ch]' : 'min-w-[12ch]']"
-            placeholder="Filter..."
+            :placeholder="dockerFilterHelpText"
+            :title="dockerFilterHelpText"
             @update:model-value="setGlobalFilter"
           />
           <UDropdownMenu v-if="!compact" :items="columnsMenuItems" size="md" :ui="{ content: 'z-40' }">
