@@ -694,7 +694,7 @@ describe('DockerService', () => {
                     type: ContainerPortType.UDP,
                 },
             ]);
-            expect(transformed.lanIpPorts).toBe('192.168.0.10:8080, 192.168.0.10:5000');
+            expect(transformed.lanIpPorts).toEqual(['192.168.0.10:8080', '192.168.0.10:5000']);
         });
     });
 

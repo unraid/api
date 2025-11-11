@@ -726,8 +726,8 @@ export type DockerContainer = Node & {
   isRebuildReady?: Maybe<Scalars['Boolean']['output']>;
   isUpdateAvailable?: Maybe<Scalars['Boolean']['output']>;
   labels?: Maybe<Scalars['JSON']['output']>;
-  /** Comma-separated list of LAN-accessible host:port values */
-  lanIpPorts?: Maybe<Scalars['String']['output']>;
+  /** List of LAN-accessible host:port values */
+  lanIpPorts?: Maybe<Array<Scalars['String']['output']>>;
   mounts?: Maybe<Array<Scalars['JSON']['output']>>;
   names: Array<Scalars['String']['output']>;
   networkSettings?: Maybe<Scalars['JSON']['output']>;

@@ -1119,8 +1119,8 @@ type DockerContainer implements Node {
   created: Int!
   ports: [ContainerPort!]!
 
-  """Comma-separated list of LAN-accessible host:port values"""
-  lanIpPorts: String
+  """List of LAN-accessible host:port values"""
+  lanIpPorts: [String!]
 
   """Total size of all files in the container (in bytes)"""
   sizeRootFs: BigInt

@@ -94,11 +94,11 @@ export class DockerContainer extends Node {
     @Field(() => [ContainerPort])
     ports!: ContainerPort[];
 
-    @Field(() => String, {
+    @Field(() => [String], {
         nullable: true,
-        description: 'Comma-separated list of LAN-accessible host:port values',
+        description: 'List of LAN-accessible host:port values',
     })
-    lanIpPorts?: string;
+    lanIpPorts?: string[];
 
     @Field(() => GraphQLBigInt, {
         nullable: true,

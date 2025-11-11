@@ -95,8 +95,11 @@ function normalizeListString(value: string): string[] {
 
 function formatExternalPorts(container?: DockerContainer | null): string[] {
   if (!container) return [];
-  if (container.lanIpPorts) {
-    return normalizeListString(container.lanIpPorts);
+  const lanPorts = container.lanIpPorts;
+  if (Array.isArray(lanPorts)) {
+    return lanPorts
+      .map((entry) => (typeof entry === 'string' ? entry.trim() : String(entry).trim()))
+      .filter((entry) => entry.length > 0);
   }
   if (!container.ports?.length) return [];
   return container.ports

@@ -220,7 +220,7 @@ export class DockerService {
         };
 
         if (lanPortStrings.length > 0) {
-            transformed.lanIpPorts = lanPortStrings.join(', ');
+            transformed.lanIpPorts = lanPortStrings;
         }
 
         return transformed;
