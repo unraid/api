@@ -10,7 +10,11 @@ import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
-import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import {
+    ContainerPortType,
+    ContainerState,
+    DockerContainer,
+} from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
@@ -645,6 +649,53 @@ describe('DockerService', () => {
         );
         expect(mockListNetworks).toHaveBeenCalled();
         expect(mockCacheManager.set).not.toHaveBeenCalled(); // Ensure cache is NOT set on error
+    });
+
+    describe('transformContainer', () => {
+        it('deduplicates ports that only differ by bound IP addresses', () => {
+            mockEmhttpGetter.mockReturnValue({
+                networks: [{ ipaddr: ['192.168.0.10'] }],
+                var: {},
+            });
+
+            const container = {
+                Id: 'duplicate-ports',
+                Names: ['/duplicate-ports'],
+                Image: 'test-image',
+                ImageID: 'sha256:123',
+                Command: 'test',
+                Created: 1700000000,
+                State: 'running',
+                Status: 'Up 2 hours',
+                Ports: [
+                    { IP: '0.0.0.0', PrivatePort: 8080, PublicPort: 8080, Type: 'tcp' },
+                    { IP: '::', PrivatePort: 8080, PublicPort: 8080, Type: 'tcp' },
+                    { IP: '0.0.0.0', PrivatePort: 5000, PublicPort: 5000, Type: 'udp' },
+                ],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: { Networks: {} },
+                Mounts: [],
+            } as Docker.ContainerInfo;
+
+            const transformed = service.transformContainer(container);
+
+            expect(transformed.ports).toEqual([
+                {
+                    ip: '0.0.0.0',
+                    privatePort: 8080,
+                    publicPort: 8080,
+                    type: ContainerPortType.TCP,
+                },
+                {
+                    ip: '0.0.0.0',
+                    privatePort: 5000,
+                    publicPort: 5000,
+                    type: ContainerPortType.UDP,
+                },
+            ]);
+            expect(transformed.lanIpPorts).toBe('192.168.0.10:8080, 192.168.0.10:5000');
+        });
     });
 
     describe('getAppInfo', () => {
