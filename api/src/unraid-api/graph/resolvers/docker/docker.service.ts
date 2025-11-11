@@ -115,6 +115,28 @@ export class DockerService {
         return firstName ? firstName.replace(/^\//, '') : null;
     }
 
+    private deduplicateContainerPorts(
+        ports: Docker.ContainerInfo['Ports'] | undefined
+    ): Docker.ContainerInfo['Ports'] {
+        if (!Array.isArray(ports)) {
+            return [];
+        }
+
+        const seen = new Set<string>();
+        const uniquePorts: Docker.ContainerInfo['Ports'] = [];
+
+        for (const port of ports) {
+            const key = `${port.PrivatePort ?? ''}-${port.PublicPort ?? ''}-${(port.Type ?? '').toLowerCase()}`;
+            if (seen.has(key)) {
+                continue;
+            }
+            seen.add(key);
+            uniquePorts.push(port);
+        }
+
+        return uniquePorts;
+    }
+
     public getDockerClient() {
         return new Docker({
             socketPath: '/var/run/docker.sock',
@@ -151,8 +173,9 @@ export class DockerService {
         const autoStartEntry = primaryName ? this.autoStartEntryByName.get(primaryName) : undefined;
         const lanIp = getLanIp();
         const lanPortStrings: string[] = [];
+        const uniquePorts = this.deduplicateContainerPorts(container.Ports);
 
-        const transformedPorts = container.Ports.map((port) => {
+        const transformedPorts = uniquePorts.map((port) => {
             if (port.PublicPort) {
                 const lanPort = lanIp ? `${lanIp}:${port.PublicPort}` : `${port.PublicPort}`;
                 if (lanPort) {
