@@ -10,6 +10,7 @@ import type { DockerAutostartEntryInput } from '@app/unraid-api/graph/resolvers/
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
+import { getLanIp } from '@app/core/utils/network.js';
 import { getters } from '@app/store/index.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
@@ -148,6 +149,25 @@ export class DockerService {
         const sizeValue = (container as Docker.ContainerInfo & { SizeRootFs?: number }).SizeRootFs;
         const primaryName = this.getContainerPrimaryName(container) ?? '';
         const autoStartEntry = primaryName ? this.autoStartEntryByName.get(primaryName) : undefined;
+        const lanIp = getLanIp();
+        const lanPortStrings: string[] = [];
+
+        const transformedPorts = container.Ports.map((port) => {
+            if (port.PublicPort) {
+                const lanPort = lanIp ? `${lanIp}:${port.PublicPort}` : `${port.PublicPort}`;
+                if (lanPort) {
+                    lanPortStrings.push(lanPort);
+                }
+            }
+            return {
+                ip: port.IP || '',
+                privatePort: port.PrivatePort,
+                publicPort: port.PublicPort,
+                type:
+                    ContainerPortType[port.Type.toUpperCase() as keyof typeof ContainerPortType] ||
+                    ContainerPortType.TCP,
+            };
+        });
 
         const transformed: DockerContainer = {
             id: container.Id,
@@ -156,14 +176,7 @@ export class DockerService {
             imageId: container.ImageID,
             command: container.Command,
             created: container.Created,
-            ports: container.Ports.map((port) => ({
-                ip: port.IP || '',
-                privatePort: port.PrivatePort,
-                publicPort: port.PublicPort,
-                type:
-                    ContainerPortType[port.Type.toUpperCase() as keyof typeof ContainerPortType] ||
-                    ContainerPortType.TCP,
-            })),
+            ports: transformedPorts,
             sizeRootFs: sizeValue,
             sizeRw: (container as Docker.ContainerInfo & { SizeRw?: number }).SizeRw,
             labels: container.Labels ?? {},
@@ -182,6 +195,10 @@ export class DockerService {
             autoStartOrder: autoStartEntry?.order,
             autoStartWait: autoStartEntry?.wait,
         };
+
+        if (lanPortStrings.length > 0) {
+            transformed.lanIpPorts = lanPortStrings.join(', ');
+        }
 
         return transformed;
     }

@@ -274,10 +274,9 @@ const details = computed(() => {
   const c = activeContainer.value;
   if (!c) return undefined;
   const network = c.hostConfig?.networkMode || 'bridge';
-  const publicPort = c.ports?.find((p) => p.publicPort)?.publicPort;
   return {
     network,
-    lanIpPort: publicPort ? `127.0.0.1:${publicPort}` : '—',
+    lanIpPort: c.lanIpPorts || '—',
     containerIp: c.networkSettings?.IPAddress || '—',
     uptime: '—',
     containerPort: c.ports?.[0]?.privatePort?.toString?.() || '—',

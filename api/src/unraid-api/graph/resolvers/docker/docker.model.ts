@@ -94,6 +94,12 @@ export class DockerContainer extends Node {
     @Field(() => [ContainerPort])
     ports!: ContainerPort[];
 
+    @Field(() => String, {
+        nullable: true,
+        description: 'Comma-separated list of LAN-accessible host:port values',
+    })
+    lanIpPorts?: string;
+
     @Field(() => GraphQLBigInt, {
         nullable: true,
         description: 'Total size of all files in the container (in bytes)',
