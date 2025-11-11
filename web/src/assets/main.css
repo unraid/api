@@ -53,7 +53,7 @@
     min-width: revert;
     text-transform: revert;
     background: revert;
-    /* color: revert; */
+    color: revert;
   }
 
   /* Reset text inputs so Nuxt UI field styles render correctly */
