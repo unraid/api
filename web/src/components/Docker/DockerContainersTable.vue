@@ -3,6 +3,7 @@ import { computed, h, nextTick, ref, resolveComponent, watch } from 'vue';
 import { useMutation } from '@vue/apollo-composable';
 
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
+import MultiValueCopyBadges from '@/components/Common/MultiValueCopyBadges.vue';
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
 import { CREATE_DOCKER_FOLDER_WITH_ITEMS } from '@/components/Docker/docker-create-folder-with-items.mutation';
 import { CREATE_DOCKER_FOLDER } from '@/components/Docker/docker-create-folder.mutation';
@@ -83,28 +84,35 @@ const emit = defineEmits<{
   (e: 'update:selectedIds', value: string[]): void;
 }>();
 
-function formatExternalPorts(container?: DockerContainer | null): string {
-  if (container?.lanIpPorts) {
-    return container.lanIpPorts;
-  }
-  if (!container) return '';
-  return container.ports
-    .filter((port) => port.publicPort && port.privatePort)
-    .map((port) => `${port.publicPort}:${port.privatePort}/${port.type}`)
-    .join(', ');
+const COMMA_SEPARATED_LIST = /\s*,\s*/;
+
+function normalizeListString(value: string): string[] {
+  return value
+    .split(COMMA_SEPARATED_LIST)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
 }
 
-function formatInternalPorts(container?: DockerContainer | null): string {
-  if (!container) return '';
+function formatExternalPorts(container?: DockerContainer | null): string[] {
+  if (!container) return [];
+  if (container.lanIpPorts) {
+    return normalizeListString(container.lanIpPorts);
+  }
+  if (!container.ports?.length) return [];
   return container.ports
-    .map((port) => {
-      if (port.privatePort) {
-        return `${port.privatePort}/${port.type}`;
-      }
-      return '';
-    })
-    .filter(Boolean)
-    .join(', ');
+    .filter(
+      (port): port is NonNullable<(typeof container.ports)[number]> =>
+        Boolean(port?.publicPort) && Boolean(port?.privatePort)
+    )
+    .map((port) => `${port.publicPort}:${port.privatePort}/${port.type}`)
+    .filter((entry) => entry.length > 0);
+}
+
+function formatInternalPorts(container?: DockerContainer | null): string[] {
+  if (!container?.ports?.length) return [];
+  return container.ports
+    .filter((port): port is NonNullable<(typeof container.ports)[number]> => Boolean(port?.privatePort))
+    .map((port) => `${port.privatePort}/${port.type}`);
 }
 
 function formatImage(container?: DockerContainer | null): string {
@@ -118,22 +126,26 @@ function formatNetwork(container?: DockerContainer | null): string {
   return container.hostConfig?.networkMode || '';
 }
 
-function formatContainerIp(container?: DockerContainer | null): string {
-  if (!container?.networkSettings) return '';
+function formatContainerIp(container?: DockerContainer | null): string[] {
+  if (!container?.networkSettings) return [];
   try {
     const settings = container.networkSettings as Record<string, unknown>;
     if (settings.Networks && typeof settings.Networks === 'object') {
       const networks = Object.values(settings.Networks as Record<string, unknown>);
-      const ips = networks.map((net) => (net as Record<string, unknown>).IPAddress).filter(Boolean);
-      return ips.join(', ');
+      const ips = networks
+        .map((net) => (net as Record<string, unknown>).IPAddress)
+        .filter((value): value is string => typeof value === 'string' && value.length > 0);
+      if (ips.length) {
+        return ips;
+      }
     }
     if (settings.IPAddress && typeof settings.IPAddress === 'string') {
-      return settings.IPAddress;
+      return settings.IPAddress.length ? [settings.IPAddress] : [];
     }
   } catch (e) {
-    return '';
+    return [];
   }
-  return '';
+  return [];
 }
 
 function formatVolumes(container?: DockerContainer | null): string {
@@ -162,6 +174,47 @@ function formatUptime(container?: DockerContainer | null): string {
   if (!container?.status) return '';
   const match = container.status.match(/Up\s+(.+?)(?:\s+\(|$)/i);
   return match ? match[1] : '';
+}
+
+type MultiValueKey = 'containerIp' | 'containerPort' | 'lanPort';
+const MULTI_VALUE_INLINE_LIMIT = 3;
+
+function normalizeMultiValue(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => (typeof entry === 'string' ? entry.trim() : String(entry)))
+      .filter((entry) => entry.length > 0);
+  }
+  if (typeof value === 'string') {
+    return normalizeListString(value);
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return [String(value)];
+  }
+  return [];
+}
+
+const MULTI_VALUE_LABELS: Record<MultiValueKey, string> = {
+  containerIp: 'Container IP',
+  containerPort: 'Container port',
+  lanPort: 'LAN IP:Port',
+};
+
+function makeMultiValueCell(accessor: MultiValueKey) {
+  return ({
+    row,
+  }: {
+    row: { original: TreeRow<DockerContainer>; getValue: (key: string) => unknown };
+  }) => {
+    if (row.original.type === 'folder') return '';
+    const values = normalizeMultiValue(row.getValue(accessor));
+    return h(MultiValueCopyBadges, {
+      values,
+      label: MULTI_VALUE_LABELS[accessor],
+      inlineLimit: MULTI_VALUE_INLINE_LIMIT,
+      idPrefix: `${row.original.id}-${accessor}`,
+    });
+  };
 }
 
 function toContainerTreeRow(
@@ -421,22 +474,17 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
     {
       accessorKey: 'containerIp',
       header: 'Container IP',
-      cell: ({ row }) =>
-        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('containerIp') || '')),
+      cell: makeMultiValueCell('containerIp'),
     },
     {
       accessorKey: 'containerPort',
       header: 'Container Port',
-      cell: ({ row }) =>
-        row.original.type === 'folder'
-          ? ''
-          : h('span', null, String(row.getValue('containerPort') || '')),
+      cell: makeMultiValueCell('containerPort'),
     },
     {
       accessorKey: 'lanPort',
       header: 'LAN IP:Port',
-      cell: ({ row }) =>
-        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('lanPort') || '')),
+      cell: makeMultiValueCell('lanPort'),
     },
     {
       accessorKey: 'volumes',

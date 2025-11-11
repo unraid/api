@@ -12,9 +12,9 @@ export interface TreeRow<T = unknown> {
   state?: string;
   version?: string;
   network?: string;
-  containerIp?: string;
-  containerPort?: string;
-  lanPort?: string;
+  containerIp?: string | string[];
+  containerPort?: string | string[];
+  lanPort?: string | string[];
   volumes?: string;
   autoStart?: string;
   updates?: string;
