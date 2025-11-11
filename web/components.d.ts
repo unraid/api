@@ -87,6 +87,7 @@ declare module 'vue' {
     Mark: typeof import('./src/components/Brand/Mark.vue')['default']
     Modal: typeof import('./src/components/Modal.vue')['default']
     'Modals.standalone': typeof import('./src/components/Modals.standalone.vue')['default']
+    MultiValueCopyBadges: typeof import('./src/components/Common/MultiValueCopyBadges.vue')['default']
     OidcDebugButton: typeof import('./src/components/Logs/OidcDebugButton.vue')['default']
     OidcDebugLogs: typeof import('./src/components/ConnectSettings/OidcDebugLogs.vue')['default']
     Overview: typeof import('./src/components/Docker/Overview.vue')['default']
