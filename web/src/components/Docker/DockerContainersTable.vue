@@ -93,6 +93,8 @@ function normalizeListString(value: string): string[] {
     .filter((entry) => entry.length > 0);
 }
 
+const URL_WITH_PROTOCOL = /^[a-zA-Z][a-zA-Z0-9+\-.]*:\/\//;
+
 function formatExternalPorts(container?: DockerContainer | null): string[] {
   if (!container) return [];
   const lanPorts = container.lanIpPorts;
@@ -109,6 +111,26 @@ function formatExternalPorts(container?: DockerContainer | null): string[] {
     )
     .map((port) => `${port.publicPort}:${port.privatePort}/${port.type}`)
     .filter((entry) => entry.length > 0);
+}
+
+function getFirstLanIp(container?: DockerContainer | null): string | null {
+  if (!container?.lanIpPorts?.length) return null;
+  for (const entry of container.lanIpPorts) {
+    if (typeof entry !== 'string') continue;
+    const trimmed = entry.trim();
+    if (trimmed) return trimmed;
+  }
+  return null;
+}
+
+function openLanIpInNewTab(address: string) {
+  if (typeof window === 'undefined') return;
+  const trimmed = address.trim();
+  if (!trimmed) return;
+  const hasProtocol = URL_WITH_PROTOCOL.test(trimmed);
+  const protocol = 'http:';
+  const targetUrl = hasProtocol ? trimmed : `${protocol}//${trimmed}`;
+  window.open(targetUrl, '_blank', 'noopener');
 }
 
 function formatInternalPorts(container?: DockerContainer | null): string[] {
@@ -356,6 +378,36 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
           row.original.type === 'container' &&
           (treeRow.meta?.isUpdateAvailable || treeRow.meta?.isRebuildReady);
 
+        const firstLanIp = row.original.type === 'container' ? getFirstLanIp(treeRow.meta) : null;
+        const canOpenLanIp = Boolean(firstLanIp) && treeRow.meta?.state === ContainerState.RUNNING;
+
+        const openBadge =
+          canOpenLanIp && firstLanIp
+            ? h(
+                UBadge,
+                {
+                  color: 'primary',
+                  variant: 'subtle',
+                  size: 'sm',
+                  class: 'ml-2 cursor-pointer select-none',
+                  role: 'button',
+                  tabindex: 0,
+                  'data-stop-row-click': 'true',
+                  onClick: (event: Event) => {
+                    event.stopPropagation();
+                    openLanIpInNewTab(firstLanIp!);
+                  },
+                  onKeydown: (event: KeyboardEvent) => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openLanIpInNewTab(firstLanIp!);
+                  },
+                },
+                () => 'Open'
+              )
+            : null;
+
         const updateBadge = hasUpdate
           ? h(
               UPopover,
@@ -437,6 +489,7 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
           indent,
           iconElement,
           h('span', { class: 'max-w-[40ch] truncate font-medium' }, treeRow.name),
+          openBadge,
           updateBadge,
           updateSpinner,
         ]);
