@@ -274,9 +274,10 @@ const details = computed(() => {
   const c = activeContainer.value;
   if (!c) return undefined;
   const network = c.hostConfig?.networkMode || 'bridge';
+  const lanIpPort = Array.isArray(c.lanIpPorts) && c.lanIpPorts.length ? c.lanIpPorts.join(', ') : '—';
   return {
     network,
-    lanIpPort: c.lanIpPorts || '—',
+    lanIpPort,
     containerIp: c.networkSettings?.IPAddress || '—',
     uptime: '—',
     containerPort: c.ports?.[0]?.privatePort?.toString?.() || '—',
