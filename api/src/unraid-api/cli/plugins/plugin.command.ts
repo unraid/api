@@ -102,12 +102,17 @@ export class RemovePluginCommand extends CommandRunner {
             plugins: passedParams.length > 0 ? passedParams : options?.plugins,
         };
 
-        const resolvedOptions = mergedOptions.plugins?.length
-            ? mergedOptions
-            : await this.promptForPlugins(mergedOptions);
-
-        if (!resolvedOptions) {
-            return;
+        let resolvedOptions = mergedOptions;
+        if (!mergedOptions.plugins?.length) {
+            const promptOptions = await this.promptForPlugins(mergedOptions);
+            if (!promptOptions) {
+                return;
+            }
+            resolvedOptions = {
+                ...promptOptions,
+                ...mergedOptions,
+                plugins: promptOptions.plugins ?? mergedOptions.plugins,
+            };
         }
 
         if (!resolvedOptions.plugins?.length) {
@@ -160,7 +165,7 @@ export class RemovePluginCommand extends CommandRunner {
 
     private async promptForPlugins(
         initialOptions: RemovePluginCommandOptions
-    ): Promise<RemovePluginCommandOptions | null> {
+    ): Promise<RemovePluginCommandOptions | undefined> {
         try {
             return await this.inquirerService.prompt(RemovePluginQuestionSet.name, initialOptions);
         } catch (error) {
