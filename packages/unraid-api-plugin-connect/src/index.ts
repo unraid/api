@@ -37,7 +37,7 @@ export class DisabledConnectPluginModule {
     logger = new Logger(DisabledConnectPluginModule.name);
     onModuleInit() {
         this.logger.warn(
-            'Connect plugin is not installed, but is listed as an API plugin. Please run `unraid-api remove -b unraid-api-plugin-connect` to remove it.'
+            'Connect plugin is not installed, but is listed as an API plugin. Please run `unraid-api plugins remove -b unraid-api-plugin-connect` to remove it.'
         );
     }
 }
