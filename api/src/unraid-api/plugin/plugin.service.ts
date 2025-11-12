@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import type { ApiNestPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
 import { pluginLogger } from '@app/core/log.js';
+import { isSafeModeEnabled } from '@app/core/utils/safe-mode.js';
 import { getPackageJson } from '@app/environment.js';
 import { loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
 import { NotificationImportance } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
@@ -20,7 +21,16 @@ export class PluginService {
     private static plugins: Promise<Plugin[]> | undefined;
 
     static async getPlugins() {
-        PluginService.plugins ??= PluginService.importPlugins();
+        if (!PluginService.plugins) {
+            if (isSafeModeEnabled()) {
+                PluginService.logger.warn(
+                    'Safe mode enabled (vars.ini); skipping API plugin discovery and load.'
+                );
+                PluginService.plugins = Promise.resolve([]);
+            } else {
+                PluginService.plugins = PluginService.importPlugins();
+            }
+        }
         return PluginService.plugins;
     }
 
