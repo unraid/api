@@ -96,43 +96,26 @@ export class RemovePluginCommand extends CommandRunner {
     }
 
     async run(passedParams: string[], options?: RemovePluginCommandOptions): Promise<void> {
-        const initialOptions: RemovePluginCommandOptions = {
+        const mergedOptions: RemovePluginCommandOptions = {
             bypassNpm: options?.bypassNpm ?? false,
             restart: options?.restart ?? true,
-            plugins: options?.plugins,
+            plugins: passedParams.length > 0 ? passedParams : options?.plugins,
         };
-        if (passedParams.length > 0) {
-            initialOptions.plugins = passedParams;
-        }
-        let resolvedOptions = initialOptions;
-        if (!resolvedOptions.plugins || resolvedOptions.plugins.length === 0) {
-            try {
-                resolvedOptions = await this.inquirerService.prompt(
-                    RemovePluginQuestionSet.name,
-                    initialOptions
-                );
-            } catch (error) {
-                if (error instanceof NoPluginsFoundError) {
-                    this.logService.error(error.message);
-                    process.exit(0);
-                    return;
-                } else if (error instanceof Error) {
-                    this.logService.error('Failed to fetch plugins: %s', error.message);
-                } else {
-                    this.logService.error('An unexpected error occurred');
-                }
-                process.exit(1);
-                return;
-            }
+
+        const resolvedOptions = mergedOptions.plugins?.length
+            ? mergedOptions
+            : await this.promptForPlugins(mergedOptions);
+
+        if (!resolvedOptions) {
+            return;
         }
 
-        const bypassNpm = resolvedOptions.bypassNpm ?? false;
         if (!resolvedOptions.plugins?.length) {
             this.logService.warn('No plugins selected for removal.');
             return;
         }
 
-        if (bypassNpm) {
+        if (resolvedOptions.bypassNpm) {
             await this.pluginManagementService.removePluginConfigOnly(...resolvedOptions.plugins);
         } else {
             await this.pluginManagementService.removePlugin(...resolvedOptions.plugins);
@@ -173,6 +156,25 @@ export class RemovePluginCommand extends CommandRunner {
     })
     parseRunNpm(): boolean {
         return false;
+    }
+
+    private async promptForPlugins(
+        initialOptions: RemovePluginCommandOptions
+    ): Promise<RemovePluginCommandOptions | null> {
+        try {
+            return await this.inquirerService.prompt(RemovePluginQuestionSet.name, initialOptions);
+        } catch (error) {
+            if (error instanceof NoPluginsFoundError) {
+                this.logService.error(error.message);
+                process.exit(0);
+            } else if (error instanceof Error) {
+                this.logService.error('Failed to fetch plugins: %s', error.message);
+                process.exit(1);
+            } else {
+                this.logService.error('An unexpected error occurred');
+                process.exit(1);
+            }
+        }
     }
 }
 
