@@ -46,7 +46,7 @@ export class DisabledConnectPluginModule {
  * Local filesystem and env checks stay synchronous so we can branch at module load.
  */
 const isConnectPluginInstalled = () => {
-    if (process.env.SKIP_CONNECT_PLUGIN_CHECK) {
+    if (process.env.SKIP_CONNECT_PLUGIN_CHECK === 'true') {
         return true;
     }
     return existsSync('/boot/config/plugins/dynamix.unraid.net.plg');
