@@ -75,12 +75,14 @@ export class InstallPluginCommand extends CommandRunner {
 interface RemovePluginCommandOptions {
     plugins?: string[];
     restart: boolean;
+    bypassNpm?: boolean;
 }
 
 @SubCommand({
     name: 'remove',
     aliases: ['rm'],
     description: 'Remove plugin peer dependencies.',
+    arguments: '[plugins...]',
 })
 export class RemovePluginCommand extends CommandRunner {
     constructor(
@@ -93,34 +95,54 @@ export class RemovePluginCommand extends CommandRunner {
         super();
     }
 
-    async run(_passedParams: string[], options?: RemovePluginCommandOptions): Promise<void> {
-        try {
-            options = await this.inquirerService.prompt(RemovePluginQuestionSet.name, options);
-        } catch (error) {
-            if (error instanceof NoPluginsFoundError) {
-                this.logService.error(error.message);
-                process.exit(0);
-            } else if (error instanceof Error) {
-                this.logService.error('Failed to fetch plugins: %s', error.message);
+    async run(passedParams: string[], options?: RemovePluginCommandOptions): Promise<void> {
+        const initialOptions: RemovePluginCommandOptions = {
+            bypassNpm: options?.bypassNpm ?? false,
+            restart: options?.restart ?? true,
+            plugins: options?.plugins,
+        };
+        if (passedParams.length > 0) {
+            initialOptions.plugins = passedParams;
+        }
+        let resolvedOptions = initialOptions;
+        if (!resolvedOptions.plugins || resolvedOptions.plugins.length === 0) {
+            try {
+                resolvedOptions = await this.inquirerService.prompt(
+                    RemovePluginQuestionSet.name,
+                    initialOptions
+                );
+            } catch (error) {
+                if (error instanceof NoPluginsFoundError) {
+                    this.logService.error(error.message);
+                    process.exit(0);
+                    return;
+                } else if (error instanceof Error) {
+                    this.logService.error('Failed to fetch plugins: %s', error.message);
+                } else {
+                    this.logService.error('An unexpected error occurred');
+                }
                 process.exit(1);
-            } else {
-                this.logService.error('An unexpected error occurred');
-                process.exit(1);
+                return;
             }
         }
 
-        if (!options.plugins || options.plugins.length === 0) {
+        const bypassNpm = resolvedOptions.bypassNpm ?? false;
+        if (!resolvedOptions.plugins?.length) {
             this.logService.warn('No plugins selected for removal.');
             return;
         }
 
-        await this.pluginManagementService.removePlugin(...options.plugins);
-        for (const plugin of options.plugins) {
+        if (bypassNpm) {
+            await this.pluginManagementService.removePluginConfigOnly(...resolvedOptions.plugins);
+        } else {
+            await this.pluginManagementService.removePlugin(...resolvedOptions.plugins);
+        }
+        for (const plugin of resolvedOptions.plugins) {
             this.logService.log(`Removed plugin ${plugin}`);
         }
         await this.apiConfigPersistence.persist();
 
-        if (options.restart) {
+        if (resolvedOptions.restart) {
             await this.restartCommand.run();
         }
     }
@@ -131,6 +153,25 @@ export class RemovePluginCommand extends CommandRunner {
         defaultValue: true,
     })
     parseRestart(): boolean {
+        return false;
+    }
+
+    @Option({
+        flags: '-b, --bypass-npm',
+        description: 'Bypass npm uninstall and only update the config',
+        defaultValue: false,
+        name: 'bypassNpm',
+    })
+    parseBypass(): boolean {
+        return true;
+    }
+
+    @Option({
+        flags: '--npm',
+        description: 'Run npm uninstall for unbundled plugins (default behavior)',
+        name: 'bypassNpm',
+    })
+    parseRunNpm(): boolean {
         return false;
     }
 }
