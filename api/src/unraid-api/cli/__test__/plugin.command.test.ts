@@ -214,6 +214,20 @@ describe('Plugin Commands', () => {
             expect(mockRestartCommand.run).not.toHaveBeenCalled();
         });
 
+        it('should honor prompt restart value when cli flag not provided', async () => {
+            mockInquirerService.prompt.mockResolvedValue({
+                plugins: ['@unraid/plugin-example'],
+                restart: false,
+            });
+
+            await command.run([], {});
+
+            expect(mockPluginManagementService.removePlugin).toHaveBeenCalledWith(
+                '@unraid/plugin-example'
+            );
+            expect(mockRestartCommand.run).not.toHaveBeenCalled();
+        });
+
         it('should respect passed params and skip inquirer', async () => {
             await command.run(['@unraid/plugin-example'], { restart: true, bypassNpm: false });
 

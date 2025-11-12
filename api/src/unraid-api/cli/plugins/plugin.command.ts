@@ -96,9 +96,11 @@ export class RemovePluginCommand extends CommandRunner {
     }
 
     async run(passedParams: string[], options?: RemovePluginCommandOptions): Promise<void> {
+        const cliBypass = options?.bypassNpm;
+        const cliRestart = options?.restart;
         const mergedOptions: RemovePluginCommandOptions = {
-            bypassNpm: options?.bypassNpm ?? false,
-            restart: options?.restart ?? true,
+            bypassNpm: cliBypass ?? false,
+            restart: cliRestart ?? true,
             plugins: passedParams.length > 0 ? passedParams : options?.plugins,
         };
 
@@ -109,8 +111,10 @@ export class RemovePluginCommand extends CommandRunner {
                 return;
             }
             resolvedOptions = {
-                ...promptOptions,
-                ...mergedOptions,
+                // precedence: cli > prompt > default (fallback)
+                bypassNpm: cliBypass ?? promptOptions.bypassNpm ?? mergedOptions.bypassNpm,
+                restart: cliRestart ?? promptOptions.restart ?? mergedOptions.restart,
+                // precedence: prompt > default (fallback)
                 plugins: promptOptions.plugins ?? mergedOptions.plugins,
             };
         }
