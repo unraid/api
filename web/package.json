@@ -129,6 +129,7 @@
     "marked": "16.2.1",
     "marked-base-url": "1.1.7",
     "pinia": "3.0.3",
+    "pinia-plugin-persistedstate": "4.7.1",
     "postcss-import": "16.1.1",
     "semver": "7.7.2",
     "tailwind-merge": "2.6.0",

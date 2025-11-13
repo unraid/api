@@ -4,11 +4,13 @@ import { useQuery } from '@vue/apollo-composable';
 
 import { defaultColors } from '~/themes/default';
 import hexToRgba from 'hex-to-rgba';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
 import type { GetThemeQuery } from '~/composables/gql/graphql';
 import type { Theme, ThemeVariables } from '~/themes/types';
 
 import { graphql } from '~/composables/gql/gql';
+import { globalPinia } from '~/store/globalPinia';
 
 // Themes that should apply the .dark class (dark UI themes)
 export const DARK_UI_THEMES = ['gray', 'black'] as const;
@@ -27,6 +29,8 @@ export const GET_THEME_QUERY = graphql(`
   }
 `);
 
+export const THEME_STORAGE_KEY = 'unraid.theme.publicTheme';
+
 const DEFAULT_THEME: Theme = {
   name: 'white',
   banner: false,
@@ -35,6 +39,31 @@ const DEFAULT_THEME: Theme = {
   descriptionShow: false,
   metaColor: '',
   textColor: '',
+};
+
+type ThemeSource = 'local' | 'server';
+
+type ThemeStorePersistedShape = {
+  setTheme: (data?: Partial<Theme>, options?: { source?: ThemeSource }) => void;
+  theme: Theme;
+};
+
+const sanitizeTheme = (data: Partial<Theme> | null | undefined): Theme | null => {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+
+  return {
+    name: typeof data.name === 'string' ? data.name : DEFAULT_THEME.name,
+    banner: typeof data.banner === 'boolean' ? data.banner : DEFAULT_THEME.banner,
+    bannerGradient:
+      typeof data.bannerGradient === 'boolean' ? data.bannerGradient : DEFAULT_THEME.bannerGradient,
+    bgColor: typeof data.bgColor === 'string' ? data.bgColor : DEFAULT_THEME.bgColor,
+    descriptionShow:
+      typeof data.descriptionShow === 'boolean' ? data.descriptionShow : DEFAULT_THEME.descriptionShow,
+    metaColor: typeof data.metaColor === 'string' ? data.metaColor : DEFAULT_THEME.metaColor,
+    textColor: typeof data.textColor === 'string' ? data.textColor : DEFAULT_THEME.textColor,
+  };
 };
 
 const DYNAMIC_VAR_KEYS = [
@@ -48,7 +77,7 @@ const DYNAMIC_VAR_KEYS = [
 
 type DynamicVarKey = (typeof DYNAMIC_VAR_KEYS)[number];
 
-export const useThemeStore = defineStore('theme', () => {
+const baseUseThemeStore = defineStore('theme', () => {
   // State
   const theme = ref<Theme>({ ...DEFAULT_THEME });
 
@@ -60,21 +89,29 @@ export const useThemeStore = defineStore('theme', () => {
     nextFetchPolicy: 'cache-first',
   });
 
-  const applyThemeFromQuery = (publicTheme?: GetThemeQuery['publicTheme'] | null) => {
+  const mapPublicTheme = (publicTheme?: GetThemeQuery['publicTheme'] | null): Theme | null => {
     if (!publicTheme) {
+      return null;
+    }
+
+    return sanitizeTheme({
+      name: publicTheme.name?.toLowerCase(),
+      banner: publicTheme.showBannerImage,
+      bannerGradient: publicTheme.showBannerGradient,
+      bgColor: publicTheme.headerBackgroundColor,
+      descriptionShow: publicTheme.showHeaderDescription,
+      metaColor: publicTheme.headerSecondaryTextColor,
+      textColor: publicTheme.headerPrimaryTextColor,
+    });
+  };
+
+  const applyThemeFromQuery = (publicTheme?: GetThemeQuery['publicTheme'] | null) => {
+    const sanitized = mapPublicTheme(publicTheme);
+    if (!sanitized) {
       return;
     }
 
-    hasServerTheme.value = true;
-    theme.value = {
-      name: publicTheme.name?.toLowerCase() ?? DEFAULT_THEME.name,
-      banner: publicTheme.showBannerImage ?? DEFAULT_THEME.banner,
-      bannerGradient: publicTheme.showBannerGradient ?? DEFAULT_THEME.bannerGradient,
-      bgColor: publicTheme.headerBackgroundColor ?? DEFAULT_THEME.bgColor,
-      descriptionShow: publicTheme.showHeaderDescription ?? DEFAULT_THEME.descriptionShow,
-      metaColor: publicTheme.headerSecondaryTextColor ?? DEFAULT_THEME.metaColor,
-      textColor: publicTheme.headerPrimaryTextColor ?? DEFAULT_THEME.textColor,
-    };
+    setTheme(sanitized, { source: 'server' });
   };
 
   onResult(({ data }) => {
@@ -107,16 +144,24 @@ export const useThemeStore = defineStore('theme', () => {
   });
 
   // Actions
-  const setTheme = (data?: Partial<Theme>) => {
+  const setTheme = (data?: Partial<Theme>, options: { source?: ThemeSource } = {}) => {
     if (data) {
-      if (hasServerTheme.value) {
+      const { source = 'local' } = options;
+
+      if (source === 'server') {
+        hasServerTheme.value = true;
+      } else if (hasServerTheme.value) {
         return;
       }
 
-      theme.value = {
+      const sanitized = sanitizeTheme({
         ...theme.value,
         ...data,
-      };
+      });
+
+      if (sanitized) {
+        theme.value = sanitized;
+      }
     }
   };
 
@@ -225,9 +270,13 @@ export const useThemeStore = defineStore('theme', () => {
     });
   };
 
-  watch(theme, () => {
-    setCssVars();
-  });
+  watch(
+    theme,
+    () => {
+      setCssVars();
+    },
+    { immediate: true }
+  );
 
   return {
     // state
@@ -240,3 +289,46 @@ export const useThemeStore = defineStore('theme', () => {
     setCssVars,
   };
 });
+
+type PersistContext = Parameters<typeof piniaPluginPersistedstate>[0];
+const persistedStores = new WeakSet<ThemeStorePersistedShape>();
+
+const applyPersistedState = (store: ThemeStorePersistedShape, pinia: PersistContext['pinia']) => {
+  if (persistedStores.has(store)) {
+    return;
+  }
+
+  const piniaWithApp = pinia as unknown as { _a?: PersistContext['app'] };
+
+  const context: PersistContext = {
+    app: piniaWithApp._a,
+    pinia,
+    store: store as unknown as PersistContext['store'],
+    options: {
+      persist: {
+        key: THEME_STORAGE_KEY,
+        pick: ['theme'],
+        afterHydrate: ({ store: hydratedStore }) => {
+          const themeStore = hydratedStore as unknown as ThemeStorePersistedShape;
+          themeStore.setTheme(themeStore.theme);
+        },
+      },
+    } as PersistContext['options'],
+  };
+
+  piniaPluginPersistedstate(context);
+  persistedStores.add(store);
+};
+
+export const useThemeStore = ((pinia?: Parameters<typeof baseUseThemeStore>[0]) => {
+  const resolved = pinia ?? globalPinia;
+
+  const store = baseUseThemeStore(resolved);
+  applyPersistedState(store as ThemeStorePersistedShape, resolved as PersistContext['pinia']);
+
+  return store;
+}) as typeof baseUseThemeStore;
+
+Object.assign(useThemeStore, baseUseThemeStore);
+
+export type { ThemeStorePersistedShape };
