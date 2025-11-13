@@ -3,16 +3,15 @@
  */
 
 import { nextTick, ref } from 'vue';
-import { createPinia, setActivePinia } from 'pinia';
+import { setActivePinia } from 'pinia';
 
 import { defaultColors } from '~/themes/default';
 import hexToRgba from 'hex-to-rgba';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Theme } from '~/themes/types';
-import type { Pinia, PiniaPlugin } from 'pinia';
 
-import { persistedStatePlugin } from '~/store/plugins/persistedState';
+import { globalPinia } from '~/store/globalPinia';
 import { THEME_STORAGE_KEY, useThemeStore } from '~/store/theme';
 
 vi.mock('@vue/apollo-composable', () => ({
@@ -36,14 +35,11 @@ describe('Theme Store', () => {
   const originalDocumentElementAddClass = document.documentElement.classList.add;
   const originalDocumentElementRemoveClass = document.documentElement.classList.remove;
 
-  let piniaInstance: Pinia;
-  type PiniaWithPlugins = Pinia & { _p: PiniaPlugin[] };
+  let store: ReturnType<typeof useThemeStore> | undefined;
 
   beforeEach(() => {
-    piniaInstance = createPinia();
-    (piniaInstance as PiniaWithPlugins)._p.push(persistedStatePlugin);
-    setActivePinia(piniaInstance);
-
+    setActivePinia(globalPinia);
+    store = undefined;
     window.localStorage.clear();
 
     document.body.classList.add = vi.fn();
@@ -62,7 +58,9 @@ describe('Theme Store', () => {
   });
 
   afterEach(() => {
-    // Restore original methods
+    store?.$dispose();
+    store = undefined;
+
     document.body.classList.add = originalAddClassFn;
     document.body.classList.remove = originalRemoveClassFn;
     document.body.style.cssText = originalStyleCssText;
@@ -72,11 +70,19 @@ describe('Theme Store', () => {
     vi.restoreAllMocks();
   });
 
-  const createStore = () => useThemeStore(piniaInstance);
+  const createStore = () => {
+    if (!store) {
+      store = useThemeStore(globalPinia);
+    }
+
+    return store;
+  };
 
   describe('State and Initialization', () => {
     it('should initialize with default theme', () => {
       const store = createStore();
+
+      expect(typeof store.$persist).toBe('function');
 
       expect(store.theme).toEqual({
         name: 'white',
