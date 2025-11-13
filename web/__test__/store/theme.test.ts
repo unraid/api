@@ -10,7 +10,9 @@ import hexToRgba from 'hex-to-rgba';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Theme } from '~/themes/types';
+import type { Pinia, PiniaPlugin } from 'pinia';
 
+import { persistedStatePlugin } from '~/store/plugins/persistedState';
 import { THEME_STORAGE_KEY, useThemeStore } from '~/store/theme';
 
 vi.mock('@vue/apollo-composable', () => ({
@@ -34,8 +36,13 @@ describe('Theme Store', () => {
   const originalDocumentElementAddClass = document.documentElement.classList.add;
   const originalDocumentElementRemoveClass = document.documentElement.classList.remove;
 
+  let piniaInstance: Pinia;
+  type PiniaWithPlugins = Pinia & { _p: PiniaPlugin[] };
+
   beforeEach(() => {
-    setActivePinia(createPinia());
+    piniaInstance = createPinia();
+    (piniaInstance as PiniaWithPlugins)._p.push(persistedStatePlugin);
+    setActivePinia(piniaInstance);
 
     window.localStorage.clear();
 
@@ -65,7 +72,7 @@ describe('Theme Store', () => {
     vi.restoreAllMocks();
   });
 
-  const createStore = () => useThemeStore();
+  const createStore = () => useThemeStore(piniaInstance);
 
   describe('State and Initialization', () => {
     it('should initialize with default theme', () => {
@@ -233,14 +240,14 @@ describe('Theme Store', () => {
         textColor: '#ffffff',
       } satisfies Theme;
 
-      window.localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(cachedTheme));
+      window.localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify({ theme: cachedTheme }));
 
       const store = createStore();
 
       expect(store.theme).toEqual(cachedTheme);
     });
 
-    it('should persist server theme responses to cache', () => {
+    it('should persist server theme responses to cache', async () => {
       const store = createStore();
 
       const serverTheme = {
@@ -254,8 +261,11 @@ describe('Theme Store', () => {
       } satisfies Theme;
 
       store.setTheme(serverTheme, { source: 'server' });
+      await nextTick();
 
-      expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toEqual(JSON.stringify(serverTheme));
+      expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toEqual(
+        JSON.stringify({ theme: serverTheme })
+      );
     });
   });
 });
