@@ -2,6 +2,8 @@ import { Inject, Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { existsSync } from 'node:fs';
 
+import { execa } from 'execa';
+
 import { ConnectConfigPersister } from './config/config.persistence.js';
 import { configFeature } from './config/connect.config.js';
 import { MothershipModule } from './mothership-proxy/mothership.module.js';
@@ -35,10 +37,42 @@ class ConnectPluginModule {
 @Module({})
 export class DisabledConnectPluginModule {
     logger = new Logger(DisabledConnectPluginModule.name);
-    onModuleInit() {
+    async onModuleInit() {
+        const removalCommand = 'unraid-api plugins remove -b --no-restart unraid-api-plugin-connect';
+
         this.logger.warn(
-            'Connect plugin is not installed, but is listed as an API plugin. Please run `unraid-api plugins remove -b unraid-api-plugin-connect` to remove it.'
+            'Connect plugin is not installed, but is listed as an API plugin. Attempting `%s` automatically.',
+            removalCommand
         );
+
+        try {
+            const { stdout, stderr } = await execa('unraid-api', [
+                'plugins',
+                'remove',
+                '-b',
+                '--no-restart',
+                'unraid-api-plugin-connect',
+            ]);
+
+            if (stdout?.trim()) {
+                this.logger.debug(stdout.trim());
+            }
+
+            if (stderr?.trim()) {
+                this.logger.debug(stderr.trim());
+            }
+
+            this.logger.log(
+                'Successfully completed `%s` to prune the stale connect plugin entry.',
+                removalCommand
+            );
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Unknown error while removing stale connect plugin entry.';
+            this.logger.error('Failed to run `%s`: %s', removalCommand, message);
+        }
     }
 }
 
