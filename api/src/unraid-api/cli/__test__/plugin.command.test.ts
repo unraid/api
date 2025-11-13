@@ -36,6 +36,7 @@ const mockPluginManagementService = {
     addPlugin: vi.fn(),
     addBundledPlugin: vi.fn(),
     removePlugin: vi.fn(),
+    removePluginConfigOnly: vi.fn(),
     removeBundledPlugin: vi.fn(),
     plugins: [] as string[],
 };
@@ -147,6 +148,7 @@ describe('Plugin Commands', () => {
                 '@unraid/plugin-example',
                 '@unraid/plugin-test'
             );
+            expect(mockPluginManagementService.removePluginConfigOnly).not.toHaveBeenCalled();
             expect(mockLogger.log).toHaveBeenCalledWith('Removed plugin @unraid/plugin-example');
             expect(mockLogger.log).toHaveBeenCalledWith('Removed plugin @unraid/plugin-test');
             expect(mockApiConfigPersistence.persist).toHaveBeenCalled();
@@ -178,8 +180,71 @@ describe('Plugin Commands', () => {
             expect(mockPluginManagementService.removePlugin).toHaveBeenCalledWith(
                 '@unraid/plugin-example'
             );
+            expect(mockPluginManagementService.removePluginConfigOnly).not.toHaveBeenCalled();
             expect(mockApiConfigPersistence.persist).toHaveBeenCalled();
             expect(mockRestartCommand.run).not.toHaveBeenCalled();
+        });
+
+        it('should bypass npm uninstall when bypass flag is provided', async () => {
+            mockInquirerService.prompt.mockResolvedValue({
+                plugins: ['@unraid/plugin-example'],
+                restart: true,
+                bypassNpm: true,
+            });
+
+            await command.run([], { restart: true, bypassNpm: true });
+
+            expect(mockPluginManagementService.removePluginConfigOnly).toHaveBeenCalledWith(
+                '@unraid/plugin-example'
+            );
+            expect(mockPluginManagementService.removePlugin).not.toHaveBeenCalled();
+        });
+
+        it('should preserve cli flags when prompt supplies plugins', async () => {
+            mockInquirerService.prompt.mockResolvedValue({
+                plugins: ['@unraid/plugin-example'],
+            });
+
+            await command.run([], { restart: false, bypassNpm: true });
+
+            expect(mockPluginManagementService.removePluginConfigOnly).toHaveBeenCalledWith(
+                '@unraid/plugin-example'
+            );
+            expect(mockPluginManagementService.removePlugin).not.toHaveBeenCalled();
+            expect(mockRestartCommand.run).not.toHaveBeenCalled();
+        });
+
+        it('should honor prompt restart value when cli flag not provided', async () => {
+            mockInquirerService.prompt.mockResolvedValue({
+                plugins: ['@unraid/plugin-example'],
+                restart: false,
+            });
+
+            await command.run([], {});
+
+            expect(mockPluginManagementService.removePlugin).toHaveBeenCalledWith(
+                '@unraid/plugin-example'
+            );
+            expect(mockRestartCommand.run).not.toHaveBeenCalled();
+        });
+
+        it('should respect passed params and skip inquirer', async () => {
+            await command.run(['@unraid/plugin-example'], { restart: true, bypassNpm: false });
+
+            expect(mockInquirerService.prompt).not.toHaveBeenCalled();
+            expect(mockPluginManagementService.removePlugin).toHaveBeenCalledWith(
+                '@unraid/plugin-example'
+            );
+        });
+
+        it('should bypass npm when flag provided with passed params', async () => {
+            await command.run(['@unraid/plugin-example'], { restart: true, bypassNpm: true });
+
+            expect(mockInquirerService.prompt).not.toHaveBeenCalled();
+            expect(mockPluginManagementService.removePluginConfigOnly).toHaveBeenCalledWith(
+                '@unraid/plugin-example'
+            );
+            expect(mockPluginManagementService.removePlugin).not.toHaveBeenCalled();
         });
     });
 

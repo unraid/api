@@ -74,13 +74,15 @@ export class InstallPluginCommand extends CommandRunner {
 
 interface RemovePluginCommandOptions {
     plugins?: string[];
-    restart: boolean;
+    restart?: boolean;
+    bypassNpm?: boolean;
 }
 
 @SubCommand({
     name: 'remove',
     aliases: ['rm'],
     description: 'Remove plugin peer dependencies.',
+    arguments: '[plugins...]',
 })
 export class RemovePluginCommand extends CommandRunner {
     constructor(
@@ -93,9 +95,83 @@ export class RemovePluginCommand extends CommandRunner {
         super();
     }
 
-    async run(_passedParams: string[], options?: RemovePluginCommandOptions): Promise<void> {
+    async run(passedParams: string[], options?: RemovePluginCommandOptions): Promise<void> {
+        const cliBypass = options?.bypassNpm;
+        const cliRestart = options?.restart;
+        const mergedOptions: RemovePluginCommandOptions = {
+            bypassNpm: cliBypass ?? false,
+            restart: cliRestart ?? true,
+            plugins: passedParams.length > 0 ? passedParams : options?.plugins,
+        };
+
+        let resolvedOptions = mergedOptions;
+        if (!mergedOptions.plugins?.length) {
+            const promptOptions = await this.promptForPlugins(mergedOptions);
+            if (!promptOptions) {
+                return;
+            }
+            resolvedOptions = {
+                // precedence: cli > prompt > default (fallback)
+                bypassNpm: cliBypass ?? promptOptions.bypassNpm ?? mergedOptions.bypassNpm,
+                restart: cliRestart ?? promptOptions.restart ?? mergedOptions.restart,
+                // precedence: prompt > default (fallback)
+                plugins: promptOptions.plugins ?? mergedOptions.plugins,
+            };
+        }
+
+        if (!resolvedOptions.plugins?.length) {
+            this.logService.warn('No plugins selected for removal.');
+            return;
+        }
+
+        if (resolvedOptions.bypassNpm) {
+            await this.pluginManagementService.removePluginConfigOnly(...resolvedOptions.plugins);
+        } else {
+            await this.pluginManagementService.removePlugin(...resolvedOptions.plugins);
+        }
+        for (const plugin of resolvedOptions.plugins) {
+            this.logService.log(`Removed plugin ${plugin}`);
+        }
+        await this.apiConfigPersistence.persist();
+
+        if (resolvedOptions.restart) {
+            await this.restartCommand.run();
+        }
+    }
+
+    @Option({
+        flags: '--no-restart',
+        description: 'do NOT restart the service after deploy',
+        defaultValue: true,
+    })
+    parseRestart(): boolean {
+        return false;
+    }
+
+    @Option({
+        flags: '-b, --bypass-npm',
+        description: 'Bypass npm uninstall and only update the config',
+        defaultValue: false,
+        name: 'bypassNpm',
+    })
+    parseBypass(): boolean {
+        return true;
+    }
+
+    @Option({
+        flags: '--npm',
+        description: 'Run npm uninstall for unbundled plugins (default behavior)',
+        name: 'bypassNpm',
+    })
+    parseRunNpm(): boolean {
+        return false;
+    }
+
+    private async promptForPlugins(
+        initialOptions: RemovePluginCommandOptions
+    ): Promise<RemovePluginCommandOptions | undefined> {
         try {
-            options = await this.inquirerService.prompt(RemovePluginQuestionSet.name, options);
+            return await this.inquirerService.prompt(RemovePluginQuestionSet.name, initialOptions);
         } catch (error) {
             if (error instanceof NoPluginsFoundError) {
                 this.logService.error(error.message);
@@ -108,30 +184,6 @@ export class RemovePluginCommand extends CommandRunner {
                 process.exit(1);
             }
         }
-
-        if (!options.plugins || options.plugins.length === 0) {
-            this.logService.warn('No plugins selected for removal.');
-            return;
-        }
-
-        await this.pluginManagementService.removePlugin(...options.plugins);
-        for (const plugin of options.plugins) {
-            this.logService.log(`Removed plugin ${plugin}`);
-        }
-        await this.apiConfigPersistence.persist();
-
-        if (options.restart) {
-            await this.restartCommand.run();
-        }
-    }
-
-    @Option({
-        flags: '--no-restart',
-        description: 'do NOT restart the service after deploy',
-        defaultValue: true,
-    })
-    parseRestart(): boolean {
-        return false;
     }
 }
 

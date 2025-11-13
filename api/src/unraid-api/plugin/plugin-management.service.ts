@@ -35,8 +35,10 @@ export class PluginManagementService {
      */
     async removePlugin(...plugins: string[]) {
         const removed = this.removePluginFromConfig(...plugins);
-        await this.uninstallPlugins(...removed);
-        await this.dependencyService.rebuildVendorArchive();
+        const { unbundledRemoved } = await this.uninstallPlugins(...removed);
+        if (unbundledRemoved.length > 0) {
+            await this.dependencyService.rebuildVendorArchive();
+        }
     }
 
     /**
@@ -100,12 +102,15 @@ export class PluginManagementService {
     private async uninstallPlugins(...plugins: string[]) {
         const bundled = plugins.filter((plugin) => this.isBundled(plugin));
         const unbundled = plugins.filter((plugin) => !this.isBundled(plugin));
+
         if (unbundled.length > 0) {
             await this.dependencyService.npm('uninstall', ...unbundled);
         }
         if (bundled.length > 0) {
-            await this.removeBundledPlugin(...bundled);
+            await this.removePluginConfigOnly(...bundled);
         }
+
+        return { bundledRemoved: bundled, unbundledRemoved: unbundled };
     }
 
     /**------------------------------------------------------------------------
@@ -125,7 +130,13 @@ export class PluginManagementService {
         return added;
     }
 
-    async removeBundledPlugin(...plugins: string[]) {
+    /**
+     * Removes plugins from the config without touching npm (used for bundled/default bypass flow).
+     *
+     * @param plugins - The plugins to remove.
+     * @returns The list of plugins removed from the config.
+     */
+    async removePluginConfigOnly(...plugins: string[]) {
         const removed = this.removePluginFromConfig(...plugins);
         return removed;
     }

@@ -75,7 +75,7 @@ export class PluginResolver {
     })
     async removePlugin(@Args('input') input: PluginManagementInput): Promise<boolean> {
         if (input.bundled) {
-            await this.pluginManagementService.removeBundledPlugin(...input.names);
+            await this.pluginManagementService.removePluginConfigOnly(...input.names);
         } else {
             await this.pluginManagementService.removePlugin(...input.names);
         }
