@@ -61,7 +61,8 @@ const handleClose = () => {
             ref="iframeRef"
             :src="releaseNotesUrl"
             class="h-full w-full rounded-md border-0"
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-scripts"
+            referrerpolicy="no-referrer"
             title="Unraid Release Notes"
             @load="handleIframeLoad"
           />

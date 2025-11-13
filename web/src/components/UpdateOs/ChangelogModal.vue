@@ -160,7 +160,7 @@ const showRawChangelog = computed<boolean>(() => {
           <iframe
             :src="iframeSrc"
             class="h-full w-full rounded-md border-0"
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-scripts"
             allow="fullscreen"
             referrerpolicy="no-referrer"
             title="Unraid Changelog"
