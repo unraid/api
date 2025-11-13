@@ -74,7 +74,7 @@ export class InstallPluginCommand extends CommandRunner {
 
 interface RemovePluginCommandOptions {
     plugins?: string[];
-    restart: boolean;
+    restart?: boolean;
     bypassNpm?: boolean;
 }
 
