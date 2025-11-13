@@ -61,19 +61,19 @@ const ensureThemePersistence = (store: ThemeStorePersistedShape, pinia: Pinia) =
   const piniaWithApp = pinia as Pinia & { _a?: PiniaPluginContext['app'] };
 
   persistThemeState({
-    app: piniaWithApp._a,
+    app: piniaWithApp._a ?? undefined,
     pinia,
     store: store as unknown as PiniaPluginContext['store'],
     options: {
       persist: {
         key: THEME_STORAGE_KEY,
-        pick: ['theme'],
-        afterHydrate: ({ store: hydratedStore }) => {
+        paths: ['theme'],
+        afterHydrate: ({ store: hydratedStore }: { store: unknown }) => {
           const themeStore = hydratedStore as ThemeStorePersistedShape;
           themeStore.setTheme(themeStore.theme);
         },
       },
-    },
+    } as unknown as PiniaPluginContext['options'],
   });
 
   store.$hydrate?.({ runHooks: false });
@@ -130,10 +130,10 @@ const baseUseThemeStore = defineStore('theme', () => {
       name: publicTheme.name?.toLowerCase(),
       banner: publicTheme.showBannerImage,
       bannerGradient: publicTheme.showBannerGradient,
-      bgColor: publicTheme.headerBackgroundColor,
+      bgColor: publicTheme.headerBackgroundColor ?? undefined,
       descriptionShow: publicTheme.showHeaderDescription,
-      metaColor: publicTheme.headerSecondaryTextColor,
-      textColor: publicTheme.headerPrimaryTextColor,
+      metaColor: publicTheme.headerSecondaryTextColor ?? undefined,
+      textColor: publicTheme.headerPrimaryTextColor ?? undefined,
     });
   };
 
