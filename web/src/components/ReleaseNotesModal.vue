@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, BrandLoading } from '@unraid/ui';
+import { DOCS_IFRAME_REFERRER_POLICY, DOCS_IFRAME_SANDBOX } from '~/consts';
 import { getReleaseNotesUrl } from '~/helpers/urls';
 
 import Modal from '~/components/Modal.vue';
@@ -61,8 +62,8 @@ const handleClose = () => {
             ref="iframeRef"
             :src="releaseNotesUrl"
             class="h-full w-full rounded-md border-0"
-            sandbox="allow-scripts"
-            referrerpolicy="no-referrer"
+            :sandbox="DOCS_IFRAME_SANDBOX"
+            :referrerpolicy="DOCS_IFRAME_REFERRER_POLICY"
             title="Unraid Release Notes"
             @load="handleIframeLoad"
           />

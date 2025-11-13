@@ -18,6 +18,7 @@ import {
   ResponsiveModalHeader,
   ResponsiveModalTitle,
 } from '@unraid/ui';
+import { DOCS_IFRAME_REFERRER_POLICY, DOCS_IFRAME_SANDBOX } from '~/consts';
 import { DOCS } from '~/helpers/urls';
 
 import RawChangelogRenderer from '~/components/UpdateOs/RawChangelogRenderer.vue';
@@ -160,9 +161,9 @@ const showRawChangelog = computed<boolean>(() => {
           <iframe
             :src="iframeSrc"
             class="h-full w-full rounded-md border-0"
-            sandbox="allow-scripts"
+            :sandbox="DOCS_IFRAME_SANDBOX"
             allow="fullscreen"
-            referrerpolicy="no-referrer"
+            :referrerpolicy="DOCS_IFRAME_REFERRER_POLICY"
             title="Unraid Changelog"
           />
         </div>
