@@ -54,6 +54,7 @@ export const useThemeStore = defineStore('theme', () => {
 
   const activeColorVariables = ref<ThemeVariables>(defaultColors.white);
   const hasServerTheme = ref(false);
+  const devOverride = ref(false);
 
   const { result, onResult, onError } = useQuery<GetThemeQuery>(GET_THEME_QUERY, null, {
     fetchPolicy: 'cache-and-network',
@@ -107,9 +108,9 @@ export const useThemeStore = defineStore('theme', () => {
   });
 
   // Actions
-  const setTheme = (data?: Partial<Theme>) => {
+  const setTheme = (data?: Partial<Theme>, force = false) => {
     if (data) {
-      if (hasServerTheme.value) {
+      if (hasServerTheme.value && !force && !devOverride.value) {
         return;
       }
 
@@ -118,6 +119,10 @@ export const useThemeStore = defineStore('theme', () => {
         ...data,
       };
     }
+  };
+
+  const setDevOverride = (enabled: boolean) => {
+    devOverride.value = enabled;
   };
 
   const setCssVars = () => {
@@ -238,5 +243,6 @@ export const useThemeStore = defineStore('theme', () => {
     // actions
     setTheme,
     setCssVars,
+    setDevOverride,
   };
 });

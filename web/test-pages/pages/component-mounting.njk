@@ -1,0 +1,264 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Component Mounting Test - Unraid Component Test{% endblock %}
+
+{% block pageStyles %}
+<style>
+  h1 {
+    color: var(--text-color, #333);
+    margin-bottom: 10px;
+  }
+  
+  h2 {
+    color: var(--alt-text-color, #666);
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+  }
+  
+  .status {
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-family: monospace;
+    font-size: 14px;
+  }
+  
+  .status.loading {
+    background: #fff3cd;
+    color: #856404;
+  }
+  
+  .status.success {
+    background: #d4edda;
+    color: #155724;
+  }
+  
+  .status.error {
+    background: #f8d7da;
+    color: #721c24;
+  }
+  
+  .test-button {
+    background: #007bff;
+    margin-right: 10px;
+  }
+  
+  .test-button:hover {
+    background: #0056b3;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="teleports"></div>
+
+<unraid-modals></unraid-modals>
+
+<div class="container">
+  <h1>🧪 Standalone Vue Apps Test Page</h1>
+  <div id="status" class="status loading">Loading...</div>
+
+  <div class="test-section">
+    <h2>Test 1: Single Component Mount</h2>
+    <p>Testing single instance of HeaderOsVersion component</p>
+    <div class="mount-target" data-label="HeaderOsVersion Mount">
+      <unraid-header-os-version></unraid-header-os-version>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 2: Multiple Component Mounts (Shared Pinia Store)</h2>
+    <p>Testing that multiple instances share the same Pinia store</p>
+    <div class="multiple-mounts">
+      <div class="mount-target" data-label="Instance 1">
+        <unraid-header-os-version></unraid-header-os-version>
+      </div>
+      <div class="mount-target" data-label="Instance 2">
+        <unraid-header-os-version></unraid-header-os-version>
+      </div>
+      <div class="mount-target" data-label="Instance 3">
+        <unraid-header-os-version></unraid-header-os-version>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 3: Dynamic Component Creation</h2>
+    <p>Test dynamically adding components after page load</p>
+    <button class="test-button" id="addComponent">Add New Component</button>
+    <button class="test-button" id="removeComponent">Remove Last Component</button>
+    <button class="test-button" id="remountAll">Remount All</button>
+    <div id="dynamicContainer" style="margin-top: 20px;"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>Test 4: Modal Components</h2>
+    <p>Test modal functionality</p>
+    <button class="test-button" onclick="testTrialModal()">Open Trial Modal</button>
+    <button class="test-button" onclick="testUpdateModal()">Open Update Modal</button>
+    <button class="test-button" onclick="testApiKeyModal()">Open API Key Modal</button>
+    <div style="margin-top: 10px;">
+      <small>Note: Modals require proper store state to display</small>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Debug Information</h2>
+    <div class="debug-info" id="debugInfo">
+      Waiting for initialization...
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.GRAPHQL_ENDPOINT = window.location.port === '3000' ? '/graphql' : 'http://localhost:3001/graphql';
+  window.__WEBGUI_PATH__ = '';
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const status = document.getElementById('status');
+    const debugInfo = document.getElementById('debugInfo');
+    
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeName === 'SCRIPT') {
+              console.log('Script loaded:', node.src || 'inline');
+            }
+          });
+        }
+      });
+    });
+    
+    observer.observe(document.head, { childList: true });
+    observer.observe(document.body, { childList: true });
+    
+    let checkInterval = setInterval(() => {
+      const mountedElements = document.querySelectorAll('[data-vue-mounted="true"]');
+      let totalComponents = document.querySelectorAll('unraid-header-os-version, unraid-modals').length;
+      let mountedCount = mountedElements.length;
+
+      if (mountedCount > 0) {
+        status.className = 'status success';
+        status.textContent = `✅ Successfully mounted ${mountedCount} component(s)`;
+
+        debugInfo.textContent = `
+Components Found: ${totalComponents}
+Components Mounted: ${mountedCount}
+Unified Vue App: ${window.__unifiedApp ? 'Initialized' : 'Not found'}
+Mounted Components: ${window.__mountedComponents ? window.__mountedComponents.length : 0}
+Pinia Store: ${window.globalPinia ? 'Initialized' : 'Not found'}
+GraphQL Endpoint: ${window.GRAPHQL_ENDPOINT || 'Not configured'}
+        `.trim();
+
+        clearInterval(checkInterval);
+
+        if (window.testLog) {
+          window.testLog(`Mounted ${mountedCount} components successfully`, 'success');
+        }
+      }
+    }, 500);
+    
+    setTimeout(() => {
+      if (checkInterval) {
+        clearInterval(checkInterval);
+        if (status.className === 'status loading') {
+          status.className = 'status error';
+          status.textContent = '❌ Failed to mount components (timeout)';
+        }
+      }
+    }, 10000);
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    let dynamicCount = 0;
+    const dynamicContainer = document.getElementById('dynamicContainer');
+
+    document.getElementById('addComponent').addEventListener('click', () => {
+      dynamicCount++;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mount-target';
+      wrapper.setAttribute('data-label', `Dynamic Instance ${dynamicCount}`);
+      wrapper.style.marginBottom = '10px';
+
+      const element = document.createElement('unraid-header-os-version');
+      wrapper.appendChild(element);
+      dynamicContainer.appendChild(wrapper);
+
+      console.log('Note: Dynamic components require page reload to mount with the unified app system');
+
+      if (!wrapper.querySelector('.reload-note')) {
+        const note = document.createElement('div');
+        note.className = 'reload-note';
+        note.style.cssText = 'color: #666; font-size: 12px; margin-top: 10px;';
+        note.textContent = 'Reload page to mount this component';
+        wrapper.appendChild(note);
+      }
+    });
+
+    document.getElementById('removeComponent').addEventListener('click', () => {
+      const lastChild = dynamicContainer.lastElementChild;
+      if (lastChild) {
+        const mountedElement = lastChild.querySelector('[data-vue-mounted="true"]');
+        if (mountedElement && window.__mountedComponents) {
+          const componentIndex = window.__mountedComponents.findIndex(c => c.element === mountedElement);
+          if (componentIndex !== -1) {
+            window.__mountedComponents[componentIndex].unmount();
+            window.__mountedComponents.splice(componentIndex, 1);
+          }
+        }
+        dynamicContainer.removeChild(lastChild);
+        dynamicCount = Math.max(0, dynamicCount - 1);
+      }
+    });
+
+    document.getElementById('remountAll').addEventListener('click', () => {
+      console.log('Remounting all components...');
+      location.reload();
+    });
+  });
+  
+  window.testTrialModal = function() {
+    console.log('Testing trial modal...');
+    if (window.globalPinia) {
+      const trialStore = window.globalPinia._s.get('trial');
+      if (trialStore) {
+        trialStore.trialModalVisible = true;
+        console.log('Trial modal triggered');
+      } else {
+        console.error('Trial store not found');
+      }
+    }
+  };
+  
+  window.testUpdateModal = function() {
+    console.log('Testing update modal...');
+    if (window.globalPinia) {
+      const updateStore = window.globalPinia._s.get('updateOs');
+      if (updateStore) {
+        updateStore.updateOsModalVisible = true;
+        console.log('Update modal triggered');
+      } else {
+        console.error('Update store not found');
+      }
+    }
+  };
+  
+  window.testApiKeyModal = function() {
+    console.log('Testing API key modal...');
+    if (window.globalPinia) {
+      const apiKeyStore = window.globalPinia._s.get('apiKey');
+      if (apiKeyStore) {
+        apiKeyStore.showCreateModal = true;
+        console.log('API key modal triggered');
+      } else {
+        console.error('API key store not found');
+      }
+    }
+  };
+</script>
+{% endblock %}
+

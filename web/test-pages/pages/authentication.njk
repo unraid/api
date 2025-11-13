@@ -1,0 +1,143 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Authentication Flow - Unraid Component Test{% endblock %}
+
+{% block pageStyles %}
+<style>
+  body {
+    padding: 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>🔐 Authentication</h2>
+    <unraid-auth></unraid-auth>
+    <div class="user-info">
+      <strong>Session Status:</strong>
+      <div id="auth-status">
+        <span class="status-badge unauthenticated">Not Authenticated</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-card">
+    <h2>🔗 Single Sign-On</h2>
+    <p style="color: #6b7280; margin-bottom: 20px;">Alternative authentication methods</p>
+    <unraid-sso-button></unraid-sso-button>
+  </div>
+
+  <div class="auth-card">
+    <h2>👤 User Profile</h2>
+    <p style="color: #6b7280; margin-bottom: 20px;">Displays when authenticated</p>
+    <unraid-user-profile id="user-profile"></unraid-user-profile>
+  </div>
+
+  <div class="auth-card">
+    <h2>📝 System Registration</h2>
+    <unraid-registration></unraid-registration>
+  </div>
+
+  <div class="auth-card" style="background: #1f2937; color: white;">
+    <h2 style="color: white;">🧪 Test Controls</h2>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button id="simulate-login" class="btn">Simulate Login</button>
+      <button id="simulate-logout" class="btn">Simulate Logout</button>
+      <button id="update-profile" class="btn">Update Profile</button>
+      <button id="check-session" class="btn">Check Session</button>
+    </div>
+    <div id="console-output" style="margin-top: 20px; padding: 10px; background: black; border-radius: 4px; font-family: monospace; font-size: 12px; min-height: 80px;">
+      > Ready...
+    </div>
+  </div>
+</div>
+
+<unraid-modals></unraid-modals>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $(document).ready(function() {
+    const output = $('#console-output');
+    let isAuthenticated = false;
+    
+    function log(message) {
+      const timestamp = new Date().toLocaleTimeString();
+      output.append('\n> [' + timestamp + '] ' + message);
+      output.scrollTop(output[0].scrollHeight);
+    }
+    
+    $('#simulate-login').on('click', function() {
+      log('Simulating login...');
+      isAuthenticated = true;
+      
+      const userData = {
+        username: 'admin',
+        email: 'admin@unraid.local',
+        name: 'Administrator',
+        avatarUrl: '/webGui/images/default-avatar.png',
+        role: 'admin',
+        sessionId: 'sess_' + Math.random().toString(36).substr(2, 9)
+      };
+      
+      $('#user-profile').attr('server', JSON.stringify(userData));
+      $('#auth-status').html('<span class="status-badge authenticated">Authenticated as ' + userData.username + '</span>');
+      
+      $(document).trigger('unraid:auth-login', userData);
+      log('Login successful: ' + userData.username);
+    });
+    
+    $('#simulate-logout').on('click', function() {
+      log('Simulating logout...');
+      isAuthenticated = false;
+      
+      $('#user-profile').attr('server', '{}');
+      $('#auth-status').html('<span class="status-badge unauthenticated">Not Authenticated</span>');
+      
+      $(document).trigger('unraid:auth-logout');
+      log('Logged out successfully');
+    });
+    
+    $('#update-profile').on('click', function() {
+      if (!isAuthenticated) {
+        log('Error: Not authenticated');
+        return;
+      }
+      
+      log('Updating profile...');
+      const updatedData = {
+        username: 'admin',
+        email: 'newemail@unraid.local',
+        name: 'Updated Admin',
+        lastModified: new Date().toISOString()
+      };
+      
+      $('#user-profile').attr('server', JSON.stringify(updatedData));
+      log('Profile updated');
+    });
+    
+    $('#check-session').on('click', function() {
+      log('Checking session status...');
+      log('Authenticated: ' + (isAuthenticated ? 'Yes' : 'No'));
+      
+      if (isAuthenticated) {
+        log('Session valid until: ' + new Date(Date.now() + 3600000).toLocaleTimeString());
+      }
+    });
+    
+    $(document).on('unraid:auth-required', function() {
+      log('Authentication required by component');
+    });
+    
+    $(document).on('unraid:session-expired', function() {
+      log('Session expired - please login again');
+      $('#simulate-logout').click();
+    });
+    
+    log('Authentication test page ready');
+  });
+</script>
+{% endblock %}
+

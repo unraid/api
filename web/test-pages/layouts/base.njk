@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Unraid Component Test{% endblock %}</title>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  {% include "partials/styles.njk" %}
+  {% block pageStyles %}{% endblock %}
+</head>
+<body>
+  {% block content %}{% endblock %}
+
+  {% include "partials/scripts.njk" %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>
+

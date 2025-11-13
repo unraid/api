@@ -44,6 +44,7 @@ declare module 'vue' {
     DeveloperAuthorizationLink: typeof import('./src/components/ApiKey/DeveloperAuthorizationLink.vue')['default']
     'DevModalTest.standalone': typeof import('./src/components/DevModalTest.standalone.vue')['default']
     DevSettings: typeof import('./src/components/DevSettings.vue')['default']
+    'DevThemeSwitcher.standalone': typeof import('./src/components/DevThemeSwitcher.standalone.vue')['default']
     Downgrade: typeof import('./src/components/UpdateOs/Downgrade.vue')['default']
     'DowngradeOs.standalone': typeof import('./src/components/DowngradeOs.standalone.vue')['default']
     'DownloadApiLogs.standalone': typeof import('./src/components/DownloadApiLogs.standalone.vue')['default']

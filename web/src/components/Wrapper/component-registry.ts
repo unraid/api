@@ -147,6 +147,11 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'test-theme-switcher',
   },
   {
+    component: defineAsyncComponent(() => import('../DevThemeSwitcher.standalone.vue')),
+    selector: 'unraid-dev-theme-switcher',
+    appId: 'dev-theme-switcher',
+  },
+  {
     component: defineAsyncComponent(() => import('../ApiStatus/ApiStatus.standalone.vue')),
     selector: 'unraid-api-status-manager',
     appId: 'api-status-manager',

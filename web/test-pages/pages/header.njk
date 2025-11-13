@@ -1,0 +1,77 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Header - Unraid Component Test{% endblock %}
+
+{% block pageStyles %}{% endblock %}
+
+{% block content %}
+<div class="container padded">
+  <div class="breadcrumb">
+    <a href="/test-pages/">Test Pages</a> / Header
+  </div>
+
+  <div class="card">
+    <h2>Unraid Header</h2>
+    <p class="card-description">This page demonstrates the header components as they appear in Unraid OS pages.</p>
+    
+    <div class="header" style="margin: 20px 0; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;">
+      <div class="header-left" style="display: flex; align-items: center; gap: 20px;">
+        <unraid-header-os-version></unraid-header-os-version>
+      </div>
+      <div class="header-right">
+        <unraid-user-profile id="header-user-profile"></unraid-user-profile>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Component Details</h2>
+    <div class="setting-item">
+      <div class="setting-label">OS Version Component</div>
+      <div class="setting-description">Displays the current Unraid OS version and update status</div>
+      <div class="component-mount" data-component="unraid-header-os-version" style="margin-top: 10px;">
+        <unraid-header-os-version></unraid-header-os-version>
+      </div>
+    </div>
+
+    <div class="setting-item">
+      <div class="setting-label">User Profile Component</div>
+      <div class="setting-description">Shows user information, authentication status, and SSO options</div>
+      <div class="component-mount" data-component="unraid-user-profile" style="margin-top: 10px;">
+        <unraid-user-profile id="standalone-user-profile"></unraid-user-profile>
+      </div>
+    </div>
+  </div>
+</div>
+
+<unraid-modals></unraid-modals>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $(document).ready(function() {
+    var serverData = {
+      name: 'TestServer',
+      version: '6.12.4',
+      username: 'admin',
+      email: 'admin@unraid.net',
+      avatarUrl: '/webGui/images/default-avatar.png'
+    };
+    
+    $('#header-user-profile, #standalone-user-profile').attr('server', JSON.stringify(serverData));
+    
+    setTimeout(function() {
+      var updatedData = {
+        name: 'UpdatedServer',
+        version: '6.12.5',
+        username: 'admin',
+        email: 'admin@unraid.net',
+        avatarUrl: '/webGui/images/default-avatar.png'
+      };
+      $('#header-user-profile').attr('server', JSON.stringify(updatedData));
+      console.log('Updated header user profile via jQuery');
+    }, 3000);
+  });
+</script>
+{% endblock %}
+
