@@ -38,7 +38,7 @@ class ConnectPluginModule {
 export class DisabledConnectPluginModule {
     logger = new Logger(DisabledConnectPluginModule.name);
     async onModuleInit() {
-        const removalCommand = 'unraid-api plugins remove -b --no-restart unraid-api-plugin-connect';
+        const removalCommand = 'unraid-api plugins remove -b unraid-api-plugin-connect';
 
         this.logger.warn(
             'Connect plugin is not installed, but is listed as an API plugin. Attempting `%s` automatically.',
@@ -50,7 +50,6 @@ export class DisabledConnectPluginModule {
                 'plugins',
                 'remove',
                 '-b',
-                '--no-restart',
                 'unraid-api-plugin-connect',
             ]);
 
