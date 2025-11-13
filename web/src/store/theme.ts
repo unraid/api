@@ -27,6 +27,8 @@ export const GET_THEME_QUERY = graphql(`
   }
 `);
 
+export const THEME_STORAGE_KEY = 'unraid.theme.publicTheme';
+
 const DEFAULT_THEME: Theme = {
   name: 'white',
   banner: false,
@@ -35,6 +37,59 @@ const DEFAULT_THEME: Theme = {
   descriptionShow: false,
   metaColor: '',
   textColor: '',
+};
+
+type ThemeSource = 'cache' | 'local' | 'server';
+
+const isClient = typeof window !== 'undefined';
+
+const sanitizeTheme = (data: Partial<Theme> | null | undefined): Theme | null => {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+
+  return {
+    name: typeof data.name === 'string' ? data.name : DEFAULT_THEME.name,
+    banner: typeof data.banner === 'boolean' ? data.banner : DEFAULT_THEME.banner,
+    bannerGradient:
+      typeof data.bannerGradient === 'boolean' ? data.bannerGradient : DEFAULT_THEME.bannerGradient,
+    bgColor: typeof data.bgColor === 'string' ? data.bgColor : DEFAULT_THEME.bgColor,
+    descriptionShow:
+      typeof data.descriptionShow === 'boolean' ? data.descriptionShow : DEFAULT_THEME.descriptionShow,
+    metaColor: typeof data.metaColor === 'string' ? data.metaColor : DEFAULT_THEME.metaColor,
+    textColor: typeof data.textColor === 'string' ? data.textColor : DEFAULT_THEME.textColor,
+  };
+};
+
+const loadCachedTheme = (): Theme | null => {
+  if (!isClient) {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw) as Partial<Theme>;
+    return sanitizeTheme(parsed);
+  } catch (error) {
+    console.warn('[ThemeStore] Failed to read cached theme:', error);
+    return null;
+  }
+};
+
+const persistTheme = (themeToPersist: Theme) => {
+  if (!isClient) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(themeToPersist));
+  } catch (error) {
+    console.warn('[ThemeStore] Failed to persist theme cache:', error);
+  }
 };
 
 const DYNAMIC_VAR_KEYS = [
@@ -60,21 +115,29 @@ export const useThemeStore = defineStore('theme', () => {
     nextFetchPolicy: 'cache-first',
   });
 
-  const applyThemeFromQuery = (publicTheme?: GetThemeQuery['publicTheme'] | null) => {
+  const mapPublicTheme = (publicTheme?: GetThemeQuery['publicTheme'] | null): Theme | null => {
     if (!publicTheme) {
+      return null;
+    }
+
+    return sanitizeTheme({
+      name: publicTheme.name?.toLowerCase(),
+      banner: publicTheme.showBannerImage,
+      bannerGradient: publicTheme.showBannerGradient,
+      bgColor: publicTheme.headerBackgroundColor,
+      descriptionShow: publicTheme.showHeaderDescription,
+      metaColor: publicTheme.headerSecondaryTextColor,
+      textColor: publicTheme.headerPrimaryTextColor,
+    });
+  };
+
+  const applyThemeFromQuery = (publicTheme?: GetThemeQuery['publicTheme'] | null) => {
+    const sanitized = mapPublicTheme(publicTheme);
+    if (!sanitized) {
       return;
     }
 
-    hasServerTheme.value = true;
-    theme.value = {
-      name: publicTheme.name?.toLowerCase() ?? DEFAULT_THEME.name,
-      banner: publicTheme.showBannerImage ?? DEFAULT_THEME.banner,
-      bannerGradient: publicTheme.showBannerGradient ?? DEFAULT_THEME.bannerGradient,
-      bgColor: publicTheme.headerBackgroundColor ?? DEFAULT_THEME.bgColor,
-      descriptionShow: publicTheme.showHeaderDescription ?? DEFAULT_THEME.descriptionShow,
-      metaColor: publicTheme.headerSecondaryTextColor ?? DEFAULT_THEME.metaColor,
-      textColor: publicTheme.headerPrimaryTextColor ?? DEFAULT_THEME.textColor,
-    };
+    setTheme(sanitized, { source: 'server' });
   };
 
   onResult(({ data }) => {
@@ -107,16 +170,29 @@ export const useThemeStore = defineStore('theme', () => {
   });
 
   // Actions
-  const setTheme = (data?: Partial<Theme>) => {
+  const setTheme = (
+    data?: Partial<Theme>,
+    options: { source?: ThemeSource; persist?: boolean } = {}
+  ) => {
     if (data) {
-      if (hasServerTheme.value) {
+      const { source = 'local', persist = true } = options;
+
+      if (source === 'server') {
+        hasServerTheme.value = true;
+      } else if (hasServerTheme.value) {
         return;
       }
 
-      theme.value = {
+      const nextTheme = {
         ...theme.value,
         ...data,
-      };
+      } satisfies Theme;
+
+      theme.value = nextTheme;
+
+      if (persist) {
+        persistTheme(nextTheme);
+      }
     }
   };
 
@@ -225,9 +301,18 @@ export const useThemeStore = defineStore('theme', () => {
     });
   };
 
-  watch(theme, () => {
-    setCssVars();
-  });
+  watch(
+    theme,
+    () => {
+      setCssVars();
+    },
+    { immediate: true }
+  );
+
+  const cachedTheme = loadCachedTheme();
+  if (cachedTheme) {
+    setTheme(cachedTheme, { source: 'cache', persist: false });
+  }
 
   return {
     // state
