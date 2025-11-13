@@ -5,9 +5,8 @@ import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 import { watchDebounced } from '@vueuse/core';
 
-import { BrandButton, jsonFormsAjv, jsonFormsRenderers, Label, SettingsGrid } from '@unraid/ui';
+import { BrandButton, Label, SettingsGrid } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
-import { useJsonFormsI18n } from '~/helpers/jsonforms-i18n';
 
 import Auth from '~/components/Auth.standalone.vue';
 // unified settings values are returned as JSON, so use a generic record type
@@ -19,6 +18,7 @@ import {
 } from '~/components/ConnectSettings/graphql/settings.query';
 import OidcDebugLogs from '~/components/ConnectSettings/OidcDebugLogs.vue';
 import DownloadApiLogs from '~/components/DownloadApiLogs.standalone.vue';
+import { useJsonFormsDefaults } from '~/composables/useJsonFormsDefaults';
 import { useServerStore } from '~/store/server';
 
 // Disable automatic attribute inheritance
@@ -86,13 +86,12 @@ onMutateSettingsDone((result) => {
  *     Form Config & Actions
  *---------------------------------------------**/
 
-const jsonFormsConfig = {
-  restrict: false,
-  trim: false,
-};
-
-const renderers = [...jsonFormsRenderers];
-const jsonFormsI18n = useJsonFormsI18n();
+const {
+  ajv: jsonFormsAjv,
+  config: jsonFormsConfig,
+  renderers,
+  i18n: jsonFormsI18n,
+} = useJsonFormsDefaults();
 
 /** Called when the user clicks the "Apply" button */
 const submitSettingsUpdate = async () => {

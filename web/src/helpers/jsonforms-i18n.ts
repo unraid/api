@@ -3,15 +3,58 @@ import { useI18n } from 'vue-i18n';
 
 import type { JsonFormsI18nState } from '@jsonforms/core';
 
+function coerceToString(value: unknown): string {
+  return typeof value === 'string' ? value : String(value);
+}
+
+const suffixPattern = /(\.(label|title|text|description|header|subheader|help))$/;
+const suffixFallbacks: Record<string, string[]> = {
+  text: ['label', 'title'],
+  label: ['text', 'title'],
+  title: ['label', 'text'],
+  description: ['label', 'text', 'title'],
+  header: ['label', 'title', 'text'],
+  subheader: ['label', 'title', 'text'],
+  help: ['label', 'title', 'text'],
+};
+const defaultSuffixes = ['label', 'title', 'text'];
+
+function expandTranslationKeys(id?: string): string[] {
+  if (!id) return [];
+
+  const candidates = new Set<string>([id]);
+  const match = id.match(suffixPattern);
+
+  if (match) {
+    const base = id.slice(0, -match[1].length);
+    const suffix = match[2];
+    for (const replacement of suffixFallbacks[suffix] ?? []) {
+      candidates.add(`${base}.${replacement}`);
+    }
+    candidates.add(base);
+  } else {
+    for (const suffix of defaultSuffixes) {
+      candidates.add(`${id}.${suffix}`);
+    }
+  }
+
+  return Array.from(candidates);
+}
+
 export function useJsonFormsI18n() {
   const { t, te, locale } = useI18n();
 
   return computed<JsonFormsI18nState>(() => ({
     locale: locale.value,
     translate: (id, defaultMessage, values) => {
-      if (id && te(id)) {
-        const result = t(id, values);
-        return typeof result === 'string' ? result : String(result);
+      for (const candidate of expandTranslationKeys(id)) {
+        if (te?.(candidate)) {
+          return coerceToString(t(candidate, values));
+        }
+        const translated = t(candidate, values);
+        if (translated !== candidate) {
+          return coerceToString(translated);
+        }
       }
       if (defaultMessage) {
         return defaultMessage;
@@ -21,8 +64,7 @@ export function useJsonFormsI18n() {
     translateError: (error) => {
       const key = error.keyword ? `jsonforms.errors.${error.keyword}` : undefined;
       if (key && te(key)) {
-        const translated = t(key, error.params ?? {});
-        return typeof translated === 'string' ? translated : String(translated);
+        return coerceToString(t(key, error.params ?? {}));
       }
       return error.message ?? error.keyword ?? '';
     },
