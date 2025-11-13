@@ -38,13 +38,21 @@ function expandJsonFormsKey(key) {
     return expanded;
   }
 
+  // Keep any explicitly referenced error keys as-is
+  if (key.includes('.error.')) {
+    expanded.add(key);
+    return expanded;
+  }
+
   // Don't add .label to keys that already have specific suffixes
   if (key.endsWith('.title') || key.endsWith('.description')) {
     expanded.add(key);
     return expanded;
   }
 
-  expanded.add(key.endsWith('.label') ? key : `${key}.label`);
+  const baseKey = key.endsWith('.label') ? key.slice(0, -'.label'.length) : key;
+  expanded.add(`${baseKey}.label`);
+  expanded.add(`${baseKey}.error.custom`);
 
   return expanded;
 }

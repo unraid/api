@@ -1,0 +1,42 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Update Modal Test - Unraid Component Test{% endblock %}
+
+{% block pageStyles %}
+<style>
+  body {
+    padding: 0;
+  }
+  
+  .header {
+    background: var(--header-background-color, #1f2937);
+    color: var(--header-text-primary, white);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+  }
+  
+  .header h1 {
+    margin: 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <a href="/test-pages/" class="back-link">← Back to Test Pages</a>
+      <h1>🧪 Update Modal Test Scenarios</h1>
+    </div>
+    <div>
+      <unraid-test-theme-switcher></unraid-test-theme-switcher>
+    </div>
+  </div>
+</div>
+
+<unraid-test-update-modal></unraid-test-update-modal>
+
+<unraid-modals></unraid-modals>
+{% endblock %}
+

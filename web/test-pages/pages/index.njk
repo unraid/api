@@ -1,0 +1,114 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Unraid Component Test Pages{% endblock %}
+
+{% block pageStyles %}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="header">
+    <h1>🧪 Unraid Component Test Environment</h1>
+    <p>HTML-based test pages that mimic Unraid OS integration with jQuery and component mounting</p>
+  </div>
+
+  <div class="info-box">
+    <strong>ℹ️ Testing Mode:</strong> These pages replicate how Unraid OS mounts Vue components into existing HTML/PHP pages using jQuery for interaction. Each page demonstrates real-world integration patterns.
+  </div>
+
+  <div class="category-section">
+    <div class="category-header rounded-top">
+      📄 Page-Specific Test Pages
+    </div>
+    <div class="page-list">
+      <div class="page-item">
+        <div>
+          <h3>Header <span class="badge new">NEW</span></h3>
+          <p>Header components as they appear in Unraid OS: OS version and user profile</p>
+        </div>
+        <a href="/test-pages/header.html">Open →</a>
+      </div>
+
+      <div class="page-item">
+        <div>
+          <h3>Connect Settings <span class="badge new">NEW</span></h3>
+          <p>Unraid API Settings page mirroring Connect.page structure with Connect Settings component</p>
+        </div>
+        <a href="/test-pages/connect-settings.html">Open →</a>
+      </div>
+
+      <div class="page-item">
+        <div>
+          <h3>API & Developer Tools <span class="badge new">NEW</span></h3>
+          <p>API key management, authorization, logs, and developer tools</p>
+        </div>
+        <a href="/test-pages/api-developer.html">Open →</a>
+      </div>
+
+      <div class="page-item">
+        <div>
+          <h3>Authentication Flow</h3>
+          <p>Complete auth workflow with login, SSO, user profile, and registration</p>
+        </div>
+        <a href="/test-pages/authentication.html">Open →</a>
+      </div>
+
+      <div class="page-item">
+        <div>
+          <h3>OS Management</h3>
+          <p>System updates, downgrades, and version management with progress simulation</p>
+        </div>
+        <a href="/test-pages/os-management.html">Open →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="category-section">
+    <div class="category-header rounded-top">
+      🔧 Technical Test Pages
+    </div>
+    <div class="page-list">
+      <div class="page-item">
+        <div>
+          <h3>Update Modal Testing</h3>
+          <p>Test various update scenarios including expired licenses, renewals, and auth requirements</p>
+        </div>
+        <a href="/test-pages/update-modal.html">Open →</a>
+      </div>
+
+      <div class="page-item">
+        <div>
+          <h3>Component Mounting Test</h3>
+          <p>Test single and multiple component mounting with shared Pinia store and dynamic creation</p>
+        </div>
+        <a href="/test-pages/component-mounting.html">Open →</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 30px;">
+    <h3 style="margin-top: 0;">🛠️ Testing Guidelines</h3>
+    <ul style="color: var(--muted-foreground, var(--alt-text-color)); line-height: 1.8;">
+      <li>Each page loads components using the same mechanism as Unraid OS (manifest-based loading)</li>
+      <li>jQuery is available for simulating PHP/backend interactions</li>
+      <li>Components communicate via DOM attributes and custom events</li>
+      <li>Hot module replacement (HMR) is enabled in dev mode for instant updates</li>
+      <li>Use browser DevTools console to monitor component events and interactions</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $(document).ready(function() {
+    $('.page-item').on('mouseenter', function() {
+      $(this).find('a').css('transform', 'translateX(2px)');
+    }).on('mouseleave', function() {
+      $(this).find('a').css('transform', 'translateX(0)');
+    });
+    
+    $('a').css('transition', 'all 0.2s ease');
+  });
+</script>
+{% endblock %}
+

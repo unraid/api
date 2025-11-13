@@ -1,0 +1,81 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Connect Settings - Unraid Component Test{% endblock %}
+
+{% block pageStyles %}{% endblock %}
+
+{% block content %}
+<div class="container padded">
+  <div class="breadcrumb">
+    <a href="/test-pages/">Test Pages</a> / Connect Settings
+  </div>
+
+  <div class="card">
+    <h2>Unraid API Settings</h2>
+    <p class="card-description">This page mirrors the Connect.page structure from Unraid OS, demonstrating the Connect Settings component in its native context.</p>
+  </div>
+
+  <div class="card">
+    <h2>Connect Settings</h2>
+    <div class="component-mount" data-component="unraid-connect-settings">
+      <unraid-connect-settings></unraid-connect-settings>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Remote Access Configuration</h2>
+    <div class="setting-item">
+      <div class="setting-label">WAN IP Check</div>
+      <div class="setting-description">Verify your server's external IP address and port forwarding configuration</div>
+      <div class="component-mount" data-component="unraid-wan-ip-check" style="margin-top: 10px;">
+        <unraid-wan-ip-check php-wan-ip="203.0.113.42"></unraid-wan-ip-check>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Registration</h2>
+    <div class="component-mount" data-component="unraid-registration">
+      <unraid-registration></unraid-registration>
+    </div>
+  </div>
+</div>
+
+<unraid-modals></unraid-modals>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $(document).ready(function() {
+    setTimeout(function() {
+      var connectSettings = {
+        enabled: true,
+        url: 'https://connect.unraid.net',
+        registered: true,
+        lastSync: new Date().toISOString()
+      };
+      
+      $('unraid-connect-settings').attr('initial-settings', JSON.stringify(connectSettings));
+      console.log('Loaded Connect settings via jQuery');
+    }, 1000);
+    
+    $(document).on('unraid:settings-saved', function(e, data) {
+      console.log('Connect settings saved:', data);
+      var event = new CustomEvent('unraid:notification', {
+        detail: { 
+          title: 'Settings Saved', 
+          message: 'Connect settings have been updated successfully', 
+          type: 'success' 
+        }
+      });
+      document.dispatchEvent(event);
+    });
+    
+    setTimeout(function() {
+      $('unraid-wan-ip-check').attr('php-wan-ip', '198.51.100.42');
+      console.log('Updated WAN IP via jQuery');
+    }, 2000);
+  });
+</script>
+{% endblock %}
+

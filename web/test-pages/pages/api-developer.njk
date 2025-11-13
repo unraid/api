@@ -1,0 +1,80 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}API & Developer Tools - Unraid Component Test{% endblock %}
+
+{% block pageStyles %}{% endblock %}
+
+{% block content %}
+<div class="container padded">
+  <div class="breadcrumb">
+    <a href="/test-pages/">Test Pages</a> / API & Developer Tools
+  </div>
+
+  <div class="card">
+    <h2>API Key Management</h2>
+    <p class="card-description">Manage API keys for programmatic access to your Unraid server</p>
+    <div class="component-mount" data-component="unraid-api-key-manager">
+      <unraid-api-key-manager></unraid-api-key-manager>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>API Key Authorization</h2>
+    <p class="card-description">Authorize API key requests from external applications</p>
+    <div class="component-mount" data-component="unraid-api-key-authorize">
+      <unraid-api-key-authorize></unraid-api-key-authorize>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>API Logs</h2>
+    <p class="card-description">Download and view API access logs</p>
+    <div class="component-mount" data-component="unraid-download-api-logs">
+      <unraid-download-api-logs></unraid-download-api-logs>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Log Viewer</h2>
+    <p class="card-description">View and search through system logs</p>
+    <div class="component-mount" data-component="unraid-log-viewer">
+      <unraid-log-viewer></unraid-log-viewer>
+    </div>
+  </div>
+</div>
+
+<unraid-modals></unraid-modals>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  $(document).ready(function() {
+    console.log('API & Developer Tools page loaded');
+    
+    $(document).on('unraid:api-key-created', function(e, data) {
+      console.log('API key created:', data);
+      var event = new CustomEvent('unraid:notification', {
+        detail: { 
+          title: 'API Key Created', 
+          message: 'A new API key has been generated', 
+          type: 'success' 
+        }
+      });
+      document.dispatchEvent(event);
+    });
+    
+    $(document).on('unraid:api-key-deleted', function(e, data) {
+      console.log('API key deleted:', data);
+      var event = new CustomEvent('unraid:notification', {
+        detail: { 
+          title: 'API Key Deleted', 
+          message: 'The API key has been removed', 
+          type: 'info' 
+        }
+      });
+      document.dispatchEvent(event);
+    });
+  });
+</script>
+{% endblock %}
+
