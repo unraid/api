@@ -2,7 +2,7 @@
  * Theme store test coverage
  */
 
-import { nextTick, ref } from 'vue';
+import { createApp, nextTick, ref } from 'vue';
 import { setActivePinia } from 'pinia';
 
 import { defaultColors } from '~/themes/default';
@@ -36,8 +36,11 @@ describe('Theme Store', () => {
   const originalDocumentElementRemoveClass = document.documentElement.classList.remove;
 
   let store: ReturnType<typeof useThemeStore> | undefined;
+  let app: ReturnType<typeof createApp> | undefined;
 
   beforeEach(() => {
+    app = createApp({ render: () => null });
+    app.use(globalPinia);
     setActivePinia(globalPinia);
     store = undefined;
     window.localStorage.clear();
@@ -61,6 +64,8 @@ describe('Theme Store', () => {
   afterEach(() => {
     store?.$dispose();
     store = undefined;
+    app?.unmount();
+    app = undefined;
 
     document.body.classList.add = originalAddClassFn;
     document.body.classList.remove = originalRemoveClassFn;
