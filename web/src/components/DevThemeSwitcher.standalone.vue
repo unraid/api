@@ -51,7 +51,7 @@ const updateTheme = (themeName: string, skipUrlUpdate = false) => {
     // ignore
   }
 
-  themeStore.setTheme({ name: themeName }, true);
+  themeStore.setTheme({ name: themeName });
   themeStore.setCssVars();
 
   const linkId = 'dev-theme-css-link';
@@ -100,7 +100,7 @@ onMounted(() => {
   if (!existingLink || !existingLink.href) {
     updateTheme(initialTheme, true);
   } else {
-    themeStore.setTheme({ name: initialTheme }, true);
+    themeStore.setTheme({ name: initialTheme });
     themeStore.setCssVars();
   }
 });

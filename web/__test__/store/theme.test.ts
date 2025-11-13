@@ -3,13 +3,16 @@
  */
 
 import { nextTick, ref } from 'vue';
-import { createPinia, setActivePinia } from 'pinia';
+import { setActivePinia } from 'pinia';
 
 import { defaultColors } from '~/themes/default';
 import hexToRgba from 'hex-to-rgba';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useThemeStore } from '~/store/theme';
+import type { Theme } from '~/themes/types';
+
+import { globalPinia } from '~/store/globalPinia';
+import { THEME_STORAGE_KEY, useThemeStore } from '~/store/theme';
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: () => ({
@@ -25,15 +28,20 @@ vi.mock('hex-to-rgba', () => ({
 }));
 
 describe('Theme Store', () => {
-  let store: ReturnType<typeof useThemeStore>;
   const originalAddClassFn = document.body.classList.add;
   const originalRemoveClassFn = document.body.classList.remove;
   const originalStyleCssText = document.body.style.cssText;
   const originalDocumentElementSetProperty = document.documentElement.style.setProperty;
+  const originalDocumentElementAddClass = document.documentElement.classList.add;
+  const originalDocumentElementRemoveClass = document.documentElement.classList.remove;
+
+  let store: ReturnType<typeof useThemeStore> | undefined;
 
   beforeEach(() => {
-    setActivePinia(createPinia());
-    store = useThemeStore();
+    setActivePinia(globalPinia);
+    store = undefined;
+    window.localStorage.clear();
+    delete (globalPinia.state.value as Record<string, unknown>).theme;
 
     document.body.classList.add = vi.fn();
     document.body.classList.remove = vi.fn();
@@ -51,16 +59,32 @@ describe('Theme Store', () => {
   });
 
   afterEach(() => {
-    // Restore original methods
+    store?.$dispose();
+    store = undefined;
+
     document.body.classList.add = originalAddClassFn;
     document.body.classList.remove = originalRemoveClassFn;
     document.body.style.cssText = originalStyleCssText;
     document.documentElement.style.setProperty = originalDocumentElementSetProperty;
+    document.documentElement.classList.add = originalDocumentElementAddClass;
+    document.documentElement.classList.remove = originalDocumentElementRemoveClass;
     vi.restoreAllMocks();
   });
 
+  const createStore = () => {
+    if (!store) {
+      store = useThemeStore();
+    }
+
+    return store;
+  };
+
   describe('State and Initialization', () => {
     it('should initialize with default theme', () => {
+      const store = createStore();
+
+      expect(typeof store.$persist).toBe('function');
+
       expect(store.theme).toEqual({
         name: 'white',
         banner: false,
@@ -74,6 +98,8 @@ describe('Theme Store', () => {
     });
 
     it('should compute darkMode correctly', () => {
+      const store = createStore();
+
       expect(store.darkMode).toBe(false);
 
       store.setTheme({ ...store.theme, name: 'black' });
@@ -87,6 +113,8 @@ describe('Theme Store', () => {
     });
 
     it('should compute bannerGradient correctly', () => {
+      const store = createStore();
+
       expect(store.bannerGradient).toBeUndefined();
 
       store.setTheme({
@@ -112,6 +140,8 @@ describe('Theme Store', () => {
 
   describe('Actions', () => {
     it('should set theme correctly', () => {
+      const store = createStore();
+
       const newTheme = {
         name: 'black',
         banner: true,
@@ -127,6 +157,8 @@ describe('Theme Store', () => {
     });
 
     it('should update body classes for dark mode', async () => {
+      const store = createStore();
+
       store.setTheme({ ...store.theme, name: 'black' });
 
       await nextTick();
@@ -141,6 +173,8 @@ describe('Theme Store', () => {
     });
 
     it('should update activeColorVariables when theme changes', async () => {
+      const store = createStore();
+
       store.setTheme({
         ...store.theme,
         name: 'white',
@@ -170,6 +204,7 @@ describe('Theme Store', () => {
     });
 
     it('should handle banner gradient correctly', async () => {
+      const store = createStore();
       const mockHexToRgba = vi.mocked(hexToRgba);
 
       mockHexToRgba.mockClear();
@@ -198,6 +233,45 @@ describe('Theme Store', () => {
       expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
         '--banner-gradient',
         'linear-gradient(90deg, rgba(mock-#112233-0) 0, rgba(mock-#112233-0.7) 90%)'
+      );
+    });
+
+    it('should hydrate theme from cache when available', () => {
+      const cachedTheme = {
+        name: 'black',
+        banner: true,
+        bannerGradient: false,
+        bgColor: '#222222',
+        descriptionShow: true,
+        metaColor: '#aaaaaa',
+        textColor: '#ffffff',
+      } satisfies Theme;
+
+      window.localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify({ theme: cachedTheme }));
+
+      const store = createStore();
+
+      expect(store.theme).toEqual(cachedTheme);
+    });
+
+    it('should persist server theme responses to cache', async () => {
+      const store = createStore();
+
+      const serverTheme = {
+        name: 'gray',
+        banner: false,
+        bannerGradient: false,
+        bgColor: '#111111',
+        descriptionShow: false,
+        metaColor: '#999999',
+        textColor: '#eeeeee',
+      } satisfies Theme;
+
+      store.setTheme(serverTheme, { source: 'server' });
+      await nextTick();
+
+      expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toEqual(
+        JSON.stringify({ theme: serverTheme })
       );
     });
   });
