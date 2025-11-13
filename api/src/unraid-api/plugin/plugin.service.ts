@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import type { ApiNestPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
 import { pluginLogger } from '@app/core/log.js';
+import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { getPackageJson } from '@app/environment.js';
 import { loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
 import { NotificationImportance } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
@@ -13,6 +14,12 @@ type Plugin = ApiNestPluginDefinition & {
     name: string;
     version: string;
 };
+
+const CONNECT_PLUGIN_PACKAGE = 'unraid-api-plugin-connect';
+const CONNECT_PLUGIN_LOCATIONS = [
+    '/boot/config/plugins/dynamix.unraid.net.plg',
+    '/boot/config/plugins/dynamix.unraid.net.staging.plg',
+];
 
 @Injectable()
 export class PluginService {
@@ -87,12 +94,39 @@ export class PluginService {
             PluginService.logger.warn('Unraid-API peer dependencies not found; skipping plugins.');
             return [];
         }
-        const pluginTuples = Object.entries(peerDependencies).filter(
+        let pluginTuples = Object.entries(peerDependencies).filter(
             (entry): entry is [string, string] => {
                 const [pkgName, version] = entry;
                 return pluginNames.has(pkgName) && typeof version === 'string';
             }
         );
+
+        if (pluginTuples.some(([pkgName]) => pkgName === CONNECT_PLUGIN_PACKAGE)) {
+            const connectPluginInstalled = await PluginService.isConnectPluginInstalled();
+            if (!connectPluginInstalled) {
+                PluginService.logger.warn(
+                    `Connect plugin not detected on disk. Skipping ${CONNECT_PLUGIN_PACKAGE}.`
+                );
+                pluginTuples = pluginTuples.filter(([pkgName]) => pkgName !== CONNECT_PLUGIN_PACKAGE);
+            }
+        }
+
         return pluginTuples;
+    }
+
+    private static async isConnectPluginInstalled(): Promise<boolean> {
+        for (const path of CONNECT_PLUGIN_LOCATIONS) {
+            try {
+                if (await fileExists(path)) {
+                    return true;
+                }
+            } catch (error) {
+                PluginService.logger.debug(
+                    `Error while checking connect plugin path ${path}: %o`,
+                    error as object
+                );
+            }
+        }
+        return false;
     }
 }
