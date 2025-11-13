@@ -525,6 +525,7 @@ export enum ContainerPortType {
 
 export enum ContainerState {
   EXITED = 'EXITED',
+  PAUSED = 'PAUSED',
   RUNNING = 'RUNNING'
 }
 
@@ -695,9 +696,27 @@ export type DockerNetworksArgs = {
   skipCache?: Scalars['Boolean']['input'];
 };
 
+
+export type DockerOrganizerArgs = {
+  skipCache?: Scalars['Boolean']['input'];
+};
+
+export type DockerAutostartEntryInput = {
+  /** Whether the container should auto-start */
+  autoStart: Scalars['Boolean']['input'];
+  /** Docker container identifier */
+  id: Scalars['PrefixedID']['input'];
+  /** Number of seconds to wait after starting the container */
+  wait?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type DockerContainer = Node & {
   __typename?: 'DockerContainer';
   autoStart: Scalars['Boolean']['output'];
+  /** Zero-based order in the auto-start list */
+  autoStartOrder?: Maybe<Scalars['Int']['output']>;
+  /** Wait time in seconds applied after start */
+  autoStartWait?: Maybe<Scalars['Int']['output']>;
   command: Scalars['String']['output'];
   created: Scalars['Int']['output'];
   hostConfig?: Maybe<ContainerHostConfig>;
@@ -707,22 +726,52 @@ export type DockerContainer = Node & {
   isRebuildReady?: Maybe<Scalars['Boolean']['output']>;
   isUpdateAvailable?: Maybe<Scalars['Boolean']['output']>;
   labels?: Maybe<Scalars['JSON']['output']>;
+  /** List of LAN-accessible host:port values */
+  lanIpPorts?: Maybe<Array<Scalars['String']['output']>>;
   mounts?: Maybe<Array<Scalars['JSON']['output']>>;
   names: Array<Scalars['String']['output']>;
   networkSettings?: Maybe<Scalars['JSON']['output']>;
   ports: Array<ContainerPort>;
+  /** Size of container logs (in bytes) */
+  sizeLog?: Maybe<Scalars['BigInt']['output']>;
   /** Total size of all files in the container (in bytes) */
   sizeRootFs?: Maybe<Scalars['BigInt']['output']>;
+  /** Size of writable layer (in bytes) */
+  sizeRw?: Maybe<Scalars['BigInt']['output']>;
   state: ContainerState;
   status: Scalars['String']['output'];
+  templatePath?: Maybe<Scalars['String']['output']>;
+};
+
+export type DockerContainerOverviewForm = {
+  __typename?: 'DockerContainerOverviewForm';
+  data: Scalars['JSON']['output'];
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['ID']['output'];
+  uiSchema: Scalars['JSON']['output'];
 };
 
 export type DockerMutations = {
   __typename?: 'DockerMutations';
+  /** Pause (Suspend) a container */
+  pause: DockerContainer;
   /** Start a container */
   start: DockerContainer;
   /** Stop a container */
   stop: DockerContainer;
+  /** Unpause (Resume) a container */
+  unpause: DockerContainer;
+  /** Update auto-start configuration for Docker containers */
+  updateAutostartConfiguration: Scalars['Boolean']['output'];
+  /** Update a container to the latest image */
+  updateContainer: DockerContainer;
+  /** Update multiple containers to the latest images */
+  updateContainers: Array<DockerContainer>;
+};
+
+
+export type DockerMutationsPauseArgs = {
+  id: Scalars['PrefixedID']['input'];
 };
 
 
@@ -733,6 +782,26 @@ export type DockerMutationsStartArgs = {
 
 export type DockerMutationsStopArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type DockerMutationsUnpauseArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+export type DockerMutationsUpdateAutostartConfigurationArgs = {
+  entries: Array<DockerAutostartEntryInput>;
+};
+
+
+export type DockerMutationsUpdateContainerArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+export type DockerMutationsUpdateContainersArgs = {
+  ids: Array<Scalars['PrefixedID']['input']>;
 };
 
 export type DockerNetwork = Node & {
@@ -752,6 +821,14 @@ export type DockerNetwork = Node & {
   name: Scalars['String']['output'];
   options: Scalars['JSON']['output'];
   scope: Scalars['String']['output'];
+};
+
+export type DockerTemplateSyncResult = {
+  __typename?: 'DockerTemplateSyncResult';
+  errors: Array<Scalars['String']['output']>;
+  matched: Scalars['Int']['output'];
+  scanned: Scalars['Int']['output'];
+  skipped: Scalars['Int']['output'];
 };
 
 export type DynamicRemoteAccessStatus = {
@@ -797,6 +874,21 @@ export type FlashBackupStatus = {
   jobId?: Maybe<Scalars['String']['output']>;
   /** Status message indicating the outcome of the backup initiation. */
   status: Scalars['String']['output'];
+};
+
+export type FlatOrganizerEntry = {
+  __typename?: 'FlatOrganizerEntry';
+  childrenIds: Array<Scalars['String']['output']>;
+  depth: Scalars['Float']['output'];
+  hasChildren: Scalars['Boolean']['output'];
+  icon?: Maybe<Scalars['String']['output']>;
+  id: Scalars['String']['output'];
+  meta?: Maybe<DockerContainer>;
+  name: Scalars['String']['output'];
+  parentId?: Maybe<Scalars['String']['output']>;
+  path: Array<Scalars['String']['output']>;
+  position: Scalars['Float']['output'];
+  type: Scalars['String']['output'];
 };
 
 export type FormSchema = {
@@ -1223,6 +1315,7 @@ export type Mutation = {
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
   createDockerFolder: ResolvedOrganizerV1;
+  createDockerFolderWithItems: ResolvedOrganizerV1;
   /** Creates a new notification record */
   createNotification: Notification;
   /** Deletes all archived notifications on server. */
@@ -1234,6 +1327,9 @@ export type Mutation = {
   /** Initiates a flash drive backup using a configured remote. */
   initiateFlashBackup: FlashBackupStatus;
   moveDockerEntriesToFolder: ResolvedOrganizerV1;
+  moveDockerItemsToPosition: ResolvedOrganizerV1;
+  /** Creates a notification if an equivalent unread notification does not already exist. */
+  notifyIfUnique?: Maybe<Notification>;
   parityCheck: ParityCheckMutations;
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
@@ -1241,13 +1337,16 @@ export type Mutation = {
   refreshDockerDigests: Scalars['Boolean']['output'];
   /** Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required. */
   removePlugin: Scalars['Boolean']['output'];
+  renameDockerFolder: ResolvedOrganizerV1;
   setDockerFolderChildren: ResolvedOrganizerV1;
   setupRemoteAccess: Scalars['Boolean']['output'];
+  syncDockerTemplatePaths: DockerTemplateSyncResult;
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
+  updateDockerViewPreferences: ResolvedOrganizerV1;
   updateSettings: UpdateSettingsResponse;
   vm: VmMutations;
 };
@@ -1290,6 +1389,14 @@ export type MutationCreateDockerFolderArgs = {
 };
 
 
+export type MutationCreateDockerFolderWithItemsArgs = {
+  name: Scalars['String']['input'];
+  parentId?: InputMaybe<Scalars['String']['input']>;
+  position?: InputMaybe<Scalars['Float']['input']>;
+  sourceEntryIds?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
 export type MutationCreateNotificationArgs = {
   input: NotificationData;
 };
@@ -1322,8 +1429,26 @@ export type MutationMoveDockerEntriesToFolderArgs = {
 };
 
 
+export type MutationMoveDockerItemsToPositionArgs = {
+  destinationFolderId: Scalars['String']['input'];
+  position: Scalars['Float']['input'];
+  sourceEntryIds: Array<Scalars['String']['input']>;
+};
+
+
+export type MutationNotifyIfUniqueArgs = {
+  input: NotificationData;
+};
+
+
 export type MutationRemovePluginArgs = {
   input: PluginManagementInput;
+};
+
+
+export type MutationRenameDockerFolderArgs = {
+  folderId: Scalars['String']['input'];
+  newName: Scalars['String']['input'];
 };
 
 
@@ -1355,6 +1480,12 @@ export type MutationUnreadNotificationArgs = {
 
 export type MutationUpdateApiSettingsArgs = {
   input: ConnectSettingsInput;
+};
+
+
+export type MutationUpdateDockerViewPreferencesArgs = {
+  prefs: Scalars['JSON']['input'];
+  viewId?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1433,6 +1564,8 @@ export type Notifications = Node & {
   list: Array<Notification>;
   /** A cached overview of the notifications in the system & their severity. */
   overview: NotificationOverview;
+  /** Deduplicated list of unread warning and alert notifications, sorted latest first. */
+  warningsAndAlerts: Array<Notification>;
 };
 
 
@@ -1496,22 +1629,6 @@ export type OidcSessionValidation = {
   __typename?: 'OidcSessionValidation';
   username?: Maybe<Scalars['String']['output']>;
   valid: Scalars['Boolean']['output'];
-};
-
-export type OrganizerContainerResource = {
-  __typename?: 'OrganizerContainerResource';
-  id: Scalars['String']['output'];
-  meta?: Maybe<DockerContainer>;
-  name: Scalars['String']['output'];
-  type: Scalars['String']['output'];
-};
-
-export type OrganizerResource = {
-  __typename?: 'OrganizerResource';
-  id: Scalars['String']['output'];
-  meta?: Maybe<Scalars['JSON']['output']>;
-  name: Scalars['String']['output'];
-  type: Scalars['String']['output'];
 };
 
 export type Owner = {
@@ -1663,6 +1780,7 @@ export type Query = {
   disk: Disk;
   disks: Array<Disk>;
   docker: Docker;
+  dockerContainerOverviewForm: DockerContainerOverviewForm;
   flash: Flash;
   /** Get JSON Schema for API key creation form */
   getApiKeyCreationFormSchema: ApiKeyFormSettings;
@@ -1723,6 +1841,11 @@ export type QueryApiKeyArgs = {
 
 export type QueryDiskArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryDockerContainerOverviewFormArgs = {
+  skipCache?: Scalars['Boolean']['input'];
 };
 
 
@@ -1882,16 +2005,6 @@ export type RemoveRoleFromApiKeyInput = {
   role: Role;
 };
 
-export type ResolvedOrganizerEntry = OrganizerContainerResource | OrganizerResource | ResolvedOrganizerFolder;
-
-export type ResolvedOrganizerFolder = {
-  __typename?: 'ResolvedOrganizerFolder';
-  children: Array<ResolvedOrganizerEntry>;
-  id: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  type: Scalars['String']['output'];
-};
-
 export type ResolvedOrganizerV1 = {
   __typename?: 'ResolvedOrganizerV1';
   version: Scalars['Float']['output'];
@@ -1900,10 +2013,11 @@ export type ResolvedOrganizerV1 = {
 
 export type ResolvedOrganizerView = {
   __typename?: 'ResolvedOrganizerView';
+  flatEntries: Array<FlatOrganizerEntry>;
   id: Scalars['String']['output'];
   name: Scalars['String']['output'];
   prefs?: Maybe<Scalars['JSON']['output']>;
-  root: ResolvedOrganizerEntry;
+  rootId: Scalars['String']['output'];
 };
 
 /** Available resources for permissions */
@@ -2049,6 +2163,7 @@ export type Subscription = {
   logFile: LogFileContent;
   notificationAdded: Notification;
   notificationsOverview: NotificationOverview;
+  notificationsWarningsAndAlerts: Array<Notification>;
   ownerSubscription: Owner;
   parityHistorySubscription: ParityCheck;
   serversSubscription: Server;
@@ -2662,6 +2777,153 @@ export type UpdateConnectSettingsMutationVariables = Exact<{
 
 export type UpdateConnectSettingsMutation = { __typename?: 'Mutation', updateSettings: { __typename?: 'UpdateSettingsResponse', restartRequired: boolean, values: any } };
 
+export type GetDockerActiveContainerQueryVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+}>;
+
+
+export type GetDockerActiveContainerQuery = { __typename?: 'Query', docker: { __typename?: 'Docker', id: string, containers: Array<{ __typename?: 'DockerContainer', id: string, names: Array<string>, image: string, created: number, state: ContainerState, status: string, autoStart: boolean, networkSettings?: any | null, labels?: any | null, ports: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }>, hostConfig?: { __typename?: 'ContainerHostConfig', networkMode: string } | null }> } };
+
+export type GetDockerContainerSizesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetDockerContainerSizesQuery = { __typename?: 'Query', docker: { __typename?: 'Docker', id: string, containers: Array<{ __typename?: 'DockerContainer', id: string, names: Array<string>, sizeRootFs?: number | null, sizeRw?: number | null, sizeLog?: number | null }> } };
+
+export type GetDockerContainersQueryVariables = Exact<{
+  skipCache?: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+
+export type GetDockerContainersQuery = { __typename?: 'Query', docker: { __typename?: 'Docker', id: string, containers: Array<{ __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, status: string, image: string, created: number, lanIpPorts?: Array<string> | null, autoStart: boolean, autoStartOrder?: number | null, autoStartWait?: number | null, networkSettings?: any | null, mounts?: Array<any> | null, ports: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }>, hostConfig?: { __typename?: 'ContainerHostConfig', networkMode: string } | null }>, organizer: { __typename?: 'ResolvedOrganizerV1', version: number, views: Array<{ __typename?: 'ResolvedOrganizerView', id: string, name: string, rootId: string, prefs?: any | null, flatEntries: Array<{ __typename?: 'FlatOrganizerEntry', id: string, type: string, name: string, parentId?: string | null, depth: number, position: number, path: Array<string>, hasChildren: boolean, childrenIds: Array<string>, icon?: string | null, meta?: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, status: string, image: string, lanIpPorts?: Array<string> | null, autoStart: boolean, networkSettings?: any | null, mounts?: Array<any> | null, created: number, isUpdateAvailable?: boolean | null, isRebuildReady?: boolean | null, templatePath?: string | null, ports: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }>, hostConfig?: { __typename?: 'ContainerHostConfig', networkMode: string } | null } | null }> }> } } };
+
+export type CreateDockerFolderWithItemsMutationVariables = Exact<{
+  name: Scalars['String']['input'];
+  parentId?: InputMaybe<Scalars['String']['input']>;
+  sourceEntryIds?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  position?: InputMaybe<Scalars['Float']['input']>;
+}>;
+
+
+export type CreateDockerFolderWithItemsMutation = { __typename?: 'Mutation', createDockerFolderWithItems: { __typename?: 'ResolvedOrganizerV1', version: number, views: Array<{ __typename?: 'ResolvedOrganizerView', id: string, name: string, rootId: string, flatEntries: Array<{ __typename?: 'FlatOrganizerEntry', id: string, type: string, name: string, parentId?: string | null, depth: number, position: number, path: Array<string>, hasChildren: boolean, childrenIds: Array<string>, meta?: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, status: string, image: string, autoStart: boolean, created: number, isUpdateAvailable?: boolean | null, isRebuildReady?: boolean | null, ports: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }>, hostConfig?: { __typename?: 'ContainerHostConfig', networkMode: string } | null } | null }> }> } };
+
+export type CreateDockerFolderMutationVariables = Exact<{
+  name: Scalars['String']['input'];
+  parentId?: InputMaybe<Scalars['String']['input']>;
+  childrenIds?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+}>;
+
+
+export type CreateDockerFolderMutation = { __typename?: 'Mutation', createDockerFolder: { __typename?: 'ResolvedOrganizerV1', version: number, views: Array<{ __typename?: 'ResolvedOrganizerView', id: string, name: string, rootId: string, flatEntries: Array<{ __typename?: 'FlatOrganizerEntry', id: string, type: string, name: string, parentId?: string | null, depth: number, position: number, path: Array<string>, hasChildren: boolean, childrenIds: Array<string> }> }> } };
+
+export type DeleteDockerEntriesMutationVariables = Exact<{
+  entryIds: Array<Scalars['String']['input']> | Scalars['String']['input'];
+}>;
+
+
+export type DeleteDockerEntriesMutation = { __typename?: 'Mutation', deleteDockerEntries: { __typename?: 'ResolvedOrganizerV1', version: number, views: Array<{ __typename?: 'ResolvedOrganizerView', id: string, name: string, rootId: string, flatEntries: Array<{ __typename?: 'FlatOrganizerEntry', id: string, type: string, name: string, parentId?: string | null, depth: number, position: number, path: Array<string>, hasChildren: boolean, childrenIds: Array<string> }> }> } };
+
+export type MoveDockerEntriesToFolderMutationVariables = Exact<{
+  destinationFolderId: Scalars['String']['input'];
+  sourceEntryIds: Array<Scalars['String']['input']> | Scalars['String']['input'];
+}>;
+
+
+export type MoveDockerEntriesToFolderMutation = { __typename?: 'Mutation', moveDockerEntriesToFolder: { __typename?: 'ResolvedOrganizerV1', version: number, views: Array<{ __typename?: 'ResolvedOrganizerView', id: string, name: string, rootId: string, flatEntries: Array<{ __typename?: 'FlatOrganizerEntry', id: string, type: string, name: string, parentId?: string | null, depth: number, position: number, path: Array<string>, hasChildren: boolean, childrenIds: Array<string> }> }> } };
+
+export type MoveDockerItemsToPositionMutationVariables = Exact<{
+  sourceEntryIds: Array<Scalars['String']['input']> | Scalars['String']['input'];
+  destinationFolderId: Scalars['String']['input'];
+  position: Scalars['Float']['input'];
+}>;
+
+
+export type MoveDockerItemsToPositionMutation = { __typename?: 'Mutation', moveDockerItemsToPosition: { __typename?: 'ResolvedOrganizerV1', version: number, views: Array<{ __typename?: 'ResolvedOrganizerView', id: string, name: string, rootId: string, flatEntries: Array<{ __typename?: 'FlatOrganizerEntry', id: string, type: string, name: string, parentId?: string | null, depth: number, position: number, path: Array<string>, hasChildren: boolean, childrenIds: Array<string>, meta?: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, status: string, image: string, autoStart: boolean, created: number, isUpdateAvailable?: boolean | null, isRebuildReady?: boolean | null, ports: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }>, hostConfig?: { __typename?: 'ContainerHostConfig', networkMode: string } | null } | null }> }> } };
+
+export type GetDockerContainerOverviewFormQueryVariables = Exact<{
+  skipCache?: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+
+export type GetDockerContainerOverviewFormQuery = { __typename?: 'Query', dockerContainerOverviewForm: { __typename?: 'DockerContainerOverviewForm', id: string, dataSchema: any, uiSchema: any, data: any } };
+
+export type PauseDockerContainerMutationVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+}>;
+
+
+export type PauseDockerContainerMutation = { __typename?: 'Mutation', docker: { __typename?: 'DockerMutations', pause: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState } } };
+
+export type RefreshDockerDigestsMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type RefreshDockerDigestsMutation = { __typename?: 'Mutation', refreshDockerDigests: boolean };
+
+export type RenameDockerFolderMutationVariables = Exact<{
+  folderId: Scalars['String']['input'];
+  newName: Scalars['String']['input'];
+}>;
+
+
+export type RenameDockerFolderMutation = { __typename?: 'Mutation', renameDockerFolder: { __typename?: 'ResolvedOrganizerV1', version: number, views: Array<{ __typename?: 'ResolvedOrganizerView', id: string, name: string, rootId: string, flatEntries: Array<{ __typename?: 'FlatOrganizerEntry', id: string, type: string, name: string, parentId?: string | null, depth: number, position: number, path: Array<string>, hasChildren: boolean, childrenIds: Array<string>, meta?: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, status: string, image: string, autoStart: boolean, created: number, isUpdateAvailable?: boolean | null, isRebuildReady?: boolean | null, ports: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }>, hostConfig?: { __typename?: 'ContainerHostConfig', networkMode: string } | null } | null }> }> } };
+
+export type SetDockerFolderChildrenMutationVariables = Exact<{
+  folderId?: InputMaybe<Scalars['String']['input']>;
+  childrenIds: Array<Scalars['String']['input']> | Scalars['String']['input'];
+}>;
+
+
+export type SetDockerFolderChildrenMutation = { __typename?: 'Mutation', setDockerFolderChildren: { __typename?: 'ResolvedOrganizerV1', version: number, views: Array<{ __typename?: 'ResolvedOrganizerView', id: string, name: string, rootId: string, flatEntries: Array<{ __typename?: 'FlatOrganizerEntry', id: string, type: string, name: string, parentId?: string | null, depth: number, position: number, path: Array<string>, hasChildren: boolean, childrenIds: Array<string> }> }> } };
+
+export type StartDockerContainerMutationVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+}>;
+
+
+export type StartDockerContainerMutation = { __typename?: 'Mutation', docker: { __typename?: 'DockerMutations', start: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState } } };
+
+export type StopDockerContainerMutationVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+}>;
+
+
+export type StopDockerContainerMutation = { __typename?: 'Mutation', docker: { __typename?: 'DockerMutations', stop: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState } } };
+
+export type UnpauseDockerContainerMutationVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+}>;
+
+
+export type UnpauseDockerContainerMutation = { __typename?: 'Mutation', docker: { __typename?: 'DockerMutations', unpause: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState } } };
+
+export type UpdateDockerAutostartConfigurationMutationVariables = Exact<{
+  entries: Array<DockerAutostartEntryInput> | DockerAutostartEntryInput;
+}>;
+
+
+export type UpdateDockerAutostartConfigurationMutation = { __typename?: 'Mutation', docker: { __typename?: 'DockerMutations', updateAutostartConfiguration: boolean } };
+
+export type UpdateDockerContainerMutationVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+}>;
+
+
+export type UpdateDockerContainerMutation = { __typename?: 'Mutation', docker: { __typename?: 'DockerMutations', updateContainer: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, isUpdateAvailable?: boolean | null, isRebuildReady?: boolean | null } } };
+
+export type UpdateDockerContainersMutationVariables = Exact<{
+  ids: Array<Scalars['PrefixedID']['input']> | Scalars['PrefixedID']['input'];
+}>;
+
+
+export type UpdateDockerContainersMutation = { __typename?: 'Mutation', docker: { __typename?: 'DockerMutations', updateContainers: Array<{ __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, isUpdateAvailable?: boolean | null, isRebuildReady?: boolean | null }> } };
+
+export type UpdateDockerViewPreferencesMutationVariables = Exact<{
+  viewId?: InputMaybe<Scalars['String']['input']>;
+  prefs: Scalars['JSON']['input'];
+}>;
+
+
+export type UpdateDockerViewPreferencesMutation = { __typename?: 'Mutation', updateDockerViewPreferences: { __typename?: 'ResolvedOrganizerV1', version: number, views: Array<{ __typename?: 'ResolvedOrganizerView', id: string, name: string, rootId: string, prefs?: any | null, flatEntries: Array<{ __typename?: 'FlatOrganizerEntry', id: string, type: string, name: string, parentId?: string | null, depth: number, position: number, path: Array<string>, hasChildren: boolean, childrenIds: Array<string>, meta?: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, status: string, image: string, autoStart: boolean, created: number, isUpdateAvailable?: boolean | null, isRebuildReady?: boolean | null, ports: Array<{ __typename?: 'ContainerPort', privatePort?: number | null, publicPort?: number | null, type: ContainerPortType }>, hostConfig?: { __typename?: 'ContainerHostConfig', networkMode: string } | null } | null }> }> } };
+
 export type LogFilesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -2693,6 +2955,14 @@ export type NotificationsQueryVariables = Exact<{
 
 
 export type NotificationsQuery = { __typename?: 'Query', notifications: { __typename?: 'Notifications', id: string, list: Array<(
+      { __typename?: 'Notification' }
+      & { ' $fragmentRefs'?: { 'NotificationFragmentFragment': NotificationFragmentFragment } }
+    )> } };
+
+export type WarningAndAlertNotificationsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type WarningAndAlertNotificationsQuery = { __typename?: 'Query', notifications: { __typename?: 'Notifications', id: string, warningsAndAlerts: Array<(
       { __typename?: 'Notification' }
       & { ' $fragmentRefs'?: { 'NotificationFragmentFragment': NotificationFragmentFragment } }
     )> } };
@@ -2741,6 +3011,16 @@ export type RecomputeOverviewMutation = { __typename?: 'Mutation', recalculateOv
       & { ' $fragmentRefs'?: { 'NotificationCountFragmentFragment': NotificationCountFragmentFragment } }
     ) } };
 
+export type NotifyIfUniqueMutationVariables = Exact<{
+  input: NotificationData;
+}>;
+
+
+export type NotifyIfUniqueMutation = { __typename?: 'Mutation', notifyIfUnique?: (
+    { __typename?: 'Notification' }
+    & { ' $fragmentRefs'?: { 'NotificationFragmentFragment': NotificationFragmentFragment } }
+  ) | null };
+
 export type NotificationAddedSubSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -2759,6 +3039,14 @@ export type NotificationOverviewSubSubscription = { __typename?: 'Subscription',
       { __typename?: 'NotificationCounts' }
       & { ' $fragmentRefs'?: { 'NotificationCountFragmentFragment': NotificationCountFragmentFragment } }
     ) } };
+
+export type NotificationsWarningsAndAlertsSubSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NotificationsWarningsAndAlertsSubSubscription = { __typename?: 'Subscription', notificationsWarningsAndAlerts: Array<(
+    { __typename?: 'Notification' }
+    & { ' $fragmentRefs'?: { 'NotificationFragmentFragment': NotificationFragmentFragment } }
+  )> };
 
 export type CreateRCloneRemoteMutationVariables = Exact<{
   input: CreateRCloneRemoteInput;
@@ -2860,18 +3148,41 @@ export const PreviewEffectivePermissionsDocument = {"kind":"Document","definitio
 export const GetPermissionsForRolesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPermissionsForRoles"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"roles"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Role"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getPermissionsForRoles"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"roles"},"value":{"kind":"Variable","name":{"kind":"Name","value":"roles"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<GetPermissionsForRolesQuery, GetPermissionsForRolesQueryVariables>;
 export const UnifiedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Unified"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unified"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]}}]} as unknown as DocumentNode<UnifiedQuery, UnifiedQueryVariables>;
 export const UpdateConnectSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateConnectSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"JSON"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"restartRequired"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<UpdateConnectSettingsMutation, UpdateConnectSettingsMutationVariables>;
+export const GetDockerActiveContainerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetDockerActiveContainer"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"containers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"created"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"autoStart"}},{"kind":"Field","name":{"kind":"Name","value":"ports"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"hostConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"networkMode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"networkSettings"}},{"kind":"Field","name":{"kind":"Name","value":"labels"}}]}}]}}]}}]} as unknown as DocumentNode<GetDockerActiveContainerQuery, GetDockerActiveContainerQueryVariables>;
+export const GetDockerContainerSizesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetDockerContainerSizes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"containers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"skipCache"},"value":{"kind":"BooleanValue","value":true}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"sizeRootFs"}},{"kind":"Field","name":{"kind":"Name","value":"sizeRw"}},{"kind":"Field","name":{"kind":"Name","value":"sizeLog"}}]}}]}}]}}]} as unknown as DocumentNode<GetDockerContainerSizesQuery, GetDockerContainerSizesQueryVariables>;
+export const GetDockerContainersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetDockerContainers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"skipCache"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}},"defaultValue":{"kind":"BooleanValue","value":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"containers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"skipCache"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skipCache"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"created"}},{"kind":"Field","name":{"kind":"Name","value":"lanIpPorts"}},{"kind":"Field","name":{"kind":"Name","value":"autoStart"}},{"kind":"Field","name":{"kind":"Name","value":"autoStartOrder"}},{"kind":"Field","name":{"kind":"Name","value":"autoStartWait"}},{"kind":"Field","name":{"kind":"Name","value":"ports"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"hostConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"networkMode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"networkSettings"}},{"kind":"Field","name":{"kind":"Name","value":"mounts"}}]}},{"kind":"Field","name":{"kind":"Name","value":"organizer"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"skipCache"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skipCache"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"views"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"rootId"}},{"kind":"Field","name":{"kind":"Name","value":"prefs"}},{"kind":"Field","name":{"kind":"Name","value":"flatEntries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"hasChildren"}},{"kind":"Field","name":{"kind":"Name","value":"childrenIds"}},{"kind":"Field","name":{"kind":"Name","value":"icon"}},{"kind":"Field","name":{"kind":"Name","value":"meta"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"lanIpPorts"}},{"kind":"Field","name":{"kind":"Name","value":"ports"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"autoStart"}},{"kind":"Field","name":{"kind":"Name","value":"hostConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"networkMode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"networkSettings"}},{"kind":"Field","name":{"kind":"Name","value":"mounts"}},{"kind":"Field","name":{"kind":"Name","value":"created"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}},{"kind":"Field","name":{"kind":"Name","value":"templatePath"}}]}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetDockerContainersQuery, GetDockerContainersQueryVariables>;
+export const CreateDockerFolderWithItemsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateDockerFolderWithItems"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"parentId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sourceEntryIds"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"position"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createDockerFolderWithItems"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"parentId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"parentId"}}},{"kind":"Argument","name":{"kind":"Name","value":"sourceEntryIds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sourceEntryIds"}}},{"kind":"Argument","name":{"kind":"Name","value":"position"},"value":{"kind":"Variable","name":{"kind":"Name","value":"position"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"views"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"rootId"}},{"kind":"Field","name":{"kind":"Name","value":"flatEntries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"hasChildren"}},{"kind":"Field","name":{"kind":"Name","value":"childrenIds"}},{"kind":"Field","name":{"kind":"Name","value":"meta"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"ports"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"autoStart"}},{"kind":"Field","name":{"kind":"Name","value":"hostConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"networkMode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"created"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<CreateDockerFolderWithItemsMutation, CreateDockerFolderWithItemsMutationVariables>;
+export const CreateDockerFolderDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateDockerFolder"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"parentId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"childrenIds"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createDockerFolder"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"parentId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"parentId"}}},{"kind":"Argument","name":{"kind":"Name","value":"childrenIds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"childrenIds"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"views"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"rootId"}},{"kind":"Field","name":{"kind":"Name","value":"flatEntries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"hasChildren"}},{"kind":"Field","name":{"kind":"Name","value":"childrenIds"}}]}}]}}]}}]}}]} as unknown as DocumentNode<CreateDockerFolderMutation, CreateDockerFolderMutationVariables>;
+export const DeleteDockerEntriesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteDockerEntries"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"entryIds"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteDockerEntries"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"entryIds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"entryIds"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"views"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"rootId"}},{"kind":"Field","name":{"kind":"Name","value":"flatEntries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"hasChildren"}},{"kind":"Field","name":{"kind":"Name","value":"childrenIds"}}]}}]}}]}}]}}]} as unknown as DocumentNode<DeleteDockerEntriesMutation, DeleteDockerEntriesMutationVariables>;
+export const MoveDockerEntriesToFolderDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"MoveDockerEntriesToFolder"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"destinationFolderId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sourceEntryIds"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moveDockerEntriesToFolder"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"destinationFolderId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"destinationFolderId"}}},{"kind":"Argument","name":{"kind":"Name","value":"sourceEntryIds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sourceEntryIds"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"views"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"rootId"}},{"kind":"Field","name":{"kind":"Name","value":"flatEntries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"hasChildren"}},{"kind":"Field","name":{"kind":"Name","value":"childrenIds"}}]}}]}}]}}]}}]} as unknown as DocumentNode<MoveDockerEntriesToFolderMutation, MoveDockerEntriesToFolderMutationVariables>;
+export const MoveDockerItemsToPositionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"MoveDockerItemsToPosition"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sourceEntryIds"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"destinationFolderId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"position"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"moveDockerItemsToPosition"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"sourceEntryIds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sourceEntryIds"}}},{"kind":"Argument","name":{"kind":"Name","value":"destinationFolderId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"destinationFolderId"}}},{"kind":"Argument","name":{"kind":"Name","value":"position"},"value":{"kind":"Variable","name":{"kind":"Name","value":"position"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"views"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"rootId"}},{"kind":"Field","name":{"kind":"Name","value":"flatEntries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"hasChildren"}},{"kind":"Field","name":{"kind":"Name","value":"childrenIds"}},{"kind":"Field","name":{"kind":"Name","value":"meta"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"ports"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"autoStart"}},{"kind":"Field","name":{"kind":"Name","value":"hostConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"networkMode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"created"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<MoveDockerItemsToPositionMutation, MoveDockerItemsToPositionMutationVariables>;
+export const GetDockerContainerOverviewFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetDockerContainerOverviewForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"skipCache"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}},"defaultValue":{"kind":"BooleanValue","value":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dockerContainerOverviewForm"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"skipCache"},"value":{"kind":"Variable","name":{"kind":"Name","value":"skipCache"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"data"}}]}}]}}]} as unknown as DocumentNode<GetDockerContainerOverviewFormQuery, GetDockerContainerOverviewFormQueryVariables>;
+export const PauseDockerContainerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"PauseDockerContainer"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pause"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}}]}}]}}]}}]} as unknown as DocumentNode<PauseDockerContainerMutation, PauseDockerContainerMutationVariables>;
+export const RefreshDockerDigestsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RefreshDockerDigests"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"refreshDockerDigests"}}]}}]} as unknown as DocumentNode<RefreshDockerDigestsMutation, RefreshDockerDigestsMutationVariables>;
+export const RenameDockerFolderDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RenameDockerFolder"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"folderId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"newName"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"renameDockerFolder"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"folderId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"folderId"}}},{"kind":"Argument","name":{"kind":"Name","value":"newName"},"value":{"kind":"Variable","name":{"kind":"Name","value":"newName"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"views"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"rootId"}},{"kind":"Field","name":{"kind":"Name","value":"flatEntries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"hasChildren"}},{"kind":"Field","name":{"kind":"Name","value":"childrenIds"}},{"kind":"Field","name":{"kind":"Name","value":"meta"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"ports"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"autoStart"}},{"kind":"Field","name":{"kind":"Name","value":"hostConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"networkMode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"created"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<RenameDockerFolderMutation, RenameDockerFolderMutationVariables>;
+export const SetDockerFolderChildrenDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SetDockerFolderChildren"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"folderId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"childrenIds"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setDockerFolderChildren"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"folderId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"folderId"}}},{"kind":"Argument","name":{"kind":"Name","value":"childrenIds"},"value":{"kind":"Variable","name":{"kind":"Name","value":"childrenIds"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"views"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"rootId"}},{"kind":"Field","name":{"kind":"Name","value":"flatEntries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"hasChildren"}},{"kind":"Field","name":{"kind":"Name","value":"childrenIds"}}]}}]}}]}}]}}]} as unknown as DocumentNode<SetDockerFolderChildrenMutation, SetDockerFolderChildrenMutationVariables>;
+export const StartDockerContainerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"StartDockerContainer"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}}]}}]}}]}}]} as unknown as DocumentNode<StartDockerContainerMutation, StartDockerContainerMutationVariables>;
+export const StopDockerContainerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"StopDockerContainer"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"stop"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}}]}}]}}]}}]} as unknown as DocumentNode<StopDockerContainerMutation, StopDockerContainerMutationVariables>;
+export const UnpauseDockerContainerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UnpauseDockerContainer"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unpause"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}}]}}]}}]}}]} as unknown as DocumentNode<UnpauseDockerContainerMutation, UnpauseDockerContainerMutationVariables>;
+export const UpdateDockerAutostartConfigurationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerAutostartConfiguration"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"entries"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DockerAutostartEntryInput"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateAutostartConfiguration"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"entries"},"value":{"kind":"Variable","name":{"kind":"Name","value":"entries"}}}]}]}}]}}]} as unknown as DocumentNode<UpdateDockerAutostartConfigurationMutation, UpdateDockerAutostartConfigurationMutationVariables>;
+export const UpdateDockerContainerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerContainer"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateContainer"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateDockerContainerMutation, UpdateDockerContainerMutationVariables>;
+export const UpdateDockerContainersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerContainers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"ids"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateContainers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"ids"},"value":{"kind":"Variable","name":{"kind":"Name","value":"ids"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateDockerContainersMutation, UpdateDockerContainersMutationVariables>;
+export const UpdateDockerViewPreferencesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerViewPreferences"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"viewId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"prefs"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"JSON"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateDockerViewPreferences"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"viewId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"viewId"}}},{"kind":"Argument","name":{"kind":"Name","value":"prefs"},"value":{"kind":"Variable","name":{"kind":"Name","value":"prefs"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"views"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"rootId"}},{"kind":"Field","name":{"kind":"Name","value":"prefs"}},{"kind":"Field","name":{"kind":"Name","value":"flatEntries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"hasChildren"}},{"kind":"Field","name":{"kind":"Name","value":"childrenIds"}},{"kind":"Field","name":{"kind":"Name","value":"meta"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"ports"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"autoStart"}},{"kind":"Field","name":{"kind":"Name","value":"hostConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"networkMode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"created"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<UpdateDockerViewPreferencesMutation, UpdateDockerViewPreferencesMutationVariables>;
 export const LogFilesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"size"}},{"kind":"Field","name":{"kind":"Name","value":"modifiedAt"}}]}}]}}]} as unknown as DocumentNode<LogFilesQuery, LogFilesQueryVariables>;
 export const LogFileContentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFileContent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"lines"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"startLine"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}},{"kind":"Argument","name":{"kind":"Name","value":"lines"},"value":{"kind":"Variable","name":{"kind":"Name","value":"lines"}}},{"kind":"Argument","name":{"kind":"Name","value":"startLine"},"value":{"kind":"Variable","name":{"kind":"Name","value":"startLine"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"totalLines"}},{"kind":"Field","name":{"kind":"Name","value":"startLine"}}]}}]}}]} as unknown as DocumentNode<LogFileContentQuery, LogFileContentQueryVariables>;
 export const LogFileSubscriptionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"LogFileSubscription"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"totalLines"}}]}}]}}]} as unknown as DocumentNode<LogFileSubscriptionSubscription, LogFileSubscriptionSubscriptionVariables>;
 export const NotificationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Notifications"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationFilter"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"list"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationsQuery, NotificationsQueryVariables>;
+export const WarningAndAlertNotificationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"WarningAndAlertNotifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"warningsAndAlerts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<WarningAndAlertNotificationsQuery, WarningAndAlertNotificationsQueryVariables>;
 export const ArchiveNotificationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ArchiveNotification"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archiveNotification"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<ArchiveNotificationMutation, ArchiveNotificationMutationVariables>;
 export const ArchiveAllNotificationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ArchiveAllNotifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archiveAll"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}}]}},{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}},{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]} as unknown as DocumentNode<ArchiveAllNotificationsMutation, ArchiveAllNotificationsMutationVariables>;
 export const DeleteNotificationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteNotification"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"type"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationType"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteNotification"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"type"},"value":{"kind":"Variable","name":{"kind":"Name","value":"type"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]} as unknown as DocumentNode<DeleteNotificationMutation, DeleteNotificationMutationVariables>;
 export const DeleteAllNotificationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteAllNotifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteArchivedNotifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}}]}},{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]} as unknown as DocumentNode<DeleteAllNotificationsMutation, DeleteAllNotificationsMutationVariables>;
 export const OverviewDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Overview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"overview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}},{"kind":"Field","name":{"kind":"Name","value":"total"}}]}},{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]}}]} as unknown as DocumentNode<OverviewQuery, OverviewQueryVariables>;
 export const RecomputeOverviewDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RecomputeOverview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"recalculateOverview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<RecomputeOverviewMutation, RecomputeOverviewMutationVariables>;
+export const NotifyIfUniqueDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"NotifyIfUnique"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationData"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notifyIfUnique"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotifyIfUniqueMutation, NotifyIfUniqueMutationVariables>;
 export const NotificationAddedSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationAddedSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationAdded"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationAddedSubSubscription, NotificationAddedSubSubscriptionVariables>;
 export const NotificationOverviewSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationOverviewSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationsOverview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationOverviewSubSubscription, NotificationOverviewSubSubscriptionVariables>;
+export const NotificationsWarningsAndAlertsSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationsWarningsAndAlertsSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationsWarningsAndAlerts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationsWarningsAndAlertsSubSubscription, NotificationsWarningsAndAlertsSubSubscriptionVariables>;
 export const CreateRCloneRemoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateRCloneRemote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateRCloneRemoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createRCloneRemote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"parameters"}}]}}]}}]}}]} as unknown as DocumentNode<CreateRCloneRemoteMutation, CreateRCloneRemoteMutationVariables>;
 export const DeleteRCloneRemoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteRCloneRemote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteRCloneRemoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteRCloneRemote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]}}]} as unknown as DocumentNode<DeleteRCloneRemoteMutation, DeleteRCloneRemoteMutationVariables>;
 export const GetRCloneConfigFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetRCloneConfigForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"formOptions"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"RCloneConfigFormInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"configForm"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"formOptions"},"value":{"kind":"Variable","name":{"kind":"Name","value":"formOptions"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}}]}}]}}]}}]} as unknown as DocumentNode<GetRCloneConfigFormQuery, GetRCloneConfigFormQueryVariables>;

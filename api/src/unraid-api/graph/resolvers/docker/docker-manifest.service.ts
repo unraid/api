@@ -41,7 +41,22 @@ export class DockerManifestService {
         cacheData ??= await this.dockerPhpService.readCachedUpdateStatus();
         const containerData = cacheData[taggedRef];
         if (!containerData) return null;
-        return containerData.status?.toLowerCase() === 'true';
+
+        const normalize = (digest?: string | null) => {
+            const value = digest?.trim().toLowerCase();
+            return value && value !== 'undef' ? value : null;
+        };
+
+        const localDigest = normalize(containerData.local);
+        const remoteDigest = normalize(containerData.remote);
+        if (localDigest && remoteDigest) {
+            return localDigest !== remoteDigest;
+        }
+
+        const status = containerData.status?.toLowerCase();
+        if (status === 'true') return true;
+        if (status === 'false') return false;
+        return null;
     }
 
     /**

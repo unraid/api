@@ -1,7 +1,11 @@
-import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
+import { type Layout } from '@jsonforms/core';
 import { Node } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { GraphQLBigInt, GraphQLJSON, GraphQLPort } from 'graphql-scalars';
+
+import { DataSlice } from '@app/unraid-api/types/json-forms.js';
 
 export enum ContainerPortType {
     TCP = 'TCP',
@@ -29,6 +33,7 @@ export class ContainerPort {
 
 export enum ContainerState {
     RUNNING = 'RUNNING',
+    PAUSED = 'PAUSED',
     EXITED = 'EXITED',
 }
 
@@ -89,11 +94,29 @@ export class DockerContainer extends Node {
     @Field(() => [ContainerPort])
     ports!: ContainerPort[];
 
+    @Field(() => [String], {
+        nullable: true,
+        description: 'List of LAN-accessible host:port values',
+    })
+    lanIpPorts?: string[];
+
     @Field(() => GraphQLBigInt, {
         nullable: true,
         description: 'Total size of all files in the container (in bytes)',
     })
     sizeRootFs?: number;
+
+    @Field(() => GraphQLBigInt, {
+        nullable: true,
+        description: 'Size of writable layer (in bytes)',
+    })
+    sizeRw?: number;
+
+    @Field(() => GraphQLBigInt, {
+        nullable: true,
+        description: 'Size of container logs (in bytes)',
+    })
+    sizeLog?: number;
 
     @Field(() => GraphQLJSON, { nullable: true })
     labels?: Record<string, any>;
@@ -115,6 +138,15 @@ export class DockerContainer extends Node {
 
     @Field(() => Boolean)
     autoStart!: boolean;
+
+    @Field(() => Int, { nullable: true, description: 'Zero-based order in the auto-start list' })
+    autoStartOrder?: number;
+
+    @Field(() => Int, { nullable: true, description: 'Wait time in seconds applied after start' })
+    autoStartWait?: number;
+
+    @Field(() => String, { nullable: true })
+    templatePath?: string;
 }
 
 @ObjectType({ implements: () => Node })
@@ -171,4 +203,34 @@ export class Docker extends Node {
 
     @Field(() => [DockerNetwork])
     networks!: DockerNetwork[];
+}
+
+@ObjectType()
+export class DockerContainerOverviewForm {
+    @Field(() => ID)
+    id!: string;
+
+    @Field(() => GraphQLJSON)
+    dataSchema!: { properties: DataSlice; type: 'object' };
+
+    @Field(() => GraphQLJSON)
+    uiSchema!: Layout;
+
+    @Field(() => GraphQLJSON)
+    data!: Record<string, any>;
+}
+
+@InputType()
+export class DockerAutostartEntryInput {
+    @Field(() => PrefixedID, { description: 'Docker container identifier' })
+    id!: string;
+
+    @Field(() => Boolean, { description: 'Whether the container should auto-start' })
+    autoStart!: boolean;
+
+    @Field(() => Int, {
+        nullable: true,
+        description: 'Number of seconds to wait after starting the container',
+    })
+    wait?: number | null;
 }

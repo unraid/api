@@ -7,8 +7,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Import the mocked pubsub parts
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
+import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
+import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
+import {
+    ContainerPortType,
+    ContainerState,
+    DockerContainer,
+} from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
 // Mock pubsub
 vi.mock('@app/core/pubsub.js', () => ({
@@ -24,36 +32,53 @@ interface DockerError extends NodeJS.ErrnoException {
     address: string;
 }
 
-const mockContainer = {
-    start: vi.fn(),
-    stop: vi.fn(),
-};
+const { mockDockerInstance, mockListContainers, mockGetContainer, mockListNetworks, mockContainer } =
+    vi.hoisted(() => {
+        const mockContainer = {
+            start: vi.fn(),
+            stop: vi.fn(),
+        };
 
-// Create properly typed mock functions
-const mockListContainers = vi.fn();
-const mockGetContainer = vi.fn().mockReturnValue(mockContainer);
-const mockListNetworks = vi.fn();
+        const mockListContainers = vi.fn();
+        const mockGetContainer = vi.fn().mockReturnValue(mockContainer);
+        const mockListNetworks = vi.fn();
 
-const mockDockerInstance = {
-    getContainer: mockGetContainer,
-    listContainers: mockListContainers,
-    listNetworks: mockListNetworks,
-    modem: {
-        Promise: Promise,
-        protocol: 'http',
-        socketPath: '/var/run/docker.sock',
-        headers: {},
-        sshOptions: {
-            agentForward: undefined,
-        },
-    },
-} as unknown as Docker;
+        const mockDockerInstance = {
+            getContainer: mockGetContainer,
+            listContainers: mockListContainers,
+            listNetworks: mockListNetworks,
+            modem: {
+                Promise: Promise,
+                protocol: 'http',
+                socketPath: '/var/run/docker.sock',
+                headers: {},
+                sshOptions: {
+                    agentForward: undefined,
+                },
+            },
+        } as unknown as Docker;
+
+        return {
+            mockDockerInstance,
+            mockListContainers,
+            mockGetContainer,
+            mockListNetworks,
+            mockContainer,
+        };
+    });
 
 vi.mock('dockerode', () => {
     return {
         default: vi.fn().mockImplementation(() => mockDockerInstance),
     };
 });
+
+const { mockEmhttpGetter } = vi.hoisted(() => ({
+    mockEmhttpGetter: vi.fn().mockReturnValue({
+        networks: [],
+        var: {},
+    }),
+}));
 
 // Mock the store getters
 vi.mock('@app/store/index.js', () => ({
@@ -64,12 +89,21 @@ vi.mock('@app/store/index.js', () => ({
             'docker-socket': '/var/run/docker.sock',
             'var-run': '/var/run',
         }),
+        emhttp: mockEmhttpGetter,
     },
 }));
 
 // Mock fs/promises
+const { readFileMock, writeFileMock, unlinkMock } = vi.hoisted(() => ({
+    readFileMock: vi.fn().mockResolvedValue(''),
+    writeFileMock: vi.fn().mockResolvedValue(undefined),
+    unlinkMock: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock('fs/promises', () => ({
-    readFile: vi.fn().mockResolvedValue(''),
+    readFile: readFileMock,
+    writeFile: writeFileMock,
+    unlink: unlinkMock,
 }));
 
 // Mock Cache Manager
@@ -77,6 +111,38 @@ const mockCacheManager = {
     get: vi.fn(),
     set: vi.fn(),
     del: vi.fn(),
+};
+
+// Mock DockerConfigService
+const mockDockerConfigService = {
+    getConfig: vi.fn().mockReturnValue({
+        updateCheckCronSchedule: '0 6 * * *',
+        templateMappings: {},
+        skipTemplatePaths: [],
+    }),
+    replaceConfig: vi.fn(),
+    validate: vi.fn((config) => Promise.resolve(config)),
+};
+
+// Mock DockerTemplateScannerService
+const mockDockerTemplateScannerService = {
+    bootstrapScan: vi.fn().mockResolvedValue(undefined),
+    scanTemplates: vi.fn().mockResolvedValue({
+        scanned: 0,
+        matched: 0,
+        skipped: 0,
+        errors: [],
+    }),
+    syncMissingContainers: vi.fn().mockResolvedValue(false),
+};
+
+const mockDockerManifestService = {
+    refreshDigests: vi.fn().mockResolvedValue(true),
+};
+
+// Mock NotificationsService
+const mockNotificationsService = {
+    notifyIfUnique: vi.fn().mockResolvedValue(null),
 };
 
 describe('DockerService', () => {
@@ -91,6 +157,24 @@ describe('DockerService', () => {
         mockCacheManager.get.mockReset();
         mockCacheManager.set.mockReset();
         mockCacheManager.del.mockReset();
+        readFileMock.mockReset();
+        readFileMock.mockResolvedValue('');
+        writeFileMock.mockReset();
+        unlinkMock.mockReset();
+        mockEmhttpGetter.mockReset();
+        mockEmhttpGetter.mockReturnValue({
+            networks: [],
+            var: {},
+        });
+        mockDockerConfigService.getConfig.mockReturnValue({
+            updateCheckCronSchedule: '0 6 * * *',
+            templateMappings: {},
+            skipTemplatePaths: [],
+        });
+        mockDockerTemplateScannerService.bootstrapScan.mockResolvedValue(undefined);
+        mockDockerTemplateScannerService.syncMissingContainers.mockResolvedValue(false);
+        mockDockerManifestService.refreshDigests.mockReset();
+        mockDockerManifestService.refreshDigests.mockResolvedValue(true);
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
@@ -98,6 +182,22 @@ describe('DockerService', () => {
                 {
                     provide: CACHE_MANAGER,
                     useValue: mockCacheManager,
+                },
+                {
+                    provide: DockerConfigService,
+                    useValue: mockDockerConfigService,
+                },
+                {
+                    provide: DockerTemplateScannerService,
+                    useValue: mockDockerTemplateScannerService,
+                },
+                {
+                    provide: DockerManifestService,
+                    useValue: mockDockerManifestService,
+                },
+                {
+                    provide: NotificationsService,
+                    useValue: mockNotificationsService,
                 },
             ],
         }).compile();
@@ -198,6 +298,8 @@ describe('DockerService', () => {
             {
                 id: 'abc123def456',
                 autoStart: false,
+                autoStartOrder: undefined,
+                autoStartWait: undefined,
                 command: 'test',
                 created: 1234567890,
                 image: 'test-image',
@@ -253,6 +355,8 @@ describe('DockerService', () => {
         expect(result).toEqual({
             id: 'abc123def456',
             autoStart: false,
+            autoStartOrder: undefined,
+            autoStartWait: undefined,
             command: 'test',
             created: 1234567890,
             image: 'test-image',
@@ -311,6 +415,8 @@ describe('DockerService', () => {
         expect(result).toEqual({
             id: 'abc123def456',
             autoStart: false,
+            autoStartOrder: undefined,
+            autoStartWait: undefined,
             command: 'test',
             created: 1234567890,
             image: 'test-image',
@@ -359,6 +465,79 @@ describe('DockerService', () => {
             'Container not-found not found after stopping'
         );
         expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
+    });
+
+    it('should update auto-start configuration and persist waits', async () => {
+        mockListContainers.mockResolvedValue([
+            {
+                Id: 'abc123',
+                Names: ['/alpha'],
+                Image: 'alpha-image',
+                ImageID: 'alpha-image-id',
+                Command: 'run-alpha',
+                Created: 123,
+                State: 'running',
+                Status: 'Up 1 minute',
+                Ports: [],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: {},
+                Mounts: [],
+            },
+            {
+                Id: 'def456',
+                Names: ['/beta'],
+                Image: 'beta-image',
+                ImageID: 'beta-image-id',
+                Command: 'run-beta',
+                Created: 456,
+                State: 'running',
+                Status: 'Up 1 minute',
+                Ports: [],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: {},
+                Mounts: [],
+            },
+        ]);
+
+        await service.updateAutostartConfiguration([
+            { id: 'abc123', autoStart: true, wait: 15 },
+            { id: 'abc123', autoStart: true, wait: 5 }, // duplicate should be ignored
+            { id: 'def456', autoStart: false, wait: 0 },
+        ]);
+
+        expect(writeFileMock).toHaveBeenCalledWith('/path/to/docker-autostart', 'alpha 15\n', 'utf8');
+        expect(unlinkMock).not.toHaveBeenCalled();
+        expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
+        expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_WITH_SIZE_CACHE_KEY);
+    });
+
+    it('should remove auto-start file when no containers are configured', async () => {
+        mockListContainers.mockResolvedValue([
+            {
+                Id: 'abc123',
+                Names: ['/alpha'],
+                Image: 'alpha-image',
+                ImageID: 'alpha-image-id',
+                Command: 'run-alpha',
+                Created: 123,
+                State: 'running',
+                Status: 'Up 1 minute',
+                Ports: [],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: {},
+                Mounts: [],
+            },
+        ]);
+
+        await service.updateAutostartConfiguration([{ id: 'abc123', autoStart: false, wait: 30 }]);
+
+        expect(writeFileMock).not.toHaveBeenCalled();
+        expect(unlinkMock).toHaveBeenCalledWith('/path/to/docker-autostart');
+        expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
+        expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_WITH_SIZE_CACHE_KEY);
     });
 
     it('should get networks', async () => {
@@ -470,6 +649,53 @@ describe('DockerService', () => {
         );
         expect(mockListNetworks).toHaveBeenCalled();
         expect(mockCacheManager.set).not.toHaveBeenCalled(); // Ensure cache is NOT set on error
+    });
+
+    describe('transformContainer', () => {
+        it('deduplicates ports that only differ by bound IP addresses', () => {
+            mockEmhttpGetter.mockReturnValue({
+                networks: [{ ipaddr: ['192.168.0.10'] }],
+                var: {},
+            });
+
+            const container = {
+                Id: 'duplicate-ports',
+                Names: ['/duplicate-ports'],
+                Image: 'test-image',
+                ImageID: 'sha256:123',
+                Command: 'test',
+                Created: 1700000000,
+                State: 'running',
+                Status: 'Up 2 hours',
+                Ports: [
+                    { IP: '0.0.0.0', PrivatePort: 8080, PublicPort: 8080, Type: 'tcp' },
+                    { IP: '::', PrivatePort: 8080, PublicPort: 8080, Type: 'tcp' },
+                    { IP: '0.0.0.0', PrivatePort: 5000, PublicPort: 5000, Type: 'udp' },
+                ],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: { Networks: {} },
+                Mounts: [],
+            } as Docker.ContainerInfo;
+
+            const transformed = service.transformContainer(container);
+
+            expect(transformed.ports).toEqual([
+                {
+                    ip: '0.0.0.0',
+                    privatePort: 8080,
+                    publicPort: 8080,
+                    type: ContainerPortType.TCP,
+                },
+                {
+                    ip: '0.0.0.0',
+                    privatePort: 5000,
+                    publicPort: 5000,
+                    type: ContainerPortType.UDP,
+                },
+            ]);
+            expect(transformed.lanIpPorts).toEqual(['192.168.0.10:8080', '192.168.0.10:5000']);
+        });
     });
 
     describe('getAppInfo', () => {
