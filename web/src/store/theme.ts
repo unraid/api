@@ -1,5 +1,5 @@
 import { computed, ref, watch } from 'vue';
-import { defineStore, getActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
 import { defaultColors } from '~/themes/default';
@@ -7,10 +7,8 @@ import hexToRgba from 'hex-to-rgba';
 
 import type { GetThemeQuery } from '~/composables/gql/graphql';
 import type { Theme, ThemeVariables } from '~/themes/types';
-import type { Pinia } from 'pinia';
 
 import { graphql } from '~/composables/gql/gql';
-import { globalPinia } from '~/store/globalPinia';
 
 // Themes that should apply the .dark class (dark UI themes)
 export const DARK_UI_THEMES = ['gray', 'black'] as const;
@@ -72,7 +70,7 @@ const DYNAMIC_VAR_KEYS = [
 
 type DynamicVarKey = (typeof DYNAMIC_VAR_KEYS)[number];
 
-const baseUseThemeStore = defineStore(
+export const useThemeStore = defineStore(
   'theme',
   () => {
     // State
@@ -297,16 +295,9 @@ const baseUseThemeStore = defineStore(
       key: THEME_STORAGE_KEY,
       pick: ['theme'],
       afterHydrate: (ctx) => {
-        const store = ctx.store as ReturnType<typeof baseUseThemeStore>;
+        const store = ctx.store as ReturnType<typeof useThemeStore>;
         store.setTheme(store.theme);
       },
     },
   }
 );
-
-export const useThemeStore = ((pinia?: Pinia) => {
-  const resolved = pinia ?? getActivePinia() ?? globalPinia;
-  return baseUseThemeStore(resolved);
-}) as typeof baseUseThemeStore;
-
-Object.assign(useThemeStore, baseUseThemeStore);
