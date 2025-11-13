@@ -1,8 +1,65 @@
+import { nextTick } from 'vue';
 import { createI18n } from 'vue-i18n';
 
+import ar from '~/locales/ar.json';
+import bn from '~/locales/bn.json';
+import ca from '~/locales/ca.json';
+import cs from '~/locales/cs.json';
+import da from '~/locales/da.json';
+import de from '~/locales/de.json';
 import enUS from '~/locales/en.json';
+import es from '~/locales/es.json';
+import fr from '~/locales/fr.json';
+import hi from '~/locales/hi.json';
+import hr from '~/locales/hr.json';
+import hu from '~/locales/hu.json';
+import it from '~/locales/it.json';
+import ja from '~/locales/ja.json';
+import ko from '~/locales/ko.json';
+import lv from '~/locales/lv.json';
+import nl from '~/locales/nl.json';
+import no from '~/locales/no.json';
+import pl from '~/locales/pl.json';
+import pt from '~/locales/pt.json';
+import ro from '~/locales/ro.json';
+import ru from '~/locales/ru.json';
+import sv from '~/locales/sv.json';
+import uk from '~/locales/uk.json';
+import zh from '~/locales/zh.json';
+
+import type { I18n } from 'vue-i18n';
 
 const DEFAULT_LOCALE = 'en_US';
+
+type LocaleMessages = typeof enUS;
+
+const localeMessages: Record<string, LocaleMessages> = {
+  en_US: enUS,
+  ar,
+  bn,
+  ca,
+  cs,
+  da,
+  de,
+  es,
+  fr,
+  hi,
+  hr,
+  hu,
+  it,
+  ja,
+  ko,
+  lv,
+  nl,
+  no,
+  pl,
+  pt,
+  ro,
+  ru,
+  sv,
+  uk,
+  zh,
+};
 
 type AnyObject = Record<string, unknown>;
 
@@ -55,4 +112,32 @@ export function createTestI18n() {
       [DEFAULT_LOCALE]: enUS,
     },
   });
+}
+
+export async function switchLocale(i18n: I18n, locale: string): Promise<void> {
+  const normalizedLocale = locale === 'en' ? DEFAULT_LOCALE : locale;
+
+  if (!localeMessages[normalizedLocale]) {
+    console.warn(
+      `[switchLocale] Locale "${locale}" not available. Available locales: ${Object.keys(localeMessages).join(', ')}`
+    );
+    return;
+  }
+
+  const availableLocales = i18n.global.availableLocales as unknown as string[];
+
+  if (!availableLocales.includes(normalizedLocale)) {
+    i18n.global.setLocaleMessage(
+      normalizedLocale as typeof DEFAULT_LOCALE,
+      localeMessages[normalizedLocale]
+    );
+    availableLocales.push(normalizedLocale);
+  }
+
+  if (typeof i18n.global.locale === 'string') {
+    i18n.global.locale = normalizedLocale as typeof DEFAULT_LOCALE;
+  } else {
+    i18n.global.locale.value = normalizedLocale as typeof DEFAULT_LOCALE;
+  }
+  await nextTick();
 }
