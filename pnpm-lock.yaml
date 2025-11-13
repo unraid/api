@@ -1221,6 +1221,9 @@ importers:
       '@types/node':
         specifier: 22.18.0
         version: 22.18.0
+      '@types/nunjucks':
+        specifier: ^3.2.6
+        version: 3.2.6
       '@types/semver':
         specifier: 7.7.0
         version: 7.7.0
@@ -4914,6 +4917,9 @@ packages:
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
+
+  '@types/nunjucks@3.2.6':
+    resolution: {integrity: sha512-pHiGtf83na1nCzliuAdq8GowYiXvH5l931xZ0YEHaLMNFgynpEqx+IPStlu7UaDkehfvl01e4x/9Tpwhy7Ue3w==}
 
   '@types/parse-path@7.1.0':
     resolution: {integrity: sha512-EULJ8LApcVEPbrfND0cRQqutIOdiIgJ1Mgrhpy755r14xMohPTEpkV/k28SJvuOs9bHRFW8x+KeDAEPiGQPB9Q==}
@@ -16888,6 +16894,8 @@ snapshots:
       undici-types: 6.21.0
 
   '@types/normalize-package-data@2.4.4': {}
+
+  '@types/nunjucks@3.2.6': {}
 
   '@types/parse-path@7.1.0':
     dependencies:
