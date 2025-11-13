@@ -163,6 +163,18 @@ export const loadStateFiles = createAsyncThunk<
     return state;
 });
 
+const stateFieldKeyMap: Record<StateFileKey, keyof SliceState> = {
+    [StateFileKey.var]: 'var',
+    [StateFileKey.devs]: 'devices',
+    [StateFileKey.network]: 'networks',
+    [StateFileKey.nginx]: 'nginx',
+    [StateFileKey.shares]: 'shares',
+    [StateFileKey.disks]: 'disks',
+    [StateFileKey.users]: 'users',
+    [StateFileKey.sec]: 'smbShares',
+    [StateFileKey.sec_nfs]: 'nfsShares',
+};
+
 export const emhttp = createSlice({
     name: 'emhttp',
     initialState,
@@ -175,7 +187,8 @@ export const emhttp = createSlice({
             }>
         ) {
             const { field } = action.payload;
-            return Object.assign(state, { [field]: action.payload.state });
+            const targetField = stateFieldKeyMap[field] ?? (field as keyof SliceState);
+            return Object.assign(state, { [targetField]: action.payload.state });
         },
     },
     extraReducers(builder) {
