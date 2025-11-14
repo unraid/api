@@ -12,7 +12,14 @@ export class CpuTopologyService {
     // -----------------------------------------------------------------
     async generateTopology(): Promise<number[][][]> {
         const packages: Record<number, number[][]> = {};
-        const cpuDirs = await readdir('/sys/devices/system/cpu');
+        let cpuDirs: string[];
+
+        try {
+            cpuDirs = await readdir('/sys/devices/system/cpu');
+        } catch (err) {
+            this.logger.warn('CPU topology unavailable, /sys/devices/system/cpu not accessible');
+            return [];
+        }
 
         for (const dir of cpuDirs) {
             if (!/^cpu\d+$/.test(dir)) continue;
@@ -177,7 +184,7 @@ export class CpuTopologyService {
 
         for (const domains of Object.values(results)) {
             const total = Object.values(domains).reduce((a, b) => a + b, 0);
-            (domains as any)['total'] = Math.round(total * 100) / 100;
+            domains['total'] = Math.round(total * 100) / 100;
         }
 
         return results;
