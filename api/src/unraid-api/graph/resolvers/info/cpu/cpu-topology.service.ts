@@ -7,8 +7,6 @@ import { join } from 'path';
 export class CpuTopologyService {
     private readonly logger = new Logger(CpuTopologyService.name);
 
-    private topologyCache: { id: number; cores: number[][] }[] | null = null;
-
     // -----------------------------------------------------------------
     // Read static CPU topology, per-package core thread pairs
     // -----------------------------------------------------------------
@@ -48,7 +46,7 @@ export class CpuTopologyService {
                     packages[pkgId].push(siblings);
                 }
             } catch (err) {
-                console.warn('Topology read error for', dir, err);
+                this.logger.warn(err, `Topology read error for ${dir}`);
             }
         }
         // Sort cores within each package, and packages by their lowest core index
