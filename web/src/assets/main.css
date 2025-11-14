@@ -156,3 +156,42 @@ iframe#progressFrame {
   background-color: var(--background-color);
   color-scheme: light;
 }
+
+/* Header banner compatibility tweaks */
+#header.image {
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.has-banner-gradient #header.image {
+  position: relative;
+  overflow: hidden;
+}
+
+.has-banner-gradient #header.image::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-position: left center, right center;
+  background-size: min(30%, 320px) 100%, min(30%, 320px) 100%;
+  background-image:
+    linear-gradient(
+      90deg,
+      var(--color-header-gradient-end, rgba(0, 0, 0, 0.7)) 0%,
+      var(--color-header-gradient-start, rgba(0, 0, 0, 0)) 100%
+    ),
+    linear-gradient(
+      270deg,
+      var(--color-header-gradient-end, rgba(0, 0, 0, 0.7)) 0%,
+      var(--color-header-gradient-start, rgba(0, 0, 0, 0)) 100%
+    );
+  z-index: 0;
+}
+
+.has-banner-gradient #header.image > * {
+  position: relative;
+  z-index: 1;
+}
