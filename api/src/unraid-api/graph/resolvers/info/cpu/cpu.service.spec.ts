@@ -141,6 +141,7 @@ describe('CpuService', () => {
                 },
                 flags: ['fpu', 'vme', 'de', 'pse', 'tsc', 'msr', 'pae', 'mce', 'cx8'],
                 packages: {
+                    id: 'info/cpu/packages',
                     totalPower: 65.5,
                     power: [32.5, 33.0],
                     temp: [45.0, 46.0],
