@@ -90,7 +90,12 @@ export class CpuTopologyService {
                                     const inputFile = join(path, f.replace('_label', '_input'));
                                     try {
                                         const raw = await readFile(inputFile, 'utf8');
-                                        temps.push(parseInt(raw.trim(), 10) / 1000);
+                                        const parsed = parseInt(raw.trim(), 10);
+                                        if (Number.isFinite(parsed)) {
+                                            temps.push(parsed / 1000);
+                                        } else {
+                                            this.logger.warn(`Invalid temperature value: ${raw.trim()}`);
+                                        }
                                     } catch (err) {
                                         this.logger.warn('Failed to read file', err);
                                     }
@@ -131,7 +136,8 @@ export class CpuTopologyService {
             try {
                 await access(join(p, 'energy_uj'), fsConstants.R_OK);
                 const raw = await readFile(join(p, 'energy_uj'), 'utf8');
-                return parseInt(raw.trim(), 10);
+                const parsed = parseInt(raw.trim(), 10);
+                return Number.isFinite(parsed) ? parsed : null;
             } catch {
                 return null;
             }
@@ -162,10 +168,21 @@ export class CpuTopologyService {
 
             const diffE = now - prevVal;
             const diffT = Number(process.hrtime.bigint() - prevTime);
+
+            if (!Number.isFinite(diffE) || !Number.isFinite(diffT)) {
+                this.logger.warn(`Non-finite energy/time diff for ${p}`);
+                continue;
+            }
+
             if (diffT <= 0 || diffE < 0) continue;
 
             const watts = (diffE * 1e-6) / (diffT * 1e-9);
             const powerW = Math.round(watts * 100) / 100;
+
+            if (!Number.isFinite(powerW)) {
+                this.logger.warn(`Non-finite power value for ${p}: ${watts}`);
+                continue;
+            }
 
             const nameFile = join(p, 'name');
             let label = 'package';
