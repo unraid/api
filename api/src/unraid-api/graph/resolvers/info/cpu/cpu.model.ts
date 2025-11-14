@@ -39,16 +39,16 @@ export class CpuLoad {
     percentSteal!: number;
 }
 
-@ObjectType()
-export class CpuPackages {
+@ObjectType({ implements: () => Node })
+export class CpuPackages extends Node {
     @Field(() => Float, { description: 'Total CPU package power draw (W)' })
-    totalPower?: number;
+    totalPower!: number;
 
     @Field(() => [Float], { description: 'Power draw per package (W)' })
-    power?: number[];
+    power!: number[];
 
     @Field(() => [Float], { description: 'Temperature per package (°C)' })
-    temp?: number[];
+    temp!: number[];
 }
 
 @ObjectType({ implements: () => Node })
