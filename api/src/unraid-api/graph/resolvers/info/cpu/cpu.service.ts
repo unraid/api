@@ -2,25 +2,56 @@ import { Injectable } from '@nestjs/common';
 
 import { cpu, cpuFlags, currentLoad } from 'systeminformation';
 
-import { CpuUtilization, InfoCpu } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
+import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
+import {
+    CpuPackages,
+    CpuUtilization,
+    InfoCpu,
+} from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
 
 @Injectable()
 export class CpuService {
+    constructor(private readonly cpuTopologyService: CpuTopologyService) {}
+
     async generateCpu(): Promise<InfoCpu> {
-        const { cores, physicalCores, speedMin, speedMax, stepping, ...rest } = await cpu();
+        const { cores, physicalCores, speedMin, speedMax, stepping, processors, ...rest } = await cpu();
         const flags = await cpuFlags()
-            .then((flags) => flags.split(' '))
+            .then((f) => f.split(' '))
             .catch(() => []);
+
+        // Gather telemetry
+        const packageList = await this.cpuTopologyService.generateTelemetry();
+        const topology = await this.cpuTopologyService.generateTopology();
+
+        // Compute total power (2 decimals)
+        const totalPower = Number(
+            packageList
+                .map((pkg) => pkg.power)
+                .filter((power) => power >= 0)
+                .reduce((sum, power) => sum + power, 0)
+                .toFixed(2)
+        );
+
+        // Build CpuPackages object
+        const packages: CpuPackages = {
+            id: 'info/cpu/packages',
+            totalPower,
+            power: packageList.map((pkg) => pkg.power ?? -1),
+            temp: packageList.map((pkg) => pkg.temp ?? -1),
+        };
 
         return {
             id: 'info/cpu',
             ...rest,
             cores: physicalCores,
             threads: cores,
+            processors,
             flags,
             stepping: Number(stepping),
             speedmin: speedMin || -1,
             speedmax: speedMax || -1,
+            packages,
+            topology,
         };
     }
 
