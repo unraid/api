@@ -163,9 +163,14 @@ describe('MetricsResolver', () => {
                 registerTopic: vi.fn(),
             };
 
+            const cpuTopologyServiceMock = {
+                generateTopology: vi.fn(),
+                generateTelemetry: vi.fn().mockResolvedValue([{ id: 0, power: 42.5, temp: 68.3 }]),
+            } satisfies Pick<CpuTopologyService, 'generateTopology' | 'generateTelemetry'>;
+
             const testModule = new MetricsResolver(
                 cpuService,
-                {} as any,
+                cpuTopologyServiceMock as unknown as CpuTopologyService,
                 memoryService,
                 subscriptionTracker as any,
                 {} as any

@@ -107,7 +107,7 @@ describe('CpuService', () => {
                 { power: 32.5, temp: 45.0 },
                 { power: 33.0, temp: 46.0 },
             ]),
-        } as any;
+        } as unknown as CpuTopologyService;
 
         service = new CpuService(cpuTopologyService);
     });
