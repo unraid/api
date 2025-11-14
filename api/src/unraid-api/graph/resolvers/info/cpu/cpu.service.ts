@@ -24,11 +24,17 @@ export class CpuService {
         const topology = await this.cpuTopologyService.generateTopology();
 
         // Compute total power (2 decimals)
-        const totalPower =
-            Math.round(packageList.reduce((sum, pkg) => sum + (pkg.power ?? 0), 0) * 100) / 100;
+        const totalPower = Number(
+            packageList
+                .map((pkg) => pkg.power)
+                .filter((power) => power >= 0)
+                .reduce((sum, power) => sum + power, 0)
+                .toFixed(2)
+        );
 
         // Build CpuPackages object
         const packages: CpuPackages = {
+            id: 'info/cpu/packages',
             totalPower,
             power: packageList.map((pkg) => pkg.power ?? -1),
             temp: packageList.map((pkg) => pkg.temp ?? -1),

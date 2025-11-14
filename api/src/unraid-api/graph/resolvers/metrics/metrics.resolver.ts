@@ -43,10 +43,15 @@ export class MetricsResolver implements OnModuleInit {
 
                 // Compute total power with 2 decimals
                 const totalPower = Number(
-                    packageList.reduce((sum, pkg) => sum + (pkg.power ?? 0), 0).toFixed(2)
+                    packageList
+                        .map((pkg) => pkg.power)
+                        .filter((power) => power >= 0)
+                        .reduce((sum, power) => sum + power, 0)
+                        .toFixed(2)
                 );
 
                 const packages: CpuPackages = {
+                    id: 'metrics/cpu/packages',
                     totalPower,
                     power: packageList.map((pkg) => pkg.power ?? -1),
                     temp: packageList.map((pkg) => pkg.temp ?? -1),
