@@ -1,5 +1,26 @@
 # Changelog
 
+## [4.26.0](https://github.com/unraid/api/compare/v4.25.3...v4.26.0) (2025-11-17)
+
+
+### Features
+
+* add cpu power query & subscription ([#1745](https://github.com/unraid/api/issues/1745)) ([d7aca81](https://github.com/unraid/api/commit/d7aca81c60281bfa47fb9113929c1ead6ed3361b))
+* add schema publishing to apollo studio ([#1772](https://github.com/unraid/api/issues/1772)) ([7e13202](https://github.com/unraid/api/commit/7e13202aa1c02803095bb72bb1bcb2472716f53a))
+* add workflow_dispatch trigger to schema publishing workflow ([818e7ce](https://github.com/unraid/api/commit/818e7ce997059663e07efcf1dab706bf0d7fc9da))
+* apollo studio readme link ([c4cd0c6](https://github.com/unraid/api/commit/c4cd0c63520deec15d735255f38811f0360fe3a1))
+* **cli:** make `unraid-api plugins remove` scriptable ([#1774](https://github.com/unraid/api/issues/1774)) ([64eb9ce](https://github.com/unraid/api/commit/64eb9ce9b5d1ff4fb1f08d9963522c5d32221ba7))
+* use persisted theme css to fix flashes on header ([#1784](https://github.com/unraid/api/issues/1784)) ([854b403](https://github.com/unraid/api/commit/854b403fbd85220a3012af58ce033cf0b8418516))
+
+
+### Bug Fixes
+
+* **api:** decode html entities before parsing notifications ([#1768](https://github.com/unraid/api/issues/1768)) ([42406e7](https://github.com/unraid/api/commit/42406e795da1e5b95622951a467722dde72d51a8))
+* **connect:** disable api plugin if unraid plugin is absent ([#1773](https://github.com/unraid/api/issues/1773)) ([c264a18](https://github.com/unraid/api/commit/c264a1843cf115e8cc1add1ab4f12fdcc932405a))
+* detection of flash backup activation state ([#1769](https://github.com/unraid/api/issues/1769)) ([d18eaf2](https://github.com/unraid/api/commit/d18eaf2364e0c04992c52af38679ff0a0c570440))
+* re-add missing header gradient styles ([#1787](https://github.com/unraid/api/issues/1787)) ([f8a6785](https://github.com/unraid/api/commit/f8a6785e9c92f81acaef76ac5eb78a4a769e69da))
+* respect OS safe mode in plugin loader ([#1775](https://github.com/unraid/api/issues/1775)) ([92af3b6](https://github.com/unraid/api/commit/92af3b61156cabae70368cf5222a2f7ac5b4d083))
+
 ## [4.25.3](https://github.com/unraid/unraid-api/compare/v4.25.2...v4.25.3) (2025-10-22)
 
 
