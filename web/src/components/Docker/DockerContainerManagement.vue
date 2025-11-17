@@ -21,6 +21,29 @@ interface Props {
   disabled?: boolean;
 }
 
+type PortConflictContainer = {
+  id: string;
+  name: string;
+};
+
+type LanPortConflict = {
+  lanIpPort: string;
+  publicPort?: number | null;
+  type: string;
+  containers: PortConflictContainer[];
+};
+
+type ContainerPortConflict = {
+  privatePort: number;
+  type: string;
+  containers: PortConflictContainer[];
+};
+
+type DockerPortConflictsResult = {
+  lanPorts: LanPortConflict[];
+  containerPorts: ContainerPortConflict[];
+};
+
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
 });
@@ -171,19 +194,77 @@ const { result, loading, refetch } = useQuery<{
       }>;
     };
     containers: DockerContainer[];
+    portConflicts: DockerPortConflictsResult;
   };
 }>(GET_DOCKER_CONTAINERS, {
   fetchPolicy: 'cache-and-network',
   variables: { skipCache: true },
 });
 
-const flatEntries = computed(() => result.value?.docker?.organizer?.views?.[0]?.flatEntries || []);
+const flatEntries = computed<FlatOrganizerEntry[]>(
+  () => result.value?.docker?.organizer?.views?.[0]?.flatEntries || []
+);
 const rootFolderId = computed(() => result.value?.docker?.organizer?.views?.[0]?.rootId || 'root');
 const viewPrefs = computed(() => result.value?.docker?.organizer?.views?.[0]?.prefs || null);
 
 const containers = computed<DockerContainer[]>(() => result.value?.docker?.containers || []);
 
+const portConflicts = computed<DockerPortConflictsResult | null>(() => {
+  const dockerData = result.value?.docker;
+  return dockerData?.portConflicts ?? null;
+});
+
+const lanPortConflicts = computed<LanPortConflict[]>(() => portConflicts.value?.lanPorts ?? []);
+const containerPortConflicts = computed<ContainerPortConflict[]>(
+  () => portConflicts.value?.containerPorts ?? []
+);
+
+const totalPortConflictCount = computed(
+  () => lanPortConflicts.value.length + containerPortConflicts.value.length
+);
+const hasPortConflicts = computed(() => totalPortConflictCount.value > 0);
+
 const { navigateToEditPage } = useDockerEditNavigation();
+
+function getOrganizerEntryIdByContainerId(containerId: string): string | null {
+  const entry = flatEntries.value.find(
+    (candidate) =>
+      candidate.type === 'container' &&
+      (candidate.meta as DockerContainer | undefined)?.id === containerId
+  );
+  return entry?.id ?? null;
+}
+
+function focusContainerFromConflict(containerId: string) {
+  const entryId = getOrganizerEntryIdByContainerId(containerId);
+  if (!entryId) return;
+  setActiveContainer(entryId);
+}
+
+function handleConflictContainerAction(conflictContainer: PortConflictContainer) {
+  const targetContainer = containers.value.find((container) => container.id === conflictContainer.id);
+  if (targetContainer && navigateToEditPage(targetContainer, conflictContainer.name)) {
+    return;
+  }
+  focusContainerFromConflict(conflictContainer.id);
+}
+
+function formatLanConflictLabel(conflict: LanPortConflict): string {
+  if (!conflict) return '';
+  const lanValue = conflict.lanIpPort?.trim?.().length
+    ? conflict.lanIpPort
+    : conflict.publicPort?.toString() || 'LAN port';
+  const protocol = conflict.type || 'TCP';
+  return `${lanValue} (${protocol})`;
+}
+
+function formatContainerConflictLabel(conflict: ContainerPortConflict): string {
+  if (!conflict) return '';
+  const containerValue =
+    typeof conflict.privatePort === 'number' ? conflict.privatePort : 'Container port';
+  const protocol = conflict.type || 'TCP';
+  return `${containerValue}/${protocol}`;
+}
 
 watch(activeId, (id) => {
   if (id && viewMode.value === 'autostart') {
@@ -333,6 +414,86 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
             >
               Container Size
             </UButton>
+          </div>
+        </div>
+        <div
+          v-if="hasPortConflicts"
+          class="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-100"
+        >
+          <div class="flex items-start gap-3">
+            <UIcon
+              name="i-lucide-triangle-alert"
+              class="mt-1 h-5 w-5 flex-shrink-0 text-amber-500 dark:text-amber-300"
+              aria-hidden="true"
+            />
+            <div class="w-full space-y-3">
+              <div>
+                <p class="text-sm font-semibold">
+                  Port conflicts detected ({{ totalPortConflictCount }})
+                </p>
+                <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
+                  Multiple containers are sharing the same LAN or container ports. Click a container
+                  below to open its editor or highlight it in the table.
+                </p>
+              </div>
+              <div class="space-y-4">
+                <div v-if="lanPortConflicts.length" class="space-y-2">
+                  <p
+                    class="text-xs font-semibold tracking-wide text-amber-900/70 uppercase dark:text-amber-100/70"
+                  >
+                    LAN ports
+                  </p>
+                  <div
+                    v-for="conflict in lanPortConflicts"
+                    :key="`lan-${conflict.lanIpPort}-${conflict.type}`"
+                    class="rounded-md border border-amber-200/70 bg-white/80 p-3 dark:border-amber-300/30 dark:bg-transparent"
+                  >
+                    <div class="text-sm font-medium">{{ formatLanConflictLabel(conflict) }}</div>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                      <button
+                        v-for="container in conflict.containers"
+                        :key="container.id"
+                        type="button"
+                        class="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900 transition hover:bg-amber-200 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none dark:border-amber-200/40 dark:bg-transparent dark:text-amber-100"
+                        :title="`Edit ${container.name || 'container'}`"
+                        @click="handleConflictContainerAction(container)"
+                      >
+                        <span>{{ container.name || 'Container' }}</span>
+                        <UIcon name="i-lucide-pencil" class="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="containerPortConflicts.length" class="space-y-2">
+                  <p
+                    class="text-xs font-semibold tracking-wide text-amber-900/70 uppercase dark:text-amber-100/70"
+                  >
+                    Container ports
+                  </p>
+                  <div
+                    v-for="conflict in containerPortConflicts"
+                    :key="`container-${conflict.privatePort}-${conflict.type}`"
+                    class="rounded-md border border-amber-200/70 bg-white/80 p-3 dark:border-amber-300/30 dark:bg-transparent"
+                  >
+                    <div class="text-sm font-medium">{{ formatContainerConflictLabel(conflict) }}</div>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                      <button
+                        v-for="container in conflict.containers"
+                        :key="container.id"
+                        type="button"
+                        class="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900 transition hover:bg-amber-200 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none dark:border-amber-200/40 dark:bg-transparent dark:text-amber-100"
+                        :title="`Edit ${container.name || 'container'}`"
+                        @click="handleConflictContainerAction(container)"
+                      >
+                        <span>{{ container.name || 'Container' }}</span>
+                        <UIcon name="i-lucide-pencil" class="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <DockerContainersTable

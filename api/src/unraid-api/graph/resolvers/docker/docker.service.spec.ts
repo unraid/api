@@ -764,4 +764,83 @@ describe('DockerService', () => {
             expect(mockCacheManager.get).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
         });
     });
+
+    describe('getPortConflicts', () => {
+        it('returns empty lists when there are no conflicts', async () => {
+            const containers = [
+                {
+                    id: 'abc',
+                    names: ['/abc'],
+                    ports: [
+                        { privatePort: 8080, publicPort: 18080, type: ContainerPortType.TCP },
+                        { privatePort: 443, publicPort: 10443, type: ContainerPortType.TCP },
+                    ],
+                },
+                {
+                    id: 'def',
+                    names: ['/def'],
+                    ports: [{ privatePort: 3000, publicPort: 13000, type: ContainerPortType.TCP }],
+                },
+            ] as unknown as DockerContainer[];
+
+            mockCacheManager.get.mockResolvedValueOnce(containers);
+
+            const result = await service.getPortConflicts();
+            expect(result.containerPorts).toEqual([]);
+            expect(result.lanPorts).toEqual([]);
+        });
+
+        it('detects container and LAN port conflicts separately', async () => {
+            mockEmhttpGetter.mockReturnValue({
+                networks: [{ ipaddr: ['192.168.1.25'] }],
+                var: {},
+            });
+            const containers = [
+                {
+                    id: 'one',
+                    names: ['/one'],
+                    ports: [{ privatePort: 8080, publicPort: 18080, type: ContainerPortType.TCP }],
+                },
+                {
+                    id: 'two',
+                    names: ['/two'],
+                    ports: [
+                        { privatePort: 8080, publicPort: 28080, type: ContainerPortType.TCP },
+                        { privatePort: 1234, publicPort: 18080, type: ContainerPortType.TCP },
+                    ],
+                },
+                {
+                    id: 'three',
+                    names: ['/three'],
+                    ports: [{ privatePort: 9999, publicPort: 19999, type: ContainerPortType.UDP }],
+                },
+            ] as unknown as DockerContainer[];
+
+            mockCacheManager.get.mockResolvedValueOnce(containers);
+
+            const result = await service.getPortConflicts();
+
+            expect(result.containerPorts).toEqual([
+                {
+                    privatePort: 8080,
+                    type: ContainerPortType.TCP,
+                    containers: [
+                        { id: 'one', name: 'one' },
+                        { id: 'two', name: 'two' },
+                    ],
+                },
+            ]);
+            expect(result.lanPorts).toEqual([
+                {
+                    lanIpPort: '192.168.1.25:18080',
+                    publicPort: 18080,
+                    type: ContainerPortType.TCP,
+                    containers: [
+                        { id: 'one', name: 'one' },
+                        { id: 'two', name: 'two' },
+                    ],
+                },
+            ]);
+        });
+    });
 });

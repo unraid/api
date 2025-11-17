@@ -16,6 +16,7 @@ import {
     DockerContainer,
     DockerContainerOverviewForm,
     DockerNetwork,
+    DockerPortConflicts,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
@@ -89,6 +90,17 @@ export class DockerResolver {
         @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
     ) {
         return this.dockerService.getNetworks({ skipCache });
+    }
+
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DOCKER,
+    })
+    @ResolveField(() => DockerPortConflicts)
+    public async portConflicts(
+        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
+    ) {
+        return this.dockerService.getPortConflicts({ skipCache });
     }
 
     @UsePermissions({

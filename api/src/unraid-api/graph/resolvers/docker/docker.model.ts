@@ -31,6 +31,51 @@ export class ContainerPort {
     type!: ContainerPortType;
 }
 
+@ObjectType()
+export class DockerPortConflictContainer {
+    @Field(() => PrefixedID)
+    id!: string;
+
+    @Field(() => String)
+    name!: string;
+}
+
+@ObjectType()
+export class DockerContainerPortConflict {
+    @Field(() => GraphQLPort)
+    privatePort!: number;
+
+    @Field(() => ContainerPortType)
+    type!: ContainerPortType;
+
+    @Field(() => [DockerPortConflictContainer])
+    containers!: DockerPortConflictContainer[];
+}
+
+@ObjectType()
+export class DockerLanPortConflict {
+    @Field(() => String)
+    lanIpPort!: string;
+
+    @Field(() => GraphQLPort, { nullable: true })
+    publicPort?: number;
+
+    @Field(() => ContainerPortType)
+    type!: ContainerPortType;
+
+    @Field(() => [DockerPortConflictContainer])
+    containers!: DockerPortConflictContainer[];
+}
+
+@ObjectType()
+export class DockerPortConflicts {
+    @Field(() => [DockerContainerPortConflict])
+    containerPorts!: DockerContainerPortConflict[];
+
+    @Field(() => [DockerLanPortConflict])
+    lanPorts!: DockerLanPortConflict[];
+}
+
 export enum ContainerState {
     RUNNING = 'RUNNING',
     PAUSED = 'PAUSED',
@@ -203,6 +248,9 @@ export class Docker extends Node {
 
     @Field(() => [DockerNetwork])
     networks!: DockerNetwork[];
+
+    @Field(() => DockerPortConflicts)
+    portConflicts!: DockerPortConflicts;
 }
 
 @ObjectType()

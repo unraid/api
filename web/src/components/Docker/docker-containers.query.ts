@@ -4,6 +4,25 @@ export const GET_DOCKER_CONTAINERS = gql`
   query GetDockerContainers($skipCache: Boolean = false) {
     docker {
       id
+      portConflicts(skipCache: $skipCache) {
+        containerPorts {
+          privatePort
+          type
+          containers {
+            id
+            name
+          }
+        }
+        lanPorts {
+          lanIpPort
+          publicPort
+          type
+          containers {
+            id
+            name
+          }
+        }
+      }
       containers(skipCache: $skipCache) {
         id
         names
