@@ -877,6 +877,9 @@ type DockerMutations {
 
   """Update multiple containers to the latest images"""
   updateContainers(ids: [PrefixedID!]!): [DockerContainer!]!
+
+  """Update all containers that have available updates"""
+  updateAllContainers: [DockerContainer!]!
 }
 
 input DockerAutostartEntryInput {

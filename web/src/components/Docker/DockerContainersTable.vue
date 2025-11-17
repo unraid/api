@@ -16,6 +16,7 @@ import { SET_DOCKER_FOLDER_CHILDREN } from '@/components/Docker/docker-set-folde
 import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-container.mutation';
 import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container.mutation';
 import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-container.mutation';
+import { UPDATE_ALL_DOCKER_CONTAINERS } from '@/components/Docker/docker-update-all-containers.mutation';
 import { UPDATE_DOCKER_CONTAINERS } from '@/components/Docker/docker-update-containers.mutation';
 import { ContainerState } from '@/composables/gql/graphql';
 import { useContainerActions } from '@/composables/useContainerActions';
@@ -311,12 +312,19 @@ const dockerSearchAccessor = (row: TreeRow<DockerContainer>): unknown[] => {
 
 const dockerFilterHelpText = `Filter by ${searchableKeys.join(', ')}`;
 
-const { treeData, entryParentById, folderChildrenIds, parentById, positionById, getRowById } =
-  useTreeData<DockerContainer>({
-    flatEntries: flatEntriesRef,
-    flatData: containersRef,
-    buildFlatRow: toContainerTreeRow,
-  });
+const {
+  treeData,
+  entryParentById,
+  folderChildrenIds,
+  parentById,
+  positionById,
+  getRowById,
+  flattenRows,
+} = useTreeData<DockerContainer>({
+  flatEntries: flatEntriesRef,
+  flatData: containersRef,
+  buildFlatRow: toContainerTreeRow,
+});
 
 const { visibleFolders, expandedFolders, toggleExpandFolder, setExpandedFolders } = useFolderTree({
   flatEntries: flatEntriesRef,
@@ -718,6 +726,9 @@ const { mutate: stopContainerMutation } = useMutation(STOP_DOCKER_CONTAINER);
 const { mutate: pauseContainerMutation } = useMutation(PAUSE_DOCKER_CONTAINER);
 const { mutate: unpauseContainerMutation } = useMutation(UNPAUSE_DOCKER_CONTAINER);
 const { mutate: updateContainersMutation } = useMutation(UPDATE_DOCKER_CONTAINERS);
+const { mutate: updateAllContainersMutation, loading: updatingAllContainers } = useMutation(
+  UPDATE_ALL_DOCKER_CONTAINERS
+);
 const { mutate: refreshDockerDigestsMutation, loading: checkingForUpdates } =
   useMutation(REFRESH_DOCKER_DIGESTS);
 
@@ -745,8 +756,17 @@ function getContainerRows(ids: string[]): TreeRow<DockerContainer>[] {
   return rows;
 }
 
+const allContainerRows = computed<TreeRow<DockerContainer>[]>(() => {
+  return flattenRows(treeData.value, 'container') as TreeRow<DockerContainer>[];
+});
+
+const updateCandidateRows = computed<TreeRow<DockerContainer>[]>(() =>
+  allContainerRows.value.filter((row) => Boolean(row.meta?.isUpdateAvailable))
+);
+
 const selectedContainerRows = computed(() => getContainerRows(props.selectedIds));
 const hasSelectedContainers = computed(() => selectedContainerRows.value.length > 0);
+const hasSelectedEntries = computed(() => props.selectedIds.length > 0);
 function setRowsUpdating(rows: TreeRow<DockerContainer>[], updating: boolean) {
   if (!rows.length) return;
   const next = new Set(updatingRowIds.value);
@@ -837,6 +857,40 @@ async function handleBulkUpdateContainers(rows: TreeRow<DockerContainer>[]) {
   } finally {
     setRowsBusy(entryIds, false);
     setRowsUpdating(rows, false);
+  }
+}
+
+async function handleUpdateAllContainers() {
+  const rows = updateCandidateRows.value;
+  const entryIds = Array.from(new Set(rows.map((row) => row.id)));
+  if (rows.length) {
+    setRowsUpdating(rows, true);
+    setRowsBusy(entryIds, true);
+  }
+
+  try {
+    const response = await updateAllContainersMutation(
+      {},
+      {
+        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+        awaitRefetchQueries: true,
+      }
+    );
+    const count = response?.data?.docker?.updateAllContainers?.length ?? 0;
+    if (count > 0) {
+      showToast(`Successfully updated ${count} container${count === 1 ? '' : 's'}`);
+    } else {
+      showToast('No containers had updates available');
+    }
+  } catch (error) {
+    window.toast?.error?.('Failed to update containers', {
+      description: error instanceof Error ? error.message : 'Unknown error',
+    });
+  } finally {
+    if (rows.length) {
+      setRowsBusy(entryIds, false);
+      setRowsUpdating(rows, false);
+    }
   }
 }
 
@@ -968,12 +1022,6 @@ function handleBulkAction(action: string) {
     void handleBulkUpdateContainers(containerRows);
     return;
   }
-  if (action === 'Check for updates') {
-    const containerRows = getContainerRows(ids);
-    if (!containerRows.length) return;
-    void handleCheckForUpdates(containerRows);
-    return;
-  }
   showToast(`${action} (${ids.length})`);
 }
 
@@ -1031,9 +1079,26 @@ async function handleRowContextMenu(payload: {
 const bulkItems = computed<DropdownMenuItems>(() => [
   [
     {
+      label: 'Check for updates',
+      icon: 'i-lucide-refresh-cw',
+      as: 'button',
+      disabled: checkingForUpdates.value,
+      onSelect: () => void handleCheckForUpdates(allContainerRows.value),
+    },
+    {
+      label: 'Update all',
+      icon: 'i-lucide-rotate-ccw',
+      as: 'button',
+      disabled: updatingAllContainers.value,
+      onSelect: () => void handleUpdateAllContainers(),
+    },
+  ],
+  [
+    {
       label: 'Move to folder',
       icon: 'i-lucide-folder',
       as: 'button',
+      disabled: !hasSelectedEntries.value,
       onSelect: () => folderOps.openMoveModal(getSelectedEntryIds()),
     },
     {
@@ -1042,13 +1107,6 @@ const bulkItems = computed<DropdownMenuItems>(() => [
       as: 'button',
       disabled: !hasSelectedContainers.value,
       onSelect: () => handleBulkAction('Update containers'),
-    },
-    {
-      label: 'Check for updates',
-      icon: 'i-lucide-refresh-cw',
-      as: 'button',
-      disabled: checkingForUpdates.value || !hasSelectedContainers.value,
-      onSelect: () => handleBulkAction('Check for updates'),
     },
     {
       label: 'Start / Stop',
@@ -1184,7 +1242,6 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
               variant="outline"
               :size="compact ? 'sm' : 'md'"
               trailing-icon="i-lucide-chevron-down"
-              :disabled="count === 0"
             >
               Actions ({{ count }})
             </UButton>

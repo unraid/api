@@ -560,6 +560,17 @@ export type CpuLoad = {
   percentUser: Scalars['Float']['output'];
 };
 
+export type CpuPackages = Node & {
+  __typename?: 'CpuPackages';
+  id: Scalars['PrefixedID']['output'];
+  /** Power draw per package (W) */
+  power: Array<Scalars['Float']['output']>;
+  /** Temperature per package (°C) */
+  temp: Array<Scalars['Float']['output']>;
+  /** Total CPU package power draw (W) */
+  totalPower: Scalars['Float']['output'];
+};
+
 export type CpuUtilization = Node & {
   __typename?: 'CpuUtilization';
   /** CPU load for each core */
@@ -782,6 +793,8 @@ export type DockerMutations = {
   stop: DockerContainer;
   /** Unpause (Resume) a container */
   unpause: DockerContainer;
+  /** Update all containers that have available updates */
+  updateAllContainers: Array<DockerContainer>;
   /** Update auto-start configuration for Docker containers */
   updateAutostartConfiguration: Scalars['Boolean']['output'];
   /** Update a container to the latest image */
@@ -995,6 +1008,7 @@ export type InfoCpu = Node & {
   manufacturer?: Maybe<Scalars['String']['output']>;
   /** CPU model */
   model?: Maybe<Scalars['String']['output']>;
+  packages: CpuPackages;
   /** Number of physical processors */
   processors?: Maybe<Scalars['Int']['output']>;
   /** CPU revision */
@@ -1011,6 +1025,8 @@ export type InfoCpu = Node & {
   stepping?: Maybe<Scalars['Int']['output']>;
   /** Number of CPU threads */
   threads?: Maybe<Scalars['Int']['output']>;
+  /** Per-package array of core/thread pairs, e.g. [[[0,1],[2,3]], [[4,5],[6,7]]] */
+  topology: Array<Array<Array<Scalars['Int']['output']>>>;
   /** CPU vendor */
   vendor?: Maybe<Scalars['String']['output']>;
   /** CPU voltage */
@@ -2202,6 +2218,7 @@ export type Subscription = {
   parityHistorySubscription: ParityCheck;
   serversSubscription: Server;
   systemMetricsCpu: CpuUtilization;
+  systemMetricsCpuTelemetry: CpuPackages;
   systemMetricsMemory: MemoryUtilization;
   upsUpdates: UpsDevice;
 };
@@ -2929,6 +2946,11 @@ export type UnpauseDockerContainerMutationVariables = Exact<{
 
 export type UnpauseDockerContainerMutation = { __typename?: 'Mutation', docker: { __typename?: 'DockerMutations', unpause: { __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState } } };
 
+export type UpdateAllDockerContainersMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UpdateAllDockerContainersMutation = { __typename?: 'Mutation', docker: { __typename?: 'DockerMutations', updateAllContainers: Array<{ __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, isUpdateAvailable?: boolean | null, isRebuildReady?: boolean | null }> } };
+
 export type UpdateDockerAutostartConfigurationMutationVariables = Exact<{
   entries: Array<DockerAutostartEntryInput> | DockerAutostartEntryInput;
   persistUserPreferences?: InputMaybe<Scalars['Boolean']['input']>;
@@ -3199,6 +3221,7 @@ export const SetDockerFolderChildrenDocument = {"kind":"Document","definitions":
 export const StartDockerContainerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"StartDockerContainer"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}}]}}]}}]}}]} as unknown as DocumentNode<StartDockerContainerMutation, StartDockerContainerMutationVariables>;
 export const StopDockerContainerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"StopDockerContainer"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"stop"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}}]}}]}}]}}]} as unknown as DocumentNode<StopDockerContainerMutation, StopDockerContainerMutationVariables>;
 export const UnpauseDockerContainerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UnpauseDockerContainer"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unpause"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}}]}}]}}]}}]} as unknown as DocumentNode<UnpauseDockerContainerMutation, UnpauseDockerContainerMutationVariables>;
+export const UpdateAllDockerContainersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateAllDockerContainers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateAllContainers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateAllDockerContainersMutation, UpdateAllDockerContainersMutationVariables>;
 export const UpdateDockerAutostartConfigurationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerAutostartConfiguration"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"entries"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DockerAutostartEntryInput"}}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"persistUserPreferences"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateAutostartConfiguration"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"entries"},"value":{"kind":"Variable","name":{"kind":"Name","value":"entries"}}},{"kind":"Argument","name":{"kind":"Name","value":"persistUserPreferences"},"value":{"kind":"Variable","name":{"kind":"Name","value":"persistUserPreferences"}}}]}]}}]}}]} as unknown as DocumentNode<UpdateDockerAutostartConfigurationMutation, UpdateDockerAutostartConfigurationMutationVariables>;
 export const UpdateDockerContainerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerContainer"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateContainer"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateDockerContainerMutation, UpdateDockerContainerMutationVariables>;
 export const UpdateDockerContainersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerContainers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"ids"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateContainers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"ids"},"value":{"kind":"Variable","name":{"kind":"Name","value":"ids"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateDockerContainersMutation, UpdateDockerContainersMutationVariables>;

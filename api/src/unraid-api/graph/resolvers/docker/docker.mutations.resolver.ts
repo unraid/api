@@ -95,4 +95,15 @@ export class DockerMutationsResolver {
     ) {
         return this.dockerService.updateContainers(ids);
     }
+
+    @ResolveField(() => [DockerContainer], {
+        description: 'Update all containers that have available updates',
+    })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.DOCKER,
+    })
+    public async updateAllContainers() {
+        return this.dockerService.updateAllContainers();
+    }
 }

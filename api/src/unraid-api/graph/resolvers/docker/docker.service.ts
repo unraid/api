@@ -756,6 +756,40 @@ export class DockerService {
         return updatedContainers;
     }
 
+    /**
+     * Updates every container with an available update. Mirrors the legacy webgui "Update All" flow.
+     */
+    public async updateAllContainers(): Promise<DockerContainer[]> {
+        const containers = await this.getContainers({ skipCache: true });
+        if (!containers.length) {
+            return [];
+        }
+
+        const cachedStatuses = await this.dockerManifestService.getCachedUpdateStatuses();
+        const idsWithUpdates: string[] = [];
+
+        for (const container of containers) {
+            if (!container.image) {
+                continue;
+            }
+            const hasUpdate = await this.dockerManifestService.isUpdateAvailableCached(
+                container.image,
+                cachedStatuses
+            );
+            if (hasUpdate) {
+                idsWithUpdates.push(container.id);
+            }
+        }
+
+        if (!idsWithUpdates.length) {
+            this.logger.log('Update-all requested but no containers have available updates');
+            return [];
+        }
+
+        this.logger.log(`Updating ${idsWithUpdates.length} container(s) via updateAllContainers`);
+        return this.updateContainers(idsWithUpdates);
+    }
+
     private async handleDockerListError(error: unknown): Promise<never> {
         await this.notifyDockerListError(error);
         catchHandlers.docker(error as NodeJS.ErrnoException);

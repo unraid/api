@@ -44,6 +44,7 @@ type Documents = {
     "\n  mutation StartDockerContainer($id: PrefixedID!) {\n    docker {\n      start(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n": typeof types.StartDockerContainerDocument,
     "\n  mutation StopDockerContainer($id: PrefixedID!) {\n    docker {\n      stop(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n": typeof types.StopDockerContainerDocument,
     "\n  mutation UnpauseDockerContainer($id: PrefixedID!) {\n    docker {\n      unpause(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n": typeof types.UnpauseDockerContainerDocument,
+    "\n  mutation UpdateAllDockerContainers {\n    docker {\n      updateAllContainers {\n        id\n        names\n        state\n        isUpdateAvailable\n        isRebuildReady\n      }\n    }\n  }\n": typeof types.UpdateAllDockerContainersDocument,
     "\n  mutation UpdateDockerAutostartConfiguration(\n    $entries: [DockerAutostartEntryInput!]!\n    $persistUserPreferences: Boolean\n  ) {\n    docker {\n      updateAutostartConfiguration(entries: $entries, persistUserPreferences: $persistUserPreferences)\n    }\n  }\n": typeof types.UpdateDockerAutostartConfigurationDocument,
     "\n  mutation UpdateDockerContainer($id: PrefixedID!) {\n    docker {\n      updateContainer(id: $id) {\n        id\n        names\n        state\n        isUpdateAvailable\n        isRebuildReady\n      }\n    }\n  }\n": typeof types.UpdateDockerContainerDocument,
     "\n  mutation UpdateDockerContainers($ids: [PrefixedID!]!) {\n    docker {\n      updateContainers(ids: $ids) {\n        id\n        names\n        state\n        isUpdateAvailable\n        isRebuildReady\n      }\n    }\n  }\n": typeof types.UpdateDockerContainersDocument,
@@ -112,6 +113,7 @@ const documents: Documents = {
     "\n  mutation StartDockerContainer($id: PrefixedID!) {\n    docker {\n      start(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n": types.StartDockerContainerDocument,
     "\n  mutation StopDockerContainer($id: PrefixedID!) {\n    docker {\n      stop(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n": types.StopDockerContainerDocument,
     "\n  mutation UnpauseDockerContainer($id: PrefixedID!) {\n    docker {\n      unpause(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n": types.UnpauseDockerContainerDocument,
+    "\n  mutation UpdateAllDockerContainers {\n    docker {\n      updateAllContainers {\n        id\n        names\n        state\n        isUpdateAvailable\n        isRebuildReady\n      }\n    }\n  }\n": types.UpdateAllDockerContainersDocument,
     "\n  mutation UpdateDockerAutostartConfiguration(\n    $entries: [DockerAutostartEntryInput!]!\n    $persistUserPreferences: Boolean\n  ) {\n    docker {\n      updateAutostartConfiguration(entries: $entries, persistUserPreferences: $persistUserPreferences)\n    }\n  }\n": types.UpdateDockerAutostartConfigurationDocument,
     "\n  mutation UpdateDockerContainer($id: PrefixedID!) {\n    docker {\n      updateContainer(id: $id) {\n        id\n        names\n        state\n        isUpdateAvailable\n        isRebuildReady\n      }\n    }\n  }\n": types.UpdateDockerContainerDocument,
     "\n  mutation UpdateDockerContainers($ids: [PrefixedID!]!) {\n    docker {\n      updateContainers(ids: $ids) {\n        id\n        names\n        state\n        isUpdateAvailable\n        isRebuildReady\n      }\n    }\n  }\n": types.UpdateDockerContainersDocument,
@@ -284,6 +286,10 @@ export function graphql(source: "\n  mutation StopDockerContainer($id: PrefixedI
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation UnpauseDockerContainer($id: PrefixedID!) {\n    docker {\n      unpause(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UnpauseDockerContainer($id: PrefixedID!) {\n    docker {\n      unpause(id: $id) {\n        id\n        names\n        state\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateAllDockerContainers {\n    docker {\n      updateAllContainers {\n        id\n        names\n        state\n        isUpdateAvailable\n        isRebuildReady\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateAllDockerContainers {\n    docker {\n      updateAllContainers {\n        id\n        names\n        state\n        isUpdateAvailable\n        isRebuildReady\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
