@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
+import type { Mock } from 'vitest';
 import { plainToInstance } from 'class-transformer';
 import * as ini from 'ini';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -1184,7 +1185,7 @@ describe('CustomizationService - updateCfgFile', () => {
     });
 
     describe('getTheme', () => {
-        const mockDynamix = getters.dynamix as unknown as vi.Mock;
+        const mockDynamix = getters.dynamix as unknown as Mock;
         const baseDisplay = {
             theme: 'white',
             banner: '',
