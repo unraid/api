@@ -211,6 +211,7 @@ export const useThemeStore = defineStore(
           : 'var(--header-gradient-end)';
 
         dynamicVars['--banner-gradient'] = `linear-gradient(90deg, ${start} 0, ${end} 90%)`;
+        customClasses.push('has-banner-gradient');
       }
 
       requestAnimationFrame(() => {
@@ -222,7 +223,13 @@ export const useThemeStore = defineStore(
         const cleanClassList = (classList: string) =>
           classList
             .split(' ')
-            .filter((c) => !c.startsWith('theme-') && c !== 'dark' && !c.startsWith('has-custom-'))
+            .filter(
+              (c) =>
+                !c.startsWith('theme-') &&
+                c !== 'dark' &&
+                !c.startsWith('has-custom-') &&
+                c !== 'has-banner-gradient'
+            )
             .filter(Boolean)
             .join(' ');
 

@@ -458,7 +458,7 @@ export class CustomizationService implements OnModuleInit {
 
         return {
             name,
-            showBannerImage: banner === 'yes',
+            showBannerImage: banner === 'image' || banner === 'yes',
             showBannerGradient: bannerGradient === 'yes',
             headerBackgroundColor: this.addHashtoHexField(bgColor),
             headerPrimaryTextColor: this.addHashtoHexField(textColor),
