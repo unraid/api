@@ -1182,4 +1182,58 @@ describe('CustomizationService - updateCfgFile', () => {
             writeError
         );
     });
+
+    describe('getTheme', () => {
+        const mockDynamix = getters.dynamix as unknown as vi.Mock;
+        const baseDisplay = {
+            theme: 'white',
+            banner: '',
+            showBannerGradient: 'no',
+            background: '123456',
+            headerdescription: 'yes',
+            headermetacolor: '789abc',
+            header: 'abcdef',
+        };
+
+        const setDisplay = (overrides: Partial<typeof baseDisplay>) => {
+            mockDynamix.mockReturnValue({
+                display: {
+                    ...baseDisplay,
+                    ...overrides,
+                },
+            });
+        };
+
+        it('reports showBannerImage when banner is "image"', async () => {
+            setDisplay({ banner: 'image' });
+
+            const theme = await service.getTheme();
+
+            expect(theme.showBannerImage).toBe(true);
+        });
+
+        it('reports showBannerImage when banner is "yes"', async () => {
+            setDisplay({ banner: 'yes' });
+
+            const theme = await service.getTheme();
+
+            expect(theme.showBannerImage).toBe(true);
+        });
+
+        it('disables showBannerImage when banner is empty', async () => {
+            setDisplay({ banner: '' });
+
+            const theme = await service.getTheme();
+
+            expect(theme.showBannerImage).toBe(false);
+        });
+
+        it('mirrors showBannerGradient flag from display settings', async () => {
+            setDisplay({ banner: 'image', showBannerGradient: 'yes' });
+            expect((await service.getTheme()).showBannerGradient).toBe(true);
+
+            setDisplay({ banner: 'image', showBannerGradient: 'no' });
+            expect((await service.getTheme()).showBannerGradient).toBe(false);
+        });
+    });
 });
