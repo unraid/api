@@ -6,7 +6,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
-import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import {
+    ContainerState,
+    DockerContainer,
+    DockerContainerLogs,
+} from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
@@ -32,6 +36,7 @@ describe('DockerResolver', () => {
                         getContainers: vi.fn(),
                         getNetworks: vi.fn(),
                         getContainerLogSizes: vi.fn(),
+                        getContainerLogs: vi.fn(),
                     },
                 },
                 {
@@ -237,5 +242,23 @@ describe('DockerResolver', () => {
 
         await resolver.containers(true, mockInfo);
         expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: true, size: false });
+    });
+
+    it('should fetch container logs with provided arguments', async () => {
+        const since = new Date('2024-01-01T00:00:00.000Z');
+        const logResult: DockerContainerLogs = {
+            containerId: '1',
+            lines: [],
+            cursor: since,
+        };
+        vi.mocked(dockerService.getContainerLogs).mockResolvedValue(logResult);
+
+        const result = await resolver.logs('1', since, 25);
+
+        expect(result).toEqual(logResult);
+        expect(dockerService.getContainerLogs).toHaveBeenCalledWith('1', {
+            since,
+            tail: 25,
+        });
     });
 });

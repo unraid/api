@@ -1,7 +1,17 @@
-import { Args, Info, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import {
+    Args,
+    GraphQLISODateTime,
+    Info,
+    Int,
+    Mutation,
+    Query,
+    ResolveField,
+    Resolver,
+} from '@nestjs/graphql';
 
 import type { GraphQLResolveInfo } from 'graphql';
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
@@ -14,6 +24,7 @@ import { ExplicitStatusItem } from '@app/unraid-api/graph/resolvers/docker/docke
 import {
     Docker,
     DockerContainer,
+    DockerContainerLogs,
     DockerContainerOverviewForm,
     DockerNetwork,
     DockerPortConflicts,
@@ -79,6 +90,22 @@ export class DockerResolver {
 
         const wasSynced = await this.dockerTemplateScannerService.syncMissingContainers(containers);
         return wasSynced ? await this.dockerService.getContainers({ skipCache: true }) : containers;
+    }
+
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DOCKER,
+    })
+    @ResolveField(() => DockerContainerLogs)
+    public async logs(
+        @Args('id', { type: () => PrefixedID }) id: string,
+        @Args('since', { type: () => GraphQLISODateTime, nullable: true }) since?: Date | null,
+        @Args('tail', { type: () => Int, nullable: true }) tail?: number | null
+    ) {
+        return this.dockerService.getContainerLogs(id, {
+            since: since ?? undefined,
+            tail,
+        });
     }
 
     @UsePermissions({

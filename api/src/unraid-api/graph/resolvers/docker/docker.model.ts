@@ -1,4 +1,12 @@
-import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import {
+    Field,
+    GraphQLISODateTime,
+    ID,
+    InputType,
+    Int,
+    ObjectType,
+    registerEnumType,
+} from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
 import { Node } from '@unraid/shared/graphql.model.js';
@@ -239,6 +247,31 @@ export class DockerNetwork extends Node {
     labels!: Record<string, any>;
 }
 
+@ObjectType()
+export class DockerContainerLogLine {
+    @Field(() => GraphQLISODateTime)
+    timestamp!: Date;
+
+    @Field(() => String)
+    message!: string;
+}
+
+@ObjectType()
+export class DockerContainerLogs {
+    @Field(() => PrefixedID)
+    containerId!: string;
+
+    @Field(() => [DockerContainerLogLine])
+    lines!: DockerContainerLogLine[];
+
+    @Field(() => GraphQLISODateTime, {
+        nullable: true,
+        description:
+            'Cursor that can be passed back through the since argument to continue streaming logs.',
+    })
+    cursor?: Date | null;
+}
+
 @ObjectType({
     implements: () => Node,
 })
@@ -251,6 +284,12 @@ export class Docker extends Node {
 
     @Field(() => DockerPortConflicts)
     portConflicts!: DockerPortConflicts;
+
+    @Field(() => DockerContainerLogs, {
+        description:
+            'Access container logs. Requires specifying a target container id through resolver arguments.',
+    })
+    logs!: DockerContainerLogs;
 }
 
 @ObjectType()

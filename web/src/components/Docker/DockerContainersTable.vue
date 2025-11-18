@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, h, nextTick, ref, resolveComponent, watch } from 'vue';
-import { useMutation } from '@vue/apollo-composable';
+import { computed, h, nextTick, onBeforeUnmount, reactive, ref, resolveComponent, watch } from 'vue';
+import { useApolloClient, useMutation } from '@vue/apollo-composable';
 
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
 import MultiValueCopyBadges from '@/components/Common/MultiValueCopyBadges.vue';
@@ -8,6 +8,7 @@ import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.que
 import { CREATE_DOCKER_FOLDER_WITH_ITEMS } from '@/components/Docker/docker-create-folder-with-items.mutation';
 import { CREATE_DOCKER_FOLDER } from '@/components/Docker/docker-create-folder.mutation';
 import { DELETE_DOCKER_ENTRIES } from '@/components/Docker/docker-delete-entries.mutation';
+import { GET_DOCKER_CONTAINER_LOGS } from '@/components/Docker/docker-logs.query';
 import { MOVE_DOCKER_ENTRIES_TO_FOLDER } from '@/components/Docker/docker-move-entries.mutation';
 import { MOVE_DOCKER_ITEMS_TO_POSITION } from '@/components/Docker/docker-move-items-to-position.mutation';
 import { PAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-pause-container.mutation';
@@ -27,7 +28,12 @@ import { useFolderTree } from '@/composables/useFolderTree';
 import { usePersistentColumnVisibility } from '@/composables/usePersistentColumnVisibility';
 import { useTreeData } from '@/composables/useTreeData';
 
-import type { DockerContainer, FlatOrganizerEntry } from '@/composables/gql/graphql';
+import type {
+  DockerContainer,
+  FlatOrganizerEntry,
+  GetDockerContainerLogsQuery,
+  GetDockerContainerLogsQueryVariables,
+} from '@/composables/gql/graphql';
 import type { DropEvent } from '@/composables/useDragDrop';
 import type { ColumnVisibilityTableInstance } from '@/composables/usePersistentColumnVisibility';
 import type { TreeRow } from '@/composables/useTreeData';
@@ -61,10 +67,15 @@ const UModal = resolveComponent('UModal');
 const USkeleton = resolveComponent('USkeleton') as Component;
 const UIcon = resolveComponent('UIcon');
 const UPopover = resolveComponent('UPopover');
+const USwitch = resolveComponent('USwitch');
+const USelectMenu = resolveComponent('USelectMenu');
 const rowActionDropdownUi = {
   content: 'overflow-x-hidden z-50',
   item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
 };
+const LOG_POLL_INTERVAL_MS = 2000;
+const DEFAULT_LOG_TAIL = 200;
+const MAX_LOG_LINES = 500;
 
 const emit = defineEmits<{
   (e: 'created-folder'): void;
@@ -84,6 +95,7 @@ const emit = defineEmits<{
   ): void;
   (e: 'update:selectedIds', value: string[]): void;
 }>();
+const { client: apolloClient } = useApolloClient();
 
 const COMMA_SEPARATED_LIST = /\s*,\s*/;
 
@@ -200,6 +212,21 @@ function formatUptime(container?: DockerContainer | null): string {
   if (!container?.status) return '';
   const match = container.status.match(/Up\s+(.+?)(?:\s+\(|$)/i);
   return match ? match[1] : '';
+}
+
+interface LogSessionLine {
+  timestamp: string;
+  message: string;
+}
+
+interface LogSession {
+  id: string;
+  label: string;
+  lines: LogSessionLine[];
+  cursor: string | null;
+  isLoading: boolean;
+  error: string | null;
+  autoFollow: boolean;
 }
 
 type MultiValueKey = 'containerIp' | 'containerPort' | 'lanPort';
@@ -347,6 +374,24 @@ const activeUpdateSummary = computed(() => {
   const summary = names.slice(0, 3).join(', ');
   return `${summary}, +${names.length - 3} more`;
 });
+const activeLogSession = computed<LogSession | null>(() => {
+  if (!logSessions.value.length) return null;
+  const targetId = activeLogSessionId.value;
+  if (targetId) {
+    const found = logSessions.value.find((session) => session.id === targetId);
+    if (found) return found;
+  }
+  return logSessions.value[0] ?? null;
+});
+const logSessionOptions = computed(() =>
+  logSessions.value.map((session) => ({ id: session.id, label: session.label }))
+);
+const logsModalOpen = ref(false);
+const logSessions = ref<LogSession[]>([]);
+const activeLogSessionId = ref<string | null>(null);
+const logsViewportRef = ref<HTMLElement | null>(null);
+const logSessionLineKeys = new Map<string, Set<string>>();
+let logsPollTimer: ReturnType<typeof setInterval> | null = null;
 
 const { mergeServerPreferences, saveColumnVisibility, columnVisibilityRef } = useDockerViewPreferences();
 
@@ -358,6 +403,239 @@ function setRowsBusy(ids: string[], busy: boolean) {
   }
   busyRowIds.value = next;
 }
+
+function ensureLogSession(containerId: string, label: string, options?: { reset?: boolean }) {
+  const normalizedLabel = label || containerId;
+  let session = logSessions.value.find((entry) => entry.id === containerId);
+  if (!session) {
+    session = reactive<LogSession>({
+      id: containerId,
+      label: normalizedLabel,
+      lines: [],
+      cursor: null,
+      isLoading: false,
+      error: null,
+      autoFollow: true,
+    });
+    logSessions.value = [...logSessions.value, session];
+  } else {
+    session.label = normalizedLabel;
+  }
+
+  if (options?.reset) {
+    session.lines = [];
+    session.cursor = null;
+    session.error = null;
+    logSessionLineKeys.set(containerId, new Set());
+  }
+
+  if (!logSessionLineKeys.has(containerId)) {
+    logSessionLineKeys.set(containerId, new Set());
+  }
+
+  return session;
+}
+
+function appendLogLines(session: LogSession, lines: LogSessionLine[]) {
+  if (!lines.length) return;
+  const keySet = logSessionLineKeys.get(session.id) ?? new Set<string>();
+  logSessionLineKeys.set(session.id, keySet);
+  const nextLines: LogSessionLine[] = [];
+  for (const line of lines) {
+    const key = `${line.timestamp}|${line.message}`;
+    if (keySet.has(key)) continue;
+    keySet.add(key);
+    nextLines.push(line);
+  }
+  if (!nextLines.length) return;
+  session.lines = [...session.lines, ...nextLines];
+  if (session.lines.length > MAX_LOG_LINES) {
+    session.lines = session.lines.slice(session.lines.length - MAX_LOG_LINES);
+  }
+}
+
+function normalizeGraphqlError(error: unknown): string {
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (error && typeof error === 'object') {
+    const maybeMessage = (error as { message?: unknown }).message;
+    if (typeof maybeMessage === 'string') {
+      return maybeMessage;
+    }
+    const graphQLErrors = (error as { graphQLErrors?: Array<{ message?: unknown }> }).graphQLErrors;
+    if (Array.isArray(graphQLErrors) && graphQLErrors.length) {
+      const graphMessage = graphQLErrors[0]?.message;
+      if (typeof graphMessage === 'string') {
+        return graphMessage;
+      }
+    }
+  }
+  return 'Unable to fetch container logs.';
+}
+
+async function fetchLogsForSession(session: LogSession, options?: { force?: boolean }) {
+  if (session.isLoading && !options?.force) return;
+  const clientInstance = apolloClient;
+  if (!clientInstance) return;
+  session.isLoading = true;
+  session.error = null;
+  const variables: GetDockerContainerLogsQueryVariables = {
+    id: session.id,
+  };
+  if (session.cursor) {
+    variables.since = session.cursor;
+  } else {
+    variables.tail = DEFAULT_LOG_TAIL;
+  }
+
+  try {
+    const { data } = await clientInstance.query<
+      GetDockerContainerLogsQuery,
+      GetDockerContainerLogsQueryVariables
+    >({
+      query: GET_DOCKER_CONTAINER_LOGS,
+      variables,
+      fetchPolicy: 'network-only',
+    });
+    const payload = data?.docker?.logs;
+    if (payload?.lines?.length) {
+      const normalized = payload.lines
+        .filter((line): line is NonNullable<typeof line> => Boolean(line))
+        .map((line: { timestamp: string; message: string }) => ({
+          timestamp: line.timestamp ?? new Date().toISOString(),
+          message: line.message ?? '',
+        }));
+      appendLogLines(session, normalized);
+    }
+    if (payload?.cursor) {
+      session.cursor = payload.cursor;
+    }
+  } catch (error) {
+    session.error = normalizeGraphqlError(error);
+  } finally {
+    session.isLoading = false;
+  }
+}
+
+function startLogPoller() {
+  if (logsPollTimer || !logSessions.value.length) return;
+  logsPollTimer = setInterval(() => {
+    if (!logsModalOpen.value) return;
+    for (const session of logSessions.value) {
+      if (!session.autoFollow) continue;
+      void fetchLogsForSession(session);
+    }
+  }, LOG_POLL_INTERVAL_MS);
+}
+
+function stopLogPoller() {
+  if (!logsPollTimer) return;
+  clearInterval(logsPollTimer);
+  logsPollTimer = null;
+}
+
+function openLogsForContainers(entries: { id: string; label: string }[], options?: { reset?: boolean }) {
+  const uniqueEntries = new Map<string, { id: string; label: string }>();
+  entries.forEach((entry) => {
+    if (!entry.id) return;
+    uniqueEntries.set(entry.id, {
+      id: entry.id,
+      label: entry.label || entry.id,
+    });
+  });
+  if (!uniqueEntries.size) return;
+  let firstId: string | null = null;
+  uniqueEntries.forEach((entry) => {
+    const session = ensureLogSession(entry.id, entry.label, { reset: options?.reset });
+    session.autoFollow = true;
+    session.error = null;
+    void fetchLogsForSession(session, { force: true });
+    if (!firstId) {
+      firstId = session.id;
+    }
+  });
+  if (firstId) {
+    activeLogSessionId.value = firstId;
+  }
+  logsModalOpen.value = true;
+}
+
+function openLogsForContainer(entry: { id: string; label: string }, options?: { reset?: boolean }) {
+  openLogsForContainers([entry], options);
+}
+
+function removeLogSession(sessionId?: string | null) {
+  if (!sessionId) return;
+  logSessionLineKeys.delete(sessionId);
+  logSessions.value = logSessions.value.filter((session) => session.id !== sessionId);
+}
+
+function handleLogsRefresh() {
+  const session = activeLogSession.value;
+  if (!session) return;
+  void fetchLogsForSession(session, { force: true });
+}
+
+function formatLogTimestamp(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function toggleActiveLogFollow(value: boolean) {
+  const session = activeLogSession.value;
+  if (!session) return;
+  session.autoFollow = value;
+  if (value) {
+    void fetchLogsForSession(session, { force: true });
+  }
+}
+
+watch(
+  () => logSessions.value.map((session) => session.id),
+  (ids) => {
+    if (!ids.length) {
+      activeLogSessionId.value = null;
+      logsModalOpen.value = false;
+      stopLogPoller();
+      return;
+    }
+    if (!activeLogSessionId.value || !ids.includes(activeLogSessionId.value)) {
+      activeLogSessionId.value = ids[0] ?? null;
+    }
+  }
+);
+
+watch(
+  () => logsModalOpen.value,
+  (open) => {
+    if (open && logSessions.value.length) {
+      startLogPoller();
+    } else if (!open) {
+      stopLogPoller();
+    }
+  }
+);
+
+watch(
+  () => activeLogSession.value?.lines.length,
+  async () => {
+    if (!logsModalOpen.value) return;
+    const session = activeLogSession.value;
+    if (!session?.autoFollow) return;
+    await nextTick();
+    if (logsViewportRef.value) {
+      logsViewportRef.value.scrollTop = logsViewportRef.value.scrollHeight;
+    }
+  }
+);
+
+onBeforeUnmount(() => {
+  stopLogPoller();
+});
 
 const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
   const cols: TableColumn<TreeRow<DockerContainer>>[] = [
@@ -919,6 +1197,7 @@ const containerActions = useContainerActions({
   unpauseMutation: unpauseContainerMutation,
   refetchQuery: { query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } },
   onSuccess: showToast,
+  onWillStartContainers: handleContainersWillStart,
 });
 
 const canCreateFolder = computed(() => (folderOps.newTreeFolderName.value || '').trim().length > 0);
@@ -1025,16 +1304,38 @@ function handleBulkAction(action: string) {
   showToast(`${action} (${ids.length})`);
 }
 
+function handleContainersWillStart(entries: { id: string; containerId: string; name: string }[]) {
+  if (!entries.length) return;
+  const targets = entries
+    .map((entry) => {
+      const row = getRowById(entry.id, treeData.value);
+      const label = row?.name || entry.name || entry.containerId;
+      return {
+        id: entry.containerId,
+        label,
+      };
+    })
+    .filter((entry): entry is { id: string; label: string } => Boolean(entry.id));
+  if (!targets.length) return;
+  openLogsForContainers(targets, { reset: true });
+}
+
 const { navigateToEditPage } = useDockerEditNavigation();
 
 function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   if (row.type !== 'container') return;
+  const containerId = (row as { containerId?: string }).containerId || row.id;
   if (action === 'Start / Stop') {
     containerActions.handleRowStartStop(row);
     return;
   }
   if (action === 'Pause / Resume') {
     containerActions.handleRowPauseResume(row);
+    return;
+  }
+  if (action === 'View logs') {
+    if (!containerId) return;
+    openLogsForContainer({ id: containerId, label: row.name }, { reset: false });
     return;
   }
   if (action === 'Manage Settings') {
@@ -1167,6 +1468,12 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
     ],
     [
       {
+        label: 'View logs',
+        icon: 'i-lucide-scroll-text',
+        as: 'button',
+        onSelect: () => handleRowAction(row, 'View logs'),
+      },
+      {
         label: 'Manage Settings',
         icon: 'i-lucide-settings',
         as: 'button',
@@ -1269,6 +1576,85 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
         :style="{ top: `${contextMenuState.y}px`, left: `${contextMenuState.x}px` }"
       />
     </UDropdownMenu>
+
+    <UModal
+      v-model:open="logsModalOpen"
+      title="Container logs"
+      :ui="{ overlay: 'z-50', content: 'z-50 max-w-4xl w-full' }"
+    >
+      <template #body>
+        <div v-if="logSessions.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
+          Select a container to view its logs.
+        </div>
+        <div v-else class="space-y-4">
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="min-w-[200px] flex-1">
+              <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Container</label>
+              <USelectMenu
+                v-model="activeLogSessionId"
+                :options="logSessionOptions"
+                value-attribute="id"
+                option-attribute="label"
+                :disabled="logSessionOptions.length <= 1"
+              />
+            </div>
+            <div class="flex items-center gap-3">
+              <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <USwitch
+                  :model-value="activeLogSession?.autoFollow ?? true"
+                  :disabled="!activeLogSession"
+                  @update:model-value="toggleActiveLogFollow"
+                />
+                Follow logs
+              </label>
+              <UButton
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                icon="i-lucide-rotate-cw"
+                :disabled="!activeLogSession"
+                @click="handleLogsRefresh"
+              />
+              <UButton
+                color="neutral"
+                variant="ghost"
+                size="sm"
+                icon="i-lucide-trash-2"
+                :disabled="!activeLogSession"
+                @click="removeLogSession(activeLogSession?.id)"
+              />
+            </div>
+          </div>
+          <div class="rounded border border-gray-200 bg-gray-950 text-gray-100 dark:border-gray-700">
+            <div ref="logsViewportRef" class="h-80 overflow-y-auto px-4 py-3 font-mono text-sm">
+              <template v-if="activeLogSession?.lines.length">
+                <div
+                  v-for="(line, index) in activeLogSession.lines"
+                  :key="`${line.timestamp}-${index}`"
+                  class="whitespace-pre-wrap"
+                >
+                  <span class="text-primary-300">[{{ formatLogTimestamp(line.timestamp) }}]</span>
+                  <span class="ml-2">{{ line.message }}</span>
+                </div>
+              </template>
+              <div v-else class="flex h-full items-center justify-center text-gray-400">
+                <span v-if="activeLogSession?.isLoading">Fetching logs…</span>
+                <span v-else>No log entries yet.</span>
+              </div>
+            </div>
+          </div>
+          <div
+            v-if="activeLogSession?.error"
+            class="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
+          >
+            {{ activeLogSession.error }}
+          </div>
+        </div>
+      </template>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="outline" @click="close">Close</UButton>
+      </template>
+    </UModal>
 
     <UModal
       v-model:open="folderOps.moveOpen"

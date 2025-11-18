@@ -19,6 +19,7 @@ export interface ContainerActionOptions<T = unknown> {
   unpauseMutation: ContainerMutationFn;
   refetchQuery: { query: DocumentNode; variables: { skipCache: boolean } };
   onSuccess?: (message: string) => void;
+  onWillStartContainers?: (entries: { id: string; containerId: string; name: string }[]) => void;
 }
 
 export function useContainerActions<T = unknown>(options: ContainerActionOptions<T>) {
@@ -32,6 +33,7 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
     unpauseMutation,
     refetchQuery,
     onSuccess,
+    onWillStartContainers,
   } = options;
 
   const confirmStartStopOpen = ref(false);
@@ -78,6 +80,9 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
     toStart: { id: string; containerId: string; name: string }[],
     toStop: { id: string; containerId: string; name: string }[]
   ) {
+    if (toStart.length) {
+      onWillStartContainers?.(toStart);
+    }
     const totalOps = toStop.length + toStart.length;
     let completed = 0;
     for (const item of toStop) {
@@ -150,6 +155,15 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
     try {
       const isRunning = (row as { state?: string }).state === ContainerState.RUNNING;
       const mutate = isRunning ? stopMutation : startMutation;
+      if (!isRunning) {
+        onWillStartContainers?.([
+          {
+            id: row.id,
+            containerId,
+            name: row.name,
+          },
+        ]);
+      }
       await mutate(
         { id: containerId },
         {
