@@ -1,7 +1,7 @@
 {
   "name": "unraid-monorepo",
   "private": true,
-  "version": "4.26.0",
+  "version": "4.26.1",
   "scripts": {
     "build": "pnpm -r build",
     "build:watch": "pnpm -r --parallel --filter '!@unraid/ui' build:watch",
