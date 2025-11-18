@@ -37,39 +37,43 @@ class ConnectPluginModule {
 @Module({})
 export class DisabledConnectPluginModule {
     logger = new Logger(DisabledConnectPluginModule.name);
+
+    constructor(@Inject(ConfigService) private readonly configService: ConfigService) {}
+
     async onModuleInit() {
-        const removalCommand = 'unraid-api plugins remove -b unraid-api-plugin-connect';
-
-        this.logger.warn(
-            'Connect plugin is not installed, but is listed as an API plugin. Attempting `%s` automatically.',
-            removalCommand
-        );
-
-        try {
-            const { stdout, stderr } = await execa(
-                'unraid-api',
-                ['plugins', 'remove', '-b', 'unraid-api-plugin-connect'],
-                { shell: 'bash', extendEnv: true }
+        const plugins = this.configService.get<string[]>('api.plugins') || [];
+        if (plugins.includes('unraid-api-plugin-connect')) {
+            this.logger.warn(
+                'Connect plugin is not installed, but is listed as an API plugin. Removing it from config and restarting.'
             );
 
-            if (stdout?.trim()) {
-                this.logger.debug(stdout.trim());
-            }
+            const updatedPlugins = plugins.filter((p) => p !== 'unraid-api-plugin-connect');
+            const apiConfig = this.configService.get('api') || {};
+            this.configService.set('api', { ...apiConfig, plugins: updatedPlugins });
 
-            if (stderr?.trim()) {
-                this.logger.debug(stderr.trim());
-            }
+            this.logger.log('Successfully pruned stale connect plugin entry from config. Restarting API...');
+            
+            // Allow config subscription to flush to disk (25ms buffer + margin)
+            await new Promise((resolve) => setTimeout(resolve, 1000));
 
-            this.logger.log(
-                'Successfully completed `%s` to prune the stale connect plugin entry.',
-                removalCommand
-            );
-        } catch (error) {
-            const message =
-                error instanceof Error
-                    ? error.message
-                    : 'Unknown error while removing stale connect plugin entry.';
-            this.logger.error('Failed to run `%s`: %s', removalCommand, message);
+            try {
+                const { stdout, stderr } = await execa('unraid-api', ['restart'], {
+                    shell: 'bash',
+                    extendEnv: true,
+                });
+
+                if (stdout?.trim()) {
+                    this.logger.debug(stdout.trim());
+                }
+
+                if (stderr?.trim()) {
+                    this.logger.debug(stderr.trim());
+                }
+            } catch (error) {
+                const message =
+                    error instanceof Error ? error.message : 'Unknown error while restarting API.';
+                this.logger.error('Failed to restart API: %s', message);
+            }
         }
     }
 }
