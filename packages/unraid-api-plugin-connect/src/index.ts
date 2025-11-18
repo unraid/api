@@ -46,12 +46,11 @@ export class DisabledConnectPluginModule {
         );
 
         try {
-            const { stdout, stderr } = await execa('unraid-api', [
-                'plugins',
-                'remove',
-                '-b',
-                'unraid-api-plugin-connect',
-            ]);
+            const { stdout, stderr } = await execa(
+                'unraid-api',
+                ['plugins', 'remove', '-b', 'unraid-api-plugin-connect'],
+                { shell: 'bash', extendEnv: true }
+            );
 
             if (stdout?.trim()) {
                 this.logger.debug(stdout.trim());

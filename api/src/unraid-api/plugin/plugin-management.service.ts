@@ -56,8 +56,7 @@ export class PluginManagementService {
             }
             pluginSet.add(plugin);
         });
-        // @ts-expect-error - This is a valid config key
-        this.configService.set<string[]>('api.plugins', Array.from(pluginSet));
+        this.updatePluginsConfig(Array.from(pluginSet));
         return added;
     }
 
@@ -71,9 +70,13 @@ export class PluginManagementService {
         const pluginSet = new Set(this.plugins);
         const removed = plugins.filter((plugin) => pluginSet.delete(plugin));
         const pluginsArray = Array.from(pluginSet);
-        // @ts-expect-error - This is a valid config key
-        this.configService.set('api.plugins', pluginsArray);
+        this.updatePluginsConfig(pluginsArray);
         return removed;
+    }
+
+    private updatePluginsConfig(plugins: string[]) {
+        const apiConfig = this.configService.get<ApiConfig>('api');
+        this.configService.set('api', { ...apiConfig, plugins });
     }
 
     /**
