@@ -69,13 +69,13 @@ export class DisabledConnectPluginModule {
             );
 
             // Wait a bit for any potential file system flushes or other ops to settle
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            // await new Promise((resolve) => setTimeout(resolve, 1000));
 
-            this.logger.log('Restarting API to apply changes...');
-            await execa('unraid-api', ['restart'], {
-                shell: 'bash',
-                extendEnv: true,
-            });
+            // this.logger.log('Restarting API to apply changes...');
+            // await execa('unraid-api', ['restart'], {
+            //     shell: 'bash',
+            //     extendEnv: true,
+            // });
         } catch (error) {
             const message =
                 error instanceof Error
