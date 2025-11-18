@@ -38,15 +38,24 @@ class ConnectPluginModule {
 export class DisabledConnectPluginModule {
     logger = new Logger(DisabledConnectPluginModule.name);
 
-    constructor() {}
+    constructor(@Inject(ConfigService) private readonly configService: ConfigService) {}
 
     async onModuleInit() {
         const removalCommand = 'unraid-api plugins remove -b unraid-api-plugin-connect --no-restart';
-
         this.logger.warn(
             'Connect plugin is not installed, but is listed as an API plugin. Attempting `%s` automatically.',
             removalCommand
         );
+
+        const apiConfig = this.configService.get('api') || {};
+        const plugins = apiConfig.plugins || [];
+        const updatedPlugins = plugins.filter((p: string) => p !== 'unraid-api-plugin-connect');
+        this.configService.set('api', { ...apiConfig, plugins: updatedPlugins });
+
+        // Allow config subscription to flush to disk (25ms buffer + margin)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const debugPlugins = this.configService.get<string[]>('api.plugins') || [];
+        this.logger.debug('Plugins before running removal command: %o', debugPlugins);
 
         try {
             const { stdout, stderr } = await execa(
@@ -67,21 +76,10 @@ export class DisabledConnectPluginModule {
                 'Successfully completed `%s` to prune the stale connect plugin entry.',
                 removalCommand
             );
-
-            // Wait a bit for any potential file system flushes or other ops to settle
-            // await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            // this.logger.log('Restarting API to apply changes...');
-            // await execa('unraid-api', ['restart'], {
-            //     shell: 'bash',
-            //     extendEnv: true,
-            // });
         } catch (error) {
             const message =
-                error instanceof Error
-                    ? error.message
-                    : 'Unknown error while removing stale connect plugin entry.';
-            this.logger.error('Failed to run `%s` or restart: %s', removalCommand, message);
+                error instanceof Error ? error.message : 'Unknown error while restarting API.';
+            this.logger.error('Failed to restart API: %s', message);
         }
     }
 }
