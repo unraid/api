@@ -5,8 +5,7 @@
  */
 
 /* Default/White Theme */
-:root,
-.theme-white {
+.Theme--white {
   --header-text-primary: #ffffff;
   --header-text-secondary: #999999;
   --header-background-color: #1c1b1b;
@@ -20,8 +19,8 @@
 }
 
 /* Black Theme */
-.theme-black,
-.theme-black.dark {
+.Theme--black,
+.Theme--black.dark {
   --header-text-primary: #1c1b1b;
   --header-text-secondary: #999999;
   --header-background-color: #f2f2f2;
@@ -35,7 +34,7 @@
 }
 
 /* Gray Theme */
-.theme-gray {
+.Theme--gray {
   --header-text-primary: #ffffff;
   --header-text-secondary: #999999;
   --header-background-color: #1c1b1b;
@@ -49,7 +48,7 @@
 }
 
 /* Azure Theme */
-.theme-azure {
+.Theme--azure {
   --header-text-primary: #1c1b1b;
   --header-text-secondary: #999999;
   --header-background-color: #f2f2f2;

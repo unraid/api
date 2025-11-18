@@ -168,6 +168,11 @@ export const useThemeStore = defineStore(
     const setCssVars = () => {
       const selectedTheme = theme.value.name;
 
+      // Check if Unraid PHP has already set a Theme-- class
+      const hasExistingThemeClass =
+        typeof document !== 'undefined' &&
+        Array.from(document.documentElement.classList).some((cls) => cls.startsWith('Theme--'));
+
       // Prepare Tailwind v4 theme classes
       const themeClasses: string[] = [];
       const customClasses: string[] = [];
@@ -177,8 +182,10 @@ export const useThemeStore = defineStore(
         themeClasses.push('dark');
       }
 
-      // Apply theme-specific class for Tailwind v4 theme variants
-      themeClasses.push(`theme-${selectedTheme}`);
+      // Only apply theme-specific class if Unraid PHP hasn't already set it
+      if (!hasExistingThemeClass) {
+        themeClasses.push(`Theme--${selectedTheme}`);
+      }
 
       // Only set CSS variables for dynamic/user-configured values from GraphQL
       // Static theme values are handled by Tailwind v4 theme classes in @tailwind-shared
@@ -220,22 +227,33 @@ export const useThemeStore = defineStore(
           ...Array.from(document.querySelectorAll<HTMLElement>('.unapi')),
         ];
 
-        const cleanClassList = (classList: string) =>
-          classList
+        const cleanClassList = (classList: string, isDocumentElement: boolean) => {
+          // Don't remove Theme-- classes from documentElement if Unraid PHP set them
+          if (isDocumentElement && hasExistingThemeClass) {
+            return classList
+              .split(' ')
+              .filter((c) => c !== 'dark' && !c.startsWith('has-custom-') && c !== 'has-banner-gradient')
+              .filter(Boolean)
+              .join(' ');
+          }
+          // For .unapi roots or when we're managing the theme class, clean everything
+          return classList
             .split(' ')
             .filter(
               (c) =>
-                !c.startsWith('theme-') &&
+                !c.startsWith('Theme--') &&
                 c !== 'dark' &&
                 !c.startsWith('has-custom-') &&
                 c !== 'has-banner-gradient'
             )
             .filter(Boolean)
             .join(' ');
+        };
 
         // Apply theme and custom classes to html element and all .unapi roots
         scopedTargets.forEach((target) => {
-          target.className = cleanClassList(target.className);
+          const isDocumentElement = target === document.documentElement;
+          target.className = cleanClassList(target.className, isDocumentElement);
           [...themeClasses, ...customClasses].forEach((cls) => target.classList.add(cls));
 
           if (darkMode.value) {
