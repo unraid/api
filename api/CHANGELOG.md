@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.26.1](https://github.com/unraid/api/compare/v4.26.0...v4.26.1) (2025-11-18)
+
+
+### Bug Fixes
+
+* **theme:** update theme class naming and scoping logic ([b28ef1e](https://github.com/unraid/api/commit/b28ef1ea334cb4842f01fa992effa7024185c6c9))
+
 ## [4.26.0](https://github.com/unraid/api/compare/v4.25.3...v4.26.0) (2025-11-17)
 
 
