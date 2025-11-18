@@ -8,6 +8,7 @@ import { ConnectConfigPersister } from './config/config.persistence.js';
 import { configFeature } from './config/connect.config.js';
 import { MothershipModule } from './mothership-proxy/mothership.module.js';
 import { ConnectModule } from './unraid-connect/connect.module.js';
+import { Timeout } from '@nestjs/schedule';
 
 export const adapter = 'nestjs';
 
@@ -40,7 +41,8 @@ export class DisabledConnectPluginModule {
 
     constructor(@Inject(ConfigService) private readonly configService: ConfigService) {}
 
-    async onModuleInit() {
+    @Timeout(1_000)
+    async pruneStaleConnectPluginEntry() {
         const removalCommand = 'unraid-api plugins remove -b unraid-api-plugin-connect --no-restart';
         this.logger.warn(
             'Connect plugin is not installed, but is listed as an API plugin. Attempting `%s` automatically.',
@@ -76,6 +78,13 @@ export class DisabledConnectPluginModule {
                 'Successfully completed `%s` to prune the stale connect plugin entry.',
                 removalCommand
             );
+
+            setTimeout(() => {
+                const debugPlugins = this.configService.get<string[]>('api.plugins') || [];
+                const debugApiConfig = this.configService.get('api') || {};
+                this.logger.debug('Plugins after running removal command: %o', debugPlugins);
+                this.logger.debug('API config after running removal command: %o', debugApiConfig);
+            }, 3_000);
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : 'Unknown error while restarting API.';
