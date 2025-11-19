@@ -134,7 +134,6 @@ describe('component-registry', () => {
       'user-profile',
       'auth',
       'connect-settings',
-      'download-api-logs',
       'modals',
       'registration',
       'wan-ip-check',

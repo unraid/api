@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import type { ReadStream } from 'node:fs';
 import { createReadStream } from 'node:fs';
 
-import { getBannerPathIfPresent, getCasePathIfPresent } from '@app/core/utils/images/image-file-helpers.js';
+import {
+    getBannerPathIfPresent,
+    getCasePathIfPresent,
+} from '@app/core/utils/images/image-file-helpers.js';
 
 @Injectable()
 export class RestService {
