@@ -65,6 +65,12 @@ const DYNAMIC_VAR_KEYS = [
   '--custom-header-background-color',
   '--custom-header-gradient-start',
   '--custom-header-gradient-end',
+  '--header-background-color',
+  '--header-gradient-start',
+  '--header-gradient-end',
+  '--color-header-background',
+  '--color-header-gradient-start',
+  '--color-header-gradient-end',
   '--banner-gradient',
 ] as const;
 
@@ -202,9 +208,20 @@ export const useThemeStore = defineStore(
       }
 
       if (theme.value.bgColor) {
+        const gradientStart = hexToRgba(theme.value.bgColor, 0);
+        const gradientEnd = hexToRgba(theme.value.bgColor, 0.7);
+
         dynamicVars['--custom-header-background-color'] = theme.value.bgColor;
-        dynamicVars['--custom-header-gradient-start'] = hexToRgba(theme.value.bgColor, 0);
-        dynamicVars['--custom-header-gradient-end'] = hexToRgba(theme.value.bgColor, 0.7);
+        dynamicVars['--custom-header-gradient-start'] = gradientStart;
+        dynamicVars['--custom-header-gradient-end'] = gradientEnd;
+
+        // Apply the resolved values directly to ensure they override base theme vars
+        dynamicVars['--header-background-color'] = theme.value.bgColor;
+        dynamicVars['--header-gradient-start'] = gradientStart;
+        dynamicVars['--header-gradient-end'] = gradientEnd;
+        dynamicVars['--color-header-background'] = theme.value.bgColor;
+        dynamicVars['--color-header-gradient-start'] = gradientStart;
+        dynamicVars['--color-header-gradient-end'] = gradientEnd;
         customClasses.push('has-custom-header-bg');
       }
 
@@ -226,6 +243,8 @@ export const useThemeStore = defineStore(
           document.documentElement,
           ...Array.from(document.querySelectorAll<HTMLElement>('.unapi')),
         ];
+
+        const styleTargets = [...scopedTargets, document.body].filter(Boolean) as HTMLElement[];
 
         const cleanClassList = (classList: string, isDocumentElement: boolean) => {
           // Don't remove Theme-- classes from documentElement if Unraid PHP set them
@@ -274,7 +293,7 @@ export const useThemeStore = defineStore(
         // All theme defaults are handled by classes in @tailwind-shared/theme-variants.css
         const activeDynamicKeys = Object.keys(dynamicVars) as DynamicVarKey[];
 
-        scopedTargets.forEach((target) => {
+        styleTargets.forEach((target) => {
           activeDynamicKeys.forEach((key) => {
             const value = dynamicVars[key];
             if (value !== undefined) {

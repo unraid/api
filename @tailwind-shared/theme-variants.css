@@ -81,7 +81,13 @@
   --color-header-text-secondary: var(--custom-header-text-secondary);
 }
 
-:root.has-custom-header-bg {
+:root.has-custom-header-bg,
+.has-custom-header-bg.Theme--black,
+.has-custom-header-bg.Theme--black.dark,
+.has-custom-header-bg.Theme--white,
+.has-custom-header-bg.Theme--white.dark,
+.has-custom-header-bg.Theme--gray,
+.has-custom-header-bg.Theme--azure {
   --header-background-color: var(--custom-header-background-color);
   --color-header-background: var(--custom-header-background-color);
   --header-gradient-start: var(--custom-header-gradient-start);
