@@ -16,13 +16,11 @@ export const isConnectPluginInstalled = () => {
 /**
  * Prune the stale connect plugin entry, if necessary.
  *
- * Emits a warning and no-op's if invoked while the plugin is installed.
- * Otherwise, it will remove the stale plugin entry from the api and restart the api if desired.
- *
+ * No-op's if invoked while the plugin is installed.
  * @param shouldRestart Whether to restart the api after pruning.
  */
 export async function pruneStaleConnectPluginEntryIfNecessary({
-    shouldRestart = true,
+    shouldRestart = false,
 }: { shouldRestart?: boolean } = {}) {
     if (isConnectPluginInstalled()) {
         return;
