@@ -13,6 +13,7 @@ import CacheableLookup from 'cacheable-lookup';
 import { asyncExitHook, gracefulExit } from 'exit-hook';
 import { WebSocket } from 'ws';
 
+import { pruneStaleConnectPluginEntryIfNecessary } from '@app/connect-plugin-cleanup.js';
 import { logger } from '@app/core/log.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
@@ -59,6 +60,8 @@ export const viteNodeApp = async () => {
         logger.info('PATHS %o', store.getState().paths);
 
         await mkdir(PATHS_CONFIG_MODULES, { recursive: true });
+
+        await pruneStaleConnectPluginEntryIfNecessary();
 
         const cacheable = new CacheableLookup();
 
