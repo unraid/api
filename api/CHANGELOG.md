@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.27.0](https://github.com/unraid/api/compare/v4.26.2...v4.27.0) (2025-11-19)
+
+
+### Features
+
+* remove Unraid API log download functionality ([#1793](https://github.com/unraid/api/issues/1793)) ([e4a9b82](https://github.com/unraid/api/commit/e4a9b8291b049752a9ff59b17ff50cf464fe0535))
+
+
+### Bug Fixes
+
+* auto-uninstallation of connect api plugin ([#1791](https://github.com/unraid/api/issues/1791)) ([e734043](https://github.com/unraid/api/commit/e7340431a58821ec1b4f5d1b452fba6613b01fa5))
+
 ## [4.26.2](https://github.com/unraid/api/compare/v4.26.1...v4.26.2) (2025-11-19)
 
 
