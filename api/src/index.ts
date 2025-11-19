@@ -4,7 +4,7 @@ import '@app/dotenv.js';
 
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { unlinkSync } from 'fs';
-import { mkdir } from 'fs/promises';
+import { mkdir, readFile } from 'fs/promises';
 import http from 'http';
 import https from 'https';
 
@@ -13,7 +13,6 @@ import CacheableLookup from 'cacheable-lookup';
 import { asyncExitHook, gracefulExit } from 'exit-hook';
 import { WebSocket } from 'ws';
 
-import { pruneStaleConnectPluginEntryIfNecessary } from '@app/connect-plugin-cleanup.js';
 import { logger } from '@app/core/log.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
@@ -60,12 +59,6 @@ export const viteNodeApp = async () => {
         logger.info('PATHS %o', store.getState().paths);
 
         await mkdir(PATHS_CONFIG_MODULES, { recursive: true });
-
-        try {
-            await pruneStaleConnectPluginEntryIfNecessary();
-        } catch (error) {
-            logger.error(error, 'Failed to prune stale connect plugin entry. Continuing...');
-        }
 
         const cacheable = new CacheableLookup();
 
