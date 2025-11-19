@@ -18,7 +18,6 @@ import {
   updateConnectSettings,
 } from '~/components/ConnectSettings/graphql/settings.query';
 import OidcDebugLogs from '~/components/ConnectSettings/OidcDebugLogs.vue';
-import DownloadApiLogs from '~/components/DownloadApiLogs.standalone.vue';
 import { useServerStore } from '~/store/server';
 
 // Disable automatic attribute inheritance
@@ -115,8 +114,6 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
         <Label>{{ t('connectSettings.accountStatusLabel') }}</Label>
         <Auth />
       </template>
-      <Label>{{ t('downloadApiLogs.downloadUnraidApiLogs') }}:</Label>
-      <DownloadApiLogs />
     </SettingsGrid>
     <!-- auto-generated settings form -->
     <div class="mt-6 pl-3 [&_.vertical-layout]:space-y-6">

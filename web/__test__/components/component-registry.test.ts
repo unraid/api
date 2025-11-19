@@ -16,9 +16,6 @@ vi.mock('~/components/Auth.standalone.vue', () => ({
 vi.mock('~/components/ConnectSettings/ConnectSettings.standalone.vue', () => ({
   default: { name: 'MockConnectSettings', template: '<div>ConnectSettings</div>' },
 }));
-vi.mock('~/components/DownloadApiLogs.standalone.vue', () => ({
-  default: { name: 'MockDownloadApiLogs', template: '<div>DownloadApiLogs</div>' },
-}));
 vi.mock('~/components/HeaderOsVersion.standalone.vue', () => ({
   default: { name: 'MockHeaderOsVersion', template: '<div>HeaderOsVersion</div>' },
 }));

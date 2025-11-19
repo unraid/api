@@ -14,7 +14,6 @@ vi.mock('@/components/HeaderOsVersion.standalone.vue', () => ({ default: 'Header
 vi.mock('@/components/UserProfile.standalone.vue', () => ({ default: 'UserProfile' }));
 vi.mock('../Auth.standalone.vue', () => ({ default: 'Auth' }));
 vi.mock('../ConnectSettings/ConnectSettings.standalone.vue', () => ({ default: 'ConnectSettings' }));
-vi.mock('../DownloadApiLogs.standalone.vue', () => ({ default: 'DownloadApiLogs' }));
 vi.mock('@/components/Modals.standalone.vue', () => ({ default: 'Modals' }));
 vi.mock('../Registration.standalone.vue', () => ({ default: 'Registration' }));
 vi.mock('../WanIpCheck.standalone.vue', () => ({ default: 'WanIpCheck' }));
@@ -135,7 +134,6 @@ describe('component-registry', () => {
       'user-profile',
       'auth',
       'connect-settings',
-      'download-api-logs',
       'modals',
       'registration',
       'wan-ip-check',

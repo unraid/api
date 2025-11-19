@@ -29,21 +29,6 @@ export class RestController {
         return 'OK';
     }
 
-    @Get('/graphql/api/logs')
-    @UsePermissions({
-        action: AuthAction.READ_ANY,
-        resource: Resource.LOGS,
-    })
-    async getLogs(@Res() res: FastifyReply) {
-        try {
-            const logStream = await this.restService.getLogs();
-            return res.status(200).type('application/x-gtar').send(logStream);
-        } catch (error: unknown) {
-            this.logger.error(error);
-            return res.status(500).send(`Error: Failed to get logs`);
-        }
-    }
-
     @Get('/graphql/api/customizations/:type')
     @UsePermissions({
         action: AuthAction.READ_ANY,
