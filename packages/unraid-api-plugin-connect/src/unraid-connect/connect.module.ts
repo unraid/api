@@ -10,6 +10,7 @@ import { RemoteAccessModule } from '../remote-access/remote-access.module.js';
 import { ConnectSettingsResolver } from './connect-settings.resolver.js';
 import { ConnectSettingsService } from './connect-settings.service.js';
 import { ConnectResolver } from './connect.resolver.js';
+import { ConnectPluginService } from './connect-plugin.service.js';
 
 @Module({
     imports: [RemoteAccessModule, ConfigModule, UserSettingsModule],
@@ -19,6 +20,7 @@ import { ConnectResolver } from './connect.resolver.js';
         ConnectSettingsResolver,
         ConnectResolver,
         ConnectConfigService,
+        ConnectPluginService,
     ],
     exports: [
         ConnectSettingsService,
