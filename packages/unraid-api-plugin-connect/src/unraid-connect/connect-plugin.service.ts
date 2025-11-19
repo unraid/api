@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Timeout } from '@nestjs/schedule';
 import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 
 import { execa } from 'execa';
 
@@ -38,7 +39,7 @@ export class ConnectPluginService implements OnModuleDestroy {
 
     /**
      * Prune the stale connect plugin entry, if necessary, when the api starts.
-     * 
+     *
      * Due to the various startup tasks happening in parallel, doing this during the `onModuleInit` hook
      * does not work reliably, so a Timeout is used, because the pruning does not need to happen immediately.
      */
@@ -50,10 +51,10 @@ export class ConnectPluginService implements OnModuleDestroy {
 
     /**
      * Prune the stale connect plugin entry, if necessary.
-     * 
+     *
      * Emits a warning and no-op's if invoked while the plugin is installed.
      * Otherwise, it will remove the stale plugin entry from the api and restart the api if desired.
-     * 
+     *
      * @param shouldRestart Whether to restart the api after pruning.
      */
     async pruneStaleConnectPluginEntry({ shouldRestart = true }: { shouldRestart?: boolean } = {}) {
@@ -115,6 +116,19 @@ export class ConnectPluginService implements OnModuleDestroy {
                 'Successfully completed `%s` to prune the stale connect plugin entry.',
                 removalCommand
             );
+
+            try {
+                const flashApiConfig = JSON.parse(
+                    await readFile(
+                        '/boot/config/plugins/dynamix.my.servers/configs/api.json',
+                        'utf-8'
+                    ).catch(() => '{}')
+                );
+                this.logger.debug('Plugins after running removal command: %o', this.apiPlugins);
+                this.logger.debug('Flash API config after running removal command: %o', flashApiConfig.plugins || []);
+            } catch {
+                this.logger.error('Failed to parse flash API config during debug! May be corrupt.');
+            }
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : 'Unknown error while restarting API.';
