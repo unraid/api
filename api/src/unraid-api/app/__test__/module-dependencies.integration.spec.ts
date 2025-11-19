@@ -1,4 +1,5 @@
 import { CacheModule } from '@nestjs/cache-manager';
+import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 
 import { describe, expect, it } from 'vitest';
@@ -10,7 +11,11 @@ describe('Module Dependencies Integration', () => {
         let module;
         try {
             module = await Test.createTestingModule({
-                imports: [CacheModule.register({ isGlobal: true }), RestModule],
+                imports: [
+                    ConfigModule.forRoot({ ignoreEnvFile: true, isGlobal: true }),
+                    CacheModule.register({ isGlobal: true }),
+                    RestModule,
+                ],
             }).compile();
 
             expect(module).toBeDefined();
