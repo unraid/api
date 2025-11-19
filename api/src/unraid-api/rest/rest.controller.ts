@@ -1,8 +1,8 @@
 import { Controller, Get, Logger, Param, Query, Req, Res, UnauthorizedException } from '@nestjs/common';
+import escapeHtml from 'escape-html';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
-import escapeHtml from 'escape-html';
 
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
@@ -27,21 +27,6 @@ export class RestController {
     @Public()
     async getRoot() {
         return 'OK';
-    }
-
-    @Get('/graphql/api/logs')
-    @UsePermissions({
-        action: AuthAction.READ_ANY,
-        resource: Resource.LOGS,
-    })
-    async getLogs(@Res() res: FastifyReply) {
-        try {
-            const logStream = await this.restService.getLogs();
-            return res.status(200).type('application/x-gtar').send(logStream);
-        } catch (error: unknown) {
-            this.logger.error(error);
-            return res.status(500).send(`Error: Failed to get logs`);
-        }
     }
 
     @Get('/graphql/api/customizations/:type')

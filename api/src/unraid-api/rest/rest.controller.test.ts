@@ -34,7 +34,6 @@ describe('RestController', () => {
                 {
                     provide: RestService,
                     useValue: {
-                        getLogs: vi.fn(),
                         getCustomizationStream: vi.fn(),
                     },
                 },
