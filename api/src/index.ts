@@ -61,7 +61,11 @@ export const viteNodeApp = async () => {
 
         await mkdir(PATHS_CONFIG_MODULES, { recursive: true });
 
-        await pruneStaleConnectPluginEntryIfNecessary();
+        try {
+            await pruneStaleConnectPluginEntryIfNecessary();
+        } catch (error) {
+            logger.error(error, 'Failed to prune stale connect plugin entry. Continuing...');
+        }
 
         const cacheable = new CacheableLookup();
 
