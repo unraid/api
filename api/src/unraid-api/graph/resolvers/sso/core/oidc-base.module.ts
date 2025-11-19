@@ -1,4 +1,5 @@
 import { forwardRef, Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 
 import { UserSettingsModule } from '@unraid/shared/services/user-settings.js';
 
@@ -7,7 +8,7 @@ import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/
 import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/core/oidc-validation.service.js';
 
 @Module({
-    imports: [UserSettingsModule, forwardRef(() => OidcClientModule)],
+    imports: [ConfigModule, UserSettingsModule, forwardRef(() => OidcClientModule)],
     providers: [OidcConfigPersistence, OidcValidationService],
     exports: [OidcConfigPersistence, OidcValidationService],
 })
