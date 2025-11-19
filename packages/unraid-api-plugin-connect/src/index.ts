@@ -4,10 +4,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ConnectConfigPersister } from './config/config.persistence.js';
 import { configFeature } from './config/connect.config.js';
 import { MothershipModule } from './mothership-proxy/mothership.module.js';
-import {
-    ConnectPluginService,
-    isConnectPluginInstalled,
-} from './unraid-connect/connect-plugin.service.js';
+import { ConnectPluginService } from './unraid-connect/connect-plugin.service.js';
+import { isConnectPluginInstalled } from './unraid-connect/connect-plugin.utils.js';
 import { ConnectModule } from './unraid-connect/connect.module.js';
 
 export const adapter = 'nestjs';

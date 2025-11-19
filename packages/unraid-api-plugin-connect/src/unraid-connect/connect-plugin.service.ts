@@ -2,23 +2,12 @@ import type { OnModuleDestroy } from '@nestjs/common';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Timeout } from '@nestjs/schedule';
-import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 
 import { execa } from 'execa';
 
 import type { ConfigType } from '../config/connect.config.js';
-
-/**
- * Local filesystem and env checks stay synchronous so we can branch at module load.
- * @returns True if the Connect Unraid plugin is installed, false otherwise.
- */
-export const isConnectPluginInstalled = () => {
-    if (process.env.SKIP_CONNECT_PLUGIN_CHECK === 'true') {
-        return true;
-    }
-    return existsSync('/boot/config/plugins/dynamix.unraid.net.plg');
-};
+import { isConnectPluginInstalled } from './connect-plugin.utils.js';
 
 /**
  * Service to handle syncing Connect's api plugin with the presence of the Connect Unraid plugin.
