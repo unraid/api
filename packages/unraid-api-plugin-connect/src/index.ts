@@ -1,6 +1,8 @@
 import { Inject, Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Timeout } from '@nestjs/schedule';
 import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 
 import { execa } from 'execa';
 
@@ -8,7 +10,6 @@ import { ConnectConfigPersister } from './config/config.persistence.js';
 import { configFeature } from './config/connect.config.js';
 import { MothershipModule } from './mothership-proxy/mothership.module.js';
 import { ConnectModule } from './unraid-connect/connect.module.js';
-import { Timeout } from '@nestjs/schedule';
 
 export const adapter = 'nestjs';
 
@@ -79,11 +80,18 @@ export class DisabledConnectPluginModule {
                 removalCommand
             );
 
-            setTimeout(() => {
+            setTimeout(async () => {
                 const debugPlugins = this.configService.get<string[]>('api.plugins') || [];
                 const debugApiConfig = this.configService.get('api') || {};
+                const flashApiConfig = JSON.parse(
+                    await readFile(
+                        '/boot/config/plugins/dynamix.my.servers/configs/api.json',
+                        'utf-8'
+                    ).catch(() => '{}')
+                );
                 this.logger.debug('Plugins after running removal command: %o', debugPlugins);
-                this.logger.debug('API config after running removal command: %o', debugApiConfig);
+                this.logger.debug('Memory API config after running removal command: %o', debugApiConfig);
+                this.logger.debug('Flash API config after running removal command: %o', flashApiConfig);
             }, 3_000);
         } catch (error) {
             const message =
