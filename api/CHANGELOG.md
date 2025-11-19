@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.26.2](https://github.com/unraid/api/compare/v4.26.1...v4.26.2) (2025-11-19)
+
+
+### Bug Fixes
+
+* **theme:** Missing header background color ([e2fdf6c](https://github.com/unraid/api/commit/e2fdf6cadbd816559b8c82546c2bc771a81ffa9e))
+
 ## [4.26.1](https://github.com/unraid/api/compare/v4.26.0...v4.26.1) (2025-11-18)
 
 
