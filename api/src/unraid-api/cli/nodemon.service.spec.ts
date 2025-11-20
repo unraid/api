@@ -16,6 +16,8 @@ vi.mock('@app/core/utils/files/file-exists.js', () => ({
     fileExists: vi.fn().mockResolvedValue(false),
 }));
 vi.mock('@app/environment.js', () => ({
+    LOG_LEVEL: 'INFO',
+    SUPPRESS_LOGS: false,
     NODEMON_CONFIG_PATH: '/etc/unraid-api/nodemon.json',
     NODEMON_PATH: '/usr/bin/nodemon',
     NODEMON_PID_PATH: '/var/run/unraid-api/nodemon.pid',
