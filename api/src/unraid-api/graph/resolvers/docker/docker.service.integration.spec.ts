@@ -8,7 +8,10 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { DockerAutostartService } from '@app/unraid-api/graph/resolvers/docker/docker-autostart.service.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
+import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-log.service.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
+import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
+import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
@@ -75,6 +78,9 @@ describe.runIf(dockerAvailable)('DockerService Integration', () => {
             providers: [
                 DockerService,
                 DockerAutostartService,
+                DockerLogService,
+                DockerNetworkService,
+                DockerPortService,
                 { provide: CACHE_MANAGER, useValue: mockCacheManager },
                 { provide: DockerConfigService, useValue: mockDockerConfigService },
                 { provide: DockerManifestService, useValue: mockDockerManifestService },

@@ -9,7 +9,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { DockerAutostartService } from '@app/unraid-api/graph/resolvers/docker/docker-autostart.service.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
+import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-log.service.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
+import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
+import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
 import {
     ContainerPortType,
     ContainerState,
@@ -70,11 +73,9 @@ const { mockDockerInstance, mockListContainers, mockGetContainer, mockListNetwor
         };
     });
 
-vi.mock('dockerode', () => {
-    return {
-        default: vi.fn().mockImplementation(() => mockDockerInstance),
-    };
-});
+vi.mock('@app/unraid-api/graph/resolvers/docker/utils/docker-client.js', () => ({
+    getDockerClient: vi.fn().mockReturnValue(mockDockerInstance),
+}));
 
 vi.mock('execa', () => ({
     execa: vi.fn(),
@@ -152,6 +153,32 @@ const mockDockerAutostartService = {
     updateAutostartConfiguration: vi.fn().mockResolvedValue(undefined),
 };
 
+// Mock new services
+const mockDockerLogService = {
+    getContainerLogSizes: vi.fn().mockResolvedValue(new Map([['test-container', 1024]])),
+    getContainerLogs: vi.fn().mockResolvedValue({ lines: [], cursor: null }),
+};
+
+const mockDockerNetworkService = {
+    getNetworks: vi.fn().mockResolvedValue([]),
+};
+
+// Use a real-ish mock for DockerPortService since it is used in transformContainer
+const mockDockerPortService = {
+    deduplicateContainerPorts: vi.fn((ports) => {
+        if (!ports) return [];
+        // Simple dedupe logic for test
+        const seen = new Set();
+        return ports.filter((p) => {
+            const key = `${p.PrivatePort}-${p.PublicPort}-${p.Type}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    }),
+    calculateConflicts: vi.fn().mockReturnValue({ containerPorts: [], lanPorts: [] }),
+};
+
 describe('DockerService', () => {
     let service: DockerService;
 
@@ -189,6 +216,14 @@ describe('DockerService', () => {
         mockDockerAutostartService.getAutoStartEntry.mockReset();
         mockDockerAutostartService.updateAutostartConfiguration.mockReset();
 
+        mockDockerLogService.getContainerLogSizes.mockReset();
+        mockDockerLogService.getContainerLogSizes.mockResolvedValue(new Map([['test-container', 1024]]));
+        mockDockerLogService.getContainerLogs.mockReset();
+
+        mockDockerNetworkService.getNetworks.mockReset();
+        mockDockerPortService.deduplicateContainerPorts.mockClear();
+        mockDockerPortService.calculateConflicts.mockReset();
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 DockerService,
@@ -212,6 +247,18 @@ describe('DockerService', () => {
                     provide: DockerAutostartService,
                     useValue: mockDockerAutostartService,
                 },
+                {
+                    provide: DockerLogService,
+                    useValue: mockDockerLogService,
+                },
+                {
+                    provide: DockerNetworkService,
+                    useValue: mockDockerNetworkService,
+                },
+                {
+                    provide: DockerPortService,
+                    useValue: mockDockerPortService,
+                },
             ],
         }).compile();
 
@@ -221,8 +268,6 @@ describe('DockerService', () => {
     it('should be defined', () => {
         expect(service).toBeDefined();
     });
-
-    // ... most tests remain similar but no file I/O assertions ...
 
     it('should get containers', async () => {
         const mockContainers = [
@@ -261,6 +306,7 @@ describe('DockerService', () => {
 
         expect(mockListContainers).toHaveBeenCalled();
         expect(mockDockerAutostartService.refreshAutoStartEntries).toHaveBeenCalled();
+        expect(mockDockerPortService.deduplicateContainerPorts).toHaveBeenCalled();
     });
 
     it('should update auto-start configuration', async () => {
@@ -283,17 +329,9 @@ describe('DockerService', () => {
         expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
     });
 
-    it('should get container log sizes using dockerode inspect', async () => {
-        mockContainer.inspect.mockResolvedValue({
-            LogPath: '/var/lib/docker/containers/id/id-json.log',
-        });
-        statMock.mockResolvedValue({ size: 1024 });
-
+    it('should delegate getContainerLogSizes to DockerLogService', async () => {
         const sizes = await service.getContainerLogSizes(['test-container']);
-
-        expect(mockGetContainer).toHaveBeenCalledWith('test-container');
-        expect(mockContainer.inspect).toHaveBeenCalled();
-        expect(statMock).toHaveBeenCalledWith('/var/lib/docker/containers/id/id-json.log');
+        expect(mockDockerLogService.getContainerLogSizes).toHaveBeenCalledWith(['test-container']);
         expect(sizes.get('test-container')).toBe(1024);
     });
 
@@ -343,23 +381,10 @@ describe('DockerService', () => {
                 Mounts: [],
             } as Docker.ContainerInfo;
 
-            const transformed = service.transformContainer(container);
-
-            expect(transformed.ports).toEqual([
-                {
-                    ip: '0.0.0.0',
-                    privatePort: 8080,
-                    publicPort: 8080,
-                    type: ContainerPortType.TCP,
-                },
-                {
-                    ip: '0.0.0.0',
-                    privatePort: 5000,
-                    publicPort: 5000,
-                    type: ContainerPortType.UDP,
-                },
-            ]);
-            expect(transformed.lanIpPorts).toEqual(['192.168.0.10:8080', '192.168.0.10:5000']);
+            service.transformContainer(container);
+            expect(mockDockerPortService.deduplicateContainerPorts).toHaveBeenCalledWith(
+                container.Ports
+            );
         });
     });
 });

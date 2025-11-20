@@ -1,13 +1,10 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { stat } from 'fs/promises';
 
-import type { ExecaError } from 'execa';
 import { type Cache } from 'cache-manager';
 import Docker from 'dockerode';
 import { execa } from 'execa';
 
-import type { DockerAutostartEntryInput } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { AppError } from '@app/core/errors/app-error.js';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
@@ -15,19 +12,20 @@ import { sleep } from '@app/core/utils/misc/sleep.js';
 import { getLanIp } from '@app/core/utils/network.js';
 import { DockerAutostartService } from '@app/unraid-api/graph/resolvers/docker/docker-autostart.service.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
+import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-log.service.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
+import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
+import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
 import {
     ContainerPortType,
     ContainerState,
+    DockerAutostartEntryInput,
     DockerContainer,
-    DockerContainerLogLine,
     DockerContainerLogs,
-    DockerContainerPortConflict,
-    DockerLanPortConflict,
     DockerNetwork,
-    DockerPortConflictContainer,
     DockerPortConflicts,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { getDockerClient } from '@app/unraid-api/graph/resolvers/docker/utils/docker-client.js';
 import { NotificationImportance } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
@@ -48,175 +46,21 @@ export class DockerService {
     public static readonly CONTAINER_WITH_SIZE_CACHE_KEY = 'docker_containers_with_size';
     public static readonly NETWORK_CACHE_KEY = 'docker_networks';
     public static readonly CACHE_TTL_SECONDS = 60;
-    private static readonly DEFAULT_LOG_TAIL = 200;
-    private static readonly MAX_LOG_TAIL = 2000;
 
     constructor(
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private readonly dockerConfigService: DockerConfigService,
         private readonly notificationsService: NotificationsService,
         private readonly dockerManifestService: DockerManifestService,
-        private readonly autostartService: DockerAutostartService
+        private readonly autostartService: DockerAutostartService,
+        private readonly dockerLogService: DockerLogService,
+        private readonly dockerNetworkService: DockerNetworkService,
+        private readonly dockerPortService: DockerPortService
     ) {
-        this.client = this.getDockerClient();
+        this.client = getDockerClient();
     }
 
-    private deduplicateContainerPorts(
-        ports: Docker.ContainerInfo['Ports'] | undefined
-    ): Docker.ContainerInfo['Ports'] {
-        if (!Array.isArray(ports)) {
-            return [];
-        }
-
-        const seen = new Set<string>();
-        const uniquePorts: Docker.ContainerInfo['Ports'] = [];
-
-        for (const port of ports) {
-            const key = `${port.PrivatePort ?? ''}-${port.PublicPort ?? ''}-${(port.Type ?? '').toLowerCase()}`;
-            if (seen.has(key)) {
-                continue;
-            }
-            seen.add(key);
-            uniquePorts.push(port);
-        }
-
-        return uniquePorts;
-    }
-
-    private buildPortConflictContainerRef(container: DockerContainer): DockerPortConflictContainer {
-        const primaryName = this.autostartService.getContainerPrimaryName(container);
-        const fallback = container.names?.[0] ?? container.id;
-        const normalized = typeof fallback === 'string' ? fallback.replace(/^\//, '') : container.id;
-        return {
-            id: container.id,
-            name: primaryName || normalized,
-        };
-    }
-
-    private buildContainerPortConflicts(containers: DockerContainer[]): DockerContainerPortConflict[] {
-        const groups = new Map<
-            string,
-            {
-                privatePort: number;
-                type: ContainerPortType;
-                containers: DockerContainer[];
-                seen: Set<string>;
-            }
-        >();
-
-        for (const container of containers) {
-            if (!Array.isArray(container.ports)) {
-                continue;
-            }
-            for (const port of container.ports) {
-                if (!port || typeof port.privatePort !== 'number') {
-                    continue;
-                }
-                const type = port.type ?? ContainerPortType.TCP;
-                const key = `${port.privatePort}/${type}`;
-                let group = groups.get(key);
-                if (!group) {
-                    group = {
-                        privatePort: port.privatePort,
-                        type,
-                        containers: [],
-                        seen: new Set<string>(),
-                    };
-                    groups.set(key, group);
-                }
-                if (group.seen.has(container.id)) {
-                    continue;
-                }
-                group.seen.add(container.id);
-                group.containers.push(container);
-            }
-        }
-
-        return Array.from(groups.values())
-            .filter((group) => group.containers.length > 1)
-            .map((group) => ({
-                privatePort: group.privatePort,
-                type: group.type,
-                containers: group.containers.map((container) =>
-                    this.buildPortConflictContainerRef(container)
-                ),
-            }))
-            .sort((a, b) => {
-                if (a.privatePort !== b.privatePort) {
-                    return a.privatePort - b.privatePort;
-                }
-                return a.type.localeCompare(b.type);
-            });
-    }
-
-    private buildLanPortConflicts(containers: DockerContainer[]): DockerLanPortConflict[] {
-        const lanIp = getLanIp();
-        const groups = new Map<
-            string,
-            {
-                lanIpPort: string;
-                publicPort: number;
-                type: ContainerPortType;
-                containers: DockerContainer[];
-                seen: Set<string>;
-            }
-        >();
-
-        for (const container of containers) {
-            if (!Array.isArray(container.ports)) {
-                continue;
-            }
-            for (const port of container.ports) {
-                if (!port || typeof port.publicPort !== 'number') {
-                    continue;
-                }
-                const type = port.type ?? ContainerPortType.TCP;
-                const lanIpPort = lanIp ? `${lanIp}:${port.publicPort}` : `${port.publicPort}`;
-                const key = `${lanIpPort}/${type}`;
-                let group = groups.get(key);
-                if (!group) {
-                    group = {
-                        lanIpPort,
-                        publicPort: port.publicPort,
-                        type,
-                        containers: [],
-                        seen: new Set<string>(),
-                    };
-                    groups.set(key, group);
-                }
-                if (group.seen.has(container.id)) {
-                    continue;
-                }
-                group.seen.add(container.id);
-                group.containers.push(container);
-            }
-        }
-
-        return Array.from(groups.values())
-            .filter((group) => group.containers.length > 1)
-            .map((group) => ({
-                lanIpPort: group.lanIpPort,
-                publicPort: group.publicPort,
-                type: group.type,
-                containers: group.containers.map((container) =>
-                    this.buildPortConflictContainerRef(container)
-                ),
-            }))
-            .sort((a, b) => {
-                if ((a.publicPort ?? 0) !== (b.publicPort ?? 0)) {
-                    return (a.publicPort ?? 0) - (b.publicPort ?? 0);
-                }
-                return a.type.localeCompare(b.type);
-            });
-    }
-
-    public getDockerClient() {
-        return new Docker({
-            socketPath: '/var/run/docker.sock',
-        });
-    }
-
-    async getAppInfo() {
+    public async getAppInfo() {
         const containers = await this.getContainers({ skipCache: false });
         const installedCount = containers.length;
         const runningCount = containers.filter(
@@ -247,7 +91,7 @@ export class DockerService {
             : undefined;
         const lanIp = getLanIp();
         const lanPortStrings: string[] = [];
-        const uniquePorts = this.deduplicateContainerPorts(container.Ports);
+        const uniquePorts = this.dockerPortService.deduplicateContainerPorts(container.Ports);
 
         const transformedPorts = uniquePorts.map((port) => {
             if (port.PublicPort) {
@@ -358,184 +202,26 @@ export class DockerService {
         skipCache?: boolean;
     } = {}): Promise<DockerPortConflicts> {
         const containers = await this.getContainers({ skipCache });
-        return {
-            containerPorts: this.buildContainerPortConflicts(containers),
-            lanPorts: this.buildLanPortConflicts(containers),
-        };
+        return this.dockerPortService.calculateConflicts(containers);
     }
 
     public async getContainerLogSizes(containerNames: string[]): Promise<Map<string, number>> {
-        const logSizes = new Map<string, number>();
-        if (!Array.isArray(containerNames) || containerNames.length === 0) {
-            return logSizes;
-        }
-
-        for (const rawName of containerNames) {
-            const normalized = (rawName ?? '').replace(/^\//, '');
-            if (!normalized) {
-                logSizes.set(normalized, 0);
-                continue;
-            }
-
-            try {
-                const container = this.client.getContainer(normalized);
-                const info = await container.inspect();
-                const logPath = info.LogPath;
-
-                if (!logPath || typeof logPath !== 'string' || !logPath.length) {
-                    logSizes.set(normalized, 0);
-                    continue;
-                }
-
-                const stats = await stat(logPath).catch(() => null);
-                logSizes.set(normalized, stats?.size ?? 0);
-            } catch (error) {
-                const message =
-                    error instanceof Error ? error.message : String(error ?? 'unknown error');
-                this.logger.debug(
-                    `Failed to determine log size for container ${normalized}: ${message}`
-                );
-                logSizes.set(normalized, 0);
-            }
-        }
-
-        return logSizes;
+        return this.dockerLogService.getContainerLogSizes(containerNames);
     }
 
     public async getContainerLogs(
         id: string,
         options?: { since?: Date | null; tail?: number | null }
     ): Promise<DockerContainerLogs> {
-        const normalizedId = (id ?? '').trim();
-        if (!normalizedId) {
-            throw new AppError('Container id is required to fetch logs.', 400);
-        }
-
-        const tail = this.normalizeLogTail(options?.tail);
-        const args = ['logs', '--timestamps', '--tail', String(tail)];
-        const sinceIso = options?.since instanceof Date ? options.since.toISOString() : null;
-        if (sinceIso) {
-            args.push('--since', sinceIso);
-        }
-        args.push(normalizedId);
-
-        try {
-            const { stdout } = await execa('docker', args);
-            const lines = this.parseDockerLogOutput(stdout);
-            const cursor =
-                lines.length > 0 ? lines[lines.length - 1].timestamp : (options?.since ?? null);
-
-            return {
-                containerId: normalizedId,
-                lines,
-                cursor: cursor ?? undefined,
-            };
-        } catch (error: unknown) {
-            const execaError = error as ExecaError;
-            const stderr = typeof execaError?.stderr === 'string' ? execaError.stderr.trim() : '';
-            const message = stderr || execaError?.message || 'Unknown error';
-            this.logger.error(
-                `Failed to fetch logs for container ${normalizedId}: ${message}`,
-                execaError
-            );
-            throw new AppError(`Failed to fetch logs for container ${normalizedId}.`);
-        }
+        return this.dockerLogService.getContainerLogs(id, options);
     }
 
     /**
      * Get all Docker networks
      * @returns All the in/active Docker networks on the system.
      */
-    public async getNetworks({ skipCache }: NetworkListingOptions): Promise<DockerNetwork[]> {
-        if (!skipCache) {
-            const cachedNetworks = await this.cacheManager.get<DockerNetwork[]>(
-                DockerService.NETWORK_CACHE_KEY
-            );
-            if (cachedNetworks) {
-                this.logger.debug('Using docker network cache');
-                return cachedNetworks;
-            }
-        }
-
-        this.logger.debug('Updating docker network cache');
-        const rawNetworks = await this.client.listNetworks().catch(catchHandlers.docker);
-        const networks = rawNetworks.map(
-            (network) =>
-                ({
-                    name: network.Name || '',
-                    id: network.Id || '',
-                    created: network.Created || '',
-                    scope: network.Scope || '',
-                    driver: network.Driver || '',
-                    enableIPv6: network.EnableIPv6 || false,
-                    ipam: network.IPAM || {},
-                    internal: network.Internal || false,
-                    attachable: network.Attachable || false,
-                    ingress: network.Ingress || false,
-                    configFrom: network.ConfigFrom || {},
-                    configOnly: network.ConfigOnly || false,
-                    containers: network.Containers || {},
-                    options: network.Options || {},
-                    labels: network.Labels || {},
-                }) as DockerNetwork
-        );
-
-        await this.cacheManager.set(
-            DockerService.NETWORK_CACHE_KEY,
-            networks,
-            DockerService.CACHE_TTL_SECONDS * 1000
-        );
-        return networks;
-    }
-
-    private normalizeLogTail(tail?: number | null): number {
-        if (typeof tail !== 'number' || Number.isNaN(tail)) {
-            return DockerService.DEFAULT_LOG_TAIL;
-        }
-        const coerced = Math.floor(tail);
-        if (!Number.isFinite(coerced) || coerced <= 0) {
-            return DockerService.DEFAULT_LOG_TAIL;
-        }
-        return Math.min(coerced, DockerService.MAX_LOG_TAIL);
-    }
-
-    private parseDockerLogOutput(output: string): DockerContainerLogLine[] {
-        if (!output) {
-            return [];
-        }
-        return output
-            .split(/\r?\n/g)
-            .map((line) => line.trim())
-            .filter((line) => line.length > 0)
-            .map((line) => this.parseDockerLogLine(line))
-            .filter((entry): entry is DockerContainerLogLine => Boolean(entry));
-    }
-
-    private parseDockerLogLine(line: string): DockerContainerLogLine | null {
-        const trimmed = line.trim();
-        if (!trimmed.length) {
-            return null;
-        }
-        const firstSpaceIndex = trimmed.indexOf(' ');
-        if (firstSpaceIndex === -1) {
-            return {
-                timestamp: new Date(),
-                message: trimmed,
-            };
-        }
-        const potentialTimestamp = trimmed.slice(0, firstSpaceIndex);
-        const message = trimmed.slice(firstSpaceIndex + 1);
-        const parsedTimestamp = new Date(potentialTimestamp);
-        if (Number.isNaN(parsedTimestamp.getTime())) {
-            return {
-                timestamp: new Date(),
-                message: trimmed,
-            };
-        }
-        return {
-            timestamp: parsedTimestamp,
-            message,
-        };
+    public async getNetworks(options: NetworkListingOptions): Promise<DockerNetwork[]> {
+        return this.dockerNetworkService.getNetworks(options);
     }
 
     public async clearContainerCache(): Promise<void> {

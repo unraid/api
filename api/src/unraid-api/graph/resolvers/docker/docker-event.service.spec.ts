@@ -27,6 +27,7 @@ vi.mock('@nestjs/common', async () => {
             debug: vi.fn(),
             error: vi.fn(),
             log: vi.fn(),
+            verbose: vi.fn(),
         })),
     };
 });
@@ -54,29 +55,33 @@ vi.mock('@app/core/pubsub.js', () => ({
 // Mock DockerService
 vi.mock('./docker.service.js', () => ({
     DockerService: vi.fn().mockImplementation(() => ({
-        getDockerClient: vi.fn(),
         clearContainerCache: vi.fn(),
         getAppInfo: vi.fn().mockResolvedValue({ info: { apps: { installed: 1, running: 1 } } }),
     })),
 }));
 
+const { mockDockerClientInstance } = vi.hoisted(() => {
+    const mock = {
+        getEvents: vi.fn(),
+    } as unknown as Docker;
+    return { mockDockerClientInstance: mock };
+});
+
+// Mock the docker client util
+vi.mock('@app/unraid-api/graph/resolvers/docker/utils/docker-client.js', () => ({
+    getDockerClient: vi.fn().mockReturnValue(mockDockerClientInstance),
+}));
+
 describe('DockerEventService', () => {
     let service: DockerEventService;
     let dockerService: DockerService;
-    let mockDockerClient: Docker;
     let mockEventStream: PassThrough;
     let mockLogger: Logger;
     let module: TestingModule;
 
     beforeEach(async () => {
-        // Create a mock Docker client
-        mockDockerClient = {
-            getEvents: vi.fn(),
-        } as unknown as Docker;
-
         // Create a mock Docker service *instance*
         const mockDockerServiceImpl = {
-            getDockerClient: vi.fn().mockReturnValue(mockDockerClient),
             clearContainerCache: vi.fn(),
             getAppInfo: vi.fn().mockResolvedValue({ info: { apps: { installed: 1, running: 1 } } }),
         };
@@ -85,7 +90,7 @@ describe('DockerEventService', () => {
         mockEventStream = new PassThrough();
 
         // Set up the mock Docker client to return our mock event stream
-        vi.spyOn(mockDockerClient, 'getEvents').mockResolvedValue(
+        vi.spyOn(mockDockerClientInstance, 'getEvents').mockResolvedValue(
             mockEventStream as unknown as Readable
         );
 

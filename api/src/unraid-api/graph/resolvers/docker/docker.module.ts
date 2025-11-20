@@ -6,8 +6,11 @@ import { DockerAutostartService } from '@app/unraid-api/graph/resolvers/docker/d
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerContainerResolver } from '@app/unraid-api/graph/resolvers/docker/docker-container.resolver.js';
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
+import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-log.service.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
+import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
+import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
 import { DockerStatsService } from '@app/unraid-api/graph/resolvers/docker/docker-stats.service.js';
 import { DockerTemplateIconService } from '@app/unraid-api/graph/resolvers/docker/docker-template-icon.service.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
@@ -34,6 +37,9 @@ import { ServicesModule } from '@app/unraid-api/graph/services/services.module.j
         DockerTemplateScannerService,
         DockerTemplateIconService,
         DockerStatsService,
+        DockerLogService,
+        DockerNetworkService,
+        DockerPortService,
 
         // Jobs
         ContainerStatusJob,

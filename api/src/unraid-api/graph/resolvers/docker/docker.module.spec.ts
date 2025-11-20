@@ -5,7 +5,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
+import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-log.service.js';
+import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
+import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
 import { DockerStatsService } from '@app/unraid-api/graph/resolvers/docker/docker-stats.service.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
@@ -28,6 +31,12 @@ describe('DockerModule', () => {
             .useValue({ getConfig: vi.fn() })
             .overrideProvider(DockerConfigService)
             .useValue({ getConfig: vi.fn() })
+            .overrideProvider(DockerLogService)
+            .useValue({})
+            .overrideProvider(DockerNetworkService)
+            .useValue({})
+            .overrideProvider(DockerPortService)
+            .useValue({})
             .overrideProvider(SubscriptionTrackerService)
             .useValue({
                 registerTopic: vi.fn(),
@@ -62,6 +71,10 @@ describe('DockerModule', () => {
     });
 
     it('should provide DockerEventService', async () => {
+        // DockerEventService is not exported by DockerModule but we can test if we can provide it
+        // But here we are creating a module with providers manually, not importing DockerModule.
+        // Wait, DockerEventService was NOT in DockerModule providers in my refactor?
+        // I should check if DockerEventService is in DockerModule.
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 DockerEventService,
