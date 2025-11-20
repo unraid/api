@@ -1,7 +1,6 @@
 import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
-import { useLocalStorage } from '@vueuse/core';
 
 import { defaultColors } from '~/themes/default';
 import hexToRgba from 'hex-to-rgba';
@@ -30,6 +29,40 @@ export const GET_THEME_QUERY = graphql(`
 
 export const THEME_STORAGE_KEY = 'unraid.theme.publicTheme';
 export const THEME_CSS_VARS_KEY = 'unraid.theme.cssVars';
+export const THEME_CSS_VARS_COOKIE = 'unraid.theme.cssVars';
+
+const getCookie = (name: string): string | null => {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return parts.pop()?.split(';').shift() || null;
+  }
+  return null;
+};
+
+const setCookie = (
+  name: string,
+  value: string,
+  options?: { maxAge?: number; sameSite?: string }
+): void => {
+  if (typeof document === 'undefined') return;
+  let cookie = `${name}=${value};path=/`;
+  if (options?.maxAge) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + options.maxAge * 1000);
+    cookie += `;expires=${expires.toUTCString()}`;
+  }
+  if (options?.sameSite) {
+    cookie += `;SameSite=${options.sameSite}`;
+  }
+  document.cookie = cookie;
+};
+
+const removeCookie = (name: string): void => {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+};
 
 const DEFAULT_THEME: Theme = {
   name: 'white',
@@ -86,11 +119,33 @@ export const useThemeStore = defineStore('theme', () => {
   const hasServerTheme = ref(false);
   const devOverride = ref(false);
 
-  const persistedCssVars = useLocalStorage<Record<string, string>>(
-    THEME_CSS_VARS_KEY,
-    {},
-    { mergeDefaults: true }
-  );
+  const persistedCssVarsCookie = computed<Record<string, string>>({
+    get: () => {
+      try {
+        const cookieValue = getCookie(THEME_CSS_VARS_COOKIE);
+        if (cookieValue) {
+          return JSON.parse(decodeURIComponent(cookieValue));
+        }
+      } catch {
+        // Ignore parse errors
+      }
+      return {};
+    },
+    set: (value) => {
+      try {
+        if (Object.keys(value).length === 0) {
+          removeCookie(THEME_CSS_VARS_COOKIE);
+        } else {
+          setCookie(THEME_CSS_VARS_COOKIE, encodeURIComponent(JSON.stringify(value)), {
+            maxAge: 60 * 60 * 24 * 365, // 1 year
+            sameSite: 'Lax',
+          });
+        }
+      } catch {
+        // Ignore set errors
+      }
+    },
+  });
 
   const { result, onResult, onError } = useQuery<GetThemeQuery>(GET_THEME_QUERY, null, {
     fetchPolicy: 'cache-and-network',
@@ -296,13 +351,21 @@ export const useThemeStore = defineStore('theme', () => {
     // All theme defaults are handled by classes in @tailwind-shared/theme-variants.css
     const activeDynamicKeys = Object.keys(dynamicVars) as DynamicVarKey[];
 
+    // Set CSS variables on all targets first to prevent flash
     activeDynamicKeys.forEach((key) => {
       const value = dynamicVars[key];
       if (value !== undefined) {
         document.body.style.setProperty(key, value);
+        document.documentElement.style.setProperty(key, value);
+        scopedTargets.forEach((target) => {
+          if (target !== document.documentElement) {
+            target.style.setProperty(key, value);
+          }
+        });
       }
     });
 
+    // Remove unused CSS variables after setting new ones
     DYNAMIC_VAR_KEYS.forEach((key) => {
       if (!Object.prototype.hasOwnProperty.call(dynamicVars, key)) {
         document.body.style.removeProperty(key);
@@ -321,7 +384,7 @@ export const useThemeStore = defineStore('theme', () => {
     activeDynamicKeys.forEach((key) => {
       cleanedPersistedVars[key] = dynamicVars[key]!;
     });
-    persistedCssVars.value = cleanedPersistedVars;
+    persistedCssVarsCookie.value = cleanedPersistedVars;
 
     // Store active variables for reference (from defaultColors for compatibility)
     const customTheme = { ...defaultColors[selectedTheme] };

@@ -150,27 +150,43 @@ class WebComponentsExtractor
 
     private function getThemeInitScript(): string
     {
-        return '<script>
-(function() {
-  "use strict";
-  try {
-    const stored = localStorage.getItem("unraid.theme.cssVars");
-    if (stored) {
-      const cssVars = JSON.parse(stored);
-      if (cssVars && typeof document !== "undefined") {
-        const root = document.documentElement;
-        for (const [key, value] of Object.entries(cssVars)) {
-          if (value) {
-            root.style.setProperty(key, value);
-          }
+        $cookieName = 'unraid.theme.cssVars';
+        $cssVars = [];
+        
+        if (isset($_COOKIE[$cookieName])) {
+            try {
+                $decoded = urldecode($_COOKIE[$cookieName]);
+                $parsed = json_decode($decoded, true);
+                if (is_array($parsed)) {
+                    $cssVars = $parsed;
+                }
+            } catch (\Exception $e) {
+                // Silently fail - store will handle it
+            }
         }
-      }
-    }
-  } catch (e) {
-    // Silently fail - store will handle it
-  }
-})();
-</script>';
+        
+        if (empty($cssVars)) {
+            return '';
+        }
+        
+        $cssRules = [];
+        foreach ($cssVars as $key => $value) {
+            if ($value && is_string($key) && is_string($value)) {
+                $safeKey = htmlspecialchars($key, ENT_QUOTES, 'UTF-8');
+                $safeValue = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+                $cssRules[] = $safeKey . ': ' . $safeValue . ';';
+            }
+        }
+        
+        if (empty($cssRules)) {
+            return '';
+        }
+        
+        return '<style id="unraid-theme-css-vars">
+:root {
+  ' . implode("\n  ", $cssRules) . '
+}
+</style>';
     }
 
     public function getScriptTagHtml(): string

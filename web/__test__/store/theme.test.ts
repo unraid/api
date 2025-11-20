@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Theme } from '~/themes/types';
 
 import { globalPinia } from '~/store/globalPinia';
-import { THEME_CSS_VARS_KEY, useThemeStore } from '~/store/theme';
+import { THEME_CSS_VARS_COOKIE, useThemeStore } from '~/store/theme';
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: () => ({
@@ -39,12 +39,22 @@ describe('Theme Store', () => {
   let store: ReturnType<typeof useThemeStore> | undefined;
   let app: ReturnType<typeof createApp> | undefined;
 
+  const getCookie = (name: string): string | null => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) {
+      return parts.pop()?.split(';').shift() || null;
+    }
+    return null;
+  };
+
   beforeEach(() => {
     app = createApp({ render: () => null });
     app.use(globalPinia);
     setActivePinia(globalPinia);
     store = undefined;
     window.localStorage.clear();
+    document.cookie = `${THEME_CSS_VARS_COOKIE}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
     delete (globalPinia.state.value as Record<string, unknown>).theme;
 
     document.body.classList.add = vi.fn();
@@ -257,9 +267,9 @@ describe('Theme Store', () => {
       store.setTheme(serverTheme, { source: 'server' });
       await nextTick();
 
-      const stored = window.localStorage.getItem(THEME_CSS_VARS_KEY);
+      const stored = getCookie(THEME_CSS_VARS_COOKIE);
       expect(stored).toBeTruthy();
-      const cssVars = JSON.parse(stored!);
+      const cssVars = JSON.parse(decodeURIComponent(stored!));
       expect(cssVars['--custom-header-text-primary']).toBe('#eeeeee');
       expect(cssVars['--custom-header-text-secondary']).toBe('#999999');
       expect(cssVars['--custom-header-background-color']).toBe('#111111');
