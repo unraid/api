@@ -65,6 +65,12 @@ vi.mock('~/store/updateOs', () => ({
   }),
 }));
 
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
 describe('UpdateOsActions Store', () => {
   let store: ReturnType<typeof useUpdateOsActionsStore>;
 

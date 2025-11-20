@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Theme } from '~/themes/types';
 
 import { globalPinia } from '~/store/globalPinia';
-import { THEME_STORAGE_KEY, useThemeStore } from '~/store/theme';
+import { THEME_CSS_VARS_KEY, useThemeStore } from '~/store/theme';
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: () => ({
@@ -87,8 +87,6 @@ describe('Theme Store', () => {
   describe('State and Initialization', () => {
     it('should initialize with default theme', () => {
       const store = createStore();
-
-      expect(typeof store.$persist).toBe('function');
 
       expect(store.theme).toEqual({
         name: 'white',
@@ -241,24 +239,6 @@ describe('Theme Store', () => {
       );
     });
 
-    it('should hydrate theme from cache when available', () => {
-      const cachedTheme = {
-        name: 'black',
-        banner: true,
-        bannerGradient: false,
-        bgColor: '#222222',
-        descriptionShow: true,
-        metaColor: '#aaaaaa',
-        textColor: '#ffffff',
-      } satisfies Theme;
-
-      window.localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify({ theme: cachedTheme }));
-
-      const store = createStore();
-
-      expect(store.theme).toEqual(cachedTheme);
-    });
-
     it('should persist server theme responses to cache', async () => {
       const store = createStore();
 
@@ -275,9 +255,12 @@ describe('Theme Store', () => {
       store.setTheme(serverTheme, { source: 'server' });
       await nextTick();
 
-      expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toEqual(
-        JSON.stringify({ theme: serverTheme })
-      );
+      const stored = window.localStorage.getItem(THEME_CSS_VARS_KEY);
+      expect(stored).toBeTruthy();
+      const cssVars = JSON.parse(stored!);
+      expect(cssVars['--custom-header-text-primary']).toBe('#eeeeee');
+      expect(cssVars['--custom-header-text-secondary']).toBe('#999999');
+      expect(cssVars['--custom-header-background-color']).toBe('#111111');
     });
   });
 });
