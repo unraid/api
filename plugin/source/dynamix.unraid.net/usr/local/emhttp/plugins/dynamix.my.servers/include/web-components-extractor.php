@@ -151,31 +151,36 @@ class WebComponentsExtractor
     private function getThemeInitScript(): string
     {
         $cookieName = 'unraid.theme.cssVars';
-        $cssVars = [];
         
-        if (isset($_COOKIE[$cookieName])) {
-            try {
-                $decoded = urldecode($_COOKIE[$cookieName]);
-                $parsed = json_decode($decoded, true);
-                if (is_array($parsed)) {
-                    $cssVars = $parsed;
-                }
-            } catch (\Exception $e) {
-                // Silently fail - store will handle it
-            }
-        }
+        // Use filter_input for robust cookie reading (PHP 8 best practice)
+        $cookieValue = filter_input(INPUT_COOKIE, $cookieName, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
         
-        if (empty($cssVars)) {
+        if ($cookieValue === null || $cookieValue === false) {
             return '';
         }
         
+        // Decode URL-encoded value if needed
+        $decoded = str_contains($cookieValue, '%') ? urldecode($cookieValue) : $cookieValue;
+        
+        // Parse JSON with proper error handling
+        $cssVars = json_decode($decoded, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($cssVars) || empty($cssVars)) {
+            return '';
+        }
+        
+        // Build CSS rules with proper escaping
         $cssRules = [];
         foreach ($cssVars as $key => $value) {
-            if ($value && is_string($key) && is_string($value)) {
-                $safeKey = htmlspecialchars($key, ENT_QUOTES, 'UTF-8');
-                $safeValue = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-                $cssRules[] = $safeKey . ': ' . $safeValue . ';';
+            if (!is_string($key) || !is_string($value) || $value === '') {
+                continue;
             }
+            
+            $cssRules[] = sprintf(
+                '  %s: %s;',
+                htmlspecialchars($key, ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+                htmlspecialchars($value, ENT_QUOTES | ENT_HTML5, 'UTF-8')
+            );
         }
         
         if (empty($cssRules)) {
@@ -184,7 +189,7 @@ class WebComponentsExtractor
         
         return '<style id="unraid-theme-css-vars">
 :root {
-  ' . implode("\n  ", $cssRules) . '
+' . implode("\n", $cssRules) . '
 }
 </style>';
     }
