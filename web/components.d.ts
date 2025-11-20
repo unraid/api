@@ -53,6 +53,7 @@ declare module 'vue' {
     DockerContainerOverview: typeof import('./src/components/Docker/DockerContainerOverview.vue')['default']
     'DockerContainerOverview.standalone': typeof import('./src/components/Docker/DockerContainerOverview.standalone.vue')['default']
     DockerContainersTable: typeof import('./src/components/Docker/DockerContainersTable.vue')['default']
+    DockerPortConflictsAlert: typeof import('./src/components/Docker/DockerPortConflictsAlert.vue')['default']
     DockerSidebarTree: typeof import('./src/components/Docker/DockerSidebarTree.vue')['default']
     Downgrade: typeof import('./src/components/UpdateOs/Downgrade.vue')['default']
     'DowngradeOs.standalone': typeof import('./src/components/DowngradeOs.standalone.vue')['default']

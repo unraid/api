@@ -69,6 +69,7 @@ const UIcon = resolveComponent('UIcon');
 const UPopover = resolveComponent('UPopover');
 const USwitch = resolveComponent('USwitch');
 const USelectMenu = resolveComponent('USelectMenu');
+const UFormField = resolveComponent('UFormField');
 const rowActionDropdownUi = {
   content: 'overflow-x-hidden z-50',
   item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
@@ -299,6 +300,18 @@ function toContainerTreeRow(
 
 const flatEntriesRef = computed(() => props.flatEntries);
 const containersRef = computed(() => props.containers);
+const containerNameById = computed(() => {
+  const map = new Map<string, string>();
+  for (const container of props.containers) {
+    if (!container?.id) continue;
+    const primaryName =
+      Array.isArray(container.names) && container.names.length
+        ? container.names[0]?.replace(/^\//, '')
+        : '';
+    map.set(container.id, primaryName || container.id);
+  }
+  return map;
+});
 
 const rootFolderId = computed<string>(() => props.rootFolderId || 'root');
 
@@ -384,7 +397,10 @@ const activeLogSession = computed<LogSession | null>(() => {
   return logSessions.value[0] ?? null;
 });
 const logSessionOptions = computed(() =>
-  logSessions.value.map((session) => ({ id: session.id, label: session.label }))
+  logSessions.value.map((session) => ({
+    label: session.label,
+    value: session.id,
+  }))
 );
 const logsModalOpen = ref(false);
 const logSessions = ref<LogSession[]>([]);
@@ -404,8 +420,16 @@ function setRowsBusy(ids: string[], busy: boolean) {
   busyRowIds.value = next;
 }
 
+function getContainerDisplayLabel(containerId: string, fallback?: string | null) {
+  const trimmedFallback = typeof fallback === 'string' ? fallback.trim() : '';
+  const resolved = containerNameById.value.get(containerId);
+  if (resolved && resolved.trim()) return resolved.trim();
+  if (trimmedFallback) return trimmedFallback;
+  return containerId;
+}
+
 function ensureLogSession(containerId: string, label: string, options?: { reset?: boolean }) {
-  const normalizedLabel = label || containerId;
+  const normalizedLabel = getContainerDisplayLabel(containerId, label);
   let session = logSessions.value.find((entry) => entry.id === containerId);
   if (!session) {
     session = reactive<LogSession>({
@@ -608,6 +632,13 @@ watch(
     }
   }
 );
+
+watch(containerNameById, () => {
+  for (const session of logSessions.value) {
+    const friendly = getContainerDisplayLabel(session.id, session.label);
+    session.label = friendly;
+  }
+});
 
 watch(
   () => logsModalOpen.value,
@@ -1034,6 +1065,13 @@ function getContainerRows(ids: string[]): TreeRow<DockerContainer>[] {
   return rows;
 }
 
+function getRowDisplayLabel(row?: TreeRow<DockerContainer> | null, fallback?: string) {
+  if (!row) return fallback || '';
+  const meta = row.meta as DockerContainer | undefined;
+  const metaName = meta?.names?.[0]?.replace(/^\//, '') || '';
+  return metaName || row.name || fallback || '';
+}
+
 const allContainerRows = computed<TreeRow<DockerContainer>[]>(() => {
   return flattenRows(treeData.value, 'container') as TreeRow<DockerContainer>[];
 });
@@ -1308,8 +1346,9 @@ function handleContainersWillStart(entries: { id: string; containerId: string; n
   if (!entries.length) return;
   const targets = entries
     .map((entry) => {
-      const row = getRowById(entry.id, treeData.value);
-      const label = row?.name || entry.name || entry.containerId;
+      const rawRow = getRowById(entry.id, treeData.value);
+      const row = rawRow && rawRow.type === 'container' ? (rawRow as TreeRow<DockerContainer>) : null;
+      const label = getRowDisplayLabel(row, entry.name);
       return {
         id: entry.containerId,
         label,
@@ -1335,7 +1374,10 @@ function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   }
   if (action === 'View logs') {
     if (!containerId) return;
-    openLogsForContainer({ id: containerId, label: row.name }, { reset: false });
+    openLogsForContainer(
+      { id: containerId, label: getRowDisplayLabel(row, row.name) },
+      { reset: false }
+    );
     return;
   }
   if (action === 'Manage Settings') {
@@ -1580,74 +1622,80 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
     <UModal
       v-model:open="logsModalOpen"
       title="Container logs"
-      :ui="{ overlay: 'z-50', content: 'z-50 max-w-4xl w-full' }"
+      :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-4xl w-full' }"
     >
       <template #body>
-        <div v-if="logSessions.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
-          Select a container to view its logs.
-        </div>
-        <div v-else class="space-y-4">
-          <div class="flex flex-wrap items-center gap-3">
-            <div class="min-w-[200px] flex-1">
-              <label class="text-xs font-medium text-gray-500 dark:text-gray-400">Container</label>
-              <USelectMenu
-                v-model="activeLogSessionId"
-                :options="logSessionOptions"
-                value-attribute="id"
-                option-attribute="label"
-                :disabled="logSessionOptions.length <= 1"
-              />
-            </div>
-            <div class="flex items-center gap-3">
-              <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                <USwitch
-                  :model-value="activeLogSession?.autoFollow ?? true"
-                  :disabled="!activeLogSession"
-                  @update:model-value="toggleActiveLogFollow"
-                />
-                Follow logs
-              </label>
-              <UButton
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                icon="i-lucide-rotate-cw"
-                :disabled="!activeLogSession"
-                @click="handleLogsRefresh"
-              />
-              <UButton
-                color="neutral"
-                variant="ghost"
-                size="sm"
-                icon="i-lucide-trash-2"
-                :disabled="!activeLogSession"
-                @click="removeLogSession(activeLogSession?.id)"
-              />
-            </div>
+        <div class="unapi">
+          <div v-if="logSessions.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
+            Select a container to view its logs.
           </div>
-          <div class="rounded border border-gray-200 bg-gray-950 text-gray-100 dark:border-gray-700">
-            <div ref="logsViewportRef" class="h-80 overflow-y-auto px-4 py-3 font-mono text-sm">
-              <template v-if="activeLogSession?.lines.length">
+          <div v-else class="space-y-4">
+            <div class="flex flex-col gap-4 md:flex-row md:items-end">
+              <UFormField label="Container" class="min-w-[220px] flex-1">
+                <USelectMenu
+                  v-model="activeLogSessionId"
+                  :items="logSessionOptions"
+                  label-key="label"
+                  value-key="value"
+                  :disabled="logSessionOptions.length <= 1"
+                  placeholder="Select a container"
+                />
+              </UFormField>
+              <div class="flex flex-1 flex-wrap items-end gap-3 md:justify-end">
                 <div
-                  v-for="(line, index) in activeLogSession.lines"
-                  :key="`${line.timestamp}-${index}`"
-                  class="whitespace-pre-wrap"
+                  class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200"
                 >
-                  <span class="text-primary-300">[{{ formatLogTimestamp(line.timestamp) }}]</span>
-                  <span class="ml-2">{{ line.message }}</span>
+                  <span>Follow logs</span>
+                  <USwitch
+                    :model-value="activeLogSession?.autoFollow ?? true"
+                    :disabled="!activeLogSession"
+                    @update:model-value="toggleActiveLogFollow"
+                  />
                 </div>
-              </template>
-              <div v-else class="flex h-full items-center justify-center text-gray-400">
-                <span v-if="activeLogSession?.isLoading">Fetching logs…</span>
-                <span v-else>No log entries yet.</span>
+                <div class="flex items-center gap-2">
+                  <UButton
+                    color="neutral"
+                    variant="outline"
+                    size="sm"
+                    icon="i-lucide-rotate-cw"
+                    :disabled="!activeLogSession"
+                    @click="handleLogsRefresh"
+                  />
+                  <UButton
+                    color="neutral"
+                    variant="outline"
+                    size="sm"
+                    icon="i-lucide-trash-2"
+                    :disabled="!activeLogSession"
+                    @click="removeLogSession(activeLogSession?.id)"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-          <div
-            v-if="activeLogSession?.error"
-            class="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
-          >
-            {{ activeLogSession.error }}
+            <div class="rounded border border-gray-200 bg-gray-950 text-gray-100 dark:border-gray-700">
+              <div ref="logsViewportRef" class="h-80 overflow-y-auto px-4 py-3 font-mono text-sm">
+                <template v-if="activeLogSession?.lines.length">
+                  <div
+                    v-for="(line, index) in activeLogSession.lines"
+                    :key="`${line.timestamp}-${index}`"
+                    class="whitespace-pre-wrap"
+                  >
+                    <span class="text-primary-300">[{{ formatLogTimestamp(line.timestamp) }}]</span>
+                    <span class="ml-2">{{ line.message }}</span>
+                  </div>
+                </template>
+                <div v-else class="flex h-full items-center justify-center text-gray-400">
+                  <span v-if="activeLogSession?.isLoading">Fetching logs…</span>
+                  <span v-else>No log entries yet.</span>
+                </div>
+              </div>
+            </div>
+            <div
+              v-if="activeLogSession?.error"
+              class="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
+            >
+              {{ activeLogSession.error }}
+            </div>
           </div>
         </div>
       </template>
