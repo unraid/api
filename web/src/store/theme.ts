@@ -56,6 +56,11 @@ const applyDarkClass = (isDark: boolean) => {
   const method: 'add' | 'remove' = isDark ? 'add' : 'remove';
   document.documentElement.classList[method]('dark');
 
+  const unapiElements = document.querySelectorAll('.unapi');
+  unapiElements.forEach((element) => {
+    element.classList[method]('dark');
+  });
+
   if (pendingDarkModeHandler) {
     document.removeEventListener('DOMContentLoaded', pendingDarkModeHandler);
     pendingDarkModeHandler = null;
@@ -67,6 +72,10 @@ const applyDarkClass = (isDark: boolean) => {
 
   const handler = () => {
     if (syncBodyDarkClass(method)) {
+      const unapiElementsOnLoad = document.querySelectorAll('.unapi');
+      unapiElementsOnLoad.forEach((element) => {
+        element.classList[method]('dark');
+      });
       document.removeEventListener('DOMContentLoaded', handler);
       if (pendingDarkModeHandler === handler) {
         pendingDarkModeHandler = null;
