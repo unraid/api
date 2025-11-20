@@ -43,7 +43,7 @@ const heading = computed((): string => {
 });
 
 const text = computed(() => {
-  return t(ineligibleText.value, [regTy.value, formattedReleaseDate.value]);
+  return ineligibleText.value;
 });
 
 const updateButton = ref<UserProfileLink | undefined>();
