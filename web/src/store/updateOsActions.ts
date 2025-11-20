@@ -89,8 +89,10 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   );
   const formattedReleaseDate = computed(() => {
     if (!availableWithRenewalRelease.value?.date) return '';
-    const date = new Date(availableWithRenewalRelease.value.date);
-    const userLocale = locale.value || navigator.language || 'en-US';
+    const dateStr = availableWithRenewalRelease.value.date;
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    const userLocale = locale.value?.replace('_', '-') || navigator.language || 'en-US';
     return new Intl.DateTimeFormat(userLocale, {
       year: 'numeric',
       month: 'long',
@@ -259,6 +261,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     status,
     ineligible,
     ineligibleText,
+    formattedReleaseDate,
     toolsRegistrationAction,
     // Actions
     actOnUpdateOsAction,

@@ -152,7 +152,7 @@ export const useThemeStore = defineStore('theme', () => {
   });
 
   // Actions
-  const setTheme = (data?: Partial<Theme>, options: { source?: ThemeSource } = {}) => {
+  function setTheme(data?: Partial<Theme>, options: { source?: ThemeSource } = {}) {
     if (data) {
       const { source = 'local' } = options;
 
@@ -171,7 +171,7 @@ export const useThemeStore = defineStore('theme', () => {
         theme.value = sanitized;
       }
     }
-  };
+  }
 
   const setDevOverride = (enabled: boolean) => {
     devOverride.value = enabled;
