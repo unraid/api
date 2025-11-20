@@ -341,6 +341,7 @@ export const useThemeStore = defineStore(
       afterHydrate: (ctx) => {
         const store = ctx.store as ReturnType<typeof useThemeStore>;
         store.setTheme(store.theme);
+        store.setCssVars();
       },
     },
   }
