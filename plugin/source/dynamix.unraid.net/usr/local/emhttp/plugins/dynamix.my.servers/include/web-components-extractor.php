@@ -260,28 +260,11 @@ class WebComponentsExtractor
             return '';
         }
 
-        $diagnosticsPayload = array_merge(
-            [
-                'source' => $source,
-                'count' => count($cssRules),
-            ],
-            $diagnostics
-        );
-        $diagMessage = sprintf('[MyServers] Theme vars applied: %s', json_encode($diagnosticsPayload));
-        $encodedDiag = json_encode($diagMessage, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-        $encodedError = json_encode('[MyServers] Theme var hydration failed', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-
-        $logScript = sprintf(
-            '<script>(function(){try{console.info(%s);}catch(err){console.error(%s,err);}})();</script>',
-            $encodedDiag,
-            $encodedError
-        );
-
         return '<style id="unraid-theme-css-vars">
 :root {
 ' . implode("\n", $cssRules) . '
 }
-</style>' . $logScript;
+</style>';
     }
 
     private function getThemeInitScript(): string
