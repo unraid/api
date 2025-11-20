@@ -7,6 +7,7 @@ import { DockerContainerResolver } from '@app/unraid-api/graph/resolvers/docker/
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
+import { DockerStatsService } from '@app/unraid-api/graph/resolvers/docker/docker-stats.service.js';
 import { DockerTemplateIconService } from '@app/unraid-api/graph/resolvers/docker/docker-template-icon.service.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
@@ -15,9 +16,10 @@ import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.ser
 import { DockerOrganizerConfigService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer-config.service.js';
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
 import { NotificationsModule } from '@app/unraid-api/graph/resolvers/notifications/notifications.module.js';
+import { ServicesModule } from '@app/unraid-api/graph/services/services.module.js';
 
 @Module({
-    imports: [JobModule, NotificationsModule],
+    imports: [JobModule, NotificationsModule, ServicesModule],
     providers: [
         // Services
         DockerService,
@@ -29,6 +31,7 @@ import { NotificationsModule } from '@app/unraid-api/graph/resolvers/notificatio
         DockerConfigService,
         DockerTemplateScannerService,
         DockerTemplateIconService,
+        DockerStatsService,
 
         // Jobs
         ContainerStatusJob,

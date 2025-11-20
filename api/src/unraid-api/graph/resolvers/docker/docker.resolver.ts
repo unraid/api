@@ -7,6 +7,7 @@ import {
     Query,
     ResolveField,
     Resolver,
+    Subscription,
 } from '@nestjs/graphql';
 
 import type { GraphQLResolveInfo } from 'graphql';
@@ -15,9 +16,11 @@ import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
+import { PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { UseFeatureFlag } from '@app/unraid-api/decorators/use-feature-flag.decorator.js';
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
+import { DockerStatsService } from '@app/unraid-api/graph/resolvers/docker/docker-stats.service.js';
 import { DockerTemplateSyncResult } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.model.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { ExplicitStatusItem } from '@app/unraid-api/graph/resolvers/docker/docker-update-status.model.js';
@@ -26,11 +29,14 @@ import {
     DockerContainer,
     DockerContainerLogs,
     DockerContainerOverviewForm,
+    DockerContainerStats,
     DockerNetwork,
     DockerPortConflicts,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
+import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
+import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 import { DEFAULT_ORGANIZER_ROOT_ID } from '@app/unraid-api/organizer/organizer.js';
 import { ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
 import { GraphQLFieldHelper } from '@app/unraid-api/utils/graphql-field-helper.js';
@@ -42,8 +48,17 @@ export class DockerResolver {
         private readonly dockerFormService: DockerFormService,
         private readonly dockerOrganizerService: DockerOrganizerService,
         private readonly dockerPhpService: DockerPhpService,
-        private readonly dockerTemplateScannerService: DockerTemplateScannerService
-    ) {}
+        private readonly dockerTemplateScannerService: DockerTemplateScannerService,
+        private readonly dockerStatsService: DockerStatsService,
+        private readonly subscriptionTracker: SubscriptionTrackerService,
+        private readonly subscriptionHelper: SubscriptionHelperService
+    ) {
+        this.subscriptionTracker.registerTopic(
+            PUBSUB_CHANNEL.DOCKER_STATS,
+            () => this.dockerStatsService.startStatsStream(),
+            () => this.dockerStatsService.stopStatsStream()
+        );
+    }
 
     @UsePermissions({
         action: AuthAction.READ_ANY,
@@ -311,5 +326,16 @@ export class DockerResolver {
     @Mutation(() => DockerTemplateSyncResult)
     public async syncDockerTemplatePaths() {
         return this.dockerTemplateScannerService.scanTemplates();
+    }
+
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DOCKER,
+    })
+    @Subscription(() => DockerContainerStats, {
+        resolve: (payload) => payload.dockerContainerStats,
+    })
+    public dockerContainerStats() {
+        return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.DOCKER_STATS);
     }
 }

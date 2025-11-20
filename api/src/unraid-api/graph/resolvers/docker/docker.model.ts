@@ -1,5 +1,6 @@
 import {
     Field,
+    Float,
     GraphQLISODateTime,
     ID,
     InputType,
@@ -270,6 +271,27 @@ export class DockerContainerLogs {
             'Cursor that can be passed back through the since argument to continue streaming logs.',
     })
     cursor?: Date | null;
+}
+
+@ObjectType()
+export class DockerContainerStats {
+    @Field(() => PrefixedID)
+    id!: string;
+
+    @Field(() => Float, { description: 'CPU Usage Percentage' })
+    cpuPercent!: number;
+
+    @Field(() => String, { description: 'Memory Usage String (e.g. 100MB / 1GB)' })
+    memUsage!: string;
+
+    @Field(() => Float, { description: 'Memory Usage Percentage' })
+    memPercent!: number;
+
+    @Field(() => String, { description: 'Network I/O String (e.g. 100MB / 1GB)' })
+    netIO!: string;
+
+    @Field(() => String, { description: 'Block I/O String (e.g. 100MB / 1GB)' })
+    blockIO!: string;
 }
 
 @ObjectType({

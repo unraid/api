@@ -6,6 +6,7 @@ import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/dock
 import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
+import { DockerStatsService } from '@app/unraid-api/graph/resolvers/docker/docker-stats.service.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
 import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
@@ -13,6 +14,8 @@ import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.re
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { DockerOrganizerConfigService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer-config.service.js';
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer.service.js';
+import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
+import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
 describe('DockerModule', () => {
     it('should compile the module', async () => {
@@ -25,6 +28,16 @@ describe('DockerModule', () => {
             .useValue({ getConfig: vi.fn() })
             .overrideProvider(DockerConfigService)
             .useValue({ getConfig: vi.fn() })
+            .overrideProvider(SubscriptionTrackerService)
+            .useValue({
+                registerTopic: vi.fn(),
+                subscribe: vi.fn(),
+                unsubscribe: vi.fn(),
+            })
+            .overrideProvider(SubscriptionHelperService)
+            .useValue({
+                createTrackedSubscription: vi.fn(),
+            })
             .compile();
 
         expect(module).toBeDefined();
@@ -73,6 +86,25 @@ describe('DockerModule', () => {
                     useValue: {
                         scanTemplates: vi.fn(),
                         syncMissingContainers: vi.fn(),
+                    },
+                },
+                {
+                    provide: DockerStatsService,
+                    useValue: {
+                        startStatsStream: vi.fn(),
+                        stopStatsStream: vi.fn(),
+                    },
+                },
+                {
+                    provide: SubscriptionTrackerService,
+                    useValue: {
+                        registerTopic: vi.fn(),
+                    },
+                },
+                {
+                    provide: SubscriptionHelperService,
+                    useValue: {
+                        createTrackedSubscription: vi.fn(),
                     },
                 },
             ],

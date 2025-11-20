@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, h, nextTick, onBeforeUnmount, reactive, ref, resolveComponent, watch } from 'vue';
-import { useApolloClient, useMutation } from '@vue/apollo-composable';
+import { useApolloClient, useMutation, useSubscription } from '@vue/apollo-composable';
 
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
 import MultiValueCopyBadges from '@/components/Common/MultiValueCopyBadges.vue';
@@ -15,10 +15,12 @@ import { PAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-pause-contain
 import { REFRESH_DOCKER_DIGESTS } from '@/components/Docker/docker-refresh-digests.mutation';
 import { SET_DOCKER_FOLDER_CHILDREN } from '@/components/Docker/docker-set-folder-children.mutation';
 import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-container.mutation';
+import { DOCKER_STATS_SUBSCRIPTION } from '@/components/Docker/docker-stats.subscription';
 import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container.mutation';
 import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-container.mutation';
 import { UPDATE_ALL_DOCKER_CONTAINERS } from '@/components/Docker/docker-update-all-containers.mutation';
 import { UPDATE_DOCKER_CONTAINERS } from '@/components/Docker/docker-update-containers.mutation';
+import DockerContainerStatCell from '@/components/Docker/DockerContainerStatCell.vue';
 import { ContainerState } from '@/composables/gql/graphql';
 import { useContainerActions } from '@/composables/useContainerActions';
 import { useDockerViewPreferences } from '@/composables/useDockerColumnVisibility';
@@ -29,6 +31,7 @@ import { useTreeData } from '@/composables/useTreeData';
 
 import type {
   DockerContainer,
+  DockerContainerStats,
   FlatOrganizerEntry,
   GetDockerContainerLogsQuery,
   GetDockerContainerLogsQueryVariables,
@@ -96,6 +99,19 @@ const emit = defineEmits<{
   (e: 'update:selectedIds', value: string[]): void;
 }>();
 const { client: apolloClient } = useApolloClient();
+
+const containerStats = reactive(new Map<string, DockerContainerStats>());
+
+const { onResult: onStatsResult } = useSubscription(DOCKER_STATS_SUBSCRIPTION, null, () => ({
+  fetchPolicy: 'network-only',
+}));
+
+onStatsResult((result) => {
+  const stat = result.data?.dockerContainerStats as DockerContainerStats | undefined;
+  if (stat && stat.id) {
+    containerStats.set(stat.id, stat);
+  }
+});
 
 const COMMA_SEPARATED_LIST = /\s*,\s*/;
 
@@ -834,6 +850,30 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
       },
     },
     {
+      accessorKey: 'cpu',
+      header: 'CPU',
+      cell: ({ row }) => {
+        if (row.original.type === 'folder' || !row.original.containerId) return '';
+        return h(DockerContainerStatCell, {
+          containerId: row.original.containerId,
+          statsMap: containerStats,
+          type: 'cpu',
+        });
+      },
+    },
+    {
+      accessorKey: 'memory',
+      header: 'Memory',
+      cell: ({ row }) => {
+        if (row.original.type === 'folder' || !row.original.containerId) return '';
+        return h(DockerContainerStatCell, {
+          containerId: row.original.containerId,
+          statsMap: containerStats,
+          type: 'memory',
+        });
+      },
+    },
+    {
       accessorKey: 'version',
       header: 'Version',
       cell: ({ row }) =>
@@ -914,6 +954,8 @@ function getDefaultColumnVisibility(isCompact: boolean): Record<string, boolean>
   if (isCompact) {
     return {
       state: false,
+      cpu: false,
+      memory: false,
       version: false,
       network: false,
       containerIp: false,
@@ -927,6 +969,8 @@ function getDefaultColumnVisibility(isCompact: boolean): Record<string, boolean>
   } else {
     return {
       state: true,
+      cpu: true,
+      memory: true,
       version: false,
       network: false,
       containerIp: false,
@@ -1525,6 +1569,35 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
     ],
   ];
 }
+
+function handleRowClick(payload: { id: string; type: string; name: string; meta?: DockerContainer }) {
+  emit('row:click', {
+    id: payload.id,
+    type: payload.type as 'container' | 'folder',
+    name: payload.name,
+    containerId: payload.meta?.id,
+  });
+}
+
+function handleRowSelect(payload: {
+  id: string;
+  type: string;
+  name: string;
+  meta?: DockerContainer;
+  selected: boolean;
+}) {
+  emit('row:select', {
+    id: payload.id,
+    type: payload.type as 'container' | 'folder',
+    name: payload.name,
+    containerId: payload.meta?.id,
+    selected: payload.selected,
+  });
+}
+
+function handleUpdateSelectedIds(ids: string[]) {
+  emit('update:selectedIds', ids);
+}
 </script>
 
 <template>
@@ -1541,28 +1614,11 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
       :enable-drag-drop="!!flatEntries"
       :searchable-keys="searchableKeys"
       :search-accessor="dockerSearchAccessor"
-      @row:click="
-        (payload) =>
-          emit('row:click', {
-            id: payload.id,
-            type: payload.type as 'container' | 'folder',
-            name: payload.name,
-            containerId: payload.meta?.id,
-          })
-      "
+      @row:click="handleRowClick"
       @row:contextmenu="handleRowContextMenu"
-      @row:select="
-        (payload) =>
-          emit('row:select', {
-            id: payload.id,
-            type: payload.type as 'container' | 'folder',
-            name: payload.name,
-            containerId: payload.meta?.id,
-            selected: payload.selected,
-          })
-      "
+      @row:select="handleRowSelect"
       @row:drop="handleDropOnRow"
-      @update:selected-ids="(ids) => emit('update:selectedIds', ids)"
+      @update:selected-ids="handleUpdateSelectedIds"
     >
       <template #toolbar="{ selectedCount: count, globalFilter: filterText, setGlobalFilter }">
         <div :class="['mb-4 flex flex-wrap items-center gap-2', compact ? 'sm:px-0.5' : '']">
@@ -1763,16 +1819,15 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
                 class="flex min-w-0 flex-1 items-center gap-2"
               >
                 <span class="i-lucide-folder text-gray-500" />
-                <!-- @vue-expect-error - Vue auto-unwraps refs in templates -->
-                <template v-if="folderOps.renamingFolderId === row.id">
+                <template v-if="folderOps.renamingFolderId.value === row.id">
                   <input
                     v-model="folderOps.renameValue"
                     class="border-default bg-default flex-1 rounded border px-2 py-1"
                     @keydown.enter.prevent="folderOps.commitRenameFolder(row.id)"
                     @keydown.esc.prevent="
                       () => {
-                        folderOps.renamingFolderId = '';
-                        folderOps.renameValue = '';
+                        folderOps.renamingFolderId.value = '';
+                        folderOps.renameValue.value = '';
                       }
                     "
                     @blur="folderOps.commitRenameFolder(row.id)"

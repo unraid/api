@@ -1213,6 +1213,25 @@ type DockerContainerLogs {
   cursor: DateTime
 }
 
+type DockerContainerStats {
+  id: PrefixedID!
+
+  """CPU Usage Percentage"""
+  cpuPercent: Float!
+
+  """Memory Usage String (e.g. 100MB / 1GB)"""
+  memUsage: String!
+
+  """Memory Usage Percentage"""
+  memPercent: Float!
+
+  """Network I/O String (e.g. 100MB / 1GB)"""
+  netIO: String!
+
+  """Block I/O String (e.g. 100MB / 1GB)"""
+  blockIO: String!
+}
+
 type Docker implements Node {
   id: PrefixedID!
   containers(skipCache: Boolean! = false): [DockerContainer!]!
@@ -2772,6 +2791,7 @@ type Subscription {
   serversSubscription: Server!
   parityHistorySubscription: ParityCheck!
   arraySubscription: UnraidArray!
+  dockerContainerStats: DockerContainerStats!
   logFile(path: String!): LogFileContent!
   systemMetricsCpu: CpuUtilization!
   systemMetricsCpuTelemetry: CpuPackages!
