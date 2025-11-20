@@ -2,29 +2,50 @@ import { featureFlags } from '@/helpers/env';
 
 import type { DockerContainer } from '@/composables/gql/graphql';
 
+function buildLegacyEditUrl(templatePath: string) {
+  if (typeof window === 'undefined') return null;
+  const currentPath = window.location.pathname;
+  const basePath = currentPath.substring(
+    0,
+    currentPath.indexOf('?') === -1 ? currentPath.length : currentPath.indexOf('?')
+  );
+  const searchParams = new URLSearchParams({
+    xmlTemplate: `edit:${templatePath}`,
+    iframe: 'true',
+  });
+  return `${basePath}/UpdateContainer?${searchParams.toString()}`;
+}
+
 export function useDockerEditNavigation() {
-  function navigateToEditPage(container: DockerContainer | undefined, containerName?: string) {
-    if (!featureFlags.DOCKER_EDIT_PAGE_NAVIGATION) {
-      return false;
+  const shouldUseLegacyEditPage = featureFlags.DOCKER_EDIT_PAGE_NAVIGATION;
+
+  function getLegacyEditUrl(container: DockerContainer | undefined, containerName?: string) {
+    if (!shouldUseLegacyEditPage) {
+      return null;
     }
 
     const name = containerName || (container?.names?.[0] || '').replace(/^\//, '');
     const templatePath = container?.templatePath;
 
     if (!name || !templatePath) {
-      return false;
+      return null;
     }
 
-    const currentPath = window.location.pathname;
-    const basePath = currentPath.substring(
-      0,
-      currentPath.indexOf('?') === -1 ? currentPath.length : currentPath.indexOf('?')
-    );
-    window.location.href = `${basePath}/UpdateContainer?xmlTemplate=edit:${encodeURIComponent(templatePath)}`;
+    return buildLegacyEditUrl(templatePath);
+  }
+
+  function navigateToEditPage(container: DockerContainer | undefined, containerName?: string) {
+    const url = getLegacyEditUrl(container, containerName);
+    if (!url) {
+      return false;
+    }
+    window.location.href = url;
     return true;
   }
 
   return {
+    getLegacyEditUrl,
     navigateToEditPage,
+    shouldUseLegacyEditPage,
   };
 }

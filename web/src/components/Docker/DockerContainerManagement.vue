@@ -207,7 +207,7 @@ const hasPortConflicts = computed(
   () => lanPortConflicts.value.length + containerPortConflicts.value.length > 0
 );
 
-const { navigateToEditPage } = useDockerEditNavigation();
+const { getLegacyEditUrl, shouldUseLegacyEditPage } = useDockerEditNavigation();
 
 function getOrganizerEntryIdByContainerId(containerId: string): string | null {
   const entry = flatEntries.value.find(
@@ -225,10 +225,6 @@ function focusContainerFromConflict(containerId: string) {
 }
 
 function handleConflictContainerAction(conflictContainer: PortConflictContainer) {
-  const targetContainer = containers.value.find((container) => container.id === conflictContainer.id);
-  if (targetContainer && navigateToEditPage(targetContainer, conflictContainer.name)) {
-    return;
-  }
   focusContainerFromConflict(conflictContainer.id);
 }
 
@@ -275,10 +271,6 @@ function handleTableRowClick(payload: {
   const entry = flatEntries.value.find((e) => e.id === payload.id && e.type === 'container');
   const container = entry?.meta as DockerContainer | undefined;
 
-  if (navigateToEditPage(container)) {
-    return;
-  }
-
   setActiveContainer(payload.id);
 }
 
@@ -306,6 +298,8 @@ const activeContainer = computed<DockerContainer | undefined>(() => {
   const entry = flatEntries.value.find((e) => e.id === activeId.value && e.type === 'container');
   return entry?.meta as DockerContainer | undefined;
 });
+
+const legacyEditUrl = computed(() => getLegacyEditUrl(activeContainer.value));
 
 // Details data (mix of real and placeholder until specific queries exist)
 const detailsItem = computed(() => {
@@ -439,7 +433,51 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
         />
       </UCard>
 
-      <div>
+      <div v-if="shouldUseLegacyEditPage">
+        <UCard class="flex min-h-[60vh] flex-col">
+          <template #header>
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <UButton
+                  size="xs"
+                  variant="ghost"
+                  icon="i-lucide-arrow-left"
+                  @click="goBackToOverview"
+                />
+                <div class="font-medium">Legacy Container Management</div>
+              </div>
+              <UBadge
+                v-if="activeContainer?.state"
+                :label="activeContainer.state"
+                color="primary"
+                variant="subtle"
+              />
+            </div>
+          </template>
+          <div
+            :class="['relative min-h-[60vh]', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
+          >
+            <iframe
+              v-if="legacyEditUrl"
+              :key="legacyEditUrl"
+              :src="legacyEditUrl"
+              class="h-[70vh] w-full border-0"
+              loading="lazy"
+            />
+            <div v-else class="flex h-[70vh] items-center justify-center text-sm text-neutral-500">
+              Unable to load legacy container management for this entry.
+            </div>
+            <div
+              v-if="isDetailsLoading"
+              class="absolute inset-0 grid place-items-center bg-white/60 dark:bg-gray-900/60"
+            >
+              <USkeleton class="h-6 w-6" />
+            </div>
+          </div>
+        </UCard>
+      </div>
+
+      <div v-else>
         <UCard class="mb-4">
           <template #header>
             <div class="flex items-center justify-between gap-2">
