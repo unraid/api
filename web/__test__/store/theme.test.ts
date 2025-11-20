@@ -196,5 +196,45 @@ describe('Theme Store', () => {
       expect(document.documentElement.classList.add).toHaveBeenCalledWith('dark');
       expect(document.body.classList.add).toHaveBeenCalledWith('dark');
     });
+
+    it('should apply dark mode classes to all .unapi elements', async () => {
+      const store = createStore();
+
+      const unapiElement1 = document.createElement('div');
+      unapiElement1.classList.add('unapi');
+      document.body.appendChild(unapiElement1);
+
+      const unapiElement2 = document.createElement('div');
+      unapiElement2.classList.add('unapi');
+      document.body.appendChild(unapiElement2);
+
+      const addSpy1 = vi.spyOn(unapiElement1.classList, 'add');
+      const addSpy2 = vi.spyOn(unapiElement2.classList, 'add');
+      const removeSpy1 = vi.spyOn(unapiElement1.classList, 'remove');
+      const removeSpy2 = vi.spyOn(unapiElement2.classList, 'remove');
+
+      store.setTheme({
+        ...store.theme,
+        name: 'black',
+      });
+
+      await nextTick();
+
+      expect(addSpy1).toHaveBeenCalledWith('dark');
+      expect(addSpy2).toHaveBeenCalledWith('dark');
+
+      store.setTheme({
+        ...store.theme,
+        name: 'white',
+      });
+
+      await nextTick();
+
+      expect(removeSpy1).toHaveBeenCalledWith('dark');
+      expect(removeSpy2).toHaveBeenCalledWith('dark');
+
+      document.body.removeChild(unapiElement1);
+      document.body.removeChild(unapiElement2);
+    });
   });
 });

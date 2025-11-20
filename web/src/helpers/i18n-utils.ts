@@ -21,9 +21,10 @@ export const createHtmlEntityDecoder = () => {
   return <T>(translated: T) => {
     if (typeof translated !== 'string') return translated;
     const doc = parser.parseFromString(translated, 'text/html');
-    const hasHtmlTags = /<[^>]+>/.test(translated);
+    const bodyContent = doc.body.innerHTML;
+    const hasHtmlTags = /<[^>]+>/.test(bodyContent);
     if (hasHtmlTags) {
-      return doc.body.innerHTML;
+      return bodyContent;
     }
     return doc.documentElement.textContent ?? translated;
   };
