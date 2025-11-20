@@ -120,9 +120,13 @@ class ExtractorTest {
         file_put_contents($this->testDir . '/extractor.php', $extractorContent);
     }
     
-    private function getExtractorOutput() {
+    private function getExtractorOutput($resetStatic = false) {
         $_SERVER['DOCUMENT_ROOT'] = '/usr/local/emhttp';
         require_once $this->testDir . '/extractor.php';
+        
+        if ($resetStatic && class_exists('WebComponentsExtractor')) {
+            WebComponentsExtractor::resetScriptsOutput();
+        }
         
         $extractor = WebComponentsExtractor::getInstance();
         return $extractor->getScriptTagHtml();
@@ -334,13 +338,10 @@ class ExtractorTest {
         $validCookie = urlencode(json_encode($validCssVars));
         $_COOKIE[$cookieName] = $validCookie;
         
-        // Reset singleton to get fresh instance
-        $reflection = new ReflectionClass('WebComponentsExtractor');
-        $instance = $reflection->getProperty('instance');
-        $instance->setAccessible(true);
-        $instance->setValue(null, null);
+        // Reset singleton and static flag to get fresh instance
+        $this->resetExtractor();
         
-        $output = $this->getExtractorOutput();
+        $output = $this->getExtractorOutput(true);
         $this->test(
             "Generates CSS style tag when valid cookie exists",
             strpos($output, '<style id="unraid-theme-css-vars">') !== false
@@ -374,8 +375,8 @@ class ExtractorTest {
         $encodedCookie = urlencode(json_encode($encodedVars));
         $_COOKIE[$cookieName] = $encodedCookie;
         
-        $instance->setValue(null, null);
-        $output = $this->getExtractorOutput();
+        $this->resetExtractor();
+        $output = $this->getExtractorOutput(true);
         $this->test(
             "Handles URL-encoded cookie values",
             strpos($output, '--custom-header-text-primary: #ff0000;') !== false
@@ -387,8 +388,8 @@ class ExtractorTest {
         
         // Test 3: Missing cookie
         unset($_COOKIE[$cookieName]);
-        $instance->setValue(null, null);
-        $output = $this->getExtractorOutput();
+        $this->resetExtractor();
+        $output = $this->getExtractorOutput(true);
         $this->test(
             "Returns empty string when cookie is missing",
             strpos($output, '<style id="unraid-theme-css-vars">') === false
@@ -396,8 +397,8 @@ class ExtractorTest {
         
         // Test 4: Invalid JSON in cookie
         $_COOKIE[$cookieName] = 'invalid-json{';
-        $instance->setValue(null, null);
-        $output = $this->getExtractorOutput();
+        $this->resetExtractor();
+        $output = $this->getExtractorOutput(true);
         $this->test(
             "Handles invalid JSON gracefully (returns empty)",
             strpos($output, '<style id="unraid-theme-css-vars">') === false
@@ -405,8 +406,8 @@ class ExtractorTest {
         
         // Test 5: Empty array in cookie
         $_COOKIE[$cookieName] = urlencode(json_encode([]));
-        $instance->setValue(null, null);
-        $output = $this->getExtractorOutput();
+        $this->resetExtractor();
+        $output = $this->getExtractorOutput(true);
         $this->test(
             "Returns empty string for empty CSS vars array",
             strpos($output, '<style id="unraid-theme-css-vars">') === false
@@ -418,8 +419,8 @@ class ExtractorTest {
             '--another-var' => "value with 'single quotes'",
         ];
         $_COOKIE[$cookieName] = urlencode(json_encode($specialCharsVars));
-        $instance->setValue(null, null);
-        $output = $this->getExtractorOutput();
+        $this->resetExtractor();
+        $output = $this->getExtractorOutput(true);
         $this->test(
             "Escapes quotes in CSS values",
             strpos($output, '&quot;') !== false || strpos($output, '&#039;') !== false
@@ -441,8 +442,8 @@ class ExtractorTest {
             '--int-var' => 123,
         ];
         $_COOKIE[$cookieName] = urlencode(json_encode($mixedVars));
-        $instance->setValue(null, null);
-        $output = $this->getExtractorOutput();
+        $this->resetExtractor();
+        $output = $this->getExtractorOutput(true);
         $this->test(
             "Includes only valid string CSS variables",
             strpos($output, '--valid-var: #ffffff;') !== false
@@ -466,8 +467,8 @@ class ExtractorTest {
             '--custom-var' => 'calc(100% - 20px)',
         ];
         $_COOKIE[$cookieName] = urlencode(json_encode($complexVars));
-        $instance->setValue(null, null);
-        $output = $this->getExtractorOutput();
+        $this->resetExtractor();
+        $output = $this->getExtractorOutput(true);
         $this->test(
             "Handles complex gradient values",
             strpos($output, '--banner-gradient: linear-gradient') !== false
@@ -514,6 +515,19 @@ class ExtractorTest {
     private function sanitizeForExpectedId(string $input): string
     {
         return preg_replace('/[^a-zA-Z0-9-]/', '-', $input);
+    }
+    
+    private function resetExtractor() {
+        // Reset singleton instance
+        if (class_exists('WebComponentsExtractor')) {
+            $reflection = new ReflectionClass('WebComponentsExtractor');
+            $instance = $reflection->getProperty('instance');
+            $instance->setAccessible(true);
+            $instance->setValue(null, null);
+            
+            // Reset static flag
+            WebComponentsExtractor::resetScriptsOutput();
+        }
     }
     
     private function reportResults() {

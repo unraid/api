@@ -207,24 +207,28 @@ class WebComponentsExtractor
 </style>';
     }
 
+    private static bool $scriptsOutput = false;
+
     public function getScriptTagHtml(): string
     {
-        // Use a static flag to ensure scripts are only output once per request
-        static $scriptsOutput = false;
-        
-        if ($scriptsOutput) {
+        if (self::$scriptsOutput) {
             return '<!-- Resources already loaded -->';
         }
         
         try {
-            $scriptsOutput = true;
+            self::$scriptsOutput = true;
             $themeScript = $this->getThemeInitScript();
             $manifestScripts = $this->processManifestFiles();
             return $themeScript . "\n" . $manifestScripts;
         } catch (\Exception $e) {
             error_log("Error in WebComponentsExtractor::getScriptTagHtml: " . $e->getMessage());
-            $scriptsOutput = false; // Reset on error
+            self::$scriptsOutput = false; // Reset on error
             return "";
         }
+    }
+
+    public static function resetScriptsOutput(): void
+    {
+        self::$scriptsOutput = false;
     }
 }
