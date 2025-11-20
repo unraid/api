@@ -56,7 +56,7 @@ const mockServerStore = {
   osVersionBranch: 'stable',
   regUpdatesExpired: false,
   regTy: 'Plus',
-  locale: 'en_US',
+  locale: 'en_US' as string | undefined,
   rebootType: '',
   updateOsResponse: null as { date: string } | null,
 };
