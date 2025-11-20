@@ -37,7 +37,7 @@ import type {
   DockerContainerStats,
   FlatOrganizerEntry,
 } from '@/composables/gql/graphql';
-import type { DropEvent } from '@/composables/useDragDrop';
+import type { DropArea, DropEvent } from '@/composables/useDragDrop';
 import type { ColumnVisibilityTableInstance } from '@/composables/usePersistentColumnVisibility';
 import type { TreeRow } from '@/composables/useTreeData';
 import type { TableColumn } from '@nuxt/ui';
@@ -535,6 +535,26 @@ const folderOps = useFolderOperations({
   onSuccess: showToast,
 });
 
+// Synchronize expansion state between useFolderTree and BaseTreeTable via parent prop/emit isn't strictly required
+// if BaseTreeTable handles its own expansion for the view.
+// However, to fix "expanding folder does not reveal rows", we need to ensure BaseTreeTable knows which rows to show.
+// The issue is likely that `useFolderTree` manages `expandedFolders` here, but `BaseTreeTable` now manages its own internal `expandedRowIds`.
+// When we click expand in the table, it toggles the internal state, revealing children in `flattenTree`.
+// BUT, if `treeData` structure relies on `useFolderTree` state (which it shouldn't for raw tree structure), or if `visibleFolders` here is fighting it.
+
+// Actually, `BaseTreeTable` now does the flattening itself.
+// The `folderOps` uses `expandedFolders` from `useFolderTree` for the "Move to folder" modal logic.
+// We should probably sync them or just let BaseTreeTable handle the view expansion.
+
+// Issue 2: "expanding a folder does not reveal any rows"
+// In BaseTreeTable:
+// `flattenTree` checks `expanded.has(node.id)`.
+// `toggleExpanded` adds to `expandedRowIds`.
+// The click handler in `createSelectColumn` calls `row.toggleExpanded()`.
+// This should work.
+// Maybe the `treeData` passed to BaseTreeTable doesn't have populated `children`?
+// `useTreeData` populates children based on `flatEntries`.
+
 const containerActions = useContainerActions({
   getRowById,
   treeData,
@@ -590,6 +610,44 @@ async function createFolderFromDrop(containerEntryId: string, movingIds: string[
   showToast('Folder created');
 }
 
+function getSiblingIds(parentId: string): string[] {
+  const folderChildren = folderChildrenIds.value[parentId];
+  if (folderChildren && folderChildren.length) {
+    return [...folderChildren];
+  }
+
+  if (parentId === rootFolderId.value && treeData.value.length) {
+    return treeData.value.map((row) => row.id);
+  }
+
+  const parentRow = getRowById(parentId, treeData.value);
+  if (parentRow?.children?.length) {
+    return parentRow.children.map((child) => child.id);
+  }
+
+  return [];
+}
+
+function computeInsertionIndex(
+  siblings: string[],
+  movingIds: string[],
+  targetId: string,
+  area: DropArea
+): number {
+  if (!siblings.length) return 0;
+
+  const filtered = siblings.filter((id) => !movingIds.includes(id));
+  let insertIndex = filtered.findIndex((id) => id === targetId);
+  if (insertIndex === -1) {
+    // If the target isn't found in the filtered list, default to the end.
+    insertIndex = filtered.length;
+  } else if (area === 'after') {
+    insertIndex += 1;
+  }
+
+  return Math.max(0, Math.min(insertIndex, filtered.length));
+}
+
 async function handleDropOnRow(event: DropEvent<DockerContainer>) {
   if (!props.flatEntries) return;
   const { target, area, sourceIds: movingIds } = event;
@@ -606,9 +664,17 @@ async function handleDropOnRow(event: DropEvent<DockerContainer>) {
     return;
   }
 
+  // Logic for Reordering ("before" / "after")
+  // We need to calculate the correct `position` index for the mutation.
+  // The mutation `dockerMoveItemsToPosition` typically expects a position index within the parent folder.
+
+  // 1. Identify the parent folder of the target
   const parentId = entryParentById.value[target.id] || rootFolderId.value;
-  const targetPosition = positionById.value[target.id] ?? 0;
-  const position = area === 'before' ? targetPosition : targetPosition + 1;
+
+  // 2. Get the target's position in the flat list? No, we need its position in the folder's children list.
+  const siblings = getSiblingIds(parentId);
+  const insertIndex = computeInsertionIndex(siblings, movingIds, target.id, area);
+  const position = insertIndex;
 
   await moveItemsToPositionMutation(
     {
