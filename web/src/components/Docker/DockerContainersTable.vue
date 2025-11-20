@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { computed, h, nextTick, onBeforeUnmount, reactive, ref, resolveComponent, watch } from 'vue';
-import { useApolloClient, useMutation, useSubscription } from '@vue/apollo-composable';
+import { computed, h, reactive, ref, resolveComponent, watch } from 'vue';
+import { useMutation, useSubscription } from '@vue/apollo-composable';
 
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
 import MultiValueCopyBadges from '@/components/Common/MultiValueCopyBadges.vue';
+import TableColumnMenu from '@/components/Common/TableColumnMenu.vue';
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
 import { CREATE_DOCKER_FOLDER_WITH_ITEMS } from '@/components/Docker/docker-create-folder-with-items.mutation';
 import { CREATE_DOCKER_FOLDER } from '@/components/Docker/docker-create-folder.mutation';
 import { DELETE_DOCKER_ENTRIES } from '@/components/Docker/docker-delete-entries.mutation';
-import { GET_DOCKER_CONTAINER_LOGS } from '@/components/Docker/docker-logs.query';
 import { MOVE_DOCKER_ENTRIES_TO_FOLDER } from '@/components/Docker/docker-move-entries.mutation';
 import { MOVE_DOCKER_ITEMS_TO_POSITION } from '@/components/Docker/docker-move-items-to-position.mutation';
 import { PAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-pause-container.mutation';
@@ -21,9 +21,12 @@ import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-con
 import { UPDATE_ALL_DOCKER_CONTAINERS } from '@/components/Docker/docker-update-all-containers.mutation';
 import { UPDATE_DOCKER_CONTAINERS } from '@/components/Docker/docker-update-containers.mutation';
 import DockerContainerStatCell from '@/components/Docker/DockerContainerStatCell.vue';
+import DockerLogViewerModal from '@/components/Docker/DockerLogViewerModal.vue';
 import { ContainerState } from '@/composables/gql/graphql';
 import { useContainerActions } from '@/composables/useContainerActions';
+import { useContextMenu } from '@/composables/useContextMenu';
 import { useDockerViewPreferences } from '@/composables/useDockerColumnVisibility';
+import { useDockerLogSessions } from '@/composables/useDockerLogSessions';
 import { useFolderOperations } from '@/composables/useFolderOperations';
 import { useFolderTree } from '@/composables/useFolderTree';
 import { usePersistentColumnVisibility } from '@/composables/usePersistentColumnVisibility';
@@ -33,8 +36,6 @@ import type {
   DockerContainer,
   DockerContainerStats,
   FlatOrganizerEntry,
-  GetDockerContainerLogsQuery,
-  GetDockerContainerLogsQueryVariables,
 } from '@/composables/gql/graphql';
 import type { DropEvent } from '@/composables/useDragDrop';
 import type { ColumnVisibilityTableInstance } from '@/composables/usePersistentColumnVisibility';
@@ -69,16 +70,10 @@ const UModal = resolveComponent('UModal');
 const USkeleton = resolveComponent('USkeleton') as Component;
 const UIcon = resolveComponent('UIcon');
 const UPopover = resolveComponent('UPopover');
-const USwitch = resolveComponent('USwitch');
-const USelectMenu = resolveComponent('USelectMenu');
-const UFormField = resolveComponent('UFormField');
 const rowActionDropdownUi = {
   content: 'overflow-x-hidden z-50',
   item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
 };
-const LOG_POLL_INTERVAL_MS = 2000;
-const DEFAULT_LOG_TAIL = 200;
-const MAX_LOG_LINES = 500;
 
 const emit = defineEmits<{
   (e: 'created-folder'): void;
@@ -98,7 +93,6 @@ const emit = defineEmits<{
   ): void;
   (e: 'update:selectedIds', value: string[]): void;
 }>();
-const { client: apolloClient } = useApolloClient();
 
 const containerStats = reactive(new Map<string, DockerContainerStats>());
 
@@ -228,21 +222,6 @@ function formatUptime(container?: DockerContainer | null): string {
   if (!container?.status) return '';
   const match = container.status.match(/Up\s+(.+?)(?:\s+\(|$)/i);
   return match ? match[1] : '';
-}
-
-interface LogSessionLine {
-  timestamp: string;
-  message: string;
-}
-
-interface LogSession {
-  id: string;
-  label: string;
-  lines: LogSessionLine[];
-  cursor: string | null;
-  isLoading: boolean;
-  error: string | null;
-  autoFollow: boolean;
 }
 
 type MultiValueKey = 'containerIp' | 'containerPort' | 'lanPort';
@@ -402,27 +381,9 @@ const activeUpdateSummary = computed(() => {
   const summary = names.slice(0, 3).join(', ');
   return `${summary}, +${names.length - 3} more`;
 });
-const activeLogSession = computed<LogSession | null>(() => {
-  if (!logSessions.value.length) return null;
-  const targetId = activeLogSessionId.value;
-  if (targetId) {
-    const found = logSessions.value.find((session) => session.id === targetId);
-    if (found) return found;
-  }
-  return logSessions.value[0] ?? null;
-});
-const logSessionOptions = computed(() =>
-  logSessions.value.map((session) => ({
-    label: session.label,
-    value: session.id,
-  }))
-);
-const logsModalOpen = ref(false);
-const logSessions = ref<LogSession[]>([]);
-const activeLogSessionId = ref<string | null>(null);
-const logsViewportRef = ref<HTMLElement | null>(null);
-const logSessionLineKeys = new Map<string, Set<string>>();
-let logsPollTimer: ReturnType<typeof setInterval> | null = null;
+
+const logs = useDockerLogSessions();
+const contextMenu = useContextMenu<DockerContainer>();
 
 const { mergeServerPreferences, saveColumnVisibility, columnVisibilityRef } = useDockerViewPreferences();
 
@@ -443,244 +404,11 @@ function getContainerDisplayLabel(containerId: string, fallback?: string | null)
   return containerId;
 }
 
-function ensureLogSession(containerId: string, label: string, options?: { reset?: boolean }) {
-  const normalizedLabel = getContainerDisplayLabel(containerId, label);
-  let session = logSessions.value.find((entry) => entry.id === containerId);
-  if (!session) {
-    session = reactive<LogSession>({
-      id: containerId,
-      label: normalizedLabel,
-      lines: [],
-      cursor: null,
-      isLoading: false,
-      error: null,
-      autoFollow: true,
-    });
-    logSessions.value = [...logSessions.value, session];
-  } else {
-    session.label = normalizedLabel;
-  }
-
-  if (options?.reset) {
-    session.lines = [];
-    session.cursor = null;
-    session.error = null;
-    logSessionLineKeys.set(containerId, new Set());
-  }
-
-  if (!logSessionLineKeys.has(containerId)) {
-    logSessionLineKeys.set(containerId, new Set());
-  }
-
-  return session;
-}
-
-function appendLogLines(session: LogSession, lines: LogSessionLine[]) {
-  if (!lines.length) return;
-  const keySet = logSessionLineKeys.get(session.id) ?? new Set<string>();
-  logSessionLineKeys.set(session.id, keySet);
-  const nextLines: LogSessionLine[] = [];
-  for (const line of lines) {
-    const key = `${line.timestamp}|${line.message}`;
-    if (keySet.has(key)) continue;
-    keySet.add(key);
-    nextLines.push(line);
-  }
-  if (!nextLines.length) return;
-  session.lines = [...session.lines, ...nextLines];
-  if (session.lines.length > MAX_LOG_LINES) {
-    session.lines = session.lines.slice(session.lines.length - MAX_LOG_LINES);
-  }
-}
-
-function normalizeGraphqlError(error: unknown): string {
-  if (typeof error === 'string') {
-    return error;
-  }
-  if (error && typeof error === 'object') {
-    const maybeMessage = (error as { message?: unknown }).message;
-    if (typeof maybeMessage === 'string') {
-      return maybeMessage;
-    }
-    const graphQLErrors = (error as { graphQLErrors?: Array<{ message?: unknown }> }).graphQLErrors;
-    if (Array.isArray(graphQLErrors) && graphQLErrors.length) {
-      const graphMessage = graphQLErrors[0]?.message;
-      if (typeof graphMessage === 'string') {
-        return graphMessage;
-      }
-    }
-  }
-  return 'Unable to fetch container logs.';
-}
-
-async function fetchLogsForSession(session: LogSession, options?: { force?: boolean }) {
-  if (session.isLoading && !options?.force) return;
-  const clientInstance = apolloClient;
-  if (!clientInstance) return;
-  session.isLoading = true;
-  session.error = null;
-  const variables: GetDockerContainerLogsQueryVariables = {
-    id: session.id,
-  };
-  if (session.cursor) {
-    variables.since = session.cursor;
-  } else {
-    variables.tail = DEFAULT_LOG_TAIL;
-  }
-
-  try {
-    const { data } = await clientInstance.query<
-      GetDockerContainerLogsQuery,
-      GetDockerContainerLogsQueryVariables
-    >({
-      query: GET_DOCKER_CONTAINER_LOGS,
-      variables,
-      fetchPolicy: 'network-only',
-    });
-    const payload = data?.docker?.logs;
-    if (payload?.lines?.length) {
-      const normalized = payload.lines
-        .filter((line): line is NonNullable<typeof line> => Boolean(line))
-        .map((line: { timestamp: string; message: string }) => ({
-          timestamp: line.timestamp ?? new Date().toISOString(),
-          message: line.message ?? '',
-        }));
-      appendLogLines(session, normalized);
-    }
-    if (payload?.cursor) {
-      session.cursor = payload.cursor;
-    }
-  } catch (error) {
-    session.error = normalizeGraphqlError(error);
-  } finally {
-    session.isLoading = false;
-  }
-}
-
-function startLogPoller() {
-  if (logsPollTimer || !logSessions.value.length) return;
-  logsPollTimer = setInterval(() => {
-    if (!logsModalOpen.value) return;
-    for (const session of logSessions.value) {
-      if (!session.autoFollow) continue;
-      void fetchLogsForSession(session);
-    }
-  }, LOG_POLL_INTERVAL_MS);
-}
-
-function stopLogPoller() {
-  if (!logsPollTimer) return;
-  clearInterval(logsPollTimer);
-  logsPollTimer = null;
-}
-
-function openLogsForContainers(entries: { id: string; label: string }[], options?: { reset?: boolean }) {
-  const uniqueEntries = new Map<string, { id: string; label: string }>();
-  entries.forEach((entry) => {
-    if (!entry.id) return;
-    uniqueEntries.set(entry.id, {
-      id: entry.id,
-      label: entry.label || entry.id,
-    });
-  });
-  if (!uniqueEntries.size) return;
-  let firstId: string | null = null;
-  uniqueEntries.forEach((entry) => {
-    const session = ensureLogSession(entry.id, entry.label, { reset: options?.reset });
-    session.autoFollow = true;
-    session.error = null;
-    void fetchLogsForSession(session, { force: true });
-    if (!firstId) {
-      firstId = session.id;
-    }
-  });
-  if (firstId) {
-    activeLogSessionId.value = firstId;
-  }
-  logsModalOpen.value = true;
-}
-
-function openLogsForContainer(entry: { id: string; label: string }, options?: { reset?: boolean }) {
-  openLogsForContainers([entry], options);
-}
-
-function removeLogSession(sessionId?: string | null) {
-  if (!sessionId) return;
-  logSessionLineKeys.delete(sessionId);
-  logSessions.value = logSessions.value.filter((session) => session.id !== sessionId);
-}
-
-function handleLogsRefresh() {
-  const session = activeLogSession.value;
-  if (!session) return;
-  void fetchLogsForSession(session, { force: true });
-}
-
-function formatLogTimestamp(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-}
-
-function toggleActiveLogFollow(value: boolean) {
-  const session = activeLogSession.value;
-  if (!session) return;
-  session.autoFollow = value;
-  if (value) {
-    void fetchLogsForSession(session, { force: true });
-  }
-}
-
-watch(
-  () => logSessions.value.map((session) => session.id),
-  (ids) => {
-    if (!ids.length) {
-      activeLogSessionId.value = null;
-      logsModalOpen.value = false;
-      stopLogPoller();
-      return;
-    }
-    if (!activeLogSessionId.value || !ids.includes(activeLogSessionId.value)) {
-      activeLogSessionId.value = ids[0] ?? null;
-    }
-  }
-);
-
 watch(containerNameById, () => {
-  for (const session of logSessions.value) {
+  for (const session of logs.logSessions.value) {
     const friendly = getContainerDisplayLabel(session.id, session.label);
     session.label = friendly;
   }
-});
-
-watch(
-  () => logsModalOpen.value,
-  (open) => {
-    if (open && logSessions.value.length) {
-      startLogPoller();
-    } else if (!open) {
-      stopLogPoller();
-    }
-  }
-);
-
-watch(
-  () => activeLogSession.value?.lines.length,
-  async () => {
-    if (!logsModalOpen.value) return;
-    const session = activeLogSession.value;
-    if (!session?.autoFollow) return;
-    await nextTick();
-    if (logsViewportRef.value) {
-      logsViewportRef.value.scrollTop = logsViewportRef.value.scrollHeight;
-    }
-  }
-);
-
-onBeforeUnmount(() => {
-  stopLogPoller();
 });
 
 const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
@@ -1018,55 +746,6 @@ type ActionDropdownItem = {
 };
 type DropdownMenuItems = ActionDropdownItem[][];
 
-const contextMenuState = ref<{
-  open: boolean;
-  x: number;
-  y: number;
-  items: DropdownMenuItems;
-  rowId: string | null;
-}>({
-  open: false,
-  x: 0,
-  y: 0,
-  items: [] as DropdownMenuItems,
-  rowId: null,
-});
-
-const contextMenuPopper = {
-  strategy: 'fixed' as const,
-  placement: 'bottom-start' as const,
-  offset: 4,
-};
-
-const columnsMenuItems = computed<DropdownMenuItems>(() => {
-  if (!baseTableRef.value?.tableApi) return [[]];
-
-  const availableColumns = baseTableRef.value.tableApi
-    .getAllColumns()
-    .filter((column) => column.getCanHide());
-
-  const list = availableColumns.map((column) => {
-    return {
-      label: column.id,
-      type: 'checkbox' as const,
-      checked: column.getIsVisible(),
-      onUpdateChecked(checked: boolean) {
-        baseTableRef.value?.tableApi?.getColumn?.(column.id)?.toggleVisibility(!!checked);
-        void persistCurrentColumnVisibility();
-      },
-      onSelect(e: Event) {
-        e.preventDefault();
-      },
-    } as ActionDropdownItem & {
-      type: 'checkbox';
-      checked: boolean;
-      onUpdateChecked: (v: boolean) => void;
-    };
-  });
-
-  return [list];
-});
-
 const { mutate: createFolderMutation, loading: creating } = useMutation(CREATE_DOCKER_FOLDER);
 const { mutate: createFolderWithItemsMutation } = useMutation(CREATE_DOCKER_FOLDER_WITH_ITEMS);
 const { mutate: moveEntriesMutation, loading: moving } = useMutation(MOVE_DOCKER_ENTRIES_TO_FOLDER);
@@ -1399,7 +1078,7 @@ function handleContainersWillStart(entries: { id: string; containerId: string; n
     })
     .filter((entry): entry is { id: string; label: string } => Boolean(entry.id));
   if (!targets.length) return;
-  openLogsForContainers(targets, { reset: true });
+  logs.openLogsForContainers(targets, { reset: true });
 }
 
 function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
@@ -1415,10 +1094,9 @@ function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   }
   if (action === 'View logs') {
     if (!containerId) return;
-    openLogsForContainer(
-      { id: containerId, label: getRowDisplayLabel(row, row.name) },
-      { reset: false }
-    );
+    logs.openLogsForContainers([{ id: containerId, label: getRowDisplayLabel(row, row.name) }], {
+      reset: false,
+    });
     return;
   }
   if (action === 'Manage Settings') {
@@ -1450,18 +1128,12 @@ async function handleRowContextMenu(payload: {
   const items = getRowActionItems(row as TreeRow<DockerContainer>);
   if (!items.length) return;
 
-  contextMenuState.value = {
-    open: false,
+  await contextMenu.openContextMenu({
     x: payload.event.clientX,
     y: payload.event.clientY,
     items,
     rowId: row.id,
-  };
-
-  await nextTick();
-  if (contextMenuState.value.rowId === row.id) {
-    contextMenuState.value.open = true;
-  }
+  });
 }
 
 const bulkItems = computed<DropdownMenuItems>(() => [
@@ -1630,11 +1302,11 @@ function handleUpdateSelectedIds(ids: string[]) {
             :title="dockerFilterHelpText"
             @update:model-value="setGlobalFilter"
           />
-          <UDropdownMenu v-if="!compact" :items="columnsMenuItems" size="md" :ui="{ content: 'z-40' }">
-            <UButton color="neutral" variant="outline" size="md" trailing-icon="i-lucide-chevron-down">
-              Columns
-            </UButton>
-          </UDropdownMenu>
+          <TableColumnMenu
+            v-if="!compact"
+            :table="baseTableRef"
+            @change="persistCurrentColumnVisibility"
+          />
           <UDropdownMenu
             :items="bulkItems"
             size="md"
@@ -1664,102 +1336,27 @@ function handleUpdateSelectedIds(ids: string[]) {
     </BaseTreeTable>
 
     <UDropdownMenu
-      v-model:open="contextMenuState.open"
-      :items="contextMenuState.items"
+      v-model:open="contextMenu.isOpen.value"
+      :items="contextMenu.items.value"
       size="md"
-      :popper="contextMenuPopper"
+      :popper="contextMenu.popperOptions"
       :ui="rowActionDropdownUi"
     >
       <div
         class="fixed h-px w-px"
-        :style="{ top: `${contextMenuState.y}px`, left: `${contextMenuState.x}px` }"
+        :style="{ top: `${contextMenu.position.value.y}px`, left: `${contextMenu.position.value.x}px` }"
       />
     </UDropdownMenu>
 
-    <UModal
-      v-model:open="logsModalOpen"
-      title="Container logs"
-      :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50 max-w-4xl w-full' }"
-    >
-      <template #body>
-        <div class="unapi">
-          <div v-if="logSessions.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
-            Select a container to view its logs.
-          </div>
-          <div v-else class="space-y-4">
-            <div class="flex flex-col gap-4 md:flex-row md:items-end">
-              <UFormField label="Container" class="min-w-[220px] flex-1">
-                <USelectMenu
-                  v-model="activeLogSessionId"
-                  :items="logSessionOptions"
-                  label-key="label"
-                  value-key="value"
-                  :disabled="logSessionOptions.length <= 1"
-                  placeholder="Select a container"
-                />
-              </UFormField>
-              <div class="flex flex-1 flex-wrap items-end gap-3 md:justify-end">
-                <div
-                  class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200"
-                >
-                  <span>Follow logs</span>
-                  <USwitch
-                    :model-value="activeLogSession?.autoFollow ?? true"
-                    :disabled="!activeLogSession"
-                    @update:model-value="toggleActiveLogFollow"
-                  />
-                </div>
-                <div class="flex items-center gap-2">
-                  <UButton
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="i-lucide-rotate-cw"
-                    :disabled="!activeLogSession"
-                    @click="handleLogsRefresh"
-                  />
-                  <UButton
-                    color="neutral"
-                    variant="outline"
-                    size="sm"
-                    icon="i-lucide-trash-2"
-                    :disabled="!activeLogSession"
-                    @click="removeLogSession(activeLogSession?.id)"
-                  />
-                </div>
-              </div>
-            </div>
-            <div class="rounded border border-gray-200 bg-gray-950 text-gray-100 dark:border-gray-700">
-              <div ref="logsViewportRef" class="h-80 overflow-y-auto px-4 py-3 font-mono text-sm">
-                <template v-if="activeLogSession?.lines.length">
-                  <div
-                    v-for="(line, index) in activeLogSession.lines"
-                    :key="`${line.timestamp}-${index}`"
-                    class="whitespace-pre-wrap"
-                  >
-                    <span class="text-primary-300">[{{ formatLogTimestamp(line.timestamp) }}]</span>
-                    <span class="ml-2">{{ line.message }}</span>
-                  </div>
-                </template>
-                <div v-else class="flex h-full items-center justify-center text-gray-400">
-                  <span v-if="activeLogSession?.isLoading">Fetching logs…</span>
-                  <span v-else>No log entries yet.</span>
-                </div>
-              </div>
-            </div>
-            <div
-              v-if="activeLogSession?.error"
-              class="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
-            >
-              {{ activeLogSession.error }}
-            </div>
-          </div>
-        </div>
-      </template>
-      <template #footer="{ close }">
-        <UButton color="neutral" variant="outline" @click="close">Close</UButton>
-      </template>
-    </UModal>
+    <DockerLogViewerModal
+      v-model:open="logs.logsModalOpen.value"
+      v-model:active-session-id="logs.activeLogSessionId.value"
+      :sessions="logs.logSessions.value"
+      :active-session="logs.activeLogSession.value"
+      @refresh="logs.handleLogsRefresh"
+      @remove-session="logs.removeLogSession"
+      @toggle-follow="logs.toggleActiveLogFollow"
+    />
 
     <UModal
       v-model:open="folderOps.moveOpen"
