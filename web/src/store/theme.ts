@@ -3,7 +3,6 @@ import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
 import { defaultColors } from '~/themes/default';
-import hexToRgba from 'hex-to-rgba';
 
 import type { GetThemeQuery } from '~/composables/gql/graphql';
 import type { Theme, ThemeVariables } from '~/themes/types';
@@ -26,43 +25,6 @@ export const GET_THEME_QUERY = graphql(`
     }
   }
 `);
-
-export const THEME_STORAGE_KEY = 'unraid.theme.publicTheme';
-export const THEME_CSS_VARS_KEY = 'unraid.theme.cssVars';
-export const THEME_CSS_VARS_COOKIE = 'unraid.theme.cssVars';
-
-const getCookie = (name: string): string | null => {
-  if (typeof document === 'undefined') return null;
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    return parts.pop()?.split(';').shift() || null;
-  }
-  return null;
-};
-
-const setCookie = (
-  name: string,
-  value: string,
-  options?: { maxAge?: number; sameSite?: string }
-): void => {
-  if (typeof document === 'undefined') return;
-  let cookie = `${name}=${value};path=/`;
-  if (options?.maxAge) {
-    const expires = new Date();
-    expires.setTime(expires.getTime() + options.maxAge * 1000);
-    cookie += `;expires=${expires.toUTCString()}`;
-  }
-  if (options?.sameSite) {
-    cookie += `;SameSite=${options.sameSite}`;
-  }
-  document.cookie = cookie;
-};
-
-const removeCookie = (name: string): void => {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
-};
 
 const DEFAULT_THEME: Theme = {
   name: 'white',
@@ -94,23 +56,6 @@ const sanitizeTheme = (data: Partial<Theme> | null | undefined): Theme | null =>
   };
 };
 
-const DYNAMIC_VAR_KEYS = [
-  '--custom-header-text-primary',
-  '--custom-header-text-secondary',
-  '--custom-header-background-color',
-  '--custom-header-gradient-start',
-  '--custom-header-gradient-end',
-  '--header-background-color',
-  '--header-gradient-start',
-  '--header-gradient-end',
-  '--color-header-background',
-  '--color-header-gradient-start',
-  '--color-header-gradient-end',
-  '--banner-gradient',
-] as const;
-
-type DynamicVarKey = (typeof DYNAMIC_VAR_KEYS)[number];
-
 export const useThemeStore = defineStore('theme', () => {
   // State
   const theme = ref<Theme>({ ...DEFAULT_THEME });
@@ -118,34 +63,6 @@ export const useThemeStore = defineStore('theme', () => {
   const activeColorVariables = ref<ThemeVariables>(defaultColors.white);
   const hasServerTheme = ref(false);
   const devOverride = ref(false);
-
-  const persistedCssVarsCookie = computed<Record<string, string>>({
-    get: () => {
-      try {
-        const cookieValue = getCookie(THEME_CSS_VARS_COOKIE);
-        if (cookieValue) {
-          return JSON.parse(decodeURIComponent(cookieValue));
-        }
-      } catch {
-        // Ignore parse errors
-      }
-      return {};
-    },
-    set: (value) => {
-      try {
-        if (Object.keys(value).length === 0) {
-          removeCookie(THEME_CSS_VARS_COOKIE);
-        } else {
-          setCookie(THEME_CSS_VARS_COOKIE, encodeURIComponent(JSON.stringify(value)), {
-            maxAge: 60 * 60 * 24 * 365, // 1 year
-            sameSite: 'Lax',
-          });
-        }
-      } catch {
-        // Ignore set errors
-      }
-    },
-  });
 
   const { result, onResult, onError } = useQuery<GetThemeQuery>(GET_THEME_QUERY, null, {
     fetchPolicy: 'cache-and-network',
@@ -224,6 +141,10 @@ export const useThemeStore = defineStore('theme', () => {
 
       if (sanitized) {
         theme.value = sanitized;
+        const fallbackTheme = defaultColors[sanitized.name as keyof typeof defaultColors];
+        activeColorVariables.value = {
+          ...(fallbackTheme ?? defaultColors.white),
+        };
       }
     }
   }
@@ -233,162 +154,14 @@ export const useThemeStore = defineStore('theme', () => {
   };
 
   const setCssVars = () => {
-    const selectedTheme = theme.value.name;
-
-    // Check if Unraid PHP has already set a Theme-- class
-    const hasExistingThemeClass =
-      typeof document !== 'undefined' &&
-      Array.from(document.documentElement.classList).some((cls) => cls.startsWith('Theme--'));
-
-    // Prepare Tailwind v4 theme classes
-    const themeClasses: string[] = [];
-    const customClasses: string[] = [];
-
-    // Apply dark/light mode using Tailwind v4 theme switching
+    if (typeof document === 'undefined') return;
     if (darkMode.value) {
-      themeClasses.push('dark');
-    }
-
-    // Only apply theme-specific class if Unraid PHP hasn't already set it
-    if (!hasExistingThemeClass) {
-      themeClasses.push(`Theme--${selectedTheme}`);
-    }
-
-    // Only set CSS variables for dynamic/user-configured values from GraphQL
-    // Static theme values are handled by Tailwind v4 theme classes in @tailwind-shared
-    const dynamicVars: Partial<Record<DynamicVarKey, string>> = {};
-
-    // User-configured colors from webGUI @ /Settings/DisplaySettings
-    if (theme.value.textColor) {
-      dynamicVars['--custom-header-text-primary'] = theme.value.textColor;
-      customClasses.push('has-custom-header-text');
-    }
-    if (theme.value.metaColor) {
-      dynamicVars['--custom-header-text-secondary'] = theme.value.metaColor;
-      customClasses.push('has-custom-header-meta');
-    }
-
-    if (theme.value.bgColor) {
-      const gradientStart = hexToRgba(theme.value.bgColor, 0);
-      const gradientEnd = hexToRgba(theme.value.bgColor, 0.7);
-
-      dynamicVars['--custom-header-background-color'] = theme.value.bgColor;
-      dynamicVars['--custom-header-gradient-start'] = gradientStart;
-      dynamicVars['--custom-header-gradient-end'] = gradientEnd;
-
-      // Apply the resolved values directly to ensure they override base theme vars
-      dynamicVars['--header-background-color'] = theme.value.bgColor;
-      dynamicVars['--header-gradient-start'] = gradientStart;
-      dynamicVars['--header-gradient-end'] = gradientEnd;
-      dynamicVars['--color-header-background'] = theme.value.bgColor;
-      dynamicVars['--color-header-gradient-start'] = gradientStart;
-      dynamicVars['--color-header-gradient-end'] = gradientEnd;
-      customClasses.push('has-custom-header-bg');
-    }
-
-    // Set banner gradient if needed
-    if (theme.value.banner && theme.value.bannerGradient) {
-      const start = theme.value.bgColor
-        ? hexToRgba(theme.value.bgColor, 0)
-        : 'var(--header-gradient-start)';
-      const end = theme.value.bgColor
-        ? hexToRgba(theme.value.bgColor, 0.7)
-        : 'var(--header-gradient-end)';
-
-      dynamicVars['--banner-gradient'] = `linear-gradient(90deg, ${start} 0, ${end} 90%)`;
-      customClasses.push('has-banner-gradient');
-    }
-
-    const scopedTargets: HTMLElement[] = [
-      document.documentElement,
-      ...Array.from(document.querySelectorAll<HTMLElement>('.unapi')),
-    ];
-
-    const cleanClassList = (classList: string, isDocumentElement: boolean) => {
-      // Don't remove Theme-- classes from documentElement if Unraid PHP set them
-      if (isDocumentElement && hasExistingThemeClass) {
-        return classList
-          .split(' ')
-          .filter((c) => c !== 'dark' && !c.startsWith('has-custom-') && c !== 'has-banner-gradient')
-          .filter(Boolean)
-          .join(' ');
-      }
-      // For .unapi roots or when we're managing the theme class, clean everything
-      return classList
-        .split(' ')
-        .filter(
-          (c) =>
-            !c.startsWith('Theme--') &&
-            c !== 'dark' &&
-            !c.startsWith('has-custom-') &&
-            c !== 'has-banner-gradient'
-        )
-        .filter(Boolean)
-        .join(' ');
-    };
-
-    // Apply theme and custom classes to html element and all .unapi roots
-    scopedTargets.forEach((target) => {
-      const isDocumentElement = target === document.documentElement;
-      target.className = cleanClassList(target.className, isDocumentElement);
-      [...themeClasses, ...customClasses].forEach((cls) => target.classList.add(cls));
-
-      if (darkMode.value) {
-        target.classList.add('dark');
-      } else {
-        target.classList.remove('dark');
-      }
-    });
-
-    // Maintain dark mode flag on body for legacy components
-    if (darkMode.value) {
+      document.documentElement.classList.add('dark');
       document.body.classList.add('dark');
     } else {
+      document.documentElement.classList.remove('dark');
       document.body.classList.remove('dark');
     }
-
-    // Only apply dynamic CSS variables for custom user values
-    // All theme defaults are handled by classes in @tailwind-shared/theme-variants.css
-    const activeDynamicKeys = Object.keys(dynamicVars) as DynamicVarKey[];
-
-    // Set CSS variables on all targets first to prevent flash
-    activeDynamicKeys.forEach((key) => {
-      const value = dynamicVars[key];
-      if (value !== undefined) {
-        document.body.style.setProperty(key, value);
-        document.documentElement.style.setProperty(key, value);
-        scopedTargets.forEach((target) => {
-          if (target !== document.documentElement) {
-            target.style.setProperty(key, value);
-          }
-        });
-      }
-    });
-
-    // Remove unused CSS variables after setting new ones
-    DYNAMIC_VAR_KEYS.forEach((key) => {
-      if (!Object.prototype.hasOwnProperty.call(dynamicVars, key)) {
-        document.body.style.removeProperty(key);
-        document.documentElement.style.removeProperty(key);
-        scopedTargets.forEach((target) => {
-          if (target !== document.documentElement) {
-            target.style.removeProperty(key);
-          }
-        });
-      }
-    });
-
-    // Persist CSS variable values for rehydration
-    // Clear old keys that are no longer needed
-    const cleanedPersistedVars: Record<string, string> = {};
-    activeDynamicKeys.forEach((key) => {
-      cleanedPersistedVars[key] = dynamicVars[key]!;
-    });
-    persistedCssVarsCookie.value = cleanedPersistedVars;
-
-    // Store active variables for reference (from defaultColors for compatibility)
-    const customTheme = { ...defaultColors[selectedTheme] };
-    activeColorVariables.value = customTheme;
   };
 
   watch(

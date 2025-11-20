@@ -332,8 +332,9 @@ class ExtractorTest {
         // Test 1: Valid cookie with CSS variables
         $validCssVars = [
             '--custom-header-text-primary' => '#ffffff',
-            '--custom-header-background-color' => '#000000',
-            '--header-background-color' => '#111111',
+            '--customer-header-background-color' => '#000000',
+            '--customer-header-gradient-start' => 'rgba(0, 0, 0, 0)',
+            '--customer-header-gradient-end' => 'rgba(0, 0, 0, 0.7)',
         ];
         $validCookie = urlencode(json_encode($validCssVars));
         $_COOKIE[$cookieName] = $validCookie;
@@ -355,12 +356,12 @@ class ExtractorTest {
             strpos($output, '--custom-header-text-primary: #ffffff;') !== false
         );
         $this->test(
-            "Includes custom-header-background-color CSS variable",
-            strpos($output, '--custom-header-background-color: #000000;') !== false
+            "Includes customer-header-background-color CSS variable",
+            strpos($output, '--customer-header-background-color: #000000;') !== false
         );
         $this->test(
-            "Includes header-background-color CSS variable",
-            strpos($output, '--header-background-color: #111111;') !== false
+            "Includes customer-header-gradient-start CSS variable",
+            strpos($output, '--customer-header-gradient-start: rgba(0, 0, 0, 0);') !== false
         );
         $this->test(
             "CSS variables are properly indented",
@@ -370,7 +371,7 @@ class ExtractorTest {
         // Test 2: URL-encoded cookie (simulating browser behavior)
         $encodedVars = [
             '--custom-header-text-primary' => '#ff0000',
-            '--header-gradient-start' => 'rgba(255, 0, 0, 0)',
+            '--customer-header-gradient-start' => 'rgba(255, 0, 0, 0)',
         ];
         $encodedCookie = urlencode(json_encode($encodedVars));
         $_COOKIE[$cookieName] = $encodedCookie;
@@ -383,7 +384,7 @@ class ExtractorTest {
         );
         $this->test(
             "Handles rgba values in cookie",
-            strpos($output, '--header-gradient-start: rgba(255, 0, 0, 0);') !== false
+            strpos($output, '--customer-header-gradient-start: rgba(255, 0, 0, 0);') !== false
         );
         
         // Test 3: Missing cookie

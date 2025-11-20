@@ -6,13 +6,10 @@ import { createApp, nextTick, ref } from 'vue';
 import { setActivePinia } from 'pinia';
 
 import { defaultColors } from '~/themes/default';
-import hexToRgba from 'hex-to-rgba';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Theme } from '~/themes/types';
-
 import { globalPinia } from '~/store/globalPinia';
-import { THEME_CSS_VARS_COOKIE, useThemeStore } from '~/store/theme';
+import { useThemeStore } from '~/store/theme';
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: () => ({
@@ -23,30 +20,15 @@ vi.mock('@vue/apollo-composable', () => ({
   }),
 }));
 
-vi.mock('hex-to-rgba', () => ({
-  default: vi.fn((hex, opacity) => `rgba(mock-${hex}-${opacity})`),
-}));
-
 describe('Theme Store', () => {
   const originalAddClassFn = document.body.classList.add;
   const originalRemoveClassFn = document.body.classList.remove;
   const originalStyleCssText = document.body.style.cssText;
-  const originalBodySetProperty = document.body.style.setProperty;
-  const originalDocumentElementSetProperty = document.documentElement.style.setProperty;
   const originalDocumentElementAddClass = document.documentElement.classList.add;
   const originalDocumentElementRemoveClass = document.documentElement.classList.remove;
 
   let store: ReturnType<typeof useThemeStore> | undefined;
   let app: ReturnType<typeof createApp> | undefined;
-
-  const getCookie = (name: string): string | null => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) {
-      return parts.pop()?.split(';').shift() || null;
-    }
-    return null;
-  };
 
   beforeEach(() => {
     app = createApp({ render: () => null });
@@ -54,14 +36,11 @@ describe('Theme Store', () => {
     setActivePinia(globalPinia);
     store = undefined;
     window.localStorage.clear();
-    document.cookie = `${THEME_CSS_VARS_COOKIE}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
     delete (globalPinia.state.value as Record<string, unknown>).theme;
 
     document.body.classList.add = vi.fn();
     document.body.classList.remove = vi.fn();
     document.body.style.cssText = '';
-    document.body.style.setProperty = vi.fn();
-    document.documentElement.style.setProperty = vi.fn();
     document.documentElement.classList.add = vi.fn();
     document.documentElement.classList.remove = vi.fn();
 
@@ -82,8 +61,6 @@ describe('Theme Store', () => {
     document.body.classList.add = originalAddClassFn;
     document.body.classList.remove = originalRemoveClassFn;
     document.body.style.cssText = originalStyleCssText;
-    document.body.style.setProperty = originalBodySetProperty;
-    document.documentElement.style.setProperty = originalDocumentElementSetProperty;
     document.documentElement.classList.add = originalDocumentElementAddClass;
     document.documentElement.classList.remove = originalDocumentElementRemoveClass;
     vi.restoreAllMocks();
@@ -202,77 +179,22 @@ describe('Theme Store', () => {
       await nextTick();
 
       // activeColorVariables now contains the theme defaults from defaultColors
-      // Custom values are applied as CSS variables on the documentElement
       // The white theme's --color-beta is a reference to var(--header-text-primary)
       expect(store.activeColorVariables['--color-beta']).toBe('var(--header-text-primary)');
-      expect(document.body.style.setProperty).toHaveBeenCalledWith(
-        '--custom-header-text-primary',
-        '#333333'
-      );
-      expect(document.body.style.setProperty).toHaveBeenCalledWith(
-        '--custom-header-text-secondary',
-        '#666666'
-      );
-      expect(document.body.style.setProperty).toHaveBeenCalledWith(
-        '--custom-header-background-color',
-        '#ffffff'
-      );
     });
 
-    it('should handle banner gradient correctly', async () => {
+    it('should apply dark mode classes when theme changes', async () => {
       const store = createStore();
-      const mockHexToRgba = vi.mocked(hexToRgba);
-
-      mockHexToRgba.mockClear();
 
       store.setTheme({
         ...store.theme,
-        banner: true,
-        bannerGradient: true,
-        bgColor: '#112233',
+        name: 'black',
       });
 
       await nextTick();
 
-      expect(mockHexToRgba).toHaveBeenCalledWith('#112233', 0);
-      expect(mockHexToRgba).toHaveBeenCalledWith('#112233', 0.7);
-
-      // Banner gradient values are now set as custom CSS variables on document.body
-      expect(document.body.style.setProperty).toHaveBeenCalledWith(
-        '--custom-header-gradient-start',
-        'rgba(mock-#112233-0)'
-      );
-      expect(document.body.style.setProperty).toHaveBeenCalledWith(
-        '--custom-header-gradient-end',
-        'rgba(mock-#112233-0.7)'
-      );
-      expect(document.body.style.setProperty).toHaveBeenCalledWith(
-        '--banner-gradient',
-        'linear-gradient(90deg, rgba(mock-#112233-0) 0, rgba(mock-#112233-0.7) 90%)'
-      );
-    });
-    it('should persist server theme responses to cache', async () => {
-      const store = createStore();
-
-      const serverTheme = {
-        name: 'gray',
-        banner: false,
-        bannerGradient: false,
-        bgColor: '#111111',
-        descriptionShow: false,
-        metaColor: '#999999',
-        textColor: '#eeeeee',
-      } satisfies Theme;
-
-      store.setTheme(serverTheme, { source: 'server' });
-      await nextTick();
-
-      const stored = getCookie(THEME_CSS_VARS_COOKIE);
-      expect(stored).toBeTruthy();
-      const cssVars = JSON.parse(decodeURIComponent(stored!));
-      expect(cssVars['--custom-header-text-primary']).toBe('#eeeeee');
-      expect(cssVars['--custom-header-text-secondary']).toBe('#999999');
-      expect(cssVars['--custom-header-background-color']).toBe('#111111');
+      expect(document.documentElement.classList.add).toHaveBeenCalledWith('dark');
+      expect(document.body.classList.add).toHaveBeenCalledWith('dark');
     });
   });
 });

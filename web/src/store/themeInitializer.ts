@@ -31,9 +31,6 @@ export async function initializeTheme(): Promise<void> {
       // Load theme from GraphQL
       await themeStore.setTheme();
 
-      // Apply CSS variables and Tailwind classes
-      themeStore.setCssVars();
-
       isThemeInitialized = true;
 
       console.debug('[ThemeInitializer] Theme initialized successfully');
