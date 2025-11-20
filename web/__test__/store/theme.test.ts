@@ -238,7 +238,6 @@ describe('Theme Store', () => {
         'linear-gradient(90deg, rgba(mock-#112233-0) 0, rgba(mock-#112233-0.7) 90%)'
       );
     });
-
     it('should persist server theme responses to cache', async () => {
       const store = createStore();
 
