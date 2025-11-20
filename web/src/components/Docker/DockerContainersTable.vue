@@ -12,25 +12,25 @@ import { DELETE_DOCKER_ENTRIES } from '@/components/Docker/docker-delete-entries
 import { MOVE_DOCKER_ENTRIES_TO_FOLDER } from '@/components/Docker/docker-move-entries.mutation';
 import { MOVE_DOCKER_ITEMS_TO_POSITION } from '@/components/Docker/docker-move-items-to-position.mutation';
 import { PAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-pause-container.mutation';
-import { REFRESH_DOCKER_DIGESTS } from '@/components/Docker/docker-refresh-digests.mutation';
 import { SET_DOCKER_FOLDER_CHILDREN } from '@/components/Docker/docker-set-folder-children.mutation';
 import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-container.mutation';
 import { DOCKER_STATS_SUBSCRIPTION } from '@/components/Docker/docker-stats.subscription';
 import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container.mutation';
 import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-container.mutation';
-import { UPDATE_ALL_DOCKER_CONTAINERS } from '@/components/Docker/docker-update-all-containers.mutation';
-import { UPDATE_DOCKER_CONTAINERS } from '@/components/Docker/docker-update-containers.mutation';
 import DockerContainerStatCell from '@/components/Docker/DockerContainerStatCell.vue';
 import DockerLogViewerModal from '@/components/Docker/DockerLogViewerModal.vue';
+import DockerNameCell from '@/components/Docker/DockerNameCell.vue';
 import { ContainerState } from '@/composables/gql/graphql';
 import { useContainerActions } from '@/composables/useContainerActions';
 import { useContextMenu } from '@/composables/useContextMenu';
 import { useDockerViewPreferences } from '@/composables/useDockerColumnVisibility';
 import { useDockerLogSessions } from '@/composables/useDockerLogSessions';
+import { useDockerUpdateActions } from '@/composables/useDockerUpdateActions';
 import { useFolderOperations } from '@/composables/useFolderOperations';
 import { useFolderTree } from '@/composables/useFolderTree';
 import { usePersistentColumnVisibility } from '@/composables/usePersistentColumnVisibility';
 import { useTreeData } from '@/composables/useTreeData';
+import { normalizeMultiValue, toContainerTreeRow } from '@/utils/docker';
 
 import type {
   DockerContainer,
@@ -68,8 +68,6 @@ const UInput = resolveComponent('UInput');
 const UDropdownMenu = resolveComponent('UDropdownMenu');
 const UModal = resolveComponent('UModal');
 const USkeleton = resolveComponent('USkeleton') as Component;
-const UIcon = resolveComponent('UIcon');
-const UPopover = resolveComponent('UPopover');
 const rowActionDropdownUi = {
   content: 'overflow-x-hidden z-50',
   item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
@@ -107,140 +105,9 @@ onStatsResult((result) => {
   }
 });
 
-const COMMA_SEPARATED_LIST = /\s*,\s*/;
-
-function normalizeListString(value: string): string[] {
-  return value
-    .split(COMMA_SEPARATED_LIST)
-    .map((entry) => entry.trim())
-    .filter((entry) => entry.length > 0);
-}
-
-const URL_WITH_PROTOCOL = /^[a-zA-Z][a-zA-Z0-9+\-.]*:\/\//;
-
-function formatExternalPorts(container?: DockerContainer | null): string[] {
-  if (!container) return [];
-  const lanPorts = container.lanIpPorts;
-  if (Array.isArray(lanPorts)) {
-    return lanPorts
-      .map((entry) => (typeof entry === 'string' ? entry.trim() : String(entry).trim()))
-      .filter((entry) => entry.length > 0);
-  }
-  if (!container.ports?.length) return [];
-  return container.ports
-    .filter(
-      (port): port is NonNullable<(typeof container.ports)[number]> =>
-        Boolean(port?.publicPort) && Boolean(port?.privatePort)
-    )
-    .map((port) => `${port.publicPort}:${port.privatePort}/${port.type}`)
-    .filter((entry) => entry.length > 0);
-}
-
-function getFirstLanIp(container?: DockerContainer | null): string | null {
-  if (!container?.lanIpPorts?.length) return null;
-  for (const entry of container.lanIpPorts) {
-    if (typeof entry !== 'string') continue;
-    const trimmed = entry.trim();
-    if (trimmed) return trimmed;
-  }
-  return null;
-}
-
-function openLanIpInNewTab(address: string) {
-  if (typeof window === 'undefined') return;
-  const trimmed = address.trim();
-  if (!trimmed) return;
-  const hasProtocol = URL_WITH_PROTOCOL.test(trimmed);
-  const protocol = 'http:';
-  const targetUrl = hasProtocol ? trimmed : `${protocol}//${trimmed}`;
-  window.open(targetUrl, '_blank', 'noopener');
-}
-
-function formatInternalPorts(container?: DockerContainer | null): string[] {
-  if (!container?.ports?.length) return [];
-  return container.ports
-    .filter((port): port is NonNullable<(typeof container.ports)[number]> => Boolean(port?.privatePort))
-    .map((port) => `${port.privatePort}/${port.type}`);
-}
-
-function formatImage(container?: DockerContainer | null): string {
-  if (!container?.image) return '';
-  const parts = container.image.split(':');
-  return parts.length > 1 ? parts[parts.length - 1] : 'latest';
-}
-
-function formatNetwork(container?: DockerContainer | null): string {
-  if (!container) return '';
-  return container.hostConfig?.networkMode || '';
-}
-
-function formatContainerIp(container?: DockerContainer | null): string[] {
-  if (!container?.networkSettings) return [];
-  try {
-    const settings = container.networkSettings as Record<string, unknown>;
-    if (settings.Networks && typeof settings.Networks === 'object') {
-      const networks = Object.values(settings.Networks as Record<string, unknown>);
-      const ips = networks
-        .map((net) => (net as Record<string, unknown>).IPAddress)
-        .filter((value): value is string => typeof value === 'string' && value.length > 0);
-      if (ips.length) {
-        return ips;
-      }
-    }
-    if (settings.IPAddress && typeof settings.IPAddress === 'string') {
-      return settings.IPAddress.length ? [settings.IPAddress] : [];
-    }
-  } catch (e) {
-    return [];
-  }
-  return [];
-}
-
-function formatVolumes(container?: DockerContainer | null): string {
-  if (!container?.mounts) return '';
-  try {
-    const mounts = container.mounts as unknown[];
-    return mounts
-      .map((mount) => {
-        const m = mount as Record<string, unknown>;
-        if (m.Type === 'bind' && m.Source && m.Destination) {
-          return `${m.Source} → ${m.Destination}`;
-        }
-        if (m.Type === 'volume' && m.Name && m.Destination) {
-          return `${m.Name} → ${m.Destination}`;
-        }
-        return '';
-      })
-      .filter(Boolean)
-      .join(', ');
-  } catch (e) {
-    return '';
-  }
-}
-
-function formatUptime(container?: DockerContainer | null): string {
-  if (!container?.status) return '';
-  const match = container.status.match(/Up\s+(.+?)(?:\s+\(|$)/i);
-  return match ? match[1] : '';
-}
-
-type MultiValueKey = 'containerIp' | 'containerPort' | 'lanPort';
 const MULTI_VALUE_INLINE_LIMIT = 3;
 
-function normalizeMultiValue(value: unknown): string[] {
-  if (Array.isArray(value)) {
-    return value
-      .map((entry) => (typeof entry === 'string' ? entry.trim() : String(entry)))
-      .filter((entry) => entry.length > 0);
-  }
-  if (typeof value === 'string') {
-    return normalizeListString(value);
-  }
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return [String(value)];
-  }
-  return [];
-}
+type MultiValueKey = 'containerIp' | 'containerPort' | 'lanPort';
 
 const MULTI_VALUE_LABELS: Record<MultiValueKey, string> = {
   containerIp: 'Container IP',
@@ -262,33 +129,6 @@ function makeMultiValueCell(accessor: MultiValueKey) {
       inlineLimit: MULTI_VALUE_INLINE_LIMIT,
       idPrefix: `${row.original.id}-${accessor}`,
     });
-  };
-}
-
-function toContainerTreeRow(
-  meta: DockerContainer | null | undefined,
-  fallbackName?: string
-): TreeRow<DockerContainer> {
-  const name = meta?.names?.[0]?.replace(/^\//, '') || fallbackName || 'Unknown';
-  const updatesParts: string[] = [];
-  if (meta?.isUpdateAvailable) updatesParts.push('Update');
-  if (meta?.isRebuildReady) updatesParts.push('Rebuild');
-  return {
-    id: meta?.id || name,
-    type: 'container',
-    name,
-    state: meta?.state ?? '',
-    version: formatImage(meta || undefined),
-    network: formatNetwork(meta || undefined),
-    containerIp: formatContainerIp(meta || undefined),
-    containerPort: formatInternalPorts(meta || undefined),
-    lanPort: formatExternalPorts(meta || undefined),
-    volumes: formatVolumes(meta || undefined),
-    autoStart: meta?.autoStart ? 'On' : 'Off',
-    updates: updatesParts.join(' / ') || '—',
-    uptime: formatUptime(meta || undefined),
-    containerId: meta?.id,
-    meta: meta || undefined,
   };
 }
 
@@ -364,28 +204,34 @@ const { visibleFolders, expandedFolders, toggleExpandFolder, setExpandedFolders 
   flatEntries: flatEntriesRef,
 });
 const busyRowIds = ref<Set<string>>(new Set());
-const updatePopoverRowId = ref<string | null>(null);
-const updatingRowIds = ref<Set<string>>(new Set());
-const isUpdatingContainers = computed(() => updatingRowIds.value.size > 0);
-const activeUpdateSummary = computed(() => {
-  if (!updatingRowIds.value.size) return '';
-  const names: string[] = [];
-  for (const id of updatingRowIds.value) {
-    const row = getRowById(id, treeData.value);
-    if (row && row.type === 'container') {
-      names.push(row.name);
-    }
-  }
-  if (!names.length) return '';
-  if (names.length <= 3) return names.join(', ');
-  const summary = names.slice(0, 3).join(', ');
-  return `${summary}, +${names.length - 3} more`;
-});
 
 const logs = useDockerLogSessions();
 const contextMenu = useContextMenu<DockerContainer>();
 
 const { mergeServerPreferences, saveColumnVisibility, columnVisibilityRef } = useDockerViewPreferences();
+
+const updatePopoverRowId = ref<string | null>(null);
+
+function showError(message: string, options?: { description?: string }) {
+  window.toast?.error?.(message, options);
+}
+
+const {
+  updatingRowIds,
+  isUpdatingContainers,
+  activeUpdateSummary,
+  checkingForUpdates,
+  updatingAllContainers,
+  handleCheckForUpdates,
+  handleUpdateContainer,
+  handleBulkUpdateContainers,
+  handleUpdateAllContainers,
+} = useDockerUpdateActions({
+  setRowsBusy,
+  showToast,
+  showError,
+  getRowById: (id) => getRowById(id, treeData.value),
+});
 
 function setRowsBusy(ids: string[], busy: boolean) {
   const next = new Set(busyRowIds.value);
@@ -418,143 +264,18 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
       header: props.compact ? '' : 'Name',
       cell: ({ row }) => {
         const treeRow = row.original as TreeRow<DockerContainer>;
-        const depth = row.depth;
-        const indent = h('span', { class: 'inline-block', style: { width: `calc(${depth} * 1rem)` } });
         const isRowUpdating = updatingRowIds.value.has(treeRow.id);
 
-        const iconElement = row.original.icon
-          ? h('img', {
-              src: row.original.icon,
-              class: 'w-5 h-5 mr-2 flex-shrink-0',
-              alt: '',
-              onError: (e: Event) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              },
-            })
-          : h(UIcon, {
-              name: row.original.type === 'folder' ? 'i-lucide-folder' : 'i-lucide-box',
-              class: 'w-5 h-5 mr-2 flex-shrink-0 text-gray-500',
-            });
-
-        const hasUpdate =
-          row.original.type === 'container' &&
-          (treeRow.meta?.isUpdateAvailable || treeRow.meta?.isRebuildReady);
-
-        const firstLanIp = row.original.type === 'container' ? getFirstLanIp(treeRow.meta) : null;
-        const canOpenLanIp = Boolean(firstLanIp) && treeRow.meta?.state === ContainerState.RUNNING;
-
-        const openBadge =
-          canOpenLanIp && firstLanIp
-            ? h(
-                UBadge,
-                {
-                  color: 'primary',
-                  variant: 'subtle',
-                  size: 'sm',
-                  class: 'ml-2 cursor-pointer select-none',
-                  role: 'button',
-                  tabindex: 0,
-                  'data-stop-row-click': 'true',
-                  onClick: (event: Event) => {
-                    event.stopPropagation();
-                    openLanIpInNewTab(firstLanIp!);
-                  },
-                  onKeydown: (event: KeyboardEvent) => {
-                    if (event.key !== 'Enter' && event.key !== ' ') return;
-                    event.preventDefault();
-                    event.stopPropagation();
-                    openLanIpInNewTab(firstLanIp!);
-                  },
-                },
-                () => 'Open'
-              )
-            : null;
-
-        const updateBadge = hasUpdate
-          ? h(
-              UPopover,
-              {
-                'data-stop-row-click': 'true',
-                open: updatePopoverRowId.value === treeRow.id,
-                'onUpdate:open': (value: boolean) => {
-                  updatePopoverRowId.value = value ? treeRow.id : null;
-                },
-              },
-              {
-                default: () =>
-                  h(
-                    UBadge,
-                    {
-                      color: 'warning',
-                      variant: 'subtle',
-                      size: 'sm',
-                      class: [
-                        'ml-2 cursor-pointer',
-                        isRowUpdating ? 'pointer-events-none opacity-60' : '',
-                      ],
-                      'data-stop-row-click': 'true',
-                    },
-                    () => 'Update'
-                  ),
-                content: () =>
-                  h('div', { class: 'p-3 space-y-3' }, [
-                    h(
-                      'p',
-                      { class: 'text-sm' },
-                      row.original.meta?.isUpdateAvailable
-                        ? 'Update available. Update container?'
-                        : 'Rebuild ready. Update container?'
-                    ),
-                    h('div', { class: 'flex gap-2 justify-end' }, [
-                      h(
-                        UButton,
-                        {
-                          color: 'neutral',
-                          variant: 'outline',
-                          size: 'sm',
-                          onClick: (e: Event) => {
-                            e.stopPropagation();
-                            updatePopoverRowId.value = null;
-                          },
-                        },
-                        () => 'Cancel'
-                      ),
-                      h(
-                        UButton,
-                        {
-                          size: 'sm',
-                          loading: isRowUpdating,
-                          disabled: isRowUpdating,
-                          onClick: async (e: Event) => {
-                            e.stopPropagation();
-                            if (isRowUpdating) return;
-                            updatePopoverRowId.value = null;
-                            await handleUpdateContainer(treeRow);
-                          },
-                        },
-                        () => 'Confirm'
-                      ),
-                    ]),
-                  ]),
-              }
-            )
-          : null;
-
-        const updateSpinner = isRowUpdating
-          ? h(UIcon, {
-              name: 'i-lucide-loader-2',
-              class: 'ml-2 h-4 w-4 animate-spin text-primary-500',
-            })
-          : null;
-
-        return h('div', { class: 'truncate flex items-center', 'data-row-id': treeRow.id }, [
-          indent,
-          iconElement,
-          h('span', { class: 'max-w-[40ch] truncate font-medium' }, treeRow.name),
-          openBadge,
-          updateBadge,
-          updateSpinner,
-        ]);
+        return h(DockerNameCell, {
+          row: treeRow,
+          depth: row.depth,
+          isUpdating: isRowUpdating,
+          isPopoverOpen: updatePopoverRowId.value === treeRow.id,
+          'onUpdate:isPopoverOpen': (val: boolean) => {
+            updatePopoverRowId.value = val ? treeRow.id : null;
+          },
+          onUpdateContainer: () => handleUpdateContainer(treeRow),
+        });
       },
       meta: { class: { td: 'w-[40ch] truncate', th: 'w-[45ch]' } },
     },
@@ -756,12 +477,6 @@ const { mutate: startContainerMutation } = useMutation(START_DOCKER_CONTAINER);
 const { mutate: stopContainerMutation } = useMutation(STOP_DOCKER_CONTAINER);
 const { mutate: pauseContainerMutation } = useMutation(PAUSE_DOCKER_CONTAINER);
 const { mutate: unpauseContainerMutation } = useMutation(UNPAUSE_DOCKER_CONTAINER);
-const { mutate: updateContainersMutation } = useMutation(UPDATE_DOCKER_CONTAINERS);
-const { mutate: updateAllContainersMutation, loading: updatingAllContainers } = useMutation(
-  UPDATE_ALL_DOCKER_CONTAINERS
-);
-const { mutate: refreshDockerDigestsMutation, loading: checkingForUpdates } =
-  useMutation(REFRESH_DOCKER_DIGESTS);
 
 declare global {
   interface Window {
@@ -805,133 +520,6 @@ const updateCandidateRows = computed<TreeRow<DockerContainer>[]>(() =>
 const selectedContainerRows = computed(() => getContainerRows(props.selectedIds));
 const hasSelectedContainers = computed(() => selectedContainerRows.value.length > 0);
 const hasSelectedEntries = computed(() => props.selectedIds.length > 0);
-function setRowsUpdating(rows: TreeRow<DockerContainer>[], updating: boolean) {
-  if (!rows.length) return;
-  const next = new Set(updatingRowIds.value);
-  for (const row of rows) {
-    if (!row.id) continue;
-    if (updating) next.add(row.id);
-    else next.delete(row.id);
-  }
-  updatingRowIds.value = next;
-}
-
-async function handleCheckForUpdates(rows: TreeRow<DockerContainer>[]) {
-  if (!rows.length) return;
-
-  const entryIds = Array.from(new Set(rows.map((row) => row.id)));
-  setRowsBusy(entryIds, true);
-
-  try {
-    await refreshDockerDigestsMutation(
-      {},
-      {
-        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-        awaitRefetchQueries: true,
-      }
-    );
-    const count = rows.length;
-    showToast(`Checked updates for ${count} container${count === 1 ? '' : 's'}`);
-  } catch (error) {
-    window.toast?.error?.('Failed to check for updates', {
-      description: error instanceof Error ? error.message : 'Unknown error',
-    });
-  } finally {
-    setRowsBusy(entryIds, false);
-  }
-}
-
-async function handleUpdateContainer(row: TreeRow<DockerContainer>) {
-  if (!row.containerId) return;
-
-  setRowsUpdating([row], true);
-  setRowsBusy([row.id], true);
-
-  try {
-    await updateContainersMutation(
-      { ids: [row.containerId] },
-      {
-        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-        awaitRefetchQueries: true,
-      }
-    );
-    showToast(`Successfully updated ${row.name}`);
-  } catch (error) {
-    window.toast?.error?.(`Failed to update ${row.name}`, {
-      description: error instanceof Error ? error.message : 'Unknown error',
-    });
-  } finally {
-    setRowsBusy([row.id], false);
-    setRowsUpdating([row], false);
-  }
-}
-
-async function handleBulkUpdateContainers(rows: TreeRow<DockerContainer>[]) {
-  if (!rows.length) return;
-
-  const containerIds = Array.from(
-    new Set(rows.map((row) => row.containerId).filter((id): id is string => Boolean(id)))
-  );
-  if (!containerIds.length) return;
-
-  const entryIds = Array.from(new Set(rows.map((row) => row.id)));
-  setRowsUpdating(rows, true);
-  setRowsBusy(entryIds, true);
-
-  try {
-    await updateContainersMutation(
-      { ids: containerIds },
-      {
-        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-        awaitRefetchQueries: true,
-      }
-    );
-    const count = containerIds.length;
-    showToast(`Successfully updated ${count} container${count === 1 ? '' : 's'}`);
-  } catch (error) {
-    window.toast?.error?.('Failed to update containers', {
-      description: error instanceof Error ? error.message : 'Unknown error',
-    });
-  } finally {
-    setRowsBusy(entryIds, false);
-    setRowsUpdating(rows, false);
-  }
-}
-
-async function handleUpdateAllContainers() {
-  const rows = updateCandidateRows.value;
-  const entryIds = Array.from(new Set(rows.map((row) => row.id)));
-  if (rows.length) {
-    setRowsUpdating(rows, true);
-    setRowsBusy(entryIds, true);
-  }
-
-  try {
-    const response = await updateAllContainersMutation(
-      {},
-      {
-        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
-        awaitRefetchQueries: true,
-      }
-    );
-    const count = response?.data?.docker?.updateAllContainers?.length ?? 0;
-    if (count > 0) {
-      showToast(`Successfully updated ${count} container${count === 1 ? '' : 's'}`);
-    } else {
-      showToast('No containers had updates available');
-    }
-  } catch (error) {
-    window.toast?.error?.('Failed to update containers', {
-      description: error instanceof Error ? error.message : 'Unknown error',
-    });
-  } finally {
-    if (rows.length) {
-      setRowsBusy(entryIds, false);
-      setRowsUpdating(rows, false);
-    }
-  }
-}
-
 const folderOps = useFolderOperations({
   rootFolderId,
   folderChildrenIds,
@@ -1150,7 +738,7 @@ const bulkItems = computed<DropdownMenuItems>(() => [
       icon: 'i-lucide-rotate-ccw',
       as: 'button',
       disabled: updatingAllContainers.value,
-      onSelect: () => void handleUpdateAllContainers(),
+      onSelect: () => void handleUpdateAllContainers(updateCandidateRows.value),
     },
   ],
   [
