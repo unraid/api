@@ -10,6 +10,7 @@ import type { ExternalUpdateOsAction } from '@unraid/shared-callbacks';
 import type { Release } from '~/store/updateOsActions';
 
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { testTranslate } from '../utils/i18n';
 
 vi.mock('~/helpers/urls', () => ({
   WEBGUI_TOOLS_UPDATE: 'https://webgui/tools/update',
@@ -75,12 +76,7 @@ vi.mock('~/store/updateOs', () => ({
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (key: string, params?: unknown[]) => {
-      if (params && Array.isArray(params)) {
-        return `${key} ${params.join(' ')}`;
-      }
-      return key;
-    },
+    t: testTranslate,
   }),
 }));
 
