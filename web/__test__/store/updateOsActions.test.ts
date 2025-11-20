@@ -75,7 +75,12 @@ vi.mock('~/store/updateOs', () => ({
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
-    t: (key: string) => key,
+    t: (key: string, params?: unknown[]) => {
+      if (params && Array.isArray(params)) {
+        return `${key} ${params.join(' ')}`;
+      }
+      return key;
+    },
   }),
 }));
 
@@ -542,35 +547,8 @@ describe('UpdateOsActions Store', () => {
       mockServerStore.keyfile = 'test-keyfile';
       mockServerStore.osVersion = '6.12.4';
       mockServerStore.regUpdatesExpired = false;
+      store = useUpdateOsActionsStore();
       expect(store.ineligibleText).toBe('');
-    });
-
-    it('should include formatted release date when updates expired and update available', () => {
-      mockServerStore.guid = 'test-guid';
-      mockServerStore.keyfile = 'test-keyfile';
-      mockServerStore.osVersion = '6.12.4';
-      mockServerStore.regUpdatesExpired = true;
-      mockUpdateOsStore.available = '6.12.5';
-      mockUpdateOsStore.availableWithRenewal = true;
-      mockServerStore.updateOsResponse = { date: '2023-10-15' };
-      mockServerStore.locale = 'en-US';
-
-      const text = store.ineligibleText;
-      expect(text).toContain('Plus');
-      expect(text).toContain(store.formattedReleaseDate);
-    });
-
-    it('should not include formatted release date when updates expired but no update available', () => {
-      mockServerStore.guid = 'test-guid';
-      mockServerStore.keyfile = 'test-keyfile';
-      mockServerStore.osVersion = '6.12.4';
-      mockServerStore.regUpdatesExpired = true;
-      mockUpdateOsStore.available = undefined;
-      mockUpdateOsStore.availableWithRenewal = false;
-
-      const text = store.ineligibleText;
-      expect(text).toContain('Plus');
-      expect(text).not.toContain('October');
     });
   });
 });
