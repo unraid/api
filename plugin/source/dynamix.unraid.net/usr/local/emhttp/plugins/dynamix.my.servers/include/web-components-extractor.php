@@ -152,15 +152,28 @@ class WebComponentsExtractor
     {
         $cookieName = 'unraid.theme.cssVars';
         
-        // Use filter_input for robust cookie reading (PHP 8 best practice)
-        $cookieValue = filter_input(INPUT_COOKIE, $cookieName, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+        // Try filter_input first (PHP 8 best practice)
+        $cookieValue = filter_input(INPUT_COOKIE, $cookieName, FILTER_UNSAFE_RAW);
         
+        // Fallback to $_COOKIE if filter_input returns null (more reliable for URL-encoded values)
         if ($cookieValue === null || $cookieValue === false) {
+            $cookieValue = $_COOKIE[$cookieName] ?? null;
+        }
+        
+        if ($cookieValue === null || $cookieValue === '') {
             return '';
         }
         
-        // Decode URL-encoded value if needed
-        $decoded = str_contains($cookieValue, '%') ? urldecode($cookieValue) : $cookieValue;
+        // PHP's $_COOKIE auto-decodes, but filter_input might return encoded value
+        // Decode if it still contains URL-encoded characters
+        $decoded = $cookieValue;
+        if (str_contains($cookieValue, '%')) {
+            $decoded = urldecode($cookieValue);
+            // If urldecode didn't change it, try rawurldecode (handles + differently)
+            if ($decoded === $cookieValue) {
+                $decoded = rawurldecode($cookieValue);
+            }
+        }
         
         // Parse JSON with proper error handling
         $cssVars = json_decode($decoded, true);

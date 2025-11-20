@@ -299,6 +299,11 @@ class ExtractorTest {
             preg_match('/<link[^>]+id="unraid-[^"]*-css-[^"]+"[^>]+data-unraid="1"/', $output) > 0
         );
         
+        // Test: Theme Cookie CSS Variables
+        echo "\nTest: Theme Cookie CSS Variables\n";
+        echo "--------------------------------\n";
+        $this->runCookieTests();
+        
         // Test: Duplicate Prevention
         echo "\nTest: Duplicate Prevention\n";
         echo "---------------------------\n";
@@ -315,6 +320,165 @@ class ExtractorTest {
             "Second call returns 'already loaded' message",
             strpos($second, 'Resources already loaded') !== false
         );
+    }
+    
+    private function runCookieTests() {
+        $cookieName = 'unraid.theme.cssVars';
+        
+        // Test 1: Valid cookie with CSS variables
+        $validCssVars = [
+            '--custom-header-text-primary' => '#ffffff',
+            '--custom-header-background-color' => '#000000',
+            '--header-background-color' => '#111111',
+        ];
+        $validCookie = urlencode(json_encode($validCssVars));
+        $_COOKIE[$cookieName] = $validCookie;
+        
+        // Reset singleton to get fresh instance
+        $reflection = new ReflectionClass('WebComponentsExtractor');
+        $instance = $reflection->getProperty('instance');
+        $instance->setAccessible(true);
+        $instance->setValue(null, null);
+        
+        $output = $this->getExtractorOutput();
+        $this->test(
+            "Generates CSS style tag when valid cookie exists",
+            strpos($output, '<style id="unraid-theme-css-vars">') !== false
+        );
+        $this->test(
+            "Includes :root selector in CSS output",
+            strpos($output, ':root {') !== false
+        );
+        $this->test(
+            "Includes custom-header-text-primary CSS variable",
+            strpos($output, '--custom-header-text-primary: #ffffff;') !== false
+        );
+        $this->test(
+            "Includes custom-header-background-color CSS variable",
+            strpos($output, '--custom-header-background-color: #000000;') !== false
+        );
+        $this->test(
+            "Includes header-background-color CSS variable",
+            strpos($output, '--header-background-color: #111111;') !== false
+        );
+        $this->test(
+            "CSS variables are properly indented",
+            strpos($output, '  --custom-header-text-primary:') !== false
+        );
+        
+        // Test 2: URL-encoded cookie (simulating browser behavior)
+        $encodedVars = [
+            '--custom-header-text-primary' => '#ff0000',
+            '--header-gradient-start' => 'rgba(255, 0, 0, 0)',
+        ];
+        $encodedCookie = urlencode(json_encode($encodedVars));
+        $_COOKIE[$cookieName] = $encodedCookie;
+        
+        $instance->setValue(null, null);
+        $output = $this->getExtractorOutput();
+        $this->test(
+            "Handles URL-encoded cookie values",
+            strpos($output, '--custom-header-text-primary: #ff0000;') !== false
+        );
+        $this->test(
+            "Handles rgba values in cookie",
+            strpos($output, '--header-gradient-start: rgba(255, 0, 0, 0);') !== false
+        );
+        
+        // Test 3: Missing cookie
+        unset($_COOKIE[$cookieName]);
+        $instance->setValue(null, null);
+        $output = $this->getExtractorOutput();
+        $this->test(
+            "Returns empty string when cookie is missing",
+            strpos($output, '<style id="unraid-theme-css-vars">') === false
+        );
+        
+        // Test 4: Invalid JSON in cookie
+        $_COOKIE[$cookieName] = 'invalid-json{';
+        $instance->setValue(null, null);
+        $output = $this->getExtractorOutput();
+        $this->test(
+            "Handles invalid JSON gracefully (returns empty)",
+            strpos($output, '<style id="unraid-theme-css-vars">') === false
+        );
+        
+        // Test 5: Empty array in cookie
+        $_COOKIE[$cookieName] = urlencode(json_encode([]));
+        $instance->setValue(null, null);
+        $output = $this->getExtractorOutput();
+        $this->test(
+            "Returns empty string for empty CSS vars array",
+            strpos($output, '<style id="unraid-theme-css-vars">') === false
+        );
+        
+        // Test 6: HTML escaping of special characters
+        $specialCharsVars = [
+            '--test-var' => 'value with "quotes" and <tags>',
+            '--another-var' => "value with 'single quotes'",
+        ];
+        $_COOKIE[$cookieName] = urlencode(json_encode($specialCharsVars));
+        $instance->setValue(null, null);
+        $output = $this->getExtractorOutput();
+        $this->test(
+            "Escapes quotes in CSS values",
+            strpos($output, '&quot;') !== false || strpos($output, '&#039;') !== false
+        );
+        $this->test(
+            "Escapes angle brackets in CSS values",
+            strpos($output, '&lt;') !== false && strpos($output, '&gt;') !== false
+        );
+        $this->test(
+            "Does not include raw quotes in output",
+            strpos($output, 'value with "quotes"') === false
+        );
+        
+        // Test 7: Non-string values are filtered out
+        $mixedVars = [
+            '--valid-var' => '#ffffff',
+            '--null-var' => null,
+            '--empty-var' => '',
+            '--int-var' => 123,
+        ];
+        $_COOKIE[$cookieName] = urlencode(json_encode($mixedVars));
+        $instance->setValue(null, null);
+        $output = $this->getExtractorOutput();
+        $this->test(
+            "Includes only valid string CSS variables",
+            strpos($output, '--valid-var: #ffffff;') !== false
+        );
+        $this->test(
+            "Filters out null values",
+            strpos($output, '--null-var') === false
+        );
+        $this->test(
+            "Filters out empty string values",
+            strpos($output, '--empty-var') === false
+        );
+        $this->test(
+            "Filters out non-string values",
+            strpos($output, '--int-var') === false
+        );
+        
+        // Test 8: Complex CSS values (gradients, calc, etc.)
+        $complexVars = [
+            '--banner-gradient' => 'linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.7) 90%)',
+            '--custom-var' => 'calc(100% - 20px)',
+        ];
+        $_COOKIE[$cookieName] = urlencode(json_encode($complexVars));
+        $instance->setValue(null, null);
+        $output = $this->getExtractorOutput();
+        $this->test(
+            "Handles complex gradient values",
+            strpos($output, '--banner-gradient: linear-gradient') !== false
+        );
+        $this->test(
+            "Handles calc() values",
+            strpos($output, '--custom-var: calc(100% - 20px);') !== false
+        );
+        
+        // Clean up
+        unset($_COOKIE[$cookieName]);
     }
     
     private function test($name, $condition) {
