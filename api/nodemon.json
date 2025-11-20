@@ -1,0 +1,18 @@
+{
+    "watch": [
+        "dist/main.js",
+        "myservers.cfg"
+    ],
+    "ignore": [
+        "node_modules",
+        "src",
+        ".env.*"
+    ],
+    "exec": "node ./dist/main.js",
+    "signal": "SIGTERM",
+    "ext": "js,json",
+    "restartable": "rs",
+    "env": {
+        "NODE_ENV": "production"
+    }
+}

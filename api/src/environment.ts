@@ -98,12 +98,21 @@ export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
       ? 'https://staging.mothership.unraid.net/ws'
       : 'https://mothership.unraid.net/ws';
 
-export const PM2_HOME = process.env.PM2_HOME ?? '/var/log/.pm2';
-export const PM2_PATH = join(import.meta.dirname, '../../', 'node_modules', 'pm2', 'bin', 'pm2');
-export const ECOSYSTEM_PATH = join(import.meta.dirname, '../../', 'ecosystem.config.json');
 export const PATHS_LOGS_DIR =
     process.env.PATHS_LOGS_DIR ?? process.env.LOGS_DIR ?? '/var/log/unraid-api';
 export const PATHS_LOGS_FILE = process.env.PATHS_LOGS_FILE ?? '/var/log/graphql-api.log';
+
+export const NODEMON_PATH = join(
+    import.meta.dirname,
+    '../../',
+    'node_modules',
+    'nodemon',
+    'bin',
+    'nodemon.js'
+);
+export const NODEMON_CONFIG_PATH = join(import.meta.dirname, '../../', 'nodemon.json');
+export const NODEMON_PID_PATH = process.env.NODEMON_PID_PATH ?? '/var/run/unraid-api/nodemon.pid';
+export const UNRAID_API_CWD = process.env.UNRAID_API_CWD ?? join(import.meta.dirname, '../../');
 
 export const PATHS_CONFIG_MODULES =
     process.env.PATHS_CONFIG_MODULES ?? '/boot/config/plugins/dynamix.my.servers/configs';
