@@ -1565,7 +1565,7 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
       @update:selected-ids="(ids) => emit('update:selectedIds', ids)"
     >
       <template #toolbar="{ selectedCount: count, globalFilter: filterText, setGlobalFilter }">
-        <div :class="['flex flex-wrap items-center gap-2', compact ? 'mb-2 px-2 pt-2' : 'mb-3']">
+        <div :class="['mb-4 flex flex-wrap items-center gap-2', compact ? 'sm:px-0.5' : '']">
           <UInput
             :model-value="filterText"
             :size="compact ? 'sm' : 'md'"

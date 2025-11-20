@@ -267,10 +267,6 @@ function handleTableRowClick(payload: {
   containerId?: string;
 }) {
   if (payload.type !== 'container') return;
-
-  const entry = flatEntries.value.find((e) => e.id === payload.id && e.type === 'container');
-  const container = entry?.meta as DockerContainer | undefined;
-
   setActiveContainer(payload.id);
 }
 
@@ -406,7 +402,7 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
     </div>
 
     <div v-else class="grid gap-6 md:grid-cols-[280px_1fr]">
-      <UCard>
+      <UCard :ui="{ body: 'p-4 sm:px-0 sm:py-4' }">
         <template #header>
           <div class="flex items-center justify-between">
             <div class="font-medium">Containers</div>
