@@ -41,6 +41,26 @@ const DEFAULT_THEME: Theme = {
 
 type ThemeSource = 'local' | 'server';
 
+const NAV_ELEMENT_IDS = ['header', 'menu', 'footer'] as const;
+
+const hideNavIfEmbeddedInIFrame = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('iframe')?.toLowerCase() !== 'true') {
+    return;
+  }
+
+  NAV_ELEMENT_IDS.forEach((targetId) => {
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.style.display = 'none';
+    }
+  });
+};
+
 const sanitizeTheme = (data: Partial<Theme> | null | undefined): Theme | null => {
   if (!data || typeof data !== 'object') {
     return null;
@@ -215,6 +235,8 @@ export const useThemeStore = defineStore(
       }
 
       requestAnimationFrame(() => {
+        hideNavIfEmbeddedInIFrame();
+
         const scopedTargets: HTMLElement[] = [
           document.documentElement,
           ...Array.from(document.querySelectorAll<HTMLElement>('.unapi')),
