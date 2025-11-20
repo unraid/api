@@ -148,6 +148,31 @@ class WebComponentsExtractor
         return $files;
     }
 
+    private function getThemeInitScript(): string
+    {
+        return '<script>
+(function() {
+  "use strict";
+  try {
+    const stored = localStorage.getItem("unraid.theme.cssVars");
+    if (stored) {
+      const cssVars = JSON.parse(stored);
+      if (cssVars && typeof document !== "undefined") {
+        const root = document.documentElement;
+        for (const [key, value] of Object.entries(cssVars)) {
+          if (value) {
+            root.style.setProperty(key, value);
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // Silently fail - store will handle it
+  }
+})();
+</script>';
+    }
+
     public function getScriptTagHtml(): string
     {
         // Use a static flag to ensure scripts are only output once per request
@@ -159,7 +184,9 @@ class WebComponentsExtractor
         
         try {
             $scriptsOutput = true;
-            return $this->processManifestFiles();
+            $themeScript = $this->getThemeInitScript();
+            $manifestScripts = $this->processManifestFiles();
+            return $themeScript . "\n" . $manifestScripts;
         } catch (\Exception $e) {
             error_log("Error in WebComponentsExtractor::getScriptTagHtml: " . $e->getMessage());
             $scriptsOutput = false; // Reset on error

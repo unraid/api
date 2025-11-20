@@ -21,7 +21,7 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { dateTimeFormat, regTy, renewAction, updateOsResponse } = storeToRefs(serverStore);
+const { dateTimeFormat, renewAction, updateOsResponse } = storeToRefs(serverStore);
 const { availableWithRenewal } = storeToRefs(updateOsStore);
 const { ineligibleText } = storeToRefs(updateOsActionsStore);
 
