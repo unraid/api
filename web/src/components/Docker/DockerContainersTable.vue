@@ -22,7 +22,6 @@ import { UPDATE_DOCKER_CONTAINERS } from '@/components/Docker/docker-update-cont
 import { ContainerState } from '@/composables/gql/graphql';
 import { useContainerActions } from '@/composables/useContainerActions';
 import { useDockerViewPreferences } from '@/composables/useDockerColumnVisibility';
-import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
 import { useFolderOperations } from '@/composables/useFolderOperations';
 import { useFolderTree } from '@/composables/useFolderTree';
 import { usePersistentColumnVisibility } from '@/composables/usePersistentColumnVisibility';
@@ -1359,8 +1358,6 @@ function handleContainersWillStart(entries: { id: string; containerId: string; n
   openLogsForContainers(targets, { reset: true });
 }
 
-const { navigateToEditPage } = useDockerEditNavigation();
-
 function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   if (row.type !== 'container') return;
   const containerId = (row as { containerId?: string }).containerId || row.id;
@@ -1382,9 +1379,13 @@ function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   }
   if (action === 'Manage Settings') {
     const container = row.meta as DockerContainer | undefined;
-    if (navigateToEditPage(container)) {
-      return;
-    }
+    emit('row:click', {
+      id: row.id,
+      type: 'container',
+      name: row.name,
+      containerId: container?.id,
+    });
+    return;
   }
   showToast(`${action}: ${row.name}`);
 }
