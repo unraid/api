@@ -38,6 +38,46 @@ const DEFAULT_THEME: Theme = {
 
 type ThemeSource = 'local' | 'server';
 
+let pendingDarkModeHandler: ((event: Event) => void) | null = null;
+
+const syncBodyDarkClass = (method: 'add' | 'remove'): boolean => {
+  const body = typeof document !== 'undefined' ? document.body : null;
+  if (!body) {
+    return false;
+  }
+
+  body.classList[method]('dark');
+  return true;
+};
+
+const applyDarkClass = (isDark: boolean) => {
+  if (typeof document === 'undefined') return;
+
+  const method: 'add' | 'remove' = isDark ? 'add' : 'remove';
+  document.documentElement.classList[method]('dark');
+
+  if (pendingDarkModeHandler) {
+    document.removeEventListener('DOMContentLoaded', pendingDarkModeHandler);
+    pendingDarkModeHandler = null;
+  }
+
+  if (syncBodyDarkClass(method)) {
+    return;
+  }
+
+  const handler = () => {
+    if (syncBodyDarkClass(method)) {
+      document.removeEventListener('DOMContentLoaded', handler);
+      if (pendingDarkModeHandler === handler) {
+        pendingDarkModeHandler = null;
+      }
+    }
+  };
+
+  pendingDarkModeHandler = handler;
+  document.addEventListener('DOMContentLoaded', handler);
+};
+
 const sanitizeTheme = (data: Partial<Theme> | null | undefined): Theme | null => {
   if (!data || typeof data !== 'object') {
     return null;
@@ -154,14 +194,7 @@ export const useThemeStore = defineStore('theme', () => {
   };
 
   const setCssVars = () => {
-    if (typeof document === 'undefined') return;
-    if (darkMode.value) {
-      document.documentElement.classList.add('dark');
-      document.body.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.body.classList.remove('dark');
-    }
+    applyDarkClass(darkMode.value);
   };
 
   watch(
