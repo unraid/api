@@ -246,6 +246,10 @@ class WebComponentsExtractor
                 continue;
             }
 
+            if (!preg_match('/^--[A-Za-z0-9_-]+$/', $key)) {
+                continue;
+            }
+
             $safeKey = htmlspecialchars($key, ENT_QUOTES | ENT_HTML5, 'UTF-8');
             $safeValue = str_replace('</style>', '<\/style>', $value);
 
