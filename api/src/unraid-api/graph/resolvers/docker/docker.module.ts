@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { JobModule } from '@app/unraid-api/cron/job.module.js';
 import { ContainerStatusJob } from '@app/unraid-api/graph/resolvers/docker/container-status.job.js';
+import { DockerAutostartService } from '@app/unraid-api/graph/resolvers/docker/docker-autostart.service.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerContainerResolver } from '@app/unraid-api/graph/resolvers/docker/docker-container.resolver.js';
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
@@ -23,6 +24,7 @@ import { ServicesModule } from '@app/unraid-api/graph/services/services.module.j
     providers: [
         // Services
         DockerService,
+        DockerAutostartService,
         DockerFormService,
         DockerOrganizerConfigService,
         DockerOrganizerService,

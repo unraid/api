@@ -1,6 +1,6 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { readFile, stat, unlink, writeFile } from 'fs/promises';
+import { stat } from 'fs/promises';
 
 import type { ExecaError } from 'execa';
 import { type Cache } from 'cache-manager';
@@ -13,7 +13,7 @@ import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
 import { getLanIp } from '@app/core/utils/network.js';
-import { getters } from '@app/store/index.js';
+import { DockerAutostartService } from '@app/unraid-api/graph/resolvers/docker/docker-autostart.service.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import {
@@ -39,17 +39,9 @@ interface NetworkListingOptions {
     skipCache: boolean;
 }
 
-interface AutoStartEntry {
-    name: string;
-    wait: number;
-    order: number;
-}
-
 @Injectable()
 export class DockerService {
     private client: Docker;
-    private autoStartEntries: AutoStartEntry[] = [];
-    private autoStartEntryByName = new Map<string, AutoStartEntry>();
     private readonly logger = new Logger(DockerService.name);
 
     public static readonly CONTAINER_CACHE_KEY = 'docker_containers';
@@ -63,89 +55,10 @@ export class DockerService {
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private readonly dockerConfigService: DockerConfigService,
         private readonly notificationsService: NotificationsService,
-        private readonly dockerManifestService: DockerManifestService
+        private readonly dockerManifestService: DockerManifestService,
+        private readonly autostartService: DockerAutostartService
     ) {
         this.client = this.getDockerClient();
-    }
-
-    private setAutoStartEntries(entries: AutoStartEntry[]) {
-        this.autoStartEntries = entries;
-        this.autoStartEntryByName = new Map(entries.map((entry) => [entry.name, entry]));
-    }
-
-    private parseAutoStartEntries(rawContent: string): AutoStartEntry[] {
-        const lines = rawContent
-            .split('\n')
-            .map((line) => line.trim())
-            .filter((line) => line.length > 0);
-
-        const seen = new Set<string>();
-        const entries: AutoStartEntry[] = [];
-
-        lines.forEach((line, index) => {
-            const [name, waitRaw] = line.split(/\s+/);
-            if (!name || seen.has(name)) {
-                return;
-            }
-            const parsedWait = Number.parseInt(waitRaw ?? '', 10);
-            const wait = Number.isFinite(parsedWait) && parsedWait > 0 ? parsedWait : 0;
-            entries.push({
-                name,
-                wait,
-                order: index,
-            });
-            seen.add(name);
-        });
-
-        return entries;
-    }
-
-    private async refreshAutoStartEntries(): Promise<void> {
-        const autoStartPath = getters.paths()['docker-autostart'];
-        const raw = await readFile(autoStartPath, 'utf8')
-            .then((file) => file.toString())
-            .catch(() => '');
-        const entries = this.parseAutoStartEntries(raw);
-        this.setAutoStartEntries(entries);
-    }
-
-    private sanitizeAutoStartWait(wait?: number | null): number {
-        if (wait === null || wait === undefined) return 0;
-        const coerced = Number.isInteger(wait) ? wait : Number.parseInt(String(wait), 10);
-        if (!Number.isFinite(coerced) || coerced < 0) {
-            return 0;
-        }
-        return coerced;
-    }
-
-    private buildUserPreferenceLines(
-        entries: DockerAutostartEntryInput[],
-        containerById: Map<string, DockerContainer>
-    ): string[] {
-        const seenNames = new Set<string>();
-        const lines: string[] = [];
-
-        for (const entry of entries) {
-            const container = containerById.get(entry.id);
-            if (!container) {
-                continue;
-            }
-            const primaryName = this.getContainerPrimaryName(container);
-            if (!primaryName || seenNames.has(primaryName)) {
-                continue;
-            }
-            lines.push(`${lines.length}="${primaryName}"`);
-            seenNames.add(primaryName);
-        }
-
-        return lines;
-    }
-
-    private getContainerPrimaryName(container: Docker.ContainerInfo | DockerContainer): string | null {
-        const names =
-            'Names' in container ? container.Names : 'names' in container ? container.names : undefined;
-        const firstName = names?.[0] ?? '';
-        return firstName ? firstName.replace(/^\//, '') : null;
     }
 
     private deduplicateContainerPorts(
@@ -171,7 +84,7 @@ export class DockerService {
     }
 
     private buildPortConflictContainerRef(container: DockerContainer): DockerPortConflictContainer {
-        const primaryName = this.getContainerPrimaryName(container);
+        const primaryName = this.autostartService.getContainerPrimaryName(container);
         const fallback = container.names?.[0] ?? container.id;
         const normalized = typeof fallback === 'string' ? fallback.replace(/^\//, '') : container.id;
         return {
@@ -323,14 +236,15 @@ export class DockerService {
      * @see https://github.com/limetech/webgui/issues/502#issue-480992547
      */
     public async getAutoStarts(): Promise<string[]> {
-        await this.refreshAutoStartEntries();
-        return this.autoStartEntries.map((entry) => entry.name);
+        return this.autostartService.getAutoStarts();
     }
 
     public transformContainer(container: Docker.ContainerInfo): DockerContainer {
         const sizeValue = (container as Docker.ContainerInfo & { SizeRootFs?: number }).SizeRootFs;
-        const primaryName = this.getContainerPrimaryName(container) ?? '';
-        const autoStartEntry = primaryName ? this.autoStartEntryByName.get(primaryName) : undefined;
+        const primaryName = this.autostartService.getContainerPrimaryName(container) ?? '';
+        const autoStartEntry = primaryName
+            ? this.autostartService.getAutoStartEntry(primaryName)
+            : undefined;
         const lanIp = getLanIp();
         const lanPortStrings: string[] = [];
         const uniquePorts = this.deduplicateContainerPorts(container.Ports);
@@ -418,7 +332,7 @@ export class DockerService {
             await this.handleDockerListError(error);
         }
 
-        await this.refreshAutoStartEntries();
+        await this.autostartService.refreshAutoStartEntries();
         const containers = rawContainers.map((container) => this.transformContainer(container));
 
         const config = this.dockerConfigService.getConfig();
@@ -464,20 +378,10 @@ export class DockerService {
             }
 
             try {
-                const { stdout } = await execa('docker', [
-                    'inspect',
-                    '--format',
-                    '{{json .LogPath}}',
-                    normalized,
-                ]);
+                const container = this.client.getContainer(normalized);
+                const info = await container.inspect();
+                const logPath = info.LogPath;
 
-                const trimmed = stdout.trim();
-                if (!trimmed) {
-                    logSizes.set(normalized, 0);
-                    continue;
-                }
-
-                const logPath = JSON.parse(trimmed) as string | null;
                 if (!logPath || typeof logPath !== 'string' || !logPath.length) {
                     logSizes.set(normalized, 0);
                     continue;
@@ -662,56 +566,7 @@ export class DockerService {
         options?: { persistUserPreferences?: boolean }
     ): Promise<void> {
         const containers = await this.getContainers({ skipCache: true });
-        const containerById = new Map(containers.map((container) => [container.id, container]));
-        const paths = getters.paths();
-        const autoStartPath = paths['docker-autostart'];
-        const userPrefsPath = paths['docker-userprefs'];
-        const persistUserPreferences = Boolean(options?.persistUserPreferences);
-
-        const lines: string[] = [];
-        const seenNames = new Set<string>();
-
-        for (const entry of entries) {
-            if (!entry.autoStart) {
-                continue;
-            }
-            const container = containerById.get(entry.id);
-            if (!container) {
-                continue;
-            }
-            const primaryName = this.getContainerPrimaryName(container);
-            if (!primaryName || seenNames.has(primaryName)) {
-                continue;
-            }
-            const wait = this.sanitizeAutoStartWait(entry.wait);
-            lines.push(wait > 0 ? `${primaryName} ${wait}` : primaryName);
-            seenNames.add(primaryName);
-        }
-
-        if (lines.length) {
-            await writeFile(autoStartPath, `${lines.join('\n')}\n`, 'utf8');
-        } else {
-            await unlink(autoStartPath)?.catch((error: NodeJS.ErrnoException) => {
-                if (error.code !== 'ENOENT') {
-                    throw error;
-                }
-            });
-        }
-
-        if (persistUserPreferences) {
-            const userPrefsLines = this.buildUserPreferenceLines(entries, containerById);
-            if (userPrefsLines.length) {
-                await writeFile(userPrefsPath, `${userPrefsLines.join('\n')}\n`, 'utf8');
-            } else {
-                await unlink(userPrefsPath)?.catch((error: NodeJS.ErrnoException) => {
-                    if (error.code !== 'ENOENT') {
-                        throw error;
-                    }
-                });
-            }
-        }
-
-        await this.refreshAutoStartEntries();
+        await this.autostartService.updateAutostartConfiguration(entries, containers, options);
         await this.clearContainerCache();
     }
 
