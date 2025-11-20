@@ -31,6 +31,7 @@ describe('Theme Store', () => {
   const originalAddClassFn = document.body.classList.add;
   const originalRemoveClassFn = document.body.classList.remove;
   const originalStyleCssText = document.body.style.cssText;
+  const originalBodySetProperty = document.body.style.setProperty;
   const originalDocumentElementSetProperty = document.documentElement.style.setProperty;
   const originalDocumentElementAddClass = document.documentElement.classList.add;
   const originalDocumentElementRemoveClass = document.documentElement.classList.remove;
@@ -49,6 +50,7 @@ describe('Theme Store', () => {
     document.body.classList.add = vi.fn();
     document.body.classList.remove = vi.fn();
     document.body.style.cssText = '';
+    document.body.style.setProperty = vi.fn();
     document.documentElement.style.setProperty = vi.fn();
     document.documentElement.classList.add = vi.fn();
     document.documentElement.classList.remove = vi.fn();
@@ -70,6 +72,7 @@ describe('Theme Store', () => {
     document.body.classList.add = originalAddClassFn;
     document.body.classList.remove = originalRemoveClassFn;
     document.body.style.cssText = originalStyleCssText;
+    document.body.style.setProperty = originalBodySetProperty;
     document.documentElement.style.setProperty = originalDocumentElementSetProperty;
     document.documentElement.classList.add = originalDocumentElementAddClass;
     document.documentElement.classList.remove = originalDocumentElementRemoveClass;
@@ -192,15 +195,15 @@ describe('Theme Store', () => {
       // Custom values are applied as CSS variables on the documentElement
       // The white theme's --color-beta is a reference to var(--header-text-primary)
       expect(store.activeColorVariables['--color-beta']).toBe('var(--header-text-primary)');
-      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
+      expect(document.body.style.setProperty).toHaveBeenCalledWith(
         '--custom-header-text-primary',
         '#333333'
       );
-      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
+      expect(document.body.style.setProperty).toHaveBeenCalledWith(
         '--custom-header-text-secondary',
         '#666666'
       );
-      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
+      expect(document.body.style.setProperty).toHaveBeenCalledWith(
         '--custom-header-background-color',
         '#ffffff'
       );
@@ -224,16 +227,16 @@ describe('Theme Store', () => {
       expect(mockHexToRgba).toHaveBeenCalledWith('#112233', 0);
       expect(mockHexToRgba).toHaveBeenCalledWith('#112233', 0.7);
 
-      // Banner gradient values are now set as custom CSS variables on documentElement
-      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
+      // Banner gradient values are now set as custom CSS variables on document.body
+      expect(document.body.style.setProperty).toHaveBeenCalledWith(
         '--custom-header-gradient-start',
         'rgba(mock-#112233-0)'
       );
-      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
+      expect(document.body.style.setProperty).toHaveBeenCalledWith(
         '--custom-header-gradient-end',
         'rgba(mock-#112233-0.7)'
       );
-      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
+      expect(document.body.style.setProperty).toHaveBeenCalledWith(
         '--banner-gradient',
         'linear-gradient(90deg, rgba(mock-#112233-0) 0, rgba(mock-#112233-0.7) 90%)'
       );
