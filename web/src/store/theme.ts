@@ -306,11 +306,22 @@ export const useThemeStore = defineStore('theme', () => {
     DYNAMIC_VAR_KEYS.forEach((key) => {
       if (!Object.prototype.hasOwnProperty.call(dynamicVars, key)) {
         document.body.style.removeProperty(key);
+        document.documentElement.style.removeProperty(key);
+        scopedTargets.forEach((target) => {
+          if (target !== document.documentElement) {
+            target.style.removeProperty(key);
+          }
+        });
       }
     });
 
     // Persist CSS variable values for rehydration
-    persistedCssVars.value = { ...dynamicVars };
+    // Clear old keys that are no longer needed
+    const cleanedPersistedVars: Record<string, string> = {};
+    activeDynamicKeys.forEach((key) => {
+      cleanedPersistedVars[key] = dynamicVars[key]!;
+    });
+    persistedCssVars.value = cleanedPersistedVars;
 
     // Store active variables for reference (from defaultColors for compatibility)
     const customTheme = { ...defaultColors[selectedTheme] };
