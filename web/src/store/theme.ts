@@ -244,83 +244,77 @@ export const useThemeStore = defineStore('theme', () => {
       customClasses.push('has-banner-gradient');
     }
 
-    requestAnimationFrame(() => {
-      const scopedTargets: HTMLElement[] = [
-        document.documentElement,
-        ...Array.from(document.querySelectorAll<HTMLElement>('.unapi')),
-      ];
+    const scopedTargets: HTMLElement[] = [
+      document.documentElement,
+      ...Array.from(document.querySelectorAll<HTMLElement>('.unapi')),
+    ];
 
-      const styleTargets = [...scopedTargets, document.body].filter(Boolean) as HTMLElement[];
-
-      const cleanClassList = (classList: string, isDocumentElement: boolean) => {
-        // Don't remove Theme-- classes from documentElement if Unraid PHP set them
-        if (isDocumentElement && hasExistingThemeClass) {
-          return classList
-            .split(' ')
-            .filter((c) => c !== 'dark' && !c.startsWith('has-custom-') && c !== 'has-banner-gradient')
-            .filter(Boolean)
-            .join(' ');
-        }
-        // For .unapi roots or when we're managing the theme class, clean everything
+    const cleanClassList = (classList: string, isDocumentElement: boolean) => {
+      // Don't remove Theme-- classes from documentElement if Unraid PHP set them
+      if (isDocumentElement && hasExistingThemeClass) {
         return classList
           .split(' ')
-          .filter(
-            (c) =>
-              !c.startsWith('Theme--') &&
-              c !== 'dark' &&
-              !c.startsWith('has-custom-') &&
-              c !== 'has-banner-gradient'
-          )
+          .filter((c) => c !== 'dark' && !c.startsWith('has-custom-') && c !== 'has-banner-gradient')
           .filter(Boolean)
           .join(' ');
-      };
-
-      // Apply theme and custom classes to html element and all .unapi roots
-      scopedTargets.forEach((target) => {
-        const isDocumentElement = target === document.documentElement;
-        target.className = cleanClassList(target.className, isDocumentElement);
-        [...themeClasses, ...customClasses].forEach((cls) => target.classList.add(cls));
-
-        if (darkMode.value) {
-          target.classList.add('dark');
-        } else {
-          target.classList.remove('dark');
-        }
-      });
-
-      // Maintain dark mode flag on body for legacy components
-      if (darkMode.value) {
-        document.body.classList.add('dark');
-      } else {
-        document.body.classList.remove('dark');
       }
+      // For .unapi roots or when we're managing the theme class, clean everything
+      return classList
+        .split(' ')
+        .filter(
+          (c) =>
+            !c.startsWith('Theme--') &&
+            c !== 'dark' &&
+            !c.startsWith('has-custom-') &&
+            c !== 'has-banner-gradient'
+        )
+        .filter(Boolean)
+        .join(' ');
+    };
 
-      // Only apply dynamic CSS variables for custom user values
-      // All theme defaults are handled by classes in @tailwind-shared/theme-variants.css
-      const activeDynamicKeys = Object.keys(dynamicVars) as DynamicVarKey[];
+    // Apply theme and custom classes to html element and all .unapi roots
+    scopedTargets.forEach((target) => {
+      const isDocumentElement = target === document.documentElement;
+      target.className = cleanClassList(target.className, isDocumentElement);
+      [...themeClasses, ...customClasses].forEach((cls) => target.classList.add(cls));
 
-      styleTargets.forEach((target) => {
-        activeDynamicKeys.forEach((key) => {
-          const value = dynamicVars[key];
-          if (value !== undefined) {
-            target.style.setProperty(key, value);
-          }
-        });
-
-        DYNAMIC_VAR_KEYS.forEach((key) => {
-          if (!Object.prototype.hasOwnProperty.call(dynamicVars, key)) {
-            target.style.removeProperty(key);
-          }
-        });
-      });
-
-      // Persist CSS variable values for rehydration
-      persistedCssVars.value = { ...dynamicVars };
-
-      // Store active variables for reference (from defaultColors for compatibility)
-      const customTheme = { ...defaultColors[selectedTheme] };
-      activeColorVariables.value = customTheme;
+      if (darkMode.value) {
+        target.classList.add('dark');
+      } else {
+        target.classList.remove('dark');
+      }
     });
+
+    // Maintain dark mode flag on body for legacy components
+    if (darkMode.value) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+
+    // Only apply dynamic CSS variables for custom user values
+    // All theme defaults are handled by classes in @tailwind-shared/theme-variants.css
+    const activeDynamicKeys = Object.keys(dynamicVars) as DynamicVarKey[];
+
+    activeDynamicKeys.forEach((key) => {
+      const value = dynamicVars[key];
+      if (value !== undefined) {
+        document.body.style.setProperty(key, value);
+      }
+    });
+
+    DYNAMIC_VAR_KEYS.forEach((key) => {
+      if (!Object.prototype.hasOwnProperty.call(dynamicVars, key)) {
+        document.body.style.removeProperty(key);
+      }
+    });
+
+    // Persist CSS variable values for rehydration
+    persistedCssVars.value = { ...dynamicVars };
+
+    // Store active variables for reference (from defaultColors for compatibility)
+    const customTheme = { ...defaultColors[selectedTheme] };
+    activeColorVariables.value = customTheme;
   };
 
   watch(
