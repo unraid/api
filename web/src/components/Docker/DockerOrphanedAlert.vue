@@ -9,7 +9,7 @@ interface Props {
   orphanedContainers: DockerContainer[];
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   orphanedContainers: () => [],
 });
 

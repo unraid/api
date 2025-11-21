@@ -39,6 +39,7 @@ describe('containerToResource', () => {
             labels: {
                 'com.docker.compose.service': 'web',
             },
+            isOrphaned: false,
         };
 
         const result = containerToResource(container);
@@ -63,6 +64,7 @@ describe('containerToResource', () => {
             state: ContainerState.EXITED,
             status: 'Exited (0) 1 hour ago',
             autoStart: false,
+            isOrphaned: false,
         };
 
         const result = containerToResource(container);
@@ -84,6 +86,7 @@ describe('containerToResource', () => {
             state: ContainerState.EXITED,
             status: 'Exited (0) 5 minutes ago',
             autoStart: false,
+            isOrphaned: false,
         };
 
         const result = containerToResource(container);
@@ -125,6 +128,7 @@ describe('containerToResource', () => {
                 maintainer: 'dev-team',
                 version: '1.0.0',
             },
+            isOrphaned: false,
         };
 
         const result = containerToResource(container);

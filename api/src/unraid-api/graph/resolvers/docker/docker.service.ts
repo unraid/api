@@ -83,7 +83,7 @@ export class DockerService {
         return this.autostartService.getAutoStarts();
     }
 
-    public transformContainer(container: Docker.ContainerInfo): DockerContainer {
+    public transformContainer(container: Docker.ContainerInfo): Omit<DockerContainer, 'isOrphaned'> {
         const sizeValue = (container as Docker.ContainerInfo & { SizeRootFs?: number }).SizeRootFs;
         const primaryName = this.autostartService.getContainerPrimaryName(container) ?? '';
         const autoStartEntry = primaryName
@@ -110,7 +110,7 @@ export class DockerService {
             };
         });
 
-        const transformed: DockerContainer = {
+        const transformed: Omit<DockerContainer, 'isOrphaned'> = {
             id: container.Id,
             names: container.Names,
             image: container.Image,

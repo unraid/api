@@ -202,6 +202,18 @@ export class DockerContainer extends Node {
     @Field(() => String, { nullable: true })
     templatePath?: string;
 
+    @Field(() => String, { nullable: true, description: 'Project/Product homepage URL' })
+    projectUrl?: string;
+
+    @Field(() => String, { nullable: true, description: 'Registry/Docker Hub URL' })
+    registryUrl?: string;
+
+    @Field(() => String, { nullable: true, description: 'Support page/thread URL' })
+    supportUrl?: string;
+
+    @Field(() => String, { nullable: true, description: 'Icon URL' })
+    iconUrl?: string;
+
     @Field(() => Boolean, { description: 'Whether the container is orphaned (no template found)' })
     isOrphaned!: boolean;
 }

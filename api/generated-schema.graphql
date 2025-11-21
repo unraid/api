@@ -1174,6 +1174,18 @@ type DockerContainer implements Node {
   autoStartWait: Int
   templatePath: String
 
+  """Project/Product homepage URL"""
+  projectUrl: String
+
+  """Registry/Docker Hub URL"""
+  registryUrl: String
+
+  """Support page/thread URL"""
+  supportUrl: String
+
+  """Icon URL"""
+  iconUrl: String
+
   """Whether the container is orphaned (no template found)"""
   isOrphaned: Boolean!
   isUpdateAvailable: Boolean

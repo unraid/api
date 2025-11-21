@@ -70,6 +70,7 @@ const UInput = resolveComponent('UInput');
 const UDropdownMenu = resolveComponent('UDropdownMenu');
 const UModal = resolveComponent('UModal');
 const USkeleton = resolveComponent('USkeleton') as Component;
+const UIcon = resolveComponent('UIcon');
 const rowActionDropdownUi = {
   content: 'overflow-x-hidden z-50',
   item: 'bg-transparent hover:bg-transparent focus:bg-transparent border-0 ring-0 outline-none shadow-none data-[state=checked]:bg-transparent',
@@ -350,6 +351,61 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
         row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('version') || '')),
     },
     {
+      accessorKey: 'links',
+      header: 'Links',
+      cell: ({ row }) => {
+        if (row.original.type === 'folder') return '';
+        const meta = row.original.meta;
+        const projectUrl = meta?.projectUrl;
+        const registryUrl = meta?.registryUrl;
+        const supportUrl = meta?.supportUrl;
+
+        if (!projectUrl && !registryUrl && !supportUrl) return '';
+
+        return h('div', { class: 'flex gap-2 items-center' }, [
+          projectUrl
+            ? h(
+                'a',
+                {
+                  href: projectUrl,
+                  target: '_blank',
+                  title: 'Project Page',
+                  class:
+                    'text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400',
+                },
+                h(UIcon, { name: 'i-lucide-globe', class: 'w-4 h-4' })
+              )
+            : null,
+          registryUrl
+            ? h(
+                'a',
+                {
+                  href: registryUrl,
+                  target: '_blank',
+                  title: 'Registry',
+                  class:
+                    'text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400',
+                },
+                h(UIcon, { name: 'i-lucide-external-link', class: 'w-4 h-4' })
+              )
+            : null,
+          supportUrl
+            ? h(
+                'a',
+                {
+                  href: supportUrl,
+                  target: '_blank',
+                  title: 'Support',
+                  class:
+                    'text-gray-500 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-400',
+                },
+                h(UIcon, { name: 'i-lucide-life-buoy', class: 'w-4 h-4' })
+              )
+            : null,
+        ]);
+      },
+    },
+    {
       accessorKey: 'network',
       header: 'Network',
       cell: ({ row }) =>
@@ -428,6 +484,7 @@ function getDefaultColumnVisibility(isCompact: boolean): Record<string, boolean>
       cpu: false,
       memory: false,
       version: false,
+      links: true,
       network: false,
       containerIp: false,
       containerPort: false,
@@ -443,6 +500,7 @@ function getDefaultColumnVisibility(isCompact: boolean): Record<string, boolean>
       cpu: true,
       memory: true,
       version: false,
+      links: true,
       network: false,
       containerIp: false,
       containerPort: false,

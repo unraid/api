@@ -120,6 +120,37 @@ export class DockerTemplateScannerService {
         return result;
     }
 
+    async getTemplateDetails(filePath: string): Promise<{
+        project?: string;
+        registry?: string;
+        support?: string;
+        overview?: string;
+        icon?: string;
+    } | null> {
+        try {
+            const content = await readFile(filePath, 'utf-8');
+            const parsed = this.xmlParser.parse(content);
+
+            if (!parsed.Container) {
+                return null;
+            }
+
+            const container = parsed.Container;
+            return {
+                project: container.Project,
+                registry: container.Registry,
+                support: container.Support,
+                overview: container.ReadMe || container.Overview,
+                icon: container.Icon,
+            };
+        } catch (error) {
+            this.logger.warn(
+                `Failed to parse template ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
+            return null;
+        }
+    }
+
     private async loadAllTemplates(result: DockerTemplateSyncResult): Promise<ParsedTemplate[]> {
         const allTemplates: ParsedTemplate[] = [];
 

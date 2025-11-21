@@ -127,6 +127,7 @@ describe('DockerResolver', () => {
                 ports: [],
                 state: ContainerState.EXITED,
                 status: 'Exited',
+                isOrphaned: false,
             },
             {
                 id: '2',
@@ -139,6 +140,7 @@ describe('DockerResolver', () => {
                 ports: [],
                 state: ContainerState.RUNNING,
                 status: 'Up 2 hours',
+                isOrphaned: false,
             },
         ];
         vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
@@ -168,6 +170,7 @@ describe('DockerResolver', () => {
                 sizeRootFs: 1024000,
                 state: ContainerState.EXITED,
                 status: 'Exited',
+                isOrphaned: false,
             },
         ];
         vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
@@ -210,6 +213,7 @@ describe('DockerResolver', () => {
                 ports: [],
                 state: ContainerState.EXITED,
                 status: 'Exited',
+                isOrphaned: false,
             },
         ];
         vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
