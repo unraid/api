@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.27.2](https://github.com/unraid/api/compare/v4.27.1...v4.27.2) (2025-11-21)
+
+
+### Bug Fixes
+
+* issue with header flashing + issue with trial date ([64875ed](https://github.com/unraid/api/commit/64875edbba786a0d1ba0113c9e9a3d38594eafcc))
+
 ## [4.27.1](https://github.com/unraid/api/compare/v4.27.0...v4.27.1) (2025-11-21)
 
 
