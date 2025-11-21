@@ -302,9 +302,4 @@ export class FlatOrganizerEntry {
     @ValidateNested()
     @Type(() => DockerContainer)
     meta?: DockerContainer;
-
-    @Field({ nullable: true })
-    @IsOptional()
-    @IsString()
-    icon?: string;
 }

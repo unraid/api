@@ -1361,7 +1361,6 @@ type FlatOrganizerEntry {
   hasChildren: Boolean!
   childrenIds: [String!]!
   meta: DockerContainer
-  icon: String
 }
 
 type FlashBackupStatus {

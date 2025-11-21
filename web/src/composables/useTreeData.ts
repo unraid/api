@@ -53,7 +53,7 @@ export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
           name: entry.name,
           meta: (entry.meta as T) ?? builtFromMeta?.meta,
           children: [],
-          icon: entry.icon || builtFromMeta?.icon || undefined,
+          icon: builtFromMeta?.icon || undefined,
         };
 
         if (builtFromMeta) {
@@ -62,7 +62,6 @@ export function useTreeData<T = unknown>(options: TreeDataOptions<T>) {
             type: _type,
             name: _name,
             children: _children,
-            icon: _icon,
             meta: _meta,
             ...rest
           } = builtFromMeta;

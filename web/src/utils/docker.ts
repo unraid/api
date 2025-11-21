@@ -155,6 +155,7 @@ export function toContainerTreeRow(
     updates: updatesParts.join(' / ') || '—',
     uptime: formatUptime(meta || undefined),
     containerId: meta?.id,
+    icon: meta?.iconUrl || undefined,
     meta: meta || undefined,
   };
 }
