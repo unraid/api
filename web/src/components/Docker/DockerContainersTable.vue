@@ -296,7 +296,7 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
           },
         });
       },
-      meta: { class: { td: 'w-[40ch] truncate', th: 'w-[45ch]' } },
+      meta: { class: { td: 'truncate', th: '' } },
     },
     {
       accessorKey: 'state',
@@ -412,6 +412,7 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
       },
       enableSorting: false,
       enableHiding: false,
+      enableResizing: false,
       meta: { class: { th: 'w-8', td: 'w-8 text-right' } },
     },
   ];
@@ -964,6 +965,7 @@ function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
       :selected-ids="selectedIds"
       :busy-row-ids="busyRowIds"
       :enable-drag-drop="!!flatEntries"
+      enable-resizing
       :searchable-keys="searchableKeys"
       :search-accessor="dockerSearchAccessor"
       :can-expand="(row: TreeRow<DockerContainer>) => row.type === 'folder'"

@@ -2,11 +2,12 @@ import { h } from 'vue';
 
 import type { DropArea } from '@/composables/useDragDrop';
 import type { TreeRow } from '@/composables/useTreeData';
+import type { HeaderContext } from '@tanstack/vue-table';
 import type { Component, VNode, VNodeChild } from 'vue';
 
 type FlatRow<T> = TreeRow<T> & { depth: number; parentId?: string };
 
-export function wrapHeaderContent(content: unknown): VNode {
+export function wrapHeaderContent(content: unknown, context?: HeaderContext<unknown, unknown>): VNode {
   let normalized: VNodeChild | undefined;
 
   if (typeof content === 'number') {
@@ -21,11 +22,47 @@ export function wrapHeaderContent(content: unknown): VNode {
     normalized = undefined;
   }
 
-  if (normalized === undefined || normalized === null) {
-    return h('div', { class: 'px-3 py-2 flex items-center gap-2 text-left' });
+  const children: VNodeChild[] = [];
+  if (normalized !== undefined && normalized !== null) {
+    children.push(normalized);
   }
 
-  return h('div', { class: 'px-3 py-2 flex items-center gap-2 text-left' }, normalized);
+  if (context && context.column.getCanResize()) {
+    children.push(
+      h(
+        'div',
+        {
+          onMousedown: context.header.getResizeHandler(),
+          onTouchstart: context.header.getResizeHandler(),
+          onClick: (e: Event) => e.stopPropagation(),
+          class: `absolute -right-1 top-0 h-full w-2 cursor-col-resize touch-none select-none z-10 flex justify-center transition-colors ${
+            context.header.column.getIsResizing()
+              ? 'bg-primary'
+              : 'hover:bg-primary/50 bg-gray-400/10 dark:bg-gray-600/10'
+          }`,
+        },
+        [
+          // Visual handle line (optional, maybe just background is enough, but let's add a thin line for precision feel)
+          h('div', { class: 'w-px h-full bg-transparent' }),
+          // Full height guide line
+          context.header.column.getIsResizing()
+            ? h('div', {
+                class: 'fixed top-0 w-px h-screen bg-primary pointer-events-none z-[100]',
+              })
+            : null,
+        ]
+      )
+    );
+  }
+
+  return h(
+    'div',
+    {
+      class: 'px-3 py-2 flex items-center gap-2 text-left relative group h-full',
+      style: context ? { width: `${context.column.getSize()}px` } : undefined,
+    },
+    children
+  );
 }
 
 export interface DropIndicatorOptions<T> {

@@ -16,6 +16,7 @@ import {
 import type { DropEvent } from '@/composables/useDragDrop';
 import type { TreeRow } from '@/composables/useTreeData';
 import type { TableColumn } from '@nuxt/ui';
+import type { HeaderContext } from '@tanstack/vue-table';
 import type { Component, VNode } from 'vue';
 
 type SearchAccessor<T> = (row: TreeRow<T>) => unknown | unknown[];
@@ -52,6 +53,7 @@ interface Props {
   canSelect?: (row: TreeRow<T>) => boolean;
   canDrag?: (row: TreeRow<T>) => boolean;
   canDropInside?: (row: TreeRow<T>) => boolean;
+  enableResizing?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -64,6 +66,7 @@ const props = withDefaults(defineProps<Props>(), {
   busyRowIds: () => new Set(),
   // searchableKeys default removed, will handle in getter if needed or empty
   includeMetaInSearch: true,
+  enableResizing: false,
 });
 
 const emit = defineEmits<{
@@ -275,13 +278,15 @@ function wrapColumnHeaderRenderer(
   if (typeof header === 'function') {
     return function wrappedHeaderRenderer(this: unknown, ...args: unknown[]) {
       const result = (header as (...args: unknown[]) => unknown).apply(this, args);
-      return wrapHeaderContent(result);
+      return wrapHeaderContent(result, args[0] as HeaderContext<unknown, unknown>);
     };
   }
-  if (header !== undefined) {
-    return () => wrapHeaderContent(header);
-  }
-  return undefined;
+  // Return a renderer that includes resizing logic
+  return (context: unknown) => {
+    const ctx = context as HeaderContext<unknown, unknown>;
+    const content = header !== undefined ? header : ctx?.column?.id;
+    return wrapHeaderContent(content, ctx);
+  };
 }
 
 function createSelectColumn(): TableColumn<TreeRow<T>> {
@@ -359,6 +364,7 @@ function createSelectColumn(): TableColumn<TreeRow<T>> {
     enableSorting: false,
     enableHiding: false,
     meta: { class: { th: 'w-10', td: 'w-10' } },
+    enableResizing: false,
   };
 }
 
@@ -458,8 +464,13 @@ function enhanceRowInstance(row: TableInstanceRow<T>): EnhancedRow<T> {
       :get-row-id="(row: any) => row.id"
       :get-row-can-select="(row: any) => canSelectRow(row.original)"
       :column-filters-options="{ filterFromLeafRows: true }"
+      :column-sizing-options="{ enableColumnResizing: enableResizing, columnResizeMode: 'onChange' }"
       :loading="loading"
-      :ui="{ td: 'p-0 empty:p-0', thead: compact ? 'hidden' : '', th: compact ? 'hidden' : '' }"
+      :ui="{
+        td: 'p-0 empty:p-0',
+        thead: compact ? 'hidden' : '',
+        th: (compact ? 'hidden ' : '') + 'p-0',
+      }"
       sticky
       class="base-tree-table flex-1 pb-2"
     />
@@ -473,6 +484,8 @@ function enhanceRowInstance(row: TableInstanceRow<T>): EnhancedRow<T> {
 <style scoped>
 .base-tree-table :deep(th) {
   padding: 0;
+  overflow: visible;
+  position: relative;
 }
 
 .base-tree-table :deep(td) {
