@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { createWriteStream } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { dirname } from 'node:path';
+import { homedir } from 'node:os';
+import { dirname, join } from 'node:path';
 
 import { execa } from 'execa';
 
@@ -36,6 +37,36 @@ export class NodemonService {
         await mkdir(dirname(NODEMON_PID_PATH), { recursive: true });
     }
 
+    private async stopPm2IfRunning() {
+        const pm2PidPath = '/var/log/.pm2/pm2.pid';
+        if (!(await fileExists(pm2PidPath))) return;
+
+        const pm2Candidates = ['/usr/bin/pm2', '/usr/local/bin/pm2'];
+        const pm2Path =
+            (
+                await Promise.all(
+                    pm2Candidates.map(async (candidate) =>
+                        (await fileExists(candidate)) ? candidate : null
+                    )
+                )
+            ).find(Boolean) ?? null;
+
+        if (!pm2Path) return;
+
+        try {
+            const { stdout } = await execa(pm2Path, ['jlist']);
+            const processes = JSON.parse(stdout);
+            const hasUnraid =
+                Array.isArray(processes) && processes.some((proc) => proc?.name === 'unraid-api');
+            if (!hasUnraid) return;
+            await execa(pm2Path, ['delete', 'unraid-api']);
+            this.logger.info('Stopped pm2-managed unraid-api before starting nodemon.');
+        } catch (error) {
+            // PM2 may not be installed or responding; keep this quiet to avoid noisy startup.
+            this.logger.debug?.('Skipping pm2 cleanup (not installed or not running).');
+        }
+    }
+
     private async getStoredPid(): Promise<number | null> {
         if (!(await fileExists(NODEMON_PID_PATH))) return null;
         const contents = (await readFile(NODEMON_PID_PATH, 'utf-8')).trim();
@@ -52,6 +83,23 @@ export class NodemonService {
         }
     }
 
+    private async findMatchingNodemonPids(): Promise<number[]> {
+        try {
+            const { stdout } = await execa('ps', ['-eo', 'pid,args']);
+            return stdout
+                .split('\n')
+                .map((line) => line.trim())
+                .map((line) => line.match(/^(\d+)\s+(.*)$/))
+                .filter((match): match is RegExpMatchArray => Boolean(match))
+                .map(([, pid, cmd]) => ({ pid: Number.parseInt(pid, 10), cmd }))
+                .filter(({ cmd }) => cmd.includes('nodemon') && cmd.includes(NODEMON_CONFIG_PATH))
+                .map(({ pid }) => pid)
+                .filter((pid) => Number.isInteger(pid));
+        } catch {
+            return [];
+        }
+    }
+
     async start(options: StartOptions = {}) {
         try {
             await this.ensureNodemonDependencies();
@@ -62,7 +110,32 @@ export class NodemonService {
             throw error;
         }
 
-        await this.stop({ quiet: true });
+        await this.stopPm2IfRunning();
+
+        const existingPid = await this.getStoredPid();
+        if (existingPid) {
+            const running = await this.isPidRunning(existingPid);
+            if (running) {
+                this.logger.info(
+                    `unraid-api already running under nodemon (pid ${existingPid}); skipping start.`
+                );
+                return;
+            }
+            this.logger.warn(
+                `Found nodemon pid file (${existingPid}) but the process is not running. Cleaning up.`
+            );
+            await rm(NODEMON_PID_PATH, { force: true });
+        }
+
+        const discoveredPids = await this.findMatchingNodemonPids();
+        const discoveredPid = discoveredPids.at(0);
+        if (discoveredPid && (await this.isPidRunning(discoveredPid))) {
+            await writeFile(NODEMON_PID_PATH, `${discoveredPid}`);
+            this.logger.info(
+                `unraid-api already running under nodemon (pid ${discoveredPid}); discovered via process scan.`
+            );
+            return;
+        }
 
         const overrides = Object.fromEntries(
             Object.entries(options.env ?? {}).filter(([, value]) => value !== undefined)

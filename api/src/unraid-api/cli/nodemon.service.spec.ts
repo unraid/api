@@ -40,6 +40,14 @@ describe('NodemonService', () => {
     const mockWriteFile = vi.mocked(fs.writeFile);
     const mockRm = vi.mocked(fs.rm);
     const killSpy = vi.spyOn(process, 'kill');
+    const stopPm2Spy = vi.spyOn(
+        NodemonService.prototype as unknown as { stopPm2IfRunning: () => Promise<void> },
+        'stopPm2IfRunning'
+    );
+    const findMatchingSpy = vi.spyOn(
+        NodemonService.prototype as unknown as { findMatchingNodemonPids: () => Promise<number[]> },
+        'findMatchingNodemonPids'
+    );
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -48,6 +56,8 @@ describe('NodemonService', () => {
         mockRm.mockResolvedValue(undefined as unknown as void);
         vi.mocked(fileExists).mockResolvedValue(false);
         killSpy.mockReturnValue(true);
+        findMatchingSpy.mockResolvedValue([]);
+        stopPm2Spy.mockResolvedValue();
     });
 
     it('ensures directories needed by nodemon exist', async () => {
@@ -84,9 +94,11 @@ describe('NodemonService', () => {
             unref,
         } as unknown as ReturnType<typeof execa>);
         killSpy.mockReturnValue(true);
+        findMatchingSpy.mockResolvedValue([]);
 
         await service.start({ env: { LOG_LEVEL: 'DEBUG' } });
 
+        expect(stopPm2Spy).toHaveBeenCalled();
         expect(execa).toHaveBeenCalledWith(
             '/usr/bin/nodemon',
             ['--config', '/etc/unraid-api/nodemon.json', '--quiet'],
@@ -183,6 +195,81 @@ describe('NodemonService', () => {
         expect(logStream.close).toHaveBeenCalled();
         expect(mockRm).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', { force: true });
         expect(logsSpy).toHaveBeenCalledWith(50);
+    });
+
+    it('is a no-op when a recorded nodemon pid is already running', async () => {
+        const service = new NodemonService(logger);
+        vi.spyOn(
+            service as unknown as { getStoredPid: () => Promise<number | null> },
+            'getStoredPid'
+        ).mockResolvedValue(999);
+        vi.spyOn(
+            service as unknown as { isPidRunning: (pid: number) => Promise<boolean> },
+            'isPidRunning'
+        ).mockResolvedValue(true);
+
+        await service.start();
+
+        expect(logger.info).toHaveBeenCalledWith(
+            'unraid-api already running under nodemon (pid 999); skipping start.'
+        );
+        expect(execa).not.toHaveBeenCalled();
+        expect(mockRm).not.toHaveBeenCalled();
+    });
+
+    it('removes stale pid file and starts when recorded pid is dead', async () => {
+        const service = new NodemonService(logger);
+        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        vi.mocked(createWriteStream).mockReturnValue(
+            logStream as unknown as ReturnType<typeof createWriteStream>
+        );
+        const stdout = { pipe: vi.fn() };
+        const stderr = { pipe: vi.fn() };
+        const unref = vi.fn();
+        vi.mocked(execa).mockReturnValue({
+            pid: 111,
+            stdout,
+            stderr,
+            unref,
+        } as unknown as ReturnType<typeof execa>);
+        vi.spyOn(
+            service as unknown as { getStoredPid: () => Promise<number | null> },
+            'getStoredPid'
+        ).mockResolvedValue(555);
+        vi.spyOn(
+            service as unknown as { isPidRunning: (pid: number) => Promise<boolean> },
+            'isPidRunning'
+        )
+            .mockResolvedValueOnce(false)
+            .mockResolvedValue(true);
+        vi.spyOn(service, 'logs').mockResolvedValue('recent log lines');
+        findMatchingSpy.mockResolvedValue([]);
+
+        await service.start();
+
+        expect(mockRm).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', { force: true });
+        expect(execa).toHaveBeenCalled();
+        expect(mockWriteFile).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', '111');
+        expect(logger.warn).toHaveBeenCalledWith(
+            'Found nodemon pid file (555) but the process is not running. Cleaning up.'
+        );
+    });
+
+    it('adopts an already-running nodemon when no pid file exists', async () => {
+        const service = new NodemonService(logger);
+        findMatchingSpy.mockResolvedValue([888]);
+        vi.spyOn(
+            service as unknown as { isPidRunning: (pid: number) => Promise<boolean> },
+            'isPidRunning'
+        ).mockResolvedValue(true);
+
+        await service.start();
+
+        expect(mockWriteFile).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', '888');
+        expect(logger.info).toHaveBeenCalledWith(
+            'unraid-api already running under nodemon (pid 888); discovered via process scan.'
+        );
+        expect(execa).not.toHaveBeenCalled();
     });
 
     it('returns not running when pid file is missing', async () => {
