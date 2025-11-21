@@ -363,7 +363,11 @@ function updateProjectionFromPointer(event: DragEvent) {
       const lowerThreshold = height * 0.25;
       const upperThreshold = height * 0.75;
 
-      if (row.type === 'folder' && relative >= lowerThreshold && relative <= upperThreshold) {
+      if (
+        (row.type === 'folder' || row.type === 'container') &&
+        relative >= lowerThreshold &&
+        relative <= upperThreshold
+      ) {
         area = 'inside';
       } else if (relative < height * 0.5) {
         area = 'before';
