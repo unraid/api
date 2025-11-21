@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.27.1](https://github.com/unraid/api/compare/v4.27.0...v4.27.1) (2025-11-21)
+
+
+### Bug Fixes
+
+* missing translations for expiring trials ([#1800](https://github.com/unraid/api/issues/1800)) ([36c1049](https://github.com/unraid/api/commit/36c104915ece203a3cac9e1a13e0c325e536a839))
+* resolve header flash when background color is set ([#1796](https://github.com/unraid/api/issues/1796)) ([dc9a036](https://github.com/unraid/api/commit/dc9a036c73d8ba110029364e0d044dc24c7d0dfa))
+
 ## [4.27.0](https://github.com/unraid/api/compare/v4.26.2...v4.27.0) (2025-11-19)
 
 
