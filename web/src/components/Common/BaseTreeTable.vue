@@ -2,12 +2,21 @@
 import { computed, h, ref, resolveComponent, watch } from 'vue';
 
 import { useDragDrop } from '@/composables/useDragDrop';
+import { useDropProjection } from '@/composables/useDropProjection';
 import { useRowSelection } from '@/composables/useRowSelection';
+import { useTreeExpansion } from '@/composables/useTreeExpansion';
+import { useTreeFilter } from '@/composables/useTreeFilter';
+import {
+  createDropIndicator,
+  createSelectColumnCell,
+  wrapCellWithRow,
+  wrapHeaderContent,
+} from '@/utils/tableRenderers';
 
-import type { DropArea, DropEvent } from '@/composables/useDragDrop';
+import type { DropEvent } from '@/composables/useDragDrop';
 import type { TreeRow } from '@/composables/useTreeData';
 import type { TableColumn } from '@nuxt/ui';
-import type { Component, VNode, VNodeChild } from 'vue';
+import type { Component, VNode } from 'vue';
 
 type SearchAccessor<T> = (row: TreeRow<T>) => unknown | unknown[];
 type FlatRow<T> = TreeRow<T> & { depth: number; parentId?: string };
@@ -77,6 +86,8 @@ const UTable = resolveComponent('UTable') as Component;
 
 const treeDataRef = computed(() => props.data);
 const selectedIdsRef = ref(props.selectedIds);
+const tableContainerRef = ref<HTMLElement | null>(null);
+const columnVisibility = ref<Record<string, boolean>>({});
 
 type ColumnHeaderRenderer = TableColumn<TreeRow<T>>['header'];
 
@@ -87,7 +98,6 @@ watch(
   }
 );
 
-// Helper functions for capabilities
 function canSelectRow(row: TreeRow<T>): boolean {
   if (props.canSelect) return props.canSelect(row);
   if (props.selectableType) return row.type === props.selectableType;
@@ -109,6 +119,17 @@ function canDropInsideRow(row: TreeRow<T>): boolean {
   return false;
 }
 
+const { globalFilter, filteredData, setGlobalFilter } = useTreeFilter<T>({
+  data: treeDataRef,
+  searchableKeys: props.searchableKeys,
+  searchAccessor: props.searchAccessor,
+  includeMetaInSearch: props.includeMetaInSearch,
+});
+
+const { expandedRowIds, toggleExpanded, flattenedData, flatRowMap } = useTreeExpansion<T>({
+  data: filteredData,
+});
+
 const { rowSelection, getSelectedRowIds, flattenSelectableRows } = useRowSelection<T>({
   selectedIds: selectedIdsRef,
   treeData: treeDataRef,
@@ -124,10 +145,16 @@ const {
   rowSelection,
 });
 
+const { projectionState, clearProjection, updateProjectionFromPointer } = useDropProjection<T>({
+  draggingIds,
+  flatRowMap,
+  tableContainerRef,
+  canDropInside: canDropInsideRow,
+});
+
 function handleDragEnd() {
   composableDragEnd();
-  stableMetrics.value = [];
-  projectionState.value = null;
+  clearProjection();
 }
 
 watch(
@@ -138,283 +165,11 @@ watch(
   { deep: true }
 );
 
-const globalFilter = ref('');
-const columnVisibility = ref<Record<string, boolean>>({});
-const filterTerm = computed(() => globalFilter.value.trim().toLowerCase());
-
-// Internal expansion state since we are flattening manually
-const expandedRowIds = ref<Set<string>>(new Set());
-const tableContainerRef = ref<HTMLElement | null>(null);
-const projectionState = ref<{ targetId: string; area: DropArea } | null>(null);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const stableMetrics = ref<any[]>([]);
-
-function toggleExpanded(id: string) {
-  // Force a new Set reference to trigger reactivity
-  const next = new Set(expandedRowIds.value);
-  if (next.has(id)) {
-    next.delete(id);
-  } else {
-    next.add(id);
-  }
-  expandedRowIds.value = next;
-}
-
-function flattenTree(
-  nodes: TreeRow<T>[],
-  expanded: Set<string>,
-  depth = 0,
-  parentId?: string
-): FlatRow<T>[] {
-  return nodes.flatMap((node) => {
-    // Create a flat wrapper with depth info.
-    const flatNode: FlatRow<T> = { ...node, depth, parentId };
-
-    const result = [flatNode];
-    if (node.children && node.children.length && expanded.has(node.id)) {
-      result.push(...flattenTree(node.children, expanded, depth + 1, node.id));
-    }
-    return result;
-  });
-}
-
-function setGlobalFilter(value: string) {
-  globalFilter.value = value;
-}
-
-function collectSearchableStrings(input: unknown, seen = new Set<unknown>()): string[] {
-  if (input === null || input === undefined) {
-    return [];
-  }
-
-  if (typeof input === 'string' || typeof input === 'number') {
-    return [String(input)];
-  }
-
-  if (typeof input === 'boolean') {
-    return [input ? 'true' : 'false'];
-  }
-
-  if (seen.has(input)) {
-    return [];
-  }
-
-  seen.add(input);
-
-  if (Array.isArray(input)) {
-    return input.flatMap((value) => collectSearchableStrings(value, seen));
-  }
-
-  if (typeof input === 'object') {
-    return Object.values(input as Record<string, unknown>).flatMap((value) =>
-      collectSearchableStrings(value, seen)
-    );
-  }
-
-  return [];
-}
-
-function getValueByKey<T>(row: TreeRow<T>, key: string): unknown {
-  const segments = key.split('.');
-  let current: unknown = row;
-  for (const segment of segments) {
-    if (current === null || current === undefined) {
-      return undefined;
-    }
-    if (typeof current !== 'object') {
-      return undefined;
-    }
-    current = (current as Record<string, unknown>)[segment];
-  }
-  return current;
-}
-
-function toArray(value: unknown | unknown[]): unknown[] {
-  if (Array.isArray(value)) {
-    return value;
-  }
-  return value !== undefined && value !== null ? [value] : [];
-}
-
-function getRowSearchValues(row: TreeRow<T>): string[] {
-  const values: unknown[] = [];
-
-  const keys = props.searchableKeys || ['id', 'name', 'type'];
-
-  if (keys.length) {
-    for (const key of keys) {
-      const resolved = getValueByKey(row, key);
-      if (resolved !== undefined && resolved !== null) {
-        values.push(resolved);
-      }
-    }
-  }
-
-  if (props.searchAccessor) {
-    try {
-      values.push(...toArray(props.searchAccessor(row)));
-    } catch (error) {
-      if (import.meta?.env?.DEV) {
-        console.warn('BaseTreeTable searchAccessor error', error);
-      }
-    }
-  }
-
-  if (props.includeMetaInSearch && row.meta) {
-    values.push(row.meta);
-  }
-
-  return values
-    .flatMap((value) => collectSearchableStrings(value, new Set()))
-    .filter((str) => str.trim().length);
-}
-
-function rowMatchesTerm(row: TreeRow<T>, term: string): boolean {
-  if (!term) return true;
-
-  return getRowSearchValues(row)
-    .map((value) => value.toLowerCase())
-    .some((value) => value.includes(term));
-}
-
-function filterRowsByTerm(rows: TreeRow<T>[], term: string): TreeRow<T>[] {
-  if (!term) {
-    return rows;
-  }
-
-  return rows
-    .map((row) => {
-      const filteredChildren = row.children ? filterRowsByTerm(row.children, term) : [];
-      const matches = rowMatchesTerm(row, term);
-      if (!matches && filteredChildren.length === 0) {
-        return null;
-      }
-
-      return {
-        ...row,
-        children: row.children ? filteredChildren : undefined,
-      } as TreeRow<T>;
-    })
-    .filter((row): row is TreeRow<T> => row !== null);
-}
-
-const filteredData = computed(() => {
-  const term = filterTerm.value;
-  let data = treeDataRef.value;
-
-  if (term) {
-    data = filterRowsByTerm(data, term);
-  }
-
-  return data;
-});
-
-// Ensure that flatVisibleRows is reactive to expandedRowIds
-const flatVisibleRows = computed(() => {
-  // Dependency on expandedRowIds.value is crucial here
-  const expanded = expandedRowIds.value;
-  return flattenTree(filteredData.value, expanded);
-});
-const flatRowMap = computed(() => {
-  const entries = new Map<string, FlatRow<T>>();
-  for (const row of flatVisibleRows.value) {
-    entries.set(row.id, row);
-  }
-  return entries;
-});
-
-interface RowMetric {
-  id: string;
-  top: number;
-  bottom: number;
-  height: number;
-  row: FlatRow<T>;
-}
-
-function collectRowMetrics(): RowMetric[] {
-  const container = tableContainerRef.value;
-  if (!container) return [];
-  const elements = container.querySelectorAll<HTMLElement>('[data-row-id]');
-  const metrics: RowMetric[] = [];
-  for (const element of elements) {
-    const id = element.dataset.rowId;
-    if (!id) continue;
-    const row = flatRowMap.value.get(id);
-    if (!row) continue;
-    const rect = element.getBoundingClientRect();
-    metrics.push({
-      id,
-      top: rect.top,
-      bottom: rect.bottom,
-      height: rect.height || 1,
-      row,
-    });
-  }
-  return metrics;
-}
-
-function updateProjectionFromPointer(event: DragEvent) {
-  if (!draggingIds.value.length) return;
-
-  const pointerY = event.clientY;
-  let metrics = stableMetrics.value;
-
-  if (!metrics.length) {
-    metrics = collectRowMetrics();
-    stableMetrics.value = metrics;
-  }
-
-  if (!metrics.length) return;
-
-  const draggingSet = new Set(draggingIds.value);
-  const nonDraggingMetrics = metrics.filter((m) => !draggingSet.has(m.id));
-
-  if (!nonDraggingMetrics.length) return;
-
-  let targetMetric = nonDraggingMetrics[0];
-  let area: DropArea = 'before';
-
-  for (let i = 0; i < nonDraggingMetrics.length; i++) {
-    const metric = nonDraggingMetrics[i];
-    const { top, bottom, height, row } = metric;
-
-    if (pointerY < top) {
-      targetMetric = metric;
-      area = 'before';
-      break;
-    }
-
-    if (pointerY >= top && pointerY <= bottom) {
-      const relative = pointerY - top;
-      const lowerThreshold = height * 0.25;
-      const upperThreshold = height * 0.75;
-
-      // Use helper to check if we can drop inside
-      if (canDropInsideRow(row) && relative >= lowerThreshold && relative <= upperThreshold) {
-        area = 'inside';
-      } else if (relative < height * 0.5) {
-        area = 'before';
-      } else {
-        area = 'after';
-      }
-      targetMetric = metric;
-      break;
-    }
-
-    if (i === nonDraggingMetrics.length - 1) {
-      targetMetric = metric;
-      area = 'after';
-    }
-  }
-
-  projectionState.value = { targetId: targetMetric.id, area };
-}
-
 function handleContainerDragOver(event: DragEvent) {
   if (!props.enableDragDrop || !draggingIds.value.length) return;
   event.preventDefault();
   event.stopPropagation();
-  updateProjectionFromPointer(event);
+  updateProjectionFromPointer(event.clientY);
 }
 
 function handleContainerDrop(event: DragEvent) {
@@ -433,20 +188,6 @@ function handleContainerDrop(event: DragEvent) {
   rowSelection.value = {};
   handleDragEnd();
 }
-
-watch(draggingIds, (value, oldValue) => {
-  if (!value.length) {
-    projectionState.value = null;
-    stableMetrics.value = [];
-  }
-  if (value.length && !oldValue?.length) {
-    stableMetrics.value = [];
-  }
-});
-
-const projectedData = computed(() => {
-  return flatVisibleRows.value;
-});
 
 const tableRef = ref<{ tableApi?: unknown } | null>(null);
 
@@ -472,8 +213,8 @@ const selectedCount = computed(() => {
   return Object.values(rowSelection.value).filter(Boolean).length;
 });
 
-function wrapCellWithRow(
-  row: { original: TreeRow<T>; depth?: number },
+function createCellWrapper(
+  row: { original: FlatRow<T>; depth?: number },
   cellContent: VNode,
   columnIndex: number
 ) {
@@ -482,131 +223,33 @@ function wrapCellWithRow(
   const isDragging = props.enableDragDrop && draggingIds.value.includes(row.original.id);
   const isProjectionTarget = projectionState.value?.targetId === row.original.id;
   const projectionArea = projectionState.value?.area;
-
-  let dropIndicator: VNode | null = null;
-
-  if (props.enableDragDrop && isProjectionTarget && columnIndex === 0) {
-    if (projectionArea === 'inside') {
-      dropIndicator = h('div', {
-        key: `drop-indicator-${row.original.id}-inside`,
-        class: 'absolute ring-2 ring-inset ring-primary/50 bg-primary/5 pointer-events-none z-[100]',
-        ref: (el) => {
-          if (el && el instanceof HTMLElement) {
-            const cell = el.closest('td');
-            const tr = cell?.closest('tr');
-            if (tr && cell) {
-              const rowWidth = tr.offsetWidth;
-              const rowHeight = tr.offsetHeight;
-              const cellLeft = cell.offsetLeft;
-              const wrapperRect = el.parentElement?.getBoundingClientRect();
-              const rowRect = tr.getBoundingClientRect();
-              const topOffset = wrapperRect ? wrapperRect.top - rowRect.top : 0;
-              el.style.cssText = `width: ${rowWidth}px; height: ${rowHeight}px; left: -${cellLeft}px; top: -${topOffset}px;`;
-            }
-          }
-        },
-      });
-    } else if (projectionArea === 'before' || projectionArea === 'after') {
-      const indicatorClass =
-        projectionArea === 'before'
-          ? 'absolute top-0 left-0 right-full h-0.5 bg-primary pointer-events-none z-[100]'
-          : 'absolute bottom-0 left-0 right-full h-0.5 bg-primary pointer-events-none z-[100]';
-
-      dropIndicator = h('div', {
-        key: `drop-indicator-${row.original.id}-${projectionArea}`,
-        class: indicatorClass,
-        ref: (el) => {
-          if (el && el instanceof HTMLElement) {
-            const cell = el.closest('td');
-            const row = cell?.closest('tr');
-            if (row && cell) {
-              const rowWidth = row.offsetWidth;
-              const cellLeft = cell.offsetLeft;
-              el.style.cssText = `width: ${rowWidth}px; left: -${cellLeft}px;`;
-            }
-          }
-        },
-      });
-    }
-  }
-
-  const children = dropIndicator ? [cellContent, dropIndicator] : [cellContent];
-
-  // Check if this row can be dragged
   const draggable = props.enableDragDrop && canDragRow(row.original);
 
-  const rowWrapper = h(
-    'div',
-    {
-      ...(columnIndex === 0 ? { 'data-row-id': row.original.id } : {}),
-      draggable,
-      class: `relative block w-full h-full px-3 py-2 ${isBusy ? 'opacity-50 pointer-events-none select-none' : ''} ${
-        isActive ? 'bg-primary-50 dark:bg-primary-950/30' : ''
-      } ${canSelectRow(row.original) ? 'cursor-pointer' : ''} ${
-        isDragging ? 'opacity-30 pointer-events-none' : ''
-      }`,
-      onClick: (e: MouseEvent) => {
-        const target = e.target as HTMLElement | null;
-        if (
-          target &&
-          target.closest('input,button,textarea,a,[role=checkbox],[role=button],[data-stop-row-click]')
-        ) {
-          return;
-        }
-        const r = row.original;
-        emit('row:click', { id: r.id, type: r.type, name: r.name, meta: r.meta });
-      },
-      onDragstart: props.enableDragDrop
-        ? (e: DragEvent) => {
-            if (isBusy) return;
-            // If not draggable, don't start
-            if (!draggable) {
-              e.preventDefault();
-              return;
-            }
-            handleDragStart(e, row.original);
-          }
-        : undefined,
-      onDragend: props.enableDragDrop ? handleDragEnd : undefined,
-      onContextmenu: (e: MouseEvent) => {
-        const target = e.target as HTMLElement | null;
-        if (
-          target &&
-          target.closest('input,button,textarea,a,[role=checkbox],[role=button],[data-stop-row-click]')
-        ) {
-          return;
-        }
-        e.preventDefault();
-        const r = row.original;
-        emit('row:contextmenu', { id: r.id, type: r.type, name: r.name, meta: r.meta, event: e });
-      },
+  const dropIndicator =
+    props.enableDragDrop && isProjectionTarget && projectionArea
+      ? createDropIndicator({ row: row.original, projectionArea, columnIndex })
+      : null;
+
+  return wrapCellWithRow({
+    row: row.original,
+    cellContent,
+    columnIndex,
+    isBusy,
+    isActive,
+    isDragging,
+    draggable,
+    isSelectable: canSelectRow(row.original),
+    dropIndicator,
+    enableDragDrop: props.enableDragDrop,
+    onRowClick: (id, type, name, meta) => {
+      emit('row:click', { id, type, name, meta });
     },
-    children
-  );
-
-  return rowWrapper;
-}
-
-function wrapHeaderContent(content: unknown): VNode {
-  let normalized: VNodeChild | undefined;
-
-  if (typeof content === 'number') {
-    normalized = String(content);
-  } else if (typeof content === 'boolean') {
-    normalized = content ? 'true' : undefined;
-  } else if (Array.isArray(content)) {
-    normalized = content as VNodeChild;
-  } else if (content !== null && content !== undefined) {
-    normalized = content as VNodeChild;
-  } else {
-    normalized = undefined;
-  }
-
-  if (normalized === undefined || normalized === null) {
-    return h('div', { class: 'px-3 py-2 flex items-center gap-2 text-left' });
-  }
-
-  return h('div', { class: 'px-3 py-2 flex items-center gap-2 text-left' }, normalized);
+    onRowContextMenu: (id, type, name, meta, event) => {
+      emit('row:contextmenu', { id, type, name, meta, event });
+    },
+    onDragStart: handleDragStart,
+    onDragEnd: handleDragEnd,
+  });
 }
 
 function wrapColumnHeaderRenderer(
@@ -629,11 +272,8 @@ function createSelectColumn(): TableColumn<TreeRow<T>> {
     id: 'select',
     header: () => {
       if (props.compact) return '';
-      // We use the projected data or filtered data?
-      // Select all should probably operate on the full filtered set, not just what's projected?
-      // But flattened rows are what we see.
-      // Let's use flatVisibleRows for selection logic to be consistent with view.
-      const visibleRows = flatVisibleRows.value;
+
+      const visibleRows = flattenedData.value;
       const containers = flattenSelectableRows(visibleRows);
       const totalSelectable = containers.length;
       const selectedIds = Object.entries(rowSelection.value)
@@ -668,59 +308,35 @@ function createSelectColumn(): TableColumn<TreeRow<T>> {
     },
     cell: ({ row }) => {
       const enhancedRow = enhanceRowInstance(row as unknown as TableInstanceRow<T>);
-      if (canSelectRow(enhancedRow.original)) {
-        return wrapCellWithRow(
-          enhancedRow,
-          h('span', { 'data-stop-row-click': 'true' }, [
-            h(UCheckbox, {
-              modelValue: enhancedRow.getIsSelected(),
-              'onUpdate:modelValue': (value: boolean | 'indeterminate') => {
-                const next = !!value;
-                enhancedRow.toggleSelected(next);
-                const r = enhancedRow.original;
-                emit('row:select', {
-                  id: r.id,
-                  type: r.type,
-                  name: r.name,
-                  selected: next,
-                  meta: r.meta,
-                });
-              },
-              'aria-label': 'Select row',
-              role: 'checkbox',
-              onClick: (e: Event) => e.stopPropagation(),
-            }),
-          ]),
-          0
-        );
-      }
-      // Use canExpandRow to determine if we show expansion button
-      if (canExpandRow(enhancedRow.original)) {
-        return wrapCellWithRow(
-          enhancedRow,
-          h(UButton, {
-            color: 'neutral',
-            size: 'md',
-            variant: 'ghost',
-            icon: 'i-lucide-chevron-down',
-            square: true,
-            'aria-label': 'Expand',
-            class: 'p-0',
-            ui: {
-              leadingIcon: [
-                'transition-transform mt-0.5 -rotate-90',
-                enhancedRow.getIsExpanded() ? 'duration-200 rotate-0' : '',
-              ],
-            },
-            onClick: (e: Event) => {
-              e.stopPropagation();
-              enhancedRow.toggleExpanded();
-            },
-          }),
-          0
-        );
-      }
-      return h('span');
+      return createSelectColumnCell(enhancedRow, {
+        UCheckbox: UCheckbox as Component,
+        UButton: UButton as Component,
+        compact: props.compact,
+        flatVisibleRows: flattenedData.value,
+        rowSelection: rowSelection.value,
+        canSelectRow,
+        canExpandRow,
+        flattenSelectableRows,
+        onSelectionChange: (selection) => {
+          rowSelection.value = selection;
+        },
+        onRowSelect: (id, type, name, selected, meta) => {
+          emit('row:select', { id, type, name, selected, meta });
+        },
+        wrapCell: createCellWrapper,
+        getIsExpanded: (id) => expandedRowIds.value.has(id),
+        toggleExpanded,
+        getIsSelected: (id) => !!rowSelection.value[id],
+        toggleSelected: (id, value) => {
+          if (value) {
+            rowSelection.value = { ...rowSelection.value, [id]: true };
+          } else {
+            const next = { ...rowSelection.value };
+            delete next[id];
+            rowSelection.value = next;
+          }
+        },
+      });
     },
     enableSorting: false,
     enableHiding: false,
@@ -740,7 +356,7 @@ const processedColumns = computed<TableColumn<TreeRow<T>>[]>(() => {
 
             const enhancedRow = enhanceRowInstance(row as unknown as TableInstanceRow<T>);
             const content = typeof cellFn === 'function' ? cellFn({ row: enhancedRow }) : cellFn;
-            return wrapCellWithRow(enhancedRow, content as VNode, colIndex + 1);
+            return createCellWrapper(enhancedRow, content as VNode, colIndex + 1);
           }
         : undefined;
 
@@ -798,7 +414,7 @@ function enhanceRowInstance(row: TableInstanceRow<T>): EnhancedRow<T> {
       ref="tableRef"
       v-model:row-selection="rowSelection"
       v-model:column-visibility="columnVisibility"
-      :data="projectedData"
+      :data="flattenedData"
       :columns="processedColumns"
       :get-row-id="(row: any) => row.id"
       :get-row-can-select="(row: any) => canSelectRow(row.original)"
