@@ -525,6 +525,7 @@ export enum ContainerPortType {
 
 export enum ContainerState {
   EXITED = 'EXITED',
+  PAUSED = 'PAUSED',
   RUNNING = 'RUNNING'
 }
 
@@ -557,6 +558,17 @@ export type CpuLoad = {
   percentTotal: Scalars['Float']['output'];
   /** The percentage of time the CPU spent in user space. */
   percentUser: Scalars['Float']['output'];
+};
+
+export type CpuPackages = Node & {
+  __typename?: 'CpuPackages';
+  id: Scalars['PrefixedID']['output'];
+  /** Power draw per package (W) */
+  power: Array<Scalars['Float']['output']>;
+  /** Temperature per package (°C) */
+  temp: Array<Scalars['Float']['output']>;
+  /** Total CPU package power draw (W) */
+  totalPower: Scalars['Float']['output'];
 };
 
 export type CpuUtilization = Node & {
@@ -681,8 +693,11 @@ export type Docker = Node & {
   containerUpdateStatuses: Array<ExplicitStatusItem>;
   containers: Array<DockerContainer>;
   id: Scalars['PrefixedID']['output'];
+  /** Access container logs. Requires specifying a target container id through resolver arguments. */
+  logs: DockerContainerLogs;
   networks: Array<DockerNetwork>;
   organizer: ResolvedOrganizerV1;
+  portConflicts: DockerPortConflicts;
 };
 
 
@@ -691,38 +706,161 @@ export type DockerContainersArgs = {
 };
 
 
+export type DockerLogsArgs = {
+  id: Scalars['PrefixedID']['input'];
+  since?: InputMaybe<Scalars['DateTime']['input']>;
+  tail?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
 export type DockerNetworksArgs = {
   skipCache?: Scalars['Boolean']['input'];
+};
+
+
+export type DockerOrganizerArgs = {
+  skipCache?: Scalars['Boolean']['input'];
+};
+
+
+export type DockerPortConflictsArgs = {
+  skipCache?: Scalars['Boolean']['input'];
+};
+
+export type DockerAutostartEntryInput = {
+  /** Whether the container should auto-start */
+  autoStart: Scalars['Boolean']['input'];
+  /** Docker container identifier */
+  id: Scalars['PrefixedID']['input'];
+  /** Number of seconds to wait after starting the container */
+  wait?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type DockerContainer = Node & {
   __typename?: 'DockerContainer';
   autoStart: Scalars['Boolean']['output'];
+  /** Zero-based order in the auto-start list */
+  autoStartOrder?: Maybe<Scalars['Int']['output']>;
+  /** Wait time in seconds applied after start */
+  autoStartWait?: Maybe<Scalars['Int']['output']>;
   command: Scalars['String']['output'];
   created: Scalars['Int']['output'];
   hostConfig?: Maybe<ContainerHostConfig>;
+  /** Icon URL */
+  iconUrl?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
   image: Scalars['String']['output'];
   imageId: Scalars['String']['output'];
+  /** Whether the container is orphaned (no template found) */
+  isOrphaned: Scalars['Boolean']['output'];
   isRebuildReady?: Maybe<Scalars['Boolean']['output']>;
   isUpdateAvailable?: Maybe<Scalars['Boolean']['output']>;
   labels?: Maybe<Scalars['JSON']['output']>;
+  /** List of LAN-accessible host:port values */
+  lanIpPorts?: Maybe<Array<Scalars['String']['output']>>;
   mounts?: Maybe<Array<Scalars['JSON']['output']>>;
   names: Array<Scalars['String']['output']>;
   networkSettings?: Maybe<Scalars['JSON']['output']>;
   ports: Array<ContainerPort>;
+  /** Project/Product homepage URL */
+  projectUrl?: Maybe<Scalars['String']['output']>;
+  /** Registry/Docker Hub URL */
+  registryUrl?: Maybe<Scalars['String']['output']>;
+  /** Size of container logs (in bytes) */
+  sizeLog?: Maybe<Scalars['BigInt']['output']>;
   /** Total size of all files in the container (in bytes) */
   sizeRootFs?: Maybe<Scalars['BigInt']['output']>;
+  /** Size of writable layer (in bytes) */
+  sizeRw?: Maybe<Scalars['BigInt']['output']>;
   state: ContainerState;
   status: Scalars['String']['output'];
+  /** Support page/thread URL */
+  supportUrl?: Maybe<Scalars['String']['output']>;
+  templatePath?: Maybe<Scalars['String']['output']>;
+};
+
+export type DockerContainerLogLine = {
+  __typename?: 'DockerContainerLogLine';
+  message: Scalars['String']['output'];
+  timestamp: Scalars['DateTime']['output'];
+};
+
+export type DockerContainerLogs = {
+  __typename?: 'DockerContainerLogs';
+  containerId: Scalars['PrefixedID']['output'];
+  /** Cursor that can be passed back through the since argument to continue streaming logs. */
+  cursor?: Maybe<Scalars['DateTime']['output']>;
+  lines: Array<DockerContainerLogLine>;
+};
+
+export type DockerContainerOverviewForm = {
+  __typename?: 'DockerContainerOverviewForm';
+  data: Scalars['JSON']['output'];
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['ID']['output'];
+  uiSchema: Scalars['JSON']['output'];
+};
+
+export type DockerContainerPortConflict = {
+  __typename?: 'DockerContainerPortConflict';
+  containers: Array<DockerPortConflictContainer>;
+  privatePort: Scalars['Port']['output'];
+  type: ContainerPortType;
+};
+
+export type DockerContainerStats = {
+  __typename?: 'DockerContainerStats';
+  /** Block I/O String (e.g. 100MB / 1GB) */
+  blockIO: Scalars['String']['output'];
+  /** CPU Usage Percentage */
+  cpuPercent: Scalars['Float']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Memory Usage Percentage */
+  memPercent: Scalars['Float']['output'];
+  /** Memory Usage String (e.g. 100MB / 1GB) */
+  memUsage: Scalars['String']['output'];
+  /** Network I/O String (e.g. 100MB / 1GB) */
+  netIO: Scalars['String']['output'];
+};
+
+export type DockerLanPortConflict = {
+  __typename?: 'DockerLanPortConflict';
+  containers: Array<DockerPortConflictContainer>;
+  lanIpPort: Scalars['String']['output'];
+  publicPort?: Maybe<Scalars['Port']['output']>;
+  type: ContainerPortType;
 };
 
 export type DockerMutations = {
   __typename?: 'DockerMutations';
+  /** Pause (Suspend) a container */
+  pause: DockerContainer;
+  /** Remove a container */
+  removeContainer: Scalars['Boolean']['output'];
   /** Start a container */
   start: DockerContainer;
   /** Stop a container */
   stop: DockerContainer;
+  /** Unpause (Resume) a container */
+  unpause: DockerContainer;
+  /** Update all containers that have available updates */
+  updateAllContainers: Array<DockerContainer>;
+  /** Update auto-start configuration for Docker containers */
+  updateAutostartConfiguration: Scalars['Boolean']['output'];
+  /** Update a container to the latest image */
+  updateContainer: DockerContainer;
+  /** Update multiple containers to the latest images */
+  updateContainers: Array<DockerContainer>;
+};
+
+
+export type DockerMutationsPauseArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+export type DockerMutationsRemoveContainerArgs = {
+  id: Scalars['PrefixedID']['input'];
 };
 
 
@@ -733,6 +871,27 @@ export type DockerMutationsStartArgs = {
 
 export type DockerMutationsStopArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type DockerMutationsUnpauseArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+export type DockerMutationsUpdateAutostartConfigurationArgs = {
+  entries: Array<DockerAutostartEntryInput>;
+  persistUserPreferences?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type DockerMutationsUpdateContainerArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+export type DockerMutationsUpdateContainersArgs = {
+  ids: Array<Scalars['PrefixedID']['input']>;
 };
 
 export type DockerNetwork = Node & {
@@ -752,6 +911,26 @@ export type DockerNetwork = Node & {
   name: Scalars['String']['output'];
   options: Scalars['JSON']['output'];
   scope: Scalars['String']['output'];
+};
+
+export type DockerPortConflictContainer = {
+  __typename?: 'DockerPortConflictContainer';
+  id: Scalars['PrefixedID']['output'];
+  name: Scalars['String']['output'];
+};
+
+export type DockerPortConflicts = {
+  __typename?: 'DockerPortConflicts';
+  containerPorts: Array<DockerContainerPortConflict>;
+  lanPorts: Array<DockerLanPortConflict>;
+};
+
+export type DockerTemplateSyncResult = {
+  __typename?: 'DockerTemplateSyncResult';
+  errors: Array<Scalars['String']['output']>;
+  matched: Scalars['Int']['output'];
+  scanned: Scalars['Int']['output'];
+  skipped: Scalars['Int']['output'];
 };
 
 export type DynamicRemoteAccessStatus = {
@@ -797,6 +976,20 @@ export type FlashBackupStatus = {
   jobId?: Maybe<Scalars['String']['output']>;
   /** Status message indicating the outcome of the backup initiation. */
   status: Scalars['String']['output'];
+};
+
+export type FlatOrganizerEntry = {
+  __typename?: 'FlatOrganizerEntry';
+  childrenIds: Array<Scalars['String']['output']>;
+  depth: Scalars['Float']['output'];
+  hasChildren: Scalars['Boolean']['output'];
+  id: Scalars['String']['output'];
+  meta?: Maybe<DockerContainer>;
+  name: Scalars['String']['output'];
+  parentId?: Maybe<Scalars['String']['output']>;
+  path: Array<Scalars['String']['output']>;
+  position: Scalars['Float']['output'];
+  type: Scalars['String']['output'];
 };
 
 export type FormSchema = {
@@ -869,6 +1062,7 @@ export type InfoCpu = Node & {
   manufacturer?: Maybe<Scalars['String']['output']>;
   /** CPU model */
   model?: Maybe<Scalars['String']['output']>;
+  packages: CpuPackages;
   /** Number of physical processors */
   processors?: Maybe<Scalars['Int']['output']>;
   /** CPU revision */
@@ -885,6 +1079,8 @@ export type InfoCpu = Node & {
   stepping?: Maybe<Scalars['Int']['output']>;
   /** Number of CPU threads */
   threads?: Maybe<Scalars['Int']['output']>;
+  /** Per-package array of core/thread pairs, e.g. [[[0,1],[2,3]], [[4,5],[6,7]]] */
+  topology: Array<Array<Array<Scalars['Int']['output']>>>;
   /** CPU vendor */
   vendor?: Maybe<Scalars['String']['output']>;
   /** CPU voltage */
@@ -1223,6 +1419,7 @@ export type Mutation = {
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
   createDockerFolder: ResolvedOrganizerV1;
+  createDockerFolderWithItems: ResolvedOrganizerV1;
   /** Creates a new notification record */
   createNotification: Notification;
   /** Deletes all archived notifications on server. */
@@ -1234,6 +1431,9 @@ export type Mutation = {
   /** Initiates a flash drive backup using a configured remote. */
   initiateFlashBackup: FlashBackupStatus;
   moveDockerEntriesToFolder: ResolvedOrganizerV1;
+  moveDockerItemsToPosition: ResolvedOrganizerV1;
+  /** Creates a notification if an equivalent unread notification does not already exist. */
+  notifyIfUnique?: Maybe<Notification>;
   parityCheck: ParityCheckMutations;
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
@@ -1241,13 +1441,16 @@ export type Mutation = {
   refreshDockerDigests: Scalars['Boolean']['output'];
   /** Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required. */
   removePlugin: Scalars['Boolean']['output'];
+  renameDockerFolder: ResolvedOrganizerV1;
   setDockerFolderChildren: ResolvedOrganizerV1;
   setupRemoteAccess: Scalars['Boolean']['output'];
+  syncDockerTemplatePaths: DockerTemplateSyncResult;
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
+  updateDockerViewPreferences: ResolvedOrganizerV1;
   updateSettings: UpdateSettingsResponse;
   vm: VmMutations;
 };
@@ -1290,6 +1493,14 @@ export type MutationCreateDockerFolderArgs = {
 };
 
 
+export type MutationCreateDockerFolderWithItemsArgs = {
+  name: Scalars['String']['input'];
+  parentId?: InputMaybe<Scalars['String']['input']>;
+  position?: InputMaybe<Scalars['Float']['input']>;
+  sourceEntryIds?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
 export type MutationCreateNotificationArgs = {
   input: NotificationData;
 };
@@ -1322,8 +1533,26 @@ export type MutationMoveDockerEntriesToFolderArgs = {
 };
 
 
+export type MutationMoveDockerItemsToPositionArgs = {
+  destinationFolderId: Scalars['String']['input'];
+  position: Scalars['Float']['input'];
+  sourceEntryIds: Array<Scalars['String']['input']>;
+};
+
+
+export type MutationNotifyIfUniqueArgs = {
+  input: NotificationData;
+};
+
+
 export type MutationRemovePluginArgs = {
   input: PluginManagementInput;
+};
+
+
+export type MutationRenameDockerFolderArgs = {
+  folderId: Scalars['String']['input'];
+  newName: Scalars['String']['input'];
 };
 
 
@@ -1355,6 +1584,12 @@ export type MutationUnreadNotificationArgs = {
 
 export type MutationUpdateApiSettingsArgs = {
   input: ConnectSettingsInput;
+};
+
+
+export type MutationUpdateDockerViewPreferencesArgs = {
+  prefs: Scalars['JSON']['input'];
+  viewId?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1433,6 +1668,8 @@ export type Notifications = Node & {
   list: Array<Notification>;
   /** A cached overview of the notifications in the system & their severity. */
   overview: NotificationOverview;
+  /** Deduplicated list of unread warning and alert notifications, sorted latest first. */
+  warningsAndAlerts: Array<Notification>;
 };
 
 
@@ -1496,22 +1733,6 @@ export type OidcSessionValidation = {
   __typename?: 'OidcSessionValidation';
   username?: Maybe<Scalars['String']['output']>;
   valid: Scalars['Boolean']['output'];
-};
-
-export type OrganizerContainerResource = {
-  __typename?: 'OrganizerContainerResource';
-  id: Scalars['String']['output'];
-  meta?: Maybe<DockerContainer>;
-  name: Scalars['String']['output'];
-  type: Scalars['String']['output'];
-};
-
-export type OrganizerResource = {
-  __typename?: 'OrganizerResource';
-  id: Scalars['String']['output'];
-  meta?: Maybe<Scalars['JSON']['output']>;
-  name: Scalars['String']['output'];
-  type: Scalars['String']['output'];
 };
 
 export type Owner = {
@@ -1663,6 +1884,7 @@ export type Query = {
   disk: Disk;
   disks: Array<Disk>;
   docker: Docker;
+  dockerContainerOverviewForm: DockerContainerOverviewForm;
   flash: Flash;
   /** Get JSON Schema for API key creation form */
   getApiKeyCreationFormSchema: ApiKeyFormSettings;
@@ -1723,6 +1945,11 @@ export type QueryApiKeyArgs = {
 
 export type QueryDiskArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryDockerContainerOverviewFormArgs = {
+  skipCache?: Scalars['Boolean']['input'];
 };
 
 
@@ -1882,16 +2109,6 @@ export type RemoveRoleFromApiKeyInput = {
   role: Role;
 };
 
-export type ResolvedOrganizerEntry = OrganizerContainerResource | OrganizerResource | ResolvedOrganizerFolder;
-
-export type ResolvedOrganizerFolder = {
-  __typename?: 'ResolvedOrganizerFolder';
-  children: Array<ResolvedOrganizerEntry>;
-  id: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  type: Scalars['String']['output'];
-};
-
 export type ResolvedOrganizerV1 = {
   __typename?: 'ResolvedOrganizerV1';
   version: Scalars['Float']['output'];
@@ -1900,10 +2117,11 @@ export type ResolvedOrganizerV1 = {
 
 export type ResolvedOrganizerView = {
   __typename?: 'ResolvedOrganizerView';
+  flatEntries: Array<FlatOrganizerEntry>;
   id: Scalars['String']['output'];
   name: Scalars['String']['output'];
   prefs?: Maybe<Scalars['JSON']['output']>;
-  root: ResolvedOrganizerEntry;
+  rootId: Scalars['String']['output'];
 };
 
 /** Available resources for permissions */
@@ -2046,13 +2264,16 @@ export type SsoSettings = Node & {
 export type Subscription = {
   __typename?: 'Subscription';
   arraySubscription: UnraidArray;
+  dockerContainerStats: DockerContainerStats;
   logFile: LogFileContent;
   notificationAdded: Notification;
   notificationsOverview: NotificationOverview;
+  notificationsWarningsAndAlerts: Array<Notification>;
   ownerSubscription: Owner;
   parityHistorySubscription: ParityCheck;
   serversSubscription: Server;
   systemMetricsCpu: CpuUtilization;
+  systemMetricsCpuTelemetry: CpuPackages;
   systemMetricsMemory: MemoryUtilization;
   upsUpdates: UpsDevice;
 };

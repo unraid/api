@@ -1,7 +1,20 @@
-import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import {
+    Field,
+    Float,
+    GraphQLISODateTime,
+    ID,
+    InputType,
+    Int,
+    ObjectType,
+    registerEnumType,
+} from '@nestjs/graphql';
 
+import { type Layout } from '@jsonforms/core';
 import { Node } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { GraphQLBigInt, GraphQLJSON, GraphQLPort } from 'graphql-scalars';
+
+import { DataSlice } from '@app/unraid-api/types/json-forms.js';
 
 export enum ContainerPortType {
     TCP = 'TCP',
@@ -27,8 +40,54 @@ export class ContainerPort {
     type!: ContainerPortType;
 }
 
+@ObjectType()
+export class DockerPortConflictContainer {
+    @Field(() => PrefixedID)
+    id!: string;
+
+    @Field(() => String)
+    name!: string;
+}
+
+@ObjectType()
+export class DockerContainerPortConflict {
+    @Field(() => GraphQLPort)
+    privatePort!: number;
+
+    @Field(() => ContainerPortType)
+    type!: ContainerPortType;
+
+    @Field(() => [DockerPortConflictContainer])
+    containers!: DockerPortConflictContainer[];
+}
+
+@ObjectType()
+export class DockerLanPortConflict {
+    @Field(() => String)
+    lanIpPort!: string;
+
+    @Field(() => GraphQLPort, { nullable: true })
+    publicPort?: number;
+
+    @Field(() => ContainerPortType)
+    type!: ContainerPortType;
+
+    @Field(() => [DockerPortConflictContainer])
+    containers!: DockerPortConflictContainer[];
+}
+
+@ObjectType()
+export class DockerPortConflicts {
+    @Field(() => [DockerContainerPortConflict])
+    containerPorts!: DockerContainerPortConflict[];
+
+    @Field(() => [DockerLanPortConflict])
+    lanPorts!: DockerLanPortConflict[];
+}
+
 export enum ContainerState {
     RUNNING = 'RUNNING',
+    PAUSED = 'PAUSED',
     EXITED = 'EXITED',
 }
 
@@ -89,11 +148,29 @@ export class DockerContainer extends Node {
     @Field(() => [ContainerPort])
     ports!: ContainerPort[];
 
+    @Field(() => [String], {
+        nullable: true,
+        description: 'List of LAN-accessible host:port values',
+    })
+    lanIpPorts?: string[];
+
     @Field(() => GraphQLBigInt, {
         nullable: true,
         description: 'Total size of all files in the container (in bytes)',
     })
     sizeRootFs?: number;
+
+    @Field(() => GraphQLBigInt, {
+        nullable: true,
+        description: 'Size of writable layer (in bytes)',
+    })
+    sizeRw?: number;
+
+    @Field(() => GraphQLBigInt, {
+        nullable: true,
+        description: 'Size of container logs (in bytes)',
+    })
+    sizeLog?: number;
 
     @Field(() => GraphQLJSON, { nullable: true })
     labels?: Record<string, any>;
@@ -115,6 +192,30 @@ export class DockerContainer extends Node {
 
     @Field(() => Boolean)
     autoStart!: boolean;
+
+    @Field(() => Int, { nullable: true, description: 'Zero-based order in the auto-start list' })
+    autoStartOrder?: number;
+
+    @Field(() => Int, { nullable: true, description: 'Wait time in seconds applied after start' })
+    autoStartWait?: number;
+
+    @Field(() => String, { nullable: true })
+    templatePath?: string;
+
+    @Field(() => String, { nullable: true, description: 'Project/Product homepage URL' })
+    projectUrl?: string;
+
+    @Field(() => String, { nullable: true, description: 'Registry/Docker Hub URL' })
+    registryUrl?: string;
+
+    @Field(() => String, { nullable: true, description: 'Support page/thread URL' })
+    supportUrl?: string;
+
+    @Field(() => String, { nullable: true, description: 'Icon URL' })
+    iconUrl?: string;
+
+    @Field(() => Boolean, { description: 'Whether the container is orphaned (no template found)' })
+    isOrphaned!: boolean;
 }
 
 @ObjectType({ implements: () => Node })
@@ -162,6 +263,52 @@ export class DockerNetwork extends Node {
     labels!: Record<string, any>;
 }
 
+@ObjectType()
+export class DockerContainerLogLine {
+    @Field(() => GraphQLISODateTime)
+    timestamp!: Date;
+
+    @Field(() => String)
+    message!: string;
+}
+
+@ObjectType()
+export class DockerContainerLogs {
+    @Field(() => PrefixedID)
+    containerId!: string;
+
+    @Field(() => [DockerContainerLogLine])
+    lines!: DockerContainerLogLine[];
+
+    @Field(() => GraphQLISODateTime, {
+        nullable: true,
+        description:
+            'Cursor that can be passed back through the since argument to continue streaming logs.',
+    })
+    cursor?: Date | null;
+}
+
+@ObjectType()
+export class DockerContainerStats {
+    @Field(() => PrefixedID)
+    id!: string;
+
+    @Field(() => Float, { description: 'CPU Usage Percentage' })
+    cpuPercent!: number;
+
+    @Field(() => String, { description: 'Memory Usage String (e.g. 100MB / 1GB)' })
+    memUsage!: string;
+
+    @Field(() => Float, { description: 'Memory Usage Percentage' })
+    memPercent!: number;
+
+    @Field(() => String, { description: 'Network I/O String (e.g. 100MB / 1GB)' })
+    netIO!: string;
+
+    @Field(() => String, { description: 'Block I/O String (e.g. 100MB / 1GB)' })
+    blockIO!: string;
+}
+
 @ObjectType({
     implements: () => Node,
 })
@@ -171,4 +318,43 @@ export class Docker extends Node {
 
     @Field(() => [DockerNetwork])
     networks!: DockerNetwork[];
+
+    @Field(() => DockerPortConflicts)
+    portConflicts!: DockerPortConflicts;
+
+    @Field(() => DockerContainerLogs, {
+        description:
+            'Access container logs. Requires specifying a target container id through resolver arguments.',
+    })
+    logs!: DockerContainerLogs;
+}
+
+@ObjectType()
+export class DockerContainerOverviewForm {
+    @Field(() => ID)
+    id!: string;
+
+    @Field(() => GraphQLJSON)
+    dataSchema!: { properties: DataSlice; type: 'object' };
+
+    @Field(() => GraphQLJSON)
+    uiSchema!: Layout;
+
+    @Field(() => GraphQLJSON)
+    data!: Record<string, any>;
+}
+
+@InputType()
+export class DockerAutostartEntryInput {
+    @Field(() => PrefixedID, { description: 'Docker container identifier' })
+    id!: string;
+
+    @Field(() => Boolean, { description: 'Whether the container should auto-start' })
+    autoStart!: boolean;
+
+    @Field(() => Int, {
+        nullable: true,
+        description: 'Number of seconds to wait after starting the container',
+    })
+    wait?: number | null;
 }

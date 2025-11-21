@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
 import { defaultColors } from '~/themes/default';
+import hexToRgba from 'hex-to-rgba';
 
 import type { GetThemeQuery } from '~/composables/gql/graphql';
 import type { Theme, ThemeVariables } from '~/themes/types';
@@ -38,6 +39,25 @@ const DEFAULT_THEME: Theme = {
 
 type ThemeSource = 'local' | 'server';
 
+const NAV_ELEMENT_IDS = ['header', 'menu', 'footer'] as const;
+
+const hideNavIfEmbeddedInIFrame = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('iframe')?.toLowerCase() !== 'true') {
+    return;
+  }
+
+  NAV_ELEMENT_IDS.forEach((targetId) => {
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.style.display = 'none';
+    }
+  });
+};
 let pendingDarkModeHandler: ((event: Event) => void) | null = null;
 
 const syncBodyDarkClass = (method: 'add' | 'remove'): boolean => {
@@ -104,6 +124,17 @@ const sanitizeTheme = (data: Partial<Theme> | null | undefined): Theme | null =>
     textColor: typeof data.textColor === 'string' ? data.textColor : DEFAULT_THEME.textColor,
   };
 };
+
+const DYNAMIC_VAR_KEYS = [
+  '--custom-header-text-primary',
+  '--custom-header-text-secondary',
+  '--custom-header-background-color',
+  '--custom-header-gradient-start',
+  '--custom-header-gradient-end',
+  '--banner-gradient',
+] as const;
+
+type DynamicVarKey = (typeof DYNAMIC_VAR_KEYS)[number];
 
 export const useThemeStore = defineStore('theme', () => {
   // State
@@ -198,12 +229,118 @@ export const useThemeStore = defineStore('theme', () => {
     }
   }
 
-  const setDevOverride = (enabled: boolean) => {
-    devOverride.value = enabled;
+  const setCssVars = () => {
+    const selectedTheme = theme.value.name;
+
+    // Prepare Tailwind v4 theme classes
+    const themeClasses: string[] = [];
+    const customClasses: string[] = [];
+
+    // Apply dark/light mode using Tailwind v4 theme switching
+    if (darkMode.value) {
+      themeClasses.push('dark');
+    }
+
+    // Apply theme-specific class for Tailwind v4 theme variants
+    themeClasses.push(`theme-${selectedTheme}`);
+
+    // Only set CSS variables for dynamic/user-configured values from GraphQL
+    // Static theme values are handled by Tailwind v4 theme classes in @tailwind-shared
+    const dynamicVars: Partial<Record<DynamicVarKey, string>> = {};
+
+    // User-configured colors from webGUI @ /Settings/DisplaySettings
+    if (theme.value.textColor) {
+      dynamicVars['--custom-header-text-primary'] = theme.value.textColor;
+      customClasses.push('has-custom-header-text');
+    }
+    if (theme.value.metaColor) {
+      dynamicVars['--custom-header-text-secondary'] = theme.value.metaColor;
+      customClasses.push('has-custom-header-meta');
+    }
+
+    if (theme.value.bgColor) {
+      dynamicVars['--custom-header-background-color'] = theme.value.bgColor;
+      dynamicVars['--custom-header-gradient-start'] = hexToRgba(theme.value.bgColor, 0);
+      dynamicVars['--custom-header-gradient-end'] = hexToRgba(theme.value.bgColor, 0.7);
+      customClasses.push('has-custom-header-bg');
+    }
+
+    // Set banner gradient if needed
+    if (theme.value.banner && theme.value.bannerGradient) {
+      const start = theme.value.bgColor
+        ? hexToRgba(theme.value.bgColor, 0)
+        : 'var(--header-gradient-start)';
+      const end = theme.value.bgColor
+        ? hexToRgba(theme.value.bgColor, 0.7)
+        : 'var(--header-gradient-end)';
+
+      dynamicVars['--banner-gradient'] = `linear-gradient(90deg, ${start} 0, ${end} 90%)`;
+      customClasses.push('has-banner-gradient');
+    }
+
+    requestAnimationFrame(() => {
+      hideNavIfEmbeddedInIFrame();
+
+      const scopedTargets: HTMLElement[] = [
+        document.documentElement,
+        ...Array.from(document.querySelectorAll<HTMLElement>('.unapi')),
+      ];
+
+      const cleanClassList = (classList: string) =>
+        classList
+          .split(' ')
+          .filter(
+            (c) =>
+              !c.startsWith('theme-') &&
+              c !== 'dark' &&
+              !c.startsWith('has-custom-') &&
+              c !== 'has-banner-gradient'
+          )
+          .filter(Boolean)
+          .join(' ');
+
+      // Apply theme and custom classes to html element and all .unapi roots
+      scopedTargets.forEach((target) => {
+        target.className = cleanClassList(target.className);
+        [...themeClasses, ...customClasses].forEach((cls) => target.classList.add(cls));
+
+        // if (darkMode.value) {
+        //   target.classList.add('dark');
+        // } else {
+        //   target.classList.remove('dark');
+        // }
+      });
+
+      // Maintain dark mode flag on body for legacy components
+      applyDarkClass(darkMode.value);
+
+      // Only apply dynamic CSS variables for custom user values
+      // All theme defaults are handled by classes in @tailwind-shared/theme-variants.css
+      const activeDynamicKeys = Object.keys(dynamicVars) as DynamicVarKey[];
+
+      scopedTargets.forEach((target) => {
+        activeDynamicKeys.forEach((key) => {
+          const value = dynamicVars[key];
+          if (value !== undefined) {
+            target.style.setProperty(key, value);
+          }
+        });
+
+        DYNAMIC_VAR_KEYS.forEach((key) => {
+          if (!Object.prototype.hasOwnProperty.call(dynamicVars, key)) {
+            target.style.removeProperty(key);
+          }
+        });
+      });
+
+      // Store active variables for reference (from defaultColors for compatibility)
+      const customTheme = { ...defaultColors[selectedTheme] };
+      activeColorVariables.value = customTheme;
+    });
   };
 
-  const setCssVars = () => {
-    applyDarkClass(darkMode.value);
+  const setDevOverride = (enabled: boolean) => {
+    devOverride.value = enabled;
   };
 
   watch(
