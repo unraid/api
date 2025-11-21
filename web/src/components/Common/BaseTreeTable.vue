@@ -472,7 +472,11 @@ const selectedCount = computed(() => {
   return Object.values(rowSelection.value).filter(Boolean).length;
 });
 
-function wrapCellWithRow(row: { original: TreeRow<T>; depth?: number }, cellContent: VNode) {
+function wrapCellWithRow(
+  row: { original: TreeRow<T>; depth?: number },
+  cellContent: VNode,
+  columnIndex: number
+) {
   const isBusy = props.busyRowIds.has(row.original.id);
   const isActive = props.activeId !== null && props.activeId === row.original.id;
   const isDragging = props.enableDragDrop && draggingIds.value.includes(row.original.id);
@@ -485,13 +489,26 @@ function wrapCellWithRow(row: { original: TreeRow<T>; depth?: number }, cellCont
   if (props.enableDragDrop && isProjectionTarget) {
     if (projectionArea === 'inside') {
       dragClass = 'ring-2 ring-primary/50 bg-primary/5 z-10';
-    } else if (projectionArea === 'before') {
+    } else if (columnIndex === 0 && (projectionArea === 'before' || projectionArea === 'after')) {
+      const indicatorClass =
+        projectionArea === 'before'
+          ? 'absolute top-0 left-0 right-full h-0.5 bg-primary pointer-events-none z-[100]'
+          : 'absolute bottom-0 left-0 right-full h-0.5 bg-primary pointer-events-none z-[100]';
+
       dropIndicator = h('div', {
-        class: 'absolute top-0 left-0 right-0 h-0.5 bg-primary pointer-events-none z-20',
-      });
-    } else if (projectionArea === 'after') {
-      dropIndicator = h('div', {
-        class: 'absolute bottom-0 left-0 right-0 h-0.5 bg-primary pointer-events-none z-20',
+        class: indicatorClass,
+        ref: (el) => {
+          if (el && el instanceof HTMLElement) {
+            const cell = el.closest('td');
+            const row = cell?.closest('tr');
+            if (row && cell) {
+              const rowWidth = row.offsetWidth;
+              const cellLeft = cell.offsetLeft;
+              el.style.width = `${rowWidth}px`;
+              el.style.left = `-${cellLeft}px`;
+            }
+          }
+        },
       });
     }
   }
@@ -656,7 +673,8 @@ function createSelectColumn(): TableColumn<TreeRow<T>> {
               role: 'checkbox',
               onClick: (e: Event) => e.stopPropagation(),
             }),
-          ])
+          ]),
+          0
         );
       }
       // Use canExpandRow to determine if we show expansion button
@@ -681,7 +699,8 @@ function createSelectColumn(): TableColumn<TreeRow<T>> {
               e.stopPropagation();
               enhancedRow.toggleExpanded();
             },
-          })
+          }),
+          0
         );
       }
       return h('span');
@@ -695,7 +714,7 @@ function createSelectColumn(): TableColumn<TreeRow<T>> {
 const processedColumns = computed<TableColumn<TreeRow<T>>[]>(() => {
   return [
     createSelectColumn(),
-    ...props.columns.map((col) => {
+    ...props.columns.map((col, colIndex) => {
       const originalHeader = col.header as ColumnHeaderRenderer | undefined;
       const header = wrapColumnHeaderRenderer(originalHeader) ?? originalHeader;
       const cell = (col as { cell?: unknown }).cell
@@ -704,7 +723,7 @@ const processedColumns = computed<TableColumn<TreeRow<T>>[]>(() => {
 
             const enhancedRow = enhanceRowInstance(row as unknown as TableInstanceRow<T>);
             const content = typeof cellFn === 'function' ? cellFn({ row: enhancedRow }) : cellFn;
-            return wrapCellWithRow(enhancedRow, content as VNode);
+            return wrapCellWithRow(enhancedRow, content as VNode, colIndex + 1);
           }
         : undefined;
 
@@ -782,5 +801,13 @@ function enhanceRowInstance(row: TableInstanceRow<T>): EnhancedRow<T> {
 <style scoped>
 .base-tree-table :deep(th) {
   padding: 0;
+}
+
+.base-tree-table :deep(td) {
+  overflow: visible;
+}
+
+.base-tree-table :deep(tr) {
+  position: relative;
 }
 </style>
