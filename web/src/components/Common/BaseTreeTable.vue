@@ -483,19 +483,37 @@ function wrapCellWithRow(
   const isProjectionTarget = projectionState.value?.targetId === row.original.id;
   const projectionArea = projectionState.value?.area;
 
-  let dragClass = '';
   let dropIndicator: VNode | null = null;
 
-  if (props.enableDragDrop && isProjectionTarget) {
+  if (props.enableDragDrop && isProjectionTarget && columnIndex === 0) {
     if (projectionArea === 'inside') {
-      dragClass = 'ring-2 ring-primary/50 bg-primary/5 z-10';
-    } else if (columnIndex === 0 && (projectionArea === 'before' || projectionArea === 'after')) {
+      dropIndicator = h('div', {
+        key: `drop-indicator-${row.original.id}-inside`,
+        class: 'absolute ring-2 ring-inset ring-primary/50 bg-primary/5 pointer-events-none z-[100]',
+        ref: (el) => {
+          if (el && el instanceof HTMLElement) {
+            const cell = el.closest('td');
+            const tr = cell?.closest('tr');
+            if (tr && cell) {
+              const rowWidth = tr.offsetWidth;
+              const rowHeight = tr.offsetHeight;
+              const cellLeft = cell.offsetLeft;
+              const wrapperRect = el.parentElement?.getBoundingClientRect();
+              const rowRect = tr.getBoundingClientRect();
+              const topOffset = wrapperRect ? wrapperRect.top - rowRect.top : 0;
+              el.style.cssText = `width: ${rowWidth}px; height: ${rowHeight}px; left: -${cellLeft}px; top: -${topOffset}px;`;
+            }
+          }
+        },
+      });
+    } else if (projectionArea === 'before' || projectionArea === 'after') {
       const indicatorClass =
         projectionArea === 'before'
           ? 'absolute top-0 left-0 right-full h-0.5 bg-primary pointer-events-none z-[100]'
           : 'absolute bottom-0 left-0 right-full h-0.5 bg-primary pointer-events-none z-[100]';
 
       dropIndicator = h('div', {
+        key: `drop-indicator-${row.original.id}-${projectionArea}`,
         class: indicatorClass,
         ref: (el) => {
           if (el && el instanceof HTMLElement) {
@@ -504,8 +522,7 @@ function wrapCellWithRow(
             if (row && cell) {
               const rowWidth = row.offsetWidth;
               const cellLeft = cell.offsetLeft;
-              el.style.width = `${rowWidth}px`;
-              el.style.left = `-${cellLeft}px`;
+              el.style.cssText = `width: ${rowWidth}px; left: -${cellLeft}px;`;
             }
           }
         },
@@ -521,11 +538,11 @@ function wrapCellWithRow(
   const rowWrapper = h(
     'div',
     {
-      'data-row-id': row.original.id,
+      ...(columnIndex === 0 ? { 'data-row-id': row.original.id } : {}),
       draggable,
       class: `relative block w-full h-full px-3 py-2 ${isBusy ? 'opacity-50 pointer-events-none select-none' : ''} ${
         isActive ? 'bg-primary-50 dark:bg-primary-950/30' : ''
-      } ${canSelectRow(row.original) ? 'cursor-pointer' : ''} ${dragClass} ${
+      } ${canSelectRow(row.original) ? 'cursor-pointer' : ''} ${
         isDragging ? 'opacity-30 pointer-events-none' : ''
       }`,
       onClick: (e: MouseEvent) => {
