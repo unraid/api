@@ -395,6 +395,7 @@ defineExpose({
   globalFilter,
   columnVisibility,
   setGlobalFilter,
+  toggleExpanded,
 });
 
 function findParentFolderIds(

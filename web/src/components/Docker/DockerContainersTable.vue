@@ -150,7 +150,9 @@ const containerNameById = computed(() => {
 
 const rootFolderId = computed<string>(() => props.rootFolderId || 'root');
 
-const baseTableRef = ref<ColumnVisibilityTableInstance | null>(null);
+const baseTableRef = ref<
+  (ColumnVisibilityTableInstance & { toggleExpanded?: (id: string) => void }) | null
+>(null);
 
 const searchableKeys = [
   'name',
@@ -902,6 +904,9 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
 }
 
 function handleRowClick(payload: { id: string; type: string; name: string; meta?: DockerContainer }) {
+  if (payload.type === 'folder') {
+    baseTableRef.value?.toggleExpanded?.(payload.id);
+  }
   emit('row:click', {
     id: payload.id,
     type: payload.type as 'container' | 'folder',
