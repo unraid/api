@@ -6,11 +6,6 @@
 
 /* Default/White Theme */
 .Theme--white {
-  --header-text-primary: #ffffff;
-  --header-text-secondary: #999999;
-  --header-background-color: #1c1b1b;
-  --header-gradient-start: rgba(28, 27, 27, 0);
-  --header-gradient-end: rgba(28, 27, 27, 0.7);
   --color-border: #383735;
   --color-alpha: #ff8c2f;
   --color-beta: #1c1b1b;
@@ -21,11 +16,6 @@
 /* Black Theme */
 .Theme--black,
 .Theme--black.dark {
-  --header-text-primary: #1c1b1b;
-  --header-text-secondary: #999999;
-  --header-background-color: #f2f2f2;
-  --header-gradient-start: rgba(242, 242, 242, 0);
-  --header-gradient-end: rgba(242, 242, 242, 0.7);
   --color-border: #e0e0e0;
   --color-alpha: #ff8c2f;
   --color-beta: #f2f2f2;
@@ -35,11 +25,6 @@
 
 /* Gray Theme */
 .Theme--gray {
-  --header-text-primary: #ffffff;
-  --header-text-secondary: #999999;
-  --header-background-color: #1c1b1b;
-  --header-gradient-start: rgba(28, 27, 27, 0);
-  --header-gradient-end: rgba(28, 27, 27, 0.7);
   --color-border: #383735;
   --color-alpha: #ff8c2f;
   --color-beta: #383735;
@@ -49,11 +34,6 @@
 
 /* Azure Theme */
 .Theme--azure {
-  --header-text-primary: #1c1b1b;
-  --header-text-secondary: #999999;
-  --header-background-color: #f2f2f2;
-  --header-gradient-start: rgba(242, 242, 242, 0);
-  --header-gradient-end: rgba(242, 242, 242, 0.7);
   --color-border: #5a8bb8;
   --color-alpha: #ff8c2f;
   --color-beta: #e7f2f8;
@@ -64,34 +44,4 @@
 /* Dark Mode Overrides */
 .dark {
   --color-border: #383735;
-}
-
-/* 
- * Dynamic color variables for user overrides from GraphQL
- * These are set via JavaScript and override the theme defaults
- * Using :root with class for higher specificity to override theme classes
- */
-:root.has-custom-header-text {
-  --header-text-primary: var(--custom-header-text-primary);
-  --color-header-text-primary: var(--custom-header-text-primary);
-}
-
-:root.has-custom-header-meta {
-  --header-text-secondary: var(--custom-header-text-secondary);
-  --color-header-text-secondary: var(--custom-header-text-secondary);
-}
-
-:root.has-custom-header-bg,
-.has-custom-header-bg.Theme--black,
-.has-custom-header-bg.Theme--black.dark,
-.has-custom-header-bg.Theme--white,
-.has-custom-header-bg.Theme--white.dark,
-.has-custom-header-bg.Theme--gray,
-.has-custom-header-bg.Theme--azure {
-  --header-background-color: var(--custom-header-background-color);
-  --color-header-background: var(--custom-header-background-color);
-  --header-gradient-start: var(--custom-header-gradient-start);
-  --header-gradient-end: var(--custom-header-gradient-end);
-  --color-header-gradient-start: var(--custom-header-gradient-start);
-  --color-header-gradient-end: var(--custom-header-gradient-end);
 }

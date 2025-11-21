@@ -58,12 +58,20 @@ const output = computed(() => {
     return {
       title:
         state.value === 'EEXPIRED'
-          ? t(props.shortText ? 'Expired at {0}' : 'Trial Key Expired at {0}', [formatted.value])
-          : t(props.shortText ? 'Expires at {0}' : 'Trial Key Expires at {0}', [formatted.value]),
+          ? props.shortText
+            ? t('userProfile.uptimeExpire.expiredAt', [formatted.value])
+            : t('userProfile.uptimeExpire.trialKeyExpiredAt', [formatted.value])
+          : props.shortText
+            ? t('userProfile.uptimeExpire.expiresAt', [formatted.value])
+            : t('userProfile.uptimeExpire.trialKeyExpiresAt', [formatted.value]),
       text:
         state.value === 'EEXPIRED'
-          ? t(props.shortText ? 'Expired {0}' : 'Trial Key Expired {0}', [readableDiff.value])
-          : t(props.shortText ? 'Expires in {0}' : 'Trial Key Expires in {0}', [readableDiff.value]),
+          ? props.shortText
+            ? t('userProfile.uptimeExpire.expired', [readableDiff.value])
+            : t('userProfile.uptimeExpire.trialKeyExpired', [readableDiff.value])
+          : props.shortText
+            ? t('userProfile.uptimeExpire.expiresIn', [readableDiff.value])
+            : t('userProfile.uptimeExpire.trialKeyExpiresIn', [readableDiff.value]),
     };
   }
   return {

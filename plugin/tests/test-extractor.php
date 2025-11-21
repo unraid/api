@@ -120,9 +120,13 @@ class ExtractorTest {
         file_put_contents($this->testDir . '/extractor.php', $extractorContent);
     }
     
-    private function getExtractorOutput() {
+    private function getExtractorOutput($resetStatic = false) {
         $_SERVER['DOCUMENT_ROOT'] = '/usr/local/emhttp';
         require_once $this->testDir . '/extractor.php';
+        
+        if ($resetStatic && class_exists('WebComponentsExtractor')) {
+            WebComponentsExtractor::resetScriptsOutput();
+        }
         
         $extractor = WebComponentsExtractor::getInstance();
         return $extractor->getScriptTagHtml();
@@ -299,6 +303,11 @@ class ExtractorTest {
             preg_match('/<link[^>]+id="unraid-[^"]*-css-[^"]+"[^>]+data-unraid="1"/', $output) > 0
         );
         
+        // Test: CSS Variable Validation
+        echo "\nTest: CSS Variable Validation\n";
+        echo "------------------------------\n";
+        $this->testCssVariableValidation();
+        
         // Test: Duplicate Prevention
         echo "\nTest: Duplicate Prevention\n";
         echo "---------------------------\n";
@@ -314,6 +323,114 @@ class ExtractorTest {
         $this->test(
             "Second call returns 'already loaded' message",
             strpos($second, 'Resources already loaded') !== false
+        );
+    }
+    
+    private function testCssVariableValidation() {
+        $_SERVER['DOCUMENT_ROOT'] = '/usr/local/emhttp';
+        require_once $this->testDir . '/extractor.php';
+        
+        $extractor = WebComponentsExtractor::getInstance();
+        $reflection = new ReflectionClass('WebComponentsExtractor');
+        $method = $reflection->getMethod('renderThemeVars');
+        $method->setAccessible(true);
+        
+        // Test valid CSS variable names
+        $validVars = [
+            '--header-text-primary' => '#ffffff',
+            '--header-text-secondary' => '#cccccc',
+            '--header-background-color' => '#000000',
+            '--test-var' => 'value',
+            '--test_var' => 'value',
+            '--test123' => 'value',
+            '--A-Z_a-z0-9' => 'value',
+        ];
+        $output = $method->invoke($extractor, $validVars, 'test');
+        $this->test(
+            "Accepts valid CSS variable names starting with --",
+            strpos($output, '--header-text-primary') !== false &&
+            strpos($output, '--test-var') !== false &&
+            strpos($output, '--test_var') !== false &&
+            strpos($output, '--test123') !== false
+        );
+        
+        // Test invalid CSS variable names (should be rejected)
+        $invalidVars = [
+            'not-a-var' => 'value',
+            '-not-a-var' => 'value',
+            '--var with spaces' => 'value',
+            '--var<script>' => 'value',
+            '--var"quote' => 'value',
+            '--var\'quote' => 'value',
+            '--var;injection' => 'value',
+            '--var:colon' => 'value',
+            '--var.value' => 'value',
+            '--var/value' => 'value',
+            '--var\\backslash' => 'value',
+            '' => 'value',
+            '--' => 'value',
+        ];
+        $output = $method->invoke($extractor, $invalidVars, 'test');
+        $this->test(
+            "Rejects CSS variable names without -- prefix",
+            strpos($output, 'not-a-var') === false &&
+            strpos($output, '-not-a-var') === false
+        );
+        $this->test(
+            "Rejects CSS variable names with spaces",
+            strpos($output, 'var with spaces') === false
+        );
+        $this->test(
+            "Rejects CSS variable names with script tags",
+            strpos($output, '<script>') === false &&
+            strpos($output, 'var<script>') === false
+        );
+        $this->test(
+            "Rejects CSS variable names with quotes",
+            strpos($output, 'var"quote') === false &&
+            strpos($output, "var'quote") === false
+        );
+        $this->test(
+            "Rejects CSS variable names with semicolons",
+            strpos($output, 'var;injection') === false
+        );
+        $this->test(
+            "Rejects CSS variable names with dots",
+            strpos($output, 'var.value') === false
+        );
+        $this->test(
+            "Rejects empty or minimal invalid keys",
+            strpos($output, ': --;') === false
+        );
+        
+        // Test mixed valid and invalid (only valid should appear)
+        $mixedVars = [
+            '--valid-var' => 'value1',
+            'invalid-var' => 'value2',
+            '--another-valid' => 'value3',
+            '--invalid<script>' => 'value4',
+        ];
+        $output = $method->invoke($extractor, $mixedVars, 'test');
+        $this->test(
+            "Accepts valid variables and rejects invalid ones in mixed input",
+            strpos($output, '--valid-var') !== false &&
+            strpos($output, '--another-valid') !== false &&
+            strpos($output, 'invalid-var') === false &&
+            strpos($output, '<script>') === false
+        );
+        
+        // Test non-string keys (should be rejected)
+        $nonStringKeys = [
+            '--valid' => 'value',
+            123 => 'value',
+            true => 'value',
+            null => 'value',
+        ];
+        $output = $method->invoke($extractor, $nonStringKeys, 'test');
+        $this->test(
+            "Rejects non-string keys",
+            strpos($output, '--valid') !== false &&
+            strpos($output, '123') === false
         );
     }
     
@@ -350,6 +467,19 @@ class ExtractorTest {
     private function sanitizeForExpectedId(string $input): string
     {
         return preg_replace('/[^a-zA-Z0-9-]/', '-', $input);
+    }
+    
+    private function resetExtractor() {
+        // Reset singleton instance
+        if (class_exists('WebComponentsExtractor')) {
+            $reflection = new ReflectionClass('WebComponentsExtractor');
+            $instance = $reflection->getProperty('instance');
+            $instance->setAccessible(true);
+            $instance->setValue(null, null);
+            
+            // Reset static flag
+            WebComponentsExtractor::resetScriptsOutput();
+        }
     }
     
     private function reportResults() {

@@ -21,7 +21,7 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { dateTimeFormat, regTy, renewAction, updateOsResponse } = storeToRefs(serverStore);
+const { dateTimeFormat, renewAction, updateOsResponse } = storeToRefs(serverStore);
 const { availableWithRenewal } = storeToRefs(updateOsStore);
 const { ineligibleText } = storeToRefs(updateOsActionsStore);
 
@@ -43,7 +43,7 @@ const heading = computed((): string => {
 });
 
 const text = computed(() => {
-  return t(ineligibleText.value, [regTy.value, formattedReleaseDate.value]);
+  return ineligibleText.value;
 });
 
 const updateButton = ref<UserProfileLink | undefined>();
