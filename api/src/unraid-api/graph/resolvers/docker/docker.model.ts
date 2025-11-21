@@ -201,6 +201,9 @@ export class DockerContainer extends Node {
 
     @Field(() => String, { nullable: true })
     templatePath?: string;
+
+    @Field(() => Boolean, { description: 'Whether the container is orphaned (no template found)' })
+    isOrphaned!: boolean;
 }
 
 @ObjectType({ implements: () => Node })

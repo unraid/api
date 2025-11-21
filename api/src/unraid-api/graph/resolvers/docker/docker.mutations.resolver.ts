@@ -53,6 +53,15 @@ export class DockerMutationsResolver {
         return this.dockerService.unpause(id);
     }
 
+    @ResolveField(() => Boolean, { description: 'Remove a container' })
+    @UsePermissions({
+        action: AuthAction.DELETE_ANY,
+        resource: Resource.DOCKER,
+    })
+    public async removeContainer(@Args('id', { type: () => PrefixedID }) id: string) {
+        return this.dockerService.removeContainer(id);
+    }
+
     @ResolveField(() => Boolean, {
         description: 'Update auto-start configuration for Docker containers',
     })

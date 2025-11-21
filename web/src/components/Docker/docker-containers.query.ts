@@ -44,6 +44,7 @@ export const GET_DOCKER_CONTAINERS = gql`
         }
         networkSettings
         mounts
+        isOrphaned
       }
       organizer(skipCache: $skipCache) {
         version
@@ -85,6 +86,7 @@ export const GET_DOCKER_CONTAINERS = gql`
               isUpdateAvailable
               isRebuildReady
               templatePath
+              isOrphaned
             }
           }
         }

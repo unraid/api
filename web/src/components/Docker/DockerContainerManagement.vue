@@ -7,6 +7,7 @@ import ContainerSizesModal from '@/components/Docker/ContainerSizesModal.vue';
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
 import DockerAutostartSettings from '@/components/Docker/DockerAutostartSettings.vue';
 import DockerContainersTable from '@/components/Docker/DockerContainersTable.vue';
+import DockerOrphanedAlert from '@/components/Docker/DockerOrphanedAlert.vue';
 import DockerPortConflictsAlert from '@/components/Docker/DockerPortConflictsAlert.vue';
 import DockerSidebarTree from '@/components/Docker/DockerSidebarTree.vue';
 import DockerEdit from '@/components/Docker/Edit.vue';
@@ -193,6 +194,10 @@ const viewPrefs = computed(() => result.value?.docker?.organizer?.views?.[0]?.pr
 
 const containers = computed<DockerContainer[]>(() => result.value?.docker?.containers || []);
 
+const orphanedContainers = computed<DockerContainer[]>(() =>
+  containers.value.filter((c) => c.isOrphaned)
+);
+
 const portConflicts = computed<DockerPortConflictsResult | null>(() => {
   const dockerData = result.value?.docker;
   return dockerData?.portConflicts ?? null;
@@ -371,6 +376,9 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
               Container Size
             </UButton>
           </div>
+        </div>
+        <div v-if="orphanedContainers.length" class="mb-4">
+          <DockerOrphanedAlert :orphaned-containers="orphanedContainers" @refresh="refreshContainers" />
         </div>
         <div v-if="hasPortConflicts" class="mb-4">
           <DockerPortConflictsAlert

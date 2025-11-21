@@ -182,9 +182,11 @@ export class DockerService {
         const config = this.dockerConfigService.getConfig();
         const containersWithTemplatePaths = containers.map((c) => {
             const containerName = c.names[0]?.replace(/^\//, '').toLowerCase();
+            const templatePath = config.templateMappings?.[containerName] || undefined;
             return {
                 ...c,
-                templatePath: config.templateMappings?.[containerName] || undefined,
+                templatePath,
+                isOrphaned: !templatePath,
             };
         });
 
@@ -245,6 +247,21 @@ export class DockerService {
         const appInfo = await this.getAppInfo();
         await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
         return updatedContainer;
+    }
+
+    public async removeContainer(id: string): Promise<boolean> {
+        const container = this.client.getContainer(id);
+        try {
+            await container.remove({ force: true });
+            await this.clearContainerCache();
+            this.logger.debug(`Invalidated container caches after removing ${id}`);
+            const appInfo = await this.getAppInfo();
+            await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
+            return true;
+        } catch (error) {
+            this.logger.error(`Failed to remove container ${id}:`, error);
+            throw new Error(`Failed to remove container ${id}`);
+        }
     }
 
     public async updateAutostartConfiguration(

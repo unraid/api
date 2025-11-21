@@ -869,6 +869,9 @@ type DockerMutations {
   """Unpause (Resume) a container"""
   unpause(id: PrefixedID!): DockerContainer!
 
+  """Remove a container"""
+  removeContainer(id: PrefixedID!): Boolean!
+
   """Update auto-start configuration for Docker containers"""
   updateAutostartConfiguration(entries: [DockerAutostartEntryInput!]!, persistUserPreferences: Boolean): Boolean!
 
@@ -1170,6 +1173,9 @@ type DockerContainer implements Node {
   """Wait time in seconds applied after start"""
   autoStartWait: Int
   templatePath: String
+
+  """Whether the container is orphaned (no template found)"""
+  isOrphaned: Boolean!
   isUpdateAvailable: Boolean
   isRebuildReady: Boolean
 }
