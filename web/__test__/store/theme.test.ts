@@ -6,13 +6,10 @@ import { createApp, nextTick, ref } from 'vue';
 import { setActivePinia } from 'pinia';
 
 import { defaultColors } from '~/themes/default';
-import hexToRgba from 'hex-to-rgba';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Theme } from '~/themes/types';
-
 import { globalPinia } from '~/store/globalPinia';
-import { THEME_STORAGE_KEY, useThemeStore } from '~/store/theme';
+import { useThemeStore } from '~/store/theme';
 
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: () => ({
@@ -23,15 +20,10 @@ vi.mock('@vue/apollo-composable', () => ({
   }),
 }));
 
-vi.mock('hex-to-rgba', () => ({
-  default: vi.fn((hex, opacity) => `rgba(mock-${hex}-${opacity})`),
-}));
-
 describe('Theme Store', () => {
   const originalAddClassFn = document.body.classList.add;
   const originalRemoveClassFn = document.body.classList.remove;
   const originalStyleCssText = document.body.style.cssText;
-  const originalDocumentElementSetProperty = document.documentElement.style.setProperty;
   const originalDocumentElementAddClass = document.documentElement.classList.add;
   const originalDocumentElementRemoveClass = document.documentElement.classList.remove;
 
@@ -49,7 +41,6 @@ describe('Theme Store', () => {
     document.body.classList.add = vi.fn();
     document.body.classList.remove = vi.fn();
     document.body.style.cssText = '';
-    document.documentElement.style.setProperty = vi.fn();
     document.documentElement.classList.add = vi.fn();
     document.documentElement.classList.remove = vi.fn();
 
@@ -70,7 +61,6 @@ describe('Theme Store', () => {
     document.body.classList.add = originalAddClassFn;
     document.body.classList.remove = originalRemoveClassFn;
     document.body.style.cssText = originalStyleCssText;
-    document.documentElement.style.setProperty = originalDocumentElementSetProperty;
     document.documentElement.classList.add = originalDocumentElementAddClass;
     document.documentElement.classList.remove = originalDocumentElementRemoveClass;
     vi.restoreAllMocks();
@@ -87,8 +77,6 @@ describe('Theme Store', () => {
   describe('State and Initialization', () => {
     it('should initialize with default theme', () => {
       const store = createStore();
-
-      expect(typeof store.$persist).toBe('function');
 
       expect(store.theme).toEqual({
         name: 'white',
@@ -191,93 +179,62 @@ describe('Theme Store', () => {
       await nextTick();
 
       // activeColorVariables now contains the theme defaults from defaultColors
-      // Custom values are applied as CSS variables on the documentElement
       // The white theme's --color-beta is a reference to var(--header-text-primary)
       expect(store.activeColorVariables['--color-beta']).toBe('var(--header-text-primary)');
-      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
-        '--custom-header-text-primary',
-        '#333333'
-      );
-      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
-        '--custom-header-text-secondary',
-        '#666666'
-      );
-      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
-        '--custom-header-background-color',
-        '#ffffff'
-      );
     });
 
-    it('should handle banner gradient correctly', async () => {
+    it('should apply dark mode classes when theme changes', async () => {
       const store = createStore();
-      const mockHexToRgba = vi.mocked(hexToRgba);
-
-      mockHexToRgba.mockClear();
 
       store.setTheme({
         ...store.theme,
-        banner: true,
-        bannerGradient: true,
-        bgColor: '#112233',
+        name: 'black',
       });
 
       await nextTick();
 
-      expect(mockHexToRgba).toHaveBeenCalledWith('#112233', 0);
-      expect(mockHexToRgba).toHaveBeenCalledWith('#112233', 0.7);
-
-      // Banner gradient values are now set as custom CSS variables on documentElement
-      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
-        '--custom-header-gradient-start',
-        'rgba(mock-#112233-0)'
-      );
-      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
-        '--custom-header-gradient-end',
-        'rgba(mock-#112233-0.7)'
-      );
-      expect(document.documentElement.style.setProperty).toHaveBeenCalledWith(
-        '--banner-gradient',
-        'linear-gradient(90deg, rgba(mock-#112233-0) 0, rgba(mock-#112233-0.7) 90%)'
-      );
+      expect(document.documentElement.classList.add).toHaveBeenCalledWith('dark');
+      expect(document.body.classList.add).toHaveBeenCalledWith('dark');
     });
 
-    it('should hydrate theme from cache when available', () => {
-      const cachedTheme = {
+    it('should apply dark mode classes to all .unapi elements', async () => {
+      const store = createStore();
+
+      const unapiElement1 = document.createElement('div');
+      unapiElement1.classList.add('unapi');
+      document.body.appendChild(unapiElement1);
+
+      const unapiElement2 = document.createElement('div');
+      unapiElement2.classList.add('unapi');
+      document.body.appendChild(unapiElement2);
+
+      const addSpy1 = vi.spyOn(unapiElement1.classList, 'add');
+      const addSpy2 = vi.spyOn(unapiElement2.classList, 'add');
+      const removeSpy1 = vi.spyOn(unapiElement1.classList, 'remove');
+      const removeSpy2 = vi.spyOn(unapiElement2.classList, 'remove');
+
+      store.setTheme({
+        ...store.theme,
         name: 'black',
-        banner: true,
-        bannerGradient: false,
-        bgColor: '#222222',
-        descriptionShow: true,
-        metaColor: '#aaaaaa',
-        textColor: '#ffffff',
-      } satisfies Theme;
+      });
 
-      window.localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify({ theme: cachedTheme }));
-
-      const store = createStore();
-
-      expect(store.theme).toEqual(cachedTheme);
-    });
-
-    it('should persist server theme responses to cache', async () => {
-      const store = createStore();
-
-      const serverTheme = {
-        name: 'gray',
-        banner: false,
-        bannerGradient: false,
-        bgColor: '#111111',
-        descriptionShow: false,
-        metaColor: '#999999',
-        textColor: '#eeeeee',
-      } satisfies Theme;
-
-      store.setTheme(serverTheme, { source: 'server' });
       await nextTick();
 
-      expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toEqual(
-        JSON.stringify({ theme: serverTheme })
-      );
+      expect(addSpy1).toHaveBeenCalledWith('dark');
+      expect(addSpy2).toHaveBeenCalledWith('dark');
+
+      store.setTheme({
+        ...store.theme,
+        name: 'white',
+      });
+
+      await nextTick();
+
+      expect(removeSpy1).toHaveBeenCalledWith('dark');
+      expect(removeSpy2).toHaveBeenCalledWith('dark');
+
+      document.body.removeChild(unapiElement1);
+      document.body.removeChild(unapiElement2);
     });
   });
 });

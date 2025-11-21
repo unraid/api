@@ -4,7 +4,7 @@ import '@app/dotenv.js';
 
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { unlinkSync } from 'fs';
-import { mkdir } from 'fs/promises';
+import { mkdir, readFile } from 'fs/promises';
 import http from 'http';
 import https from 'https';
 

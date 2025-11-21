@@ -18,7 +18,7 @@ const { rebootTypeText } = storeToRefs(useUpdateOsActionsStore());
       <div class="grid gap-y-4">
         <h3 class="flex flex-row items-center gap-2 text-xl leading-normal font-semibold">
           <ExclamationTriangleIcon class="w-5 shrink-0" />
-          {{ t(rebootTypeText) }}
+          {{ rebootTypeText }}
         </h3>
         <div class="text-base leading-relaxed whitespace-normal opacity-75">
           <p>

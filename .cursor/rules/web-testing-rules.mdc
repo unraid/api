@@ -241,4 +241,3 @@ const pinia = createTestingPinia({
 - Set initial state for focused testing
 - Test computed properties by accessing them directly
 - Verify state changes by updating the store
-

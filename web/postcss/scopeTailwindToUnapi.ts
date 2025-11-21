@@ -50,7 +50,8 @@ const DEFAULT_INCLUDE_ROOT = true;
 
 const KEYFRAME_AT_RULES = new Set(['keyframes']);
 const NON_SCOPED_AT_RULES = new Set(['font-face', 'page']);
-const MERGE_WITH_SCOPE_PATTERNS: RegExp[] = [/^\.theme-/, /^\.has-custom-/, /^\.dark\b/];
+const MERGE_WITH_SCOPE_PATTERNS: RegExp[] = [/^\.has-custom-/, /^\.dark\b/];
+const UNSCOPED_PATTERNS: RegExp[] = [/^\.Theme--/];
 
 function shouldScopeRule(rule: Rule, targetLayers: Set<string>, includeRootRules: boolean): boolean {
   const hasSelectorString = typeof rule.selector === 'string' && rule.selector.length > 0;
@@ -119,6 +120,12 @@ function prefixSelector(selector: string, scope: string): string {
     return trimmed;
   }
 
+  // Do not scope Theme-- classes - they should remain global
+  const firstToken = trimmed.split(/[\s>+~]/, 1)[0] ?? '';
+  if (!firstToken.includes('\\:') && UNSCOPED_PATTERNS.some((pattern) => pattern.test(firstToken))) {
+    return trimmed;
+  }
+
   if (trimmed === ':root') {
     return scope;
   }
@@ -127,7 +134,6 @@ function prefixSelector(selector: string, scope: string): string {
     return `${scope}${trimmed.slice(':root'.length)}`;
   }
 
-  const firstToken = trimmed.split(/[\s>+~]/, 1)[0] ?? '';
   const shouldMergeWithScope =
     !firstToken.includes('\\:') && MERGE_WITH_SCOPE_PATTERNS.some((pattern) => pattern.test(firstToken));
 

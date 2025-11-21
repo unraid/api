@@ -35,6 +35,13 @@ vi.mock('@vueuse/core', () => ({
       isSupported: mockIsSupported,
     };
   },
+  useLocalStorage: <T>(key: string, initialValue: T) => {
+    const storage = new Map<string, T>();
+    if (!storage.has(key)) {
+      storage.set(key, initialValue);
+    }
+    return ref(storage.get(key) ?? initialValue);
+  },
 }));
 
 vi.mock('@unraid/ui', () => ({

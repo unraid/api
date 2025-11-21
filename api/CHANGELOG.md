@@ -1,5 +1,67 @@
 # Changelog
 
+## [4.27.2](https://github.com/unraid/api/compare/v4.27.1...v4.27.2) (2025-11-21)
+
+
+### Bug Fixes
+
+* issue with header flashing + issue with trial date ([64875ed](https://github.com/unraid/api/commit/64875edbba786a0d1ba0113c9e9a3d38594eafcc))
+
+## [4.27.1](https://github.com/unraid/api/compare/v4.27.0...v4.27.1) (2025-11-21)
+
+
+### Bug Fixes
+
+* missing translations for expiring trials ([#1800](https://github.com/unraid/api/issues/1800)) ([36c1049](https://github.com/unraid/api/commit/36c104915ece203a3cac9e1a13e0c325e536a839))
+* resolve header flash when background color is set ([#1796](https://github.com/unraid/api/issues/1796)) ([dc9a036](https://github.com/unraid/api/commit/dc9a036c73d8ba110029364e0d044dc24c7d0dfa))
+
+## [4.27.0](https://github.com/unraid/api/compare/v4.26.2...v4.27.0) (2025-11-19)
+
+
+### Features
+
+* remove Unraid API log download functionality ([#1793](https://github.com/unraid/api/issues/1793)) ([e4a9b82](https://github.com/unraid/api/commit/e4a9b8291b049752a9ff59b17ff50cf464fe0535))
+
+
+### Bug Fixes
+
+* auto-uninstallation of connect api plugin ([#1791](https://github.com/unraid/api/issues/1791)) ([e734043](https://github.com/unraid/api/commit/e7340431a58821ec1b4f5d1b452fba6613b01fa5))
+
+## [4.26.2](https://github.com/unraid/api/compare/v4.26.1...v4.26.2) (2025-11-19)
+
+
+### Bug Fixes
+
+* **theme:** Missing header background color ([e2fdf6c](https://github.com/unraid/api/commit/e2fdf6cadbd816559b8c82546c2bc771a81ffa9e))
+
+## [4.26.1](https://github.com/unraid/api/compare/v4.26.0...v4.26.1) (2025-11-18)
+
+
+### Bug Fixes
+
+* **theme:** update theme class naming and scoping logic ([b28ef1e](https://github.com/unraid/api/commit/b28ef1ea334cb4842f01fa992effa7024185c6c9))
+
+## [4.26.0](https://github.com/unraid/api/compare/v4.25.3...v4.26.0) (2025-11-17)
+
+
+### Features
+
+* add cpu power query & subscription ([#1745](https://github.com/unraid/api/issues/1745)) ([d7aca81](https://github.com/unraid/api/commit/d7aca81c60281bfa47fb9113929c1ead6ed3361b))
+* add schema publishing to apollo studio ([#1772](https://github.com/unraid/api/issues/1772)) ([7e13202](https://github.com/unraid/api/commit/7e13202aa1c02803095bb72bb1bcb2472716f53a))
+* add workflow_dispatch trigger to schema publishing workflow ([818e7ce](https://github.com/unraid/api/commit/818e7ce997059663e07efcf1dab706bf0d7fc9da))
+* apollo studio readme link ([c4cd0c6](https://github.com/unraid/api/commit/c4cd0c63520deec15d735255f38811f0360fe3a1))
+* **cli:** make `unraid-api plugins remove` scriptable ([#1774](https://github.com/unraid/api/issues/1774)) ([64eb9ce](https://github.com/unraid/api/commit/64eb9ce9b5d1ff4fb1f08d9963522c5d32221ba7))
+* use persisted theme css to fix flashes on header ([#1784](https://github.com/unraid/api/issues/1784)) ([854b403](https://github.com/unraid/api/commit/854b403fbd85220a3012af58ce033cf0b8418516))
+
+
+### Bug Fixes
+
+* **api:** decode html entities before parsing notifications ([#1768](https://github.com/unraid/api/issues/1768)) ([42406e7](https://github.com/unraid/api/commit/42406e795da1e5b95622951a467722dde72d51a8))
+* **connect:** disable api plugin if unraid plugin is absent ([#1773](https://github.com/unraid/api/issues/1773)) ([c264a18](https://github.com/unraid/api/commit/c264a1843cf115e8cc1add1ab4f12fdcc932405a))
+* detection of flash backup activation state ([#1769](https://github.com/unraid/api/issues/1769)) ([d18eaf2](https://github.com/unraid/api/commit/d18eaf2364e0c04992c52af38679ff0a0c570440))
+* re-add missing header gradient styles ([#1787](https://github.com/unraid/api/issues/1787)) ([f8a6785](https://github.com/unraid/api/commit/f8a6785e9c92f81acaef76ac5eb78a4a769e69da))
+* respect OS safe mode in plugin loader ([#1775](https://github.com/unraid/api/issues/1775)) ([92af3b6](https://github.com/unraid/api/commit/92af3b61156cabae70368cf5222a2f7ac5b4d083))
+
 ## [4.25.3](https://github.com/unraid/unraid-api/compare/v4.25.2...v4.25.3) (2025-10-22)
 
 

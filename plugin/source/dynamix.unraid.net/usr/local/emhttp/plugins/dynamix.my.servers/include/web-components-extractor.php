@@ -1,5 +1,11 @@
 <?php
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+if (!class_exists('ThemeHelper')) {
+    $themeHelperPath = $docroot . '/plugins/dynamix/include/ThemeHelper.php';
+    if (is_readable($themeHelperPath)) {
+        require_once $themeHelperPath;
+    }
+}
 
 class WebComponentsExtractor
 {
@@ -148,22 +154,169 @@ class WebComponentsExtractor
         return $files;
     }
 
+    private function normalizeHex(?string $color): ?string
+    {
+        if (!is_string($color) || trim($color) === '') {
+            return null;
+        }
+        $color = trim($color);
+        if ($color[0] !== '#') {
+            $color = '#' . ltrim($color, '#');
+        }
+        $hex = substr($color, 1);
+        if (strlen($hex) === 3) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+        if (!ctype_xdigit($hex) || strlen($hex) !== 6) {
+            return null;
+        }
+        return '#' . strtolower($hex);
+    }
+
+    private function hexToRgba(string $hex, float $alpha): string
+    {
+        $hex = ltrim($hex, '#');
+        if (strlen($hex) === 3) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+        $r = hexdec(substr($hex, 0, 2));
+        $g = hexdec(substr($hex, 2, 2));
+        $b = hexdec(substr($hex, 4, 2));
+        return sprintf('rgba(%d, %d, %d, %.3f)', $r, $g, $b, max(0, min(1, $alpha)));
+    }
+
+    /**
+     * Attempt to build CSS variables from PHP display data (server-rendered settings).
+     *
+     * @return array{vars: array<string,string>, classes: string[], diagnostics: array}|null
+     */
+    private function getDisplayThemeVars(): ?array
+    {
+        if (!isset($GLOBALS['display']) || !is_array($GLOBALS['display'])) {
+            return null;
+        }
+        $display = $GLOBALS['display'];
+        $vars = [];
+
+        $textPrimary = $this->normalizeHex($display['header'] ?? null);
+        if ($textPrimary) {
+            $vars['--header-text-primary'] = $textPrimary;
+        }
+
+        $textSecondary = $this->normalizeHex($display['headermetacolor'] ?? null);
+        if ($textSecondary) {
+            $vars['--header-text-secondary'] = $textSecondary;
+        }
+
+        $theme = strtolower(trim($display['theme'] ?? ''));
+        if ($theme === 'white') {
+            if (!$textPrimary) {
+                $vars['--header-text-primary'] = 'var(--inverse-text-color, #ffffff)';
+            }
+            if (!$textSecondary) {
+                $vars['--header-text-secondary'] = 'var(--alt-text-color, #999999)';
+            }
+        }
+
+        $bgColor = $this->normalizeHex($display['background'] ?? null);
+        if ($bgColor) {
+            $vars['--header-background-color'] = $bgColor;
+            $vars['--header-gradient-start'] = $this->hexToRgba($bgColor, 0);
+            $vars['--header-gradient-end'] = $this->hexToRgba($bgColor, 0.7);
+        }
+
+        $shouldShowBannerGradient = ($display['showBannerGradient'] ?? '') === 'yes';
+        if ($shouldShowBannerGradient) {
+            $start = $vars['--header-gradient-start'] ?? 'rgba(0, 0, 0, 0)';
+            $end = $vars['--header-gradient-end'] ?? 'rgba(0, 0, 0, 0.7)';
+            $vars['--banner-gradient'] = sprintf(
+                'linear-gradient(90deg, %s 0, %s 90%%)',
+                $start,
+                $end
+            );
+        }
+
+        if (empty($vars)) {
+            return null;
+        }
+
+        return [
+            'vars' => $vars,
+            'diagnostics' => [
+                'theme' => $display['theme'] ?? null,
+            ],
+        ];
+    }
+
+    private function renderThemeVars(array $cssVars, string $source, array $diagnostics = []): string
+    {
+        $cssRules = [];
+        foreach ($cssVars as $key => $value) {
+            if (!is_string($key) || !is_string($value) || $value === '') {
+                continue;
+            }
+
+            if (!preg_match('/^--[A-Za-z0-9_-]+$/', $key)) {
+                continue;
+            }
+
+            $safeKey = htmlspecialchars($key, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $safeValue = str_replace('</style>', '<\/style>', $value);
+
+            $cssRules[] = sprintf(
+                '  %s: %s;',
+                $safeKey,
+                $safeValue
+            );
+        }
+
+        if (empty($cssRules)) {
+            return '';
+        }
+
+        return '<style id="unraid-theme-css-vars">
+:root {
+' . implode("\n", $cssRules) . '
+}
+</style>';
+    }
+
+    private function getThemeInitScript(): string
+    {
+        $displayTheme = $this->getDisplayThemeVars();
+        if ($displayTheme) {
+            return $this->renderThemeVars(
+                $displayTheme['vars'],
+                'display',
+                $displayTheme['diagnostics'] ?? []
+            );
+        }
+
+        return '';
+    }
+
+    private static bool $scriptsOutput = false;
+
     public function getScriptTagHtml(): string
     {
-        // Use a static flag to ensure scripts are only output once per request
-        static $scriptsOutput = false;
-        
-        if ($scriptsOutput) {
+        if (self::$scriptsOutput) {
             return '<!-- Resources already loaded -->';
         }
         
         try {
-            $scriptsOutput = true;
-            return $this->processManifestFiles();
+            self::$scriptsOutput = true;
+            $themeScript = $this->getThemeInitScript();
+            $manifestScripts = $this->processManifestFiles();
+            return $themeScript . "\n" . $manifestScripts;
         } catch (\Exception $e) {
             error_log("Error in WebComponentsExtractor::getScriptTagHtml: " . $e->getMessage());
-            $scriptsOutput = false; // Reset on error
+            self::$scriptsOutput = false; // Reset on error
             return "";
         }
+    }
+
+    public static function resetScriptsOutput(): void
+    {
+        self::$scriptsOutput = false;
     }
 }

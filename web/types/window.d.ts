@@ -25,7 +25,6 @@ declare global {
     // These are generated for each component in componentMappings
     mountAuth?: (selector?: string) => unknown;
     mountConnectSettings?: (selector?: string) => unknown;
-    mountDownloadApiLogs?: (selector?: string) => unknown;
     mountHeaderOsVersion?: (selector?: string) => unknown;
     mountModals?: (selector?: string) => unknown;
     mountModalsLegacy?: (selector?: string) => unknown;

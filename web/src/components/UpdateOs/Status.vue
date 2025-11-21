@@ -198,7 +198,7 @@ const navigateToRegistration = () => {
             variant="yellow"
             :icon="() => h(ExclamationTriangleIcon, { style: 'width: 16px; height: 16px;' })"
           >
-            {{ t(rebootTypeText) }}
+            {{ rebootTypeText }}
           </Badge>
         </template>
 

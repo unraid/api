@@ -60,7 +60,6 @@ declare module 'vue' {
     DockerSidebarTree: typeof import('./src/components/Docker/DockerSidebarTree.vue')['default']
     Downgrade: typeof import('./src/components/UpdateOs/Downgrade.vue')['default']
     'DowngradeOs.standalone': typeof import('./src/components/DowngradeOs.standalone.vue')['default']
-    'DownloadApiLogs.standalone': typeof import('./src/components/DownloadApiLogs.standalone.vue')['default']
     DropdownConnectStatus: typeof import('./src/components/UserProfile/DropdownConnectStatus.vue')['default']
     DropdownContent: typeof import('./src/components/UserProfile/DropdownContent.vue')['default']
     DropdownError: typeof import('./src/components/UserProfile/DropdownError.vue')['default']

@@ -10,6 +10,7 @@ import type { ExternalUpdateOsAction } from '@unraid/shared-callbacks';
 import type { Release } from '~/store/updateOsActions';
 
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { testTranslate } from '../utils/i18n';
 
 vi.mock('~/helpers/urls', () => ({
   WEBGUI_TOOLS_UPDATE: 'https://webgui/tools/update',
@@ -48,20 +49,34 @@ vi.mock('~/store/account', () => ({
   }),
 }));
 
+const mockServerStore = {
+  guid: 'test-guid',
+  keyfile: 'test-keyfile',
+  osVersion: '6.12.4',
+  osVersionBranch: 'stable',
+  regUpdatesExpired: false,
+  regTy: 'Plus',
+  locale: 'en_US' as string | undefined,
+  rebootType: '',
+  updateOsResponse: null as { date: string } | null,
+};
+
 vi.mock('~/store/server', () => ({
-  useServerStore: () => ({
-    guid: 'test-guid',
-    keyfile: 'test-keyfile',
-    osVersion: '6.12.4',
-    osVersionBranch: 'stable',
-    regUpdatesExpired: false,
-    rebootType: '',
-  }),
+  useServerStore: () => mockServerStore,
 }));
 
+const mockUpdateOsStore = {
+  available: '6.12.5',
+  availableWithRenewal: false,
+};
+
 vi.mock('~/store/updateOs', () => ({
-  useUpdateOsStore: () => ({
-    available: '6.12.5',
+  useUpdateOsStore: () => mockUpdateOsStore,
+}));
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: testTranslate,
   }),
 }));
 
@@ -70,6 +85,19 @@ describe('UpdateOsActions Store', () => {
 
   beforeEach(() => {
     setActivePinia(createPinia());
+    // Reset mocks to default values
+    mockServerStore.guid = 'test-guid';
+    mockServerStore.keyfile = 'test-keyfile';
+    mockServerStore.osVersion = '6.12.4';
+    mockServerStore.osVersionBranch = 'stable';
+    mockServerStore.regUpdatesExpired = false;
+    mockServerStore.regTy = 'Plus';
+    mockServerStore.locale = 'en_US';
+    mockServerStore.rebootType = '';
+    mockServerStore.updateOsResponse = null;
+    mockUpdateOsStore.available = '6.12.5';
+    mockUpdateOsStore.availableWithRenewal = false;
+
     store = useUpdateOsActionsStore();
     vi.clearAllMocks();
 
@@ -415,6 +443,108 @@ describe('UpdateOsActions Store', () => {
 
       store.setStatus('updating');
       expect(store.status).toBe('updating');
+    });
+  });
+
+  describe('formattedReleaseDate', () => {
+    it('should return empty string when no release date is available', () => {
+      mockUpdateOsStore.availableWithRenewal = false;
+      mockServerStore.updateOsResponse = null;
+      store = useUpdateOsActionsStore();
+      expect(store.formattedReleaseDate).toBe('');
+    });
+
+    it('should format date correctly with locale from server store', () => {
+      mockUpdateOsStore.availableWithRenewal = true;
+      mockServerStore.updateOsResponse = { date: '2023-10-15' };
+      mockServerStore.locale = 'en_US';
+      store = useUpdateOsActionsStore();
+
+      const formatted = store.formattedReleaseDate;
+      expect(formatted).toBeTruthy();
+      expect(formatted).toContain('2023');
+      expect(formatted).toContain('October');
+      expect(formatted).toContain('15');
+    });
+
+    it('should normalize locale underscores to hyphens', () => {
+      mockUpdateOsStore.availableWithRenewal = true;
+      mockServerStore.updateOsResponse = { date: '2023-10-15' };
+      mockServerStore.locale = 'fr_FR';
+      store = useUpdateOsActionsStore();
+
+      const formatted = store.formattedReleaseDate;
+      expect(formatted).toBeTruthy();
+      expect(typeof formatted).toBe('string');
+      expect(formatted.length).toBeGreaterThan(0);
+    });
+
+    it('should fall back to navigator.language when locale is missing', () => {
+      const originalLanguage = navigator.language;
+      Object.defineProperty(navigator, 'language', {
+        value: 'de-DE',
+        configurable: true,
+      });
+
+      mockUpdateOsStore.availableWithRenewal = true;
+      mockServerStore.updateOsResponse = { date: '2023-10-15' };
+      mockServerStore.locale = undefined;
+      store = useUpdateOsActionsStore();
+
+      const formatted = store.formattedReleaseDate;
+      expect(formatted).toBeTruthy();
+      expect(typeof formatted).toBe('string');
+
+      Object.defineProperty(navigator, 'language', {
+        value: originalLanguage,
+        configurable: true,
+      });
+    });
+
+    it('should fall back to en-US when locale and navigator.language are missing', () => {
+      const originalLanguage = navigator.language;
+      Object.defineProperty(navigator, 'language', {
+        value: undefined,
+        configurable: true,
+      });
+
+      mockUpdateOsStore.availableWithRenewal = true;
+      mockServerStore.updateOsResponse = { date: '2023-10-15' };
+      mockServerStore.locale = undefined;
+      store = useUpdateOsActionsStore();
+
+      const formatted = store.formattedReleaseDate;
+      expect(formatted).toBeTruthy();
+      expect(formatted).toContain('2023');
+      expect(formatted).toContain('October');
+      expect(formatted).toContain('15');
+
+      Object.defineProperty(navigator, 'language', {
+        value: originalLanguage,
+        configurable: true,
+      });
+    });
+
+    it('should parse date correctly to avoid off-by-one errors', () => {
+      mockUpdateOsStore.availableWithRenewal = true;
+      mockServerStore.updateOsResponse = { date: '2023-01-01' };
+      mockServerStore.locale = 'en-US';
+      store = useUpdateOsActionsStore();
+
+      const formatted = store.formattedReleaseDate;
+      expect(formatted).toContain('January');
+      expect(formatted).toContain('1');
+    });
+  });
+
+  describe('ineligibleText', () => {
+    it('should return empty string when eligible', () => {
+      mockServerStore.guid = 'test-guid';
+      mockServerStore.keyfile = 'test-keyfile';
+      mockServerStore.osVersion = '6.12.4';
+      mockServerStore.regUpdatesExpired = false;
+      store = useUpdateOsActionsStore();
+      expect(store.ineligibleText).toBe('');
     });
   });
 });

@@ -1,4 +1,5 @@
 import { computed, ref, watchEffect } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { defineStore } from 'pinia';
 
 import { ArrowPathIcon, BellAlertIcon } from '@heroicons/vue/24/solid';
@@ -32,6 +33,7 @@ export interface Release {
 }
 
 export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
+  const { t } = useI18n();
   const accountStore = useAccountStore();
   // const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
@@ -48,8 +50,13 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const osVersion = computed(() => serverStore.osVersion);
   const osVersionBranch = computed(() => serverStore.osVersionBranch);
   const regUpdatesExpired = computed(() => serverStore.regUpdatesExpired);
+  const regTy = computed(() => serverStore.regTy);
+  const locale = computed(() => serverStore.locale);
 
   const updateOsAvailable = computed(() => updateOsStore.available);
+  const availableWithRenewalRelease = computed(() =>
+    updateOsStore.availableWithRenewal ? serverStore.updateOsResponse : undefined
+  );
   /** used when coming back from callback, this will be the release to install */
   const status = ref<
     | 'confirming'
@@ -65,14 +72,13 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const callbackUpdateRelease = ref<Release | null>(null);
   const rebootType = computed(() => serverStore.rebootType);
   const rebootTypeText = computed(() => {
-    /** translations are handled by rendering template's `t()` */
     switch (rebootType.value) {
       case 'thirdPartyDriversDownloading':
-        return 'Updating 3rd party drivers';
+        return t('updateOs.reboot.thirdPartyDriversDownloading');
       case 'downgrade':
-        return 'Reboot Required for Downgrade';
+        return t('updateOs.reboot.downgrade');
       case 'update':
-        return 'Reboot Required for Update';
+        return t('updateOs.reboot.update');
       default:
         return '';
     }
@@ -81,23 +87,37 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const ineligible = computed(
     () => !guid.value || !keyfile.value || !osVersion.value || regUpdatesExpired.value
   );
+  const formattedReleaseDate = computed(() => {
+    if (!availableWithRenewalRelease.value?.date) return '';
+    const dateStr = availableWithRenewalRelease.value.date;
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    const userLocale = locale.value?.replace('_', '-') || navigator.language || 'en-US';
+    return new Intl.DateTimeFormat(userLocale, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(date);
+  });
+
   const ineligibleText = computed(() => {
-    // translated in components
     if (!guid.value) {
-      return 'A valid GUID is required to check for OS updates.';
+      return t('updateOs.ineligible.guidRequired');
     }
     if (!keyfile.value) {
-      return 'A valid keyfile is required to check for OS updates.';
+      return t('updateOs.ineligible.keyfileRequired');
     }
     if (!osVersion.value) {
-      return 'A valid OS version is required to check for OS updates.';
+      return t('updateOs.ineligible.osVersionRequired');
     }
     if (regUpdatesExpired.value) {
-      const base =
-        'Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates.';
-      const addtlText =
-        'You are still eligible to access OS updates that were published on or before {1}.';
-      return updateOsAvailable.value ? `${base} ${addtlText}` : base;
+      if (updateOsAvailable.value) {
+        return t('updateOs.ineligible.updatesExpiredWithAvailable', [
+          regTy.value,
+          formattedReleaseDate.value,
+        ]);
+      }
+      return t('updateOs.ineligible.updatesExpired', [regTy.value]);
     }
     return '';
   });
@@ -241,6 +261,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     status,
     ineligible,
     ineligibleText,
+    formattedReleaseDate,
     toolsRegistrationAction,
     // Actions
     actOnUpdateOsAction,

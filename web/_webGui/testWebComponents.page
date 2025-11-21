@@ -138,7 +138,6 @@ if ($display['theme'] === 'black' || $display['theme'] === 'azure') {
   <unraid-auth></connect-auth>
 </div>
 <div class="ComponentWrapper">
-  <unraid-download-api-logs></connect-download-api-logs>
 </div>
 <div class="ComponentWrapper">
   <unraid-key-actions></connect-key-actions>

@@ -43,11 +43,6 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'connect-settings',
   },
   {
-    component: defineAsyncComponent(() => import('../DownloadApiLogs.standalone.vue')),
-    selector: 'unraid-download-api-logs',
-    appId: 'download-api-logs',
-  },
-  {
     component: defineAsyncComponent(() => import('@/components/Modals.standalone.vue')),
     selector: ['unraid-modals', '#modals', 'modals-direct'], // All possible modal selectors
     appId: 'modals',

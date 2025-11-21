@@ -123,11 +123,6 @@ watch(
         <hr class="border-muted" />
 
         <!-- <h3 class="text-lg font-semibold font-mono">
-            DownloadApiLogsCe
-          </h3>
-          <DownloadApiLogsCe />
-          <hr class="border-black dark:border-white"> -->
-        <!-- <h3 class="text-lg font-semibold font-mono">
             AuthCe
           </h3>
           <AuthCe />

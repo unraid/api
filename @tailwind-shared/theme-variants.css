@@ -5,13 +5,7 @@
  */
 
 /* Default/White Theme */
-:root,
-.theme-white {
-  --header-text-primary: #ffffff;
-  --header-text-secondary: #999999;
-  --header-background-color: #1c1b1b;
-  --header-gradient-start: rgba(28, 27, 27, 0);
-  --header-gradient-end: rgba(28, 27, 27, 0.7);
+.Theme--white {
   --color-border: #383735;
   --color-alpha: #ff8c2f;
   --color-beta: #1c1b1b;
@@ -20,13 +14,8 @@
 }
 
 /* Black Theme */
-.theme-black,
-.theme-black.dark {
-  --header-text-primary: #1c1b1b;
-  --header-text-secondary: #999999;
-  --header-background-color: #f2f2f2;
-  --header-gradient-start: rgba(242, 242, 242, 0);
-  --header-gradient-end: rgba(242, 242, 242, 0.7);
+.Theme--black,
+.Theme--black.dark {
   --color-border: #e0e0e0;
   --color-alpha: #ff8c2f;
   --color-beta: #f2f2f2;
@@ -35,12 +24,7 @@
 }
 
 /* Gray Theme */
-.theme-gray {
-  --header-text-primary: #ffffff;
-  --header-text-secondary: #999999;
-  --header-background-color: #1c1b1b;
-  --header-gradient-start: rgba(28, 27, 27, 0);
-  --header-gradient-end: rgba(28, 27, 27, 0.7);
+.Theme--gray {
   --color-border: #383735;
   --color-alpha: #ff8c2f;
   --color-beta: #383735;
@@ -49,12 +33,7 @@
 }
 
 /* Azure Theme */
-.theme-azure {
-  --header-text-primary: #1c1b1b;
-  --header-text-secondary: #999999;
-  --header-background-color: #f2f2f2;
-  --header-gradient-start: rgba(242, 242, 242, 0);
-  --header-gradient-end: rgba(242, 242, 242, 0.7);
+.Theme--azure {
   --color-border: #5a8bb8;
   --color-alpha: #ff8c2f;
   --color-beta: #e7f2f8;
@@ -65,28 +44,4 @@
 /* Dark Mode Overrides */
 .dark {
   --color-border: #383735;
-}
-
-/* 
- * Dynamic color variables for user overrides from GraphQL
- * These are set via JavaScript and override the theme defaults
- * Using :root with class for higher specificity to override theme classes
- */
-:root.has-custom-header-text {
-  --header-text-primary: var(--custom-header-text-primary);
-  --color-header-text-primary: var(--custom-header-text-primary);
-}
-
-:root.has-custom-header-meta {
-  --header-text-secondary: var(--custom-header-text-secondary);
-  --color-header-text-secondary: var(--custom-header-text-secondary);
-}
-
-:root.has-custom-header-bg {
-  --header-background-color: var(--custom-header-background-color);
-  --color-header-background: var(--custom-header-background-color);
-  --header-gradient-start: var(--custom-header-gradient-start);
-  --header-gradient-end: var(--custom-header-gradient-end);
-  --color-header-gradient-start: var(--custom-header-gradient-start);
-  --color-header-gradient-end: var(--custom-header-gradient-end);
 }

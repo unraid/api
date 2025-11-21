@@ -10,7 +10,6 @@ import { createI18nInstance, ensureLocale, getWindowLocale } from '~/helpers/i18
 
 // Import Pinia for use in Vue apps
 import { globalPinia } from '~/store/globalPinia';
-import { useThemeStore } from '~/store/theme';
 import { ensureUnapiScope, ensureUnapiScopeForSelectors, observeUnapiScope } from '~/utils/unapiScope';
 
 // Ensure Apollo client is singleton
@@ -117,8 +116,6 @@ export async function mountUnifiedApp() {
   app.use(globalPinia);
   app.use(ui);
   app.provide(DefaultApolloClient, apolloClient);
-
-  const themeStore = useThemeStore();
 
   // Mount the app to establish context
   let rootElement = document.getElementById('unraid-unified-root');
@@ -251,9 +248,6 @@ export async function mountUnifiedApp() {
       unmount: () => render(null, element),
     });
   });
-
-  // Re-apply theme classes/variables now that new scoped roots exist
-  themeStore.setCssVars();
 
   console.debug(`[UnifiedMount] Mounted ${mountedComponents.length} components`);
 

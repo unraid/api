@@ -6,6 +6,7 @@ import type { ApiConfig } from '@unraid/shared/services/api-config.js';
 import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
 import { csvStringToArray } from '@unraid/shared/util/data.js';
 
+import { isConnectPluginInstalled } from '@app/connect-plugin-cleanup.js';
 import { API_VERSION, PATHS_CONFIG_MODULES } from '@app/environment.js';
 
 export { type ApiConfig };
@@ -29,6 +30,13 @@ export const loadApiConfig = async () => {
     const apiHandler = new ApiConfigPersistence(new ConfigService()).getFileHandler();
 
     const diskConfig: Partial<ApiConfig> = await apiHandler.loadConfig();
+    // Hack: cleanup stale connect plugin entry if necessary
+    if (!isConnectPluginInstalled()) {
+        diskConfig.plugins = diskConfig.plugins?.filter(
+            (plugin) => plugin !== 'unraid-api-plugin-connect'
+        );
+        await apiHandler.writeConfigFile(diskConfig as ApiConfig);
+    }
 
     return {
         ...defaultConfig,

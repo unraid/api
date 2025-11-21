@@ -21,9 +21,19 @@ describe('PluginManagementService', () => {
                 if (key === 'api.plugins') {
                     return configStore ?? defaultValue ?? [];
                 }
+                if (key === 'api') {
+                    return { plugins: configStore ?? defaultValue ?? [] };
+                }
                 return defaultValue;
             }),
             set: vi.fn((key: string, value: unknown) => {
+                if (key === 'api' && typeof value === 'object' && value !== null) {
+                    // @ts-expect-error - value is an object
+                    if (Array.isArray(value.plugins)) {
+                        // @ts-expect-error - value is an object
+                        configStore = [...value.plugins];
+                    }
+                }
                 if (key === 'api.plugins' && Array.isArray(value)) {
                     configStore = [...value];
                 }
