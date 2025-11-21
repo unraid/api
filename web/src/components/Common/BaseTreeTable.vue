@@ -165,6 +165,23 @@ watch(
   { deep: true }
 );
 
+watch(
+  () => props.activeId,
+  (activeId) => {
+    if (activeId) {
+      const parentFolderIds = findParentFolderIds(activeId, filteredData.value);
+      if (parentFolderIds) {
+        for (const folderId of parentFolderIds) {
+          if (!expandedRowIds.value.has(folderId)) {
+            toggleExpanded(folderId);
+          }
+        }
+      }
+    }
+  },
+  { immediate: true }
+);
+
 function handleContainerDragOver(event: DragEvent) {
   if (!props.enableDragDrop || !draggingIds.value.length) return;
   event.preventDefault();
@@ -379,6 +396,26 @@ defineExpose({
   columnVisibility,
   setGlobalFilter,
 });
+
+function findParentFolderIds(
+  targetId: string,
+  rows: TreeRow<T>[],
+  path: string[] = []
+): string[] | null {
+  for (const row of rows) {
+    if (row.id === targetId) {
+      return path;
+    }
+    if (row.children && row.children.length) {
+      const newPath = row.type === 'folder' ? [...path, row.id] : path;
+      const found = findParentFolderIds(targetId, row.children, newPath);
+      if (found !== null) {
+        return found;
+      }
+    }
+  }
+  return null;
+}
 
 function enhanceRowInstance(row: TableInstanceRow<T>): EnhancedRow<T> {
   return {
