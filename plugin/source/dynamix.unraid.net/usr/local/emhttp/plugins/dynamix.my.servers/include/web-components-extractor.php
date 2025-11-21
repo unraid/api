@@ -211,10 +211,10 @@ class WebComponentsExtractor
         $theme = strtolower(trim($display['theme'] ?? ''));
         if ($theme === 'white') {
             if (!$textPrimary) {
-                $vars['--header-text-primary'] = 'var(--inverse-text-color)';
+                $vars['--header-text-primary'] = 'var(--inverse-text-color, #ffffff)';
             }
             if (!$textSecondary) {
-                $vars['--header-text-secondary'] = 'var(--alt-text-color)';
+                $vars['--header-text-secondary'] = 'var(--alt-text-color, #999999)';
             }
         }
 
