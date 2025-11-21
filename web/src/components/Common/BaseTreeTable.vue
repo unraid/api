@@ -3,7 +3,7 @@ import { computed, h, ref, resolveComponent, watch } from 'vue';
 
 import { useDragDrop } from '@/composables/useDragDrop';
 import { useDropProjection } from '@/composables/useDropProjection';
-import { useRowSelection } from '@/composables/useRowSelection';
+import { getSelectableDescendants, useRowSelection } from '@/composables/useRowSelection';
 import { useTreeExpansion } from '@/composables/useTreeExpansion';
 import { useTreeFilter } from '@/composables/useTreeFilter';
 import {
@@ -336,6 +336,7 @@ function createSelectColumn(): TableColumn<TreeRow<T>> {
             rowSelection.value = next;
           }
         },
+        getSelectableDescendants: (row) => getSelectableDescendants(row, canSelectRow),
       });
     },
     enableSorting: false,

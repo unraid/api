@@ -124,5 +124,32 @@ export function useRowSelection<T = unknown>(options: RowSelectionOptions<T>) {
     getSelectedRowIds,
     getSelectedEntryIds,
     flattenSelectableRows,
+    canSelectRow,
   };
+}
+
+export function getSelectableDescendants<T = unknown>(
+  row: TreeRow<T>,
+  canSelectRow: (row: TreeRow<T>) => boolean
+): TreeRow<T>[] {
+  const descendants: TreeRow<T>[] = [];
+
+  function collectDescendants(currentRow: TreeRow<T>) {
+    if (canSelectRow(currentRow)) {
+      descendants.push(currentRow);
+    }
+    if (currentRow.children?.length) {
+      for (const child of currentRow.children) {
+        collectDescendants(child);
+      }
+    }
+  }
+
+  if (row.children?.length) {
+    for (const child of row.children) {
+      collectDescendants(child);
+    }
+  }
+
+  return descendants;
 }

@@ -194,6 +194,7 @@ export interface SelectColumnOptions<T> {
   toggleExpanded: (id: string) => void;
   getIsSelected: (id: string) => boolean;
   toggleSelected: (id: string, value: boolean) => void;
+  getSelectableDescendants: (row: TreeRow<T>) => TreeRow<T>[];
 }
 
 export function createSelectColumnCell<T>(
@@ -202,15 +203,15 @@ export function createSelectColumnCell<T>(
 ): VNode {
   const {
     UCheckbox,
-    UButton,
     canSelectRow,
     canExpandRow,
     onRowSelect,
     wrapCell,
-    getIsExpanded,
-    toggleExpanded,
     getIsSelected,
     toggleSelected,
+    getSelectableDescendants,
+    rowSelection,
+    onSelectionChange,
   } = options;
 
   if (canSelectRow(row.original)) {
@@ -234,27 +235,49 @@ export function createSelectColumnCell<T>(
   }
 
   if (canExpandRow(row.original)) {
+    const descendants = getSelectableDescendants(row.original);
+    const selectedCount = descendants.filter((d) => rowSelection[d.id]).length;
+    const totalCount = descendants.length;
+
+    const allSelected = totalCount > 0 && selectedCount === totalCount;
+    const someSelected = selectedCount > 0 && !allSelected;
+    const checkboxState = someSelected ? 'indeterminate' : allSelected;
+
     return wrapCell(
       row,
-      h(UButton, {
-        color: 'neutral',
-        size: 'md',
-        variant: 'ghost',
-        icon: 'i-lucide-chevron-down',
-        square: true,
-        'aria-label': 'Expand',
-        class: 'p-0',
-        ui: {
-          leadingIcon: [
-            'transition-transform mt-0.5 -rotate-90',
-            getIsExpanded(row.original.id) ? 'duration-200 rotate-0' : '',
-          ],
-        },
-        onClick: (e: Event) => {
-          e.stopPropagation();
-          toggleExpanded(row.original.id);
-        },
-      }),
+      h('span', { 'data-stop-row-click': 'true' }, [
+        h(UCheckbox, {
+          modelValue: checkboxState,
+          'onUpdate:modelValue': () => {
+            const targetState = someSelected || allSelected ? false : true;
+            const next = { ...rowSelection };
+
+            for (const descendant of descendants) {
+              if (targetState) {
+                next[descendant.id] = true;
+              } else {
+                delete next[descendant.id];
+              }
+            }
+
+            onSelectionChange(next);
+
+            if (descendants.length > 0) {
+              const firstDescendant = descendants[0];
+              onRowSelect(
+                firstDescendant.id,
+                firstDescendant.type,
+                firstDescendant.name,
+                targetState,
+                firstDescendant.meta
+              );
+            }
+          },
+          'aria-label': 'Select all children',
+          role: 'checkbox',
+          onClick: (e: Event) => e.stopPropagation(),
+        }),
+      ]),
       0
     );
   }

@@ -29,6 +29,7 @@ import { useDockerUpdateActions } from '@/composables/useDockerUpdateActions';
 import { useFolderOperations } from '@/composables/useFolderOperations';
 import { useFolderTree } from '@/composables/useFolderTree';
 import { usePersistentColumnVisibility } from '@/composables/usePersistentColumnVisibility';
+import { getSelectableDescendants } from '@/composables/useRowSelection';
 import { useTreeData } from '@/composables/useTreeData';
 import { normalizeMultiValue, toContainerTreeRow } from '@/utils/docker';
 
@@ -262,19 +263,35 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
     {
       accessorKey: 'name',
       header: props.compact ? '' : 'Name',
-      cell: ({ row }) => {
+      cell: ({
+        row,
+      }: {
+        row: {
+          original: TreeRow<DockerContainer>;
+          depth: number;
+          getIsExpanded?: () => boolean;
+          toggleExpanded?: () => void;
+        };
+      }) => {
         const treeRow = row.original as TreeRow<DockerContainer>;
         const isRowUpdating = updatingRowIds.value.has(treeRow.id);
+        const canExpand = treeRow.type === 'folder' && !!(treeRow.children && treeRow.children.length);
+        const isExpanded = row.getIsExpanded?.() ?? false;
 
         return h(DockerNameCell, {
           row: treeRow,
           depth: row.depth,
           isUpdating: isRowUpdating,
           isPopoverOpen: updatePopoverRowId.value === treeRow.id,
+          canExpand,
+          isExpanded,
           'onUpdate:isPopoverOpen': (val: boolean) => {
             updatePopoverRowId.value = val ? treeRow.id : null;
           },
           onUpdateContainer: () => handleUpdateContainer(treeRow),
+          onToggleExpand: () => {
+            row.toggleExpanded?.();
+          },
         });
       },
       meta: { class: { td: 'w-[40ch] truncate', th: 'w-[45ch]' } },
@@ -824,6 +841,14 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
     return [
       [
         {
+          label: 'Select all children',
+          icon: 'i-lucide-check-square',
+          as: 'button',
+          onSelect: () => handleSelectAllChildren(row),
+        },
+      ],
+      [
+        {
           label: 'Rename',
           icon: 'i-lucide-pencil',
           as: 'button',
@@ -903,6 +928,22 @@ function handleRowSelect(payload: {
 
 function handleUpdateSelectedIds(ids: string[]) {
   emit('update:selectedIds', ids);
+}
+
+function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
+  const canSelect = (r: TreeRow<DockerContainer>) => r.type === 'container';
+  const descendants = getSelectableDescendants(row, canSelect);
+
+  if (descendants.length === 0) return;
+
+  const descendantIds = descendants.map((d) => d.id);
+  const currentSelected = new Set(props.selectedIds);
+
+  for (const id of descendantIds) {
+    currentSelected.add(id);
+  }
+
+  emit('update:selectedIds', Array.from(currentSelected));
 }
 </script>
 
