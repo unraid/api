@@ -89,6 +89,18 @@ export class NodemonService {
             }
 
             await writeFile(NODEMON_PID_PATH, `${nodemonProcess.pid}`);
+
+            // Give nodemon a brief moment to boot, then verify it is still alive.
+            await new Promise((resolve) => setTimeout(resolve, 200));
+            const stillRunning = await this.isPidRunning(nodemonProcess.pid);
+            if (!stillRunning) {
+                const recentLogs = await this.logs(50);
+                await rm(NODEMON_PID_PATH, { force: true });
+                logStream.close();
+                const logMessage = recentLogs ? ` Recent logs:\n${recentLogs}` : '';
+                throw new Error(`Nodemon exited immediately after start.${logMessage}`);
+            }
+
             this.logger.info(`Started nodemon (pid ${nodemonProcess.pid})`);
         } catch (error) {
             logStream.close();

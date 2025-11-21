@@ -39,6 +39,7 @@ describe('NodemonService', () => {
     const mockMkdir = vi.mocked(fs.mkdir);
     const mockWriteFile = vi.mocked(fs.writeFile);
     const mockRm = vi.mocked(fs.rm);
+    const killSpy = vi.spyOn(process, 'kill');
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -46,6 +47,7 @@ describe('NodemonService', () => {
         mockWriteFile.mockResolvedValue(undefined as unknown as void);
         mockRm.mockResolvedValue(undefined as unknown as void);
         vi.mocked(fileExists).mockResolvedValue(false);
+        killSpy.mockReturnValue(true as unknown as boolean);
     });
 
     it('ensures directories needed by nodemon exist', async () => {
@@ -81,6 +83,7 @@ describe('NodemonService', () => {
             stderr,
             unref,
         } as unknown as ReturnType<typeof execa>);
+        killSpy.mockReturnValue(true as unknown as boolean);
 
         await service.start({ env: { LOG_LEVEL: 'DEBUG' } });
 
@@ -154,6 +157,32 @@ describe('NodemonService', () => {
         expect(logStream.close).toHaveBeenCalled();
         expect(mockWriteFile).not.toHaveBeenCalled();
         expect(logger.info).not.toHaveBeenCalled();
+    });
+
+    it('throws when nodemon exits immediately after start', async () => {
+        const service = new NodemonService(logger);
+        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        vi.mocked(createWriteStream).mockReturnValue(
+            logStream as unknown as ReturnType<typeof createWriteStream>
+        );
+        const stdout = { pipe: vi.fn() };
+        const stderr = { pipe: vi.fn() };
+        const unref = vi.fn();
+        vi.mocked(execa).mockReturnValue({
+            pid: 456,
+            stdout,
+            stderr,
+            unref,
+        } as unknown as ReturnType<typeof execa>);
+        killSpy.mockImplementation(() => {
+            throw new Error('not running');
+        });
+        const logsSpy = vi.spyOn(service, 'logs').mockResolvedValue('recent log lines');
+
+        await expect(service.start()).rejects.toThrow(/Nodemon exited immediately/);
+        expect(logStream.close).toHaveBeenCalled();
+        expect(mockRm).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', { force: true });
+        expect(logsSpy).toHaveBeenCalledWith(50);
     });
 
     it('returns not running when pid file is missing', async () => {
