@@ -961,7 +961,7 @@ function handleUpdateSelectedIds(ids: string[]) {
               :size="compact ? 'sm' : 'md'"
               trailing-icon="i-lucide-chevron-down"
             >
-              Actions ({{ count }})
+              Actions{{ count > 0 ? ` (${count})` : '' }}
             </UButton>
           </UDropdownMenu>
         </div>
