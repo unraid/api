@@ -5,7 +5,6 @@ import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 
 import { CheckIcon } from '@heroicons/vue/24/solid';
-import { Error as LoadingError, Spinner as LoadingSpinner } from '@unraid/ui';
 
 import type { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
 
@@ -139,17 +138,59 @@ const noNotificationsMessage = computed(() => {
       />
     </TransitionGroup>
     <div v-if="loading" class="grid place-content-center py-3">
-      <LoadingSpinner />
+      <!-- 3 skeletons to replace shadcn's LoadingSpinner -->
+      <div v-if="loading" class="space-y-4 py-3">
+        <div v-for="n in 3" :key="n" class="py-3">
+          <div class="flex items-center gap-2">
+            <USkeleton class="h-5 w-5 rounded-full" />
+            <USkeleton class="h-4 w-40" />
+            <div class="ml-auto">
+              <USkeleton class="h-3 w-24" />
+            </div>
+          </div>
+          <div class="mt-2">
+            <USkeleton class="h-3 w-3/4" />
+          </div>
+        </div>
+      </div>
     </div>
     <div v-if="!canLoadMore" class="text-secondary-foreground grid place-content-center py-3">
       {{ t('notifications.list.reachedEnd') }}
     </div>
   </div>
 
-  <LoadingError v-else :loading="loading" :error="offlineError ?? error" @retry="refetch">
-    <div v-if="notifications?.length === 0" class="contents">
+  <!-- nextui replacement for LoadingError -->
+  <div v-else class="flex h-full flex-col items-center justify-center gap-3 px-3">
+    <!-- Loading (centered, like LoadingError) -->
+    <div v-if="loading" class="w-full max-w-md space-y-4">
+      <div v-for="n in 3" :key="n" class="py-1.5">
+        <div class="flex items-center gap-2">
+          <USkeleton class="h-5 w-5 rounded-full" />
+          <USkeleton class="h-4 w-40" />
+        </div>
+        <div class="mt-2">
+          <USkeleton class="h-3 w-3/4" />
+        </div>
+      </div>
+      <p class="text-muted-foreground text-center text-sm">Loading Notifications...</p>
+    </div>
+
+    <!-- Error (centered, icon + title + message + full-width button) -->
+    <div v-else-if="offlineError || error" class="w-full max-w-sm space-y-3">
+      <div class="flex justify-center">
+        <UIcon name="i-heroicons-shield-exclamation-20-solid" class="size-10 text-red-600" />
+      </div>
+      <div class="text-center">
+        <h3 class="font-bold">Error</h3>
+        <p>{{ (offlineError ?? error)?.message }}</p>
+      </div>
+      <UButton class="w-full" @click="() => void refetch()">Try Again</UButton>
+    </div>
+
+    <!-- Default (empty state) -->
+    <div v-else class="contents">
       <CheckIcon class="h-10 translate-y-3 text-green-600" />
       {{ noNotificationsMessage }}
     </div>
-  </LoadingError>
+  </div>
 </template>
