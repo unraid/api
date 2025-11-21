@@ -7,12 +7,23 @@ export interface RowSelectionOptions<T = unknown> {
   selectedIds?: Ref<string[]>;
   treeData: MaybeRef<TreeRow<T>[]>;
   selectableType?: string;
+  isSelectable?: (row: TreeRow<T>) => boolean;
 }
 
 export function useRowSelection<T = unknown>(options: RowSelectionOptions<T>) {
-  const { selectedIds, treeData, selectableType } = options;
+  const { selectedIds, treeData, selectableType, isSelectable } = options;
 
   const rowSelection = ref<Record<string, boolean>>({});
+
+  function canSelectRow(row: TreeRow<T>): boolean {
+    if (isSelectable) {
+      return isSelectable(row);
+    }
+    if (selectableType) {
+      return row.type === selectableType;
+    }
+    return true;
+  }
 
   function arraysEqualAsSets(a: string[], b: string[]): boolean {
     if (a.length !== b.length) return false;
@@ -24,7 +35,7 @@ export function useRowSelection<T = unknown>(options: RowSelectionOptions<T>) {
   function flattenSelectableRows(rows: TreeRow<T>[]): TreeRow<T>[] {
     const out: TreeRow<T>[] = [];
     for (const r of rows) {
-      if (!selectableType || r.type === selectableType) out.push(r);
+      if (canSelectRow(r)) out.push(r);
       if (r.children?.length) {
         out.push(...flattenSelectableRows(r.children));
       }
@@ -38,14 +49,20 @@ export function useRowSelection<T = unknown>(options: RowSelectionOptions<T>) {
 
     function collectRows(row: TreeRow<T>, includeAll: boolean): void {
       const isSelected = !!rowSelection.value[row.id];
+      // If parent is selected (includeAll), implicitly select children?
+      // The logic here seems to imply that selection propagates down.
       const shouldInclude = includeAll || isSelected;
 
-      if (!selectableType || row.type === selectableType) {
+      if (canSelectRow(row)) {
         if (shouldInclude) collected.add(row.id);
-        if (row.type !== 'folder') return;
       }
 
       const children = row.children || [];
+      // If this row is selected, we propagate selection to children?
+      // Only if this row type implies grouping?
+      // In the original code, if it was selectableType (container), we returned if not folder.
+      // Here we just continue. If children are selectable, they will get selected if propagate is true.
+
       const propagate = shouldInclude;
       for (const child of children) {
         collectRows(child, propagate);

@@ -535,26 +535,6 @@ const folderOps = useFolderOperations({
   onSuccess: showToast,
 });
 
-// Synchronize expansion state between useFolderTree and BaseTreeTable via parent prop/emit isn't strictly required
-// if BaseTreeTable handles its own expansion for the view.
-// However, to fix "expanding folder does not reveal rows", we need to ensure BaseTreeTable knows which rows to show.
-// The issue is likely that `useFolderTree` manages `expandedFolders` here, but `BaseTreeTable` now manages its own internal `expandedRowIds`.
-// When we click expand in the table, it toggles the internal state, revealing children in `flattenTree`.
-// BUT, if `treeData` structure relies on `useFolderTree` state (which it shouldn't for raw tree structure), or if `visibleFolders` here is fighting it.
-
-// Actually, `BaseTreeTable` now does the flattening itself.
-// The `folderOps` uses `expandedFolders` from `useFolderTree` for the "Move to folder" modal logic.
-// We should probably sync them or just let BaseTreeTable handle the view expansion.
-
-// Issue 2: "expanding a folder does not reveal any rows"
-// In BaseTreeTable:
-// `flattenTree` checks `expanded.has(node.id)`.
-// `toggleExpanded` adds to `expandedRowIds`.
-// The click handler in `createSelectColumn` calls `row.toggleExpanded()`.
-// This should work.
-// Maybe the `treeData` passed to BaseTreeTable doesn't have populated `children`?
-// `useTreeData` populates children based on `flatEntries`.
-
 const containerActions = useContainerActions({
   getRowById,
   treeData,
@@ -940,6 +920,12 @@ function handleUpdateSelectedIds(ids: string[]) {
       :enable-drag-drop="!!flatEntries"
       :searchable-keys="searchableKeys"
       :search-accessor="dockerSearchAccessor"
+      :can-expand="(row: TreeRow<DockerContainer>) => row.type === 'folder'"
+      :can-select="(row: TreeRow<DockerContainer>) => row.type === 'container'"
+      :can-drag="(row: TreeRow<DockerContainer>) => row.type === 'container' || row.type === 'folder'"
+      :can-drop-inside="
+        (row: TreeRow<DockerContainer>) => row.type === 'container' || row.type === 'folder'
+      "
       @row:click="handleRowClick"
       @row:contextmenu="handleRowContextMenu"
       @row:select="handleRowSelect"

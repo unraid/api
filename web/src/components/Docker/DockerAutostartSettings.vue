@@ -339,7 +339,10 @@ const columns = computed<TableColumn<TreeRow<AutostartEntry>>[]>(() => {
       :loading="saving"
       :enable-drag-drop="true"
       :busy-row-ids="busyRowIds"
-      selectable-type="container"
+      :can-expand="() => false"
+      :can-select="(row: any) => row.type === 'container'"
+      :can-drag="() => true"
+      :can-drop-inside="() => false"
       v-model:selected-ids="selectedIds"
       @row:drop="handleDrop"
     />

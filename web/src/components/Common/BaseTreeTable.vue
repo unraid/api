@@ -39,6 +39,10 @@ interface Props {
   includeMetaInSearch?: boolean;
   // Allow parent to control expansion if needed (e.g. for persistent state)
   // But usually BaseTreeTable manages it for UI
+  canExpand?: (row: TreeRow<T>) => boolean;
+  canSelect?: (row: TreeRow<T>) => boolean;
+  canDrag?: (row: TreeRow<T>) => boolean;
+  canDropInside?: (row: TreeRow<T>) => boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -46,10 +50,10 @@ const props = withDefaults(defineProps<Props>(), {
   compact: false,
   activeId: null,
   selectedIds: () => [],
-  selectableType: 'container',
+  // selectableType default removed
   enableDragDrop: false,
   busyRowIds: () => new Set(),
-  searchableKeys: () => ['id', 'name', 'type', 'state', 'ports', 'autoStart', 'updates', 'containerId'],
+  // searchableKeys default removed, will handle in getter if needed or empty
   includeMetaInSearch: true,
 });
 
@@ -83,10 +87,33 @@ watch(
   }
 );
 
+// Helper functions for capabilities
+function canSelectRow(row: TreeRow<T>): boolean {
+  if (props.canSelect) return props.canSelect(row);
+  if (props.selectableType) return row.type === props.selectableType;
+  return false;
+}
+
+function canExpandRow(row: TreeRow<T>): boolean {
+  if (props.canExpand) return props.canExpand(row);
+  return !!(row.children && row.children.length);
+}
+
+function canDragRow(row: TreeRow<T>): boolean {
+  if (props.canDrag) return props.canDrag(row);
+  return props.enableDragDrop ?? false;
+}
+
+function canDropInsideRow(row: TreeRow<T>): boolean {
+  if (props.canDropInside) return props.canDropInside(row);
+  return false;
+}
+
 const { rowSelection, getSelectedRowIds, flattenSelectableRows } = useRowSelection<T>({
   selectedIds: selectedIdsRef,
   treeData: treeDataRef,
   selectableType: props.selectableType,
+  isSelectable: canSelectRow,
 });
 
 const {
@@ -95,10 +122,6 @@ const {
   draggingIds,
 } = useDragDrop<T>({
   rowSelection,
-  onDrop: async (event) => {
-    emit('row:drop', event);
-    rowSelection.value = {};
-  },
 });
 
 function handleDragEnd() {
@@ -123,7 +146,8 @@ const filterTerm = computed(() => globalFilter.value.trim().toLowerCase());
 const expandedRowIds = ref<Set<string>>(new Set());
 const tableContainerRef = ref<HTMLElement | null>(null);
 const projectionState = ref<{ targetId: string; area: DropArea } | null>(null);
-const stableMetrics = ref<RowMetric[]>([]);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const stableMetrics = ref<any[]>([]);
 
 function toggleExpanded(id: string) {
   // Force a new Set reference to trigger reactivity
@@ -215,8 +239,10 @@ function toArray(value: unknown | unknown[]): unknown[] {
 function getRowSearchValues(row: TreeRow<T>): string[] {
   const values: unknown[] = [];
 
-  if (props.searchableKeys?.length) {
-    for (const key of props.searchableKeys) {
+  const keys = props.searchableKeys || ['id', 'name', 'type'];
+
+  if (keys.length) {
+    for (const key of keys) {
       const resolved = getValueByKey(row, key);
       if (resolved !== undefined && resolved !== null) {
         values.push(resolved);
@@ -363,11 +389,8 @@ function updateProjectionFromPointer(event: DragEvent) {
       const lowerThreshold = height * 0.25;
       const upperThreshold = height * 0.75;
 
-      if (
-        (row.type === 'folder' || row.type === 'container') &&
-        relative >= lowerThreshold &&
-        relative <= upperThreshold
-      ) {
+      // Use helper to check if we can drop inside
+      if (canDropInsideRow(row) && relative >= lowerThreshold && relative <= upperThreshold) {
         area = 'inside';
       } else if (relative < height * 0.5) {
         area = 'before';
@@ -407,6 +430,7 @@ function handleContainerDrop(event: DragEvent) {
     area: state.area,
     sourceIds: [...draggingIds.value],
   });
+  rowSelection.value = {};
   handleDragEnd();
 }
 
@@ -474,15 +498,17 @@ function wrapCellWithRow(row: { original: TreeRow<T>; depth?: number }, cellCont
 
   const children = dropIndicator ? [cellContent, dropIndicator] : [cellContent];
 
+  // Check if this row can be dragged
+  const draggable = props.enableDragDrop && canDragRow(row.original);
+
   const rowWrapper = h(
     'div',
     {
       'data-row-id': row.original.id,
-      draggable:
-        props.enableDragDrop && (row.original.type === 'container' || row.original.type === 'folder'),
+      draggable,
       class: `relative block w-full h-full px-3 py-2 ${isBusy ? 'opacity-50 pointer-events-none select-none' : ''} ${
         isActive ? 'bg-primary-50 dark:bg-primary-950/30' : ''
-      } ${row.original.type === 'container' ? 'cursor-pointer' : ''} ${dragClass} ${
+      } ${canSelectRow(row.original) ? 'cursor-pointer' : ''} ${dragClass} ${
         isDragging ? 'opacity-30 pointer-events-none' : ''
       }`,
       onClick: (e: MouseEvent) => {
@@ -499,6 +525,11 @@ function wrapCellWithRow(row: { original: TreeRow<T>; depth?: number }, cellCont
       onDragstart: props.enableDragDrop
         ? (e: DragEvent) => {
             if (isBusy) return;
+            // If not draggable, don't start
+            if (!draggable) {
+              e.preventDefault();
+              return;
+            }
             handleDragStart(e, row.original);
           }
         : undefined,
@@ -602,8 +633,8 @@ function createSelectColumn(): TableColumn<TreeRow<T>> {
       );
     },
     cell: ({ row }) => {
-      const enhancedRow = enhanceRowInstance(row as TableInstanceRow<T>);
-      if (enhancedRow.original.type === props.selectableType) {
+      const enhancedRow = enhanceRowInstance(row as unknown as TableInstanceRow<T>);
+      if (canSelectRow(enhancedRow.original)) {
         return wrapCellWithRow(
           enhancedRow,
           h('span', { 'data-stop-row-click': 'true' }, [
@@ -628,7 +659,8 @@ function createSelectColumn(): TableColumn<TreeRow<T>> {
           ])
         );
       }
-      if (enhancedRow.original.type === 'folder') {
+      // Use canExpandRow to determine if we show expansion button
+      if (canExpandRow(enhancedRow.original)) {
         return wrapCellWithRow(
           enhancedRow,
           h(UButton, {
@@ -670,7 +702,7 @@ const processedColumns = computed<TableColumn<TreeRow<T>>[]>(() => {
         ? ({ row }: { row: TableInstanceRow<T> }) => {
             const cellFn = (col as { cell: (args: unknown) => VNode | string | number }).cell;
 
-            const enhancedRow = enhanceRowInstance(row);
+            const enhancedRow = enhanceRowInstance(row as unknown as TableInstanceRow<T>);
             const content = typeof cellFn === 'function' ? cellFn({ row: enhancedRow }) : cellFn;
             return wrapCellWithRow(enhancedRow, content as VNode);
           }
@@ -733,7 +765,7 @@ function enhanceRowInstance(row: TableInstanceRow<T>): EnhancedRow<T> {
       :data="projectedData"
       :columns="processedColumns"
       :get-row-id="(row: any) => row.id"
-      :get-row-can-select="(row: any) => row.original.type === selectableType"
+      :get-row-can-select="(row: any) => canSelectRow(row.original)"
       :column-filters-options="{ filterFromLeafRows: true }"
       :loading="loading"
       :ui="{ td: 'p-0 empty:p-0', thead: compact ? 'hidden' : '', th: compact ? 'hidden' : '' }"

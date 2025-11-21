@@ -11,11 +11,11 @@ export interface DropEvent<T = unknown> {
   sourceIds: string[];
 }
 
-export interface DragDropOptions<T = unknown> {
+export interface DragDropOptions {
   rowSelection?: Ref<Record<string, boolean>>;
 }
 
-export function useDragDrop<T = unknown>(options: DragDropOptions<T> = {}) {
+export function useDragDrop<T = unknown>(options: DragDropOptions = {}) {
   const { rowSelection } = options;
 
   const draggingIds = ref<string[]>([]);
