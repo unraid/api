@@ -47,7 +47,7 @@ describe('NodemonService', () => {
         mockWriteFile.mockResolvedValue(undefined as unknown as void);
         mockRm.mockResolvedValue(undefined as unknown as void);
         vi.mocked(fileExists).mockResolvedValue(false);
-        killSpy.mockReturnValue(true as unknown as boolean);
+        killSpy.mockReturnValue(true);
     });
 
     it('ensures directories needed by nodemon exist', async () => {
@@ -83,7 +83,7 @@ describe('NodemonService', () => {
             stderr,
             unref,
         } as unknown as ReturnType<typeof execa>);
-        killSpy.mockReturnValue(true as unknown as boolean);
+        killSpy.mockReturnValue(true);
 
         await service.start({ env: { LOG_LEVEL: 'DEBUG' } });
 
