@@ -78,7 +78,21 @@ jobs:
           GIT_SHA=$(git rev-parse --short HEAD)
           IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
           PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
-          API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
+          
+          # For release builds, trust the release tag version to avoid stale checkouts
+          if [ "${{ inputs.RELEASE_CREATED }}" = "true" ] && [ -n "${{ inputs.RELEASE_TAG }}" ]; then
+            TAG_VERSION="${{ inputs.RELEASE_TAG }}"
+            TAG_VERSION="${TAG_VERSION#v}" # trim leading v if present
+
+            if [ "$TAG_VERSION" != "$PACKAGE_LOCK_VERSION" ]; then
+              echo "::warning::Release tag version ($TAG_VERSION) does not match package.json version ($PACKAGE_LOCK_VERSION). Using tag version for TXZ naming."
+            fi
+
+            API_VERSION="$TAG_VERSION"
+          else
+            API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
+          fi
+
           echo "API_VERSION=${API_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Install dependencies
