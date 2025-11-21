@@ -210,6 +210,7 @@ const { visibleFolders, expandedFolders, toggleExpandFolder, setExpandedFolders 
 });
 const busyRowIds = ref<Set<string>>(new Set());
 const columnSizing = useStorage<Record<string, number>>('docker-table-column-sizing', {});
+const columnOrder = useStorage<string[]>('docker-table-column-order', []);
 
 const logs = useDockerLogSessions();
 const contextMenu = useContextMenu<DockerContainer>();
@@ -1027,6 +1028,7 @@ function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
       :enable-drag-drop="!!flatEntries"
       enable-resizing
       v-model:column-sizing="columnSizing"
+      v-model:column-order="columnOrder"
       :searchable-keys="searchableKeys"
       :search-accessor="dockerSearchAccessor"
       :can-expand="(row: TreeRow<DockerContainer>) => row.type === 'folder'"
@@ -1041,7 +1043,14 @@ function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
       @row:drop="handleDropOnRow"
       @update:selected-ids="handleUpdateSelectedIds"
     >
-      <template #toolbar="{ selectedCount: count, globalFilter: filterText, setGlobalFilter }">
+      <template
+        #toolbar="{
+          selectedCount: count,
+          globalFilter: filterText,
+          setGlobalFilter,
+          columnOrder: tableColumnOrder,
+        }"
+      >
         <div :class="['mb-4 flex flex-wrap items-center gap-2', compact ? 'sm:px-0.5' : '']">
           <UInput
             :model-value="filterText"
@@ -1054,7 +1063,9 @@ function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
           <TableColumnMenu
             v-if="!compact"
             :table="baseTableRef"
+            :column-order="tableColumnOrder"
             @change="persistCurrentColumnVisibility"
+            @update:column-order="(order) => (columnOrder = order)"
           />
           <UDropdownMenu
             :items="bulkItems"

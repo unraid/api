@@ -47,14 +47,13 @@ interface Props {
   searchableKeys?: string[];
   searchAccessor?: SearchAccessor<T>;
   includeMetaInSearch?: boolean;
-  // Allow parent to control expansion if needed (e.g. for persistent state)
-  // But usually BaseTreeTable manages it for UI
   canExpand?: (row: TreeRow<T>) => boolean;
   canSelect?: (row: TreeRow<T>) => boolean;
   canDrag?: (row: TreeRow<T>) => boolean;
   canDropInside?: (row: TreeRow<T>) => boolean;
   enableResizing?: boolean;
   columnSizing?: Record<string, number>;
+  columnOrder?: string[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -62,13 +61,12 @@ const props = withDefaults(defineProps<Props>(), {
   compact: false,
   activeId: null,
   selectedIds: () => [],
-  // selectableType default removed
   enableDragDrop: false,
   busyRowIds: () => new Set(),
-  // searchableKeys default removed, will handle in getter if needed or empty
   includeMetaInSearch: true,
   enableResizing: false,
   columnSizing: () => ({}),
+  columnOrder: () => [],
 });
 
 const emit = defineEmits<{
@@ -84,6 +82,7 @@ const emit = defineEmits<{
   (e: 'row:drop', payload: DropEvent<T>): void;
   (e: 'update:selectedIds', value: string[]): void;
   (e: 'update:columnSizing', value: Record<string, number>): void;
+  (e: 'update:columnOrder', value: string[]): void;
 }>();
 
 const UButton = resolveComponent('UButton');
@@ -96,6 +95,7 @@ const tableContainerRef = ref<HTMLElement | null>(null);
 const columnVisibility = ref<Record<string, boolean>>({});
 
 const columnSizing = defineModel<Record<string, number>>('columnSizing', { default: () => ({}) });
+const columnOrderState = defineModel<string[]>('columnOrder', { default: () => [] });
 
 type ColumnHeaderRenderer = TableColumn<TreeRow<T>>['header'];
 
@@ -451,6 +451,7 @@ function enhanceRowInstance(row: TableInstanceRow<T>): EnhancedRow<T> {
       :selected-count="selectedCount"
       :global-filter="globalFilter"
       :column-visibility="columnVisibility"
+      :column-order="columnOrderState"
       :row-selection="rowSelection"
       :set-global-filter="setGlobalFilter"
     >
@@ -465,6 +466,7 @@ function enhanceRowInstance(row: TableInstanceRow<T>): EnhancedRow<T> {
       v-model:row-selection="rowSelection"
       v-model:column-visibility="columnVisibility"
       v-model:column-sizing="columnSizing"
+      v-model:column-order="columnOrderState"
       :data="flattenedData"
       :columns="processedColumns"
       :get-row-id="(row: any) => row.id"
