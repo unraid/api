@@ -15,6 +15,7 @@ import DockerLogs from '@/components/Docker/Logs.vue';
 import DockerOverview from '@/components/Docker/Overview.vue';
 import DockerPreview from '@/components/Docker/Preview.vue';
 import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
+import { useAutoAnimate } from '@formkit/auto-animate/vue';
 
 import type {
   ContainerPortConflict,
@@ -331,10 +332,15 @@ const details = computed(() => {
 
 const isDetailsLoading = computed(() => loading.value || isSwitching.value);
 const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
+
+const [transitionContainerRef] = useAutoAnimate({
+  duration: 200,
+  easing: 'ease-in-out',
+});
 </script>
 
 <template>
-  <div>
+  <div ref="transitionContainerRef">
     <div v-if="!activeId">
       <template v-if="viewMode === 'overview'">
         <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -387,18 +393,20 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
             @container:select="handleConflictContainerAction"
           />
         </div>
-        <DockerContainersTable
-          :containers="containers"
-          :flat-entries="flatEntries"
-          :root-folder-id="rootFolderId"
-          :view-prefs="viewPrefs"
-          :loading="loading"
-          :active-id="activeId"
-          :selected-ids="selectedIds"
-          @created-folder="refreshContainers"
-          @row:click="handleTableRowClick"
-          @update:selectedIds="handleUpdateSelectedIds"
-        />
+        <div>
+          <DockerContainersTable
+            :containers="containers"
+            :flat-entries="flatEntries"
+            :root-folder-id="rootFolderId"
+            :view-prefs="viewPrefs"
+            :loading="loading"
+            :active-id="activeId"
+            :selected-ids="selectedIds"
+            @created-folder="refreshContainers"
+            @row:click="handleTableRowClick"
+            @update:selectedIds="handleUpdateSelectedIds"
+          />
+        </div>
       </template>
       <DockerAutostartSettings
         v-else
