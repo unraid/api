@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, h, reactive, ref, resolveComponent, watch } from 'vue';
 import { useMutation, useSubscription } from '@vue/apollo-composable';
+import { useStorage } from '@vueuse/core';
 
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
 import MultiValueCopyBadges from '@/components/Common/MultiValueCopyBadges.vue';
@@ -207,6 +208,7 @@ const { visibleFolders, expandedFolders, toggleExpandFolder, setExpandedFolders 
   flatEntries: flatEntriesRef,
 });
 const busyRowIds = ref<Set<string>>(new Set());
+const columnSizing = useStorage<Record<string, number>>('docker-table-column-sizing', {});
 
 const logs = useDockerLogSessions();
 const contextMenu = useContextMenu<DockerContainer>();
@@ -966,6 +968,7 @@ function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
       :busy-row-ids="busyRowIds"
       :enable-drag-drop="!!flatEntries"
       enable-resizing
+      v-model:column-sizing="columnSizing"
       :searchable-keys="searchableKeys"
       :search-accessor="dockerSearchAccessor"
       :can-expand="(row: TreeRow<DockerContainer>) => row.type === 'folder'"

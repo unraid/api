@@ -54,6 +54,7 @@ interface Props {
   canDrag?: (row: TreeRow<T>) => boolean;
   canDropInside?: (row: TreeRow<T>) => boolean;
   enableResizing?: boolean;
+  columnSizing?: Record<string, number>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -67,6 +68,7 @@ const props = withDefaults(defineProps<Props>(), {
   // searchableKeys default removed, will handle in getter if needed or empty
   includeMetaInSearch: true,
   enableResizing: false,
+  columnSizing: () => ({}),
 });
 
 const emit = defineEmits<{
@@ -81,6 +83,7 @@ const emit = defineEmits<{
   ): void;
   (e: 'row:drop', payload: DropEvent<T>): void;
   (e: 'update:selectedIds', value: string[]): void;
+  (e: 'update:columnSizing', value: Record<string, number>): void;
 }>();
 
 const UButton = resolveComponent('UButton');
@@ -91,6 +94,8 @@ const treeDataRef = computed(() => props.data);
 const selectedIdsRef = ref(props.selectedIds);
 const tableContainerRef = ref<HTMLElement | null>(null);
 const columnVisibility = ref<Record<string, boolean>>({});
+
+const columnSizing = defineModel<Record<string, number>>('columnSizing', { default: () => ({}) });
 
 type ColumnHeaderRenderer = TableColumn<TreeRow<T>>['header'];
 
@@ -459,6 +464,7 @@ function enhanceRowInstance(row: TableInstanceRow<T>): EnhancedRow<T> {
       ref="tableRef"
       v-model:row-selection="rowSelection"
       v-model:column-visibility="columnVisibility"
+      v-model:column-sizing="columnSizing"
       :data="flattenedData"
       :columns="processedColumns"
       :get-row-id="(row: any) => row.id"
