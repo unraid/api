@@ -1,7 +1,6 @@
 {
     "watch": [
-        "dist/main.js",
-        "myservers.cfg"
+        "dist/main.js"
     ],
     "ignore": [
         "node_modules",

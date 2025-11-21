@@ -32,14 +32,8 @@ export class NodemonService {
     constructor(private readonly logger: LogService) {}
 
     async ensureNodemonDependencies() {
-        try {
-            await mkdir(PATHS_LOGS_DIR, { recursive: true });
-            await mkdir(dirname(NODEMON_PID_PATH), { recursive: true });
-        } catch (error) {
-            this.logger.error(
-                `Failed to fully ensure nodemon dependencies: ${error instanceof Error ? error.message : error}`
-            );
-        }
+        await mkdir(PATHS_LOGS_DIR, { recursive: true });
+        await mkdir(dirname(NODEMON_PID_PATH), { recursive: true });
     }
 
     private async getStoredPid(): Promise<number | null> {
@@ -59,28 +53,47 @@ export class NodemonService {
     }
 
     async start(options: StartOptions = {}) {
-        await this.ensureNodemonDependencies();
+        try {
+            await this.ensureNodemonDependencies();
+        } catch (error) {
+            this.logger.error(
+                `Failed to ensure nodemon dependencies: ${error instanceof Error ? error.message : error}`
+            );
+            throw error;
+        }
+
         await this.stop({ quiet: true });
 
-        const env = { ...process.env, ...options.env } as Record<string, string>;
+        const overrides = Object.fromEntries(
+            Object.entries(options.env ?? {}).filter(([, value]) => value !== undefined)
+        );
+        const env = { ...process.env, ...overrides } as Record<string, string>;
         const logStream = createWriteStream(PATHS_LOGS_FILE, { flags: 'a' });
 
-        const nodemonProcess = execa(NODEMON_PATH, ['--config', NODEMON_CONFIG_PATH, '--quiet'], {
-            cwd: UNRAID_API_CWD,
-            env,
-            detached: true,
-            stdio: ['ignore', 'pipe', 'pipe'],
-        });
+        let nodemonProcess;
+        try {
+            nodemonProcess = execa(NODEMON_PATH, ['--config', NODEMON_CONFIG_PATH, '--quiet'], {
+                cwd: UNRAID_API_CWD,
+                env,
+                detached: true,
+                stdio: ['ignore', 'pipe', 'pipe'],
+            });
 
-        nodemonProcess.stdout?.pipe(logStream);
-        nodemonProcess.stderr?.pipe(logStream);
-        nodemonProcess.unref();
+            nodemonProcess.stdout?.pipe(logStream);
+            nodemonProcess.stderr?.pipe(logStream);
+            nodemonProcess.unref();
 
-        if (nodemonProcess.pid) {
+            if (!nodemonProcess.pid) {
+                logStream.close();
+                throw new Error('Failed to start nodemon: process spawned but no PID was assigned');
+            }
+
             await writeFile(NODEMON_PID_PATH, `${nodemonProcess.pid}`);
             this.logger.info(`Started nodemon (pid ${nodemonProcess.pid})`);
-        } else {
-            this.logger.error('Failed to determine nodemon pid.');
+        } catch (error) {
+            logStream.close();
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            throw new Error(`Failed to start nodemon: ${errorMessage}`);
         }
     }
 
@@ -126,8 +139,23 @@ export class NodemonService {
         return running;
     }
 
-    async logs(lines = 100) {
-        const { stdout } = await execa('tail', ['-n', `${lines}`, PATHS_LOGS_FILE]);
-        this.logger.log(stdout);
+    async logs(lines = 100): Promise<string> {
+        try {
+            const { stdout } = await execa('tail', ['-n', `${lines}`, PATHS_LOGS_FILE]);
+            this.logger.log(stdout);
+            return stdout;
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const isFileNotFound =
+                errorMessage.includes('ENOENT') ||
+                (error instanceof Error && 'code' in error && error.code === 'ENOENT');
+
+            if (isFileNotFound) {
+                this.logger.error(`Log file not found: ${PATHS_LOGS_FILE} (${errorMessage})`);
+            } else {
+                this.logger.error(`Failed to read logs from ${PATHS_LOGS_FILE}: ${errorMessage}`);
+            }
+            return '';
+        }
     }
 }

@@ -8,7 +8,7 @@ import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { NodemonService } from '@app/unraid-api/cli/nodemon.service.js';
 
 vi.mock('node:fs', () => ({
-    createWriteStream: vi.fn(() => ({ pipe: vi.fn() })),
+    createWriteStream: vi.fn(() => ({ pipe: vi.fn(), close: vi.fn() })),
 }));
 vi.mock('node:fs/promises');
 vi.mock('execa', () => ({ execa: vi.fn() }));
@@ -57,8 +57,21 @@ describe('NodemonService', () => {
         expect(mockMkdir).toHaveBeenCalledWith('/var/run/unraid-api', { recursive: true });
     });
 
+    it('throws error when directory creation fails', async () => {
+        const service = new NodemonService(logger);
+        const error = new Error('Permission denied');
+        mockMkdir.mockRejectedValue(error);
+
+        await expect(service.ensureNodemonDependencies()).rejects.toThrow('Permission denied');
+        expect(mockMkdir).toHaveBeenCalledWith('/var/log/unraid-api', { recursive: true });
+    });
+
     it('starts nodemon and writes pid file', async () => {
         const service = new NodemonService(logger);
+        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        vi.mocked(createWriteStream).mockReturnValue(
+            logStream as unknown as ReturnType<typeof createWriteStream>
+        );
         const stdout = { pipe: vi.fn() };
         const stderr = { pipe: vi.fn() };
         const unref = vi.fn();
@@ -87,6 +100,60 @@ describe('NodemonService', () => {
         expect(unref).toHaveBeenCalled();
         expect(mockWriteFile).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', '123');
         expect(logger.info).toHaveBeenCalledWith('Started nodemon (pid 123)');
+        expect(logStream.close).not.toHaveBeenCalled();
+    });
+
+    it('throws error and aborts start when directory creation fails', async () => {
+        const service = new NodemonService(logger);
+        const error = new Error('Permission denied');
+        mockMkdir.mockRejectedValue(error);
+
+        await expect(service.start()).rejects.toThrow('Permission denied');
+        expect(logger.error).toHaveBeenCalledWith(
+            'Failed to ensure nodemon dependencies: Permission denied'
+        );
+        expect(execa).not.toHaveBeenCalled();
+    });
+
+    it('throws error and closes logStream when execa fails', async () => {
+        const service = new NodemonService(logger);
+        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        vi.mocked(createWriteStream).mockReturnValue(
+            logStream as unknown as ReturnType<typeof createWriteStream>
+        );
+        const error = new Error('Command not found');
+        vi.mocked(execa).mockImplementation(() => {
+            throw error;
+        });
+
+        await expect(service.start()).rejects.toThrow('Failed to start nodemon: Command not found');
+        expect(logStream.close).toHaveBeenCalled();
+        expect(mockWriteFile).not.toHaveBeenCalled();
+        expect(logger.info).not.toHaveBeenCalled();
+    });
+
+    it('throws error and closes logStream when pid is missing', async () => {
+        const service = new NodemonService(logger);
+        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        vi.mocked(createWriteStream).mockReturnValue(
+            logStream as unknown as ReturnType<typeof createWriteStream>
+        );
+        const stdout = { pipe: vi.fn() };
+        const stderr = { pipe: vi.fn() };
+        const unref = vi.fn();
+        vi.mocked(execa).mockReturnValue({
+            pid: undefined,
+            stdout,
+            stderr,
+            unref,
+        } as unknown as ReturnType<typeof execa>);
+
+        await expect(service.start()).rejects.toThrow(
+            'Failed to start nodemon: process spawned but no PID was assigned'
+        );
+        expect(logStream.close).toHaveBeenCalled();
+        expect(mockWriteFile).not.toHaveBeenCalled();
+        expect(logger.info).not.toHaveBeenCalled();
     });
 
     it('returns not running when pid file is missing', async () => {
@@ -97,5 +164,45 @@ describe('NodemonService', () => {
 
         expect(result).toBe(false);
         expect(logger.info).toHaveBeenCalledWith('unraid-api is not running (no pid file).');
+    });
+
+    it('logs stdout when tail succeeds', async () => {
+        const service = new NodemonService(logger);
+        vi.mocked(execa).mockResolvedValue({
+            stdout: 'log line 1\nlog line 2',
+        } as unknown as Awaited<ReturnType<typeof execa>>);
+
+        const result = await service.logs(50);
+
+        expect(execa).toHaveBeenCalledWith('tail', ['-n', '50', '/var/log/graphql-api.log']);
+        expect(logger.log).toHaveBeenCalledWith('log line 1\nlog line 2');
+        expect(result).toBe('log line 1\nlog line 2');
+    });
+
+    it('handles ENOENT error when log file is missing', async () => {
+        const service = new NodemonService(logger);
+        const error = new Error('ENOENT: no such file or directory');
+        (error as Error & { code?: string }).code = 'ENOENT';
+        vi.mocked(execa).mockRejectedValue(error);
+
+        const result = await service.logs();
+
+        expect(logger.error).toHaveBeenCalledWith(
+            'Log file not found: /var/log/graphql-api.log (ENOENT: no such file or directory)'
+        );
+        expect(result).toBe('');
+    });
+
+    it('handles non-zero exit error from tail', async () => {
+        const service = new NodemonService(logger);
+        const error = new Error('Command failed with exit code 1');
+        vi.mocked(execa).mockRejectedValue(error);
+
+        const result = await service.logs(100);
+
+        expect(logger.error).toHaveBeenCalledWith(
+            'Failed to read logs from /var/log/graphql-api.log: Command failed with exit code 1'
+        );
+        expect(result).toBe('');
     });
 });

@@ -110,9 +110,9 @@ export const NODEMON_PATH = join(
     'bin',
     'nodemon.js'
 );
-export const NODEMON_CONFIG_PATH = join(import.meta.dirname, '../../', 'nodemon.json');
+export const NODEMON_CONFIG_PATH = join(import.meta.dirname, '../', 'nodemon.json');
 export const NODEMON_PID_PATH = process.env.NODEMON_PID_PATH ?? '/var/run/unraid-api/nodemon.pid';
-export const UNRAID_API_CWD = process.env.UNRAID_API_CWD ?? join(import.meta.dirname, '../../');
+export const UNRAID_API_CWD = process.env.UNRAID_API_CWD ?? join(import.meta.dirname, '../');
 
 export const PATHS_CONFIG_MODULES =
     process.env.PATHS_CONFIG_MODULES ?? '/boot/config/plugins/dynamix.my.servers/configs';
