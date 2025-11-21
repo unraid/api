@@ -208,6 +208,16 @@ class WebComponentsExtractor
             $vars['--header-text-secondary'] = $textSecondary;
         }
 
+        $theme = strtolower(trim($display['theme'] ?? ''));
+        if ($theme === 'white') {
+            if (!$textPrimary) {
+                $vars['--header-text-primary'] = 'var(--inverse-text-color)';
+            }
+            if (!$textSecondary) {
+                $vars['--header-text-secondary'] = 'var(--alt-text-color)';
+            }
+        }
+
         $bgColor = $this->normalizeHex($display['background'] ?? null);
         if ($bgColor) {
             $vars['--header-background-color'] = $bgColor;
