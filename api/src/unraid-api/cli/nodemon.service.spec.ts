@@ -48,6 +48,14 @@ describe('NodemonService', () => {
         NodemonService.prototype as unknown as { findMatchingNodemonPids: () => Promise<number[]> },
         'findMatchingNodemonPids'
     );
+    const findDirectMainSpy = vi.spyOn(
+        NodemonService.prototype as unknown as { findDirectMainPids: () => Promise<number[]> },
+        'findDirectMainPids'
+    );
+    const terminateSpy = vi.spyOn(
+        NodemonService.prototype as unknown as { terminatePids: (pids: number[]) => Promise<void> },
+        'terminatePids'
+    );
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -57,6 +65,8 @@ describe('NodemonService', () => {
         vi.mocked(fileExists).mockResolvedValue(false);
         killSpy.mockReturnValue(true);
         findMatchingSpy.mockResolvedValue([]);
+        findDirectMainSpy.mockResolvedValue([]);
+        terminateSpy.mockResolvedValue();
         stopPm2Spy.mockResolvedValue();
     });
 
@@ -270,6 +280,35 @@ describe('NodemonService', () => {
             'unraid-api already running under nodemon (pid 888); discovered via process scan.'
         );
         expect(execa).not.toHaveBeenCalled();
+    });
+
+    it('terminates direct main.js processes before starting nodemon', async () => {
+        const service = new NodemonService(logger);
+        findMatchingSpy.mockResolvedValue([]);
+        findDirectMainSpy.mockResolvedValue([321, 654]);
+
+        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        vi.mocked(createWriteStream).mockReturnValue(
+            logStream as unknown as ReturnType<typeof createWriteStream>
+        );
+        const stdout = { pipe: vi.fn() };
+        const stderr = { pipe: vi.fn() };
+        const unref = vi.fn();
+        vi.mocked(execa).mockReturnValue({
+            pid: 777,
+            stdout,
+            stderr,
+            unref,
+        } as unknown as ReturnType<typeof execa>);
+
+        await service.start();
+
+        expect(terminateSpy).toHaveBeenCalledWith([321, 654]);
+        expect(execa).toHaveBeenCalledWith(
+            '/usr/bin/nodemon',
+            ['--config', '/etc/unraid-api/nodemon.json', '--quiet'],
+            expect.objectContaining({ cwd: '/usr/local/unraid-api' })
+        );
     });
 
     it('returns not running when pid file is missing', async () => {

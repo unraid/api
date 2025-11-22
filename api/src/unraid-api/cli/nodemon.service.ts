@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { createWriteStream } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 
 import { execa } from 'execa';
@@ -51,20 +50,34 @@ export class NodemonService {
                 )
             ).find(Boolean) ?? null;
 
-        if (!pm2Path) return;
-
-        try {
-            const { stdout } = await execa(pm2Path, ['jlist']);
-            const processes = JSON.parse(stdout);
-            const hasUnraid =
-                Array.isArray(processes) && processes.some((proc) => proc?.name === 'unraid-api');
-            if (!hasUnraid) return;
-            await execa(pm2Path, ['delete', 'unraid-api']);
-            this.logger.info('Stopped pm2-managed unraid-api before starting nodemon.');
-        } catch (error) {
-            // PM2 may not be installed or responding; keep this quiet to avoid noisy startup.
-            this.logger.debug?.('Skipping pm2 cleanup (not installed or not running).');
+        if (pm2Path) {
+            try {
+                const { stdout } = await execa(pm2Path, ['jlist']);
+                const processes = JSON.parse(stdout);
+                const hasUnraid =
+                    Array.isArray(processes) && processes.some((proc) => proc?.name === 'unraid-api');
+                if (hasUnraid) {
+                    await execa(pm2Path, ['delete', 'unraid-api']);
+                    this.logger.info('Stopped pm2-managed unraid-api before starting nodemon.');
+                }
+            } catch (error) {
+                // PM2 may not be installed or responding; keep this quiet to avoid noisy startup.
+                this.logger.debug?.('Skipping pm2 cleanup (not installed or not running).');
+            }
         }
+
+        // Fallback: directly kill the pm2 daemon and remove its state, even if pm2 binary is missing.
+        try {
+            const pidText = (await readFile(pm2PidPath, 'utf-8')).trim();
+            const pid = Number.parseInt(pidText, 10);
+            if (!Number.isNaN(pid)) {
+                process.kill(pid, 'SIGTERM');
+                this.logger.debug?.(`Sent SIGTERM to pm2 daemon (pid ${pid}).`);
+            }
+        } catch {
+            // ignore
+        }
+        await rm('/var/log/.pm2', { recursive: true, force: true });
     }
 
     private async getStoredPid(): Promise<number | null> {
@@ -97,6 +110,37 @@ export class NodemonService {
                 .filter((pid) => Number.isInteger(pid));
         } catch {
             return [];
+        }
+    }
+
+    private async findDirectMainPids(): Promise<number[]> {
+        try {
+            const mainPath = join(UNRAID_API_CWD, 'dist', 'main.js');
+            const { stdout } = await execa('ps', ['-eo', 'pid,args']);
+            return stdout
+                .split('\n')
+                .map((line) => line.trim())
+                .map((line) => line.match(/^(\d+)\s+(.*)$/))
+                .filter((match): match is RegExpMatchArray => Boolean(match))
+                .map(([, pid, cmd]) => ({ pid: Number.parseInt(pid, 10), cmd }))
+                .filter(({ cmd }) => cmd.includes(mainPath))
+                .map(({ pid }) => pid)
+                .filter((pid) => Number.isInteger(pid));
+        } catch {
+            return [];
+        }
+    }
+
+    private async terminatePids(pids: number[]) {
+        for (const pid of pids) {
+            try {
+                process.kill(pid, 'SIGTERM');
+                this.logger.debug?.(`Sent SIGTERM to existing unraid-api process (pid ${pid}).`);
+            } catch (error) {
+                this.logger.debug?.(
+                    `Failed to send SIGTERM to pid ${pid}: ${error instanceof Error ? error.message : error}`
+                );
+            }
         }
     }
 
@@ -135,6 +179,14 @@ export class NodemonService {
                 `unraid-api already running under nodemon (pid ${discoveredPid}); discovered via process scan.`
             );
             return;
+        }
+
+        const directMainPids = await this.findDirectMainPids();
+        if (directMainPids.length > 0) {
+            this.logger.warn(
+                `Found existing unraid-api process(es) running directly: ${directMainPids.join(', ')}. Stopping them before starting nodemon.`
+            );
+            await this.terminatePids(directMainPids);
         }
 
         const overrides = Object.fromEntries(
