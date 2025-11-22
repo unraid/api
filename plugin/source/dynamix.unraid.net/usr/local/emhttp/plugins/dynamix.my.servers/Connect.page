@@ -40,7 +40,7 @@ $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd
 $dynamicRemoteAccessType = $myServersFlashCfg['remote']['dynamicRemoteAccessType'] ?? null;
 $upnpEnabled = ($myServersFlashCfg['remote']['upnpEnabled'] ?? null) === 'yes';
 $wanaccessEnabled = ($myServersFlashCfg['remote']['wanaccess'] ?? null) === 'yes';
-var_dump($dynamicRemoteAccessType);
+
 $currentRemoteAccessValue = 'OFF';
 if ($dynamicRemoteAccessType === 'STATIC') {
   $currentRemoteAccessValue = 'DYNAMIC_MANUAL';
