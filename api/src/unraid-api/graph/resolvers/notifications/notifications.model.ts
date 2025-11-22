@@ -1,4 +1,4 @@
-import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Node } from '@unraid/shared/graphql.model.js';
 import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
@@ -14,6 +14,18 @@ export enum NotificationImportance {
     WARNING = 'WARNING',
 }
 
+export enum NotificationJobState {
+    QUEUED = 'QUEUED',
+    RUNNING = 'RUNNING',
+    SUCCEEDED = 'SUCCEEDED',
+    FAILED = 'FAILED',
+}
+
+export enum NotificationJobOperation {
+    ARCHIVE_ALL = 'ARCHIVE_ALL',
+    DELETE = 'DELETE',
+}
+
 // Register enums with GraphQL
 registerEnumType(NotificationType, {
     name: 'NotificationType',
@@ -21,6 +33,14 @@ registerEnumType(NotificationType, {
 
 registerEnumType(NotificationImportance, {
     name: 'NotificationImportance',
+});
+
+registerEnumType(NotificationJobState, {
+    name: 'NotificationJobState',
+});
+
+registerEnumType(NotificationJobOperation, {
+    name: 'NotificationJobOperation',
 });
 
 @InputType('NotificationFilter')
@@ -164,4 +184,29 @@ export class Notifications extends Node {
     @Field(() => [Notification])
     @IsNotEmpty()
     list!: Notification[];
+
+    @Field(() => NotificationJob, { nullable: true })
+    job?: NotificationJob;
 }
+
+@ObjectType()
+export class NotificationJob {
+    @Field(() => ID)
+    id!: string;
+
+    @Field(() => NotificationJobOperation)
+    operation!: NotificationJobOperation;
+
+    @Field(() => NotificationJobState)
+    state!: NotificationJobState;
+
+    @Field(() => Int)
+    processed!: number;
+
+    @Field(() => Int)
+    total!: number;
+
+    @Field({ nullable: true })
+    error?: string | null;
+}
+
