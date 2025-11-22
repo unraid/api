@@ -360,4 +360,22 @@ describe('NodemonService', () => {
         );
         expect(result).toBe('');
     });
+
+    it('waits for nodemon to exit during restart before starting again', async () => {
+        const service = new NodemonService(logger);
+        const stopSpy = vi.spyOn(service, 'stop').mockResolvedValue();
+        const startSpy = vi.spyOn(service, 'start').mockResolvedValue();
+        const waitSpy = vi
+            .spyOn(
+                service as unknown as { waitForNodemonExit: () => Promise<void> },
+                'waitForNodemonExit'
+            )
+            .mockResolvedValue();
+
+        await service.restart({ env: { LOG_LEVEL: 'DEBUG' } });
+
+        expect(stopSpy).toHaveBeenCalledWith({ quiet: true });
+        expect(waitSpy).toHaveBeenCalled();
+        expect(startSpy).toHaveBeenCalledWith({ env: { LOG_LEVEL: 'DEBUG' } });
+    });
 });

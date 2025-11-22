@@ -144,6 +144,23 @@ export class NodemonService {
         }
     }
 
+    private async waitForNodemonExit(timeoutMs = 5000, pollIntervalMs = 100) {
+        const deadline = Date.now() + timeoutMs;
+
+        // Poll for any remaining nodemon processes that match our config file
+        while (Date.now() < deadline) {
+            const pids = await this.findMatchingNodemonPids();
+            if (pids.length === 0) return;
+
+            const runningFlags = await Promise.all(pids.map((pid) => this.isPidRunning(pid)));
+            if (!runningFlags.some(Boolean)) return;
+
+            await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
+        }
+
+        this.logger.debug?.('Timed out waiting for nodemon to exit; continuing restart anyway.');
+    }
+
     async start(options: StartOptions = {}) {
         try {
             await this.ensureNodemonDependencies();
@@ -256,6 +273,7 @@ export class NodemonService {
 
     async restart(options: StartOptions = {}) {
         await this.stop({ quiet: true });
+        await this.waitForNodemonExit();
         await this.start(options);
     }
 
