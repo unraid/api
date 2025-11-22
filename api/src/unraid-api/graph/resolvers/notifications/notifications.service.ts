@@ -24,10 +24,14 @@ import {
     NotificationData,
     NotificationFilter,
     NotificationImportance,
+    NotificationJob,
+    NotificationJobOperation,
+    NotificationJobState,
     NotificationOverview,
     NotificationType,
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
+import { BackgroundJobsService } from '@app/unraid-api/graph/services/background-jobs.service.js';
 import { SortFn } from '@app/unraid-api/types/util.js';
 import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp } from '@app/utils.js';
 
@@ -55,7 +59,36 @@ export class NotificationsService {
         },
     };
 
-    constructor() {
+    private createJob(operation: NotificationJobOperation, total: number): NotificationJob {
+        const state = total === 0 ? NotificationJobState.SUCCEEDED : NotificationJobState.QUEUED;
+        return this.backgroundJobs.createJob<NotificationJobOperation, NotificationJobState>({
+            operation,
+            total,
+            initialState: state,
+            prefix: operation.toLowerCase(),
+        });
+    }
+
+    private updateJob(job: NotificationJob) {
+        this.backgroundJobs.updateJob(job);
+    }
+
+    private async runJob(job: NotificationJob, work: () => Promise<void>) {
+        await this.backgroundJobs.runJob<NotificationJobState>({
+            job,
+            work,
+            runningState: NotificationJobState.RUNNING,
+            successState: NotificationJobState.SUCCEEDED,
+            failureState: NotificationJobState.FAILED,
+            logContext: 'notification-job',
+        });
+    }
+
+    public getJob(jobId: string): NotificationJob {
+        return this.backgroundJobs.getJob<NotificationJobOperation, NotificationJobState>(jobId);
+    }
+
+    constructor(private readonly backgroundJobs: BackgroundJobsService) {
         this.path = getters.dynamix().notify!.path;
         void this.getNotificationsWatcher(this.path);
     }
@@ -323,6 +356,30 @@ export class NotificationsService {
         return this.getOverview();
     }
 
+    public async startDeleteAllJob(type?: NotificationType): Promise<NotificationJob> {
+        const targets = type ? [type] : [NotificationType.ARCHIVE, NotificationType.UNREAD];
+        const queue: Array<{ id: string; type: NotificationType }> = [];
+
+        for (const targetType of targets) {
+            const ids = await this.listFilesInFolder(this.paths()[targetType]);
+            ids.forEach((id) => queue.push({ id, type: targetType }));
+        }
+
+        const job = this.createJob(NotificationJobOperation.DELETE, queue.length);
+
+        setImmediate(() =>
+            this.runJob(job, async () => {
+                for (const entry of queue) {
+                    await this.deleteNotification({ id: entry.id, type: entry.type });
+                    job.processed += 1;
+                    this.updateJob(job);
+                }
+            })
+        );
+
+        return job;
+    }
+
     /**
      * Deletes all notifications from disk while preserving the directory structure.
      * Resets overview stats to zero.
@@ -483,6 +540,35 @@ export class NotificationsService {
 
         const stats = await batchProcess(notifications, archive);
         return { ...stats, overview: overviewSnapshot };
+    }
+
+    public async startArchiveAllJob(importance?: NotificationImportance): Promise<NotificationJob> {
+        const { UNREAD } = this.paths();
+        const unreads = await this.listFilesInFolder(UNREAD);
+        const [notifications] = await this.loadNotificationsFromPaths(
+            unreads,
+            importance ? { importance } : {}
+        );
+        const job = this.createJob(NotificationJobOperation.ARCHIVE_ALL, notifications.length);
+
+        setImmediate(() =>
+            this.runJob(job, async () => {
+                const overviewSnapshot = this.getOverview();
+                const archive = this.moveNotification({
+                    from: NotificationType.UNREAD,
+                    to: NotificationType.ARCHIVE,
+                    snapshot: overviewSnapshot,
+                });
+
+                for (const notification of notifications) {
+                    await archive(notification);
+                    job.processed += 1;
+                    this.updateJob(job);
+                }
+            })
+        );
+
+        return job;
     }
 
     public async unarchiveAll(importance?: NotificationImportance) {

@@ -7,6 +7,7 @@ import {
     ParityCheckMutations,
     RCloneMutations,
     RootMutations,
+    NotificationMutations,
     VmMutations,
 } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 
@@ -40,5 +41,10 @@ export class RootMutationsResolver {
     @Mutation(() => RCloneMutations, { name: 'rclone' })
     rclone(): RCloneMutations {
         return new RCloneMutations();
+    }
+
+    @Mutation(() => NotificationMutations, { name: 'notifications' })
+    notifications(): NotificationMutations {
+        return new NotificationMutations();
     }
 }

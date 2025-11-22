@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
@@ -24,9 +24,11 @@ import { Settings } from 'lucide-vue-next';
 import ConfirmDialog from '~/components/ConfirmDialog.vue';
 import {
   archiveAllNotifications,
-  deleteArchivedNotifications,
+  startDeleteNotifications,
   NOTIFICATION_FRAGMENT,
+  NOTIFICATION_JOB_FRAGMENT,
   notificationsOverview,
+  notificationJobStatus,
   resetOverview,
 } from '~/components/Notifications/graphql/notification.query';
 import {
@@ -37,14 +39,88 @@ import NotificationsIndicator from '~/components/Notifications/Indicator.vue';
 import NotificationsList from '~/components/Notifications/List.vue';
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
-import { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
+import {
+  NotificationImportance as Importance,
+  NotificationJobState,
+  NotificationType,
+} from '~/composables/gql/graphql';
+import { useApolloClient } from '@vue/apollo-composable';
 import { useConfirm } from '~/composables/useConfirm';
 
-const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
-const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
+const { mutate: startArchiveAllJob, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
+const { mutate: startDeleteAll, loading: loadingDeleteAll } = useMutation(startDeleteNotifications);
+const { client } = useApolloClient();
 const { mutate: recalculateOverview } = useMutation(resetOverview);
 const { confirm } = useConfirm();
 const importance = ref<Importance | undefined>(undefined);
+
+const jobPollers: Record<'archiveAll' | 'deleteArchived' | 'deleteUnread', ReturnType<typeof setInterval> | null> = {
+  archiveAll: null,
+  deleteArchived: null,
+  deleteUnread: null,
+};
+
+const activeJobs = reactive<
+  Record<'archiveAll' | 'deleteArchived' | 'deleteUnread', { id: string; state: NotificationJobState; processed: number; total: number; error?: string | null } | null>
+>({
+  archiveAll: null,
+  deleteArchived: null,
+  deleteUnread: null,
+});
+
+const activeStates = [NotificationJobState.QUEUED, NotificationJobState.RUNNING];
+
+const stopPolling = (key: keyof typeof jobPollers) => {
+  const interval = jobPollers[key];
+  if (interval) {
+    clearInterval(interval);
+    jobPollers[key] = null;
+  }
+};
+
+const setJob = (key: keyof typeof jobPollers, job?: unknown) => {
+  const parsed = job ? useFragment(NOTIFICATION_JOB_FRAGMENT, job) : null;
+  activeJobs[key] = parsed;
+  if (!parsed || !activeStates.includes(parsed.state)) {
+    stopPolling(key);
+  }
+};
+
+const pollJob = (key: keyof typeof jobPollers) => {
+  const job = activeJobs[key];
+  if (!job) return;
+
+  stopPolling(key);
+  if (!activeStates.includes(job.state)) return;
+
+  jobPollers[key] = setInterval(async () => {
+    const { data } = await client.query({
+      query: notificationJobStatus,
+      variables: { id: job.id },
+      fetchPolicy: 'network-only',
+    });
+    const updated = data?.notifications.job;
+    if (updated) {
+      setJob(key, updated);
+    }
+  }, 750);
+};
+
+const isJobActive = (key: keyof typeof jobPollers) => {
+  const job = activeJobs[key];
+  return Boolean(job && activeStates.includes(job.state));
+};
+
+const jobLabel = (key: keyof typeof jobPollers, fallback: string) => {
+  const job = activeJobs[key];
+  if (job && activeStates.includes(job.state)) {
+    return t('notifications.sidebar.processingStatus', {
+      processed: job.processed,
+      total: job.total,
+    });
+  }
+  return fallback;
+};
 
 const { t } = useI18n();
 
@@ -63,7 +139,12 @@ const confirmAndArchiveAll = async () => {
     confirmVariant: 'primary',
   });
   if (confirmed) {
-    await archiveAll();
+    const { data } = await startArchiveAllJob({ importance: importance.value });
+    const job = data?.notifications.startArchiveAll;
+    if (job) {
+      setJob('archiveAll', job);
+      pollJob('archiveAll');
+    }
   }
 };
 
@@ -75,7 +156,29 @@ const confirmAndDeleteArchives = async () => {
     confirmVariant: 'destructive',
   });
   if (confirmed) {
-    await deleteArchives();
+    const { data } = await startDeleteAll({ type: NotificationType.ARCHIVE });
+    const job = data?.notifications.startDeleteAll;
+    if (job) {
+      setJob('deleteArchived', job);
+      pollJob('deleteArchived');
+    }
+  }
+};
+
+const confirmAndDeleteUnread = async () => {
+  const confirmed = await confirm({
+    title: t('notifications.sidebar.confirmDeleteUnread.title'),
+    description: t('notifications.sidebar.confirmDeleteUnread.description'),
+    confirmText: t('notifications.sidebar.confirmDeleteUnread.confirmText'),
+    confirmVariant: 'destructive',
+  });
+  if (confirmed) {
+    const { data } = await startDeleteAll({ type: NotificationType.UNREAD });
+    const job = data?.notifications.startDeleteAll;
+    if (job) {
+      setJob('deleteUnread', job);
+      pollJob('deleteUnread');
+    }
   }
 };
 
@@ -139,6 +242,10 @@ const readArchivedCount = computed(() => {
 const prepareToViewNotifications = () => {
   void recalculateOverview();
 };
+
+onBeforeUnmount(() => {
+  Object.values(jobPollers).forEach((interval) => interval && clearInterval(interval));
+});
 </script>
 
 <template>
@@ -179,24 +286,33 @@ const prepareToViewNotifications = () => {
             </TabsList>
             <TabsContent value="unread" class="flex-col items-end">
               <Button
-                :disabled="loadingArchiveAll"
+                :disabled="loadingArchiveAll || isJobActive('archiveAll')"
                 variant="link"
                 size="sm"
                 class="text-foreground hover:text-destructive transition-none"
                 @click="confirmAndArchiveAll"
               >
-                {{ t('notifications.sidebar.archiveAllAction') }}
+                {{ jobLabel('archiveAll', t('notifications.sidebar.archiveAllAction')) }}
+              </Button>
+              <Button
+                :disabled="loadingDeleteAll || isJobActive('deleteUnread')"
+                variant="link"
+                size="sm"
+                class="text-foreground hover:text-destructive transition-none"
+                @click="confirmAndDeleteUnread"
+              >
+                {{ jobLabel('deleteUnread', t('notifications.sidebar.deleteAllAction')) }}
               </Button>
             </TabsContent>
             <TabsContent value="archived" class="flex-col items-end">
               <Button
-                :disabled="loadingDeleteAll"
+                :disabled="loadingDeleteAll || isJobActive('deleteArchived')"
                 variant="link"
                 size="sm"
                 class="text-foreground hover:text-destructive transition-none"
                 @click="confirmAndDeleteArchives"
               >
-                {{ t('notifications.sidebar.deleteAllAction') }}
+                {{ jobLabel('deleteArchived', t('notifications.sidebar.deleteAllAction')) }}
               </Button>
             </TabsContent>
           </div>
