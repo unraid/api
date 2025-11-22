@@ -33,9 +33,9 @@ export class ReportCommand extends CommandRunner {
     async report(): Promise<string | void> {
         try {
             // Check if API is running
-            const { isUnraidApiRunning } = await import('@app/core/utils/pm2/unraid-api-running.js');
+            const { isUnraidApiRunning } = await import('@app/core/utils/process/unraid-api-running.js');
             const apiRunning = await isUnraidApiRunning().catch((err) => {
-                this.logger.debug('failed to get PM2 state with error: ' + err);
+                this.logger.debug('failed to check nodemon state with error: ' + err);
                 return false;
             });
 

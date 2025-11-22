@@ -3,6 +3,7 @@ import { ResolveField, Resolver } from '@nestjs/graphql';
 
 import { versions } from 'systeminformation';
 
+import { getPackageJson } from '@app/environment.js';
 import {
     CoreVersions,
     InfoVersions,
@@ -34,7 +35,7 @@ export class VersionsResolver {
                 openssl: softwareVersions.openssl,
                 node: softwareVersions.node,
                 npm: softwareVersions.npm,
-                pm2: softwareVersions.pm2,
+                nodemon: getPackageJson().dependencies?.nodemon,
                 git: softwareVersions.git,
                 nginx: softwareVersions.nginx,
                 php: softwareVersions.php,
