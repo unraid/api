@@ -37,9 +37,9 @@ $passwd_result = exec('/usr/bin/passwd --status root');
 $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd_result, 0, 6) == 'root P'));
 
 // Helper to determine the current value for the remote access input
-$dynamicRemoteAccessType = $myServersFlashCfg['remote']['dynamicRemoteAccessType'];
-$upnpEnabled = $myServersFlashCfg['remote']['upnpEnabled'] === 'yes';
-$wanaccessEnabled = $myServersFlashCfg['remote']['wanaccess'] === 'yes';
+$dynamicRemoteAccessType = $myServersFlashCfg['remote']['dynamicRemoteAccessType'] ?? null;
+$upnpEnabled = ($myServersFlashCfg['remote']['upnpEnabled'] ?? null) === 'yes';
+$wanaccessEnabled = ($myServersFlashCfg['remote']['wanaccess'] ?? null) === 'yes';
 
 $currentRemoteAccessValue = 'OFF';
 if ($dynamicRemoteAccessType === 'STATIC') {
@@ -68,7 +68,7 @@ div.shade-gray{background-color:#121510;margin-top:10px;padding:8px 0 3px 0}
 </style>
 <script>
 const hasMyUnraidNetCert = <?=($hasMyUnraidNetCert ? 'true' : 'false')?>;
-const wanAccessOrg = "<?=$myServersFlashCfg['remote']['wanaccess']?>";
+const wanAccessOrg = "<?=$myServersFlashCfg['remote']['wanaccess'] ?? null?>";
 
 function registerServer(button) {
 
@@ -196,7 +196,7 @@ function dnsCheckServer(button) {
         } else {
             swal({
               title: "Oops",
-              text: "<?=sprintf(_("The Unraid server is unreachable from outside your network. Be sure you have configured your router to forward port") . " <strong style='font-weight: bold'>%u/TCP</strong> " . _("to the Unraid server at") . " <strong style='font-weight: bold'>%s</strong> " . _("port") . " <strong style='font-weight: bold'>%u</strong>", $myServersFlashCfg['remote']['wanport'], htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?>",
+              text: "<?=sprintf(_("The Unraid server is unreachable from outside your network. Be sure you have configured your router to forward port") . " <strong style='font-weight: bold'>%u/TCP</strong> " . _("to the Unraid server at") . " <strong style='font-weight: bold'>%s</strong> " . _("port") . " <strong style='font-weight: bold'>%u</strong>", $myServersFlashCfg['remote']['wanport']??"", htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?>",
               type: "error",
               html: true,
               confirmButtonText: "_(Ok)_"

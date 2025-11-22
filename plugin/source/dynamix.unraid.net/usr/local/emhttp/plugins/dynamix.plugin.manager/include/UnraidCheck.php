@@ -108,7 +108,7 @@ class UnraidOsCheck
      *                       Note: CURLINFO_HEADER_OUT exposes request headers (not response headers) for curl_getinfo
      * @return string|false $out The fetched content
      */
-    private function safe_http_get_contents(string $url, array $opts = [], array &$getinfo = NULL) {
+    private function safe_http_get_contents(string $url, array $opts = [], ?array &$getinfo = NULL) {
         // Use system http_get_contents if it exists
         if (function_exists('http_get_contents')) {
             return http_get_contents($url, $opts, $getinfo);
