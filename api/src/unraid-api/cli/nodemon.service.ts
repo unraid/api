@@ -178,24 +178,29 @@ export class NodemonService {
             const running = await this.isPidRunning(existingPid);
             if (running) {
                 this.logger.info(
-                    `unraid-api already running under nodemon (pid ${existingPid}); skipping start.`
+                    `unraid-api already running under nodemon (pid ${existingPid}); restarting for a fresh start.`
                 );
-                return;
+                await this.stop({ quiet: true });
+                await this.waitForNodemonExit();
+                await rm(NODEMON_PID_PATH, { force: true });
+            } else {
+                this.logger.warn(
+                    `Found nodemon pid file (${existingPid}) but the process is not running. Cleaning up.`
+                );
+                await rm(NODEMON_PID_PATH, { force: true });
             }
-            this.logger.warn(
-                `Found nodemon pid file (${existingPid}) but the process is not running. Cleaning up.`
-            );
-            await rm(NODEMON_PID_PATH, { force: true });
         }
 
         const discoveredPids = await this.findMatchingNodemonPids();
-        const discoveredPid = discoveredPids.at(0);
-        if (discoveredPid && (await this.isPidRunning(discoveredPid))) {
-            await writeFile(NODEMON_PID_PATH, `${discoveredPid}`);
+        const liveDiscoveredPids = await Promise.all(
+            discoveredPids.map(async (pid) => ((await this.isPidRunning(pid)) ? pid : null))
+        ).then((pids) => pids.filter((pid): pid is number => pid !== null));
+        if (liveDiscoveredPids.length > 0) {
             this.logger.info(
-                `unraid-api already running under nodemon (pid ${discoveredPid}); discovered via process scan.`
+                `Found nodemon process(es) (${liveDiscoveredPids.join(', ')}) without a pid file; restarting for a fresh start.`
             );
-            return;
+            await this.terminatePids(liveDiscoveredPids);
+            await this.waitForNodemonExit();
         }
 
         const directMainPids = await this.findDirectMainPids();
@@ -272,8 +277,7 @@ export class NodemonService {
     }
 
     async restart(options: StartOptions = {}) {
-        await this.stop({ quiet: true });
-        await this.waitForNodemonExit();
+        // Delegate to start so both commands share identical logic
         await this.start(options);
     }
 

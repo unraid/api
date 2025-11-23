@@ -207,8 +207,13 @@ describe('NodemonService', () => {
         expect(logsSpy).toHaveBeenCalledWith(50);
     });
 
-    it('is a no-op when a recorded nodemon pid is already running', async () => {
+    it('restarts when a recorded nodemon pid is already running', async () => {
         const service = new NodemonService(logger);
+        const stopSpy = vi.spyOn(service, 'stop').mockResolvedValue();
+        vi.spyOn(
+            service as unknown as { waitForNodemonExit: () => Promise<void> },
+            'waitForNodemonExit'
+        ).mockResolvedValue();
         vi.spyOn(
             service as unknown as { getStoredPid: () => Promise<number | null> },
             'getStoredPid'
@@ -218,13 +223,28 @@ describe('NodemonService', () => {
             'isPidRunning'
         ).mockResolvedValue(true);
 
+        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        vi.mocked(createWriteStream).mockReturnValue(
+            logStream as unknown as ReturnType<typeof createWriteStream>
+        );
+        const stdout = { pipe: vi.fn() };
+        const stderr = { pipe: vi.fn() };
+        const unref = vi.fn();
+        vi.mocked(execa).mockReturnValue({
+            pid: 456,
+            stdout,
+            stderr,
+            unref,
+        } as unknown as ReturnType<typeof execa>);
+
         await service.start();
 
+        expect(stopSpy).toHaveBeenCalledWith({ quiet: true });
+        expect(mockRm).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', { force: true });
+        expect(execa).toHaveBeenCalled();
         expect(logger.info).toHaveBeenCalledWith(
-            'unraid-api already running under nodemon (pid 999); skipping start.'
+            'unraid-api already running under nodemon (pid 999); restarting for a fresh start.'
         );
-        expect(execa).not.toHaveBeenCalled();
-        expect(mockRm).not.toHaveBeenCalled();
     });
 
     it('removes stale pid file and starts when recorded pid is dead', async () => {
@@ -265,21 +285,36 @@ describe('NodemonService', () => {
         );
     });
 
-    it('adopts an already-running nodemon when no pid file exists', async () => {
+    it('cleans up stray nodemon when no pid file exists', async () => {
         const service = new NodemonService(logger);
         findMatchingSpy.mockResolvedValue([888]);
         vi.spyOn(
             service as unknown as { isPidRunning: (pid: number) => Promise<boolean> },
             'isPidRunning'
         ).mockResolvedValue(true);
+        vi.spyOn(
+            service as unknown as { waitForNodemonExit: () => Promise<void> },
+            'waitForNodemonExit'
+        ).mockResolvedValue();
+
+        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        vi.mocked(createWriteStream).mockReturnValue(
+            logStream as unknown as ReturnType<typeof createWriteStream>
+        );
+        const stdout = { pipe: vi.fn() };
+        const stderr = { pipe: vi.fn() };
+        const unref = vi.fn();
+        vi.mocked(execa).mockReturnValue({
+            pid: 222,
+            stdout,
+            stderr,
+            unref,
+        } as unknown as ReturnType<typeof execa>);
 
         await service.start();
 
-        expect(mockWriteFile).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', '888');
-        expect(logger.info).toHaveBeenCalledWith(
-            'unraid-api already running under nodemon (pid 888); discovered via process scan.'
-        );
-        expect(execa).not.toHaveBeenCalled();
+        expect(terminateSpy).toHaveBeenCalledWith([888]);
+        expect(execa).toHaveBeenCalled();
     });
 
     it('terminates direct main.js processes before starting nodemon', async () => {
@@ -364,6 +399,44 @@ describe('NodemonService', () => {
     it('waits for nodemon to exit during restart before starting again', async () => {
         const service = new NodemonService(logger);
         const stopSpy = vi.spyOn(service, 'stop').mockResolvedValue();
+        const waitSpy = vi
+            .spyOn(
+                service as unknown as { waitForNodemonExit: () => Promise<void> },
+                'waitForNodemonExit'
+            )
+            .mockResolvedValue();
+        vi.spyOn(
+            service as unknown as { getStoredPid: () => Promise<number | null> },
+            'getStoredPid'
+        ).mockResolvedValue(123);
+        vi.spyOn(
+            service as unknown as { isPidRunning: (pid: number) => Promise<boolean> },
+            'isPidRunning'
+        ).mockResolvedValue(true);
+        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        vi.mocked(createWriteStream).mockReturnValue(
+            logStream as unknown as ReturnType<typeof createWriteStream>
+        );
+        const stdout = { pipe: vi.fn() };
+        const stderr = { pipe: vi.fn() };
+        const unref = vi.fn();
+        vi.mocked(execa).mockReturnValue({
+            pid: 456,
+            stdout,
+            stderr,
+            unref,
+        } as unknown as ReturnType<typeof execa>);
+
+        await service.restart({ env: { LOG_LEVEL: 'DEBUG' } });
+
+        expect(stopSpy).toHaveBeenCalledWith({ quiet: true });
+        expect(waitSpy).toHaveBeenCalled();
+        expect(execa).toHaveBeenCalled();
+    });
+
+    it('performs clean start on restart when nodemon is not running', async () => {
+        const service = new NodemonService(logger);
+        const stopSpy = vi.spyOn(service, 'stop').mockResolvedValue();
         const startSpy = vi.spyOn(service, 'start').mockResolvedValue();
         const waitSpy = vi
             .spyOn(
@@ -371,11 +444,15 @@ describe('NodemonService', () => {
                 'waitForNodemonExit'
             )
             .mockResolvedValue();
+        vi.spyOn(
+            service as unknown as { getStoredPid: () => Promise<number | null> },
+            'getStoredPid'
+        ).mockResolvedValue(null);
 
-        await service.restart({ env: { LOG_LEVEL: 'DEBUG' } });
+        await service.restart();
 
-        expect(stopSpy).toHaveBeenCalledWith({ quiet: true });
-        expect(waitSpy).toHaveBeenCalled();
-        expect(startSpy).toHaveBeenCalledWith({ env: { LOG_LEVEL: 'DEBUG' } });
+        expect(stopSpy).not.toHaveBeenCalled();
+        expect(waitSpy).not.toHaveBeenCalled();
+        expect(startSpy).toHaveBeenCalled();
     });
 });
