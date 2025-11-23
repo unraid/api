@@ -209,4 +209,3 @@ export class NotificationJob {
     @Field({ nullable: true })
     error?: string | null;
 }
-

@@ -4,10 +4,10 @@ import {
     ApiKeyMutations,
     ArrayMutations,
     DockerMutations,
+    NotificationMutations,
     ParityCheckMutations,
     RCloneMutations,
     RootMutations,
-    NotificationMutations,
     VmMutations,
 } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 

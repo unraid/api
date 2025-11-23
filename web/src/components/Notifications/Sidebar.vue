@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
+import { useApolloClient, useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
 import {
   Button,
@@ -24,12 +24,12 @@ import { Settings } from 'lucide-vue-next';
 import ConfirmDialog from '~/components/ConfirmDialog.vue';
 import {
   archiveAllNotifications,
-  startDeleteNotifications,
   NOTIFICATION_FRAGMENT,
   NOTIFICATION_JOB_FRAGMENT,
-  notificationsOverview,
   notificationJobStatus,
+  notificationsOverview,
   resetOverview,
+  startDeleteNotifications,
 } from '~/components/Notifications/graphql/notification.query';
 import {
   notificationAddedSubscription,
@@ -44,7 +44,6 @@ import {
   NotificationJobState,
   NotificationType,
 } from '~/composables/gql/graphql';
-import { useApolloClient } from '@vue/apollo-composable';
 import { useConfirm } from '~/composables/useConfirm';
 
 const { mutate: startArchiveAllJob, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
@@ -54,14 +53,26 @@ const { mutate: recalculateOverview } = useMutation(resetOverview);
 const { confirm } = useConfirm();
 const importance = ref<Importance | undefined>(undefined);
 
-const jobPollers: Record<'archiveAll' | 'deleteArchived' | 'deleteUnread', ReturnType<typeof setInterval> | null> = {
+const jobPollers: Record<
+  'archiveAll' | 'deleteArchived' | 'deleteUnread',
+  ReturnType<typeof setInterval> | null
+> = {
   archiveAll: null,
   deleteArchived: null,
   deleteUnread: null,
 };
 
 const activeJobs = reactive<
-  Record<'archiveAll' | 'deleteArchived' | 'deleteUnread', { id: string; state: NotificationJobState; processed: number; total: number; error?: string | null } | null>
+  Record<
+    'archiveAll' | 'deleteArchived' | 'deleteUnread',
+    {
+      id: string;
+      state: NotificationJobState;
+      processed: number;
+      total: number;
+      error?: string | null;
+    } | null
+  >
 >({
   archiveAll: null,
   deleteArchived: null,
