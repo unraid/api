@@ -209,6 +209,10 @@ class WebComponentsExtractor
         }
 
         $theme = strtolower(trim($display['theme'] ?? ''));
+        $darkThemes = ['gray', 'black'];
+        $isDarkMode = in_array($theme, $darkThemes, true);
+        $vars['--theme-dark-mode'] = $isDarkMode ? '1' : '0';
+        
         if ($theme === 'white') {
             if (!$textPrimary) {
                 $vars['--header-text-primary'] = 'var(--inverse-text-color, #ffffff)';
