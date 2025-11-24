@@ -50,16 +50,21 @@ const syncBodyDarkClass = (method: 'add' | 'remove'): boolean => {
   return true;
 };
 
+const getDarkModeFromCssVar = (): boolean => {
+  if (typeof document === 'undefined') return false;
+
+  const darkModeValue = getComputedStyle(document.documentElement)
+    .getPropertyValue('--theme-dark-mode')
+    .trim();
+  return darkModeValue === '1';
+};
+
 const applyDarkClass = (isDark: boolean) => {
   if (typeof document === 'undefined') return;
 
   const method: 'add' | 'remove' = isDark ? 'add' : 'remove';
   document.documentElement.classList[method]('dark');
-
-  const unapiElements = document.querySelectorAll('.unapi');
-  unapiElements.forEach((element) => {
-    element.classList[method]('dark');
-  });
+  document.documentElement.style.setProperty('--theme-dark-mode', isDark ? '1' : '0');
 
   if (pendingDarkModeHandler) {
     document.removeEventListener('DOMContentLoaded', pendingDarkModeHandler);
@@ -72,10 +77,6 @@ const applyDarkClass = (isDark: boolean) => {
 
   const handler = () => {
     if (syncBodyDarkClass(method)) {
-      const unapiElementsOnLoad = document.querySelectorAll('.unapi');
-      unapiElementsOnLoad.forEach((element) => {
-        element.classList[method]('dark');
-      });
       document.removeEventListener('DOMContentLoaded', handler);
       if (pendingDarkModeHandler === handler) {
         pendingDarkModeHandler = null;
@@ -112,6 +113,15 @@ export const useThemeStore = defineStore('theme', () => {
   const activeColorVariables = ref<ThemeVariables>(defaultColors.white);
   const hasServerTheme = ref(false);
   const devOverride = ref(false);
+
+  // Initialize dark mode from CSS variable set by PHP
+  if (typeof document !== 'undefined') {
+    const initialDarkMode = getDarkModeFromCssVar();
+    if (initialDarkMode) {
+      document.documentElement.classList.add('dark');
+      syncBodyDarkClass('add');
+    }
+  }
 
   const { result, onResult, onError } = useQuery<GetThemeQuery>(GET_THEME_QUERY, null, {
     fetchPolicy: 'cache-and-network',
