@@ -11,9 +11,10 @@ import DockerOrphanedAlert from '@/components/Docker/DockerOrphanedAlert.vue';
 import DockerPortConflictsAlert from '@/components/Docker/DockerPortConflictsAlert.vue';
 import DockerSidebarTree from '@/components/Docker/DockerSidebarTree.vue';
 import DockerEdit from '@/components/Docker/Edit.vue';
-import DockerLogs from '@/components/Docker/Logs.vue';
 import DockerOverview from '@/components/Docker/Overview.vue';
 import DockerPreview from '@/components/Docker/Preview.vue';
+import SingleDockerLogViewer from '@/components/Docker/SingleDockerLogViewer.vue';
+import LogViewerToolbar from '@/components/Logs/LogViewerToolbar.vue';
 import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
 import { useAutoAnimate } from '@formkit/auto-animate/vue';
 
@@ -333,6 +334,25 @@ const details = computed(() => {
 const isDetailsLoading = computed(() => loading.value || isSwitching.value);
 const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
 
+const legacyPaneTab = ref<'management' | 'logs'>('management');
+const logFilterText = ref('');
+const logAutoScroll = ref(true);
+const logViewerRef = ref<InstanceType<typeof SingleDockerLogViewer> | null>(null);
+
+watch(activeId, () => {
+  legacyPaneTab.value = 'management';
+  logFilterText.value = '';
+});
+
+const legacyPaneTabs = [
+  { label: 'Container Management', value: 'management' as const },
+  { label: 'Logs', value: 'logs' as const },
+];
+
+function handleLogRefresh() {
+  logViewerRef.value?.refreshLogContent();
+}
+
 const [transitionContainerRef] = useAutoAnimate({
   duration: 200,
   easing: 'ease-in-out',
@@ -448,25 +468,38 @@ const [transitionContainerRef] = useAutoAnimate({
       <div v-if="shouldUseLegacyEditPage">
         <UCard class="flex min-h-[60vh] flex-col">
           <template #header>
-            <div class="flex items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <UButton
-                  size="xs"
-                  variant="ghost"
-                  icon="i-lucide-arrow-left"
-                  @click="goBackToOverview"
+            <div class="flex flex-col gap-3">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <UButton
+                    size="xs"
+                    variant="ghost"
+                    icon="i-lucide-arrow-left"
+                    @click="goBackToOverview"
+                  />
+                  <div class="font-medium">
+                    {{ activeContainer?.names?.[0]?.replace(/^\//, '') || 'Container' }}
+                  </div>
+                </div>
+                <UBadge
+                  v-if="activeContainer?.state"
+                  :label="activeContainer.state"
+                  color="primary"
+                  variant="subtle"
                 />
-                <div class="font-medium">Legacy Container Management</div>
               </div>
-              <UBadge
-                v-if="activeContainer?.state"
-                :label="activeContainer.state"
+              <UTabs
+                v-model="legacyPaneTab"
+                :items="legacyPaneTabs"
+                variant="link"
                 color="primary"
-                variant="subtle"
+                size="md"
+                :ui="{ list: 'gap-1' }"
               />
             </div>
           </template>
           <div
+            v-if="legacyPaneTab === 'management'"
             :class="['relative min-h-[60vh]', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
           >
             <iframe
@@ -485,6 +518,24 @@ const [transitionContainerRef] = useAutoAnimate({
             >
               <USkeleton class="h-6 w-6" />
             </div>
+          </div>
+          <div
+            v-else-if="legacyPaneTab === 'logs'"
+            :class="['flex h-[70vh] flex-col', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
+          >
+            <LogViewerToolbar
+              v-model:filter-text="logFilterText"
+              :show-refresh="false"
+              @refresh="handleLogRefresh"
+            />
+            <SingleDockerLogViewer
+              v-if="activeContainer"
+              ref="logViewerRef"
+              :container-name="activeContainer.names?.[0]?.replace(/^\//, '') || ''"
+              :auto-scroll="logAutoScroll"
+              :client-filter="logFilterText"
+              class="h-full flex-1"
+            />
           </div>
         </UCard>
       </div>
@@ -545,8 +596,13 @@ const [transitionContainerRef] = useAutoAnimate({
           <template #header>
             <div class="font-medium">Logs</div>
           </template>
-          <div :class="{ 'pointer-events-none opacity-50': isDetailsDisabled }">
-            <DockerLogs :item="detailsItem" />
+          <div :class="['h-96', { 'pointer-events-none opacity-50': isDetailsDisabled }]">
+            <SingleDockerLogViewer
+              v-if="activeContainer"
+              :container-name="activeContainer.names?.[0]?.replace(/^\//, '') || ''"
+              :auto-scroll="true"
+              class="h-full"
+            />
           </div>
         </UCard>
       </div>

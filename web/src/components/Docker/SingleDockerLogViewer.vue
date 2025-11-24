@@ -11,10 +11,16 @@ import type {
 
 import BaseLogViewer from '~/components/Logs/BaseLogViewer.vue';
 
-const props = defineProps<{
-  containerName: string;
-  autoScroll: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    containerName: string;
+    autoScroll: boolean;
+    clientFilter?: string;
+  }>(),
+  {
+    clientFilter: '',
+  }
+);
 
 const DEFAULT_TAIL = 200;
 const MAX_LOG_LINES = 500;
@@ -101,7 +107,18 @@ watch(
 );
 
 const logContent = computed(() => {
-  const lines = state.lines.map((line) => {
+  let linesToDisplay = state.lines;
+
+  if (props.clientFilter && props.clientFilter.trim()) {
+    const filterLower = props.clientFilter.toLowerCase();
+    linesToDisplay = state.lines.filter(
+      (line) =>
+        line.message.toLowerCase().includes(filterLower) ||
+        line.timestamp.toLowerCase().includes(filterLower)
+    );
+  }
+
+  const lines = linesToDisplay.map((line) => {
     const date = new Date(line.timestamp);
     const time = !Number.isNaN(date.getTime())
       ? date.toLocaleTimeString(undefined, {
@@ -113,6 +130,18 @@ const logContent = computed(() => {
     return `[${time}] ${line.message}`;
   });
   return lines.join('\n');
+});
+
+const filteredLineCount = computed(() => {
+  if (!props.clientFilter || !props.clientFilter.trim()) {
+    return state.lines.length;
+  }
+  const filterLower = props.clientFilter.toLowerCase();
+  return state.lines.filter(
+    (line) =>
+      line.message.toLowerCase().includes(filterLower) ||
+      line.timestamp.toLowerCase().includes(filterLower)
+  ).length;
 });
 
 const refreshLogContent = async () => {
@@ -164,7 +193,7 @@ defineExpose({ refreshLogContent });
     :log-content="logContent"
     :loading="loadingLogs"
     :error="logError?.message ?? null"
-    :total-lines="state.lines.length"
+    :total-lines="filteredLineCount"
     :auto-scroll="autoScroll"
     :show-refresh="true"
     :show-download="false"

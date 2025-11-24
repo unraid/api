@@ -86,7 +86,6 @@ declare module 'vue' {
     LocaleSwitcher: typeof import('./src/components/LocaleSwitcher.vue')['default']
     LogFilterInput: typeof import('./src/components/Logs/LogFilterInput.vue')['default']
     Logo: typeof import('./src/components/Brand/Logo.vue')['default']
-    Logs: typeof import('./src/components/Docker/Logs.vue')['default']
     'LogViewer.standalone': typeof import('./src/components/Logs/LogViewer.standalone.vue')['default']
     LogViewerToolbar: typeof import('./src/components/Logs/LogViewerToolbar.vue')['default']
     Mark: typeof import('./src/components/Brand/Mark.vue')['default']
