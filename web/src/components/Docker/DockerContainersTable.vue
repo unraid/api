@@ -137,18 +137,6 @@ function makeMultiValueCell(accessor: MultiValueKey) {
 
 const flatEntriesRef = computed(() => props.flatEntries);
 const containersRef = computed(() => props.containers);
-const containerNameById = computed(() => {
-  const map = new Map<string, string>();
-  for (const container of props.containers) {
-    if (!container?.id) continue;
-    const primaryName =
-      Array.isArray(container.names) && container.names.length
-        ? container.names[0]?.replace(/^\//, '')
-        : '';
-    map.set(container.id, primaryName || container.id);
-  }
-  return map;
-});
 
 const rootFolderId = computed<string>(() => props.rootFolderId || 'root');
 
@@ -248,21 +236,6 @@ function setRowsBusy(ids: string[], busy: boolean) {
   }
   busyRowIds.value = next;
 }
-
-function getContainerDisplayLabel(containerId: string, fallback?: string | null) {
-  const trimmedFallback = typeof fallback === 'string' ? fallback.trim() : '';
-  const resolved = containerNameById.value.get(containerId);
-  if (resolved && resolved.trim()) return resolved.trim();
-  if (trimmedFallback) return trimmedFallback;
-  return containerId;
-}
-
-watch(containerNameById, () => {
-  for (const session of logs.logSessions.value) {
-    const friendly = getContainerDisplayLabel(session.id, session.label);
-    session.label = friendly;
-  }
-});
 
 const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
   const cols: TableColumn<TreeRow<DockerContainer>>[] = [
@@ -786,19 +759,19 @@ function handleContainersWillStart(entries: { id: string; containerId: string; n
       const rawRow = getRowById(entry.id, treeData.value);
       const row = rawRow && rawRow.type === 'container' ? (rawRow as TreeRow<DockerContainer>) : null;
       const label = getRowDisplayLabel(row, entry.name);
+      const containerName = entry.name;
       return {
-        id: entry.containerId,
+        containerName,
         label,
       };
     })
-    .filter((entry): entry is { id: string; label: string } => Boolean(entry.id));
+    .filter((entry): entry is { containerName: string; label: string } => Boolean(entry.containerName));
   if (!targets.length) return;
-  logs.openLogsForContainers(targets, { reset: true });
+  logs.openLogsForContainers(targets);
 }
 
 function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   if (row.type !== 'container') return;
-  const containerId = (row as { containerId?: string }).containerId || row.id;
   if (action === 'Start / Stop') {
     containerActions.handleRowStartStop(row);
     return;
@@ -808,10 +781,9 @@ function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
     return;
   }
   if (action === 'View logs') {
-    if (!containerId) return;
-    logs.openLogsForContainers([{ id: containerId, label: getRowDisplayLabel(row, row.name) }], {
-      reset: false,
-    });
+    const containerName = row.name;
+    if (!containerName) return;
+    logs.openLogsForContainers([{ containerName, label: getRowDisplayLabel(row, row.name) }]);
     return;
   }
   if (action === 'Manage Settings') {
@@ -1113,7 +1085,6 @@ function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
       v-model:active-session-id="logs.activeLogSessionId.value"
       :sessions="logs.logSessions.value"
       :active-session="logs.activeLogSession.value"
-      @refresh="logs.handleLogsRefresh"
       @remove-session="logs.removeLogSession"
       @toggle-follow="logs.toggleActiveLogFollow"
     />

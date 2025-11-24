@@ -3,7 +3,6 @@ import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
 import { defaultColors } from '~/themes/default';
-import hexToRgba from 'hex-to-rgba';
 
 import type { GetThemeQuery } from '~/composables/gql/graphql';
 import type { Theme, ThemeVariables } from '~/themes/types';
@@ -124,17 +123,6 @@ const sanitizeTheme = (data: Partial<Theme> | null | undefined): Theme | null =>
     textColor: typeof data.textColor === 'string' ? data.textColor : DEFAULT_THEME.textColor,
   };
 };
-
-const DYNAMIC_VAR_KEYS = [
-  '--custom-header-text-primary',
-  '--custom-header-text-secondary',
-  '--custom-header-background-color',
-  '--custom-header-gradient-start',
-  '--custom-header-gradient-end',
-  '--banner-gradient',
-] as const;
-
-type DynamicVarKey = (typeof DYNAMIC_VAR_KEYS)[number];
 
 export const useThemeStore = defineStore('theme', () => {
   // State

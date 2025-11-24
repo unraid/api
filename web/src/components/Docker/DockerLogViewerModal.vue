@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, resolveComponent, watch } from 'vue';
+import { computed, resolveComponent } from 'vue';
+
+import SingleDockerLogViewer from '@/components/Docker/SingleDockerLogViewer.vue';
 
 import type { LogSession } from '@/composables/useDockerLogSessions';
 
@@ -15,7 +17,6 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void;
   (e: 'update:activeSessionId', value: string | null): void;
-  (e: 'refresh'): void;
   (e: 'remove-session', id: string): void;
   (e: 'toggle-follow', value: boolean): void;
 }>();
@@ -25,8 +26,6 @@ const UFormField = resolveComponent('UFormField');
 const USelectMenu = resolveComponent('USelectMenu');
 const USwitch = resolveComponent('USwitch');
 const UButton = resolveComponent('UButton');
-
-const logsViewportRef = ref<HTMLElement | null>(null);
 
 const logSessionOptions = computed(() =>
   props.sessions.map((session) => ({
@@ -44,27 +43,6 @@ const currentSessionId = computed({
   get: () => props.activeSessionId,
   set: (val) => emit('update:activeSessionId', val),
 });
-
-function formatLogTimestamp(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-}
-
-watch(
-  () => props.activeSession?.lines.length,
-  async () => {
-    if (!props.open) return;
-    const session = props.activeSession;
-    if (!session?.autoFollow) return;
-    await nextTick();
-    if (logsViewportRef.value) {
-      logsViewportRef.value.scrollTop = logsViewportRef.value.scrollHeight;
-    }
-  }
-);
 </script>
 
 <template>
@@ -104,14 +82,6 @@ watch(
                   color="neutral"
                   variant="outline"
                   size="sm"
-                  icon="i-lucide-rotate-cw"
-                  :disabled="!activeSession"
-                  @click="emit('refresh')"
-                />
-                <UButton
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
                   icon="i-lucide-trash-2"
                   :disabled="!activeSession"
                   @click="() => activeSession && emit('remove-session', activeSession.id)"
@@ -119,29 +89,13 @@ watch(
               </div>
             </div>
           </div>
-          <div class="rounded border border-gray-200 bg-gray-950 text-gray-100 dark:border-gray-700">
-            <div ref="logsViewportRef" class="h-80 overflow-y-auto px-4 py-3 font-mono text-sm">
-              <template v-if="activeSession?.lines.length">
-                <div
-                  v-for="(line, index) in activeSession.lines"
-                  :key="`${line.timestamp}-${index}`"
-                  class="whitespace-pre-wrap"
-                >
-                  <span class="text-primary-300">[{{ formatLogTimestamp(line.timestamp) }}]</span>
-                  <span class="ml-2">{{ line.message }}</span>
-                </div>
-              </template>
-              <div v-else class="flex h-full items-center justify-center text-gray-400">
-                <span v-if="activeSession?.isLoading">Fetching logs…</span>
-                <span v-else>No log entries yet.</span>
-              </div>
-            </div>
-          </div>
-          <div
-            v-if="activeSession?.error"
-            class="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
-          >
-            {{ activeSession.error }}
+          <div class="h-96 rounded border border-gray-200 dark:border-gray-700">
+            <SingleDockerLogViewer
+              v-if="activeSession"
+              :container-name="activeSession.containerName"
+              :auto-scroll="activeSession.autoFollow"
+              class="h-full"
+            />
           </div>
         </div>
       </div>
