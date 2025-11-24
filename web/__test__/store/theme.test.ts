@@ -216,7 +216,7 @@ describe('Theme Store', () => {
         return style;
       });
 
-      const store = createStore();
+      createStore();
 
       // Should have added dark class to documentElement
       expect(document.documentElement.classList.add).toHaveBeenCalledWith('dark');
