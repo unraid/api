@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.27.3](https://github.com/unraid/api/compare/v4.27.2...v4.27.3) (2025-11-24)
+
+
+### Bug Fixes
+
+* PHP Warnings in Management Settings ([#1805](https://github.com/unraid/api/issues/1805)) ([832e9d0](https://github.com/unraid/api/commit/832e9d04f207d3ec612c98500a2ffc86659264e5))
+
 ## [4.27.2](https://github.com/unraid/api/compare/v4.27.1...v4.27.2) (2025-11-21)
 
 
