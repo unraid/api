@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 
 import { CheckIcon } from '@heroicons/vue/24/solid';
 
+import type { ApolloError } from '@apollo/client/errors';
 import type { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
+import type { GraphQLError } from 'graphql';
 
 import {
   getNotifications,
@@ -39,7 +42,9 @@ watch(props, () => {
   canLoadMore.value = true;
 });
 
-const { offlineError } = useUnraidApiStore();
+const unraidApiStore = useUnraidApiStore();
+const { offlineError } = storeToRefs(unraidApiStore);
+
 const { result, error, loading, fetchMore, refetch } = useQuery(getNotifications, () => ({
   filter: {
     offset: 0,
@@ -48,6 +53,36 @@ const { result, error, loading, fetchMore, refetch } = useQuery(getNotifications
     importance: props.importance,
   },
 }));
+
+function dbgApolloError(prefix: string, err: ApolloError | null | undefined) {
+  if (!err) return;
+  console.group(`[Notifications] ${prefix}`);
+  console.log('top message:', err.message);
+  console.log('graphQLErrors:', err.graphQLErrors);
+  console.log('networkError:', err.networkError);
+  try {
+    console.log('json:', JSON.parse(JSON.stringify(err)));
+  } catch {
+    console.log('json:', 'failed to parse');
+    console.log('json:', err);
+  }
+  console.groupEnd();
+}
+
+watch(error, (e) => dbgApolloError('useQuery error', e as ApolloError | null | undefined), {
+  immediate: true,
+});
+watch(offlineError, (o) => {
+  if (o) console.log('[Notifications] offlineError:', o.message);
+});
+
+watch([error, offlineError], ([e, o]) => {
+  if (!e && !o) {
+    canLoadMore.value = true;
+  } else if (o) {
+    canLoadMore.value = false;
+  }
+});
 
 const notifications = computed(() => {
   if (!result.value?.notifications.list) return [];
@@ -76,19 +111,26 @@ watch(
 
 async function onLoadMore() {
   console.log('[getNotifications] onLoadMore');
-  const incoming = await fetchMore({
-    variables: {
-      filter: {
-        offset: notifications.value.length,
-        limit: props.pageSize,
-        type: props.type,
-        importance: props.importance,
+  try {
+    const incoming = await fetchMore({
+      variables: {
+        filter: {
+          offset: notifications.value.length,
+          limit: props.pageSize,
+          type: props.type,
+          importance: props.importance,
+        },
       },
-    },
-  });
-  const incomingCount = incoming?.data.notifications.list.length ?? 0;
-  if (incomingCount === 0 || incomingCount < props.pageSize) {
+    });
+    const incomingCount = incoming?.data.notifications.list.length ?? 0;
+    if (incomingCount === 0 || incomingCount < props.pageSize) {
+      canLoadMore.value = false;
+    }
+  } catch (error) {
+    // Stop attempting while offline/error.
+    // UI has a Try Again button to recover
     canLoadMore.value = false;
+    throw error;
   }
 }
 
@@ -113,12 +155,32 @@ const noNotificationsMessage = computed(() => {
     importance: importanceLabel.value.toLowerCase(),
   });
 });
+
+const displayErrorMessage = computed(() => {
+  if (offlineError.value) return offlineError.value.message;
+
+  const apolloErr = error.value as ApolloError | null | undefined;
+  const firstGqlErr = apolloErr?.graphQLErrors?.[0] as
+    | (GraphQLError & {
+        extensions?: { error?: { message?: string } };
+        error?: { message?: string };
+      })
+    | undefined;
+
+  const gqlEmbedded = firstGqlErr?.extensions?.error?.message;
+  const gqlTop = firstGqlErr?.error?.message;
+  const gqlMessage = firstGqlErr?.message;
+  const netMessage = (apolloErr?.networkError as { message?: string } | undefined)?.message;
+  const topMessage = apolloErr?.message;
+
+  return gqlEmbedded || gqlTop || gqlMessage || netMessage || topMessage || 'An unknown error occurred.';
+});
 </script>
 
 <template>
   <div
     v-if="notifications?.length > 0"
-    v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore }]"
+    v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore && !loading && !offlineError }]"
     class="flex min-h-0 flex-1 flex-col overflow-y-scroll px-3"
   >
     <TransitionGroup
@@ -182,7 +244,7 @@ const noNotificationsMessage = computed(() => {
       </div>
       <div class="text-center">
         <h3 class="font-bold">Error</h3>
-        <p>{{ (offlineError ?? error)?.message }}</p>
+        <p>{{ displayErrorMessage }}</p>
       </div>
       <UButton class="w-full" @click="() => void refetch()">Try Again</UButton>
     </div>
