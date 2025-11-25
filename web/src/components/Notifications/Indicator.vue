@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import { BellIcon, ExclamationTriangleIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
 import { cn } from '@unraid/ui';
 
 import type { OverviewQuery } from '~/composables/gql/graphql';
-import type { Component } from 'vue';
 
 import { NotificationImportance as Importance } from '~/composables/gql/graphql';
 
@@ -27,16 +25,16 @@ const indicatorLevel = computed(() => {
   }
 });
 
-const icon = computed<{ component: Component; color: string } | null>(() => {
+const icon = computed<{ name: string; color: string } | null>(() => {
   switch (indicatorLevel.value) {
     case Importance.WARNING:
       return {
-        component: ExclamationTriangleIcon,
+        name: 'i-heroicons-exclamation-triangle-20-solid',
         color: 'text-yellow-500 translate-y-0.5',
       };
     case Importance.ALERT:
       return {
-        component: ShieldExclamationIcon,
+        name: 'i-heroicons-shield-exclamation-20-solid',
         color: 'text-unraid-red',
       };
   }
@@ -46,14 +44,14 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
 
 <template>
   <div class="relative flex items-center justify-center">
-    <BellIcon class="text-header-text-primary h-6 w-6" />
+    <UIcon name="i-heroicons-bell-20-solid" class="text-header-text-primary h-6 w-6" />
     <div
       v-if="!seen && indicatorLevel === 'UNREAD'"
       class="border-muted bg-unraid-green absolute top-0 right-0 size-2.5 rounded-full border"
     />
-    <component
-      :is="icon.component"
+    <UIcon
       v-else-if="!seen && icon && indicatorLevel"
+      :name="icon.name"
       :class="cn('absolute -top-1 -right-1 size-4 rounded-full', icon.color)"
     />
   </div>

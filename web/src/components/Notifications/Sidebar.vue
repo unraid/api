@@ -3,24 +3,6 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
-import {
-  Button,
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@unraid/ui';
-import { Settings } from 'lucide-vue-next';
-
 import ConfirmDialog from '~/components/ConfirmDialog.vue';
 import {
   archiveAllNotifications,
@@ -122,6 +104,10 @@ onNotificationAdded(({ data }) => {
   );
 });
 
+const openSettings = () => {
+  window.location.assign('/Settings/Notifications');
+};
+
 const overview = computed(() => {
   if (!result.value) {
     return;
@@ -139,122 +125,171 @@ const readArchivedCount = computed(() => {
 const prepareToViewNotifications = () => {
   void recalculateOverview();
 };
+
+const isOpen = ref(false);
+const activeTab = ref<'unread' | 'archived'>('unread');
+
+const tabs = computed(() => [
+  {
+    id: 'unread',
+    label: t('notifications.sidebar.unreadTab'),
+    count: overview.value?.unread.total,
+  },
+  {
+    id: 'archived',
+    label: t('notifications.sidebar.archivedTab'),
+    count: readArchivedCount.value,
+  },
+]);
 </script>
 
+<!-- totally scuffed but we use: !bg-transparent, !bg-none, hover:text-current to override conflicting webgui/api styles -->
 <template>
-  <Sheet>
-    <SheetTrigger as-child>
-      <Button variant="header" size="header" @click="prepareToViewNotifications">
-        <span class="sr-only">{{ t('notifications.sidebar.openButtonSr') }}</span>
-        <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
-      </Button>
-    </SheetTrigger>
-    <SheetContent
-      side="right"
-      class="flex h-screen max-h-screen min-h-screen w-full max-w-screen flex-col gap-5 px-0 pb-0 sm:max-w-[540px]"
+  <div>
+    <UButton
+      variant="ghost"
+      color="neutral"
+      class="!bg-transparent"
+      @click="
+        () => {
+          isOpen = true;
+          prepareToViewNotifications();
+        }
+      "
     >
-      <div class="relative flex h-full w-full flex-col">
-        <SheetHeader class="ml-1 items-baseline gap-1 px-3 pb-2">
-          <SheetTitle class="text-2xl">{{ t('notifications.sidebar.title') }}</SheetTitle>
-        </SheetHeader>
-        <Tabs
-          default-value="unread"
-          class="flex min-h-0 flex-1 flex-col"
-          :aria-label="t('notifications.sidebar.statusTabsAria')"
-        >
-          <div class="flex flex-row flex-wrap items-center justify-between gap-3 px-3">
-            <TabsList class="flex" :aria-label="t('notifications.sidebar.statusTabsListAria')">
-              <TabsTrigger value="unread" as-child>
-                <Button variant="ghost" size="sm" class="inline-flex items-center gap-1 px-3 py-1">
-                  <span>{{ t('notifications.sidebar.unreadTab') }}</span>
-                  <span v-if="overview" class="font-normal">({{ overview.unread.total }})</span>
-                </Button>
-              </TabsTrigger>
-              <TabsTrigger value="archived" as-child>
-                <Button variant="ghost" size="sm" class="inline-flex items-center gap-1 px-3 py-1">
-                  <span>{{ t('notifications.sidebar.archivedTab') }}</span>
-                  <span v-if="overview" class="font-normal">({{ readArchivedCount }})</span>
-                </Button>
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="unread" class="flex-col items-end">
-              <Button
-                :disabled="loadingArchiveAll"
-                variant="link"
-                size="sm"
-                class="text-foreground hover:text-destructive transition-none"
-                @click="confirmAndArchiveAll"
-              >
-                {{ t('notifications.sidebar.archiveAllAction') }}
-              </Button>
-            </TabsContent>
-            <TabsContent value="archived" class="flex-col items-end">
-              <Button
-                :disabled="loadingDeleteAll"
-                variant="link"
-                size="sm"
-                class="text-foreground hover:text-destructive transition-none"
-                @click="confirmAndDeleteArchives"
-              >
-                {{ t('notifications.sidebar.deleteAllAction') }}
-              </Button>
-            </TabsContent>
-          </div>
+      <span class="sr-only">{{ t('notifications.sidebar.openButtonSr') }}</span>
+      <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
+    </UButton>
 
-          <div class="mt-3 flex items-start justify-between gap-3 px-3">
-            <div class="flex min-w-0 flex-1 flex-col gap-2">
-              <div
-                class="border-border/60 bg-muted/60 flex flex-wrap items-center gap-1 rounded-xl border p-1"
-                role="group"
-              >
-                <Button
-                  v-for="option in filterOptions"
-                  :key="option.value ?? 'all'"
-                  variant="ghost"
-                  size="sm"
-                  class="h-8 rounded-lg border border-transparent px-3 text-xs font-medium transition-colors"
-                  :class="
-                    importance === option.value
-                      ? 'border-border bg-background text-foreground'
-                      : 'text-muted-foreground hover:border-border/60 hover:bg-muted/40 hover:text-foreground'
-                  "
-                  :aria-pressed="importance === option.value"
-                  @click="importance = option.value"
+    <USlideover
+      v-model:open="isOpen"
+      side="right"
+      :title="t('notifications.sidebar.title')"
+      :close="{
+        color: 'neutral',
+        variant: 'ghost',
+        class: 'rounded-md !bg-none hover:text-current',
+      }"
+      :ui="{
+        content: 'w-screen max-w-screen sm:max-w-[540px]',
+        title: 'text-3xl font-normal',
+      }"
+    >
+      <template #body>
+        <div class="flex h-full flex-col">
+          <div class="flex flex-1 flex-col overflow-hidden">
+            <!-- Controls Area -->
+            <div class="flex flex-col gap-3 px-0 py-3">
+              <!-- Tabs & Action Button Row -->
+              <div class="flex items-center justify-between gap-3">
+                <!-- Custom Pill Tabs -->
+                <div class="dark:bg-muted flex shrink-0 gap-1 rounded-lg bg-gray-100 p-2">
+                  <UButton
+                    v-for="tab in tabs"
+                    :key="tab.id"
+                    @click="activeTab = tab.id as 'unread' | 'archived'"
+                    :color="activeTab === tab.id ? 'primary' : 'neutral'"
+                    :variant="activeTab === tab.id ? 'solid' : 'ghost'"
+                    size="sm"
+                    class="!bg-none transition-colors"
+                    :class="[
+                      activeTab === tab.id
+                        ? 'text-white'
+                        : 'text-gray-500 hover:bg-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:bg-transparent dark:hover:text-gray-200',
+                    ]"
+                  >
+                    <span>{{ tab.label }}</span>
+                    <span v-if="tab.count !== undefined" class="opacity-90">({{ tab.count }})</span>
+                  </UButton>
+                </div>
+
+                <!-- Action Button -->
+                <UButton
+                  v-if="activeTab === 'unread'"
+                  :disabled="loadingArchiveAll"
+                  variant="link"
+                  color="neutral"
+                  class="hover:text-primary h-auto !bg-none p-0 font-normal hover:underline"
+                  @click="confirmAndArchiveAll"
                 >
-                  {{ option.label }}
-                </Button>
+                  {{ t('notifications.sidebar.archiveAllAction') }}
+                </UButton>
+                <UButton
+                  v-else
+                  :disabled="loadingDeleteAll"
+                  variant="link"
+                  color="neutral"
+                  class="text-foreground hover:text-destructive h-auto !bg-none p-0 font-normal transition-colors hover:underline"
+                  @click="confirmAndDeleteArchives"
+                >
+                  {{ t('notifications.sidebar.deleteAllAction') }}
+                </UButton>
+              </div>
+
+              <!-- Filters & Settings Row -->
+              <div class="flex items-center justify-between gap-3">
+                <!-- Filter Button Group -->
+                <div
+                  class="dark:bg-muted flex items-center gap-1 overflow-x-auto rounded-lg bg-gray-100 p-1"
+                >
+                  <UButton
+                    v-for="option in filterOptions"
+                    :key="option.value ?? 'all'"
+                    @click="importance = option.value"
+                    color="neutral"
+                    variant="ghost"
+                    size="xs"
+                    class="!bg-none whitespace-nowrap transition-colors"
+                    :class="[
+                      importance === option.value
+                        ? 'dark:bg-accented bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-white hover:text-gray-900 dark:text-white dark:ring-gray-600 dark:hover:bg-gray-700 dark:hover:text-white'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-transparent hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600',
+                    ]"
+                  >
+                    {{ option.label }}
+                  </UButton>
+                </div>
+                <!-- Settings Icon -->
+                <UTooltip
+                  :delay-duration="0"
+                  :content="{
+                    align: 'center',
+                    side: 'top',
+                    sideOffset: 8,
+                  }"
+                  :text="t('notifications.sidebar.editSettingsTooltip')"
+                >
+                  <UButton
+                    variant="ghost"
+                    color="neutral"
+                    icon="i-heroicons-cog-6-tooth-20-solid"
+                    class="h-8 w-8 !bg-none hover:text-current"
+                    @click="openSettings"
+                  />
+                </UTooltip>
               </div>
             </div>
-            <div class="shrink-0">
-              <TooltipProvider>
-                <Tooltip :delay-duration="0">
-                  <TooltipTrigger as-child>
-                    <a href="/Settings/Notifications">
-                      <Button variant="ghost" size="sm" class="h-8 w-8 p-0">
-                        <Settings class="h-4 w-4" />
-                      </Button>
-                    </a>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{{ t('notifications.sidebar.editSettingsTooltip') }}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+
+            <!-- Notifications List Content -->
+            <div class="flex flex-1 flex-col overflow-hidden">
+              <NotificationsList
+                v-if="activeTab === 'unread'"
+                :importance="importance"
+                :type="NotificationType.UNREAD"
+                class="flex-1"
+              />
+              <NotificationsList
+                v-else
+                :importance="importance"
+                :type="NotificationType.ARCHIVE"
+                class="flex-1"
+              />
             </div>
           </div>
-
-          <TabsContent value="unread" class="min-h-0 flex-1 flex-col">
-            <NotificationsList :importance="importance" :type="NotificationType.UNREAD" />
-          </TabsContent>
-
-          <TabsContent value="archived" class="min-h-0 flex-1 flex-col">
-            <NotificationsList :importance="importance" :type="NotificationType.ARCHIVE" />
-          </TabsContent>
-        </Tabs>
-      </div>
-    </SheetContent>
-  </Sheet>
-
-  <!-- Global Confirm Dialog -->
-  <ConfirmDialog />
+        </div>
+      </template>
+    </USlideover>
+    <!-- Global Confirm Dialog -->
+    <ConfirmDialog />
+  </div>
 </template>

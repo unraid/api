@@ -4,19 +4,9 @@ import { useI18n } from 'vue-i18n';
 import { useMutation } from '@vue/apollo-composable';
 import { computedAsync } from '@vueuse/core';
 
-import {
-  ArchiveBoxIcon,
-  CheckBadgeIcon,
-  ExclamationTriangleIcon,
-  LinkIcon,
-  ShieldExclamationIcon,
-  TrashIcon,
-} from '@heroicons/vue/24/solid';
-import { Button } from '@unraid/ui';
 import { Markdown } from '@/helpers/markdown';
 
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
-import type { Component } from 'vue';
 
 import {
   archiveNotification as archiveMutation,
@@ -37,21 +27,21 @@ const descriptionMarkup = computedAsync(async () => {
   }
 }, '');
 
-const icon = computed<{ component: Component; color: string } | null>(() => {
+const icon = computed<{ name: string; color: string } | null>(() => {
   switch (props.importance) {
     case 'INFO':
       return {
-        component: CheckBadgeIcon,
+        name: 'i-heroicons-check-badge-20-solid',
         color: 'text-unraid-green',
       };
     case 'WARNING':
       return {
-        component: ExclamationTriangleIcon,
+        name: 'i-heroicons-exclamation-triangle-20-solid',
         color: 'text-yellow-accent',
       };
     case 'ALERT':
       return {
-        component: ShieldExclamationIcon,
+        name: 'i-heroicons-shield-exclamation-20-solid',
         color: 'text-unraid-red',
       };
   }
@@ -97,12 +87,7 @@ const reformattedTimestamp = computed<string>(() => {
         class="m-0 flex flex-row items-baseline gap-2 overflow-x-hidden text-base font-semibold normal-case"
       >
         <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
-        <component
-          :is="icon.component"
-          v-if="icon"
-          class="size-5 shrink-0 translate-y-1"
-          :class="icon.color"
-        />
+        <UIcon v-if="icon" :name="icon.name" class="size-5 shrink-0 translate-y-1" :class="icon.color" />
         <span class="flex-1 truncate" :title="title">{{ title }}</span>
       </h3>
 
@@ -125,30 +110,33 @@ const reformattedTimestamp = computed<string>(() => {
     <p v-if="mutationError" class="text-red-600">{{ t('common.error') }}: {{ mutationError }}</p>
 
     <div class="flex items-baseline justify-end gap-4">
-      <a
+      <UButton
         v-if="link"
-        :href="link"
-        class="text-primary inline-flex items-center justify-center text-sm font-medium hover:underline focus:underline"
+        :to="link"
+        variant="link"
+        class="text-primary inline-flex items-center justify-center p-0 text-sm font-medium hover:underline focus:underline"
+        icon="i-heroicons-link-20-solid"
       >
-        <LinkIcon class="mr-2 size-4" />
         <span class="text-sm">{{ t('notifications.item.viewLink') }}</span>
-      </a>
-      <Button
+      </UButton>
+      <UButton
         v-if="type === NotificationType.UNREAD"
-        :disabled="archive.loading"
-        @click="() => archive.mutate({ id: props.id })"
+        :loading="archive.loading"
+        icon="i-heroicons-archive-box-20-solid"
+        class="!bg-none"
+        @click="() => void archive.mutate({ id: props.id })"
       >
-        <ArchiveBoxIcon class="mr-2 size-4" />
         <span class="text-sm">{{ t('notifications.item.archive') }}</span>
-      </Button>
-      <Button
+      </UButton>
+      <UButton
         v-if="type === NotificationType.ARCHIVE"
-        :disabled="deleteNotification.loading"
-        @click="() => deleteNotification.mutate({ id: props.id, type: props.type })"
+        :loading="deleteNotification.loading"
+        icon="i-heroicons-trash-20-solid"
+        class="!bg-none"
+        @click="() => void deleteNotification.mutate({ id: props.id, type: props.type })"
       >
-        <TrashIcon class="mr-2 size-4" />
         <span class="text-sm">{{ t('notifications.item.delete') }}</span>
-      </Button>
+      </UButton>
     </div>
   </div>
 </template>
