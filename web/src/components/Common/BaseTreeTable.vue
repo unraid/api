@@ -95,7 +95,20 @@ const tableContainerRef = ref<HTMLElement | null>(null);
 const columnVisibility = ref<Record<string, boolean>>({});
 
 const columnSizing = defineModel<Record<string, number>>('columnSizing', { default: () => ({}) });
-const columnOrderState = defineModel<string[]>('columnOrder', { default: () => [] });
+const columnOrderModel = defineModel<string[]>('columnOrder', { default: () => [] });
+
+const columnOrderState = computed({
+  get: () => {
+    const order = columnOrderModel.value;
+    if (!order.length) return [];
+    const filtered = order.filter((id) => id !== 'select');
+    return ['select', ...filtered];
+  },
+  set: (value: string[]) => {
+    const filtered = value.filter((id) => id !== 'select');
+    columnOrderModel.value = filtered;
+  },
+});
 
 type ColumnHeaderRenderer = TableColumn<TreeRow<T>>['header'];
 
