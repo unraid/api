@@ -154,7 +154,7 @@ describe('Theme Store', () => {
             ...style,
             getPropertyValue: (prop: string) => {
               if (prop === '--banner-gradient') {
-                return 'linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) 90%)';
+                return 'linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%))';
               }
               return style.getPropertyValue(prop);
             },
@@ -165,7 +165,7 @@ describe('Theme Store', () => {
 
       const store = createStore();
       expect(store.bannerGradient).toBe(
-        'background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) 90%);'
+        'background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%));'
       );
 
       vi.restoreAllMocks();
