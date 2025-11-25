@@ -182,25 +182,52 @@ describe('UserProfile.standalone.vue', () => {
       createSpy: vi.fn,
       initialState: {
         server: { ...initialServerData },
-        theme: {
-          theme: {
-            name: 'default',
-            banner: true,
-            bannerGradient: true,
-            descriptionShow: true,
-            textColor: '',
-            metaColor: '',
-            bgColor: '',
-          },
-          bannerGradient: 'linear-gradient(to right, #ff0000, #0000ff)',
-        },
       },
       stubActions: false,
     });
     setActivePinia(pinia);
 
     serverStore = useServerStore();
+
+    // Mock getComputedStyle to return CSS variables for bannerGradient
+    const mockGetComputedStyle = vi.fn((el: Element) => {
+      const mockStyle = {
+        getPropertyValue: (prop: string) => {
+          if (el === document.documentElement) {
+            if (prop === '--banner-gradient') {
+              return 'linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%))';
+            }
+            if (prop === '--theme-dark-mode') {
+              return '0';
+            }
+            if (prop === '--theme-name') {
+              return '';
+            }
+          }
+          return '';
+        },
+      } as CSSStyleDeclaration;
+      return mockStyle;
+    });
+
+    Object.defineProperty(window, 'getComputedStyle', {
+      value: mockGetComputedStyle,
+      writable: true,
+      configurable: true,
+    });
+
     themeStore = useThemeStore();
+
+    // Set the theme using setTheme method
+    themeStore.setTheme({
+      name: 'white',
+      banner: true,
+      bannerGradient: true,
+      descriptionShow: true,
+      textColor: '',
+      metaColor: '',
+      bgColor: '',
+    });
 
     // Override the setServer method to prevent console logging
     vi.spyOn(serverStore, 'setServer').mockImplementation((server) => {
@@ -326,7 +353,7 @@ describe('UserProfile.standalone.vue', () => {
     expect(themeStore.theme?.descriptionShow).toBe(true);
 
     serverStore.description = initialServerData.description!;
-    themeStore.theme!.descriptionShow = true;
+    themeStore.setTheme({ ...themeStore.theme, descriptionShow: true });
     await wrapper.vm.$nextTick();
 
     // Look for the description in a span element with v-html directive
@@ -334,14 +361,14 @@ describe('UserProfile.standalone.vue', () => {
     expect(descriptionElement.exists()).toBe(true);
     expect(descriptionElement.html()).toContain(initialServerData.description);
 
-    themeStore.theme!.descriptionShow = false;
+    themeStore.setTheme({ ...themeStore.theme, descriptionShow: false });
     await wrapper.vm.$nextTick();
 
     // When descriptionShow is false, the element should not exist
     descriptionElement = wrapper.find('span.hidden.text-center.text-base');
     expect(descriptionElement.exists()).toBe(false);
 
-    themeStore.theme!.descriptionShow = true;
+    themeStore.setTheme({ ...themeStore.theme, descriptionShow: true });
     await wrapper.vm.$nextTick();
 
     descriptionElement = wrapper.find('span.hidden.text-center.text-base');
@@ -361,23 +388,29 @@ describe('UserProfile.standalone.vue', () => {
   it('conditionally renders banner based on theme store', async () => {
     const bannerSelector = 'div.absolute.z-0';
 
-    themeStore.theme = {
-      ...themeStore.theme!,
+    themeStore.setTheme({
+      ...themeStore.theme,
       banner: true,
       bannerGradient: true,
-    };
+    });
     await wrapper.vm.$nextTick();
 
     expect(themeStore.bannerGradient).toContain('background-image: linear-gradient');
     expect(wrapper.find(bannerSelector).exists()).toBe(true);
 
-    themeStore.theme!.bannerGradient = false;
+    themeStore.setTheme({
+      ...themeStore.theme,
+      bannerGradient: false,
+    });
     await wrapper.vm.$nextTick();
 
     expect(themeStore.bannerGradient).toBeUndefined();
     expect(wrapper.find(bannerSelector).exists()).toBe(false);
 
-    themeStore.theme!.bannerGradient = true;
+    themeStore.setTheme({
+      ...themeStore.theme,
+      bannerGradient: true,
+    });
     await wrapper.vm.$nextTick();
 
     expect(themeStore.bannerGradient).toContain('background-image: linear-gradient');

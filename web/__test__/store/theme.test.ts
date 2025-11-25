@@ -156,6 +156,9 @@ describe('Theme Store', () => {
               if (prop === '--banner-gradient') {
                 return 'linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%))';
               }
+              if (prop === '--theme-dark-mode') {
+                return '0';
+              }
               return style.getPropertyValue(prop);
             },
           } as CSSStyleDeclaration;
@@ -166,6 +169,9 @@ describe('Theme Store', () => {
       const store = createStore();
       store.setTheme({ banner: true, bannerGradient: true });
       await nextTick();
+      expect(store.theme.banner).toBe(true);
+      expect(store.theme.bannerGradient).toBe(true);
+      expect(store.darkMode).toBe(false);
       expect(store.bannerGradient).toBe(
         'background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%));'
       );
