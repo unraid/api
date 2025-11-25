@@ -411,7 +411,6 @@ const [transitionContainerRef] = useAutoAnimate({
         <div v-if="hasPortConflicts" class="mb-4">
           <DockerPortConflictsAlert
             :lan-conflicts="lanPortConflicts"
-            :container-conflicts="containerPortConflicts"
             @container:select="handleConflictContainerAction"
           />
         </div>
