@@ -62,7 +62,13 @@ describe('Theme Store', () => {
   afterEach(() => {
     store?.$dispose();
     store = undefined;
-    app?.unmount();
+    if (app) {
+      try {
+        app.unmount();
+      } catch {
+        // App was not mounted, ignore
+      }
+    }
     app = undefined;
 
     document.body.classList.add = originalAddClassFn;

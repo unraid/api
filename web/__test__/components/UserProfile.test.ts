@@ -189,32 +189,12 @@ describe('UserProfile.standalone.vue', () => {
 
     serverStore = useServerStore();
 
-    // Mock getComputedStyle to return CSS variables for bannerGradient
-    const mockGetComputedStyle = vi.fn((el: Element) => {
-      const mockStyle = {
-        getPropertyValue: (prop: string) => {
-          if (el === document.documentElement) {
-            if (prop === '--banner-gradient') {
-              return 'linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%))';
-            }
-            if (prop === '--theme-dark-mode') {
-              return '0';
-            }
-            if (prop === '--theme-name') {
-              return '';
-            }
-          }
-          return '';
-        },
-      } as CSSStyleDeclaration;
-      return mockStyle;
-    });
-
-    Object.defineProperty(window, 'getComputedStyle', {
-      value: mockGetComputedStyle,
-      writable: true,
-      configurable: true,
-    });
+    // Set CSS variables directly on document element for theme store
+    document.documentElement.style.setProperty('--theme-dark-mode', '0');
+    document.documentElement.style.setProperty(
+      '--banner-gradient',
+      'linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%))'
+    );
 
     themeStore = useThemeStore();
 
