@@ -145,7 +145,7 @@ describe('Theme Store', () => {
       vi.restoreAllMocks();
     });
 
-    it('should compute bannerGradient from CSS variable when set', () => {
+    it('should compute bannerGradient from CSS variable when set', async () => {
       const originalGetComputedStyle = window.getComputedStyle;
       vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
         const style = originalGetComputedStyle(el);
@@ -164,6 +164,8 @@ describe('Theme Store', () => {
       });
 
       const store = createStore();
+      store.setTheme({ banner: true, bannerGradient: true });
+      await nextTick();
       expect(store.bannerGradient).toBe(
         'background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%));'
       );
