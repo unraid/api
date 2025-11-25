@@ -3,9 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { createSubscription } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
 import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
 import {
@@ -42,7 +43,7 @@ export class ServerResolver {
         resource: Resource.SERVERS,
     })
     public async serversSubscription() {
-        return createSubscription(PUBSUB_CHANNEL.SERVERS);
+        return createSubscription(GRAPHQL_PUBSUB_CHANNEL.SERVERS);
     }
 
     private getLocalServer(): ServerModel {

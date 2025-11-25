@@ -4,14 +4,20 @@ import { join } from 'node:path';
 
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
+import { LogService } from '@app/unraid-api/cli/log.service.js';
+
 const logger = {
+    clear: vi.fn(),
+    shouldLog: vi.fn(() => true),
+    table: vi.fn(),
     trace: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
     log: vi.fn(),
     info: vi.fn(),
     debug: vi.fn(),
-} as const;
+    always: vi.fn(),
+} as unknown as LogService;
 
 describe('NodemonService (real nodemon)', () => {
     const tmpRoot = join(tmpdir(), 'nodemon-service-');
