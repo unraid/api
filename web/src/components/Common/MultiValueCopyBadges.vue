@@ -210,17 +210,19 @@ onBeforeUnmount(() => {
       </span>
     </component>
 
-    <component :is="UPopover" v-if="overflowEntries.length" data-stop-row-click="true">
+    <component :is="UPopover" v-if="overflowEntries.length">
       <template #default>
-        <component
-          :is="UBadge"
-          color="neutral"
-          variant="outline"
-          :size="size"
-          class="cursor-pointer select-none"
-        >
-          +{{ overflowEntries.length }} more
-        </component>
+        <span data-stop-row-click="true" @click.stop>
+          <component
+            :is="UBadge"
+            color="neutral"
+            variant="outline"
+            :size="size"
+            class="cursor-pointer select-none"
+          >
+            +{{ overflowEntries.length }} more
+          </component>
+        </span>
       </template>
       <template #content>
         <div class="max-h-64 max-w-xs space-y-1 overflow-y-auto p-1">

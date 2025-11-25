@@ -115,7 +115,7 @@ onStatsResult((result) => {
   }
 });
 
-const MULTI_VALUE_INLINE_LIMIT = 3;
+const MULTI_VALUE_INLINE_LIMIT = 1;
 
 type MultiValueKey = 'containerIp' | 'containerPort' | 'lanPort';
 
