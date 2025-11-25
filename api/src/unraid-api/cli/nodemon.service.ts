@@ -33,6 +33,7 @@ export class NodemonService {
 
     async ensureNodemonDependencies() {
         await mkdir(PATHS_LOGS_DIR, { recursive: true });
+        await mkdir(dirname(PATHS_LOGS_FILE), { recursive: true });
         await mkdir(dirname(NODEMON_PID_PATH), { recursive: true });
     }
 
@@ -215,14 +216,17 @@ export class NodemonService {
             Object.entries(options.env ?? {}).filter(([, value]) => value !== undefined)
         );
         const env = { ...process.env, ...overrides } as Record<string, string>;
-        const logStream = createWriteStream(PATHS_LOGS_FILE, { flags: 'a' });
+        let logStream: ReturnType<typeof createWriteStream> | null = null;
 
         let nodemonProcess;
         try {
+            logStream = await this.createLogStream();
+
             nodemonProcess = execa(NODEMON_PATH, ['--config', NODEMON_CONFIG_PATH, '--quiet'], {
                 cwd: UNRAID_API_CWD,
                 env,
                 detached: true,
+                reject: false,
                 stdio: ['ignore', logStream, logStream],
             });
 
@@ -248,7 +252,7 @@ export class NodemonService {
 
             this.logger.info(`Started nodemon (pid ${nodemonProcess.pid})`);
         } catch (error) {
-            logStream.close();
+            logStream?.close();
             const errorMessage = error instanceof Error ? error.message : String(error);
             throw new Error(`Failed to start nodemon: ${errorMessage}`);
         }
@@ -314,5 +318,32 @@ export class NodemonService {
             }
             return '';
         }
+    }
+
+    private async createLogStream() {
+        const logStream = createWriteStream(PATHS_LOGS_FILE, { flags: 'a' });
+
+        await new Promise<void>((resolve, reject) => {
+            const cleanup = () => {
+                logStream.off('open', onOpen);
+                logStream.off('error', onError);
+            };
+
+            const onOpen = () => {
+                cleanup();
+                resolve();
+            };
+
+            const onError = (error: unknown) => {
+                cleanup();
+                logStream.destroy();
+                reject(error instanceof Error ? error : new Error(String(error)));
+            };
+
+            logStream.once('open', onOpen);
+            logStream.once('error', onError);
+        });
+
+        return logStream;
     }
 }
