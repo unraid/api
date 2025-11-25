@@ -8,7 +8,7 @@ import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { NodemonService } from '@app/unraid-api/cli/nodemon.service.js';
 
 vi.mock('node:fs', () => ({
-    createWriteStream: vi.fn(() => ({ pipe: vi.fn(), close: vi.fn() })),
+    createWriteStream: vi.fn(() => ({ fd: 42, close: vi.fn() })),
 }));
 vi.mock('node:fs/promises');
 vi.mock('execa', () => ({ execa: vi.fn() }));
@@ -90,17 +90,13 @@ describe('NodemonService', () => {
 
     it('starts nodemon and writes pid file', async () => {
         const service = new NodemonService(logger);
-        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        const logStream = { fd: 99, close: vi.fn() };
         vi.mocked(createWriteStream).mockReturnValue(
             logStream as unknown as ReturnType<typeof createWriteStream>
         );
-        const stdout = { pipe: vi.fn() };
-        const stderr = { pipe: vi.fn() };
         const unref = vi.fn();
         vi.mocked(execa).mockReturnValue({
             pid: 123,
-            stdout,
-            stderr,
             unref,
         } as unknown as ReturnType<typeof execa>);
         killSpy.mockReturnValue(true);
@@ -116,12 +112,10 @@ describe('NodemonService', () => {
                 cwd: '/usr/local/unraid-api',
                 env: expect.objectContaining({ LOG_LEVEL: 'DEBUG' }),
                 detached: true,
-                stdio: ['ignore', 'pipe', 'pipe'],
+                stdio: ['ignore', logStream, logStream],
             }
         );
         expect(createWriteStream).toHaveBeenCalledWith('/var/log/graphql-api.log', { flags: 'a' });
-        expect(stdout.pipe).toHaveBeenCalled();
-        expect(stderr.pipe).toHaveBeenCalled();
         expect(unref).toHaveBeenCalled();
         expect(mockWriteFile).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', '123');
         expect(logger.info).toHaveBeenCalledWith('Started nodemon (pid 123)');
@@ -142,7 +136,7 @@ describe('NodemonService', () => {
 
     it('throws error and closes logStream when execa fails', async () => {
         const service = new NodemonService(logger);
-        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        const logStream = { fd: 99, close: vi.fn() };
         vi.mocked(createWriteStream).mockReturnValue(
             logStream as unknown as ReturnType<typeof createWriteStream>
         );
@@ -159,17 +153,13 @@ describe('NodemonService', () => {
 
     it('throws error and closes logStream when pid is missing', async () => {
         const service = new NodemonService(logger);
-        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        const logStream = { fd: 99, close: vi.fn() };
         vi.mocked(createWriteStream).mockReturnValue(
             logStream as unknown as ReturnType<typeof createWriteStream>
         );
-        const stdout = { pipe: vi.fn() };
-        const stderr = { pipe: vi.fn() };
         const unref = vi.fn();
         vi.mocked(execa).mockReturnValue({
             pid: undefined,
-            stdout,
-            stderr,
             unref,
         } as unknown as ReturnType<typeof execa>);
 
@@ -183,17 +173,13 @@ describe('NodemonService', () => {
 
     it('throws when nodemon exits immediately after start', async () => {
         const service = new NodemonService(logger);
-        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        const logStream = { fd: 99, close: vi.fn() };
         vi.mocked(createWriteStream).mockReturnValue(
             logStream as unknown as ReturnType<typeof createWriteStream>
         );
-        const stdout = { pipe: vi.fn() };
-        const stderr = { pipe: vi.fn() };
         const unref = vi.fn();
         vi.mocked(execa).mockReturnValue({
             pid: 456,
-            stdout,
-            stderr,
             unref,
         } as unknown as ReturnType<typeof execa>);
         killSpy.mockImplementation(() => {
@@ -223,17 +209,13 @@ describe('NodemonService', () => {
             'isPidRunning'
         ).mockResolvedValue(true);
 
-        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        const logStream = { fd: 99, close: vi.fn() };
         vi.mocked(createWriteStream).mockReturnValue(
             logStream as unknown as ReturnType<typeof createWriteStream>
         );
-        const stdout = { pipe: vi.fn() };
-        const stderr = { pipe: vi.fn() };
         const unref = vi.fn();
         vi.mocked(execa).mockReturnValue({
             pid: 456,
-            stdout,
-            stderr,
             unref,
         } as unknown as ReturnType<typeof execa>);
 
@@ -249,17 +231,13 @@ describe('NodemonService', () => {
 
     it('removes stale pid file and starts when recorded pid is dead', async () => {
         const service = new NodemonService(logger);
-        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        const logStream = { fd: 99, close: vi.fn() };
         vi.mocked(createWriteStream).mockReturnValue(
             logStream as unknown as ReturnType<typeof createWriteStream>
         );
-        const stdout = { pipe: vi.fn() };
-        const stderr = { pipe: vi.fn() };
         const unref = vi.fn();
         vi.mocked(execa).mockReturnValue({
             pid: 111,
-            stdout,
-            stderr,
             unref,
         } as unknown as ReturnType<typeof execa>);
         vi.spyOn(
@@ -297,17 +275,13 @@ describe('NodemonService', () => {
             'waitForNodemonExit'
         ).mockResolvedValue();
 
-        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        const logStream = { fd: 99, close: vi.fn() };
         vi.mocked(createWriteStream).mockReturnValue(
             logStream as unknown as ReturnType<typeof createWriteStream>
         );
-        const stdout = { pipe: vi.fn() };
-        const stderr = { pipe: vi.fn() };
         const unref = vi.fn();
         vi.mocked(execa).mockReturnValue({
             pid: 222,
-            stdout,
-            stderr,
             unref,
         } as unknown as ReturnType<typeof execa>);
 
@@ -322,17 +296,13 @@ describe('NodemonService', () => {
         findMatchingSpy.mockResolvedValue([]);
         findDirectMainSpy.mockResolvedValue([321, 654]);
 
-        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        const logStream = { fd: 99, close: vi.fn() };
         vi.mocked(createWriteStream).mockReturnValue(
             logStream as unknown as ReturnType<typeof createWriteStream>
         );
-        const stdout = { pipe: vi.fn() };
-        const stderr = { pipe: vi.fn() };
         const unref = vi.fn();
         vi.mocked(execa).mockReturnValue({
             pid: 777,
-            stdout,
-            stderr,
             unref,
         } as unknown as ReturnType<typeof execa>);
 
@@ -413,17 +383,13 @@ describe('NodemonService', () => {
             service as unknown as { isPidRunning: (pid: number) => Promise<boolean> },
             'isPidRunning'
         ).mockResolvedValue(true);
-        const logStream = { pipe: vi.fn(), close: vi.fn() };
+        const logStream = { fd: 99, close: vi.fn() };
         vi.mocked(createWriteStream).mockReturnValue(
             logStream as unknown as ReturnType<typeof createWriteStream>
         );
-        const stdout = { pipe: vi.fn() };
-        const stderr = { pipe: vi.fn() };
         const unref = vi.fn();
         vi.mocked(execa).mockReturnValue({
             pid: 456,
-            stdout,
-            stderr,
             unref,
         } as unknown as ReturnType<typeof execa>);
 

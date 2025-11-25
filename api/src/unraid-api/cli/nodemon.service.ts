@@ -223,11 +223,9 @@ export class NodemonService {
                 cwd: UNRAID_API_CWD,
                 env,
                 detached: true,
-                stdio: ['ignore', 'pipe', 'pipe'],
+                stdio: ['ignore', logStream, logStream],
             });
 
-            nodemonProcess.stdout?.pipe(logStream);
-            nodemonProcess.stderr?.pipe(logStream);
             nodemonProcess.unref();
 
             if (!nodemonProcess.pid) {
