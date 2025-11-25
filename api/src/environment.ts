@@ -102,6 +102,8 @@ export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
 export const PATHS_LOGS_DIR =
     process.env.PATHS_LOGS_DIR ?? process.env.LOGS_DIR ?? '/var/log/unraid-api';
 export const PATHS_LOGS_FILE = process.env.PATHS_LOGS_FILE ?? '/var/log/graphql-api.log';
+export const PATHS_NODEMON_LOG_FILE =
+    process.env.PATHS_NODEMON_LOG_FILE ?? join(PATHS_LOGS_DIR, 'nodemon.log');
 
 export const NODEMON_PATH = join(UNRAID_API_ROOT, 'node_modules', 'nodemon', 'bin', 'nodemon.js');
 export const NODEMON_CONFIG_PATH = join(UNRAID_API_ROOT, 'nodemon.json');

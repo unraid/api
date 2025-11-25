@@ -1,7 +1,7 @@
 import pino from 'pino';
 import pretty from 'pino-pretty';
 
-import { API_VERSION, LOG_LEVEL, LOG_TYPE, SUPPRESS_LOGS } from '@app/environment.js';
+import { API_VERSION, LOG_LEVEL, LOG_TYPE, PATHS_LOGS_FILE, SUPPRESS_LOGS } from '@app/environment.js';
 
 export const levels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const;
 
@@ -16,7 +16,9 @@ const nullDestination = pino.destination({
 });
 
 export const logDestination =
-    process.env.SUPPRESS_LOGS === 'true' ? nullDestination : pino.destination();
+    process.env.SUPPRESS_LOGS === 'true'
+        ? nullDestination
+        : pino.destination({ dest: PATHS_LOGS_FILE, mkdir: true });
 // Since process output is piped directly to the log file, we should not colorize stdout
 // to avoid ANSI escape codes in the log file
 const stream = SUPPRESS_LOGS

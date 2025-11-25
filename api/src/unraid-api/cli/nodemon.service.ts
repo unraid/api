@@ -12,6 +12,7 @@ import {
     NODEMON_PID_PATH,
     PATHS_LOGS_DIR,
     PATHS_LOGS_FILE,
+    PATHS_NODEMON_LOG_FILE,
     UNRAID_API_CWD,
 } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
@@ -34,6 +35,7 @@ export class NodemonService {
     async ensureNodemonDependencies() {
         await mkdir(PATHS_LOGS_DIR, { recursive: true });
         await mkdir(dirname(PATHS_LOGS_FILE), { recursive: true });
+        await mkdir(dirname(PATHS_NODEMON_LOG_FILE), { recursive: true });
         await mkdir(dirname(NODEMON_PID_PATH), { recursive: true });
     }
 
@@ -215,12 +217,21 @@ export class NodemonService {
         const overrides = Object.fromEntries(
             Object.entries(options.env ?? {}).filter(([, value]) => value !== undefined)
         );
-        const env = { ...process.env, ...overrides } as Record<string, string>;
+        const env = {
+            ...process.env,
+            PATHS_LOGS_FILE,
+            PATHS_NODEMON_LOG_FILE,
+            NODEMON_CONFIG_PATH,
+            NODEMON_PID_PATH,
+            UNRAID_API_CWD,
+            ...overrides,
+        } as Record<string, string>;
         let logStream: ReturnType<typeof createWriteStream> | null = null;
 
         let nodemonProcess;
         try {
-            logStream = await this.createLogStream();
+            logStream = await this.createLogStream(PATHS_NODEMON_LOG_FILE);
+            logStream.write('Starting nodemon...\n');
 
             nodemonProcess = execa(NODEMON_PATH, ['--config', NODEMON_CONFIG_PATH, '--quiet'], {
                 cwd: UNRAID_API_CWD,
@@ -320,8 +331,8 @@ export class NodemonService {
         }
     }
 
-    private async createLogStream() {
-        const logStream = createWriteStream(PATHS_LOGS_FILE, { flags: 'a' });
+    private async createLogStream(logPath: string) {
+        const logStream = createWriteStream(logPath, { flags: 'a' });
 
         await new Promise<void>((resolve, reject) => {
             const cleanup = () => {

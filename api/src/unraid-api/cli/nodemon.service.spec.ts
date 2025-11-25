@@ -13,6 +13,7 @@ const createLogStreamMock = (fd = 42, autoOpen = true) => {
         fd,
         close: vi.fn(),
         destroy: vi.fn(),
+        write: vi.fn(),
         once: vi.fn(),
         off: vi.fn(),
     };
@@ -52,6 +53,7 @@ vi.mock('@app/environment.js', () => ({
     NODEMON_PID_PATH: '/var/run/unraid-api/nodemon.pid',
     PATHS_LOGS_DIR: '/var/log/unraid-api',
     PATHS_LOGS_FILE: '/var/log/graphql-api.log',
+    PATHS_NODEMON_LOG_FILE: '/var/log/unraid-api/nodemon.log',
     UNRAID_API_CWD: '/usr/local/unraid-api',
 }));
 
@@ -145,7 +147,9 @@ describe('NodemonService', () => {
                 stdio: ['ignore', logStream, logStream],
             }
         );
-        expect(createWriteStream).toHaveBeenCalledWith('/var/log/graphql-api.log', { flags: 'a' });
+        expect(createWriteStream).toHaveBeenCalledWith('/var/log/unraid-api/nodemon.log', {
+            flags: 'a',
+        });
         expect(unref).toHaveBeenCalled();
         expect(mockWriteFile).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', '123');
         expect(logger.info).toHaveBeenCalledWith('Started nodemon (pid 123)');

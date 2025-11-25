@@ -18,7 +18,8 @@ describe('NodemonService (real nodemon)', () => {
     let workdir: string;
     let scriptPath: string;
     let configPath: string;
-    let logPath: string;
+    let appLogPath: string;
+    let nodemonLogPath: string;
     let pidPath: string;
     const nodemonPath = join(process.cwd(), 'node_modules', 'nodemon', 'bin', 'nodemon.js');
 
@@ -26,12 +27,21 @@ describe('NodemonService (real nodemon)', () => {
         workdir = await mkdtemp(tmpRoot);
         scriptPath = join(workdir, 'app.js');
         configPath = join(workdir, 'nodemon.json');
-        logPath = join(workdir, 'nodemon.log');
+        appLogPath = join(workdir, 'app.log');
+        nodemonLogPath = join(workdir, 'nodemon.log');
         pidPath = join(workdir, 'nodemon.pid');
 
         await writeFile(
             scriptPath,
-            ["console.log('nodemon-integration-start');", 'setInterval(() => {}, 1000);'].join('\n')
+            [
+                "const { appendFileSync } = require('node:fs');",
+                "const appLog = process.env.PATHS_LOGS_FILE || './app.log';",
+                "const nodemonLog = process.env.PATHS_NODEMON_LOG_FILE || './nodemon.log';",
+                "appendFileSync(appLog, 'app-log-entry\\n');",
+                "appendFileSync(nodemonLog, 'nodemon-log-entry\\n');",
+                "console.log('nodemon-integration-start');",
+                'setInterval(() => {}, 1000);',
+            ].join('\n')
         );
 
         await writeFile(
@@ -64,7 +74,8 @@ describe('NodemonService (real nodemon)', () => {
             NODEMON_PATH: nodemonPath,
             NODEMON_PID_PATH: pidPath,
             PATHS_LOGS_DIR: workdir,
-            PATHS_LOGS_FILE: logPath,
+            PATHS_LOGS_FILE: appLogPath,
+            PATHS_NODEMON_LOG_FILE: nodemonLogPath,
             UNRAID_API_CWD: workdir,
         }));
 
@@ -77,9 +88,10 @@ describe('NodemonService (real nodemon)', () => {
         const pid = Number.parseInt(pidText, 10);
         expect(Number.isInteger(pid) && pid > 0).toBe(true);
 
-        const logStats = await stat(logPath);
-        expect(logStats.isFile()).toBe(true);
-        await waitForLogEntry(logPath, 'nodemon-integration-start');
+        const nodemonLogStats = await stat(nodemonLogPath);
+        expect(nodemonLogStats.isFile()).toBe(true);
+        await waitForLogEntry(nodemonLogPath, 'Starting nodemon');
+        await waitForLogEntry(appLogPath, 'app-log-entry');
 
         await service.stop();
         await waitForExit(pid);
