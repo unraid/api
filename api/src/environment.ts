@@ -92,6 +92,7 @@ export const LOG_LEVEL = process.env.LOG_LEVEL
     : process.env.ENVIRONMENT === 'production'
       ? 'INFO'
       : 'DEBUG';
+export const LOG_CASBIN = process.env.LOG_CASBIN === 'true';
 export const SUPPRESS_LOGS = process.env.SUPPRESS_LOGS === 'true';
 export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
     ? process.env.MOTHERSHIP_GRAPHQL_LINK
