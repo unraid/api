@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
-import { useQuery } from '@vue/apollo-composable';
+import { useLazyQuery } from '@vue/apollo-composable';
 
 import { defaultColors } from '~/themes/default';
 
@@ -38,54 +38,50 @@ const DEFAULT_THEME: Theme = {
 
 type ThemeSource = 'local' | 'server';
 
-let pendingDarkModeHandler: ((event: Event) => void) | null = null;
+const isDomAvailable = () => typeof document !== 'undefined';
 
-const syncBodyDarkClass = (method: 'add' | 'remove'): boolean => {
-  const body = typeof document !== 'undefined' ? document.body : null;
-  if (!body) {
-    return false;
-  }
-
-  body.classList[method]('dark');
-  return true;
+const getCssVar = (name: string): string => {
+  if (!isDomAvailable()) return '';
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 };
 
-const getDarkModeFromCssVar = (): boolean => {
-  if (typeof document === 'undefined') return false;
+const readDomThemeName = () => getCssVar('--theme-name');
 
-  const darkModeValue = getComputedStyle(document.documentElement)
-    .getPropertyValue('--theme-dark-mode')
-    .trim();
-  return darkModeValue === '1';
+const readDomDarkFlag = (): boolean | null => {
+  if (!isDomAvailable()) return null;
+  const cssVar = getCssVar('--theme-dark-mode');
+  if (cssVar === '1') return true;
+  if (cssVar === '0') return false;
+  return null;
+};
+
+const hasDarkClassApplied = (): boolean => {
+  if (!isDomAvailable()) return false;
+  if (document.documentElement.classList.contains('dark')) return true;
+  if (document.body?.classList.contains('dark')) return true;
+  return Boolean(document.querySelector('.unapi.dark'));
+};
+
+const syncDarkClass = (method: 'add' | 'remove') => {
+  if (!isDomAvailable()) return;
+  document.documentElement.classList[method]('dark');
+  document.body?.classList[method]('dark');
+  document.querySelectorAll('.unapi').forEach((el) => el.classList[method]('dark'));
 };
 
 const applyDarkClass = (isDark: boolean) => {
-  if (typeof document === 'undefined') return;
-
+  if (!isDomAvailable()) return;
   const method: 'add' | 'remove' = isDark ? 'add' : 'remove';
-  document.documentElement.classList[method]('dark');
+  syncDarkClass(method);
   document.documentElement.style.setProperty('--theme-dark-mode', isDark ? '1' : '0');
+};
 
-  if (pendingDarkModeHandler) {
-    document.removeEventListener('DOMContentLoaded', pendingDarkModeHandler);
-    pendingDarkModeHandler = null;
+const bootstrapDarkClass = () => {
+  const domFlag = readDomDarkFlag();
+  const shouldBeDark = domFlag ?? hasDarkClassApplied();
+  if (shouldBeDark) {
+    applyDarkClass(true);
   }
-
-  if (syncBodyDarkClass(method)) {
-    return;
-  }
-
-  const handler = () => {
-    if (syncBodyDarkClass(method)) {
-      document.removeEventListener('DOMContentLoaded', handler);
-      if (pendingDarkModeHandler === handler) {
-        pendingDarkModeHandler = null;
-      }
-    }
-  };
-
-  pendingDarkModeHandler = handler;
-  document.addEventListener('DOMContentLoaded', handler);
 };
 
 const sanitizeTheme = (data: Partial<Theme> | null | undefined): Theme | null => {
@@ -114,16 +110,11 @@ export const useThemeStore = defineStore('theme', () => {
   const hasServerTheme = ref(false);
   const devOverride = ref(false);
 
-  // Initialize dark mode from CSS variable set by PHP
-  if (typeof document !== 'undefined') {
-    const initialDarkMode = getDarkModeFromCssVar();
-    if (initialDarkMode) {
-      document.documentElement.classList.add('dark');
-      syncBodyDarkClass('add');
-    }
-  }
+  // Initialize dark mode from CSS variable set by PHP or any pre-applied .dark class
+  bootstrapDarkClass();
 
-  const { result, onResult, onError } = useQuery<GetThemeQuery>(GET_THEME_QUERY, null, {
+  // Lazy query - only executes when explicitly called
+  const { load, onResult, onError } = useLazyQuery<GetThemeQuery>(GET_THEME_QUERY, null, {
     fetchPolicy: 'cache-and-network',
     nextFetchPolicy: 'cache-first',
   });
@@ -159,27 +150,49 @@ export const useThemeStore = defineStore('theme', () => {
     }
   });
 
-  if (result.value?.publicTheme) {
-    applyThemeFromQuery(result.value.publicTheme);
-  }
-
   onError((err) => {
     console.warn('Failed to load theme from server, keeping existing theme:', err);
   });
 
-  // Getters
-  // Apply dark mode for gray and black themes
-  const darkMode = computed<boolean>(() =>
-    DARK_UI_THEMES.includes(theme.value?.name as (typeof DARK_UI_THEMES)[number])
-  );
+  // Getters - read from DOM CSS variables set by PHP
+  const themeName = computed<string>(() => {
+    if (!isDomAvailable()) return DEFAULT_THEME.name;
+    const name = readDomThemeName() || theme.value.name;
+    return name || DEFAULT_THEME.name;
+  });
+
+  const darkMode = computed<boolean>(() => {
+    if (!isDomAvailable()) return false;
+    const flag = readDomDarkFlag();
+    return flag ?? hasDarkClassApplied();
+  });
+
+  const readBannerGradientVar = (): string => {
+    const raw = getCssVar('--banner-gradient');
+    if (!raw) return '';
+    const normalized = raw.trim().toLowerCase();
+    if (!normalized || normalized === 'null' || normalized === 'none' || normalized === 'undefined') {
+      return '';
+    }
+    return raw;
+  };
 
   const bannerGradient = computed(() => {
-    if (!theme.value?.banner || !theme.value?.bannerGradient) {
+    if (darkMode.value) {
       return undefined;
     }
-    const start = theme.value?.bgColor ? 'var(--header-gradient-start)' : 'rgba(0, 0, 0, 0)';
-    const end = theme.value?.bgColor ? 'var(--header-gradient-end)' : 'var(--header-background-color)';
-    return `background-image: linear-gradient(90deg, ${start} 0, ${end} 90%);`;
+    const { banner, bannerGradient } = theme.value;
+    if (!banner || !bannerGradient) {
+      return undefined;
+    }
+    const gradient = readBannerGradientVar();
+    // Only return gradient if CSS variable is set and not empty
+    // CSS variable is only set by PHP when both banner and gradient are enabled
+    if (gradient) {
+      return `background-image: ${gradient};`;
+    }
+    // No fallback - only use CSS variable set by PHP
+    return undefined;
   });
 
   // Actions
@@ -212,27 +225,39 @@ export const useThemeStore = defineStore('theme', () => {
     devOverride.value = enabled;
   };
 
-  const setCssVars = () => {
-    applyDarkClass(darkMode.value);
+  const fetchTheme = () => {
+    load();
   };
 
+  // Only apply dark class when theme changes (for dev tools that don't refresh)
+  // In production, PHP sets the dark class and page refreshes on theme change
   watch(
-    theme,
-    () => {
-      setCssVars();
+    () => theme.value.name,
+    (themeName) => {
+      const isDark = DARK_UI_THEMES.includes(themeName as (typeof DARK_UI_THEMES)[number]);
+      applyDarkClass(isDark);
     },
-    { immediate: true }
+    { immediate: false }
   );
+
+  // Initialize theme from DOM on store creation
+  const domThemeName = themeName.value;
+  if (domThemeName && domThemeName !== DEFAULT_THEME.name) {
+    theme.value.name = domThemeName;
+  }
 
   return {
     // state
     activeColorVariables,
     bannerGradient,
     darkMode,
-    theme,
+    theme: computed(() => ({
+      ...theme.value,
+      name: themeName.value,
+    })),
     // actions
     setTheme,
-    setCssVars,
     setDevOverride,
+    fetchTheme,
   };
 });
