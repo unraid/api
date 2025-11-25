@@ -34,7 +34,12 @@ import { useFolderTree } from '@/composables/useFolderTree';
 import { usePersistentColumnVisibility } from '@/composables/usePersistentColumnVisibility';
 import { getSelectableDescendants } from '@/composables/useRowSelection';
 import { useTreeData } from '@/composables/useTreeData';
-import { normalizeMultiValue, toContainerTreeRow } from '@/utils/docker';
+import {
+  getFirstLanIp,
+  normalizeMultiValue,
+  openLanIpInNewTab,
+  toContainerTreeRow,
+} from '@/utils/docker';
 
 import type {
   DockerContainer,
@@ -210,8 +215,6 @@ const consoleContainerName = ref('');
 
 const { mergeServerPreferences, saveColumnVisibility, columnVisibilityRef } = useDockerViewPreferences();
 
-const updatePopoverRowId = ref<string | null>(null);
-
 function showError(message: string, options?: { description?: string }) {
   window.toast?.error?.(message, options);
 }
@@ -266,13 +269,8 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
           row: treeRow,
           depth: row.depth,
           isUpdating: isRowUpdating,
-          isPopoverOpen: updatePopoverRowId.value === treeRow.id,
           canExpand,
           isExpanded,
-          'onUpdate:isPopoverOpen': (val: boolean) => {
-            updatePopoverRowId.value = val ? treeRow.id : null;
-          },
-          onUpdateContainer: () => handleUpdateContainer(treeRow),
           onToggleExpand: () => {
             row.toggleExpanded?.();
           },
@@ -326,8 +324,35 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
     {
       accessorKey: 'version',
       header: 'Version',
-      cell: ({ row }) =>
-        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('version') || '')),
+      cell: ({ row }) => {
+        if (row.original.type === 'folder') return '';
+        const treeRow = row.original as TreeRow<DockerContainer>;
+        const version = String(row.getValue('version') || '');
+        const hasUpdate = treeRow.meta?.isUpdateAvailable || treeRow.meta?.isRebuildReady;
+        const isRowUpdating = updatingRowIds.value.has(treeRow.id);
+
+        if (hasUpdate && !isRowUpdating) {
+          return h('div', { class: 'flex items-center gap-2' }, [
+            h('span', null, version),
+            h(
+              UBadge,
+              {
+                color: 'warning',
+                variant: 'subtle',
+                size: 'sm',
+                class: 'cursor-pointer',
+                'data-stop-row-click': 'true',
+                onClick: (e: Event) => {
+                  e.stopPropagation();
+                  handleUpdateContainer(treeRow);
+                },
+              },
+              () => 'Update'
+            ),
+          ]);
+        }
+        return h('span', null, version);
+      },
     },
     {
       accessorKey: 'links',
@@ -915,48 +940,79 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
       ],
     ];
   }
-  return [
-    [
-      {
-        label: 'Move to folder',
-        icon: 'i-lucide-folder',
-        as: 'button',
-        onSelect: () => folderOps.openMoveModal([row.id]),
-      },
-      {
-        label: 'Start / Stop',
-        icon: 'i-lucide-power',
-        as: 'button',
-        onSelect: () => handleRowAction(row, 'Start / Stop'),
-      },
-      {
-        label: 'Pause / Resume',
-        icon: 'i-lucide-pause',
-        as: 'button',
-        onSelect: () => handleRowAction(row, 'Pause / Resume'),
-      },
-    ],
-    [
-      {
-        label: 'View logs',
-        icon: 'i-lucide-scroll-text',
-        as: 'button',
-        onSelect: () => handleRowAction(row, 'View logs'),
-      },
-      {
-        label: 'Console',
-        icon: 'i-lucide-terminal',
-        as: 'button',
-        onSelect: () => handleRowAction(row, 'Console'),
-      },
-      {
-        label: 'Manage Settings',
-        icon: 'i-lucide-settings',
-        as: 'button',
-        onSelect: () => handleRowAction(row, 'Manage Settings'),
-      },
-    ],
-  ];
+
+  const lanIp = getFirstLanIp(row.meta);
+  const canVisit = Boolean(lanIp) && row.meta?.state === ContainerState.RUNNING;
+  const hasUpdate = row.meta?.isUpdateAvailable || row.meta?.isRebuildReady;
+  const isRowUpdating = updatingRowIds.value.has(row.id);
+
+  const quickActions: ActionDropdownItem[] = [];
+  if (canVisit && lanIp) {
+    quickActions.push({
+      label: 'Visit',
+      icon: 'i-lucide-external-link',
+      as: 'button',
+      onSelect: () => openLanIpInNewTab(lanIp),
+    });
+  }
+  if (hasUpdate && !isRowUpdating) {
+    quickActions.push({
+      label: 'Update',
+      icon: 'i-lucide-circle-arrow-up',
+      as: 'button',
+      onSelect: () => handleUpdateContainer(row),
+    });
+  }
+
+  const items: DropdownMenuItems = [];
+
+  if (quickActions.length > 0) {
+    items.push(quickActions);
+  }
+
+  items.push([
+    {
+      label: 'Move to folder',
+      icon: 'i-lucide-folder',
+      as: 'button',
+      onSelect: () => folderOps.openMoveModal([row.id]),
+    },
+    {
+      label: 'Start / Stop',
+      icon: 'i-lucide-power',
+      as: 'button',
+      onSelect: () => handleRowAction(row, 'Start / Stop'),
+    },
+    {
+      label: 'Pause / Resume',
+      icon: 'i-lucide-pause',
+      as: 'button',
+      onSelect: () => handleRowAction(row, 'Pause / Resume'),
+    },
+  ]);
+
+  items.push([
+    {
+      label: 'View logs',
+      icon: 'i-lucide-scroll-text',
+      as: 'button',
+      onSelect: () => handleRowAction(row, 'View logs'),
+    },
+    {
+      label: 'Console',
+      icon: 'i-lucide-terminal',
+      as: 'button',
+      onSelect: () => handleRowAction(row, 'Console'),
+    },
+    {
+      label: 'Manage Settings',
+      icon: 'i-lucide-settings',
+      as: 'button',
+      onSelect: () => handleRowAction(row, 'Manage Settings'),
+    },
+  ]);
+
+  return items;
 }
 
 function handleRowClick(payload: { id: string; type: string; name: string; meta?: DockerContainer }) {

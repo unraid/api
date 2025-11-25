@@ -2,6 +2,8 @@
 import { computed, ref, watch } from 'vue';
 import { useEventListener, useSupported, useWindowSize } from '@vueuse/core';
 
+import type { CSSProperties } from 'vue';
+
 const props = withDefaults(
   defineProps<{
     title: string;
@@ -83,13 +85,13 @@ const slideoverUi = computed(() => ({
   body: 'relative flex flex-1 flex-col overflow-hidden p-0 sm:p-0',
 }));
 
-const slideoverContent = computed(() => ({
+const slideoverContent = computed<Record<string, unknown>>(() => ({
   class: 'max-w-none overflow-hidden',
   style: {
     width: `${sidebarWidth.value}px`,
     maxWidth: `${Math.min(props.maxWidth, windowWidth.value || props.maxWidth)}px`,
     minWidth: `${Math.min(props.minWidth, windowWidth.value || props.minWidth)}px`,
-  },
+  } as CSSProperties,
 }));
 
 const supportsCredentiallessIframe = useSupported(
