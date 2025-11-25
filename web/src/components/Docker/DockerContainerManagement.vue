@@ -6,6 +6,7 @@ import { useQuery } from '@vue/apollo-composable';
 import ContainerSizesModal from '@/components/Docker/ContainerSizesModal.vue';
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
 import DockerAutostartSettings from '@/components/Docker/DockerAutostartSettings.vue';
+import DockerConsoleViewer from '@/components/Docker/DockerConsoleViewer.vue';
 import DockerContainersTable from '@/components/Docker/DockerContainersTable.vue';
 import DockerOrphanedAlert from '@/components/Docker/DockerOrphanedAlert.vue';
 import DockerPortConflictsAlert from '@/components/Docker/DockerPortConflictsAlert.vue';
@@ -334,7 +335,7 @@ const details = computed(() => {
 const isDetailsLoading = computed(() => loading.value || isSwitching.value);
 const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
 
-const legacyPaneTab = ref<'management' | 'logs'>('management');
+const legacyPaneTab = ref<'management' | 'logs' | 'console'>('management');
 const logFilterText = ref('');
 const logAutoScroll = ref(true);
 const logViewerRef = ref<InstanceType<typeof SingleDockerLogViewer> | null>(null);
@@ -347,6 +348,7 @@ watch(activeId, () => {
 const legacyPaneTabs = [
   { label: 'Container Management', value: 'management' as const },
   { label: 'Logs', value: 'logs' as const },
+  { label: 'Console', value: 'console' as const },
 ];
 
 function handleLogRefresh() {
@@ -535,6 +537,16 @@ const [transitionContainerRef] = useAutoAnimate({
               :auto-scroll="logAutoScroll"
               :client-filter="logFilterText"
               class="h-full flex-1"
+            />
+          </div>
+          <div
+            v-else-if="legacyPaneTab === 'console'"
+            :class="['h-[70vh]', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
+          >
+            <DockerConsoleViewer
+              v-if="activeContainer"
+              :container-name="activeContainer.names?.[0]?.replace(/^\//, '') || ''"
+              class="h-full"
             />
           </div>
         </UCard>
