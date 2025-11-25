@@ -5,6 +5,7 @@ import { useStorage } from '@vueuse/core';
 
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
 import MultiValueCopyBadges from '@/components/Common/MultiValueCopyBadges.vue';
+import ResizableSlideover from '@/components/Common/ResizableSlideover.vue';
 import TableColumnMenu from '@/components/Common/TableColumnMenu.vue';
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
 import { CREATE_DOCKER_FOLDER_WITH_ITEMS } from '@/components/Docker/docker-create-folder-with-items.mutation';
@@ -18,6 +19,7 @@ import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-contain
 import { DOCKER_STATS_SUBSCRIPTION } from '@/components/Docker/docker-stats.subscription';
 import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container.mutation';
 import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-container.mutation';
+import DockerConsoleViewer from '@/components/Docker/DockerConsoleViewer.vue';
 import DockerContainerStatCell from '@/components/Docker/DockerContainerStatCell.vue';
 import DockerLogViewerModal from '@/components/Docker/DockerLogViewerModal.vue';
 import DockerNameCell from '@/components/Docker/DockerNameCell.vue';
@@ -202,6 +204,9 @@ const columnOrder = useStorage<string[]>('docker-table-column-order', []);
 
 const logs = useDockerLogSessions();
 const contextMenu = useContextMenu<DockerContainer>();
+
+const consoleSlideoverOpen = ref(false);
+const consoleContainerName = ref('');
 
 const { mergeServerPreferences, saveColumnVisibility, columnVisibilityRef } = useDockerViewPreferences();
 
@@ -770,6 +775,11 @@ function handleContainersWillStart(entries: { id: string; containerId: string; n
   logs.openLogsForContainers(targets);
 }
 
+function openConsole(containerName: string) {
+  consoleContainerName.value = containerName;
+  consoleSlideoverOpen.value = true;
+}
+
 function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   if (row.type !== 'container') return;
   if (action === 'Start / Stop') {
@@ -784,6 +794,12 @@ function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
     const containerName = row.name;
     if (!containerName) return;
     logs.openLogsForContainers([{ containerName, label: getRowDisplayLabel(row, row.name) }]);
+    return;
+  }
+  if (action === 'Console') {
+    const containerName = row.name;
+    if (!containerName) return;
+    openConsole(containerName);
     return;
   }
   if (action === 'Manage Settings') {
@@ -926,6 +942,12 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
         icon: 'i-lucide-scroll-text',
         as: 'button',
         onSelect: () => handleRowAction(row, 'View logs'),
+      },
+      {
+        label: 'Console',
+        icon: 'i-lucide-terminal',
+        as: 'button',
+        onSelect: () => handleRowAction(row, 'Console'),
       },
       {
         label: 'Manage Settings',
@@ -1088,6 +1110,20 @@ function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
       @remove-session="logs.removeLogSession"
       @toggle-follow="logs.toggleActiveLogFollow"
     />
+
+    <ResizableSlideover
+      v-model:open="consoleSlideoverOpen"
+      :title="`Console: ${consoleContainerName}`"
+      :default-width="800"
+      :min-width="500"
+      :max-width="1400"
+    >
+      <DockerConsoleViewer
+        v-if="consoleSlideoverOpen && consoleContainerName"
+        :container-name="consoleContainerName"
+        class="pt-2"
+      />
+    </ResizableSlideover>
 
     <UModal
       v-model:open="folderOps.moveOpen"
