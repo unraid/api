@@ -157,6 +157,17 @@ iframe#progressFrame {
   color-scheme: light;
 }
 
+/* Banner gradient tuning */
+:root {
+  --banner-gradient-stop: 30%;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --banner-gradient-stop: 60%;
+  }
+}
+
 /* Header banner compatibility tweaks */
 #header.image {
   background-position: center center;

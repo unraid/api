@@ -94,7 +94,7 @@ onMounted(() => {
 <template>
   <div
     id="UserProfile"
-    class="text-foreground absolute top-0 right-0 z-20 flex h-full max-w-full flex-col items-end gap-y-1 pt-2 pr-2"
+    class="text-foreground absolute top-0 right-0 z-20 flex h-full max-w-full flex-col items-end gap-y-1 pt-2 pr-2 pl-[30%] md:pl-[160px]"
   >
     <div
       v-if="bannerGradient"

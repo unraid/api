@@ -239,7 +239,7 @@ class WebComponentsExtractor
             $start = $vars['--header-gradient-start'] ?? 'rgba(0, 0, 0, 0)';
             $end = $vars['--header-gradient-end'] ?? 'rgba(0, 0, 0, 0.7)';
             $vars['--banner-gradient'] = sprintf(
-                'linear-gradient(90deg, %s 0, %s 90%%)',
+                'linear-gradient(90deg, %s 0, %s var(--banner-gradient-stop, 30%%))',
                 $start,
                 $end
             );
