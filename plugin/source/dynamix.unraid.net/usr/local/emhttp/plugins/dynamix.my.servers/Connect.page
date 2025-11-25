@@ -15,12 +15,29 @@ Tag="globe"
  */
 require_once "$docroot/plugins/dynamix.my.servers/include/state.php";
 require_once "$docroot/plugins/dynamix.my.servers/include/api-config.php";
+require_once "$docroot/plugins/dynamix.my.servers/include/connect-config.php";
 require_once "$docroot/webGui/include/Wrappers.php";
 $serverState = new ServerState();
 
 $keyfile = $serverState->keyfileBase64;
 
-$myServersFlashCfg = $serverState->myServersFlashCfg;
+$connectConfig = ConnectConfig::getConfig();
+$legacyRemoteCfg = $serverState->myServersFlashCfg['remote'] ?? [];
+
+$remoteDynamicRemoteAccessType = $connectConfig['dynamicRemoteAccessType'] ?? ($legacyRemoteCfg['dynamicRemoteAccessType'] ?? null);
+$remoteWanAccessRaw = $connectConfig['wanaccess'] ?? ($legacyRemoteCfg['wanaccess'] ?? null);
+$remoteUpnpEnabledRaw = $connectConfig['upnpEnabled'] ?? ($legacyRemoteCfg['upnpEnabled'] ?? null);
+$remoteWanPortRaw = $connectConfig['wanport'] ?? ($legacyRemoteCfg['wanport'] ?? null);
+
+$wanaccessEnabled = filter_var($remoteWanAccessRaw, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+if ($wanaccessEnabled === null) {
+  $wanaccessEnabled = false;
+}
+$upnpEnabled = filter_var($remoteUpnpEnabledRaw, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+if ($upnpEnabled === null) {
+  $upnpEnabled = false;
+}
+$remoteWanPort = is_numeric($remoteWanPortRaw) ? (int)$remoteWanPortRaw : 0;
 
 $showT2Fa = (file_exists('/boot/config/plugins/dynamix.my.servers/showT2Fa'));
 
@@ -37,9 +54,7 @@ $passwd_result = exec('/usr/bin/passwd --status root');
 $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd_result, 0, 6) == 'root P'));
 
 // Helper to determine the current value for the remote access input
-$dynamicRemoteAccessType = $myServersFlashCfg['remote']['dynamicRemoteAccessType'] ?? null;
-$upnpEnabled = ($myServersFlashCfg['remote']['upnpEnabled'] ?? null) === 'yes';
-$wanaccessEnabled = ($myServersFlashCfg['remote']['wanaccess'] ?? null) === 'yes';
+$dynamicRemoteAccessType = $remoteDynamicRemoteAccessType ?? null;
 
 $currentRemoteAccessValue = 'OFF';
 if ($dynamicRemoteAccessType === 'STATIC') {
@@ -59,6 +74,12 @@ if ($dynamicRemoteAccessType === 'STATIC') {
 $enableRemoteT2fa = $showT2Fa && $currentRemoteAccessValue !== 'OFF' && $hasMyUnraidNetCert;
 $enableLocalT2fa = $showT2Fa && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
 $shade="shade-".($display['theme']??'unk');
+$wanAccessOriginal = $remoteWanAccessRaw;
+if (is_bool($wanAccessOriginal)) {
+  $wanAccessOriginal = $wanAccessOriginal ? 'yes' : 'no';
+} elseif (!is_string($wanAccessOriginal)) {
+  $wanAccessOriginal = '';
+}
 ?>
 <style>
 div.shade-white{background-color:#ededed;margin-top:10px;padding:8px 0 3px 0}
@@ -68,7 +89,7 @@ div.shade-gray{background-color:#121510;margin-top:10px;padding:8px 0 3px 0}
 </style>
 <script>
 const hasMyUnraidNetCert = <?=($hasMyUnraidNetCert ? 'true' : 'false')?>;
-const wanAccessOrg = "<?=$myServersFlashCfg['remote']['wanaccess'] ?? null?>";
+const wanAccessOrg = "<?=$wanAccessOriginal?>";
 
 function registerServer(button) {
 
@@ -196,7 +217,7 @@ function dnsCheckServer(button) {
         } else {
             swal({
               title: "Oops",
-              text: "<?=sprintf(_("The Unraid server is unreachable from outside your network. Be sure you have configured your router to forward port") . " <strong style='font-weight: bold'>%u/TCP</strong> " . _("to the Unraid server at") . " <strong style='font-weight: bold'>%s</strong> " . _("port") . " <strong style='font-weight: bold'>%u</strong>", $myServersFlashCfg['remote']['wanport']??"", htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?>",
+              text: "<?=sprintf(_("The Unraid server is unreachable from outside your network. Be sure you have configured your router to forward port") . " <strong style='font-weight: bold'>%u/TCP</strong> " . _("to the Unraid server at") . " <strong style='font-weight: bold'>%s</strong> " . _("port") . " <strong style='font-weight: bold'>%u</strong>", $remoteWanPort, htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?>",
               type: "error",
               html: true,
               confirmButtonText: "_(Ok)_"
