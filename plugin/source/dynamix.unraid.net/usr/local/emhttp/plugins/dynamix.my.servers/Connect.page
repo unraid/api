@@ -96,6 +96,11 @@ function registerServer(button) {
     const $remoteAccessInput = $('#remoteAccess');
     const $remoteAccessManualPort = $('#wanport');
 
+    const parsePort = (val) => {
+      const parsed = parseInt(val, 10);
+      return isNaN(parsed) ? null : parsed;
+    };
+
     let computedRemoteAccessConfig = null;
     switch ($remoteAccessInput.val()) {
       case 'ALWAYS_MANUAL':
@@ -140,19 +145,64 @@ function registerServer(button) {
         break;
     }
 
-        const enableLocalT2fa = <?=($enableLocalT2fa ? 'true' : 'false')?>;
-        const enableRemoteT2fa = $remoteAccessInput.val() !== 'OFF' && hasMyUnraidNetCert;
+    const enableLocalT2fa = <?=($enableLocalT2fa ? 'true' : 'false')?>;
+    const enableRemoteT2fa = $remoteAccessInput.val() !== 'OFF' && hasMyUnraidNetCert;
 
-        var postobj = {
-            "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
-            ...(computedRemoteAccessConfig ? computedRemoteAccessConfig : {}),
-             // only allow 'yes' value when fields are enabled
-            "local_2Fa": enableLocalT2fa ? $('#local2fa').val() : 'no',
-            "remote_2Fa": enableRemoteT2fa ? $('#remote2fa').val()  : 'no',
-        };
+    const postobj = {
+        "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
+        ...(computedRemoteAccessConfig ? computedRemoteAccessConfig : {}),
+         // only allow 'yes' value when fields are enabled
+        "local_2Fa": enableLocalT2fa ? $('#local2fa').val() : 'no',
+        "remote_2Fa": enableRemoteT2fa ? $('#remote2fa').val()  : 'no',
+    };
 
-        $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
-        $.post('/webGui/include/Dispatcher.php', postobj, function(data2) {
+    const buildConnectSettingsInput = () => {
+      const selection = $remoteAccessInput.val();
+      switch (selection) {
+        case 'ALWAYS_MANUAL':
+          return { accessType: 'ALWAYS', forwardType: 'STATIC', port: parsePort($remoteAccessManualPort.val()) };
+        case 'ALWAYS_UPNP':
+          return { accessType: 'ALWAYS', forwardType: 'UPNP', port: null };
+        case 'DYNAMIC_UPNP':
+          return { accessType: 'DYNAMIC', forwardType: 'UPNP', port: null };
+        case 'DYNAMIC_MANUAL':
+          return { accessType: 'DYNAMIC', forwardType: 'STATIC', port: parsePort($remoteAccessManualPort.val()) };
+        default:
+          return { accessType: 'DISABLED', forwardType: 'STATIC', port: null };
+      }
+    };
+
+    const $button = $(button);
+    const originalLabel = $button.html();
+    $button.prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
+    const saveLegacyConfig = new Promise((resolve, reject) => {
+      $.post('/webGui/include/Dispatcher.php', postobj).done(resolve).fail(reject);
+    });
+
+    const apolloClient = window.apolloClient;
+    const gql = window.gql || window.graphqlParse;
+
+    const mutations = [saveLegacyConfig];
+    if (apolloClient && gql) {
+      const updateConnectSettingsMutation = gql(`
+        mutation UpdateConnectSettings($input: ConnectSettingsInput!) {
+          updateApiSettings(input: $input) {
+            accessType
+            forwardType
+            port
+          }
+        }
+      `);
+
+      mutations.push(
+        apolloClient.mutate({
+          mutation: updateConnectSettingsMutation,
+          variables: { input: buildConnectSettingsInput() },
+        })
+      );
+    }
+
+    Promise.all(mutations).then(function() {
 <?if(!$isRegistered):?>
             swal({
               title: "",
@@ -171,7 +221,22 @@ function registerServer(button) {
         button.form.submit();
       }, delay);
 <?endif?>
-        });
+    }).catch(function(error) {
+      let message = "_(Sorry, an error occurred)_";
+      if (error && error.responseJSON && error.responseJSON.error) {
+        message = error.responseJSON.error;
+      } else if (error && error.message) {
+        message = error.message;
+      }
+      $button.prop("disabled", false).html(originalLabel);
+      swal({
+        title: "Oops",
+        text: message,
+        type: "error",
+        html: true,
+        confirmButtonText: "_(Ok)_"
+      });
+    });
 
 }
 
