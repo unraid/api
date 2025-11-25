@@ -52,8 +52,8 @@
     font: inherit;
     min-width: revert;
     text-transform: revert;
-    background: revert;
-    color: revert;
+    /* background: revert; */
+    /* color: revert; */
   }
 
   /* Reset text inputs so Nuxt UI field styles render correctly */
