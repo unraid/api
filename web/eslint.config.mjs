@@ -71,7 +71,7 @@ const vueRules = {
   'vue/no-unsupported-features': [
     'error',
     {
-      version: '^3.3.0',
+      version: '^3.5.0',
     },
   ],
   'vue/no-unused-properties': [
