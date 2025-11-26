@@ -179,6 +179,15 @@ export async function mountUnifiedApp() {
     element.setAttribute('data-vue-mounted', 'true');
     element.classList.add('unapi');
 
+    // Apply dark mode class if active
+    // Check both documentElement class and CSS variable (set by PHP)
+    const isDarkMode =
+      document.documentElement.classList.contains('dark') ||
+      getComputedStyle(document.documentElement).getPropertyValue('--theme-dark-mode').trim() === '1';
+    if (isDarkMode) {
+      element.classList.add('dark');
+    }
+
     // Store for cleanup
     mountedComponents.push({
       element,

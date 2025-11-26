@@ -209,6 +209,11 @@ class WebComponentsExtractor
         }
 
         $theme = strtolower(trim($display['theme'] ?? ''));
+        $darkThemes = ['gray', 'black'];
+        $isDarkMode = in_array($theme, $darkThemes, true);
+        $vars['--theme-dark-mode'] = $isDarkMode ? '1' : '0';
+        $vars['--theme-name'] = $theme ?: 'white';
+        
         if ($theme === 'white') {
             if (!$textPrimary) {
                 $vars['--header-text-primary'] = 'var(--inverse-text-color, #ffffff)';
@@ -218,19 +223,23 @@ class WebComponentsExtractor
             }
         }
 
+        $shouldShowBanner = ($display['showBannerImage'] ?? '') === 'yes';
         $bgColor = $this->normalizeHex($display['background'] ?? null);
         if ($bgColor) {
             $vars['--header-background-color'] = $bgColor;
-            $vars['--header-gradient-start'] = $this->hexToRgba($bgColor, 0);
-            $vars['--header-gradient-end'] = $this->hexToRgba($bgColor, 0.7);
+            // Only set gradient variables if banner image is enabled
+            if ($shouldShowBanner) {
+                $vars['--header-gradient-start'] = $this->hexToRgba($bgColor, 0);
+                $vars['--header-gradient-end'] = $this->hexToRgba($bgColor, 0.7);
+            }
         }
 
         $shouldShowBannerGradient = ($display['showBannerGradient'] ?? '') === 'yes';
-        if ($shouldShowBannerGradient) {
+        if ($shouldShowBanner && $shouldShowBannerGradient) {
             $start = $vars['--header-gradient-start'] ?? 'rgba(0, 0, 0, 0)';
             $end = $vars['--header-gradient-end'] ?? 'rgba(0, 0, 0, 0.7)';
             $vars['--banner-gradient'] = sprintf(
-                'linear-gradient(90deg, %s 0, %s 90%%)',
+                'linear-gradient(90deg, %s 0, %s var(--banner-gradient-stop, 30%%))',
                 $start,
                 $end
             );

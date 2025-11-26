@@ -18,6 +18,13 @@ vi.mock('@vue/apollo-composable', () => ({
     onResult: vi.fn(),
     onError: vi.fn(),
   }),
+  useLazyQuery: () => ({
+    load: vi.fn(),
+    result: ref(null),
+    loading: ref(false),
+    onResult: vi.fn(),
+    onError: vi.fn(),
+  }),
 }));
 
 describe('Theme Store', () => {
@@ -55,7 +62,13 @@ describe('Theme Store', () => {
   afterEach(() => {
     store?.$dispose();
     store = undefined;
-    app?.unmount();
+    if (app) {
+      try {
+        app.unmount();
+      } catch {
+        // App was not mounted, ignore
+      }
+    }
     app = undefined;
 
     document.body.classList.add = originalAddClassFn;
@@ -90,44 +103,110 @@ describe('Theme Store', () => {
       expect(store.activeColorVariables).toEqual(defaultColors.white);
     });
 
-    it('should compute darkMode correctly', () => {
+    it('should compute darkMode from CSS variable when set to 1', () => {
+      const originalGetComputedStyle = window.getComputedStyle;
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
+        const style = originalGetComputedStyle(el);
+        if (el === document.documentElement) {
+          return {
+            ...style,
+            getPropertyValue: (prop: string) => {
+              if (prop === '--theme-dark-mode') {
+                return '1';
+              }
+              return style.getPropertyValue(prop);
+            },
+          } as CSSStyleDeclaration;
+        }
+        return style;
+      });
+
       const store = createStore();
-
-      expect(store.darkMode).toBe(false);
-
-      store.setTheme({ ...store.theme, name: 'black' });
       expect(store.darkMode).toBe(true);
 
-      store.setTheme({ ...store.theme, name: 'gray' });
-      expect(store.darkMode).toBe(true);
-
-      store.setTheme({ ...store.theme, name: 'white' });
-      expect(store.darkMode).toBe(false);
+      vi.restoreAllMocks();
     });
 
-    it('should compute bannerGradient correctly', () => {
-      const store = createStore();
+    it('should compute darkMode from CSS variable when set to 0', () => {
+      const originalGetComputedStyle = window.getComputedStyle;
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
+        const style = originalGetComputedStyle(el);
+        if (el === document.documentElement) {
+          return {
+            ...style,
+            getPropertyValue: (prop: string) => {
+              if (prop === '--theme-dark-mode') {
+                return '0';
+              }
+              return style.getPropertyValue(prop);
+            },
+          } as CSSStyleDeclaration;
+        }
+        return style;
+      });
 
+      const store = createStore();
+      expect(store.darkMode).toBe(false);
+
+      vi.restoreAllMocks();
+    });
+
+    it('should compute bannerGradient from CSS variable when set', async () => {
+      const originalGetComputedStyle = window.getComputedStyle;
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
+        const style = originalGetComputedStyle(el);
+        if (el === document.documentElement) {
+          return {
+            ...style,
+            getPropertyValue: (prop: string) => {
+              if (prop === '--banner-gradient') {
+                return 'linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%))';
+              }
+              if (prop === '--theme-dark-mode') {
+                return '0';
+              }
+              return style.getPropertyValue(prop);
+            },
+          } as CSSStyleDeclaration;
+        }
+        return style;
+      });
+
+      const store = createStore();
+      store.setTheme({ banner: true, bannerGradient: true });
+      await nextTick();
+      expect(store.theme.banner).toBe(true);
+      expect(store.theme.bannerGradient).toBe(true);
+      expect(store.darkMode).toBe(false);
+      expect(store.bannerGradient).toBe(
+        'background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%));'
+      );
+
+      vi.restoreAllMocks();
+    });
+
+    it('should return undefined when bannerGradient CSS variable is not set', () => {
+      const originalGetComputedStyle = window.getComputedStyle;
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
+        const style = originalGetComputedStyle(el);
+        if (el === document.documentElement) {
+          return {
+            ...style,
+            getPropertyValue: (prop: string) => {
+              if (prop === '--banner-gradient') {
+                return '';
+              }
+              return style.getPropertyValue(prop);
+            },
+          } as CSSStyleDeclaration;
+        }
+        return style;
+      });
+
+      const store = createStore();
       expect(store.bannerGradient).toBeUndefined();
 
-      store.setTheme({
-        ...store.theme,
-        banner: true,
-        bannerGradient: true,
-      });
-      expect(store.bannerGradient).toMatchInlineSnapshot(
-        `"background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, var(--header-background-color) 90%);"`
-      );
-
-      store.setTheme({
-        ...store.theme,
-        banner: true,
-        bannerGradient: true,
-        bgColor: '#123456',
-      });
-      expect(store.bannerGradient).toMatchInlineSnapshot(
-        `"background-image: linear-gradient(90deg, var(--header-gradient-start) 0, var(--header-gradient-end) 90%);"`
-      );
+      vi.restoreAllMocks();
     });
   });
 
@@ -197,44 +276,35 @@ describe('Theme Store', () => {
       expect(document.body.classList.add).toHaveBeenCalledWith('dark');
     });
 
-    it('should apply dark mode classes to all .unapi elements', async () => {
-      const store = createStore();
-
-      const unapiElement1 = document.createElement('div');
-      unapiElement1.classList.add('unapi');
-      document.body.appendChild(unapiElement1);
-
-      const unapiElement2 = document.createElement('div');
-      unapiElement2.classList.add('unapi');
-      document.body.appendChild(unapiElement2);
-
-      const addSpy1 = vi.spyOn(unapiElement1.classList, 'add');
-      const addSpy2 = vi.spyOn(unapiElement2.classList, 'add');
-      const removeSpy1 = vi.spyOn(unapiElement1.classList, 'remove');
-      const removeSpy2 = vi.spyOn(unapiElement2.classList, 'remove');
-
-      store.setTheme({
-        ...store.theme,
-        name: 'black',
+    it('should initialize dark mode from CSS variable on store creation', () => {
+      // Mock getComputedStyle to return dark mode
+      const originalGetComputedStyle = window.getComputedStyle;
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
+        const style = originalGetComputedStyle(el);
+        if (el === document.documentElement) {
+          return {
+            ...style,
+            getPropertyValue: (prop: string) => {
+              if (prop === '--theme-dark-mode') {
+                return '1';
+              }
+              if (prop === '--theme-name') {
+                return 'black';
+              }
+              return style.getPropertyValue(prop);
+            },
+          } as CSSStyleDeclaration;
+        }
+        return style;
       });
 
-      await nextTick();
+      createStore();
 
-      expect(addSpy1).toHaveBeenCalledWith('dark');
-      expect(addSpy2).toHaveBeenCalledWith('dark');
+      // Should have added dark class to documentElement and body
+      expect(document.documentElement.classList.add).toHaveBeenCalledWith('dark');
+      expect(document.body.classList.add).toHaveBeenCalledWith('dark');
 
-      store.setTheme({
-        ...store.theme,
-        name: 'white',
-      });
-
-      await nextTick();
-
-      expect(removeSpy1).toHaveBeenCalledWith('dark');
-      expect(removeSpy2).toHaveBeenCalledWith('dark');
-
-      document.body.removeChild(unapiElement1);
-      document.body.removeChild(unapiElement2);
+      vi.restoreAllMocks();
     });
   });
 });
