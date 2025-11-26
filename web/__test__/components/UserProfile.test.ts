@@ -358,8 +358,53 @@ describe('UserProfile.standalone.vue', () => {
     expect(wrapper.find('[data-testid="notifications-sidebar"]').exists()).toBe(true);
   });
 
-  it('conditionally renders banner based on theme store', async () => {
-    const bannerSelector = 'div.absolute.z-0';
+  it('renders banner gradient when CSS variable is set (even if theme store has banner disabled)', async () => {
+    const gradientValue = 'linear-gradient(to right, #111111, #222222)';
+    document.documentElement.style.setProperty('--banner-gradient', gradientValue);
+
+    const localPinia = createTestingPinia({
+      createSpy: vi.fn,
+      initialState: {
+        server: { ...initialServerData },
+        theme: {
+          theme: {
+            name: 'white',
+            banner: false,
+            bannerGradient: false,
+            descriptionShow: true,
+            textColor: '',
+            metaColor: '',
+            bgColor: '',
+          },
+        },
+      },
+      stubActions: false,
+    });
+    setActivePinia(localPinia);
+
+    const localWrapper = mount(UserProfile, {
+      props: {
+        server: JSON.stringify(initialServerData),
+      },
+      global: {
+        plugins: [localPinia],
+        stubs,
+      },
+    });
+
+    await localWrapper.vm.$nextTick();
+
+    const bannerEl = localWrapper.find('div.absolute.z-0');
+    expect(bannerEl.exists()).toBe(true);
+    expect(bannerEl.attributes('style')).toContain(gradientValue);
+
+    localWrapper.unmount();
+    document.documentElement.style.removeProperty('--banner-gradient');
+    setActivePinia(pinia);
+  });
+
+  it('does not render banner gradient when CSS variable is absent, regardless of theme store flags', async () => {
+    document.documentElement.style.removeProperty('--banner-gradient');
 
     themeStore.theme = {
       ...themeStore.theme!,
@@ -368,19 +413,7 @@ describe('UserProfile.standalone.vue', () => {
     };
     await wrapper.vm.$nextTick();
 
-    expect(themeStore.bannerGradient).toContain('background-image: linear-gradient');
-    expect(wrapper.find(bannerSelector).exists()).toBe(true);
-
-    themeStore.theme!.bannerGradient = false;
-    await wrapper.vm.$nextTick();
-
-    expect(themeStore.bannerGradient).toBeUndefined();
-    expect(wrapper.find(bannerSelector).exists()).toBe(false);
-
-    themeStore.theme!.bannerGradient = true;
-    await wrapper.vm.$nextTick();
-
-    expect(themeStore.bannerGradient).toContain('background-image: linear-gradient');
-    expect(wrapper.find(bannerSelector).exists()).toBe(true);
+    const bannerEl = wrapper.find('div.absolute.z-0');
+    expect(bannerEl.exists()).toBe(false);
   });
 });

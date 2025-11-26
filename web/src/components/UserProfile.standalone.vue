@@ -35,7 +35,18 @@ const description = computed(() => serverStore.description);
 const guid = computed(() => serverStore.guid);
 const keyfile = computed(() => serverStore.keyfile);
 const lanIp = computed(() => serverStore.lanIp);
-const bannerGradient = computed(() => themeStore.bannerGradient);
+const bannerGradient = ref<string>();
+
+const loadBannerGradientFromCss = () => {
+  if (typeof window === 'undefined') return;
+
+  const rawGradient = getComputedStyle(document.documentElement)
+    .getPropertyValue('--banner-gradient')
+    .trim();
+
+  bannerGradient.value = rawGradient ? `background-image: ${rawGradient};` : undefined;
+};
+
 const theme = computed(() => themeStore.theme);
 
 // Control dropdown open state
@@ -85,6 +96,8 @@ onBeforeMount(() => {
 });
 
 onMounted(() => {
+  loadBannerGradientFromCss();
+
   if (devConfig.VITE_MOCK_USER_SESSION && devConfig.NODE_ENV === 'development') {
     document.cookie = 'unraid_session_cookie=mockusersession';
   }

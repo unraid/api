@@ -1523,8 +1523,8 @@ export type PackageVersions = {
   openssl?: Maybe<Scalars['String']['output']>;
   /** PHP version */
   php?: Maybe<Scalars['String']['output']>;
-  /** pm2 version */
-  pm2?: Maybe<Scalars['String']['output']>;
+  /** nodemon version */
+  nodemon?: Maybe<Scalars['String']['output']>;
 };
 
 export type ParityCheck = {

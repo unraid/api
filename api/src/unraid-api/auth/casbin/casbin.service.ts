@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException, Logger, OnModuleInit } from '
 
 import { Model as CasbinModel, Enforcer, newEnforcer, StringAdapter } from 'casbin';
 
-import { LOG_LEVEL } from '@app/environment.js';
+import { LOG_CASBIN, LOG_LEVEL } from '@app/environment.js';
 
 @Injectable()
 export class CasbinService {
@@ -20,9 +20,8 @@ export class CasbinService {
         const casbinPolicy = new StringAdapter(policy);
         try {
             const enforcer = await newEnforcer(casbinModel, casbinPolicy);
-            if (LOG_LEVEL === 'TRACE') {
-                enforcer.enableLog(true);
-            }
+            // Casbin request logging is extremely verbose; keep it off unless explicitly enabled.
+            enforcer.enableLog(LOG_CASBIN && LOG_LEVEL === 'TRACE');
 
             return enforcer;
         } catch (error: unknown) {

@@ -1,6 +1,7 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
+import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display.resolver.js';
@@ -9,9 +10,6 @@ import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/dis
 // Mock the pubsub module
 vi.mock('@app/core/pubsub.js', () => ({
     createSubscription: vi.fn().mockReturnValue('mock-subscription'),
-    PUBSUB_CHANNEL: {
-        DISPLAY: 'display',
-    },
 }));
 
 describe('DisplayResolver', () => {
@@ -80,11 +78,11 @@ describe('DisplayResolver', () => {
 
     describe('displaySubscription', () => {
         it('should create and return subscription', async () => {
-            const { createSubscription, PUBSUB_CHANNEL } = await import('@app/core/pubsub.js');
+            const { createSubscription } = await import('@app/core/pubsub.js');
 
             const result = await resolver.displaySubscription();
 
-            expect(createSubscription).toHaveBeenCalledWith(PUBSUB_CHANNEL.DISPLAY);
+            expect(createSubscription).toHaveBeenCalledWith(GRAPHQL_PUBSUB_CHANNEL.DISPLAY);
             expect(result).toBe('mock-subscription');
         });
     });

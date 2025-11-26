@@ -1,9 +1,10 @@
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { createSubscription } from '@app/core/pubsub.js';
 import { Display } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
 import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
 
@@ -26,6 +27,6 @@ export class DisplayResolver {
         resource: Resource.DISPLAY,
     })
     public async displaySubscription() {
-        return createSubscription(PUBSUB_CHANNEL.DISPLAY);
+        return createSubscription(GRAPHQL_PUBSUB_CHANNEL.DISPLAY);
     }
 }

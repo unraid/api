@@ -13,6 +13,7 @@ import { DeveloperCommand } from '@app/unraid-api/cli/developer/developer.comman
 import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { LogsCommand } from '@app/unraid-api/cli/logs.command.js';
+import { NodemonService } from '@app/unraid-api/cli/nodemon.service.js';
 import {
     InstallPluginCommand,
     ListPluginCommand,
@@ -20,7 +21,6 @@ import {
     RemovePluginCommand,
 } from '@app/unraid-api/cli/plugins/plugin.command.js';
 import { RemovePluginQuestionSet } from '@app/unraid-api/cli/plugins/remove-plugin.questions.js';
-import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 import { ReportCommand } from '@app/unraid-api/cli/report.command.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
 import { SSOCommand } from '@app/unraid-api/cli/sso/sso.command.js';
@@ -64,7 +64,7 @@ const DEFAULT_PROVIDERS = [
     DeveloperQuestions,
     DeveloperToolsService,
     LogService,
-    PM2Service,
+    NodemonService,
     ApiKeyService,
     DependencyService,
     ApiReportService,

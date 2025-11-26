@@ -1,10 +1,11 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Readable } from 'stream';
 
+import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import { watch } from 'chokidar';
 import Docker from 'dockerode';
 
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { pubsub } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
@@ -132,7 +133,7 @@ export class DockerEventService implements OnModuleDestroy, OnModuleInit {
                 await this.dockerService.clearContainerCache();
                 // Get updated counts and publish
                 const appInfo = await this.dockerService.getAppInfo();
-                await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
+                await pubsub.publish(GRAPHQL_PUBSUB_CHANNEL.INFO, appInfo);
                 this.logger.debug(`Published app info update due to event: ${actionName}`);
             }
         }

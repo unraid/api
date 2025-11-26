@@ -2,10 +2,11 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 
+import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import { type Cache } from 'cache-manager';
 import Docker from 'dockerode';
 
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { pubsub } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
 import { getters } from '@app/store/index.js';
@@ -210,7 +211,7 @@ export class DockerService {
             throw new Error(`Container ${id} not found after starting`);
         }
         const appInfo = await this.getAppInfo();
-        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
+        await pubsub.publish(GRAPHQL_PUBSUB_CHANNEL.INFO, appInfo);
         return updatedContainer;
     }
 
@@ -240,7 +241,7 @@ export class DockerService {
             this.logger.warn(`Container ${id} did not reach EXITED state after stop command.`);
         }
         const appInfo = await this.getAppInfo();
-        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
+        await pubsub.publish(GRAPHQL_PUBSUB_CHANNEL.INFO, appInfo);
         return updatedContainer;
     }
 }

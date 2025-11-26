@@ -7,7 +7,7 @@ import { exit } from 'process';
 import type { PackageJson } from 'type-fest';
 import { $, cd } from 'zx';
 
-import { getDeploymentVersion } from './get-deployment-version.js';
+import { getDeploymentVersion } from '@app/../scripts/get-deployment-version.js';
 
 type ApiPackageJson = PackageJson & {
     version: string;
@@ -94,7 +94,7 @@ try {
 
     await writeFile('./deploy/pack/package.json', JSON.stringify(parsedPackageJson, null, 4));
     // Copy necessary files to the pack directory
-    await $`cp -r dist README.md .env.* ecosystem.config.json ./deploy/pack/`;
+    await $`cp -r dist README.md .env.* nodemon.json ./deploy/pack/`;
 
     // Change to the pack directory and install dependencies
     cd('./deploy/pack');
