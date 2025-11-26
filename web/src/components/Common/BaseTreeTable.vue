@@ -395,6 +395,8 @@ function createDragColumn(): TableColumn<TreeRow<T>> {
     cell: ({ row }) => {
       const enhancedRow = enhanceRowInstance(row as unknown as TableInstanceRow<T>);
       const canDrag = canDragRow(enhancedRow.original);
+      const isBusy = props.busyRowIds.has(enhancedRow.original.id);
+      const isDraggingThis = draggingIds.value.includes(enhancedRow.original.id);
 
       if (!canDrag) {
         return createCellWrapper(enhancedRow, h('span', { class: 'w-4 inline-block' }), 0);
@@ -405,13 +407,25 @@ function createDragColumn(): TableColumn<TreeRow<T>> {
         h(
           'div',
           {
-            class: 'flex items-center justify-center cursor-grab active:cursor-grabbing select-none',
+            class: `flex items-center justify-center select-none ${isBusy ? '' : 'cursor-grab active:cursor-grabbing'}`,
             'data-drag-handle': 'true',
+            draggable: !isBusy && !isDraggingThis,
+            onDragstart: (e: DragEvent) => {
+              if (isBusy) {
+                e.preventDefault();
+                return;
+              }
+              handleDragStart(e, enhancedRow.original);
+            },
+            onDragend: () => {
+              handleDragEnd();
+            },
           },
           [
             h(UIcon, {
               name: 'i-lucide-grip-vertical',
-              class: 'h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300',
+              class:
+                'h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 pointer-events-none',
             }),
           ]
         ),

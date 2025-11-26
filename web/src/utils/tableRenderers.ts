@@ -156,14 +156,14 @@ export function wrapCellWithRow<T>({
   isBusy,
   isActive,
   isDragging,
-  draggable,
+  draggable: _draggable,
   isSelectable,
   dropIndicator,
-  enableDragDrop,
+  enableDragDrop: _enableDragDrop,
   onRowClick,
   onRowContextMenu,
-  onDragStart,
-  onDragEnd,
+  onDragStart: _onDragStart,
+  onDragEnd: _onDragEnd,
 }: WrapCellOptions<T>): VNode {
   const children = dropIndicator ? [cellContent, dropIndicator] : [cellContent];
 
@@ -184,45 +184,6 @@ export function wrapCellWithRow<T>({
         }
         onRowClick(row.id, row.type, row.name, row.meta);
       },
-      onMousedown: enableDragDrop
-        ? (e: MouseEvent) => {
-            const target = e.target as HTMLElement;
-            if (target.closest('[data-drag-handle]') && draggable && !isBusy) {
-              const wrapper = e.currentTarget as HTMLElement;
-              wrapper.setAttribute('draggable', 'true');
-            }
-          }
-        : undefined,
-      onMouseup: enableDragDrop
-        ? (e: MouseEvent) => {
-            const wrapper = e.currentTarget as HTMLElement;
-            wrapper.removeAttribute('draggable');
-          }
-        : undefined,
-      onMouseleave: enableDragDrop
-        ? (e: MouseEvent) => {
-            const wrapper = e.currentTarget as HTMLElement;
-            if (!isDragging) {
-              wrapper.removeAttribute('draggable');
-            }
-          }
-        : undefined,
-      onDragstart: enableDragDrop
-        ? (e: DragEvent) => {
-            if (isBusy || !draggable) {
-              e.preventDefault();
-              return;
-            }
-            onDragStart?.(e, row);
-          }
-        : undefined,
-      onDragend: enableDragDrop
-        ? (e: DragEvent) => {
-            const wrapper = e.currentTarget as HTMLElement;
-            wrapper.removeAttribute('draggable');
-            onDragEnd?.();
-          }
-        : undefined,
       onContextmenu: (e: MouseEvent) => {
         const target = e.target as HTMLElement | null;
         if (
