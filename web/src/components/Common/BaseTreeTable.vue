@@ -87,6 +87,7 @@ const emit = defineEmits<{
 
 const UButton = resolveComponent('UButton');
 const UCheckbox = resolveComponent('UCheckbox');
+const UIcon = resolveComponent('UIcon');
 const UTable = resolveComponent('UTable') as Component;
 
 const treeDataRef = computed(() => props.data);
@@ -101,11 +102,12 @@ const columnOrderState = computed({
   get: () => {
     const order = columnOrderModel.value;
     if (!order.length) return [];
-    const filtered = order.filter((id) => id !== 'select');
-    return ['select', ...filtered];
+    const filtered = order.filter((id) => id !== 'select' && id !== 'drag');
+    const pinnedColumns = props.enableDragDrop ? ['drag', 'select'] : ['select'];
+    return [...pinnedColumns, ...filtered];
   },
   set: (value: string[]) => {
-    const filtered = value.filter((id) => id !== 'select');
+    const filtered = value.filter((id) => id !== 'select' && id !== 'drag');
     columnOrderModel.value = filtered;
   },
 });
@@ -386,8 +388,47 @@ function createSelectColumn(): TableColumn<TreeRow<T>> {
   };
 }
 
+function createDragColumn(): TableColumn<TreeRow<T>> {
+  return {
+    id: 'drag',
+    header: () => '',
+    cell: ({ row }) => {
+      const enhancedRow = enhanceRowInstance(row as unknown as TableInstanceRow<T>);
+      const canDrag = canDragRow(enhancedRow.original);
+
+      if (!canDrag) {
+        return createCellWrapper(enhancedRow, h('span', { class: 'w-4 inline-block' }), 0);
+      }
+
+      return createCellWrapper(
+        enhancedRow,
+        h(
+          'div',
+          {
+            class: 'flex items-center justify-center cursor-grab active:cursor-grabbing select-none',
+            'data-drag-handle': 'true',
+          },
+          [
+            h(UIcon, {
+              name: 'i-lucide-grip-vertical',
+              class: 'h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300',
+            }),
+          ]
+        ),
+        0
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+    enableResizing: false,
+    meta: { class: { th: 'w-8', td: 'w-8' } },
+  };
+}
+
 const processedColumns = computed<TableColumn<TreeRow<T>>[]>(() => {
+  const baseColumnIndex = props.enableDragDrop ? 2 : 1;
   return [
+    ...(props.enableDragDrop ? [createDragColumn()] : []),
     createSelectColumn(),
     ...props.columns.map((col, colIndex) => {
       const originalHeader = col.header as ColumnHeaderRenderer | undefined;
@@ -398,7 +439,7 @@ const processedColumns = computed<TableColumn<TreeRow<T>>[]>(() => {
 
             const enhancedRow = enhanceRowInstance(row as unknown as TableInstanceRow<T>);
             const content = typeof cellFn === 'function' ? cellFn({ row: enhancedRow }) : cellFn;
-            return createCellWrapper(enhancedRow, content as VNode, colIndex + 1);
+            return createCellWrapper(enhancedRow, content as VNode, colIndex + baseColumnIndex);
           }
         : undefined;
 

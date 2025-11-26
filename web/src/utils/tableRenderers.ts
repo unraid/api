@@ -171,7 +171,6 @@ export function wrapCellWithRow<T>({
     'div',
     {
       ...(columnIndex === 0 ? { 'data-row-id': row.id } : {}),
-      draggable,
       class: `relative block w-full h-full px-3 py-2 ${isBusy ? 'opacity-50 pointer-events-none select-none' : ''} ${
         isActive ? 'bg-primary-50 dark:bg-primary-950/30' : ''
       } ${isSelectable ? 'cursor-pointer' : ''} ${isDragging ? 'opacity-30 pointer-events-none' : ''}`,
@@ -185,6 +184,29 @@ export function wrapCellWithRow<T>({
         }
         onRowClick(row.id, row.type, row.name, row.meta);
       },
+      onMousedown: enableDragDrop
+        ? (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (target.closest('[data-drag-handle]') && draggable && !isBusy) {
+              const wrapper = e.currentTarget as HTMLElement;
+              wrapper.setAttribute('draggable', 'true');
+            }
+          }
+        : undefined,
+      onMouseup: enableDragDrop
+        ? (e: MouseEvent) => {
+            const wrapper = e.currentTarget as HTMLElement;
+            wrapper.removeAttribute('draggable');
+          }
+        : undefined,
+      onMouseleave: enableDragDrop
+        ? (e: MouseEvent) => {
+            const wrapper = e.currentTarget as HTMLElement;
+            if (!isDragging) {
+              wrapper.removeAttribute('draggable');
+            }
+          }
+        : undefined,
       onDragstart: enableDragDrop
         ? (e: DragEvent) => {
             if (isBusy || !draggable) {
@@ -194,7 +216,13 @@ export function wrapCellWithRow<T>({
             onDragStart?.(e, row);
           }
         : undefined,
-      onDragend: enableDragDrop ? onDragEnd : undefined,
+      onDragend: enableDragDrop
+        ? (e: DragEvent) => {
+            const wrapper = e.currentTarget as HTMLElement;
+            wrapper.removeAttribute('draggable');
+            onDragEnd?.();
+          }
+        : undefined,
       onContextmenu: (e: MouseEvent) => {
         const target = e.target as HTMLElement | null;
         if (
