@@ -26,8 +26,8 @@ export default class DockerContainersPageModification extends FileModification {
 
         if (await this.isUnraidVersionGreaterThanOrEqualTo('7.3.0')) {
             return {
-                shouldApply: false,
-                reason: 'Docker overview table is integrated in Unraid 7.3 or later',
+                shouldApply: true,
+                reason: 'Docker overview table WILL BE integrated in Unraid 7.3 or later. This modification is a temporary measure for testing.',
             };
         }
 
