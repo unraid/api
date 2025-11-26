@@ -11,7 +11,8 @@ import removeConsole from 'vite-plugin-remove-console';
 import scopeTailwindToUnapi from './postcss/scopeTailwindToUnapi';
 import { serveStaticHtml } from './vite-plugin-serve-static';
 
-const dropConsole = process.env.VITE_ALLOW_CONSOLE_LOGS !== 'true';
+// const dropConsole = process.env.VITE_ALLOW_CONSOLE_LOGS !== 'true';
+const dropConsole = false;
 console.log(dropConsole ? 'WARN: Console logs are disabled' : 'INFO: Console logs are enabled');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

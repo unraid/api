@@ -410,15 +410,44 @@ function createDragColumn(): TableColumn<TreeRow<T>> {
             class: `flex items-center justify-center select-none ${isBusy ? '' : 'cursor-grab active:cursor-grabbing'}`,
             'data-drag-handle': 'true',
             draggable: !isBusy && !isDraggingThis,
+            onMousedown: (e: MouseEvent) => {
+              console.log('[DragHandle] mousedown', {
+                rowId: enhancedRow.original.id,
+                rowName: enhancedRow.original.name,
+                isBusy,
+                isDraggingThis,
+                draggable: !isBusy && !isDraggingThis,
+                target: e.target,
+                currentTarget: e.currentTarget,
+              });
+            },
             onDragstart: (e: DragEvent) => {
+              console.log('[DragHandle] dragstart fired', {
+                rowId: enhancedRow.original.id,
+                rowName: enhancedRow.original.name,
+                isBusy,
+                dataTransfer: e.dataTransfer,
+              });
               if (isBusy) {
+                console.log('[DragHandle] dragstart prevented - row is busy');
                 e.preventDefault();
                 return;
               }
               handleDragStart(e, enhancedRow.original);
+              console.log('[DragHandle] handleDragStart called, draggingIds:', draggingIds.value);
             },
-            onDragend: () => {
+            onDragend: (e: DragEvent) => {
+              console.log('[DragHandle] dragend fired', {
+                rowId: enhancedRow.original.id,
+                dropEffect: e.dataTransfer?.dropEffect,
+              });
               handleDragEnd();
+            },
+            onDrag: (e: DragEvent) => {
+              // Log occasionally during drag (throttled by checking if clientX changed significantly)
+              if (e.clientX % 50 < 5) {
+                console.log('[DragHandle] dragging...', { x: e.clientX, y: e.clientY });
+              }
             },
           },
           [
