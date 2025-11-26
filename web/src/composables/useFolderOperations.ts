@@ -105,6 +105,11 @@ export function useFolderOperations(options: FolderOperationsOptions) {
     renameValue.value = currentName;
   }
 
+  function cancelRename() {
+    renamingFolderId.value = '';
+    renameValue.value = '';
+  }
+
   async function commitRenameFolder(id: string) {
     const newName = renameValue.value.trim();
     if (!id || !newName || newName === id) {
@@ -186,6 +191,7 @@ export function useFolderOperations(options: FolderOperationsOptions) {
     confirmMove,
     handleCreateFolderInTree,
     startRenameFolder,
+    cancelRename,
     commitRenameFolder,
     handleDeleteFolder,
     renameFolderInteractive,

@@ -604,20 +604,22 @@ const updateCandidateRows = computed<TreeRow<DockerContainer>[]>(() =>
 const selectedContainerRows = computed(() => getContainerRows(props.selectedIds));
 const hasSelectedContainers = computed(() => selectedContainerRows.value.length > 0);
 const hasSelectedEntries = computed(() => props.selectedIds.length > 0);
-const folderOps = useFolderOperations({
-  rootFolderId,
-  folderChildrenIds,
-  parentById,
-  visibleFolders,
-  expandedFolders,
-  setExpandedFolders,
-  createFolderMutation,
-  deleteFolderMutation: deleteEntriesMutation,
-  setFolderChildrenMutation,
-  moveEntriesMutation,
-  refetchQuery: { query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } },
-  onSuccess: showToast,
-});
+const folderOps = reactive(
+  useFolderOperations({
+    rootFolderId,
+    folderChildrenIds,
+    parentById,
+    visibleFolders,
+    expandedFolders,
+    setExpandedFolders,
+    createFolderMutation,
+    deleteFolderMutation: deleteEntriesMutation,
+    setFolderChildrenMutation,
+    moveEntriesMutation,
+    refetchQuery: { query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } },
+    onSuccess: showToast,
+  })
+);
 
 const containerActions = useContainerActions({
   getRowById,
@@ -632,9 +634,9 @@ const containerActions = useContainerActions({
   onWillStartContainers: handleContainersWillStart,
 });
 
-const canCreateFolder = computed(() => (folderOps.newTreeFolderName.value || '').trim().length > 0);
+const canCreateFolder = computed(() => (folderOps.newTreeFolderName || '').trim().length > 0);
 const canDeleteFolder = computed(
-  () => folderOps.selectedFolderId.value && folderOps.selectedFolderId.value !== rootFolderId.value
+  () => folderOps.selectedFolderId && folderOps.selectedFolderId !== rootFolderId.value
 );
 
 const confirmToStop = computed(() => containerActions.confirmToStop.value || []);
@@ -1239,17 +1241,12 @@ function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
                 class="flex min-w-0 flex-1 items-center gap-2"
               >
                 <span class="i-lucide-folder text-gray-500" />
-                <template v-if="folderOps.renamingFolderId.value === row.id">
+                <template v-if="folderOps.renamingFolderId === row.id">
                   <input
                     v-model="folderOps.renameValue"
                     class="border-default bg-default flex-1 rounded border px-2 py-1"
                     @keydown.enter.prevent="folderOps.commitRenameFolder(row.id)"
-                    @keydown.esc.prevent="
-                      () => {
-                        folderOps.renamingFolderId.value = '';
-                        folderOps.renameValue.value = '';
-                      }
-                    "
+                    @keydown.esc.prevent="folderOps.cancelRename()"
                     @blur="folderOps.commitRenameFolder(row.id)"
                     autofocus
                   />
