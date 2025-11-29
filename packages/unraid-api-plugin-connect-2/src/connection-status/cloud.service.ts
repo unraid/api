@@ -93,7 +93,7 @@ export class CloudService {
 
     private async hardCheckCloud(apiVersion: string, apiKey: string): Promise<CloudResponse> {
         try {
-            const mothershipGqlUri = this.configService.getOrThrow<string>('MOTHERSHIP_BASE_URL');
+            const mothershipGqlUri = this.configService.getOrThrow<string>('MOTHERSHIP_GRAPHQL_LINK');
             const ip = await this.checkDns();
             const { canReach, baseUrl } = await this.canReachMothership(
                 mothershipGqlUri,

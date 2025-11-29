@@ -443,8 +443,8 @@ export class UnraidServerClientService implements OnModuleInit, OnModuleDestroy 
 
   private async initializeClient(): Promise<void> {
     try {
-      const mothershipUrl = this.configService.getOrThrow('MOTHERSHIP_BASE_URL');
-      const identityState = this.connectionService.getIdentityState();
+      const mothershipUrl = this.configService.getOrThrow('MOTHERSHIP_GRAPHQL_LINK');
+      const identityState = this.connectionService.getIdentityState();y
       
       if (!identityState.isLoaded || !identityState.state.apiKey) {
         this.logger.warn('No API key available, cannot initialize UnraidServerClient');

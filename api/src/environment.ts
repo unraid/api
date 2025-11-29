@@ -92,11 +92,11 @@ export const LOG_LEVEL = process.env.LOG_LEVEL
       ? 'INFO'
       : 'DEBUG';
 export const SUPPRESS_LOGS = process.env.SUPPRESS_LOGS === 'true';
-export const MOTHERSHIP_BASE_URL = process.env.MOTHERSHIP_BASE_URL
-    ? process.env.MOTHERSHIP_BASE_URL
+export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
+    ? process.env.MOTHERSHIP_GRAPHQL_LINK
     : ENVIRONMENT === 'staging'
-      ? 'https://staging.mothership.unraid.net'
-      : 'https://mothership.unraid.net';
+      ? 'https://staging.mothership.unraid.net/ws'
+      : 'https://mothership.unraid.net/ws';
 
 export const PM2_HOME = process.env.PM2_HOME ?? '/var/log/.pm2';
 export const PM2_PATH = join(import.meta.dirname, '../../', 'node_modules', 'pm2', 'bin', 'pm2');
