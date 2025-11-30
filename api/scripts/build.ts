@@ -7,7 +7,7 @@ import { exit } from 'process';
 import type { PackageJson } from 'type-fest';
 import { $, cd } from 'zx';
 
-import { getDeploymentVersion } from './get-deployment-version.js';
+import { getDeploymentVersion } from '@app/../scripts/get-deployment-version.js';
 
 type ApiPackageJson = PackageJson & {
     version: string;
@@ -21,7 +21,7 @@ type ApiPackageJson = PackageJson & {
  */
 const WORKSPACE_PACKAGES_TO_VENDOR = {
     '@unraid/shared': 'packages/unraid-shared',
-    'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect',
+    'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect-2',
 } as const;
 
 /**
