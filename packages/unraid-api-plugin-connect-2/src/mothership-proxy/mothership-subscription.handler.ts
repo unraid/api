@@ -28,7 +28,7 @@ export class MothershipSubscriptionHandler {
     constructor(
         @Inject(CANONICAL_INTERNAL_CLIENT_TOKEN)
         private readonly internalClientService: CanonicalInternalClientService,
-        private readonly mothershipClient: MothershipGraphqlClientService,
+        private readonly mothershipClient: UnraidServerClientService,
         private readonly connectionService: MothershipConnectionService
     ) {}
 

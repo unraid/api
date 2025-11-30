@@ -1,6 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { gql } from '@apollo/client/core/index.js';
 import { parse, print, visit } from 'graphql';
+
+import {
+  CANONICAL_INTERNAL_CLIENT_TOKEN,
+  type CanonicalInternalClientService,
+} from '@unraid/shared';
 
 interface GraphQLExecutor {
   execute(params: {
@@ -17,9 +22,12 @@ interface GraphQLExecutor {
  */
 @Injectable()
 export class LocalGraphQLExecutor implements GraphQLExecutor {
-  private logger = new Logger('LocalGraphQLExecutor');
+  private readonly logger = new Logger(LocalGraphQLExecutor.name);
 
-  constructor(private readonly internalClient: InternalClientService) {}
+  constructor(
+    @Inject(CANONICAL_INTERNAL_CLIENT_TOKEN)
+    private readonly internalClient: CanonicalInternalClientService,
+  ) {}
 
   async execute(params: {
     query: string

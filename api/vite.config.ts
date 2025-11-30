@@ -23,7 +23,7 @@ import { defineConfig } from 'vitest/config';
  */
 const workspaceDependencies = {
     '@unraid/shared': 'packages/unraid-shared',
-    'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect',
+    'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect-2',
 };
 
 export default defineConfig(({ mode }): ViteUserConfig => {

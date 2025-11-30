@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-
-
 import { CloudResolver } from '../connection-status/cloud.resolver.js';
 import { CloudService } from '../connection-status/cloud.service.js';
 import { ConnectStatusWriterService } from '../connection-status/connect-status-writer.service.js';
@@ -12,14 +10,14 @@ import { MothershipSubscriptionHandler } from './mothership-subscription.handler
 import { MothershipController } from './mothership.controller.js';
 import { MothershipHandler } from './mothership.events.js';
 import { UnraidServerClientService } from './unraid-server-client.service.js';
-import { MothershipGraphqlClientService } from './graphql.client.js';
 
 @Module({
     imports: [RemoteAccessModule],
     providers: [
         ConnectStatusWriterService,
         MothershipConnectionService,
-        MothershipGraphqlClientService,
+        LocalGraphQLExecutor,
+        UnraidServerClientService,
         MothershipHandler,
         MothershipSubscriptionHandler,
         TimeoutCheckerJob,
