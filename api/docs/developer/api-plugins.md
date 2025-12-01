@@ -19,7 +19,7 @@ Add your workspace package to the vendoring configuration in `api/scripts/build.
 ```typescript
 const WORKSPACE_PACKAGES_TO_VENDOR = {
     '@unraid/shared': 'packages/unraid-shared',
-    'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect-2',
+    'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect',
     'your-plugin-name': 'packages/your-plugin-path', // Add your plugin here
 } as const;
 ```
@@ -31,7 +31,7 @@ Add your workspace package to the Vite configuration in `api/vite.config.ts`:
 ```typescript
 const workspaceDependencies = {
     '@unraid/shared': 'packages/unraid-shared',
-    'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect-2',
+    'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect',
     'your-plugin-name': 'packages/your-plugin-path', // Add your plugin here
 };
 ```

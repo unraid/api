@@ -21,7 +21,7 @@ type ApiPackageJson = PackageJson & {
  */
 const WORKSPACE_PACKAGES_TO_VENDOR = {
     '@unraid/shared': 'packages/unraid-shared',
-    'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect-2',
+    'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect',
 } as const;
 
 /**

@@ -309,7 +309,7 @@ importers:
         version: 7.15.0
       unraid-api-plugin-connect:
         specifier: workspace:*
-        version: link:../packages/unraid-api-plugin-connect-2
+        version: link:../packages/unraid-api-plugin-connect
       uuid:
         specifier: 13.0.0
         version: 13.0.0
@@ -501,7 +501,7 @@ importers:
         specifier: 8.8.1
         version: 8.8.1
 
-  packages/unraid-api-plugin-connect-2:
+  packages/unraid-api-plugin-connect:
     dependencies:
       '@unraid/shared':
         specifier: workspace:*
