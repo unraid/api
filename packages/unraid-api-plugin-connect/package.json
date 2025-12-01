@@ -13,7 +13,7 @@
         "build": "tsc",
         "prepare": "npm run build",
         "format": "prettier --write \"src/**/*.{ts,js,json}\"",
-        "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.ts"
+        "codegen": "graphql-codegen --config codegen.ts"
     },
     "keywords": [
         "unraid",
@@ -57,6 +57,7 @@
         "jose": "6.0.13",
         "lodash-es": "4.17.21",
         "nest-authz": "2.17.0",
+        "pify": "^6.1.0",
         "prettier": "3.6.2",
         "rimraf": "6.0.1",
         "rxjs": "7.8.2",
