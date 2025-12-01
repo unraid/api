@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
 
 import { GET_DOCKER_CONTAINER_SIZES } from '@/components/Docker/docker-container-sizes.query';
+import { stripLeadingSlash } from '@/utils/docker';
 
 import type { GetDockerContainerSizesQuery } from '@/composables/gql/graphql';
 
@@ -37,7 +38,7 @@ const containers = computed(() => result.value?.docker?.containers ?? []);
 const tableRows = computed(() => {
   return containers.value
     .map((container) => {
-      const primaryName = container.names?.[0]?.replace(/^\//, '') || 'Unknown';
+      const primaryName = stripLeadingSlash(container.names?.[0]) || 'Unknown';
       const totalBytes = container.sizeRootFs ?? 0;
       const writableBytes = container.sizeRw ?? 0;
       const logBytes = container.sizeLog ?? 0;

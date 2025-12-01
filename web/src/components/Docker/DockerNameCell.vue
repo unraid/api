@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import { stripLeadingSlash } from '@/utils/docker';
+
 import type { DockerContainer } from '@/composables/gql/graphql';
 import type { TreeRow } from '@/composables/useTreeData';
 
@@ -17,6 +19,8 @@ const emit = defineEmits<{
 }>();
 
 const treeRow = computed(() => props.row);
+
+const displayName = computed(() => stripLeadingSlash(treeRow.value.name));
 
 const hasUpdate = computed(() => {
   return (
@@ -67,7 +71,7 @@ function handleToggleExpand(e: Event) {
       :class="['mr-2 h-5 w-5 flex-shrink-0 text-gray-500', canExpand ? 'ml-2' : '']"
     />
 
-    <span class="max-w-[40ch] truncate font-medium">{{ treeRow.name }}</span>
+    <span class="max-w-[40ch] truncate font-medium">{{ displayName }}</span>
 
     <UIcon
       v-if="hasUpdate && !isUpdating"

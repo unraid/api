@@ -18,6 +18,7 @@ import SingleDockerLogViewer from '@/components/Docker/SingleDockerLogViewer.vue
 import LogViewerToolbar from '@/components/Logs/LogViewerToolbar.vue';
 import { useDockerConsoleSessions } from '@/composables/useDockerConsoleSessions';
 import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
+import { stripLeadingSlash } from '@/utils/docker';
 import { useAutoAnimate } from '@formkit/auto-animate/vue';
 
 import type {
@@ -309,7 +310,7 @@ const legacyEditUrl = computed(() => getLegacyEditUrl(activeContainer.value));
 
 // Details data (mix of real and placeholder until specific queries exist)
 const detailsItem = computed(() => {
-  const name = (activeContainer.value?.names?.[0] || '').replace(/^\//, '') || 'Unknown';
+  const name = stripLeadingSlash(activeContainer.value?.names?.[0]) || 'Unknown';
   return {
     id: activeContainer.value?.id || 'unknown',
     label: name,
@@ -356,7 +357,7 @@ watch(activeId, (newId, oldId) => {
 });
 
 const activeContainerName = computed(() => {
-  return activeContainer.value?.names?.[0]?.replace(/^\//, '') || '';
+  return stripLeadingSlash(activeContainer.value?.names?.[0]);
 });
 
 const hasActiveConsoleSession = computed(() => {
@@ -504,7 +505,7 @@ const [transitionContainerRef] = useAutoAnimate({
                     @click="goBackToOverview"
                   />
                   <div class="font-medium">
-                    {{ activeContainer?.names?.[0]?.replace(/^\//, '') || 'Container' }}
+                    {{ stripLeadingSlash(activeContainer?.names?.[0]) || 'Container' }}
                   </div>
                 </div>
                 <UBadge
@@ -557,7 +558,7 @@ const [transitionContainerRef] = useAutoAnimate({
             <SingleDockerLogViewer
               v-if="activeContainer"
               ref="logViewerRef"
-              :container-name="activeContainer.names?.[0]?.replace(/^\//, '') || ''"
+              :container-name="stripLeadingSlash(activeContainer.names?.[0])"
               :auto-scroll="logAutoScroll"
               :client-filter="logFilterText"
               class="h-full flex-1"
@@ -635,7 +636,7 @@ const [transitionContainerRef] = useAutoAnimate({
           <div :class="['h-96', { 'pointer-events-none opacity-50': isDetailsDisabled }]">
             <SingleDockerLogViewer
               v-if="activeContainer"
-              :container-name="activeContainer.names?.[0]?.replace(/^\//, '') || ''"
+              :container-name="stripLeadingSlash(activeContainer.names?.[0])"
               :auto-scroll="true"
               class="h-full"
             />

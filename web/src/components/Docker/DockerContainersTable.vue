@@ -39,6 +39,7 @@ import {
   getFirstLanIp,
   normalizeMultiValue,
   openLanIpInNewTab,
+  stripLeadingSlash,
   toContainerTreeRow,
 } from '@/utils/docker';
 
@@ -178,7 +179,7 @@ const dockerSearchAccessor = (row: TreeRow<DockerContainer>): unknown[] => {
   if (!meta) return [];
 
   const names = Array.isArray(meta.names)
-    ? meta.names.map((name) => (typeof name === 'string' ? name.replace(/^\//, '') : name))
+    ? meta.names.map((name) => (typeof name === 'string' ? stripLeadingSlash(name) : name))
     : [];
   const image = meta.image ? [meta.image] : [];
   const status = meta.status ? [meta.status] : [];
@@ -601,13 +602,13 @@ function getContainerRows(ids: string[]): TreeRow<DockerContainer>[] {
 function getRowDisplayLabel(row?: TreeRow<DockerContainer> | null, fallback?: string) {
   if (!row) return fallback || '';
   const meta = row.meta as DockerContainer | undefined;
-  const metaName = meta?.names?.[0]?.replace(/^\//, '') || '';
+  const metaName = stripLeadingSlash(meta?.names?.[0]);
   return metaName || row.name || fallback || '';
 }
 
 function getContainerNameFromRow(row: TreeRow<DockerContainer>): string {
   const meta = row.meta as DockerContainer | undefined;
-  return meta?.names?.[0]?.replace(/^\//, '') || row.name || '';
+  return stripLeadingSlash(meta?.names?.[0]) || row.name || '';
 }
 
 const allContainerRows = computed<TreeRow<DockerContainer>[]>(() => {
@@ -1445,7 +1446,7 @@ function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
         <div class="space-y-4">
           <p class="text-sm text-gray-600 dark:text-gray-300">
             Are you sure you want to remove
-            <strong>{{ containerToRemove?.name }}</strong
+            <strong>{{ stripLeadingSlash(containerToRemove?.name) }}</strong
             >?
           </p>
           <label class="flex items-center gap-2 text-sm">

@@ -2,6 +2,12 @@ import type { DockerContainer } from '@/composables/gql/graphql';
 import type { TreeRow } from '@/composables/useTreeData';
 
 const COMMA_SEPARATED_LIST = /\s*,\s*/;
+
+export function stripLeadingSlash(name: string | null | undefined): string {
+  if (!name) return '';
+  return name.replace(/^\//, '');
+}
+
 const URL_WITH_PROTOCOL = /^[a-zA-Z][a-zA-Z0-9+\-.]*:\/\//;
 
 export function normalizeListString(value: string): string[] {
@@ -136,7 +142,7 @@ export function toContainerTreeRow(
   meta: DockerContainer | null | undefined,
   fallbackName?: string
 ): TreeRow<DockerContainer> {
-  const name = meta?.names?.[0]?.replace(/^\//, '') || fallbackName || 'Unknown';
+  const name = stripLeadingSlash(meta?.names?.[0]) || fallbackName || 'Unknown';
   const updatesParts: string[] = [];
   if (meta?.isUpdateAvailable) updatesParts.push('Update');
   if (meta?.isRebuildReady) updatesParts.push('Rebuild');
