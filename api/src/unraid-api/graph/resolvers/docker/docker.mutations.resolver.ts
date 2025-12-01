@@ -58,8 +58,11 @@ export class DockerMutationsResolver {
         action: AuthAction.DELETE_ANY,
         resource: Resource.DOCKER,
     })
-    public async removeContainer(@Args('id', { type: () => PrefixedID }) id: string) {
-        return this.dockerService.removeContainer(id);
+    public async removeContainer(
+        @Args('id', { type: () => PrefixedID }) id: string,
+        @Args('withImage', { type: () => Boolean, nullable: true }) withImage?: boolean
+    ) {
+        return this.dockerService.removeContainer(id, { withImage });
     }
 
     @ResolveField(() => Boolean, {

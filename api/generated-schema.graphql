@@ -870,7 +870,7 @@ type DockerMutations {
   unpause(id: PrefixedID!): DockerContainer!
 
   """Remove a container"""
-  removeContainer(id: PrefixedID!): Boolean!
+  removeContainer(id: PrefixedID!, withImage: Boolean): Boolean!
 
   """Update auto-start configuration for Docker containers"""
   updateAutostartConfiguration(entries: [DockerAutostartEntryInput!]!, persistUserPreferences: Boolean): Boolean!

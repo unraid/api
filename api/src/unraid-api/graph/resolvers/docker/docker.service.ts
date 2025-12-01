@@ -249,10 +249,25 @@ export class DockerService {
         return updatedContainer;
     }
 
-    public async removeContainer(id: string): Promise<boolean> {
+    public async removeContainer(id: string, options?: { withImage?: boolean }): Promise<boolean> {
         const container = this.client.getContainer(id);
         try {
+            const inspectData = options?.withImage ? await container.inspect() : null;
+            const imageId = inspectData?.Image;
+
             await container.remove({ force: true });
+            this.logger.debug(`Removed container ${id}`);
+
+            if (options?.withImage && imageId) {
+                try {
+                    const image = this.client.getImage(imageId);
+                    await image.remove({ force: true });
+                    this.logger.debug(`Removed image ${imageId} for container ${id}`);
+                } catch (imageError) {
+                    this.logger.warn(`Failed to remove image ${imageId}:`, imageError);
+                }
+            }
+
             await this.clearContainerCache();
             this.logger.debug(`Invalidated container caches after removing ${id}`);
             const appInfo = await this.getAppInfo();

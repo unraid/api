@@ -13,6 +13,7 @@ import { DELETE_DOCKER_ENTRIES } from '@/components/Docker/docker-delete-entries
 import { MOVE_DOCKER_ENTRIES_TO_FOLDER } from '@/components/Docker/docker-move-entries.mutation';
 import { MOVE_DOCKER_ITEMS_TO_POSITION } from '@/components/Docker/docker-move-items-to-position.mutation';
 import { PAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-pause-container.mutation';
+import { REMOVE_DOCKER_CONTAINER } from '@/components/Docker/docker-remove-container.mutation';
 import { SET_DOCKER_FOLDER_CHILDREN } from '@/components/Docker/docker-set-folder-children.mutation';
 import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-container.mutation';
 import { DOCKER_STATS_SUBSCRIPTION } from '@/components/Docker/docker-stats.subscription';
@@ -566,6 +567,12 @@ const { mutate: startContainerMutation } = useMutation(START_DOCKER_CONTAINER);
 const { mutate: stopContainerMutation } = useMutation(STOP_DOCKER_CONTAINER);
 const { mutate: pauseContainerMutation } = useMutation(PAUSE_DOCKER_CONTAINER);
 const { mutate: unpauseContainerMutation } = useMutation(UNPAUSE_DOCKER_CONTAINER);
+const { mutate: removeContainerMutation, loading: removingContainer } =
+  useMutation(REMOVE_DOCKER_CONTAINER);
+
+const removeContainerModalOpen = ref(false);
+const containerToRemove = ref<TreeRow<DockerContainer> | null>(null);
+const removeWithImage = ref(true);
 
 declare global {
   interface Window {
@@ -868,6 +875,40 @@ function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   showToast(`${action}: ${row.name}`);
 }
 
+function openRemoveContainerModal(row: TreeRow<DockerContainer>) {
+  containerToRemove.value = row;
+  removeWithImage.value = true;
+  removeContainerModalOpen.value = true;
+}
+
+async function confirmRemoveContainer(close: () => void) {
+  const row = containerToRemove.value;
+  if (!row || !row.containerId) return;
+
+  const containerName = getContainerNameFromRow(row);
+  setRowsBusy([row.id], true);
+
+  try {
+    await removeContainerMutation(
+      { id: row.containerId, withImage: removeWithImage.value },
+      {
+        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+        awaitRefetchQueries: true,
+      }
+    );
+    const imageMsg = removeWithImage.value ? ' and image' : '';
+    showToast(`Removed container${imageMsg}: ${containerName}`);
+  } catch (error) {
+    showError(`Failed to remove container: ${containerName}`, {
+      description: error instanceof Error ? error.message : undefined,
+    });
+  } finally {
+    setRowsBusy([row.id], false);
+    containerToRemove.value = null;
+    close();
+  }
+}
+
 async function handleRowContextMenu(payload: {
   id: string;
   type: string;
@@ -1069,6 +1110,16 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
       icon: 'i-lucide-settings',
       as: 'button',
       onSelect: () => handleRowAction(row, 'Manage Settings'),
+    },
+  ]);
+
+  items.push([
+    {
+      label: 'Remove',
+      icon: 'i-lucide-trash-2',
+      as: 'button',
+      color: 'error',
+      onSelect: () => openRemoveContainerModal(row),
     },
   ]);
 
@@ -1382,6 +1433,32 @@ function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
       <template #footer="{ close }">
         <UButton color="neutral" variant="outline" @click="close">Cancel</UButton>
         <UButton @click="containerActions.confirmPauseResume(close)">Confirm</UButton>
+      </template>
+    </UModal>
+
+    <UModal
+      v-model:open="removeContainerModalOpen"
+      title="Remove container"
+      :ui="{ footer: 'justify-end', overlay: 'z-50', content: 'z-50' }"
+    >
+      <template #body>
+        <div class="space-y-4">
+          <p class="text-sm text-gray-600 dark:text-gray-300">
+            Are you sure you want to remove
+            <strong>{{ containerToRemove?.name }}</strong
+            >?
+          </p>
+          <label class="flex items-center gap-2 text-sm">
+            <input v-model="removeWithImage" type="checkbox" class="accent-primary h-4 w-4 rounded" />
+            <span>Also remove image</span>
+          </label>
+        </div>
+      </template>
+      <template #footer="{ close }">
+        <UButton color="neutral" variant="outline" @click="close">Cancel</UButton>
+        <UButton color="error" :loading="removingContainer" @click="confirmRemoveContainer(close)"
+          >Remove</UButton
+        >
       </template>
     </UModal>
   </div>

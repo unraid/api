@@ -21,7 +21,6 @@ import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
 import { useAutoAnimate } from '@formkit/auto-animate/vue';
 
 import type {
-  ContainerPortConflict,
   DockerPortConflictsResult,
   LanPortConflict,
   PortConflictContainer,
@@ -208,9 +207,6 @@ const portConflicts = computed<DockerPortConflictsResult | null>(() => {
 });
 
 const lanPortConflicts = computed<LanPortConflict[]>(() => portConflicts.value?.lanPorts ?? []);
-const containerPortConflicts = computed<ContainerPortConflict[]>(
-  () => portConflicts.value?.containerPorts ?? []
-);
 
 const { getLegacyEditUrl, shouldUseLegacyEditPage } = useDockerEditNavigation();
 const { hasActiveSession } = useDockerConsoleSessions();
