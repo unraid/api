@@ -1238,7 +1238,7 @@ function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
             }"
           >
             <UButton
-              color="primary"
+              color="neutral"
               variant="outline"
               :size="compact ? 'sm' : 'md'"
               trailing-icon="i-lucide-chevron-down"

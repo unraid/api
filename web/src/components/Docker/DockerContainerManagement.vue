@@ -415,6 +415,7 @@ const [transitionContainerRef] = useAutoAnimate({
             </UButton>
             <UButton
               size="xs"
+              color="neutral"
               variant="outline"
               icon="i-lucide-list-checks"
               :disabled="loading"
@@ -424,6 +425,7 @@ const [transitionContainerRef] = useAutoAnimate({
             </UButton>
             <UButton
               size="xs"
+              color="neutral"
               variant="outline"
               icon="i-lucide-hard-drive"
               :disabled="props.disabled"
