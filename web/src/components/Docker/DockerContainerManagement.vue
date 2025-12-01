@@ -212,10 +212,6 @@ const containerPortConflicts = computed<ContainerPortConflict[]>(
   () => portConflicts.value?.containerPorts ?? []
 );
 
-const hasPortConflicts = computed(
-  () => lanPortConflicts.value.length + containerPortConflicts.value.length > 0
-);
-
 const { getLegacyEditUrl, shouldUseLegacyEditPage } = useDockerEditNavigation();
 const { hasActiveSession } = useDockerConsoleSessions();
 
@@ -441,7 +437,7 @@ const [transitionContainerRef] = useAutoAnimate({
         <div v-if="orphanedContainers.length" class="mb-4">
           <DockerOrphanedAlert :orphaned-containers="orphanedContainers" @refresh="refreshContainers" />
         </div>
-        <div v-if="hasPortConflicts" class="mb-4">
+        <div v-if="lanPortConflicts.length" class="mb-4">
           <DockerPortConflictsAlert
             :lan-conflicts="lanPortConflicts"
             @container:select="handleConflictContainerAction"
