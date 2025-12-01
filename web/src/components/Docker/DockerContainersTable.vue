@@ -29,6 +29,7 @@ import { useContextMenu } from '@/composables/useContextMenu';
 import { useDockerViewPreferences } from '@/composables/useDockerColumnVisibility';
 import { useDockerLogSessions } from '@/composables/useDockerLogSessions';
 import { useDockerUpdateActions } from '@/composables/useDockerUpdateActions';
+import { useEntryReordering } from '@/composables/useEntryReordering';
 import { useFolderOperations } from '@/composables/useFolderOperations';
 import { useFolderTree } from '@/composables/useFolderTree';
 import { usePersistentColumnVisibility } from '@/composables/usePersistentColumnVisibility';
@@ -634,6 +635,22 @@ const containerActions = useContainerActions({
   onWillStartContainers: handleContainersWillStart,
 });
 
+const entryReordering = useEntryReordering({
+  rootFolderId,
+  entryParentById,
+  folderChildrenIds,
+  treeData,
+  getRowById,
+  onMove: ({ rowId, parentId, position }) =>
+    moveItemsToPositionMutation(
+      { sourceEntryIds: [rowId], destinationFolderId: parentId, position },
+      {
+        refetchQueries: [{ query: GET_DOCKER_CONTAINERS, variables: { skipCache: true } }],
+        awaitRefetchQueries: true,
+      }
+    ),
+});
+
 const canCreateFolder = computed(() => (folderOps.newTreeFolderName || '').trim().length > 0);
 const canDeleteFolder = computed(
   () => folderOps.selectedFolderId && folderOps.selectedFolderId !== rootFolderId.value
@@ -916,8 +933,28 @@ const bulkItems = computed<DropdownMenuItems>(() => [
 ]);
 
 function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
+  const reorderActions: ActionDropdownItem[] = [];
+  if (props.flatEntries) {
+    reorderActions.push(
+      {
+        label: 'Move up',
+        icon: 'i-lucide-arrow-up',
+        as: 'button',
+        disabled: !entryReordering.canMoveUp(row.id),
+        onSelect: () => entryReordering.moveUp(row.id),
+      },
+      {
+        label: 'Move down',
+        icon: 'i-lucide-arrow-down',
+        as: 'button',
+        disabled: !entryReordering.canMoveDown(row.id),
+        onSelect: () => entryReordering.moveDown(row.id),
+      }
+    );
+  }
+
   if (row.type === 'folder') {
-    return [
+    const items: DropdownMenuItems = [
       [
         {
           label: 'Select all children',
@@ -926,21 +963,25 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
           onSelect: () => handleSelectAllChildren(row),
         },
       ],
-      [
-        {
-          label: 'Rename',
-          icon: 'i-lucide-pencil',
-          as: 'button',
-          onSelect: () => folderOps.renameFolderInteractive(row.id, row.name),
-        },
-        {
-          label: 'Delete',
-          icon: 'i-lucide-trash',
-          as: 'button',
-          onSelect: () => folderOps.deleteFolderById(row.id),
-        },
-      ],
     ];
+    if (reorderActions.length > 0) {
+      items.push(reorderActions);
+    }
+    items.push([
+      {
+        label: 'Rename',
+        icon: 'i-lucide-pencil',
+        as: 'button',
+        onSelect: () => folderOps.renameFolderInteractive(row.id, row.name),
+      },
+      {
+        label: 'Delete',
+        icon: 'i-lucide-trash',
+        as: 'button',
+        onSelect: () => folderOps.deleteFolderById(row.id),
+      },
+    ]);
+    return items;
   }
 
   const lanIp = getFirstLanIp(row.meta);
@@ -970,6 +1011,10 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
 
   if (quickActions.length > 0) {
     items.push(quickActions);
+  }
+
+  if (reorderActions.length > 0) {
+    items.push(reorderActions);
   }
 
   items.push([
