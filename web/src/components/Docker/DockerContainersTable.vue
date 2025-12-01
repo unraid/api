@@ -94,7 +94,7 @@ const emit = defineEmits<{
       type: 'container' | 'folder';
       name: string;
       containerId?: string;
-      tab?: 'management' | 'logs' | 'console';
+      tab?: 'overview' | 'settings' | 'logs' | 'console';
     }
   ): void;
   (

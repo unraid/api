@@ -38,6 +38,7 @@ declare module 'vue' {
     ConfirmDialog: typeof import('./src/components/ConfirmDialog.vue')['default']
     'ConnectSettings.standalone': typeof import('./src/components/ConnectSettings/ConnectSettings.standalone.vue')['default']
     Console: typeof import('./src/components/Docker/Console.vue')['default']
+    ContainerOverviewCard: typeof import('./src/components/Docker/ContainerOverviewCard.vue')['default']
     ContainerSizesModal: typeof import('./src/components/Docker/ContainerSizesModal.vue')['default']
     'CriticalNotifications.standalone': typeof import('./src/components/Notifications/CriticalNotifications.standalone.vue')['default']
     Detail: typeof import('./src/components/LayoutViews/Detail/Detail.vue')['default']

@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useQuery } from '@vue/apollo-composable';
 
+import ContainerOverviewCard from '@/components/Docker/ContainerOverviewCard.vue';
 import ContainerSizesModal from '@/components/Docker/ContainerSizesModal.vue';
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
 import DockerAutostartSettings from '@/components/Docker/DockerAutostartSettings.vue';
@@ -268,7 +269,7 @@ function handleTableRowClick(payload: {
   type: 'container' | 'folder';
   name: string;
   containerId?: string;
-  tab?: 'management' | 'logs' | 'console';
+  tab?: 'overview' | 'settings' | 'logs' | 'console';
 }) {
   if (payload.type !== 'container') return;
   if (payload.tab) {
@@ -338,8 +339,8 @@ const details = computed(() => {
 const isDetailsLoading = computed(() => loading.value || isSwitching.value);
 const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
 
-const legacyPaneTab = ref<'management' | 'logs' | 'console'>('management');
-const pendingTab = ref<'management' | 'logs' | 'console' | null>(null);
+const legacyPaneTab = ref<'overview' | 'settings' | 'logs' | 'console'>('overview');
+const pendingTab = ref<'overview' | 'settings' | 'logs' | 'console' | null>(null);
 const logFilterText = ref('');
 const logAutoScroll = ref(true);
 const logViewerRef = ref<InstanceType<typeof SingleDockerLogViewer> | null>(null);
@@ -349,8 +350,8 @@ watch(activeId, (newId, oldId) => {
     legacyPaneTab.value = pendingTab.value;
     pendingTab.value = null;
   } else if (!oldId && newId) {
-    // Only reset to 'management' when opening details from overview (no previous container)
-    legacyPaneTab.value = 'management';
+    // Only reset to 'overview' when opening details from overview (no previous container)
+    legacyPaneTab.value = 'overview';
   }
   // Otherwise keep the current tab when switching between containers
   logFilterText.value = '';
@@ -366,7 +367,8 @@ const hasActiveConsoleSession = computed(() => {
 });
 
 const legacyPaneTabs = computed(() => [
-  { label: 'Container Management', value: 'management' as const },
+  { label: 'Overview', value: 'overview' as const },
+  { label: 'Settings', value: 'settings' as const },
   { label: 'Logs', value: 'logs' as const },
   {
     label: 'Console',
@@ -526,7 +528,13 @@ const [transitionContainerRef] = useAutoAnimate({
             </div>
           </template>
           <div
-            v-show="legacyPaneTab === 'management'"
+            v-show="legacyPaneTab === 'overview'"
+            :class="['relative', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
+          >
+            <ContainerOverviewCard :container="activeContainer" :loading="isDetailsLoading" />
+          </div>
+          <div
+            v-show="legacyPaneTab === 'settings'"
             :class="['relative min-h-[60vh]', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
           >
             <iframe
@@ -537,7 +545,7 @@ const [transitionContainerRef] = useAutoAnimate({
               loading="lazy"
             />
             <div v-else class="flex h-[70vh] items-center justify-center text-sm text-neutral-500">
-              Unable to load legacy container management for this entry.
+              Unable to load container settings for this entry.
             </div>
             <div
               v-if="isDetailsLoading"
