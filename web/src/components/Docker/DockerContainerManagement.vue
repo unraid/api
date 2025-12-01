@@ -351,13 +351,15 @@ const logFilterText = ref('');
 const logAutoScroll = ref(true);
 const logViewerRef = ref<InstanceType<typeof SingleDockerLogViewer> | null>(null);
 
-watch(activeId, () => {
+watch(activeId, (newId, oldId) => {
   if (pendingTab.value) {
     legacyPaneTab.value = pendingTab.value;
     pendingTab.value = null;
-  } else {
+  } else if (!oldId && newId) {
+    // Only reset to 'management' when opening details from overview (no previous container)
     legacyPaneTab.value = 'management';
   }
+  // Otherwise keep the current tab when switching between containers
   logFilterText.value = '';
 });
 
