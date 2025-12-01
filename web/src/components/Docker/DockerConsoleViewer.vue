@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+
+import { useDockerConsoleSessions } from '@/composables/useDockerConsoleSessions';
 
 interface Props {
   containerName: string;
@@ -10,53 +12,65 @@ const props = withDefaults(defineProps<Props>(), {
   shell: 'sh',
 });
 
-const isConnecting = ref(true);
+const { getSession, createSession, showSession, hideSession, destroySession, markPoppedOut } =
+  useDockerConsoleSessions();
+
+const isConnecting = ref(false);
 const hasError = ref(false);
-const iframeKey = ref(0);
 const isPoppedOut = ref(false);
+const placeholderRef = ref<HTMLDivElement | null>(null);
+let resizeObserver: ResizeObserver | null = null;
 
 const socketPath = computed(() => {
   const encodedName = encodeURIComponent(props.containerName.replace(/ /g, '_'));
   return `/logterminal/${encodedName}/`;
 });
 
+const showPlaceholder = computed(() => !isConnecting.value && !hasError.value && !isPoppedOut.value);
+
+function updatePosition() {
+  if (placeholderRef.value && showPlaceholder.value) {
+    const rect = placeholderRef.value.getBoundingClientRect();
+    showSession(props.containerName, rect);
+  }
+}
+
 async function initTerminal() {
+  const existingSession = getSession(props.containerName);
+
+  if (existingSession && !existingSession.isPoppedOut) {
+    isPoppedOut.value = false;
+    hasError.value = false;
+    isConnecting.value = false;
+    requestAnimationFrame(updatePosition);
+    return;
+  }
+
   isConnecting.value = true;
   hasError.value = false;
   isPoppedOut.value = false;
 
   try {
-    const params = new URLSearchParams({
-      tag: 'docker',
-      name: props.containerName,
-      more: props.shell,
-    });
-
-    await fetch(`/webGui/include/OpenTerminal.php?${params.toString()}`);
-
-    await new Promise((resolve) => setTimeout(resolve, 300));
-
-    iframeKey.value++;
+    await createSession(props.containerName, props.shell);
     isConnecting.value = false;
+    requestAnimationFrame(updatePosition);
   } catch {
     hasError.value = true;
     isConnecting.value = false;
   }
 }
 
-function reconnect() {
-  initTerminal();
+async function reconnect() {
+  destroySession(props.containerName);
+  await initTerminal();
 }
 
 async function openFullscreen() {
-  // Disconnect the embedded iframe first by setting popped out mode
-  // ttyd only supports one connection per socket
   isPoppedOut.value = true;
+  markPoppedOut(props.containerName);
 
-  // Wait for iframe to be destroyed
   await new Promise((resolve) => setTimeout(resolve, 100));
 
-  // Re-initialize ttyd for the popup (the old process may have terminated)
   const params = new URLSearchParams({
     tag: 'docker',
     name: props.containerName,
@@ -64,8 +78,6 @@ async function openFullscreen() {
   });
 
   await fetch(`/webGui/include/OpenTerminal.php?${params.toString()}`);
-
-  // Wait for ttyd to start
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   window.open(socketPath.value, '_blank', 'width=1200,height=800');
@@ -73,13 +85,48 @@ async function openFullscreen() {
 
 watch(
   () => props.containerName,
-  () => {
+  (_newName, oldName) => {
+    if (oldName) {
+      hideSession(oldName);
+    }
     initTerminal();
   }
 );
 
+watch(showPlaceholder, (show) => {
+  if (show) {
+    requestAnimationFrame(updatePosition);
+  } else {
+    hideSession(props.containerName);
+  }
+});
+
 onMounted(() => {
   initTerminal();
+
+  if (placeholderRef.value) {
+    resizeObserver = new ResizeObserver(() => {
+      if (showPlaceholder.value) {
+        updatePosition();
+      }
+    });
+    resizeObserver.observe(placeholderRef.value);
+  }
+
+  window.addEventListener('scroll', updatePosition, true);
+  window.addEventListener('resize', updatePosition);
+});
+
+onBeforeUnmount(() => {
+  hideSession(props.containerName);
+
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
+
+  window.removeEventListener('scroll', updatePosition, true);
+  window.removeEventListener('resize', updatePosition);
 });
 </script>
 
@@ -132,6 +179,11 @@ onMounted(() => {
       </div>
     </div>
 
-    <iframe v-else :key="iframeKey" :src="socketPath" class="h-full w-full flex-1 rounded-lg border-0" />
+    <!-- Placeholder that the fixed-position iframe will overlay -->
+    <div
+      v-show="showPlaceholder"
+      ref="placeholderRef"
+      class="h-full w-full flex-1 rounded-lg bg-black"
+    />
   </div>
 </template>

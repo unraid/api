@@ -16,6 +16,7 @@ import DockerOverview from '@/components/Docker/Overview.vue';
 import DockerPreview from '@/components/Docker/Preview.vue';
 import SingleDockerLogViewer from '@/components/Docker/SingleDockerLogViewer.vue';
 import LogViewerToolbar from '@/components/Logs/LogViewerToolbar.vue';
+import { useDockerConsoleSessions } from '@/composables/useDockerConsoleSessions';
 import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
 import { useAutoAnimate } from '@formkit/auto-animate/vue';
 
@@ -216,6 +217,7 @@ const hasPortConflicts = computed(
 );
 
 const { getLegacyEditUrl, shouldUseLegacyEditPage } = useDockerEditNavigation();
+const { hasActiveSession } = useDockerConsoleSessions();
 
 function getOrganizerEntryIdByContainerId(containerId: string): string | null {
   const entry = flatEntries.value.find(
@@ -273,8 +275,16 @@ function handleTableRowClick(payload: {
   type: 'container' | 'folder';
   name: string;
   containerId?: string;
+  tab?: 'management' | 'logs' | 'console';
 }) {
   if (payload.type !== 'container') return;
+  if (payload.tab) {
+    if (activeId.value === payload.id) {
+      legacyPaneTab.value = payload.tab;
+    } else {
+      pendingTab.value = payload.tab;
+    }
+  }
   setActiveContainer(payload.id);
 }
 
@@ -336,20 +346,41 @@ const isDetailsLoading = computed(() => loading.value || isSwitching.value);
 const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
 
 const legacyPaneTab = ref<'management' | 'logs' | 'console'>('management');
+const pendingTab = ref<'management' | 'logs' | 'console' | null>(null);
 const logFilterText = ref('');
 const logAutoScroll = ref(true);
 const logViewerRef = ref<InstanceType<typeof SingleDockerLogViewer> | null>(null);
 
 watch(activeId, () => {
-  legacyPaneTab.value = 'management';
+  if (pendingTab.value) {
+    legacyPaneTab.value = pendingTab.value;
+    pendingTab.value = null;
+  } else {
+    legacyPaneTab.value = 'management';
+  }
   logFilterText.value = '';
 });
 
-const legacyPaneTabs = [
+const activeContainerName = computed(() => {
+  return activeContainer.value?.names?.[0]?.replace(/^\//, '') || '';
+});
+
+const hasActiveConsoleSession = computed(() => {
+  const name = activeContainerName.value;
+  return name ? hasActiveSession(name) : false;
+});
+
+const legacyPaneTabs = computed(() => [
   { label: 'Container Management', value: 'management' as const },
   { label: 'Logs', value: 'logs' as const },
-  { label: 'Console', value: 'console' as const },
-];
+  {
+    label: 'Console',
+    value: 'console' as const,
+    badge: hasActiveConsoleSession.value
+      ? { color: 'success' as const, variant: 'solid' as const, class: 'w-2 h-2 p-0 min-w-0' }
+      : undefined,
+  },
+]);
 
 function handleLogRefresh() {
   logViewerRef.value?.refreshLogContent();
@@ -500,7 +531,7 @@ const [transitionContainerRef] = useAutoAnimate({
             </div>
           </template>
           <div
-            v-if="legacyPaneTab === 'management'"
+            v-show="legacyPaneTab === 'management'"
             :class="['relative min-h-[60vh]', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
           >
             <iframe
@@ -521,7 +552,7 @@ const [transitionContainerRef] = useAutoAnimate({
             </div>
           </div>
           <div
-            v-else-if="legacyPaneTab === 'logs'"
+            v-show="legacyPaneTab === 'logs'"
             :class="['flex h-[70vh] flex-col', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
           >
             <LogViewerToolbar
@@ -539,12 +570,12 @@ const [transitionContainerRef] = useAutoAnimate({
             />
           </div>
           <div
-            v-else-if="legacyPaneTab === 'console'"
+            v-show="legacyPaneTab === 'console'"
             :class="['h-[70vh]', { 'pointer-events-none opacity-50': isDetailsDisabled }]"
           >
             <DockerConsoleViewer
               v-if="activeContainer"
-              :container-name="activeContainer.names?.[0]?.replace(/^\//, '') || ''"
+              :container-name="activeContainerName"
               class="h-full"
             />
           </div>

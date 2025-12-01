@@ -5,7 +5,6 @@ import { useStorage } from '@vueuse/core';
 
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
 import MultiValueCopyBadges from '@/components/Common/MultiValueCopyBadges.vue';
-import ResizableSlideover from '@/components/Common/ResizableSlideover.vue';
 import TableColumnMenu from '@/components/Common/TableColumnMenu.vue';
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
 import { CREATE_DOCKER_FOLDER_WITH_ITEMS } from '@/components/Docker/docker-create-folder-with-items.mutation';
@@ -19,7 +18,6 @@ import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-contain
 import { DOCKER_STATS_SUBSCRIPTION } from '@/components/Docker/docker-stats.subscription';
 import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container.mutation';
 import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-container.mutation';
-import DockerConsoleViewer from '@/components/Docker/DockerConsoleViewer.vue';
 import DockerContainerStatCell from '@/components/Docker/DockerContainerStatCell.vue';
 import DockerLogViewerModal from '@/components/Docker/DockerLogViewerModal.vue';
 import DockerNameCell from '@/components/Docker/DockerNameCell.vue';
@@ -27,6 +25,7 @@ import { ContainerState } from '@/composables/gql/graphql';
 import { useContainerActions } from '@/composables/useContainerActions';
 import { useContextMenu } from '@/composables/useContextMenu';
 import { useDockerViewPreferences } from '@/composables/useDockerColumnVisibility';
+import { useDockerConsoleSessions } from '@/composables/useDockerConsoleSessions';
 import { useDockerLogSessions } from '@/composables/useDockerLogSessions';
 import { useDockerUpdateActions } from '@/composables/useDockerUpdateActions';
 import { useEntryReordering } from '@/composables/useEntryReordering';
@@ -88,7 +87,13 @@ const emit = defineEmits<{
   (e: 'created-folder'): void;
   (
     e: 'row:click',
-    payload: { id: string; type: 'container' | 'folder'; name: string; containerId?: string }
+    payload: {
+      id: string;
+      type: 'container' | 'folder';
+      name: string;
+      containerId?: string;
+      tab?: 'management' | 'logs' | 'console';
+    }
   ): void;
   (
     e: 'row:select',
@@ -209,10 +214,8 @@ const columnSizing = useStorage<Record<string, number>>('docker-table-column-siz
 const columnOrder = useStorage<string[]>('docker-table-column-order', []);
 
 const logs = useDockerLogSessions();
+const consoleSessions = useDockerConsoleSessions();
 const contextMenu = useContextMenu<DockerContainer>();
-
-const consoleSlideoverOpen = ref(false);
-const consoleContainerName = ref('');
 
 const { mergeServerPreferences, saveColumnVisibility, columnVisibilityRef } = useDockerViewPreferences();
 
@@ -549,6 +552,7 @@ type ActionDropdownItem = {
   onSelect?: (e?: Event) => void;
   as?: string;
   disabled?: boolean;
+  color?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral';
 };
 type DropdownMenuItems = ActionDropdownItem[][];
 
@@ -592,6 +596,11 @@ function getRowDisplayLabel(row?: TreeRow<DockerContainer> | null, fallback?: st
   const meta = row.meta as DockerContainer | undefined;
   const metaName = meta?.names?.[0]?.replace(/^\//, '') || '';
   return metaName || row.name || fallback || '';
+}
+
+function getContainerNameFromRow(row: TreeRow<DockerContainer>): string {
+  const meta = row.meta as DockerContainer | undefined;
+  return meta?.names?.[0]?.replace(/^\//, '') || row.name || '';
 }
 
 const allContainerRows = computed<TreeRow<DockerContainer>[]>(() => {
@@ -819,11 +828,6 @@ function handleContainersWillStart(entries: { id: string; containerId: string; n
   logs.openLogsForContainers(targets);
 }
 
-function openConsole(containerName: string) {
-  consoleContainerName.value = containerName;
-  consoleSlideoverOpen.value = true;
-}
-
 function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   if (row.type !== 'container') return;
   if (action === 'Start / Stop') {
@@ -841,9 +845,14 @@ function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
     return;
   }
   if (action === 'Console') {
-    const containerName = row.name;
-    if (!containerName) return;
-    openConsole(containerName);
+    const container = row.meta as DockerContainer | undefined;
+    emit('row:click', {
+      id: row.id,
+      type: 'container',
+      name: row.name,
+      containerId: container?.id,
+      tab: 'console',
+    });
     return;
   }
   if (action === 'Manage Settings') {
@@ -1038,6 +1047,9 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
     },
   ]);
 
+  const containerName = getContainerNameFromRow(row);
+  const hasConsoleSession = containerName ? consoleSessions.hasActiveSession(containerName) : false;
+
   items.push([
     {
       label: 'View logs',
@@ -1046,9 +1058,10 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
       onSelect: () => handleRowAction(row, 'View logs'),
     },
     {
-      label: 'Console',
+      label: hasConsoleSession ? 'Console (active)' : 'Console',
       icon: 'i-lucide-terminal',
       as: 'button',
+      color: hasConsoleSession ? 'success' : undefined,
       onSelect: () => handleRowAction(row, 'Console'),
     },
     {
@@ -1213,20 +1226,6 @@ function handleSelectAllChildren(row: TreeRow<DockerContainer>) {
       @remove-session="logs.removeLogSession"
       @toggle-follow="logs.toggleActiveLogFollow"
     />
-
-    <ResizableSlideover
-      v-model:open="consoleSlideoverOpen"
-      :title="`Console: ${consoleContainerName}`"
-      :default-width="800"
-      :min-width="500"
-      :max-width="1400"
-    >
-      <DockerConsoleViewer
-        v-if="consoleSlideoverOpen && consoleContainerName"
-        :container-name="consoleContainerName"
-        class="pt-2"
-      />
-    </ResizableSlideover>
 
     <UModal
       v-model:open="folderOps.moveOpen"
