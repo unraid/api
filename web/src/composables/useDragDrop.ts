@@ -28,16 +28,22 @@ export function useDragDrop<T = unknown>(options: DragDropOptions = {}) {
       : [];
 
     const isRowSelected = Boolean(rowSelection?.value?.[row.id]);
-    const ids = selected.length && isRowSelected ? selected : [row.id];
+    const ids = Array.from(new Set(selected.length && isRowSelected ? selected : [row.id]));
 
-    draggingIds.value = Array.from(new Set(ids));
-
+    // Set dataTransfer synchronously (required by the API)
     try {
-      e.dataTransfer?.setData('text/plain', draggingIds.value.join(','));
+      e.dataTransfer?.setData('text/plain', ids.join(','));
       if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
     } catch (err) {
       // ignore
     }
+
+    // Defer state update to avoid DOM changes during dragstart
+    // Chrome cancels drag if DOM is modified synchronously in dragstart handler
+    // Note: queueMicrotask runs too soon; setTimeout(0) is required for Chrome (to use the macro task queue instead)
+    setTimeout(() => {
+      draggingIds.value = ids;
+    }, 0);
   }
 
   function handleDragEnd() {

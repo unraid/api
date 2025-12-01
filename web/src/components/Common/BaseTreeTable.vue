@@ -206,10 +206,14 @@ watch(
 );
 
 function handleContainerDragOver(event: DragEvent) {
-  if (!props.enableDragDrop || !draggingIds.value.length) return;
+  if (!props.enableDragDrop) return;
+  // Always preventDefault to accept the drop - don't rely on draggingIds being set yet
+  // Chrome fires dragover before Vue reactivity updates from dragstart
   event.preventDefault();
   event.stopPropagation();
-  updateProjectionFromPointer(event.clientY);
+  if (draggingIds.value.length) {
+    updateProjectionFromPointer(event.clientY);
+  }
 }
 
 function handleContainerDrop(event: DragEvent) {
