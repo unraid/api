@@ -307,7 +307,7 @@ const columns = computed<TableColumn<TreeRow<AutostartEntry>>[]>(() => {
     },
     {
       id: 'wait',
-      header: 'Start Delay (s)',
+      header: 'Wait After Start (s)',
       cell: ({ row }) => {
         const entry = row.original.meta;
         if (!entry) return '';
