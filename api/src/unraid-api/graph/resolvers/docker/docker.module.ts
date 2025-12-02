@@ -12,6 +12,7 @@ import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/doc
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
 import { DockerStatsService } from '@app/unraid-api/graph/resolvers/docker/docker-stats.service.js';
+import { DockerTailscaleService } from '@app/unraid-api/graph/resolvers/docker/docker-tailscale.service.js';
 import { DockerTemplateIconService } from '@app/unraid-api/graph/resolvers/docker/docker-template-icon.service.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
@@ -37,6 +38,7 @@ import { ServicesModule } from '@app/unraid-api/graph/services/services.module.j
         DockerTemplateScannerService,
         DockerTemplateIconService,
         DockerStatsService,
+        DockerTailscaleService,
         DockerLogService,
         DockerNetworkService,
         DockerPortService,

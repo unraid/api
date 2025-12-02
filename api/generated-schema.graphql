@@ -1190,6 +1190,12 @@ type DockerContainer implements Node {
   isOrphaned: Boolean!
   isUpdateAvailable: Boolean
   isRebuildReady: Boolean
+
+  """Whether Tailscale is enabled for this container"""
+  tailscaleEnabled: Boolean!
+
+  """Tailscale status for this container (fetched via docker exec)"""
+  tailscaleStatus: TailscaleStatus
 }
 
 enum ContainerState {
@@ -1250,6 +1256,66 @@ type DockerContainerStats {
   blockIO: String!
 }
 
+"""Tailscale exit node connection status"""
+type TailscaleExitNodeStatus {
+  """Whether the exit node is online"""
+  online: Boolean!
+
+  """Tailscale IPs of the exit node"""
+  tailscaleIps: [String!]
+}
+
+"""Tailscale status for a Docker container"""
+type TailscaleStatus {
+  """Whether Tailscale is online in the container"""
+  online: Boolean!
+
+  """Current Tailscale version"""
+  version: String
+
+  """Latest available Tailscale version"""
+  latestVersion: String
+
+  """Whether a Tailscale update is available"""
+  updateAvailable: Boolean!
+
+  """Configured Tailscale hostname"""
+  hostname: String
+
+  """Actual Tailscale DNS name"""
+  dnsName: String
+
+  """DERP relay code"""
+  relay: String
+
+  """DERP relay region name"""
+  relayName: String
+
+  """Tailscale IPv4 and IPv6 addresses"""
+  tailscaleIps: [String!]
+
+  """Advertised subnet routes"""
+  primaryRoutes: [String!]
+
+  """Whether this container is an exit node"""
+  isExitNode: Boolean!
+
+  """Status of the connected exit node (if using one)"""
+  exitNodeStatus: TailscaleExitNodeStatus
+
+  """Tailscale Serve/Funnel WebUI URL"""
+  webUiUrl: String
+
+  """Tailscale key expiry date"""
+  keyExpiry: DateTime
+
+  """Days until key expires"""
+  keyExpiryDays: Int
+
+  """Whether the Tailscale key has expired"""
+  keyExpired: Boolean!
+}
+
 type Docker implements Node {
   id: PrefixedID!
   containers(skipCache: Boolean! = false): [DockerContainer!]!
@@ -1260,6 +1326,7 @@ type Docker implements Node {
   Access container logs. Requires specifying a target container id through resolver arguments.
   """
   logs(id: PrefixedID!, since: DateTime, tail: Int): DockerContainerLogs!
+  container(id: PrefixedID!): DockerContainer
   organizer(skipCache: Boolean! = false): ResolvedOrganizerV1!
   containerUpdateStatuses: [ExplicitStatusItem!]!
 }

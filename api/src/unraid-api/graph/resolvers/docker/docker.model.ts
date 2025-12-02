@@ -309,6 +309,69 @@ export class DockerContainerStats {
     blockIO!: string;
 }
 
+@ObjectType({ description: 'Tailscale exit node connection status' })
+export class TailscaleExitNodeStatus {
+    @Field(() => Boolean, { description: 'Whether the exit node is online' })
+    online!: boolean;
+
+    @Field(() => [String], { nullable: true, description: 'Tailscale IPs of the exit node' })
+    tailscaleIps?: string[];
+}
+
+@ObjectType({ description: 'Tailscale status for a Docker container' })
+export class TailscaleStatus {
+    @Field(() => Boolean, { description: 'Whether Tailscale is online in the container' })
+    online!: boolean;
+
+    @Field(() => String, { nullable: true, description: 'Current Tailscale version' })
+    version?: string;
+
+    @Field(() => String, { nullable: true, description: 'Latest available Tailscale version' })
+    latestVersion?: string;
+
+    @Field(() => Boolean, { description: 'Whether a Tailscale update is available' })
+    updateAvailable!: boolean;
+
+    @Field(() => String, { nullable: true, description: 'Configured Tailscale hostname' })
+    hostname?: string;
+
+    @Field(() => String, { nullable: true, description: 'Actual Tailscale DNS name' })
+    dnsName?: string;
+
+    @Field(() => String, { nullable: true, description: 'DERP relay code' })
+    relay?: string;
+
+    @Field(() => String, { nullable: true, description: 'DERP relay region name' })
+    relayName?: string;
+
+    @Field(() => [String], { nullable: true, description: 'Tailscale IPv4 and IPv6 addresses' })
+    tailscaleIps?: string[];
+
+    @Field(() => [String], { nullable: true, description: 'Advertised subnet routes' })
+    primaryRoutes?: string[];
+
+    @Field(() => Boolean, { description: 'Whether this container is an exit node' })
+    isExitNode!: boolean;
+
+    @Field(() => TailscaleExitNodeStatus, {
+        nullable: true,
+        description: 'Status of the connected exit node (if using one)',
+    })
+    exitNodeStatus?: TailscaleExitNodeStatus;
+
+    @Field(() => String, { nullable: true, description: 'Tailscale Serve/Funnel WebUI URL' })
+    webUiUrl?: string;
+
+    @Field(() => GraphQLISODateTime, { nullable: true, description: 'Tailscale key expiry date' })
+    keyExpiry?: Date;
+
+    @Field(() => Int, { nullable: true, description: 'Days until key expires' })
+    keyExpiryDays?: number;
+
+    @Field(() => Boolean, { description: 'Whether the Tailscale key has expired' })
+    keyExpired!: boolean;
+}
+
 @ObjectType({
     implements: () => Node,
 })

@@ -1,3 +1,4 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { describe, expect, it, vi } from 'vitest';
@@ -23,7 +24,7 @@ import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subsc
 describe('DockerModule', () => {
     it('should compile the module', async () => {
         const module = await Test.createTestingModule({
-            imports: [DockerModule],
+            imports: [CacheModule.register({ isGlobal: true }), DockerModule],
         })
             .overrideProvider(DockerService)
             .useValue({ getDockerClient: vi.fn() })

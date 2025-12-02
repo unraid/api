@@ -49,6 +49,7 @@ export const GET_DOCKER_CONTAINERS = gql`
         registryUrl
         supportUrl
         iconUrl
+        tailscaleEnabled
       }
       organizer(skipCache: $skipCache) {
         version
@@ -94,6 +95,7 @@ export const GET_DOCKER_CONTAINERS = gql`
               registryUrl
               supportUrl
               iconUrl
+              tailscaleEnabled
             }
           }
         }

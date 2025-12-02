@@ -71,6 +71,17 @@ export class DockerResolver {
         };
     }
 
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DOCKER,
+    })
+    @ResolveField(() => DockerContainer, { nullable: true })
+    public async container(@Args('id', { type: () => PrefixedID }) id: string) {
+        const containers = await this.dockerService.getContainers({ skipCache: false });
+        return containers.find((c) => c.id === id) ?? null;
+    }
+
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,

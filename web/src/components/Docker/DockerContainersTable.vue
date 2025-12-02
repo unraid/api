@@ -22,6 +22,7 @@ import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-con
 import DockerContainerStatCell from '@/components/Docker/DockerContainerStatCell.vue';
 import DockerLogViewerModal from '@/components/Docker/DockerLogViewerModal.vue';
 import DockerNameCell from '@/components/Docker/DockerNameCell.vue';
+import DockerTailscaleIndicator from '@/components/Docker/DockerTailscaleIndicator.vue';
 import { ContainerState } from '@/composables/gql/graphql';
 import { useContainerActions } from '@/composables/useContainerActions';
 import { useContextMenu } from '@/composables/useContextMenu';
@@ -164,6 +165,7 @@ const searchableKeys = [
   'state',
   'version',
   'network',
+  'tailscale',
   'containerIp',
   'containerPort',
   'lanPort',
@@ -422,6 +424,21 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
         row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('network') || '')),
     },
     {
+      accessorKey: 'tailscale',
+      header: 'Tailscale',
+      cell: ({ row }) => {
+        if (row.original.type === 'folder') return '';
+        const tailscaleEnabled = row.original.meta?.tailscaleEnabled;
+        if (!tailscaleEnabled) {
+          return h('span', { class: 'text-gray-400' }, '—');
+        }
+        return h(DockerTailscaleIndicator, {
+          containerId: row.original.containerId || row.original.id,
+          containerState: row.original.state || ContainerState.EXITED,
+        });
+      },
+    },
+    {
       accessorKey: 'containerIp',
       header: 'Container IP',
       cell: makeMultiValueCell('containerIp'),
@@ -496,6 +513,7 @@ function getDefaultColumnVisibility(isCompact: boolean): Record<string, boolean>
       version: false,
       links: true,
       network: false,
+      tailscale: false,
       containerIp: false,
       containerPort: false,
       lanPort: false,
@@ -512,6 +530,7 @@ function getDefaultColumnVisibility(isCompact: boolean): Record<string, boolean>
       version: false,
       links: true,
       network: false,
+      tailscale: true,
       containerIp: false,
       containerPort: false,
       lanPort: true,
