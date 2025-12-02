@@ -1,4 +1,4 @@
-/*
+/* 
  * Tailwind v4 configuration with Nuxt UI v3
  * Using scoped selectors to prevent breaking Unraid WebGUI
  */
@@ -9,7 +9,7 @@
 /* Import theme and utilities only - no global preflight */
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
-@import "@nuxt/ui";
+@import "@nuxt/ui"; 
 @import 'tw-animate-css';
 @import '../../../@tailwind-shared/index.css';
 
@@ -17,7 +17,7 @@
 @source "../**/*.{vue,ts,js,tsx,jsx}";
 @source "../../../unraid-ui/src/**/*.{vue,ts,js,tsx,jsx}";
 
-/*
+/* 
  * Scoped base styles for .unapi elements only
  * Import Tailwind's preflight into our custom layer and scope it
  */
@@ -28,12 +28,163 @@
     @import "tailwindcss/preflight.css";
   }
 
+  /* Override Unraid's button styles for Nuxt UI components */
+  .unapi button {
+    /* Reset Unraid's button styles */
+    margin: 0 !important;
+    padding: 0;
+    border: none;
+    background: none;
+  }
+
+  /* Reset button-like controls back to UA defaults so Nuxt UI styles win */
+  .unapi button,
+  .unapi button[type='button'],
+  .unapi button:hover,
+  .unapi button:hover[disabled],
+  .unapi input[type='button'],
+  .unapi input[type='button']:hover,
+  .unapi input[type='button']:hover[disabled],
+  .unapi input[type='reset'],
+  .unapi input[type='submit'],
+  .unapi a.button {
+    box-sizing: border-box;
+    font: inherit;
+    min-width: revert;
+    text-transform: revert;
+    background: revert;
+    color: revert;
+  }
+
+  /* Reset text inputs so Nuxt UI field styles render correctly */
+  .unapi input[type='text'],
+  .unapi input[type='password'],
+  .unapi input[type='number'],
+  .unapi input[type='url'],
+  .unapi input[type='email'],
+  .unapi input[type='date'],
+  .unapi input[type='file'],
+  .unapi textarea,
+  .unapi .textarea {
+    box-sizing: border-box;
+    font: inherit;
+    color: inherit;
+  }
+
+  /* Clear global table row sizing that fights the tree table layout */
+  .unapi table thead td,
+  .unapi table thead th,
+  .unapi table tbody td,
+  .unapi table tbody th {
+    all: revert;
+    box-sizing: border-box;
+  }
+
   /* Accessible focus styles for keyboard navigation */
   .unapi button:focus-visible {
     outline: 2px solid #ff8c2f;
     outline-offset: 2px;
   }
+
+  /* Restore button functionality while removing Unraid's forced styles */
+  .unapi button:not([role="switch"]) {
+    /* display: inline-flex; */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  /* Ensure Nuxt UI modal/slideover close buttons work properly */
+  .unapi [role="dialog"] button,
+  .unapi [data-radix-collection-item] button {
+    margin: 0 !important;
+    /* background: transparent !important; */
+    border: none !important;
+  }
+
+  /* Focus styles for dialog buttons */
+  .unapi [role="dialog"] button:focus-visible,
+  .unapi [data-radix-collection-item] button:focus-visible {
+    outline: 2px solid #ff8c2f;
+    outline-offset: 2px;
+  }
+
+  /* Reset figure element for logo */
+  .unapi figure {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Reset heading elements - only margin/padding */
+  .unapi h1,
+  .unapi h2,
+  .unapi h3,
+  .unapi h4,
+  .unapi h5 {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Reset paragraph element */
+  .unapi p {
+    margin: 0;
+    padding: 0;
+    text-align: unset;
+  }
+
+  /* Reset UL styles to prevent default browser styling */
+  .unapi ul {
+    padding-inline-start: 0;
+    list-style-type: none;
+  }
+
+  /* Reset toggle/switch button backgrounds */
+  .unapi button[role="switch"],
+  .unapi button[role="switch"][data-state="checked"],
+  .unapi button[role="switch"][data-state="unchecked"] {
+    background-color: transparent;
+    background: transparent;
+  }
+
+  /* Style for checked state */
+  .unapi button[role="switch"][data-state="checked"] {
+    background-color: #ff8c2f; /* Unraid orange */
+  }
+
+  /* Style for unchecked state */
+  .unapi button[role="switch"][data-state="unchecked"] {
+    background-color: #e5e5e5;
+  }
+
+  /* Dark mode toggle styles */
+  .unapi.dark button[role="switch"][data-state="unchecked"],
+  .dark .unapi button[role="switch"][data-state="unchecked"] {
+    background-color: #333;
+    border-color: #555;
+  }
+
+  /* Toggle thumb/handle */
+  .unapi button[role="switch"] span {
+    background-color: white;
+  }
 }
+
+/* Override link styles inside .unapi */
+.unapi a,
+.unapi a:link,
+.unapi a:visited {
+  color: inherit;
+  text-decoration: none;
+}
+
+.unapi a:hover,
+.unapi a:focus {
+  text-decoration: underline;
+  color: inherit;
+}
+
+/* Note: Tailwind utilities will apply globally but should be used with .unapi prefix in HTML */
 
 /* Ensure unraid-modals container has extremely high z-index */
 unraid-modals.unapi {
