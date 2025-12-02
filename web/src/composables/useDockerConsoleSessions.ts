@@ -30,7 +30,21 @@ function getSocketPath(containerName: string): string {
   return `/logterminal/${encodedName}/`;
 }
 
+function cleanupStaleSessions(): void {
+  if (sessions.value.size === 0) return;
+
+  const validSessions = new Map<string, ConsoleSession>();
+  for (const [key, session] of sessions.value) {
+    if (document.body.contains(session.wrapper)) {
+      validSessions.set(key, session);
+    }
+  }
+  sessions.value = validSessions;
+}
+
 export function useDockerConsoleSessions() {
+  cleanupStaleSessions();
+
   const activeSessions = computed(() =>
     Array.from(sessions.value.values()).filter((s) => !s.isPoppedOut)
   );
