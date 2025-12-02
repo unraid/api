@@ -107,35 +107,27 @@ const reformattedTimestamp = computed<string>(() => {
       <div class="" v-html="descriptionMarkup" />
     </div>
 
-    <p v-if="mutationError" class="text-red-600">{{ t('common.error') }}: {{ mutationError }}</p>
+    <p v-if="mutationError" class="text-destructive">{{ t('common.error') }}: {{ mutationError }}</p>
 
     <div class="flex items-baseline justify-end gap-4">
-      <UButton
-        v-if="link"
-        :to="link"
-        variant="link"
-        class="text-primary inline-flex items-center justify-center p-0 text-sm font-medium hover:underline focus:underline"
-        icon="i-heroicons-link-20-solid"
-      >
-        <span class="text-sm">{{ t('notifications.item.viewLink') }}</span>
+      <UButton v-if="link" :to="link" variant="link" icon="i-heroicons-link-20-solid">
+        {{ t('notifications.item.viewLink') }}
       </UButton>
       <UButton
         v-if="type === NotificationType.UNREAD"
         :loading="archive.loading"
         icon="i-heroicons-archive-box-20-solid"
-        class="!bg-none"
         @click="() => void archive.mutate({ id: props.id })"
       >
-        <span class="text-sm">{{ t('notifications.item.archive') }}</span>
+        {{ t('notifications.item.archive') }}
       </UButton>
       <UButton
         v-if="type === NotificationType.ARCHIVE"
         :loading="deleteNotification.loading"
         icon="i-heroicons-trash-20-solid"
-        class="!bg-none"
         @click="() => void deleteNotification.mutate({ id: props.id, type: props.type })"
       >
-        <span class="text-sm">{{ t('notifications.item.delete') }}</span>
+        {{ t('notifications.item.delete') }}
       </UButton>
     </div>
   </div>

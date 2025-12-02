@@ -30,8 +30,15 @@ const importance = ref<Importance | undefined>(undefined);
 
 const { t } = useI18n();
 
-const filterOptions = computed<Array<{ label: string; value?: Importance }>>(() => [
-  { label: t('notifications.sidebar.filters.all') },
+const activeFilter = computed({
+  get: () => importance.value ?? 'all',
+  set: (val) => {
+    importance.value = val === 'all' ? undefined : (val as Importance);
+  },
+});
+
+const filterTabs = computed(() => [
+  { label: t('notifications.sidebar.filters.all'), value: 'all' as const },
   { label: t('notifications.sidebar.filters.alert'), value: Importance.ALERT },
   { label: t('notifications.sidebar.filters.info'), value: Importance.INFO },
   { label: t('notifications.sidebar.filters.warning'), value: Importance.WARNING },
@@ -131,25 +138,24 @@ const activeTab = ref<'unread' | 'archived'>('unread');
 
 const tabs = computed(() => [
   {
-    id: 'unread',
     label: t('notifications.sidebar.unreadTab'),
-    count: overview.value?.unread.total,
+    value: 'unread' as const,
+    badge: overview.value?.unread.total ?? 0,
   },
   {
-    id: 'archived',
     label: t('notifications.sidebar.archivedTab'),
-    count: readArchivedCount.value,
+    value: 'archived' as const,
+    badge: readArchivedCount.value ?? 0,
   },
 ]);
 </script>
 
-<!-- totally scuffed but we use: !bg-transparent, !bg-none, hover:text-current to override conflicting webgui/api styles -->
 <template>
   <div>
     <UButton
       variant="ghost"
       color="neutral"
-      class="!bg-transparent"
+      class="text-inverted hover:text-current"
       @click="
         () => {
           isOpen = true;
@@ -161,20 +167,7 @@ const tabs = computed(() => [
       <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
     </UButton>
 
-    <USlideover
-      v-model:open="isOpen"
-      side="right"
-      :title="t('notifications.sidebar.title')"
-      :close="{
-        color: 'neutral',
-        variant: 'ghost',
-        class: 'rounded-md !bg-none hover:text-current',
-      }"
-      :ui="{
-        content: 'w-screen max-w-screen sm:max-w-[540px]',
-        title: 'text-3xl font-normal',
-      }"
-    >
+    <USlideover v-model:open="isOpen" side="right" :title="t('notifications.sidebar.title')">
       <template #body>
         <div class="flex h-full flex-col">
           <div class="flex flex-1 flex-col overflow-hidden">
@@ -182,34 +175,19 @@ const tabs = computed(() => [
             <div class="flex flex-col gap-3 px-0 py-3">
               <!-- Tabs & Action Button Row -->
               <div class="flex items-center justify-between gap-3">
-                <!-- Custom Pill Tabs -->
-                <div class="dark:bg-muted flex shrink-0 gap-1 rounded-lg bg-gray-100 p-2">
-                  <UButton
-                    v-for="tab in tabs"
-                    :key="tab.id"
-                    @click="activeTab = tab.id as 'unread' | 'archived'"
-                    :color="activeTab === tab.id ? 'primary' : 'neutral'"
-                    :variant="activeTab === tab.id ? 'solid' : 'ghost'"
-                    size="sm"
-                    class="!bg-none transition-colors"
-                    :class="[
-                      activeTab === tab.id
-                        ? 'text-white'
-                        : 'text-gray-500 hover:bg-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:bg-transparent dark:hover:text-gray-200',
-                    ]"
-                  >
-                    <span>{{ tab.label }}</span>
-                    <span v-if="tab.count !== undefined" class="opacity-90">({{ tab.count }})</span>
-                  </UButton>
-                </div>
-
+                <UTabs
+                  v-model="activeTab"
+                  :items="tabs"
+                  :content="false"
+                  variant="pill"
+                  color="primary"
+                />
                 <!-- Action Button -->
                 <UButton
                   v-if="activeTab === 'unread'"
                   :disabled="loadingArchiveAll"
                   variant="link"
                   color="neutral"
-                  class="hover:text-primary h-auto !bg-none p-0 font-normal hover:underline"
                   @click="confirmAndArchiveAll"
                 >
                   {{ t('notifications.sidebar.archiveAllAction') }}
@@ -219,7 +197,6 @@ const tabs = computed(() => [
                   :disabled="loadingDeleteAll"
                   variant="link"
                   color="neutral"
-                  class="text-foreground hover:text-destructive h-auto !bg-none p-0 font-normal transition-colors hover:underline"
                   @click="confirmAndDeleteArchives"
                 >
                   {{ t('notifications.sidebar.deleteAllAction') }}
@@ -229,26 +206,13 @@ const tabs = computed(() => [
               <!-- Filters & Settings Row -->
               <div class="flex items-center justify-between gap-3">
                 <!-- Filter Button Group -->
-                <div
-                  class="dark:bg-muted flex items-center gap-1 overflow-x-auto rounded-lg bg-gray-100 p-1"
-                >
-                  <UButton
-                    v-for="option in filterOptions"
-                    :key="option.value ?? 'all'"
-                    @click="importance = option.value"
-                    color="neutral"
-                    variant="ghost"
-                    size="xs"
-                    class="!bg-none whitespace-nowrap transition-colors"
-                    :class="[
-                      importance === option.value
-                        ? 'dark:bg-accented bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-white hover:text-gray-900 dark:text-white dark:ring-gray-600 dark:hover:bg-gray-700 dark:hover:text-white'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-transparent hover:ring-1 hover:ring-gray-300 dark:hover:ring-gray-600',
-                    ]"
-                  >
-                    {{ option.label }}
-                  </UButton>
-                </div>
+                <UTabs
+                  v-model="activeFilter"
+                  :items="filterTabs"
+                  :content="false"
+                  variant="pill"
+                  color="neutral"
+                />
                 <!-- Settings Icon -->
                 <UTooltip
                   :delay-duration="0"
@@ -263,7 +227,6 @@ const tabs = computed(() => [
                     variant="ghost"
                     color="neutral"
                     icon="i-heroicons-cog-6-tooth-20-solid"
-                    class="h-8 w-8 !bg-none hover:text-current"
                     @click="openSettings"
                   />
                 </UTooltip>

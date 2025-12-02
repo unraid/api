@@ -221,9 +221,8 @@ const displayErrorMessage = computed(() => {
     </div>
   </div>
 
-  <!-- nextui replacement for LoadingError -->
+  <!-- USkeleton for loading and error states -->
   <div v-else class="flex h-full flex-col items-center justify-center gap-3 px-3">
-    <!-- Loading (centered, like LoadingError) -->
     <div v-if="loading" class="w-full max-w-md space-y-4">
       <div v-for="n in 3" :key="n" class="py-1.5">
         <div class="flex items-center gap-2">
@@ -240,7 +239,7 @@ const displayErrorMessage = computed(() => {
     <!-- Error (centered, icon + title + message + full-width button) -->
     <div v-else-if="offlineError || error" class="w-full max-w-sm space-y-3">
       <div class="flex justify-center">
-        <UIcon name="i-heroicons-shield-exclamation-20-solid" class="size-10 text-red-600" />
+        <UIcon name="i-heroicons-shield-exclamation-20-solid" class="text-destructive size-10" />
       </div>
       <div class="text-center">
         <h3 class="font-bold">Error</h3>
@@ -251,7 +250,7 @@ const displayErrorMessage = computed(() => {
 
     <!-- Default (empty state) -->
     <div v-else class="contents">
-      <CheckIcon class="h-10 translate-y-3 text-green-600" />
+      <CheckIcon class="text-unraid-green h-10 translate-y-3" />
       {{ noNotificationsMessage }}
     </div>
   </div>

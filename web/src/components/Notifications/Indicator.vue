@@ -44,7 +44,7 @@ const icon = computed<{ name: string; color: string } | null>(() => {
 
 <template>
   <div class="relative flex items-center justify-center">
-    <UIcon name="i-heroicons-bell-20-solid" class="text-header-text-primary h-6 w-6" />
+    <UIcon name="i-heroicons-bell-20-solid" class="h-6 w-6" />
     <div
       v-if="!seen && indicatorLevel === 'UNREAD'"
       class="border-muted bg-unraid-green absolute top-0 right-0 size-2.5 rounded-full border"
