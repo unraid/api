@@ -64,6 +64,12 @@ const mutationError = computed(() => {
   return archive.error?.message ?? deleteNotification.error?.message;
 });
 
+const openLink = () => {
+  if (props.link) {
+    window.location.assign(props.link);
+  }
+};
+
 const reformattedTimestamp = computed<string>(() => {
   if (!props.timestamp) return '';
   const userLocale = navigator.language ?? 'en-US'; // Get the user's browser language (e.g., 'en-US', 'fr-FR')
@@ -110,7 +116,13 @@ const reformattedTimestamp = computed<string>(() => {
     <p v-if="mutationError" class="text-destructive">{{ t('common.error') }}: {{ mutationError }}</p>
 
     <div class="flex items-baseline justify-end gap-4">
-      <UButton v-if="link" :to="link" variant="link" icon="i-heroicons-link-20-solid">
+      <UButton
+        v-if="link"
+        variant="link"
+        icon="i-heroicons-link-20-solid"
+        color="neutral"
+        @click="openLink"
+      >
         {{ t('notifications.item.viewLink') }}
       </UButton>
       <UButton

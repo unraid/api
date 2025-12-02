@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
-
-import { AlertTriangle, Octagon } from 'lucide-vue-next';
+import { useToast } from '@nuxt/ui/composables/useToast.js';
 
 import type { FragmentType } from '~/composables/gql';
 import type {
@@ -22,6 +21,8 @@ import {
 } from '~/components/Notifications/graphql/notification.subscription';
 import { useFragment } from '~/composables/gql';
 import { NotificationImportance } from '~/composables/gql/graphql';
+
+const toast = useToast();
 
 const { result, loading, error, refetch } = useQuery<
   WarningAndAlertNotificationsQuery,
@@ -88,24 +89,24 @@ const formatTimestamp = (notification: NotificationFragmentFragment) => {
 
 const importanceMeta: Record<
   NotificationImportance,
-  { label: string; badge: string; icon: typeof AlertTriangle; accent: string }
+  { label: string; badge: string; icon: string; accent: string }
 > = {
   [NotificationImportance.ALERT]: {
     label: 'Alert',
     badge: 'bg-red-100 text-red-700 border border-red-300',
-    icon: Octagon,
+    icon: 'i-lucide-octagon',
     accent: 'text-red-600',
   },
   [NotificationImportance.WARNING]: {
     label: 'Warning',
     badge: 'bg-amber-100 text-amber-700 border border-amber-300',
-    icon: AlertTriangle,
+    icon: 'i-lucide-alert-triangle',
     accent: 'text-amber-600',
   },
   [NotificationImportance.INFO]: {
     label: 'Info',
     badge: 'bg-blue-100 text-blue-700 border border-blue-300',
-    icon: AlertTriangle,
+    icon: 'i-lucide-alert-triangle',
     accent: 'text-blue-600',
   },
 };
@@ -156,30 +157,32 @@ onNotificationAdded(({ data }) => {
 
   void refetch();
 
-  if (!globalThis.toast) {
-    return;
-  }
-
   if (notification.timestamp) {
     // Trigger the global toast in tandem with the subscription update.
     const funcMapping: Record<
       NotificationImportance,
-      (typeof globalThis)['toast']['info' | 'error' | 'warning']
+      'error' | 'warning' | 'info' | 'primary' | 'secondary' | 'success' | 'neutral'
     > = {
-      [NotificationImportance.ALERT]: globalThis.toast.error,
-      [NotificationImportance.WARNING]: globalThis.toast.warning,
-      [NotificationImportance.INFO]: globalThis.toast.info,
+      [NotificationImportance.ALERT]: 'error',
+      [NotificationImportance.WARNING]: 'warning',
+      [NotificationImportance.INFO]: 'success',
     };
-    const toast = funcMapping[notification.importance];
+    const color = funcMapping[notification.importance];
     const createOpener = () => ({
       label: 'Open',
-      onClick: () => notification.link && window.open(notification.link, '_blank', 'noopener'),
+      onClick: () => {
+        if (notification.link) {
+          window.location.assign(notification.link);
+        }
+      },
     });
 
     requestAnimationFrame(() =>
-      toast(notification.title, {
+      toast.add({
+        title: notification.title,
         description: notification.subject,
-        action: notification.link ? createOpener() : undefined,
+        color,
+        actions: notification.link ? [createOpener()] : undefined,
       })
     );
   }
@@ -190,7 +193,7 @@ onNotificationAdded(({ data }) => {
   <section class="flex flex-col gap-4 rounded-lg border border-amber-200 bg-white p-4 shadow-sm">
     <header class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-2">
-        <AlertTriangle class="h-5 w-5 text-amber-600" aria-hidden="true" />
+        <UIcon name="i-lucide-alert-triangle" class="h-5 w-5 text-amber-600" aria-hidden="true" />
         <h2 class="text-base font-semibold text-gray-900">Warnings & Alerts</h2>
       </div>
       <span
@@ -217,8 +220,8 @@ onNotificationAdded(({ data }) => {
         class="grid gap-2 rounded-md border border-gray-200 p-3 transition hover:border-amber-300"
       >
         <div class="flex items-start gap-3">
-          <component
-            :is="meta.icon"
+          <UIcon
+            :name="meta.icon"
             class="mt-0.5 h-5 w-5 flex-none"
             :class="meta.accent"
             aria-hidden="true"

@@ -5,8 +5,6 @@ import { storeToRefs } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 
-import { CheckIcon } from '@heroicons/vue/24/solid';
-
 import type { ApolloError } from '@apollo/client/errors';
 import type { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
 import type { GraphQLError } from 'graphql';
@@ -250,7 +248,7 @@ const displayErrorMessage = computed(() => {
 
     <!-- Default (empty state) -->
     <div v-else class="contents">
-      <CheckIcon class="text-unraid-green h-10 translate-y-3" />
+      <UIcon name="i-heroicons-check-20-solid" class="text-unraid-green h-10 w-10 translate-y-3" />
       {{ noNotificationsMessage }}
     </div>
   </div>

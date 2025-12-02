@@ -140,11 +140,6 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'color-switcher',
   },
   {
-    component: defineAsyncComponent(() => import('@/components/UnraidToaster.vue')),
-    selector: ['unraid-toaster', 'uui-toaster'],
-    appId: 'toaster',
-  },
-  {
     component: defineAsyncComponent(() => import('../UpdateOs/TestUpdateModal.standalone.vue')),
     selector: 'unraid-test-update-modal',
     appId: 'test-update-modal',
