@@ -128,12 +128,13 @@ onStatsResult((result) => {
 
 const MULTI_VALUE_INLINE_LIMIT = 1;
 
-type MultiValueKey = 'containerIp' | 'containerPort' | 'lanPort';
+type MultiValueKey = 'containerIp' | 'containerPort' | 'lanPort' | 'volumes';
 
 const MULTI_VALUE_LABELS: Record<MultiValueKey, string> = {
   containerIp: 'Container IP',
   containerPort: 'Container port',
   lanPort: 'LAN IP:Port',
+  volumes: 'Volume mapping',
 };
 
 function makeMultiValueCell(accessor: MultiValueKey) {
@@ -459,8 +460,7 @@ const columns = computed<TableColumn<TreeRow<DockerContainer>>[]>(() => {
     {
       accessorKey: 'volumes',
       header: 'Volume Mappings',
-      cell: ({ row }) =>
-        row.original.type === 'folder' ? '' : h('span', null, String(row.getValue('volumes') || '')),
+      cell: makeMultiValueCell('volumes'),
     },
     {
       accessorKey: 'autoStart',

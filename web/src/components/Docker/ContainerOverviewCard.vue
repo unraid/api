@@ -341,17 +341,41 @@ function handleOpenTailscaleAuth() {
     </div>
 
     <!-- Volumes Card (if any) -->
-    <UCard v-if="volumeMounts">
+    <UCard v-if="volumeMounts.length">
       <template #header>
         <div class="flex items-center gap-2">
           <UIcon name="i-lucide-hard-drive" class="h-4 w-4 text-gray-500" />
           <span class="text-sm font-medium">Volume Mounts</span>
+          <UBadge :label="String(volumeMounts.length)" color="neutral" variant="subtle" size="xs" />
         </div>
       </template>
-      <div class="max-h-32 overflow-y-auto">
-        <p class="font-mono text-xs break-all text-gray-600 dark:text-gray-300">
-          {{ volumeMounts }}
-        </p>
+      <div class="max-h-48 space-y-2 overflow-y-auto">
+        <div
+          v-for="(mount, index) in volumeMounts"
+          :key="index"
+          class="rounded-md bg-gray-50 p-2 dark:bg-gray-800/50"
+        >
+          <div class="flex items-start gap-2">
+            <UIcon name="i-lucide-folder" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
+            <div class="min-w-0 flex-1 space-y-1">
+              <p
+                class="truncate font-mono text-xs text-gray-600 dark:text-gray-300"
+                :title="mount.split(' → ')[0]"
+              >
+                {{ mount.split(' → ')[0] }}
+              </p>
+              <div class="flex items-center gap-1">
+                <UIcon name="i-lucide-arrow-right" class="h-3 w-3 shrink-0 text-gray-400" />
+                <p
+                  class="truncate font-mono text-xs text-gray-500 dark:text-gray-400"
+                  :title="mount.split(' → ')[1]"
+                >
+                  {{ mount.split(' → ')[1] }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </UCard>
 

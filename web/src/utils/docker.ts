@@ -95,8 +95,8 @@ export function formatContainerIp(container?: DockerContainer | null): string[] 
   return [];
 }
 
-export function formatVolumes(container?: DockerContainer | null): string {
-  if (!container?.mounts) return '';
+export function formatVolumes(container?: DockerContainer | null): string[] {
+  if (!container?.mounts) return [];
   try {
     const mounts = container.mounts as unknown[];
     return mounts
@@ -110,10 +110,9 @@ export function formatVolumes(container?: DockerContainer | null): string {
         }
         return '';
       })
-      .filter(Boolean)
-      .join(', ');
-  } catch (e) {
-    return '';
+      .filter(Boolean);
+  } catch {
+    return [];
   }
 }
 

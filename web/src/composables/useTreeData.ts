@@ -15,7 +15,7 @@ export interface TreeRow<T = unknown> {
   containerIp?: string | string[];
   containerPort?: string | string[];
   lanPort?: string | string[];
-  volumes?: string;
+  volumes?: string | string[];
   autoStart?: string;
   updates?: string;
   uptime?: string;
