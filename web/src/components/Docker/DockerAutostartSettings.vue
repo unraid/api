@@ -119,6 +119,37 @@ function getRowIndex(id: string) {
   return entries.value.findIndex((entry) => entry.id === id);
 }
 
+function canMoveUp(id: string): boolean {
+  return getRowIndex(id) > 0;
+}
+
+function canMoveDown(id: string): boolean {
+  const index = getRowIndex(id);
+  return index >= 0 && index < entries.value.length - 1;
+}
+
+async function handleMoveUp(id: string) {
+  if (mutationLoading.value) return;
+  const index = getRowIndex(id);
+  if (index <= 0) return;
+
+  const snapshot = entries.value.map((entry) => ({ ...entry }));
+  const [removed] = entries.value.splice(index, 1);
+  entries.value.splice(index - 1, 0, removed);
+  await persistConfiguration(snapshot);
+}
+
+async function handleMoveDown(id: string) {
+  if (mutationLoading.value) return;
+  const index = getRowIndex(id);
+  if (index < 0 || index >= entries.value.length - 1) return;
+
+  const snapshot = entries.value.map((entry) => ({ ...entry }));
+  const [removed] = entries.value.splice(index, 1);
+  entries.value.splice(index + 1, 0, removed);
+  await persistConfiguration(snapshot);
+}
+
 const { mutate, loading: mutationLoading } = useMutation(UPDATE_DOCKER_AUTOSTART_CONFIGURATION);
 
 const errorMessage = ref<string | null>(null);
@@ -291,6 +322,32 @@ const columns = computed<TableColumn<TreeRow<AutostartEntry>>[]>(() => {
       },
       meta: { class: { td: 'w-48', th: 'w-48' } },
     },
+    {
+      id: 'actions',
+      header: 'Order',
+      cell: ({ row }) => {
+        const id = row.original.id;
+        return h('div', { class: 'flex items-center gap-1' }, [
+          h(UButton, {
+            size: 'xs',
+            variant: 'ghost',
+            icon: 'i-lucide-arrow-up',
+            'aria-label': 'Move up',
+            disabled: saving.value || !canMoveUp(id),
+            onClick: () => handleMoveUp(id),
+          }),
+          h(UButton, {
+            size: 'xs',
+            variant: 'ghost',
+            icon: 'i-lucide-arrow-down',
+            'aria-label': 'Move down',
+            disabled: saving.value || !canMoveDown(id),
+            onClick: () => handleMoveDown(id),
+          }),
+        ]);
+      },
+      meta: { class: { td: 'w-24', th: 'w-24' } },
+    },
   ];
   return cols;
 });
@@ -302,7 +359,8 @@ const columns = computed<TableColumn<TreeRow<AutostartEntry>>[]>(() => {
       <div>
         <h2 class="text-lg font-semibold">Docker Auto-Start Order</h2>
         <p class="text-sm text-gray-500 dark:text-gray-400">
-          Drag containers to adjust the auto-start sequence. Changes are saved automatically.
+          Drag containers or use the arrow buttons to adjust the auto-start sequence. Changes are saved
+          automatically.
         </p>
       </div>
       <div class="flex items-center gap-2">
