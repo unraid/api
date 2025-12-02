@@ -21,6 +21,8 @@ interface RawTailscaleStatus {
         TailscaleIPs?: string[];
     };
     Version: string;
+    BackendState?: string;
+    AuthURL?: string;
 }
 
 interface DerpRegion {
@@ -52,26 +54,29 @@ export class DockerTailscaleService {
 
     async getTailscaleStatus(
         containerName: string,
-        labels: Record<string, string>
+        labels: Record<string, string>,
+        forceRefresh = false
     ): Promise<TailscaleStatus | null> {
         const hostname = labels['net.unraid.docker.tailscale.hostname'];
         const webUiTemplate = labels['net.unraid.docker.tailscale.webui'];
 
-        if (!hostname) {
-            return null;
-        }
-
         const cacheKey = `${DockerTailscaleService.STATUS_CACHE_PREFIX}${containerName}`;
-        const cached = await this.cacheManager.get<TailscaleStatus>(cacheKey);
-        if (cached) {
-            return cached;
+
+        if (forceRefresh) {
+            await this.cacheManager.del(cacheKey);
+        } else {
+            const cached = await this.cacheManager.get<TailscaleStatus>(cacheKey);
+            if (cached) {
+                return cached;
+            }
         }
 
         const rawStatus = await this.execTailscaleStatus(containerName);
         if (!rawStatus) {
+            // Don't cache failures - return without caching so next request retries
             return {
                 online: false,
-                hostname,
+                hostname: hostname || undefined,
                 isExitNode: false,
                 updateAvailable: false,
                 keyExpired: false,
@@ -129,6 +134,8 @@ export class DockerTailscaleService {
             keyExpiry,
             keyExpiryDays,
             keyExpired,
+            backendState: rawStatus.BackendState,
+            authUrl: rawStatus.AuthURL,
         };
 
         await this.cacheManager.set(cacheKey, status, DockerTailscaleService.STATUS_TTL);
@@ -209,7 +216,17 @@ export class DockerTailscaleService {
             const stream = await exec.start({ hijack: true, stdin: false });
             const output = await this.collectStreamOutput(stream);
 
+            this.logger.debug(`Raw tailscale output for ${cleanName}: ${output.substring(0, 500)}...`);
+
+            if (!output.trim()) {
+                this.logger.warn(`Empty tailscale output for ${cleanName}`);
+                return null;
+            }
+
             const parsed = JSON.parse(output) as RawTailscaleStatus;
+            this.logger.debug(
+                `Parsed tailscale status for ${cleanName}: DNSName=${parsed.Self?.DNSName}, Online=${parsed.Self?.Online}`
+            );
             return parsed;
         } catch (error) {
             this.logger.debug(`Failed to get Tailscale status for ${containerName}: ${error}`);
@@ -233,11 +250,29 @@ export class DockerTailscaleService {
     }
 
     private demuxDockerStream(buffer: Buffer): string {
+        // Check if the buffer looks like it starts with JSON (not multiplexed)
+        // Docker multiplexed streams start with stream type byte (0, 1, or 2)
+        // followed by 3 zero bytes, then 4-byte size
+        if (buffer.length > 0) {
+            const firstChar = buffer.toString('utf8', 0, 1);
+            if (firstChar === '{' || firstChar === '[') {
+                // Already plain text/JSON, not multiplexed
+                return buffer.toString('utf8');
+            }
+        }
+
         let offset = 0;
         const output: string[] = [];
 
         while (offset < buffer.length) {
             if (offset + 8 > buffer.length) break;
+
+            const streamType = buffer.readUInt8(offset);
+            // Valid stream types are 0 (stdin), 1 (stdout), 2 (stderr)
+            if (streamType > 2) {
+                // Doesn't look like multiplexed stream, treat as raw
+                return buffer.toString('utf8');
+            }
 
             const size = buffer.readUInt32BE(offset + 4);
             offset += 8;
@@ -278,29 +313,43 @@ export class DockerTailscaleService {
         if (!template) return undefined;
 
         let url = template;
+        const dnsName = status.Self.DNSName?.replace(/\.$/, '');
 
-        if (url.includes('[hostname][magicdns]') || url.includes('[hostname]')) {
-            const dnsName = status.Self.DNSName?.replace(/\.$/, '');
+        // Handle [hostname][magicdns] or [hostname] - use MagicDNS name and port 443
+        if (url.includes('[hostname]')) {
             if (dnsName) {
+                // Replace [hostname][magicdns] with the full DNS name
                 url = url.replace('[hostname][magicdns]', dnsName);
+                // Replace standalone [hostname] with the DNS name
                 url = url.replace('[hostname]', dnsName);
+                // When using MagicDNS, also replace [IP] with DNS name
+                url = url.replace(/\[IP\]/g, dnsName);
+                // When using MagicDNS with Serve/Funnel, port is always 443
+                url = url.replace(/\[PORT:\d+\]/g, '443');
+            } else {
+                // DNS name not available, can't resolve
+                return undefined;
             }
-        }
-
-        if (url.includes('[IP]') && status.Self.TailscaleIPs?.[0]) {
-            url = url.replace('[IP]', status.Self.TailscaleIPs[0]);
-        }
-
-        const portMatch = url.match(/\[PORT:(\d+)\]/);
-        if (portMatch) {
-            url = url.replace(portMatch[0], portMatch[1]);
-        }
-
-        if (url.includes('[noserve]')) {
-            if (status.Self.TailscaleIPs?.[0]) {
-                url = `http://${status.Self.TailscaleIPs[0]}`;
+        } else if (url.includes('[noserve]')) {
+            // Handle [noserve] - use direct Tailscale IP
+            const ipv4 = status.Self.TailscaleIPs?.find((ip) => !ip.includes(':'));
+            if (ipv4) {
+                const portMatch = template.match(/\[PORT:(\d+)\]/);
+                const port = portMatch ? `:${portMatch[1]}` : '';
+                url = `http://${ipv4}${port}`;
             } else {
                 return undefined;
+            }
+        } else {
+            // Custom URL - just do basic replacements
+            if (url.includes('[IP]') && status.Self.TailscaleIPs?.[0]) {
+                const ipv4 = status.Self.TailscaleIPs.find((ip) => !ip.includes(':'));
+                url = url.replace(/\[IP\]/g, ipv4 || status.Self.TailscaleIPs[0]);
+            }
+
+            const portMatch = url.match(/\[PORT:(\d+)\]/);
+            if (portMatch) {
+                url = url.replace(portMatch[0], portMatch[1]);
             }
         }
 

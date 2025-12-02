@@ -1195,7 +1195,7 @@ type DockerContainer implements Node {
   tailscaleEnabled: Boolean!
 
   """Tailscale status for this container (fetched via docker exec)"""
-  tailscaleStatus: TailscaleStatus
+  tailscaleStatus(forceRefresh: Boolean = false): TailscaleStatus
 }
 
 enum ContainerState {
@@ -1314,6 +1314,12 @@ type TailscaleStatus {
 
   """Whether the Tailscale key has expired"""
   keyExpired: Boolean!
+
+  """Tailscale backend state (Running, NeedsLogin, Stopped, etc.)"""
+  backendState: String
+
+  """Authentication URL if Tailscale needs login"""
+  authUrl: String
 }
 
 type Docker implements Node {

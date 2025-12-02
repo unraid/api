@@ -62,6 +62,7 @@ declare module 'vue' {
     DockerOrphanedAlert: typeof import('./src/components/Docker/DockerOrphanedAlert.vue')['default']
     DockerPortConflictsAlert: typeof import('./src/components/Docker/DockerPortConflictsAlert.vue')['default']
     DockerSidebarTree: typeof import('./src/components/Docker/DockerSidebarTree.vue')['default']
+    DockerTailscaleIndicator: typeof import('./src/components/Docker/DockerTailscaleIndicator.vue')['default']
     Downgrade: typeof import('./src/components/UpdateOs/Downgrade.vue')['default']
     'DowngradeOs.standalone': typeof import('./src/components/DowngradeOs.standalone.vue')['default']
     DropdownConnectStatus: typeof import('./src/components/UserProfile/DropdownConnectStatus.vue')['default']

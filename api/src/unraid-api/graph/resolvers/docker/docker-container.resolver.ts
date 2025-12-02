@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
 import { AuthAction, UsePermissions } from '@unraid/shared/use-permissions.directive.js';
@@ -125,7 +125,18 @@ export class DockerContainerResolver {
     })
     @ResolveField(() => Boolean, { description: 'Whether Tailscale is enabled for this container' })
     public tailscaleEnabled(@Parent() container: DockerContainer): boolean {
-        return Boolean(container.labels?.['net.unraid.docker.tailscale.hostname']);
+        // Check for Tailscale hostname label (set when hostname is explicitly configured)
+        if (container.labels?.['net.unraid.docker.tailscale.hostname']) {
+            return true;
+        }
+
+        // Check for Tailscale hook mount - look for the source path which is an Unraid system path
+        // The hook is mounted from /usr/local/share/docker/tailscale_container_hook
+        const mounts = container.mounts ?? [];
+        return mounts.some((mount: Record<string, unknown>) => {
+            const source = (mount?.Source ?? mount?.source) as string | undefined;
+            return source?.includes('tailscale_container_hook');
+        });
     }
 
     @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
@@ -137,18 +148,23 @@ export class DockerContainerResolver {
         nullable: true,
         description: 'Tailscale status for this container (fetched via docker exec)',
     })
-    public async tailscaleStatus(@Parent() container: DockerContainer): Promise<TailscaleStatus | null> {
-        const labels = container.labels ?? {};
-        const hostname = labels['net.unraid.docker.tailscale.hostname'];
-
-        if (!hostname) {
+    public async tailscaleStatus(
+        @Parent() container: DockerContainer,
+        @Args('forceRefresh', { type: () => Boolean, nullable: true, defaultValue: false })
+        forceRefresh: boolean
+    ): Promise<TailscaleStatus | null> {
+        // First check if Tailscale is enabled
+        if (!this.tailscaleEnabled(container)) {
             return null;
         }
+
+        const labels = container.labels ?? {};
+        const hostname = labels['net.unraid.docker.tailscale.hostname'];
 
         if (container.state !== ContainerState.RUNNING) {
             return {
                 online: false,
-                hostname,
+                hostname: hostname || undefined,
                 isExitNode: false,
                 updateAvailable: false,
                 keyExpired: false,
@@ -160,6 +176,6 @@ export class DockerContainerResolver {
             return null;
         }
 
-        return this.dockerTailscaleService.getTailscaleStatus(containerName, labels);
+        return this.dockerTailscaleService.getTailscaleStatus(containerName, labels, forceRefresh);
     }
 }

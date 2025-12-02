@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
+import { useLazyQuery } from '@vue/apollo-composable';
 
+import { GET_CONTAINER_TAILSCALE_STATUS } from '@/components/Docker/docker-tailscale-status.query';
 import {
   formatContainerIp,
   formatExternalPorts,
@@ -14,7 +16,7 @@ import {
   stripLeadingSlash,
 } from '@/utils/docker';
 
-import type { DockerContainer } from '@/composables/gql/graphql';
+import type { DockerContainer, TailscaleStatus } from '@/composables/gql/graphql';
 
 interface Props {
   container: DockerContainer | null | undefined;
@@ -77,9 +79,68 @@ const supportUrl = computed(() => props.container?.supportUrl || null);
 
 const lanIpAddress = computed(() => getFirstLanIp(props.container));
 
+const isTailscaleEnabled = computed(() => Boolean(props.container?.tailscaleEnabled));
+const isContainerRunning = computed(() => props.container?.state === 'RUNNING');
+
+const {
+  load: loadTailscaleStatus,
+  result: tailscaleResult,
+  loading: tailscaleLoading,
+  refetch: refetchTailscale,
+} = useLazyQuery(GET_CONTAINER_TAILSCALE_STATUS, () => ({
+  id: props.container?.id,
+}));
+
+const tailscaleStatus = computed<TailscaleStatus | null | undefined>(
+  () => tailscaleResult.value?.docker?.container?.tailscaleStatus
+);
+
+const tailscaleFetched = ref(false);
+const tailscaleRefreshing = ref(false);
+
+watch(
+  () => props.container?.id,
+  (newId, oldId) => {
+    if (newId && newId !== oldId && isTailscaleEnabled.value && isContainerRunning.value) {
+      tailscaleFetched.value = false;
+      loadTailscaleStatus();
+      tailscaleFetched.value = true;
+    }
+  },
+  { immediate: true }
+);
+
+async function handleRefreshTailscale() {
+  if (tailscaleRefreshing.value || tailscaleLoading.value) return;
+  tailscaleRefreshing.value = true;
+  try {
+    await refetchTailscale({ id: props.container?.id });
+  } finally {
+    tailscaleRefreshing.value = false;
+  }
+}
+
+function formatTailscaleDate(dateStr: string | Date | null | undefined): string {
+  if (!dateStr) return '—';
+  const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
+  return date.toLocaleDateString();
+}
+
 function handleOpenWebUI() {
   if (lanIpAddress.value) {
     openLanIpInNewTab(lanIpAddress.value);
+  }
+}
+
+function handleOpenTailscaleWebUI() {
+  if (tailscaleStatus.value?.webUiUrl) {
+    window.open(tailscaleStatus.value.webUiUrl, '_blank');
+  }
+}
+
+function handleOpenTailscaleAuth() {
+  if (tailscaleStatus.value?.authUrl) {
+    window.open(tailscaleStatus.value.authUrl, '_blank');
   }
 }
 </script>
@@ -154,6 +215,16 @@ function handleOpenWebUI() {
             @click="handleOpenWebUI"
           >
             Web UI
+          </UButton>
+          <UButton
+            v-if="tailscaleStatus?.webUiUrl"
+            size="sm"
+            variant="soft"
+            color="primary"
+            icon="i-lucide-external-link"
+            @click="handleOpenTailscaleWebUI"
+          >
+            Web UI (Tailscale)
           </UButton>
         </div>
       </div>
@@ -282,6 +353,181 @@ function handleOpenWebUI() {
           {{ volumeMounts }}
         </p>
       </div>
+    </UCard>
+
+    <!-- Tailscale Card -->
+    <UCard v-if="isTailscaleEnabled">
+      <template #header>
+        <div class="flex items-center gap-2">
+          <svg class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <circle cx="12" cy="6" r="3" />
+            <circle cx="6" cy="12" r="3" />
+            <circle cx="18" cy="12" r="3" />
+            <circle cx="12" cy="18" r="3" />
+          </svg>
+          <span class="flex-1 text-sm font-medium">Tailscale</span>
+          <button
+            v-if="tailscaleFetched"
+            class="rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+            :disabled="tailscaleLoading || tailscaleRefreshing"
+            title="Refresh Tailscale status"
+            @click="handleRefreshTailscale"
+          >
+            <UIcon
+              name="i-lucide-refresh-cw"
+              :class="['h-3.5 w-3.5', { 'animate-spin': tailscaleLoading || tailscaleRefreshing }]"
+            />
+          </button>
+        </div>
+      </template>
+
+      <!-- Not running state -->
+      <div v-if="!isContainerRunning" class="text-sm text-gray-500">Container is not running</div>
+
+      <!-- Loading state -->
+      <div v-else-if="tailscaleLoading && !tailscaleStatus" class="space-y-2">
+        <USkeleton class="h-4 w-full" />
+        <USkeleton class="h-4 w-3/4" />
+        <USkeleton class="h-4 w-1/2" />
+      </div>
+
+      <!-- Tailscale status -->
+      <div v-else-if="tailscaleStatus" class="space-y-3">
+        <!-- Needs Login Warning -->
+        <div
+          v-if="tailscaleStatus.backendState === 'NeedsLogin'"
+          class="rounded bg-amber-50 p-2 dark:bg-amber-900/20"
+        >
+          <div class="flex items-center gap-1 text-sm font-medium text-amber-600 dark:text-amber-400">
+            <UIcon name="i-lucide-alert-triangle" class="h-4 w-4" />
+            Authentication Required
+          </div>
+          <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+            Tailscale needs to be authenticated in this container.
+          </p>
+          <UButton
+            v-if="tailscaleStatus.authUrl"
+            size="xs"
+            variant="soft"
+            color="warning"
+            class="mt-2"
+            @click="handleOpenTailscaleAuth"
+          >
+            Authenticate
+            <UIcon name="i-lucide-external-link" class="ml-1 h-3 w-3" />
+          </UButton>
+        </div>
+
+        <!-- Status info -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500 dark:text-gray-400">Status</span>
+            <UBadge
+              :label="tailscaleStatus.online ? 'Online' : 'Offline'"
+              :color="tailscaleStatus.online ? 'success' : 'error'"
+              variant="subtle"
+              size="xs"
+            />
+          </div>
+
+          <div v-if="tailscaleStatus.version" class="flex items-center justify-between">
+            <span class="text-xs text-gray-500 dark:text-gray-400">Version</span>
+            <span class="flex items-center gap-1 text-sm">
+              v{{ tailscaleStatus.version }}
+              <UBadge
+                v-if="tailscaleStatus.updateAvailable"
+                label="Update"
+                color="warning"
+                variant="soft"
+                size="xs"
+              />
+            </span>
+          </div>
+
+          <div v-if="tailscaleStatus.hostname" class="flex items-center justify-between">
+            <span class="text-xs text-gray-500 dark:text-gray-400">Hostname</span>
+            <span class="max-w-[140px] truncate text-sm" :title="tailscaleStatus.hostname">
+              {{ tailscaleStatus.hostname }}
+            </span>
+          </div>
+
+          <div v-if="tailscaleStatus.dnsName" class="flex items-center justify-between">
+            <span class="text-xs text-gray-500 dark:text-gray-400">DNS Name</span>
+            <span class="max-w-[140px] truncate text-sm" :title="tailscaleStatus.dnsName">
+              {{ tailscaleStatus.dnsName }}
+            </span>
+          </div>
+
+          <div
+            v-if="tailscaleStatus.relayName || tailscaleStatus.relay"
+            class="flex items-center justify-between"
+          >
+            <span class="text-xs text-gray-500 dark:text-gray-400">DERP Relay</span>
+            <span class="text-sm">{{ tailscaleStatus.relayName || tailscaleStatus.relay }}</span>
+          </div>
+
+          <div v-if="tailscaleStatus.tailscaleIps?.length" class="flex items-start justify-between">
+            <span class="text-xs text-gray-500 dark:text-gray-400">IP Addresses</span>
+            <div class="text-right">
+              <p v-for="ip in tailscaleStatus.tailscaleIps" :key="ip" class="font-mono text-xs">
+                {{ ip }}
+              </p>
+            </div>
+          </div>
+
+          <div v-if="tailscaleStatus.primaryRoutes?.length" class="flex items-start justify-between">
+            <span class="text-xs text-gray-500 dark:text-gray-400">Routes</span>
+            <div class="text-right">
+              <p v-for="route in tailscaleStatus.primaryRoutes" :key="route" class="font-mono text-xs">
+                {{ route }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-gray-500 dark:text-gray-400">Exit Node</span>
+            <span v-if="tailscaleStatus.isExitNode" class="text-sm text-green-500"
+              >This is an exit node</span
+            >
+            <span v-else-if="tailscaleStatus.exitNodeStatus" class="text-sm">
+              {{ tailscaleStatus.exitNodeStatus.online ? 'Connected' : 'Offline' }}
+            </span>
+            <span v-else class="text-sm text-gray-400">Not configured</span>
+          </div>
+
+          <div v-if="tailscaleStatus.keyExpiry" class="flex items-center justify-between">
+            <span class="text-xs text-gray-500 dark:text-gray-400">Key Expiry</span>
+            <span :class="['text-sm', tailscaleStatus.keyExpired ? 'text-red-500' : '']">
+              {{ formatTailscaleDate(tailscaleStatus.keyExpiry) }}
+              <span v-if="tailscaleStatus.keyExpired" class="text-red-500">(Expired)</span>
+              <span
+                v-else-if="
+                  tailscaleStatus.keyExpiryDays !== null && tailscaleStatus.keyExpiryDays !== undefined
+                "
+                class="text-gray-400"
+              >
+                ({{ tailscaleStatus.keyExpiryDays }}d)
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <!-- WebUI Button -->
+        <UButton
+          v-if="tailscaleStatus.webUiUrl"
+          size="xs"
+          variant="soft"
+          color="primary"
+          class="w-full"
+          @click="handleOpenTailscaleWebUI"
+        >
+          <UIcon name="i-lucide-external-link" class="mr-1 h-3 w-3" />
+          Open Tailscale WebUI
+        </UButton>
+      </div>
+
+      <!-- No data -->
+      <div v-else class="text-sm text-gray-500">No Tailscale data available</div>
     </UCard>
 
     <!-- Quick Links -->

@@ -5,7 +5,7 @@ export const GET_CONTAINER_TAILSCALE_STATUS = gql`
     docker {
       container(id: $id) {
         id
-        tailscaleStatus {
+        tailscaleStatus(forceRefresh: true) {
           online
           version
           latestVersion
@@ -25,6 +25,8 @@ export const GET_CONTAINER_TAILSCALE_STATUS = gql`
           keyExpiry
           keyExpiryDays
           keyExpired
+          backendState
+          authUrl
         }
       }
     }

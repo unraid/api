@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, h, reactive, ref, resolveComponent, watch } from 'vue';
-import { useMutation, useSubscription } from '@vue/apollo-composable';
+import { useApolloClient, useMutation, useSubscription } from '@vue/apollo-composable';
 import { useStorage } from '@vueuse/core';
 
 import BaseTreeTable from '@/components/Common/BaseTreeTable.vue';
@@ -18,6 +18,7 @@ import { SET_DOCKER_FOLDER_CHILDREN } from '@/components/Docker/docker-set-folde
 import { START_DOCKER_CONTAINER } from '@/components/Docker/docker-start-container.mutation';
 import { DOCKER_STATS_SUBSCRIPTION } from '@/components/Docker/docker-stats.subscription';
 import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container.mutation';
+import { GET_CONTAINER_TAILSCALE_STATUS } from '@/components/Docker/docker-tailscale-status.query';
 import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-container.mutation';
 import DockerContainerStatCell from '@/components/Docker/DockerContainerStatCell.vue';
 import DockerLogViewerModal from '@/components/Docker/DockerLogViewerModal.vue';
@@ -48,6 +49,7 @@ import type {
   DockerContainer,
   DockerContainerStats,
   FlatOrganizerEntry,
+  GetContainerTailscaleStatusQuery,
 } from '@/composables/gql/graphql';
 import type { DropArea, DropEvent } from '@/composables/useDragDrop';
 import type { ColumnVisibilityTableInstance } from '@/composables/usePersistentColumnVisibility';
@@ -220,6 +222,7 @@ const columnOrder = useStorage<string[]>('docker-table-column-order', []);
 const logs = useDockerLogSessions();
 const consoleSessions = useDockerConsoleSessions();
 const contextMenu = useContextMenu<DockerContainer>();
+const { client: apolloClient } = useApolloClient();
 
 const { mergeServerPreferences, saveColumnVisibility, columnVisibilityRef } = useDockerViewPreferences();
 
@@ -855,6 +858,26 @@ function handleContainersWillStart(entries: { id: string; containerId: string; n
   logs.openLogsForContainers(targets);
 }
 
+async function handleVisitTailscale(containerId: string) {
+  try {
+    const { data } = await apolloClient.query<GetContainerTailscaleStatusQuery>({
+      query: GET_CONTAINER_TAILSCALE_STATUS,
+      variables: { id: containerId },
+      fetchPolicy: 'network-only',
+    });
+    const webUiUrl = data?.docker?.container?.tailscaleStatus?.webUiUrl;
+    if (webUiUrl) {
+      window.open(webUiUrl, '_blank');
+    } else {
+      showError('Tailscale WebUI not available', {
+        description: 'The container may need to authenticate with Tailscale first.',
+      });
+    }
+  } catch {
+    showError('Failed to fetch Tailscale status');
+  }
+}
+
 function handleRowAction(row: TreeRow<DockerContainer>, action: string) {
   if (row.type !== 'container') return;
   if (action === 'Start / Stop') {
@@ -1058,6 +1081,7 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
   const canVisit = Boolean(lanIp) && row.meta?.state === ContainerState.RUNNING;
   const hasUpdate = row.meta?.isUpdateAvailable || row.meta?.isRebuildReady;
   const isRowUpdating = updatingRowIds.value.has(row.id);
+  const hasTailscale = row.meta?.tailscaleEnabled && row.meta?.state === ContainerState.RUNNING;
 
   const quickActions: ActionDropdownItem[] = [];
   if (canVisit && lanIp) {
@@ -1066,6 +1090,15 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
       icon: 'i-lucide-external-link',
       as: 'button',
       onSelect: () => openLanIpInNewTab(lanIp),
+    });
+  }
+  if (hasTailscale && row.meta?.id) {
+    const containerId = row.meta.id;
+    quickActions.push({
+      label: 'Visit (Tailscale)',
+      icon: 'i-lucide-external-link',
+      as: 'button',
+      onSelect: () => handleVisitTailscale(containerId),
     });
   }
   if (hasUpdate && !isRowUpdating) {

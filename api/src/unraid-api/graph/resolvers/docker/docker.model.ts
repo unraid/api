@@ -370,6 +370,18 @@ export class TailscaleStatus {
 
     @Field(() => Boolean, { description: 'Whether the Tailscale key has expired' })
     keyExpired!: boolean;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Tailscale backend state (Running, NeedsLogin, Stopped, etc.)',
+    })
+    backendState?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Authentication URL if Tailscale needs login',
+    })
+    authUrl?: string;
 }
 
 @ObjectType({

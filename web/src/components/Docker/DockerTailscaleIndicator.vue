@@ -22,7 +22,7 @@ const USkeleton = resolveComponent('USkeleton');
 const popoverOpen = ref(false);
 const hasFetched = ref(false);
 
-const { load, result, loading, error } = useLazyQuery(GET_CONTAINER_TAILSCALE_STATUS, {
+const { load, result, loading, error, refetch } = useLazyQuery(GET_CONTAINER_TAILSCALE_STATUS, {
   id: props.containerId,
 });
 
@@ -31,12 +31,23 @@ const status = computed<TailscaleStatus | null | undefined>(
 );
 
 const isRunning = computed(() => props.containerState === ContainerState.RUNNING);
+const isRefreshing = ref(false);
 
 function handlePopoverOpen(open: boolean) {
   popoverOpen.value = open;
   if (open && !hasFetched.value && isRunning.value) {
     hasFetched.value = true;
     load();
+  }
+}
+
+async function handleRefresh() {
+  if (isRefreshing.value || loading.value) return;
+  isRefreshing.value = true;
+  try {
+    await refetch({ id: props.containerId });
+  } finally {
+    isRefreshing.value = false;
   }
 }
 
@@ -90,7 +101,20 @@ function getOnlineStatusColor(online: boolean | null | undefined): string {
             <circle cx="18" cy="12" r="3" />
             <circle cx="12" cy="18" r="3" />
           </svg>
-          <span class="font-medium">Tailscale Status</span>
+          <span class="flex-1 font-medium">Tailscale Status</span>
+          <button
+            v-if="isRunning && hasFetched"
+            class="rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+            :disabled="loading || isRefreshing"
+            title="Refresh status"
+            @click.stop="handleRefresh"
+          >
+            <component
+              :is="UIcon"
+              name="i-lucide-refresh-cw"
+              :class="['h-4 w-4', { 'animate-spin': loading || isRefreshing }]"
+            />
+          </button>
         </div>
 
         <div v-if="!isRunning" class="text-sm text-gray-500">Container is not running</div>
@@ -104,6 +128,46 @@ function getOnlineStatusColor(online: boolean | null | undefined): string {
         <div v-else-if="error" class="text-sm text-red-500">Failed to fetch Tailscale status</div>
 
         <div v-else-if="status" class="space-y-1.5 text-sm">
+          <!-- Needs Login Warning -->
+          <div
+            v-if="status.backendState === 'NeedsLogin'"
+            class="mb-2 rounded bg-amber-50 p-2 dark:bg-amber-900/20"
+          >
+            <div class="flex items-center gap-1 font-medium text-amber-600 dark:text-amber-400">
+              <component :is="UIcon" name="i-lucide-alert-triangle" class="h-4 w-4" />
+              Authentication Required
+            </div>
+            <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+              Tailscale needs to be authenticated in this container.
+            </p>
+            <a
+              v-if="status.authUrl"
+              :href="status.authUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-1 inline-flex items-center gap-1 text-xs text-blue-500 hover:underline"
+              @click.stop
+            >
+              Click here to authenticate
+              <component :is="UIcon" name="i-lucide-external-link" class="h-3 w-3" />
+            </a>
+          </div>
+
+          <!-- Backend State (if not Running) -->
+          <div
+            v-if="
+              status.backendState &&
+              status.backendState !== 'Running' &&
+              status.backendState !== 'NeedsLogin'
+            "
+            class="flex items-center justify-between"
+          >
+            <span class="text-gray-500">State</span>
+            <component :is="UBadge" color="warning" variant="subtle" size="xs">
+              {{ status.backendState }}
+            </component>
+          </div>
+
           <!-- Online Status -->
           <div class="flex items-center justify-between">
             <span class="text-gray-500">Online</span>
