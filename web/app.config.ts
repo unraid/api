@@ -32,10 +32,18 @@ export default {
         right: {},
       },
     },
-  },
-  toaster: {
-    position: 'bottom-right' as const,
-    expand: true,
-    duration: 5000,
+
+    //css theming/style-overrides for the toast component
+    // https://ui.nuxt.com/docs/components/toast#theme
+    toast: {},
+
+    // Also, for toasts, BUT this is imported in the Root UApp in mount-engine.ts
+    // https://ui.nuxt.com/docs/components/toast#examples
+    toaster: {
+      position: 'top-center' as const,
+      // expand: false, --> buggy
+      duration: 5000,
+      max: 3,
+    },
   },
 };

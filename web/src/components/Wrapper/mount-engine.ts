@@ -12,6 +12,8 @@ import { createI18nInstance, ensureLocale, getWindowLocale } from '~/helpers/i18
 // Import Pinia for use in Vue apps
 import { globalPinia } from '~/store/globalPinia';
 import { ensureUnapiScope, ensureUnapiScopeForSelectors, observeUnapiScope } from '~/utils/unapiScope';
+// Import the app config to pass runtime settings (like toaster position)
+import appConfig from '../../../app.config';
 
 // Ensure Apollo client is singleton
 const apolloClient = (typeof window !== 'undefined' && window.apolloClient) || client;
@@ -244,6 +246,7 @@ export async function mountUnifiedApp() {
             UApp,
             {
               portal: portalTarget,
+              toaster: appConfig.ui.toaster,
             },
             {
               default: () => h(component, props),

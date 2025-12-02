@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
+import { useToast } from '@nuxt/ui/composables/useToast.js';
 
 import ConfirmDialog from '~/components/ConfirmDialog.vue';
 import {
@@ -21,6 +22,8 @@ import { useTrackLatestSeenNotification } from '~/composables/api/use-notificati
 import { useFragment } from '~/composables/gql';
 import { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
 import { useConfirm } from '~/composables/useConfirm';
+
+const toast = useToast();
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
@@ -88,25 +91,27 @@ onNotificationAdded(({ data }) => {
   if (notif.timestamp) {
     latestNotificationTimestamp.value = notif.timestamp;
   }
-  if (!globalThis.toast) {
-    return;
-  }
 
-  const funcMapping: Record<Importance, (typeof globalThis)['toast']['info' | 'error' | 'warning']> = {
-    [Importance.ALERT]: globalThis.toast.error,
-    [Importance.WARNING]: globalThis.toast.warning,
-    [Importance.INFO]: globalThis.toast.info,
+  const funcMapping: Record<
+    Importance,
+    'error' | 'warning' | 'info' | 'primary' | 'secondary' | 'success' | 'neutral'
+  > = {
+    [Importance.ALERT]: 'error',
+    [Importance.WARNING]: 'warning',
+    [Importance.INFO]: 'success',
   };
-  const toast = funcMapping[notif.importance];
+  const color = funcMapping[notif.importance];
   const createOpener = () => ({
     label: t('notifications.sidebar.toastOpen'),
     onClick: () => window.location.assign(notif.link as string),
   });
 
   requestAnimationFrame(() =>
-    toast(notif.title, {
+    toast.add({
+      title: notif.title,
       description: notif.subject,
-      action: notif.link ? createOpener() : undefined,
+      color,
+      actions: notif.link ? [createOpener()] : undefined,
     })
   );
 });
