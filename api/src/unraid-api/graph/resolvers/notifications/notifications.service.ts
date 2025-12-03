@@ -682,6 +682,29 @@ export class NotificationsService {
             .map(({ path }) => path);
     }
 
+    private async *getNotificationsGenerator(
+        files: string[],
+        type: NotificationType
+    ): AsyncGenerator<{ success: true; value: Notification } | { success: false; reason: unknown }> {
+        const BATCH_SIZE = 10;
+        for (let i = 0; i < files.length; i += BATCH_SIZE) {
+            const batch = files.slice(i, i + BATCH_SIZE);
+            const promises = batch.map(async (file) => {
+                try {
+                    const value = await this.loadNotificationFile(file, type);
+                    return { success: true, value } as const;
+                } catch (reason) {
+                    return { success: false, reason } as const;
+                }
+            });
+
+            const results = await Promise.all(promises);
+            for (const res of results) {
+                yield res;
+            }
+        }
+    }
+
     /**
      * Given a an array of files, reads and filters all the files in the directory,
      * and attempts to parse each file as a Notification.
@@ -699,27 +722,39 @@ export class NotificationsService {
         filters: Partial<NotificationFilter>
     ): Promise<[Notification[], unknown[]]> {
         const { importance, type, offset = 0, limit = files.length } = filters;
-
-        const fileReads = files
-            .slice(offset, limit + offset)
-            .map((file) => this.loadNotificationFile(file, type ?? NotificationType.UNREAD));
-        const results = await Promise.allSettled(fileReads);
+        const notifications: Notification[] = [];
+        const errors: unknown[] = [];
+        let skipped = 0;
 
         // if the filter is defined & truthy, tests if the actual value matches the filter
         const passesFilter = <T>(actual: T, filter?: unknown) => !filter || actual === filter;
+        const matches = (n: Notification) =>
+            passesFilter(n.importance, importance) &&
+            passesFilter(n.type, type ?? NotificationType.UNREAD);
 
-        return [
-            results
-                .filter(isFulfilled)
-                .map((result) => result.value)
-                .filter(
-                    (notification) =>
-                        passesFilter(notification.importance, importance) &&
-                        passesFilter(notification.type, type)
-                )
-                .sort(this.sortLatestFirst),
-            results.filter(isRejected).map((result) => result.reason),
-        ];
+        const generator = this.getNotificationsGenerator(files, type ?? NotificationType.UNREAD);
+
+        for await (const result of generator) {
+            if (!result.success) {
+                errors.push(result.reason);
+                continue;
+            }
+
+            const notification = result.value;
+
+            if (matches(notification)) {
+                if (skipped < offset) {
+                    skipped++;
+                } else {
+                    notifications.push(notification);
+                    if (notifications.length >= limit) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return [notifications.sort(this.sortLatestFirst), errors];
     }
 
     /**
