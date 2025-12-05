@@ -1,5 +1,7 @@
 import {
     AnyOrganizerResource,
+    FlatOrganizerEntry,
+    OrganizerContainerResource,
     OrganizerFolder,
     OrganizerResource,
     OrganizerResourceRef,
@@ -45,72 +47,164 @@ export function resourceToResourceRef(
  * // updatedView will contain 'res1' as a resource reference in the root folder
  * ```
  */
-export function addMissingResourcesToView(
+/**
+ * Removes refs from a view that point to resources that no longer exist.
+ * This ensures the view stays in sync when containers are removed.
+ *
+ * @param resources - The current set of available resources
+ * @param originalView - The view to clean up
+ * @returns A new view with stale refs removed
+ */
+export function removeStaleRefsFromView(
     resources: OrganizerV1['resources'],
     originalView: OrganizerView
 ): OrganizerView {
     const view = structuredClone(originalView);
-    view.entries[view.root] ??= {
-        id: view.root,
-        name: view.name,
+    const resourceIds = new Set(Object.keys(resources));
+    const staleRefIds = new Set<string>();
+
+    // Find all refs that point to non-existent resources
+    Object.entries(view.entries).forEach(([id, entry]) => {
+        if (entry.type === 'ref') {
+            const ref = entry as OrganizerResourceRef;
+            if (!resourceIds.has(ref.target)) {
+                staleRefIds.add(id);
+            }
+        }
+    });
+
+    // Remove stale refs from all folder children arrays
+    Object.values(view.entries).forEach((entry) => {
+        if (entry.type === 'folder') {
+            const folder = entry as OrganizerFolder;
+            folder.children = folder.children.filter((childId) => !staleRefIds.has(childId));
+        }
+    });
+
+    // Delete the stale ref entries themselves
+    for (const refId of staleRefIds) {
+        delete view.entries[refId];
+    }
+
+    return view;
+}
+
+export function addMissingResourcesToView(
+    resources: OrganizerV1['resources'],
+    originalView: OrganizerView
+): OrganizerView {
+    // First, remove any stale refs pointing to non-existent resources
+    const cleanedView = removeStaleRefsFromView(resources, originalView);
+
+    cleanedView.entries[cleanedView.root] ??= {
+        id: cleanedView.root,
+        name: cleanedView.name,
         type: 'folder',
         children: [],
     };
-    const root = view.entries[view.root]! as OrganizerFolder;
+    const root = cleanedView.entries[cleanedView.root]! as OrganizerFolder;
     const rootChildren = new Set(root.children);
+    // Track if a resource id is already referenced in any folder
+    const referencedIds = new Set<string>();
+    Object.values(cleanedView.entries).forEach((entry) => {
+        if (entry.type === 'folder') {
+            for (const childId of entry.children) referencedIds.add(childId);
+        }
+    });
 
     Object.entries(resources).forEach(([id, resource]) => {
-        if (!view.entries[id]) {
-            view.entries[id] = resourceToResourceRef(resource, (resource) => resource.id);
+        const existsInEntries = Boolean(cleanedView.entries[id]);
+        const isReferencedSomewhere = referencedIds.has(id);
+
+        // Ensure a ref entry exists for the resource id
+        if (!existsInEntries) {
+            cleanedView.entries[id] = resourceToResourceRef(resource, (resource) => resource.id);
+        }
+
+        // Only add to root if the resource is not already referenced elsewhere
+        if (!isReferencedSomewhere) {
             rootChildren.add(id);
         }
     });
     root.children = Array.from(rootChildren);
-    return view;
+    return cleanedView;
 }
 
 /**
- * Recursively resolves an organizer entry (folder or resource ref) into its actual objects.
- * This transforms the flat ID-based structure into a nested object structure for frontend convenience.
+ * Directly enriches flat entries from an organizer view without building an intermediate tree.
+ * This is more efficient than building a tree just to flatten it again.
  *
  * PRECONDITION: The given view is valid (ie. does not contain any cycles or depth issues).
  *
- * @param entryId - The ID of the entry to resolve
- * @param view - The organizer view containing the entry definitions
+ * @param view - The flat organizer view
  * @param resources - The collection of all available resources
- * @returns The resolved entry with actual objects instead of ID references
+ * @returns Array of enriched flat organizer entries with metadata
  */
-function resolveEntry(
-    entryId: string,
+export function enrichFlatEntries(
     view: OrganizerView,
     resources: OrganizerV1['resources']
-): ResolvedOrganizerEntryType {
-    const entry = view.entries[entryId];
+): FlatOrganizerEntry[] {
+    const entries: FlatOrganizerEntry[] = [];
+    const parentMap = new Map<string, string>();
 
-    if (!entry) {
-        throw new Error(`Entry with id '${entryId}' not found in view`);
-    }
-
-    if (entry.type === 'folder') {
-        // Recursively resolve all children
-        const resolvedChildren = entry.children.map((childId) => resolveEntry(childId, view, resources));
-
-        return {
-            id: entry.id,
-            type: 'folder',
-            name: entry.name,
-            children: resolvedChildren,
-        } as ResolvedOrganizerFolder;
-    } else if (entry.type === 'ref') {
-        // Resolve the resource reference
-        const resource = resources[entry.target];
-        if (!resource) {
-            throw new Error(`Resource with id '${entry.target}' not found`);
+    // Build parent map
+    for (const [id, entry] of Object.entries(view.entries)) {
+        if (entry.type === 'folder') {
+            for (const childId of entry.children) {
+                parentMap.set(childId, id);
+            }
         }
-        return resource;
     }
 
-    throw new Error(`Unknown entry type: ${(entry as any).type}`);
+    // Walk from root to maintain order and calculate depth/position
+    function walk(entryId: string, depth: number, path: string[], position: number): void {
+        const entry = view.entries[entryId];
+        if (!entry) return;
+
+        const currentPath = [...path, entryId];
+        const isFolder = entry.type === 'folder';
+        const children = isFolder ? (entry as OrganizerFolder).children : [];
+
+        // Resolve resource if ref
+        let meta: any = undefined;
+        let name = entryId;
+        let type: string = entry.type;
+
+        if (entry.type === 'ref') {
+            const resource = resources[(entry as OrganizerResourceRef).target];
+            if (resource) {
+                if (resource.type === 'container') {
+                    meta = (resource as OrganizerContainerResource).meta;
+                    type = 'container';
+                }
+                name = resource.name;
+            }
+        } else if (entry.type === 'folder') {
+            name = (entry as OrganizerFolder).name;
+        }
+
+        entries.push({
+            id: entryId,
+            type,
+            name,
+            parentId: parentMap.get(entryId),
+            depth,
+            path: currentPath,
+            position,
+            hasChildren: isFolder && children.length > 0,
+            childrenIds: children,
+            meta,
+        });
+
+        if (isFolder) {
+            children.forEach((childId, idx) => {
+                walk(childId, depth + 1, currentPath, idx);
+            });
+        }
+    }
+
+    walk(view.root, 0, [], 0);
+    return entries;
 }
 
 /**
@@ -127,12 +221,13 @@ export function resolveOrganizerView(
     view: OrganizerView,
     resources: OrganizerV1['resources']
 ): ResolvedOrganizerView {
-    const resolvedRoot = resolveEntry(view.root, view, resources);
+    const flatEntries = enrichFlatEntries(view, resources);
 
     return {
         id: view.id,
         name: view.name,
-        root: resolvedRoot,
+        rootId: view.root,
+        flatEntries,
         prefs: view.prefs,
     };
 }
@@ -572,5 +667,110 @@ export function moveEntriesToFolder(params: MoveEntriesToFolderParams): Organize
         destinationChildren.add(entryId);
     });
     destinationFolder.children = Array.from(destinationChildren);
+    return newView;
+}
+
+export interface MoveItemsToPositionParams {
+    view: OrganizerView;
+    sourceEntryIds: Set<string>;
+    destinationFolderId: string;
+    position: number;
+    resources?: OrganizerV1['resources'];
+}
+
+/**
+ * Moves entries to a specific position within a destination folder.
+ * Combines moveEntriesToFolder with position-based insertion.
+ */
+export function moveItemsToPosition(params: MoveItemsToPositionParams): OrganizerView {
+    const { view, sourceEntryIds, destinationFolderId, position, resources } = params;
+
+    const movedView = moveEntriesToFolder({ view, sourceEntryIds, destinationFolderId });
+
+    const folder = movedView.entries[destinationFolderId] as OrganizerFolder;
+    const movedIds = Array.from(sourceEntryIds);
+    const otherChildren = folder.children.filter((id) => !sourceEntryIds.has(id));
+
+    const insertPos = Math.max(0, Math.min(position, otherChildren.length));
+    const reordered = [
+        ...otherChildren.slice(0, insertPos),
+        ...movedIds,
+        ...otherChildren.slice(insertPos),
+    ];
+
+    folder.children = reordered;
+    return movedView;
+}
+
+export interface RenameFolderParams {
+    view: OrganizerView;
+    folderId: string;
+    newName: string;
+}
+
+/**
+ * Renames a folder by updating its name property.
+ * This is simpler than the current create+delete approach.
+ */
+export function renameFolder(params: RenameFolderParams): OrganizerView {
+    const { view, folderId, newName } = params;
+    const newView = structuredClone(view);
+
+    const entry = newView.entries[folderId];
+    if (!entry) {
+        throw new Error(`Folder with id '${folderId}' not found`);
+    }
+    if (entry.type !== 'folder') {
+        throw new Error(`Entry '${folderId}' is not a folder`);
+    }
+
+    (entry as OrganizerFolder).name = newName;
+    return newView;
+}
+
+export interface CreateFolderWithItemsParams {
+    view: OrganizerView;
+    folderId: string;
+    folderName: string;
+    parentId: string;
+    sourceEntryIds?: string[];
+    position?: number;
+    resources?: OrganizerV1['resources'];
+}
+
+/**
+ * Creates a new folder and optionally moves items into it at a specific position.
+ * Combines createFolder + moveItems + positioning in a single atomic operation.
+ */
+export function createFolderWithItems(params: CreateFolderWithItemsParams): OrganizerView {
+    const { view, folderId, folderName, parentId, sourceEntryIds = [], position, resources } = params;
+
+    let newView = createFolderInView({
+        view,
+        folderId,
+        folderName,
+        parentId,
+        childrenIds: sourceEntryIds,
+    });
+
+    if (sourceEntryIds.length > 0) {
+        newView = moveEntriesToFolder({
+            view: newView,
+            sourceEntryIds: new Set(sourceEntryIds),
+            destinationFolderId: folderId,
+        });
+    }
+
+    if (position !== undefined) {
+        const parent = newView.entries[parentId] as OrganizerFolder;
+        const withoutNewFolder = parent.children.filter((id) => id !== folderId);
+        const insertPos = Math.max(0, Math.min(position, withoutNewFolder.length));
+        parent.children = [
+            ...withoutNewFolder.slice(0, insertPos),
+            folderId,
+            ...withoutNewFolder.slice(insertPos),
+        ];
+    }
+
     return newView;
 }

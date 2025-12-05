@@ -38,6 +38,25 @@ const DEFAULT_THEME: Theme = {
 
 type ThemeSource = 'local' | 'server';
 
+const NAV_ELEMENT_IDS = ['header', 'menu', 'footer'] as const;
+
+const hideNavIfEmbeddedInIFrame = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('iframe')?.toLowerCase() !== 'true') {
+    return;
+  }
+
+  NAV_ELEMENT_IDS.forEach((targetId) => {
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.style.display = 'none';
+    }
+  });
+};
 let pendingDarkModeHandler: ((event: Event) => void) | null = null;
 
 const syncBodyDarkClass = (method: 'add' | 'remove'): boolean => {
@@ -198,12 +217,15 @@ export const useThemeStore = defineStore('theme', () => {
     }
   }
 
-  const setDevOverride = (enabled: boolean) => {
-    devOverride.value = enabled;
+  const setCssVars = () => {
+    requestAnimationFrame(() => {
+      hideNavIfEmbeddedInIFrame();
+      applyDarkClass(darkMode.value);
+    });
   };
 
-  const setCssVars = () => {
-    applyDarkClass(darkMode.value);
+  const setDevOverride = (enabled: boolean) => {
+    devOverride.value = enabled;
   };
 
   watch(
