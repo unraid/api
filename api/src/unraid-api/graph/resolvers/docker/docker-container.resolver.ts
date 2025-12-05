@@ -5,6 +5,7 @@ import { Resource } from '@unraid/shared/graphql.model.js';
 import { AuthAction, UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { AppError } from '@app/core/errors/app-error.js';
+import { getLanIp } from '@app/core/utils/network.js';
 import { UseFeatureFlag } from '@app/unraid-api/decorators/use-feature-flag.decorator.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import { DockerTailscaleService } from '@app/unraid-api/graph/resolvers/docker/docker-tailscale.service.js';
@@ -106,6 +107,54 @@ export class DockerContainerResolver {
             container.templatePath
         );
         return details?.icon || null;
+    }
+
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DOCKER,
+    })
+    @ResolveField(() => String, {
+        nullable: true,
+        description: 'Resolved WebUI URL from template',
+    })
+    public async webUiUrl(@Parent() container: DockerContainer): Promise<string | null> {
+        if (!container.templatePath) return null;
+
+        const details = await this.dockerTemplateScannerService.getTemplateDetails(
+            container.templatePath
+        );
+
+        if (!details?.webUi) return null;
+
+        const lanIp = getLanIp();
+        if (!lanIp) return null;
+
+        let resolvedUrl = details.webUi;
+
+        // Replace [IP] placeholder with LAN IP
+        resolvedUrl = resolvedUrl.replace(/\[IP\]/g, lanIp);
+
+        // Replace [PORT:XXXX] placeholder
+        const portMatch = resolvedUrl.match(/\[PORT:(\d+)\]/);
+        if (portMatch) {
+            const templatePort = parseInt(portMatch[1], 10);
+            let resolvedPort = templatePort;
+
+            // Check if this port is mapped to a public port
+            if (container.ports) {
+                for (const port of container.ports) {
+                    if (port.privatePort === templatePort && port.publicPort) {
+                        resolvedPort = port.publicPort;
+                        break;
+                    }
+                }
+            }
+
+            resolvedUrl = resolvedUrl.replace(/\[PORT:\d+\]/g, String(resolvedPort));
+        }
+
+        return resolvedUrl;
     }
 
     @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')

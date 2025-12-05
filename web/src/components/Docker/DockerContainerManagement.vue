@@ -171,7 +171,7 @@ onBeforeUnmount(() => {
   }
 });
 
-const { result, loading, refetch } = useQuery<{
+const { result, loading, error, refetch } = useQuery<{
   docker: {
     id: string;
     organizer: {
@@ -442,6 +442,18 @@ const [transitionContainerRef] = useAutoAnimate({
             @container:select="handleConflictContainerAction"
           />
         </div>
+        <UAlert
+          v-if="error"
+          color="error"
+          title="Failed to load Docker containers"
+          :description="error.message"
+          icon="i-lucide-alert-circle"
+          class="mb-4"
+        >
+          <template #actions>
+            <UButton size="xs" variant="soft" @click="refetch({ skipCache: true })">Retry</UButton>
+          </template>
+        </UAlert>
         <div>
           <DockerContainersTable
             :containers="containers"

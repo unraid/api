@@ -127,6 +127,7 @@ declare module 'vue' {
     'ThemeSwitcher.standalone': typeof import('./src/components/ThemeSwitcher.standalone.vue')['default']
     ThirdPartyDrivers: typeof import('./src/components/UpdateOs/ThirdPartyDrivers.vue')['default']
     Trial: typeof import('./src/components/UserProfile/Trial.vue')['default']
+    UAlert: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Alert.vue')['default']
     UBadge: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Badge.vue')['default']
     UButton: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Button.vue')['default']
     UCard: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Card.vue')['default']

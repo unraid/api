@@ -214,6 +214,9 @@ export class DockerContainer extends Node {
     @Field(() => String, { nullable: true, description: 'Icon URL' })
     iconUrl?: string;
 
+    @Field(() => String, { nullable: true, description: 'Resolved WebUI URL from template' })
+    webUiUrl?: string;
+
     @Field(() => Boolean, { description: 'Whether the container is orphaned (no template found)' })
     isOrphaned!: boolean;
 }

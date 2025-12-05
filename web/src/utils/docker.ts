@@ -45,6 +45,11 @@ export function getFirstLanIp(container?: DockerContainer | null): string | null
   return null;
 }
 
+export function getWebUiUrl(container?: DockerContainer | null): string | null {
+  if (container?.webUiUrl) return container.webUiUrl;
+  return getFirstLanIp(container);
+}
+
 export function openLanIpInNewTab(address: string) {
   if (typeof window === 'undefined') return;
   const trimmed = address.trim();

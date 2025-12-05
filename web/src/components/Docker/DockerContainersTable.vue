@@ -38,7 +38,7 @@ import { usePersistentColumnVisibility } from '@/composables/usePersistentColumn
 import { getSelectableDescendants } from '@/composables/useRowSelection';
 import { useTreeData } from '@/composables/useTreeData';
 import {
-  getFirstLanIp,
+  getWebUiUrl,
   normalizeMultiValue,
   openLanIpInNewTab,
   stripLeadingSlash,
@@ -1077,19 +1077,19 @@ function getRowActionItems(row: TreeRow<DockerContainer>): DropdownMenuItems {
     return items;
   }
 
-  const lanIp = getFirstLanIp(row.meta);
-  const canVisit = Boolean(lanIp) && row.meta?.state === ContainerState.RUNNING;
+  const webUiUrl = getWebUiUrl(row.meta);
+  const canVisit = Boolean(webUiUrl) && row.meta?.state === ContainerState.RUNNING;
   const hasUpdate = row.meta?.isUpdateAvailable || row.meta?.isRebuildReady;
   const isRowUpdating = updatingRowIds.value.has(row.id);
   const hasTailscale = row.meta?.tailscaleEnabled && row.meta?.state === ContainerState.RUNNING;
 
   const quickActions: ActionDropdownItem[] = [];
-  if (canVisit && lanIp) {
+  if (canVisit && webUiUrl) {
     quickActions.push({
       label: 'Visit',
       icon: 'i-lucide-external-link',
       as: 'button',
-      onSelect: () => openLanIpInNewTab(lanIp),
+      onSelect: () => openLanIpInNewTab(webUiUrl),
     });
   }
   if (hasTailscale && row.meta?.id) {
