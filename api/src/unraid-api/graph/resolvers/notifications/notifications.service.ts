@@ -98,12 +98,12 @@ export class NotificationsService {
         }
         await NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
 
-        NotificationsService.watcher = watch(basePath, { usePolling: CHOKIDAR_USEPOLLING }).on(
-            'add',
-            (path) => {
-                void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
-            }
-        );
+        NotificationsService.watcher = watch(basePath, {
+            usePolling: CHOKIDAR_USEPOLLING,
+            ignoreInitial: true, // Only watch for new files
+        }).on('add', (path) => {
+            void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
+        });
 
         return NotificationsService.watcher;
     }
@@ -111,9 +111,46 @@ export class NotificationsService {
     private async handleNotificationAdd(path: string) {
         // The path looks like /{notification base path}/{type}/{notification id}
         const type = path.includes('/unread/') ? NotificationType.UNREAD : NotificationType.ARCHIVE;
-        // this.logger.debug(`Adding ${type} Notification: ${path}`);
+        this.logger.debug(`[handleNotificationAdd] Adding ${type} Notification: ${path}`);
 
-        const notification = await this.loadNotificationFile(path, NotificationType[type]);
+        // If it's an archive notification, and we have the same notification in unread, ignore it
+        // This prevents double counting when the legacy script writes to both locations
+        if (type === NotificationType.ARCHIVE) {
+            const id = this.getIdFromPath(path);
+            const unreadPath = join(this.paths().UNREAD, id);
+            if (await fileExists(unreadPath)) {
+                this.logger.debug(`[handleNotificationAdd] Ignoring ARCHIVE duplicate: ${path}`);
+                return;
+            }
+        }
+
+        let notification: Notification | undefined;
+        let lastError: unknown;
+
+        for (let i = 0; i < 5; i++) {
+            try {
+                notification = await this.loadNotificationFile(path, NotificationType[type]);
+                this.logger.debug(
+                    `[handleNotificationAdd] Successfully loaded ${path} on attempt ${i + 1}`
+                );
+                break;
+            } catch (error) {
+                lastError = error;
+                this.logger.warn(
+                    `[handleNotificationAdd] Attempt ${i + 1} failed for ${path}: ${error}`
+                );
+                // wait 100ms before retrying
+                await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+        }
+
+        if (!notification) {
+            this.logger.error(
+                `[handleNotificationAdd] Failed to load notification after 5 retries: ${path}`,
+                lastError
+            );
+            return;
+        }
         this.increment(notification.importance, NotificationsService.overview[type.toLowerCase()]);
 
         if (type === NotificationType.UNREAD) {
@@ -216,10 +253,30 @@ export class NotificationsService {
         const fileData = this.makeNotificationFileData(data);
 
         try {
+            // For risky notifications (long titles, unicode), the legacy script might fail silently
+            // or produce unexpected filenames/collisions.
+            // We use the legacy script for email/agents, but handle unread file creation ourselves.
+            const hasNonAscii = (str: string) => [...str].some((char) => char.charCodeAt(0) >= 0x80);
+            const isRisky =
+                data.title.length > 100 || hasNonAscii(data.title) || hasNonAscii(data.subject);
+
             const [command, args] = this.getLegacyScriptArgs(fileData);
+
+            if (isRisky) {
+                // Pass -b to suppress browser notification (unread file) creation in legacy script
+                args.push('-b');
+            }
+
             await execa(command, args);
+
+            // If risky, we MUST create the file manually (since we suppressed it)
+            if (isRisky) {
+                const path = join(this.paths().UNREAD, id);
+                const ini = encodeIni(fileData);
+                await writeFile(path, ini);
+            }
         } catch (error) {
-            // manually write the file if the script fails
+            // manually write the file if the script fails entirely
             this.logger.debug(`[createNotification] legacy notifier failed: ${error}`);
             this.logger.verbose(`[createNotification] Writing: ${JSON.stringify(fileData, null, 4)}`);
 
