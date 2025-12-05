@@ -223,6 +223,12 @@ export class DockerContainer extends Node {
     })
     shell?: string;
 
+    @Field(() => [ContainerPort], {
+        nullable: true,
+        description: 'Port mappings from template (used when container is not running)',
+    })
+    templatePorts?: ContainerPort[];
+
     @Field(() => Boolean, { description: 'Whether the container is orphaned (no template found)' })
     isOrphaned!: boolean;
 }

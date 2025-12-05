@@ -128,6 +128,7 @@ export class DockerTemplateScannerService {
         icon?: string;
         webUi?: string;
         shell?: string;
+        ports?: Array<{ privatePort: number; publicPort: number; type: 'tcp' | 'udp' }>;
     } | null> {
         try {
             const content = await readFile(filePath, 'utf-8');
@@ -138,6 +139,8 @@ export class DockerTemplateScannerService {
             }
 
             const container = parsed.Container;
+            const ports = this.extractTemplatePorts(container);
+
             return {
                 project: container.Project,
                 registry: container.Registry,
@@ -146,6 +149,7 @@ export class DockerTemplateScannerService {
                 icon: container.Icon,
                 webUi: container.WebUI,
                 shell: container.Shell,
+                ports,
             };
         } catch (error) {
             this.logger.warn(
@@ -153,6 +157,42 @@ export class DockerTemplateScannerService {
             );
             return null;
         }
+    }
+
+    private extractTemplatePorts(
+        container: Record<string, unknown>
+    ): Array<{ privatePort: number; publicPort: number; type: 'tcp' | 'udp' }> {
+        const ports: Array<{ privatePort: number; publicPort: number; type: 'tcp' | 'udp' }> = [];
+
+        const configs = container.Config;
+        if (!configs) {
+            return ports;
+        }
+
+        const configArray = Array.isArray(configs) ? configs : [configs];
+
+        for (const config of configArray) {
+            if (!config || typeof config !== 'object') continue;
+
+            const attrs = config['@_Type'];
+            if (attrs !== 'Port') continue;
+
+            const target = config['@_Target'];
+            const mode = config['@_Mode'];
+            const value = config['#text'];
+
+            if (target === undefined || value === undefined) continue;
+
+            const privatePort = parseInt(String(target), 10);
+            const publicPort = parseInt(String(value), 10);
+
+            if (isNaN(privatePort) || isNaN(publicPort)) continue;
+
+            const type = String(mode).toLowerCase() === 'udp' ? 'udp' : 'tcp';
+            ports.push({ privatePort, publicPort, type });
+        }
+
+        return ports;
     }
 
     private async loadAllTemplates(result: DockerTemplateSyncResult): Promise<ParsedTemplate[]> {

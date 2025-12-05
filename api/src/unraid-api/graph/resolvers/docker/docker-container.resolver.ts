@@ -11,6 +11,8 @@ import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/do
 import { DockerTailscaleService } from '@app/unraid-api/graph/resolvers/docker/docker-tailscale.service.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import {
+    ContainerPort,
+    ContainerPortType,
     ContainerState,
     DockerContainer,
     TailscaleStatus,
@@ -121,6 +123,29 @@ export class DockerContainerResolver {
             container.templatePath
         );
         return details?.shell || null;
+    }
+
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DOCKER,
+    })
+    @ResolveField(() => [ContainerPort], {
+        nullable: true,
+        description: 'Port mappings from template (used when container is not running)',
+    })
+    public async templatePorts(@Parent() container: DockerContainer): Promise<ContainerPort[] | null> {
+        if (!container.templatePath) return null;
+        const details = await this.dockerTemplateScannerService.getTemplateDetails(
+            container.templatePath
+        );
+        if (!details?.ports?.length) return null;
+
+        return details.ports.map((port) => ({
+            privatePort: port.privatePort,
+            publicPort: port.publicPort,
+            type: port.type.toUpperCase() === 'UDP' ? ContainerPortType.UDP : ContainerPortType.TCP,
+        }));
     }
 
     @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')

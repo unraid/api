@@ -1192,6 +1192,9 @@ type DockerContainer implements Node {
   """Shell to use for console access (from template)"""
   shell: String
 
+  """Port mappings from template (used when container is not running)"""
+  templatePorts: [ContainerPort!]
+
   """Whether the container is orphaned (no template found)"""
   isOrphaned: Boolean!
   isUpdateAvailable: Boolean

@@ -338,12 +338,13 @@ const details = computed(() => {
   if (!c) return undefined;
   const network = c.hostConfig?.networkMode || 'bridge';
   const lanIpPort = Array.isArray(c.lanIpPorts) && c.lanIpPorts.length ? c.lanIpPorts.join(', ') : '—';
+  const ports = c.ports?.length ? c.ports : c.templatePorts;
   return {
     network,
     lanIpPort,
     containerIp: c.networkSettings?.IPAddress || '—',
     uptime: '—',
-    containerPort: c.ports?.[0]?.privatePort?.toString?.() || '—',
+    containerPort: ports?.[0]?.privatePort?.toString?.() || '—',
     creationDate: new Date((c.created || 0) * 1000).toISOString(),
     containerId: c.id,
     maintainer: c.labels?.maintainer || '—',

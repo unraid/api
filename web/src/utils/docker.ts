@@ -20,15 +20,16 @@ export function normalizeListString(value: string): string[] {
 export function formatExternalPorts(container?: DockerContainer | null): string[] {
   if (!container) return [];
   const lanPorts = container.lanIpPorts;
-  if (Array.isArray(lanPorts)) {
+  if (Array.isArray(lanPorts) && lanPorts.length > 0) {
     return lanPorts
       .map((entry) => (typeof entry === 'string' ? entry.trim() : String(entry).trim()))
       .filter((entry) => entry.length > 0);
   }
-  if (!container.ports?.length) return [];
-  return container.ports
+  const ports = container.ports?.length ? container.ports : container.templatePorts;
+  if (!ports?.length) return [];
+  return ports
     .filter(
-      (port): port is NonNullable<(typeof container.ports)[number]> =>
+      (port): port is NonNullable<(typeof ports)[number]> =>
         Boolean(port?.publicPort) && Boolean(port?.privatePort)
     )
     .map((port) => `${port.publicPort}:${port.privatePort}/${port.type}`)
@@ -61,9 +62,11 @@ export function openLanIpInNewTab(address: string) {
 }
 
 export function formatInternalPorts(container?: DockerContainer | null): string[] {
-  if (!container?.ports?.length) return [];
-  return container.ports
-    .filter((port): port is NonNullable<(typeof container.ports)[number]> => Boolean(port?.privatePort))
+  if (!container) return [];
+  const ports = container.ports?.length ? container.ports : container.templatePorts;
+  if (!ports?.length) return [];
+  return ports
+    .filter((port): port is NonNullable<(typeof ports)[number]> => Boolean(port?.privatePort))
     .map((port) => `${port.privatePort}/${port.type}`);
 }
 

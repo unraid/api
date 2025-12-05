@@ -51,6 +51,11 @@ export const GET_DOCKER_CONTAINERS = gql`
         iconUrl
         webUiUrl
         shell
+        templatePorts {
+          privatePort
+          publicPort
+          type
+        }
         tailscaleEnabled
       }
       organizer(skipCache: $skipCache) {
@@ -99,6 +104,11 @@ export const GET_DOCKER_CONTAINERS = gql`
               iconUrl
               webUiUrl
               shell
+              templatePorts {
+                privatePort
+                publicPort
+                type
+              }
               tailscaleEnabled
             }
           }
