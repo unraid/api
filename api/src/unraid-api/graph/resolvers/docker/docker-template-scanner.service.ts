@@ -127,6 +127,7 @@ export class DockerTemplateScannerService {
         overview?: string;
         icon?: string;
         webUi?: string;
+        shell?: string;
     } | null> {
         try {
             const content = await readFile(filePath, 'utf-8');
@@ -144,6 +145,7 @@ export class DockerTemplateScannerService {
                 overview: container.ReadMe || container.Overview,
                 icon: container.Icon,
                 webUi: container.WebUI,
+                shell: container.Shell,
             };
         } catch (error) {
             this.logger.warn(

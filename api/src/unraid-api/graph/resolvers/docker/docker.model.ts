@@ -217,6 +217,12 @@ export class DockerContainer extends Node {
     @Field(() => String, { nullable: true, description: 'Resolved WebUI URL from template' })
     webUiUrl?: string;
 
+    @Field(() => String, {
+        nullable: true,
+        description: 'Shell to use for console access (from template)',
+    })
+    shell?: string;
+
     @Field(() => Boolean, { description: 'Whether the container is orphaned (no template found)' })
     isOrphaned!: boolean;
 }

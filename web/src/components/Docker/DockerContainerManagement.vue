@@ -616,6 +616,7 @@ const [transitionContainerRef] = useAutoAnimate({
             <DockerConsoleViewer
               v-if="activeContainer"
               :container-name="activeContainerName"
+              :shell="activeContainer.shell ?? 'sh'"
               class="h-full"
             />
           </div>

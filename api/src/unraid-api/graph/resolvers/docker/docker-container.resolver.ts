@@ -114,6 +114,20 @@ export class DockerContainerResolver {
         action: AuthAction.READ_ANY,
         resource: Resource.DOCKER,
     })
+    @ResolveField(() => String, { nullable: true, description: 'Shell to use for console access' })
+    public async shell(@Parent() container: DockerContainer): Promise<string | null> {
+        if (!container.templatePath) return null;
+        const details = await this.dockerTemplateScannerService.getTemplateDetails(
+            container.templatePath
+        );
+        return details?.shell || null;
+    }
+
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DOCKER,
+    })
     @ResolveField(() => String, {
         nullable: true,
         description: 'Resolved WebUI URL from template',

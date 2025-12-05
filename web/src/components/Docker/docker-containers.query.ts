@@ -50,6 +50,7 @@ export const GET_DOCKER_CONTAINERS = gql`
         supportUrl
         iconUrl
         webUiUrl
+        shell
         tailscaleEnabled
       }
       organizer(skipCache: $skipCache) {
@@ -97,6 +98,7 @@ export const GET_DOCKER_CONTAINERS = gql`
               supportUrl
               iconUrl
               webUiUrl
+              shell
               tailscaleEnabled
             }
           }

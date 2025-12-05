@@ -1189,6 +1189,9 @@ type DockerContainer implements Node {
   """Resolved WebUI URL from template"""
   webUiUrl: String
 
+  """Shell to use for console access (from template)"""
+  shell: String
+
   """Whether the container is orphaned (no template found)"""
   isOrphaned: Boolean!
   isUpdateAvailable: Boolean

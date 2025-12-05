@@ -133,7 +133,9 @@ onBeforeUnmount(() => {
 <template>
   <div class="flex h-full flex-col">
     <div class="mb-2 flex items-center justify-between">
-      <span class="text-sm text-neutral-500 dark:text-neutral-400"> {{ containerName }}: /bin/sh </span>
+      <span class="text-sm text-neutral-500 dark:text-neutral-400">
+        {{ containerName }}: /bin/{{ shell }}
+      </span>
       <div class="flex gap-2">
         <UButton
           size="xs"
