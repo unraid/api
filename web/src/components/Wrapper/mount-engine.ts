@@ -8,6 +8,7 @@ import { componentMappings } from '@/components/Wrapper/component-registry';
 import { client } from '~/helpers/create-apollo-client';
 import { createI18nInstance, ensureLocale, getWindowLocale } from '~/helpers/i18n-loader';
 
+import { getNotificationSettings } from '~/components/Notifications/graphql/notification.query';
 // Import Pinia for use in Vue apps
 import { globalPinia } from '~/store/globalPinia';
 import { useThemeStore } from '~/store/theme';
@@ -122,6 +123,44 @@ export async function mountUnifiedApp() {
 
   const themeStore = useThemeStore();
 
+  // Fetch notification settings
+  type ToastPosition =
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right'
+    | 'top-center'
+    | 'bottom-center';
+  interface NotificationSettingsResponse {
+    notifications?: {
+      settings?: {
+        position?: string;
+      };
+    };
+  }
+  let toasterPosition: ToastPosition = appConfig.ui.toaster.position as ToastPosition;
+
+  try {
+    const { data } = await apolloClient.query<NotificationSettingsResponse>({
+      query: getNotificationSettings,
+      fetchPolicy: 'network-only',
+    });
+    const legacyPosition = data?.notifications?.settings?.position;
+    console.log('[UnifiedMount] Legacy position:', legacyPosition);
+    if (legacyPosition) {
+      const map: Record<string, ToastPosition> = {
+        'top-left': 'top-left',
+        'top-right': 'top-right',
+        'bottom-left': 'bottom-left',
+        'bottom-right': 'bottom-right',
+        center: 'top-center',
+      };
+      toasterPosition = map[legacyPosition] || toasterPosition;
+    }
+  } catch (e) {
+    console.error('[UnifiedMount] Failed to fetch notification settings', e);
+  }
+
   // Mount the app to establish context
   let rootElement = document.getElementById('unraid-unified-root');
   if (!rootElement) {
@@ -225,7 +264,10 @@ export async function mountUnifiedApp() {
             UApp,
             {
               portal: portalTarget,
-              toaster: appConfig.ui.toaster,
+              toaster: {
+                ...appConfig.ui.toaster,
+                position: toasterPosition,
+              },
             },
             {
               default: () => h(component, props),

@@ -2,42 +2,66 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-"""Directive to document required permissions for fields"""
+"""
+Directive to document required permissions for fields
+"""
 directive @usePermissions(
-  """The action required for access (must be a valid AuthAction enum value)"""
-  action: String
+    """
+    The action required for access (must be a valid AuthAction enum value)
+    """
+    action: String
 
-  """The resource required for access (must be a valid Resource enum value)"""
-  resource: String
+    """
+    The resource required for access (must be a valid Resource enum value)
+    """
+    resource: String
 ) on FIELD_DEFINITION
 
 type ParityCheck {
-  """Date of the parity check"""
-  date: DateTime
+    """
+    Date of the parity check
+    """
+    date: DateTime
 
-  """Duration of the parity check in seconds"""
-  duration: Int
+    """
+    Duration of the parity check in seconds
+    """
+    duration: Int
 
-  """Speed of the parity check, in MB/s"""
-  speed: String
+    """
+    Speed of the parity check, in MB/s
+    """
+    speed: String
 
-  """Status of the parity check"""
-  status: ParityCheckStatus!
+    """
+    Status of the parity check
+    """
+    status: ParityCheckStatus!
 
-  """Number of errors during the parity check"""
-  errors: Int
+    """
+    Number of errors during the parity check
+    """
+    errors: Int
 
-  """Progress percentage of the parity check"""
-  progress: Int
+    """
+    Progress percentage of the parity check
+    """
+    progress: Int
 
-  """Whether corrections are being written to parity"""
-  correcting: Boolean
+    """
+    Whether corrections are being written to parity
+    """
+    correcting: Boolean
 
-  """Whether the parity check is paused"""
-  paused: Boolean
+    """
+    Whether the parity check is paused
+    """
+    paused: Boolean
 
-  """Whether the parity check is running"""
-  running: Boolean
+    """
+    Whether the parity check is running
+    """
+    running: Boolean
 }
 
 """
@@ -46,106 +70,144 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 enum ParityCheckStatus {
-  NEVER_RUN
-  RUNNING
-  PAUSED
-  COMPLETED
-  CANCELLED
-  FAILED
+    NEVER_RUN
+    RUNNING
+    PAUSED
+    COMPLETED
+    CANCELLED
+    FAILED
 }
 
 type Capacity {
-  """Free capacity"""
-  free: String!
+    """
+    Free capacity
+    """
+    free: String!
 
-  """Used capacity"""
-  used: String!
+    """
+    Used capacity
+    """
+    used: String!
 
-  """Total capacity"""
-  total: String!
+    """
+    Total capacity
+    """
+    total: String!
 }
 
 type ArrayCapacity {
-  """Capacity in kilobytes"""
-  kilobytes: Capacity!
+    """
+    Capacity in kilobytes
+    """
+    kilobytes: Capacity!
 
-  """Capacity in number of disks"""
-  disks: Capacity!
+    """
+    Capacity in number of disks
+    """
+    disks: Capacity!
 }
 
 type ArrayDisk implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """
-  Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54.
-  """
-  idx: Int!
-  name: String
-  device: String
+    """
+    Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54.
+    """
+    idx: Int!
+    name: String
+    device: String
 
-  """(KB) Disk Size total"""
-  size: BigInt
-  status: ArrayDiskStatus
+    """
+    (KB) Disk Size total
+    """
+    size: BigInt
+    status: ArrayDiskStatus
 
-  """Is the disk a HDD or SSD."""
-  rotational: Boolean
+    """
+    Is the disk a HDD or SSD.
+    """
+    rotational: Boolean
 
-  """Disk temp - will be NaN if array is not started or DISK_NP"""
-  temp: Int
+    """
+    Disk temp - will be NaN if array is not started or DISK_NP
+    """
+    temp: Int
 
-  """
-  Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time.
-  """
-  numReads: BigInt
+    """
+    Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time.
+    """
+    numReads: BigInt
 
-  """
-  Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time.
-  """
-  numWrites: BigInt
+    """
+    Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time.
+    """
+    numWrites: BigInt
 
-  """
-  Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk.
-  """
-  numErrors: BigInt
+    """
+    Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk.
+    """
+    numErrors: BigInt
 
-  """(KB) Total Size of the FS (Not present on Parity type drive)"""
-  fsSize: BigInt
+    """
+    (KB) Total Size of the FS (Not present on Parity type drive)
+    """
+    fsSize: BigInt
 
-  """(KB) Free Size on the FS (Not present on Parity type drive)"""
-  fsFree: BigInt
+    """
+    (KB) Free Size on the FS (Not present on Parity type drive)
+    """
+    fsFree: BigInt
 
-  """(KB) Used Size on the FS (Not present on Parity type drive)"""
-  fsUsed: BigInt
-  exportable: Boolean
+    """
+    (KB) Used Size on the FS (Not present on Parity type drive)
+    """
+    fsUsed: BigInt
+    exportable: Boolean
 
-  """Type of Disk - used to differentiate Cache / Flash / Array / Parity"""
-  type: ArrayDiskType!
+    """
+    Type of Disk - used to differentiate Cache / Flash / Array / Parity
+    """
+    type: ArrayDiskType!
 
-  """(%) Disk space left to warn"""
-  warning: Int
+    """
+    (%) Disk space left to warn
+    """
+    warning: Int
 
-  """(%) Disk space left for critical"""
-  critical: Int
+    """
+    (%) Disk space left for critical
+    """
+    critical: Int
 
-  """File system type for the disk"""
-  fsType: String
+    """
+    File system type for the disk
+    """
+    fsType: String
 
-  """User comment on disk"""
-  comment: String
+    """
+    User comment on disk
+    """
+    comment: String
 
-  """File format (ex MBR: 4KiB-aligned)"""
-  format: String
+    """
+    File format (ex MBR: 4KiB-aligned)
+    """
+    format: String
 
-  """ata | nvme | usb | (others)"""
-  transport: String
-  color: ArrayDiskFsColor
+    """
+    ata | nvme | usb | (others)
+    """
+    transport: String
+    color: ArrayDiskFsColor
 
-  """Whether the disk is currently spinning"""
-  isSpinning: Boolean
+    """
+    Whether the disk is currently spinning
+    """
+    isSpinning: Boolean
 }
 
 interface Node {
-  id: PrefixedID!
+    id: PrefixedID!
 }
 
 """
@@ -154,949 +216,1247 @@ The `BigInt` scalar type represents non-fractional signed whole numeric values.
 scalar BigInt
 
 enum ArrayDiskStatus {
-  DISK_NP
-  DISK_OK
-  DISK_NP_MISSING
-  DISK_INVALID
-  DISK_WRONG
-  DISK_DSBL
-  DISK_NP_DSBL
-  DISK_DSBL_NEW
-  DISK_NEW
+    DISK_NP
+    DISK_OK
+    DISK_NP_MISSING
+    DISK_INVALID
+    DISK_WRONG
+    DISK_DSBL
+    DISK_NP_DSBL
+    DISK_DSBL_NEW
+    DISK_NEW
 }
 
 enum ArrayDiskType {
-  DATA
-  PARITY
-  FLASH
-  CACHE
+    DATA
+    PARITY
+    FLASH
+    CACHE
 }
 
 enum ArrayDiskFsColor {
-  GREEN_ON
-  GREEN_BLINK
-  BLUE_ON
-  BLUE_BLINK
-  YELLOW_ON
-  YELLOW_BLINK
-  RED_ON
-  RED_OFF
-  GREY_OFF
+    GREEN_ON
+    GREEN_BLINK
+    BLUE_ON
+    BLUE_BLINK
+    YELLOW_ON
+    YELLOW_BLINK
+    RED_ON
+    RED_OFF
+    GREY_OFF
 }
 
 type UnraidArray implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Current array state"""
-  state: ArrayState!
+    """
+    Current array state
+    """
+    state: ArrayState!
 
-  """Current array capacity"""
-  capacity: ArrayCapacity!
+    """
+    Current array capacity
+    """
+    capacity: ArrayCapacity!
 
-  """Current boot disk"""
-  boot: ArrayDisk
+    """
+    Current boot disk
+    """
+    boot: ArrayDisk
 
-  """Parity disks in the current array"""
-  parities: [ArrayDisk!]!
+    """
+    Parity disks in the current array
+    """
+    parities: [ArrayDisk!]!
 
-  """Current parity check status"""
-  parityCheckStatus: ParityCheck!
+    """
+    Current parity check status
+    """
+    parityCheckStatus: ParityCheck!
 
-  """Data disks in the current array"""
-  disks: [ArrayDisk!]!
+    """
+    Data disks in the current array
+    """
+    disks: [ArrayDisk!]!
 
-  """Caches in the current array"""
-  caches: [ArrayDisk!]!
+    """
+    Caches in the current array
+    """
+    caches: [ArrayDisk!]!
 }
 
 enum ArrayState {
-  STARTED
-  STOPPED
-  NEW_ARRAY
-  RECON_DISK
-  DISABLE_DISK
-  SWAP_DSBL
-  INVALID_EXPANSION
-  PARITY_NOT_BIGGEST
-  TOO_MANY_MISSING_DISKS
-  NEW_DISK_TOO_SMALL
-  NO_DATA_DISKS
+    STARTED
+    STOPPED
+    NEW_ARRAY
+    RECON_DISK
+    DISABLE_DISK
+    SWAP_DSBL
+    INVALID_EXPANSION
+    PARITY_NOT_BIGGEST
+    TOO_MANY_MISSING_DISKS
+    NEW_DISK_TOO_SMALL
+    NO_DATA_DISKS
 }
 
 type Share implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Display name"""
-  name: String
+    """
+    Display name
+    """
+    name: String
 
-  """(KB) Free space"""
-  free: BigInt
+    """
+    (KB) Free space
+    """
+    free: BigInt
 
-  """(KB) Used Size"""
-  used: BigInt
+    """
+    (KB) Used Size
+    """
+    used: BigInt
 
-  """(KB) Total size"""
-  size: BigInt
+    """
+    (KB) Total size
+    """
+    size: BigInt
 
-  """Disks that are included in this share"""
-  include: [String!]
+    """
+    Disks that are included in this share
+    """
+    include: [String!]
 
-  """Disks that are excluded from this share"""
-  exclude: [String!]
+    """
+    Disks that are excluded from this share
+    """
+    exclude: [String!]
 
-  """Is this share cached"""
-  cache: Boolean
+    """
+    Is this share cached
+    """
+    cache: Boolean
 
-  """Original name"""
-  nameOrig: String
+    """
+    Original name
+    """
+    nameOrig: String
 
-  """User comment"""
-  comment: String
+    """
+    User comment
+    """
+    comment: String
 
-  """Allocator"""
-  allocator: String
+    """
+    Allocator
+    """
+    allocator: String
 
-  """Split level"""
-  splitLevel: String
+    """
+    Split level
+    """
+    splitLevel: String
 
-  """Floor"""
-  floor: String
+    """
+    Floor
+    """
+    floor: String
 
-  """COW"""
-  cow: String
+    """
+    COW
+    """
+    cow: String
 
-  """Color"""
-  color: String
+    """
+    Color
+    """
+    color: String
 
-  """LUKS status"""
-  luksStatus: String
+    """
+    LUKS status
+    """
+    luksStatus: String
 }
 
 type DiskPartition {
-  """The name of the partition"""
-  name: String!
+    """
+    The name of the partition
+    """
+    name: String!
 
-  """The filesystem type of the partition"""
-  fsType: DiskFsType!
+    """
+    The filesystem type of the partition
+    """
+    fsType: DiskFsType!
 
-  """The size of the partition in bytes"""
-  size: Float!
+    """
+    The size of the partition in bytes
+    """
+    size: Float!
 }
 
-"""The type of filesystem on the disk partition"""
+"""
+The type of filesystem on the disk partition
+"""
 enum DiskFsType {
-  XFS
-  BTRFS
-  VFAT
-  ZFS
-  EXT4
-  NTFS
+    XFS
+    BTRFS
+    VFAT
+    ZFS
+    EXT4
+    NTFS
 }
 
 type Disk implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """The device path of the disk (e.g. /dev/sdb)"""
-  device: String!
+    """
+    The device path of the disk (e.g. /dev/sdb)
+    """
+    device: String!
 
-  """The type of disk (e.g. SSD, HDD)"""
-  type: String!
+    """
+    The type of disk (e.g. SSD, HDD)
+    """
+    type: String!
 
-  """The model name of the disk"""
-  name: String!
+    """
+    The model name of the disk
+    """
+    name: String!
 
-  """The manufacturer of the disk"""
-  vendor: String!
+    """
+    The manufacturer of the disk
+    """
+    vendor: String!
 
-  """The total size of the disk in bytes"""
-  size: Float!
+    """
+    The total size of the disk in bytes
+    """
+    size: Float!
 
-  """The number of bytes per sector"""
-  bytesPerSector: Float!
+    """
+    The number of bytes per sector
+    """
+    bytesPerSector: Float!
 
-  """The total number of cylinders on the disk"""
-  totalCylinders: Float!
+    """
+    The total number of cylinders on the disk
+    """
+    totalCylinders: Float!
 
-  """The total number of heads on the disk"""
-  totalHeads: Float!
+    """
+    The total number of heads on the disk
+    """
+    totalHeads: Float!
 
-  """The total number of sectors on the disk"""
-  totalSectors: Float!
+    """
+    The total number of sectors on the disk
+    """
+    totalSectors: Float!
 
-  """The total number of tracks on the disk"""
-  totalTracks: Float!
+    """
+    The total number of tracks on the disk
+    """
+    totalTracks: Float!
 
-  """The number of tracks per cylinder"""
-  tracksPerCylinder: Float!
+    """
+    The number of tracks per cylinder
+    """
+    tracksPerCylinder: Float!
 
-  """The number of sectors per track"""
-  sectorsPerTrack: Float!
+    """
+    The number of sectors per track
+    """
+    sectorsPerTrack: Float!
 
-  """The firmware revision of the disk"""
-  firmwareRevision: String!
+    """
+    The firmware revision of the disk
+    """
+    firmwareRevision: String!
 
-  """The serial number of the disk"""
-  serialNum: String!
+    """
+    The serial number of the disk
+    """
+    serialNum: String!
 
-  """The interface type of the disk"""
-  interfaceType: DiskInterfaceType!
+    """
+    The interface type of the disk
+    """
+    interfaceType: DiskInterfaceType!
 
-  """The SMART status of the disk"""
-  smartStatus: DiskSmartStatus!
+    """
+    The SMART status of the disk
+    """
+    smartStatus: DiskSmartStatus!
 
-  """The current temperature of the disk in Celsius"""
-  temperature: Float
+    """
+    The current temperature of the disk in Celsius
+    """
+    temperature: Float
 
-  """The partitions on the disk"""
-  partitions: [DiskPartition!]!
+    """
+    The partitions on the disk
+    """
+    partitions: [DiskPartition!]!
 
-  """Whether the disk is spinning or not"""
-  isSpinning: Boolean!
+    """
+    Whether the disk is spinning or not
+    """
+    isSpinning: Boolean!
 }
 
-"""The type of interface the disk uses to connect to the system"""
+"""
+The type of interface the disk uses to connect to the system
+"""
 enum DiskInterfaceType {
-  SAS
-  SATA
-  USB
-  PCIE
-  UNKNOWN
+    SAS
+    SATA
+    USB
+    PCIE
+    UNKNOWN
 }
 
 """
 The SMART (Self-Monitoring, Analysis and Reporting Technology) status of the disk
 """
 enum DiskSmartStatus {
-  OK
-  UNKNOWN
+    OK
+    UNKNOWN
 }
 
 type KeyFile {
-  location: String
-  contents: String
+    location: String
+    contents: String
 }
 
 type Registration implements Node {
-  id: PrefixedID!
-  type: registrationType
-  keyFile: KeyFile
-  state: RegistrationState
-  expiration: String
-  updateExpiration: String
+    id: PrefixedID!
+    type: registrationType
+    keyFile: KeyFile
+    state: RegistrationState
+    expiration: String
+    updateExpiration: String
 }
 
 enum registrationType {
-  BASIC
-  PLUS
-  PRO
-  STARTER
-  UNLEASHED
-  LIFETIME
-  INVALID
-  TRIAL
+    BASIC
+    PLUS
+    PRO
+    STARTER
+    UNLEASHED
+    LIFETIME
+    INVALID
+    TRIAL
 }
 
 enum RegistrationState {
-  TRIAL
-  BASIC
-  PLUS
-  PRO
-  STARTER
-  UNLEASHED
-  LIFETIME
-  EEXPIRED
-  EGUID
-  EGUID1
-  ETRIAL
-  ENOKEYFILE
-  ENOKEYFILE1
-  ENOKEYFILE2
-  ENOFLASH
-  ENOFLASH1
-  ENOFLASH2
-  ENOFLASH3
-  ENOFLASH4
-  ENOFLASH5
-  ENOFLASH6
-  ENOFLASH7
-  EBLACKLISTED
-  EBLACKLISTED1
-  EBLACKLISTED2
-  ENOCONN
+    TRIAL
+    BASIC
+    PLUS
+    PRO
+    STARTER
+    UNLEASHED
+    LIFETIME
+    EEXPIRED
+    EGUID
+    EGUID1
+    ETRIAL
+    ENOKEYFILE
+    ENOKEYFILE1
+    ENOKEYFILE2
+    ENOFLASH
+    ENOFLASH1
+    ENOFLASH2
+    ENOFLASH3
+    ENOFLASH4
+    ENOFLASH5
+    ENOFLASH6
+    ENOFLASH7
+    EBLACKLISTED
+    EBLACKLISTED1
+    EBLACKLISTED2
+    ENOCONN
 }
 
 type Vars implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Unraid version"""
-  version: String
-  maxArraysz: Int
-  maxCachesz: Int
+    """
+    Unraid version
+    """
+    version: String
+    maxArraysz: Int
+    maxCachesz: Int
 
-  """Machine hostname"""
-  name: String
-  timeZone: String
-  comment: String
-  security: String
-  workgroup: String
-  domain: String
-  domainShort: String
-  hideDotFiles: Boolean
-  localMaster: Boolean
-  enableFruit: String
+    """
+    Machine hostname
+    """
+    name: String
+    timeZone: String
+    comment: String
+    security: String
+    workgroup: String
+    domain: String
+    domainShort: String
+    hideDotFiles: Boolean
+    localMaster: Boolean
+    enableFruit: String
 
-  """Should a NTP server be used for time sync?"""
-  useNtp: Boolean
+    """
+    Should a NTP server be used for time sync?
+    """
+    useNtp: Boolean
 
-  """NTP Server 1"""
-  ntpServer1: String
+    """
+    NTP Server 1
+    """
+    ntpServer1: String
 
-  """NTP Server 2"""
-  ntpServer2: String
+    """
+    NTP Server 2
+    """
+    ntpServer2: String
 
-  """NTP Server 3"""
-  ntpServer3: String
+    """
+    NTP Server 3
+    """
+    ntpServer3: String
 
-  """NTP Server 4"""
-  ntpServer4: String
-  domainLogin: String
-  sysModel: String
-  sysArraySlots: Int
-  sysCacheSlots: Int
-  sysFlashSlots: Int
-  useSsl: Boolean
+    """
+    NTP Server 4
+    """
+    ntpServer4: String
+    domainLogin: String
+    sysModel: String
+    sysArraySlots: Int
+    sysCacheSlots: Int
+    sysFlashSlots: Int
+    useSsl: Boolean
 
-  """Port for the webui via HTTP"""
-  port: Int
+    """
+    Port for the webui via HTTP
+    """
+    port: Int
 
-  """Port for the webui via HTTPS"""
-  portssl: Int
-  localTld: String
-  bindMgt: Boolean
+    """
+    Port for the webui via HTTPS
+    """
+    portssl: Int
+    localTld: String
+    bindMgt: Boolean
 
-  """Should telnet be enabled?"""
-  useTelnet: Boolean
-  porttelnet: Int
-  useSsh: Boolean
-  portssh: Int
-  startPage: String
-  startArray: Boolean
-  spindownDelay: String
-  queueDepth: String
-  spinupGroups: Boolean
-  defaultFormat: String
-  defaultFsType: String
-  shutdownTimeout: Int
-  luksKeyfile: String
-  pollAttributes: String
-  pollAttributesDefault: String
-  pollAttributesStatus: String
-  nrRequests: Int
-  nrRequestsDefault: Int
-  nrRequestsStatus: String
-  mdNumStripes: Int
-  mdNumStripesDefault: Int
-  mdNumStripesStatus: String
-  mdSyncWindow: Int
-  mdSyncWindowDefault: Int
-  mdSyncWindowStatus: String
-  mdSyncThresh: Int
-  mdSyncThreshDefault: Int
-  mdSyncThreshStatus: String
-  mdWriteMethod: Int
-  mdWriteMethodDefault: String
-  mdWriteMethodStatus: String
-  shareDisk: String
-  shareUser: String
-  shareUserInclude: String
-  shareUserExclude: String
-  shareSmbEnabled: Boolean
-  shareNfsEnabled: Boolean
-  shareAfpEnabled: Boolean
-  shareInitialOwner: String
-  shareInitialGroup: String
-  shareCacheEnabled: Boolean
-  shareCacheFloor: String
-  shareMoverSchedule: String
-  shareMoverLogging: Boolean
-  fuseRemember: String
-  fuseRememberDefault: String
-  fuseRememberStatus: String
-  fuseDirectio: String
-  fuseDirectioDefault: String
-  fuseDirectioStatus: String
-  shareAvahiEnabled: Boolean
-  shareAvahiSmbName: String
-  shareAvahiSmbModel: String
-  shareAvahiAfpName: String
-  shareAvahiAfpModel: String
-  safeMode: Boolean
-  startMode: String
-  configValid: Boolean
-  configError: ConfigErrorState
-  joinStatus: String
-  deviceCount: Int
-  flashGuid: String
-  flashProduct: String
-  flashVendor: String
-  regCheck: String
-  regFile: String
-  regGuid: String
-  regTy: registrationType
-  regState: RegistrationState
+    """
+    Should telnet be enabled?
+    """
+    useTelnet: Boolean
+    porttelnet: Int
+    useSsh: Boolean
+    portssh: Int
+    startPage: String
+    startArray: Boolean
+    spindownDelay: String
+    queueDepth: String
+    spinupGroups: Boolean
+    defaultFormat: String
+    defaultFsType: String
+    shutdownTimeout: Int
+    luksKeyfile: String
+    pollAttributes: String
+    pollAttributesDefault: String
+    pollAttributesStatus: String
+    nrRequests: Int
+    nrRequestsDefault: Int
+    nrRequestsStatus: String
+    mdNumStripes: Int
+    mdNumStripesDefault: Int
+    mdNumStripesStatus: String
+    mdSyncWindow: Int
+    mdSyncWindowDefault: Int
+    mdSyncWindowStatus: String
+    mdSyncThresh: Int
+    mdSyncThreshDefault: Int
+    mdSyncThreshStatus: String
+    mdWriteMethod: Int
+    mdWriteMethodDefault: String
+    mdWriteMethodStatus: String
+    shareDisk: String
+    shareUser: String
+    shareUserInclude: String
+    shareUserExclude: String
+    shareSmbEnabled: Boolean
+    shareNfsEnabled: Boolean
+    shareAfpEnabled: Boolean
+    shareInitialOwner: String
+    shareInitialGroup: String
+    shareCacheEnabled: Boolean
+    shareCacheFloor: String
+    shareMoverSchedule: String
+    shareMoverLogging: Boolean
+    fuseRemember: String
+    fuseRememberDefault: String
+    fuseRememberStatus: String
+    fuseDirectio: String
+    fuseDirectioDefault: String
+    fuseDirectioStatus: String
+    shareAvahiEnabled: Boolean
+    shareAvahiSmbName: String
+    shareAvahiSmbModel: String
+    shareAvahiAfpName: String
+    shareAvahiAfpModel: String
+    safeMode: Boolean
+    startMode: String
+    configValid: Boolean
+    configError: ConfigErrorState
+    joinStatus: String
+    deviceCount: Int
+    flashGuid: String
+    flashProduct: String
+    flashVendor: String
+    regCheck: String
+    regFile: String
+    regGuid: String
+    regTy: registrationType
+    regState: RegistrationState
 
-  """Registration owner"""
-  regTo: String
-  regTm: String
-  regTm2: String
-  regGen: String
-  sbName: String
-  sbVersion: String
-  sbUpdated: String
-  sbEvents: Int
-  sbState: String
-  sbClean: Boolean
-  sbSynced: Int
-  sbSyncErrs: Int
-  sbSynced2: Int
-  sbSyncExit: String
-  sbNumDisks: Int
-  mdColor: String
-  mdNumDisks: Int
-  mdNumDisabled: Int
-  mdNumInvalid: Int
-  mdNumMissing: Int
-  mdNumNew: Int
-  mdNumErased: Int
-  mdResync: Int
-  mdResyncCorr: String
-  mdResyncPos: String
-  mdResyncDb: String
-  mdResyncDt: String
-  mdResyncAction: String
-  mdResyncSize: Int
-  mdState: String
-  mdVersion: String
-  cacheNumDevices: Int
-  cacheSbNumDisks: Int
-  fsState: String
+    """
+    Registration owner
+    """
+    regTo: String
+    regTm: String
+    regTm2: String
+    regGen: String
+    sbName: String
+    sbVersion: String
+    sbUpdated: String
+    sbEvents: Int
+    sbState: String
+    sbClean: Boolean
+    sbSynced: Int
+    sbSyncErrs: Int
+    sbSynced2: Int
+    sbSyncExit: String
+    sbNumDisks: Int
+    mdColor: String
+    mdNumDisks: Int
+    mdNumDisabled: Int
+    mdNumInvalid: Int
+    mdNumMissing: Int
+    mdNumNew: Int
+    mdNumErased: Int
+    mdResync: Int
+    mdResyncCorr: String
+    mdResyncPos: String
+    mdResyncDb: String
+    mdResyncDt: String
+    mdResyncAction: String
+    mdResyncSize: Int
+    mdState: String
+    mdVersion: String
+    cacheNumDevices: Int
+    cacheSbNumDisks: Int
+    fsState: String
 
-  """Human friendly string of array events happening"""
-  fsProgress: String
+    """
+    Human friendly string of array events happening
+    """
+    fsProgress: String
 
-  """
-  Percentage from 0 - 100 while upgrading a disk or swapping parity drives
-  """
-  fsCopyPrcnt: Int
-  fsNumMounted: Int
-  fsNumUnmountable: Int
-  fsUnmountableMask: String
+    """
+    Percentage from 0 - 100 while upgrading a disk or swapping parity drives
+    """
+    fsCopyPrcnt: Int
+    fsNumMounted: Int
+    fsNumUnmountable: Int
+    fsUnmountableMask: String
 
-  """Total amount of user shares"""
-  shareCount: Int
+    """
+    Total amount of user shares
+    """
+    shareCount: Int
 
-  """Total amount shares with SMB enabled"""
-  shareSmbCount: Int
+    """
+    Total amount shares with SMB enabled
+    """
+    shareSmbCount: Int
 
-  """Total amount shares with NFS enabled"""
-  shareNfsCount: Int
+    """
+    Total amount shares with NFS enabled
+    """
+    shareNfsCount: Int
 
-  """Total amount shares with AFP enabled"""
-  shareAfpCount: Int
-  shareMoverActive: Boolean
-  csrfToken: String
+    """
+    Total amount shares with AFP enabled
+    """
+    shareAfpCount: Int
+    shareMoverActive: Boolean
+    csrfToken: String
 }
 
-"""Possible error states for configuration"""
+"""
+Possible error states for configuration
+"""
 enum ConfigErrorState {
-  UNKNOWN_ERROR
-  INELIGIBLE
-  INVALID
-  NO_KEY_SERVER
-  WITHDRAWN
+    UNKNOWN_ERROR
+    INELIGIBLE
+    INVALID
+    NO_KEY_SERVER
+    WITHDRAWN
 }
 
 type Permission {
-  resource: Resource!
+    resource: Resource!
 
-  """Actions allowed on this resource"""
-  actions: [AuthAction!]!
+    """
+    Actions allowed on this resource
+    """
+    actions: [AuthAction!]!
 }
 
-"""Available resources for permissions"""
+"""
+Available resources for permissions
+"""
 enum Resource {
-  ACTIVATION_CODE
-  API_KEY
-  ARRAY
-  CLOUD
-  CONFIG
-  CONNECT
-  CONNECT__REMOTE_ACCESS
-  CUSTOMIZATIONS
-  DASHBOARD
-  DISK
-  DISPLAY
-  DOCKER
-  FLASH
-  INFO
-  LOGS
-  ME
-  NETWORK
-  NOTIFICATIONS
-  ONLINE
-  OS
-  OWNER
-  PERMISSION
-  REGISTRATION
-  SERVERS
-  SERVICES
-  SHARE
-  VARS
-  VMS
-  WELCOME
+    ACTIVATION_CODE
+    API_KEY
+    ARRAY
+    CLOUD
+    CONFIG
+    CONNECT
+    CONNECT__REMOTE_ACCESS
+    CUSTOMIZATIONS
+    DASHBOARD
+    DISK
+    DISPLAY
+    DOCKER
+    FLASH
+    INFO
+    LOGS
+    ME
+    NETWORK
+    NOTIFICATIONS
+    ONLINE
+    OS
+    OWNER
+    PERMISSION
+    REGISTRATION
+    SERVERS
+    SERVICES
+    SHARE
+    VARS
+    VMS
+    WELCOME
 }
 
-"""Authentication actions with possession (e.g., create:any, read:own)"""
+"""
+Authentication actions with possession (e.g., create:any, read:own)
+"""
 enum AuthAction {
-  """Create any resource"""
-  CREATE_ANY
+    """
+    Create any resource
+    """
+    CREATE_ANY
 
-  """Create own resource"""
-  CREATE_OWN
+    """
+    Create own resource
+    """
+    CREATE_OWN
 
-  """Read any resource"""
-  READ_ANY
+    """
+    Read any resource
+    """
+    READ_ANY
 
-  """Read own resource"""
-  READ_OWN
+    """
+    Read own resource
+    """
+    READ_OWN
 
-  """Update any resource"""
-  UPDATE_ANY
+    """
+    Update any resource
+    """
+    UPDATE_ANY
 
-  """Update own resource"""
-  UPDATE_OWN
+    """
+    Update own resource
+    """
+    UPDATE_OWN
 
-  """Delete any resource"""
-  DELETE_ANY
+    """
+    Delete any resource
+    """
+    DELETE_ANY
 
-  """Delete own resource"""
-  DELETE_OWN
+    """
+    Delete own resource
+    """
+    DELETE_OWN
 }
 
 type ApiKey implements Node {
-  id: PrefixedID!
-  key: String!
-  name: String!
-  description: String
-  roles: [Role!]!
-  createdAt: String!
-  permissions: [Permission!]!
+    id: PrefixedID!
+    key: String!
+    name: String!
+    description: String
+    roles: [Role!]!
+    createdAt: String!
+    permissions: [Permission!]!
 }
 
-"""Available roles for API keys and users"""
+"""
+Available roles for API keys and users
+"""
 enum Role {
-  """Full administrative access to all resources"""
-  ADMIN
+    """
+    Full administrative access to all resources
+    """
+    ADMIN
 
-  """Internal Role for Unraid Connect"""
-  CONNECT
+    """
+    Internal Role for Unraid Connect
+    """
+    CONNECT
 
-  """Basic read access to user profile only"""
-  GUEST
+    """
+    Basic read access to user profile only
+    """
+    GUEST
 
-  """Read-only access to all resources"""
-  VIEWER
+    """
+    Read-only access to all resources
+    """
+    VIEWER
 }
 
 type SsoSettings implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """List of configured OIDC providers"""
-  oidcProviders: [OidcProvider!]!
+    """
+    List of configured OIDC providers
+    """
+    oidcProviders: [OidcProvider!]!
 }
 
 type UnifiedSettings implements Node & FormSchema {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """The data schema for the settings"""
-  dataSchema: JSON!
+    """
+    The data schema for the settings
+    """
+    dataSchema: JSON!
 
-  """The UI schema for the settings"""
-  uiSchema: JSON!
+    """
+    The UI schema for the settings
+    """
+    uiSchema: JSON!
 
-  """The current values of the settings"""
-  values: JSON!
+    """
+    The current values of the settings
+    """
+    values: JSON!
 }
 
 interface FormSchema {
-  """The data schema for the form"""
-  dataSchema: JSON!
+    """
+    The data schema for the form
+    """
+    dataSchema: JSON!
 
-  """The UI schema for the form"""
-  uiSchema: JSON!
+    """
+    The UI schema for the form
+    """
+    uiSchema: JSON!
 
-  """The current values of the form"""
-  values: JSON!
+    """
+    The current values of the form
+    """
+    values: JSON!
 }
 
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
-scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+scalar JSON
+    @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 type ApiKeyFormSettings implements Node & FormSchema {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """The data schema for the API key form"""
-  dataSchema: JSON!
+    """
+    The data schema for the API key form
+    """
+    dataSchema: JSON!
 
-  """The UI schema for the API key form"""
-  uiSchema: JSON!
+    """
+    The UI schema for the API key form
+    """
+    uiSchema: JSON!
 
-  """The current values of the API key form"""
-  values: JSON!
+    """
+    The current values of the API key form
+    """
+    values: JSON!
 }
 
 type UpdateSettingsResponse {
-  """Whether a restart is required for the changes to take effect"""
-  restartRequired: Boolean!
+    """
+    Whether a restart is required for the changes to take effect
+    """
+    restartRequired: Boolean!
 
-  """The updated settings values"""
-  values: JSON!
+    """
+    The updated settings values
+    """
+    values: JSON!
 
-  """Warning messages about configuration issues found during validation"""
-  warnings: [String!]
+    """
+    Warning messages about configuration issues found during validation
+    """
+    warnings: [String!]
 }
 
 type Settings implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """A view of all settings"""
-  unified: UnifiedSettings!
+    """
+    A view of all settings
+    """
+    unified: UnifiedSettings!
 
-  """SSO settings"""
-  sso: SsoSettings!
+    """
+    SSO settings
+    """
+    sso: SsoSettings!
 
-  """The API setting values"""
-  api: ApiConfig!
+    """
+    The API setting values
+    """
+    api: ApiConfig!
 }
 
 type RCloneDrive {
-  """Provider name"""
-  name: String!
+    """
+    Provider name
+    """
+    name: String!
 
-  """Provider options and configuration schema"""
-  options: JSON!
+    """
+    Provider options and configuration schema
+    """
+    options: JSON!
 }
 
 type RCloneBackupConfigForm {
-  id: ID!
-  dataSchema: JSON!
-  uiSchema: JSON!
+    id: ID!
+    dataSchema: JSON!
+    uiSchema: JSON!
 }
 
 type RCloneBackupSettings {
-  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
-  drives: [RCloneDrive!]!
-  remotes: [RCloneRemote!]!
+    configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
+    drives: [RCloneDrive!]!
+    remotes: [RCloneRemote!]!
 }
 
 input RCloneConfigFormInput {
-  providerType: String
-  showAdvanced: Boolean = false
-  parameters: JSON
+    providerType: String
+    showAdvanced: Boolean = false
+    parameters: JSON
 }
 
 type RCloneRemote {
-  name: String!
-  type: String!
-  parameters: JSON!
+    name: String!
+    type: String!
+    parameters: JSON!
 
-  """Complete remote configuration"""
-  config: JSON!
+    """
+    Complete remote configuration
+    """
+    config: JSON!
 }
 
 type ArrayMutations {
-  """Set array state"""
-  setState(input: ArrayStateInput!): UnraidArray!
+    """
+    Set array state
+    """
+    setState(input: ArrayStateInput!): UnraidArray!
 
-  """Add new disk to array"""
-  addDiskToArray(input: ArrayDiskInput!): UnraidArray!
+    """
+    Add new disk to array
+    """
+    addDiskToArray(input: ArrayDiskInput!): UnraidArray!
 
-  """
-  Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error.
-  """
-  removeDiskFromArray(input: ArrayDiskInput!): UnraidArray!
+    """
+    Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error.
+    """
+    removeDiskFromArray(input: ArrayDiskInput!): UnraidArray!
 
-  """Mount a disk in the array"""
-  mountArrayDisk(id: PrefixedID!): ArrayDisk!
+    """
+    Mount a disk in the array
+    """
+    mountArrayDisk(id: PrefixedID!): ArrayDisk!
 
-  """Unmount a disk from the array"""
-  unmountArrayDisk(id: PrefixedID!): ArrayDisk!
+    """
+    Unmount a disk from the array
+    """
+    unmountArrayDisk(id: PrefixedID!): ArrayDisk!
 
-  """Clear statistics for a disk in the array"""
-  clearArrayDiskStatistics(id: PrefixedID!): Boolean!
+    """
+    Clear statistics for a disk in the array
+    """
+    clearArrayDiskStatistics(id: PrefixedID!): Boolean!
 }
 
 input ArrayStateInput {
-  """Array state"""
-  desiredState: ArrayStateInputState!
+    """
+    Array state
+    """
+    desiredState: ArrayStateInputState!
 }
 
 enum ArrayStateInputState {
-  START
-  STOP
+    START
+    STOP
 }
 
 input ArrayDiskInput {
-  """Disk ID"""
-  id: PrefixedID!
+    """
+    Disk ID
+    """
+    id: PrefixedID!
 
-  """The slot for the disk"""
-  slot: Int
+    """
+    The slot for the disk
+    """
+    slot: Int
 }
 
 type DockerMutations {
-  """Start a container"""
-  start(id: PrefixedID!): DockerContainer!
+    """
+    Start a container
+    """
+    start(id: PrefixedID!): DockerContainer!
 
-  """Stop a container"""
-  stop(id: PrefixedID!): DockerContainer!
+    """
+    Stop a container
+    """
+    stop(id: PrefixedID!): DockerContainer!
 
-  """Pause (Suspend) a container"""
-  pause(id: PrefixedID!): DockerContainer!
+    """
+    Pause (Suspend) a container
+    """
+    pause(id: PrefixedID!): DockerContainer!
 
-  """Unpause (Resume) a container"""
-  unpause(id: PrefixedID!): DockerContainer!
+    """
+    Unpause (Resume) a container
+    """
+    unpause(id: PrefixedID!): DockerContainer!
 
-  """Update auto-start configuration for Docker containers"""
-  updateAutostartConfiguration(entries: [DockerAutostartEntryInput!]!, persistUserPreferences: Boolean): Boolean!
+    """
+    Update auto-start configuration for Docker containers
+    """
+    updateAutostartConfiguration(
+        entries: [DockerAutostartEntryInput!]!
+        persistUserPreferences: Boolean
+    ): Boolean!
 
-  """Update a container to the latest image"""
-  updateContainer(id: PrefixedID!): DockerContainer!
+    """
+    Update a container to the latest image
+    """
+    updateContainer(id: PrefixedID!): DockerContainer!
 
-  """Update multiple containers to the latest images"""
-  updateContainers(ids: [PrefixedID!]!): [DockerContainer!]!
+    """
+    Update multiple containers to the latest images
+    """
+    updateContainers(ids: [PrefixedID!]!): [DockerContainer!]!
 
-  """Update all containers that have available updates"""
-  updateAllContainers: [DockerContainer!]!
+    """
+    Update all containers that have available updates
+    """
+    updateAllContainers: [DockerContainer!]!
 }
 
 input DockerAutostartEntryInput {
-  """Docker container identifier"""
-  id: PrefixedID!
+    """
+    Docker container identifier
+    """
+    id: PrefixedID!
 
-  """Whether the container should auto-start"""
-  autoStart: Boolean!
+    """
+    Whether the container should auto-start
+    """
+    autoStart: Boolean!
 
-  """Number of seconds to wait after starting the container"""
-  wait: Int
+    """
+    Number of seconds to wait after starting the container
+    """
+    wait: Int
 }
 
 type VmMutations {
-  """Start a virtual machine"""
-  start(id: PrefixedID!): Boolean!
+    """
+    Start a virtual machine
+    """
+    start(id: PrefixedID!): Boolean!
 
-  """Stop a virtual machine"""
-  stop(id: PrefixedID!): Boolean!
+    """
+    Stop a virtual machine
+    """
+    stop(id: PrefixedID!): Boolean!
 
-  """Pause a virtual machine"""
-  pause(id: PrefixedID!): Boolean!
+    """
+    Pause a virtual machine
+    """
+    pause(id: PrefixedID!): Boolean!
 
-  """Resume a virtual machine"""
-  resume(id: PrefixedID!): Boolean!
+    """
+    Resume a virtual machine
+    """
+    resume(id: PrefixedID!): Boolean!
 
-  """Force stop a virtual machine"""
-  forceStop(id: PrefixedID!): Boolean!
+    """
+    Force stop a virtual machine
+    """
+    forceStop(id: PrefixedID!): Boolean!
 
-  """Reboot a virtual machine"""
-  reboot(id: PrefixedID!): Boolean!
+    """
+    Reboot a virtual machine
+    """
+    reboot(id: PrefixedID!): Boolean!
 
-  """Reset a virtual machine"""
-  reset(id: PrefixedID!): Boolean!
+    """
+    Reset a virtual machine
+    """
+    reset(id: PrefixedID!): Boolean!
 }
 
-"""API Key related mutations"""
+"""
+API Key related mutations
+"""
 type ApiKeyMutations {
-  """Create an API key"""
-  create(input: CreateApiKeyInput!): ApiKey!
+    """
+    Create an API key
+    """
+    create(input: CreateApiKeyInput!): ApiKey!
 
-  """Add a role to an API key"""
-  addRole(input: AddRoleForApiKeyInput!): Boolean!
+    """
+    Add a role to an API key
+    """
+    addRole(input: AddRoleForApiKeyInput!): Boolean!
 
-  """Remove a role from an API key"""
-  removeRole(input: RemoveRoleFromApiKeyInput!): Boolean!
+    """
+    Remove a role from an API key
+    """
+    removeRole(input: RemoveRoleFromApiKeyInput!): Boolean!
 
-  """Delete one or more API keys"""
-  delete(input: DeleteApiKeyInput!): Boolean!
+    """
+    Delete one or more API keys
+    """
+    delete(input: DeleteApiKeyInput!): Boolean!
 
-  """Update an API key"""
-  update(input: UpdateApiKeyInput!): ApiKey!
+    """
+    Update an API key
+    """
+    update(input: UpdateApiKeyInput!): ApiKey!
 }
 
 input CreateApiKeyInput {
-  name: String!
-  description: String
-  roles: [Role!]
-  permissions: [AddPermissionInput!]
+    name: String!
+    description: String
+    roles: [Role!]
+    permissions: [AddPermissionInput!]
 
-  """
-  This will replace the existing key if one already exists with the same name, otherwise returns the existing key
-  """
-  overwrite: Boolean
+    """
+    This will replace the existing key if one already exists with the same name, otherwise returns the existing key
+    """
+    overwrite: Boolean
 }
 
 input AddPermissionInput {
-  resource: Resource!
-  actions: [AuthAction!]!
+    resource: Resource!
+    actions: [AuthAction!]!
 }
 
 input AddRoleForApiKeyInput {
-  apiKeyId: PrefixedID!
-  role: Role!
+    apiKeyId: PrefixedID!
+    role: Role!
 }
 
 input RemoveRoleFromApiKeyInput {
-  apiKeyId: PrefixedID!
-  role: Role!
+    apiKeyId: PrefixedID!
+    role: Role!
 }
 
 input DeleteApiKeyInput {
-  ids: [PrefixedID!]!
+    ids: [PrefixedID!]!
 }
 
 input UpdateApiKeyInput {
-  id: PrefixedID!
-  name: String
-  description: String
-  roles: [Role!]
-  permissions: [AddPermissionInput!]
+    id: PrefixedID!
+    name: String
+    description: String
+    roles: [Role!]
+    permissions: [AddPermissionInput!]
 }
 
 """
 Parity check related mutations, WIP, response types and functionaliy will change
 """
 type ParityCheckMutations {
-  """Start a parity check"""
-  start(correct: Boolean!): JSON!
+    """
+    Start a parity check
+    """
+    start(correct: Boolean!): JSON!
 
-  """Pause a parity check"""
-  pause: JSON!
+    """
+    Pause a parity check
+    """
+    pause: JSON!
 
-  """Resume a parity check"""
-  resume: JSON!
+    """
+    Resume a parity check
+    """
+    resume: JSON!
 
-  """Cancel a parity check"""
-  cancel: JSON!
+    """
+    Cancel a parity check
+    """
+    cancel: JSON!
 }
 
-"""RClone related mutations"""
+"""
+RClone related mutations
+"""
 type RCloneMutations {
-  """Create a new RClone remote"""
-  createRCloneRemote(input: CreateRCloneRemoteInput!): RCloneRemote!
+    """
+    Create a new RClone remote
+    """
+    createRCloneRemote(input: CreateRCloneRemoteInput!): RCloneRemote!
 
-  """Delete an existing RClone remote"""
-  deleteRCloneRemote(input: DeleteRCloneRemoteInput!): Boolean!
+    """
+    Delete an existing RClone remote
+    """
+    deleteRCloneRemote(input: DeleteRCloneRemoteInput!): Boolean!
 }
 
 input CreateRCloneRemoteInput {
-  name: String!
-  type: String!
-  parameters: JSON!
+    name: String!
+    type: String!
+    parameters: JSON!
 }
 
 input DeleteRCloneRemoteInput {
-  name: String!
+    name: String!
 }
 
 type Config implements Node {
-  id: PrefixedID!
-  valid: Boolean
-  error: String
+    id: PrefixedID!
+    valid: Boolean
+    error: String
 }
 
 type PublicPartnerInfo {
-  partnerName: String
+    partnerName: String
 
-  """Indicates if a partner logo exists"""
-  hasPartnerLogo: Boolean!
-  partnerUrl: String
+    """
+    Indicates if a partner logo exists
+    """
+    hasPartnerLogo: Boolean!
+    partnerUrl: String
 
-  """
-  The path to the partner logo image on the flash drive, relative to the activation code file
-  """
-  partnerLogoUrl: String
+    """
+    The path to the partner logo image on the flash drive, relative to the activation code file
+    """
+    partnerLogoUrl: String
 }
 
 type ActivationCode {
-  code: String
-  partnerName: String
-  partnerUrl: String
-  serverName: String
-  sysModel: String
-  comment: String
-  header: String
-  headermetacolor: String
-  background: String
-  showBannerGradient: Boolean
-  theme: String
+    code: String
+    partnerName: String
+    partnerUrl: String
+    serverName: String
+    sysModel: String
+    comment: String
+    header: String
+    headermetacolor: String
+    background: String
+    showBannerGradient: Boolean
+    theme: String
 }
 
 type Customization {
-  activationCode: ActivationCode
-  partnerInfo: PublicPartnerInfo
-  theme: Theme!
+    activationCode: ActivationCode
+    partnerInfo: PublicPartnerInfo
+    theme: Theme!
 }
 
 type Theme {
-  """The theme name"""
-  name: ThemeName!
+    """
+    The theme name
+    """
+    name: ThemeName!
 
-  """Whether to show the header banner image"""
-  showBannerImage: Boolean!
+    """
+    Whether to show the header banner image
+    """
+    showBannerImage: Boolean!
 
-  """Whether to show the banner gradient"""
-  showBannerGradient: Boolean!
+    """
+    Whether to show the banner gradient
+    """
+    showBannerGradient: Boolean!
 
-  """Whether to show the description in the header"""
-  showHeaderDescription: Boolean!
+    """
+    Whether to show the description in the header
+    """
+    showHeaderDescription: Boolean!
 
-  """The background color of the header"""
-  headerBackgroundColor: String
+    """
+    The background color of the header
+    """
+    headerBackgroundColor: String
 
-  """The text color of the header"""
-  headerPrimaryTextColor: String
+    """
+    The text color of the header
+    """
+    headerPrimaryTextColor: String
 
-  """The secondary text color of the header"""
-  headerSecondaryTextColor: String
+    """
+    The secondary text color of the header
+    """
+    headerSecondaryTextColor: String
 }
 
-"""The theme name"""
+"""
+The theme name
+"""
 enum ThemeName {
-  azure
-  black
-  gray
-  white
+    azure
+    black
+    gray
+    white
 }
 
 type ExplicitStatusItem {
-  name: String!
-  updateStatus: UpdateStatus!
+    name: String!
+    updateStatus: UpdateStatus!
 }
 
-"""Update status of a container."""
+"""
+Update status of a container.
+"""
 enum UpdateStatus {
-  UP_TO_DATE
-  UPDATE_AVAILABLE
-  REBUILD_READY
-  UNKNOWN
+    UP_TO_DATE
+    UPDATE_AVAILABLE
+    REBUILD_READY
+    UNKNOWN
 }
 
 type ContainerPort {
-  ip: String
-  privatePort: Port
-  publicPort: Port
-  type: ContainerPortType!
+    ip: String
+    privatePort: Port
+    publicPort: Port
+    type: ContainerPortType!
 }
 
 """
@@ -1105,1219 +1465,1644 @@ A field whose value is a valid TCP port within the range of 0 to 65535: https://
 scalar Port
 
 enum ContainerPortType {
-  TCP
-  UDP
+    TCP
+    UDP
 }
 
 type DockerPortConflictContainer {
-  id: PrefixedID!
-  name: String!
+    id: PrefixedID!
+    name: String!
 }
 
 type DockerContainerPortConflict {
-  privatePort: Port!
-  type: ContainerPortType!
-  containers: [DockerPortConflictContainer!]!
+    privatePort: Port!
+    type: ContainerPortType!
+    containers: [DockerPortConflictContainer!]!
 }
 
 type DockerLanPortConflict {
-  lanIpPort: String!
-  publicPort: Port
-  type: ContainerPortType!
-  containers: [DockerPortConflictContainer!]!
+    lanIpPort: String!
+    publicPort: Port
+    type: ContainerPortType!
+    containers: [DockerPortConflictContainer!]!
 }
 
 type DockerPortConflicts {
-  containerPorts: [DockerContainerPortConflict!]!
-  lanPorts: [DockerLanPortConflict!]!
+    containerPorts: [DockerContainerPortConflict!]!
+    lanPorts: [DockerLanPortConflict!]!
 }
 
 type ContainerHostConfig {
-  networkMode: String!
+    networkMode: String!
 }
 
 type DockerContainer implements Node {
-  id: PrefixedID!
-  names: [String!]!
-  image: String!
-  imageId: String!
-  command: String!
-  created: Int!
-  ports: [ContainerPort!]!
+    id: PrefixedID!
+    names: [String!]!
+    image: String!
+    imageId: String!
+    command: String!
+    created: Int!
+    ports: [ContainerPort!]!
 
-  """List of LAN-accessible host:port values"""
-  lanIpPorts: [String!]
+    """
+    List of LAN-accessible host:port values
+    """
+    lanIpPorts: [String!]
 
-  """Total size of all files in the container (in bytes)"""
-  sizeRootFs: BigInt
+    """
+    Total size of all files in the container (in bytes)
+    """
+    sizeRootFs: BigInt
 
-  """Size of writable layer (in bytes)"""
-  sizeRw: BigInt
+    """
+    Size of writable layer (in bytes)
+    """
+    sizeRw: BigInt
 
-  """Size of container logs (in bytes)"""
-  sizeLog: BigInt
-  labels: JSON
-  state: ContainerState!
-  status: String!
-  hostConfig: ContainerHostConfig
-  networkSettings: JSON
-  mounts: [JSON!]
-  autoStart: Boolean!
+    """
+    Size of container logs (in bytes)
+    """
+    sizeLog: BigInt
+    labels: JSON
+    state: ContainerState!
+    status: String!
+    hostConfig: ContainerHostConfig
+    networkSettings: JSON
+    mounts: [JSON!]
+    autoStart: Boolean!
 
-  """Zero-based order in the auto-start list"""
-  autoStartOrder: Int
+    """
+    Zero-based order in the auto-start list
+    """
+    autoStartOrder: Int
 
-  """Wait time in seconds applied after start"""
-  autoStartWait: Int
-  templatePath: String
-  isUpdateAvailable: Boolean
-  isRebuildReady: Boolean
+    """
+    Wait time in seconds applied after start
+    """
+    autoStartWait: Int
+    templatePath: String
+    isUpdateAvailable: Boolean
+    isRebuildReady: Boolean
 }
 
 enum ContainerState {
-  RUNNING
-  PAUSED
-  EXITED
+    RUNNING
+    PAUSED
+    EXITED
 }
 
 type DockerNetwork implements Node {
-  id: PrefixedID!
-  name: String!
-  created: String!
-  scope: String!
-  driver: String!
-  enableIPv6: Boolean!
-  ipam: JSON!
-  internal: Boolean!
-  attachable: Boolean!
-  ingress: Boolean!
-  configFrom: JSON!
-  configOnly: Boolean!
-  containers: JSON!
-  options: JSON!
-  labels: JSON!
+    id: PrefixedID!
+    name: String!
+    created: String!
+    scope: String!
+    driver: String!
+    enableIPv6: Boolean!
+    ipam: JSON!
+    internal: Boolean!
+    attachable: Boolean!
+    ingress: Boolean!
+    configFrom: JSON!
+    configOnly: Boolean!
+    containers: JSON!
+    options: JSON!
+    labels: JSON!
 }
 
 type DockerContainerLogLine {
-  timestamp: DateTime!
-  message: String!
+    timestamp: DateTime!
+    message: String!
 }
 
 type DockerContainerLogs {
-  containerId: PrefixedID!
-  lines: [DockerContainerLogLine!]!
+    containerId: PrefixedID!
+    lines: [DockerContainerLogLine!]!
 
-  """
-  Cursor that can be passed back through the since argument to continue streaming logs.
-  """
-  cursor: DateTime
+    """
+    Cursor that can be passed back through the since argument to continue streaming logs.
+    """
+    cursor: DateTime
 }
 
 type DockerContainerStats {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """CPU Usage Percentage"""
-  cpuPercent: Float!
+    """
+    CPU Usage Percentage
+    """
+    cpuPercent: Float!
 
-  """Memory Usage String (e.g. 100MB / 1GB)"""
-  memUsage: String!
+    """
+    Memory Usage String (e.g. 100MB / 1GB)
+    """
+    memUsage: String!
 
-  """Memory Usage Percentage"""
-  memPercent: Float!
+    """
+    Memory Usage Percentage
+    """
+    memPercent: Float!
 
-  """Network I/O String (e.g. 100MB / 1GB)"""
-  netIO: String!
+    """
+    Network I/O String (e.g. 100MB / 1GB)
+    """
+    netIO: String!
 
-  """Block I/O String (e.g. 100MB / 1GB)"""
-  blockIO: String!
+    """
+    Block I/O String (e.g. 100MB / 1GB)
+    """
+    blockIO: String!
 }
 
 type Docker implements Node {
-  id: PrefixedID!
-  containers(skipCache: Boolean! = false): [DockerContainer!]!
-  networks(skipCache: Boolean! = false): [DockerNetwork!]!
-  portConflicts(skipCache: Boolean! = false): DockerPortConflicts!
+    id: PrefixedID!
+    containers(skipCache: Boolean! = false): [DockerContainer!]!
+    networks(skipCache: Boolean! = false): [DockerNetwork!]!
+    portConflicts(skipCache: Boolean! = false): DockerPortConflicts!
 
-  """
-  Access container logs. Requires specifying a target container id through resolver arguments.
-  """
-  logs(id: PrefixedID!, since: DateTime, tail: Int): DockerContainerLogs!
-  organizer(skipCache: Boolean! = false): ResolvedOrganizerV1!
-  containerUpdateStatuses: [ExplicitStatusItem!]!
+    """
+    Access container logs. Requires specifying a target container id through resolver arguments.
+    """
+    logs(id: PrefixedID!, since: DateTime, tail: Int): DockerContainerLogs!
+    organizer(skipCache: Boolean! = false): ResolvedOrganizerV1!
+    containerUpdateStatuses: [ExplicitStatusItem!]!
 }
 
 type DockerContainerOverviewForm {
-  id: ID!
-  dataSchema: JSON!
-  uiSchema: JSON!
-  data: JSON!
+    id: ID!
+    dataSchema: JSON!
+    uiSchema: JSON!
+    data: JSON!
 }
 
 type NotificationCounts {
-  info: Int!
-  warning: Int!
-  alert: Int!
-  total: Int!
+    info: Int!
+    warning: Int!
+    alert: Int!
+    total: Int!
 }
 
 type NotificationOverview {
-  unread: NotificationCounts!
-  archive: NotificationCounts!
+    unread: NotificationCounts!
+    archive: NotificationCounts!
+}
+
+type NotificationSettings {
+    position: String!
 }
 
 type Notification implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Also known as 'event'"""
-  title: String!
-  subject: String!
-  description: String!
-  importance: NotificationImportance!
-  link: String
-  type: NotificationType!
+    """
+    Also known as 'event'
+    """
+    title: String!
+    subject: String!
+    description: String!
+    importance: NotificationImportance!
+    link: String
+    type: NotificationType!
 
-  """ISO Timestamp for when the notification occurred"""
-  timestamp: String
-  formattedTimestamp: String
+    """
+    ISO Timestamp for when the notification occurred
+    """
+    timestamp: String
+    formattedTimestamp: String
 }
 
 enum NotificationImportance {
-  ALERT
-  INFO
-  WARNING
+    ALERT
+    INFO
+    WARNING
 }
 
 enum NotificationType {
-  UNREAD
-  ARCHIVE
+    UNREAD
+    ARCHIVE
 }
 
 type Notifications implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """A cached overview of the notifications in the system & their severity."""
-  overview: NotificationOverview!
-  list(filter: NotificationFilter!): [Notification!]!
+    """
+    A cached overview of the notifications in the system & their severity.
+    """
+    overview: NotificationOverview!
+    list(filter: NotificationFilter!): [Notification!]!
 
-  """
-  Deduplicated list of unread warning and alert notifications, sorted latest first.
-  """
-  warningsAndAlerts: [Notification!]!
+    """
+    Deduplicated list of unread warning and alert notifications, sorted latest first.
+    """
+    warningsAndAlerts: [Notification!]!
+    settings: NotificationSettings!
 }
 
 input NotificationFilter {
-  importance: NotificationImportance
-  type: NotificationType!
-  offset: Int!
-  limit: Int!
+    importance: NotificationImportance
+    type: NotificationType!
+    offset: Int!
+    limit: Int!
 }
 
 type DockerTemplateSyncResult {
-  scanned: Int!
-  matched: Int!
-  skipped: Int!
-  errors: [String!]!
+    scanned: Int!
+    matched: Int!
+    skipped: Int!
+    errors: [String!]!
 }
 
 type ResolvedOrganizerView {
-  id: String!
-  name: String!
-  rootId: String!
-  flatEntries: [FlatOrganizerEntry!]!
-  prefs: JSON
+    id: String!
+    name: String!
+    rootId: String!
+    flatEntries: [FlatOrganizerEntry!]!
+    prefs: JSON
 }
 
 type ResolvedOrganizerV1 {
-  version: Float!
-  views: [ResolvedOrganizerView!]!
+    version: Float!
+    views: [ResolvedOrganizerView!]!
 }
 
 type FlatOrganizerEntry {
-  id: String!
-  type: String!
-  name: String!
-  parentId: String
-  depth: Float!
-  position: Float!
-  path: [String!]!
-  hasChildren: Boolean!
-  childrenIds: [String!]!
-  meta: DockerContainer
-  icon: String
+    id: String!
+    type: String!
+    name: String!
+    parentId: String
+    depth: Float!
+    position: Float!
+    path: [String!]!
+    hasChildren: Boolean!
+    childrenIds: [String!]!
+    meta: DockerContainer
+    icon: String
 }
 
 type FlashBackupStatus {
-  """Status message indicating the outcome of the backup initiation."""
-  status: String!
+    """
+    Status message indicating the outcome of the backup initiation.
+    """
+    status: String!
 
-  """Job ID if available, can be used to check job status."""
-  jobId: String
+    """
+    Job ID if available, can be used to check job status.
+    """
+    jobId: String
 }
 
 type Flash implements Node {
-  id: PrefixedID!
-  guid: String!
-  vendor: String!
-  product: String!
+    id: PrefixedID!
+    guid: String!
+    vendor: String!
+    product: String!
 }
 
 type InfoGpu implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """GPU type/manufacturer"""
-  type: String!
+    """
+    GPU type/manufacturer
+    """
+    type: String!
 
-  """GPU type identifier"""
-  typeid: String!
+    """
+    GPU type identifier
+    """
+    typeid: String!
 
-  """Whether GPU is blacklisted"""
-  blacklisted: Boolean!
+    """
+    Whether GPU is blacklisted
+    """
+    blacklisted: Boolean!
 
-  """Device class"""
-  class: String!
+    """
+    Device class
+    """
+    class: String!
 
-  """Product ID"""
-  productid: String!
+    """
+    Product ID
+    """
+    productid: String!
 
-  """Vendor name"""
-  vendorname: String
+    """
+    Vendor name
+    """
+    vendorname: String
 }
 
 type InfoNetwork implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Network interface name"""
-  iface: String!
+    """
+    Network interface name
+    """
+    iface: String!
 
-  """Network interface model"""
-  model: String
+    """
+    Network interface model
+    """
+    model: String
 
-  """Network vendor"""
-  vendor: String
+    """
+    Network vendor
+    """
+    vendor: String
 
-  """MAC address"""
-  mac: String
+    """
+    MAC address
+    """
+    mac: String
 
-  """Virtual interface flag"""
-  virtual: Boolean
+    """
+    Virtual interface flag
+    """
+    virtual: Boolean
 
-  """Network speed"""
-  speed: String
+    """
+    Network speed
+    """
+    speed: String
 
-  """DHCP enabled flag"""
-  dhcp: Boolean
+    """
+    DHCP enabled flag
+    """
+    dhcp: Boolean
 }
 
 type InfoPci implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Device type/manufacturer"""
-  type: String!
+    """
+    Device type/manufacturer
+    """
+    type: String!
 
-  """Type identifier"""
-  typeid: String!
+    """
+    Type identifier
+    """
+    typeid: String!
 
-  """Vendor name"""
-  vendorname: String
+    """
+    Vendor name
+    """
+    vendorname: String
 
-  """Vendor ID"""
-  vendorid: String!
+    """
+    Vendor ID
+    """
+    vendorid: String!
 
-  """Product name"""
-  productname: String
+    """
+    Product name
+    """
+    productname: String
 
-  """Product ID"""
-  productid: String!
+    """
+    Product ID
+    """
+    productid: String!
 
-  """Blacklisted status"""
-  blacklisted: String!
+    """
+    Blacklisted status
+    """
+    blacklisted: String!
 
-  """Device class"""
-  class: String!
+    """
+    Device class
+    """
+    class: String!
 }
 
 type InfoUsb implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """USB device name"""
-  name: String!
+    """
+    USB device name
+    """
+    name: String!
 
-  """USB bus number"""
-  bus: String
+    """
+    USB bus number
+    """
+    bus: String
 
-  """USB device number"""
-  device: String
+    """
+    USB device number
+    """
+    device: String
 }
 
 type InfoDevices implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """List of GPU devices"""
-  gpu: [InfoGpu!]
+    """
+    List of GPU devices
+    """
+    gpu: [InfoGpu!]
 
-  """List of network interfaces"""
-  network: [InfoNetwork!]
+    """
+    List of network interfaces
+    """
+    network: [InfoNetwork!]
 
-  """List of PCI devices"""
-  pci: [InfoPci!]
+    """
+    List of PCI devices
+    """
+    pci: [InfoPci!]
 
-  """List of USB devices"""
-  usb: [InfoUsb!]
+    """
+    List of USB devices
+    """
+    usb: [InfoUsb!]
 }
 
 type InfoDisplayCase implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Case image URL"""
-  url: String!
+    """
+    Case image URL
+    """
+    url: String!
 
-  """Case icon identifier"""
-  icon: String!
+    """
+    Case icon identifier
+    """
+    icon: String!
 
-  """Error message if any"""
-  error: String!
+    """
+    Error message if any
+    """
+    error: String!
 
-  """Base64 encoded case image"""
-  base64: String!
+    """
+    Base64 encoded case image
+    """
+    base64: String!
 }
 
 type InfoDisplay implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Case display configuration"""
-  case: InfoDisplayCase!
+    """
+    Case display configuration
+    """
+    case: InfoDisplayCase!
 
-  """UI theme name"""
-  theme: ThemeName!
+    """
+    UI theme name
+    """
+    theme: ThemeName!
 
-  """Temperature unit (C or F)"""
-  unit: Temperature!
+    """
+    Temperature unit (C or F)
+    """
+    unit: Temperature!
 
-  """Enable UI scaling"""
-  scale: Boolean!
+    """
+    Enable UI scaling
+    """
+    scale: Boolean!
 
-  """Show tabs in UI"""
-  tabs: Boolean!
+    """
+    Show tabs in UI
+    """
+    tabs: Boolean!
 
-  """Enable UI resize"""
-  resize: Boolean!
+    """
+    Enable UI resize
+    """
+    resize: Boolean!
 
-  """Show WWN identifiers"""
-  wwn: Boolean!
+    """
+    Show WWN identifiers
+    """
+    wwn: Boolean!
 
-  """Show totals"""
-  total: Boolean!
+    """
+    Show totals
+    """
+    total: Boolean!
 
-  """Show usage statistics"""
-  usage: Boolean!
+    """
+    Show usage statistics
+    """
+    usage: Boolean!
 
-  """Show text labels"""
-  text: Boolean!
+    """
+    Show text labels
+    """
+    text: Boolean!
 
-  """Warning temperature threshold"""
-  warning: Int!
+    """
+    Warning temperature threshold
+    """
+    warning: Int!
 
-  """Critical temperature threshold"""
-  critical: Int!
+    """
+    Critical temperature threshold
+    """
+    critical: Int!
 
-  """Hot temperature threshold"""
-  hot: Int!
+    """
+    Hot temperature threshold
+    """
+    hot: Int!
 
-  """Maximum temperature threshold"""
-  max: Int
+    """
+    Maximum temperature threshold
+    """
+    max: Int
 
-  """Locale setting"""
-  locale: String
+    """
+    Locale setting
+    """
+    locale: String
 }
 
-"""Temperature unit"""
+"""
+Temperature unit
+"""
 enum Temperature {
-  CELSIUS
-  FAHRENHEIT
+    CELSIUS
+    FAHRENHEIT
 }
 
-"""CPU load for a single core"""
+"""
+CPU load for a single core
+"""
 type CpuLoad {
-  """The total CPU load on a single core, in percent."""
-  percentTotal: Float!
+    """
+    The total CPU load on a single core, in percent.
+    """
+    percentTotal: Float!
 
-  """The percentage of time the CPU spent in user space."""
-  percentUser: Float!
+    """
+    The percentage of time the CPU spent in user space.
+    """
+    percentUser: Float!
 
-  """The percentage of time the CPU spent in kernel space."""
-  percentSystem: Float!
+    """
+    The percentage of time the CPU spent in kernel space.
+    """
+    percentSystem: Float!
 
-  """
-  The percentage of time the CPU spent on low-priority (niced) user space processes.
-  """
-  percentNice: Float!
+    """
+    The percentage of time the CPU spent on low-priority (niced) user space processes.
+    """
+    percentNice: Float!
 
-  """The percentage of time the CPU was idle."""
-  percentIdle: Float!
+    """
+    The percentage of time the CPU was idle.
+    """
+    percentIdle: Float!
 
-  """The percentage of time the CPU spent servicing hardware interrupts."""
-  percentIrq: Float!
+    """
+    The percentage of time the CPU spent servicing hardware interrupts.
+    """
+    percentIrq: Float!
 
-  """The percentage of time the CPU spent running virtual machines (guest)."""
-  percentGuest: Float!
+    """
+    The percentage of time the CPU spent running virtual machines (guest).
+    """
+    percentGuest: Float!
 
-  """The percentage of CPU time stolen by the hypervisor."""
-  percentSteal: Float!
+    """
+    The percentage of CPU time stolen by the hypervisor.
+    """
+    percentSteal: Float!
 }
 
 type CpuPackages implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Total CPU package power draw (W)"""
-  totalPower: Float!
+    """
+    Total CPU package power draw (W)
+    """
+    totalPower: Float!
 
-  """Power draw per package (W)"""
-  power: [Float!]!
+    """
+    Power draw per package (W)
+    """
+    power: [Float!]!
 
-  """Temperature per package (°C)"""
-  temp: [Float!]!
+    """
+    Temperature per package (°C)
+    """
+    temp: [Float!]!
 }
 
 type CpuUtilization implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Total CPU load in percent"""
-  percentTotal: Float!
+    """
+    Total CPU load in percent
+    """
+    percentTotal: Float!
 
-  """CPU load for each core"""
-  cpus: [CpuLoad!]!
+    """
+    CPU load for each core
+    """
+    cpus: [CpuLoad!]!
 }
 
 type InfoCpu implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """CPU manufacturer"""
-  manufacturer: String
+    """
+    CPU manufacturer
+    """
+    manufacturer: String
 
-  """CPU brand name"""
-  brand: String
+    """
+    CPU brand name
+    """
+    brand: String
 
-  """CPU vendor"""
-  vendor: String
+    """
+    CPU vendor
+    """
+    vendor: String
 
-  """CPU family"""
-  family: String
+    """
+    CPU family
+    """
+    family: String
 
-  """CPU model"""
-  model: String
+    """
+    CPU model
+    """
+    model: String
 
-  """CPU stepping"""
-  stepping: Int
+    """
+    CPU stepping
+    """
+    stepping: Int
 
-  """CPU revision"""
-  revision: String
+    """
+    CPU revision
+    """
+    revision: String
 
-  """CPU voltage"""
-  voltage: String
+    """
+    CPU voltage
+    """
+    voltage: String
 
-  """Current CPU speed in GHz"""
-  speed: Float
+    """
+    Current CPU speed in GHz
+    """
+    speed: Float
 
-  """Minimum CPU speed in GHz"""
-  speedmin: Float
+    """
+    Minimum CPU speed in GHz
+    """
+    speedmin: Float
 
-  """Maximum CPU speed in GHz"""
-  speedmax: Float
+    """
+    Maximum CPU speed in GHz
+    """
+    speedmax: Float
 
-  """Number of CPU threads"""
-  threads: Int
+    """
+    Number of CPU threads
+    """
+    threads: Int
 
-  """Number of CPU cores"""
-  cores: Int
+    """
+    Number of CPU cores
+    """
+    cores: Int
 
-  """Number of physical processors"""
-  processors: Int
+    """
+    Number of physical processors
+    """
+    processors: Int
 
-  """CPU socket type"""
-  socket: String
+    """
+    CPU socket type
+    """
+    socket: String
 
-  """CPU cache information"""
-  cache: JSON
+    """
+    CPU cache information
+    """
+    cache: JSON
 
-  """CPU feature flags"""
-  flags: [String!]
+    """
+    CPU feature flags
+    """
+    flags: [String!]
 
-  """
-  Per-package array of core/thread pairs, e.g. [[[0,1],[2,3]], [[4,5],[6,7]]]
-  """
-  topology: [[[Int!]!]!]!
-  packages: CpuPackages!
+    """
+    Per-package array of core/thread pairs, e.g. [[[0,1],[2,3]], [[4,5],[6,7]]]
+    """
+    topology: [[[Int!]!]!]!
+    packages: CpuPackages!
 }
 
 type MemoryLayout implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Memory module size in bytes"""
-  size: BigInt!
+    """
+    Memory module size in bytes
+    """
+    size: BigInt!
 
-  """Memory bank location (e.g., BANK 0)"""
-  bank: String
+    """
+    Memory bank location (e.g., BANK 0)
+    """
+    bank: String
 
-  """Memory type (e.g., DDR4, DDR5)"""
-  type: String
+    """
+    Memory type (e.g., DDR4, DDR5)
+    """
+    type: String
 
-  """Memory clock speed in MHz"""
-  clockSpeed: Int
+    """
+    Memory clock speed in MHz
+    """
+    clockSpeed: Int
 
-  """Part number of the memory module"""
-  partNum: String
+    """
+    Part number of the memory module
+    """
+    partNum: String
 
-  """Serial number of the memory module"""
-  serialNum: String
+    """
+    Serial number of the memory module
+    """
+    serialNum: String
 
-  """Memory manufacturer"""
-  manufacturer: String
+    """
+    Memory manufacturer
+    """
+    manufacturer: String
 
-  """Form factor (e.g., DIMM, SODIMM)"""
-  formFactor: String
+    """
+    Form factor (e.g., DIMM, SODIMM)
+    """
+    formFactor: String
 
-  """Configured voltage in millivolts"""
-  voltageConfigured: Int
+    """
+    Configured voltage in millivolts
+    """
+    voltageConfigured: Int
 
-  """Minimum voltage in millivolts"""
-  voltageMin: Int
+    """
+    Minimum voltage in millivolts
+    """
+    voltageMin: Int
 
-  """Maximum voltage in millivolts"""
-  voltageMax: Int
+    """
+    Maximum voltage in millivolts
+    """
+    voltageMax: Int
 }
 
 type MemoryUtilization implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Total system memory in bytes"""
-  total: BigInt!
+    """
+    Total system memory in bytes
+    """
+    total: BigInt!
 
-  """Used memory in bytes"""
-  used: BigInt!
+    """
+    Used memory in bytes
+    """
+    used: BigInt!
 
-  """Free memory in bytes"""
-  free: BigInt!
+    """
+    Free memory in bytes
+    """
+    free: BigInt!
 
-  """Available memory in bytes"""
-  available: BigInt!
+    """
+    Available memory in bytes
+    """
+    available: BigInt!
 
-  """Active memory in bytes"""
-  active: BigInt!
+    """
+    Active memory in bytes
+    """
+    active: BigInt!
 
-  """Buffer/cache memory in bytes"""
-  buffcache: BigInt!
+    """
+    Buffer/cache memory in bytes
+    """
+    buffcache: BigInt!
 
-  """Memory usage percentage"""
-  percentTotal: Float!
+    """
+    Memory usage percentage
+    """
+    percentTotal: Float!
 
-  """Total swap memory in bytes"""
-  swapTotal: BigInt!
+    """
+    Total swap memory in bytes
+    """
+    swapTotal: BigInt!
 
-  """Used swap memory in bytes"""
-  swapUsed: BigInt!
+    """
+    Used swap memory in bytes
+    """
+    swapUsed: BigInt!
 
-  """Free swap memory in bytes"""
-  swapFree: BigInt!
+    """
+    Free swap memory in bytes
+    """
+    swapFree: BigInt!
 
-  """Swap usage percentage"""
-  percentSwapTotal: Float!
+    """
+    Swap usage percentage
+    """
+    percentSwapTotal: Float!
 }
 
 type InfoMemory implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Physical memory layout"""
-  layout: [MemoryLayout!]!
+    """
+    Physical memory layout
+    """
+    layout: [MemoryLayout!]!
 }
 
 type InfoOs implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Operating system platform"""
-  platform: String
+    """
+    Operating system platform
+    """
+    platform: String
 
-  """Linux distribution name"""
-  distro: String
+    """
+    Linux distribution name
+    """
+    distro: String
 
-  """OS release version"""
-  release: String
+    """
+    OS release version
+    """
+    release: String
 
-  """OS codename"""
-  codename: String
+    """
+    OS codename
+    """
+    codename: String
 
-  """Kernel version"""
-  kernel: String
+    """
+    Kernel version
+    """
+    kernel: String
 
-  """OS architecture"""
-  arch: String
+    """
+    OS architecture
+    """
+    arch: String
 
-  """Hostname"""
-  hostname: String
+    """
+    Hostname
+    """
+    hostname: String
 
-  """Fully qualified domain name"""
-  fqdn: String
+    """
+    Fully qualified domain name
+    """
+    fqdn: String
 
-  """OS build identifier"""
-  build: String
+    """
+    OS build identifier
+    """
+    build: String
 
-  """Service pack version"""
-  servicepack: String
+    """
+    Service pack version
+    """
+    servicepack: String
 
-  """Boot time ISO string"""
-  uptime: String
+    """
+    Boot time ISO string
+    """
+    uptime: String
 
-  """OS logo name"""
-  logofile: String
+    """
+    OS logo name
+    """
+    logofile: String
 
-  """OS serial number"""
-  serial: String
+    """
+    OS serial number
+    """
+    serial: String
 
-  """OS started via UEFI"""
-  uefi: Boolean
+    """
+    OS started via UEFI
+    """
+    uefi: Boolean
 }
 
 type InfoSystem implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """System manufacturer"""
-  manufacturer: String
+    """
+    System manufacturer
+    """
+    manufacturer: String
 
-  """System model"""
-  model: String
+    """
+    System model
+    """
+    model: String
 
-  """System version"""
-  version: String
+    """
+    System version
+    """
+    version: String
 
-  """System serial number"""
-  serial: String
+    """
+    System serial number
+    """
+    serial: String
 
-  """System UUID"""
-  uuid: String
+    """
+    System UUID
+    """
+    uuid: String
 
-  """System SKU"""
-  sku: String
+    """
+    System SKU
+    """
+    sku: String
 
-  """Virtual machine flag"""
-  virtual: Boolean
+    """
+    Virtual machine flag
+    """
+    virtual: Boolean
 }
 
 type InfoBaseboard implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Motherboard manufacturer"""
-  manufacturer: String
+    """
+    Motherboard manufacturer
+    """
+    manufacturer: String
 
-  """Motherboard model"""
-  model: String
+    """
+    Motherboard model
+    """
+    model: String
 
-  """Motherboard version"""
-  version: String
+    """
+    Motherboard version
+    """
+    version: String
 
-  """Motherboard serial number"""
-  serial: String
+    """
+    Motherboard serial number
+    """
+    serial: String
 
-  """Motherboard asset tag"""
-  assetTag: String
+    """
+    Motherboard asset tag
+    """
+    assetTag: String
 
-  """Maximum memory capacity in bytes"""
-  memMax: Float
+    """
+    Maximum memory capacity in bytes
+    """
+    memMax: Float
 
-  """Number of memory slots"""
-  memSlots: Float
+    """
+    Number of memory slots
+    """
+    memSlots: Float
 }
 
 type CoreVersions {
-  """Unraid version"""
-  unraid: String
+    """
+    Unraid version
+    """
+    unraid: String
 
-  """Unraid API version"""
-  api: String
+    """
+    Unraid API version
+    """
+    api: String
 
-  """Kernel version"""
-  kernel: String
+    """
+    Kernel version
+    """
+    kernel: String
 }
 
 type PackageVersions {
-  """OpenSSL version"""
-  openssl: String
+    """
+    OpenSSL version
+    """
+    openssl: String
 
-  """Node.js version"""
-  node: String
+    """
+    Node.js version
+    """
+    node: String
 
-  """npm version"""
-  npm: String
+    """
+    npm version
+    """
+    npm: String
 
-  """pm2 version"""
-  pm2: String
+    """
+    pm2 version
+    """
+    pm2: String
 
-  """Git version"""
-  git: String
+    """
+    Git version
+    """
+    git: String
 
-  """nginx version"""
-  nginx: String
+    """
+    nginx version
+    """
+    nginx: String
 
-  """PHP version"""
-  php: String
+    """
+    PHP version
+    """
+    php: String
 
-  """Docker version"""
-  docker: String
+    """
+    Docker version
+    """
+    docker: String
 }
 
 type InfoVersions implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Core system versions"""
-  core: CoreVersions!
+    """
+    Core system versions
+    """
+    core: CoreVersions!
 
-  """Software package versions"""
-  packages: PackageVersions
+    """
+    Software package versions
+    """
+    packages: PackageVersions
 }
 
 type Info implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Current server time"""
-  time: DateTime!
+    """
+    Current server time
+    """
+    time: DateTime!
 
-  """Motherboard information"""
-  baseboard: InfoBaseboard!
+    """
+    Motherboard information
+    """
+    baseboard: InfoBaseboard!
 
-  """CPU information"""
-  cpu: InfoCpu!
+    """
+    CPU information
+    """
+    cpu: InfoCpu!
 
-  """Device information"""
-  devices: InfoDevices!
+    """
+    Device information
+    """
+    devices: InfoDevices!
 
-  """Display configuration"""
-  display: InfoDisplay!
+    """
+    Display configuration
+    """
+    display: InfoDisplay!
 
-  """Machine ID"""
-  machineId: ID
+    """
+    Machine ID
+    """
+    machineId: ID
 
-  """Memory information"""
-  memory: InfoMemory!
+    """
+    Memory information
+    """
+    memory: InfoMemory!
 
-  """Operating system information"""
-  os: InfoOs!
+    """
+    Operating system information
+    """
+    os: InfoOs!
 
-  """System information"""
-  system: InfoSystem!
+    """
+    System information
+    """
+    system: InfoSystem!
 
-  """Software versions"""
-  versions: InfoVersions!
+    """
+    Software versions
+    """
+    versions: InfoVersions!
 }
 
 type LogFile {
-  """Name of the log file"""
-  name: String!
+    """
+    Name of the log file
+    """
+    name: String!
 
-  """Full path to the log file"""
-  path: String!
+    """
+    Full path to the log file
+    """
+    path: String!
 
-  """Size of the log file in bytes"""
-  size: Int!
+    """
+    Size of the log file in bytes
+    """
+    size: Int!
 
-  """Last modified timestamp"""
-  modifiedAt: DateTime!
+    """
+    Last modified timestamp
+    """
+    modifiedAt: DateTime!
 }
 
 type LogFileContent {
-  """Path to the log file"""
-  path: String!
+    """
+    Path to the log file
+    """
+    path: String!
 
-  """Content of the log file"""
-  content: String!
+    """
+    Content of the log file
+    """
+    content: String!
 
-  """Total number of lines in the file"""
-  totalLines: Int!
+    """
+    Total number of lines in the file
+    """
+    totalLines: Int!
 
-  """Starting line number of the content (1-indexed)"""
-  startLine: Int
+    """
+    Starting line number of the content (1-indexed)
+    """
+    startLine: Int
 }
 
-"""System metrics including CPU and memory utilization"""
+"""
+System metrics including CPU and memory utilization
+"""
 type Metrics implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """Current CPU utilization metrics"""
-  cpu: CpuUtilization
+    """
+    Current CPU utilization metrics
+    """
+    cpu: CpuUtilization
 
-  """Current memory utilization metrics"""
-  memory: MemoryUtilization
+    """
+    Current memory utilization metrics
+    """
+    memory: MemoryUtilization
 }
 
 type Owner {
-  username: String!
-  url: String!
-  avatar: String!
+    username: String!
+    url: String!
+    avatar: String!
 }
 
 type ProfileModel implements Node {
-  id: PrefixedID!
-  username: String!
-  url: String!
-  avatar: String!
+    id: PrefixedID!
+    username: String!
+    url: String!
+    avatar: String!
 }
 
 type Server implements Node {
-  id: PrefixedID!
-  owner: ProfileModel!
-  guid: String!
-  apikey: String!
-  name: String!
+    id: PrefixedID!
+    owner: ProfileModel!
+    guid: String!
+    apikey: String!
+    name: String!
 
-  """Whether this server is online or offline"""
-  status: ServerStatus!
-  wanip: String!
-  lanip: String!
-  localurl: String!
-  remoteurl: String!
+    """
+    Whether this server is online or offline
+    """
+    status: ServerStatus!
+    wanip: String!
+    lanip: String!
+    localurl: String!
+    remoteurl: String!
 }
 
 enum ServerStatus {
-  ONLINE
-  OFFLINE
-  NEVER_CONNECTED
+    ONLINE
+    OFFLINE
+    NEVER_CONNECTED
 }
 
 type ApiConfig {
-  version: String!
-  extraOrigins: [String!]!
-  sandbox: Boolean
-  ssoSubIds: [String!]!
-  plugins: [String!]!
+    version: String!
+    extraOrigins: [String!]!
+    sandbox: Boolean
+    ssoSubIds: [String!]!
+    plugins: [String!]!
 }
 
 type OidcAuthorizationRule {
-  """The claim to check (e.g., email, sub, groups, hd)"""
-  claim: String!
+    """
+    The claim to check (e.g., email, sub, groups, hd)
+    """
+    claim: String!
 
-  """The comparison operator"""
-  operator: AuthorizationOperator!
+    """
+    The comparison operator
+    """
+    operator: AuthorizationOperator!
 
-  """The value(s) to match against"""
-  value: [String!]!
+    """
+    The value(s) to match against
+    """
+    value: [String!]!
 }
 
-"""Operators for authorization rule matching"""
+"""
+Operators for authorization rule matching
+"""
 enum AuthorizationOperator {
-  EQUALS
-  CONTAINS
-  ENDS_WITH
-  STARTS_WITH
+    EQUALS
+    CONTAINS
+    ENDS_WITH
+    STARTS_WITH
 }
 
 type OidcProvider {
-  """The unique identifier for the OIDC provider"""
-  id: PrefixedID!
+    """
+    The unique identifier for the OIDC provider
+    """
+    id: PrefixedID!
 
-  """Display name of the OIDC provider"""
-  name: String!
+    """
+    Display name of the OIDC provider
+    """
+    name: String!
 
-  """OAuth2 client ID registered with the provider"""
-  clientId: String!
+    """
+    OAuth2 client ID registered with the provider
+    """
+    clientId: String!
 
-  """OAuth2 client secret (if required by provider)"""
-  clientSecret: String
+    """
+    OAuth2 client secret (if required by provider)
+    """
+    clientSecret: String
 
-  """
-  OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration
-  """
-  issuer: String
+    """
+    OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration
+    """
+    issuer: String
 
-  """
-  OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
-  """
-  authorizationEndpoint: String
+    """
+    OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+    """
+    authorizationEndpoint: String
 
-  """
-  OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
-  """
-  tokenEndpoint: String
+    """
+    OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+    """
+    tokenEndpoint: String
 
-  """
-  JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
-  """
-  jwksUri: String
+    """
+    JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+    """
+    jwksUri: String
 
-  """OAuth2 scopes to request (e.g., openid, profile, email)"""
-  scopes: [String!]!
+    """
+    OAuth2 scopes to request (e.g., openid, profile, email)
+    """
+    scopes: [String!]!
 
-  """Flexible authorization rules based on claims"""
-  authorizationRules: [OidcAuthorizationRule!]
+    """
+    Flexible authorization rules based on claims
+    """
+    authorizationRules: [OidcAuthorizationRule!]
 
-  """
-  Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR.
-  """
-  authorizationRuleMode: AuthorizationRuleMode
+    """
+    Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR.
+    """
+    authorizationRuleMode: AuthorizationRuleMode
 
-  """Custom text for the login button"""
-  buttonText: String
+    """
+    Custom text for the login button
+    """
+    buttonText: String
 
-  """URL or base64 encoded icon for the login button"""
-  buttonIcon: String
+    """
+    URL or base64 encoded icon for the login button
+    """
+    buttonIcon: String
 
-  """
-  Button variant style from Reka UI. See https://reka-ui.com/docs/components/button
-  """
-  buttonVariant: String
+    """
+    Button variant style from Reka UI. See https://reka-ui.com/docs/components/button
+    """
+    buttonVariant: String
 
-  """
-  Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;")
-  """
-  buttonStyle: String
+    """
+    Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;")
+    """
+    buttonStyle: String
 }
 
 """
 Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass)
 """
 enum AuthorizationRuleMode {
-  OR
-  AND
+    OR
+    AND
 }
 
 type OidcConfiguration {
-  """List of configured OIDC providers"""
-  providers: [OidcProvider!]!
+    """
+    List of configured OIDC providers
+    """
+    providers: [OidcProvider!]!
 
-  """
-  Default allowed redirect origins that apply to all OIDC providers (e.g., Tailscale domains)
-  """
-  defaultAllowedOrigins: [String!]
+    """
+    Default allowed redirect origins that apply to all OIDC providers (e.g., Tailscale domains)
+    """
+    defaultAllowedOrigins: [String!]
 }
 
 type OidcSessionValidation {
-  valid: Boolean!
-  username: String
+    valid: Boolean!
+    username: String
 }
 
 type PublicOidcProvider {
-  id: ID!
-  name: String!
-  buttonText: String
-  buttonIcon: String
-  buttonVariant: String
-  buttonStyle: String
+    id: ID!
+    name: String!
+    buttonText: String
+    buttonIcon: String
+    buttonVariant: String
+    buttonStyle: String
 }
 
 type UPSBattery {
-  """
-  Battery charge level as a percentage (0-100). Unit: percent (%). Example: 100 means battery is fully charged
-  """
-  chargeLevel: Int!
+    """
+    Battery charge level as a percentage (0-100). Unit: percent (%). Example: 100 means battery is fully charged
+    """
+    chargeLevel: Int!
 
-  """
-  Estimated runtime remaining on battery power. Unit: seconds. Example: 3600 means 1 hour of runtime remaining
-  """
-  estimatedRuntime: Int!
+    """
+    Estimated runtime remaining on battery power. Unit: seconds. Example: 3600 means 1 hour of runtime remaining
+    """
+    estimatedRuntime: Int!
 
-  """
-  Battery health status. Possible values: 'Good', 'Replace', 'Unknown'. Indicates if the battery needs replacement
-  """
-  health: String!
+    """
+    Battery health status. Possible values: 'Good', 'Replace', 'Unknown'. Indicates if the battery needs replacement
+    """
+    health: String!
 }
 
 type UPSPower {
-  """
-  Input voltage from the wall outlet/mains power. Unit: volts (V). Example: 120.5 for typical US household voltage
-  """
-  inputVoltage: Float!
+    """
+    Input voltage from the wall outlet/mains power. Unit: volts (V). Example: 120.5 for typical US household voltage
+    """
+    inputVoltage: Float!
 
-  """
-  Output voltage being delivered to connected devices. Unit: volts (V). Example: 120.5 - should match input voltage when on mains power
-  """
-  outputVoltage: Float!
+    """
+    Output voltage being delivered to connected devices. Unit: volts (V). Example: 120.5 - should match input voltage when on mains power
+    """
+    outputVoltage: Float!
 
-  """
-  Current load on the UPS as a percentage of its capacity. Unit: percent (%). Example: 25 means UPS is loaded at 25% of its maximum capacity
-  """
-  loadPercentage: Int!
+    """
+    Current load on the UPS as a percentage of its capacity. Unit: percent (%). Example: 25 means UPS is loaded at 25% of its maximum capacity
+    """
+    loadPercentage: Int!
 }
 
 type UPSDevice {
-  """
-  Unique identifier for the UPS device. Usually based on the model name or a generated ID
-  """
-  id: ID!
+    """
+    Unique identifier for the UPS device. Usually based on the model name or a generated ID
+    """
+    id: ID!
 
-  """Display name for the UPS device. Can be customized by the user"""
-  name: String!
+    """
+    Display name for the UPS device. Can be customized by the user
+    """
+    name: String!
 
-  """UPS model name/number. Example: 'APC Back-UPS Pro 1500'"""
-  model: String!
+    """
+    UPS model name/number. Example: 'APC Back-UPS Pro 1500'
+    """
+    model: String!
 
-  """
-  Current operational status of the UPS. Common values: 'Online', 'On Battery', 'Low Battery', 'Replace Battery', 'Overload', 'Offline'. 'Online' means running on mains power, 'On Battery' means running on battery backup
-  """
-  status: String!
+    """
+    Current operational status of the UPS. Common values: 'Online', 'On Battery', 'Low Battery', 'Replace Battery', 'Overload', 'Offline'. 'Online' means running on mains power, 'On Battery' means running on battery backup
+    """
+    status: String!
 
-  """Battery-related information"""
-  battery: UPSBattery!
+    """
+    Battery-related information
+    """
+    battery: UPSBattery!
 
-  """Power-related information"""
-  power: UPSPower!
+    """
+    Power-related information
+    """
+    power: UPSPower!
 }
 
 type UPSConfiguration {
-  """
-  UPS service state. Values: 'enable' or 'disable'. Controls whether the UPS monitoring service is running
-  """
-  service: String
+    """
+    UPS service state. Values: 'enable' or 'disable'. Controls whether the UPS monitoring service is running
+    """
+    service: String
 
-  """
-  Type of cable connecting the UPS to the server. Common values: 'usb', 'smart', 'ether', 'custom'. Determines communication protocol
-  """
-  upsCable: String
+    """
+    Type of cable connecting the UPS to the server. Common values: 'usb', 'smart', 'ether', 'custom'. Determines communication protocol
+    """
+    upsCable: String
 
-  """
-  Custom cable configuration string. Only used when upsCable is set to 'custom'. Format depends on specific UPS model
-  """
-  customUpsCable: String
+    """
+    Custom cable configuration string. Only used when upsCable is set to 'custom'. Format depends on specific UPS model
+    """
+    customUpsCable: String
 
-  """
-  UPS communication type. Common values: 'usb', 'net', 'snmp', 'dumb', 'pcnet', 'modbus'. Defines how the server communicates with the UPS
-  """
-  upsType: String
+    """
+    UPS communication type. Common values: 'usb', 'net', 'snmp', 'dumb', 'pcnet', 'modbus'. Defines how the server communicates with the UPS
+    """
+    upsType: String
 
-  """
-  Device path or network address for UPS connection. Examples: '/dev/ttyUSB0' for USB, '192.168.1.100:3551' for network. Depends on upsType setting
-  """
-  device: String
+    """
+    Device path or network address for UPS connection. Examples: '/dev/ttyUSB0' for USB, '192.168.1.100:3551' for network. Depends on upsType setting
+    """
+    device: String
 
-  """
-  Override UPS capacity for runtime calculations. Unit: volt-amperes (VA). Example: 1500 for a 1500VA UPS. Leave unset to use UPS-reported capacity
-  """
-  overrideUpsCapacity: Int
+    """
+    Override UPS capacity for runtime calculations. Unit: volt-amperes (VA). Example: 1500 for a 1500VA UPS. Leave unset to use UPS-reported capacity
+    """
+    overrideUpsCapacity: Int
 
-  """
-  Battery level threshold for shutdown. Unit: percent (%). Example: 10 means shutdown when battery reaches 10%. System will shutdown when battery drops to this level
-  """
-  batteryLevel: Int
+    """
+    Battery level threshold for shutdown. Unit: percent (%). Example: 10 means shutdown when battery reaches 10%. System will shutdown when battery drops to this level
+    """
+    batteryLevel: Int
 
-  """
-  Runtime threshold for shutdown. Unit: minutes. Example: 5 means shutdown when 5 minutes runtime remaining. System will shutdown when estimated runtime drops below this
-  """
-  minutes: Int
+    """
+    Runtime threshold for shutdown. Unit: minutes. Example: 5 means shutdown when 5 minutes runtime remaining. System will shutdown when estimated runtime drops below this
+    """
+    minutes: Int
 
-  """
-  Timeout for UPS communications. Unit: seconds. Example: 0 means no timeout. Time to wait for UPS response before considering it offline
-  """
-  timeout: Int
+    """
+    Timeout for UPS communications. Unit: seconds. Example: 0 means no timeout. Time to wait for UPS response before considering it offline
+    """
+    timeout: Int
 
-  """
-  Kill UPS power after shutdown. Values: 'yes' or 'no'. If 'yes', tells UPS to cut power after system shutdown. Useful for ensuring complete power cycle
-  """
-  killUps: String
+    """
+    Kill UPS power after shutdown. Values: 'yes' or 'no'. If 'yes', tells UPS to cut power after system shutdown. Useful for ensuring complete power cycle
+    """
+    killUps: String
 
-  """
-  Network Information Server (NIS) IP address. Default: '0.0.0.0' (listen on all interfaces). IP address for apcupsd network information server
-  """
-  nisIp: String
+    """
+    Network Information Server (NIS) IP address. Default: '0.0.0.0' (listen on all interfaces). IP address for apcupsd network information server
+    """
+    nisIp: String
 
-  """
-  Network server mode. Values: 'on' or 'off'. Enable to allow network clients to monitor this UPS
-  """
-  netServer: String
+    """
+    Network server mode. Values: 'on' or 'off'. Enable to allow network clients to monitor this UPS
+    """
+    netServer: String
 
-  """
-  UPS name for network monitoring. Used to identify this UPS on the network. Example: 'SERVER_UPS'
-  """
-  upsName: String
+    """
+    UPS name for network monitoring. Used to identify this UPS on the network. Example: 'SERVER_UPS'
+    """
+    upsName: String
 
-  """
-  Override UPS model name. Used for display purposes. Leave unset to use UPS-reported model
-  """
-  modelName: String
+    """
+    Override UPS model name. Used for display purposes. Leave unset to use UPS-reported model
+    """
+    modelName: String
 }
 
 type VmDomain implements Node {
-  """The unique identifier for the vm (uuid)"""
-  id: PrefixedID!
+    """
+    The unique identifier for the vm (uuid)
+    """
+    id: PrefixedID!
 
-  """A friendly name for the vm"""
-  name: String
+    """
+    A friendly name for the vm
+    """
+    name: String
 
-  """Current domain vm state"""
-  state: VmState!
+    """
+    Current domain vm state
+    """
+    state: VmState!
 
-  """The UUID of the vm"""
-  uuid: String @deprecated(reason: "Use id instead")
+    """
+    The UUID of the vm
+    """
+    uuid: String @deprecated(reason: "Use id instead")
 }
 
-"""The state of a virtual machine"""
+"""
+The state of a virtual machine
+"""
 enum VmState {
-  NOSTATE
-  RUNNING
-  IDLE
-  PAUSED
-  SHUTDOWN
-  SHUTOFF
-  CRASHED
-  PMSUSPENDED
+    NOSTATE
+    RUNNING
+    IDLE
+    PAUSED
+    SHUTDOWN
+    SHUTOFF
+    CRASHED
+    PMSUSPENDED
 }
 
 type Vms implements Node {
-  id: PrefixedID!
-  domains: [VmDomain!]
-  domain: [VmDomain!]
+    id: PrefixedID!
+    domains: [VmDomain!]
+    domain: [VmDomain!]
 }
 
 type Uptime {
-  timestamp: String
+    timestamp: String
 }
 
 type Service implements Node {
-  id: PrefixedID!
-  name: String
-  online: Boolean
-  uptime: Uptime
-  version: String
+    id: PrefixedID!
+    name: String
+    online: Boolean
+    uptime: Uptime
+    version: String
 }
 
 type UserAccount implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """The name of the user"""
-  name: String!
+    """
+    The name of the user
+    """
+    name: String!
 
-  """A description of the user"""
-  description: String!
+    """
+    A description of the user
+    """
+    description: String!
 
-  """The roles of the user"""
-  roles: [Role!]!
+    """
+    The roles of the user
+    """
+    roles: [Role!]!
 
-  """The permissions of the user"""
-  permissions: [Permission!]
+    """
+    The permissions of the user
+    """
+    permissions: [Permission!]
 }
 
 type Plugin {
-  """The name of the plugin package"""
-  name: String!
+    """
+    The name of the plugin package
+    """
+    name: String!
 
-  """The version of the plugin package"""
-  version: String!
+    """
+    The version of the plugin package
+    """
+    version: String!
 
-  """Whether the plugin has an API module"""
-  hasApiModule: Boolean
+    """
+    Whether the plugin has an API module
+    """
+    hasApiModule: Boolean
 
-  """Whether the plugin has a CLI module"""
-  hasCliModule: Boolean
+    """
+    Whether the plugin has a CLI module
+    """
+    hasCliModule: Boolean
 }
 
 type AccessUrl {
-  type: URL_TYPE!
-  name: String
-  ipv4: URL
-  ipv6: URL
+    type: URL_TYPE!
+    name: String
+    ipv4: URL
+    ipv6: URL
 }
 
 enum URL_TYPE {
-  LAN
-  WIREGUARD
-  WAN
-  MDNS
-  OTHER
-  DEFAULT
+    LAN
+    WIREGUARD
+    WAN
+    MDNS
+    OTHER
+    DEFAULT
 }
 
 """
@@ -2326,475 +3111,601 @@ A field whose value conforms to the standard URL format as specified in RFC3986:
 scalar URL
 
 type AccessUrlObject {
-  ipv4: String
-  ipv6: String
-  type: URL_TYPE!
-  name: String
+    ipv4: String
+    ipv6: String
+    type: URL_TYPE!
+    name: String
 }
 
 type ApiKeyResponse {
-  valid: Boolean!
-  error: String
+    valid: Boolean!
+    error: String
 }
 
 type MinigraphqlResponse {
-  status: MinigraphStatus!
-  timeout: Int
-  error: String
+    status: MinigraphStatus!
+    timeout: Int
+    error: String
 }
 
-"""The status of the minigraph"""
+"""
+The status of the minigraph
+"""
 enum MinigraphStatus {
-  PRE_INIT
-  CONNECTING
-  CONNECTED
-  PING_FAILURE
-  ERROR_RETRYING
+    PRE_INIT
+    CONNECTING
+    CONNECTED
+    PING_FAILURE
+    ERROR_RETRYING
 }
 
 type CloudResponse {
-  status: String!
-  ip: String
-  error: String
+    status: String!
+    ip: String
+    error: String
 }
 
 type RelayResponse {
-  status: String!
-  timeout: String
-  error: String
+    status: String!
+    timeout: String
+    error: String
 }
 
 type Cloud {
-  error: String
-  apiKey: ApiKeyResponse!
-  relay: RelayResponse
-  minigraphql: MinigraphqlResponse!
-  cloud: CloudResponse!
-  allowedOrigins: [String!]!
+    error: String
+    apiKey: ApiKeyResponse!
+    relay: RelayResponse
+    minigraphql: MinigraphqlResponse!
+    cloud: CloudResponse!
+    allowedOrigins: [String!]!
 }
 
 type RemoteAccess {
-  """The type of WAN access used for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
+    """
+    The type of WAN access used for Remote Access
+    """
+    accessType: WAN_ACCESS_TYPE!
 
-  """The type of port forwarding used for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
+    """
+    The type of port forwarding used for Remote Access
+    """
+    forwardType: WAN_FORWARD_TYPE
 
-  """The port used for Remote Access"""
-  port: Int
+    """
+    The port used for Remote Access
+    """
+    port: Int
 }
 
 enum WAN_ACCESS_TYPE {
-  DYNAMIC
-  ALWAYS
-  DISABLED
+    DYNAMIC
+    ALWAYS
+    DISABLED
 }
 
 enum WAN_FORWARD_TYPE {
-  UPNP
-  STATIC
+    UPNP
+    STATIC
 }
 
 type DynamicRemoteAccessStatus {
-  """The type of dynamic remote access that is enabled"""
-  enabledType: DynamicRemoteAccessType!
+    """
+    The type of dynamic remote access that is enabled
+    """
+    enabledType: DynamicRemoteAccessType!
 
-  """The type of dynamic remote access that is currently running"""
-  runningType: DynamicRemoteAccessType!
+    """
+    The type of dynamic remote access that is currently running
+    """
+    runningType: DynamicRemoteAccessType!
 
-  """Any error message associated with the dynamic remote access"""
-  error: String
+    """
+    Any error message associated with the dynamic remote access
+    """
+    error: String
 }
 
 enum DynamicRemoteAccessType {
-  STATIC
-  UPNP
-  DISABLED
+    STATIC
+    UPNP
+    DISABLED
 }
 
 type ConnectSettingsValues {
-  """The type of WAN access used for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
+    """
+    The type of WAN access used for Remote Access
+    """
+    accessType: WAN_ACCESS_TYPE!
 
-  """The type of port forwarding used for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
+    """
+    The type of port forwarding used for Remote Access
+    """
+    forwardType: WAN_FORWARD_TYPE
 
-  """The port used for Remote Access"""
-  port: Int
+    """
+    The port used for Remote Access
+    """
+    port: Int
 }
 
 type ConnectSettings implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """The data schema for the Connect settings"""
-  dataSchema: JSON!
+    """
+    The data schema for the Connect settings
+    """
+    dataSchema: JSON!
 
-  """The UI schema for the Connect settings"""
-  uiSchema: JSON!
+    """
+    The UI schema for the Connect settings
+    """
+    uiSchema: JSON!
 
-  """The values for the Connect settings"""
-  values: ConnectSettingsValues!
+    """
+    The values for the Connect settings
+    """
+    values: ConnectSettingsValues!
 }
 
 type Connect implements Node {
-  id: PrefixedID!
+    id: PrefixedID!
 
-  """The status of dynamic remote access"""
-  dynamicRemoteAccess: DynamicRemoteAccessStatus!
+    """
+    The status of dynamic remote access
+    """
+    dynamicRemoteAccess: DynamicRemoteAccessStatus!
 
-  """The settings for the Connect instance"""
-  settings: ConnectSettings!
+    """
+    The settings for the Connect instance
+    """
+    settings: ConnectSettings!
 }
 
 type Network implements Node {
-  id: PrefixedID!
-  accessUrls: [AccessUrl!]
+    id: PrefixedID!
+    accessUrls: [AccessUrl!]
 }
 
 input AccessUrlObjectInput {
-  ipv4: String
-  ipv6: String
-  type: URL_TYPE!
-  name: String
+    ipv4: String
+    ipv6: String
+    type: URL_TYPE!
+    name: String
 }
 
 "\n### Description:\n\nID scalar type that prefixes the underlying ID with the server identifier on output and strips it on input.\n\nWe use this scalar type to ensure that the ID is unique across all servers, allowing the same underlying resource ID to be used across different server instances.\n\n#### Input Behavior:\n\nWhen providing an ID as input (e.g., in arguments or input objects), the server identifier prefix ('<serverId>:') is optional.\n\n- If the prefix is present (e.g., '123:456'), it will be automatically stripped, and only the underlying ID ('456') will be used internally.\n- If the prefix is absent (e.g., '456'), the ID will be used as-is.\n\nThis makes it flexible for clients, as they don't strictly need to know or provide the server ID.\n\n#### Output Behavior:\n\nWhen an ID is returned in the response (output), it will *always* be prefixed with the current server's unique identifier (e.g., '123:456').\n\n#### Example:\n\nNote: The server identifier is '123' in this example.\n\n##### Input (Prefix Optional):\n```graphql\n# Both of these are valid inputs resolving to internal ID '456'\n{\n  someQuery(id: \"123:456\") { ... }\n  anotherQuery(id: \"456\") { ... }\n}\n```\n\n##### Output (Prefix Always Added):\n```graphql\n# Assuming internal ID is '456'\n{\n  \"data\": {\n    \"someResource\": {\n      \"id\": \"123:456\" \n    }\n  }\n}\n```\n        "
 scalar PrefixedID
 
 type Query {
-  apiKeys: [ApiKey!]!
-  apiKey(id: PrefixedID!): ApiKey
+    apiKeys: [ApiKey!]!
+    apiKey(id: PrefixedID!): ApiKey
 
-  """All possible roles for API keys"""
-  apiKeyPossibleRoles: [Role!]!
+    """
+    All possible roles for API keys
+    """
+    apiKeyPossibleRoles: [Role!]!
 
-  """All possible permissions for API keys"""
-  apiKeyPossiblePermissions: [Permission!]!
+    """
+    All possible permissions for API keys
+    """
+    apiKeyPossiblePermissions: [Permission!]!
 
-  """Get the actual permissions that would be granted by a set of roles"""
-  getPermissionsForRoles(roles: [Role!]!): [Permission!]!
+    """
+    Get the actual permissions that would be granted by a set of roles
+    """
+    getPermissionsForRoles(roles: [Role!]!): [Permission!]!
 
-  """
-  Preview the effective permissions for a combination of roles and explicit permissions
-  """
-  previewEffectivePermissions(roles: [Role!], permissions: [AddPermissionInput!]): [Permission!]!
+    """
+    Preview the effective permissions for a combination of roles and explicit permissions
+    """
+    previewEffectivePermissions(roles: [Role!], permissions: [AddPermissionInput!]): [Permission!]!
 
-  """Get all available authentication actions with possession"""
-  getAvailableAuthActions: [AuthAction!]!
+    """
+    Get all available authentication actions with possession
+    """
+    getAvailableAuthActions: [AuthAction!]!
 
-  """Get JSON Schema for API key creation form"""
-  getApiKeyCreationFormSchema: ApiKeyFormSettings!
-  config: Config!
-  flash: Flash!
-  me: UserAccount!
+    """
+    Get JSON Schema for API key creation form
+    """
+    getApiKeyCreationFormSchema: ApiKeyFormSettings!
+    config: Config!
+    flash: Flash!
+    me: UserAccount!
 
-  """Get all notifications"""
-  notifications: Notifications!
-  online: Boolean!
-  owner: Owner!
-  registration: Registration
-  server: Server
-  servers: [Server!]!
-  services: [Service!]!
-  shares: [Share!]!
-  vars: Vars!
-  isInitialSetup: Boolean!
+    """
+    Get all notifications
+    """
+    notifications: Notifications!
+    online: Boolean!
+    owner: Owner!
+    registration: Registration
+    server: Server
+    servers: [Server!]!
+    services: [Service!]!
+    shares: [Share!]!
+    vars: Vars!
+    isInitialSetup: Boolean!
 
-  """Get information about all VMs on the system"""
-  vms: Vms!
-  parityHistory: [ParityCheck!]!
-  array: UnraidArray!
-  customization: Customization
-  publicPartnerInfo: PublicPartnerInfo
-  publicTheme: Theme!
-  docker: Docker!
-  dockerContainerOverviewForm(skipCache: Boolean! = false): DockerContainerOverviewForm!
-  disks: [Disk!]!
-  disk(id: PrefixedID!): Disk!
-  rclone: RCloneBackupSettings!
-  info: Info!
-  logFiles: [LogFile!]!
-  logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
-  settings: Settings!
-  isSSOEnabled: Boolean!
+    """
+    Get information about all VMs on the system
+    """
+    vms: Vms!
+    parityHistory: [ParityCheck!]!
+    array: UnraidArray!
+    customization: Customization
+    publicPartnerInfo: PublicPartnerInfo
+    publicTheme: Theme!
+    docker: Docker!
+    dockerContainerOverviewForm(skipCache: Boolean! = false): DockerContainerOverviewForm!
+    disks: [Disk!]!
+    disk(id: PrefixedID!): Disk!
+    rclone: RCloneBackupSettings!
+    info: Info!
+    logFiles: [LogFile!]!
+    logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
+    settings: Settings!
+    isSSOEnabled: Boolean!
 
-  """Get public OIDC provider information for login buttons"""
-  publicOidcProviders: [PublicOidcProvider!]!
+    """
+    Get public OIDC provider information for login buttons
+    """
+    publicOidcProviders: [PublicOidcProvider!]!
 
-  """Get all configured OIDC providers (admin only)"""
-  oidcProviders: [OidcProvider!]!
+    """
+    Get all configured OIDC providers (admin only)
+    """
+    oidcProviders: [OidcProvider!]!
 
-  """Get a specific OIDC provider by ID"""
-  oidcProvider(id: PrefixedID!): OidcProvider
+    """
+    Get a specific OIDC provider by ID
+    """
+    oidcProvider(id: PrefixedID!): OidcProvider
 
-  """Get the full OIDC configuration (admin only)"""
-  oidcConfiguration: OidcConfiguration!
+    """
+    Get the full OIDC configuration (admin only)
+    """
+    oidcConfiguration: OidcConfiguration!
 
-  """Validate an OIDC session token (internal use for CLI validation)"""
-  validateOidcSession(token: String!): OidcSessionValidation!
-  metrics: Metrics!
-  upsDevices: [UPSDevice!]!
-  upsDeviceById(id: String!): UPSDevice
-  upsConfiguration: UPSConfiguration!
+    """
+    Validate an OIDC session token (internal use for CLI validation)
+    """
+    validateOidcSession(token: String!): OidcSessionValidation!
+    metrics: Metrics!
+    upsDevices: [UPSDevice!]!
+    upsDeviceById(id: String!): UPSDevice
+    upsConfiguration: UPSConfiguration!
 
-  """List all installed plugins with their metadata"""
-  plugins: [Plugin!]!
-  remoteAccess: RemoteAccess!
-  connect: Connect!
-  network: Network!
-  cloud: Cloud!
+    """
+    List all installed plugins with their metadata
+    """
+    plugins: [Plugin!]!
+    remoteAccess: RemoteAccess!
+    connect: Connect!
+    network: Network!
+    cloud: Cloud!
 }
 
 type Mutation {
-  """Creates a new notification record"""
-  createNotification(input: NotificationData!): Notification!
-  deleteNotification(id: PrefixedID!, type: NotificationType!): NotificationOverview!
+    """
+    Creates a new notification record
+    """
+    createNotification(input: NotificationData!): Notification!
+    deleteNotification(id: PrefixedID!, type: NotificationType!): NotificationOverview!
 
-  """Deletes all archived notifications on server."""
-  deleteArchivedNotifications: NotificationOverview!
+    """
+    Deletes all archived notifications on server.
+    """
+    deleteArchivedNotifications: NotificationOverview!
 
-  """Marks a notification as archived."""
-  archiveNotification(id: PrefixedID!): Notification!
-  archiveNotifications(ids: [PrefixedID!]!): NotificationOverview!
+    """
+    Marks a notification as archived.
+    """
+    archiveNotification(id: PrefixedID!): Notification!
+    archiveNotifications(ids: [PrefixedID!]!): NotificationOverview!
 
-  """
-  Creates a notification if an equivalent unread notification does not already exist.
-  """
-  notifyIfUnique(input: NotificationData!): Notification
-  archiveAll(importance: NotificationImportance): NotificationOverview!
+    """
+    Creates a notification if an equivalent unread notification does not already exist.
+    """
+    notifyIfUnique(input: NotificationData!): Notification
+    archiveAll(importance: NotificationImportance): NotificationOverview!
 
-  """Marks a notification as unread."""
-  unreadNotification(id: PrefixedID!): Notification!
-  unarchiveNotifications(ids: [PrefixedID!]!): NotificationOverview!
-  unarchiveAll(importance: NotificationImportance): NotificationOverview!
+    """
+    Marks a notification as unread.
+    """
+    unreadNotification(id: PrefixedID!): Notification!
+    unarchiveNotifications(ids: [PrefixedID!]!): NotificationOverview!
+    unarchiveAll(importance: NotificationImportance): NotificationOverview!
 
-  """Reads each notification to recompute & update the overview."""
-  recalculateOverview: NotificationOverview!
-  array: ArrayMutations!
-  docker: DockerMutations!
-  vm: VmMutations!
-  parityCheck: ParityCheckMutations!
-  apiKey: ApiKeyMutations!
-  rclone: RCloneMutations!
-  createDockerFolder(name: String!, parentId: String, childrenIds: [String!]): ResolvedOrganizerV1!
-  setDockerFolderChildren(folderId: String, childrenIds: [String!]!): ResolvedOrganizerV1!
-  deleteDockerEntries(entryIds: [String!]!): ResolvedOrganizerV1!
-  moveDockerEntriesToFolder(sourceEntryIds: [String!]!, destinationFolderId: String!): ResolvedOrganizerV1!
-  moveDockerItemsToPosition(sourceEntryIds: [String!]!, destinationFolderId: String!, position: Float!): ResolvedOrganizerV1!
-  renameDockerFolder(folderId: String!, newName: String!): ResolvedOrganizerV1!
-  createDockerFolderWithItems(name: String!, parentId: String, sourceEntryIds: [String!], position: Float): ResolvedOrganizerV1!
-  updateDockerViewPreferences(viewId: String = "default", prefs: JSON!): ResolvedOrganizerV1!
-  syncDockerTemplatePaths: DockerTemplateSyncResult!
-  refreshDockerDigests: Boolean!
+    """
+    Reads each notification to recompute & update the overview.
+    """
+    recalculateOverview: NotificationOverview!
+    array: ArrayMutations!
+    docker: DockerMutations!
+    vm: VmMutations!
+    parityCheck: ParityCheckMutations!
+    apiKey: ApiKeyMutations!
+    rclone: RCloneMutations!
+    createDockerFolder(name: String!, parentId: String, childrenIds: [String!]): ResolvedOrganizerV1!
+    setDockerFolderChildren(folderId: String, childrenIds: [String!]!): ResolvedOrganizerV1!
+    deleteDockerEntries(entryIds: [String!]!): ResolvedOrganizerV1!
+    moveDockerEntriesToFolder(
+        sourceEntryIds: [String!]!
+        destinationFolderId: String!
+    ): ResolvedOrganizerV1!
+    moveDockerItemsToPosition(
+        sourceEntryIds: [String!]!
+        destinationFolderId: String!
+        position: Float!
+    ): ResolvedOrganizerV1!
+    renameDockerFolder(folderId: String!, newName: String!): ResolvedOrganizerV1!
+    createDockerFolderWithItems(
+        name: String!
+        parentId: String
+        sourceEntryIds: [String!]
+        position: Float
+    ): ResolvedOrganizerV1!
+    updateDockerViewPreferences(viewId: String = "default", prefs: JSON!): ResolvedOrganizerV1!
+    syncDockerTemplatePaths: DockerTemplateSyncResult!
+    refreshDockerDigests: Boolean!
 
-  """Initiates a flash drive backup using a configured remote."""
-  initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
-  updateSettings(input: JSON!): UpdateSettingsResponse!
-  configureUps(config: UPSConfigInput!): Boolean!
+    """
+    Initiates a flash drive backup using a configured remote.
+    """
+    initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
+    updateSettings(input: JSON!): UpdateSettingsResponse!
+    configureUps(config: UPSConfigInput!): Boolean!
 
-  """
-  Add one or more plugins to the API. Returns false if restart was triggered automatically, true if manual restart is required.
-  """
-  addPlugin(input: PluginManagementInput!): Boolean!
+    """
+    Add one or more plugins to the API. Returns false if restart was triggered automatically, true if manual restart is required.
+    """
+    addPlugin(input: PluginManagementInput!): Boolean!
 
-  """
-  Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required.
-  """
-  removePlugin(input: PluginManagementInput!): Boolean!
-  updateApiSettings(input: ConnectSettingsInput!): ConnectSettingsValues!
-  connectSignIn(input: ConnectSignInInput!): Boolean!
-  connectSignOut: Boolean!
-  setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
-  enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
+    """
+    Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required.
+    """
+    removePlugin(input: PluginManagementInput!): Boolean!
+    updateApiSettings(input: ConnectSettingsInput!): ConnectSettingsValues!
+    connectSignIn(input: ConnectSignInInput!): Boolean!
+    connectSignOut: Boolean!
+    setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
+    enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
 }
 
 input NotificationData {
-  title: String!
-  subject: String!
-  description: String!
-  importance: NotificationImportance!
-  link: String
+    title: String!
+    subject: String!
+    description: String!
+    importance: NotificationImportance!
+    link: String
 }
 
 input InitiateFlashBackupInput {
-  """The name of the remote configuration to use for the backup."""
-  remoteName: String!
+    """
+    The name of the remote configuration to use for the backup.
+    """
+    remoteName: String!
 
-  """Source path to backup (typically the flash drive)."""
-  sourcePath: String!
+    """
+    Source path to backup (typically the flash drive).
+    """
+    sourcePath: String!
 
-  """Destination path on the remote."""
-  destinationPath: String!
+    """
+    Destination path on the remote.
+    """
+    destinationPath: String!
 
-  """
-  Additional options for the backup operation, such as --dry-run or --transfers.
-  """
-  options: JSON
+    """
+    Additional options for the backup operation, such as --dry-run or --transfers.
+    """
+    options: JSON
 }
 
 input UPSConfigInput {
-  """Enable or disable the UPS monitoring service"""
-  service: UPSServiceState
+    """
+    Enable or disable the UPS monitoring service
+    """
+    service: UPSServiceState
 
-  """Type of cable connecting the UPS to the server"""
-  upsCable: UPSCableType
+    """
+    Type of cable connecting the UPS to the server
+    """
+    upsCable: UPSCableType
 
-  """
-  Custom cable configuration (only used when upsCable is CUSTOM). Format depends on specific UPS model
-  """
-  customUpsCable: String
+    """
+    Custom cable configuration (only used when upsCable is CUSTOM). Format depends on specific UPS model
+    """
+    customUpsCable: String
 
-  """UPS communication protocol"""
-  upsType: UPSType
+    """
+    UPS communication protocol
+    """
+    upsType: UPSType
 
-  """
-  Device path or network address for UPS connection. Examples: '/dev/ttyUSB0' for USB, '192.168.1.100:3551' for network
-  """
-  device: String
+    """
+    Device path or network address for UPS connection. Examples: '/dev/ttyUSB0' for USB, '192.168.1.100:3551' for network
+    """
+    device: String
 
-  """
-  Override UPS capacity for runtime calculations. Unit: watts (W). Leave unset to use UPS-reported capacity
-  """
-  overrideUpsCapacity: Int
+    """
+    Override UPS capacity for runtime calculations. Unit: watts (W). Leave unset to use UPS-reported capacity
+    """
+    overrideUpsCapacity: Int
 
-  """
-  Battery level percentage to initiate shutdown. Unit: percent (%) - Valid range: 0-100
-  """
-  batteryLevel: Int
+    """
+    Battery level percentage to initiate shutdown. Unit: percent (%) - Valid range: 0-100
+    """
+    batteryLevel: Int
 
-  """Runtime left in minutes to initiate shutdown. Unit: minutes"""
-  minutes: Int
+    """
+    Runtime left in minutes to initiate shutdown. Unit: minutes
+    """
+    minutes: Int
 
-  """
-  Time on battery before shutdown. Unit: seconds. Set to 0 to disable timeout-based shutdown
-  """
-  timeout: Int
+    """
+    Time on battery before shutdown. Unit: seconds. Set to 0 to disable timeout-based shutdown
+    """
+    timeout: Int
 
-  """
-  Turn off UPS power after system shutdown. Useful for ensuring complete power cycle
-  """
-  killUps: UPSKillPower
+    """
+    Turn off UPS power after system shutdown. Useful for ensuring complete power cycle
+    """
+    killUps: UPSKillPower
 }
 
-"""Service state for UPS daemon"""
+"""
+Service state for UPS daemon
+"""
 enum UPSServiceState {
-  ENABLE
-  DISABLE
+    ENABLE
+    DISABLE
 }
 
-"""UPS cable connection types"""
+"""
+UPS cable connection types
+"""
 enum UPSCableType {
-  USB
-  SIMPLE
-  SMART
-  ETHER
-  CUSTOM
+    USB
+    SIMPLE
+    SMART
+    ETHER
+    CUSTOM
 }
 
-"""UPS communication protocols"""
+"""
+UPS communication protocols
+"""
 enum UPSType {
-  USB
-  APCSMART
-  NET
-  SNMP
-  DUMB
-  PCNET
-  MODBUS
+    USB
+    APCSMART
+    NET
+    SNMP
+    DUMB
+    PCNET
+    MODBUS
 }
 
-"""Kill UPS power after shutdown option"""
+"""
+Kill UPS power after shutdown option
+"""
 enum UPSKillPower {
-  YES
-  NO
+    YES
+    NO
 }
 
 input PluginManagementInput {
-  """Array of plugin package names to add or remove"""
-  names: [String!]!
+    """
+    Array of plugin package names to add or remove
+    """
+    names: [String!]!
 
-  """
-  Whether to treat plugins as bundled plugins. Bundled plugins are installed to node_modules at build time and controlled via config only.
-  """
-  bundled: Boolean! = false
+    """
+    Whether to treat plugins as bundled plugins. Bundled plugins are installed to node_modules at build time and controlled via config only.
+    """
+    bundled: Boolean! = false
 
-  """
-  Whether to restart the API after the operation. When false, a restart has already been queued.
-  """
-  restart: Boolean! = true
+    """
+    Whether to restart the API after the operation. When false, a restart has already been queued.
+    """
+    restart: Boolean! = true
 }
 
 input ConnectSettingsInput {
-  """The type of WAN access to use for Remote Access"""
-  accessType: WAN_ACCESS_TYPE
+    """
+    The type of WAN access to use for Remote Access
+    """
+    accessType: WAN_ACCESS_TYPE
 
-  """The type of port forwarding to use for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
+    """
+    The type of port forwarding to use for Remote Access
+    """
+    forwardType: WAN_FORWARD_TYPE
 
-  """
-  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
-  """
-  port: Int
+    """
+    The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
+    """
+    port: Int
 }
 
 input ConnectSignInInput {
-  """The API key for authentication"""
-  apiKey: String!
+    """
+    The API key for authentication
+    """
+    apiKey: String!
 
-  """User information for the sign-in"""
-  userInfo: ConnectUserInfoInput
+    """
+    User information for the sign-in
+    """
+    userInfo: ConnectUserInfoInput
 }
 
 input ConnectUserInfoInput {
-  """The preferred username of the user"""
-  preferred_username: String!
+    """
+    The preferred username of the user
+    """
+    preferred_username: String!
 
-  """The email address of the user"""
-  email: String!
+    """
+    The email address of the user
+    """
+    email: String!
 
-  """The avatar URL of the user"""
-  avatar: String
+    """
+    The avatar URL of the user
+    """
+    avatar: String
 }
 
 input SetupRemoteAccessInput {
-  """The type of WAN access to use for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
+    """
+    The type of WAN access to use for Remote Access
+    """
+    accessType: WAN_ACCESS_TYPE!
 
-  """The type of port forwarding to use for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
+    """
+    The type of port forwarding to use for Remote Access
+    """
+    forwardType: WAN_FORWARD_TYPE
 
-  """
-  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
-  """
-  port: Int
+    """
+    The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
+    """
+    port: Int
 }
 
 input EnableDynamicRemoteAccessInput {
-  """The AccessURL Input for dynamic remote access"""
-  url: AccessUrlInput!
+    """
+    The AccessURL Input for dynamic remote access
+    """
+    url: AccessUrlInput!
 
-  """Whether to enable or disable dynamic remote access"""
-  enabled: Boolean!
+    """
+    Whether to enable or disable dynamic remote access
+    """
+    enabled: Boolean!
 }
 
 input AccessUrlInput {
-  type: URL_TYPE!
-  name: String
-  ipv4: URL
-  ipv6: URL
+    type: URL_TYPE!
+    name: String
+    ipv4: URL
+    ipv6: URL
 }
 
 type Subscription {
-  notificationAdded: Notification!
-  notificationsOverview: NotificationOverview!
-  notificationsWarningsAndAlerts: [Notification!]!
-  ownerSubscription: Owner!
-  serversSubscription: Server!
-  parityHistorySubscription: ParityCheck!
-  arraySubscription: UnraidArray!
-  dockerContainerStats: DockerContainerStats!
-  logFile(path: String!): LogFileContent!
-  systemMetricsCpu: CpuUtilization!
-  systemMetricsCpuTelemetry: CpuPackages!
-  systemMetricsMemory: MemoryUtilization!
-  upsUpdates: UPSDevice!
+    notificationAdded: Notification!
+    notificationsOverview: NotificationOverview!
+    notificationsWarningsAndAlerts: [Notification!]!
+    ownerSubscription: Owner!
+    serversSubscription: Server!
+    parityHistorySubscription: ParityCheck!
+    arraySubscription: UnraidArray!
+    dockerContainerStats: DockerContainerStats!
+    logFile(path: String!): LogFileContent!
+    systemMetricsCpu: CpuUtilization!
+    systemMetricsCpuTelemetry: CpuPackages!
+    systemMetricsMemory: MemoryUtilization!
+    upsUpdates: UPSDevice!
 }

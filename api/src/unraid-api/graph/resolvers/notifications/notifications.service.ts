@@ -25,6 +25,7 @@ import {
     NotificationFilter,
     NotificationImportance,
     NotificationOverview,
+    NotificationSettings,
     NotificationType,
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
@@ -172,6 +173,13 @@ export class NotificationsService {
      */
     public getOverview(): NotificationOverview {
         return structuredClone(NotificationsService.overview);
+    }
+
+    public getSettings(): NotificationSettings {
+        const { notify } = getters.dynamix();
+        return {
+            position: notify?.position ?? 'top-right',
+        };
     }
 
     private publishOverview(overview = NotificationsService.overview) {
