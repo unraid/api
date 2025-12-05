@@ -685,16 +685,31 @@ describe('DockerOrganizerService', () => {
             const TO_DELETE = ['entryB', 'entryD'];
             const EXPECTED_REMAINING = ['entryA', 'entryC'];
 
+            // Mock getContainers to return containers matching our test entries
+            const mockContainers = ENTRIES.map((entryId, i) => ({
+                id: `container-${entryId}`,
+                names: [`/${entryId}`],
+                image: 'test:latest',
+                imageId: `sha256:${i}`,
+                command: 'test',
+                created: 1640995200 + i,
+                ports: [],
+                state: 'running',
+                status: 'Up 1 hour',
+                autoStart: true,
+            }));
+            (dockerService.getContainers as any).mockResolvedValue(mockContainers);
+
             const organizerWithOrdering = createTestOrganizer();
             const rootFolder = getRootFolder(organizerWithOrdering);
             rootFolder.children = [...ENTRIES];
 
-            // Create the test entries
+            // Create refs pointing to the container names (which will be /{entryId})
             ENTRIES.forEach((entryId) => {
                 organizerWithOrdering.views.default.entries[entryId] = {
                     id: entryId,
                     type: 'ref',
-                    target: `target_${entryId}`,
+                    target: `/${entryId}`,
                 };
             });
 

@@ -47,34 +47,78 @@ export function resourceToResourceRef(
  * // updatedView will contain 'res1' as a resource reference in the root folder
  * ```
  */
-export function addMissingResourcesToView(
+/**
+ * Removes refs from a view that point to resources that no longer exist.
+ * This ensures the view stays in sync when containers are removed.
+ *
+ * @param resources - The current set of available resources
+ * @param originalView - The view to clean up
+ * @returns A new view with stale refs removed
+ */
+export function removeStaleRefsFromView(
     resources: OrganizerV1['resources'],
     originalView: OrganizerView
 ): OrganizerView {
     const view = structuredClone(originalView);
-    view.entries[view.root] ??= {
-        id: view.root,
-        name: view.name,
+    const resourceIds = new Set(Object.keys(resources));
+    const staleRefIds = new Set<string>();
+
+    // Find all refs that point to non-existent resources
+    Object.entries(view.entries).forEach(([id, entry]) => {
+        if (entry.type === 'ref') {
+            const ref = entry as OrganizerResourceRef;
+            if (!resourceIds.has(ref.target)) {
+                staleRefIds.add(id);
+            }
+        }
+    });
+
+    // Remove stale refs from all folder children arrays
+    Object.values(view.entries).forEach((entry) => {
+        if (entry.type === 'folder') {
+            const folder = entry as OrganizerFolder;
+            folder.children = folder.children.filter((childId) => !staleRefIds.has(childId));
+        }
+    });
+
+    // Delete the stale ref entries themselves
+    for (const refId of staleRefIds) {
+        delete view.entries[refId];
+    }
+
+    return view;
+}
+
+export function addMissingResourcesToView(
+    resources: OrganizerV1['resources'],
+    originalView: OrganizerView
+): OrganizerView {
+    // First, remove any stale refs pointing to non-existent resources
+    const cleanedView = removeStaleRefsFromView(resources, originalView);
+
+    cleanedView.entries[cleanedView.root] ??= {
+        id: cleanedView.root,
+        name: cleanedView.name,
         type: 'folder',
         children: [],
     };
-    const root = view.entries[view.root]! as OrganizerFolder;
+    const root = cleanedView.entries[cleanedView.root]! as OrganizerFolder;
     const rootChildren = new Set(root.children);
     // Track if a resource id is already referenced in any folder
     const referencedIds = new Set<string>();
-    Object.values(view.entries).forEach((entry) => {
+    Object.values(cleanedView.entries).forEach((entry) => {
         if (entry.type === 'folder') {
             for (const childId of entry.children) referencedIds.add(childId);
         }
     });
 
     Object.entries(resources).forEach(([id, resource]) => {
-        const existsInEntries = Boolean(view.entries[id]);
+        const existsInEntries = Boolean(cleanedView.entries[id]);
         const isReferencedSomewhere = referencedIds.has(id);
 
         // Ensure a ref entry exists for the resource id
         if (!existsInEntries) {
-            view.entries[id] = resourceToResourceRef(resource, (resource) => resource.id);
+            cleanedView.entries[id] = resourceToResourceRef(resource, (resource) => resource.id);
         }
 
         // Only add to root if the resource is not already referenced elsewhere
@@ -83,7 +127,7 @@ export function addMissingResourcesToView(
         }
     });
     root.children = Array.from(rootChildren);
-    return view;
+    return cleanedView;
 }
 
 /**

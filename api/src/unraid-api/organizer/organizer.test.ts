@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { addMissingResourcesToView } from '@app/unraid-api/organizer/organizer.js';
+import {
+    addMissingResourcesToView,
+    removeStaleRefsFromView,
+} from '@app/unraid-api/organizer/organizer.js';
 import {
     OrganizerFolder,
     OrganizerResource,
@@ -297,5 +300,234 @@ describe('addMissingResourcesToView', () => {
         // Root should still only contain the 'stuff' folder, not the resources
         const rootChildren = (result.entries['root1'] as OrganizerFolder).children;
         expect(rootChildren).toEqual(['stuff']);
+    });
+
+    it('should remove stale refs when resources are removed', () => {
+        const resources: OrganizerV1['resources'] = {
+            resource1: { id: 'resource1', type: 'container', name: 'Container 1' },
+            // resource2 has been removed
+        };
+
+        const originalView: OrganizerView = {
+            id: 'view1',
+            name: 'Test View',
+            root: 'root1',
+            entries: {
+                root1: {
+                    id: 'root1',
+                    type: 'folder',
+                    name: 'Root',
+                    children: ['resource1', 'resource2'],
+                },
+                resource1: { id: 'resource1', type: 'ref', target: 'resource1' },
+                resource2: { id: 'resource2', type: 'ref', target: 'resource2' }, // stale ref
+            },
+        };
+
+        const result = addMissingResourcesToView(resources, originalView);
+
+        // resource2 should be removed from entries
+        expect(result.entries['resource2']).toBeUndefined();
+        // resource2 should be removed from root children
+        const rootChildren = (result.entries['root1'] as OrganizerFolder).children;
+        expect(rootChildren).not.toContain('resource2');
+        expect(rootChildren).toContain('resource1');
+    });
+
+    it('should remove stale refs from nested folders', () => {
+        const resources: OrganizerV1['resources'] = {
+            resource1: { id: 'resource1', type: 'container', name: 'Container 1' },
+            // resource2 and resource3 have been removed
+        };
+
+        const originalView: OrganizerView = {
+            id: 'view1',
+            name: 'Test View',
+            root: 'root1',
+            entries: {
+                root1: {
+                    id: 'root1',
+                    type: 'folder',
+                    name: 'Root',
+                    children: ['folder1', 'resource1'],
+                },
+                folder1: {
+                    id: 'folder1',
+                    type: 'folder',
+                    name: 'Nested Folder',
+                    children: ['resource2', 'resource3'],
+                },
+                resource1: { id: 'resource1', type: 'ref', target: 'resource1' },
+                resource2: { id: 'resource2', type: 'ref', target: 'resource2' }, // stale
+                resource3: { id: 'resource3', type: 'ref', target: 'resource3' }, // stale
+            },
+        };
+
+        const result = addMissingResourcesToView(resources, originalView);
+
+        // stale refs should be removed
+        expect(result.entries['resource2']).toBeUndefined();
+        expect(result.entries['resource3']).toBeUndefined();
+        // folder1 children should be empty
+        const folder1Children = (result.entries['folder1'] as OrganizerFolder).children;
+        expect(folder1Children).toEqual([]);
+        // resource1 should still exist
+        expect(result.entries['resource1']).toBeDefined();
+    });
+});
+
+describe('removeStaleRefsFromView', () => {
+    it('should remove refs pointing to non-existent resources', () => {
+        const resources: OrganizerV1['resources'] = {
+            resource1: { id: 'resource1', type: 'container', name: 'Container 1' },
+        };
+
+        const originalView: OrganizerView = {
+            id: 'view1',
+            name: 'Test View',
+            root: 'root1',
+            entries: {
+                root1: {
+                    id: 'root1',
+                    type: 'folder',
+                    name: 'Root',
+                    children: ['resource1', 'stale-ref'],
+                },
+                resource1: { id: 'resource1', type: 'ref', target: 'resource1' },
+                'stale-ref': { id: 'stale-ref', type: 'ref', target: 'non-existent-resource' },
+            },
+        };
+
+        const result = removeStaleRefsFromView(resources, originalView);
+
+        expect(result.entries['resource1']).toBeDefined();
+        expect(result.entries['stale-ref']).toBeUndefined();
+        expect((result.entries['root1'] as OrganizerFolder).children).toEqual(['resource1']);
+    });
+
+    it('should not remove folders even if empty', () => {
+        const resources: OrganizerV1['resources'] = {};
+
+        const originalView: OrganizerView = {
+            id: 'view1',
+            name: 'Test View',
+            root: 'root1',
+            entries: {
+                root1: {
+                    id: 'root1',
+                    type: 'folder',
+                    name: 'Root',
+                    children: ['folder1'],
+                },
+                folder1: {
+                    id: 'folder1',
+                    type: 'folder',
+                    name: 'Empty Folder',
+                    children: [],
+                },
+            },
+        };
+
+        const result = removeStaleRefsFromView(resources, originalView);
+
+        expect(result.entries['root1']).toBeDefined();
+        expect(result.entries['folder1']).toBeDefined();
+    });
+
+    it('should remove multiple stale refs from multiple folders', () => {
+        const resources: OrganizerV1['resources'] = {
+            resource1: { id: 'resource1', type: 'container', name: 'Container 1' },
+        };
+
+        const originalView: OrganizerView = {
+            id: 'view1',
+            name: 'Test View',
+            root: 'root1',
+            entries: {
+                root1: {
+                    id: 'root1',
+                    type: 'folder',
+                    name: 'Root',
+                    children: ['folder1', 'stale1'],
+                },
+                folder1: {
+                    id: 'folder1',
+                    type: 'folder',
+                    name: 'Folder',
+                    children: ['resource1', 'stale2', 'stale3'],
+                },
+                resource1: { id: 'resource1', type: 'ref', target: 'resource1' },
+                stale1: { id: 'stale1', type: 'ref', target: 'gone1' },
+                stale2: { id: 'stale2', type: 'ref', target: 'gone2' },
+                stale3: { id: 'stale3', type: 'ref', target: 'gone3' },
+            },
+        };
+
+        const result = removeStaleRefsFromView(resources, originalView);
+
+        expect(result.entries['resource1']).toBeDefined();
+        expect(result.entries['stale1']).toBeUndefined();
+        expect(result.entries['stale2']).toBeUndefined();
+        expect(result.entries['stale3']).toBeUndefined();
+        expect((result.entries['root1'] as OrganizerFolder).children).toEqual(['folder1']);
+        expect((result.entries['folder1'] as OrganizerFolder).children).toEqual(['resource1']);
+    });
+
+    it('should not mutate the original view', () => {
+        const resources: OrganizerV1['resources'] = {};
+
+        const originalView: OrganizerView = {
+            id: 'view1',
+            name: 'Test View',
+            root: 'root1',
+            entries: {
+                root1: {
+                    id: 'root1',
+                    type: 'folder',
+                    name: 'Root',
+                    children: ['stale-ref'],
+                },
+                'stale-ref': { id: 'stale-ref', type: 'ref', target: 'gone' },
+            },
+        };
+
+        const originalEntriesCount = Object.keys(originalView.entries).length;
+        const result = removeStaleRefsFromView(resources, originalView);
+
+        expect(Object.keys(originalView.entries)).toHaveLength(originalEntriesCount);
+        expect(originalView.entries['stale-ref']).toBeDefined();
+        expect(result).not.toBe(originalView);
+    });
+
+    it('should handle view with no refs', () => {
+        const resources: OrganizerV1['resources'] = {
+            resource1: { id: 'resource1', type: 'container', name: 'Container 1' },
+        };
+
+        const originalView: OrganizerView = {
+            id: 'view1',
+            name: 'Test View',
+            root: 'root1',
+            entries: {
+                root1: {
+                    id: 'root1',
+                    type: 'folder',
+                    name: 'Root',
+                    children: ['folder1'],
+                },
+                folder1: {
+                    id: 'folder1',
+                    type: 'folder',
+                    name: 'Sub Folder',
+                    children: [],
+                },
+            },
+        };
+
+        const result = removeStaleRefsFromView(resources, originalView);
+
+        expect(Object.keys(result.entries)).toHaveLength(2);
+        expect(result.entries['root1']).toBeDefined();
+        expect(result.entries['folder1']).toBeDefined();
     });
 });
