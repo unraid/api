@@ -99,6 +99,14 @@ export class NotificationCounts {
     total!: number;
 }
 
+@ObjectType('NotificationSettings')
+export class NotificationSettings {
+    @Field()
+    @IsString()
+    @IsNotEmpty()
+    position!: string;
+}
+
 @ObjectType('NotificationOverview')
 export class NotificationOverview {
     @Field(() => NotificationCounts)
@@ -170,4 +178,8 @@ export class Notifications extends Node {
     })
     @IsNotEmpty()
     warningsAndAlerts!: Notification[];
+
+    @Field(() => NotificationSettings)
+    @IsNotEmpty()
+    settings!: NotificationSettings;
 }

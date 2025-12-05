@@ -13,6 +13,7 @@ import {
     NotificationImportance,
     NotificationOverview,
     Notifications,
+    NotificationSettings,
     NotificationType,
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
@@ -39,6 +40,11 @@ export class NotificationsResolver {
     @ResolveField(() => NotificationOverview)
     public async overview(): Promise<NotificationOverview> {
         return this.notificationsService.getOverview();
+    }
+
+    @ResolveField(() => NotificationSettings)
+    public settings(): NotificationSettings {
+        return this.notificationsService.getSettings();
     }
 
     @ResolveField(() => [Notification])
