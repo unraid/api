@@ -18,6 +18,7 @@ import { GraphQLJSON } from 'graphql-scalars';
 
 import { PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { UseFeatureFlag } from '@app/unraid-api/decorators/use-feature-flag.decorator.js';
+import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { DockerStatsService } from '@app/unraid-api/graph/resolvers/docker/docker-stats.service.js';
@@ -45,6 +46,7 @@ import { GraphQLFieldHelper } from '@app/unraid-api/utils/graphql-field-helper.j
 export class DockerResolver {
     constructor(
         private readonly dockerService: DockerService,
+        private readonly dockerConfigService: DockerConfigService,
         private readonly dockerFormService: DockerFormService,
         private readonly dockerOrganizerService: DockerOrganizerService,
         private readonly dockerPhpService: DockerPhpService,
@@ -337,6 +339,29 @@ export class DockerResolver {
     @Mutation(() => DockerTemplateSyncResult)
     public async syncDockerTemplatePaths() {
         return this.dockerTemplateScannerService.scanTemplates();
+    }
+
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.DOCKER,
+    })
+    @Mutation(() => Boolean, {
+        description:
+            'Reset Docker template mappings to defaults. Use this to recover from corrupted state.',
+    })
+    public async resetDockerTemplateMappings(): Promise<boolean> {
+        const defaultConfig = this.dockerConfigService.defaultConfig();
+        const currentConfig = this.dockerConfigService.getConfig();
+        const resetConfig = {
+            ...currentConfig,
+            templateMappings: defaultConfig.templateMappings,
+            skipTemplatePaths: defaultConfig.skipTemplatePaths,
+        };
+        const validated = await this.dockerConfigService.validate(resetConfig);
+        this.dockerConfigService.replaceConfig(validated);
+        await this.dockerService.clearContainerCache();
+        return true;
     }
 
     @UsePermissions({

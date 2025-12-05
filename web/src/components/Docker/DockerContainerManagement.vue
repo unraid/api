@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useQuery } from '@vue/apollo-composable';
+import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import ContainerOverviewCard from '@/components/Docker/ContainerOverviewCard.vue';
 import ContainerSizesModal from '@/components/Docker/ContainerSizesModal.vue';
 import { GET_DOCKER_CONTAINERS } from '@/components/Docker/docker-containers.query';
+import { RESET_DOCKER_TEMPLATE_MAPPINGS } from '@/components/Docker/docker-reset-template-mappings.mutation';
 import DockerAutostartSettings from '@/components/Docker/DockerAutostartSettings.vue';
 import DockerConsoleViewer from '@/components/Docker/DockerConsoleViewer.vue';
 import DockerContainersTable from '@/components/Docker/DockerContainersTable.vue';
@@ -264,6 +265,19 @@ async function refreshContainers() {
   await refetch({ skipCache: true });
 }
 
+const { mutate: resetTemplateMappings, loading: resettingMappings } = useMutation(
+  RESET_DOCKER_TEMPLATE_MAPPINGS
+);
+
+async function handleResetAndRetry() {
+  try {
+    await resetTemplateMappings();
+    await refetch({ skipCache: true });
+  } catch (e) {
+    console.error('Failed to reset Docker template mappings:', e);
+  }
+}
+
 function handleTableRowClick(payload: {
   id: string;
   type: 'container' | 'folder';
@@ -451,7 +465,18 @@ const [transitionContainerRef] = useAutoAnimate({
           class="mb-4"
         >
           <template #actions>
-            <UButton size="xs" variant="soft" @click="refetch({ skipCache: true })">Retry</UButton>
+            <div class="flex gap-2">
+              <UButton size="xs" variant="soft" :loading="loading" @click="refetch({ skipCache: true })"
+                >Retry</UButton
+              >
+              <UButton
+                size="xs"
+                variant="outline"
+                :loading="resettingMappings"
+                @click="handleResetAndRetry"
+                >Reset &amp; Retry</UButton
+              >
+            </div>
           </template>
         </UAlert>
         <div>

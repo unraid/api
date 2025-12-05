@@ -91,7 +91,20 @@ describe('DockerModule', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 DockerResolver,
-                { provide: DockerService, useValue: {} },
+                { provide: DockerService, useValue: { clearContainerCache: vi.fn() } },
+                {
+                    provide: DockerConfigService,
+                    useValue: {
+                        defaultConfig: vi
+                            .fn()
+                            .mockReturnValue({ templateMappings: {}, skipTemplatePaths: [] }),
+                        getConfig: vi
+                            .fn()
+                            .mockReturnValue({ templateMappings: {}, skipTemplatePaths: [] }),
+                        validate: vi.fn().mockImplementation((config) => Promise.resolve(config)),
+                        replaceConfig: vi.fn(),
+                    },
+                },
                 { provide: DockerFormService, useValue: { getContainerOverviewForm: vi.fn() } },
                 { provide: DockerOrganizerService, useValue: {} },
                 { provide: DockerPhpService, useValue: { getContainerUpdateStatuses: vi.fn() } },

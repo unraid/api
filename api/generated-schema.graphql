@@ -2678,6 +2678,11 @@ type Mutation {
   createDockerFolderWithItems(name: String!, parentId: String, sourceEntryIds: [String!], position: Float): ResolvedOrganizerV1!
   updateDockerViewPreferences(viewId: String = "default", prefs: JSON!): ResolvedOrganizerV1!
   syncDockerTemplatePaths: DockerTemplateSyncResult!
+
+  """
+  Reset Docker template mappings to defaults. Use this to recover from corrupted state.
+  """
+  resetDockerTemplateMappings: Boolean!
   refreshDockerDigests: Boolean!
 
   """Initiates a flash drive backup using a configured remote."""

@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { DockerStatsService } from '@app/unraid-api/graph/resolvers/docker/docker-stats.service.js';
@@ -40,6 +41,20 @@ describe('DockerResolver', () => {
                         getNetworks: vi.fn(),
                         getContainerLogSizes: vi.fn(),
                         getContainerLogs: vi.fn(),
+                        clearContainerCache: vi.fn(),
+                    },
+                },
+                {
+                    provide: DockerConfigService,
+                    useValue: {
+                        defaultConfig: vi
+                            .fn()
+                            .mockReturnValue({ templateMappings: {}, skipTemplatePaths: [] }),
+                        getConfig: vi
+                            .fn()
+                            .mockReturnValue({ templateMappings: {}, skipTemplatePaths: [] }),
+                        validate: vi.fn().mockImplementation((config) => Promise.resolve(config)),
+                        replaceConfig: vi.fn(),
                     },
                 },
                 {
