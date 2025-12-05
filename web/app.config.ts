@@ -43,7 +43,7 @@ export default {
       position: 'top-center' as const,
       // expand: false, --> buggy
       duration: 5000,
-      max: 3,
+      // max: 3, --> not added yet in 4.0.0-alpha.0. Needs to be upgraded to 4.2.1 or later.
     },
   },
 };
