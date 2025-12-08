@@ -92,7 +92,7 @@ const unlinkUnixPort = () => {
     }
 };
 
-export const viteNodeApp = async () => {
+export const viteNodeApp = async (): Promise<NestFastifyApplication<RawServerDefault>> => {
     const budget = new StartupBudget(TOTAL_STARTUP_BUDGET_MS);
 
     try {
@@ -232,8 +232,9 @@ export const viteNodeApp = async () => {
             await server?.close?.();
         }
         shutdownApiEvent();
-        // Kill application
+        // Kill application - gracefulExit calls process.exit but TS doesn't know it never returns
         gracefulExit(1);
+        throw new Error('Unreachable');
     }
 };
 
