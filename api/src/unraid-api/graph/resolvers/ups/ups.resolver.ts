@@ -21,7 +21,10 @@ export class UPSResolver {
             status: upsData.STATUS || 'Online',
             battery: {
                 chargeLevel: parseInt(upsData.BCHARGE || '100', 10),
-                estimatedRuntime: parseInt(upsData.TIMELEFT || '3600', 10),
+                // Convert TIMELEFT from minutes (apcupsd format) to seconds
+                estimatedRuntime: Math.round(
+                    parseFloat(upsData.TIMELEFT || '60') * 60
+                ),
                 health: 'Good',
             },
             power: {
