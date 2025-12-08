@@ -15,6 +15,8 @@ import { WebSocket } from 'ws';
 
 import { logger } from '@app/core/log.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
+import { TimeoutBudget } from '@app/core/utils/misc/timeout-budget.js';
+import { withTimeout } from '@app/core/utils/misc/with-timeout.js';
 import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
 import { environment, PATHS_CONFIG_MODULES, PORT } from '@app/environment.js';
 import * as envVars from '@app/environment.js';
@@ -36,56 +38,6 @@ const BOOTSTRAP_RESERVED_MS = 8_000;
 // Maximum time for any single pre-bootstrap operation
 const MAX_OPERATION_TIMEOUT_MS = 2_000;
 
-/**
- * Tracks remaining startup time budget to ensure we don't exceed PM2's timeout.
- */
-class StartupBudget {
-    private startTime: number;
-    private budgetMs: number;
-
-    constructor(budgetMs: number) {
-        this.startTime = Date.now();
-        this.budgetMs = budgetMs;
-    }
-
-    /** Returns remaining time in milliseconds */
-    remaining(): number {
-        return Math.max(0, this.budgetMs - (Date.now() - this.startTime));
-    }
-
-    /** Returns elapsed time in milliseconds */
-    elapsed(): number {
-        return Date.now() - this.startTime;
-    }
-
-    /** Returns timeout for an operation, capped by remaining budget */
-    getTimeout(maxMs: number, reserveMs: number = 0): number {
-        const available = this.remaining() - reserveMs;
-        return Math.max(100, Math.min(maxMs, available)); // At least 100ms
-    }
-
-    /** Checks if we have enough time remaining */
-    hasTimeFor(requiredMs: number): boolean {
-        return this.remaining() >= requiredMs;
-    }
-}
-
-/**
- * Wraps a promise with a timeout to prevent hangs during startup.
- * If the operation takes longer than timeoutMs, it rejects with a timeout error.
- */
-const withTimeout = <T>(promise: Promise<T>, timeoutMs: number, operationName: string): Promise<T> => {
-    return Promise.race([
-        promise,
-        new Promise<never>((_, reject) =>
-            setTimeout(
-                () => reject(new Error(`${operationName} timed out after ${timeoutMs}ms`)),
-                timeoutMs
-            )
-        ),
-    ]);
-};
-
 const unlinkUnixPort = () => {
     if (isNaN(parseInt(PORT, 10))) {
         if (fileExistsSync(PORT)) unlinkSync(PORT);
@@ -93,7 +45,7 @@ const unlinkUnixPort = () => {
 };
 
 export const viteNodeApp = async (): Promise<NestFastifyApplication<RawServerDefault>> => {
-    const budget = new StartupBudget(TOTAL_STARTUP_BUDGET_MS);
+    const budget = new TimeoutBudget(TOTAL_STARTUP_BUDGET_MS);
 
     try {
         await import('json-bigint-patch');
