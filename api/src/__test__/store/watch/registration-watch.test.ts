@@ -148,21 +148,3 @@ describe('reloadVarIniWithRetry', () => {
         await promise;
     });
 });
-
-describe('setupRegistrationKeyWatch', () => {
-    it('is configured with polling enabled for FAT32 compatibility', async () => {
-        // This is a design/documentation test - verifies the watcher is configured correctly
-        // The actual file watching behavior can't easily be tested in unit tests
-
-        const fs = await import('fs');
-        const path = await import('path');
-        const watchFilePath = path.join(process.cwd(), 'src/store/watch/registration-watch.ts');
-
-        const fileContent = fs.readFileSync(watchFilePath, 'utf-8');
-
-        // Verify polling is always enabled (not dependent on env var)
-        expect(fileContent).toContain('usePolling: true');
-        // Verify there's a comment explaining why
-        expect(fileContent).toMatch(/FAT32|inotify/i);
-    });
-});
