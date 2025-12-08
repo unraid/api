@@ -46,6 +46,11 @@ class UnraidUpdateCancel
       $readmeContent .= "Unraid OS by [Lime Technology, Inc.](https://lime-technology.com).\n";
       file_put_contents($readmeFile, $readmeContent);
 
+      // Delete plugin files that were downloaded during the OS upgrade
+      if (is_dir("/boot/config/plugins-nextboot")) {
+        shell_exec("rm -rf /boot/config/plugins-nextboot");
+      }
+
       return ['success' => true]; // Upgrade handled successfully
     } catch (\Throwable $th) {
       return [
