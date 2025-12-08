@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { StateFileKey } from '@app/store/types.js';
 import { RegistrationType } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
 // Mock the store module
@@ -68,7 +69,7 @@ describe('reloadVarIniWithRetry', () => {
 
         // Should only dispatch once since state changed
         expect(store.dispatch).toHaveBeenCalledTimes(1);
-        expect(loadSingleStateFile).toHaveBeenCalledWith('var');
+        expect(loadSingleStateFile).toHaveBeenCalledWith(StateFileKey.var);
     });
 
     it('retries up to maxRetries when state does not change', async () => {
