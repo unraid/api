@@ -94,7 +94,7 @@ const reformattedTimestamp = computed<string>(() => {
       >
         <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
         <UIcon v-if="icon" :name="icon.name" class="size-5 shrink-0 translate-y-1" :class="icon.color" />
-        <span class="flex-1 truncate" :title="title">{{ title }}</span>
+        <span class="flex-1 break-words" :title="title">{{ title }}</span>
       </h3>
 
       <div
