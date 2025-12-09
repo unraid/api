@@ -45,7 +45,8 @@ export default {
     // https://ui.nuxt.com/docs/components/toast#theme
     toast: {
       slots: {
-        title: 'truncate pr-6',
+        title: 'truncate', // can also use break-words instead of truncating
+        description: 'truncate',
       },
     },
 
