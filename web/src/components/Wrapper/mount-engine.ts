@@ -3,6 +3,7 @@ import { DefaultApolloClient } from '@vue/apollo-composable';
 import UApp from '@nuxt/ui/components/App.vue';
 import ui from '@nuxt/ui/vue-plugin';
 
+import { isDarkModeActive } from '@unraid/ui';
 // Import component registry (only imported here to avoid ordering issues)
 import { componentMappings } from '@/components/Wrapper/component-registry';
 import { client } from '~/helpers/create-apollo-client';
@@ -179,12 +180,7 @@ export async function mountUnifiedApp() {
     element.setAttribute('data-vue-mounted', 'true');
     element.classList.add('unapi');
 
-    // Apply dark mode class if active
-    // Check both documentElement class and CSS variable (set by PHP)
-    const isDarkMode =
-      document.documentElement.classList.contains('dark') ||
-      getComputedStyle(document.documentElement).getPropertyValue('--theme-dark-mode').trim() === '1';
-    if (isDarkMode) {
+    if (isDarkModeActive()) {
       element.classList.add('dark');
     }
 
