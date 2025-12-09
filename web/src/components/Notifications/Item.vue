@@ -105,12 +105,12 @@ const reformattedTimestamp = computed<string>(() => {
       </div>
     </header>
 
-    <h4 class="m-0 font-normal">
+    <h4 class="m-0 font-normal break-words">
       {{ subject }}
     </h4>
 
     <div class="flex flex-row items-center justify-between gap-2">
-      <div class="" v-html="descriptionMarkup" />
+      <div class="min-w-0 break-words" v-html="descriptionMarkup" />
     </div>
 
     <p v-if="mutationError" class="text-destructive">{{ t('common.error') }}: {{ mutationError }}</p>
