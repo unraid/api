@@ -43,7 +43,11 @@ export default {
 
     //css theming/style-overrides for the toast component
     // https://ui.nuxt.com/docs/components/toast#theme
-    toast: {},
+    toast: {
+      slots: {
+        title: 'truncate pr-6',
+      },
+    },
 
     // Also, for toasts, BUT this is imported in the Root UApp in mount-engine.ts
     // https://ui.nuxt.com/docs/components/toast#examples
