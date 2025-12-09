@@ -2,6 +2,7 @@ import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
 import { useLazyQuery } from '@vue/apollo-composable';
 
+import { isDarkModeActive } from '@unraid/ui';
 import { defaultColors } from '~/themes/default';
 
 import type { GetThemeQuery } from '~/composables/gql/graphql';
@@ -47,21 +48,6 @@ const getCssVar = (name: string): string => {
 
 const readDomThemeName = () => getCssVar('--theme-name');
 
-const readDomDarkFlag = (): boolean | null => {
-  if (!isDomAvailable()) return null;
-  const cssVar = getCssVar('--theme-dark-mode');
-  if (cssVar === '1') return true;
-  if (cssVar === '0') return false;
-  return null;
-};
-
-const hasDarkClassApplied = (): boolean => {
-  if (!isDomAvailable()) return false;
-  if (document.documentElement.classList.contains('dark')) return true;
-  if (document.body?.classList.contains('dark')) return true;
-  return Boolean(document.querySelector('.unapi.dark'));
-};
-
 const syncDarkClass = (method: 'add' | 'remove') => {
   if (!isDomAvailable()) return;
   document.documentElement.classList[method]('dark');
@@ -77,9 +63,7 @@ const applyDarkClass = (isDark: boolean) => {
 };
 
 const bootstrapDarkClass = () => {
-  const domFlag = readDomDarkFlag();
-  const shouldBeDark = domFlag ?? hasDarkClassApplied();
-  if (shouldBeDark) {
+  if (isDarkModeActive()) {
     applyDarkClass(true);
   }
 };
@@ -161,11 +145,7 @@ export const useThemeStore = defineStore('theme', () => {
     return name || DEFAULT_THEME.name;
   });
 
-  const darkMode = computed<boolean>(() => {
-    if (!isDomAvailable()) return false;
-    const flag = readDomDarkFlag();
-    return flag ?? hasDarkClassApplied();
-  });
+  const darkMode = computed<boolean>(() => isDarkModeActive());
 
   const readBannerGradientVar = (): string => {
     const raw = getCssVar('--banner-gradient');

@@ -1,3 +1,4 @@
+import { isDarkModeActive } from '@/lib/utils';
 import { onMounted, ref } from 'vue';
 
 let virtualModalContainer: HTMLDivElement | null = null;
@@ -9,12 +10,7 @@ const ensureVirtualContainer = () => {
     virtualModalContainer.className = 'unapi';
     virtualModalContainer.style.position = 'relative';
     virtualModalContainer.style.zIndex = '999999';
-    // Inherit dark mode if it's already applied to the page so teleported sheets stay in sync
-    const isDark =
-      document.documentElement.classList.contains('dark') ||
-      document.body?.classList.contains('dark') ||
-      Boolean(document.querySelector('.unapi.dark'));
-    if (isDark) {
+    if (isDarkModeActive()) {
       virtualModalContainer.classList.add('dark');
     }
     document.body.appendChild(virtualModalContainer);
