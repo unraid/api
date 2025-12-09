@@ -137,9 +137,10 @@ describe('Theme Store', () => {
 
     it('should compute bannerGradient from CSS variable when set', async () => {
       document.documentElement.style.setProperty('--theme-dark-mode', '0');
+      // Set the gradient with the resolved value (not nested var()) since getComputedStyle resolves it
       document.documentElement.style.setProperty(
         '--banner-gradient',
-        'linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%))'
+        'linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) 30%)'
       );
 
       const store = createStore();
@@ -149,7 +150,7 @@ describe('Theme Store', () => {
       expect(store.theme.bannerGradient).toBe(true);
       expect(store.darkMode).toBe(false);
       expect(store.bannerGradient).toBe(
-        'background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%));'
+        'background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) 30%);'
       );
     });
 
