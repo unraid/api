@@ -1,10 +1,11 @@
-import { createWriteStream } from 'node:fs';
+import { spawn } from 'node:child_process';
+import { createWriteStream, openSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
 
 import { execa } from 'execa';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { fileExists, fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import { NodemonService } from '@app/unraid-api/cli/nodemon.service.js';
 
 const createLogStreamMock = (fd = 42, autoOpen = true) => {
@@ -37,13 +38,37 @@ const createLogStreamMock = (fd = 42, autoOpen = true) => {
     };
 };
 
+const createSpawnMock = (pid?: number) => {
+    const unref = vi.fn();
+    return {
+        pid,
+        unref,
+    } as unknown as ReturnType<typeof spawn>;
+};
+
+vi.mock('node:child_process', () => ({
+    spawn: vi.fn(),
+}));
 vi.mock('node:fs', () => ({
     createWriteStream: vi.fn(),
+    openSync: vi.fn().mockReturnValue(42),
+    writeSync: vi.fn(),
 }));
-vi.mock('node:fs/promises');
+vi.mock('node:fs/promises', async (importOriginal) => {
+    const actual = await importOriginal<typeof fs>();
+    return {
+        ...actual,
+        mkdir: vi.fn(),
+        writeFile: vi.fn(),
+        rm: vi.fn(),
+        readFile: vi.fn(),
+        appendFile: vi.fn(),
+    };
+});
 vi.mock('execa', () => ({ execa: vi.fn() }));
 vi.mock('@app/core/utils/files/file-exists.js', () => ({
     fileExists: vi.fn().mockResolvedValue(false),
+    fileExistsSync: vi.fn().mockReturnValue(true),
 }));
 vi.mock('@app/environment.js', () => ({
     LOG_LEVEL: 'INFO',
@@ -91,10 +116,13 @@ describe('NodemonService', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.mocked(createWriteStream).mockImplementation(() => createLogStreamMock());
+        vi.mocked(openSync).mockReturnValue(42);
+        vi.mocked(spawn).mockReturnValue(createSpawnMock(123));
         mockMkdir.mockResolvedValue(undefined);
         mockWriteFile.mockResolvedValue(undefined as unknown as void);
         mockRm.mockResolvedValue(undefined as unknown as void);
         vi.mocked(fileExists).mockResolvedValue(false);
+        vi.mocked(fileExistsSync).mockReturnValue(true);
         killSpy.mockReturnValue(true);
         findMatchingSpy.mockResolvedValue([]);
         findDirectMainSpy.mockResolvedValue([]);
@@ -123,37 +151,28 @@ describe('NodemonService', () => {
 
     it('starts nodemon and writes pid file', async () => {
         const service = new NodemonService(logger);
-        const logStream = createLogStreamMock(99);
-        vi.mocked(createWriteStream).mockReturnValue(logStream);
-        const unref = vi.fn();
-        vi.mocked(execa).mockReturnValue({
-            pid: 123,
-            unref,
-        } as unknown as ReturnType<typeof execa>);
+        const spawnMock = createSpawnMock(123);
+        vi.mocked(spawn).mockReturnValue(spawnMock);
         killSpy.mockReturnValue(true);
         findMatchingSpy.mockResolvedValue([]);
 
         await service.start({ env: { LOG_LEVEL: 'DEBUG' } });
 
         expect(stopPm2Spy).toHaveBeenCalled();
-        expect(execa).toHaveBeenCalledWith(
-            '/usr/bin/nodemon',
-            ['--config', '/etc/unraid-api/nodemon.json', '--quiet'],
+        expect(spawn).toHaveBeenCalledWith(
+            process.execPath,
+            ['/usr/bin/nodemon', '--config', '/etc/unraid-api/nodemon.json', '--quiet'],
             {
                 cwd: '/usr/local/unraid-api',
                 env: expect.objectContaining({ LOG_LEVEL: 'DEBUG' }),
                 detached: true,
-                reject: false,
-                stdio: ['ignore', logStream, logStream],
+                stdio: ['ignore', 42, 42],
             }
         );
-        expect(createWriteStream).toHaveBeenCalledWith('/var/log/unraid-api/nodemon.log', {
-            flags: 'a',
-        });
-        expect(unref).toHaveBeenCalled();
+        expect(openSync).toHaveBeenCalledWith('/var/log/unraid-api/nodemon.log', 'a');
+        expect(spawnMock.unref).toHaveBeenCalled();
         expect(mockWriteFile).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', '123');
         expect(logger.info).toHaveBeenCalledWith('Started nodemon (pid 123)');
-        expect(logStream.close).not.toHaveBeenCalled();
     });
 
     it('throws error and aborts start when directory creation fails', async () => {
@@ -165,72 +184,56 @@ describe('NodemonService', () => {
         expect(logger.error).toHaveBeenCalledWith(
             'Failed to ensure nodemon dependencies: Permission denied'
         );
-        expect(execa).not.toHaveBeenCalled();
+        expect(spawn).not.toHaveBeenCalled();
     });
 
-    it('throws error and closes logStream when execa fails', async () => {
+    it('throws error when spawn fails', async () => {
         const service = new NodemonService(logger);
-        const logStream = createLogStreamMock(99);
-        vi.mocked(createWriteStream).mockReturnValue(logStream);
         const error = new Error('Command not found');
-        vi.mocked(execa).mockImplementation(() => {
+        vi.mocked(spawn).mockImplementation(() => {
             throw error;
         });
 
         await expect(service.start()).rejects.toThrow('Failed to start nodemon: Command not found');
-        expect(logStream.close).toHaveBeenCalled();
         expect(mockWriteFile).not.toHaveBeenCalled();
         expect(logger.info).not.toHaveBeenCalled();
     });
 
     it('throws a clear error when the log file cannot be opened', async () => {
         const service = new NodemonService(logger);
-        const logStream = createLogStreamMock(99, false);
-        vi.mocked(createWriteStream).mockReturnValue(logStream);
         const openError = new Error('EACCES: permission denied');
-        setTimeout(() => logStream.emit('error', openError), 0);
+        vi.mocked(openSync).mockImplementation(() => {
+            throw openError;
+        });
 
         await expect(service.start()).rejects.toThrow(
             'Failed to start nodemon: EACCES: permission denied'
         );
-        expect(logStream.destroy).toHaveBeenCalled();
-        expect(execa).not.toHaveBeenCalled();
+        expect(spawn).not.toHaveBeenCalled();
     });
 
-    it('throws error and closes logStream when pid is missing', async () => {
+    it('throws error when pid is missing', async () => {
         const service = new NodemonService(logger);
-        const logStream = createLogStreamMock(99);
-        vi.mocked(createWriteStream).mockReturnValue(logStream);
-        const unref = vi.fn();
-        vi.mocked(execa).mockReturnValue({
-            pid: undefined,
-            unref,
-        } as unknown as ReturnType<typeof execa>);
+        const spawnMock = createSpawnMock(undefined);
+        vi.mocked(spawn).mockReturnValue(spawnMock);
 
         await expect(service.start()).rejects.toThrow(
             'Failed to start nodemon: process spawned but no PID was assigned'
         );
-        expect(logStream.close).toHaveBeenCalled();
         expect(mockWriteFile).not.toHaveBeenCalled();
         expect(logger.info).not.toHaveBeenCalled();
     });
 
     it('throws when nodemon exits immediately after start', async () => {
         const service = new NodemonService(logger);
-        const logStream = createLogStreamMock(99);
-        vi.mocked(createWriteStream).mockReturnValue(logStream);
-        const unref = vi.fn();
-        vi.mocked(execa).mockReturnValue({
-            pid: 456,
-            unref,
-        } as unknown as ReturnType<typeof execa>);
+        const spawnMock = createSpawnMock(456);
+        vi.mocked(spawn).mockReturnValue(spawnMock);
         killSpy.mockImplementation(() => {
             throw new Error('not running');
         });
         const logsSpy = vi.spyOn(service, 'logs').mockResolvedValue('recent log lines');
 
         await expect(service.start()).rejects.toThrow(/Nodemon exited immediately/);
-        expect(logStream.close).toHaveBeenCalled();
         expect(mockRm).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', { force: true });
         expect(logsSpy).toHaveBeenCalledWith(50);
     });
@@ -251,19 +254,14 @@ describe('NodemonService', () => {
             'isPidRunning'
         ).mockResolvedValue(true);
 
-        const logStream = createLogStreamMock(99);
-        vi.mocked(createWriteStream).mockReturnValue(logStream);
-        const unref = vi.fn();
-        vi.mocked(execa).mockReturnValue({
-            pid: 456,
-            unref,
-        } as unknown as ReturnType<typeof execa>);
+        const spawnMock = createSpawnMock(456);
+        vi.mocked(spawn).mockReturnValue(spawnMock);
 
         await service.start();
 
         expect(stopSpy).toHaveBeenCalledWith({ quiet: true });
         expect(mockRm).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', { force: true });
-        expect(execa).toHaveBeenCalled();
+        expect(spawn).toHaveBeenCalled();
         expect(logger.info).toHaveBeenCalledWith(
             'unraid-api already running under nodemon (pid 999); restarting for a fresh start.'
         );
@@ -271,13 +269,8 @@ describe('NodemonService', () => {
 
     it('removes stale pid file and starts when recorded pid is dead', async () => {
         const service = new NodemonService(logger);
-        const logStream = createLogStreamMock(99);
-        vi.mocked(createWriteStream).mockReturnValue(logStream);
-        const unref = vi.fn();
-        vi.mocked(execa).mockReturnValue({
-            pid: 111,
-            unref,
-        } as unknown as ReturnType<typeof execa>);
+        const spawnMock = createSpawnMock(111);
+        vi.mocked(spawn).mockReturnValue(spawnMock);
         vi.spyOn(
             service as unknown as { getStoredPid: () => Promise<number | null> },
             'getStoredPid'
@@ -294,7 +287,7 @@ describe('NodemonService', () => {
         await service.start();
 
         expect(mockRm).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', { force: true });
-        expect(execa).toHaveBeenCalled();
+        expect(spawn).toHaveBeenCalled();
         expect(mockWriteFile).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', '111');
         expect(logger.warn).toHaveBeenCalledWith(
             'Found nodemon pid file (555) but the process is not running. Cleaning up.'
@@ -313,18 +306,13 @@ describe('NodemonService', () => {
             'waitForNodemonExit'
         ).mockResolvedValue();
 
-        const logStream = createLogStreamMock(99);
-        vi.mocked(createWriteStream).mockReturnValue(logStream);
-        const unref = vi.fn();
-        vi.mocked(execa).mockReturnValue({
-            pid: 222,
-            unref,
-        } as unknown as ReturnType<typeof execa>);
+        const spawnMock = createSpawnMock(222);
+        vi.mocked(spawn).mockReturnValue(spawnMock);
 
         await service.start();
 
         expect(terminateSpy).toHaveBeenCalledWith([888]);
-        expect(execa).toHaveBeenCalled();
+        expect(spawn).toHaveBeenCalled();
     });
 
     it('terminates direct main.js processes before starting nodemon', async () => {
@@ -332,20 +320,15 @@ describe('NodemonService', () => {
         findMatchingSpy.mockResolvedValue([]);
         findDirectMainSpy.mockResolvedValue([321, 654]);
 
-        const logStream = createLogStreamMock(99);
-        vi.mocked(createWriteStream).mockReturnValue(logStream);
-        const unref = vi.fn();
-        vi.mocked(execa).mockReturnValue({
-            pid: 777,
-            unref,
-        } as unknown as ReturnType<typeof execa>);
+        const spawnMock = createSpawnMock(777);
+        vi.mocked(spawn).mockReturnValue(spawnMock);
 
         await service.start();
 
         expect(terminateSpy).toHaveBeenCalledWith([321, 654]);
-        expect(execa).toHaveBeenCalledWith(
-            '/usr/bin/nodemon',
-            ['--config', '/etc/unraid-api/nodemon.json', '--quiet'],
+        expect(spawn).toHaveBeenCalledWith(
+            process.execPath,
+            ['/usr/bin/nodemon', '--config', '/etc/unraid-api/nodemon.json', '--quiet'],
             expect.objectContaining({ cwd: '/usr/local/unraid-api' })
         );
     });
@@ -417,19 +400,14 @@ describe('NodemonService', () => {
             service as unknown as { isPidRunning: (pid: number) => Promise<boolean> },
             'isPidRunning'
         ).mockResolvedValue(true);
-        const logStream = createLogStreamMock(99);
-        vi.mocked(createWriteStream).mockReturnValue(logStream);
-        const unref = vi.fn();
-        vi.mocked(execa).mockReturnValue({
-            pid: 456,
-            unref,
-        } as unknown as ReturnType<typeof execa>);
+        const spawnMock = createSpawnMock(456);
+        vi.mocked(spawn).mockReturnValue(spawnMock);
 
         await service.restart({ env: { LOG_LEVEL: 'DEBUG' } });
 
         expect(stopSpy).toHaveBeenCalledWith({ quiet: true });
         expect(waitSpy).toHaveBeenCalled();
-        expect(execa).toHaveBeenCalled();
+        expect(spawn).toHaveBeenCalled();
     });
 
     it('performs clean start on restart when nodemon is not running', async () => {

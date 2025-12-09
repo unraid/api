@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { createWriteStream } from 'node:fs';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { openSync, writeSync } from 'node:fs';
+import { appendFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 import { execa } from 'execa';
 
-import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { fileExists, fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import {
     NODEMON_CONFIG_PATH,
     NODEMON_PATH,
@@ -28,9 +29,37 @@ type StopOptions = {
     quiet?: boolean;
 };
 
+const BOOT_LOG_PATH = '/var/log/unraid-api/boot.log';
+
 @Injectable()
 export class NodemonService {
     constructor(private readonly logger: LogService) {}
+
+    private async logToBootFile(message: string): Promise<void> {
+        const timestamp = new Date().toISOString();
+        const line = `[${timestamp}] [nodemon-service] ${message}\n`;
+        try {
+            await appendFile(BOOT_LOG_PATH, line);
+        } catch {
+            // Fallback to console if file write fails (e.g., directory doesn't exist yet)
+        }
+    }
+
+    private validatePaths(): { valid: boolean; errors: string[] } {
+        const errors: string[] = [];
+
+        if (!fileExistsSync(NODEMON_PATH)) {
+            errors.push(`NODEMON_PATH does not exist: ${NODEMON_PATH}`);
+        }
+        if (!fileExistsSync(NODEMON_CONFIG_PATH)) {
+            errors.push(`NODEMON_CONFIG_PATH does not exist: ${NODEMON_CONFIG_PATH}`);
+        }
+        if (!fileExistsSync(UNRAID_API_CWD)) {
+            errors.push(`UNRAID_API_CWD does not exist: ${UNRAID_API_CWD}`);
+        }
+
+        return { valid: errors.length === 0, errors };
+    }
 
     async ensureNodemonDependencies() {
         await mkdir(PATHS_LOGS_DIR, { recursive: true });
@@ -165,21 +194,45 @@ export class NodemonService {
     }
 
     async start(options: StartOptions = {}) {
+        // Log boot attempt with diagnostic info
+        await this.logToBootFile('=== Starting unraid-api via nodemon ===');
+        await this.logToBootFile(`NODEMON_PATH: ${NODEMON_PATH}`);
+        await this.logToBootFile(`NODEMON_CONFIG_PATH: ${NODEMON_CONFIG_PATH}`);
+        await this.logToBootFile(`UNRAID_API_CWD: ${UNRAID_API_CWD}`);
+        await this.logToBootFile(`NODEMON_PID_PATH: ${NODEMON_PID_PATH}`);
+        await this.logToBootFile(`process.cwd(): ${process.cwd()}`);
+        await this.logToBootFile(`process.execPath: ${process.execPath}`);
+        await this.logToBootFile(`PATH: ${process.env.PATH}`);
+
+        // Validate paths before proceeding
+        const { valid, errors } = this.validatePaths();
+        if (!valid) {
+            for (const error of errors) {
+                await this.logToBootFile(`ERROR: ${error}`);
+                this.logger.error(error);
+            }
+            throw new Error(`Path validation failed: ${errors.join('; ')}`);
+        }
+        await this.logToBootFile('Path validation passed');
+
         try {
             await this.ensureNodemonDependencies();
+            await this.logToBootFile('Dependencies ensured');
         } catch (error) {
-            this.logger.error(
-                `Failed to ensure nodemon dependencies: ${error instanceof Error ? error.message : error}`
-            );
+            const msg = `Failed to ensure nodemon dependencies: ${error instanceof Error ? error.message : error}`;
+            await this.logToBootFile(`ERROR: ${msg}`);
+            this.logger.error(msg);
             throw error;
         }
 
         await this.stopPm2IfRunning();
+        await this.logToBootFile('PM2 cleanup complete');
 
         const existingPid = await this.getStoredPid();
         if (existingPid) {
             const running = await this.isPidRunning(existingPid);
             if (running) {
+                await this.logToBootFile(`Found running nodemon (pid ${existingPid}), restarting`);
                 this.logger.info(
                     `unraid-api already running under nodemon (pid ${existingPid}); restarting for a fresh start.`
                 );
@@ -187,6 +240,7 @@ export class NodemonService {
                 await this.waitForNodemonExit();
                 await rm(NODEMON_PID_PATH, { force: true });
             } else {
+                await this.logToBootFile(`Found stale pid file (${existingPid}), cleaning up`);
                 this.logger.warn(
                     `Found nodemon pid file (${existingPid}) but the process is not running. Cleaning up.`
                 );
@@ -199,6 +253,7 @@ export class NodemonService {
             discoveredPids.map(async (pid) => ((await this.isPidRunning(pid)) ? pid : null))
         ).then((pids) => pids.filter((pid): pid is number => pid !== null));
         if (liveDiscoveredPids.length > 0) {
+            await this.logToBootFile(`Found orphan nodemon processes: ${liveDiscoveredPids.join(', ')}`);
             this.logger.info(
                 `Found nodemon process(es) (${liveDiscoveredPids.join(', ')}) without a pid file; restarting for a fresh start.`
             );
@@ -208,6 +263,7 @@ export class NodemonService {
 
         const directMainPids = await this.findDirectMainPids();
         if (directMainPids.length > 0) {
+            await this.logToBootFile(`Found direct main.js processes: ${directMainPids.join(', ')}`);
             this.logger.warn(
                 `Found existing unraid-api process(es) running directly: ${directMainPids.join(', ')}. Stopping them before starting nodemon.`
             );
@@ -219,6 +275,9 @@ export class NodemonService {
         );
         const env = {
             ...process.env,
+            // Ensure PATH includes standard locations for boot-time reliability
+            PATH: `/usr/local/bin:/usr/bin:/bin:${process.env.PATH || ''}`,
+            NODE_ENV: 'production',
             PATHS_LOGS_FILE,
             PATHS_NODEMON_LOG_FILE,
             NODEMON_CONFIG_PATH,
@@ -226,45 +285,62 @@ export class NodemonService {
             UNRAID_API_CWD,
             ...overrides,
         } as Record<string, string>;
-        let logStream: ReturnType<typeof createWriteStream> | null = null;
 
-        let nodemonProcess;
+        await this.logToBootFile(
+            `Spawning: ${process.execPath} ${NODEMON_PATH} --config ${NODEMON_CONFIG_PATH}`
+        );
+
+        let logFd: number | null = null;
         try {
-            logStream = await this.createLogStream(PATHS_NODEMON_LOG_FILE);
-            logStream.write('Starting nodemon...\n');
+            // Use file descriptor for stdio - more reliable for detached processes at boot
+            logFd = openSync(PATHS_NODEMON_LOG_FILE, 'a');
 
-            nodemonProcess = execa(NODEMON_PATH, ['--config', NODEMON_CONFIG_PATH, '--quiet'], {
-                cwd: UNRAID_API_CWD,
-                env,
-                detached: true,
-                reject: false,
-                stdio: ['ignore', logStream, logStream],
-            });
+            // Write initial message to nodemon log
+            writeSync(logFd, 'Starting nodemon...\n');
+
+            // Use native spawn instead of execa for more reliable detached process handling
+            const nodemonProcess = spawn(
+                process.execPath, // Use current node executable path
+                [NODEMON_PATH, '--config', NODEMON_CONFIG_PATH, '--quiet'],
+                {
+                    cwd: UNRAID_API_CWD,
+                    env,
+                    detached: true,
+                    stdio: ['ignore', logFd, logFd],
+                }
+            );
 
             nodemonProcess.unref();
 
             if (!nodemonProcess.pid) {
-                logStream.close();
+                await this.logToBootFile('ERROR: Failed to spawn nodemon - no PID assigned');
                 throw new Error('Failed to start nodemon: process spawned but no PID was assigned');
             }
 
             await writeFile(NODEMON_PID_PATH, `${nodemonProcess.pid}`);
+            await this.logToBootFile(`Spawned nodemon with PID: ${nodemonProcess.pid}`);
 
-            // Give nodemon a brief moment to boot, then verify it is still alive.
-            await new Promise((resolve) => setTimeout(resolve, 200));
-            const stillRunning = await this.isPidRunning(nodemonProcess.pid);
-            if (!stillRunning) {
-                const recentLogs = await this.logs(50);
-                await rm(NODEMON_PID_PATH, { force: true });
-                logStream.close();
-                const logMessage = recentLogs ? ` Recent logs:\n${recentLogs}` : '';
-                throw new Error(`Nodemon exited immediately after start.${logMessage}`);
+            // Multiple verification checks with increasing delays for boot-time reliability
+            const verificationDelays = [200, 500, 1000];
+            for (const delay of verificationDelays) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+                const stillRunning = await this.isPidRunning(nodemonProcess.pid);
+                if (!stillRunning) {
+                    const recentLogs = await this.logs(50);
+                    await rm(NODEMON_PID_PATH, { force: true });
+                    const logMessage = recentLogs ? ` Recent logs:\n${recentLogs}` : '';
+                    await this.logToBootFile(`ERROR: Nodemon exited after ${delay}ms`);
+                    await this.logToBootFile(`Recent logs: ${recentLogs}`);
+                    throw new Error(`Nodemon exited immediately after start.${logMessage}`);
+                }
+                await this.logToBootFile(`Verification passed after ${delay}ms`);
             }
 
+            await this.logToBootFile(`Successfully started nodemon (pid ${nodemonProcess.pid})`);
             this.logger.info(`Started nodemon (pid ${nodemonProcess.pid})`);
         } catch (error) {
-            logStream?.close();
             const errorMessage = error instanceof Error ? error.message : String(error);
+            await this.logToBootFile(`ERROR: ${errorMessage}`);
             throw new Error(`Failed to start nodemon: ${errorMessage}`);
         }
     }
@@ -329,32 +405,5 @@ export class NodemonService {
             }
             return '';
         }
-    }
-
-    private async createLogStream(logPath: string) {
-        const logStream = createWriteStream(logPath, { flags: 'a' });
-
-        await new Promise<void>((resolve, reject) => {
-            const cleanup = () => {
-                logStream.off('open', onOpen);
-                logStream.off('error', onError);
-            };
-
-            const onOpen = () => {
-                cleanup();
-                resolve();
-            };
-
-            const onError = (error: unknown) => {
-                cleanup();
-                logStream.destroy();
-                reject(error instanceof Error ? error : new Error(String(error)));
-            };
-
-            logStream.once('open', onOpen);
-            logStream.once('error', onError);
-        });
-
-        return logStream;
     }
 }
