@@ -126,3 +126,5 @@ api/dev/Unraid.net/myservers.cfg
 # Compiled test pages (generated from Nunjucks templates)
 web/public/test-pages/*.html
 
+# local scripts for testing and development
+.dev-scripts/
