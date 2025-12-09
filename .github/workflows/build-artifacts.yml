@@ -32,7 +32,7 @@ jobs:
     name: Build API
     runs-on: ubuntu-latest
     outputs:
-      build_number: ${{ steps.buildnumber.outputs.build_number }}
+      build_number: ${{ steps.buildnumber.outputs.build_number || steps.fallback_buildnumber.outputs.build_number }}
     defaults:
       run:
         working-directory: api
@@ -81,10 +81,17 @@ jobs:
 
       - name: Generate build number
         id: buildnumber
+        if: github.repository == 'unraid/api'
+        continue-on-error: true
         uses: onyxmueller/build-tag-number@v1
         with:
           token: ${{ secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN || github.token }}
           prefix: ${{ inputs.version_override || steps.vars.outputs.PACKAGE_LOCK_VERSION }}
+
+      - name: Generate fallback build number
+        id: fallback_buildnumber
+        if: steps.buildnumber.outcome != 'success'
+        run: echo "build_number=${GITHUB_RUN_NUMBER}" >> $GITHUB_OUTPUT
 
       - name: Build
         run: |
