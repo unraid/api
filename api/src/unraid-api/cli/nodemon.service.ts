@@ -147,6 +147,8 @@ export class NodemonService {
 
     private async findDirectMainPids(): Promise<number[]> {
         try {
+            // Note: ps may show relative path "node ./dist/main.js" instead of absolute path
+            // So we check for both patterns: the absolute path and the relative "dist/main.js"
             const mainPath = join(UNRAID_API_CWD, 'dist', 'main.js');
             const { stdout } = await execa('ps', ['-eo', 'pid,args']);
             return stdout
@@ -155,7 +157,7 @@ export class NodemonService {
                 .map((line) => line.match(/^(\d+)\s+(.*)$/))
                 .filter((match): match is RegExpMatchArray => Boolean(match))
                 .map(([, pid, cmd]) => ({ pid: Number.parseInt(pid, 10), cmd }))
-                .filter(({ cmd }) => cmd.includes(mainPath))
+                .filter(({ cmd }) => cmd.includes(mainPath) || /node.*dist\/main\.js/.test(cmd))
                 .map(({ pid }) => pid)
                 .filter((pid) => Number.isInteger(pid));
         } catch {
@@ -191,6 +193,61 @@ export class NodemonService {
         }
 
         this.logger.debug?.('Timed out waiting for nodemon to exit; continuing restart anyway.');
+    }
+
+    /**
+     * Wait for processes to exit, returns array of PIDs that didn't exit in time
+     */
+    private async waitForPidsToExit(pids: number[], timeoutMs = 5000): Promise<number[]> {
+        if (timeoutMs <= 0) return pids.filter((pid) => pid > 0);
+
+        const deadline = Date.now() + timeoutMs;
+        const remaining = new Set(pids.filter((pid) => pid > 0));
+
+        while (remaining.size > 0 && Date.now() < deadline) {
+            for (const pid of remaining) {
+                if (!(await this.isPidRunning(pid))) {
+                    remaining.delete(pid);
+                }
+            }
+            if (remaining.size > 0) {
+                await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+        }
+
+        return [...remaining];
+    }
+
+    /**
+     * Terminate PIDs with SIGTERM, then SIGKILL after timeout
+     */
+    private async terminatePidsWithForce(pids: number[], gracePeriodMs = 2000): Promise<void> {
+        // Send SIGTERM to all
+        for (const pid of pids) {
+            try {
+                process.kill(pid, 'SIGTERM');
+            } catch {
+                // Process may have already exited
+            }
+        }
+
+        // Wait for graceful exit
+        const remaining = await this.waitForPidsToExit(pids, gracePeriodMs);
+
+        // Force kill any that didn't exit
+        for (const pid of remaining) {
+            try {
+                process.kill(pid, 'SIGKILL');
+                this.logger.debug?.(`Sent SIGKILL to pid ${pid}`);
+            } catch {
+                // Process may have already exited
+            }
+        }
+
+        // Brief wait for SIGKILL to take effect
+        if (remaining.length > 0) {
+            await this.waitForPidsToExit(remaining, 1000);
+        }
     }
 
     async start(options: StartOptions = {}) {
@@ -346,23 +403,47 @@ export class NodemonService {
     }
 
     async stop(options: StopOptions = {}) {
-        const pid = await this.getStoredPid();
-        if (!pid) {
+        const nodemonPid = await this.getStoredPid();
+
+        // Find child processes BEFORE sending any signals
+        const childPids = await this.findDirectMainPids();
+
+        if (!nodemonPid) {
             if (!options.quiet) {
-                this.logger.warn('No nodemon pid file found. Nothing to stop.');
+                this.logger.warn('No nodemon pid file found.');
+            }
+            // Clean up orphaned children if any exist
+            if (childPids.length > 0) {
+                this.logger.warn(
+                    `Found orphaned main.js processes: ${childPids.join(', ')}. Terminating.`
+                );
+                await this.terminatePidsWithForce(childPids);
             }
             return;
         }
 
-        const signal: NodeJS.Signals = options.force ? 'SIGKILL' : 'SIGTERM';
+        // Step 1: SIGTERM to nodemon (will forward to child)
         try {
-            process.kill(pid, signal);
-            this.logger.trace(`Sent ${signal} to nodemon (pid ${pid})`);
+            process.kill(nodemonPid, 'SIGTERM');
+            this.logger.trace(`Sent SIGTERM to nodemon (pid ${nodemonPid})`);
         } catch (error) {
-            this.logger.error(`Failed to stop nodemon (pid ${pid}): ${error}`);
-        } finally {
-            await rm(NODEMON_PID_PATH, { force: true });
+            // Process may have already exited
+            this.logger.debug?.(`nodemon (pid ${nodemonPid}) already gone: ${error}`);
         }
+
+        // Step 2: Wait for both nodemon and children to exit
+        const allPids = [nodemonPid, ...childPids];
+        const gracefulTimeout = options.force ? 0 : 5000;
+        const remainingPids = await this.waitForPidsToExit(allPids, gracefulTimeout);
+
+        // Step 3: Force kill any remaining processes
+        if (remainingPids.length > 0) {
+            this.logger.warn(`Force killing remaining processes: ${remainingPids.join(', ')}`);
+            await this.terminatePidsWithForce(remainingPids);
+        }
+
+        // Step 4: Clean up PID file
+        await rm(NODEMON_PID_PATH, { force: true });
     }
 
     async restart(options: StartOptions = {}) {
@@ -372,7 +453,18 @@ export class NodemonService {
 
     async status(): Promise<boolean> {
         const pid = await this.getStoredPid();
+
+        // Check for orphaned processes even without PID file
+        const orphanNodemonPids = await this.findMatchingNodemonPids();
+        const orphanMainPids = await this.findDirectMainPids();
+
         if (!pid) {
+            if (orphanNodemonPids.length > 0 || orphanMainPids.length > 0) {
+                this.logger.warn(
+                    `No PID file, but found orphaned processes: nodemon=${orphanNodemonPids.join(',') || 'none'}, main.js=${orphanMainPids.join(',') || 'none'}`
+                );
+                return true; // Processes ARE running, just not tracked
+            }
             this.logger.info('unraid-api is not running (no pid file).');
             return false;
         }

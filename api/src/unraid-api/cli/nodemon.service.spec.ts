@@ -333,14 +333,138 @@ describe('NodemonService', () => {
         );
     });
 
-    it('returns not running when pid file is missing', async () => {
+    it('returns not running when pid file is missing and no orphans', async () => {
         const service = new NodemonService(logger);
         vi.mocked(fileExists).mockResolvedValue(false);
+        findMatchingSpy.mockResolvedValue([]);
+        findDirectMainSpy.mockResolvedValue([]);
 
         const result = await service.status();
 
         expect(result).toBe(false);
         expect(logger.info).toHaveBeenCalledWith('unraid-api is not running (no pid file).');
+    });
+
+    it('returns running and warns when orphan processes found without pid file', async () => {
+        const service = new NodemonService(logger);
+        vi.mocked(fileExists).mockResolvedValue(false);
+        findMatchingSpy.mockResolvedValue([]);
+        findDirectMainSpy.mockResolvedValue([123, 456]);
+
+        const result = await service.status();
+
+        expect(result).toBe(true);
+        expect(logger.warn).toHaveBeenCalledWith(
+            'No PID file, but found orphaned processes: nodemon=none, main.js=123,456'
+        );
+    });
+
+    it('returns running and warns when orphan nodemon found without pid file', async () => {
+        const service = new NodemonService(logger);
+        vi.mocked(fileExists).mockResolvedValue(false);
+        findMatchingSpy.mockResolvedValue([789]);
+        findDirectMainSpy.mockResolvedValue([]);
+
+        const result = await service.status();
+
+        expect(result).toBe(true);
+        expect(logger.warn).toHaveBeenCalledWith(
+            'No PID file, but found orphaned processes: nodemon=789, main.js=none'
+        );
+    });
+
+    it('stop: sends SIGTERM to nodemon and waits for exit', async () => {
+        const service = new NodemonService(logger);
+        vi.mocked(fileExists).mockResolvedValue(true);
+        vi.mocked(fs.readFile).mockResolvedValue('100');
+        findDirectMainSpy.mockResolvedValue([200]);
+        const waitForPidsToExitSpy = vi
+            .spyOn(
+                service as unknown as {
+                    waitForPidsToExit: (pids: number[], timeoutMs?: number) => Promise<number[]>;
+                },
+                'waitForPidsToExit'
+            )
+            .mockResolvedValue([]);
+
+        await service.stop();
+
+        expect(killSpy).toHaveBeenCalledWith(100, 'SIGTERM');
+        expect(waitForPidsToExitSpy).toHaveBeenCalledWith([100, 200], 5000);
+        expect(mockRm).toHaveBeenCalledWith('/var/run/unraid-api/nodemon.pid', { force: true });
+    });
+
+    it('stop: force kills remaining processes after timeout', async () => {
+        const service = new NodemonService(logger);
+        vi.mocked(fileExists).mockResolvedValue(true);
+        vi.mocked(fs.readFile).mockResolvedValue('100');
+        findDirectMainSpy.mockResolvedValue([200]);
+        vi.spyOn(
+            service as unknown as {
+                waitForPidsToExit: (pids: number[], timeoutMs?: number) => Promise<number[]>;
+            },
+            'waitForPidsToExit'
+        ).mockResolvedValue([100, 200]);
+        const terminatePidsWithForceSpy = vi
+            .spyOn(
+                service as unknown as {
+                    terminatePidsWithForce: (pids: number[], gracePeriodMs?: number) => Promise<void>;
+                },
+                'terminatePidsWithForce'
+            )
+            .mockResolvedValue();
+
+        await service.stop();
+
+        expect(logger.warn).toHaveBeenCalledWith('Force killing remaining processes: 100, 200');
+        expect(terminatePidsWithForceSpy).toHaveBeenCalledWith([100, 200]);
+    });
+
+    it('stop: cleans up orphaned main.js when no pid file exists', async () => {
+        const service = new NodemonService(logger);
+        vi.mocked(fileExists).mockResolvedValue(false);
+        findDirectMainSpy.mockResolvedValue([300, 400]);
+        const terminatePidsWithForceSpy = vi
+            .spyOn(
+                service as unknown as {
+                    terminatePidsWithForce: (pids: number[], gracePeriodMs?: number) => Promise<void>;
+                },
+                'terminatePidsWithForce'
+            )
+            .mockResolvedValue();
+
+        await service.stop();
+
+        expect(logger.warn).toHaveBeenCalledWith('No nodemon pid file found.');
+        expect(logger.warn).toHaveBeenCalledWith(
+            'Found orphaned main.js processes: 300, 400. Terminating.'
+        );
+        expect(terminatePidsWithForceSpy).toHaveBeenCalledWith([300, 400]);
+    });
+
+    it('stop --force: skips graceful wait', async () => {
+        const service = new NodemonService(logger);
+        vi.mocked(fileExists).mockResolvedValue(true);
+        vi.mocked(fs.readFile).mockResolvedValue('100');
+        findDirectMainSpy.mockResolvedValue([]);
+        const waitForPidsToExitSpy = vi
+            .spyOn(
+                service as unknown as {
+                    waitForPidsToExit: (pids: number[], timeoutMs?: number) => Promise<number[]>;
+                },
+                'waitForPidsToExit'
+            )
+            .mockResolvedValue([100]);
+        vi.spyOn(
+            service as unknown as {
+                terminatePidsWithForce: (pids: number[], gracePeriodMs?: number) => Promise<void>;
+            },
+            'terminatePidsWithForce'
+        ).mockResolvedValue();
+
+        await service.stop({ force: true });
+
+        expect(waitForPidsToExitSpy).toHaveBeenCalledWith([100], 0);
     });
 
     it('logs stdout when tail succeeds', async () => {
