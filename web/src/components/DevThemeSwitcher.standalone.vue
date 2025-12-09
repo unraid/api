@@ -3,10 +3,9 @@ import { onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import gql from 'graphql-tag';
-
 import type { GetThemeQuery } from '~/composables/gql/graphql';
 
+import { SET_THEME_MUTATION } from '~/components/DevThemeSwitcher.mutation';
 import { ThemeName } from '~/composables/gql/graphql';
 import { DARK_UI_THEMES, GET_THEME_QUERY, useThemeStore } from '~/store/theme';
 
@@ -101,43 +100,7 @@ watch(
   { immediate: true }
 );
 
-type SetThemeMutationResult = {
-  customization: {
-    setTheme: {
-      name: ThemeName;
-      showBannerImage: boolean;
-      showBannerGradient: boolean;
-      headerBackgroundColor?: string | null;
-      showHeaderDescription: boolean;
-      headerPrimaryTextColor?: string | null;
-      headerSecondaryTextColor?: string | null;
-    };
-  };
-};
-
-type SetThemeMutationVariables = {
-  theme: ThemeName;
-};
-
-const SET_THEME_MUTATION = gql`
-  mutation setTheme($theme: ThemeName!) {
-    customization {
-      setTheme(theme: $theme) {
-        name
-        showBannerImage
-        showBannerGradient
-        headerBackgroundColor
-        showHeaderDescription
-        headerPrimaryTextColor
-        headerSecondaryTextColor
-      }
-    }
-  }
-`;
-
-const { mutate: setThemeMutation } = useMutation<SetThemeMutationResult, SetThemeMutationVariables>(
-  SET_THEME_MUTATION
-);
+const { mutate: setThemeMutation } = useMutation(SET_THEME_MUTATION);
 
 const persistThemePreference = (themeName: ThemeName) => {
   const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
