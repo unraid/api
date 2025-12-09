@@ -27,6 +27,21 @@ vi.mock('@vue/apollo-composable', () => ({
   }),
 }));
 
+vi.mock('@unraid/ui', () => ({
+  isDarkModeActive: vi.fn(() => {
+    if (typeof document === 'undefined') return false;
+    const cssVar = getComputedStyle(document.documentElement)
+      .getPropertyValue('--theme-dark-mode')
+      .trim();
+    if (cssVar === '1') return true;
+    if (cssVar === '0') return false;
+    if (document.documentElement.classList.contains('dark')) return true;
+    if (document.body?.classList.contains('dark')) return true;
+    if (document.querySelector('.unapi.dark')) return true;
+    return false;
+  }),
+}));
+
 describe('Theme Store', () => {
   const originalAddClassFn = document.body.classList.add;
   const originalRemoveClassFn = document.body.classList.remove;
@@ -50,6 +65,11 @@ describe('Theme Store', () => {
     document.body.style.cssText = '';
     document.documentElement.classList.add = vi.fn();
     document.documentElement.classList.remove = vi.fn();
+    document.documentElement.style.removeProperty('--theme-dark-mode');
+    document.documentElement.style.removeProperty('--theme-name');
+    document.documentElement.classList.remove('dark');
+    document.body.classList.remove('dark');
+    document.querySelectorAll('.unapi').forEach((el) => el.classList.remove('dark'));
 
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
       cb(0);
@@ -104,73 +124,23 @@ describe('Theme Store', () => {
     });
 
     it('should compute darkMode from CSS variable when set to 1', () => {
-      const originalGetComputedStyle = window.getComputedStyle;
-      vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
-        const style = originalGetComputedStyle(el);
-        if (el === document.documentElement) {
-          return {
-            ...style,
-            getPropertyValue: (prop: string) => {
-              if (prop === '--theme-dark-mode') {
-                return '1';
-              }
-              return style.getPropertyValue(prop);
-            },
-          } as CSSStyleDeclaration;
-        }
-        return style;
-      });
-
+      document.documentElement.style.setProperty('--theme-dark-mode', '1');
       const store = createStore();
       expect(store.darkMode).toBe(true);
-
-      vi.restoreAllMocks();
     });
 
     it('should compute darkMode from CSS variable when set to 0', () => {
-      const originalGetComputedStyle = window.getComputedStyle;
-      vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
-        const style = originalGetComputedStyle(el);
-        if (el === document.documentElement) {
-          return {
-            ...style,
-            getPropertyValue: (prop: string) => {
-              if (prop === '--theme-dark-mode') {
-                return '0';
-              }
-              return style.getPropertyValue(prop);
-            },
-          } as CSSStyleDeclaration;
-        }
-        return style;
-      });
-
+      document.documentElement.style.setProperty('--theme-dark-mode', '0');
       const store = createStore();
       expect(store.darkMode).toBe(false);
-
-      vi.restoreAllMocks();
     });
 
     it('should compute bannerGradient from CSS variable when set', async () => {
-      const originalGetComputedStyle = window.getComputedStyle;
-      vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
-        const style = originalGetComputedStyle(el);
-        if (el === document.documentElement) {
-          return {
-            ...style,
-            getPropertyValue: (prop: string) => {
-              if (prop === '--banner-gradient') {
-                return 'linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%))';
-              }
-              if (prop === '--theme-dark-mode') {
-                return '0';
-              }
-              return style.getPropertyValue(prop);
-            },
-          } as CSSStyleDeclaration;
-        }
-        return style;
-      });
+      document.documentElement.style.setProperty('--theme-dark-mode', '0');
+      document.documentElement.style.setProperty(
+        '--banner-gradient',
+        'linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%))'
+      );
 
       const store = createStore();
       store.setTheme({ banner: true, bannerGradient: true });
@@ -181,32 +151,12 @@ describe('Theme Store', () => {
       expect(store.bannerGradient).toBe(
         'background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) var(--banner-gradient-stop, 30%));'
       );
-
-      vi.restoreAllMocks();
     });
 
     it('should return undefined when bannerGradient CSS variable is not set', () => {
-      const originalGetComputedStyle = window.getComputedStyle;
-      vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
-        const style = originalGetComputedStyle(el);
-        if (el === document.documentElement) {
-          return {
-            ...style,
-            getPropertyValue: (prop: string) => {
-              if (prop === '--banner-gradient') {
-                return '';
-              }
-              return style.getPropertyValue(prop);
-            },
-          } as CSSStyleDeclaration;
-        }
-        return style;
-      });
-
+      document.documentElement.style.removeProperty('--banner-gradient');
       const store = createStore();
       expect(store.bannerGradient).toBeUndefined();
-
-      vi.restoreAllMocks();
     });
   });
 
@@ -236,12 +186,16 @@ describe('Theme Store', () => {
       await nextTick();
 
       expect(document.body.classList.add).toHaveBeenCalledWith('dark');
+      expect(document.documentElement.classList.add).toHaveBeenCalledWith('dark');
+      expect(store.darkMode).toBe(true);
 
       store.setTheme({ ...store.theme, name: 'white' });
 
       await nextTick();
 
       expect(document.body.classList.remove).toHaveBeenCalledWith('dark');
+      expect(document.documentElement.classList.remove).toHaveBeenCalledWith('dark');
+      expect(store.darkMode).toBe(false);
     });
 
     it('should update activeColorVariables when theme changes', async () => {
@@ -274,6 +228,31 @@ describe('Theme Store', () => {
 
       expect(document.documentElement.classList.add).toHaveBeenCalledWith('dark');
       expect(document.body.classList.add).toHaveBeenCalledWith('dark');
+      expect(store.darkMode).toBe(true);
+    });
+
+    it('should update darkMode reactively when theme changes', async () => {
+      const store = createStore();
+
+      expect(store.darkMode).toBe(false);
+
+      store.setTheme({
+        ...store.theme,
+        name: 'gray',
+      });
+
+      await nextTick();
+
+      expect(store.darkMode).toBe(true);
+
+      store.setTheme({
+        ...store.theme,
+        name: 'white',
+      });
+
+      await nextTick();
+
+      expect(store.darkMode).toBe(false);
     });
 
     it('should initialize dark mode from CSS variable on store creation', () => {
@@ -298,11 +277,13 @@ describe('Theme Store', () => {
         return style;
       });
 
-      createStore();
+      document.documentElement.style.setProperty('--theme-dark-mode', '1');
+      const store = createStore();
 
       // Should have added dark class to documentElement and body
       expect(document.documentElement.classList.add).toHaveBeenCalledWith('dark');
       expect(document.body.classList.add).toHaveBeenCalledWith('dark');
+      expect(store.darkMode).toBe(true);
 
       vi.restoreAllMocks();
     });

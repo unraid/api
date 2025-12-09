@@ -55,16 +55,19 @@ const syncDarkClass = (method: 'add' | 'remove') => {
   document.querySelectorAll('.unapi').forEach((el) => el.classList[method]('dark'));
 };
 
-const applyDarkClass = (isDark: boolean) => {
+const applyDarkClass = (isDark: boolean, darkModeRef?: { value: boolean }) => {
   if (!isDomAvailable()) return;
   const method: 'add' | 'remove' = isDark ? 'add' : 'remove';
   syncDarkClass(method);
   document.documentElement.style.setProperty('--theme-dark-mode', isDark ? '1' : '0');
+  if (darkModeRef) {
+    darkModeRef.value = isDark;
+  }
 };
 
-const bootstrapDarkClass = () => {
+const bootstrapDarkClass = (darkModeRef?: { value: boolean }) => {
   if (isDarkModeActive()) {
-    applyDarkClass(true);
+    applyDarkClass(true, darkModeRef);
   }
 };
 
@@ -93,9 +96,13 @@ export const useThemeStore = defineStore('theme', () => {
   const activeColorVariables = ref<ThemeVariables>(defaultColors.white);
   const hasServerTheme = ref(false);
   const devOverride = ref(false);
+  const darkMode = ref<boolean>(false);
 
   // Initialize dark mode from CSS variable set by PHP or any pre-applied .dark class
-  bootstrapDarkClass();
+  if (isDomAvailable()) {
+    darkMode.value = isDarkModeActive();
+    bootstrapDarkClass(darkMode);
+  }
 
   // Lazy query - only executes when explicitly called
   const { load, onResult, onError } = useLazyQuery<GetThemeQuery>(GET_THEME_QUERY, null, {
@@ -144,8 +151,6 @@ export const useThemeStore = defineStore('theme', () => {
     const name = readDomThemeName() || theme.value.name;
     return name || DEFAULT_THEME.name;
   });
-
-  const darkMode = computed<boolean>(() => isDarkModeActive());
 
   const readBannerGradientVar = (): string => {
     const raw = getCssVar('--banner-gradient');
@@ -215,7 +220,7 @@ export const useThemeStore = defineStore('theme', () => {
     () => theme.value.name,
     (themeName) => {
       const isDark = DARK_UI_THEMES.includes(themeName as (typeof DARK_UI_THEMES)[number]);
-      applyDarkClass(isDark);
+      applyDarkClass(isDark, darkMode);
     },
     { immediate: false }
   );
@@ -230,7 +235,7 @@ export const useThemeStore = defineStore('theme', () => {
     // state
     activeColorVariables,
     bannerGradient,
-    darkMode,
+    darkMode: computed(() => darkMode.value),
     theme: computed(() => ({
       ...theme.value,
       name: themeName.value,
