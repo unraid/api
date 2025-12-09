@@ -1,3 +1,11 @@
+// Objective: avoid hard-coded custom colors wherever possible, letting our theme system manage
+// styling consistently. During the migration from the legacy WebGUI, some components still depend
+// on specific colors to maintain visual continuity. This config file centralizes all temporary
+// overrides required for that transition.
+//
+// Pending migration cleanup:
+// - Notifications/Sidebar.vue → notification bell has temporary custom hover color to match legacy styles.
+
 export default {
   ui: {
     colors: {

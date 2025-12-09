@@ -160,7 +160,7 @@ const tabs = computed(() => [
     <UButton
       variant="ghost"
       color="neutral"
-      class="text-inverted hover:text-current"
+      class="text-inverted hover:bg-[color-mix(in_oklab,hsl(var(--accent))_20%,transparent)]"
       @click="
         () => {
           isOpen = true;
