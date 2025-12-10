@@ -41,8 +41,8 @@ export const REMOTE_PID_PATH = '/var/run/unraid-api/nodemon.pid';
  * ```
  */
 export async function getRemotePid(): Promise<string> {
-  const result = await remoteExec(`cat '${REMOTE_PID_PATH}' 2>/dev/null || true`);
-  return result.stdout.trim();
+    const result = await remoteExec(`cat '${REMOTE_PID_PATH}' 2>/dev/null || true`);
+    return result.stdout.trim();
 }
 
 /**
@@ -58,8 +58,8 @@ export async function getRemotePid(): Promise<string> {
  * ```
  */
 export async function pidFileExists(): Promise<boolean> {
-  const result = await remoteExec(`test -f '${REMOTE_PID_PATH}'`);
-  return result.exitCode === 0;
+    const result = await remoteExec(`test -f '${REMOTE_PID_PATH}'`);
+    return result.exitCode === 0;
 }
 
 /**
@@ -78,9 +78,9 @@ export async function pidFileExists(): Promise<boolean> {
  * ```
  */
 export async function isProcessRunning(pid: string): Promise<boolean> {
-  if (!pid) return false;
-  const result = await remoteExec(`kill -0 '${pid}' 2>/dev/null`);
-  return result.exitCode === 0;
+    if (!pid) return false;
+    const result = await remoteExec(`kill -0 '${pid}' 2>/dev/null`);
+    return result.exitCode === 0;
 }
 
 /**
@@ -96,11 +96,11 @@ export async function isProcessRunning(pid: string): Promise<boolean> {
  * ```
  */
 export async function countNodemonProcesses(): Promise<number> {
-  const result = await remoteExecSafe(
-    "ps -eo pid,args 2>/dev/null | grep -E 'nodemon.*nodemon.json' | grep -v grep | wc -l"
-  );
-  const count = parseInt(result.stdout.trim(), 10);
-  return isNaN(count) ? 0 : count;
+    const result = await remoteExecSafe(
+        "ps -eo pid,args 2>/dev/null | grep -E 'nodemon.*nodemon.json' | grep -v grep | wc -l"
+    );
+    const count = parseInt(result.stdout.trim(), 10);
+    return isNaN(count) ? 0 : count;
 }
 
 /**
@@ -116,11 +116,11 @@ export async function countNodemonProcesses(): Promise<number> {
  * ```
  */
 export async function countMainProcesses(): Promise<number> {
-  const result = await remoteExecSafe(
-    "ps -eo args 2>/dev/null | grep -E 'node.*dist/main\\.js' | grep -v grep | wc -l"
-  );
-  const count = parseInt(result.stdout.trim(), 10);
-  return isNaN(count) ? 0 : count;
+    const result = await remoteExecSafe(
+        "ps -eo args 2>/dev/null | grep -E 'node.*dist/main\\.js' | grep -v grep | wc -l"
+    );
+    const count = parseInt(result.stdout.trim(), 10);
+    return isNaN(count) ? 0 : count;
 }
 
 /**
@@ -136,9 +136,9 @@ export async function countMainProcesses(): Promise<number> {
  * ```
  */
 export async function countUnraidApiProcesses(): Promise<number> {
-  const nodemonCount = await countNodemonProcesses();
-  const mainCount = await countMainProcesses();
-  return nodemonCount + mainCount;
+    const nodemonCount = await countNodemonProcesses();
+    const mainCount = await countMainProcesses();
+    return nodemonCount + mainCount;
 }
 
 /**
@@ -154,26 +154,22 @@ export async function countUnraidApiProcesses(): Promise<number> {
  * ```
  */
 export async function assertSingleApiInstance(): Promise<void> {
-  const nodemonCount = await countNodemonProcesses();
-  const mainCount = await countMainProcesses();
+    const nodemonCount = await countNodemonProcesses();
+    const mainCount = await countMainProcesses();
 
-  if (nodemonCount !== 1) {
-    const psResult = await remoteExecSafe(
-      "ps -eo pid,args | grep -E 'nodemon|main.js' | grep -v grep"
-    );
-    throw new Error(
-      `Expected 1 nodemon process, found ${nodemonCount}\n${psResult.stdout}`
-    );
-  }
+    if (nodemonCount !== 1) {
+        const psResult = await remoteExecSafe(
+            "ps -eo pid,args | grep -E 'nodemon|main.js' | grep -v grep"
+        );
+        throw new Error(`Expected 1 nodemon process, found ${nodemonCount}\n${psResult.stdout}`);
+    }
 
-  if (mainCount !== 1) {
-    const psResult = await remoteExecSafe(
-      "ps -eo pid,args | grep -E 'nodemon|main.js' | grep -v grep"
-    );
-    throw new Error(
-      `Expected 1 main.js process, found ${mainCount}\n${psResult.stdout}`
-    );
-  }
+    if (mainCount !== 1) {
+        const psResult = await remoteExecSafe(
+            "ps -eo pid,args | grep -E 'nodemon|main.js' | grep -v grep"
+        );
+        throw new Error(`Expected 1 main.js process, found ${mainCount}\n${psResult.stdout}`);
+    }
 }
 
 /**
@@ -189,15 +185,15 @@ export async function assertSingleApiInstance(): Promise<void> {
  * ```
  */
 export async function assertNoApiProcesses(): Promise<void> {
-  const nodemonCount = await countNodemonProcesses();
-  const mainCount = await countMainProcesses();
+    const nodemonCount = await countNodemonProcesses();
+    const mainCount = await countMainProcesses();
 
-  if (nodemonCount !== 0 || mainCount !== 0) {
-    const psResult = await remoteExecSafe(
-      "ps -eo pid,args | grep -E 'nodemon|main.js' | grep -v grep"
-    );
-    throw new Error(
-      `Expected 0 processes, found nodemon=${nodemonCount} main.js=${mainCount}\n${psResult.stdout}`
-    );
-  }
+    if (nodemonCount !== 0 || mainCount !== 0) {
+        const psResult = await remoteExecSafe(
+            "ps -eo pid,args | grep -E 'nodemon|main.js' | grep -v grep"
+        );
+        throw new Error(
+            `Expected 0 processes, found nodemon=${nodemonCount} main.js=${mainCount}\n${psResult.stdout}`
+        );
+    }
 }

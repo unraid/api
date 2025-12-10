@@ -23,12 +23,12 @@ import { execa } from 'execa';
  * Result of a remote command execution.
  */
 export interface ExecResult {
-  /** Standard output from the command */
-  stdout: string;
-  /** Standard error from the command */
-  stderr: string;
-  /** Exit code of the command (0 indicates success) */
-  exitCode: number;
+    /** Standard output from the command */
+    stdout: string;
+    /** Standard error from the command */
+    stderr: string;
+    /** Exit code of the command (0 indicates success) */
+    exitCode: number;
 }
 
 /**
@@ -37,11 +37,11 @@ export interface ExecResult {
  * @returns The server hostname or IP address
  */
 function getServer(): string {
-  const server = process.env.SERVER;
-  if (!server) {
-    throw new Error('SERVER environment variable must be set');
-  }
-  return server;
+    const server = process.env.SERVER;
+    if (!server) {
+        throw new Error('SERVER environment variable must be set');
+    }
+    return server;
 }
 
 /**
@@ -51,9 +51,12 @@ function getServer(): string {
  * - StrictHostKeyChecking: Automatically accepts new host keys
  */
 const SSH_OPTIONS = [
-  '-o', 'ConnectTimeout=10',
-  '-o', 'BatchMode=yes',
-  '-o', 'StrictHostKeyChecking=accept-new',
+    '-o',
+    'ConnectTimeout=10',
+    '-o',
+    'BatchMode=yes',
+    '-o',
+    'StrictHostKeyChecking=accept-new',
 ];
 
 /**
@@ -71,16 +74,16 @@ const SSH_OPTIONS = [
  * ```
  */
 export async function remoteExec(cmd: string): Promise<ExecResult> {
-  const server = getServer();
-  const result = await execa('ssh', [...SSH_OPTIONS, `root@${server}`, cmd], {
-    reject: false,
-  });
+    const server = getServer();
+    const result = await execa('ssh', [...SSH_OPTIONS, `root@${server}`, cmd], {
+        reject: false,
+    });
 
-  return {
-    stdout: result.stdout,
-    stderr: result.stderr,
-    exitCode: result.exitCode ?? 0,
-  };
+    return {
+        stdout: result.stdout,
+        stderr: result.stderr,
+        exitCode: result.exitCode ?? 0,
+    };
 }
 
 /**
@@ -97,23 +100,23 @@ export async function remoteExec(cmd: string): Promise<ExecResult> {
  * ```
  */
 export async function remoteExecSafe(cmd: string): Promise<ExecResult> {
-  const server = getServer();
-  try {
-    const result = await execa('ssh', [...SSH_OPTIONS, `root@${server}`, cmd], {
-      reject: false,
-    });
-    return {
-      stdout: result.stdout,
-      stderr: result.stderr,
-      exitCode: result.exitCode ?? 0,
-    };
-  } catch {
-    return {
-      stdout: '',
-      stderr: '',
-      exitCode: 0,
-    };
-  }
+    const server = getServer();
+    try {
+        const result = await execa('ssh', [...SSH_OPTIONS, `root@${server}`, cmd], {
+            reject: false,
+        });
+        return {
+            stdout: result.stdout,
+            stderr: result.stderr,
+            exitCode: result.exitCode ?? 0,
+        };
+    } catch {
+        return {
+            stdout: '',
+            stderr: '',
+            exitCode: 0,
+        };
+    }
 }
 
 /**
@@ -123,5 +126,5 @@ export async function remoteExecSafe(cmd: string): Promise<ExecResult> {
  * @returns The server hostname or IP address
  */
 export function getServerName(): string {
-  return getServer();
+    return getServer();
 }

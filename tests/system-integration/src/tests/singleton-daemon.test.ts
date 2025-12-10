@@ -1,211 +1,205 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { remoteExec } from '../helpers/ssh.js';
 import {
-  getRemotePid,
-  pidFileExists,
-  isProcessRunning,
-  countNodemonProcesses,
-  assertSingleApiInstance,
-  assertNoApiProcesses,
-  REMOTE_PID_PATH,
+    getRemotePid,
+    pidFileExists,
+    isProcessRunning,
+    countNodemonProcesses,
+    assertSingleApiInstance,
+    assertNoApiProcesses,
+    REMOTE_PID_PATH,
 } from '../helpers/process.js';
-import {
-  cleanup,
-  startApi,
-  stopApi,
-  getStatus,
-  waitForStart,
-} from '../helpers/api-lifecycle.js';
+import { cleanup, startApi, stopApi, getStatus, waitForStart } from '../helpers/api-lifecycle.js';
 
 describe('singleton daemon', () => {
-  beforeAll(async () => {
-    if (!process.env.SERVER) {
-      throw new Error('SERVER environment variable must be set');
-    }
-  });
-
-  afterAll(async () => {
-    await cleanup();
-    await startApi();
-  });
-
-  beforeEach(async () => {
-    await cleanup();
-  });
-
-  describe('start command', () => {
-    it('creates a single process with PID file', async () => {
-      await startApi();
-
-      expect(await pidFileExists()).toBe(true);
-
-      const pid = await getRemotePid();
-      expect(pid).toBeTruthy();
-      expect(pid).toMatch(/^\d+$/);
-
-      expect(await isProcessRunning(pid)).toBe(true);
-
-      await assertSingleApiInstance();
+    beforeAll(async () => {
+        if (!process.env.SERVER) {
+            throw new Error('SERVER environment variable must be set');
+        }
     });
 
-    it('second start does not create duplicate process', async () => {
-      await startApi();
-
-      const initialPid = await getRemotePid();
-      expect(initialPid).toBeTruthy();
-
-      await assertSingleApiInstance();
-
-      await remoteExec('unraid-api start');
-
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      await assertSingleApiInstance();
-
-      expect(await pidFileExists()).toBe(true);
-
-      const finalPid = await getRemotePid();
-      expect(finalPid).toBeTruthy();
-
-      expect(await isProcessRunning(finalPid)).toBe(true);
+    afterAll(async () => {
+        await cleanup();
+        await startApi();
     });
 
-    it('cleans up stale PID file', async () => {
-      await remoteExec(`mkdir -p /var/run/unraid-api && echo '99999' > '${REMOTE_PID_PATH}'`);
-
-      await startApi();
-
-      const pid = await getRemotePid();
-      expect(pid).toBeTruthy();
-      expect(pid).not.toBe('99999');
-
-      expect(await isProcessRunning(pid)).toBe(true);
+    beforeEach(async () => {
+        await cleanup();
     });
 
-    it('cleans up orphaned nodemon process', async () => {
-      await startApi();
+    describe('start command', () => {
+        it('creates a single process with PID file', async () => {
+            await startApi();
 
-      await remoteExec(`rm -f '${REMOTE_PID_PATH}'`);
+            expect(await pidFileExists()).toBe(true);
 
-      const count = await countNodemonProcesses();
-      expect(count).toBe(1);
+            const pid = await getRemotePid();
+            expect(pid).toBeTruthy();
+            expect(pid).toMatch(/^\d+$/);
 
-      await startApi();
+            expect(await isProcessRunning(pid)).toBe(true);
 
-      const newCount = await countNodemonProcesses();
-      expect(newCount).toBe(1);
+            await assertSingleApiInstance();
+        });
 
-      expect(await pidFileExists()).toBe(true);
-    });
-  });
+        it('second start does not create duplicate process', async () => {
+            await startApi();
 
-  describe('status command', () => {
-    it('reports running when API is active', async () => {
-      await startApi();
+            const initialPid = await getRemotePid();
+            expect(initialPid).toBeTruthy();
 
-      const output = await getStatus();
-      expect(output).toMatch(/running/i);
-    });
+            await assertSingleApiInstance();
 
-    it('reports not running when API is stopped', async () => {
-      const output = await getStatus();
-      expect(output).toMatch(/not running/i);
-    });
-  });
+            await remoteExec('unraid-api start');
 
-  describe('stop command', () => {
-    it('cleanly terminates all processes', async () => {
-      await startApi();
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      const pid = await getRemotePid();
-      expect(pid).toBeTruthy();
+            await assertSingleApiInstance();
 
-      await assertSingleApiInstance();
+            expect(await pidFileExists()).toBe(true);
 
-      await stopApi();
+            const finalPid = await getRemotePid();
+            expect(finalPid).toBeTruthy();
 
-      expect(await pidFileExists()).toBe(false);
+            expect(await isProcessRunning(finalPid)).toBe(true);
+        });
 
-      await assertNoApiProcesses();
-    });
+        it('cleans up stale PID file', async () => {
+            await remoteExec(`mkdir -p /var/run/unraid-api && echo '99999' > '${REMOTE_PID_PATH}'`);
 
-    it('stop --force terminates all processes immediately', async () => {
-      await startApi();
+            await startApi();
 
-      const pid = await getRemotePid();
-      expect(pid).toBeTruthy();
+            const pid = await getRemotePid();
+            expect(pid).toBeTruthy();
+            expect(pid).not.toBe('99999');
 
-      await assertSingleApiInstance();
+            expect(await isProcessRunning(pid)).toBe(true);
+        });
 
-      await stopApi(true);
+        it('cleans up orphaned nodemon process', async () => {
+            await startApi();
 
-      expect(await pidFileExists()).toBe(false);
+            await remoteExec(`rm -f '${REMOTE_PID_PATH}'`);
 
-      await assertNoApiProcesses();
-    });
-  });
+            const count = await countNodemonProcesses();
+            expect(count).toBe(1);
 
-  describe('restart command', () => {
-    it('creates new process when already running', async () => {
-      await startApi();
+            await startApi();
 
-      const initialPid = await getRemotePid();
-      expect(initialPid).toBeTruthy();
+            const newCount = await countNodemonProcesses();
+            expect(newCount).toBe(1);
 
-      await assertSingleApiInstance();
-
-      await remoteExec('unraid-api restart');
-
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      await waitForStart(10000);
-
-      const newPid = await getRemotePid();
-      expect(newPid).toBeTruthy();
-
-      expect(initialPid).not.toBe(newPid);
-
-      await assertSingleApiInstance();
+            expect(await pidFileExists()).toBe(true);
+        });
     });
 
-    it('works when API is not running', async () => {
-      await remoteExec('unraid-api restart');
+    describe('status command', () => {
+        it('reports running when API is active', async () => {
+            await startApi();
 
-      await waitForStart(10000);
+            const output = await getStatus();
+            expect(output).toMatch(/running/i);
+        });
 
-      const pid = await getRemotePid();
-      expect(pid).toBeTruthy();
-
-      expect(await isProcessRunning(pid)).toBe(true);
-    });
-  });
-
-  describe('edge cases', () => {
-    it('concurrent starts result in single process', async () => {
-      await remoteExec('unraid-api start & unraid-api start & wait');
-
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      await assertSingleApiInstance();
-
-      expect(await pidFileExists()).toBe(true);
+        it('reports not running when API is stopped', async () => {
+            const output = await getStatus();
+            expect(output).toMatch(/not running/i);
+        });
     });
 
-    it('API recovers after process is killed externally', async () => {
-      await startApi();
+    describe('stop command', () => {
+        it('cleanly terminates all processes', async () => {
+            await startApi();
 
-      const pid = await getRemotePid();
-      expect(pid).toBeTruthy();
+            const pid = await getRemotePid();
+            expect(pid).toBeTruthy();
 
-      await remoteExec(`kill -9 '${pid}'`);
+            await assertSingleApiInstance();
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+            await stopApi();
 
-      await startApi();
+            expect(await pidFileExists()).toBe(false);
 
-      const newPid = await getRemotePid();
-      expect(newPid).toBeTruthy();
+            await assertNoApiProcesses();
+        });
 
-      expect(await isProcessRunning(newPid)).toBe(true);
+        it('stop --force terminates all processes immediately', async () => {
+            await startApi();
+
+            const pid = await getRemotePid();
+            expect(pid).toBeTruthy();
+
+            await assertSingleApiInstance();
+
+            await stopApi(true);
+
+            expect(await pidFileExists()).toBe(false);
+
+            await assertNoApiProcesses();
+        });
     });
-  });
+
+    describe('restart command', () => {
+        it('creates new process when already running', async () => {
+            await startApi();
+
+            const initialPid = await getRemotePid();
+            expect(initialPid).toBeTruthy();
+
+            await assertSingleApiInstance();
+
+            await remoteExec('unraid-api restart');
+
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+            await waitForStart(10000);
+
+            const newPid = await getRemotePid();
+            expect(newPid).toBeTruthy();
+
+            expect(initialPid).not.toBe(newPid);
+
+            await assertSingleApiInstance();
+        });
+
+        it('works when API is not running', async () => {
+            await remoteExec('unraid-api restart');
+
+            await waitForStart(10000);
+
+            const pid = await getRemotePid();
+            expect(pid).toBeTruthy();
+
+            expect(await isProcessRunning(pid)).toBe(true);
+        });
+    });
+
+    describe('edge cases', () => {
+        it('concurrent starts result in single process', async () => {
+            await remoteExec('unraid-api start & unraid-api start & wait');
+
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+
+            await assertSingleApiInstance();
+
+            expect(await pidFileExists()).toBe(true);
+        });
+
+        it('API recovers after process is killed externally', async () => {
+            await startApi();
+
+            const pid = await getRemotePid();
+            expect(pid).toBeTruthy();
+
+            await remoteExec(`kill -9 '${pid}'`);
+
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            await startApi();
+
+            const newPid = await getRemotePid();
+            expect(newPid).toBeTruthy();
+
+            expect(await isProcessRunning(newPid)).toBe(true);
+        });
+    });
 });

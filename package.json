@@ -10,8 +10,6 @@
     "dev": "pnpm -r dev",
     "unraid:deploy": "pnpm -r unraid:deploy",
     "test": "pnpm -r test",
-    "test:bats": "pnpm --filter @unraid/bats-tests test",
-    "test:bats:integration": "pnpm --filter @unraid/bats-tests test:integration",
     "test:system": "pnpm --filter @unraid/system-integration-tests test",
     "test:watch": "pnpm -r --parallel test:watch",
     "lint": "pnpm -r lint",
@@ -75,6 +73,9 @@
     ],
     "unraid-ui/**/*.{js,ts,tsx,vue}": [
       "pnpm --filter @unraid/ui lint:fix"
+    ],
+    "tests/system-integration/**/*.ts": [
+      "pnpm --filter @unraid/system-integration-tests lint:fix"
     ]
   },
   "packageManager": "pnpm@10.15.0"

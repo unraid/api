@@ -5,5 +5,4 @@ packages:
   - "./unraid-ui"
   - "./web"
   - "./packages/*"
-  - "./tests/bats"
   - "./tests/system-integration"

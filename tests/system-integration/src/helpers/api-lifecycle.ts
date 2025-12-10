@@ -23,12 +23,7 @@
  */
 
 import { remoteExec, remoteExecSafe } from './ssh.js';
-import {
-  getRemotePid,
-  isProcessRunning,
-  countUnraidApiProcesses,
-  REMOTE_PID_PATH,
-} from './process.js';
+import { getRemotePid, isProcessRunning, countUnraidApiProcesses, REMOTE_PID_PATH } from './process.js';
 
 /**
  * Default timeout for wait operations in milliseconds.
@@ -40,7 +35,7 @@ const DEFAULT_TIMEOUT = 10000;
  * @param ms - Duration to sleep in milliseconds
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -59,17 +54,17 @@ function sleep(ms: number): Promise<void> {
  * ```
  */
 export async function waitForStart(timeout = DEFAULT_TIMEOUT): Promise<boolean> {
-  const deadline = Date.now() + timeout;
+    const deadline = Date.now() + timeout;
 
-  while (Date.now() < deadline) {
-    const pid = await getRemotePid();
-    if (pid && (await isProcessRunning(pid))) {
-      return true;
+    while (Date.now() < deadline) {
+        const pid = await getRemotePid();
+        if (pid && (await isProcessRunning(pid))) {
+            return true;
+        }
+        await sleep(1000);
     }
-    await sleep(1000);
-  }
 
-  return false;
+    return false;
 }
 
 /**
@@ -86,20 +81,20 @@ export async function waitForStart(timeout = DEFAULT_TIMEOUT): Promise<boolean> 
  * ```
  */
 export async function waitForStop(timeout = DEFAULT_TIMEOUT): Promise<boolean> {
-  const deadline = Date.now() + timeout;
+    const deadline = Date.now() + timeout;
 
-  while (Date.now() < deadline) {
-    const pid = await getRemotePid();
-    if (!pid) {
-      return true;
+    while (Date.now() < deadline) {
+        const pid = await getRemotePid();
+        if (!pid) {
+            return true;
+        }
+        if (!(await isProcessRunning(pid))) {
+            return true;
+        }
+        await sleep(1000);
     }
-    if (!(await isProcessRunning(pid))) {
-      return true;
-    }
-    await sleep(1000);
-  }
 
-  return false;
+    return false;
 }
 
 /**
@@ -115,20 +110,18 @@ export async function waitForStop(timeout = DEFAULT_TIMEOUT): Promise<boolean> {
  * expect(allStopped).toBe(true);
  * ```
  */
-export async function waitForAllProcessesStop(
-  timeout = DEFAULT_TIMEOUT
-): Promise<boolean> {
-  const deadline = Date.now() + timeout;
+export async function waitForAllProcessesStop(timeout = DEFAULT_TIMEOUT): Promise<boolean> {
+    const deadline = Date.now() + timeout;
 
-  while (Date.now() < deadline) {
-    const count = await countUnraidApiProcesses();
-    if (count === 0) {
-      return true;
+    while (Date.now() < deadline) {
+        const count = await countUnraidApiProcesses();
+        if (count === 0) {
+            return true;
+        }
+        await sleep(1000);
     }
-    await sleep(1000);
-  }
 
-  return false;
+    return false;
 }
 
 /**
@@ -156,49 +149,49 @@ export async function waitForAllProcessesStop(
  * ```
  */
 export async function cleanup(): Promise<void> {
-  // Step 1: Try graceful stop via unraid-api
-  await remoteExecSafe('unraid-api stop 2>/dev/null; true');
-  await sleep(1000);
-
-  // Step 2: Check if processes remain
-  let count = await countUnraidApiProcesses();
-  if (count === 0) {
-    await remoteExecSafe(`rm -f '${REMOTE_PID_PATH}' 2>/dev/null; true`);
-    return;
-  }
-
-  // Step 3: Force kill - nodemon FIRST (prevents restart of child)
-  await remoteExecSafe("pkill -KILL -f 'nodemon.*nodemon.json' 2>/dev/null; true");
-  await sleep(500);
-
-  // Step 4: Force kill - then main.js children
-  await remoteExecSafe("pkill -KILL -f 'node.*dist/main.js' 2>/dev/null; true");
-  await sleep(1000);
-
-  // Step 5: Clean up PID file
-  await remoteExecSafe(`rm -f '${REMOTE_PID_PATH}' 2>/dev/null; true`);
-
-  // Step 6: Verify - if still running, try harder with explicit PIDs
-  count = await countUnraidApiProcesses();
-  if (count !== 0) {
-    const pidsResult = await remoteExecSafe(
-      "ps -eo pid,args | grep -E 'nodemon.*nodemon.json|node.*dist/main.js' | grep -v grep | awk '{print $1}'"
-    );
-    const pids = pidsResult.stdout.trim().split('\n').filter(Boolean);
-    for (const pid of pids) {
-      await remoteExecSafe(`kill -9 ${pid} 2>/dev/null; true`);
-    }
+    // Step 1: Try graceful stop via unraid-api
+    await remoteExecSafe('unraid-api stop 2>/dev/null; true');
     await sleep(1000);
-  }
 
-  // Final check
-  count = await countUnraidApiProcesses();
-  if (count !== 0) {
-    const psResult = await remoteExecSafe(
-      "ps -eo pid,args | grep -E 'nodemon|main.js' | grep -v grep"
-    );
-    console.warn(`WARNING: Cleanup incomplete, remaining processes:\n${psResult.stdout}`);
-  }
+    // Step 2: Check if processes remain
+    let count = await countUnraidApiProcesses();
+    if (count === 0) {
+        await remoteExecSafe(`rm -f '${REMOTE_PID_PATH}' 2>/dev/null; true`);
+        return;
+    }
+
+    // Step 3: Force kill - nodemon FIRST (prevents restart of child)
+    await remoteExecSafe("pkill -KILL -f 'nodemon.*nodemon.json' 2>/dev/null; true");
+    await sleep(500);
+
+    // Step 4: Force kill - then main.js children
+    await remoteExecSafe("pkill -KILL -f 'node.*dist/main.js' 2>/dev/null; true");
+    await sleep(1000);
+
+    // Step 5: Clean up PID file
+    await remoteExecSafe(`rm -f '${REMOTE_PID_PATH}' 2>/dev/null; true`);
+
+    // Step 6: Verify - if still running, try harder with explicit PIDs
+    count = await countUnraidApiProcesses();
+    if (count !== 0) {
+        const pidsResult = await remoteExecSafe(
+            "ps -eo pid,args | grep -E 'nodemon.*nodemon.json|node.*dist/main.js' | grep -v grep | awk '{print $1}'"
+        );
+        const pids = pidsResult.stdout.trim().split('\n').filter(Boolean);
+        for (const pid of pids) {
+            await remoteExecSafe(`kill -9 ${pid} 2>/dev/null; true`);
+        }
+        await sleep(1000);
+    }
+
+    // Final check
+    count = await countUnraidApiProcesses();
+    if (count !== 0) {
+        const psResult = await remoteExecSafe(
+            "ps -eo pid,args | grep -E 'nodemon|main.js' | grep -v grep"
+        );
+        console.warn(`WARNING: Cleanup incomplete, remaining processes:\n${psResult.stdout}`);
+    }
 }
 
 /**
@@ -214,14 +207,14 @@ export async function cleanup(): Promise<void> {
  * ```
  */
 export async function startApi(): Promise<void> {
-  const result = await remoteExec('unraid-api start');
-  if (result.exitCode !== 0) {
-    throw new Error(`Failed to start API: ${result.stderr}`);
-  }
-  const started = await waitForStart();
-  if (!started) {
-    throw new Error('API did not start within timeout');
-  }
+    const result = await remoteExec('unraid-api start');
+    if (result.exitCode !== 0) {
+        throw new Error(`Failed to start API: ${result.stderr}`);
+    }
+    const started = await waitForStart();
+    if (!started) {
+        throw new Error('API did not start within timeout');
+    }
 }
 
 /**
@@ -241,13 +234,13 @@ export async function startApi(): Promise<void> {
  * ```
  */
 export async function stopApi(force = false): Promise<void> {
-  const cmd = force ? 'unraid-api stop --force' : 'unraid-api stop';
-  const result = await remoteExec(cmd);
-  if (result.exitCode !== 0) {
-    throw new Error(`Failed to stop API: ${result.stderr}`);
-  }
-  await waitForStop();
-  await waitForAllProcessesStop(10000);
+    const cmd = force ? 'unraid-api stop --force' : 'unraid-api stop';
+    const result = await remoteExec(cmd);
+    if (result.exitCode !== 0) {
+        throw new Error(`Failed to stop API: ${result.stderr}`);
+    }
+    await waitForStop();
+    await waitForAllProcessesStop(10000);
 }
 
 /**
@@ -266,6 +259,6 @@ export async function stopApi(force = false): Promise<void> {
  * ```
  */
 export async function getStatus(): Promise<string> {
-  const result = await remoteExec('unraid-api status 2>&1');
-  return result.stdout;
+    const result = await remoteExec('unraid-api status 2>&1');
+    return result.stdout;
 }

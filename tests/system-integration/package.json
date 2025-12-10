@@ -6,11 +6,20 @@
   "description": "System integration tests for unraid-api",
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "pnpm lint:eslint && pnpm lint:prettier",
+    "lint:eslint": "eslint --cache --config eslint.config.ts src/",
+    "lint:prettier": "prettier --check \"src/**/*.ts\"",
+    "lint:fix": "eslint --cache --fix --config eslint.config.ts src/ && prettier --write \"src/**/*.ts\""
   },
   "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "eslint": "^9.34.0",
     "execa": "^9.6.0",
+    "jiti": "^2.5.1",
+    "prettier": "^3.6.2",
     "typescript": "^5.9.2",
+    "typescript-eslint": "^8.41.0",
     "vitest": "^3.2.4"
   }
 }
