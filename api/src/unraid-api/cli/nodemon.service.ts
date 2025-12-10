@@ -5,10 +5,12 @@ import { appendFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 import { execa } from 'execa';
+import { lock } from 'proper-lockfile';
 
 import { fileExists, fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import {
     NODEMON_CONFIG_PATH,
+    NODEMON_LOCK_PATH,
     NODEMON_PATH,
     NODEMON_PID_PATH,
     PATHS_LOGS_DIR,
@@ -18,6 +20,8 @@ import {
     UNRAID_API_SERVER_ENTRYPOINT,
 } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
+
+const LOCK_TIMEOUT_SECONDS = 30;
 
 type StartOptions = {
     env?: Record<string, string | undefined>;
@@ -67,6 +71,28 @@ export class NodemonService {
         await mkdir(dirname(PATHS_LOGS_FILE), { recursive: true });
         await mkdir(dirname(PATHS_NODEMON_LOG_FILE), { recursive: true });
         await mkdir(dirname(NODEMON_PID_PATH), { recursive: true });
+        await mkdir(dirname(NODEMON_LOCK_PATH), { recursive: true });
+        await writeFile(NODEMON_LOCK_PATH, '', { flag: 'a' });
+    }
+
+    private async withLock<T>(fn: () => Promise<T>): Promise<T> {
+        let release: (() => Promise<void>) | null = null;
+        try {
+            release = await lock(NODEMON_LOCK_PATH, {
+                stale: LOCK_TIMEOUT_SECONDS * 1000,
+                retries: {
+                    retries: Math.floor(LOCK_TIMEOUT_SECONDS * 10),
+                    factor: 1,
+                    minTimeout: 100,
+                    maxTimeout: 100,
+                },
+            });
+            return await fn();
+        } finally {
+            if (release) {
+                await release().catch(() => {});
+            }
+        }
     }
 
     private async stopPm2IfRunning() {
@@ -280,6 +306,10 @@ export class NodemonService {
             throw error;
         }
 
+        await this.withLock(() => this.startInternal(options));
+    }
+
+    private async startInternal(options: StartOptions = {}) {
         await this.stopPm2IfRunning();
         await this.logToBootFile('PM2 cleanup complete');
 

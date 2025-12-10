@@ -109,6 +109,7 @@ export const PATHS_NODEMON_LOG_FILE =
 export const NODEMON_PATH = join(UNRAID_API_ROOT, 'node_modules', 'nodemon', 'bin', 'nodemon.js');
 export const NODEMON_CONFIG_PATH = join(UNRAID_API_ROOT, 'nodemon.json');
 export const NODEMON_PID_PATH = process.env.NODEMON_PID_PATH ?? '/var/run/unraid-api/nodemon.pid';
+export const NODEMON_LOCK_PATH = process.env.NODEMON_LOCK_PATH ?? '/var/run/unraid-api/nodemon.lock';
 export const UNRAID_API_CWD = process.env.UNRAID_API_CWD ?? UNRAID_API_ROOT;
 export const UNRAID_API_SERVER_ENTRYPOINT = join(UNRAID_API_CWD, 'dist', 'main.js');
 

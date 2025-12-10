@@ -66,6 +66,9 @@ vi.mock('node:fs/promises', async (importOriginal) => {
     };
 });
 vi.mock('execa', () => ({ execa: vi.fn() }));
+vi.mock('proper-lockfile', () => ({
+    lock: vi.fn().mockResolvedValue(vi.fn().mockResolvedValue(undefined)),
+}));
 vi.mock('@app/core/utils/files/file-exists.js', () => ({
     fileExists: vi.fn().mockResolvedValue(false),
     fileExistsSync: vi.fn().mockReturnValue(true),
@@ -74,6 +77,7 @@ vi.mock('@app/environment.js', () => ({
     LOG_LEVEL: 'INFO',
     SUPPRESS_LOGS: false,
     NODEMON_CONFIG_PATH: '/etc/unraid-api/nodemon.json',
+    NODEMON_LOCK_PATH: '/var/run/unraid-api/nodemon.lock',
     NODEMON_PATH: '/usr/bin/nodemon',
     NODEMON_PID_PATH: '/var/run/unraid-api/nodemon.pid',
     PATHS_LOGS_DIR: '/var/log/unraid-api',
@@ -196,7 +200,10 @@ describe('NodemonService', () => {
         });
 
         await expect(service.start()).rejects.toThrow('Failed to start nodemon: Command not found');
-        expect(mockWriteFile).not.toHaveBeenCalled();
+        expect(mockWriteFile).not.toHaveBeenCalledWith(
+            '/var/run/unraid-api/nodemon.pid',
+            expect.anything()
+        );
         expect(logger.info).not.toHaveBeenCalled();
     });
 
@@ -221,7 +228,10 @@ describe('NodemonService', () => {
         await expect(service.start()).rejects.toThrow(
             'Failed to start nodemon: process spawned but no PID was assigned'
         );
-        expect(mockWriteFile).not.toHaveBeenCalled();
+        expect(mockWriteFile).not.toHaveBeenCalledWith(
+            '/var/run/unraid-api/nodemon.pid',
+            expect.anything()
+        );
         expect(logger.info).not.toHaveBeenCalled();
     });
 

@@ -77,6 +77,7 @@ describe('NodemonService (real nodemon)', () => {
             SUPPRESS_LOGS: false,
             API_VERSION: 'test-version',
             NODEMON_CONFIG_PATH: configPath,
+            NODEMON_LOCK_PATH: join(workdir, 'nodemon.lock'),
             NODEMON_PATH: nodemonPath,
             NODEMON_PID_PATH: pidPath,
             PATHS_LOGS_DIR: workdir,
