@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { remoteExec } from '../helpers/ssh.js';
 import {
     getRemotePid,
@@ -10,6 +10,8 @@ import {
     REMOTE_PID_PATH,
 } from '../helpers/process.js';
 import { cleanup, startApi, stopApi, getStatus, waitForStart } from '../helpers/api-lifecycle.js';
+import { rebootServer, waitForServerOffline, waitForServerOnline } from '../helpers/server.js';
+import { TEN_SECONDS, ONE_MINUTE, FIFTEEN_MINUTES } from '../helpers/utils.js';
 
 describe('singleton daemon', () => {
     beforeAll(async () => {
@@ -151,7 +153,7 @@ describe('singleton daemon', () => {
             await remoteExec('unraid-api restart');
 
             await new Promise((resolve) => setTimeout(resolve, 3000));
-            await waitForStart(10000);
+            await waitForStart(TEN_SECONDS);
 
             const newPid = await getRemotePid();
             expect(newPid).toBeTruthy();
@@ -164,7 +166,7 @@ describe('singleton daemon', () => {
         it('works when API is not running', async () => {
             await remoteExec('unraid-api restart');
 
-            await waitForStart(10000);
+            await waitForStart(TEN_SECONDS);
 
             const pid = await getRemotePid();
             expect(pid).toBeTruthy();
@@ -201,5 +203,32 @@ describe('singleton daemon', () => {
 
             expect(await isProcessRunning(newPid)).toBe(true);
         });
+    });
+
+    describe('server reboot', () => {
+        it(
+            'API starts automatically after server reboot',
+            async () => {
+                await startApi();
+                await assertSingleApiInstance();
+
+                await rebootServer();
+
+                const offline = await waitForServerOffline();
+                expect(offline).toBe(true);
+
+                const online = await waitForServerOnline();
+                expect(online).toBe(true);
+
+                const started = await waitForStart(ONE_MINUTE);
+                expect(started).toBe(true);
+
+                await assertSingleApiInstance();
+
+                const status = await getStatus();
+                expect(status).toMatch(/running/i);
+            },
+            FIFTEEN_MINUTES
+        );
     });
 });

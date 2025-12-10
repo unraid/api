@@ -120,10 +120,6 @@ api/dev/Unraid.net/myservers.cfg
 # Claude local settings
 .claude/settings.local.json
 
-# BATS library symlinks (created by tests/bats/setup.sh)
-tests/bats/test_helper/bats-support
-tests/bats/test_helper/bats-assert
-
 # local Mise settings
 .mise.toml
 

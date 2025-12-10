@@ -24,19 +24,12 @@
 
 import { remoteExec, remoteExecSafe } from './ssh.js';
 import { getRemotePid, isProcessRunning, countUnraidApiProcesses, REMOTE_PID_PATH } from './process.js';
+import { sleep, TEN_SECONDS } from './utils.js';
 
 /**
  * Default timeout for wait operations in milliseconds.
  */
-const DEFAULT_TIMEOUT = 10000;
-
-/**
- * Utility function to pause execution.
- * @param ms - Duration to sleep in milliseconds
- */
-function sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
+const DEFAULT_TIMEOUT = TEN_SECONDS;
 
 /**
  * Waits for the API to start by polling for PID file existence and process running state.
@@ -240,7 +233,7 @@ export async function stopApi(force = false): Promise<void> {
         throw new Error(`Failed to stop API: ${result.stderr}`);
     }
     await waitForStop();
-    await waitForAllProcessesStop(10000);
+    await waitForAllProcessesStop(TEN_SECONDS);
 }
 
 /**
