@@ -22,7 +22,7 @@ describe('UPSResolver', () => {
         MODEL: 'Test UPS',
         STATUS: 'Online',
         BCHARGE: '100',
-        TIMELEFT: '3600',
+        TIMELEFT: '60', // 60 minutes (apcupsd format)
         LINEV: '120.5',
         OUTPUTV: '120.5',
         LOADPCT: '25',
