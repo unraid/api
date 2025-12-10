@@ -7,7 +7,7 @@
         "src",
         ".env.*"
     ],
-    "exec": "node ./dist/main.js",
+    "exec": "node $UNRAID_API_SERVER_ENTRYPOINT",
     "signal": "SIGTERM",
     "ext": "js,json",
     "restartable": "rs",

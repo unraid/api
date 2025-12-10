@@ -80,6 +80,7 @@ vi.mock('@app/environment.js', () => ({
     PATHS_LOGS_FILE: '/var/log/graphql-api.log',
     PATHS_NODEMON_LOG_FILE: '/var/log/unraid-api/nodemon.log',
     UNRAID_API_CWD: '/usr/local/unraid-api',
+    UNRAID_API_SERVER_ENTRYPOINT: '/usr/local/unraid-api/dist/main.js',
 }));
 
 describe('NodemonService', () => {

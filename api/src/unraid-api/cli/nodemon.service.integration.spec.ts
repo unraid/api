@@ -83,6 +83,7 @@ describe('NodemonService (real nodemon)', () => {
             PATHS_LOGS_FILE: appLogPath,
             PATHS_NODEMON_LOG_FILE: nodemonLogPath,
             UNRAID_API_CWD: workdir,
+            UNRAID_API_SERVER_ENTRYPOINT: join(workdir, 'app.js'),
         }));
 
         const { NodemonService } = await import('./nodemon.service.js');

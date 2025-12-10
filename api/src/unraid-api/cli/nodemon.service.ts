@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { spawn } from 'node:child_process';
 import { openSync, writeSync } from 'node:fs';
 import { appendFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { dirname } from 'node:path';
 
 import { execa } from 'execa';
 
@@ -15,6 +15,7 @@ import {
     PATHS_LOGS_FILE,
     PATHS_NODEMON_LOG_FILE,
     UNRAID_API_CWD,
+    UNRAID_API_SERVER_ENTRYPOINT,
 } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 
@@ -147,9 +148,6 @@ export class NodemonService {
 
     private async findDirectMainPids(): Promise<number[]> {
         try {
-            // Note: ps may show relative path "node ./dist/main.js" instead of absolute path
-            // So we check for both patterns: the absolute path and the relative "dist/main.js"
-            const mainPath = join(UNRAID_API_CWD, 'dist', 'main.js');
             const { stdout } = await execa('ps', ['-eo', 'pid,args']);
             return stdout
                 .split('\n')
@@ -157,7 +155,7 @@ export class NodemonService {
                 .map((line) => line.match(/^(\d+)\s+(.*)$/))
                 .filter((match): match is RegExpMatchArray => Boolean(match))
                 .map(([, pid, cmd]) => ({ pid: Number.parseInt(pid, 10), cmd }))
-                .filter(({ cmd }) => cmd.includes(mainPath) || /node.*dist\/main\.js/.test(cmd))
+                .filter(({ cmd }) => cmd.includes(UNRAID_API_SERVER_ENTRYPOINT))
                 .map(({ pid }) => pid)
                 .filter((pid) => Number.isInteger(pid));
         } catch {
@@ -340,6 +338,7 @@ export class NodemonService {
             NODEMON_CONFIG_PATH,
             NODEMON_PID_PATH,
             UNRAID_API_CWD,
+            UNRAID_API_SERVER_ENTRYPOINT,
             ...overrides,
         } as Record<string, string>;
 
