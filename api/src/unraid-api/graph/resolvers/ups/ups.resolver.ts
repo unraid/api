@@ -22,9 +22,7 @@ export class UPSResolver {
             battery: {
                 chargeLevel: parseInt(upsData.BCHARGE || '100', 10),
                 // Convert TIMELEFT from minutes (apcupsd format) to seconds
-                estimatedRuntime: Math.round(
-                    parseFloat(upsData.TIMELEFT || '60') * 60
-                ),
+                estimatedRuntime: Math.round(parseFloat(upsData.TIMELEFT || '60') * 60),
                 health: 'Good',
             },
             power: {
