@@ -853,6 +853,30 @@ importers:
         specifier: 3.2.4
         version: 3.2.4(@types/node@22.18.0)(@vitest/ui@3.2.4)(happy-dom@18.0.1)(jiti@2.5.1)(jsdom@26.1.0)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)
 
+  tests/bats:
+    devDependencies:
+      bats:
+        specifier: ^1.13.0
+        version: 1.13.0
+      bats-assert:
+        specifier: ^2.2.4
+        version: 2.2.4(bats-support@0.3.0(bats@1.13.0))(bats@1.13.0)
+      bats-support:
+        specifier: ^0.3.0
+        version: 0.3.0(bats@1.13.0)
+
+  tests/system-integration:
+    devDependencies:
+      execa:
+        specifier: ^9.6.0
+        version: 9.6.0
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/node@22.18.0)(@vitest/ui@3.2.4)(happy-dom@18.0.1)(jiti@2.5.1)(jsdom@26.1.0)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1)
+
   unraid-ui:
     dependencies:
       '@headlessui/vue':
@@ -6025,6 +6049,21 @@ packages:
   basic-auth@2.0.1:
     resolution: {integrity: sha512-NF+epuEdnUYVlGuhaxbbq+dvJttwLnGY+YixlXlME5KpQ5W3CnXA5cVTneY3SPbPDRkcjMbifrwmFYcClgOZeg==}
     engines: {node: '>= 0.8'}
+
+  bats-assert@2.2.4:
+    resolution: {integrity: sha512-EcaY4Z+Tbz1c7pnC1SrVSq0epr7tLwFpz6qt7KUW9K8uSw8V12DTfH9d2HxZWvBEATaCuMsZ7KoZMFiSQPRoXw==}
+    peerDependencies:
+      bats: 0.4 || ^1
+      bats-support: ^0.3
+
+  bats-support@0.3.0:
+    resolution: {integrity: sha512-z+2WzXbI4OZgLnynydqH8GpI3+DcOtepO66PlK47SfEzTkiuV9hxn9eIQX+uLVFbt2Oqoc7Ky3TJ/N83lqD+cg==}
+    peerDependencies:
+      bats: 0.4 || ^1
+
+  bats@1.13.0:
+    resolution: {integrity: sha512-giSYKGTOcPZyJDbfbTtzAedLcNWdjCLbXYU3/MwPnjyvDXzu6Dgw8d2M+8jHhZXSmsCMSQqCp+YBsJ603UO4vQ==}
+    hasBin: true
 
   bcrypt-pbkdf@1.0.2:
     resolution: {integrity: sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w==}
@@ -17903,6 +17942,17 @@ snapshots:
   basic-auth@2.0.1:
     dependencies:
       safe-buffer: 5.1.2
+
+  bats-assert@2.2.4(bats-support@0.3.0(bats@1.13.0))(bats@1.13.0):
+    dependencies:
+      bats: 1.13.0
+      bats-support: 0.3.0(bats@1.13.0)
+
+  bats-support@0.3.0(bats@1.13.0):
+    dependencies:
+      bats: 1.13.0
+
+  bats@1.13.0: {}
 
   bcrypt-pbkdf@1.0.2:
     dependencies:

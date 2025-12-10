@@ -1,31 +1,18 @@
 #!/usr/bin/env bash
-# test_helper.bash - Shared helper functions for BATS integration tests
+# unraid-api.bash - Helpers for testing unraid-api daemon process management
 #
-# This file is loaded by singleton.bats using BATS' load command.
-# See: https://bats-core.readthedocs.io/en/stable/writing-tests.html
+# Requires: SERVER environment variable
+#
+# Usage in tests:
+#   load '../test_helper/unraid-api'
 
-# Remote server (must be set via environment variable)
-: "${SERVER:?SERVER environment variable must be set}"
+load 'ssh'
 
-# Remote paths - exported so they're available in test functions
+# Remote paths
 export REMOTE_PID_PATH="/var/run/unraid-api/nodemon.pid"
 
 # Timeouts (seconds)
 export DEFAULT_TIMEOUT=10
-
-# -----------------------------------------------------------------------------
-# SSH Execution Helpers
-# -----------------------------------------------------------------------------
-
-# Execute a command on the remote server
-remote_exec() {
-    ssh -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=accept-new "root@${SERVER}" "$@"
-}
-
-# Execute a command on the remote server, ignoring failures (for cleanup)
-remote_exec_safe() {
-    ssh -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=accept-new "root@${SERVER}" "$@" 2>/dev/null || true
-}
 
 # -----------------------------------------------------------------------------
 # Process Query Helpers
@@ -55,7 +42,6 @@ count_nodemon_processes() {
 }
 
 # Count main.js worker processes (children of nodemon)
-# Note: ps shows relative path "node ./dist/main.js" not full path
 count_main_processes() {
     local result
     result=$(remote_exec "ps -eo args 2>/dev/null | grep -E 'node.*dist/main\.js' | grep -v grep | wc -l" 2>/dev/null || echo "0")
@@ -69,6 +55,10 @@ count_unraid_api_processes() {
     main_count=$(count_main_processes)
     echo $((nodemon_count + main_count))
 }
+
+# -----------------------------------------------------------------------------
+# Process Assertions
+# -----------------------------------------------------------------------------
 
 # Assert exactly one nodemon and one main.js process
 assert_single_api_instance() {
@@ -187,7 +177,6 @@ cleanup() {
     sleep 0.5
 
     # Step 4: Force kill - then main.js children
-    # Note: Use simpler pattern since ps shows relative path "./dist/main.js"
     remote_exec_safe "pkill -KILL -f 'node.*dist/main.js' 2>/dev/null; true"
     sleep 1
 
@@ -197,7 +186,6 @@ cleanup() {
     # Step 6: Verify - if still running, try harder with explicit PIDs
     count=$(count_unraid_api_processes)
     if [[ "$count" -ne 0 ]]; then
-        # Get specific PIDs and kill them directly
         local pids
         pids=$(remote_exec_safe "ps -eo pid,args | grep -E 'nodemon.*nodemon.json|node.*dist/main.js' | grep -v grep | awk '{print \$1}'" 2>/dev/null || true)
         for pid in $pids; do
@@ -223,8 +211,6 @@ start_api() {
 }
 
 # Stop the API using unraid-api stop command
-# NOTE: This does NOT force kill remaining processes - tests should verify
-# that unraid-api stop properly cleans up. Use cleanup() for test isolation.
 stop_api() {
     local force="${1:-}"
     if [[ "$force" == "--force" ]]; then
@@ -233,10 +219,7 @@ stop_api() {
         remote_exec "unraid-api stop"
     fi
 
-    # Wait for PID file to be removed
     wait_for_stop
-
-    # Wait for processes to exit (but don't force kill - let test verify)
     wait_for_all_processes_stop 10
 }
 

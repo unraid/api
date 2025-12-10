@@ -1,0 +1,16 @@
+{
+  "name": "@unraid/bats-tests",
+  "version": "0.0.0",
+  "private": true,
+  "description": "BATS integration tests for unraid-api",
+  "scripts": {
+    "postinstall": "./setup.sh",
+    "test": "bats --recursive .",
+    "test:integration": "bats --recursive integration/"
+  },
+  "devDependencies": {
+    "bats": "^1.13.0",
+    "bats-assert": "^2.2.4",
+    "bats-support": "^0.3.0"
+  }
+}
