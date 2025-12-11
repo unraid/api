@@ -4,15 +4,21 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
+import { useDebounceFn } from '@vueuse/core';
 
 import type { ApolloError } from '@apollo/client/errors';
-import type { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
+import type {
+  NotificationImportance as Importance,
+  Notification,
+  NotificationType,
+} from '~/composables/gql/graphql';
 import type { GraphQLError } from 'graphql';
 
 import {
   getNotifications,
   NOTIFICATION_FRAGMENT,
 } from '~/components/Notifications/graphql/notification.query';
+import { notificationAddedSubscription } from '~/components/Notifications/graphql/notification.subscription';
 import NotificationsItem from '~/components/Notifications/Item.vue';
 import { useHaveSeenNotifications } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql/fragment-masking';
@@ -28,7 +34,10 @@ const props = withDefaults(
     importance?: Importance;
   }>(),
   {
-    pageSize: 15,
+    // Increased to 50 to minimize "pagination drift" (race conditions) where
+    // new items added during a fetch shift the offsets of subsequent pages,
+    // causing the client to fetch duplicate items it already has.
+    pageSize: 50,
     importance: undefined,
   }
 );
@@ -43,14 +52,53 @@ watch(props, () => {
 const unraidApiStore = useUnraidApiStore();
 const { offlineError } = storeToRefs(unraidApiStore);
 
-const { result, error, loading, fetchMore, refetch } = useQuery(getNotifications, () => ({
-  filter: {
-    offset: 0,
-    limit: props.pageSize,
-    type: props.type,
-    importance: props.importance,
+const { result, error, loading, fetchMore, refetch, subscribeToMore } = useQuery(
+  getNotifications,
+  () => ({
+    filter: {
+      offset: 0,
+      limit: props.pageSize,
+      type: props.type,
+      importance: props.importance,
+    },
+  })
+);
+
+// Debounce refetch to handle mass-add scenarios efficiently.
+// Increased to 500ms to ensure we capture the entire batch of events in a single refetch,
+// preventing partial updates that can lead to race conditions.
+const debouncedRefetch = useDebounceFn(() => {
+  console.log('[Notifications] Refetching due to subscription update');
+  canLoadMore.value = true; // Reset load state so infinite scroll works again from top
+  void refetch();
+}, 500);
+
+subscribeToMore({
+  document: notificationAddedSubscription,
+  updateQuery: (previousResult, { subscriptionData }) => {
+    if (!subscriptionData.data) return previousResult;
+
+    const newNotification = subscriptionData.data.notificationAdded;
+
+    // Check filters - only refetch if the new notification is relevant to this list
+    let isRelevant = newNotification.type === props.type;
+    if (isRelevant && props.importance) {
+      isRelevant = newNotification.importance === props.importance;
+    }
+
+    if (isRelevant) {
+      // Debug log to confirm event reception
+      console.log('[Notifications] Relevant subscription event received:', newNotification.id);
+      debouncedRefetch();
+    } else {
+      // console.log('[Notifications] Irrelevant subscription event ignored:', newNotification.id);
+    }
+
+    // Return previous result unchanged. We rely on refetch() to update the list.
+    // This avoids the "stale previousResult" issue where rapid updates overwrite each other.
+    return previousResult;
   },
-}));
+});
 
 function dbgApolloError(prefix: string, err: ApolloError | null | undefined) {
   if (!err) return;
@@ -85,9 +133,9 @@ watch([error, offlineError], ([e, o]) => {
 const notifications = computed(() => {
   if (!result.value?.notifications.list) return [];
   const list = useFragment(NOTIFICATION_FRAGMENT, result.value?.notifications.list);
-  // necessary because some items in this list may change their type (e.g. archival)
-  // and we don't want to display them in the wrong list client-side.
-  return list.filter((n) => n.type === props.type);
+  const filtered = list.filter((n) => n.type === props.type);
+  console.log('[Notifications] Computed list updated. Length:', filtered.length);
+  return filtered;
 });
 
 const { t } = useI18n();
@@ -100,7 +148,7 @@ watch(
     const [latest] = notifications.value;
     if (!latest?.timestamp) return;
     if (new Date(latest.timestamp) > new Date(latestSeenTimestamp.value)) {
-      console.log('[notif list] setting last seen timestamp', latest.timestamp);
+      // console.log('[notif list] setting last seen timestamp', latest.timestamp);
       latestSeenTimestamp.value = latest.timestamp;
     }
   },
@@ -108,25 +156,75 @@ watch(
 );
 
 async function onLoadMore() {
-  console.log('[getNotifications] onLoadMore');
+  const currentLength = notifications.value.length;
+  console.log('[Notifications] onLoadMore triggered. Current Offset:', currentLength);
+
+  if (loading.value) {
+    console.log('[Notifications] Skipping load more because loading is true');
+    return;
+  }
+
   try {
     const incoming = await fetchMore({
       variables: {
         filter: {
-          offset: notifications.value.length,
+          offset: currentLength,
           limit: props.pageSize,
           type: props.type,
           importance: props.importance,
         },
       },
+      updateQuery: (previousResult, { fetchMoreResult }) => {
+        if (!fetchMoreResult) return previousResult;
+
+        const currentList = previousResult.notifications.list || [];
+        const incomingList = fetchMoreResult.notifications.list;
+
+        console.log('[Notifications] fetchMore UpdateQuery.');
+        console.log(' - Previous List Length:', currentList.length);
+        console.log(' - Incoming List Length:', incomingList.length);
+
+        const existingIds = new Set(currentList.map((n: Notification) => n.id));
+        const newUniqueItems = incomingList.filter((n: Notification) => !existingIds.has(n.id));
+
+        console.log(' - Unique Items to Append:', newUniqueItems.length);
+
+        // DETECT PAGINATION DRIFT (Shifted Offsets)
+        // If we fetched items, but they are ALL duplicates, it implies new items were added
+        // to the top of the list, pushing existing items down into our requested page range.
+        // In this case, our current list is stale/misaligned. We must force a full refetch.
+        if (incomingList.length > 0 && newUniqueItems.length === 0) {
+          console.warn(
+            '[Notifications] Pagination Drift Detected! Fetched items are all duplicates. Triggering Refetch.'
+          );
+          // Trigger refetch asynchronously to avoid side-effects during render cycle
+          setTimeout(() => {
+            debouncedRefetch();
+          }, 0);
+          return previousResult;
+        }
+
+        return {
+          ...previousResult,
+          notifications: {
+            ...previousResult.notifications,
+            list: [...currentList, ...newUniqueItems],
+          },
+        };
+      },
     });
+
     const incomingCount = incoming?.data.notifications.list.length ?? 0;
+    console.log('[Notifications] fetchMore Result.');
+    console.log(' - Incoming Count from Network:', incomingCount);
+    console.log(' - Page Size:', props.pageSize);
+
     if (incomingCount === 0 || incomingCount < props.pageSize) {
+      console.log('[Notifications] Reached End (incoming < pageSize). Disabling Infinite Scroll.');
       canLoadMore.value = false;
     }
   } catch (error) {
-    // Stop attempting while offline/error.
-    // UI has a Try Again button to recover
+    console.error('[Notifications] fetchMore Error:', error);
     canLoadMore.value = false;
     throw error;
   }

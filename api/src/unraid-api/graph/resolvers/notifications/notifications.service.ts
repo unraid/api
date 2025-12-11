@@ -114,16 +114,9 @@ export class NotificationsService {
         const type = path.includes('/unread/') ? NotificationType.UNREAD : NotificationType.ARCHIVE;
         this.logger.debug(`[handleNotificationAdd] Adding ${type} Notification: ${path}`);
 
-        // If it's an archive notification, and we have the same notification in unread, ignore it
-        // This prevents double counting when the legacy script writes to both locations
-        if (type === NotificationType.ARCHIVE) {
-            const id = this.getIdFromPath(path);
-            const unreadPath = join(this.paths().UNREAD, id);
-            if (await fileExists(unreadPath)) {
-                this.logger.debug(`[handleNotificationAdd] Ignoring ARCHIVE duplicate: ${path}`);
-                return;
-            }
-        }
+        // Note: We intentionally track duplicate files (files in both unread and archive)
+        // because the frontend relies on (Archive Total - Unread Total) to calculate the
+        // "Archived Only" count. If we ignore duplicates here, the math breaks.
 
         let notification: Notification | undefined;
         let lastError: unknown;
@@ -160,6 +153,10 @@ export class NotificationsService {
                 notificationAdded: notification,
             });
             void this.publishWarningsAndAlerts();
+        }
+        // Also publish overview updates for archive adds, so counts stay in sync
+        if (type === NotificationType.ARCHIVE) {
+            this.publishOverview();
         }
     }
 
@@ -261,28 +258,8 @@ export class NotificationsService {
         const fileData = this.makeNotificationFileData(data);
 
         try {
-            // For risky notifications (long titles, unicode), the legacy script might fail silently
-            // or produce unexpected filenames/collisions.
-            // We use the legacy script for email/agents, but handle unread file creation ourselves.
-            const hasNonAscii = (str: string) => [...str].some((char) => char.charCodeAt(0) >= 0x80);
-            const isRisky =
-                data.title.length > 100 || hasNonAscii(data.title) || hasNonAscii(data.subject);
-
-            const [command, args] = this.getLegacyScriptArgs(fileData);
-
-            if (isRisky) {
-                // Pass -b to suppress browser notification (unread file) creation in legacy script
-                args.push('-b');
-            }
-
+            const [command, args] = this.getLegacyScriptArgs(fileData, id);
             await execa(command, args);
-
-            // If risky, we MUST create the file manually (since we suppressed it)
-            if (isRisky) {
-                const path = join(this.paths().UNREAD, id);
-                const ini = encodeIni(fileData);
-                await writeFile(path, ini);
-            }
         } catch (error) {
             // manually write the file if the script fails entirely
             this.logger.debug(`[createNotification] legacy notifier failed: ${error}`);
@@ -308,7 +285,7 @@ export class NotificationsService {
      * @param notification The notification to be converted to command line arguments.
      * @returns A 2-element tuple containing the legacy notifier command and arguments.
      */
-    public getLegacyScriptArgs(notification: NotificationIni): [string, string[]] {
+    public getLegacyScriptArgs(notification: NotificationIni, id?: string): [string, string[]] {
         const { event, subject, description, link, importance } = notification;
         const args = [
             ['-i', importance],
@@ -318,6 +295,9 @@ export class NotificationsService {
         ];
         if (link) {
             args.push(['-l', link]);
+        }
+        if (id) {
+            args.push(['-u', id]);
         }
         return ['/usr/local/emhttp/webGui/scripts/notify', args.flat()];
     }
@@ -496,6 +476,7 @@ export class NotificationsService {
 
     public async archiveNotification({ id }: Pick<Notification, 'id'>): Promise<Notification> {
         const unreadPath = join(this.paths().UNREAD, id);
+        const archivePath = join(this.paths().ARCHIVE, id);
 
         // We expect to only archive 'unread' notifications, but it's possible that the notification
         // has already been archived or deleted (e.g. retry logic, spike in network latency).
@@ -515,12 +496,32 @@ export class NotificationsService {
          *------------------------**/
         const snapshot = this.getOverview();
         const notification = await this.loadNotificationFile(unreadPath, NotificationType.UNREAD);
-        const moveToArchive = this.moveNotification({
-            from: NotificationType.UNREAD,
-            to: NotificationType.ARCHIVE,
-            snapshot,
-        });
-        await moveToArchive(notification);
+
+        // Update stats
+        this.decrement(notification.importance, NotificationsService.overview.unread);
+
+        if (snapshot) {
+            this.decrement(notification.importance, snapshot.unread);
+        }
+
+        if (await fileExists(archivePath)) {
+            // File already in archive, just delete the unread one
+            await unlink(unreadPath);
+
+            // CRITICAL FIX: If the file already existed in archive, it should have been counted
+            // by handleNotificationAdd (since we removed the ignore logic).
+            // Therefore, we do NOT increment the archive count here to avoid double counting.
+        } else {
+            // File not in archive, move it there
+            await rename(unreadPath, archivePath);
+
+            // We moved a file to archive that wasn't there.
+            // We DO need to increment the stats.
+            this.increment(notification.importance, NotificationsService.overview.archive);
+            if (snapshot) {
+                this.increment(notification.importance, snapshot.archive);
+            }
+        }
 
         void this.publishWarningsAndAlerts();
 
@@ -564,18 +565,20 @@ export class NotificationsService {
             return { overview: NotificationsService.overview };
         }
 
-        const overviewSnapshot = this.getOverview();
         const unreads = await this.listFilesInFolder(UNREAD);
         const [notifications] = await this.loadNotificationsFromPaths(unreads, { importance });
-        const archive = this.moveNotification({
-            from: NotificationType.UNREAD,
-            to: NotificationType.ARCHIVE,
-            snapshot: overviewSnapshot,
-        });
 
-        const stats = await batchProcess(notifications, archive);
+        const archiveAction = async (notification: Notification) => {
+            // Reuse archiveNotification which handles the "exists" check logic
+            await this.archiveNotification({ id: notification.id });
+        };
+
+        const stats = await batchProcess(notifications, archiveAction);
         void this.publishWarningsAndAlerts();
-        return { ...stats, overview: overviewSnapshot };
+
+        // Return the *actual* current state of the service, which is properly updated
+        // by the individual archiveNotification calls.
+        return { ...stats, overview: this.getOverview() };
     }
 
     public async unarchiveAll(importance?: NotificationImportance) {
