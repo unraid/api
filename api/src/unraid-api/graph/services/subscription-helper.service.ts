@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
+
+import { createSubscription } from '@app/core/pubsub.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
 /**
@@ -21,7 +23,7 @@ import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subsc
  * \@Subscription(() => MetricsUpdate)
  * async metricsSubscription() {
  *   // Topic must be registered first via SubscriptionTrackerService
- *   return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.METRICS);
+ *   return this.subscriptionHelper.createTrackedSubscription(GRAPHQL_PUBSUB_CHANNEL.METRICS);
  * }
  */
 @Injectable()
@@ -33,7 +35,9 @@ export class SubscriptionHelperService {
      * @param topic The subscription topic/channel to subscribe to
      * @returns A proxy async iterator with automatic cleanup
      */
-    public createTrackedSubscription<T = any>(topic: PUBSUB_CHANNEL | string): AsyncIterableIterator<T> {
+    public createTrackedSubscription<T = any>(
+        topic: GRAPHQL_PUBSUB_CHANNEL | string
+    ): AsyncIterableIterator<T> {
         const innerIterator = createSubscription<T>(topic);
 
         // Subscribe when the subscription starts

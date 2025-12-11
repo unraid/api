@@ -25,8 +25,8 @@ export class PackageVersions {
     @Field(() => String, { nullable: true, description: 'npm version' })
     npm?: string;
 
-    @Field(() => String, { nullable: true, description: 'pm2 version' })
-    pm2?: string;
+    @Field(() => String, { nullable: true, description: 'nodemon version' })
+    nodemon?: string;
 
     @Field(() => String, { nullable: true, description: 'Git version' })
     git?: string;

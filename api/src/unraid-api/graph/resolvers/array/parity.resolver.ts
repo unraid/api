@@ -1,10 +1,10 @@
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
+import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { PubSub } from 'graphql-subscriptions';
 
-import { PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
 import { ParityCheck } from '@app/unraid-api/graph/resolvers/array/parity.model.js';
 import { ParityService } from '@app/unraid-api/graph/resolvers/array/parity.service.js';
@@ -33,6 +33,6 @@ export class ParityResolver {
     })
     @Subscription(() => ParityCheck)
     parityHistorySubscription() {
-        return pubSub.asyncIterableIterator(PUBSUB_CHANNEL.PARITY);
+        return pubSub.asyncIterableIterator(GRAPHQL_PUBSUB_CHANNEL.PARITY);
     }
 }

@@ -2,9 +2,9 @@ import { Command, CommandRunner, Option } from 'nest-commander';
 
 import type { LogLevel } from '@app/core/log.js';
 import { levels } from '@app/core/log.js';
-import { ECOSYSTEM_PATH, LOG_LEVEL } from '@app/environment.js';
+import { LOG_LEVEL } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
-import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
+import { NodemonService } from '@app/unraid-api/cli/nodemon.service.js';
 
 export interface LogLevelOptions {
     logLevel?: LogLevel;
@@ -22,7 +22,7 @@ export function parseLogLevelOption(val: string, allowedLevels: string[] = [...l
 export class RestartCommand extends CommandRunner {
     constructor(
         private readonly logger: LogService,
-        private readonly pm2: PM2Service
+        private readonly nodemon: NodemonService
     ) {
         super();
     }
@@ -30,23 +30,9 @@ export class RestartCommand extends CommandRunner {
     async run(_?: string[], options: LogLevelOptions = {}): Promise<void> {
         try {
             this.logger.info('Restarting the Unraid API...');
-            const env = { LOG_LEVEL: options.logLevel };
-            const { stderr, stdout } = await this.pm2.run(
-                { tag: 'PM2 Restart', raw: true, extendEnv: true, env },
-                'restart',
-                ECOSYSTEM_PATH,
-                '--update-env',
-                '--mini-list'
-            );
-
-            if (stderr) {
-                this.logger.error(stderr.toString());
-                process.exit(1);
-            } else if (stdout) {
-                this.logger.info(stdout.toString());
-            } else {
-                this.logger.info('Unraid API restarted');
-            }
+            const env = { LOG_LEVEL: options.logLevel?.toUpperCase() };
+            await this.nodemon.restart({ env });
+            this.logger.info('Unraid API restarted');
         } catch (error) {
             if (error instanceof Error) {
                 this.logger.error(error.message);
