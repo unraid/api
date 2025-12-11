@@ -136,7 +136,11 @@ export class NodemonService {
         } catch {
             // ignore
         }
-        await rm('/var/log/.pm2', { recursive: true, force: true });
+        try {
+            await rm('/var/log/.pm2', { recursive: true, force: true });
+        } catch {
+            // Ignore errors when removing pm2 state - shouldn't block API startup
+        }
     }
 
     private async getStoredPid(): Promise<number | null> {
