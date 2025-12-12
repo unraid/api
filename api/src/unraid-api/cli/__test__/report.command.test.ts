@@ -26,10 +26,10 @@ const mockApiReportService = {
     generateReport: vi.fn(),
 };
 
-// Mock PM2 check
+// Mock process manager check
 const mockIsUnraidApiRunning = vi.fn().mockResolvedValue(true);
 
-vi.mock('@app/core/utils/pm2/unraid-api-running.js', () => ({
+vi.mock('@app/core/utils/process/unraid-api-running.js', () => ({
     isUnraidApiRunning: () => mockIsUnraidApiRunning(),
 }));
 
@@ -50,7 +50,7 @@ describe('ReportCommand', () => {
         // Clear mocks
         vi.clearAllMocks();
 
-        // Reset PM2 mock to default
+        // Reset nodemon mock to default
         mockIsUnraidApiRunning.mockResolvedValue(true);
     });
 
@@ -150,7 +150,7 @@ describe('ReportCommand', () => {
             // Reset mocks
             vi.clearAllMocks();
 
-            // Test with API running but PM2 check returns true
+            // Test with API running but status check returns true
             mockIsUnraidApiRunning.mockResolvedValue(true);
             await reportCommand.report();
             expect(mockApiReportService.generateReport).toHaveBeenCalledWith(true);

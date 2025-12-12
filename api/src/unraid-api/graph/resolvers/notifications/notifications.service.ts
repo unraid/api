@@ -3,6 +3,7 @@ import { readdir, readFile, rename, stat, unlink, writeFile } from 'fs/promises'
 import { basename, join } from 'path';
 
 import type { Stats } from 'fs';
+import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import { FSWatcher, watch } from 'chokidar';
 import { ValidationError } from 'class-validator';
 import { execa } from 'execa';
@@ -12,7 +13,7 @@ import { encode as encodeIni } from 'ini';
 import { v7 as uuidv7 } from 'uuid';
 
 import { AppError } from '@app/core/errors/app-error.js';
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { pubsub } from '@app/core/pubsub.js';
 import { NotificationIni } from '@app/core/types/states/notification.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { parseConfig } from '@app/core/utils/misc/parse-config.js';
@@ -118,7 +119,7 @@ export class NotificationsService {
 
         if (type === NotificationType.UNREAD) {
             this.publishOverview();
-            pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
+            pubsub.publish(GRAPHQL_PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
                 notificationAdded: notification,
             });
             void this.publishWarningsAndAlerts();
@@ -138,7 +139,7 @@ export class NotificationsService {
     }
 
     private publishOverview(overview = NotificationsService.overview) {
-        return pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW, {
+        return pubsub.publish(GRAPHQL_PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW, {
             notificationsOverview: overview,
         });
     }
@@ -146,7 +147,7 @@ export class NotificationsService {
     private async publishWarningsAndAlerts() {
         try {
             const warningsAndAlerts = await this.getWarningsAndAlerts();
-            await pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_WARNINGS_AND_ALERTS, {
+            await pubsub.publish(GRAPHQL_PUBSUB_CHANNEL.NOTIFICATION_WARNINGS_AND_ALERTS, {
                 notificationsWarningsAndAlerts: warningsAndAlerts,
             });
         } catch (error) {
