@@ -19,47 +19,25 @@ uninstall() {
   true
 }
 
-# Boot log location for debugging startup issues
-boot_log="/var/log/unraid-api/boot.log"
-
-# Helper to log boot messages with timestamp
-log_boot() {
-  echo "[$(date -Iseconds)] [rc.unraid-api] $1" >> "$boot_log" 2>/dev/null || true
-}
-
 # Service control functions
 start() {
   echo "Starting Unraid API service..."
 
-  # Ensure PATH includes standard locations for boot-time reliability
-  export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
-
-  # Create log directory if it doesn't exist (must be done before logging)
-  mkdir -p /var/log/unraid-api
-
-  log_boot "start() called"
-  log_boot "PATH: $PATH"
-  log_boot "api_base_dir: $api_base_dir"
-  log_boot "unraid_binary_path: $unraid_binary_path"
-
   # Restore vendored API plugins if they were installed
   if [ -x "$scripts_dir/dependencies.sh" ]; then
-    log_boot "Running dependencies.sh restore"
-    if "$scripts_dir/dependencies.sh" restore; then
-      log_boot "dependencies.sh restore succeeded"
-    else
-      log_boot "dependencies.sh restore FAILED"
+    "$scripts_dir/dependencies.sh" restore || {
       echo "Failed to restore API plugin dependencies! Continuing with start, but API plugins may be unavailable."
-    fi
+    }
   else
-    log_boot "Warning: dependencies.sh not found at $scripts_dir/dependencies.sh"
     echo "Warning: dependencies.sh script not found or not executable"
   fi
+
+  # Create log directory if it doesn't exist
+  mkdir -p /var/log/unraid-api
 
   # Copy env file if needed
   if [ -f "${api_base_dir}/.env.production" ] && [ ! -f "${api_base_dir}/.env" ]; then
     cp "${api_base_dir}/.env.production" "${api_base_dir}/.env"
-    log_boot "Copied .env.production to .env"
   fi
 
   # Start the flash backup service if available and connect plugin is enabled
@@ -73,16 +51,9 @@ start() {
 
   # Start the API service
   if [ -x "${unraid_binary_path}" ]; then
-    log_boot "Calling ${unraid_binary_path} start"
-    # Capture output and return code for boot debugging
-    output=$("${unraid_binary_path}" start 2>&1)
-    result=$?
-    echo "$output"
-    log_boot "unraid-api start output: $output"
-    log_boot "unraid-api start exit code: $result"
-    return $result
+    "${unraid_binary_path}" start
+    return $?
   else
-    log_boot "ERROR: Binary not found or not executable at ${unraid_binary_path}"
     echo "Error: Unraid API binary not found or not executable at ${unraid_binary_path}"
     return 1
   fi

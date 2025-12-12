@@ -2,12 +2,11 @@ import type { TestingModule } from '@nestjs/testing';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
 
-import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import Docker from 'dockerode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Import the mocked pubsub parts
-import { pubsub } from '@app/core/pubsub.js';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
@@ -16,7 +15,7 @@ vi.mock('@app/core/pubsub.js', () => ({
     pubsub: {
         publish: vi.fn().mockResolvedValue(undefined),
     },
-    GRAPHQL_PUBSUB_CHANNEL: {
+    PUBSUB_CHANNEL: {
         INFO: 'info',
     },
 }));
@@ -275,7 +274,7 @@ describe('DockerService', () => {
         expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
         expect(mockListContainers).toHaveBeenCalled();
         expect(mockCacheManager.set).toHaveBeenCalled();
-        expect(pubsub.publish).toHaveBeenCalledWith(GRAPHQL_PUBSUB_CHANNEL.INFO, {
+        expect(pubsub.publish).toHaveBeenCalledWith(PUBSUB_CHANNEL.INFO, {
             info: {
                 apps: { installed: 1, running: 1 },
             },
@@ -333,7 +332,7 @@ describe('DockerService', () => {
         expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
         expect(mockListContainers).toHaveBeenCalled();
         expect(mockCacheManager.set).toHaveBeenCalled();
-        expect(pubsub.publish).toHaveBeenCalledWith(GRAPHQL_PUBSUB_CHANNEL.INFO, {
+        expect(pubsub.publish).toHaveBeenCalledWith(PUBSUB_CHANNEL.INFO, {
             info: {
                 apps: { installed: 1, running: 0 },
             },

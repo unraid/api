@@ -1,10 +1,9 @@
 import { Logger } from '@nestjs/common';
 
-import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import { PubSub } from 'graphql-subscriptions';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { pubsub } from '@app/core/pubsub.js';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
@@ -29,9 +28,7 @@ describe('SubscriptionHelperService', () => {
 
     describe('createTrackedSubscription', () => {
         it('should create an async iterator that tracks subscriptions', async () => {
-            const iterator = helperService.createTrackedSubscription(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-            );
+            const iterator = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
             expect(iterator).toBeDefined();
             expect(iterator.next).toBeDefined();
@@ -40,35 +37,29 @@ describe('SubscriptionHelperService', () => {
             expect(iterator[Symbol.asyncIterator]).toBeDefined();
 
             // Should have subscribed
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
         });
 
         it('should return itself when Symbol.asyncIterator is called', () => {
-            const iterator = helperService.createTrackedSubscription(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-            );
+            const iterator = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
             expect(iterator[Symbol.asyncIterator]()).toBe(iterator);
         });
 
         it('should unsubscribe when return() is called', async () => {
-            const iterator = helperService.createTrackedSubscription(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-            );
+            const iterator = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
 
             await iterator.return?.();
 
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
         });
 
         it('should unsubscribe when throw() is called', async () => {
-            const iterator = helperService.createTrackedSubscription(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-            );
+            const iterator = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
 
             try {
                 await iterator.throw?.(new Error('Test error'));
@@ -76,14 +67,14 @@ describe('SubscriptionHelperService', () => {
                 // Expected to throw
             }
 
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
         });
     });
 
     describe('integration with pubsub', () => {
         it('should receive published messages', async () => {
             const iterator = helperService.createTrackedSubscription<{ cpuUtilization: any }>(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
+                PUBSUB_CHANNEL.CPU_UTILIZATION
             );
 
             const testData = {
@@ -101,7 +92,7 @@ describe('SubscriptionHelperService', () => {
             await new Promise((resolve) => setTimeout(resolve, 10));
 
             // Publish a message
-            await (pubsub as PubSub).publish(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION, testData);
+            await (pubsub as PubSub).publish(PUBSUB_CHANNEL.CPU_UTILIZATION, testData);
 
             // Wait for the message
             const result = await consumePromise;
@@ -116,27 +107,21 @@ describe('SubscriptionHelperService', () => {
             // Register handlers to verify start/stop behavior
             const onStart = vi.fn();
             const onStop = vi.fn();
-            trackerService.registerTopic(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION, onStart, onStop);
+            trackerService.registerTopic(PUBSUB_CHANNEL.CPU_UTILIZATION, onStart, onStop);
 
             // Create first subscriber
-            const iterator1 = helperService.createTrackedSubscription(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-            );
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
+            const iterator1 = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
             expect(onStart).toHaveBeenCalledTimes(1);
 
             // Create second subscriber
-            const iterator2 = helperService.createTrackedSubscription(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-            );
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(2);
+            const iterator2 = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(2);
             expect(onStart).toHaveBeenCalledTimes(1); // Should not call again
 
             // Create third subscriber
-            const iterator3 = helperService.createTrackedSubscription(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-            );
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(3);
+            const iterator3 = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(3);
 
             // Set up consumption promises first
             const consume1 = iterator1.next();
@@ -148,7 +133,7 @@ describe('SubscriptionHelperService', () => {
 
             // Publish a message - all should receive it
             const testData = { cpuUtilization: { id: 'test', load: 75, cpus: [] } };
-            await (pubsub as PubSub).publish(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION, testData);
+            await (pubsub as PubSub).publish(PUBSUB_CHANNEL.CPU_UTILIZATION, testData);
 
             const [result1, result2, result3] = await Promise.all([consume1, consume2, consume3]);
 
@@ -158,17 +143,17 @@ describe('SubscriptionHelperService', () => {
 
             // Clean up first subscriber
             await iterator1.return?.();
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(2);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(2);
             expect(onStop).not.toHaveBeenCalled();
 
             // Clean up second subscriber
             await iterator2.return?.();
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
             expect(onStop).not.toHaveBeenCalled();
 
             // Clean up last subscriber - should trigger onStop
             await iterator3.return?.();
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
             expect(onStop).toHaveBeenCalledTimes(1);
         });
 
@@ -176,26 +161,18 @@ describe('SubscriptionHelperService', () => {
             const iterations = 10;
 
             for (let i = 0; i < iterations; i++) {
-                const iterator = helperService.createTrackedSubscription(
-                    GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-                );
-                expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(
-                    1
-                );
+                const iterator = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
+                expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
 
                 await iterator.return?.();
-                expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(
-                    0
-                );
+                expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
             }
         });
 
         it('should properly clean up on error', async () => {
-            const iterator = helperService.createTrackedSubscription(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-            );
+            const iterator = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
 
             const testError = new Error('Test error');
 
@@ -206,15 +183,13 @@ describe('SubscriptionHelperService', () => {
                 expect(error).toBe(testError);
             }
 
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
         });
 
         it('should log debug messages for subscription lifecycle', async () => {
             vi.clearAllMocks();
 
-            const iterator = helperService.createTrackedSubscription(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-            );
+            const iterator = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
             expect(loggerSpy).toHaveBeenCalledWith(
                 expect.stringContaining('Subscription added for topic')
@@ -230,9 +205,9 @@ describe('SubscriptionHelperService', () => {
 
     describe('different topic types', () => {
         it('should handle INFO channel subscriptions', async () => {
-            const iterator = helperService.createTrackedSubscription(GRAPHQL_PUBSUB_CHANNEL.INFO);
+            const iterator = helperService.createTrackedSubscription(PUBSUB_CHANNEL.INFO);
 
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.INFO)).toBe(1);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.INFO)).toBe(1);
 
             // Set up consumption promise first
             const consumePromise = iterator.next();
@@ -241,51 +216,47 @@ describe('SubscriptionHelperService', () => {
             await new Promise((resolve) => setTimeout(resolve, 10));
 
             const testData = { info: { id: 'test-info' } };
-            await (pubsub as PubSub).publish(GRAPHQL_PUBSUB_CHANNEL.INFO, testData);
+            await (pubsub as PubSub).publish(PUBSUB_CHANNEL.INFO, testData);
 
             const result = await consumePromise;
             expect(result.value).toEqual(testData);
 
             await iterator.return?.();
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.INFO)).toBe(0);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.INFO)).toBe(0);
         });
 
         it('should track multiple different topics independently', async () => {
-            const cpuIterator = helperService.createTrackedSubscription(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-            );
-            const infoIterator = helperService.createTrackedSubscription(GRAPHQL_PUBSUB_CHANNEL.INFO);
+            const cpuIterator = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
+            const infoIterator = helperService.createTrackedSubscription(PUBSUB_CHANNEL.INFO);
 
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.INFO)).toBe(1);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.INFO)).toBe(1);
 
             const allCounts = trackerService.getAllSubscriberCounts();
-            expect(allCounts.get(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
-            expect(allCounts.get(GRAPHQL_PUBSUB_CHANNEL.INFO)).toBe(1);
+            expect(allCounts.get(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
+            expect(allCounts.get(PUBSUB_CHANNEL.INFO)).toBe(1);
 
             await cpuIterator.return?.();
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.INFO)).toBe(1);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.INFO)).toBe(1);
 
             await infoIterator.return?.();
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.INFO)).toBe(0);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.INFO)).toBe(0);
         });
     });
 
     describe('edge cases', () => {
         it('should handle return() called multiple times', async () => {
-            const iterator = helperService.createTrackedSubscription(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-            );
+            const iterator = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(1);
 
             await iterator.return?.();
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
 
             // Second return should be idempotent
             await iterator.return?.();
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
 
             // Check that idempotent message was logged
             expect(loggerSpy).toHaveBeenCalledWith(
@@ -294,9 +265,7 @@ describe('SubscriptionHelperService', () => {
         });
 
         it('should handle async iterator protocol correctly', async () => {
-            const iterator = helperService.createTrackedSubscription(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION
-            );
+            const iterator = helperService.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
             // Test that it works in for-await loop (would use Symbol.asyncIterator)
             const receivedMessages: any[] = [];
@@ -316,7 +285,7 @@ describe('SubscriptionHelperService', () => {
 
             // Publish messages
             for (let i = 0; i < maxMessages; i++) {
-                await (pubsub as PubSub).publish(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION, {
+                await (pubsub as PubSub).publish(PUBSUB_CHANNEL.CPU_UTILIZATION, {
                     cpuUtilization: { id: `test-${i}`, load: i * 10, cpus: [] },
                 });
             }
@@ -331,7 +300,7 @@ describe('SubscriptionHelperService', () => {
 
             // Clean up
             await iterator.return?.();
-            expect(trackerService.getSubscriberCount(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
+            expect(trackerService.getSubscriberCount(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(0);
         });
     });
 });

@@ -559,17 +559,6 @@ export type CpuLoad = {
   percentUser: Scalars['Float']['output'];
 };
 
-export type CpuPackages = Node & {
-  __typename?: 'CpuPackages';
-  id: Scalars['PrefixedID']['output'];
-  /** Power draw per package (W) */
-  power: Array<Scalars['Float']['output']>;
-  /** Temperature per package (°C) */
-  temp: Array<Scalars['Float']['output']>;
-  /** Total CPU package power draw (W) */
-  totalPower: Scalars['Float']['output'];
-};
-
 export type CpuUtilization = Node & {
   __typename?: 'CpuUtilization';
   /** CPU load for each core */
@@ -880,7 +869,6 @@ export type InfoCpu = Node & {
   manufacturer?: Maybe<Scalars['String']['output']>;
   /** CPU model */
   model?: Maybe<Scalars['String']['output']>;
-  packages: CpuPackages;
   /** Number of physical processors */
   processors?: Maybe<Scalars['Int']['output']>;
   /** CPU revision */
@@ -897,8 +885,6 @@ export type InfoCpu = Node & {
   stepping?: Maybe<Scalars['Int']['output']>;
   /** Number of CPU threads */
   threads?: Maybe<Scalars['Int']['output']>;
-  /** Per-package array of core/thread pairs, e.g. [[[0,1],[2,3]], [[4,5],[6,7]]] */
-  topology: Array<Array<Array<Scalars['Int']['output']>>>;
   /** CPU vendor */
   vendor?: Maybe<Scalars['String']['output']>;
   /** CPU voltage */
@@ -1545,14 +1531,14 @@ export type PackageVersions = {
   nginx?: Maybe<Scalars['String']['output']>;
   /** Node.js version */
   node?: Maybe<Scalars['String']['output']>;
-  /** nodemon version */
-  nodemon?: Maybe<Scalars['String']['output']>;
   /** npm version */
   npm?: Maybe<Scalars['String']['output']>;
   /** OpenSSL version */
   openssl?: Maybe<Scalars['String']['output']>;
   /** PHP version */
   php?: Maybe<Scalars['String']['output']>;
+  /** pm2 version */
+  pm2?: Maybe<Scalars['String']['output']>;
 };
 
 export type ParityCheck = {
@@ -2067,7 +2053,6 @@ export type Subscription = {
   parityHistorySubscription: ParityCheck;
   serversSubscription: Server;
   systemMetricsCpu: CpuUtilization;
-  systemMetricsCpuTelemetry: CpuPackages;
   systemMetricsMemory: MemoryUtilization;
   upsUpdates: UpsDevice;
 };

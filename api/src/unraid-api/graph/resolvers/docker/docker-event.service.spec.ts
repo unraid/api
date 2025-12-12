@@ -2,12 +2,11 @@ import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PassThrough, Readable } from 'stream';
 
-import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import Docker from 'dockerode';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Import pubsub for use in tests
-import { pubsub } from '@app/core/pubsub.js';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
@@ -46,6 +45,9 @@ vi.mock('@app/store/index.js', () => ({
 vi.mock('@app/core/pubsub.js', () => ({
     pubsub: {
         publish: vi.fn().mockResolvedValue(undefined),
+    },
+    PUBSUB_CHANNEL: {
+        INFO: 'info',
     },
 }));
 
@@ -138,7 +140,7 @@ describe('DockerEventService', () => {
 
         expect(dockerService.clearContainerCache).toHaveBeenCalled();
         expect(dockerService.getAppInfo).toHaveBeenCalled();
-        expect(pubsub.publish).toHaveBeenCalledWith(GRAPHQL_PUBSUB_CHANNEL.INFO, expect.any(Object));
+        expect(pubsub.publish).toHaveBeenCalledWith(PUBSUB_CHANNEL.INFO, expect.any(Object));
     });
 
     it('should ignore non-watched actions', async () => {

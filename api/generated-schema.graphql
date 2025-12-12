@@ -1673,8 +1673,8 @@ type PackageVersions {
   """npm version"""
   npm: String
 
-  """nodemon version"""
-  nodemon: String
+  """pm2 version"""
+  pm2: String
 
   """Git version"""
   git: String

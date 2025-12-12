@@ -1,6 +1,6 @@
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import { NodemonService } from '@app/unraid-api/cli/nodemon.service.js';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 
 interface LogsOptions {
     lines: number;
@@ -8,7 +8,7 @@ interface LogsOptions {
 
 @Command({ name: 'logs', description: 'View logs' })
 export class LogsCommand extends CommandRunner {
-    constructor(private readonly nodemon: NodemonService) {
+    constructor(private readonly pm2: PM2Service) {
         super();
     }
 
@@ -20,6 +20,13 @@ export class LogsCommand extends CommandRunner {
 
     async run(_: string[], options?: LogsOptions): Promise<void> {
         const lines = options?.lines ?? 100;
-        await this.nodemon.logs(lines);
+        await this.pm2.run(
+            { tag: 'PM2 Logs', stdio: 'inherit' },
+            'logs',
+            'unraid-api',
+            '--lines',
+            lines.toString(),
+            '--raw'
+        );
     }
 }
