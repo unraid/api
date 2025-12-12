@@ -99,7 +99,7 @@ jobs:
           tar -czf deploy/unraid-api.tgz -C deploy/pack/ .
 
       - name: Upload tgz to Github artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: unraid-api
           path: ${{ github.workspace }}/api/deploy/unraid-api.tgz
@@ -145,7 +145,7 @@ jobs:
         run: pnpm run build:wc
 
       - name: Upload Artifact to Github
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: unraid-wc-ui
           path: unraid-ui/dist-wc/
@@ -201,7 +201,7 @@ jobs:
         run: pnpm run build
 
       - name: Upload build to Github artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: unraid-wc-rich
           path: web/dist

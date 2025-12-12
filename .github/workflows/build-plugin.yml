@@ -101,19 +101,19 @@ jobs:
           pnpm install --frozen-lockfile --filter @unraid/connect-plugin
 
       - name: Download Unraid UI Components
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: unraid-wc-ui
           path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/uui
           merge-multiple: true
       - name: Download Unraid Web Components
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           pattern: unraid-wc-rich
           path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone
           merge-multiple: true
       - name: Download Unraid API
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: unraid-api
           path: ${{ github.workspace }}/plugin/api/
@@ -142,7 +142,7 @@ jobs:
           fi
 
       - name: Upload to GHA
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: unraid-plugin-${{ github.run_id }}-${{ inputs.RELEASE_TAG }}
           path: plugin/deploy/
