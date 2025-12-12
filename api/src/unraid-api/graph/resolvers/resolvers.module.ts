@@ -15,6 +15,7 @@ import { InfoModule } from '@app/unraid-api/graph/resolvers/info/info.module.js'
 import { LogsModule } from '@app/unraid-api/graph/resolvers/logs/logs.module.js';
 import { MetricsModule } from '@app/unraid-api/graph/resolvers/metrics/metrics.module.js';
 import { RootMutationsResolver } from '@app/unraid-api/graph/resolvers/mutation/mutation.resolver.js';
+import { NotificationMutationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.mutations.resolver.js';
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.resolver.js';
@@ -29,6 +30,7 @@ import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver
 import { VmMutationsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.mutations.resolver.js';
 import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
+import { BackgroundJobsService } from '@app/unraid-api/graph/services/background-jobs.service.js';
 import { ServicesModule } from '@app/unraid-api/graph/services/services.module.js';
 import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
 import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
@@ -57,8 +59,10 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         ConfigResolver,
         FlashResolver,
         MeResolver,
+        NotificationMutationsResolver,
         NotificationsResolver,
         NotificationsService,
+        BackgroundJobsService,
         OnlineResolver,
         OwnerResolver,
         RegistrationResolver,
