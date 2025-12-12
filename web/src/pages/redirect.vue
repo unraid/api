@@ -32,7 +32,7 @@ const getRedirectUrl = () => {
     searchSize: search.size,
   });
 
-  if (dataParam && (search.size === 1 || search.size === 2)) {
+  if (dataParam) {
     if (!search.has('data') && hash.has('data')) {
       const hashUrl = `${baseUrl}#data=${encodeURIComponent(dataParam)}`;
       console.log('[redirect.vue] redirecting with hash data:', hashUrl);

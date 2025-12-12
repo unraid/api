@@ -52,7 +52,8 @@
                     searchSize: search.size,
                 });
 
-                if (dataParam && (search.size === 1 || search.size === 2)) {
+                // If we have any data param (from query or hash), preserve it.
+                if (dataParam) {
                     if (!search.has('data') && hash.has('data')) {
                         const hashUrl = `${baseUrl}#data=${encodeURIComponent(dataParam)}`;
                         console.log('[redirect.htm] redirecting with hash data:', hashUrl);
