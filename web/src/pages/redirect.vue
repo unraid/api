@@ -18,12 +18,10 @@ const getRedirectUrl = () => {
 
   const baseUrl = `${window.location.origin}${targetRoute}`;
 
+  // Always redirect with hash-based callback data for privacy,
+  // but still accept legacy ?data= input.
   if (dataParam) {
-    if (!search.has('data') && hash.has('data')) {
-      return `${baseUrl}#data=${encodeURIComponent(dataParam)}`;
-    }
-
-    return `${baseUrl}?data=${encodeURIComponent(dataParam)}`;
+    return `${baseUrl}#data=${encodeURIComponent(dataParam)}`;
   }
 
   return baseUrl;
