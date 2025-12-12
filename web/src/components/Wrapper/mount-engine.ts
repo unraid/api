@@ -153,8 +153,7 @@ export async function mountUnifiedApp() {
         'top-right': 'top-right',
         'bottom-left': 'bottom-left',
         'bottom-right': 'bottom-right',
-        'bottom-center': 'bottom-center',
-        'top-center': 'top-center',
+        center: 'top-center',
       };
       toasterPosition = map[legacyPosition] || toasterPosition;
     }
