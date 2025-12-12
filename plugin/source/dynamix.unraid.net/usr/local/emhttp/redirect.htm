@@ -17,7 +17,15 @@
         (function () {
             function parseRedirectTarget(target) {
                 if (target && target !== '/') {
-                    return '/Main';
+                    // Parse target and ensure it is a bare path with no query parameters.
+                    // This keeps us on the same origin and avoids arbitrary redirects.
+                    try {
+                        const url = new URL(target, window.location.origin);
+                        return url.pathname || '/Main';
+                    } catch (_e) {
+                        // If the target is malformed, fall back safely.
+                        return '/Main';
+                    }
                 }
                 return '/Main';
             }
@@ -26,17 +34,25 @@
                 const search = new URLSearchParams(window.location.search);
                 const rawHash = window.location.hash || '';
                 const hashString = rawHash.charAt(0) === '#' ? rawHash.substring(1) : rawHash;
-                const hash = new URLSearchParams(hashString);
+
+                let hashData = '';
+                if (hashString.startsWith('data=')) {
+                    hashData = hashString.slice('data='.length);
+                }
 
                 const targetRoute = parseRedirectTarget(search.get('target'));
-                const dataParam = search.get('data') || hash.get('data');
-
                 const baseUrl = `${window.location.origin}${targetRoute}`;
 
-                // Always redirect with hash-based callback data for privacy,
-                // but still accept legacy ?data= input.
-                if (dataParam) {
-                    return `${baseUrl}#data=${encodeURIComponent(dataParam)}`;
+                // If the incoming URL already has a hash-based data payload, preserve it exactly.
+                if (hashData) {
+                    return `${baseUrl}#data=${hashData}`;
+                }
+
+                // Fallback: accept legacy ?data= input and convert it to hash-based data.
+                const queryData = search.get('data');
+                if (queryData) {
+                    const encoded = encodeURI(queryData);
+                    return `${baseUrl}#data=${encoded}`;
                 }
 
                 return baseUrl;
