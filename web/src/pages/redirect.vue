@@ -3,25 +3,36 @@ import { onMounted } from 'vue';
 
 const parseRedirectTarget = (target: string | null) => {
   if (target && target !== '/') {
-    // parse target and ensure it is a bare path with no query parameters
-    return '/';
+    try {
+      // Parse target and ensure it is a bare path with no query parameters.
+      const url = new URL(target, window.location.origin);
+      return url.pathname || '/';
+    } catch (_e) {
+      return '/';
+    }
   }
   return '/';
 };
 
 const getRedirectUrl = () => {
   const search = new URLSearchParams(window.location.search);
-  const hash = new URLSearchParams(window.location.hash.slice(1));
+  const rawHash = window.location.hash || '';
+  const hashWithoutHash = rawHash.startsWith('#') ? rawHash.slice(1) : rawHash;
+  const hashData = hashWithoutHash.startsWith('data=') ? hashWithoutHash.slice('data='.length) : '';
 
   const targetRoute = parseRedirectTarget(search.get('target'));
-  const dataParam = search.get('data') ?? hash.get('data');
-
   const baseUrl = `${window.location.origin}${targetRoute}`;
 
-  // Always redirect with hash-based callback data for privacy,
-  // but still accept legacy ?data= input.
-  if (dataParam) {
-    return `${baseUrl}#data=${encodeURIComponent(dataParam)}`;
+  // If the incoming URL already has a hash-based data payload, preserve it exactly.
+  if (hashData) {
+    return `${baseUrl}#data=${hashData}`;
+  }
+
+  // Fallback: accept legacy ?data= input and convert it to hash-based data.
+  const queryData = search.get('data');
+  if (queryData) {
+    const encoded = encodeURI(queryData);
+    return `${baseUrl}#data=${encoded}`;
   }
 
   return baseUrl;
