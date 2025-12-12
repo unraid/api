@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.28.0](https://github.com/unraid/api/compare/v4.27.2...v4.28.0) (2025-12-12)
+
+
+### Features
+
+* when cancelling OS upgrade, delete any plugin files that were d… ([#1823](https://github.com/unraid/api/issues/1823)) ([74df938](https://github.com/unraid/api/commit/74df938e450def2ee3e2864d4b928f53a68e9eb8))
+
+
+### Bug Fixes
+
+* change keyfile watcher to poll instead of inotify on FAT32 ([#1820](https://github.com/unraid/api/issues/1820)) ([23a7120](https://github.com/unraid/api/commit/23a71207ddde221867562b722f4e65a5fc4dd744))
+* improve API startup reliability with timeout budget tracking ([#1824](https://github.com/unraid/api/issues/1824)) ([51f025b](https://github.com/unraid/api/commit/51f025b105487b178048afaabf46b260c4a7f9c1))
+* PHP Warnings in Management Settings ([#1805](https://github.com/unraid/api/issues/1805)) ([832e9d0](https://github.com/unraid/api/commit/832e9d04f207d3ec612c98500a2ffc86659264e5))
+
 ## [4.27.2](https://github.com/unraid/api/compare/v4.27.1...v4.27.2) (2025-11-21)
 
 
