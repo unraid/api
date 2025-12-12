@@ -1,0 +1,22 @@
+{
+    "$schema": "https://json.schemastore.org/pm2-ecosystem",
+    "apps": [
+        {
+            "name": "unraid-api",
+            "script": "./dist/main.js",
+            "cwd": "/usr/local/unraid-api",
+            "exec_mode": "fork",
+            "wait_ready": true,
+            "listen_timeout": 15000,
+            "max_restarts": 10,
+            "min_uptime": 10000,
+            "watch": false,
+            "interpreter": "/usr/local/bin/node",
+            "ignore_watch": ["node_modules", "src", ".env.*", "myservers.cfg"],
+            "out_file": "/var/log/graphql-api.log",
+            "error_file": "/var/log/graphql-api.log",
+            "merge_logs": true,
+            "kill_timeout": 10000
+        }
+    ]
+}

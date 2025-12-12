@@ -51,8 +51,6 @@ vi.mock('@app/store/index.js', () => ({
 }));
 vi.mock('@app/environment.js', () => ({
     ENVIRONMENT: 'development',
-    SUPPRESS_LOGS: false,
-    LOG_LEVEL: 'INFO',
     environment: {
         IS_MAIN_PROCESS: true,
     },

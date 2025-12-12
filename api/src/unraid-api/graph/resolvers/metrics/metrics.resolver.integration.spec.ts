@@ -2,10 +2,9 @@ import type { TestingModule } from '@nestjs/testing';
 import { ScheduleModule } from '@nestjs/schedule';
 import { Test } from '@nestjs/testing';
 
-import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { pubsub } from '@app/core/pubsub.js';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
@@ -108,7 +107,7 @@ describe('MetricsResolver Integration Tests', () => {
             });
 
             // Trigger polling by simulating subscription
-            trackerService.subscribe(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION);
+            trackerService.subscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
             // Wait a bit for potential multiple executions
             await new Promise((resolve) => setTimeout(resolve, 100));
@@ -142,7 +141,7 @@ describe('MetricsResolver Integration Tests', () => {
             });
 
             // Trigger polling by simulating subscription
-            trackerService.subscribe(GRAPHQL_PUBSUB_CHANNEL.MEMORY_UTILIZATION);
+            trackerService.subscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
 
             // Wait a bit for potential multiple executions
             await new Promise((resolve) => setTimeout(resolve, 100));
@@ -156,13 +155,13 @@ describe('MetricsResolver Integration Tests', () => {
             const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
 
             // Trigger polling by starting subscription
-            trackerService.subscribe(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION);
+            trackerService.subscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
             // Wait for the polling interval to trigger (1000ms for CPU)
             await new Promise((resolve) => setTimeout(resolve, 1100));
 
             expect(publishSpy).toHaveBeenCalledWith(
-                GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION,
+                PUBSUB_CHANNEL.CPU_UTILIZATION,
                 expect.objectContaining({
                     systemMetricsCpu: expect.objectContaining({
                         id: 'info/cpu-load',
@@ -172,7 +171,7 @@ describe('MetricsResolver Integration Tests', () => {
                 })
             );
 
-            trackerService.unsubscribe(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION);
+            trackerService.unsubscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
             publishSpy.mockRestore();
         });
 
@@ -181,13 +180,13 @@ describe('MetricsResolver Integration Tests', () => {
             const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
 
             // Trigger polling by starting subscription
-            trackerService.subscribe(GRAPHQL_PUBSUB_CHANNEL.MEMORY_UTILIZATION);
+            trackerService.subscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
 
             // Wait for the polling interval to trigger (2000ms for memory)
             await new Promise((resolve) => setTimeout(resolve, 2100));
 
             expect(publishSpy).toHaveBeenCalledWith(
-                GRAPHQL_PUBSUB_CHANNEL.MEMORY_UTILIZATION,
+                PUBSUB_CHANNEL.MEMORY_UTILIZATION,
                 expect.objectContaining({
                     systemMetricsMemory: expect.objectContaining({
                         id: 'memory-utilization',
@@ -198,7 +197,7 @@ describe('MetricsResolver Integration Tests', () => {
                 })
             );
 
-            trackerService.unsubscribe(GRAPHQL_PUBSUB_CHANNEL.MEMORY_UTILIZATION);
+            trackerService.unsubscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
             publishSpy.mockRestore();
         });
 
@@ -215,7 +214,7 @@ describe('MetricsResolver Integration Tests', () => {
             vi.spyOn(service, 'generateCpuLoad').mockRejectedValueOnce(new Error('CPU error'));
 
             // Trigger polling
-            trackerService.subscribe(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION);
+            trackerService.subscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
             // Wait for polling interval to trigger and handle error (1000ms for CPU)
             await new Promise((resolve) => setTimeout(resolve, 1100));
@@ -225,7 +224,7 @@ describe('MetricsResolver Integration Tests', () => {
                 expect.any(Error)
             );
 
-            trackerService.unsubscribe(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION);
+            trackerService.unsubscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
             loggerSpy.mockRestore();
         });
 
@@ -242,7 +241,7 @@ describe('MetricsResolver Integration Tests', () => {
             vi.spyOn(service, 'generateMemoryLoad').mockRejectedValueOnce(new Error('Memory error'));
 
             // Trigger polling
-            trackerService.subscribe(GRAPHQL_PUBSUB_CHANNEL.MEMORY_UTILIZATION);
+            trackerService.subscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
 
             // Wait for polling interval to trigger and handle error (2000ms for memory)
             await new Promise((resolve) => setTimeout(resolve, 2100));
@@ -252,7 +251,7 @@ describe('MetricsResolver Integration Tests', () => {
                 expect.any(Error)
             );
 
-            trackerService.unsubscribe(GRAPHQL_PUBSUB_CHANNEL.MEMORY_UTILIZATION);
+            trackerService.unsubscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
             loggerSpy.mockRestore();
         });
     });
@@ -264,30 +263,26 @@ describe('MetricsResolver Integration Tests', () => {
                 module.get<SubscriptionManagerService>(SubscriptionManagerService);
 
             // Start polling
-            trackerService.subscribe(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION);
-            trackerService.subscribe(GRAPHQL_PUBSUB_CHANNEL.MEMORY_UTILIZATION);
+            trackerService.subscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
+            trackerService.subscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
 
             // Wait a bit for subscriptions to be fully set up
             await new Promise((resolve) => setTimeout(resolve, 100));
 
             // Verify subscriptions are active
-            expect(
-                subscriptionManager.isSubscriptionActive(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)
-            ).toBe(true);
-            expect(
-                subscriptionManager.isSubscriptionActive(GRAPHQL_PUBSUB_CHANNEL.MEMORY_UTILIZATION)
-            ).toBe(true);
+            expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(true);
+            expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.MEMORY_UTILIZATION)).toBe(
+                true
+            );
 
             // Clean up the module
             await module.close();
 
             // Subscriptions should be cleaned up
-            expect(
-                subscriptionManager.isSubscriptionActive(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION)
-            ).toBe(false);
-            expect(
-                subscriptionManager.isSubscriptionActive(GRAPHQL_PUBSUB_CHANNEL.MEMORY_UTILIZATION)
-            ).toBe(false);
+            expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(false);
+            expect(subscriptionManager.isSubscriptionActive(PUBSUB_CHANNEL.MEMORY_UTILIZATION)).toBe(
+                false
+            );
         });
     });
 });

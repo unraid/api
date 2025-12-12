@@ -2,11 +2,10 @@ import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@ne
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { AppError } from '@app/core/errors/app-error.js';
-import { createSubscription } from '@app/core/pubsub.js';
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import {
     Notification,
     NotificationData,
@@ -153,7 +152,7 @@ export class NotificationsResolver {
         resource: Resource.NOTIFICATIONS,
     })
     async notificationAdded() {
-        return createSubscription(GRAPHQL_PUBSUB_CHANNEL.NOTIFICATION_ADDED);
+        return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_ADDED);
     }
 
     @Subscription(() => NotificationOverview)
@@ -162,6 +161,6 @@ export class NotificationsResolver {
         resource: Resource.NOTIFICATIONS,
     })
     async notificationsOverview() {
-        return createSubscription(GRAPHQL_PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW);
+        return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW);
     }
 }

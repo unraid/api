@@ -2,7 +2,7 @@
 // Non-function exports from this module are loaded into the NestJS Config at runtime.
 
 import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { PackageJson, SetRequired } from 'type-fest';
@@ -65,7 +65,6 @@ export const getPackageJsonDependencies = (): string[] | undefined => {
 };
 
 export const API_VERSION = process.env.npm_package_version ?? getPackageJson().version;
-export const UNRAID_API_ROOT = dirname(getPackageJsonPath());
 
 /** Controls how the app is built/run (i.e. in terms of optimization) */
 export const NODE_ENV =
@@ -92,7 +91,6 @@ export const LOG_LEVEL = process.env.LOG_LEVEL
     : process.env.ENVIRONMENT === 'production'
       ? 'INFO'
       : 'DEBUG';
-export const LOG_CASBIN = process.env.LOG_CASBIN === 'true';
 export const SUPPRESS_LOGS = process.env.SUPPRESS_LOGS === 'true';
 export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
     ? process.env.MOTHERSHIP_GRAPHQL_LINK
@@ -100,18 +98,12 @@ export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
       ? 'https://staging.mothership.unraid.net/ws'
       : 'https://mothership.unraid.net/ws';
 
+export const PM2_HOME = process.env.PM2_HOME ?? '/var/log/.pm2';
+export const PM2_PATH = join(import.meta.dirname, '../../', 'node_modules', 'pm2', 'bin', 'pm2');
+export const ECOSYSTEM_PATH = join(import.meta.dirname, '../../', 'ecosystem.config.json');
 export const PATHS_LOGS_DIR =
     process.env.PATHS_LOGS_DIR ?? process.env.LOGS_DIR ?? '/var/log/unraid-api';
 export const PATHS_LOGS_FILE = process.env.PATHS_LOGS_FILE ?? '/var/log/graphql-api.log';
-export const PATHS_NODEMON_LOG_FILE =
-    process.env.PATHS_NODEMON_LOG_FILE ?? join(PATHS_LOGS_DIR, 'nodemon.log');
-
-export const NODEMON_PATH = join(UNRAID_API_ROOT, 'node_modules', 'nodemon', 'bin', 'nodemon.js');
-export const NODEMON_CONFIG_PATH = join(UNRAID_API_ROOT, 'nodemon.json');
-export const NODEMON_PID_PATH = process.env.NODEMON_PID_PATH ?? '/var/run/unraid-api/nodemon.pid';
-export const NODEMON_LOCK_PATH = process.env.NODEMON_LOCK_PATH ?? '/var/run/unraid-api/nodemon.lock';
-export const UNRAID_API_CWD = process.env.UNRAID_API_CWD ?? UNRAID_API_ROOT;
-export const UNRAID_API_SERVER_ENTRYPOINT = join(UNRAID_API_CWD, 'dist', 'main.js');
 
 export const PATHS_CONFIG_MODULES =
     process.env.PATHS_CONFIG_MODULES ?? '/boot/config/plugins/dynamix.my.servers/configs';

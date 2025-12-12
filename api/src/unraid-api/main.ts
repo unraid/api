@@ -140,6 +140,16 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
         apiLogger.info('Server listening on %s', result);
     }
 
+    // This 'ready' signal tells pm2 that the api has started.
+    // PM2 documents this as Graceful Start or Clean Restart.
+    // See https://pm2.keymetrics.io/docs/usage/signals-clean-restart/
+    if (process.send) {
+        process.send('ready');
+    } else {
+        apiLogger.warn(
+            'Warning: process.send is unavailable. This will affect IPC communication with PM2.'
+        );
+    }
     apiLogger.info('Nest Server is now listening');
 
     return app;

@@ -4,7 +4,7 @@ import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { ApiReportService } from '@app/unraid-api/cli/api-report.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
-import { NodemonService } from '@app/unraid-api/cli/nodemon.service.js';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
 import { LegacyConfigModule } from '@app/unraid-api/config/legacy-config.module.js';
 import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
@@ -21,7 +21,7 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
         PluginCliModule.register(),
         UnraidFileModifierModule,
     ],
-    providers: [LogService, NodemonService, ApiKeyService, DependencyService, ApiReportService],
+    providers: [LogService, PM2Service, ApiKeyService, DependencyService, ApiReportService],
     exports: [ApiReportService, LogService, ApiKeyService],
 })
 export class CliServicesModule {}
