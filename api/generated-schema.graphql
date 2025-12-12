@@ -944,6 +944,23 @@ input UpdateApiKeyInput {
   permissions: [AddPermissionInput!]
 }
 
+"""Customization related mutations"""
+type CustomizationMutations {
+  """Update the UI theme (writes dynamix.cfg)"""
+  setTheme(
+    """Theme to apply"""
+    theme: ThemeName!
+  ): Theme!
+}
+
+"""The theme name"""
+enum ThemeName {
+  azure
+  black
+  gray
+  white
+}
+
 """
 Parity check related mutations, WIP, response types and functionaliy will change
 """
@@ -1040,14 +1057,6 @@ type Theme {
 
   """The secondary text color of the header"""
   headerSecondaryTextColor: String
-}
-
-"""The theme name"""
-enum ThemeName {
-  azure
-  black
-  gray
-  white
 }
 
 type ExplicitStatusItem {
@@ -2449,6 +2458,7 @@ type Mutation {
   vm: VmMutations!
   parityCheck: ParityCheckMutations!
   apiKey: ApiKeyMutations!
+  customization: CustomizationMutations!
   rclone: RCloneMutations!
   createDockerFolder(name: String!, parentId: String, childrenIds: [String!]): ResolvedOrganizerV1!
   setDockerFolderChildren(folderId: String, childrenIds: [String!]!): ResolvedOrganizerV1!

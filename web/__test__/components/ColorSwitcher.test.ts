@@ -22,6 +22,13 @@ vi.mock('@vue/apollo-composable', () => ({
     onResult: vi.fn(),
     onError: vi.fn(),
   }),
+  useLazyQuery: () => ({
+    load: vi.fn(),
+    result: ref(null),
+    loading: ref(false),
+    onResult: vi.fn(),
+    onError: vi.fn(),
+  }),
 }));
 
 // Explicitly mock @unraid/ui to ensure we use the actual components
@@ -54,6 +61,11 @@ describe('ColorSwitcher', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+
+    // Set CSS variables for theme store
+    document.documentElement.style.setProperty('--theme-dark-mode', '0');
+    document.documentElement.style.setProperty('--banner-gradient', '');
+
     const pinia = createTestingPinia({ createSpy: vi.fn });
     setActivePinia(pinia);
     themeStore = useThemeStore();
@@ -69,8 +81,12 @@ describe('ColorSwitcher', () => {
   afterEach(() => {
     vi.runOnlyPendingTimers();
     vi.useRealTimers();
-    document.body.removeChild(modalDiv);
-    consoleWarnSpy.mockRestore();
+    if (modalDiv && modalDiv.parentNode) {
+      modalDiv.parentNode.removeChild(modalDiv);
+    }
+    if (consoleWarnSpy) {
+      consoleWarnSpy.mockRestore();
+    }
   });
 
   it('renders all form elements correctly', () => {

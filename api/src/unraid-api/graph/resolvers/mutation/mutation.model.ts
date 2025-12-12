@@ -25,6 +25,11 @@ export class VmMutations {}
 export class ApiKeyMutations {}
 
 @ObjectType({
+    description: 'Customization related mutations',
+})
+export class CustomizationMutations {}
+
+@ObjectType({
     description: 'Parity check related mutations, WIP, response types and functionaliy will change',
 })
 export class ParityCheckMutations {}
@@ -53,6 +58,9 @@ export class RootMutations {
 
     @Field(() => ApiKeyMutations, { description: 'API Key related mutations' })
     apiKey: ApiKeyMutations = new ApiKeyMutations();
+
+    @Field(() => CustomizationMutations, { description: 'Customization related mutations' })
+    customization: CustomizationMutations = new CustomizationMutations();
 
     @Field(() => ParityCheckMutations, { description: 'Parity check related mutations' })
     parityCheck: ParityCheckMutations = new ParityCheckMutations();
