@@ -4,8 +4,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { describe, expect, it, vi } from 'vitest';
 
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
-import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
-import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-log.service.js';
 import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
@@ -71,22 +69,6 @@ describe('DockerModule', () => {
         expect(service).toHaveProperty('getDockerClient');
     });
 
-    it('should provide DockerEventService', async () => {
-        // DockerEventService is not exported by DockerModule but we can test if we can provide it
-        // But here we are creating a module with providers manually, not importing DockerModule.
-        // Wait, DockerEventService was NOT in DockerModule providers in my refactor?
-        // I should check if DockerEventService is in DockerModule.
-        const module: TestingModule = await Test.createTestingModule({
-            providers: [
-                DockerEventService,
-                { provide: DockerService, useValue: { getDockerClient: vi.fn() } },
-            ],
-        }).compile();
-
-        const service = module.get<DockerEventService>(DockerEventService);
-        expect(service).toBeInstanceOf(DockerEventService);
-    });
-
     it('should provide DockerResolver', async () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
@@ -105,7 +87,6 @@ describe('DockerModule', () => {
                         replaceConfig: vi.fn(),
                     },
                 },
-                { provide: DockerFormService, useValue: { getContainerOverviewForm: vi.fn() } },
                 { provide: DockerOrganizerService, useValue: {} },
                 { provide: DockerPhpService, useValue: { getContainerUpdateStatuses: vi.fn() } },
                 {

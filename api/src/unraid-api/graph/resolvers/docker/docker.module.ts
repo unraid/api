@@ -5,7 +5,6 @@ import { ContainerStatusJob } from '@app/unraid-api/graph/resolvers/docker/conta
 import { DockerAutostartService } from '@app/unraid-api/graph/resolvers/docker/docker-autostart.service.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerContainerResolver } from '@app/unraid-api/graph/resolvers/docker/docker-container.resolver.js';
-import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-log.service.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
@@ -29,7 +28,6 @@ import { ServicesModule } from '@app/unraid-api/graph/services/services.module.j
         // Services
         DockerService,
         DockerAutostartService,
-        DockerFormService,
         DockerOrganizerConfigService,
         DockerOrganizerService,
         DockerManifestService,

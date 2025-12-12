@@ -1346,13 +1346,6 @@ type Docker implements Node {
   containerUpdateStatuses: [ExplicitStatusItem!]!
 }
 
-type DockerContainerOverviewForm {
-  id: ID!
-  dataSchema: JSON!
-  uiSchema: JSON!
-  data: JSON!
-}
-
 type NotificationCounts {
   info: Int!
   warning: Int!
@@ -2607,7 +2600,6 @@ type Query {
   publicPartnerInfo: PublicPartnerInfo
   publicTheme: Theme!
   docker: Docker!
-  dockerContainerOverviewForm(skipCache: Boolean! = false): DockerContainerOverviewForm!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
   rclone: RCloneBackupSettings!

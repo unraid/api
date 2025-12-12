@@ -4,7 +4,6 @@ import { Test } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
-import { DockerFormService } from '@app/unraid-api/graph/resolvers/docker/docker-form.service.js';
 import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { DockerStatsService } from '@app/unraid-api/graph/resolvers/docker/docker-stats.service.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
@@ -55,12 +54,6 @@ describe('DockerResolver', () => {
                             .mockReturnValue({ templateMappings: {}, skipTemplatePaths: [] }),
                         validate: vi.fn().mockImplementation((config) => Promise.resolve(config)),
                         replaceConfig: vi.fn(),
-                    },
-                },
-                {
-                    provide: DockerFormService,
-                    useValue: {
-                        getContainerOverviewForm: vi.fn(),
                     },
                 },
                 {

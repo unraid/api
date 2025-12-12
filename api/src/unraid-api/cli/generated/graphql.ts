@@ -690,6 +690,7 @@ export enum DiskSmartStatus {
 
 export type Docker = Node & {
   __typename?: 'Docker';
+  container?: Maybe<DockerContainer>;
   containerUpdateStatuses: Array<ExplicitStatusItem>;
   containers: Array<DockerContainer>;
   id: Scalars['PrefixedID']['output'];
@@ -698,6 +699,11 @@ export type Docker = Node & {
   networks: Array<DockerNetwork>;
   organizer: ResolvedOrganizerV1;
   portConflicts: DockerPortConflicts;
+};
+
+
+export type DockerContainerArgs = {
+  id: Scalars['PrefixedID']['input'];
 };
 
 
@@ -766,6 +772,8 @@ export type DockerContainer = Node & {
   projectUrl?: Maybe<Scalars['String']['output']>;
   /** Registry/Docker Hub URL */
   registryUrl?: Maybe<Scalars['String']['output']>;
+  /** Shell to use for console access (from template) */
+  shell?: Maybe<Scalars['String']['output']>;
   /** Size of container logs (in bytes) */
   sizeLog?: Maybe<Scalars['BigInt']['output']>;
   /** Total size of all files in the container (in bytes) */
@@ -776,7 +784,20 @@ export type DockerContainer = Node & {
   status: Scalars['String']['output'];
   /** Support page/thread URL */
   supportUrl?: Maybe<Scalars['String']['output']>;
+  /** Whether Tailscale is enabled for this container */
+  tailscaleEnabled: Scalars['Boolean']['output'];
+  /** Tailscale status for this container (fetched via docker exec) */
+  tailscaleStatus?: Maybe<TailscaleStatus>;
   templatePath?: Maybe<Scalars['String']['output']>;
+  /** Port mappings from template (used when container is not running) */
+  templatePorts?: Maybe<Array<ContainerPort>>;
+  /** Resolved WebUI URL from template */
+  webUiUrl?: Maybe<Scalars['String']['output']>;
+};
+
+
+export type DockerContainerTailscaleStatusArgs = {
+  forceRefresh?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type DockerContainerLogLine = {
@@ -791,14 +812,6 @@ export type DockerContainerLogs = {
   /** Cursor that can be passed back through the since argument to continue streaming logs. */
   cursor?: Maybe<Scalars['DateTime']['output']>;
   lines: Array<DockerContainerLogLine>;
-};
-
-export type DockerContainerOverviewForm = {
-  __typename?: 'DockerContainerOverviewForm';
-  data: Scalars['JSON']['output'];
-  dataSchema: Scalars['JSON']['output'];
-  id: Scalars['ID']['output'];
-  uiSchema: Scalars['JSON']['output'];
 };
 
 export type DockerContainerPortConflict = {
@@ -861,6 +874,7 @@ export type DockerMutationsPauseArgs = {
 
 export type DockerMutationsRemoveContainerArgs = {
   id: Scalars['PrefixedID']['input'];
+  withImage?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -1442,6 +1456,8 @@ export type Mutation = {
   /** Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required. */
   removePlugin: Scalars['Boolean']['output'];
   renameDockerFolder: ResolvedOrganizerV1;
+  /** Reset Docker template mappings to defaults. Use this to recover from corrupted state. */
+  resetDockerTemplateMappings: Scalars['Boolean']['output'];
   setDockerFolderChildren: ResolvedOrganizerV1;
   setupRemoteAccess: Scalars['Boolean']['output'];
   syncDockerTemplatePaths: DockerTemplateSyncResult;
@@ -1884,7 +1900,6 @@ export type Query = {
   disk: Disk;
   disks: Array<Disk>;
   docker: Docker;
-  dockerContainerOverviewForm: DockerContainerOverviewForm;
   flash: Flash;
   /** Get JSON Schema for API key creation form */
   getApiKeyCreationFormSchema: ApiKeyFormSettings;
@@ -1945,11 +1960,6 @@ export type QueryApiKeyArgs = {
 
 export type QueryDiskArgs = {
   id: Scalars['PrefixedID']['input'];
-};
-
-
-export type QueryDockerContainerOverviewFormArgs = {
-  skipCache?: Scalars['Boolean']['input'];
 };
 
 
@@ -2281,6 +2291,56 @@ export type Subscription = {
 
 export type SubscriptionLogFileArgs = {
   path: Scalars['String']['input'];
+};
+
+/** Tailscale exit node connection status */
+export type TailscaleExitNodeStatus = {
+  __typename?: 'TailscaleExitNodeStatus';
+  /** Whether the exit node is online */
+  online: Scalars['Boolean']['output'];
+  /** Tailscale IPs of the exit node */
+  tailscaleIps?: Maybe<Array<Scalars['String']['output']>>;
+};
+
+/** Tailscale status for a Docker container */
+export type TailscaleStatus = {
+  __typename?: 'TailscaleStatus';
+  /** Authentication URL if Tailscale needs login */
+  authUrl?: Maybe<Scalars['String']['output']>;
+  /** Tailscale backend state (Running, NeedsLogin, Stopped, etc.) */
+  backendState?: Maybe<Scalars['String']['output']>;
+  /** Actual Tailscale DNS name */
+  dnsName?: Maybe<Scalars['String']['output']>;
+  /** Status of the connected exit node (if using one) */
+  exitNodeStatus?: Maybe<TailscaleExitNodeStatus>;
+  /** Configured Tailscale hostname */
+  hostname?: Maybe<Scalars['String']['output']>;
+  /** Whether this container is an exit node */
+  isExitNode: Scalars['Boolean']['output'];
+  /** Whether the Tailscale key has expired */
+  keyExpired: Scalars['Boolean']['output'];
+  /** Tailscale key expiry date */
+  keyExpiry?: Maybe<Scalars['DateTime']['output']>;
+  /** Days until key expires */
+  keyExpiryDays?: Maybe<Scalars['Int']['output']>;
+  /** Latest available Tailscale version */
+  latestVersion?: Maybe<Scalars['String']['output']>;
+  /** Whether Tailscale is online in the container */
+  online: Scalars['Boolean']['output'];
+  /** Advertised subnet routes */
+  primaryRoutes?: Maybe<Array<Scalars['String']['output']>>;
+  /** DERP relay code */
+  relay?: Maybe<Scalars['String']['output']>;
+  /** DERP relay region name */
+  relayName?: Maybe<Scalars['String']['output']>;
+  /** Tailscale IPv4 and IPv6 addresses */
+  tailscaleIps?: Maybe<Array<Scalars['String']['output']>>;
+  /** Whether a Tailscale update is available */
+  updateAvailable: Scalars['Boolean']['output'];
+  /** Current Tailscale version */
+  version?: Maybe<Scalars['String']['output']>;
+  /** Tailscale Serve/Funnel WebUI URL */
+  webUiUrl?: Maybe<Scalars['String']['output']>;
 };
 
 /** Temperature unit */
