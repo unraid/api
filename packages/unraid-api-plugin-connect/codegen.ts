@@ -29,26 +29,7 @@ const config: CodegenConfig = {
         },
     },
     generates: {
-        // Generate Types for Mothership GraphQL Client
-        'src/graphql/generated/client/': {
-            documents: './src/graphql/**/*.ts',
-            schema: {
-                [process.env.MOTHERSHIP_GRAPHQL_LINK ?? 'https://staging.mothership.unraid.net/ws']: {
-                    headers: {
-                        origin: 'https://forums.unraid.net',
-                    },
-                },
-            },
-            preset: 'client',
-            presetConfig: {
-                gqlTagName: 'graphql',
-            },
-            config: {
-                useTypeImports: true,
-                withObjectType: true,
-            },
-            plugins: [{ add: { content: '/* eslint-disable */' } }],
-        },
+        // No longer generating mothership GraphQL types since we switched to WebSocket-based UnraidServerClient
     },
 };
 

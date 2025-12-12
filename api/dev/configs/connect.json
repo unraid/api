@@ -2,7 +2,7 @@
   "wanaccess": true,
   "wanport": 8443,
   "upnpEnabled": false,
-  "apikey": "",
+  "apikey": "_______________________LOCAL_API_KEY_HERE_________________________",
   "localApiKey": "_______________________LOCAL_API_KEY_HERE_________________________",
   "email": "test@example.com",
   "username": "zspearmint",
