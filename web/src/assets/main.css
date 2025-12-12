@@ -9,7 +9,7 @@
 /* Import theme and utilities only - no global preflight */
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
-/* @import "@nuxt/ui"; temporarily disabled */
+@import "@nuxt/ui"; 
 @import 'tw-animate-css';
 @import '../../../@tailwind-shared/index.css';
 

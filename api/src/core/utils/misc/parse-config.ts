@@ -124,6 +124,13 @@ const fixObjectArrays = (object: Record<string, any>) => {
 
 export const getExtensionFromPath = (filePath: string): string => extname(filePath);
 
+const normalizeExtension = (extension: string): string => {
+    if (!extension) {
+        return extension;
+    }
+    return extension.startsWith('.') ? extension.slice(1).toLowerCase() : extension.toLowerCase();
+};
+
 const isFilePathOptions = (
     options: OptionsWithLoadedFile | OptionsWithPath
 ): options is OptionsWithPath => Object.keys(options).includes('filePath');
@@ -141,7 +148,10 @@ export const loadFileFromPathSync = (filePath: string): string => {
  * @param extension File extension
  * @returns boolean whether extension is ini or cfg
  */
-const isValidConfigExtension = (extension: string): boolean => ['ini', 'cfg'].includes(extension);
+const isValidConfigExtension = (extension: string): boolean => {
+    const normalized = normalizeExtension(extension);
+    return ['ini', 'cfg'].includes(normalized);
+};
 
 export const parseConfig = <T extends Record<string, any>>(
     options: OptionsWithLoadedFile | OptionsWithPath

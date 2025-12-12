@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 
+import { OnboardingTrackerModule } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import { CustomizationResolver } from '@app/unraid-api/graph/resolvers/customization/customization.resolver.js';
-import { CustomizationService } from '@app/unraid-api/graph/resolvers/customization/customization.service.js';
+import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 
 @Module({
-    providers: [CustomizationService, CustomizationResolver],
+    imports: [OnboardingTrackerModule],
+    providers: [OnboardingService, CustomizationResolver],
 })
 export class CustomizationModule {}

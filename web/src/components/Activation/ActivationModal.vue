@@ -1,18 +1,24 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
+import { useMutation } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
-import { BrandButton, Dialog } from '@unraid/ui';
+import { Dialog } from '@unraid/ui';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 
 import type { BrandButtonProps } from '@unraid/ui';
+import type { ActivationOnboardingQuery } from '~/composables/gql/graphql';
+import type { Component } from 'vue';
 
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
+import { COMPLETE_UPGRADE_STEP_MUTATION } from '~/components/Activation/completeUpgradeStep.mutation';
+import { stepComponents } from '~/components/Activation/stepRegistry';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
+import { useUpgradeOnboardingStore } from '~/components/Activation/store/upgradeOnboarding';
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
 
@@ -20,15 +26,79 @@ const { t } = useI18n();
 
 const modalStore = useActivationCodeModalStore();
 const { isVisible, isHidden } = storeToRefs(modalStore);
-const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
+const { partnerInfo, activationCode } = storeToRefs(useActivationCodeDataStore());
+const upgradeStore = useUpgradeOnboardingStore();
+const { shouldShowUpgradeOnboarding, upgradeSteps, allUpgradeSteps, currentVersion, previousVersion } =
+  storeToRefs(upgradeStore);
+const { refetchActivationOnboarding } = upgradeStore;
 const purchaseStore = usePurchaseStore();
 
-useThemeStore();
+const themeStore = useThemeStore();
 
-const title = computed<string>(() => t('activation.activationModal.letSActivateYourUnraidOs'));
-const description = computed<string>(() =>
-  t('activation.activationModal.onTheFollowingScreenYourLicense')
+// Apply theme when modal opens
+(async () => {
+  try {
+    await themeStore.setTheme();
+    // Ensure CSS variables are applied
+    themeStore.setCssVars();
+  } catch (error) {
+    console.error('Error setting theme:', error);
+  }
+})();
+
+const hasActivationCode = computed(() => Boolean(activationCode.value?.code));
+
+type StepId = ActivationOnboardingQuery['activationOnboarding']['steps'][number]['id'];
+
+const allStepIds = computed<StepId[]>(() => allUpgradeSteps.value.map((step) => step.id as StepId));
+
+const showModal = computed(() => isVisible.value || shouldShowUpgradeOnboarding.value);
+
+const availableSteps = computed<StepId[]>(() => allUpgradeSteps.value.map((step) => step.id as StepId));
+
+const currentStepIndex = ref(0);
+
+const currentStep = computed<StepId | null>(() => {
+  if (currentStepIndex.value < availableSteps.value.length) {
+    return availableSteps.value[currentStepIndex.value];
+  }
+  return null;
+});
+
+const currentStepComponent = computed<Component | null>(() =>
+  currentStep.value ? ((stepComponents as Record<StepId, Component>)[currentStep.value] ?? null) : null
 );
+
+const currentDynamicStepIndex = computed(() => {
+  if (!currentStep.value) {
+    return allStepIds.value.length;
+  }
+  const index = allStepIds.value.findIndex((id) => id === currentStep.value);
+  return index >= 0 ? index : allStepIds.value.length;
+});
+
+const modalTitle = computed<string>(() => {
+  if (shouldShowUpgradeOnboarding.value && upgradeSteps.value.length > 0 && currentVersion.value) {
+    return t('activation.activationModal.welcomeToUnraidVersion', { version: currentVersion.value });
+  }
+  return t('activation.activationModal.letSActivateYourUnraidOs');
+});
+
+const modalDescription = computed<string>(() => {
+  if (
+    shouldShowUpgradeOnboarding.value &&
+    upgradeSteps.value.length > 0 &&
+    previousVersion.value &&
+    currentVersion.value
+  ) {
+    return t('activation.activationModal.youVeUpgradedFromPrevToCurr', {
+      prev: previousVersion.value,
+      curr: currentVersion.value,
+    });
+  }
+  return t('activation.activationModal.onTheFollowingScreenYourLicense');
+});
+
 const docsButtons = computed<BrandButtonProps[]>(() => {
   return [
     {
@@ -49,45 +119,223 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
     },
   ];
 });
+
+type MarkUpgradeStepOptions = {
+  skipRefetch?: boolean;
+};
+
+const { mutate: completeUpgradeStepMutation } = useMutation(COMPLETE_UPGRADE_STEP_MUTATION);
+
+const markUpgradeStepCompleted = async (stepId: StepId | null, options: MarkUpgradeStepOptions = {}) => {
+  if (!stepId) return;
+
+  try {
+    await completeUpgradeStepMutation({ input: { stepId } });
+    if (!options.skipRefetch) {
+      await refetchActivationOnboarding();
+    }
+  } catch (error) {
+    console.error('[ActivationModal] Failed to mark upgrade step completed', error);
+  }
+};
+
+const completePendingUpgradeSteps = async () => {
+  if (!shouldShowUpgradeOnboarding.value) {
+    return;
+  }
+
+  const pendingSteps = upgradeSteps.value.map((step) => step.id as StepId);
+  if (pendingSteps.length === 0) {
+    return;
+  }
+
+  try {
+    for (const stepId of pendingSteps) {
+      await markUpgradeStepCompleted(stepId, { skipRefetch: true });
+    }
+    await refetchActivationOnboarding();
+  } catch (error) {
+    console.error('[ActivationModal] Failed to complete pending upgrade steps', error);
+  }
+};
+
+const closeModal = async () => {
+  if (shouldShowUpgradeOnboarding.value) {
+    await completePendingUpgradeSteps();
+  }
+  modalStore.setIsHidden(true);
+};
+
+const goToNextStep = async () => {
+  if (availableSteps.value.length > 0) {
+    // Only mark as completed if the current step is not already completed
+    const currentStepData = allUpgradeSteps.value[currentStepIndex.value];
+    if (currentStepData && !currentStepData.completed) {
+      await markUpgradeStepCompleted(currentStep.value);
+    }
+
+    // Move to next step
+    if (currentStepIndex.value < availableSteps.value.length - 1) {
+      currentStepIndex.value++;
+    } else {
+      // If we're at the last step, close the modal
+      await closeModal();
+    }
+    return;
+  }
+
+  await closeModal();
+};
+
+const goToPreviousStep = () => {
+  if (currentStepIndex.value > 0) {
+    currentStepIndex.value--;
+  }
+};
+
+const goToStep = (stepIndex: number) => {
+  // Allow navigation to any step within available steps (completed or incomplete)
+  if (stepIndex >= 0 && stepIndex < availableSteps.value.length) {
+    currentStepIndex.value = stepIndex;
+  }
+};
+
+const canGoBack = computed(() => currentStepIndex.value > 0);
+
+const handleTimezoneComplete = async () => {
+  console.log('[ActivationModal] Timezone complete, moving to next step');
+  await goToNextStep();
+};
+
+const handleTimezoneSkip = async () => {
+  await goToNextStep();
+};
+
+const handlePluginsComplete = async () => {
+  await goToNextStep();
+};
+
+const handlePluginsSkip = async () => {
+  await goToNextStep();
+};
+
+const currentStepConfig = computed(() => {
+  return allUpgradeSteps.value[currentStepIndex.value] ?? null;
+});
+
+const currentStepProps = computed<Record<string, unknown>>(() => {
+  const step = currentStep.value;
+  if (!step) {
+    return {};
+  }
+
+  const stepConfig = currentStepConfig.value;
+
+  const isCurrentStepCompleted = stepConfig?.completed ?? false;
+
+  const baseProps = {
+    onComplete: () => goToNextStep(),
+    onBack: goToPreviousStep,
+    showBack: canGoBack.value,
+    isCompleted: isCurrentStepCompleted,
+  };
+
+  switch (step) {
+    case 'WELCOME':
+      console.log('[ActivationModal] WELCOME step props:', {
+        currentVersion: currentVersion.value,
+        previousVersion: previousVersion.value,
+      });
+      return {
+        ...baseProps,
+        currentVersion: currentVersion.value,
+        previousVersion: previousVersion.value,
+        onSkip: undefined,
+        showSkip: false,
+      };
+
+    case 'TIMEZONE':
+      return {
+        ...baseProps,
+        onComplete: handleTimezoneComplete,
+        onSkip: stepConfig?.required ? undefined : handleTimezoneSkip,
+        showSkip: !stepConfig?.required,
+      };
+
+    case 'PLUGINS':
+      return {
+        ...baseProps,
+        onComplete: handlePluginsComplete,
+        onSkip: stepConfig?.required ? undefined : handlePluginsSkip,
+        showSkip: !stepConfig?.required && !hasActivationCode.value,
+      };
+
+    case 'ACTIVATION':
+      return {
+        ...baseProps,
+        modalTitle: modalTitle.value,
+        modalDescription: modalDescription.value,
+        docsButtons: docsButtons.value,
+        canGoBack: canGoBack.value,
+        purchaseStore,
+      };
+
+    default:
+      return baseProps;
+  }
+});
+
+// Set to appropriate step on initial load
+watch(
+  () => allUpgradeSteps.value,
+  (newSteps) => {
+    // Only set step if this is the first time we're getting steps
+    // and we haven't manually navigated to a different step
+    if (newSteps.length > 0 && currentStepIndex.value === 0) {
+      const firstIncomplete = newSteps.findIndex((step) => !step.completed);
+      if (firstIncomplete >= 0) {
+        // Start at first incomplete step
+        currentStepIndex.value = firstIncomplete;
+      } else {
+        // All steps are completed, start at the last step
+        currentStepIndex.value = newSteps.length - 1;
+      }
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
   <Dialog
-    v-if="isVisible"
-    :model-value="isVisible"
+    v-if="showModal"
+    :model-value="showModal"
     :show-footer="false"
-    :show-close-button="isHidden === false"
+    :show-close-button="isHidden === false || shouldShowUpgradeOnboarding"
     size="full"
     class="bg-background"
-    @update:model-value="(value) => !value && modalStore.setIsHidden(true)"
+    @update:model-value="
+      async (value) => {
+        if (!value) {
+          await closeModal();
+        }
+      }
+    "
   >
     <div class="flex flex-col items-center justify-start">
-      <div v-if="partnerInfo?.hasPartnerLogo">
+      <div v-if="partnerInfo?.hasPartnerLogo && !shouldShowUpgradeOnboarding">
         <ActivationPartnerLogo :partner-info="partnerInfo" />
       </div>
 
-      <h1 class="mt-4 text-center text-xl font-semibold sm:text-2xl">{{ title }}</h1>
+      <div class="flex w-full flex-col items-center">
+        <component v-if="currentStepComponent" :is="currentStepComponent" v-bind="currentStepProps" />
 
-      <div class="mx-auto my-12 text-center sm:max-w-xl">
-        <p class="text-center text-lg opacity-75 sm:text-xl">{{ description }}</p>
-      </div>
-
-      <div class="flex flex-col">
-        <div class="mx-auto mb-10">
-          <BrandButton
-            :text="t('activation.activationModal.activateNow')"
-            :icon-right="ArrowTopRightOnSquareIcon"
-            @click="purchaseStore.activate"
-          />
-        </div>
-
-        <div class="mt-6 flex flex-col gap-6">
-          <ActivationSteps :active-step="2" class="mb-6" />
-
-          <div class="mx-auto flex w-full flex-col justify-center gap-4 sm:flex-row">
-            <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
-          </div>
-        </div>
+        <ActivationSteps
+          :steps="allUpgradeSteps"
+          :active-step-index="currentDynamicStepIndex"
+          :on-step-click="goToStep"
+          class="mt-6"
+        />
       </div>
     </div>
   </Dialog>
