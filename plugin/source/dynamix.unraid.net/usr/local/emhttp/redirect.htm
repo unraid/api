@@ -33,15 +33,10 @@
 
                 const baseUrl = `${window.location.origin}${targetRoute}`;
 
-                // If we have any data param (from query or hash), preserve it.
+                // Always redirect with hash-based callback data for privacy,
+                // but still accept legacy ?data= input.
                 if (dataParam) {
-                    if (!search.has('data') && hash.has('data')) {
-                        const hashUrl = `${baseUrl}#data=${encodeURIComponent(dataParam)}`;
-                        return hashUrl;
-                    }
-
-                    const queryUrl = `${baseUrl}?data=${encodeURIComponent(dataParam)}`;
-                    return queryUrl;
+                    return `${baseUrl}#data=${encodeURIComponent(dataParam)}`;
                 }
 
                 return baseUrl;
