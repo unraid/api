@@ -14,6 +14,9 @@ This is the Unraid API monorepo containing multiple packages that provide API fu
 
 ## Essential Commands
 
+pnpm does not use `--` to pass additional arguments.
+For example, to target a specific test file, `pnpm test <file>` is sufficient.
+
 ### Development
 
 ```bash

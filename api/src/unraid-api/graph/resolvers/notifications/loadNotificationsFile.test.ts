@@ -46,7 +46,7 @@ vi.mock('@app/core/pubsub.js', () => ({
     pubsub: {
         publish: vi.fn(),
     },
-    PUBSUB_CHANNEL: {
+    GRAPHQL_PUBSUB_CHANNEL: {
         NOTIFICATION_OVERVIEW: 'notification_overview',
         NOTIFICATION_ADDED: 'notification_added',
     },
