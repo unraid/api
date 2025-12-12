@@ -212,9 +212,11 @@ export abstract class FileModification {
     }
 
     // Default implementation that can be overridden if needed
-    async shouldApply(): Promise<ShouldApplyWithReason> {
+    async shouldApply({
+        checkOsVersion = true,
+    }: { checkOsVersion?: boolean } = {}): Promise<ShouldApplyWithReason> {
         try {
-            if (await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0')) {
+            if (checkOsVersion && (await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0'))) {
                 return {
                     shouldApply: false,
                     reason: 'Patch unnecessary for Unraid 7.2 or later because the Unraid API is integrated.',

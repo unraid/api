@@ -7,6 +7,8 @@ import { PubSub } from 'graphql-subscriptions';
 const eventEmitter = new EventEmitter();
 eventEmitter.setMaxListeners(30);
 
+export { GRAPHQL_PUBSUB_CHANNEL as PUBSUB_CHANNEL };
+
 export const pubsub = new PubSub({ eventEmitter });
 
 /**

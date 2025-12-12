@@ -20,6 +20,7 @@ const initialState = {
         process.env.PATHS_UNRAID_DATA ?? ('/boot/config/plugins/dynamix.my.servers/data/' as const)
     ),
     'docker-autostart': '/var/lib/docker/unraid-autostart' as const,
+    'docker-userprefs': '/boot/config/plugins/dockerMan/userprefs.cfg' as const,
     'docker-socket': '/var/run/docker.sock' as const,
     'rclone-socket': resolvePath(process.env.PATHS_RCLONE_SOCKET ?? ('/var/run/rclone.socket' as const)),
     'parity-checks': resolvePath(

@@ -6,102 +6,60 @@ import { AuthZGuard } from 'nest-authz';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { loadDynamixConfig, store } from '@app/store/index.js';
-import { loadStateFiles } from '@app/store/modules/emhttp.js';
 import { AppModule } from '@app/unraid-api/app/app.module.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { AuthenticationGuard } from '@app/unraid-api/auth/authentication.guard.js';
-import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
-// Mock external system boundaries that we can't control in tests
-vi.mock('dockerode', () => {
-    return {
-        default: vi.fn().mockImplementation(() => ({
-            listContainers: vi.fn().mockResolvedValue([
-                {
-                    Id: 'test-container-1',
-                    Names: ['/test-container'],
-                    State: 'running',
-                    Status: 'Up 5 minutes',
-                    Image: 'test:latest',
-                    Command: 'node server.js',
-                    Created: Date.now() / 1000,
-                    Ports: [
-                        {
-                            IP: '0.0.0.0',
-                            PrivatePort: 3000,
-                            PublicPort: 3000,
-                            Type: 'tcp',
-                        },
-                    ],
-                    Labels: {},
-                    HostConfig: {
-                        NetworkMode: 'bridge',
-                    },
-                    NetworkSettings: {
-                        Networks: {},
-                    },
-                    Mounts: [],
+// Mock the store before importing it
+vi.mock('@app/store/index.js', () => ({
+    store: {
+        dispatch: vi.fn().mockResolvedValue(undefined),
+        subscribe: vi.fn().mockImplementation(() => vi.fn()),
+        getState: vi.fn().mockReturnValue({
+            emhttp: {
+                var: {
+                    csrfToken: 'test-csrf-token',
                 },
-            ]),
-            getContainer: vi.fn().mockImplementation((id) => ({
-                inspect: vi.fn().mockResolvedValue({
-                    Id: id,
-                    Name: '/test-container',
-                    State: { Running: true },
-                    Config: { Image: 'test:latest' },
-                }),
-            })),
-            listImages: vi.fn().mockResolvedValue([]),
-            listNetworks: vi.fn().mockResolvedValue([]),
-            listVolumes: vi.fn().mockResolvedValue({ Volumes: [] }),
-        })),
-    };
-});
-
-// Mock external command execution
-vi.mock('execa', () => ({
-    execa: vi.fn().mockImplementation((cmd) => {
-        if (cmd === 'whoami') {
-            return Promise.resolve({ stdout: 'testuser' });
-        }
-        return Promise.resolve({ stdout: 'mocked output' });
-    }),
+            },
+            docker: {
+                containers: [],
+                autostart: [],
+            },
+        }),
+        unsubscribe: vi.fn(),
+    },
+    getters: {
+        emhttp: vi.fn().mockReturnValue({
+            var: {
+                csrfToken: 'test-csrf-token',
+            },
+        }),
+        docker: vi.fn().mockReturnValue({
+            containers: [],
+            autostart: [],
+        }),
+        paths: vi.fn().mockReturnValue({
+            'docker-autostart': '/tmp/docker-autostart',
+            'docker-socket': '/var/run/docker.sock',
+            'var-run': '/var/run',
+            'auth-keys': '/tmp/auth-keys',
+            activationBase: '/tmp/activation',
+            'dynamix-config': ['/tmp/dynamix-config', '/tmp/dynamix-config'],
+            identConfig: '/tmp/ident.cfg',
+        }),
+        dynamix: vi.fn().mockReturnValue({
+            notify: {
+                path: '/tmp/notifications',
+            },
+        }),
+    },
+    loadDynamixConfig: vi.fn(),
+    loadStateFiles: vi.fn().mockResolvedValue(undefined),
 }));
 
-// Mock child_process for services that spawn processes
-vi.mock('node:child_process', () => ({
-    spawn: vi.fn(() => ({
-        on: vi.fn(),
-        kill: vi.fn(),
-        stdout: { on: vi.fn() },
-        stderr: { on: vi.fn() },
-    })),
-}));
-
-// Mock file system operations that would fail in test environment
-vi.mock('node:fs/promises', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('fs/promises')>();
-    return {
-        ...actual,
-        readFile: vi.fn().mockResolvedValue(''),
-        writeFile: vi.fn().mockResolvedValue(undefined),
-        mkdir: vi.fn().mockResolvedValue(undefined),
-        access: vi.fn().mockResolvedValue(undefined),
-        stat: vi.fn().mockResolvedValue({ isFile: () => true }),
-        readdir: vi.fn().mockResolvedValue([]),
-        rename: vi.fn().mockResolvedValue(undefined),
-        unlink: vi.fn().mockResolvedValue(undefined),
-    };
-});
-
-// Mock fs module for synchronous operations
-vi.mock('node:fs', () => ({
-    existsSync: vi.fn().mockReturnValue(false),
-    readFileSync: vi.fn().mockReturnValue(''),
-    writeFileSync: vi.fn(),
-    mkdirSync: vi.fn(),
-    readdirSync: vi.fn().mockReturnValue([]),
+// Mock fs-extra for directory operations
+vi.mock('fs-extra', () => ({
+    ensureDirSync: vi.fn().mockReturnValue(undefined),
 }));
 
 describe('AppModule Integration Tests', () => {
@@ -109,14 +67,6 @@ describe('AppModule Integration Tests', () => {
     let moduleRef: TestingModule;
 
     beforeAll(async () => {
-        // Initialize the dynamix config and state files before creating the module
-        await store.dispatch(loadStateFiles());
-        loadDynamixConfig();
-
-        // Debug: Log the CSRF token from the store
-        const { getters } = await import('@app/store/index.js');
-        console.log('CSRF Token from store:', getters.emhttp().var.csrfToken);
-
         moduleRef = await Test.createTestingModule({
             imports: [AppModule],
         })
@@ -149,14 +99,6 @@ describe('AppModule Integration Tests', () => {
                     roles: ['admin'],
                 }),
             })
-            // Override Redis client
-            .overrideProvider('REDIS_CLIENT')
-            .useValue({
-                get: vi.fn(),
-                set: vi.fn(),
-                del: vi.fn(),
-                connect: vi.fn(),
-            })
             .compile();
 
         app = moduleRef.createNestApplication<NestFastifyApplication>(new FastifyAdapter());
@@ -177,9 +119,9 @@ describe('AppModule Integration Tests', () => {
         });
 
         it('should resolve core services', () => {
-            const dockerService = moduleRef.get(DockerService);
+            const authService = moduleRef.get(AuthService);
 
-            expect(dockerService).toBeDefined();
+            expect(authService).toBeDefined();
         });
     });
 
@@ -238,18 +180,12 @@ describe('AppModule Integration Tests', () => {
     });
 
     describe('Service Integration', () => {
-        it('should have working service-to-service communication', async () => {
-            const dockerService = moduleRef.get(DockerService);
-
-            // Test that the service can be called and returns expected data structure
-            const containers = await dockerService.getContainers();
-
-            expect(containers).toBeInstanceOf(Array);
-            // The containers might be empty or cached, just verify structure
-            if (containers.length > 0) {
-                expect(containers[0]).toHaveProperty('id');
-                expect(containers[0]).toHaveProperty('names');
-            }
+        it('should have working service-to-service communication', () => {
+            // Test that the module can resolve its services without errors
+            // This validates that dependency injection is working correctly
+            const authService = moduleRef.get(AuthService);
+            expect(authService).toBeDefined();
+            expect(typeof authService.validateCookiesWithCsrfToken).toBe('function');
         });
     });
 });

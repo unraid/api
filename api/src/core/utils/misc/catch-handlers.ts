@@ -2,7 +2,7 @@ import { AppError } from '@app/core/errors/app-error.js';
 import { getters } from '@app/store/index.js';
 
 interface DockerError extends NodeJS.ErrnoException {
-    address: string;
+    address?: string;
 }
 
 /**

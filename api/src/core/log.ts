@@ -15,20 +15,24 @@ const nullDestination = pino.destination({
     },
 });
 
+const LOG_TRANSPORT = process.env.LOG_TRANSPORT ?? 'file';
+const useConsole = LOG_TRANSPORT === 'console';
+
 export const logDestination =
     process.env.SUPPRESS_LOGS === 'true'
         ? nullDestination
-        : pino.destination({ dest: PATHS_LOGS_FILE, mkdir: true });
-// Since process output is piped directly to the log file, we should not colorize stdout
-// to avoid ANSI escape codes in the log file
+        : useConsole
+          ? pino.destination(1) // stdout
+          : pino.destination({ dest: PATHS_LOGS_FILE, mkdir: true });
+
 const stream = SUPPRESS_LOGS
     ? nullDestination
     : LOG_TYPE === 'pretty'
       ? pretty({
             singleLine: true,
             hideObject: false,
-            colorize: false, // No colors since logs are written directly to file
-            colorizeObjects: false,
+            colorize: useConsole, // Enable colors when outputting to console
+            colorizeObjects: useConsole,
             levelFirst: false,
             ignore: 'hostname,pid',
             destination: logDestination,
@@ -36,10 +40,10 @@ const stream = SUPPRESS_LOGS
             customPrettifiers: {
                 time: (timestamp: string | object) => `[${timestamp}`,
                 level: (_logLevel: string | object, _key: string, log: any, extras: any) => {
-                    // Use label instead of labelColorized for non-colored output
-                    const { label } = extras;
+                    const { label, labelColorized } = extras;
                     const context = log.context || log.logger || 'app';
-                    return `${label} ${context}]`;
+                    // Use colorized label when outputting to console
+                    return `${useConsole ? labelColorized : label} ${context}]`;
                 },
             },
             messageFormat: (log: any, messageKey: string) => {
