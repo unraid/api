@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect Page</title>
+</head>
+
+<body>
+    <div id="text" style="text-align: center; margin-top: calc(100vh - 75%); display: none; font-family: sans-serif;">
+        <h1>Redirecting...</h1>
+        <h2><a id="redirectButton" href="/Main">Click here if you are not redirected automatically</a></h2>
+    </div>
+
+    <script>
+        (function () {
+            function parseRedirectTarget(target) {
+                if (target && target !== '/') {
+                    // Match Vue redirect.vue behavior: log the raw target, but don't trust arbitrary paths yet.
+                    console.log('[redirect.htm] parseRedirectTarget raw target:', target);
+                    return '/Main';
+                }
+                return '/Main';
+            }
+
+            function getRedirectUrl() {
+                try {
+                    console.log('[redirect.htm] initial window.location:', window.location.toString());
+                } catch (e) {
+                    console.log('[redirect.htm] initial window.location error:', e);
+                }
+
+                const search = new URLSearchParams(window.location.search);
+                const rawHash = window.location.hash || '';
+                const hashString = rawHash.charAt(0) === '#' ? rawHash.substring(1) : rawHash;
+                const hash = new URLSearchParams(hashString);
+
+                console.log('[redirect.htm] search params:', Array.from(search.entries()));
+                console.log('[redirect.htm] raw hash:', rawHash);
+                console.log('[redirect.htm] hash params:', Array.from(hash.entries()));
+
+                const targetRoute = parseRedirectTarget(search.get('target'));
+                const dataParam = search.get('data') || hash.get('data');
+
+                const baseUrl = `${window.location.origin}${targetRoute}`;
+
+                console.log('[redirect.htm] computed values:', {
+                    targetRoute,
+                    dataParam,
+                    baseUrl,
+                    searchSize: search.size,
+                });
+
+                if (dataParam && (search.size === 1 || search.size === 2)) {
+                    if (!search.has('data') && hash.has('data')) {
+                        const hashUrl = `${baseUrl}#data=${encodeURIComponent(dataParam)}`;
+                        console.log('[redirect.htm] redirecting with hash data:', hashUrl);
+                        return hashUrl;
+                    }
+
+                    const queryUrl = `${baseUrl}?data=${encodeURIComponent(dataParam)}`;
+                    console.log('[redirect.htm] redirecting with query data:', queryUrl);
+                    return queryUrl;
+                }
+
+                console.log('[redirect.htm] redirecting without data param:', baseUrl);
+                return baseUrl;
+            }
+
+            function showText() {
+                const textEl = document.getElementById('text');
+                if (textEl) {
+                    textEl.style.display = 'block';
+                }
+            }
+
+            function startRedirect() {
+                console.log('[redirect.htm] starting redirect flow');
+
+                setTimeout(showText, 750);
+
+                const redirectUrl = getRedirectUrl();
+                console.log('[redirect.htm] final redirect URL:', redirectUrl);
+
+                const link = document.getElementById('redirectButton');
+                if (link) {
+                    link.setAttribute('href', redirectUrl);
+                }
+
+                window.location.href = redirectUrl;
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', startRedirect);
+            } else {
+                startRedirect();
+            }
+        })();
+    </script>
+</body>
+
+</html>
