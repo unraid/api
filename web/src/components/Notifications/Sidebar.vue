@@ -22,8 +22,10 @@ import { useTrackLatestSeenNotification } from '~/composables/api/use-notificati
 import { useFragment } from '~/composables/gql';
 import { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
 import { useConfirm } from '~/composables/useConfirm';
+import { useThemeStore } from '~/store/theme';
 
 const toast = useToast();
+const themeStore = useThemeStore();
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
@@ -161,6 +163,7 @@ const tabs = computed(() => [
       variant="ghost"
       color="neutral"
       class="text-inverted hover:bg-[color-mix(in_oklab,hsl(var(--accent))_20%,transparent)] active:bg-transparent"
+      :style="{ color: themeStore.theme.textColor || undefined }"
       @click="
         () => {
           isOpen = true;
