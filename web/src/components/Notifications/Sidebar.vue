@@ -6,6 +6,7 @@ import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 import { navigate } from '~/helpers/external-navigation';
 
 import ConfirmDialog from '~/components/ConfirmDialog.vue';
+import { NOTIFICATION_TOAST_COLORS } from '~/components/Notifications/constants';
 import {
   archiveAllNotifications,
   deleteArchivedNotifications,
@@ -95,15 +96,7 @@ onNotificationAdded(({ data }) => {
     latestNotificationTimestamp.value = notif.timestamp;
   }
 
-  const funcMapping: Record<
-    Importance,
-    'error' | 'warning' | 'info' | 'primary' | 'secondary' | 'success' | 'neutral'
-  > = {
-    [Importance.ALERT]: 'error',
-    [Importance.WARNING]: 'warning',
-    [Importance.INFO]: 'success',
-  };
-  const color = funcMapping[notif.importance];
+  const color = NOTIFICATION_TOAST_COLORS[notif.importance];
   const createOpener = () => ({
     label: t('notifications.sidebar.toastOpen'),
     onClick: () => navigate(notif.link as string),

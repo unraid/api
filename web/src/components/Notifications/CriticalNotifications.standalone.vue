@@ -11,6 +11,7 @@ import type {
   WarningAndAlertNotificationsQueryVariables,
 } from '~/composables/gql/graphql';
 
+import { NOTIFICATION_ICONS, NOTIFICATION_TOAST_COLORS } from '~/components/Notifications/constants';
 import {
   archiveNotification,
   NOTIFICATION_FRAGMENT,
@@ -95,19 +96,19 @@ const importanceMeta: Record<
   [NotificationImportance.ALERT]: {
     label: 'Alert',
     badge: 'bg-red-100 text-red-700 border border-red-300',
-    icon: 'i-lucide-octagon',
+    icon: NOTIFICATION_ICONS[NotificationImportance.ALERT],
     accent: 'text-red-600',
   },
   [NotificationImportance.WARNING]: {
     label: 'Warning',
     badge: 'bg-amber-100 text-amber-700 border border-amber-300',
-    icon: 'i-lucide-alert-triangle',
+    icon: NOTIFICATION_ICONS[NotificationImportance.WARNING],
     accent: 'text-amber-600',
   },
   [NotificationImportance.INFO]: {
     label: 'Info',
     badge: 'bg-blue-100 text-blue-700 border border-blue-300',
-    icon: 'i-lucide-alert-triangle',
+    icon: NOTIFICATION_ICONS[NotificationImportance.INFO],
     accent: 'text-blue-600',
   },
 };
@@ -160,15 +161,7 @@ onNotificationAdded(({ data }) => {
 
   if (notification.timestamp) {
     // Trigger the global toast in tandem with the subscription update.
-    const funcMapping: Record<
-      NotificationImportance,
-      'error' | 'warning' | 'info' | 'primary' | 'secondary' | 'success' | 'neutral'
-    > = {
-      [NotificationImportance.ALERT]: 'error',
-      [NotificationImportance.WARNING]: 'warning',
-      [NotificationImportance.INFO]: 'success',
-    };
-    const color = funcMapping[notification.importance];
+    const color = NOTIFICATION_TOAST_COLORS[notification.importance];
     const createOpener = () => ({
       label: 'Open',
       onClick: () => {
@@ -194,7 +187,11 @@ onNotificationAdded(({ data }) => {
   <section class="flex flex-col gap-4 rounded-lg border border-amber-200 bg-white p-4 shadow-sm">
     <header class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-2">
-        <UIcon name="i-lucide-alert-triangle" class="size-5 text-amber-600" aria-hidden="true" />
+        <UIcon
+          name="i-heroicons-exclamation-triangle-20-solid"
+          class="size-5 text-amber-600"
+          aria-hidden="true"
+        />
         <h2 class="text-base font-semibold text-gray-900">Warnings & Alerts</h2>
       </div>
       <span

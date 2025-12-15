@@ -5,6 +5,7 @@ import { cn } from '@unraid/ui';
 
 import type { OverviewQuery } from '~/composables/gql/graphql';
 
+import { NOTIFICATION_COLORS, NOTIFICATION_ICONS } from '~/components/Notifications/constants';
 import { NotificationImportance as Importance } from '~/composables/gql/graphql';
 
 const props = defineProps<{ overview?: OverviewQuery['notifications']['overview']; seen?: boolean }>();
@@ -26,19 +27,18 @@ const indicatorLevel = computed(() => {
 });
 
 const icon = computed<{ name: string; color: string } | null>(() => {
-  switch (indicatorLevel.value) {
-    case Importance.WARNING:
-      return {
-        name: 'i-heroicons-exclamation-triangle-20-solid',
-        color: 'text-yellow-500 translate-y-0.5',
-      };
-    case Importance.ALERT:
-      return {
-        name: 'i-heroicons-shield-exclamation-20-solid',
-        color: 'text-unraid-red',
-      };
+  const level = indicatorLevel.value;
+
+  if (level !== Importance.WARNING && level !== Importance.ALERT) {
+    return null;
   }
-  return null;
+
+  return {
+    name: NOTIFICATION_ICONS[level],
+    color: cn(NOTIFICATION_COLORS[level], {
+      'translate-y-0.5': level === Importance.WARNING,
+    }),
+  };
 });
 </script>
 
