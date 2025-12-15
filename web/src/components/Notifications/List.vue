@@ -45,6 +45,10 @@ const props = withDefaults(
   }
 );
 
+const emit = defineEmits<{
+  (e: 'refetched'): void;
+}>();
+
 /** whether we should continue trying to load more notifications */
 const canLoadMore = ref(true);
 /** reset custom state when props (e.g. props.type filter) change*/
@@ -68,8 +72,11 @@ const { result, error, loading, fetchMore, refetch, subscribeToMore, onResult } 
 );
 
 onResult((res) => {
-  if (res.data && unraidApiStore.unraidApiStatus === 'offline') {
-    unraidApiStore.unraidApiStatus = 'online';
+  if (res.data) {
+    emit('refetched');
+    if (unraidApiStore.unraidApiStatus === 'offline') {
+      unraidApiStore.unraidApiStatus = 'online';
+    }
   }
 });
 
