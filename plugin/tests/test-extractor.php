@@ -101,6 +101,29 @@ class ExtractorTest {
                 'file' => 'special\'file".css'
             ]
         ], JSON_PRETTY_PRINT));
+
+        // Create an invalid JSON manifest to ensure it is safely ignored
+        file_put_contents($this->componentDir . '/other/invalid.manifest.json', '{ invalid json ');
+        // Create an empty manifest file
+        file_put_contents($this->componentDir . '/other/empty.manifest.json', '');
+
+        // Create a manifest with unsupported file types to ensure they are ignored
+        file_put_contents($this->componentDir . '/other/unsupported.manifest.json', json_encode([
+            'image-entry' => [
+                'file' => 'logo.svg'
+            ],
+            'font-entry' => [
+                'file' => 'font.woff2'
+            ]
+        ], JSON_PRETTY_PRINT));
+
+        // Create a manifest with invalid CSS list entries (only strings should be emitted)
+        file_put_contents($this->componentDir . '/other/css-list-invalid.manifest.json', json_encode([
+            'css-list-test' => [
+                'file' => 'css-list-test.js',
+                'css' => ['ok.css', '', null, 0, false]
+            ]
+        ], JSON_PRETTY_PRINT));
         
         // Copy and modify the extractor for testing
         $this->prepareExtractor();
@@ -124,14 +147,24 @@ class ExtractorTest {
         $_SERVER['DOCUMENT_ROOT'] = '/usr/local/emhttp';
         require_once $this->testDir . '/extractor.php';
         
-        if ($resetStatic && class_exists('WebComponentsExtractor')) {
-            WebComponentsExtractor::resetScriptsOutput();
+        if ($resetStatic) {
+            $this->resetExtractor();
         }
         
         $extractor = WebComponentsExtractor::getInstance();
         return $extractor->getScriptTagHtml();
     }
-    
+
+    private function getExtractorOutputWithDisplay(?array $display): string
+    {
+        if ($display === null) {
+            unset($GLOBALS['display']);
+        } else {
+            $GLOBALS['display'] = $display;
+        }
+        return $this->getExtractorOutput(true);
+    }
+
     private function runTests() {
         echo "\n";
         echo "========================================\n";
@@ -302,11 +335,32 @@ class ExtractorTest {
             "CSS from manifest has data-unraid attribute",
             preg_match('/<link[^>]+id="unraid-[^"]*-css-[^"]+"[^>]+data-unraid="1"/', $output) > 0
         );
+        $this->test(
+            "Ignores non-string/empty entries in css array",
+            preg_match_all('/id="unraid-other-css-list-test-css-[^"]+"/', $output, $matches) === 1 &&
+            isset($matches[0][0]) &&
+            strpos($matches[0][0], 'id="unraid-other-css-list-test-css-ok-css"') !== false
+        );
+
+        // Test: Manifest Format Robustness
+        echo "\nTest: Manifest Format Robustness\n";
+        echo "---------------------------------\n";
+        $this->testManifestContentsRobustness();
+        $this->test(
+            "Does not generate tags for unsupported file extensions",
+            strpos($output, 'logo.svg') === false &&
+            strpos($output, 'font.woff2') === false
+        );
         
         // Test: CSS Variable Validation
         echo "\nTest: CSS Variable Validation\n";
         echo "------------------------------\n";
         $this->testCssVariableValidation();
+
+        // Test: Display Variations / Theme CSS Vars
+        echo "\nTest: Display Variations\n";
+        echo "-------------------------\n";
+        $this->testDisplayVariations();
         
         // Test: Duplicate Prevention
         echo "\nTest: Duplicate Prevention\n";
@@ -431,6 +485,158 @@ class ExtractorTest {
             "Rejects non-string keys",
             strpos($output, '--valid') !== false &&
             strpos($output, '123') === false
+        );
+    }
+
+    private function testDisplayVariations(): void
+    {
+        // No $display => no theme CSS vars injected
+        $output = $this->getExtractorOutputWithDisplay(null);
+        $this->test(
+            "No display data produces no theme CSS var style tag",
+            strpos($output, 'id="unraid-theme-css-vars"') === false
+        );
+
+        // Banner empty + gradient yes => gradient should be ignored (no banner image)
+        $output = $this->getExtractorOutputWithDisplay([
+            'theme' => 'azure',
+            'banner' => '',
+            'showBannerGradient' => 'yes',
+            'background' => '112233',
+        ]);
+        $this->test(
+            "Banner disabled suppresses --banner-gradient",
+            strpos($output, '--banner-gradient:') === false
+        );
+        $this->test(
+            "Banner disabled suppresses header gradient start/end",
+            strpos($output, '--header-gradient-start:') === false &&
+            strpos($output, '--header-gradient-end:') === false
+        );
+
+        // Banner enabled + gradient yes + valid background => gradient vars and banner gradient
+        $output = $this->getExtractorOutputWithDisplay([
+            'theme' => 'azure',
+            'banner' => 'image',
+            'showBannerGradient' => 'yes',
+            'background' => '112233',
+        ]);
+        $this->test(
+            "Injects theme vars style tag",
+            strpos($output, 'id="unraid-theme-css-vars"') !== false &&
+            strpos($output, ':root {') !== false
+        );
+        $this->test(
+            "Sets --theme-name from display theme",
+            strpos($output, '--theme-name: azure;') !== false
+        );
+        $this->test(
+            "Sets --theme-dark-mode for non-dark themes",
+            strpos($output, '--theme-dark-mode: 0;') !== false
+        );
+        $this->test(
+            "Normalizes and sets background color",
+            strpos($output, '--header-background-color: #112233;') !== false
+        );
+        $this->test(
+            "Derives header gradient start/end from background",
+            strpos($output, '--header-gradient-start: rgba(17, 34, 51, 0.000);') !== false &&
+            strpos($output, '--header-gradient-end: rgba(17, 34, 51, 0.700);') !== false
+        );
+        $this->test(
+            "Emits --banner-gradient with banner stop variable",
+            strpos($output, '--banner-gradient: linear-gradient(90deg,') !== false &&
+            strpos($output, 'var(--banner-gradient-stop, 30%)') !== false
+        );
+
+        // Banner enabled + gradient no => no --banner-gradient, but does set start/end for other CSS usage
+        $output = $this->getExtractorOutputWithDisplay([
+            'theme' => 'azure',
+            'banner' => 'image',
+            'showBannerGradient' => 'no',
+            'background' => '112233',
+        ]);
+        $this->test(
+            "Gradient disabled suppresses --banner-gradient",
+            strpos($output, '--banner-gradient:') === false
+        );
+        $this->test(
+            "Banner enabled still emits header gradient start/end",
+            strpos($output, '--header-gradient-start:') !== false &&
+            strpos($output, '--header-gradient-end:') !== false
+        );
+
+        // Dark themes set --theme-dark-mode = 1
+        $output = $this->getExtractorOutputWithDisplay([
+            'theme' => 'black',
+            'banner' => 'image',
+            'showBannerGradient' => 'yes',
+            'background' => '112233',
+        ]);
+        $this->test(
+            "Dark theme sets --theme-dark-mode to 1",
+            strpos($output, '--theme-dark-mode: 1;') !== false &&
+            strpos($output, '--theme-name: black;') !== false
+        );
+
+        // Hex normalization: 3-digit values expand and lower-case
+        $output = $this->getExtractorOutputWithDisplay([
+            'theme' => 'azure',
+            'banner' => 'image',
+            'showBannerGradient' => 'yes',
+            'background' => 'aBc',
+            'header' => 'FfF',
+            'headermetacolor' => '#0F0',
+        ]);
+        $this->test(
+            "Normalizes 3-digit hex values",
+            strpos($output, '--header-background-color: #aabbcc;') !== false &&
+            strpos($output, '--header-text-primary: #ffffff;') !== false &&
+            strpos($output, '--header-text-secondary: #00ff00;') !== false
+        );
+
+        // Invalid background => should not emit background var
+        $output = $this->getExtractorOutputWithDisplay([
+            'theme' => 'azure',
+            'banner' => 'image',
+            'showBannerGradient' => 'yes',
+            'background' => 'not-a-hex',
+        ]);
+        $this->test(
+            "Rejects invalid background color",
+            strpos($output, '--header-background-color:') === false
+        );
+    }
+
+    private function testManifestContentsRobustness(): void
+    {
+        $_SERVER['DOCUMENT_ROOT'] = '/usr/local/emhttp';
+        require_once $this->testDir . '/extractor.php';
+
+        $extractor = WebComponentsExtractor::getInstance();
+
+        $missing = $extractor->getManifestContents($this->componentDir . '/other/does-not-exist.manifest.json');
+        $this->test(
+            "Missing manifest returns an empty array",
+            is_array($missing) && $missing === []
+        );
+
+        $empty = $extractor->getManifestContents($this->componentDir . '/other/empty.manifest.json');
+        $this->test(
+            "Empty manifest returns an empty array",
+            is_array($empty) && $empty === []
+        );
+
+        $invalid = $extractor->getManifestContents($this->componentDir . '/other/invalid.manifest.json');
+        $this->test(
+            "Invalid JSON manifest returns an empty array",
+            is_array($invalid) && $invalid === []
+        );
+
+        $valid = $extractor->getManifestContents($this->componentDir . '/other/manifest.json');
+        $this->test(
+            "Valid manifest decodes to an array",
+            is_array($valid) && isset($valid['app-entry']) && isset($valid['app-styles'])
         );
     }
     

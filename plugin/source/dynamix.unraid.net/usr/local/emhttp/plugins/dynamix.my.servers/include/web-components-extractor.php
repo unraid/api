@@ -44,7 +44,12 @@ class WebComponentsExtractor
     public function getManifestContents(string $manifestPath): array
     {
         $contents = @file_get_contents($manifestPath);
-        return $contents ? json_decode($contents, true) : [];
+        if (!$contents) {
+            return [];
+        }
+
+        $decoded = json_decode($contents, true);
+        return is_array($decoded) ? $decoded : [];
     }
 
     private function processManifestFiles(): string
