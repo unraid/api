@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
-import { useToast } from '@nuxt/ui/composables/useToast.js';
 
 import ConfirmDialog from '~/components/ConfirmDialog.vue';
 import {

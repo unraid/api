@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
-import { useToast } from '@nuxt/ui/composables/useToast.js';
 
 import type { FragmentType } from '~/composables/gql';
 import type {
