@@ -22,6 +22,7 @@ import { useDockerConsoleSessions } from '@/composables/useDockerConsoleSessions
 import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
 import { stripLeadingSlash } from '@/utils/docker';
 import { useAutoAnimate } from '@formkit/auto-animate/vue';
+import { navigate } from '@/helpers/external-navigation';
 
 import type {
   DockerPortConflictsResult,
@@ -258,7 +259,7 @@ function handleAddContainerClick() {
   const sanitizedPath = rawPath.replace(/\?.*$/, '').replace(/\/+$/, '');
   const withoutAdd = sanitizedPath.replace(/\/AddContainer$/i, '');
   const targetPath = withoutAdd ? `${withoutAdd}/AddContainer` : '/AddContainer';
-  window.location.assign(targetPath);
+  navigate(targetPath);
 }
 
 async function refreshContainers() {

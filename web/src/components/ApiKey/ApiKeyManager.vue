@@ -35,6 +35,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@unraid/ui';
+import { navigate } from '~/helpers/external-navigation';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
 import type { ApiKeyFragment, AuthAction, Role } from '~/composables/gql/graphql';
@@ -165,7 +166,7 @@ function applyTemplate() {
     params.forEach((value, key) => {
       authUrl.searchParams.append(key, value);
     });
-    window.location.href = authUrl.toString();
+    navigate(authUrl.toString());
 
     cancelTemplateInput();
   } catch (_err) {

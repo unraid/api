@@ -2,6 +2,8 @@
 import { computed, reactive, ref, watch } from 'vue';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
+import { navigate } from '~/helpers/external-navigation';
+
 import type { FragmentType } from '~/composables/gql';
 import type {
   NotificationFragmentFragment,
@@ -171,7 +173,7 @@ onNotificationAdded(({ data }) => {
       label: 'Open',
       onClick: () => {
         if (notification.link) {
-          window.location.assign(notification.link);
+          navigate(notification.link);
         }
       },
     });

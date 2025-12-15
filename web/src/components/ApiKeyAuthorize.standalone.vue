@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia';
 
 import { ClipboardDocumentIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline';
 import { Button, Input } from '@unraid/ui';
+import { navigate } from '~/helpers/external-navigation';
 
 import ApiKeyCreate from '~/components/ApiKey/ApiKeyCreate.vue';
 import { useAuthorizationLink } from '~/composables/useAuthorizationLink.js';
@@ -93,12 +94,12 @@ const deny = () => {
   if (hasValidRedirectUri.value) {
     try {
       const url = buildCallbackUrl(undefined, 'access_denied');
-      window.location.href = url;
+      navigate(url);
     } catch {
-      window.location.href = '/';
+      navigate('/');
     }
   } else {
-    window.location.href = '/';
+    navigate('/');
   }
 };
 
@@ -108,7 +109,7 @@ const returnToApp = () => {
 
   try {
     const url = buildCallbackUrl(createdApiKey.value, undefined);
-    window.location.href = url;
+    navigate(url);
   } catch (_err) {
     error.value = 'Failed to redirect back to application';
   }

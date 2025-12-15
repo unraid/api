@@ -1,4 +1,5 @@
 import { featureFlags } from '@/helpers/env';
+import { navigate } from '@/helpers/external-navigation';
 
 import type { DockerContainer } from '@/composables/gql/graphql';
 
@@ -39,7 +40,7 @@ export function useDockerEditNavigation() {
     if (!url) {
       return false;
     }
-    window.location.href = url;
+    navigate(url);
     return true;
   }
 

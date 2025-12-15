@@ -5,6 +5,7 @@ import { useMutation } from '@vue/apollo-composable';
 import { computedAsync } from '@vueuse/core';
 
 import { Markdown } from '@/helpers/markdown';
+import { navigate } from '~/helpers/external-navigation';
 
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
 
@@ -66,7 +67,7 @@ const mutationError = computed(() => {
 
 const openLink = () => {
   if (props.link) {
-    window.location.assign(props.link);
+    navigate(props.link);
   }
 };
 
