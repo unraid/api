@@ -478,6 +478,12 @@ if [ "$SKIP_API_INSTALL" = false ]; then
     fi
   done
 
+  # Stop the API service before mutating /usr/local/unraid-api to avoid upgrade races
+  if [ -x "/etc/rc.d/rc.unraid-api" ]; then
+    echo "Stopping Unraid API service before upgrade..."
+    /etc/rc.d/rc.unraid-api stop || echo "Warning: Failed to stop Unraid API service"
+  fi
+
   # Remove existing node_modules directory
   echo "Cleaning up existing node_modules directory..."
   if [ -d "/usr/local/unraid-api/node_modules" ]; then
