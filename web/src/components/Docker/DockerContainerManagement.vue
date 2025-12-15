@@ -14,6 +14,7 @@ import DockerLogs from '@/components/Docker/Logs.vue';
 import DockerOverview from '@/components/Docker/Overview.vue';
 import DockerPreview from '@/components/Docker/Preview.vue';
 import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
+import { navigate } from '@/helpers/external-navigation';
 
 import type {
   ContainerPortConflict,
@@ -253,7 +254,7 @@ function handleAddContainerClick() {
   const sanitizedPath = rawPath.replace(/\?.*$/, '').replace(/\/+$/, '');
   const withoutAdd = sanitizedPath.replace(/\/AddContainer$/i, '');
   const targetPath = withoutAdd ? `${withoutAdd}/AddContainer` : '/AddContainer';
-  window.location.assign(targetPath);
+  navigate(targetPath);
 }
 
 async function refreshContainers() {

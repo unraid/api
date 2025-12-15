@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@unraid/ui';
+import { navigate } from '~/helpers/external-navigation';
 import { getReleaseNotesUrl, WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
@@ -126,7 +127,7 @@ const handleUpdateStatusClick = () => {
   if (updateOsStatus.value.click) {
     updateOsStatus.value.click();
   } else if (updateOsStatus.value.href) {
-    window.location.href = updateOsStatus.value.href;
+    navigate(updateOsStatus.value.href);
   }
 };
 

@@ -1,6 +1,8 @@
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { navigate } from '~/helpers/external-navigation';
+
 export type AuthState = 'loading' | 'idle' | 'error';
 
 export function useSsoAuth() {
@@ -75,7 +77,7 @@ export function useSsoAuth() {
 
     // Redirect to OIDC authorization endpoint with state token and redirect URI
     const authUrl = `/graphql/api/auth/oidc/authorize/${encodeURIComponent(providerId)}?state=${encodeURIComponent(state)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-    window.location.href = authUrl;
+    navigate(authUrl);
   };
 
   const handleOAuthCallback = async () => {
@@ -120,7 +122,7 @@ export function useSsoAuth() {
 
         // Redirect to our OIDC callback endpoint to exchange the code
         const callbackUrl = `/graphql/api/auth/oidc/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
-        window.location.href = callbackUrl;
+        navigate(callbackUrl);
         return;
       }
 

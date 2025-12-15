@@ -3,6 +3,8 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
+import { navigate } from '~/helpers/external-navigation';
+
 import ConfirmDialog from '~/components/ConfirmDialog.vue';
 import {
   archiveAllNotifications,
@@ -104,7 +106,7 @@ onNotificationAdded(({ data }) => {
   const color = funcMapping[notif.importance];
   const createOpener = () => ({
     label: t('notifications.sidebar.toastOpen'),
-    onClick: () => window.location.assign(notif.link as string),
+    onClick: () => navigate(notif.link as string),
   });
 
   requestAnimationFrame(() =>
@@ -116,10 +118,6 @@ onNotificationAdded(({ data }) => {
     })
   );
 });
-
-const openSettings = () => {
-  window.location.assign('/Settings/Notifications');
-};
 
 const overview = computed(() => {
   if (!result.value) {
@@ -234,7 +232,7 @@ const tabs = computed(() => [
                     variant="ghost"
                     color="neutral"
                     icon="i-heroicons-cog-6-tooth-20-solid"
-                    @click="openSettings"
+                    @click="navigate('/Settings/Notifications')"
                   />
                 </UTooltip>
               </div>

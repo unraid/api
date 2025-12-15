@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 
+import { navigate } from '~/helpers/external-navigation';
+
 const parseRedirectTarget = (target: string | null) => {
   if (target && target !== '/') {
     // parse target and ensure it is a bare path with no query parameters
@@ -27,7 +29,7 @@ onMounted(() => {
     }
   }, 750);
 
-  window.location.href = getRedirectUrl();
+  navigate(getRedirectUrl());
 });
 </script>
 
