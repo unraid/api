@@ -98,8 +98,7 @@ onMounted(() => {
   >
     <div
       v-if="bannerGradient"
-      class="pointer-events-none absolute inset-y-0 right-0 left-0 z-0 w-full"
-      :style="bannerGradient"
+      class="unraid-banner-gradient-layer pointer-events-none absolute inset-y-0 right-0 left-0 z-0 w-full"
     />
 
     <UpcServerStatus class="relative z-10" />

@@ -162,22 +162,16 @@ export const useThemeStore = defineStore('theme', () => {
     return raw;
   };
 
-  const bannerGradient = computed(() => {
+  const bannerGradient = computed<boolean>(() => {
     if (darkMode.value) {
-      return undefined;
+      return false;
     }
     const { banner, bannerGradient } = theme.value;
     if (!banner || !bannerGradient) {
-      return undefined;
+      return false;
     }
     const gradient = readBannerGradientVar();
-    // Only return gradient if CSS variable is set and not empty
-    // CSS variable is only set by PHP when both banner and gradient are enabled
-    if (gradient) {
-      return `background-image: ${gradient};`;
-    }
-    // No fallback - only use CSS variable set by PHP
-    return undefined;
+    return Boolean(gradient);
   });
 
   // Actions

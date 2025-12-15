@@ -243,8 +243,15 @@ class WebComponentsExtractor
 
         $shouldShowBannerGradient = ($display['showBannerGradient'] ?? '') === 'yes';
         if ($shouldShowBanner && $shouldShowBannerGradient) {
-            $start = $vars['--header-gradient-start'] ?? 'rgba(0, 0, 0, 0)';
-            $end = $vars['--header-gradient-end'] ?? 'rgba(0, 0, 0, 0.7)';
+            // If the user didn't set a custom background color, prefer existing theme defaults instead of falling back to black.
+            if (!isset($vars['--header-gradient-start'])) {
+                $vars['--header-gradient-start'] = 'var(--color-header-gradient-start, rgba(242, 242, 242, 0))';
+            }
+            if (!isset($vars['--header-gradient-end'])) {
+                $vars['--header-gradient-end'] = 'var(--color-header-gradient-end, rgba(242, 242, 242, 0.85))';
+            }
+            $start = $vars['--header-gradient-start'];
+            $end = $vars['--header-gradient-end'];
             // Keep compatibility with older CSS that expects these names.
             $vars['--color-header-gradient-start'] = $start;
             $vars['--color-header-gradient-end'] = $end;

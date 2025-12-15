@@ -162,6 +162,10 @@ iframe#progressFrame {
   --banner-gradient-stop: 30%;
 }
 
+.unraid-banner-gradient-layer {
+  background-image: var(--banner-gradient);
+}
+
 @media (max-width: 768px) {
   :root {
     --banner-gradient-stop: 60%;

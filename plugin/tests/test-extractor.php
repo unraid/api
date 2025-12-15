@@ -549,6 +549,22 @@ class ExtractorTest {
             strpos($output, 'var(--banner-gradient-stop, 30%)') !== false
         );
 
+        // Banner enabled + gradient yes but no custom background => should use theme defaults (not black fallbacks)
+        $output = $this->getExtractorOutputWithDisplay([
+            'theme' => 'azure',
+            'banner' => 'image',
+            'showBannerGradient' => 'yes',
+        ]);
+        $this->test(
+            "No custom background uses theme defaults for gradient vars",
+            strpos($output, '--header-gradient-start: var(--color-header-gradient-start') !== false &&
+            strpos($output, '--header-gradient-end: var(--color-header-gradient-end') !== false
+        );
+        $this->test(
+            "No custom background still emits --banner-gradient",
+            strpos($output, '--banner-gradient: linear-gradient(90deg,') !== false
+        );
+
         // Banner enabled + gradient no => no --banner-gradient, but does set start/end for other CSS usage
         $output = $this->getExtractorOutputWithDisplay([
             'theme' => 'azure',
