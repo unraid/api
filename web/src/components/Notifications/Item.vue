@@ -9,6 +9,7 @@ import { navigate } from '~/helpers/external-navigation';
 
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
 
+import { NOTIFICATION_COLORS, NOTIFICATION_ICONS } from '~/components/Notifications/constants';
 import {
   archiveNotification as archiveMutation,
   deleteNotification as deleteMutation,
@@ -29,24 +30,14 @@ const descriptionMarkup = computedAsync(async () => {
 }, '');
 
 const icon = computed<{ name: string; color: string } | null>(() => {
-  switch (props.importance) {
-    case 'INFO':
-      return {
-        name: 'i-heroicons-check-badge-20-solid',
-        color: 'text-unraid-green',
-      };
-    case 'WARNING':
-      return {
-        name: 'i-heroicons-exclamation-triangle-20-solid',
-        color: 'text-yellow-accent',
-      };
-    case 'ALERT':
-      return {
-        name: 'i-heroicons-shield-exclamation-20-solid',
-        color: 'text-unraid-red',
-      };
+  if (!props.importance || !NOTIFICATION_ICONS[props.importance]) {
+    return null;
   }
-  return null;
+
+  return {
+    name: NOTIFICATION_ICONS[props.importance],
+    color: NOTIFICATION_COLORS[props.importance],
+  };
 });
 
 const archive = reactive(

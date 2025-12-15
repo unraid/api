@@ -6,7 +6,9 @@ import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 import { useDebounceFn } from '@vueuse/core';
 
-import { dbgApolloError, extractGraphQLErrorMessage } from '~/helpers/functions';
+import { extractGraphQLErrorMessage } from '~/helpers/functions';
+
+// import { dbgApolloError } from '~/helpers/functions';
 
 import type { ApolloError } from '@apollo/client/errors';
 import type {
