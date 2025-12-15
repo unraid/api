@@ -6,13 +6,14 @@ import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 import { useDebounceFn } from '@vueuse/core';
 
+import { dbgApolloError, extractGraphQLErrorMessage } from '~/helpers/functions';
+
 import type { ApolloError } from '@apollo/client/errors';
 import type {
   NotificationImportance as Importance,
   Notification,
   NotificationType,
 } from '~/composables/gql/graphql';
-import type { GraphQLError } from 'graphql';
 
 import {
   getNotifications,
@@ -100,24 +101,11 @@ subscribeToMore({
   },
 });
 
-function dbgApolloError(prefix: string, err: ApolloError | null | undefined) {
-  if (!err) return;
-  console.group(`[Notifications] ${prefix}`);
-  console.log('top message:', err.message);
-  console.log('graphQLErrors:', err.graphQLErrors);
-  console.log('networkError:', err.networkError);
-  try {
-    console.log('json:', JSON.parse(JSON.stringify(err)));
-  } catch {
-    console.log('json:', 'failed to parse');
-    console.log('json:', err);
-  }
-  console.groupEnd();
-}
+// for debugging purposes:
+// watch(error, (e) => dbgApolloError('useQuery error', e as ApolloError | null | undefined), {
+//   immediate: true,
+// });
 
-watch(error, (e) => dbgApolloError('useQuery error', e as ApolloError | null | undefined), {
-  immediate: true,
-});
 watch(offlineError, (o) => {
   if (o) console.log('[Notifications] offlineError:', o.message);
 });
@@ -256,20 +244,7 @@ const displayErrorMessage = computed(() => {
   if (offlineError.value) return offlineError.value.message;
 
   const apolloErr = error.value as ApolloError | null | undefined;
-  const firstGqlErr = apolloErr?.graphQLErrors?.[0] as
-    | (GraphQLError & {
-        extensions?: { error?: { message?: string } };
-        error?: { message?: string };
-      })
-    | undefined;
-
-  const gqlEmbedded = firstGqlErr?.extensions?.error?.message;
-  const gqlTop = firstGqlErr?.error?.message;
-  const gqlMessage = firstGqlErr?.message;
-  const netMessage = (apolloErr?.networkError as { message?: string } | undefined)?.message;
-  const topMessage = apolloErr?.message;
-
-  return gqlEmbedded || gqlTop || gqlMessage || netMessage || topMessage || 'An unknown error occurred.';
+  return extractGraphQLErrorMessage(apolloErr);
 });
 </script>
 
@@ -341,7 +316,7 @@ const displayErrorMessage = computed(() => {
         <h3 class="font-bold">Error</h3>
         <p>{{ displayErrorMessage }}</p>
       </div>
-      <UButton class="w-full" @click="() => void refetch()">Try Again</UButton>
+      <UButton block @click="() => void refetch()">Try Again</UButton>
     </div>
 
     <!-- Default (empty state) -->
