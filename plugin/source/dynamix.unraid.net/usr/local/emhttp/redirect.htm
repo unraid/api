@@ -51,7 +51,7 @@
                 // Fallback: accept legacy ?data= input and convert it to hash-based data.
                 const queryData = search.get('data');
                 if (queryData) {
-                    const encoded = encodeURI(queryData);
+                    const encoded = encodeURIComponent(queryData);
                     return `${baseUrl}#data=${encoded}`;
                 }
 
