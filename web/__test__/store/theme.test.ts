@@ -18,6 +18,28 @@ vi.mock('@vue/apollo-composable', () => ({
     onResult: vi.fn(),
     onError: vi.fn(),
   }),
+  useLazyQuery: () => ({
+    load: vi.fn(),
+    result: ref(null),
+    loading: ref(false),
+    onResult: vi.fn(),
+    onError: vi.fn(),
+  }),
+}));
+
+vi.mock('@unraid/ui', () => ({
+  isDarkModeActive: vi.fn(() => {
+    if (typeof document === 'undefined') return false;
+    const cssVar = getComputedStyle(document.documentElement)
+      .getPropertyValue('--theme-dark-mode')
+      .trim();
+    if (cssVar === '1') return true;
+    if (cssVar === '0') return false;
+    if (document.documentElement.classList.contains('dark')) return true;
+    if (document.body?.classList.contains('dark')) return true;
+    if (document.querySelector('.unapi.dark')) return true;
+    return false;
+  }),
 }));
 
 describe('Theme Store', () => {
@@ -43,6 +65,11 @@ describe('Theme Store', () => {
     document.body.style.cssText = '';
     document.documentElement.classList.add = vi.fn();
     document.documentElement.classList.remove = vi.fn();
+    document.documentElement.style.removeProperty('--theme-dark-mode');
+    document.documentElement.style.removeProperty('--theme-name');
+    document.documentElement.classList.remove('dark');
+    document.body.classList.remove('dark');
+    document.querySelectorAll('.unapi').forEach((el) => el.classList.remove('dark'));
 
     vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
       cb(0);
@@ -55,7 +82,13 @@ describe('Theme Store', () => {
   afterEach(() => {
     store?.$dispose();
     store = undefined;
-    app?.unmount();
+    if (app) {
+      try {
+        app.unmount();
+      } catch {
+        // App was not mounted, ignore
+      }
+    }
     app = undefined;
 
     document.body.classList.add = originalAddClassFn;
@@ -90,44 +123,39 @@ describe('Theme Store', () => {
       expect(store.activeColorVariables).toEqual(defaultColors.white);
     });
 
-    it('should compute darkMode correctly', () => {
+    it('should compute darkMode from CSS variable when set to 1', () => {
+      document.documentElement.style.setProperty('--theme-dark-mode', '1');
       const store = createStore();
-
-      expect(store.darkMode).toBe(false);
-
-      store.setTheme({ ...store.theme, name: 'black' });
       expect(store.darkMode).toBe(true);
+    });
 
-      store.setTheme({ ...store.theme, name: 'gray' });
-      expect(store.darkMode).toBe(true);
-
-      store.setTheme({ ...store.theme, name: 'white' });
+    it('should compute darkMode from CSS variable when set to 0', () => {
+      document.documentElement.style.setProperty('--theme-dark-mode', '0');
+      const store = createStore();
       expect(store.darkMode).toBe(false);
     });
 
-    it('should compute bannerGradient correctly', () => {
+    it('should compute bannerGradient from CSS variable when set', async () => {
+      document.documentElement.style.setProperty('--theme-dark-mode', '0');
+      // Set the gradient with the resolved value (not nested var()) since getComputedStyle resolves it
+      document.documentElement.style.setProperty(
+        '--banner-gradient',
+        'linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) 30%)'
+      );
+
       const store = createStore();
+      store.setTheme({ banner: true, bannerGradient: true });
+      await nextTick();
+      expect(store.theme.banner).toBe(true);
+      expect(store.theme.bannerGradient).toBe(true);
+      expect(store.darkMode).toBe(false);
+      expect(store.bannerGradient).toBe(true);
+    });
 
-      expect(store.bannerGradient).toBeUndefined();
-
-      store.setTheme({
-        ...store.theme,
-        banner: true,
-        bannerGradient: true,
-      });
-      expect(store.bannerGradient).toMatchInlineSnapshot(
-        `"background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, var(--header-background-color) 90%);"`
-      );
-
-      store.setTheme({
-        ...store.theme,
-        banner: true,
-        bannerGradient: true,
-        bgColor: '#123456',
-      });
-      expect(store.bannerGradient).toMatchInlineSnapshot(
-        `"background-image: linear-gradient(90deg, var(--header-gradient-start) 0, var(--header-gradient-end) 90%);"`
-      );
+    it('should return false when bannerGradient CSS variable is not set', () => {
+      document.documentElement.style.removeProperty('--banner-gradient');
+      const store = createStore();
+      expect(store.bannerGradient).toBe(false);
     });
   });
 
@@ -157,12 +185,16 @@ describe('Theme Store', () => {
       await nextTick();
 
       expect(document.body.classList.add).toHaveBeenCalledWith('dark');
+      expect(document.documentElement.classList.add).toHaveBeenCalledWith('dark');
+      expect(store.darkMode).toBe(true);
 
       store.setTheme({ ...store.theme, name: 'white' });
 
       await nextTick();
 
       expect(document.body.classList.remove).toHaveBeenCalledWith('dark');
+      expect(document.documentElement.classList.remove).toHaveBeenCalledWith('dark');
+      expect(store.darkMode).toBe(false);
     });
 
     it('should update activeColorVariables when theme changes', async () => {
@@ -195,33 +227,22 @@ describe('Theme Store', () => {
 
       expect(document.documentElement.classList.add).toHaveBeenCalledWith('dark');
       expect(document.body.classList.add).toHaveBeenCalledWith('dark');
+      expect(store.darkMode).toBe(true);
     });
 
-    it('should apply dark mode classes to all .unapi elements', async () => {
+    it('should update darkMode reactively when theme changes', async () => {
       const store = createStore();
 
-      const unapiElement1 = document.createElement('div');
-      unapiElement1.classList.add('unapi');
-      document.body.appendChild(unapiElement1);
-
-      const unapiElement2 = document.createElement('div');
-      unapiElement2.classList.add('unapi');
-      document.body.appendChild(unapiElement2);
-
-      const addSpy1 = vi.spyOn(unapiElement1.classList, 'add');
-      const addSpy2 = vi.spyOn(unapiElement2.classList, 'add');
-      const removeSpy1 = vi.spyOn(unapiElement1.classList, 'remove');
-      const removeSpy2 = vi.spyOn(unapiElement2.classList, 'remove');
+      expect(store.darkMode).toBe(false);
 
       store.setTheme({
         ...store.theme,
-        name: 'black',
+        name: 'gray',
       });
 
       await nextTick();
 
-      expect(addSpy1).toHaveBeenCalledWith('dark');
-      expect(addSpy2).toHaveBeenCalledWith('dark');
+      expect(store.darkMode).toBe(true);
 
       store.setTheme({
         ...store.theme,
@@ -230,11 +251,40 @@ describe('Theme Store', () => {
 
       await nextTick();
 
-      expect(removeSpy1).toHaveBeenCalledWith('dark');
-      expect(removeSpy2).toHaveBeenCalledWith('dark');
+      expect(store.darkMode).toBe(false);
+    });
 
-      document.body.removeChild(unapiElement1);
-      document.body.removeChild(unapiElement2);
+    it('should initialize dark mode from CSS variable on store creation', () => {
+      // Mock getComputedStyle to return dark mode
+      const originalGetComputedStyle = window.getComputedStyle;
+      vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
+        const style = originalGetComputedStyle(el);
+        if (el === document.documentElement) {
+          return {
+            ...style,
+            getPropertyValue: (prop: string) => {
+              if (prop === '--theme-dark-mode') {
+                return '1';
+              }
+              if (prop === '--theme-name') {
+                return 'black';
+              }
+              return style.getPropertyValue(prop);
+            },
+          } as CSSStyleDeclaration;
+        }
+        return style;
+      });
+
+      document.documentElement.style.setProperty('--theme-dark-mode', '1');
+      const store = createStore();
+
+      // Should have added dark class to documentElement and body
+      expect(document.documentElement.classList.add).toHaveBeenCalledWith('dark');
+      expect(document.body.classList.add).toHaveBeenCalledWith('dark');
+      expect(store.darkMode).toBe(true);
+
+      vi.restoreAllMocks();
     });
   });
 });

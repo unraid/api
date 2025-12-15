@@ -1,5 +1,8 @@
 {% if mode === 'development' %}
-  {% set activeTheme = query.theme or 'white' %}
+  {% set activeTheme = resolvedTheme or query.theme or 'white' %}
+  {% if activeTheme != 'white' and activeTheme != 'black' and activeTheme != 'gray' and activeTheme != 'azure' %}
+    {% set activeTheme = 'white' %}
+  {% endif %}
   <link rel="stylesheet" href="/test-pages/unraid-assets/default-fonts.css">
   <link rel="stylesheet" href="/test-pages/unraid-assets/default-base.css">
   <link rel="stylesheet" href="/test-pages/unraid-assets/default-cases.css">
@@ -20,6 +23,47 @@
   {% elif activeTheme === 'white' %}
     <link rel="stylesheet" href="/test-pages/unraid-assets/themes/white.css" id="dev-theme-css-link">
   {% endif %}
+  <script>
+    (function() {
+      var theme = {{ activeTheme | default('white') | dump }};
+      var themeCssMap = {
+        azure: '/test-pages/unraid-assets/themes/azure.css',
+        black: '/test-pages/unraid-assets/themes/black.css',
+        gray: '/test-pages/unraid-assets/themes/gray.css',
+        white: '/test-pages/unraid-assets/themes/white.css',
+      };
+
+      var themeLink = document.getElementById('dev-theme-css-link');
+      var desiredHref = themeCssMap[theme];
+      if (themeLink && desiredHref && themeLink.getAttribute('href') !== desiredHref) {
+        themeLink.href = desiredHref;
+      }
+
+      var root = document.documentElement;
+      var isDark = theme === 'black' || theme === 'gray';
+
+      root.style.setProperty('--theme-name', theme);
+      root.style.setProperty('--theme-dark-mode', isDark ? '1' : '0');
+      root.setAttribute('data-theme', theme);
+
+      var syncDarkClass = function() {
+        var method = isDark ? 'add' : 'remove';
+        root.classList[method]('dark');
+        if (document.body) {
+          document.body.classList[method]('dark');
+        }
+        document.querySelectorAll('.unapi').forEach(function(el) {
+          el.classList[method]('dark');
+        });
+      };
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', syncDarkClass, { once: true });
+      } else {
+        syncDarkClass();
+      }
+    })();
+  </script>
 {% else %}
   <link rel="stylesheet" href="/test-pages/unraid-assets/default-fonts.css">
   <link rel="stylesheet" href="/test-pages/unraid-assets/default-base.css">

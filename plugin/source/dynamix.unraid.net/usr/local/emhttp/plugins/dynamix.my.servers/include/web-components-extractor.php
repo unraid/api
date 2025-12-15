@@ -44,7 +44,12 @@ class WebComponentsExtractor
     public function getManifestContents(string $manifestPath): array
     {
         $contents = @file_get_contents($manifestPath);
-        return $contents ? json_decode($contents, true) : [];
+        if (!$contents) {
+            return [];
+        }
+
+        $decoded = json_decode($contents, true);
+        return is_array($decoded) ? $decoded : [];
     }
 
     private function processManifestFiles(): string
@@ -209,6 +214,11 @@ class WebComponentsExtractor
         }
 
         $theme = strtolower(trim($display['theme'] ?? ''));
+        $darkThemes = ['gray', 'black'];
+        $isDarkMode = in_array($theme, $darkThemes, true);
+        $vars['--theme-dark-mode'] = $isDarkMode ? '1' : '0';
+        $vars['--theme-name'] = $theme ?: 'white';
+        
         if ($theme === 'white') {
             if (!$textPrimary) {
                 $vars['--header-text-primary'] = 'var(--inverse-text-color, #ffffff)';
@@ -218,19 +228,35 @@ class WebComponentsExtractor
             }
         }
 
+        // Unraid WebGUI stores banner enablement as a non-empty `display['banner']` value
+        // (typically the banner file name/path).
+        $shouldShowBanner = !empty($display['banner']);
         $bgColor = $this->normalizeHex($display['background'] ?? null);
         if ($bgColor) {
             $vars['--header-background-color'] = $bgColor;
-            $vars['--header-gradient-start'] = $this->hexToRgba($bgColor, 0);
-            $vars['--header-gradient-end'] = $this->hexToRgba($bgColor, 0.7);
+            // Only set gradient variables if banner image is enabled
+            if ($shouldShowBanner) {
+                $vars['--header-gradient-start'] = $this->hexToRgba($bgColor, 0);
+                $vars['--header-gradient-end'] = $this->hexToRgba($bgColor, 1);
+            }
         }
 
         $shouldShowBannerGradient = ($display['showBannerGradient'] ?? '') === 'yes';
-        if ($shouldShowBannerGradient) {
-            $start = $vars['--header-gradient-start'] ?? 'rgba(0, 0, 0, 0)';
-            $end = $vars['--header-gradient-end'] ?? 'rgba(0, 0, 0, 0.7)';
+        if ($shouldShowBanner && $shouldShowBannerGradient) {
+            // If the user didn't set a custom background color, prefer existing theme defaults instead of falling back to black.
+            if (!isset($vars['--header-gradient-start'])) {
+                $vars['--header-gradient-start'] = 'var(--color-header-gradient-start, rgba(242, 242, 242, 0))';
+            }
+            if (!isset($vars['--header-gradient-end'])) {
+                $vars['--header-gradient-end'] = 'var(--color-header-gradient-end, rgba(242, 242, 242, 1))';
+            }
+            $start = $vars['--header-gradient-start'];
+            $end = $vars['--header-gradient-end'];
+            // Keep compatibility with older CSS that expects these names.
+            $vars['--color-header-gradient-start'] = $start;
+            $vars['--color-header-gradient-end'] = $end;
             $vars['--banner-gradient'] = sprintf(
-                'linear-gradient(90deg, %s 0, %s 90%%)',
+                'linear-gradient(90deg, %s 0, %s var(--banner-gradient-stop, 30%%))',
                 $start,
                 $end
             );
