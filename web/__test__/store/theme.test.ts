@@ -149,15 +149,13 @@ describe('Theme Store', () => {
       expect(store.theme.banner).toBe(true);
       expect(store.theme.bannerGradient).toBe(true);
       expect(store.darkMode).toBe(false);
-      expect(store.bannerGradient).toBe(
-        'background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, rgba(0, 0, 0, 0.7) 30%);'
-      );
+      expect(store.bannerGradient).toBe(true);
     });
 
-    it('should return undefined when bannerGradient CSS variable is not set', () => {
+    it('should return false when bannerGradient CSS variable is not set', () => {
       document.documentElement.style.removeProperty('--banner-gradient');
       const store = createStore();
-      expect(store.bannerGradient).toBeUndefined();
+      expect(store.bannerGradient).toBe(false);
     });
   });
 

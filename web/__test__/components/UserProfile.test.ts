@@ -378,7 +378,7 @@ describe('UserProfile.standalone.vue', () => {
   });
 
   it('conditionally renders banner based on theme store', async () => {
-    const bannerSelector = 'div.absolute.z-0';
+    const bannerSelector = '.unraid-banner-gradient-layer';
 
     themeStore.setTheme({
       ...themeStore.theme,
@@ -387,7 +387,7 @@ describe('UserProfile.standalone.vue', () => {
     });
     await wrapper.vm.$nextTick();
 
-    expect(themeStore.bannerGradient).toContain('background-image: linear-gradient');
+    expect(themeStore.bannerGradient).toBe(true);
     expect(wrapper.find(bannerSelector).exists()).toBe(true);
 
     themeStore.setTheme({
@@ -396,7 +396,7 @@ describe('UserProfile.standalone.vue', () => {
     });
     await wrapper.vm.$nextTick();
 
-    expect(themeStore.bannerGradient).toBeUndefined();
+    expect(themeStore.bannerGradient).toBe(false);
     expect(wrapper.find(bannerSelector).exists()).toBe(false);
 
     themeStore.setTheme({
@@ -405,7 +405,7 @@ describe('UserProfile.standalone.vue', () => {
     });
     await wrapper.vm.$nextTick();
 
-    expect(themeStore.bannerGradient).toContain('background-image: linear-gradient');
+    expect(themeStore.bannerGradient).toBe(true);
     expect(wrapper.find(bannerSelector).exists()).toBe(true);
   });
 });
