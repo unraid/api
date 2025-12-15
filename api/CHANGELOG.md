@@ -1,5 +1,23 @@
 # Changelog
 
+## [4.28.0](https://github.com/unraid/api/compare/v4.27.2...v4.28.0) (2025-12-15)
+
+
+### Features
+
+* when cancelling OS upgrade, delete any plugin files that were d… ([#1823](https://github.com/unraid/api/issues/1823)) ([74df938](https://github.com/unraid/api/commit/74df938e450def2ee3e2864d4b928f53a68e9eb8))
+
+
+### Bug Fixes
+
+* change keyfile watcher to poll instead of inotify on FAT32 ([#1820](https://github.com/unraid/api/issues/1820)) ([23a7120](https://github.com/unraid/api/commit/23a71207ddde221867562b722f4e65a5fc4dd744))
+* enhance dark mode support in theme handling ([#1808](https://github.com/unraid/api/issues/1808)) ([d6e2939](https://github.com/unraid/api/commit/d6e29395c8a8b0215d4f5945775de7fa358d06ec))
+* improve API startup reliability with timeout budget tracking ([#1824](https://github.com/unraid/api/issues/1824)) ([51f025b](https://github.com/unraid/api/commit/51f025b105487b178048afaabf46b260c4a7f9c1))
+* PHP Warnings in Management Settings ([#1805](https://github.com/unraid/api/issues/1805)) ([832e9d0](https://github.com/unraid/api/commit/832e9d04f207d3ec612c98500a2ffc86659264e5))
+* **plg:** explicitly stop an existing api before installation ([#1841](https://github.com/unraid/api/issues/1841)) ([99ce88b](https://github.com/unraid/api/commit/99ce88bfdc0a7f020c42f2fe0c6a0f4e32ac8f5a))
+* update @unraid/shared-callbacks to version 3.0.0 ([#1831](https://github.com/unraid/api/issues/1831)) ([73b2ce3](https://github.com/unraid/api/commit/73b2ce360c66cd9bedc138a5f8306af04b6bde77))
+* **ups:** convert estimatedRuntime from minutes to seconds ([#1822](https://github.com/unraid/api/issues/1822)) ([024ae69](https://github.com/unraid/api/commit/024ae69343bad5a3cbc19f80e357082e9b2efc1e))
+
 ## [4.27.2](https://github.com/unraid/api/compare/v4.27.1...v4.27.2) (2025-11-21)
 
 
