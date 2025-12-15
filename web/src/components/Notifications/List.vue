@@ -300,7 +300,7 @@ const displayErrorMessage = computed(() => {
       <div v-if="loading" class="space-y-4 py-3">
         <div v-for="n in 3" :key="n" class="py-3">
           <div class="flex items-center gap-2">
-            <USkeleton class="h-5 w-5 rounded-full" />
+            <USkeleton class="size-5 rounded-full" />
             <USkeleton class="h-4 w-40" />
             <div class="ml-auto">
               <USkeleton class="h-3 w-24" />
@@ -322,7 +322,7 @@ const displayErrorMessage = computed(() => {
     <div v-if="loading" class="w-full max-w-md space-y-4">
       <div v-for="n in 3" :key="n" class="py-1.5">
         <div class="flex items-center gap-2">
-          <USkeleton class="h-5 w-5 rounded-full" />
+          <USkeleton class="size-5 rounded-full" />
           <USkeleton class="h-4 w-40" />
         </div>
         <div class="mt-2">
@@ -346,7 +346,7 @@ const displayErrorMessage = computed(() => {
 
     <!-- Default (empty state) -->
     <div v-else class="contents">
-      <UIcon name="i-heroicons-check-20-solid" class="text-unraid-green h-10 w-10 translate-y-3" />
+      <UIcon name="i-heroicons-check-20-solid" class="text-unraid-green size-10 translate-y-3" />
       {{ noNotificationsMessage }}
     </div>
   </div>

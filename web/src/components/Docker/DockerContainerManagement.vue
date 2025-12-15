@@ -535,7 +535,7 @@ const [transitionContainerRef] = useAutoAnimate({
             </div>
             <DockerOverview v-else :item="detailsItem" :details="details" />
             <div v-if="isDetailsLoading" class="absolute inset-0 grid place-items-center">
-              <USkeleton class="h-6 w-6" />
+              <USkeleton class="size-6" />
             </div>
           </div>
         </UCard>
