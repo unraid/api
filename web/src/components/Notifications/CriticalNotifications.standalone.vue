@@ -194,7 +194,7 @@ onNotificationAdded(({ data }) => {
   <section class="flex flex-col gap-4 rounded-lg border border-amber-200 bg-white p-4 shadow-sm">
     <header class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-2">
-        <UIcon name="i-lucide-alert-triangle" class="h-5 w-5 text-amber-600" aria-hidden="true" />
+        <UIcon name="i-lucide-alert-triangle" class="size-5 text-amber-600" aria-hidden="true" />
         <h2 class="text-base font-semibold text-gray-900">Warnings & Alerts</h2>
       </div>
       <span
@@ -210,7 +210,7 @@ onNotificationAdded(({ data }) => {
     </div>
 
     <div v-else-if="loading" class="flex items-center gap-2 text-sm text-gray-500">
-      <span class="h-2 w-2 animate-pulse rounded-full bg-amber-400" aria-hidden="true" />
+      <span class="size-2 animate-pulse rounded-full bg-amber-400" aria-hidden="true" />
       Loading latest notifications…
     </div>
 
@@ -223,7 +223,7 @@ onNotificationAdded(({ data }) => {
         <div class="flex items-start gap-3">
           <UIcon
             :name="meta.icon"
-            class="mt-0.5 h-5 w-5 flex-none"
+            class="mt-0.5 size-5 flex-none"
             :class="meta.accent"
             aria-hidden="true"
           />
@@ -271,7 +271,7 @@ onNotificationAdded(({ data }) => {
 
     <div v-else class="flex flex-col items-start gap-2 rounded-md border border-gray-200 p-3">
       <div class="flex items-center gap-2 text-sm font-medium text-gray-700">
-        <span class="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />
+        <span class="size-2 rounded-full bg-emerald-400" aria-hidden="true" />
         All clear. No active warnings or alerts.
       </div>
       <p class="text-sm text-gray-500">

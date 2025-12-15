@@ -468,7 +468,7 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
               v-if="isDetailsLoading"
               class="absolute inset-0 grid place-items-center bg-white/60 dark:bg-gray-900/60"
             >
-              <USkeleton class="h-6 w-6" />
+              <USkeleton class="size-6" />
             </div>
           </div>
         </UCard>
@@ -501,7 +501,7 @@ const isDetailsDisabled = computed(() => props.disabled || isSwitching.value);
             </div>
             <DockerOverview v-else :item="detailsItem" :details="details" />
             <div v-if="isDetailsLoading" class="absolute inset-0 grid place-items-center">
-              <USkeleton class="h-6 w-6" />
+              <USkeleton class="size-6" />
             </div>
           </div>
         </UCard>
