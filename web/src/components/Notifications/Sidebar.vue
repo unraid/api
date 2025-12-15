@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
@@ -25,9 +25,11 @@ import { useFragment } from '~/composables/gql';
 import { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
 import { useConfirm } from '~/composables/useConfirm';
 import { useThemeStore } from '~/store/theme';
+import { useUnraidApiStore } from '~/store/unraidApi';
 
 const toast = useToast();
 const themeStore = useThemeStore();
+const unraidApiStore = useUnraidApiStore();
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
@@ -75,7 +77,7 @@ const confirmAndDeleteArchives = async () => {
   }
 };
 
-const { result, subscribeToMore } = useQuery(notificationsOverview);
+const { result, subscribeToMore, refetch } = useQuery(notificationsOverview);
 subscribeToMore({
   document: notificationOverviewSubscription,
   updateQuery: (prev, { subscriptionData }) => {
@@ -84,6 +86,22 @@ subscribeToMore({
     return snapshot;
   },
 });
+
+const handleRefetch = () => {
+  void recalculateOverview().finally(() => {
+    void refetch();
+  });
+};
+
+watch(
+  () => unraidApiStore.unraidApiStatus,
+  (status) => {
+    if (status === 'online') {
+      handleRefetch();
+    }
+  }
+);
+
 const { latestNotificationTimestamp, haveSeenNotifications } = useTrackLatestSeenNotification();
 const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
 
@@ -238,12 +256,14 @@ const tabs = computed(() => [
                 :importance="importance"
                 :type="NotificationType.UNREAD"
                 class="flex-1"
+                @refetched="handleRefetch"
               />
               <NotificationsList
                 v-else
                 :importance="importance"
                 :type="NotificationType.ARCHIVE"
                 class="flex-1"
+                @refetched="handleRefetch"
               />
             </div>
           </div>
