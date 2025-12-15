@@ -191,13 +191,13 @@ iframe#progressFrame {
   background-image:
     linear-gradient(
       90deg,
-      var(--color-header-gradient-end, rgba(0, 0, 0, 0.7)) 0%,
-      var(--color-header-gradient-start, rgba(0, 0, 0, 0)) 100%
+      var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 0.7))) 0%,
+      var(--header-gradient-start, var(--color-header-gradient-start, rgba(0, 0, 0, 0))) 100%
     ),
     linear-gradient(
       270deg,
-      var(--color-header-gradient-end, rgba(0, 0, 0, 0.7)) 0%,
-      var(--color-header-gradient-start, rgba(0, 0, 0, 0)) 100%
+      var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 0.7))) 0%,
+      var(--header-gradient-start, var(--color-header-gradient-start, rgba(0, 0, 0, 0))) 100%
     );
   z-index: 0;
 }

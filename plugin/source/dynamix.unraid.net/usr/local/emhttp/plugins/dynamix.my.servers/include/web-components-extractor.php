@@ -223,7 +223,9 @@ class WebComponentsExtractor
             }
         }
 
-        $shouldShowBanner = ($display['showBannerImage'] ?? '') === 'yes';
+        // Unraid WebGUI stores banner enablement as a non-empty `display['banner']` value
+        // (typically the banner file name/path).
+        $shouldShowBanner = !empty($display['banner']);
         $bgColor = $this->normalizeHex($display['background'] ?? null);
         if ($bgColor) {
             $vars['--header-background-color'] = $bgColor;
@@ -238,6 +240,9 @@ class WebComponentsExtractor
         if ($shouldShowBanner && $shouldShowBannerGradient) {
             $start = $vars['--header-gradient-start'] ?? 'rgba(0, 0, 0, 0)';
             $end = $vars['--header-gradient-end'] ?? 'rgba(0, 0, 0, 0.7)';
+            // Keep compatibility with older CSS that expects these names.
+            $vars['--color-header-gradient-start'] = $start;
+            $vars['--color-header-gradient-end'] = $end;
             $vars['--banner-gradient'] = sprintf(
                 'linear-gradient(90deg, %s 0, %s var(--banner-gradient-stop, 30%%))',
                 $start,
