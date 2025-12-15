@@ -132,13 +132,15 @@ const submitForm = async () => {
 };
 
 // Handle successful creation
+const toast = useToast();
+
 onCreateDone(async ({ data }) => {
   // Show success message
-  if (window.toast) {
-    window.toast.success('Remote Configuration Created', {
-      description: `Successfully created remote "${formState.value.name}"`,
-    });
-  }
+  toast.add({
+    title: 'Remote Configuration Created',
+    description: `Successfully created remote "${formState.value.name}"`,
+    color: 'success',
+  });
 
   console.log('[RCloneConfig] onCreateDone', data);
 
