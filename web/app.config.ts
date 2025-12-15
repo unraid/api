@@ -53,7 +53,7 @@ export default {
     // Also, for toasts, BUT this is imported in the Root UApp in mount-engine.ts
     // https://ui.nuxt.com/docs/components/toast#examples
     toaster: {
-      position: 'top-center' as const,
+      position: 'top-right' as const,
       // expand: false, --> buggy
       duration: 5000,
       // max: 3, --> not added yet in 4.0.0-alpha.0. Needs to be upgraded to 4.2.1 or later.
