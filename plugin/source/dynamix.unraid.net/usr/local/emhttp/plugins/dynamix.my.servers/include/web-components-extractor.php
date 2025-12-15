@@ -237,7 +237,7 @@ class WebComponentsExtractor
             // Only set gradient variables if banner image is enabled
             if ($shouldShowBanner) {
                 $vars['--header-gradient-start'] = $this->hexToRgba($bgColor, 0);
-                $vars['--header-gradient-end'] = $this->hexToRgba($bgColor, 0.7);
+                $vars['--header-gradient-end'] = $this->hexToRgba($bgColor, 1);
             }
         }
 
@@ -248,7 +248,7 @@ class WebComponentsExtractor
                 $vars['--header-gradient-start'] = 'var(--color-header-gradient-start, rgba(242, 242, 242, 0))';
             }
             if (!isset($vars['--header-gradient-end'])) {
-                $vars['--header-gradient-end'] = 'var(--color-header-gradient-end, rgba(242, 242, 242, 0.85))';
+                $vars['--header-gradient-end'] = 'var(--color-header-gradient-end, rgba(242, 242, 242, 1))';
             }
             $start = $vars['--header-gradient-start'];
             $end = $vars['--header-gradient-end'];

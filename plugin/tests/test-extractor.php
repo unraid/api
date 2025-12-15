@@ -541,7 +541,7 @@ class ExtractorTest {
         $this->test(
             "Derives header gradient start/end from background",
             strpos($output, '--header-gradient-start: rgba(17, 34, 51, 0.000);') !== false &&
-            strpos($output, '--header-gradient-end: rgba(17, 34, 51, 0.700);') !== false
+            strpos($output, '--header-gradient-end: rgba(17, 34, 51, 1.000);') !== false
         );
         $this->test(
             "Emits --banner-gradient with banner stop variable",

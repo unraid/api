@@ -193,16 +193,8 @@ iframe#progressFrame {
   background-position: left center, right center;
   background-size: min(30%, 320px) 100%, min(30%, 320px) 100%;
   background-image:
-    linear-gradient(
-      90deg,
-      var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 0.7))) 0%,
-      var(--header-gradient-start, var(--color-header-gradient-start, rgba(0, 0, 0, 0))) 100%
-    ),
-    linear-gradient(
-      270deg,
-      var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 0.7))) 0%,
-      var(--header-gradient-start, var(--color-header-gradient-start, rgba(0, 0, 0, 0))) 100%
-    );
+    var(--banner-gradient),
+    linear-gradient(270deg, var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 1))) 0%, var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 1))) 10%, color-mix(in srgb, var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 1))) 90%, transparent) 25%, color-mix(in srgb, var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 1))) 60%, transparent) 40%, color-mix(in srgb, var(--header-gradient-end, var(--color-header-gradient-end, rgba(0, 0, 0, 1))) 30%, transparent) 55%, var(--header-gradient-start, var(--color-header-gradient-start, rgba(0, 0, 0, 0))) 70%, var(--header-gradient-start, var(--color-header-gradient-start, rgba(0, 0, 0, 0))) var(--banner-gradient-stop, 30%));
   z-index: 0;
 }
 
