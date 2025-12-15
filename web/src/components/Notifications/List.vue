@@ -55,7 +55,7 @@ watch(props, () => {
 const unraidApiStore = useUnraidApiStore();
 const { offlineError } = storeToRefs(unraidApiStore);
 
-const { result, error, loading, fetchMore, refetch, subscribeToMore } = useQuery(
+const { result, error, loading, fetchMore, refetch, subscribeToMore, onResult } = useQuery(
   getNotifications,
   () => ({
     filter: {
@@ -66,6 +66,12 @@ const { result, error, loading, fetchMore, refetch, subscribeToMore } = useQuery
     },
   })
 );
+
+onResult((res) => {
+  if (res.data && unraidApiStore.unraidApiStatus === 'offline') {
+    unraidApiStore.unraidApiStatus = 'online';
+  }
+});
 
 // Debounce refetch to handle mass-add scenarios efficiently.
 // Increased to 500ms to ensure we capture the entire batch of events in a single refetch,
