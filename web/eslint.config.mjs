@@ -144,6 +144,7 @@ export default [
     rules: {
       ...commonRules,
       ...vueRules,
+      'no-undef': 'off', // Allow TypeScript to handle global variable validation (fixes auto-import false positives)
     },
   }, // Ignores
   {
