@@ -163,9 +163,6 @@ export const useThemeStore = defineStore('theme', () => {
   };
 
   const bannerGradient = computed<boolean>(() => {
-    if (darkMode.value) {
-      return false;
-    }
     const { banner, bannerGradient } = theme.value;
     if (!banner || !bannerGradient) {
       return false;
