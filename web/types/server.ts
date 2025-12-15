@@ -1,3 +1,4 @@
+import type { ServerActionTypes } from '@unraid/shared-callbacks';
 import type { ActivationCode, Config, PartialCloudFragment } from '~/composables/gql/graphql';
 import type { Theme } from '~/themes/types';
 import type { UserProfileLink } from '~/types/userProfile';
@@ -29,6 +30,7 @@ export type ServerState =
   | 'STARTER'
   | 'UNLEASHED'
   | 'LIFETIME'
+  | 'STALE'
   | undefined;
 
 export type ServerOsVersionBranch = 'stable' | 'next' | 'preview' | 'test';
@@ -124,78 +126,8 @@ export interface Server {
   wanIp?: string;
 }
 
-export interface ServerAccountCallbackSendPayload {
-  activationCodeData?: ActivationCode;
-  apiVersion?: string;
-  caseModel?: string;
-  connectPluginVersion?: string;
-  description?: string;
-  deviceCount?: number;
-  expireTime?: number;
-  flashBackupActivated?: boolean;
-  flashProduct?: string;
-  flashVendor?: string;
-  guid?: string;
-  inIframe: boolean;
-  keyfile?: string;
-  lanIp?: string;
-  locale?: string;
-  name?: string;
-  osVersion?: string;
-  osVersionBranch?: ServerOsVersionBranch;
-  rebootType?: ServerRebootType;
-  rebootVersion?: string;
-  registered: boolean;
-  regExp?: number;
-  regGen?: number;
-  regGuid?: string;
-  regTy?: string;
-  regUpdatesExpired?: boolean;
-  site?: string;
-  state: ServerState;
-  wanFQDN?: string;
-}
-
-export type ServerKeyTypeForPurchase = 'Basic' | 'Plus' | 'Pro' | 'Starter' | 'Trial' | 'Unleashed';
-
-export interface ServerPurchaseCallbackSendPayload {
-  activationCodeData?: ActivationCode;
-  apiVersion?: string;
-  connectPluginVersion?: string;
-  deviceCount: number;
-  email: string;
-  guid: string;
-  inIframe: boolean;
-  keyTypeForPurchase: ServerKeyTypeForPurchase;
-  locale: string;
-  osVersion?: string;
-  osVersionBranch?: ServerOsVersionBranch;
-  registered: boolean;
-  regExp?: number;
-  regTy?: string;
-  regUpdatesExpired?: boolean;
-  state: ServerState;
-  site: string;
-}
-
-export type ServerStateDataKeyActions =
-  | 'activate'
-  | 'purchase'
-  | 'redeem'
-  | 'upgrade'
-  | 'recover'
-  | 'renew'
-  | 'replace'
-  | 'trialExtend'
-  | 'trialStart'
-  | 'updateOs';
-
-export type ServerStateDataAccountActions = 'signIn' | 'signOut' | 'troubleshoot';
-
-export type ServerStateDataActionType = ServerStateDataKeyActions | ServerStateDataAccountActions;
-
-export interface ServerStateDataAction extends UserProfileLink {
-  name: ServerStateDataActionType;
+export interface ServerStateDataAction extends UserProfileLink<ServerActionTypes> {
+  name: ServerActionTypes;
 }
 
 export interface ServerStateDataError {

@@ -109,7 +109,7 @@
     "@jsonforms/vue-vanilla": "3.6.0",
     "@jsonforms/vue-vuetify": "3.6.0",
     "@nuxt/ui": "4.0.0-alpha.0",
-    "@unraid/shared-callbacks": "1.1.1",
+    "@unraid/shared-callbacks": "3.0.0",
     "@unraid/ui": "link:../unraid-ui",
     "@vue/apollo-composable": "4.2.2",
     "@vueuse/components": "13.8.0",

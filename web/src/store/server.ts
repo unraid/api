@@ -24,22 +24,19 @@ import dayjs from 'dayjs';
 import prerelease from 'semver/functions/prerelease';
 
 import type { ApolloQueryResult } from '@apollo/client/core/index.js';
+import type { ServerActionTypes, ServerData } from '@unraid/shared-callbacks';
 import type { Config, PartialCloudFragment, ServerStateQuery } from '~/composables/gql/graphql';
 import type { Error } from '~/store/errors';
 import type { Theme } from '~/themes/types';
 import type {
   Server,
-  ServerAccountCallbackSendPayload,
   ServerconnectPluginInstalled,
   ServerDateTimeFormat,
-  ServerKeyTypeForPurchase,
   ServerOsVersionBranch,
-  ServerPurchaseCallbackSendPayload,
   ServerState,
   ServerStateArray,
   ServerStateData,
   ServerStateDataAction,
-  ServerStateDataKeyActions,
   ServerUpdateOsResponse,
 } from '~/types/server';
 
@@ -224,73 +221,49 @@ export const useServerStore = defineStore('server', () => {
     };
   });
 
-  const serverPurchasePayload = computed((): ServerPurchaseCallbackSendPayload => {
-    /** @todo refactor out. Just parse state on craft site to determine */
-    let keyTypeForPurchase: ServerKeyTypeForPurchase = 'Trial';
-    switch (state.value) {
-      case 'BASIC':
-        keyTypeForPurchase = 'Basic';
-        break;
-      case 'PLUS':
-        keyTypeForPurchase = 'Plus';
-        break;
-      case 'PRO':
-        keyTypeForPurchase = 'Pro';
-        break;
-      case 'STARTER':
-        keyTypeForPurchase = 'Starter';
-        break;
-      case 'UNLEASHED':
-        keyTypeForPurchase = 'Unleashed';
-        break;
-    }
-    const server: ServerPurchaseCallbackSendPayload = {
-      apiVersion: apiVersion.value,
-      connectPluginVersion: connectPluginVersion.value,
+  const serverPurchasePayload = computed((): ServerData => {
+    const server: ServerData = {
+      description: description.value,
       deviceCount: deviceCount.value,
-      email: email.value,
+      expireTime: expireTime.value,
+      flashProduct: flashProduct.value,
+      flashVendor: flashVendor.value,
       guid: guid.value,
-      inIframe: inIframe.value,
-      keyTypeForPurchase,
       locale: locale.value,
+      name: name.value,
       osVersion: osVersion.value,
       osVersionBranch: osVersionBranch.value,
       registered: registered.value ?? false,
       regExp: regExp.value,
+      regGen: regGen.value,
+      regGuid: regGuid.value,
       regTy: regTy.value,
       regUpdatesExpired: regUpdatesExpired.value,
       state: state.value,
-      site: site.value,
+      wanFQDN: wanFQDN.value,
     };
     return server;
   });
 
-  const serverAccountPayload = computed((): ServerAccountCallbackSendPayload => {
+  const serverAccountPayload = computed((): ServerData => {
     return {
-      apiVersion: apiVersion.value,
-      caseModel: caseModel.value,
-      connectPluginVersion: connectPluginVersion.value,
       deviceCount: deviceCount.value,
       description: description.value,
       expireTime: expireTime.value,
-      flashBackupActivated: flashBackupActivated.value,
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
       guid: guid.value,
-      inIframe: inIframe.value,
       keyfile: keyfile.value,
-      lanIp: lanIp.value,
+      locale: locale.value,
       name: name.value,
       osVersion: osVersion.value,
       osVersionBranch: osVersionBranch.value,
-      rebootType: rebootType.value,
-      rebootVersion: rebootVersion.value,
       registered: registered.value ?? false,
+      regGen: regGen.value,
       regGuid: regGuid.value,
       regExp: regExp.value,
       regTy: regTy.value,
       regUpdatesExpired: regUpdatesExpired.value,
-      site: site.value,
       state: state.value,
       wanFQDN: wanFQDN.value,
     };
@@ -1301,16 +1274,14 @@ export const useServerStore = defineStore('server', () => {
 
   const filteredKeyActions = (
     filterType: 'by' | 'out',
-    filters: string | ServerStateDataKeyActions[]
+    filters: ServerActionTypes[]
   ): ServerStateDataAction[] | undefined => {
     if (!stateData.value.actions) {
       return;
     }
 
     return stateData.value.actions.filter((action) => {
-      return filterType === 'out'
-        ? !filters.includes(action.name as ServerStateDataKeyActions)
-        : filters.includes(action.name as ServerStateDataKeyActions);
+      return filterType === 'out' ? !filters.includes(action.name) : filters.includes(action.name);
     });
   };
 
