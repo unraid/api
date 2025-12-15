@@ -27,6 +27,7 @@ defineOptions({
 });
 
 const { connectPluginInstalled } = storeToRefs(useServerStore());
+const toast = useToast();
 
 /**--------------------------------------------
  *     Settings State & Form definition
@@ -75,10 +76,12 @@ watchDebounced(
 // show a toast when the update is done
 onMutateSettingsDone((result) => {
   actualRestartRequired.value = result.data?.updateSettings?.restartRequired ?? false;
-  globalThis.toast.success(t('connectSettings.updatedApiSettingsToast'), {
+  toast.add({
+    title: t('connectSettings.updatedApiSettingsToast'),
     description: actualRestartRequired.value
       ? t('connectSettings.apiRestartingToastDescription')
       : undefined,
+    color: 'success',
   });
 });
 

@@ -36,20 +36,22 @@ const {
   refetchQueries: [{ query: GET_RCLONE_REMOTES }],
 });
 
+const toast = useToast();
+
 onDeleteDone((result) => {
   const data = result?.data;
   if (data?.rclone?.deleteRCloneRemote) {
-    if (window.toast) {
-      window.toast.success('Remote Deleted', {
-        description: 'Remote deleted successfully',
-      });
-    }
+    toast.add({
+      title: 'Remote Deleted',
+      description: 'Remote deleted successfully',
+      color: 'success',
+    });
   } else {
-    if (window.toast) {
-      window.toast.error('Deletion Failed', {
-        description: 'Failed to delete remote. Please try again.',
-      });
-    }
+    toast.add({
+      title: 'Deletion Failed',
+      description: 'Failed to delete remote. Please try again.',
+      color: 'error',
+    });
   }
 });
 
@@ -83,15 +85,6 @@ const onConfigComplete = () => {
   initialFormState.value = null;
   refetchRemotes();
 };
-
-declare global {
-  interface Window {
-    toast?: {
-      success: (title: string, options: { description?: string }) => void;
-      error?: (title: string, options: { description?: string }) => void;
-    };
-  }
-}
 </script>
 
 <template>

@@ -99,6 +99,7 @@ const emit = defineEmits<{
   (e: 'update:selectedIds', value: string[]): void;
 }>();
 const { client: apolloClient } = useApolloClient();
+const toast = useToast();
 
 const containerStats = reactive(new Map<string, DockerContainerStats>());
 
@@ -1084,17 +1085,12 @@ const { mutate: updateAllContainersMutation, loading: updatingAllContainers } = 
 const { mutate: refreshDockerDigestsMutation, loading: checkingForUpdates } =
   useMutation(REFRESH_DOCKER_DIGESTS);
 
-declare global {
-  interface Window {
-    toast?: {
-      success: (title: string, options: { description?: string }) => void;
-      error?: (title: string, options: { description?: string }) => void;
-    };
-  }
-}
-
-function showToast(message: string) {
-  window.toast?.success(message);
+function showToast(message: string, type: 'success' | 'error' = 'success', description?: string) {
+  toast.add({
+    title: message,
+    description,
+    color: type === 'error' ? 'error' : 'success',
+  });
 }
 
 function getContainerRows(ids: string[]): TreeRow<DockerContainer>[] {
@@ -1154,9 +1150,11 @@ async function handleCheckForUpdates(rows: TreeRow<DockerContainer>[]) {
     const count = rows.length;
     showToast(`Checked updates for ${count} container${count === 1 ? '' : 's'}`);
   } catch (error) {
-    window.toast?.error?.('Failed to check for updates', {
-      description: error instanceof Error ? error.message : 'Unknown error',
-    });
+    showToast(
+      'Failed to check for updates',
+      'error',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
   } finally {
     setRowsBusy(entryIds, false);
   }
@@ -1178,9 +1176,11 @@ async function handleUpdateContainer(row: TreeRow<DockerContainer>) {
     );
     showToast(`Successfully updated ${row.name}`);
   } catch (error) {
-    window.toast?.error?.(`Failed to update ${row.name}`, {
-      description: error instanceof Error ? error.message : 'Unknown error',
-    });
+    showToast(
+      `Failed to update ${row.name}`,
+      'error',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
   } finally {
     setRowsBusy([row.id], false);
     setRowsUpdating([row], false);
@@ -1210,9 +1210,11 @@ async function handleBulkUpdateContainers(rows: TreeRow<DockerContainer>[]) {
     const count = containerIds.length;
     showToast(`Successfully updated ${count} container${count === 1 ? '' : 's'}`);
   } catch (error) {
-    window.toast?.error?.('Failed to update containers', {
-      description: error instanceof Error ? error.message : 'Unknown error',
-    });
+    showToast(
+      'Failed to update containers',
+      'error',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
   } finally {
     setRowsBusy(entryIds, false);
     setRowsUpdating(rows, false);
@@ -1242,9 +1244,11 @@ async function handleUpdateAllContainers() {
       showToast('No containers had updates available');
     }
   } catch (error) {
-    window.toast?.error?.('Failed to update containers', {
-      description: error instanceof Error ? error.message : 'Unknown error',
-    });
+    showToast(
+      'Failed to update containers',
+      'error',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
   } finally {
     if (rows.length) {
       setRowsBusy(entryIds, false);
