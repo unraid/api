@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.28.2](https://github.com/unraid/api/compare/v4.28.1...v4.28.2) (2025-12-16)
+
+
+### Bug Fixes
+
+* **api:** timeout on startup on 7.0 and 6.12 ([#1844](https://github.com/unraid/api/issues/1844)) ([e243ae8](https://github.com/unraid/api/commit/e243ae836ec1a7fde37dceeb106cc693b20ec82b))
+
 ## [4.28.1](https://github.com/unraid/api/compare/v4.28.0...v4.28.1) (2025-12-16)
 
 
