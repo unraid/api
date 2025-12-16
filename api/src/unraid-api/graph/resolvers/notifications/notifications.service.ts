@@ -174,8 +174,21 @@ export class NotificationsService {
 
     public getSettings(): NotificationSettings {
         const { notify } = getters.dynamix();
+        const parseBoolean = (value: unknown, defaultValue: boolean) => {
+            if (value === undefined || value === null || value === '') return defaultValue;
+            const s = String(value).toLowerCase();
+            return s === 'true' || s === '1' || s === 'yes';
+        };
+        const parsePositiveInt = (value: unknown, defaultValue: number) => {
+            const n = Number(value);
+            return !isNaN(n) && n > 0 ? n : defaultValue;
+        };
+
         return {
             position: notify?.position ?? 'top-right',
+            expand: parseBoolean(notify?.expand, true),
+            duration: parsePositiveInt(notify?.duration, 5000),
+            max: parsePositiveInt(notify?.max, 3),
         };
     }
 
