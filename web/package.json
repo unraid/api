@@ -108,7 +108,7 @@
     "@jsonforms/vue": "3.6.0",
     "@jsonforms/vue-vanilla": "3.6.0",
     "@jsonforms/vue-vuetify": "3.6.0",
-    "@nuxt/ui": "4.0.0-alpha.0",
+    "@nuxt/ui": "4.2.1",
     "@tanstack/vue-table": "^8.21.3",
     "@unraid/shared-callbacks": "1.1.1",
     "@unraid/ui": "link:../unraid-ui",
