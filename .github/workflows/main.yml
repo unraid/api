@@ -15,12 +15,32 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - id: release
+        uses: googleapis/release-please-action@v4
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created || 'false' }}
+      tag_name: ${{ steps.release.outputs.tag_name || '' }}
+
   test-api:
     name: Test API
     defaults:
       run:
         working-directory: api
     runs-on: ubuntu-latest
+    needs: release-please
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
@@ -164,32 +184,10 @@ jobs:
       VITE_CALLBACK_KEY: ${{ secrets.VITE_CALLBACK_KEY }}
       UNRAID_BOT_GITHUB_ADMIN_TOKEN: ${{ secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN }}
 
-  release-please:
-    name: Release Please
-    runs-on: ubuntu-latest
-    # Only run on pushes to main AND after tests pass
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs:
-      - test-api
-      - build-artifacts
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - id: release
-        uses: googleapis/release-please-action@v4
-    outputs:
-      releases_created: ${{ steps.release.outputs.releases_created || 'false' }}
-      tag_name: ${{ steps.release.outputs.tag_name || '' }}
-
   build-plugin-staging-pr:
     name: Build and Deploy Plugin
     needs:
+      - release-please
       - build-artifacts
       - test-api
     uses: ./.github/workflows/build-plugin.yml
