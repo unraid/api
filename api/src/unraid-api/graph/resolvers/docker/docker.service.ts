@@ -27,8 +27,6 @@ import {
     DockerPortConflicts,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { getDockerClient } from '@app/unraid-api/graph/resolvers/docker/utils/docker-client.js';
-import { NotificationImportance } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
-import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
 interface ContainerListingOptions extends Docker.ContainerListOptions {
     skipCache: boolean;
@@ -51,7 +49,6 @@ export class DockerService {
     constructor(
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private readonly dockerConfigService: DockerConfigService,
-        private readonly notificationsService: NotificationsService,
         private readonly dockerManifestService: DockerManifestService,
         private readonly autostartService: DockerAutostartService,
         private readonly dockerLogService: DockerLogService,
@@ -174,7 +171,7 @@ export class DockerService {
                 ...listOptions,
             });
         } catch (error) {
-            await this.handleDockerListError(error);
+            this.handleDockerListError(error);
         }
 
         await this.autostartService.refreshAutoStartEntries();
@@ -460,28 +457,11 @@ export class DockerService {
         return this.updateContainers(idsWithUpdates);
     }
 
-    private async handleDockerListError(error: unknown): Promise<never> {
-        await this.notifyDockerListError(error);
+    private handleDockerListError(error: unknown): never {
+        const message = this.getDockerErrorMessage(error);
+        this.logger.warn(`Docker container query failed: ${message}`);
         catchHandlers.docker(error as NodeJS.ErrnoException);
         throw error instanceof Error ? error : new Error('Docker list error');
-    }
-
-    private async notifyDockerListError(error: unknown): Promise<void> {
-        const message = this.getDockerErrorMessage(error);
-        const truncatedMessage = message.length > 240 ? `${message.slice(0, 237)}...` : message;
-        try {
-            await this.notificationsService.notifyIfUnique({
-                title: 'Docker Container Query Failure',
-                subject: truncatedMessage,
-                description: `An error occurred while querying Docker containers. ${truncatedMessage}`,
-                importance: NotificationImportance.ALERT,
-            });
-        } catch (notificationError) {
-            this.logger.error(
-                'Failed to send Docker container query failure notification',
-                notificationError as Error
-            );
-        }
     }
 
     private getDockerErrorMessage(error: unknown): string {
