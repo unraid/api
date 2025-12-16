@@ -187,7 +187,6 @@ jobs:
   build-plugin-staging-pr:
     name: Build and Deploy Plugin
     needs:
-      - release-please
       - build-artifacts
       - test-api
     uses: ./.github/workflows/build-plugin.yml
