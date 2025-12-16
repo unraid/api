@@ -1,3 +1,13 @@
+/**
+ * Utilities for scoping Tailwind CSS styles to elements within the Unraid WebGUI.
+ *
+ * This module works in conjunction with the PostCSS plugin (scopeTailwindToUnapi.ts)
+ * which prefixes all Tailwind CSS rules with `.unapi`. Elements must have the `unapi`
+ * class added to receive scoped Tailwind styles, preventing conflicts with the legacy
+ * Unraid WebGUI interface.
+ */
+
+/** The class name used to scope Tailwind CSS styles to elements within the Unraid WebGUI. */
 const UNAPI_SCOPE_CLASS = 'unapi';
 
 type ScopeRoot = Document | DocumentFragment | Element;
@@ -62,6 +72,12 @@ function addScopeClass(element: Element): boolean {
   return true;
 }
 
+/**
+ * Adds the `unapi` class to a single element to enable scoped Tailwind styles.
+ *
+ * @param target - The element to scope, or null/undefined for no-op
+ * @returns true if the class was added, false if already present or invalid
+ */
 export function ensureUnapiScope(target?: Element | null): boolean {
   if (!isBrowser || !target) {
     return false;
@@ -70,6 +86,13 @@ export function ensureUnapiScope(target?: Element | null): boolean {
   return addScopeClass(target);
 }
 
+/**
+ * Adds the `unapi` class to all elements matching the given selectors.
+ * Useful for applying scope to multiple existing elements at once.
+ *
+ * @param selectors - CSS selectors (string or array) to match elements
+ * @param root - Root element to query within (defaults to document)
+ */
 export function ensureUnapiScopeForSelectors(
   selectors: Iterable<string> | string,
   root?: ScopeRoot | null
@@ -94,6 +117,17 @@ export function ensureUnapiScopeForSelectors(
 
 export type ScopeMatchHandler = (element: Element) => void;
 
+/**
+ * Observes the DOM for new elements matching the given selectors and automatically
+ * adds the `unapi` class to them. Uses a single MutationObserver shared across all
+ * calls to efficiently watch for dynamic content.
+ *
+ * Applies scope immediately to existing matching elements, then watches for future additions.
+ *
+ * @param selectors - CSS selectors (string or array) to watch for
+ * @param root - Root element to observe within (defaults to document)
+ * @param onMatch - Optional callback fired when a new matching element is found and scoped
+ */
 export function observeUnapiScope(
   selectors: Iterable<string> | string,
   root?: ScopeRoot | null,
@@ -111,7 +145,6 @@ export function observeUnapiScope(
   selectorTokens.forEach((selector) => observerState.selectors.add(selector));
   updateSelectorList();
 
-  // Apply immediately for any current matches
   ensureUnapiScopeForSelectors(selectorTokens, root);
 
   if (observerState.observer) {

@@ -179,6 +179,19 @@ export const scopeTailwindToUnapi: PluginCreator<ScopeOptions> = (options: Scope
       }
     },
     OnceExit(root) {
+      // Remove @layer at-rules after all rules have been scoped.
+      // Tailwind CSS v4 uses @layer directives (e.g., @layer utilities, @layer components)
+      // to organize CSS. After the Rule hook scopes all selectors within these layers,
+      // the @layer wrappers are no longer needed in the final output.
+      //
+      // This cleanup step:
+      // 1. Extracts all scoped rules from inside @layer blocks
+      // 2. Moves them to the parent container (outside the @layer)
+      // 3. Removes the now-empty @layer wrapper
+      //
+      // This produces cleaner CSS output, avoids potential browser compatibility issues
+      // with CSS layers, and ensures the final CSS only contains the scoped rules without
+      // the organizational layer structure.
       root.walkAtRules('layer', (atRule: AtRule) => {
         const removableAtRule = atRule as RemovableAtRule;
         const parent = atRule.parent as ParentContainer | undefined;
@@ -186,6 +199,7 @@ export const scopeTailwindToUnapi: PluginCreator<ScopeOptions> = (options: Scope
           return;
         }
 
+        // Extract all nodes from the @layer and move them to the parent
         if (
           Array.isArray(removableAtRule.nodes) &&
           removableAtRule.nodes.length > 0 &&
@@ -198,6 +212,7 @@ export const scopeTailwindToUnapi: PluginCreator<ScopeOptions> = (options: Scope
           }
         }
 
+        // Remove the empty @layer wrapper
         if (typeof removableAtRule.remove === 'function') {
           removableAtRule.remove();
           return;
