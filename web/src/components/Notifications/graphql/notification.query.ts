@@ -42,6 +42,9 @@ export const getNotificationSettings = gql`
       id
       settings {
         position
+        expand
+        duration
+        max
       }
     }
   }

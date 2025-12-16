@@ -93,6 +93,9 @@ interface Notify {
     system: string;
     version: string;
     docker_update: string;
+    expand?: string | boolean;
+    duration?: string | number;
+    max?: string | number;
 }
 
 interface Ssmtp {

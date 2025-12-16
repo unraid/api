@@ -54,9 +54,9 @@ export default {
     // https://ui.nuxt.com/docs/components/toast#examples
     toaster: {
       position: 'top-right' as const,
-      // expand: false, --> buggy
+      expand: true,
       duration: 5000,
-      // max: 3, --> not added yet in 4.0.0-alpha.0. Needs to be upgraded to 4.2.1 or later.
+      max: 3,
     },
   },
 };

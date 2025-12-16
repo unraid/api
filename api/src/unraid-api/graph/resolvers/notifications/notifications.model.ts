@@ -1,7 +1,7 @@
 import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Node } from '@unraid/shared/graphql.model.js';
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 export enum NotificationType {
     UNREAD = 'UNREAD',
@@ -105,6 +105,23 @@ export class NotificationSettings {
     @IsString()
     @IsNotEmpty()
     position!: string;
+
+    @Field(() => Boolean)
+    @IsBoolean()
+    @IsNotEmpty()
+    expand!: boolean;
+
+    @Field(() => Int)
+    @IsInt()
+    @Min(1)
+    @IsNotEmpty()
+    duration!: number;
+
+    @Field(() => Int)
+    @IsInt()
+    @Min(1)
+    @IsNotEmpty()
+    max!: number;
 }
 
 @ObjectType('NotificationOverview')

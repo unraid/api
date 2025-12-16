@@ -131,32 +131,57 @@ export async function mountUnifiedApp() {
     | 'bottom-right'
     | 'top-center'
     | 'bottom-center';
+
   interface NotificationSettingsResponse {
     notifications?: {
       settings?: {
         position?: string;
+        expand?: boolean;
+        duration?: number;
+        max?: number;
       };
     };
   }
-  let toasterPosition: ToastPosition = appConfig.ui.toaster.position as ToastPosition;
+
+  const toasterSettings = { ...appConfig.ui.toaster } as {
+    position: ToastPosition;
+    expand: boolean;
+    duration: number;
+    max: number;
+  };
 
   try {
     const { data } = await apolloClient.query<NotificationSettingsResponse>({
       query: getNotificationSettings,
       fetchPolicy: 'network-only',
     });
-    const legacyPosition = data?.notifications?.settings?.position;
-    console.log('[UnifiedMount] Legacy position:', legacyPosition);
-    if (legacyPosition) {
-      const map: Record<string, ToastPosition> = {
-        'top-left': 'top-left',
-        'top-right': 'top-right',
-        'bottom-left': 'bottom-left',
-        'bottom-right': 'bottom-right',
-        'bottom-center': 'bottom-center',
-        'top-center': 'top-center',
-      };
-      toasterPosition = map[legacyPosition] || toasterPosition;
+    const fetchedSettings = data?.notifications?.settings;
+    console.log('[UnifiedMount] Fetched settings:', fetchedSettings);
+
+    if (fetchedSettings) {
+      if (fetchedSettings.position) {
+        const map: Record<string, ToastPosition> = {
+          'top-left': 'top-left',
+          'top-right': 'top-right',
+          'bottom-left': 'bottom-left',
+          'bottom-right': 'bottom-right',
+          'bottom-center': 'bottom-center',
+          'top-center': 'top-center',
+        };
+        const mappedPosition = map[fetchedSettings.position];
+        if (mappedPosition) {
+          toasterSettings.position = mappedPosition;
+        }
+      }
+      if (fetchedSettings.expand !== undefined && fetchedSettings.expand !== null) {
+        toasterSettings.expand = fetchedSettings.expand;
+      }
+      if (fetchedSettings.duration) {
+        toasterSettings.duration = fetchedSettings.duration;
+      }
+      if (fetchedSettings.max) {
+        toasterSettings.max = fetchedSettings.max;
+      }
     }
   } catch (e) {
     console.error('[UnifiedMount] Failed to fetch notification settings', e);
@@ -265,10 +290,7 @@ export async function mountUnifiedApp() {
             UApp,
             {
               portal: portalTarget,
-              toaster: {
-                ...appConfig.ui.toaster,
-                position: toasterPosition,
-              },
+              toaster: toasterSettings,
             },
             {
               default: () => h(component, props),
