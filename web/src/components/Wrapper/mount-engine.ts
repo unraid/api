@@ -7,6 +7,7 @@ import ui from '@nuxt/ui/vue-plugin';
 import { componentMappings } from '@/components/Wrapper/component-registry';
 import { client } from '~/helpers/create-apollo-client';
 import { createI18nInstance, ensureLocale, getWindowLocale } from '~/helpers/i18n-loader';
+import { type ToastPosition } from '~/types/notifications';
 
 import { getNotificationSettings } from '~/components/Notifications/graphql/notification.query';
 // Import Pinia for use in Vue apps
@@ -124,14 +125,6 @@ export async function mountUnifiedApp() {
   const themeStore = useThemeStore();
 
   // Fetch notification settings
-  type ToastPosition =
-    | 'top-left'
-    | 'top-right'
-    | 'bottom-left'
-    | 'bottom-right'
-    | 'top-center'
-    | 'bottom-center';
-
   interface NotificationSettingsResponse {
     notifications?: {
       settings?: {
