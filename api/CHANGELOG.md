@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.28.1](https://github.com/unraid/api/compare/v4.28.0...v4.28.1) (2025-12-16)
+
+
+### Bug Fixes
+
+* empty commit to release as 4.28.1 ([df78608](https://github.com/unraid/api/commit/df786084572eefb82e086c15939b50cc08b9db10))
+
 ## [4.28.0](https://github.com/unraid/api/compare/v4.27.2...v4.28.0) (2025-12-15)
 
 
