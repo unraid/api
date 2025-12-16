@@ -32,11 +32,11 @@ let server: NestFastifyApplication<RawServerDefault> | null = null;
 
 // PM2 listen_timeout is 15 seconds (ecosystem.config.json)
 // We use 13 seconds as our total budget to ensure our timeout triggers before PM2 kills us
-const TOTAL_STARTUP_BUDGET_MS = 13_000;
+const TOTAL_STARTUP_BUDGET_MS = 30_000;
 // Reserve time for the NestJS bootstrap (the most critical and time-consuming operation)
-const BOOTSTRAP_RESERVED_MS = 8_000;
+const BOOTSTRAP_RESERVED_MS = 20_000;
 // Maximum time for any single pre-bootstrap operation
-const MAX_OPERATION_TIMEOUT_MS = 2_000;
+const MAX_OPERATION_TIMEOUT_MS = 5_000;
 
 const unlinkUnixPort = () => {
     if (isNaN(parseInt(PORT, 10))) {

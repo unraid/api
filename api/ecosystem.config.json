@@ -7,7 +7,7 @@
             "cwd": "/usr/local/unraid-api",
             "exec_mode": "fork",
             "wait_ready": true,
-            "listen_timeout": 15000,
+            "listen_timeout": 30000,
             "max_restarts": 10,
             "min_uptime": 10000,
             "watch": false,
