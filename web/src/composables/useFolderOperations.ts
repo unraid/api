@@ -96,7 +96,9 @@ export function useFolderOperations(options: FolderOperationsOptions) {
     });
     onSuccess?.('Folder created');
     newTreeFolderName.value = '';
-    expandedFolders.value.add(selectedFolderId.value || rootFolderId.value);
+    const newExpanded = new Set(expandedFolders.value);
+    newExpanded.add(selectedFolderId.value || rootFolderId.value);
+    setExpandedFolders(Array.from(newExpanded));
   }
 
   function startRenameFolder(id: string, currentName: string) {
