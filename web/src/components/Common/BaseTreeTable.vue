@@ -224,13 +224,16 @@ function handleContainerDrop(event: DragEvent) {
   if (!state) return;
   const targetRow = flatRowMap.value.get(state.targetId);
   if (!targetRow) return;
-  emit('row:drop', {
-    target: targetRow,
-    area: state.area,
-    sourceIds: [...draggingIds.value],
-  });
-  rowSelection.value = {};
-  handleDragEnd();
+  try {
+    emit('row:drop', {
+      target: targetRow,
+      area: state.area,
+      sourceIds: [...draggingIds.value],
+    });
+    rowSelection.value = {};
+  } finally {
+    handleDragEnd();
+  }
 }
 
 const tableRef = ref<{ tableApi?: unknown } | null>(null);
