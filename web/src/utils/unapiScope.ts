@@ -51,13 +51,14 @@ function getQueryRoot(root?: ScopeRoot | null): ScopeRoot {
   return root;
 }
 
-function getObserverRoot(root: ScopeRoot): Element | null {
+function getObserverRoot(root: ScopeRoot): Node | null {
   if (root instanceof Document) {
     return root.body ?? root.documentElement;
   }
 
+  // DocumentFragment can be observed directly via MutationObserver
   if (root instanceof DocumentFragment) {
-    return root.firstElementChild;
+    return root;
   }
 
   return root;
