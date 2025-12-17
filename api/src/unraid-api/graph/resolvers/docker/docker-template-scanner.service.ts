@@ -273,7 +273,13 @@ export class DockerTemplateScannerService {
     }
 
     private normalizeRepository(repository: string): string {
-        return repository.split(':')[0].toLowerCase();
+        // Strip digest if present (e.g., image@sha256:abc123)
+        const [withoutDigest] = repository.split('@');
+        // Only remove tag if colon appears after last slash (i.e., it's a tag, not a port)
+        const lastColon = withoutDigest.lastIndexOf(':');
+        const lastSlash = withoutDigest.lastIndexOf('/');
+        const withoutTag = lastColon > lastSlash ? withoutDigest.slice(0, lastColon) : withoutDigest;
+        return withoutTag.toLowerCase();
     }
 
     private async updateMappings(mappings: Record<string, string | null>): Promise<void> {
