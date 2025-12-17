@@ -62,15 +62,11 @@ export function useFolderTree(options: FolderTreeOptions) {
   }
 
   function expandFolder(id: string) {
-    const set = new Set(expandedFolders.value);
-    set.add(id);
-    expandedFolders.value = set;
+    expandedFolders.value.add(id);
   }
 
   function collapseFolder(id: string) {
-    const set = new Set(expandedFolders.value);
-    set.delete(id);
-    expandedFolders.value = set;
+    expandedFolders.value.delete(id);
   }
 
   function setExpandedFolders(ids: string[]) {
