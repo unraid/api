@@ -157,14 +157,6 @@ const { mutate: removeContainerMutation, loading: removingContainer } =
   useMutation(REMOVE_DOCKER_CONTAINER);
 
 // Helpers
-declare global {
-  interface Window {
-    toast?: {
-      success: (title: string, options?: { description?: string }) => void;
-      error?: (title: string, options?: { description?: string }) => void;
-    };
-  }
-}
 
 function showToast(message: string) {
   window.toast?.success(message);
