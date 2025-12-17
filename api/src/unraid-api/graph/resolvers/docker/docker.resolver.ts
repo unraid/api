@@ -203,6 +203,11 @@ export class DockerResolver {
         return this.dockerOrganizerService.resolveOrganizer(organizer);
     }
 
+    /**
+     * Deletes organizer entries (folders). When a folder is deleted, its container
+     * children are automatically appended to the end of the root folder via
+     * `addMissingResourcesToView`. Containers are never permanently deleted by this operation.
+     */
     @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
