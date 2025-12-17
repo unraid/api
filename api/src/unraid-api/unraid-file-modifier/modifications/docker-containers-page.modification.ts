@@ -32,8 +32,8 @@ export default class DockerContainersPageModification extends FileModification {
         }
 
         return {
-            shouldApply: true,
-            reason: 'Docker overview table modification needed for Unraid < 7.3',
+            shouldApply: false,
+            reason: 'Docker overview table modification is disabled for Unraid < 7.3',
         };
     }
 

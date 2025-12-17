@@ -7,6 +7,7 @@ import { basename, dirname, join } from 'path';
 import { applyPatch, createPatch, parsePatch, reversePatch } from 'diff';
 import { coerce, compare, gte, lte } from 'semver';
 
+import { compareVersions } from '@app/common/compare-semver-version.js';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
 
 export type ModificationEffect = 'nginx:reload';
@@ -276,25 +277,7 @@ export abstract class FileModification {
             throw new Error(`Failed to compare Unraid version - missing comparison version`);
         }
 
-        // Special handling for prerelease versions when base versions are equal
-        if (includePrerelease) {
-            const baseUnraid = `${unraidVersion.major}.${unraidVersion.minor}.${unraidVersion.patch}`;
-            const baseCompared = `${comparedVersion.major}.${comparedVersion.minor}.${comparedVersion.patch}`;
-
-            if (baseUnraid === baseCompared) {
-                const unraidHasPrerelease = unraidVersion.prerelease.length > 0;
-                const comparedHasPrerelease = comparedVersion.prerelease.length > 0;
-
-                // If one has prerelease and the other doesn't, handle specially
-                if (unraidHasPrerelease && !comparedHasPrerelease) {
-                    // For gte: prerelease is considered greater than stable
-                    // For lte: prerelease is considered less than stable
-                    return compareFn === gte;
-                }
-            }
-        }
-
-        return compareFn(unraidVersion, comparedVersion);
+        return compareVersions(unraidVersion, comparedVersion, compareFn, { includePrerelease });
     }
 
     protected async isUnraidVersionGreaterThanOrEqualTo(
