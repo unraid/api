@@ -145,6 +145,13 @@ export function normalizeMultiValue(value: unknown): string[] {
   return [];
 }
 
+export function getRowDisplayLabel(row?: TreeRow<DockerContainer> | null, fallback?: string): string {
+  if (!row) return fallback || '';
+  const meta = row.meta as DockerContainer | undefined;
+  const metaName = stripLeadingSlash(meta?.names?.[0]);
+  return metaName || row.name || fallback || '';
+}
+
 export function toContainerTreeRow(
   meta: DockerContainer | null | undefined,
   fallbackName?: string
