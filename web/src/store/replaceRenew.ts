@@ -95,9 +95,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     renewStatus.value = status;
   };
 
-  const replaceStatus = ref<'checking' | 'eligible' | 'error' | 'ineligible' | 'ready'>(
-    guid.value ? 'ready' : 'error'
-  );
+  const replaceStatus = ref<'checking' | 'eligible' | 'error' | 'ineligible' | 'ready'>('ready');
   const setReplaceStatus = (status: typeof replaceStatus.value) => {
     replaceStatus.value = status;
   };
@@ -169,11 +167,15 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
   const check = async (skipCache: boolean = false) => {
     if (!guid.value) {
       setReplaceStatus('error');
+      setKeyLinked('error');
       error.value = { name: 'Error', message: 'Flash GUID required to check replacement status' };
+      return;
     }
     if (!keyfile.value) {
       setReplaceStatus('error');
+      setKeyLinked('error');
       error.value = { name: 'Error', message: 'Keyfile required to check replacement status' };
+      return;
     }
 
     try {
@@ -240,9 +242,30 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     } catch (err) {
       const catchError = err as WretchError;
       setReplaceStatus('error');
-      error.value = catchError?.message ? catchError : { name: 'Error', message: 'Unknown error' };
+      setKeyLinked('error');
+
+      let errorMessage = 'Unknown error';
+      if (catchError?.response?.status === 401) {
+        errorMessage = 'Authentication failed - please sign in again';
+      } else if (catchError?.response?.status === 403) {
+        errorMessage = 'Access denied - license may be linked to another account';
+      } else if (catchError?.response?.status && catchError.response.status >= 500) {
+        errorMessage = 'Key server temporarily unavailable - please try again later';
+      } else if (catchError?.message) {
+        errorMessage = catchError.message;
+      } else if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        errorMessage = 'No internet connection';
+      }
+
+      error.value = { name: 'Error', message: errorMessage };
       console.error('[ReplaceCheck.check]', catchError);
     }
+  };
+
+  const reset = () => {
+    replaceStatus.value = 'ready';
+    keyLinkedStatus.value = 'ready';
+    error.value = null;
   };
 
   return {
@@ -255,6 +278,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     // actions
     check,
     purgeValidationResponse,
+    reset,
     setReplaceStatus,
     setRenewStatus,
     error,
