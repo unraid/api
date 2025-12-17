@@ -8,7 +8,7 @@ export type UserProfileLinkClick =
   | ((...args: UserProfileLinkClickParams[]) => void | Promise<void>)
   | ((...args: UserProfileLinkClickParams[]) => Promise<NodeJS.Timeout | undefined>);
 
-export interface UserProfileLink {
+export interface UserProfileLink<Name extends string = string> {
   click?: UserProfileLinkClick;
   clickParams?: UserProfileLinkClickParams;
   disabled?: boolean;
@@ -16,7 +16,7 @@ export interface UserProfileLink {
   external?: boolean;
   href?: string;
   icon?: typeof ArrowTopRightOnSquareIcon;
-  name?: string;
+  name?: Name;
   text: string;
   textParams?: string[] | number[];
   title?: string;

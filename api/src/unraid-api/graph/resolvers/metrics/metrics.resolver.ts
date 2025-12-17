@@ -2,10 +2,9 @@ import { Logger, OnModuleInit } from '@nestjs/common';
 import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
-import { GRAPHQL_PUBSUB_CHANNEL } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
-import { pubsub } from '@app/core/pubsub.js';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
 import { CpuPackages, CpuUtilization } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
@@ -29,16 +28,16 @@ export class MetricsResolver implements OnModuleInit {
     onModuleInit() {
         // Register CPU polling with 1 second interval
         this.subscriptionTracker.registerTopic(
-            GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION,
+            PUBSUB_CHANNEL.CPU_UTILIZATION,
             async () => {
                 const payload = await this.cpuService.generateCpuLoad();
-                pubsub.publish(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION, { systemMetricsCpu: payload });
+                pubsub.publish(PUBSUB_CHANNEL.CPU_UTILIZATION, { systemMetricsCpu: payload });
             },
             1000
         );
 
         this.subscriptionTracker.registerTopic(
-            GRAPHQL_PUBSUB_CHANNEL.CPU_TELEMETRY,
+            PUBSUB_CHANNEL.CPU_TELEMETRY,
             async () => {
                 const packageList = (await this.cpuTopologyService.generateTelemetry()) ?? [];
 
@@ -60,7 +59,7 @@ export class MetricsResolver implements OnModuleInit {
                 this.logger.debug(`CPU_TELEMETRY payload: ${JSON.stringify(packages)}`);
 
                 // Publish the payload
-                pubsub.publish(GRAPHQL_PUBSUB_CHANNEL.CPU_TELEMETRY, {
+                pubsub.publish(PUBSUB_CHANNEL.CPU_TELEMETRY, {
                     systemMetricsCpuTelemetry: packages,
                 });
 
@@ -71,12 +70,10 @@ export class MetricsResolver implements OnModuleInit {
 
         // Register memory polling with 2 second interval
         this.subscriptionTracker.registerTopic(
-            GRAPHQL_PUBSUB_CHANNEL.MEMORY_UTILIZATION,
+            PUBSUB_CHANNEL.MEMORY_UTILIZATION,
             async () => {
                 const payload = await this.memoryService.generateMemoryLoad();
-                pubsub.publish(GRAPHQL_PUBSUB_CHANNEL.MEMORY_UTILIZATION, {
-                    systemMetricsMemory: payload,
-                });
+                pubsub.publish(PUBSUB_CHANNEL.MEMORY_UTILIZATION, { systemMetricsMemory: payload });
             },
             2000
         );
@@ -112,7 +109,7 @@ export class MetricsResolver implements OnModuleInit {
         resource: Resource.INFO,
     })
     public async systemMetricsCpuSubscription() {
-        return this.subscriptionHelper.createTrackedSubscription(GRAPHQL_PUBSUB_CHANNEL.CPU_UTILIZATION);
+        return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
     }
 
     @Subscription(() => CpuPackages, {
@@ -124,7 +121,7 @@ export class MetricsResolver implements OnModuleInit {
         resource: Resource.INFO,
     })
     public async systemMetricsCpuTelemetrySubscription() {
-        return this.subscriptionHelper.createTrackedSubscription(GRAPHQL_PUBSUB_CHANNEL.CPU_TELEMETRY);
+        return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.CPU_TELEMETRY);
     }
 
     @Subscription(() => MemoryUtilization, {
@@ -136,8 +133,6 @@ export class MetricsResolver implements OnModuleInit {
         resource: Resource.INFO,
     })
     public async systemMetricsMemorySubscription() {
-        return this.subscriptionHelper.createTrackedSubscription(
-            GRAPHQL_PUBSUB_CHANNEL.MEMORY_UTILIZATION
-        );
+        return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
     }
 }

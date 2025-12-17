@@ -31,14 +31,14 @@ jobs:
       release_notes: ${{ steps.generate_notes.outputs.release_notes }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ inputs.target_commitish || github.ref }}
           fetch-depth: 0
           token: ${{ secrets.UNRAID_BOT_GITHUB_ADMIN_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
 

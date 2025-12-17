@@ -1257,7 +1257,7 @@ type Versions {
   openssl: String
   perl: String
   php: String
-  nodemon: String
+  pm2: String
   postfix: String
   postgresql: String
   python: String

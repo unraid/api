@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect Page</title>
+</head>
+
+<body>
+    <div id="text" style="text-align: center; margin-top: calc(100vh - 75%); display: none; font-family: sans-serif;">
+        <h1>Redirecting...</h1>
+        <h2><a id="redirectButton" href="/Main">Click here if you are not redirected automatically</a></h2>
+    </div>
+
+    <script>
+        (function () {
+            function parseRedirectTarget(target) {
+                if (target && target !== '/') {
+                    // Parse target and ensure it is a bare path with no query parameters.
+                    // This keeps us on the same origin and avoids arbitrary redirects.
+                    try {
+                        const url = new URL(target, window.location.origin);
+                        return url.pathname || '/Main';
+                    } catch (_e) {
+                        // If the target is malformed, fall back safely.
+                        return '/Main';
+                    }
+                }
+                return '/Main';
+            }
+
+            function getRedirectUrl() {
+                const search = new URLSearchParams(window.location.search);
+                const rawHash = window.location.hash || '';
+                const hashString = rawHash.charAt(0) === '#' ? rawHash.substring(1) : rawHash;
+
+                let hashData = '';
+                if (hashString.startsWith('data=')) {
+                    hashData = hashString.slice('data='.length);
+                }
+
+                const targetRoute = parseRedirectTarget(search.get('target'));
+                const baseUrl = `${window.location.origin}${targetRoute}`;
+
+                // If the incoming URL already has a hash-based data payload, preserve it exactly.
+                if (hashData) {
+                    return `${baseUrl}#data=${hashData}`;
+                }
+
+                // Fallback: accept legacy ?data= input and convert it to hash-based data.
+                const queryData = search.get('data');
+                if (queryData) {
+                    const encoded = encodeURIComponent(queryData);
+                    return `${baseUrl}#data=${encoded}`;
+                }
+
+                return baseUrl;
+            }
+
+            function showText() {
+                const textEl = document.getElementById('text');
+                if (textEl) {
+                    textEl.style.display = 'block';
+                }
+            }
+
+            function startRedirect() {
+                setTimeout(showText, 750);
+
+                const redirectUrl = getRedirectUrl();
+                console.log('[redirect.htm] redirecting to:', redirectUrl);
+
+                const link = document.getElementById('redirectButton');
+                if (link) {
+                    link.setAttribute('href', redirectUrl);
+                }
+
+                window.location.href = redirectUrl;
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', startRedirect);
+            } else {
+                startRedirect();
+            }
+        })();
+    </script>
+</body>
+
+</html>

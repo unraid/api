@@ -9,7 +9,9 @@ import * as ini from 'ini';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { loadDynamixConfigFromDiskSync } from '@app/store/actions/load-dynamix-config-file.js';
 import { getters, store } from '@app/store/index.js';
+import { updateDynamixConfig } from '@app/store/modules/dynamix.js';
 import {
     ActivationCode,
     PublicPartnerInfo,
@@ -465,5 +467,17 @@ export class CustomizationService implements OnModuleInit {
             headerSecondaryTextColor: this.addHashtoHexField(metaColor),
             showHeaderDescription: descriptionShow === 'yes',
         };
+    }
+
+    public async setTheme(theme: ThemeName): Promise<Theme> {
+        this.logger.log(`Updating theme to ${theme}`);
+        await this.updateCfgFile(this.configFile, 'display', { theme });
+
+        // Refresh in-memory store so subsequent reads get the new theme without a restart
+        const paths = getters.paths();
+        const updatedConfig = loadDynamixConfigFromDiskSync(paths['dynamix-config']);
+        store.dispatch(updateDynamixConfig(updatedConfig));
+
+        return this.getTheme();
     }
 }

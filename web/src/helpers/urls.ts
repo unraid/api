@@ -16,7 +16,7 @@ const CONNECT_DASHBOARD = new URL(import.meta.env.VITE_CONNECT ?? 'https://conne
 const CONNECT_FORUMS = new URL('/forum/94-connect-plugin-support/', FORUMS);
 const CONTACT = new URL('/contact', UNRAID_NET);
 const DISCORD = new URL('https://discord.unraid.net');
-const PURCHASE_CALLBACK = new URL('/c', UNRAID_NET);
+const PURCHASE_CALLBACK = new URL('c', ACCOUNT);
 const UNRAID_NET_SUPPORT = new URL('/support', UNRAID_NET);
 
 const WEBGUI_GRAPHQL = '/graphql';

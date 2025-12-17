@@ -161,37 +161,45 @@ const getStore = () => {
     },
     serverPurchasePayload: {
       get: () => ({
-        apiVersion: store.apiVersion,
-        connectPluginVersion: store.connectPluginVersion,
-        deviceCount: store.deviceCount,
-        email: store.email,
-        guid: store.guid,
-        keyTypeForPurchase: store.state === 'PLUS' ? 'Plus' : store.state === 'PRO' ? 'Pro' : 'Trial',
-        locale: store.locale,
-        osVersion: store.osVersion,
-        osVersionBranch: store.osVersionBranch,
-        registered: store.registered ?? false,
-        regExp: store.regExp,
-        regTy: store.regTy,
-        regUpdatesExpired: store.regUpdatesExpired,
-        state: store.state,
-        site: store.site,
-      }),
-    },
-    serverAccountPayload: {
-      get: () => ({
-        apiVersion: store.apiVersion,
-        caseModel: store.caseModel,
-        connectPluginVersion: store.connectPluginVersion,
-        deviceCount: store.deviceCount,
         description: store.description,
+        deviceCount: store.deviceCount,
+        expireTime: store.expireTime,
         flashProduct: store.flashProduct,
+        flashVendor: store.flashVendor,
         guid: store.guid,
+        locale: store.locale,
         name: store.name,
         osVersion: store.osVersion,
         osVersionBranch: store.osVersionBranch,
         registered: store.registered ?? false,
+        regExp: store.regExp,
+        regGen: store.regGen,
+        regGuid: store.regGuid,
         regTy: store.regTy,
+        regUpdatesExpired: store.regUpdatesExpired,
+        state: store.state,
+        wanFQDN: store.wanFQDN,
+      }),
+    },
+    serverAccountPayload: {
+      get: () => ({
+        deviceCount: store.deviceCount,
+        description: store.description,
+        expireTime: store.expireTime,
+        flashProduct: store.flashProduct,
+        flashVendor: store.flashVendor,
+        guid: store.guid,
+        keyfile: store.keyfile,
+        locale: store.locale,
+        name: store.name,
+        osVersion: store.osVersion,
+        osVersionBranch: store.osVersionBranch,
+        registered: store.registered ?? false,
+        regExp: store.regExp,
+        regGen: store.regGen,
+        regGuid: store.regGuid,
+        regTy: store.regTy,
+        regUpdatesExpired: store.regUpdatesExpired,
         state: store.state,
         wanFQDN: store.wanFQDN,
       }),
@@ -549,49 +557,65 @@ describe('useServerStore', () => {
     const store = getStore();
 
     store.setServer({
-      apiVersion: '1.0.0',
-      connectPluginVersion: '2.0.0',
       deviceCount: 6,
-      email: 'test@example.com',
+      description: 'Test Server',
+      expireTime: 123,
+      flashProduct: 'TestFlash',
+      flashVendor: 'TestVendor',
       guid: '123456',
-      inIframe: false,
       locale: 'en-US',
+      name: 'TestServer',
       osVersion: '6.10.3',
       osVersionBranch: 'stable',
       registered: true,
+      regGen: 7,
+      regGuid: 'reg-guid-1',
       regExp: 1234567890,
       regTy: 'Plus',
       state: 'PLUS' as ServerState,
-      site: 'local',
+      wanFQDN: 'test.myunraid.net',
     });
 
     const payload = store.serverPurchasePayload;
 
-    expect(payload.apiVersion).toBe('1.0.0');
-    expect(payload.connectPluginVersion).toBe('2.0.0');
+    expect(payload.description).toBe('Test Server');
     expect(payload.deviceCount).toBe(6);
-    expect(payload.email).toBe('test@example.com');
+    expect(payload.expireTime).toBe(123);
+    expect(payload.flashProduct).toBe('TestFlash');
+    expect(payload.flashVendor).toBe('TestVendor');
     expect(payload.guid).toBe('123456');
-    expect(payload.keyTypeForPurchase).toBe('Plus');
     expect(payload.locale).toBe('en-US');
+    expect(payload.name).toBe('TestServer');
     expect(payload.osVersion).toBe('6.10.3');
+    expect(payload.osVersionBranch).toBe('stable');
     expect(payload.registered).toBe(true);
+    expect(payload.regExp).toBe(1234567890);
+    expect(payload.regGen).toBe(7);
+    expect(payload.regGuid).toBe('reg-guid-1');
+    expect(payload.regTy).toBe('Plus');
+    expect(payload.state).toBe('PLUS');
+    expect(payload.wanFQDN).toBe('test.myunraid.net');
   });
 
   it('should create serverAccountPayload correctly', () => {
     const store = getStore();
 
     store.setServer({
-      apiVersion: '1.0.0',
-      caseModel: 'TestCase',
-      connectPluginVersion: '2.0.0',
       deviceCount: 6,
       description: 'Test Server',
+      expireTime: 123,
       flashProduct: 'TestFlash',
+      flashVendor: 'TestVendor',
       guid: '123456',
+      keyfile: '/boot/config/Plus.key',
+      locale: 'en-US',
       name: 'TestServer',
       osVersion: '6.10.3',
+      osVersionBranch: 'stable',
       registered: true,
+      regExp: 1234567890,
+      regGen: 7,
+      regGuid: 'reg-guid-1',
       regTy: 'Plus',
       state: 'PLUS' as ServerState,
       wanFQDN: 'test.myunraid.net',
@@ -599,16 +623,23 @@ describe('useServerStore', () => {
 
     const payload = store.serverAccountPayload;
 
-    expect(payload.apiVersion).toBe('1.0.0');
-    expect(payload.caseModel).toBe('TestCase');
-    expect(payload.connectPluginVersion).toBe('2.0.0');
+    expect(payload.deviceCount).toBe(6);
     expect(payload.description).toBe('Test Server');
+    expect(payload.expireTime).toBe(123);
     expect(payload.flashProduct).toBe('TestFlash');
+    expect(payload.flashVendor).toBe('TestVendor');
     expect(payload.guid).toBe('123456');
+    expect(payload.keyfile).toBe('/boot/config/Plus.key');
+    expect(payload.locale).toBe('en-US');
     expect(payload.name).toBe('TestServer');
     expect(payload.osVersion).toBe('6.10.3');
+    expect(payload.osVersionBranch).toBe('stable');
     expect(payload.registered).toBe(true);
+    expect(payload.regExp).toBe(1234567890);
+    expect(payload.regGen).toBe(7);
+    expect(payload.regGuid).toBe('reg-guid-1');
     expect(payload.regTy).toBe('Plus');
+    expect(payload.regUpdatesExpired).toBe(true);
     expect(payload.state).toBe('PLUS');
     expect(payload.wanFQDN).toBe('test.myunraid.net');
   });

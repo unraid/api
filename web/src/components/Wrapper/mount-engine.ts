@@ -3,6 +3,7 @@ import { DefaultApolloClient } from '@vue/apollo-composable';
 import UApp from '@nuxt/ui/components/App.vue';
 import ui from '@nuxt/ui/vue-plugin';
 
+import { isDarkModeActive } from '@unraid/ui';
 // Import component registry (only imported here to avoid ordering issues)
 import { componentMappings } from '@/components/Wrapper/component-registry';
 import { client } from '~/helpers/create-apollo-client';
@@ -16,6 +17,25 @@ import { ensureUnapiScope, ensureUnapiScopeForSelectors, observeUnapiScope } fro
 const apolloClient = (typeof window !== 'undefined' && window.apolloClient) || client;
 
 const PORTAL_ROOT_ID = 'unraid-api-modals-virtual';
+const NAV_ELEMENT_IDS = ['header', 'menu', 'footer'] as const;
+
+const hideNavIfEmbeddedInIFrame = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('iframe')?.toLowerCase() !== 'true') {
+    return;
+  }
+
+  NAV_ELEMENT_IDS.forEach((targetId) => {
+    const element = document.getElementById(targetId);
+    if (element) {
+      element.style.display = 'none';
+    }
+  });
+};
 
 // Expose globally for debugging
 declare global {
@@ -134,6 +154,7 @@ export async function mountUnifiedApp() {
   const componentsToMount: Array<{ mapping: (typeof componentMappings)[0]; element: HTMLElement }> = [];
 
   const portalTarget = ensurePortalRoot();
+  hideNavIfEmbeddedInIFrame();
 
   // Build a map of all selectors to their mappings for quick lookup
   const selectorToMapping = new Map<string, (typeof componentMappings)[0]>();
@@ -241,6 +262,10 @@ export async function mountUnifiedApp() {
     // Mark as mounted
     element.setAttribute('data-vue-mounted', 'true');
     ensureUnapiScope(element);
+
+    if (isDarkModeActive()) {
+      element.classList.add('dark');
+    }
 
     // Store for cleanup
     mountedComponents.push({

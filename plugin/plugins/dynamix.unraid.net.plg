@@ -206,6 +206,7 @@ FILES_TO_BACKUP=(
   "/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php"
   "/usr/local/emhttp/plugins/dynamix.my.servers/include/web-components-extractor.php"
   "/usr/local/emhttp/update.htm"
+  "/usr/local/emhttp/redirect.htm"
   "/usr/local/emhttp/logging.htm"
   "/etc/nginx/nginx.conf"
   "/etc/rc.d/rc.nginx"
@@ -349,6 +350,7 @@ exit 0
         "/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php"
         "/usr/local/emhttp/plugins/dynamix.my.servers/include/web-components-extractor.php"
         "/usr/local/emhttp/update.htm"
+        "/usr/local/emhttp/redirect.htm"
         "/usr/local/emhttp/logging.htm"
         "/etc/nginx/nginx.conf"
         "/etc/rc.d/rc.nginx"
@@ -477,6 +479,12 @@ if [ "$SKIP_API_INSTALL" = false ]; then
       rm -f "$txz_file"
     fi
   done
+
+  # Stop the API service before mutating /usr/local/unraid-api to avoid upgrade races
+  if [ -x "/etc/rc.d/rc.unraid-api" ]; then
+    echo "Stopping Unraid API service before upgrade..."
+    /etc/rc.d/rc.unraid-api stop || echo "Warning: Failed to stop Unraid API service"
+  fi
 
   # Remove existing node_modules directory
   echo "Cleaning up existing node_modules directory..."

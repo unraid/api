@@ -1,6 +1,6 @@
 {
   "name": "@unraid/web",
-  "version": "4.27.2",
+  "version": "4.28.2",
   "private": true,
   "type": "module",
   "license": "GPL-2.0-or-later",
@@ -111,7 +111,7 @@
     "@jsonforms/vue-vuetify": "3.6.0",
     "@nuxt/ui": "4.0.0-alpha.0",
     "@tanstack/vue-table": "^8.21.3",
-    "@unraid/shared-callbacks": "1.1.1",
+    "@unraid/shared-callbacks": "3.0.0",
     "@unraid/ui": "link:../unraid-ui",
     "@vue/apollo-composable": "4.2.2",
     "@vueuse/components": "13.8.0",

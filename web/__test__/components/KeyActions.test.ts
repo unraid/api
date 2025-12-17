@@ -9,7 +9,7 @@ import { BrandButton } from '@unraid/ui';
 import { createTestingPinia } from '@pinia/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ServerStateDataAction, ServerStateDataActionType } from '~/types/server';
+import type { ServerStateDataAction } from '~/types/server';
 
 import KeyActions from '~/components/KeyActions.vue';
 import { createTestI18n } from '../utils/i18n';
@@ -34,7 +34,7 @@ describe('KeyActions', () => {
 
   it('renders buttons from props when actions prop is provided', () => {
     const actions: ServerStateDataAction[] = [
-      { name: 'purchase' as ServerStateDataActionType, text: 'Custom Action 1', click: vi.fn() },
+      { name: 'purchase', text: 'Custom Action 1', click: vi.fn() },
     ];
 
     const wrapper = mount(KeyActions, {
@@ -68,9 +68,7 @@ describe('KeyActions', () => {
 
   it('calls action click handler when button is clicked', async () => {
     const click = vi.fn();
-    const actions: ServerStateDataAction[] = [
-      { name: 'purchase' as ServerStateDataActionType, text: 'Clickable Action', click },
-    ];
+    const actions: ServerStateDataAction[] = [{ name: 'purchase', text: 'Clickable Action', click }];
 
     const wrapper = mount(KeyActions, {
       props: {
@@ -89,7 +87,7 @@ describe('KeyActions', () => {
     const click = vi.fn();
     const actions: ServerStateDataAction[] = [
       {
-        name: 'purchase' as ServerStateDataActionType,
+        name: 'purchase',
         text: 'Disabled Action',
         disabled: true,
         click,
@@ -111,9 +109,9 @@ describe('KeyActions', () => {
 
   it('filters actions using filterBy prop', () => {
     const actions: ServerStateDataAction[] = [
-      { name: 'purchase' as ServerStateDataActionType, text: 'Action 1', click: vi.fn() },
-      { name: 'redeem' as ServerStateDataActionType, text: 'Action 2', click: vi.fn() },
-      { name: 'upgrade' as ServerStateDataActionType, text: 'Action 3', click: vi.fn() },
+      { name: 'purchase', text: 'Action 1', click: vi.fn() },
+      { name: 'redeem', text: 'Action 2', click: vi.fn() },
+      { name: 'upgrade', text: 'Action 3', click: vi.fn() },
     ];
 
     const wrapper = mount(KeyActions, {
@@ -135,9 +133,9 @@ describe('KeyActions', () => {
 
   it('filters out actions using filterOut prop', () => {
     const actions: ServerStateDataAction[] = [
-      { name: 'purchase' as ServerStateDataActionType, text: 'Action 1', click: vi.fn() },
-      { name: 'redeem' as ServerStateDataActionType, text: 'Action 2', click: vi.fn() },
-      { name: 'upgrade' as ServerStateDataActionType, text: 'Action 3', click: vi.fn() },
+      { name: 'purchase', text: 'Action 1', click: vi.fn() },
+      { name: 'redeem', text: 'Action 2', click: vi.fn() },
+      { name: 'upgrade', text: 'Action 3', click: vi.fn() },
     ];
 
     const wrapper = mount(KeyActions, {
@@ -158,9 +156,7 @@ describe('KeyActions', () => {
   });
 
   it('applies maxWidth styling when maxWidth prop is true', () => {
-    const actions: ServerStateDataAction[] = [
-      { name: 'purchase' as ServerStateDataActionType, text: 'Action 1', click: vi.fn() },
-    ];
+    const actions: ServerStateDataAction[] = [{ name: 'purchase', text: 'Action 1', click: vi.fn() }];
 
     const wrapper = mount(KeyActions, {
       props: {
@@ -180,7 +176,7 @@ describe('KeyActions', () => {
   it('passes all required props to BrandButton component', () => {
     const actions: ServerStateDataAction[] = [
       {
-        name: 'purchase' as ServerStateDataActionType,
+        name: 'purchase',
         text: 'Test Action',
         title: 'Action Title',
         href: '/test-link',

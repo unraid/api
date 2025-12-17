@@ -1,15 +1,24 @@
+import { isDarkModeActive } from '@/lib/utils';
 import { onMounted, ref } from 'vue';
 
 let virtualModalContainer: HTMLDivElement | null = null;
 
 const ensureVirtualContainer = () => {
   if (!virtualModalContainer) {
-    virtualModalContainer = document.createElement('div');
-    virtualModalContainer.id = 'unraid-api-modals-virtual';
-    virtualModalContainer.className = 'unapi';
-    virtualModalContainer.style.position = 'relative';
-    virtualModalContainer.style.zIndex = '999999';
-    document.body.appendChild(virtualModalContainer);
+    const existing = document.getElementById('unraid-api-modals-virtual');
+    if (existing) {
+      virtualModalContainer = existing as HTMLDivElement;
+    } else {
+      virtualModalContainer = document.createElement('div');
+      virtualModalContainer.id = 'unraid-api-modals-virtual';
+      virtualModalContainer.className = 'unapi';
+      virtualModalContainer.style.position = 'relative';
+      virtualModalContainer.style.zIndex = '999999';
+      if (isDarkModeActive()) {
+        virtualModalContainer.classList.add('dark');
+      }
+      document.body.appendChild(virtualModalContainer);
+    }
   }
   return virtualModalContainer;
 };

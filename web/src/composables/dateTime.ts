@@ -101,15 +101,23 @@ const useDateTimeHelper = (
   ): DateFormatOption | TimeFormatOption | undefined =>
     formats.find((formatOption) => formatOption.format === selectedFormat);
 
-  const dateFormat = findMatchingFormat(format?.date ?? dateFormatOptions[0].format, dateFormatOptions);
+  const defaultTimeFormat = timeFormatOptions[0];
+  const fallbackDateDisplayFormat = 'dddd, MMMM D, YYYY';
 
-  let displayFormat = `${dateFormat?.display}`;
+  const dateFormatFromServer = (format?.date ?? '').trim();
+  const dateFormat = dateFormatFromServer
+    ? (findMatchingFormat(dateFormatFromServer, dateFormatOptions) as DateFormatOption | undefined)
+    : undefined;
+
+  let displayFormat = dateFormat?.display ?? fallbackDateDisplayFormat;
   if (!hideMinutesSeconds) {
-    const timeFormat = findMatchingFormat(
-      format?.time ?? timeFormatOptions[0].format,
-      timeFormatOptions
-    );
-    displayFormat = `${displayFormat} ${timeFormat?.display}`;
+    const timeFormatFromServer = (format?.time ?? '').trim();
+    const timeFormat = timeFormatFromServer
+      ? (findMatchingFormat(timeFormatFromServer, timeFormatOptions) as TimeFormatOption | undefined)
+      : undefined;
+
+    const timeDisplay = timeFormat?.display ?? defaultTimeFormat.display;
+    displayFormat = `${displayFormat} ${timeDisplay}`;
   }
 
   const formatDate = (date: number): string => dayjs(date).format(displayFormat);
