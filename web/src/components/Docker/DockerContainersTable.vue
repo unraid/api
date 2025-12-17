@@ -696,9 +696,9 @@ const rowActionDropdownUi = {
         </div>
         <div
           v-if="isUpdatingContainers && activeUpdateSummary"
-          class="border-primary/30 text-primary-700 dark:border-primary/40 dark:text-primary-200 bg-primary/5 dark:bg-primary/10 my-2 flex items-center gap-2 rounded border px-3 py-2 text-sm"
+          class="border-primary/30 bg-primary/5 text-primary my-2 flex items-center gap-2 rounded border px-3 py-2 text-sm"
         >
-          <span class="i-lucide-loader-2 text-primary-500 dark:text-primary-300 animate-spin" />
+          <span class="i-lucide-loader-2 text-primary animate-spin" />
           <span>Updating {{ activeUpdateSummary }}...</span>
         </div>
       </template>

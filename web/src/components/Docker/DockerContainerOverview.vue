@@ -37,7 +37,7 @@ const handleRefresh = async () => {
 </script>
 
 <template>
-  <div class="docker-container-overview rounded-lg border bg-white p-6 shadow-sm dark:bg-gray-900">
+  <div class="docker-container-overview bg-card rounded-lg border p-6 shadow-sm">
     <div class="mb-4 flex items-center justify-between">
       <h2 class="text-xl font-semibold">Docker Containers</h2>
       <Button variant="outline" size="sm" @click="handleRefresh" :disabled="loading">

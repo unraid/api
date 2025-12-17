@@ -460,8 +460,7 @@ function createDragColumn(): TableColumn<TreeRow<T>> {
           [
             h(UIcon, {
               name: 'i-lucide-grip-vertical',
-              class:
-                'h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 pointer-events-none',
+              class: 'h-4 w-4 text-muted-foreground hover:text-foreground pointer-events-none',
             }),
           ]
         ),

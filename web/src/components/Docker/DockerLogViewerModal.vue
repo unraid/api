@@ -53,7 +53,7 @@ const currentSessionId = computed({
   >
     <template #body>
       <div class="unapi">
-        <div v-if="sessions.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
+        <div v-if="sessions.length === 0" class="text-muted-foreground text-sm">
           Select a container to view its logs.
         </div>
         <div v-else class="space-y-4">
@@ -69,7 +69,7 @@ const currentSessionId = computed({
               />
             </UFormField>
             <div class="flex flex-1 flex-wrap items-end gap-3 md:justify-end">
-              <div class="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+              <div class="text-foreground flex items-center gap-2 text-sm font-medium">
                 <span>Follow logs</span>
                 <USwitch
                   :model-value="activeSession?.autoFollow ?? true"
@@ -89,7 +89,7 @@ const currentSessionId = computed({
               </div>
             </div>
           </div>
-          <div class="h-96 rounded border border-gray-200 dark:border-gray-700">
+          <div class="border-border h-96 rounded border">
             <SingleDockerLogViewer
               v-if="activeSession"
               :container-name="activeSession.containerName"

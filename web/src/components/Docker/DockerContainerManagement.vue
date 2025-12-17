@@ -587,10 +587,7 @@ const [transitionContainerRef] = useAutoAnimate({
             <div v-else class="flex h-[70vh] items-center justify-center text-sm text-neutral-500">
               Unable to load container settings for this entry.
             </div>
-            <div
-              v-if="isDetailsLoading"
-              class="absolute inset-0 grid place-items-center bg-white/60 dark:bg-gray-900/60"
-            >
+            <div v-if="isDetailsLoading" class="bg-card/60 absolute inset-0 grid place-items-center">
               <USkeleton class="h-6 w-6" />
             </div>
           </div>

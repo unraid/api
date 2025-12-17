@@ -45,7 +45,7 @@ function handleClose() {
   >
     <template #body>
       <div class="space-y-4">
-        <p class="text-sm text-gray-600 dark:text-gray-300">
+        <p class="text-foreground text-sm">
           Are you sure you want to remove
           <strong>{{ containerName }}</strong
           >?

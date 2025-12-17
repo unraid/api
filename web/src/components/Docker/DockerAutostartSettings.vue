@@ -267,7 +267,7 @@ const columns = computed<TableColumn<TreeRow<AutostartEntry>>[]>(() => {
       cell: ({ row }) =>
         h(
           'span',
-          { class: 'text-xs font-medium text-gray-500 dark:text-gray-400' },
+          { class: 'text-xs font-medium text-muted-foreground' },
           String(getRowIndex(row.original.id) + 1)
         ),
       meta: { class: { td: 'w-10', th: 'w-10' } },
@@ -358,7 +358,7 @@ const columns = computed<TableColumn<TreeRow<AutostartEntry>>[]>(() => {
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h2 class="text-lg font-semibold">Docker Auto-Start Order</h2>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
+        <p class="text-muted-foreground text-sm">
           Drag containers or use the arrow buttons to adjust the auto-start sequence. Changes are saved
           automatically.
         </p>
@@ -387,7 +387,7 @@ const columns = computed<TableColumn<TreeRow<AutostartEntry>>[]>(() => {
 
     <div
       v-if="errorMessage"
-      class="rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/40 dark:text-red-200"
+      class="border-destructive/30 bg-destructive/10 text-destructive rounded-md border px-4 py-2 text-sm"
     >
       {{ errorMessage }}
     </div>

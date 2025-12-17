@@ -71,7 +71,7 @@ function getOnlineStatusColor(online: boolean | null | undefined): string {
     <template #default>
       <button
         data-stop-row-click="true"
-        class="inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-800"
+        class="hover:bg-muted inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 text-sm"
         :title="isRunning ? 'Click for Tailscale details' : 'Container not running'"
         @click.stop
       >
@@ -94,7 +94,7 @@ function getOnlineStatusColor(online: boolean | null | undefined): string {
 
     <template #content>
       <div class="max-w-sm min-w-[280px] p-3" data-stop-row-click="true" @click.stop>
-        <div class="mb-2 flex items-center gap-2 border-b border-gray-200 pb-2 dark:border-gray-700">
+        <div class="border-border mb-2 flex items-center gap-2 border-b pb-2">
           <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <circle cx="12" cy="6" r="3" />
             <circle cx="6" cy="12" r="3" />
@@ -104,7 +104,7 @@ function getOnlineStatusColor(online: boolean | null | undefined): string {
           <span class="flex-1 font-medium">Tailscale Status</span>
           <button
             v-if="isRunning && hasFetched"
-            class="rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+            class="hover:bg-muted rounded p-1"
             :disabled="loading || isRefreshing"
             title="Refresh status"
             @click.stop="handleRefresh"
@@ -129,15 +129,12 @@ function getOnlineStatusColor(online: boolean | null | undefined): string {
 
         <div v-else-if="status" class="space-y-1.5 text-sm">
           <!-- Needs Login Warning -->
-          <div
-            v-if="status.backendState === 'NeedsLogin'"
-            class="mb-2 rounded bg-amber-50 p-2 dark:bg-amber-900/20"
-          >
-            <div class="flex items-center gap-1 font-medium text-amber-600 dark:text-amber-400">
+          <div v-if="status.backendState === 'NeedsLogin'" class="bg-warning/10 mb-2 rounded p-2">
+            <div class="text-warning flex items-center gap-1 font-medium">
               <component :is="UIcon" name="i-lucide-alert-triangle" class="h-4 w-4" />
               Authentication Required
             </div>
-            <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+            <p class="text-warning mt-1 text-xs">
               Tailscale needs to be authenticated in this container.
             </p>
             <a

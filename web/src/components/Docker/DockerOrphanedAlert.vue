@@ -44,13 +44,11 @@ function formatContainerName(container: DockerContainer): string {
 </script>
 
 <template>
-  <div
-    class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-400/50 dark:bg-amber-400/10 dark:text-amber-100"
-  >
+  <div class="border-warning/30 bg-warning/10 text-warning rounded-lg border p-4 text-sm">
     <div class="flex items-start gap-3">
       <UIcon
         name="i-lucide-triangle-alert"
-        class="mt-1 h-5 w-5 flex-shrink-0 text-amber-500 dark:text-amber-300"
+        class="text-warning mt-1 h-5 w-5 flex-shrink-0"
         aria-hidden="true"
       />
       <div class="w-full space-y-3">
@@ -58,22 +56,20 @@ function formatContainerName(container: DockerContainer): string {
           <p class="text-sm font-semibold">
             Orphaned containers detected ({{ orphanedContainers.length }})
           </p>
-          <p class="text-xs text-amber-900/80 dark:text-amber-100/80">
+          <p class="text-warning/80 text-xs">
             These containers do not have a corresponding template. You can remove them if they are no
             longer needed.
           </p>
         </div>
         <div class="space-y-4">
           <div class="space-y-2">
-            <div
-              class="rounded-md border border-amber-200/70 bg-white/80 p-3 dark:border-amber-300/30 dark:bg-transparent"
-            >
+            <div class="border-warning/30 bg-card/80 rounded-md border p-3">
               <div class="mt-2 flex flex-wrap gap-2">
                 <button
                   v-for="container in orphanedContainers"
                   :key="container.id"
                   type="button"
-                  class="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900 transition hover:bg-amber-200 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:outline-none dark:border-amber-200/40 dark:bg-transparent dark:text-amber-100"
+                  class="border-warning/50 bg-warning/20 text-warning hover:bg-warning/30 focus-visible:ring-warning/50 inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium transition focus-visible:ring-2 focus-visible:outline-none"
                   :title="`Remove ${formatContainerName(container)}`"
                   :disabled="removing"
                   @click="handleRemove(container)"

@@ -175,14 +175,11 @@ function handleOpenTailscaleAuth() {
       <div class="flex items-start gap-4">
         <div
           v-if="container?.iconUrl"
-          class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800"
+          class="bg-muted flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg"
         >
           <img :src="container.iconUrl" :alt="containerName" class="h-12 w-12 object-contain" />
         </div>
-        <div
-          v-else
-          class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
-        >
+        <div v-else class="bg-muted flex h-16 w-16 shrink-0 items-center justify-center rounded-lg">
           <UIcon name="i-lucide-box" class="h-8 w-8 text-gray-400" />
         </div>
 
@@ -199,10 +196,10 @@ function handleOpenTailscaleAuth() {
               Rebuild Ready
             </UBadge>
           </div>
-          <p v-if="imageVersion" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p v-if="imageVersion" class="text-muted-foreground mt-1 text-sm">
             Version: {{ imageVersion }}
           </p>
-          <p v-if="uptime" class="text-sm text-gray-500 dark:text-gray-400">Uptime: {{ uptime }}</p>
+          <p v-if="uptime" class="text-muted-foreground text-sm">Uptime: {{ uptime }}</p>
         </div>
 
         <div class="flex shrink-0 items-center gap-2">
@@ -242,11 +239,11 @@ function handleOpenTailscaleAuth() {
         </template>
         <div class="space-y-2">
           <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Mode</p>
+            <p class="text-muted-foreground text-xs">Mode</p>
             <p class="font-mono text-sm">{{ networkMode || '—' }}</p>
           </div>
           <div v-if="containerIps.length">
-            <p class="text-xs text-gray-500 dark:text-gray-400">Container IP</p>
+            <p class="text-muted-foreground text-xs">Container IP</p>
             <p v-for="ip in containerIps" :key="ip" class="font-mono text-sm">{{ ip }}</p>
           </div>
         </div>
@@ -262,7 +259,7 @@ function handleOpenTailscaleAuth() {
         </template>
         <div class="space-y-2">
           <div v-if="externalPorts.length">
-            <p class="text-xs text-gray-500 dark:text-gray-400">External</p>
+            <p class="text-muted-foreground text-xs">External</p>
             <div class="flex flex-wrap gap-1">
               <UBadge
                 v-for="port in externalPorts.slice(0, 5)"
@@ -282,7 +279,7 @@ function handleOpenTailscaleAuth() {
             </div>
           </div>
           <div v-if="internalPorts.length">
-            <p class="text-xs text-gray-500 dark:text-gray-400">Internal</p>
+            <p class="text-muted-foreground text-xs">Internal</p>
             <div class="flex flex-wrap gap-1">
               <UBadge
                 v-for="port in internalPorts.slice(0, 5)"
@@ -301,10 +298,7 @@ function handleOpenTailscaleAuth() {
               />
             </div>
           </div>
-          <p
-            v-if="!externalPorts.length && !internalPorts.length"
-            class="text-sm text-gray-500 dark:text-gray-400"
-          >
+          <p v-if="!externalPorts.length && !internalPorts.length" class="text-muted-foreground text-sm">
             No ports exposed
           </p>
         </div>
@@ -320,15 +314,15 @@ function handleOpenTailscaleAuth() {
         </template>
         <div class="space-y-2">
           <div v-if="shortId">
-            <p class="text-xs text-gray-500 dark:text-gray-400">ID</p>
+            <p class="text-muted-foreground text-xs">ID</p>
             <p class="font-mono text-sm">{{ shortId }}</p>
           </div>
           <div v-if="createdDate">
-            <p class="text-xs text-gray-500 dark:text-gray-400">Created</p>
+            <p class="text-muted-foreground text-xs">Created</p>
             <p class="text-sm">{{ createdDate }}</p>
           </div>
           <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Auto Start</p>
+            <p class="text-muted-foreground text-xs">Auto Start</p>
             <UBadge
               :label="container?.autoStart ? 'Enabled' : 'Disabled'"
               :color="container?.autoStart ? 'success' : 'neutral'"
@@ -350,24 +344,17 @@ function handleOpenTailscaleAuth() {
         </div>
       </template>
       <div class="max-h-48 space-y-2 overflow-y-auto">
-        <div
-          v-for="(mount, index) in volumeMounts"
-          :key="index"
-          class="rounded-md bg-gray-50 p-2 dark:bg-gray-800/50"
-        >
+        <div v-for="(mount, index) in volumeMounts" :key="index" class="bg-muted/50 rounded-md p-2">
           <div class="flex items-start gap-2">
             <UIcon name="i-lucide-folder" class="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
             <div class="min-w-0 flex-1 space-y-1">
-              <p
-                class="truncate font-mono text-xs text-gray-600 dark:text-gray-300"
-                :title="mount.split(' → ')[0]"
-              >
+              <p class="text-foreground truncate font-mono text-xs" :title="mount.split(' → ')[0]">
                 {{ mount.split(' → ')[0] }}
               </p>
               <div class="flex items-center gap-1">
                 <UIcon name="i-lucide-arrow-right" class="h-3 w-3 shrink-0 text-gray-400" />
                 <p
-                  class="truncate font-mono text-xs text-gray-500 dark:text-gray-400"
+                  class="text-muted-foreground truncate font-mono text-xs"
                   :title="mount.split(' → ')[1]"
                 >
                   {{ mount.split(' → ')[1] }}
@@ -392,7 +379,7 @@ function handleOpenTailscaleAuth() {
           <span class="flex-1 text-sm font-medium">Tailscale</span>
           <button
             v-if="tailscaleFetched"
-            class="rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-700"
+            class="hover:bg-muted rounded p-1"
             :disabled="tailscaleLoading || tailscaleRefreshing"
             title="Refresh Tailscale status"
             @click="handleRefreshTailscale"
@@ -418,17 +405,12 @@ function handleOpenTailscaleAuth() {
       <!-- Tailscale status -->
       <div v-else-if="tailscaleStatus" class="space-y-3">
         <!-- Needs Login Warning -->
-        <div
-          v-if="tailscaleStatus.backendState === 'NeedsLogin'"
-          class="rounded bg-amber-50 p-2 dark:bg-amber-900/20"
-        >
-          <div class="flex items-center gap-1 text-sm font-medium text-amber-600 dark:text-amber-400">
+        <div v-if="tailscaleStatus.backendState === 'NeedsLogin'" class="bg-warning/10 rounded p-2">
+          <div class="text-warning flex items-center gap-1 text-sm font-medium">
             <UIcon name="i-lucide-alert-triangle" class="h-4 w-4" />
             Authentication Required
           </div>
-          <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">
-            Tailscale needs to be authenticated in this container.
-          </p>
+          <p class="text-warning mt-1 text-xs">Tailscale needs to be authenticated in this container.</p>
           <UButton
             v-if="tailscaleStatus.authUrl"
             size="xs"
@@ -445,7 +427,7 @@ function handleOpenTailscaleAuth() {
         <!-- Status info -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <span class="text-xs text-gray-500 dark:text-gray-400">Status</span>
+            <span class="text-muted-foreground text-xs">Status</span>
             <UBadge
               :label="tailscaleStatus.online ? 'Online' : 'Offline'"
               :color="tailscaleStatus.online ? 'success' : 'error'"
@@ -455,7 +437,7 @@ function handleOpenTailscaleAuth() {
           </div>
 
           <div v-if="tailscaleStatus.version" class="flex items-center justify-between">
-            <span class="text-xs text-gray-500 dark:text-gray-400">Version</span>
+            <span class="text-muted-foreground text-xs">Version</span>
             <span class="flex items-center gap-1 text-sm">
               v{{ tailscaleStatus.version }}
               <UBadge
@@ -469,14 +451,14 @@ function handleOpenTailscaleAuth() {
           </div>
 
           <div v-if="tailscaleStatus.hostname" class="flex items-center justify-between">
-            <span class="text-xs text-gray-500 dark:text-gray-400">Hostname</span>
+            <span class="text-muted-foreground text-xs">Hostname</span>
             <span class="max-w-[140px] truncate text-sm" :title="tailscaleStatus.hostname">
               {{ tailscaleStatus.hostname }}
             </span>
           </div>
 
           <div v-if="tailscaleStatus.dnsName" class="flex items-center justify-between">
-            <span class="text-xs text-gray-500 dark:text-gray-400">DNS Name</span>
+            <span class="text-muted-foreground text-xs">DNS Name</span>
             <span class="max-w-[140px] truncate text-sm" :title="tailscaleStatus.dnsName">
               {{ tailscaleStatus.dnsName }}
             </span>
@@ -486,12 +468,12 @@ function handleOpenTailscaleAuth() {
             v-if="tailscaleStatus.relayName || tailscaleStatus.relay"
             class="flex items-center justify-between"
           >
-            <span class="text-xs text-gray-500 dark:text-gray-400">DERP Relay</span>
+            <span class="text-muted-foreground text-xs">DERP Relay</span>
             <span class="text-sm">{{ tailscaleStatus.relayName || tailscaleStatus.relay }}</span>
           </div>
 
           <div v-if="tailscaleStatus.tailscaleIps?.length" class="flex items-start justify-between">
-            <span class="text-xs text-gray-500 dark:text-gray-400">IP Addresses</span>
+            <span class="text-muted-foreground text-xs">IP Addresses</span>
             <div class="text-right">
               <p v-for="ip in tailscaleStatus.tailscaleIps" :key="ip" class="font-mono text-xs">
                 {{ ip }}
@@ -500,7 +482,7 @@ function handleOpenTailscaleAuth() {
           </div>
 
           <div v-if="tailscaleStatus.primaryRoutes?.length" class="flex items-start justify-between">
-            <span class="text-xs text-gray-500 dark:text-gray-400">Routes</span>
+            <span class="text-muted-foreground text-xs">Routes</span>
             <div class="text-right">
               <p v-for="route in tailscaleStatus.primaryRoutes" :key="route" class="font-mono text-xs">
                 {{ route }}
@@ -509,7 +491,7 @@ function handleOpenTailscaleAuth() {
           </div>
 
           <div class="flex items-center justify-between">
-            <span class="text-xs text-gray-500 dark:text-gray-400">Exit Node</span>
+            <span class="text-muted-foreground text-xs">Exit Node</span>
             <span v-if="tailscaleStatus.isExitNode" class="text-sm text-green-500"
               >This is an exit node</span
             >
@@ -520,7 +502,7 @@ function handleOpenTailscaleAuth() {
           </div>
 
           <div v-if="tailscaleStatus.keyExpiry" class="flex items-center justify-between">
-            <span class="text-xs text-gray-500 dark:text-gray-400">Key Expiry</span>
+            <span class="text-muted-foreground text-xs">Key Expiry</span>
             <span :class="['text-sm', tailscaleStatus.keyExpired ? 'text-red-500' : '']">
               {{ formatTailscaleDate(tailscaleStatus.keyExpiry) }}
               <span v-if="tailscaleStatus.keyExpired" class="text-red-500">(Expired)</span>

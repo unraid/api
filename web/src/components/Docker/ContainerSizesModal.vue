@@ -144,7 +144,7 @@ async function handleRefresh() {
     <template #body>
       <div class="space-y-4">
         <div class="flex items-center justify-between gap-3">
-          <p class="text-sm text-gray-500 dark:text-gray-400">
+          <p class="text-muted-foreground text-sm">
             Includes total filesystem, writable layer, and log file sizes per container.
           </p>
           <UButton
@@ -163,12 +163,10 @@ async function handleRefresh() {
           :columns="columns"
           :loading="loading"
           sticky="header"
-          :ui="{ td: 'py-2 px-3', th: 'py-2 px-3 text-left', tfoot: 'bg-gray-50 dark:bg-gray-900' }"
+          :ui="{ td: 'py-2 px-3', th: 'py-2 px-3 text-left', tfoot: 'bg-muted' }"
         >
           <template #empty>
-            <div class="py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-              No containers found.
-            </div>
+            <div class="text-muted-foreground py-6 text-center text-sm">No containers found.</div>
           </template>
         </UTable>
       </div>
