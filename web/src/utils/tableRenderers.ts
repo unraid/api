@@ -171,9 +171,15 @@ export function wrapCellWithRow<T>({
     'div',
     {
       ...(columnIndex === 0 ? { 'data-row-id': row.id } : {}),
-      class: `relative block w-full h-full px-3 py-2 ${isBusy ? 'opacity-50 pointer-events-none select-none' : ''} ${
-        isActive ? 'bg-primary-50 dark:bg-primary-950/30' : ''
-      } ${isSelectable ? 'cursor-pointer' : ''} ${isDragging ? 'opacity-30 pointer-events-none' : ''}`,
+      ...(columnIndex === 0 && isActive ? { 'data-row-active': '' } : {}),
+      class: [
+        'relative block w-full h-full px-3 py-2',
+        isBusy && 'opacity-50 pointer-events-none select-none',
+        isSelectable && 'cursor-pointer',
+        isDragging && 'opacity-30 pointer-events-none',
+      ]
+        .filter(Boolean)
+        .join(' '),
       onClick: (e: MouseEvent) => {
         const target = e.target as HTMLElement | null;
         if (

@@ -607,4 +607,12 @@ function enhanceRowInstance(row: TableInstanceRow<T>): EnhancedRow<T> {
 .base-tree-table :deep(tr) {
   position: relative;
 }
+
+.base-tree-table :deep(tr:has([data-row-active])) {
+  background-color: var(--color-primary-50);
+}
+
+:root.dark .base-tree-table :deep(tr:has([data-row-active])) {
+  background-color: color-mix(in srgb, var(--color-primary-950) 30%, transparent);
+}
 </style>
