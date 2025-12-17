@@ -103,8 +103,9 @@ export class DockerService {
                 privatePort: port.PrivatePort,
                 publicPort: port.PublicPort,
                 type:
-                    ContainerPortType[port.Type.toUpperCase() as keyof typeof ContainerPortType] ||
-                    ContainerPortType.TCP,
+                    ContainerPortType[
+                        (port.Type || 'tcp').toUpperCase() as keyof typeof ContainerPortType
+                    ] || ContainerPortType.TCP,
             };
         });
 
@@ -179,7 +180,7 @@ export class DockerService {
 
         const config = this.dockerConfigService.getConfig();
         const containersWithTemplatePaths = containers.map((c) => {
-            const containerName = c.names[0]?.replace(/^\//, '').toLowerCase();
+            const containerName = c.names[0]?.replace(/^\//, '').toLowerCase() ?? '';
             const templatePath = config.templateMappings?.[containerName] || undefined;
             return {
                 ...c,
