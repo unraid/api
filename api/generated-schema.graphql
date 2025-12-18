@@ -862,6 +862,38 @@ type DockerMutations {
 
   """Stop a container"""
   stop(id: PrefixedID!): DockerContainer!
+
+  """Pause (Suspend) a container"""
+  pause(id: PrefixedID!): DockerContainer!
+
+  """Unpause (Resume) a container"""
+  unpause(id: PrefixedID!): DockerContainer!
+
+  """Remove a container"""
+  removeContainer(id: PrefixedID!, withImage: Boolean): Boolean!
+
+  """Update auto-start configuration for Docker containers"""
+  updateAutostartConfiguration(entries: [DockerAutostartEntryInput!]!, persistUserPreferences: Boolean): Boolean!
+
+  """Update a container to the latest image"""
+  updateContainer(id: PrefixedID!): DockerContainer!
+
+  """Update multiple containers to the latest images"""
+  updateContainers(ids: [PrefixedID!]!): [DockerContainer!]!
+
+  """Update all containers that have available updates"""
+  updateAllContainers: [DockerContainer!]!
+}
+
+input DockerAutostartEntryInput {
+  """Docker container identifier"""
+  id: PrefixedID!
+
+  """Whether the container should auto-start"""
+  autoStart: Boolean!
+
+  """Number of seconds to wait after starting the container"""
+  wait: Int
 }
 
 type VmMutations {
@@ -1089,6 +1121,29 @@ enum ContainerPortType {
   UDP
 }
 
+type DockerPortConflictContainer {
+  id: PrefixedID!
+  name: String!
+}
+
+type DockerContainerPortConflict {
+  privatePort: Port!
+  type: ContainerPortType!
+  containers: [DockerPortConflictContainer!]!
+}
+
+type DockerLanPortConflict {
+  lanIpPort: String!
+  publicPort: Port
+  type: ContainerPortType!
+  containers: [DockerPortConflictContainer!]!
+}
+
+type DockerPortConflicts {
+  containerPorts: [DockerContainerPortConflict!]!
+  lanPorts: [DockerLanPortConflict!]!
+}
+
 type ContainerHostConfig {
   networkMode: String!
 }
@@ -1102,8 +1157,17 @@ type DockerContainer implements Node {
   created: Int!
   ports: [ContainerPort!]!
 
+  """List of LAN-accessible host:port values"""
+  lanIpPorts: [String!]
+
   """Total size of all files in the container (in bytes)"""
   sizeRootFs: BigInt
+
+  """Size of writable layer (in bytes)"""
+  sizeRw: BigInt
+
+  """Size of container logs (in bytes)"""
+  sizeLog: BigInt
   labels: JSON
   state: ContainerState!
   status: String!
@@ -1111,12 +1175,50 @@ type DockerContainer implements Node {
   networkSettings: JSON
   mounts: [JSON!]
   autoStart: Boolean!
+
+  """Zero-based order in the auto-start list"""
+  autoStartOrder: Int
+
+  """Wait time in seconds applied after start"""
+  autoStartWait: Int
+  templatePath: String
+
+  """Project/Product homepage URL"""
+  projectUrl: String
+
+  """Registry/Docker Hub URL"""
+  registryUrl: String
+
+  """Support page/thread URL"""
+  supportUrl: String
+
+  """Icon URL"""
+  iconUrl: String
+
+  """Resolved WebUI URL from template"""
+  webUiUrl: String
+
+  """Shell to use for console access (from template)"""
+  shell: String
+
+  """Port mappings from template (used when container is not running)"""
+  templatePorts: [ContainerPort!]
+
+  """Whether the container is orphaned (no template found)"""
+  isOrphaned: Boolean!
   isUpdateAvailable: Boolean
   isRebuildReady: Boolean
+
+  """Whether Tailscale is enabled for this container"""
+  tailscaleEnabled: Boolean!
+
+  """Tailscale status for this container (fetched via docker exec)"""
+  tailscaleStatus(forceRefresh: Boolean = false): TailscaleStatus
 }
 
 enum ContainerState {
   RUNNING
+  PAUSED
   EXITED
 }
 
@@ -1138,47 +1240,211 @@ type DockerNetwork implements Node {
   labels: JSON!
 }
 
+type DockerContainerLogLine {
+  timestamp: DateTime!
+  message: String!
+}
+
+type DockerContainerLogs {
+  containerId: PrefixedID!
+  lines: [DockerContainerLogLine!]!
+
+  """
+  Cursor that can be passed back through the since argument to continue streaming logs.
+  """
+  cursor: DateTime
+}
+
+type DockerContainerStats {
+  id: PrefixedID!
+
+  """CPU Usage Percentage"""
+  cpuPercent: Float!
+
+  """Memory Usage String (e.g. 100MB / 1GB)"""
+  memUsage: String!
+
+  """Memory Usage Percentage"""
+  memPercent: Float!
+
+  """Network I/O String (e.g. 100MB / 1GB)"""
+  netIO: String!
+
+  """Block I/O String (e.g. 100MB / 1GB)"""
+  blockIO: String!
+}
+
+"""Tailscale exit node connection status"""
+type TailscaleExitNodeStatus {
+  """Whether the exit node is online"""
+  online: Boolean!
+
+  """Tailscale IPs of the exit node"""
+  tailscaleIps: [String!]
+}
+
+"""Tailscale status for a Docker container"""
+type TailscaleStatus {
+  """Whether Tailscale is online in the container"""
+  online: Boolean!
+
+  """Current Tailscale version"""
+  version: String
+
+  """Latest available Tailscale version"""
+  latestVersion: String
+
+  """Whether a Tailscale update is available"""
+  updateAvailable: Boolean!
+
+  """Configured Tailscale hostname"""
+  hostname: String
+
+  """Actual Tailscale DNS name"""
+  dnsName: String
+
+  """DERP relay code"""
+  relay: String
+
+  """DERP relay region name"""
+  relayName: String
+
+  """Tailscale IPv4 and IPv6 addresses"""
+  tailscaleIps: [String!]
+
+  """Advertised subnet routes"""
+  primaryRoutes: [String!]
+
+  """Whether this container is an exit node"""
+  isExitNode: Boolean!
+
+  """Status of the connected exit node (if using one)"""
+  exitNodeStatus: TailscaleExitNodeStatus
+
+  """Tailscale Serve/Funnel WebUI URL"""
+  webUiUrl: String
+
+  """Tailscale key expiry date"""
+  keyExpiry: DateTime
+
+  """Days until key expires"""
+  keyExpiryDays: Int
+
+  """Whether the Tailscale key has expired"""
+  keyExpired: Boolean!
+
+  """Tailscale backend state (Running, NeedsLogin, Stopped, etc.)"""
+  backendState: String
+
+  """Authentication URL if Tailscale needs login"""
+  authUrl: String
+}
+
 type Docker implements Node {
   id: PrefixedID!
   containers(skipCache: Boolean! = false): [DockerContainer!]!
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
-  organizer: ResolvedOrganizerV1!
+  portConflicts(skipCache: Boolean! = false): DockerPortConflicts!
+
+  """
+  Access container logs. Requires specifying a target container id through resolver arguments.
+  """
+  logs(id: PrefixedID!, since: DateTime, tail: Int): DockerContainerLogs!
+  container(id: PrefixedID!): DockerContainer
+  organizer(skipCache: Boolean! = false): ResolvedOrganizerV1!
   containerUpdateStatuses: [ExplicitStatusItem!]!
+}
+
+type DockerTemplateSyncResult {
+  scanned: Int!
+  matched: Int!
+  skipped: Int!
+  errors: [String!]!
 }
 
 type ResolvedOrganizerView {
   id: String!
   name: String!
-  root: ResolvedOrganizerEntry!
+  rootId: String!
+  flatEntries: [FlatOrganizerEntry!]!
   prefs: JSON
-}
-
-union ResolvedOrganizerEntry = ResolvedOrganizerFolder | OrganizerContainerResource | OrganizerResource
-
-type ResolvedOrganizerFolder {
-  id: String!
-  type: String!
-  name: String!
-  children: [ResolvedOrganizerEntry!]!
-}
-
-type OrganizerContainerResource {
-  id: String!
-  type: String!
-  name: String!
-  meta: DockerContainer
-}
-
-type OrganizerResource {
-  id: String!
-  type: String!
-  name: String!
-  meta: JSON
 }
 
 type ResolvedOrganizerV1 {
   version: Float!
   views: [ResolvedOrganizerView!]!
+}
+
+type FlatOrganizerEntry {
+  id: String!
+  type: String!
+  name: String!
+  parentId: String
+  depth: Float!
+  position: Float!
+  path: [String!]!
+  hasChildren: Boolean!
+  childrenIds: [String!]!
+  meta: DockerContainer
+}
+
+type NotificationCounts {
+  info: Int!
+  warning: Int!
+  alert: Int!
+  total: Int!
+}
+
+type NotificationOverview {
+  unread: NotificationCounts!
+  archive: NotificationCounts!
+}
+
+type Notification implements Node {
+  id: PrefixedID!
+
+  """Also known as 'event'"""
+  title: String!
+  subject: String!
+  description: String!
+  importance: NotificationImportance!
+  link: String
+  type: NotificationType!
+
+  """ISO Timestamp for when the notification occurred"""
+  timestamp: String
+  formattedTimestamp: String
+}
+
+enum NotificationImportance {
+  ALERT
+  INFO
+  WARNING
+}
+
+enum NotificationType {
+  UNREAD
+  ARCHIVE
+}
+
+type Notifications implements Node {
+  id: PrefixedID!
+
+  """A cached overview of the notifications in the system & their severity."""
+  overview: NotificationOverview!
+  list(filter: NotificationFilter!): [Notification!]!
+
+  """
+  Deduplicated list of unread warning and alert notifications, sorted latest first.
+  """
+  warningsAndAlerts: [Notification!]!
+}
+
+input NotificationFilter {
+  importance: NotificationImportance
+  type: NotificationType!
+  offset: Int!
+  limit: Int!
 }
 
 type FlashBackupStatus {
@@ -1779,60 +2045,6 @@ type Metrics implements Node {
 
   """Current memory utilization metrics"""
   memory: MemoryUtilization
-}
-
-type NotificationCounts {
-  info: Int!
-  warning: Int!
-  alert: Int!
-  total: Int!
-}
-
-type NotificationOverview {
-  unread: NotificationCounts!
-  archive: NotificationCounts!
-}
-
-type Notification implements Node {
-  id: PrefixedID!
-
-  """Also known as 'event'"""
-  title: String!
-  subject: String!
-  description: String!
-  importance: NotificationImportance!
-  link: String
-  type: NotificationType!
-
-  """ISO Timestamp for when the notification occurred"""
-  timestamp: String
-  formattedTimestamp: String
-}
-
-enum NotificationImportance {
-  ALERT
-  INFO
-  WARNING
-}
-
-enum NotificationType {
-  UNREAD
-  ARCHIVE
-}
-
-type Notifications implements Node {
-  id: PrefixedID!
-
-  """A cached overview of the notifications in the system & their severity."""
-  overview: NotificationOverview!
-  list(filter: NotificationFilter!): [Notification!]!
-}
-
-input NotificationFilter {
-  importance: NotificationImportance
-  type: NotificationType!
-  offset: Int!
-  limit: Int!
 }
 
 type Owner {
@@ -2444,6 +2656,11 @@ type Mutation {
   """Marks a notification as archived."""
   archiveNotification(id: PrefixedID!): Notification!
   archiveNotifications(ids: [PrefixedID!]!): NotificationOverview!
+
+  """
+  Creates a notification if an equivalent unread notification does not already exist.
+  """
+  notifyIfUnique(input: NotificationData!): Notification
   archiveAll(importance: NotificationImportance): NotificationOverview!
 
   """Marks a notification as unread."""
@@ -2464,6 +2681,16 @@ type Mutation {
   setDockerFolderChildren(folderId: String, childrenIds: [String!]!): ResolvedOrganizerV1!
   deleteDockerEntries(entryIds: [String!]!): ResolvedOrganizerV1!
   moveDockerEntriesToFolder(sourceEntryIds: [String!]!, destinationFolderId: String!): ResolvedOrganizerV1!
+  moveDockerItemsToPosition(sourceEntryIds: [String!]!, destinationFolderId: String!, position: Float!): ResolvedOrganizerV1!
+  renameDockerFolder(folderId: String!, newName: String!): ResolvedOrganizerV1!
+  createDockerFolderWithItems(name: String!, parentId: String, sourceEntryIds: [String!], position: Float): ResolvedOrganizerV1!
+  updateDockerViewPreferences(viewId: String = "default", prefs: JSON!): ResolvedOrganizerV1!
+  syncDockerTemplatePaths: DockerTemplateSyncResult!
+
+  """
+  Reset Docker template mappings to defaults. Use this to recover from corrupted state.
+  """
+  resetDockerTemplateMappings: Boolean!
   refreshDockerDigests: Boolean!
 
   """Initiates a flash drive backup using a configured remote."""
@@ -2665,10 +2892,12 @@ input AccessUrlInput {
 type Subscription {
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
+  notificationsWarningsAndAlerts: [Notification!]!
   ownerSubscription: Owner!
   serversSubscription: Server!
   parityHistorySubscription: ParityCheck!
   arraySubscription: UnraidArray!
+  dockerContainerStats: DockerContainerStats!
   logFile(path: String!): LogFileContent!
   systemMetricsCpu: CpuUtilization!
   systemMetricsCpuTelemetry: CpuPackages!

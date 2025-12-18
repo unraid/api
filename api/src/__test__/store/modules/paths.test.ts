@@ -11,6 +11,7 @@ test('Returns paths', async () => {
         'unraid-api-base': '/usr/local/unraid-api/',
         'unraid-data': expect.stringContaining('api/dev/data'),
         'docker-autostart': '/var/lib/docker/unraid-autostart',
+        'docker-userprefs': '/boot/config/plugins/dockerMan/userprefs.cfg',
         'docker-socket': '/var/run/docker.sock',
         'parity-checks': expect.stringContaining('api/dev/states/parity-checks.log'),
         htpasswd: '/etc/nginx/htpasswd',

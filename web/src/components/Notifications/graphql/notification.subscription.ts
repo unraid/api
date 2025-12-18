@@ -20,3 +20,11 @@ export const notificationOverviewSubscription = graphql(/* GraphQL */ `
     }
   }
 `);
+
+export const warningsAndAlertsSubscription = graphql(/* GraphQL */ `
+  subscription NotificationsWarningsAndAlertsSub {
+    notificationsWarningsAndAlerts {
+      ...NotificationFragment
+    }
+  }
+`);

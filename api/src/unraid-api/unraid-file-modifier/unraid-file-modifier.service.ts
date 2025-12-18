@@ -127,6 +127,13 @@ export class UnraidFileModificationService
                 this.logger.debug(
                     `Skipping modification: ${modification.id} - ${shouldApplyWithReason.reason}`
                 );
+                // Check if there's a leftover patch from a previous run that needs to be rolled back
+                try {
+                    await modification.rollback(true);
+                    this.logger.log(`Rolled back previously applied modification: ${modification.id}`);
+                } catch {
+                    // No patch file exists or rollback failed - this is expected when the modification was never applied
+                }
             }
         } catch (error) {
             if (error instanceof Error) {

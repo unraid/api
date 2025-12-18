@@ -183,6 +183,11 @@ export class ApiKeyService implements OnModuleInit {
 
     async loadAllFromDisk(): Promise<ApiKey[]> {
         const files = await readdir(this.basePath).catch((error) => {
+            if (error.code === 'ENOENT') {
+                // Directory doesn't exist, which means no API keys have been created yet
+                this.logger.error(`API key directory does not exist: ${this.basePath}`);
+                return [];
+            }
             this.logger.error(`Failed to read API key directory: ${error}`);
             throw new Error('Failed to list API keys');
         });

@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { DockerTemplateIconService } from '@app/unraid-api/graph/resolvers/docker/docker-template-icon.service.js';
 import {
     ContainerPortType,
     ContainerState,
@@ -38,6 +39,7 @@ describe('containerToResource', () => {
             labels: {
                 'com.docker.compose.service': 'web',
             },
+            isOrphaned: false,
         };
 
         const result = containerToResource(container);
@@ -62,6 +64,7 @@ describe('containerToResource', () => {
             state: ContainerState.EXITED,
             status: 'Exited (0) 1 hour ago',
             autoStart: false,
+            isOrphaned: false,
         };
 
         const result = containerToResource(container);
@@ -83,6 +86,7 @@ describe('containerToResource', () => {
             state: ContainerState.EXITED,
             status: 'Exited (0) 5 minutes ago',
             autoStart: false,
+            isOrphaned: false,
         };
 
         const result = containerToResource(container);
@@ -124,6 +128,7 @@ describe('containerToResource', () => {
                 maintainer: 'dev-team',
                 version: '1.0.0',
             },
+            isOrphaned: false,
         };
 
         const result = containerToResource(container);
@@ -214,6 +219,12 @@ describe('DockerOrganizerService', () => {
                                 autoStart: true,
                             },
                         ]),
+                    },
+                },
+                {
+                    provide: DockerTemplateIconService,
+                    useValue: {
+                        getIconsForContainers: vi.fn().mockResolvedValue(new Map()),
                     },
                 },
             ],
@@ -674,16 +685,31 @@ describe('DockerOrganizerService', () => {
             const TO_DELETE = ['entryB', 'entryD'];
             const EXPECTED_REMAINING = ['entryA', 'entryC'];
 
+            // Mock getContainers to return containers matching our test entries
+            const mockContainers = ENTRIES.map((entryId, i) => ({
+                id: `container-${entryId}`,
+                names: [`/${entryId}`],
+                image: 'test:latest',
+                imageId: `sha256:${i}`,
+                command: 'test',
+                created: 1640995200 + i,
+                ports: [],
+                state: 'running',
+                status: 'Up 1 hour',
+                autoStart: true,
+            }));
+            (dockerService.getContainers as any).mockResolvedValue(mockContainers);
+
             const organizerWithOrdering = createTestOrganizer();
             const rootFolder = getRootFolder(organizerWithOrdering);
             rootFolder.children = [...ENTRIES];
 
-            // Create the test entries
+            // Create refs pointing to the container names (which will be /{entryId})
             ENTRIES.forEach((entryId) => {
                 organizerWithOrdering.views.default.entries[entryId] = {
                     id: entryId,
                     type: 'ref',
-                    target: `target_${entryId}`,
+                    target: `/${entryId}`,
                 };
             });
 
