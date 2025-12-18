@@ -83,6 +83,10 @@ try {
             if (parsedPackageJson.dependencies?.[dep]) {
                 delete parsedPackageJson.dependencies[dep];
             }
+            // Also strip from peerDependencies (npm doesn't understand workspace: protocol)
+            if (parsedPackageJson.peerDependencies?.[dep]) {
+                delete parsedPackageJson.peerDependencies[dep];
+            }
         });
     }
 
