@@ -210,22 +210,34 @@ Once you have your key pair, add your public SSH key to your Unraid server:
 
 ### Development Modes
 
-The project supports two development modes:
+#### Mode 1: Local Plugin Build (Docker)
 
-#### Mode 1: Build Watcher with Local Plugin
-
-This mode builds the plugin continuously and serves it locally for installation on your Unraid server:
+Build and test a full plugin locally using Docker:
 
 ```sh
-# From the root directory (api/)
-pnpm build:watch
+cd plugin
+pnpm run docker:build-and-run
+# Then inside the container:
+pnpm build
 ```
 
-This command will output a local plugin URL that you can install on your Unraid server by navigating to Plugins → Install Plugin. Be aware it will take a *while* to build the first time.
+This builds all dependencies (API, web), starts a Docker container, and serves the plugin at `http://YOUR_IP:5858/`. Install it on your Unraid server via Plugins → Install Plugin.
 
-#### Mode 2: Development Servers
+#### Mode 2: Direct Deployment
 
-For active development with hot-reload:
+Deploy individual packages directly to an Unraid server for faster iteration:
+
+```sh
+# Deploy API changes
+cd api && pnpm unraid:deploy <SERVER_IP>
+
+# Deploy web changes
+cd web && pnpm unraid:deploy <SERVER_IP>
+```
+
+#### Mode 3: Development Servers
+
+For active development with hot-reload (no Unraid server needed):
 
 ```sh
 # From the root directory - runs all dev servers concurrently
@@ -238,29 +250,11 @@ Or run individual development servers:
 # API server (GraphQL backend at http://localhost:3001)
 cd api && pnpm dev
 
-# Web interface (Nuxt frontend at http://localhost:3000) 
+# Web interface (Nuxt frontend at http://localhost:3000)
 cd web && pnpm dev
 ```
 
-### Building the Full Plugin
-
-Building the plugin requires Docker. This command automatically builds all dependencies (API, web) before starting the Docker build:
-
-```sh
-cd plugin
-pnpm run docker:build-and-run
-```
-
-**Alternative: Build Watch Mode**
-
-```sh
-# From the root directory
-pnpm build:watch
-```
-
-This starts the Docker-based build watcher that continuously builds and serves the plugin locally.
-
-To deploy the plugin to your Unraid server:
+### Deploying to Unraid
 
 ```sh
 # Replace SERVER_IP with your Unraid server's IP address

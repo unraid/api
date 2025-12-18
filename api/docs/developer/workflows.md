@@ -62,32 +62,18 @@ To build all packages in the monorepo:
 pnpm build
 ```
 
-### Watch Mode Building
-
-For continuous building during development:
-
-```bash
-pnpm build:watch
-```
-
-This is useful when you want to see your changes reflected without manually rebuilding. This will also allow you to install a local plugin to test your changes.
-
 ### Plugin Building (Docker Required)
 
-The plugin build requires Docker to properly assemble all components:
+The plugin build requires Docker. This command automatically builds all dependencies (API, web) before starting Docker:
 
 ```bash
 cd plugin
 pnpm run docker:build-and-run
+# Then inside the container:
+pnpm build
 ```
 
-Or use the watch mode from the root directory:
-
-```bash
-pnpm build:watch
-```
-
-> **Why Docker?** The plugin build uses Docker volume mounts to map build artifacts from `web/dist`, `api/deploy/release`, and `unraid-ui/dist-wc` into the plugin's source directory structure. Without Docker, these paths won't resolve correctly.
+This serves the plugin at `http://YOUR_IP:5858/` for installation on your Unraid server.
 
 ### Package-Specific Building
 

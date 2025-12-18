@@ -4,55 +4,32 @@ Tool for building and testing Unraid plugins locally as well as packaging them f
 
 ## Development Workflow
 
-### 1. Watch for Changes
-
-The watch command will automatically sync changes from the API, UI components, and web app into the plugin source:
-
-```bash
-# Start watching all components
-pnpm run watch:all
-
-# Or run individual watchers:
-pnpm run api:watch    # Watch API changes
-pnpm run ui:watch     # Watch Unraid UI component changes
-pnpm run wc:watch     # Watch web component changes
-```
-
-This will copy:
-
-- API files to `./source/dynamix.unraid.net/usr/local/unraid-api`
-- UI components to `./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components`
-- Web components to the same UI directory
-
-### 2. Build the Plugin
+### 1. Build the Plugin
 
 > **Note:** Building the plugin requires Docker.
 
 Once your changes are ready, build the plugin package:
 
 ```bash
-# Build using Docker (required)
+# Start Docker container (builds dependencies automatically)
 pnpm run docker:build-and-run
+
+# Inside the container, build the plugin
+pnpm build
 ```
 
-This command will:
+This will:
 
 1. Build the API release (`api/deploy/release/`)
 2. Build the web standalone components (`web/dist/`)
-3. Start Docker and build the plugin package
+3. Start Docker container with HTTP server on port 5858
+4. Build the plugin package (when you run `pnpm build`)
 
-The plugin files will be created in `./deploy/release/`
+The plugin files will be created in `./deploy/` and served automatically.
 
-### 3. Serve and Install
+### 2. Install on Unraid
 
-Start a local HTTP server to serve the plugin files:
-
-```bash
-# Serve the plugin files
-pnpm run http-server
-```
-
-Then install the plugin on your Unraid development machine by visiting:
+Install the plugin on your Unraid development machine by visiting:
 
 `http://SERVER_NAME.local/Plugins`
 
@@ -64,8 +41,7 @@ Replace `SERVER_NAME` with your development machine's hostname.
 
 ## Development Tips
 
-- Run watchers in a separate terminal while developing
-- The http-server includes CORS headers for local development
+- The HTTP server includes CORS headers for local development
 - Check the Unraid system log for plugin installation issues
 
 ## Environment Setup
@@ -86,22 +62,10 @@ Replace `SERVER_NAME` with your development machine's hostname.
 
 ### Build Commands
 
-- `build` - Build the plugin package
-- `build:validate` - Build with environment validation
+- `build` - Build the plugin package (run inside Docker container)
 - `docker:build` - Build the Docker container
 - `docker:run` - Run the builder in Docker
-- `docker:build-and-run` - Build and run in Docker
-
-### Watch Commands
-
-- `watch:all` - Watch all component changes
-- `api:watch` - Watch API changes
-- `ui:watch` - Watch UI component changes
-- `wc:watch` - Watch web component changes
-
-### Server Commands
-
-- `http-server` - Serve the plugin files locally
+- `docker:build-and-run` - Build dependencies and start Docker container
 
 ### Environment Commands
 
