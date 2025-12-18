@@ -14,6 +14,10 @@ import { useServerStore } from '~/store/server';
 
 vi.mock('@unraid/shared-callbacks', () => ({}));
 
+vi.mock('@unraid/ui', () => ({
+  BrandLoading: {},
+}));
+
 vi.mock('~/composables/services/keyServer', () => ({
   validateGuid: vi.fn(),
 }));
@@ -62,7 +66,7 @@ describe('ReplaceRenew Store', () => {
       expect(store.replaceStatus).toBe('ready');
     });
 
-    it('should initialize with error state when guid is missing', () => {
+    it('should initialize with ready state even when guid is missing', () => {
       vi.mocked(useServerStore).mockReturnValueOnce({
         guid: undefined,
         keyfile: mockKeyfile,
@@ -72,7 +76,8 @@ describe('ReplaceRenew Store', () => {
 
       const newStore = useReplaceRenewStore();
 
-      expect(newStore.replaceStatus).toBe('error');
+      // Store now always initializes as 'ready' - errors are set when check() is called
+      expect(newStore.replaceStatus).toBe('ready');
     });
   });
 
@@ -136,6 +141,18 @@ describe('ReplaceRenew Store', () => {
 
       store.setRenewStatus('installing');
       expect(store.renewStatus).toBe('installing');
+    });
+
+    it('should reset all states with reset action', () => {
+      store.setReplaceStatus('error');
+      store.keyLinkedStatus = 'error';
+      store.error = { name: 'Error', message: 'Test error' };
+
+      store.reset();
+
+      expect(store.replaceStatus).toBe('ready');
+      expect(store.keyLinkedStatus).toBe('ready');
+      expect(store.error).toBeNull();
     });
 
     describe('check action', () => {
@@ -326,8 +343,59 @@ describe('ReplaceRenew Store', () => {
         await store.check();
 
         expect(store.replaceStatus).toBe('error');
+        expect(store.keyLinkedStatus).toBe('error');
         expect(console.error).toHaveBeenCalledWith('[ReplaceCheck.check]', testError);
-        expect(store.error).toEqual(testError);
+        expect(store.error).toEqual({ name: 'Error', message: 'Test error' });
+      });
+
+      it('should set error when guid is missing during check', async () => {
+        vi.mocked(useServerStore).mockReturnValue({
+          guid: '',
+          keyfile: mockKeyfile,
+        } as unknown as ReturnType<typeof useServerStore>);
+
+        setActivePinia(createPinia());
+        const testStore = useReplaceRenewStore();
+
+        await testStore.check();
+
+        expect(testStore.replaceStatus).toBe('error');
+        expect(testStore.keyLinkedStatus).toBe('error');
+        expect(testStore.error?.message).toBe('Flash GUID required to check replacement status');
+      });
+
+      it('should set error when keyfile is missing during check', async () => {
+        vi.mocked(useServerStore).mockReturnValue({
+          guid: mockGuid,
+          keyfile: '',
+        } as unknown as ReturnType<typeof useServerStore>);
+
+        setActivePinia(createPinia());
+        const testStore = useReplaceRenewStore();
+
+        await testStore.check();
+
+        expect(testStore.replaceStatus).toBe('error');
+        expect(testStore.keyLinkedStatus).toBe('error');
+        expect(testStore.error?.message).toBe('Keyfile required to check replacement status');
+      });
+
+      it('should provide descriptive error for 403 status', async () => {
+        const error403 = { response: { status: 403 }, message: 'Forbidden' };
+        vi.mocked(validateGuid).mockRejectedValueOnce(error403);
+
+        await store.check();
+
+        expect(store.error?.message).toBe('Access denied - license may be linked to another account');
+      });
+
+      it('should provide descriptive error for 500+ status', async () => {
+        const error500 = { response: { status: 500 }, message: 'Server Error' };
+        vi.mocked(validateGuid).mockRejectedValueOnce(error500);
+
+        await store.check();
+
+        expect(store.error?.message).toBe('Key server temporarily unavailable - please try again later');
       });
     });
   });
