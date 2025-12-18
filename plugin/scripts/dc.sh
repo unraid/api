@@ -37,10 +37,16 @@ fi
 echo "Building dependencies..."
 
 echo "Building API release..."
-(cd .. && pnpm --filter @unraid/api build:release)
+if ! (cd .. && pnpm --filter @unraid/api build:release); then
+  echo "Error: API build failed. Aborting."
+  exit 1
+fi
 
 echo "Building web standalone..."
-(cd .. && pnpm --filter @unraid/web build)
+if ! (cd .. && pnpm --filter @unraid/web build); then
+  echo "Error: Web build failed. Aborting."
+  exit 1
+fi
 
 echo "Dependencies built successfully."
 
