@@ -72,6 +72,23 @@ pnpm build:watch
 
 This is useful when you want to see your changes reflected without manually rebuilding. This will also allow you to install a local plugin to test your changes.
 
+### Plugin Building (Docker Required)
+
+The plugin build requires Docker to properly assemble all components:
+
+```bash
+cd plugin
+pnpm run docker:build-and-run
+```
+
+Or use the watch mode from the root directory:
+
+```bash
+pnpm build:watch
+```
+
+> **Why Docker?** The plugin build uses Docker volume mounts to map build artifacts from `web/dist`, `api/deploy/release`, and `unraid-ui/dist-wc` into the plugin's source directory structure. Without Docker, these paths won't resolve correctly.
+
 ### Package-Specific Building
 
 #### API Building

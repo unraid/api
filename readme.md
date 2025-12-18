@@ -244,14 +244,21 @@ cd web && pnpm dev
 
 ### Building the Full Plugin
 
-To build the complete plugin package (.plg file):
+Building the plugin requires Docker. This command automatically builds all dependencies (API, web) before starting the Docker build:
 
 ```sh
-# From the root directory (api/)
-pnpm build:plugin
-
-# The plugin will be created in plugin/dynamix.unraid.net.plg
+cd plugin
+pnpm run docker:build-and-run
 ```
+
+**Alternative: Build Watch Mode**
+
+```sh
+# From the root directory
+pnpm build:watch
+```
+
+This starts the Docker-based build watcher that continuously builds and serves the plugin locally.
 
 To deploy the plugin to your Unraid server:
 

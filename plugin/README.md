@@ -26,17 +26,22 @@ This will copy:
 
 ### 2. Build the Plugin
 
+> **Note:** Building the plugin requires Docker.
+
 Once your changes are ready, build the plugin package:
 
 ```bash
-# Build using Docker - on non-Linux systems
+# Build using Docker (required)
 pnpm run docker:build-and-run
-
-# Or build with the build script
-pnpm run build:validate
 ```
 
-This will create the plugin files in `./deploy/release/`
+This command will:
+
+1. Build the API release (`api/deploy/release/`)
+2. Build the web standalone components (`web/dist/`)
+3. Start Docker and build the plugin package
+
+The plugin files will be created in `./deploy/release/`
 
 ### 3. Serve and Install
 

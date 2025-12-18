@@ -33,6 +33,17 @@ if [ ! -d "$WEB_DIST_DIR" ]; then
   mkdir -p "$WEB_DIST_DIR"
 fi
 
+# Build dependencies before starting Docker (always rebuild to prevent staleness)
+echo "Building dependencies..."
+
+echo "Building API release..."
+(cd .. && pnpm --filter @unraid/api build:release)
+
+echo "Building web standalone..."
+(cd .. && pnpm --filter @unraid/web build)
+
+echo "Dependencies built successfully."
+
 # Stop any running plugin-builder container first
 echo "Stopping any running plugin-builder containers..."
 docker ps -q --filter "name=${CONTAINER_NAME}" | xargs -r docker stop
