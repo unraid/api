@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.29.1](https://github.com/unraid/api/compare/v4.29.0...v4.29.1) (2025-12-19)
+
+
+### Bug Fixes
+
+* revert replace docker overview table with web component (7.3+) ([#1853](https://github.com/unraid/api/issues/1853)) ([560db88](https://github.com/unraid/api/commit/560db880cc138324f9ff8753f7209b683a84c045))
+
 ## [4.29.0](https://github.com/unraid/api/compare/v4.28.2...v4.29.0) (2025-12-19)
 
 
