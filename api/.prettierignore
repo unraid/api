@@ -5,3 +5,4 @@ src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/*
 
 # Generated Types
 src/graphql/generated/client/*.ts
+dist/

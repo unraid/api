@@ -4,6 +4,10 @@ declare global {
     __unifiedApp?: unknown;
     __mountedComponents?: Array<{ element: HTMLElement; unmount: () => void }>;
     LOCALE?: string;
+    toast?: {
+      success: (title: string, options?: { description?: string }) => void;
+      error?: (title: string, options?: { description?: string }) => void;
+    };
   }
 }
 
