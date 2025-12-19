@@ -8,6 +8,7 @@ import { applyPatch, createPatch, parsePatch, reversePatch } from 'diff';
 import { coerce, compare, gte, lte } from 'semver';
 
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
+import { NODE_ENV } from '@app/environment.js';
 
 export type ModificationEffect = 'nginx:reload';
 
@@ -223,6 +224,14 @@ export abstract class FileModification {
 
             if (!this.filePath || !this.id) {
                 throw new Error('Invalid file modification configuration');
+            }
+
+            // Skip file modifications in development mode
+            if (NODE_ENV === 'development') {
+                return {
+                    shouldApply: false,
+                    reason: 'File modifications are disabled in development mode',
+                };
             }
 
             const fileExists = await access(this.filePath, constants.R_OK | constants.W_OK)
