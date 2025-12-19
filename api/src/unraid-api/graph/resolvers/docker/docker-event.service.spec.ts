@@ -1,8 +1,6 @@
-import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PassThrough, Readable } from 'stream';
+import { PassThrough } from 'stream';
 
-import Docker from 'dockerode';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Import pubsub for use in tests
@@ -51,6 +49,14 @@ vi.mock('@app/core/pubsub.js', () => ({
     },
 }));
 
+// Mock the docker client utility - this is what the service actually uses
+const mockDockerClientInstance = {
+    getEvents: vi.fn(),
+};
+vi.mock('./utils/docker-client.js', () => ({
+    getDockerClient: vi.fn(() => mockDockerClientInstance),
+}));
+
 // Mock DockerService
 vi.mock('./docker.service.js', () => ({
     DockerService: vi.fn().mockImplementation(() => ({
@@ -63,20 +69,13 @@ vi.mock('./docker.service.js', () => ({
 describe('DockerEventService', () => {
     let service: DockerEventService;
     let dockerService: DockerService;
-    let mockDockerClient: Docker;
     let mockEventStream: PassThrough;
-    let mockLogger: Logger;
     let module: TestingModule;
 
     beforeEach(async () => {
-        // Create a mock Docker client
-        mockDockerClient = {
-            getEvents: vi.fn(),
-        } as unknown as Docker;
-
         // Create a mock Docker service *instance*
         const mockDockerServiceImpl = {
-            getDockerClient: vi.fn().mockReturnValue(mockDockerClient),
+            getDockerClient: vi.fn(),
             clearContainerCache: vi.fn(),
             getAppInfo: vi.fn().mockResolvedValue({ info: { apps: { installed: 1, running: 1 } } }),
         };
@@ -85,12 +84,7 @@ describe('DockerEventService', () => {
         mockEventStream = new PassThrough();
 
         // Set up the mock Docker client to return our mock event stream
-        vi.spyOn(mockDockerClient, 'getEvents').mockResolvedValue(
-            mockEventStream as unknown as Readable
-        );
-
-        // Create a mock logger
-        mockLogger = new Logger(DockerEventService.name) as Logger;
+        mockDockerClientInstance.getEvents = vi.fn().mockResolvedValue(mockEventStream);
 
         // Use the mock implementation in the testing module
         module = await Test.createTestingModule({

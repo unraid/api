@@ -164,4 +164,10 @@ export class Notifications extends Node {
     @Field(() => [Notification])
     @IsNotEmpty()
     list!: Notification[];
+
+    @Field(() => [Notification], {
+        description: 'Deduplicated list of unread warning and alert notifications, sorted latest first.',
+    })
+    @IsNotEmpty()
+    warningsAndAlerts!: Notification[];
 }

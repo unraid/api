@@ -12,8 +12,13 @@ default:
 @deploy remote:
     ./scripts/deploy-dev.sh {{remote}}
 
+# watches typescript files and restarts dev server on changes
+@watch:
+    watchexec -e ts -r -- pnpm dev
+
 alias b := build
 alias d := deploy
+alias w := watch
 
 sync-env server:
     rsync -avz --progress --stats -e ssh .env* root@{{server}}:/usr/local/unraid-api

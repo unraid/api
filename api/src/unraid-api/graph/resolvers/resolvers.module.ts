@@ -15,8 +15,8 @@ import { InfoModule } from '@app/unraid-api/graph/resolvers/info/info.module.js'
 import { LogsModule } from '@app/unraid-api/graph/resolvers/logs/logs.module.js';
 import { MetricsModule } from '@app/unraid-api/graph/resolvers/metrics/metrics.module.js';
 import { RootMutationsResolver } from '@app/unraid-api/graph/resolvers/mutation/mutation.resolver.js';
+import { NotificationsModule } from '@app/unraid-api/graph/resolvers/notifications/notifications.module.js';
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
-import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.resolver.js';
 import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resolver.js';
 import { RCloneModule } from '@app/unraid-api/graph/resolvers/rclone/rclone.module.js';
@@ -47,6 +47,7 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         FlashBackupModule,
         InfoModule,
         LogsModule,
+        NotificationsModule,
         RCloneModule,
         SettingsModule,
         SsoModule,
@@ -58,7 +59,6 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         FlashResolver,
         MeResolver,
         NotificationsResolver,
-        NotificationsService,
         OnlineResolver,
         OwnerResolver,
         RegistrationResolver,

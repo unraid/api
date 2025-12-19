@@ -45,6 +45,7 @@ describe('DockerMutationsResolver', () => {
             state: ContainerState.RUNNING,
             status: 'Up 2 hours',
             names: ['test-container'],
+            isOrphaned: false,
         };
         vi.mocked(dockerService.start).mockResolvedValue(mockContainer);
 
@@ -65,6 +66,7 @@ describe('DockerMutationsResolver', () => {
             state: ContainerState.EXITED,
             status: 'Exited',
             names: ['test-container'],
+            isOrphaned: false,
         };
         vi.mocked(dockerService.stop).mockResolvedValue(mockContainer);
 
