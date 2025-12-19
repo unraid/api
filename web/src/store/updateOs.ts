@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 
+import { WEBGUI_REDIRECT } from '~/helpers/urls';
 import dayjs, { extend } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -71,8 +72,9 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
   // fetchAndConfirmInstall logic
   const callbackStore = useCallbackActionsStore();
   const fetchAndConfirmInstall = (sha256: string) => {
+    const redirectUrl = new URL(WEBGUI_REDIRECT, window.location.origin).toString();
     callbackStore.send(
-      window.location.href,
+      redirectUrl,
       [
         {
           sha256,
