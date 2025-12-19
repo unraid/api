@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.29.0](https://github.com/unraid/api/compare/v4.28.2...v4.29.0) (2025-12-19)
+
+
+### Features
+
+* replace docker overview table with web component (7.3+) ([#1764](https://github.com/unraid/api/issues/1764)) ([277ac42](https://github.com/unraid/api/commit/277ac420464379e7ee6739c4530271caf7717503))
+
+
+### Bug Fixes
+
+* handle race condition between guid loading and license check ([#1847](https://github.com/unraid/api/issues/1847)) ([8b155d1](https://github.com/unraid/api/commit/8b155d1f1c99bb19efbc9614e000d852e9f0c12d))
+* resolve issue with "Continue" button when updating ([#1852](https://github.com/unraid/api/issues/1852)) ([d099e75](https://github.com/unraid/api/commit/d099e7521d2062bb9cf84f340e46b169dd2492c5))
+* update myservers config references to connect config references ([#1810](https://github.com/unraid/api/issues/1810)) ([e1e3ea7](https://github.com/unraid/api/commit/e1e3ea7eb68cc6840f67a8aec937fd3740e75b28))
+
 ## [4.28.2](https://github.com/unraid/api/compare/v4.28.1...v4.28.2) (2025-12-16)
 
 
