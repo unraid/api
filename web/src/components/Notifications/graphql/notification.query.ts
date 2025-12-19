@@ -23,6 +23,17 @@ export const NOTIFICATION_COUNT_FRAGMENT = graphql(/* GraphQL */ `
   }
 `);
 
+export const NOTIFICATION_JOB_FRAGMENT = graphql(/* GraphQL */ `
+  fragment NotificationJobFragment on NotificationJob {
+    id
+    operation
+    state
+    processed
+    total
+    error
+  }
+`);
+
 export const getNotifications = graphql(/* GraphQL */ `
   query Notifications($filter: NotificationFilter!) {
     notifications {
@@ -42,40 +53,36 @@ export const archiveNotification = graphql(/* GraphQL */ `
   }
 `);
 
-export const archiveAllNotifications = graphql(/* GraphQL */ `
-  mutation ArchiveAllNotifications {
-    archiveAll {
-      unread {
-        total
-      }
-      archive {
-        info
-        warning
-        alert
-        total
-      }
-    }
-  }
-`);
-
 export const deleteNotification = graphql(/* GraphQL */ `
   mutation DeleteNotification($id: PrefixedID!, $type: NotificationType!) {
-    deleteNotification(id: $id, type: $type) {
-      archive {
-        total
+    notifications {
+      delete(id: $id, type: $type) {
+        archive {
+          total
+        }
+        unread {
+          total
+        }
       }
     }
   }
 `);
 
-export const deleteArchivedNotifications = graphql(/* GraphQL */ `
-  mutation DeleteAllNotifications {
-    deleteArchivedNotifications {
-      archive {
-        total
+export const archiveAllNotifications = graphql(/* GraphQL */ `
+  mutation StartArchiveAllNotifications($importance: NotificationImportance) {
+    notifications {
+      startArchiveAll(importance: $importance) {
+        ...NotificationJobFragment
       }
-      unread {
-        total
+    }
+  }
+`);
+
+export const startDeleteNotifications = graphql(/* GraphQL */ `
+  mutation StartDeleteNotifications($type: NotificationType) {
+    notifications {
+      startDeleteAll(type: $type) {
+        ...NotificationJobFragment
       }
     }
   }
@@ -95,6 +102,16 @@ export const notificationsOverview = graphql(/* GraphQL */ `
         archive {
           total
         }
+      }
+    }
+  }
+`);
+
+export const notificationJobStatus = graphql(/* GraphQL */ `
+  query NotificationJobStatus($id: ID!) {
+    notifications {
+      job(id: $id) {
+        ...NotificationJobFragment
       }
     }
   }

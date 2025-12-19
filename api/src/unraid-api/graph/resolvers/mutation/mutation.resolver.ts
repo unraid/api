@@ -5,6 +5,7 @@ import {
     ArrayMutations,
     CustomizationMutations,
     DockerMutations,
+    NotificationMutations,
     ParityCheckMutations,
     RCloneMutations,
     RootMutations,
@@ -46,5 +47,10 @@ export class RootMutationsResolver {
     @Mutation(() => RCloneMutations, { name: 'rclone' })
     rclone(): RCloneMutations {
         return new RCloneMutations();
+    }
+
+    @Mutation(() => NotificationMutations, { name: 'notifications' })
+    notifications(): NotificationMutations {
+        return new NotificationMutations();
     }
 }

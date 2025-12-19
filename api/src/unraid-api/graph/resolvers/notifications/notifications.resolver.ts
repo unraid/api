@@ -11,6 +11,7 @@ import {
     NotificationData,
     NotificationFilter,
     NotificationImportance,
+    NotificationJob,
     NotificationOverview,
     Notifications,
     NotificationType,
@@ -39,6 +40,11 @@ export class NotificationsResolver {
     @ResolveField(() => NotificationOverview)
     public async overview(): Promise<NotificationOverview> {
         return this.notificationsService.getOverview();
+    }
+
+    @ResolveField(() => NotificationJob, { nullable: true })
+    public job(@Args('id') jobId: string): NotificationJob {
+        return this.notificationsService.getJob(jobId);
     }
 
     @ResolveField(() => [Notification])

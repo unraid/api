@@ -142,7 +142,6 @@ const reformattedTimestamp = computed<string>(() => {
         <span class="text-sm">{{ t('notifications.item.archive') }}</span>
       </Button>
       <Button
-        v-if="type === NotificationType.ARCHIVE"
         :disabled="deleteNotification.loading"
         @click="() => deleteNotification.mutate({ id: props.id, type: props.type })"
       >

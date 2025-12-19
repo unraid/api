@@ -45,6 +45,11 @@ export class RCloneMutations {
     deleteRCloneRemote!: boolean;
 }
 
+@ObjectType({
+    description: 'Notification related mutations',
+})
+export class NotificationMutations {}
+
 @ObjectType()
 export class RootMutations {
     @Field(() => ArrayMutations, { description: 'Array related mutations' })
@@ -67,4 +72,7 @@ export class RootMutations {
 
     @Field(() => RCloneMutations, { description: 'RClone related mutations' })
     rclone: RCloneMutations = new RCloneMutations();
+
+    @Field(() => NotificationMutations, { description: 'Notification related mutations' })
+    notifications: NotificationMutations = new NotificationMutations();
 }
