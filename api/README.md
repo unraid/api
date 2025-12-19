@@ -75,16 +75,6 @@ If you found this file you're likely a developer. If you'd like to know more abo
 
 - Run `pnpm --filter @unraid/api i18n:extract` to scan the Nest.js source for translation helper usages and update `src/i18n/en.json` with any new keys. The extractor keeps existing translations intact and appends new keys with their English source text.
 
-## Developer Documentation
-
-For detailed information about specific features:
-
-- [API Plugins](docs/developer/api-plugins.md) - Working with API plugins and workspace packages
-- [Docker Feature](docs/developer/docker.md) - Container management, GraphQL API, and WebGUI integration
-- [Feature Flags](docs/developer/feature-flags.md) - Conditionally enabling functionality
-- [Repository Organization](docs/developer/repo-organization.md) - Codebase structure
-- [Development Workflows](docs/developer/workflows.md) - Development processes
-
 ## License
 
 Copyright Lime Technology Inc. All rights reserved.

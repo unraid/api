@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import DockerConsoleViewer from '@/components/Docker/DockerConsoleViewer.vue';
+import Console from '@/components/Docker/Console.vue';
 import Edit from '@/components/Docker/Edit.vue';
+import Logs from '@/components/Docker/Logs.vue';
 import Overview from '@/components/Docker/Overview.vue';
 import Preview from '@/components/Docker/Preview.vue';
-import SingleDockerLogViewer from '@/components/Docker/SingleDockerLogViewer.vue';
 
 import Detail from '~/components/LayoutViews/Detail/Detail.vue';
 
@@ -104,13 +104,12 @@ const getTabsWithProps = (containerId: string) => [
   {
     key: 'logs',
     label: 'Logs',
-    component: SingleDockerLogViewer,
-    props: { containerName: containerId, autoScroll: true },
+    component: Logs,
   },
   {
     key: 'console',
     label: 'Console',
-    component: DockerConsoleViewer,
+    component: Console,
   },
   {
     key: 'preview',

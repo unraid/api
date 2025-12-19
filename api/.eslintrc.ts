@@ -8,7 +8,7 @@ export default tseslint.config(
     eslint.configs.recommended,
     ...tseslint.configs.recommended,
     {
-        ignores: ['src/graphql/generated/client/**/*', 'src/**/**/dummy-process.js', 'dist/**/*'],
+        ignores: ['src/graphql/generated/client/**/*', 'src/**/**/dummy-process.js'],
     },
     {
         plugins: {

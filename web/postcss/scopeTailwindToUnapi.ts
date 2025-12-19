@@ -13,24 +13,9 @@ interface AtRule extends Container {
   params: string;
 }
 
-type WalkAtRulesRoot = {
-  walkAtRules: (name: string, callback: (atRule: AtRule) => void) => void;
-};
-
-type ParentContainer = Container & {
-  insertBefore?: (oldNode: Container, newNode: Container) => void;
-  removeChild?: (node: Container) => void;
-};
-
-type RemovableAtRule = AtRule & {
-  nodes?: Container[];
-  remove?: () => void;
-};
-
 type PostcssPlugin = {
   postcssPlugin: string;
   Rule?(rule: Rule): void;
-  OnceExit?(root: WalkAtRulesRoot): void;
 };
 
 type PluginCreator<T> = {
@@ -177,49 +162,6 @@ export const scopeTailwindToUnapi: PluginCreator<ScopeOptions> = (options: Scope
       } else {
         rule.selector = scopedSelectors.join(', ');
       }
-    },
-    OnceExit(root) {
-      // Remove @layer at-rules after all rules have been scoped.
-      // Tailwind CSS v4 uses @layer directives (e.g., @layer utilities, @layer components)
-      // to organize CSS. After the Rule hook scopes all selectors within these layers,
-      // the @layer wrappers are no longer needed in the final output.
-      //
-      // This cleanup step:
-      // 1. Extracts all scoped rules from inside @layer blocks
-      // 2. Moves them to the parent container (outside the @layer)
-      // 3. Removes the now-empty @layer wrapper
-      //
-      // This produces cleaner CSS output, avoids potential browser compatibility issues
-      // with CSS layers, and ensures the final CSS only contains the scoped rules without
-      // the organizational layer structure.
-      root.walkAtRules('layer', (atRule: AtRule) => {
-        const removableAtRule = atRule as RemovableAtRule;
-        const parent = atRule.parent as ParentContainer | undefined;
-        if (!parent) {
-          return;
-        }
-
-        // Extract all nodes from the @layer and move them to the parent
-        if (
-          Array.isArray(removableAtRule.nodes) &&
-          removableAtRule.nodes.length > 0 &&
-          typeof (parent as ParentContainer).insertBefore === 'function'
-        ) {
-          const parentContainer = parent as ParentContainer;
-          while (removableAtRule.nodes.length) {
-            const node = removableAtRule.nodes[0]!;
-            parentContainer.insertBefore?.(atRule as unknown as Container, node);
-          }
-        }
-
-        // Remove the empty @layer wrapper
-        if (typeof removableAtRule.remove === 'function') {
-          removableAtRule.remove();
-          return;
-        }
-
-        (parent as ParentContainer).removeChild?.(atRule as unknown as Container);
-      });
     },
   };
 };

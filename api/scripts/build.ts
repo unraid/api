@@ -7,7 +7,7 @@ import { exit } from 'process';
 import type { PackageJson } from 'type-fest';
 import { $, cd } from 'zx';
 
-import { getDeploymentVersion } from '@app/../scripts/get-deployment-version.js';
+import { getDeploymentVersion } from './get-deployment-version.js';
 
 type ApiPackageJson = PackageJson & {
     version: string;

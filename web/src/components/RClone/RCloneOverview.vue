@@ -83,6 +83,15 @@ const onConfigComplete = () => {
   initialFormState.value = null;
   refetchRemotes();
 };
+
+declare global {
+  interface Window {
+    toast?: {
+      success: (title: string, options: { description?: string }) => void;
+      error?: (title: string, options: { description?: string }) => void;
+    };
+  }
+}
 </script>
 
 <template>
