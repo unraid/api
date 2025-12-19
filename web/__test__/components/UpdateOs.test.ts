@@ -13,7 +13,9 @@ import { createTestI18n } from '../utils/i18n';
 
 vi.mock('@unraid/ui', () => ({
   PageContainer: { template: '<div><slot /></div>' },
-  BrandLoading: { template: '<div data-testid="brand-loading-mock">Loading...</div>' },
+  BrandButton: {
+    template: '<button v-bind="$attrs" @click="$emit(\'click\')"><slot /></button>',
+  },
 }));
 
 const mockAccountStore = {
@@ -97,7 +99,7 @@ describe('UpdateOs.standalone.vue', () => {
   });
 
   describe('Initial Rendering and onBeforeMount Logic', () => {
-    it('shows loader and calls updateOs when path matches and rebootType is empty', async () => {
+    it('shows account button and does not auto-redirect when path matches and rebootType is empty', async () => {
       window.location.pathname = '/Tools/Update';
       mockRebootType.value = '';
 
@@ -105,7 +107,7 @@ describe('UpdateOs.standalone.vue', () => {
         global: {
           plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
           stubs: {
-            // Rely on @unraid/ui mock for PageContainer & BrandLoading
+            // Rely on @unraid/ui mock for PageContainer & BrandButton
             UpdateOsStatus: UpdateOsStatusStub,
             UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
           },
@@ -114,17 +116,9 @@ describe('UpdateOs.standalone.vue', () => {
 
       await nextTick();
 
-      // When path matches and rebootType is empty, updateOs should be called
-      expect(mockAccountStore.updateOs).toHaveBeenCalledWith(true);
-      // Since v-show is used, both elements exist in DOM
-      expect(wrapper.find('[data-testid="brand-loading-mock"]').exists()).toBe(true);
-      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
-      // The loader should be visible when showLoader is true
-      const loaderWrapper = wrapper.find('[data-testid="brand-loading-mock"]').element.parentElement;
-      expect(loaderWrapper?.style.display).not.toBe('none');
-      // The status should be hidden when showLoader is true
-      const statusWrapper = wrapper.find('[data-testid="update-os-status"]').element.parentElement;
-      expect(statusWrapper?.style.display).toBe('none');
+      expect(mockAccountStore.updateOs).not.toHaveBeenCalled();
+      expect(wrapper.find('[data-testid="update-os-account-button"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(false);
     });
 
     it('shows status and does not call updateOs when path does not match', async () => {
@@ -145,8 +139,7 @@ describe('UpdateOs.standalone.vue', () => {
       await nextTick();
 
       expect(mockAccountStore.updateOs).not.toHaveBeenCalled();
-      // Since v-show is used, both elements exist in DOM
-      expect(wrapper.find('[data-testid="brand-loading-mock"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="update-os-account-button"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
     });
 
@@ -168,9 +161,29 @@ describe('UpdateOs.standalone.vue', () => {
       await nextTick();
 
       expect(mockAccountStore.updateOs).not.toHaveBeenCalled();
-      // Since v-show is used, both elements exist in DOM
-      expect(wrapper.find('[data-testid="brand-loading-mock"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="update-os-account-button"]').exists()).toBe(false);
       expect(wrapper.find('[data-testid="update-os-status"]').exists()).toBe(true);
+    });
+
+    it('navigates to account update when the button is clicked', async () => {
+      window.location.pathname = '/Tools/Update';
+      mockRebootType.value = '';
+
+      const wrapper = mount(UpdateOs, {
+        global: {
+          plugins: [createTestingPinia({ createSpy: vi.fn }), createTestI18n()],
+          stubs: {
+            UpdateOsStatus: UpdateOsStatusStub,
+            UpdateOsThirdPartyDrivers: UpdateOsThirdPartyDriversStub,
+          },
+        },
+      });
+
+      await nextTick();
+
+      await wrapper.find('[data-testid="update-os-account-button"]').trigger('click');
+
+      expect(mockAccountStore.updateOs).toHaveBeenCalledWith(true);
     });
   });
 

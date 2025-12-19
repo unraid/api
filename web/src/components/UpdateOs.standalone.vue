@@ -19,7 +19,8 @@ import { computed, onBeforeMount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
-import { BrandLoading, PageContainer } from '@unraid/ui';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import { BrandButton, PageContainer } from '@unraid/ui';
 import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
 import UpdateOsStatus from '~/components/UpdateOs/Status.vue';
@@ -47,25 +48,42 @@ const subtitle = computed(() => {
   return '';
 });
 
-/** when we're not prompting for reboot /Tools/Update will automatically send the user to account.unraid.net/server/update-os */
-const showLoader = computed(
-  () => window.location.pathname === WEBGUI_TOOLS_UPDATE && rebootType.value === ''
+// Show a prompt to continue in the Account app when no reboot is pending.
+const showRedirectPrompt = computed(
+  () =>
+    typeof window !== 'undefined' &&
+    window.location.pathname === WEBGUI_TOOLS_UPDATE &&
+    rebootType.value === ''
 );
 
+const openAccountUpdate = () => {
+  accountStore.updateOs(true);
+};
+
 onBeforeMount(() => {
-  if (showLoader.value) {
-    accountStore.updateOs(true);
-  }
   serverStore.setRebootVersion(props.rebootVersion);
 });
 </script>
 
 <template>
   <PageContainer>
-    <div v-show="showLoader">
-      <BrandLoading class="mx-auto my-12 max-w-[160px]" />
+    <div
+      v-if="showRedirectPrompt"
+      class="mx-auto flex max-w-[720px] flex-col items-center gap-4 py-8 text-center"
+    >
+      <h1 class="text-2xl font-semibold">{{ t('updateOs.updateUnraidOs') }}</h1>
+      <p class="text-base leading-relaxed opacity-75">
+        {{ t('updateOs.update.receiveTheLatestAndGreatestFor') }}
+      </p>
+      <BrandButton
+        data-testid="update-os-account-button"
+        :icon-right="ArrowTopRightOnSquareIcon"
+        @click="openAccountUpdate"
+      >
+        {{ t('updateOs.update.viewAvailableUpdates') }}
+      </BrandButton>
     </div>
-    <div v-show="!showLoader">
+    <div v-else>
       <UpdateOsStatus
         :show-update-check="true"
         :title="t('updateOs.updateUnraidOs')"

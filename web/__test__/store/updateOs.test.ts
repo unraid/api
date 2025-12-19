@@ -4,15 +4,40 @@
 
 import { createPinia, setActivePinia } from 'pinia';
 
+import { WEBGUI_REDIRECT } from '~/helpers/urls';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useUpdateOsStore } from '~/store/updateOs';
+
+const mockSend = vi.fn();
 
 vi.mock('@unraid/shared-callbacks', () => ({
   useCallback: vi.fn(() => ({
-    send: vi.fn(),
+    send: mockSend,
     watcher: vi.fn(),
   })),
+}));
+
+vi.mock('~/composables/preventClose', () => ({
+  addPreventClose: vi.fn(),
+  removePreventClose: vi.fn(),
+}));
+
+vi.mock('~/store/account', () => ({
+  useAccountStore: () => ({
+    accountActionStatus: 'ready',
+  }),
+}));
+
+vi.mock('~/store/installKey', () => ({
+  useInstallKeyStore: () => ({
+    keyInstallStatus: 'ready',
+  }),
+}));
+
+vi.mock('~/store/updateOsActions', () => ({
+  useUpdateOsActionsStore: () => ({}),
 }));
 
 vi.mock('~/composables/services/webgui', () => {
@@ -102,6 +127,41 @@ describe('UpdateOs Store', () => {
 
       store.setModalOpen(false);
       expect(store.updateOsModalVisible).toBe(false);
+    });
+
+    it('should send update install through redirect.htm', () => {
+      const callbackStore = useCallbackActionsStore();
+      const originalLocation = window.location;
+
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: {
+          ...originalLocation,
+          origin: 'https://littlebox.tail45affd.ts.net',
+          href: 'https://littlebox.tail45affd.ts.net/Plugins',
+        },
+      });
+
+      store.fetchAndConfirmInstall('test-sha256');
+
+      const expectedUrl = new URL(WEBGUI_REDIRECT, window.location.origin).toString();
+
+      expect(callbackStore.send).toHaveBeenCalledWith(
+        expectedUrl,
+        [
+          {
+            sha256: 'test-sha256',
+            type: 'updateOs',
+          },
+        ],
+        undefined,
+        'forUpc'
+      );
+
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
     });
 
     it('should handle errors when checking for updates', async () => {
