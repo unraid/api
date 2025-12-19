@@ -75,6 +75,9 @@ function ensurePortalRoot(): string | undefined {
   }
 
   ensureUnapiScope(portalRoot);
+  if (isDarkModeActive()) {
+    portalRoot.classList.add('dark');
+  }
 
   return `#${PORTAL_ROOT_ID}`;
 }
