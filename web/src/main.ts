@@ -12,7 +12,6 @@ import { client } from '~/helpers/create-apollo-client';
 import { createI18nInstance, ensureLocale, getWindowLocale } from '~/helpers/i18n-loader';
 
 import { globalPinia } from '~/store/globalPinia';
-import { ensureUnapiScope } from '~/utils/unapiScope';
 
 const bootstrap = async () => {
   const app = createApp(App);
@@ -28,13 +27,7 @@ const bootstrap = async () => {
 
   await ensureLocale(i18n, getWindowLocale());
 
-  const mountTarget = document.querySelector<HTMLElement>('#app');
-  if (mountTarget) {
-    ensureUnapiScope(mountTarget);
-    app.mount(mountTarget);
-  } else {
-    app.mount('#app');
-  }
+  app.mount('#app');
 };
 
 void bootstrap();

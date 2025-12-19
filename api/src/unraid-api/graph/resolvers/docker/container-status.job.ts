@@ -7,7 +7,7 @@ import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/dock
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 
 @Injectable()
-export class ContainerStatusJob {
+export class ContainerStatusJob implements OnApplicationBootstrap {
     private readonly logger = new Logger(ContainerStatusJob.name);
     constructor(
         private readonly dockerManifestService: DockerManifestService,
@@ -17,10 +17,8 @@ export class ContainerStatusJob {
 
     /**
      * Initialize cron job for refreshing the update status for all containers on a user-configurable schedule.
-     *
-     * Disabled for now to avoid duplication of the webgui's update notifier job (under Notification Settings).
      */
-    _disabled_onApplicationBootstrap() {
+    onApplicationBootstrap() {
         if (!this.dockerConfigService.enabled()) return;
         const cronExpression = this.dockerConfigService.getConfig().updateCheckCronSchedule;
         const cronJob = CronJob.from({

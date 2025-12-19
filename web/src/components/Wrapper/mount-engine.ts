@@ -11,31 +11,9 @@ import { createI18nInstance, ensureLocale, getWindowLocale } from '~/helpers/i18
 
 // Import Pinia for use in Vue apps
 import { globalPinia } from '~/store/globalPinia';
-import { ensureUnapiScope, ensureUnapiScopeForSelectors, observeUnapiScope } from '~/utils/unapiScope';
 
 // Ensure Apollo client is singleton
 const apolloClient = (typeof window !== 'undefined' && window.apolloClient) || client;
-
-const PORTAL_ROOT_ID = 'unraid-api-modals-virtual';
-const NAV_ELEMENT_IDS = ['header', 'menu', 'footer'] as const;
-
-const hideNavIfEmbeddedInIFrame = () => {
-  if (typeof window === 'undefined' || typeof document === 'undefined') {
-    return;
-  }
-
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('iframe')?.toLowerCase() !== 'true') {
-    return;
-  }
-
-  NAV_ELEMENT_IDS.forEach((targetId) => {
-    const element = document.getElementById(targetId);
-    if (element) {
-      element.style.display = 'none';
-    }
-  });
-};
 
 // Expose globally for debugging
 declare global {
@@ -53,30 +31,6 @@ async function setupI18n() {
   const i18n = createI18nInstance();
   await ensureLocale(i18n, getWindowLocale());
   return i18n;
-}
-
-function ensurePortalRoot(): string | undefined {
-  if (typeof document === 'undefined') {
-    return undefined;
-  }
-
-  let portalRoot = document.getElementById(PORTAL_ROOT_ID);
-  if (!portalRoot) {
-    portalRoot = document.createElement('div');
-    portalRoot.id = PORTAL_ROOT_ID;
-    document.body.appendChild(portalRoot);
-  }
-
-  if (!portalRoot.style.position) {
-    portalRoot.style.position = 'relative';
-  }
-  if (!portalRoot.style.zIndex) {
-    portalRoot.style.zIndex = '999999';
-  }
-
-  ensureUnapiScope(portalRoot);
-
-  return `#${PORTAL_ROOT_ID}`;
 }
 
 // Helper function to parse props from HTML attributes
@@ -153,43 +107,12 @@ export async function mountUnifiedApp() {
   // Batch all selector queries first to identify which components are needed
   const componentsToMount: Array<{ mapping: (typeof componentMappings)[0]; element: HTMLElement }> = [];
 
-  const portalTarget = ensurePortalRoot();
-  hideNavIfEmbeddedInIFrame();
-
   // Build a map of all selectors to their mappings for quick lookup
   const selectorToMapping = new Map<string, (typeof componentMappings)[0]>();
   componentMappings.forEach((mapping) => {
     const selectors = Array.isArray(mapping.selector) ? mapping.selector : [mapping.selector];
     selectors.forEach((sel) => selectorToMapping.set(sel, mapping));
   });
-
-  const ensureContainerScope = (element: Element, mapping: (typeof componentMappings)[0]) => {
-    if (!mapping.decorateContainer) {
-      return;
-    }
-    const container = element.parentElement;
-    if (container) {
-      ensureUnapiScope(container);
-    }
-  };
-
-  if (selectorToMapping.size > 0) {
-    const selectors = Array.from(selectorToMapping.keys());
-    ensureUnapiScopeForSelectors(selectors);
-    selectorToMapping.forEach((mapping, selector) => {
-      document.querySelectorAll(selector).forEach((element) => {
-        ensureContainerScope(element, mapping);
-      });
-    });
-    observeUnapiScope(selectors, undefined, (element) => {
-      for (const [selector, mapping] of selectorToMapping) {
-        if (element.matches(selector)) {
-          ensureContainerScope(element, mapping);
-          break;
-        }
-      }
-    });
-  }
 
   // Query all selectors at once
   const allSelectors = Array.from(selectorToMapping.keys()).join(',');
@@ -208,9 +131,7 @@ export async function mountUnifiedApp() {
       // Find which mapping this element belongs to
       for (const [selector, mapping] of selectorToMapping) {
         if (element.matches(selector) && !processedMappings.has(mapping)) {
-          const targetElement = element as HTMLElement;
-          // ensureContainerScope(targetElement, mapping);
-          componentsToMount.push({ mapping, element: targetElement });
+          componentsToMount.push({ mapping, element: element as HTMLElement });
           processedMappings.add(mapping);
           break;
         }
@@ -239,9 +160,7 @@ export async function mountUnifiedApp() {
         return () =>
           h(
             UApp,
-            {
-              portal: portalTarget,
-            },
+            {},
             {
               default: () => h(component, props),
             }
@@ -254,14 +173,12 @@ export async function mountUnifiedApp() {
     vnode.appContext = app._context; // Share the app context
 
     // Clear the element and render the component into it
-    // ensureUnapiScope(element);
-    // ensureContainerScope(element, mapping);
     element.replaceChildren();
     render(vnode, element);
 
     // Mark as mounted
     element.setAttribute('data-vue-mounted', 'true');
-    ensureUnapiScope(element);
+    element.classList.add('unapi');
 
     if (isDarkModeActive()) {
       element.classList.add('dark');

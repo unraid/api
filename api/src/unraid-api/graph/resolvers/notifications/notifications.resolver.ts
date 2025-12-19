@@ -49,13 +49,6 @@ export class NotificationsResolver {
         return await this.notificationsService.getNotifications(filters);
     }
 
-    @ResolveField(() => [Notification], {
-        description: 'Deduplicated list of unread warning and alert notifications.',
-    })
-    public async warningsAndAlerts(): Promise<Notification[]> {
-        return this.notificationsService.getWarningsAndAlerts();
-    }
-
     /**============================================
      *               Mutations
      *=============================================**/
@@ -101,18 +94,6 @@ export class NotificationsResolver {
     ): Promise<NotificationOverview> {
         await this.notificationsService.archiveIds(ids);
         return this.notificationsService.getOverview();
-    }
-
-    @Mutation(() => Notification, {
-        nullable: true,
-        description:
-            'Creates a notification if an equivalent unread notification does not already exist.',
-    })
-    public notifyIfUnique(
-        @Args('input', { type: () => NotificationData })
-        data: NotificationData
-    ): Promise<Notification | null> {
-        return this.notificationsService.notifyIfUnique(data);
     }
 
     @Mutation(() => NotificationOverview)
@@ -181,14 +162,5 @@ export class NotificationsResolver {
     })
     async notificationsOverview() {
         return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW);
-    }
-
-    @Subscription(() => [Notification])
-    @UsePermissions({
-        action: AuthAction.READ_ANY,
-        resource: Resource.NOTIFICATIONS,
-    })
-    async notificationsWarningsAndAlerts() {
-        return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_WARNINGS_AND_ALERTS);
     }
 }

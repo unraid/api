@@ -7,19 +7,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Import the mocked pubsub parts
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { DockerAutostartService } from '@app/unraid-api/graph/resolvers/docker/docker-autostart.service.js';
-import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
-import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-log.service.js';
-import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
-import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
-import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
-import {
-    ContainerPortType,
-    ContainerState,
-    DockerContainer,
-} from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
 // Mock pubsub
 vi.mock('@app/core/pubsub.js', () => ({
@@ -35,58 +24,36 @@ interface DockerError extends NodeJS.ErrnoException {
     address: string;
 }
 
-const { mockDockerInstance, mockListContainers, mockGetContainer, mockListNetworks, mockContainer } =
-    vi.hoisted(() => {
-        const mockContainer = {
-            start: vi.fn(),
-            stop: vi.fn(),
-            pause: vi.fn(),
-            unpause: vi.fn(),
-            inspect: vi.fn(),
-        };
+const mockContainer = {
+    start: vi.fn(),
+    stop: vi.fn(),
+};
 
-        const mockListContainers = vi.fn();
-        const mockGetContainer = vi.fn().mockReturnValue(mockContainer);
-        const mockListNetworks = vi.fn();
+// Create properly typed mock functions
+const mockListContainers = vi.fn();
+const mockGetContainer = vi.fn().mockReturnValue(mockContainer);
+const mockListNetworks = vi.fn();
 
-        const mockDockerInstance = {
-            getContainer: mockGetContainer,
-            listContainers: mockListContainers,
-            listNetworks: mockListNetworks,
-            modem: {
-                Promise: Promise,
-                protocol: 'http',
-                socketPath: '/var/run/docker.sock',
-                headers: {},
-                sshOptions: {
-                    agentForward: undefined,
-                },
-            },
-        } as unknown as Docker;
+const mockDockerInstance = {
+    getContainer: mockGetContainer,
+    listContainers: mockListContainers,
+    listNetworks: mockListNetworks,
+    modem: {
+        Promise: Promise,
+        protocol: 'http',
+        socketPath: '/var/run/docker.sock',
+        headers: {},
+        sshOptions: {
+            agentForward: undefined,
+        },
+    },
+} as unknown as Docker;
 
-        return {
-            mockDockerInstance,
-            mockListContainers,
-            mockGetContainer,
-            mockListNetworks,
-            mockContainer,
-        };
-    });
-
-vi.mock('@app/unraid-api/graph/resolvers/docker/utils/docker-client.js', () => ({
-    getDockerClient: vi.fn().mockReturnValue(mockDockerInstance),
-}));
-
-vi.mock('execa', () => ({
-    execa: vi.fn(),
-}));
-
-const { mockEmhttpGetter } = vi.hoisted(() => ({
-    mockEmhttpGetter: vi.fn().mockReturnValue({
-        networks: [],
-        var: {},
-    }),
-}));
+vi.mock('dockerode', () => {
+    return {
+        default: vi.fn().mockImplementation(() => mockDockerInstance),
+    };
+});
 
 // Mock the store getters
 vi.mock('@app/store/index.js', () => ({
@@ -94,21 +61,15 @@ vi.mock('@app/store/index.js', () => ({
         docker: vi.fn().mockReturnValue({ containers: [] }),
         paths: vi.fn().mockReturnValue({
             'docker-autostart': '/path/to/docker-autostart',
-            'docker-userprefs': '/path/to/docker-userprefs',
             'docker-socket': '/var/run/docker.sock',
             'var-run': '/var/run',
         }),
-        emhttp: mockEmhttpGetter,
     },
 }));
 
-// Mock fs/promises (stat only)
-const { statMock } = vi.hoisted(() => ({
-    statMock: vi.fn().mockResolvedValue({ size: 0 }),
-}));
-
+// Mock fs/promises
 vi.mock('fs/promises', () => ({
-    stat: statMock,
+    readFile: vi.fn().mockResolvedValue(''),
 }));
 
 // Mock Cache Manager
@@ -116,67 +77,6 @@ const mockCacheManager = {
     get: vi.fn(),
     set: vi.fn(),
     del: vi.fn(),
-};
-
-// Mock DockerConfigService
-const mockDockerConfigService = {
-    getConfig: vi.fn().mockReturnValue({
-        updateCheckCronSchedule: '0 6 * * *',
-        templateMappings: {},
-        skipTemplatePaths: [],
-    }),
-    replaceConfig: vi.fn(),
-    validate: vi.fn((config) => Promise.resolve(config)),
-};
-
-const mockDockerManifestService = {
-    refreshDigests: vi.fn().mockResolvedValue(true),
-    getCachedUpdateStatuses: vi.fn().mockResolvedValue({}),
-    isUpdateAvailableCached: vi.fn().mockResolvedValue(false),
-};
-
-// Mock NotificationsService
-const mockNotificationsService = {
-    notifyIfUnique: vi.fn().mockResolvedValue(null),
-};
-
-// Mock DockerAutostartService
-const mockDockerAutostartService = {
-    refreshAutoStartEntries: vi.fn().mockResolvedValue(undefined),
-    getAutoStarts: vi.fn().mockResolvedValue([]),
-    getContainerPrimaryName: vi.fn((c) => {
-        if ('Names' in c) return c.Names[0]?.replace(/^\//, '') || null;
-        if ('names' in c) return c.names[0]?.replace(/^\//, '') || null;
-        return null;
-    }),
-    getAutoStartEntry: vi.fn(),
-    updateAutostartConfiguration: vi.fn().mockResolvedValue(undefined),
-};
-
-// Mock new services
-const mockDockerLogService = {
-    getContainerLogSizes: vi.fn().mockResolvedValue(new Map([['test-container', 1024]])),
-    getContainerLogs: vi.fn().mockResolvedValue({ lines: [], cursor: null }),
-};
-
-const mockDockerNetworkService = {
-    getNetworks: vi.fn().mockResolvedValue([]),
-};
-
-// Use a real-ish mock for DockerPortService since it is used in transformContainer
-const mockDockerPortService = {
-    deduplicateContainerPorts: vi.fn((ports) => {
-        if (!ports) return [];
-        // Simple dedupe logic for test
-        const seen = new Set();
-        return ports.filter((p) => {
-            const key = `${p.PrivatePort}-${p.PublicPort}-${p.Type}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-        });
-    }),
-    calculateConflicts: vi.fn().mockReturnValue({ containerPorts: [], lanPorts: [] }),
 };
 
 describe('DockerService', () => {
@@ -188,41 +88,9 @@ describe('DockerService', () => {
         mockListNetworks.mockReset();
         mockContainer.start.mockReset();
         mockContainer.stop.mockReset();
-        mockContainer.pause.mockReset();
-        mockContainer.unpause.mockReset();
-        mockContainer.inspect.mockReset();
-
         mockCacheManager.get.mockReset();
         mockCacheManager.set.mockReset();
         mockCacheManager.del.mockReset();
-        statMock.mockReset();
-        statMock.mockResolvedValue({ size: 0 });
-
-        mockEmhttpGetter.mockReset();
-        mockEmhttpGetter.mockReturnValue({
-            networks: [],
-            var: {},
-        });
-        mockDockerConfigService.getConfig.mockReturnValue({
-            updateCheckCronSchedule: '0 6 * * *',
-            templateMappings: {},
-            skipTemplatePaths: [],
-        });
-        mockDockerManifestService.refreshDigests.mockReset();
-        mockDockerManifestService.refreshDigests.mockResolvedValue(true);
-
-        mockDockerAutostartService.refreshAutoStartEntries.mockReset();
-        mockDockerAutostartService.getAutoStarts.mockReset();
-        mockDockerAutostartService.getAutoStartEntry.mockReset();
-        mockDockerAutostartService.updateAutostartConfiguration.mockReset();
-
-        mockDockerLogService.getContainerLogSizes.mockReset();
-        mockDockerLogService.getContainerLogSizes.mockResolvedValue(new Map([['test-container', 1024]]));
-        mockDockerLogService.getContainerLogs.mockReset();
-
-        mockDockerNetworkService.getNetworks.mockReset();
-        mockDockerPortService.deduplicateContainerPorts.mockClear();
-        mockDockerPortService.calculateConflicts.mockReset();
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
@@ -230,34 +98,6 @@ describe('DockerService', () => {
                 {
                     provide: CACHE_MANAGER,
                     useValue: mockCacheManager,
-                },
-                {
-                    provide: DockerConfigService,
-                    useValue: mockDockerConfigService,
-                },
-                {
-                    provide: DockerManifestService,
-                    useValue: mockDockerManifestService,
-                },
-                {
-                    provide: NotificationsService,
-                    useValue: mockNotificationsService,
-                },
-                {
-                    provide: DockerAutostartService,
-                    useValue: mockDockerAutostartService,
-                },
-                {
-                    provide: DockerLogService,
-                    useValue: mockDockerLogService,
-                },
-                {
-                    provide: DockerNetworkService,
-                    useValue: mockDockerNetworkService,
-                },
-                {
-                    provide: DockerPortService,
-                    useValue: mockDockerPortService,
                 },
             ],
         }).compile();
@@ -267,6 +107,65 @@ describe('DockerService', () => {
 
     it('should be defined', () => {
         expect(service).toBeDefined();
+    });
+
+    it('should use separate cache keys for containers with and without size', async () => {
+        const mockContainersWithoutSize = [
+            {
+                Id: 'abc123',
+                Names: ['/test-container'],
+                Image: 'test-image',
+                ImageID: 'test-image-id',
+                Command: 'test',
+                Created: 1234567890,
+                State: 'exited',
+                Status: 'Exited',
+                Ports: [],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: {},
+                Mounts: [],
+            },
+        ];
+
+        const mockContainersWithSize = [
+            {
+                Id: 'abc123',
+                Names: ['/test-container'],
+                Image: 'test-image',
+                ImageID: 'test-image-id',
+                Command: 'test',
+                Created: 1234567890,
+                State: 'exited',
+                Status: 'Exited',
+                Ports: [],
+                Labels: {},
+                HostConfig: { NetworkMode: 'bridge' },
+                NetworkSettings: {},
+                Mounts: [],
+                SizeRootFs: 1024000,
+            },
+        ];
+
+        // First call without size
+        mockListContainers.mockResolvedValue(mockContainersWithoutSize);
+        mockCacheManager.get.mockResolvedValue(undefined);
+
+        await service.getContainers({ size: false });
+
+        expect(mockCacheManager.set).toHaveBeenCalledWith('docker_containers', expect.any(Array), 60000);
+
+        // Second call with size
+        mockListContainers.mockResolvedValue(mockContainersWithSize);
+        mockCacheManager.get.mockResolvedValue(undefined);
+
+        await service.getContainers({ size: true });
+
+        expect(mockCacheManager.set).toHaveBeenCalledWith(
+            'docker_containers_with_size',
+            expect.any(Array),
+            60000
+        );
     });
 
     it('should get containers', async () => {
@@ -291,100 +190,308 @@ describe('DockerService', () => {
         ];
 
         mockListContainers.mockResolvedValue(mockContainers);
-        mockCacheManager.get.mockResolvedValue(undefined);
+        mockCacheManager.get.mockResolvedValue(undefined); // Simulate cache miss
 
-        const result = await service.getContainers({ skipCache: true });
+        const result = await service.getContainers({ skipCache: true }); // Skip cache for direct fetch test
 
-        expect(result).toEqual(
-            expect.arrayContaining([
-                expect.objectContaining({
-                    id: 'abc123def456',
-                    names: ['/test-container'],
-                }),
-            ])
-        );
-
-        expect(mockListContainers).toHaveBeenCalled();
-        expect(mockDockerAutostartService.refreshAutoStartEntries).toHaveBeenCalled();
-        expect(mockDockerPortService.deduplicateContainerPorts).toHaveBeenCalled();
-    });
-
-    it('should update auto-start configuration', async () => {
-        mockListContainers.mockResolvedValue([
+        expect(result).toEqual([
             {
-                Id: 'abc123',
-                Names: ['/alpha'],
-                State: 'running',
+                id: 'abc123def456',
+                autoStart: false,
+                command: 'test',
+                created: 1234567890,
+                image: 'test-image',
+                imageId: 'test-image-id',
+                ports: [],
+                sizeRootFs: undefined,
+                state: ContainerState.EXITED,
+                status: 'Exited',
+                labels: {},
+                hostConfig: {
+                    networkMode: 'bridge',
+                },
+                networkSettings: {},
+                mounts: [],
+                names: ['/test-container'],
             },
         ]);
 
-        const input = [{ id: 'abc123', autoStart: true, wait: 15 }];
-        await service.updateAutostartConfiguration(input, { persistUserPreferences: true });
+        expect(mockListContainers).toHaveBeenCalledWith({
+            all: true,
+            size: false,
+        });
+        expect(mockCacheManager.set).toHaveBeenCalled(); // Ensure cache is set
+    });
 
-        expect(mockDockerAutostartService.updateAutostartConfiguration).toHaveBeenCalledWith(
-            input,
-            expect.any(Array),
-            { persistUserPreferences: true }
+    it('should start container', async () => {
+        const mockContainers = [
+            {
+                Id: 'abc123def456',
+                Names: ['/test-container'],
+                Image: 'test-image',
+                ImageID: 'test-image-id',
+                Command: 'test',
+                Created: 1234567890,
+                State: 'running',
+                Status: 'Up 2 hours',
+                Ports: [],
+                Labels: {},
+                HostConfig: {
+                    NetworkMode: 'bridge',
+                },
+                NetworkSettings: {},
+                Mounts: [],
+            },
+        ];
+
+        mockListContainers.mockResolvedValue(mockContainers);
+        mockContainer.start.mockResolvedValue(undefined);
+        mockCacheManager.get.mockResolvedValue(undefined); // Simulate cache miss for getContainers call
+
+        const result = await service.start('abc123def456');
+
+        expect(result).toEqual({
+            id: 'abc123def456',
+            autoStart: false,
+            command: 'test',
+            created: 1234567890,
+            image: 'test-image',
+            imageId: 'test-image-id',
+            ports: [],
+            sizeRootFs: undefined,
+            state: ContainerState.RUNNING,
+            status: 'Up 2 hours',
+            labels: {},
+            hostConfig: {
+                networkMode: 'bridge',
+            },
+            networkSettings: {},
+            mounts: [],
+            names: ['/test-container'],
+        });
+
+        expect(mockContainer.start).toHaveBeenCalled();
+        expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
+        expect(mockListContainers).toHaveBeenCalled();
+        expect(mockCacheManager.set).toHaveBeenCalled();
+        expect(pubsub.publish).toHaveBeenCalledWith(PUBSUB_CHANNEL.INFO, {
+            info: {
+                apps: { installed: 1, running: 1 },
+            },
+        });
+    });
+
+    it('should stop container', async () => {
+        const mockContainers = [
+            {
+                Id: 'abc123def456',
+                Names: ['/test-container'],
+                Image: 'test-image',
+                ImageID: 'test-image-id',
+                Command: 'test',
+                Created: 1234567890,
+                State: 'exited',
+                Status: 'Exited',
+                Ports: [],
+                Labels: {},
+                HostConfig: {
+                    NetworkMode: 'bridge',
+                },
+                NetworkSettings: {},
+                Mounts: [],
+            },
+        ];
+
+        mockListContainers.mockResolvedValue(mockContainers);
+        mockContainer.stop.mockResolvedValue(undefined);
+        mockCacheManager.get.mockResolvedValue(undefined); // Simulate cache miss for getContainers calls
+
+        const result = await service.stop('abc123def456');
+
+        expect(result).toEqual({
+            id: 'abc123def456',
+            autoStart: false,
+            command: 'test',
+            created: 1234567890,
+            image: 'test-image',
+            imageId: 'test-image-id',
+            ports: [],
+            sizeRootFs: undefined,
+            state: ContainerState.EXITED,
+            status: 'Exited',
+            labels: {},
+            hostConfig: {
+                networkMode: 'bridge',
+            },
+            networkSettings: {},
+            mounts: [],
+            names: ['/test-container'],
+        });
+
+        expect(mockContainer.stop).toHaveBeenCalledWith({ t: 10 });
+        expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
+        expect(mockListContainers).toHaveBeenCalled();
+        expect(mockCacheManager.set).toHaveBeenCalled();
+        expect(pubsub.publish).toHaveBeenCalledWith(PUBSUB_CHANNEL.INFO, {
+            info: {
+                apps: { installed: 1, running: 0 },
+            },
+        });
+    });
+
+    it('should throw error if container not found after start', async () => {
+        mockListContainers.mockResolvedValue([]);
+        mockContainer.start.mockResolvedValue(undefined);
+        mockCacheManager.get.mockResolvedValue(undefined);
+
+        await expect(service.start('not-found')).rejects.toThrow(
+            'Container not-found not found after starting'
         );
         expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
     });
 
-    it('should delegate getContainerLogSizes to DockerLogService', async () => {
-        const sizes = await service.getContainerLogSizes(['test-container']);
-        expect(mockDockerLogService.getContainerLogSizes).toHaveBeenCalledWith(['test-container']);
-        expect(sizes.get('test-container')).toBe(1024);
+    it('should throw error if container not found after stop', async () => {
+        mockListContainers.mockResolvedValue([]);
+        mockContainer.stop.mockResolvedValue(undefined);
+        mockCacheManager.get.mockResolvedValue(undefined);
+
+        await expect(service.stop('not-found')).rejects.toThrow(
+            'Container not-found not found after stopping'
+        );
+        expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
+    });
+
+    it('should get networks', async () => {
+        const mockNetworks = [
+            {
+                Id: 'network1',
+                Name: 'bridge',
+                Created: '2023-01-01T00:00:00Z',
+                Scope: 'local',
+                Driver: 'bridge',
+                EnableIPv6: false,
+                IPAM: {
+                    Driver: 'default',
+                    Config: [
+                        {
+                            Subnet: '172.17.0.0/16',
+                            Gateway: '172.17.0.1',
+                        },
+                    ],
+                },
+                Internal: false,
+                Attachable: false,
+                Ingress: false,
+                ConfigFrom: {
+                    Network: '',
+                },
+                ConfigOnly: false,
+                Containers: {},
+                Options: {
+                    'com.docker.network.bridge.default_bridge': 'true',
+                    'com.docker.network.bridge.enable_icc': 'true',
+                    'com.docker.network.bridge.enable_ip_masquerade': 'true',
+                    'com.docker.network.bridge.host_binding_ipv4': '0.0.0.0',
+                    'com.docker.network.bridge.name': 'docker0',
+                    'com.docker.network.driver.mtu': '1500',
+                },
+                Labels: {},
+            },
+        ];
+
+        mockListNetworks.mockResolvedValue(mockNetworks);
+        mockCacheManager.get.mockResolvedValue(undefined); // Simulate cache miss
+
+        const result = await service.getNetworks({ skipCache: true }); // Skip cache for direct fetch test
+
+        expect(result).toMatchInlineSnapshot(`
+          [
+            {
+              "attachable": false,
+              "configFrom": {
+                "Network": "",
+              },
+              "configOnly": false,
+              "containers": {},
+              "created": "2023-01-01T00:00:00Z",
+              "driver": "bridge",
+              "enableIPv6": false,
+              "id": "network1",
+              "ingress": false,
+              "internal": false,
+              "ipam": {
+                "Config": [
+                  {
+                    "Gateway": "172.17.0.1",
+                    "Subnet": "172.17.0.0/16",
+                  },
+                ],
+                "Driver": "default",
+              },
+              "labels": {},
+              "name": "bridge",
+              "options": {
+                "com.docker.network.bridge.default_bridge": "true",
+                "com.docker.network.bridge.enable_icc": "true",
+                "com.docker.network.bridge.enable_ip_masquerade": "true",
+                "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+                "com.docker.network.bridge.name": "docker0",
+                "com.docker.network.driver.mtu": "1500",
+              },
+              "scope": "local",
+            },
+          ]
+        `);
+
+        expect(mockListNetworks).toHaveBeenCalled();
+        expect(mockCacheManager.set).toHaveBeenCalled(); // Ensure cache is set
+    });
+
+    it('should handle empty networks list', async () => {
+        mockListNetworks.mockResolvedValue([]);
+        mockCacheManager.get.mockResolvedValue(undefined); // Simulate cache miss
+
+        const result = await service.getNetworks({ skipCache: true }); // Skip cache for direct fetch test
+
+        expect(result).toEqual([]);
+        expect(mockListNetworks).toHaveBeenCalled();
+        expect(mockCacheManager.set).toHaveBeenCalled(); // Ensure cache is set
+    });
+
+    it('should handle docker error when getting networks', async () => {
+        const error = new Error('Docker error') as DockerError;
+        error.code = 'ENOENT';
+        error.address = '/var/run/docker.sock';
+        mockListNetworks.mockRejectedValue(error);
+        mockCacheManager.get.mockResolvedValue(undefined); // Simulate cache miss
+
+        await expect(service.getNetworks({ skipCache: true })).rejects.toThrow(
+            'Docker socket unavailable.'
+        );
+        expect(mockListNetworks).toHaveBeenCalled();
+        expect(mockCacheManager.set).not.toHaveBeenCalled(); // Ensure cache is NOT set on error
     });
 
     describe('getAppInfo', () => {
+        // Common mock containers for these tests
         const mockContainersForMethods = [
             { id: 'abc1', state: ContainerState.RUNNING },
             { id: 'def2', state: ContainerState.EXITED },
         ] as DockerContainer[];
 
         it('should return correct app info object', async () => {
+            // Mock cache response for getContainers call
             mockCacheManager.get.mockResolvedValue(mockContainersForMethods);
 
-            const result = await service.getAppInfo();
+            const result = await service.getAppInfo(); // Call the renamed method
             expect(result).toEqual({
                 info: {
                     apps: { installed: 2, running: 1 },
                 },
             });
+            // getContainers should now be called only ONCE from cache
+            expect(mockCacheManager.get).toHaveBeenCalledTimes(1);
             expect(mockCacheManager.get).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
-        });
-    });
-
-    describe('transformContainer', () => {
-        it('deduplicates ports that only differ by bound IP addresses', () => {
-            mockEmhttpGetter.mockReturnValue({
-                networks: [{ ipaddr: ['192.168.0.10'] }],
-                var: {},
-            });
-
-            const container = {
-                Id: 'duplicate-ports',
-                Names: ['/duplicate-ports'],
-                Image: 'test-image',
-                ImageID: 'sha256:123',
-                Command: 'test',
-                Created: 1700000000,
-                State: 'running',
-                Status: 'Up 2 hours',
-                Ports: [
-                    { IP: '0.0.0.0', PrivatePort: 8080, PublicPort: 8080, Type: 'tcp' },
-                    { IP: '::', PrivatePort: 8080, PublicPort: 8080, Type: 'tcp' },
-                    { IP: '0.0.0.0', PrivatePort: 5000, PublicPort: 5000, Type: 'udp' },
-                ],
-                Labels: {},
-                HostConfig: { NetworkMode: 'bridge' },
-                NetworkSettings: { Networks: {} },
-                Mounts: [],
-            } as Docker.ContainerInfo;
-
-            service.transformContainer(container);
-            expect(mockDockerPortService.deduplicateContainerPorts).toHaveBeenCalledWith(
-                container.Ports
-            );
         });
     });
 });

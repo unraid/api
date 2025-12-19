@@ -7,7 +7,6 @@ import Docker from 'dockerode';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-import { getDockerClient } from '@app/unraid-api/graph/resolvers/docker/utils/docker-client.js';
 
 enum DockerEventAction {
     DIE = 'die',
@@ -67,7 +66,7 @@ export class DockerEventService implements OnModuleDestroy, OnModuleInit {
     ];
 
     constructor(private readonly dockerService: DockerService) {
-        this.client = getDockerClient();
+        this.client = this.dockerService.getDockerClient();
     }
 
     async onModuleInit() {

@@ -187,9 +187,6 @@ importers:
       exit-hook:
         specifier: 4.0.0
         version: 4.0.0
-      fast-xml-parser:
-        specifier: ^5.3.0
-        version: 5.3.0
       fastify:
         specifier: 5.5.0
         version: 5.5.0
@@ -1067,9 +1064,6 @@ importers:
       '@floating-ui/vue':
         specifier: 1.1.9
         version: 1.1.9(vue@3.5.20(typescript@5.9.2))
-      '@formkit/auto-animate':
-        specifier: ^0.9.0
-        version: 0.9.0
       '@headlessui/vue':
         specifier: 1.7.23
         version: 1.7.23(vue@3.5.20(typescript@5.9.2))
@@ -1091,9 +1085,6 @@ importers:
       '@nuxt/ui':
         specifier: 4.0.0-alpha.0
         version: 4.0.0-alpha.0(@babel/parser@7.28.4)(@netlify/blobs@9.1.2)(change-case@5.4.4)(db0@0.3.2)(embla-carousel@8.6.0)(focus-trap@7.6.5)(ioredis@5.7.0)(jwt-decode@4.0.0)(magicast@0.3.5)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.2)(vite@7.1.3(@types/node@22.18.0)(jiti@2.5.1)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.5)(yaml@2.8.1))(vue-router@4.5.1(vue@3.5.20(typescript@5.9.2)))(vue@3.5.20(typescript@5.9.2))(zod@3.25.76)
-      '@tanstack/vue-table':
-        specifier: ^8.21.3
-        version: 8.21.3(vue@3.5.20(typescript@5.9.2))
       '@unraid/shared-callbacks':
         specifier: 3.0.0
         version: 3.0.0
@@ -2574,9 +2565,6 @@ packages:
 
   '@floating-ui/vue@1.1.9':
     resolution: {integrity: sha512-BfNqNW6KA83Nexspgb9DZuz578R7HT8MZw1CfK9I6Ah4QReNWEJsXWHN+SdmOVLNGmTPDi+fDT535Df5PzMLbQ==}
-
-  '@formkit/auto-animate@0.9.0':
-    resolution: {integrity: sha512-VhP4zEAacXS3dfTpJpJ88QdLqMTcabMg0jwpOSxZ/VzfQVfl3GkZSCZThhGC5uhq/TxPHPzW0dzr4H9Bb1OgKA==}
 
   '@golevelup/nestjs-discovery@4.0.3':
     resolution: {integrity: sha512-8w3CsXHN7+7Sn2i419Eal1Iw/kOjAd6Kb55M/ZqKBBwACCMn4WiEuzssC71LpBMI1090CiDxuelfPRwwIrQK+A==}
@@ -7742,10 +7730,6 @@ packages:
     resolution: {integrity: sha512-y655CeyUQ+jj7KBbYMc4FG01V8ZQqjN+gDYGJ50RtfsUB8iG9AmwmwoAgeKLJdmueKKMrH1RJ7yXHTSoczdv5w==}
     hasBin: true
 
-  fast-xml-parser@5.3.0:
-    resolution: {integrity: sha512-gkWGshjYcQCF+6qtlrqBqELqNqnt4CxruY6UVAWWnqb3DQ6qaNFEIKqzYep1XzHLM/QtrHVCxyPOtTk4LTQ7Aw==}
-    hasBin: true
-
   fastify-plugin@4.5.1:
     resolution: {integrity: sha512-stRHYGeuqpEZTL1Ef0Ovr2ltazUT9g844X5z/zEBFLG8RYlpDiOCIG+ATvYEp+/zmc7sN29mcIMp8gvYplYPIQ==}
 
@@ -11391,9 +11375,6 @@ packages:
   strnum@1.0.5:
     resolution: {integrity: sha512-J8bbNyKKXl5qYcR36TIO8W3mVGVHrmmxsd5PAItGkmyzwJvybiw2IVq5nqd0i4LSNSkB/sx9VHllbfFdr9k1JA==}
 
-  strnum@2.1.1:
-    resolution: {integrity: sha512-7ZvoFTiCnGxBtDqJ//Cu6fWtZtc7Y3x+QOirG15wztbdngGSkht27o2pyGWrVy0b4WAy3jbKmnoK6g5VlVNUUw==}
-
   strtok3@10.3.1:
     resolution: {integrity: sha512-3JWEZM6mfix/GCJBBUrkA8p2Id2pBkyTkVCJKto55w080QBKZ+8R171fGrbiSp+yMO/u6F8/yUh7K4V9K+YCnw==}
     engines: {node: '>=18'}
@@ -14157,8 +14138,6 @@ snapshots:
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
-
-  '@formkit/auto-animate@0.9.0': {}
 
   '@golevelup/nestjs-discovery@4.0.3(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))':
     dependencies:
@@ -20106,10 +20085,6 @@ snapshots:
     dependencies:
       strnum: 1.0.5
 
-  fast-xml-parser@5.3.0:
-    dependencies:
-      strnum: 2.1.1
-
   fastify-plugin@4.5.1: {}
 
   fastify-plugin@5.0.1: {}
@@ -24270,8 +24245,6 @@ snapshots:
       js-tokens: 9.0.1
 
   strnum@1.0.5: {}
-
-  strnum@2.1.1: {}
 
   strtok3@10.3.1:
     dependencies:

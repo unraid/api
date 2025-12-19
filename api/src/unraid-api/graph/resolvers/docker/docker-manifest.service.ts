@@ -17,14 +17,6 @@ export class DockerManifestService {
     });
 
     /**
-     * Reads the cached update status file and returns the parsed contents.
-     * Exposed so other services can reuse the parsed data when evaluating many containers.
-     */
-    async getCachedUpdateStatuses(): Promise<Record<string, CachedStatusEntry>> {
-        return this.dockerPhpService.readCachedUpdateStatus();
-    }
-
-    /**
      * Recomputes local/remote docker container digests and writes them to /var/lib/docker/unraid-update-status.json
      * @param mutex - Optional mutex to use for the operation. If not provided, a default mutex will be used.
      * @param dockerUpdatePath - Optional path to the DockerUpdate.php file. If not provided, the default path will be used.
@@ -49,22 +41,7 @@ export class DockerManifestService {
         cacheData ??= await this.dockerPhpService.readCachedUpdateStatus();
         const containerData = cacheData[taggedRef];
         if (!containerData) return null;
-
-        const normalize = (digest?: string | null) => {
-            const value = digest?.trim().toLowerCase();
-            return value && value !== 'undef' ? value : null;
-        };
-
-        const localDigest = normalize(containerData.local);
-        const remoteDigest = normalize(containerData.remote);
-        if (localDigest && remoteDigest) {
-            return localDigest !== remoteDigest;
-        }
-
-        const status = containerData.status?.toLowerCase();
-        if (status === 'true') return true;
-        if (status === 'false') return false;
-        return null;
+        return containerData.status?.toLowerCase() === 'true';
     }
 
     /**

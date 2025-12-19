@@ -3,5 +3,3 @@ components.d.ts
 composables/gql/
 src/composables/gql/
 dist/
-.output/
-.nuxt/

@@ -34,17 +34,6 @@ export const getNotifications = graphql(/* GraphQL */ `
   }
 `);
 
-export const warningsAndAlerts = graphql(/* GraphQL */ `
-  query WarningAndAlertNotifications {
-    notifications {
-      id
-      warningsAndAlerts {
-        ...NotificationFragment
-      }
-    }
-  }
-`);
-
 export const archiveNotification = graphql(/* GraphQL */ `
   mutation ArchiveNotification($id: PrefixedID!) {
     archiveNotification(id: $id) {
@@ -121,14 +110,6 @@ export const resetOverview = graphql(/* GraphQL */ `
       unread {
         ...NotificationCountFragment
       }
-    }
-  }
-`);
-
-export const notifyIfUnique = graphql(/* GraphQL */ `
-  mutation NotifyIfUnique($input: NotificationData!) {
-    notifyIfUnique(input: $input) {
-      ...NotificationFragment
     }
   }
 `);

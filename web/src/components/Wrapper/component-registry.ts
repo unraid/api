@@ -16,7 +16,6 @@ export type ComponentMapping = {
   selector: string | string[]; // Can be a single selector or array of selector aliases
   appId: string;
   component: Component; // The async component
-  decorateContainer?: boolean; // Flag to apply .unapi to the container element
 };
 
 // Define component mappings - all components use async loading for consistency
@@ -93,13 +92,6 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'dev-settings',
   },
   {
-    component: defineAsyncComponent(
-      () => import('../Notifications/CriticalNotifications.standalone.vue')
-    ),
-    selector: 'unraid-critical-notifications',
-    appId: 'critical-notifications',
-  },
-  {
     component: defineAsyncComponent(() => import('../ApiKeyPage.standalone.vue')),
     selector: ['unraid-apikey-page', 'unraid-api-key-manager'],
     appId: 'apikey-page',
@@ -158,11 +150,5 @@ export const componentMappings: ComponentMapping[] = [
     component: defineAsyncComponent(() => import('../ApiStatus/ApiStatus.standalone.vue')),
     selector: 'unraid-api-status-manager',
     appId: 'api-status-manager',
-  },
-  {
-    component: defineAsyncComponent(() => import('../Docker/DockerContainerOverview.standalone.vue')),
-    selector: 'unraid-docker-container-overview',
-    appId: 'docker-container-overview',
-    decorateContainer: true,
   },
 ];

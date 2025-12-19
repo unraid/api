@@ -1,30 +1,20 @@
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { readFile } from 'fs/promises';
 
 import { type Cache } from 'cache-manager';
 import Docker from 'dockerode';
-import { execa } from 'execa';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
-import { getLanIp } from '@app/core/utils/network.js';
-import { DockerAutostartService } from '@app/unraid-api/graph/resolvers/docker/docker-autostart.service.js';
-import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
-import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-log.service.js';
-import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
-import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
-import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
+import { getters } from '@app/store/index.js';
 import {
     ContainerPortType,
     ContainerState,
-    DockerAutostartEntryInput,
     DockerContainer,
-    DockerContainerLogs,
     DockerNetwork,
-    DockerPortConflicts,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
-import { getDockerClient } from '@app/unraid-api/graph/resolvers/docker/utils/docker-client.js';
 
 interface ContainerListingOptions extends Docker.ContainerListOptions {
     skipCache: boolean;
@@ -37,26 +27,25 @@ interface NetworkListingOptions {
 @Injectable()
 export class DockerService {
     private client: Docker;
+    private autoStarts: string[] = [];
     private readonly logger = new Logger(DockerService.name);
 
     public static readonly CONTAINER_CACHE_KEY = 'docker_containers';
     public static readonly CONTAINER_WITH_SIZE_CACHE_KEY = 'docker_containers_with_size';
     public static readonly NETWORK_CACHE_KEY = 'docker_networks';
-    public static readonly CACHE_TTL_SECONDS = 60;
+    public static readonly CACHE_TTL_SECONDS = 60; // Cache for 60 seconds
 
-    constructor(
-        @Inject(CACHE_MANAGER) private cacheManager: Cache,
-        private readonly dockerConfigService: DockerConfigService,
-        private readonly dockerManifestService: DockerManifestService,
-        private readonly autostartService: DockerAutostartService,
-        private readonly dockerLogService: DockerLogService,
-        private readonly dockerNetworkService: DockerNetworkService,
-        private readonly dockerPortService: DockerPortService
-    ) {
-        this.client = getDockerClient();
+    constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
+        this.client = this.getDockerClient();
     }
 
-    public async getAppInfo() {
+    public getDockerClient() {
+        return new Docker({
+            socketPath: '/var/run/docker.sock',
+        });
+    }
+
+    async getAppInfo() {
         const containers = await this.getContainers({ skipCache: false });
         const installedCount = containers.length;
         const runningCount = containers.filter(
@@ -76,47 +65,31 @@ export class DockerService {
      * @see https://github.com/limetech/webgui/issues/502#issue-480992547
      */
     public async getAutoStarts(): Promise<string[]> {
-        return this.autostartService.getAutoStarts();
+        const autoStartFile = await readFile(getters.paths()['docker-autostart'], 'utf8')
+            .then((file) => file.toString())
+            .catch(() => '');
+        return autoStartFile.split('\n');
     }
 
-    public transformContainer(container: Docker.ContainerInfo): Omit<DockerContainer, 'isOrphaned'> {
+    public transformContainer(container: Docker.ContainerInfo): DockerContainer {
         const sizeValue = (container as Docker.ContainerInfo & { SizeRootFs?: number }).SizeRootFs;
-        const primaryName = this.autostartService.getContainerPrimaryName(container) ?? '';
-        const autoStartEntry = primaryName
-            ? this.autostartService.getAutoStartEntry(primaryName)
-            : undefined;
-        const lanIp = getLanIp();
-        const lanPortStrings: string[] = [];
-        const uniquePorts = this.dockerPortService.deduplicateContainerPorts(container.Ports);
 
-        const transformedPorts = uniquePorts.map((port) => {
-            if (port.PublicPort) {
-                const lanPort = lanIp ? `${lanIp}:${port.PublicPort}` : `${port.PublicPort}`;
-                if (lanPort) {
-                    lanPortStrings.push(lanPort);
-                }
-            }
-            return {
-                ip: port.IP || '',
-                privatePort: port.PrivatePort,
-                publicPort: port.PublicPort,
-                type:
-                    ContainerPortType[
-                        (port.Type || 'tcp').toUpperCase() as keyof typeof ContainerPortType
-                    ] || ContainerPortType.TCP,
-            };
-        });
-
-        const transformed: Omit<DockerContainer, 'isOrphaned'> = {
+        const transformed: DockerContainer = {
             id: container.Id,
             names: container.Names,
             image: container.Image,
             imageId: container.ImageID,
             command: container.Command,
             created: container.Created,
-            ports: transformedPorts,
+            ports: container.Ports.map((port) => ({
+                ip: port.IP || '',
+                privatePort: port.PrivatePort,
+                publicPort: port.PublicPort,
+                type:
+                    ContainerPortType[port.Type.toUpperCase() as keyof typeof ContainerPortType] ||
+                    ContainerPortType.TCP,
+            })),
             sizeRootFs: sizeValue,
-            sizeRw: (container as Docker.ContainerInfo & { SizeRw?: number }).SizeRw,
             labels: container.Labels ?? {},
             state:
                 typeof container.State === 'string'
@@ -129,14 +102,8 @@ export class DockerService {
             },
             networkSettings: container.NetworkSettings,
             mounts: container.Mounts,
-            autoStart: Boolean(autoStartEntry),
-            autoStartOrder: autoStartEntry?.order,
-            autoStartWait: autoStartEntry?.wait,
+            autoStart: this.autoStarts.includes(container.Names[0].split('/')[1]),
         };
-
-        if (lanPortStrings.length > 0) {
-            transformed.lanIpPorts = lanPortStrings;
-        }
 
         return transformed;
     }
@@ -162,65 +129,66 @@ export class DockerService {
         }
 
         this.logger.debug(`Updating docker container cache (${size ? 'with' : 'without'} size)`);
-        let rawContainers: Docker.ContainerInfo[] = [];
-        try {
-            rawContainers = await this.client.listContainers({
-                all,
-                size,
-                ...listOptions,
-            });
-        } catch (error) {
-            this.handleDockerListError(error);
-        }
+        const rawContainers =
+            (await this.client
+                .listContainers({
+                    all,
+                    size,
+                    ...listOptions,
+                })
+                .catch(catchHandlers.docker)) ?? [];
 
-        await this.autostartService.refreshAutoStartEntries();
+        this.autoStarts = await this.getAutoStarts();
         const containers = rawContainers.map((container) => this.transformContainer(container));
 
-        const config = this.dockerConfigService.getConfig();
-        const containersWithTemplatePaths = containers.map((c) => {
-            const containerName = c.names[0]?.replace(/^\//, '').toLowerCase() ?? '';
-            const templatePath = config.templateMappings?.[containerName] || undefined;
-            return {
-                ...c,
-                templatePath,
-                isOrphaned: !templatePath,
-            };
-        });
-
-        await this.cacheManager.set(
-            cacheKey,
-            containersWithTemplatePaths,
-            DockerService.CACHE_TTL_SECONDS * 1000
-        );
-        return containersWithTemplatePaths;
-    }
-
-    public async getPortConflicts({
-        skipCache = false,
-    }: {
-        skipCache?: boolean;
-    } = {}): Promise<DockerPortConflicts> {
-        const containers = await this.getContainers({ skipCache });
-        return this.dockerPortService.calculateConflicts(containers);
-    }
-
-    public async getContainerLogSizes(containerNames: string[]): Promise<Map<string, number>> {
-        return this.dockerLogService.getContainerLogSizes(containerNames);
-    }
-
-    public async getContainerLogs(
-        id: string,
-        options?: { since?: Date | null; tail?: number | null }
-    ): Promise<DockerContainerLogs> {
-        return this.dockerLogService.getContainerLogs(id, options);
+        await this.cacheManager.set(cacheKey, containers, DockerService.CACHE_TTL_SECONDS * 1000);
+        return containers;
     }
 
     /**
      * Get all Docker networks
      * @returns All the in/active Docker networks on the system.
      */
-    public async getNetworks(options: NetworkListingOptions): Promise<DockerNetwork[]> {
-        return this.dockerNetworkService.getNetworks(options);
+    public async getNetworks({ skipCache }: NetworkListingOptions): Promise<DockerNetwork[]> {
+        if (!skipCache) {
+            const cachedNetworks = await this.cacheManager.get<DockerNetwork[]>(
+                DockerService.NETWORK_CACHE_KEY
+            );
+            if (cachedNetworks) {
+                this.logger.debug('Using docker network cache');
+                return cachedNetworks;
+            }
+        }
+
+        this.logger.debug('Updating docker network cache');
+        const rawNetworks = await this.client.listNetworks().catch(catchHandlers.docker);
+        const networks = rawNetworks.map(
+            (network) =>
+                ({
+                    name: network.Name || '',
+                    id: network.Id || '',
+                    created: network.Created || '',
+                    scope: network.Scope || '',
+                    driver: network.Driver || '',
+                    enableIPv6: network.EnableIPv6 || false,
+                    ipam: network.IPAM || {},
+                    internal: network.Internal || false,
+                    attachable: network.Attachable || false,
+                    ingress: network.Ingress || false,
+                    configFrom: network.ConfigFrom || {},
+                    configOnly: network.ConfigOnly || false,
+                    containers: network.Containers || {},
+                    options: network.Options || {},
+                    labels: network.Labels || {},
+                }) as DockerNetwork
+        );
+
+        await this.cacheManager.set(
+            DockerService.NETWORK_CACHE_KEY,
+            networks,
+            DockerService.CACHE_TTL_SECONDS * 1000
+        );
+        return networks;
     }
 
     public async clearContainerCache(): Promise<void> {
@@ -244,45 +212,6 @@ export class DockerService {
         const appInfo = await this.getAppInfo();
         await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
         return updatedContainer;
-    }
-
-    public async removeContainer(id: string, options?: { withImage?: boolean }): Promise<boolean> {
-        const container = this.client.getContainer(id);
-        try {
-            const inspectData = options?.withImage ? await container.inspect() : null;
-            const imageId = inspectData?.Image;
-
-            await container.remove({ force: true });
-            this.logger.debug(`Removed container ${id}`);
-
-            if (options?.withImage && imageId) {
-                try {
-                    const image = this.client.getImage(imageId);
-                    await image.remove({ force: true });
-                    this.logger.debug(`Removed image ${imageId} for container ${id}`);
-                } catch (imageError) {
-                    this.logger.warn(`Failed to remove image ${imageId}:`, imageError);
-                }
-            }
-
-            await this.clearContainerCache();
-            this.logger.debug(`Invalidated container caches after removing ${id}`);
-            const appInfo = await this.getAppInfo();
-            await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
-            return true;
-        } catch (error) {
-            this.logger.error(`Failed to remove container ${id}:`, error);
-            throw new Error(`Failed to remove container ${id}`);
-        }
-    }
-
-    public async updateAutostartConfiguration(
-        entries: DockerAutostartEntryInput[],
-        options?: { persistUserPreferences?: boolean }
-    ): Promise<void> {
-        const containers = await this.getContainers({ skipCache: true });
-        await this.autostartService.updateAutostartConfiguration(entries, containers, options);
-        await this.clearContainerCache();
     }
 
     public async stop(id: string): Promise<DockerContainer> {
@@ -313,163 +242,5 @@ export class DockerService {
         const appInfo = await this.getAppInfo();
         await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
         return updatedContainer;
-    }
-
-    public async pause(id: string): Promise<DockerContainer> {
-        const container = this.client.getContainer(id);
-        await container.pause();
-        await this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY);
-        this.logger.debug(`Invalidated container cache after pausing ${id}`);
-
-        let containers = await this.getContainers({ skipCache: true });
-        let updatedContainer: DockerContainer | undefined;
-        for (let i = 0; i < 5; i++) {
-            await sleep(500);
-            containers = await this.getContainers({ skipCache: true });
-            updatedContainer = containers.find((c) => c.id === id);
-            this.logger.debug(
-                `Container ${id} state after pause attempt ${i + 1}: ${updatedContainer?.state}`
-            );
-            if (updatedContainer?.state === ContainerState.PAUSED) {
-                break;
-            }
-        }
-
-        if (!updatedContainer) {
-            throw new Error(`Container ${id} not found after pausing`);
-        }
-        const appInfo = await this.getAppInfo();
-        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
-        return updatedContainer;
-    }
-
-    public async unpause(id: string): Promise<DockerContainer> {
-        const container = this.client.getContainer(id);
-        await container.unpause();
-        await this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY);
-        this.logger.debug(`Invalidated container cache after unpausing ${id}`);
-
-        let containers = await this.getContainers({ skipCache: true });
-        let updatedContainer: DockerContainer | undefined;
-        for (let i = 0; i < 5; i++) {
-            await sleep(500);
-            containers = await this.getContainers({ skipCache: true });
-            updatedContainer = containers.find((c) => c.id === id);
-            this.logger.debug(
-                `Container ${id} state after unpause attempt ${i + 1}: ${updatedContainer?.state}`
-            );
-            if (updatedContainer?.state === ContainerState.RUNNING) {
-                break;
-            }
-        }
-
-        if (!updatedContainer) {
-            throw new Error(`Container ${id} not found after unpausing`);
-        }
-        const appInfo = await this.getAppInfo();
-        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
-        return updatedContainer;
-    }
-
-    public async updateContainer(id: string): Promise<DockerContainer> {
-        const containers = await this.getContainers({ skipCache: true });
-        const container = containers.find((c) => c.id === id);
-        if (!container) {
-            throw new Error(`Container ${id} not found`);
-        }
-
-        const containerName = container.names?.[0]?.replace(/^\//, '');
-        if (!containerName) {
-            throw new Error(`Container ${id} has no name`);
-        }
-
-        this.logger.log(`Updating container ${containerName} (${id})`);
-
-        try {
-            await execa(
-                '/usr/local/emhttp/plugins/dynamix.docker.manager/scripts/update_container',
-                [encodeURIComponent(containerName)],
-                { shell: 'bash' }
-            );
-        } catch (error) {
-            this.logger.error(`Failed to update container ${containerName}:`, error);
-            throw new Error(`Failed to update container ${containerName}`);
-        }
-
-        await this.clearContainerCache();
-        this.logger.debug(`Invalidated container caches after updating ${id}`);
-
-        const updatedContainers = await this.getContainers({ skipCache: true });
-        const updatedContainer = updatedContainers.find(
-            (c) => c.names?.some((name) => name.replace(/^\//, '') === containerName) || c.id === id
-        );
-        if (!updatedContainer) {
-            throw new Error(`Container ${id} not found after update`);
-        }
-
-        const appInfo = await this.getAppInfo();
-        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
-        return updatedContainer;
-    }
-
-    public async updateContainers(ids: string[]): Promise<DockerContainer[]> {
-        const uniqueIds = Array.from(new Set(ids.filter((id) => typeof id === 'string' && id.length)));
-        const updatedContainers: DockerContainer[] = [];
-        for (const id of uniqueIds) {
-            const updated = await this.updateContainer(id);
-            updatedContainers.push(updated);
-        }
-        return updatedContainers;
-    }
-
-    /**
-     * Updates every container with an available update. Mirrors the legacy webgui "Update All" flow.
-     */
-    public async updateAllContainers(): Promise<DockerContainer[]> {
-        const containers = await this.getContainers({ skipCache: true });
-        if (!containers.length) {
-            return [];
-        }
-
-        const cachedStatuses = await this.dockerManifestService.getCachedUpdateStatuses();
-        const idsWithUpdates: string[] = [];
-
-        for (const container of containers) {
-            if (!container.image) {
-                continue;
-            }
-            const hasUpdate = await this.dockerManifestService.isUpdateAvailableCached(
-                container.image,
-                cachedStatuses
-            );
-            if (hasUpdate) {
-                idsWithUpdates.push(container.id);
-            }
-        }
-
-        if (!idsWithUpdates.length) {
-            this.logger.log('Update-all requested but no containers have available updates');
-            return [];
-        }
-
-        this.logger.log(`Updating ${idsWithUpdates.length} container(s) via updateAllContainers`);
-        return this.updateContainers(idsWithUpdates);
-    }
-
-    private handleDockerListError(error: unknown): never {
-        const message = this.getDockerErrorMessage(error);
-        this.logger.warn(`Docker container query failed: ${message}`);
-        catchHandlers.docker(error as NodeJS.ErrnoException);
-        throw error instanceof Error ? error : new Error('Docker list error');
-    }
-
-    private getDockerErrorMessage(error: unknown): string {
-        if (error instanceof Error && error.message) {
-            return error.message;
-        }
-        if (typeof error === 'string' && error.length) {
-            return error;
-        }
-        return 'Unknown error occurred.';
     }
 }
