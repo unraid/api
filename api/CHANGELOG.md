@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.29.2](https://github.com/unraid/api/compare/v4.29.1...v4.29.2) (2025-12-19)
+
+
+### Bug Fixes
+
+* unraid-connect plugin not loaded when connect is installed ([#1856](https://github.com/unraid/api/issues/1856)) ([73135b8](https://github.com/unraid/api/commit/73135b832801f5c76d60020161492e4770958c3d))
+
 ## [4.29.1](https://github.com/unraid/api/compare/v4.29.0...v4.29.1) (2025-12-19)
 
 
