@@ -7,7 +7,6 @@ import { createPinia, setActivePinia } from 'pinia';
 import { WEBGUI_REDIRECT } from '~/helpers/urls';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useUpdateOsStore } from '~/store/updateOs';
 
 const mockSend = vi.fn();
@@ -130,7 +129,6 @@ describe('UpdateOs Store', () => {
     });
 
     it('should send update install through redirect.htm', () => {
-      const callbackStore = useCallbackActionsStore();
       const originalLocation = window.location;
 
       Object.defineProperty(window, 'location', {
@@ -146,7 +144,7 @@ describe('UpdateOs Store', () => {
 
       const expectedUrl = new URL(WEBGUI_REDIRECT, window.location.origin).toString();
 
-      expect(callbackStore.send).toHaveBeenCalledWith(
+      expect(mockSend).toHaveBeenCalledWith(
         expectedUrl,
         [
           {
