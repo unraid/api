@@ -91,13 +91,9 @@ export class PluginService {
                 return name;
             })
         );
-        const { peerDependencies } = getPackageJson();
-        // All api plugins must be installed as peer dependencies of the unraid-api package
-        if (!peerDependencies) {
-            PluginService.logger.warn('Unraid-API peer dependencies not found; skipping plugins.');
-            return [];
-        }
-        const pluginTuples = Object.entries(peerDependencies).filter(
+        const { peerDependencies = {}, dependencies = {} } = getPackageJson();
+        const allDependencies = { ...peerDependencies, ...dependencies };
+        const pluginTuples = Object.entries(allDependencies).filter(
             (entry): entry is [string, string] => {
                 const [pkgName, version] = entry;
                 return pluginNames.has(pkgName) && typeof version === 'string';
