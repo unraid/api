@@ -68,6 +68,10 @@ function appendLogLines(newLines: Array<{ timestamp: string; message: string }>)
 
   state.lines = [...state.lines, ...added];
   if (state.lines.length > MAX_LOG_LINES) {
+    const removed = state.lines.slice(0, state.lines.length - MAX_LOG_LINES);
+    for (const line of removed) {
+      state.lineKeys.delete(`${line.timestamp}|${line.message}`);
+    }
     state.lines = state.lines.slice(state.lines.length - MAX_LOG_LINES);
   }
 }

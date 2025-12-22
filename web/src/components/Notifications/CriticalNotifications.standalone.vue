@@ -142,14 +142,16 @@ const dismissNotification = async (notification: NotificationFragmentFragment) =
 const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
 
 onNotificationAdded(({ data }) => {
-  if (!data) {
+  if (!data?.notificationAdded) {
     return;
   }
-  const notification = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
+
+  // Access raw subscription data directly - don't call useFragment in async callback
+  const rawNotification = data.notificationAdded as unknown as NotificationFragmentFragment;
   if (
-    !notification ||
-    (notification.importance !== NotificationImportance.ALERT &&
-      notification.importance !== NotificationImportance.WARNING)
+    !rawNotification ||
+    (rawNotification.importance !== NotificationImportance.ALERT &&
+      rawNotification.importance !== NotificationImportance.WARNING)
   ) {
     return;
   }
@@ -160,7 +162,7 @@ onNotificationAdded(({ data }) => {
     return;
   }
 
-  if (notification.timestamp) {
+  if (rawNotification.timestamp) {
     // Trigger the global toast in tandem with the subscription update.
     const funcMapping: Record<
       NotificationImportance,
@@ -170,16 +172,16 @@ onNotificationAdded(({ data }) => {
       [NotificationImportance.WARNING]: globalThis.toast.warning,
       [NotificationImportance.INFO]: globalThis.toast.info,
     };
-    const toast = funcMapping[notification.importance];
+    const toast = funcMapping[rawNotification.importance];
     const createOpener = () => ({
       label: 'Open',
-      onClick: () => notification.link && window.open(notification.link, '_blank', 'noopener'),
+      onClick: () => rawNotification.link && window.open(rawNotification.link, '_blank', 'noopener'),
     });
 
     requestAnimationFrame(() =>
-      toast(notification.title, {
-        description: notification.subject,
-        action: notification.link ? createOpener() : undefined,
+      toast(rawNotification.title, {
+        description: rawNotification.subject,
+        action: rawNotification.link ? createOpener() : undefined,
       })
     );
   }

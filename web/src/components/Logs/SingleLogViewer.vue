@@ -281,7 +281,7 @@ const refreshLogContent = async () => {
   startLogSubscription();
 };
 
-watch(() => props.logFilePath, refreshLogContent);
+watch(() => props.logFilePath, refreshLogContent, { immediate: true });
 defineExpose({ refreshLogContent });
 </script>
 
