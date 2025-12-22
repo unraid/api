@@ -35,14 +35,12 @@ const purchaseStore = usePurchaseStore();
 
 const themeStore = useThemeStore();
 
-// Apply theme when modal opens
+// Ensure theme is loaded when modal opens
 (async () => {
   try {
-    await themeStore.setTheme();
-    // Ensure CSS variables are applied
-    themeStore.setCssVars();
+    await themeStore.fetchTheme();
   } catch (error) {
-    console.error('Error setting theme:', error);
+    console.error('Error loading theme:', error);
   }
 })();
 

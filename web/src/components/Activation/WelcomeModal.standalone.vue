@@ -17,13 +17,13 @@ defineOptions({
 
 const { partnerInfo, isInitialSetup } = storeToRefs(useWelcomeModalDataStore());
 
-const { setTheme } = useThemeStore();
+const { fetchTheme } = useThemeStore();
 
 (async () => {
   try {
-    await setTheme();
+    await fetchTheme();
   } catch (error) {
-    console.error('Error setting theme:', error);
+    console.error('Error loading theme:', error);
   }
 })();
 
