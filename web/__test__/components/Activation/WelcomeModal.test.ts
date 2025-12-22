@@ -135,7 +135,7 @@ const mockWelcomeModalDataStore = {
 };
 
 const mockThemeStore = {
-  setTheme: vi.fn(),
+  fetchTheme: vi.fn(),
 };
 
 vi.mock('vue-i18n', () => ({
@@ -287,10 +287,10 @@ describe('Activation/WelcomeModal.standalone.vue', () => {
     expect(activationSteps.attributes('active-step')).toBe('0');
   });
 
-  it('calls setTheme on mount', () => {
+  it('calls fetchTheme on mount', () => {
     mountComponent();
 
-    expect(mockThemeStore.setTheme).toHaveBeenCalled();
+    expect(mockThemeStore.fetchTheme).toHaveBeenCalled();
   });
 
   it('handles theme setting error gracefully', async () => {
@@ -298,12 +298,12 @@ describe('Activation/WelcomeModal.standalone.vue', () => {
 
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    mockThemeStore.setTheme.mockRejectedValueOnce(new Error('Theme error'));
+    mockThemeStore.fetchTheme.mockRejectedValueOnce(new Error('Theme error'));
     mountComponent();
 
     await vi.runAllTimersAsync();
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error setting theme:', expect.any(Error));
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Error loading theme:', expect.any(Error));
 
     consoleErrorSpy.mockRestore();
     vi.useRealTimers();

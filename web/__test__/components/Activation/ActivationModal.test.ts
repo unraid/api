@@ -191,8 +191,7 @@ vi.mock('~/store/purchase', () => ({
 
 vi.mock('~/store/theme', () => ({
   useThemeStore: () => ({
-    setTheme: vi.fn().mockResolvedValue(undefined),
-    setCssVars: vi.fn(),
+    fetchTheme: vi.fn().mockResolvedValue(undefined),
   }),
 }));
 
