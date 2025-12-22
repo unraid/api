@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.30.0](https://github.com/unraid/api/compare/v4.29.2...v4.30.0) (2025-12-22)
+
+
+### Features
+
+* docker overview ([#1855](https://github.com/unraid/api/issues/1855)) ([9ef1cf1](https://github.com/unraid/api/commit/9ef1cf1eca96254350d9152d43f05ad11dd3811e))
+
 ## [4.29.2](https://github.com/unraid/api/compare/v4.29.1...v4.29.2) (2025-12-19)
 
 
