@@ -39,12 +39,12 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
   const confirmStartStopOpen = ref(false);
   const confirmToStart = ref<{ name: string }[]>([]);
   const confirmToStop = ref<{ name: string }[]>([]);
-  let pendingStartStopIds: string[] = [];
+  const pendingStartStopIds = ref<string[]>([]);
 
   const confirmPauseResumeOpen = ref(false);
   const confirmToPause = ref<{ name: string }[]>([]);
   const confirmToResume = ref<{ name: string }[]>([]);
-  let pendingPauseResumeIds: string[] = [];
+  const pendingPauseResumeIds = ref<string[]>([]);
 
   function classifyStartStop(ids: string[]) {
     const toStart: { id: string; containerId: string; name: string }[] = [];
@@ -201,7 +201,7 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
     const { toStart, toStop } = classifyStartStop(ids);
     const isMixed = toStart.length > 0 && toStop.length > 0;
     if (isMixed) {
-      pendingStartStopIds = ids;
+      pendingStartStopIds.value = ids;
       confirmToStart.value = toStart.map((i) => ({ name: i.name }));
       confirmToStop.value = toStop.map((i) => ({ name: i.name }));
       confirmStartStopOpen.value = true;
@@ -216,15 +216,15 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
   }
 
   async function confirmStartStop(close: () => void) {
-    const { toStart, toStop } = classifyStartStop(pendingStartStopIds);
-    setRowsBusy(pendingStartStopIds, true);
+    const { toStart, toStop } = classifyStartStop(pendingStartStopIds.value);
+    setRowsBusy(pendingStartStopIds.value, true);
     try {
       await runStartStopBatch(toStart, toStop);
       onSuccess?.('Action completed');
     } finally {
-      setRowsBusy(pendingStartStopIds, false);
+      setRowsBusy(pendingStartStopIds.value, false);
       confirmStartStopOpen.value = false;
-      pendingStartStopIds = [];
+      pendingStartStopIds.value = [];
       close();
     }
   }
@@ -234,7 +234,7 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
     const { toPause, toResume } = classifyPauseResume(ids);
     const isMixed = toPause.length > 0 && toResume.length > 0;
     if (isMixed) {
-      pendingPauseResumeIds = ids;
+      pendingPauseResumeIds.value = ids;
       confirmToPause.value = toPause.map((i) => ({ name: i.name }));
       confirmToResume.value = toResume.map((i) => ({ name: i.name }));
       confirmPauseResumeOpen.value = true;
@@ -249,15 +249,15 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
   }
 
   async function confirmPauseResume(close: () => void) {
-    const { toPause, toResume } = classifyPauseResume(pendingPauseResumeIds);
-    setRowsBusy(pendingPauseResumeIds, true);
+    const { toPause, toResume } = classifyPauseResume(pendingPauseResumeIds.value);
+    setRowsBusy(pendingPauseResumeIds.value, true);
     try {
       await runPauseResumeBatch(toPause, toResume);
       onSuccess?.('Action completed');
     } finally {
-      setRowsBusy(pendingPauseResumeIds, false);
+      setRowsBusy(pendingPauseResumeIds.value, false);
       confirmPauseResumeOpen.value = false;
-      pendingPauseResumeIds = [];
+      pendingPauseResumeIds.value = [];
       close();
     }
   }

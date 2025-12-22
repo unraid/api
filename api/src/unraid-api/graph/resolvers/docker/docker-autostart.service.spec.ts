@@ -2,10 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-    AutoStartEntry,
-    DockerAutostartService,
-} from '@app/unraid-api/graph/resolvers/docker/docker-autostart.service.js';
+import { DockerAutostartService } from '@app/unraid-api/graph/resolvers/docker/docker-autostart.service.js';
 import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 
 // Mock store getters

@@ -13,11 +13,7 @@ import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
 import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
-import {
-    ContainerPortType,
-    ContainerState,
-    DockerContainer,
-} from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 

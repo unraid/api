@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AppError } from '@app/core/errors/app-error.js';
 import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-log.service.js';
-import { DockerContainerLogs } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 
 // Mock dependencies
 const mockExeca = vi.fn();

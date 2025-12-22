@@ -683,7 +683,7 @@ export interface MoveItemsToPositionParams {
  * Combines moveEntriesToFolder with position-based insertion.
  */
 export function moveItemsToPosition(params: MoveItemsToPositionParams): OrganizerView {
-    const { view, sourceEntryIds, destinationFolderId, position, resources } = params;
+    const { view, sourceEntryIds, destinationFolderId, position } = params;
 
     const movedView = moveEntriesToFolder({ view, sourceEntryIds, destinationFolderId });
 
@@ -743,7 +743,7 @@ export interface CreateFolderWithItemsParams {
  * Combines createFolder + moveItems + positioning in a single atomic operation.
  */
 export function createFolderWithItems(params: CreateFolderWithItemsParams): OrganizerView {
-    const { view, folderId, folderName, parentId, sourceEntryIds = [], position, resources } = params;
+    const { view, folderId, folderName, parentId, sourceEntryIds = [], position } = params;
 
     let newView = createFolderInView({
         view,

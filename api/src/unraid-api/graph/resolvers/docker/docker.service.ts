@@ -321,7 +321,7 @@ export class DockerService {
         await this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY);
         this.logger.debug(`Invalidated container cache after pausing ${id}`);
 
-        let containers = await this.getContainers({ skipCache: true });
+        let containers: DockerContainer[];
         let updatedContainer: DockerContainer | undefined;
         for (let i = 0; i < 5; i++) {
             await sleep(500);
@@ -349,7 +349,7 @@ export class DockerService {
         await this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY);
         this.logger.debug(`Invalidated container cache after unpausing ${id}`);
 
-        let containers = await this.getContainers({ skipCache: true });
+        let containers: DockerContainer[];
         let updatedContainer: DockerContainer | undefined;
         for (let i = 0; i < 5; i++) {
             await sleep(500);

@@ -91,7 +91,6 @@ export class DockerTailscaleService {
         );
 
         const dnsName = rawStatus.Self.DNSName;
-        const actualHostname = dnsName ? dnsName.split('.')[0] : undefined;
 
         let relayName: string | undefined;
         if (rawStatus.Self.Relay && derpMap) {

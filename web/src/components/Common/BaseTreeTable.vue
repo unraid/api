@@ -299,9 +299,7 @@ function createCellWrapper(
   });
 }
 
-function wrapColumnHeaderRenderer(
-  header: ColumnHeaderRenderer | undefined
-): ColumnHeaderRenderer | undefined {
+function wrapColumnHeaderRenderer(header: ColumnHeaderRenderer | undefined): ColumnHeaderRenderer {
   if (typeof header === 'function') {
     return function wrappedHeaderRenderer(this: unknown, ...args: unknown[]) {
       const result = (header as (...args: unknown[]) => unknown).apply(this, args);
@@ -481,7 +479,7 @@ const processedColumns = computed<TableColumn<TreeRow<T>>[]>(() => {
     createSelectColumn(),
     ...props.columns.map((col, colIndex) => {
       const originalHeader = col.header as ColumnHeaderRenderer | undefined;
-      const header = wrapColumnHeaderRenderer(originalHeader) ?? originalHeader;
+      const header = wrapColumnHeaderRenderer(originalHeader);
       const cell = (col as { cell?: unknown }).cell
         ? ({ row }: { row: TableInstanceRow<T> }) => {
             const cellFn = (col as { cell: (args: unknown) => VNode | string | number }).cell;
