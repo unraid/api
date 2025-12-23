@@ -39,7 +39,24 @@ const { copyWithNotification } = useClipboardWithToast();
 onMounted(() => {
   nextTick(() => {
     const logoWrapper = document.querySelector('.logo');
-    logoWrapper?.classList.remove('logo');
+
+    if (logoWrapper) {
+      logoWrapper.classList.remove('logo');
+
+      // Fix for header overlap on Azure/Gray themes in Unraid 7.0
+      // These themes have a sidebar and require an offset which was provided by the .logo class
+      const isAzureOrGray = !!document.querySelector(
+        'link[href*="-azure.css"], link[href*="-gray.css"]'
+      );
+      const version = parseFloat(osVersion.value || '0');
+
+      // Apply offset only for versions < 7.1 and affected themes
+      // We check > 0 to ensure we have a valid version loaded
+      if (version > 0 && version < 7.1 && isAzureOrGray) {
+        (logoWrapper as HTMLElement).style.float = 'left';
+        (logoWrapper as HTMLElement).style.marginLeft = '75px';
+      }
+    }
   });
 });
 
