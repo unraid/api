@@ -735,12 +735,6 @@ type ActivationCode {
   theme: String
 }
 
-type Customization {
-  activationCode: ActivationCode
-  partnerInfo: PublicPartnerInfo
-  theme: Theme!
-}
-
 type ActivationOnboardingStep {
   """Identifier of the activation onboarding step"""
   id: ActivationOnboardingStepId!
@@ -760,6 +754,32 @@ enum ActivationOnboardingStepId {
   TIMEZONE
   PLUGINS
   ACTIVATION
+}
+
+type OnboardingState {
+  registrationState: RegistrationState
+
+  """Indicates whether the system is registered"""
+  isRegistered: Boolean!
+
+  """Indicates whether the system is a fresh install"""
+  isFreshInstall: Boolean!
+
+  """Indicates whether initial setup should be shown"""
+  isInitialSetup: Boolean!
+
+  """Indicates whether an activation code is present"""
+  hasActivationCode: Boolean!
+
+  """Indicates whether activation is required based on current state"""
+  activationRequired: Boolean!
+}
+
+type Customization {
+  activationCode: ActivationCode
+  partnerInfo: PublicPartnerInfo
+  onboardingState: OnboardingState!
+  theme: Theme!
 }
 
 type ActivationOnboarding {
@@ -1239,12 +1259,67 @@ type OnboardingMutations {
 
   """Reset upgrade onboarding progress for the current OS version"""
   resetUpgradeOnboarding: UpgradeInfo!
+
+  """Override onboarding state for testing (in-memory only)"""
+  setOnboardingOverride(input: OnboardingOverrideInput!): ActivationOnboarding!
+
+  """Clear onboarding override state and reload from disk"""
+  clearOnboardingOverride: ActivationOnboarding!
 }
 
 """Input for marking an upgrade onboarding step as completed"""
 input CompleteUpgradeStepInput {
   """Identifier of the onboarding step to mark completed"""
   stepId: ActivationOnboardingStepId!
+}
+
+"""Onboarding override input"""
+input OnboardingOverrideInput {
+  activationOnboarding: ActivationOnboardingOverrideInput
+  activationCode: ActivationCodeOverrideInput
+  partnerInfo: PartnerInfoOverrideInput
+  registrationState: RegistrationState
+  isInitialSetup: Boolean
+}
+
+"""Activation onboarding override input"""
+input ActivationOnboardingOverrideInput {
+  currentVersion: String
+  previousVersion: String
+  isUpgrade: Boolean
+  steps: [ActivationOnboardingStepOverrideInput!]
+}
+
+"""Activation onboarding step override input"""
+input ActivationOnboardingStepOverrideInput {
+  """Identifier of the onboarding step"""
+  id: ActivationOnboardingStepId!
+  required: Boolean
+  completed: Boolean
+  introducedIn: String
+}
+
+"""Activation code override input"""
+input ActivationCodeOverrideInput {
+  code: String
+  partnerName: String
+  partnerUrl: String
+  serverName: String
+  sysModel: String
+  comment: String
+  header: String
+  headermetacolor: String
+  background: String
+  showBannerGradient: Boolean
+  theme: String
+}
+
+"""Partner info override input"""
+input PartnerInfoOverrideInput {
+  partnerName: String
+  hasPartnerLogo: Boolean
+  partnerUrl: String
+  partnerLogoUrl: String
 }
 
 """Unraid plugin management mutations"""
@@ -2772,7 +2847,6 @@ type Query {
   services: [Service!]!
   shares: [Share!]!
   vars: Vars!
-  isInitialSetup: Boolean!
 
   """Get information about all VMs on the system"""
   vms: Vms!
@@ -2780,6 +2854,7 @@ type Query {
   array: UnraidArray!
   customization: Customization
   publicPartnerInfo: PublicPartnerInfo
+  isInitialSetup: Boolean!
   publicTheme: Theme!
 
   """Activation onboarding steps derived from current system state"""

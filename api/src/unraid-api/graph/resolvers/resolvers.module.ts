@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
+import { OnboardingOverrideModule } from '@app/unraid-api/config/onboarding-override.module.js';
+import { OnboardingStateModule } from '@app/unraid-api/config/onboarding-state.module.js';
 import { ApiKeyModule } from '@app/unraid-api/graph/resolvers/api-key/api-key.module.js';
 import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 import { ArrayModule } from '@app/unraid-api/graph/resolvers/array/array.module.js';
@@ -50,6 +52,8 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         FlashBackupModule,
         InfoModule,
         LogsModule,
+        OnboardingOverrideModule,
+        OnboardingStateModule,
         NotificationsModule,
         RCloneModule,
         SettingsModule,

@@ -10,14 +10,26 @@ import { useServerStore } from '~/store/server';
 export const usePurchaseStore = defineStore('purchase', () => {
   const callbackStore = useCallbackActionsStore();
   const serverStore = useServerStore();
+  const { activationCode } = storeToRefs(useActivationCodeDataStore());
 
   const serverPurchasePayload = computed(() => serverStore.serverPurchasePayload);
   const inIframe = computed(() => serverStore.inIframe);
   const sendType = computed(() => callbackStore.sendType);
 
-  const activate = () => {
-    const { activationCode } = storeToRefs(useActivationCodeDataStore());
+  const buildServerPayload = () => {
+    const payload = {
+      ...serverPurchasePayload.value,
+    };
+    if (activationCode.value) {
+      return {
+        ...payload,
+        activationCodeData: activationCode.value,
+      };
+    }
+    return payload;
+  };
 
+  const activate = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
       [
@@ -25,10 +37,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
           /**
            * @todo Remove the type cast once the payload type can be more specific.
            */
-          server: {
-            ...serverPurchasePayload.value,
-            activationCodeData: activationCode.value,
-          },
+          server: buildServerPayload(),
           type: 'activate',
         },
       ],
@@ -41,9 +50,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
       PURCHASE_CALLBACK.toString(),
       [
         {
-          server: {
-            ...serverPurchasePayload.value,
-          },
+          server: buildServerPayload(),
           type: 'redeem',
         },
       ],
@@ -56,9 +63,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
       PURCHASE_CALLBACK.toString(),
       [
         {
-          server: {
-            ...serverPurchasePayload.value,
-          },
+          server: buildServerPayload(),
           type: 'purchase',
         },
       ],
@@ -71,9 +76,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
       PURCHASE_CALLBACK.toString(),
       [
         {
-          server: {
-            ...serverPurchasePayload.value,
-          },
+          server: buildServerPayload(),
           type: 'upgrade',
         },
       ],
@@ -86,9 +89,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
       PURCHASE_CALLBACK.toString(),
       [
         {
-          server: {
-            ...serverPurchasePayload.value,
-          },
+          server: buildServerPayload(),
           type: 'renew',
         },
       ],

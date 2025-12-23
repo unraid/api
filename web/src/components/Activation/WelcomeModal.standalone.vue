@@ -7,7 +7,6 @@ import { Dialog } from '@unraid/ui';
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
 import ActivationWelcomeStep from '~/components/Activation/ActivationWelcomeStep.vue';
-import { useOnboardingTestOverrides } from '~/components/Activation/onboardingTestOverrides';
 import { useWelcomeModalDataStore } from '~/components/Activation/store/welcomeModalData';
 import { useThemeStore } from '~/store/theme';
 
@@ -52,15 +51,11 @@ const hideWelcomeModal = () => {
   showModal.value = false;
 };
 
-const { enabled } = useOnboardingTestOverrides();
-
 const handleShowEvent = () => {
-  if (!enabled.value) return;
   showWelcomeModal();
 };
 
 const handleHideEvent = () => {
-  if (!enabled.value) return;
   hideWelcomeModal();
 };
 

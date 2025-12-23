@@ -119,6 +119,21 @@ export type ActivationCode = {
   theme?: Maybe<Scalars['String']['output']>;
 };
 
+/** Activation code override input */
+export type ActivationCodeOverrideInput = {
+  background?: InputMaybe<Scalars['String']['input']>;
+  code?: InputMaybe<Scalars['String']['input']>;
+  comment?: InputMaybe<Scalars['String']['input']>;
+  header?: InputMaybe<Scalars['String']['input']>;
+  headermetacolor?: InputMaybe<Scalars['String']['input']>;
+  partnerName?: InputMaybe<Scalars['String']['input']>;
+  partnerUrl?: InputMaybe<Scalars['String']['input']>;
+  serverName?: InputMaybe<Scalars['String']['input']>;
+  showBannerGradient?: InputMaybe<Scalars['Boolean']['input']>;
+  sysModel?: InputMaybe<Scalars['String']['input']>;
+  theme?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type ActivationOnboarding = {
   __typename?: 'ActivationOnboarding';
   /** Current OS version detected by the system */
@@ -131,6 +146,14 @@ export type ActivationOnboarding = {
   previousVersion?: Maybe<Scalars['String']['output']>;
   /** Activation onboarding steps relevant to the current system state */
   steps: Array<ActivationOnboardingStep>;
+};
+
+/** Activation onboarding override input */
+export type ActivationOnboardingOverrideInput = {
+  currentVersion?: InputMaybe<Scalars['String']['input']>;
+  isUpgrade?: InputMaybe<Scalars['Boolean']['input']>;
+  previousVersion?: InputMaybe<Scalars['String']['input']>;
+  steps?: InputMaybe<Array<ActivationOnboardingStepOverrideInput>>;
 };
 
 export type ActivationOnboardingStep = {
@@ -151,6 +174,15 @@ export enum ActivationOnboardingStepId {
   TIMEZONE = 'TIMEZONE',
   WELCOME = 'WELCOME'
 }
+
+/** Activation onboarding step override input */
+export type ActivationOnboardingStepOverrideInput = {
+  completed?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Identifier of the onboarding step */
+  id: ActivationOnboardingStepId;
+  introducedIn?: InputMaybe<Scalars['String']['input']>;
+  required?: InputMaybe<Scalars['Boolean']['input']>;
+};
 
 export type AddPermissionInput = {
   actions: Array<AuthAction>;
@@ -637,6 +669,7 @@ export type CreateRCloneRemoteInput = {
 export type Customization = {
   __typename?: 'Customization';
   activationCode?: Maybe<ActivationCode>;
+  onboardingState: OnboardingState;
   partnerInfo?: Maybe<PublicPartnerInfo>;
   theme: Theme;
 };
@@ -1828,16 +1861,50 @@ export type OidcSessionValidation = {
 /** Onboarding related mutations */
 export type OnboardingMutations = {
   __typename?: 'OnboardingMutations';
+  /** Clear onboarding override state and reload from disk */
+  clearOnboardingOverride: ActivationOnboarding;
   /** Mark an upgrade onboarding step as completed for the current OS version */
   completeUpgradeStep: UpgradeInfo;
   /** Reset upgrade onboarding progress for the current OS version */
   resetUpgradeOnboarding: UpgradeInfo;
+  /** Override onboarding state for testing (in-memory only) */
+  setOnboardingOverride: ActivationOnboarding;
 };
 
 
 /** Onboarding related mutations */
 export type OnboardingMutationsCompleteUpgradeStepArgs = {
   input: CompleteUpgradeStepInput;
+};
+
+
+/** Onboarding related mutations */
+export type OnboardingMutationsSetOnboardingOverrideArgs = {
+  input: OnboardingOverrideInput;
+};
+
+/** Onboarding override input */
+export type OnboardingOverrideInput = {
+  activationCode?: InputMaybe<ActivationCodeOverrideInput>;
+  activationOnboarding?: InputMaybe<ActivationOnboardingOverrideInput>;
+  isInitialSetup?: InputMaybe<Scalars['Boolean']['input']>;
+  partnerInfo?: InputMaybe<PartnerInfoOverrideInput>;
+  registrationState?: InputMaybe<RegistrationState>;
+};
+
+export type OnboardingState = {
+  __typename?: 'OnboardingState';
+  /** Indicates whether activation is required based on current state */
+  activationRequired: Scalars['Boolean']['output'];
+  /** Indicates whether an activation code is present */
+  hasActivationCode: Scalars['Boolean']['output'];
+  /** Indicates whether the system is a fresh install */
+  isFreshInstall: Scalars['Boolean']['output'];
+  /** Indicates whether initial setup should be shown */
+  isInitialSetup: Scalars['Boolean']['output'];
+  /** Indicates whether the system is registered */
+  isRegistered: Scalars['Boolean']['output'];
+  registrationState?: Maybe<RegistrationState>;
 };
 
 export type Owner = {
@@ -1916,6 +1983,14 @@ export enum ParityCheckStatus {
   PAUSED = 'PAUSED',
   RUNNING = 'RUNNING'
 }
+
+/** Partner info override input */
+export type PartnerInfoOverrideInput = {
+  hasPartnerLogo?: InputMaybe<Scalars['Boolean']['input']>;
+  partnerLogoUrl?: InputMaybe<Scalars['String']['input']>;
+  partnerName?: InputMaybe<Scalars['String']['input']>;
+  partnerUrl?: InputMaybe<Scalars['String']['input']>;
+};
 
 export type Permission = {
   __typename?: 'Permission';

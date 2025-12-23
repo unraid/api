@@ -5,7 +5,7 @@ import { useApolloClient } from '@vue/apollo-composable';
 
 import { parse } from 'graphql';
 
-import { DEFAULT_ACTIVATION_STEPS, isEnoKeyFile } from '~/components/Activation/onboardingTestOverrides';
+import { DEFAULT_ACTIVATION_STEPS } from '~/components/Activation/onboardingTestDefaults';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { useUpgradeOnboardingStore } from '~/components/Activation/store/upgradeOnboarding';
@@ -19,7 +19,8 @@ const activationCodeStore = useActivationCodeDataStore();
 const welcomeModalStore = useWelcomeModalDataStore();
 const callbackStore = useCallbackActionsStore();
 
-const { activationCode, isFreshInstall, partnerInfo, regState } = storeToRefs(activationCodeStore);
+const { activationRequired, hasActivationCode, isFreshInstall, partnerInfo, registrationState } =
+  storeToRefs(activationCodeStore);
 const { isInitialSetup } = storeToRefs(welcomeModalStore);
 const { callbackData } = storeToRefs(callbackStore);
 const { isHidden, isVisible } = storeToRefs(activationModalStore);
@@ -56,9 +57,10 @@ const RESET_UPGRADE_ONBOARDING_MUTATION = parse(/* GraphQL */ `
 const resetStatus = ref<'idle' | 'loading' | 'success' | 'error'>('idle');
 const resetError = ref<string | null>(null);
 
-const hasActivationCode = computed(() => Boolean(activationCode.value?.code));
-const regStateLabel = computed(() => (regState.value ? String(regState.value) : 'unknown'));
-const activationConditionMet = computed(() => hasActivationCode.value && isEnoKeyFile(regState.value));
+const regStateLabel = computed(() =>
+  registrationState.value ? String(registrationState.value) : 'unknown'
+);
+const activationConditionMet = computed(() => activationRequired.value);
 const activationModalShouldShow = computed(() => isVisible.value || shouldShowUpgradeOnboarding.value);
 
 const stepDiagnostics = computed(() => {
@@ -94,6 +96,26 @@ const stepDiagnostics = computed(() => {
   return [...base, ...extra];
 });
 
+const stepColumns = [
+  { accessorKey: 'step', header: 'Step' },
+  { accessorKey: 'included', header: 'Included' },
+  { accessorKey: 'required', header: 'Required' },
+  { accessorKey: 'completed', header: 'Completed' },
+  { accessorKey: 'condition', header: 'Condition' },
+  { accessorKey: 'conditionMet', header: 'Condition Met' },
+];
+
+const stepRows = computed(() =>
+  stepDiagnostics.value.map((step) => ({
+    step: step.id,
+    included: step.included ? 'Yes' : 'No',
+    required: step.required ? 'Yes' : 'No',
+    completed: step.completed ? 'Yes' : 'No',
+    condition: step.condition,
+    conditionMet: step.conditionMet ? 'Yes' : 'No',
+  }))
+);
+
 const resetOnboarding = async () => {
   if (resetStatus.value === 'loading') return;
   if (typeof window === 'undefined') return;
@@ -120,293 +142,148 @@ const resetOnboarding = async () => {
 </script>
 
 <template>
-  <section class="onboarding-admin-panel">
-    <div class="panel">
-      <div class="panel-header">
-        <div>
-          <p class="eyebrow">Onboarding State</p>
-          <h2>Onboarding Wizard</h2>
-          <p class="subtext">Review the current onboarding state and reset progress if needed.</p>
+  <section class="mx-auto max-w-6xl space-y-6">
+    <UCard>
+      <template #header>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p class="text-muted-foreground text-xs tracking-[0.2em] uppercase">Onboarding State</p>
+            <h2 class="text-lg font-semibold">Onboarding Wizard</h2>
+            <p class="text-muted-foreground text-sm">
+              Review the current onboarding state and reset progress if needed.
+            </p>
+          </div>
+          <UButton
+            color="error"
+            variant="solid"
+            size="sm"
+            :loading="resetStatus === 'loading'"
+            @click="resetOnboarding"
+          >
+            Reset Onboarding
+          </UButton>
         </div>
-        <button
-          class="btn danger"
-          type="button"
-          :disabled="resetStatus === 'loading'"
-          @click="resetOnboarding"
-        >
-          {{ resetStatus === 'loading' ? 'Resetting...' : 'Reset Onboarding' }}
-        </button>
-      </div>
+      </template>
 
-      <p v-if="resetStatus === 'success'" class="status success">Reset complete.</p>
-      <p v-else-if="resetStatus === 'error'" class="status error">
-        Reset failed: {{ resetError ?? 'unknown error' }}
-      </p>
+      <UAlert
+        v-if="resetStatus === 'success'"
+        color="success"
+        variant="soft"
+        title="Reset complete"
+        icon="i-lucide-check-circle-2"
+        class="mb-4"
+      />
+      <UAlert
+        v-else-if="resetStatus === 'error'"
+        color="error"
+        variant="soft"
+        title="Reset failed"
+        :description="resetError ?? 'unknown error'"
+        icon="i-lucide-alert-circle"
+        class="mb-4"
+      />
+    </UCard>
 
-      <div class="state-grid">
-        <div class="state-card">
-          <h3>Current State</h3>
-          <dl>
-            <div>
-              <dt>Reg state</dt>
-              <dd>{{ regStateLabel }}</dd>
-            </div>
-            <div>
-              <dt>Activation code</dt>
-              <dd>{{ hasActivationCode ? 'Present' : 'None' }}</dd>
-            </div>
-            <div>
-              <dt>Activation eligible</dt>
-              <dd>{{ activationConditionMet ? 'Yes' : 'No' }}</dd>
-            </div>
-            <div>
-              <dt>Fresh install</dt>
-              <dd>{{ isFreshInstall ? 'Yes' : 'No' }}</dd>
-            </div>
-            <div>
-              <dt>Initial setup</dt>
-              <dd>{{ isInitialSetup ? 'Yes' : 'No' }}</dd>
-            </div>
-            <div>
-              <dt>Upgrade flow</dt>
-              <dd>{{ isUpgrade ? 'Yes' : 'No' }}</dd>
-            </div>
-            <div>
-              <dt>Current version</dt>
-              <dd>{{ currentVersion ?? 'unknown' }}</dd>
-            </div>
-            <div>
-              <dt>Previous version</dt>
-              <dd>{{ previousVersion ?? 'n/a' }}</dd>
-            </div>
-            <div>
-              <dt>Pending steps</dt>
-              <dd>{{ upgradeSteps.length }}</dd>
-            </div>
-            <div>
-              <dt>Partner</dt>
-              <dd>{{ partnerInfo?.partnerName ?? 'none' }}</dd>
-            </div>
-          </dl>
-        </div>
+    <div class="grid gap-6 lg:grid-cols-2">
+      <UCard>
+        <template #header>
+          <div class="font-medium">Current State</div>
+        </template>
+        <dl class="space-y-2 text-sm">
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Registration state</dt>
+            <dd class="font-medium">{{ regStateLabel }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Activation code</dt>
+            <dd class="font-medium">{{ hasActivationCode ? 'Present' : 'None' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Activation eligible</dt>
+            <dd class="font-medium">{{ activationConditionMet ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Fresh install</dt>
+            <dd class="font-medium">{{ isFreshInstall ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Initial setup</dt>
+            <dd class="font-medium">{{ isInitialSetup ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Upgrade flow</dt>
+            <dd class="font-medium">{{ isUpgrade ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Current version</dt>
+            <dd class="font-medium">{{ currentVersion ?? 'unknown' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Previous version</dt>
+            <dd class="font-medium">{{ previousVersion ?? 'n/a' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Pending steps</dt>
+            <dd class="font-medium">{{ upgradeSteps.length }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Partner</dt>
+            <dd class="font-medium">{{ partnerInfo?.partnerName ?? 'none' }}</dd>
+          </div>
+        </dl>
+      </UCard>
 
-        <div class="state-card">
-          <h3>Modal Gates</h3>
-          <dl>
-            <div>
-              <dt>Activation modal visible</dt>
-              <dd>{{ activationModalShouldShow ? 'Yes' : 'No' }}</dd>
-            </div>
-            <div>
-              <dt>Hidden flag</dt>
-              <dd>{{ isHidden === null ? 'unset' : isHidden ? 'true' : 'false' }}</dd>
-            </div>
-            <div>
-              <dt>Fresh install gate</dt>
-              <dd>{{ isFreshInstall ? 'Pass' : 'Block' }}</dd>
-            </div>
-            <div>
-              <dt>Callback data</dt>
-              <dd>{{ callbackData ? 'Present' : 'None' }}</dd>
-            </div>
-            <div>
-              <dt>Upgrade pending</dt>
-              <dd>{{ shouldShowUpgradeOnboarding ? 'Yes' : 'No' }}</dd>
-            </div>
-          </dl>
-        </div>
-      </div>
+      <UCard>
+        <template #header>
+          <div class="font-medium">Modal Gates</div>
+        </template>
+        <dl class="space-y-2 text-sm">
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Activation modal visible</dt>
+            <dd class="font-medium">{{ activationModalShouldShow ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Hidden flag</dt>
+            <dd class="font-medium">
+              {{ isHidden === null ? 'unset' : isHidden ? 'true' : 'false' }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Fresh install gate</dt>
+            <dd class="font-medium">{{ isFreshInstall ? 'Pass' : 'Block' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Callback data</dt>
+            <dd class="font-medium">{{ callbackData ? 'Present' : 'None' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Upgrade pending</dt>
+            <dd class="font-medium">{{ shouldShowUpgradeOnboarding ? 'Yes' : 'No' }}</dd>
+          </div>
+        </dl>
+      </UCard>
+    </div>
 
-      <div class="state-card table-card">
-        <h3>Step Diagnostics</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Step</th>
-              <th>Included</th>
-              <th>Required</th>
-              <th>Completed</th>
-              <th>Condition</th>
-              <th>Condition Met</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="step in stepDiagnostics" :key="step.id">
-              <td>{{ step.id }}</td>
-              <td>{{ step.included ? 'Yes' : 'No' }}</td>
-              <td>{{ step.required ? 'Yes' : 'No' }}</td>
-              <td>{{ step.completed ? 'Yes' : 'No' }}</td>
-              <td>{{ step.condition }}</td>
-              <td>{{ step.conditionMet ? 'Yes' : 'No' }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <p class="hint">
+    <UCard>
+      <template #header>
+        <div class="font-medium">Step Diagnostics</div>
+      </template>
+      <UTable
+        :data="stepRows"
+        :columns="stepColumns"
+        sticky="header"
+        :ui="{ td: 'py-2 px-3', th: 'py-2 px-3 text-left text-muted-foreground' }"
+      >
+        <template #empty>
+          <div class="text-muted-foreground py-6 text-center text-sm">No steps available.</div>
+        </template>
+      </UTable>
+      <template #footer>
+        <p class="text-muted-foreground text-xs">
           Steps are supplied by the API. If a step is not included, its condition was not satisfied on
           the server.
         </p>
-      </div>
-    </div>
+      </template>
+    </UCard>
   </section>
 </template>
-
-<style scoped>
-.onboarding-admin-panel {
-  margin: 24px auto;
-  max-width: 1200px;
-}
-
-.panel {
-  border-radius: 12px;
-  border: 1px solid var(--border, rgba(148, 163, 184, 0.4));
-  background: var(--card, var(--background-color, #fff));
-  padding: 20px;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-}
-
-.panel-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.panel-header h2 {
-  margin: 0;
-  font-size: 22px;
-}
-
-.eyebrow {
-  margin: 0 0 6px;
-  text-transform: uppercase;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  color: var(--text-muted, #64748b);
-}
-
-.subtext {
-  margin: 6px 0 0;
-  font-size: 12px;
-  color: var(--text-muted, #64748b);
-}
-
-.status {
-  margin: 8px 0 16px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.status.success {
-  color: #0f766e;
-}
-
-.status.error {
-  color: #b91c1c;
-}
-
-.state-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.state-card {
-  border-radius: 10px;
-  border: 1px solid var(--border, rgba(148, 163, 184, 0.4));
-  background: var(--background, #fff);
-  padding: 16px;
-}
-
-.state-card h3 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-}
-
-.state-card dl {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-}
-
-.state-card dl div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 12px;
-}
-
-.state-card dt {
-  font-weight: 600;
-  color: var(--text-muted, #475569);
-}
-
-.state-card dd {
-  margin: 0;
-  text-align: right;
-}
-
-.table-card table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-
-.table-card th,
-.table-card td {
-  padding: 8px 6px;
-  border-bottom: 1px solid var(--border, rgba(148, 163, 184, 0.3));
-  text-align: left;
-}
-
-.table-card th {
-  color: var(--text-muted, #475569);
-  font-weight: 600;
-}
-
-.hint {
-  margin-top: 8px;
-  font-size: 11px;
-  color: var(--text-muted, #64748b);
-}
-
-.btn {
-  border: 0;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    background 0.15s ease;
-}
-
-.btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.btn.danger {
-  background: #b91c1c;
-  color: #fff;
-  box-shadow: 0 6px 14px rgba(185, 28, 28, 0.25);
-}
-
-.btn:active {
-  transform: translateY(1px);
-}
-
-@media (max-width: 900px) {
-  .panel-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .state-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

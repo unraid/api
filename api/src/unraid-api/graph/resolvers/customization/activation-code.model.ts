@@ -3,6 +3,8 @@ import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsIn, IsOptional, IsString, IsUrl } from 'class-validator';
 
+import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
+
 // Helper function to check if a string is a valid hex color
 const isHexColor = (value: string): boolean => /^#([0-9A-F]{3}){1,2}$/i.test(value);
 
@@ -143,15 +145,6 @@ export class ActivationCode {
 }
 
 @ObjectType()
-export class Customization {
-    @Field(() => ActivationCode, { nullable: true })
-    activationCode?: ActivationCode;
-
-    @Field(() => PublicPartnerInfo, { nullable: true })
-    partnerInfo?: PublicPartnerInfo;
-}
-
-@ObjectType()
 export class ActivationOnboardingStep {
     @Field(() => ActivationOnboardingStepId, {
         description: 'Identifier of the activation onboarding step',
@@ -171,6 +164,41 @@ export class ActivationOnboardingStep {
         description: 'Version of Unraid when this step was introduced',
     })
     introducedIn?: string;
+}
+
+@ObjectType()
+export class OnboardingState {
+    @Field(() => RegistrationState, { nullable: true })
+    registrationState?: RegistrationState;
+
+    @Field(() => Boolean, { description: 'Indicates whether the system is registered' })
+    isRegistered!: boolean;
+
+    @Field(() => Boolean, { description: 'Indicates whether the system is a fresh install' })
+    isFreshInstall!: boolean;
+
+    @Field(() => Boolean, { description: 'Indicates whether initial setup should be shown' })
+    isInitialSetup!: boolean;
+
+    @Field(() => Boolean, { description: 'Indicates whether an activation code is present' })
+    hasActivationCode!: boolean;
+
+    @Field(() => Boolean, {
+        description: 'Indicates whether activation is required based on current state',
+    })
+    activationRequired!: boolean;
+}
+
+@ObjectType()
+export class Customization {
+    @Field(() => ActivationCode, { nullable: true })
+    activationCode?: ActivationCode;
+
+    @Field(() => PublicPartnerInfo, { nullable: true })
+    partnerInfo?: PublicPartnerInfo;
+
+    @Field(() => OnboardingState, { nullable: true })
+    onboardingState?: OnboardingState;
 }
 
 @ObjectType()

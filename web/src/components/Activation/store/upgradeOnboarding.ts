@@ -5,10 +5,6 @@ import { useQuery } from '@vue/apollo-composable';
 import type { ActivationOnboardingQuery } from '~/composables/gql/graphql';
 
 import { ACTIVATION_ONBOARDING_QUERY } from '~/components/Activation/activationOnboarding.query';
-import {
-  buildActivationOnboardingOverride,
-  useOnboardingTestOverrides,
-} from '~/components/Activation/onboardingTestOverrides';
 
 export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => {
   const {
@@ -17,15 +13,8 @@ export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => 
     refetch,
   } = useQuery(ACTIVATION_ONBOARDING_QUERY, {}, { errorPolicy: 'all' });
 
-  const { overrides, enabled } = useOnboardingTestOverrides();
-
-  const onboardingOverride = computed(() => {
-    if (!enabled.value) return undefined;
-    return buildActivationOnboardingOverride(overrides.value);
-  });
-
   const onboardingData = computed<ActivationOnboardingQuery['activationOnboarding'] | undefined>(
-    () => onboardingOverride.value ?? activationOnboardingResult.value?.activationOnboarding
+    () => activationOnboardingResult.value?.activationOnboarding
   );
 
   const isUpgrade = computed(() => onboardingData.value?.isUpgrade ?? false);

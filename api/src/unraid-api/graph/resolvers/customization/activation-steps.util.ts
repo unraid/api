@@ -38,7 +38,7 @@ export type ActivationStepDefinition = {
     condition?: (context: ActivationStepContext) => boolean | Promise<boolean>;
 };
 
-const activationStepDefinitions: ActivationStepDefinition[] = [
+export const activationStepDefinitions: ActivationStepDefinition[] = [
     {
         id: ActivationOnboardingStepId.WELCOME,
         required: false,

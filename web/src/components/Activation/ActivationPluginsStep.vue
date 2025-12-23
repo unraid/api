@@ -13,6 +13,7 @@ export interface Props {
   onBack?: () => void;
   showSkip?: boolean;
   showBack?: boolean;
+  isRequired?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -211,6 +212,10 @@ const isPrimaryActionDisabled = computed(() => {
   }
 
   if (installationFinished.value) {
+    return false;
+  }
+
+  if (!props.isRequired) {
     return false;
   }
 

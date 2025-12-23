@@ -119,6 +119,21 @@ export type ActivationCode = {
   theme?: Maybe<Scalars['String']['output']>;
 };
 
+/** Activation code override input */
+export type ActivationCodeOverrideInput = {
+  background?: InputMaybe<Scalars['String']['input']>;
+  code?: InputMaybe<Scalars['String']['input']>;
+  comment?: InputMaybe<Scalars['String']['input']>;
+  header?: InputMaybe<Scalars['String']['input']>;
+  headermetacolor?: InputMaybe<Scalars['String']['input']>;
+  partnerName?: InputMaybe<Scalars['String']['input']>;
+  partnerUrl?: InputMaybe<Scalars['String']['input']>;
+  serverName?: InputMaybe<Scalars['String']['input']>;
+  showBannerGradient?: InputMaybe<Scalars['Boolean']['input']>;
+  sysModel?: InputMaybe<Scalars['String']['input']>;
+  theme?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type ActivationOnboarding = {
   __typename?: 'ActivationOnboarding';
   /** Current OS version detected by the system */
@@ -131,6 +146,14 @@ export type ActivationOnboarding = {
   previousVersion?: Maybe<Scalars['String']['output']>;
   /** Activation onboarding steps relevant to the current system state */
   steps: Array<ActivationOnboardingStep>;
+};
+
+/** Activation onboarding override input */
+export type ActivationOnboardingOverrideInput = {
+  currentVersion?: InputMaybe<Scalars['String']['input']>;
+  isUpgrade?: InputMaybe<Scalars['Boolean']['input']>;
+  previousVersion?: InputMaybe<Scalars['String']['input']>;
+  steps?: InputMaybe<Array<ActivationOnboardingStepOverrideInput>>;
 };
 
 export type ActivationOnboardingStep = {
@@ -151,6 +174,15 @@ export enum ActivationOnboardingStepId {
   TIMEZONE = 'TIMEZONE',
   WELCOME = 'WELCOME'
 }
+
+/** Activation onboarding step override input */
+export type ActivationOnboardingStepOverrideInput = {
+  completed?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Identifier of the onboarding step */
+  id: ActivationOnboardingStepId;
+  introducedIn?: InputMaybe<Scalars['String']['input']>;
+  required?: InputMaybe<Scalars['Boolean']['input']>;
+};
 
 export type AddPermissionInput = {
   actions: Array<AuthAction>;
@@ -637,6 +669,7 @@ export type CreateRCloneRemoteInput = {
 export type Customization = {
   __typename?: 'Customization';
   activationCode?: Maybe<ActivationCode>;
+  onboardingState: OnboardingState;
   partnerInfo?: Maybe<PublicPartnerInfo>;
   theme: Theme;
 };
@@ -1828,16 +1861,50 @@ export type OidcSessionValidation = {
 /** Onboarding related mutations */
 export type OnboardingMutations = {
   __typename?: 'OnboardingMutations';
+  /** Clear onboarding override state and reload from disk */
+  clearOnboardingOverride: ActivationOnboarding;
   /** Mark an upgrade onboarding step as completed for the current OS version */
   completeUpgradeStep: UpgradeInfo;
   /** Reset upgrade onboarding progress for the current OS version */
   resetUpgradeOnboarding: UpgradeInfo;
+  /** Override onboarding state for testing (in-memory only) */
+  setOnboardingOverride: ActivationOnboarding;
 };
 
 
 /** Onboarding related mutations */
 export type OnboardingMutationsCompleteUpgradeStepArgs = {
   input: CompleteUpgradeStepInput;
+};
+
+
+/** Onboarding related mutations */
+export type OnboardingMutationsSetOnboardingOverrideArgs = {
+  input: OnboardingOverrideInput;
+};
+
+/** Onboarding override input */
+export type OnboardingOverrideInput = {
+  activationCode?: InputMaybe<ActivationCodeOverrideInput>;
+  activationOnboarding?: InputMaybe<ActivationOnboardingOverrideInput>;
+  isInitialSetup?: InputMaybe<Scalars['Boolean']['input']>;
+  partnerInfo?: InputMaybe<PartnerInfoOverrideInput>;
+  registrationState?: InputMaybe<RegistrationState>;
+};
+
+export type OnboardingState = {
+  __typename?: 'OnboardingState';
+  /** Indicates whether activation is required based on current state */
+  activationRequired: Scalars['Boolean']['output'];
+  /** Indicates whether an activation code is present */
+  hasActivationCode: Scalars['Boolean']['output'];
+  /** Indicates whether the system is a fresh install */
+  isFreshInstall: Scalars['Boolean']['output'];
+  /** Indicates whether initial setup should be shown */
+  isInitialSetup: Scalars['Boolean']['output'];
+  /** Indicates whether the system is registered */
+  isRegistered: Scalars['Boolean']['output'];
+  registrationState?: Maybe<RegistrationState>;
 };
 
 export type Owner = {
@@ -1916,6 +1983,14 @@ export enum ParityCheckStatus {
   PAUSED = 'PAUSED',
   RUNNING = 'RUNNING'
 }
+
+/** Partner info override input */
+export type PartnerInfoOverrideInput = {
+  hasPartnerLogo?: InputMaybe<Scalars['Boolean']['input']>;
+  partnerLogoUrl?: InputMaybe<Scalars['String']['input']>;
+  partnerName?: InputMaybe<Scalars['String']['input']>;
+  partnerUrl?: InputMaybe<Scalars['String']['input']>;
+};
 
 export type Permission = {
   __typename?: 'Permission';
@@ -3090,7 +3165,7 @@ export type PublicWelcomeDataQuery = { __typename?: 'Query', isInitialSetup: boo
 export type ActivationCodeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ActivationCodeQuery = { __typename?: 'Query', vars: { __typename?: 'Vars', regState?: RegistrationState | null }, customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', code?: string | null, partnerName?: string | null, serverName?: string | null, sysModel?: string | null, comment?: string | null, header?: string | null, headermetacolor?: string | null, background?: string | null, showBannerGradient?: boolean | null, theme?: string | null } | null, partnerInfo?: { __typename?: 'PublicPartnerInfo', hasPartnerLogo: boolean, partnerName?: string | null, partnerUrl?: string | null, partnerLogoUrl?: string | null } | null } | null };
+export type ActivationCodeQuery = { __typename?: 'Query', customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', code?: string | null, partnerName?: string | null, serverName?: string | null, sysModel?: string | null, comment?: string | null, header?: string | null, headermetacolor?: string | null, background?: string | null, showBannerGradient?: boolean | null, theme?: string | null } | null, partnerInfo?: { __typename?: 'PublicPartnerInfo', hasPartnerLogo: boolean, partnerName?: string | null, partnerUrl?: string | null, partnerLogoUrl?: string | null } | null, onboardingState: { __typename?: 'OnboardingState', registrationState?: RegistrationState | null, isRegistered: boolean, isFreshInstall: boolean, isInitialSetup: boolean, hasActivationCode: boolean, activationRequired: boolean } } | null };
 
 export type InstallPluginMutationVariables = Exact<{
   input: InstallPluginInput;
@@ -3569,7 +3644,7 @@ export const ActivationOnboardingDocument = {"kind":"Document","definitions":[{"
 export const CompleteUpgradeStepDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CompleteUpgradeStep"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CompleteUpgradeStepInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"completeUpgradeStep"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"isUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"previousVersion"}},{"kind":"Field","name":{"kind":"Name","value":"currentVersion"}},{"kind":"Field","name":{"kind":"Name","value":"completedSteps"}},{"kind":"Field","name":{"kind":"Name","value":"steps"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"required"}},{"kind":"Field","name":{"kind":"Name","value":"introducedIn"}}]}}]}}]}}]}}]} as unknown as DocumentNode<CompleteUpgradeStepMutation, CompleteUpgradeStepMutationVariables>;
 export const PartnerInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}}]}}]} as unknown as DocumentNode<PartnerInfoQuery, PartnerInfoQueryVariables>;
 export const PublicWelcomeDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PublicWelcomeData"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"isInitialSetup"}}]}}]} as unknown as DocumentNode<PublicWelcomeDataQuery, PublicWelcomeDataQueryVariables>;
-export const ActivationCodeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regState"}}]}},{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"sysModel"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}},{"kind":"Field","name":{"kind":"Name","value":"header"}},{"kind":"Field","name":{"kind":"Name","value":"headermetacolor"}},{"kind":"Field","name":{"kind":"Name","value":"background"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}}]}},{"kind":"Field","name":{"kind":"Name","value":"partnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}}]}}]}}]} as unknown as DocumentNode<ActivationCodeQuery, ActivationCodeQueryVariables>;
+export const ActivationCodeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"sysModel"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}},{"kind":"Field","name":{"kind":"Name","value":"header"}},{"kind":"Field","name":{"kind":"Name","value":"headermetacolor"}},{"kind":"Field","name":{"kind":"Name","value":"background"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}}]}},{"kind":"Field","name":{"kind":"Name","value":"partnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"onboardingState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"registrationState"}},{"kind":"Field","name":{"kind":"Name","value":"isRegistered"}},{"kind":"Field","name":{"kind":"Name","value":"isFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"isInitialSetup"}},{"kind":"Field","name":{"kind":"Name","value":"hasActivationCode"}},{"kind":"Field","name":{"kind":"Name","value":"activationRequired"}}]}}]}}]}}]} as unknown as DocumentNode<ActivationCodeQuery, ActivationCodeQueryVariables>;
 export const InstallPluginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InstallPlugin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InstallPluginInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraidPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installPlugin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"finishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]}}]} as unknown as DocumentNode<InstallPluginMutation, InstallPluginMutationVariables>;
 export const PluginInstallOperationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PluginInstallOperation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pluginInstallOperation"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"operationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"finishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]} as unknown as DocumentNode<PluginInstallOperationQuery, PluginInstallOperationQueryVariables>;
 export const PluginInstallUpdatesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"PluginInstallUpdates"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pluginInstallUpdates"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"operationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"operationId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"output"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}}]}}]}}]} as unknown as DocumentNode<PluginInstallUpdatesSubscription, PluginInstallUpdatesSubscriptionVariables>;

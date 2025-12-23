@@ -12,9 +12,12 @@ import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { loadDynamixConfigFromDiskSync } from '@app/store/actions/load-dynamix-config-file.js';
 import { getters, store } from '@app/store/index.js';
 import { updateDynamixConfig } from '@app/store/modules/dynamix.js';
+import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
+import { OnboardingStateService } from '@app/unraid-api/config/onboarding-state.service.js';
 import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import {
     ActivationCode,
+    OnboardingState,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { findActivationCodeFile } from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
@@ -31,7 +34,11 @@ export class OnboardingService implements OnModuleInit {
 
     private activationData: ActivationCode | null = null;
 
-    constructor(private readonly onboardingTracker: OnboardingTracker) {}
+    constructor(
+        private readonly onboardingTracker: OnboardingTracker,
+        private readonly onboardingOverrides: OnboardingOverrideService,
+        private readonly onboardingState: OnboardingStateService
+    ) {}
 
     private async ensureFirstBootCompletion(): Promise<boolean> {
         await fs.mkdir(this.activationDir, { recursive: true });
@@ -104,6 +111,11 @@ export class OnboardingService implements OnModuleInit {
     }
 
     public async getPublicPartnerInfo(): Promise<PublicPartnerInfo | null> {
+        const override = this.onboardingOverrides.getState();
+        if (override?.partnerInfo !== undefined) {
+            return override.partnerInfo ?? null;
+        }
+
         const activationData = await this.getActivationData();
         const paths = getters.paths();
         return {
@@ -120,12 +132,38 @@ export class OnboardingService implements OnModuleInit {
         return hasPasswd;
     }
 
+    public async getOnboardingState(): Promise<OnboardingState> {
+        const registrationState = this.onboardingState.getRegistrationState();
+        const hasActivationCode = await this.onboardingState.hasActivationCode();
+        const isFreshInstall = this.onboardingState.isFreshInstall(registrationState);
+        const isRegistered = this.onboardingState.isRegistered(registrationState);
+        const isInitialSetup = this.onboardingState.isInitialSetup();
+
+        return {
+            registrationState,
+            isRegistered,
+            isFreshInstall,
+            isInitialSetup,
+            hasActivationCode,
+            activationRequired: hasActivationCode && isFreshInstall,
+        };
+    }
+
+    public isInitialSetup(): boolean {
+        return this.onboardingState.isInitialSetup();
+    }
+
     /**
      * Get the activation data from the activation directory.
      * @returns The activation data or null if the file is not found or invalid.
      * @throws Error if the directory does not exist.
      */
     async getActivationData(): Promise<ActivationCode | null> {
+        const override = this.onboardingOverrides.getState();
+        if (override?.activationCode !== undefined) {
+            return override.activationCode ?? null;
+        }
+
         // Return cached data if available
         if (this.activationData) {
             this.logger.debug('Returning cached activation data.');
@@ -156,6 +194,10 @@ export class OnboardingService implements OnModuleInit {
             // Do not cache in case of error
             return null;
         }
+    }
+
+    public clearActivationDataCache(): void {
+        this.activationData = null;
     }
 
     async applyActivationCustomizations() {

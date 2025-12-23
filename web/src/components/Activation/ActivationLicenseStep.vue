@@ -12,6 +12,9 @@ defineProps<{
   docsButtons: BrandButtonProps[];
   canGoBack: boolean;
   onBack?: () => void;
+  onComplete?: () => void;
+  allowSkip?: boolean;
+  showKeyfileHint?: boolean;
   purchaseStore: { activate: () => void };
 }>();
 
@@ -36,8 +39,21 @@ const { t } = useI18n();
         />
       </div>
 
+      <div v-if="showKeyfileHint" class="mx-auto mb-8 max-w-xl">
+        <p class="border-border text-muted-foreground rounded-md border border-dashed px-4 py-3 text-sm">
+          Keyfile detected. You can activate from the User Profile menu (top right) and continue without
+          activation here.
+        </p>
+      </div>
+
       <div class="mt-6 flex flex-col gap-6">
         <div class="mx-auto flex w-full flex-col justify-center gap-4 sm:flex-row">
+          <BrandButton
+            v-if="allowSkip"
+            text="Skip for now"
+            variant="underline"
+            @click="onComplete?.()"
+          />
           <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
         </div>
       </div>

@@ -13,11 +13,19 @@ import { writeFile } from 'atomically';
 import { compare } from 'semver';
 
 import type {
+    ActivationOnboardingOverrideState,
+    ActivationOnboardingOverrideStepState,
+    OnboardingOverrideState,
+} from '@app/unraid-api/config/onboarding-override.model.js';
+import type {
     ActivationStepContext,
     ActivationStepDefinition,
 } from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
 import { PATHS_CONFIG_MODULES } from '@app/environment.js';
-import { getters } from '@app/store/index.js';
+import { OnboardingOverrideModule } from '@app/unraid-api/config/onboarding-override.module.js';
+import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
+import { OnboardingStateModule } from '@app/unraid-api/config/onboarding-state.module.js';
+import { OnboardingStateService } from '@app/unraid-api/config/onboarding-state.service.js';
 import {
     type CompletedStepState,
     type TrackerState,
@@ -26,7 +34,7 @@ import {
 } from '@app/unraid-api/config/onboarding-tracker.model.js';
 import { ActivationOnboardingStepId } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import {
-    findActivationCodeFile,
+    activationStepDefinitions,
     resolveActivationStepDefinitions,
 } from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
 
@@ -34,6 +42,23 @@ const TRACKER_FILE_NAME = 'onboarding-tracker.json';
 const CONFIG_PREFIX = 'onboardingTracker';
 const DEFAULT_OS_VERSION_FILE_PATH = '/etc/unraid-version';
 export const UPGRADE_MARKER_PATH = '/tmp/unraid-onboarding-last-version';
+const DEFAULT_OVERRIDE_STEPS: ActivationOnboardingOverrideStepState[] = activationStepDefinitions.map(
+    (step) => ({
+        id: step.id,
+        required: step.required,
+        completed: false,
+        introducedIn: step.introducedIn,
+    })
+);
+const DEFAULT_OVERRIDE_LOOKUP = activationStepDefinitions.reduce<
+    Record<ActivationOnboardingStepId, ActivationStepDefinition>
+>(
+    (acc, step) => {
+        acc[step.id] = step;
+        return acc;
+    },
+    {} as Record<ActivationOnboardingStepId, ActivationStepDefinition>
+);
 
 @Injectable()
 export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationShutdown {
@@ -44,7 +69,11 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
     private currentVersion?: string;
     private readonly versionFilePath: string;
 
-    constructor(private readonly configService: ConfigService) {
+    constructor(
+        private readonly configService: ConfigService,
+        private readonly onboardingOverrides: OnboardingOverrideService,
+        private readonly onboardingState: OnboardingStateService
+    ) {
         const unraidDataDir = this.configService.get<string>('PATHS_UNRAID_DATA');
         this.versionFilePath = unraidDataDir
             ? path.join(unraidDataDir, 'unraid-version')
@@ -140,6 +169,11 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
     }
 
     async getUpgradeSnapshot(): Promise<UpgradeProgressSnapshot> {
+        const overrideSnapshot = this.getOverrideSnapshot();
+        if (overrideSnapshot) {
+            return overrideSnapshot;
+        }
+
         const currentVersion =
             this.currentVersion ??
             this.configService.get<string>(`${CONFIG_PREFIX}.currentVersion`) ??
@@ -165,6 +199,13 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
     }
 
     async markStepCompleted(stepId: ActivationOnboardingStepId): Promise<UpgradeProgressSnapshot> {
+        const overrideState = this.onboardingOverrides.getState();
+        if (overrideState?.activationOnboarding) {
+            const updatedOverride = this.markOverrideStepCompleted(overrideState, stepId);
+            this.onboardingOverrides.setState(updatedOverride);
+            return this.buildOverrideSnapshot(updatedOverride.activationOnboarding);
+        }
+
         const currentVersion =
             this.currentVersion ??
             this.configService.get<string>(`${CONFIG_PREFIX}.currentVersion`) ??
@@ -216,6 +257,13 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
     }
 
     async resetUpgradeProgress(): Promise<UpgradeProgressSnapshot> {
+        const overrideState = this.onboardingOverrides.getState();
+        if (overrideState?.activationOnboarding) {
+            const updatedOverride = this.resetOverrideSteps(overrideState);
+            this.onboardingOverrides.setState(updatedOverride);
+            return this.buildOverrideSnapshot(updatedOverride.activationOnboarding);
+        }
+
         await this.ensureStateLoaded();
 
         const updatedState: TrackerState = {
@@ -335,22 +383,7 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
     }
 
     private async buildStepContext(): Promise<ActivationStepContext> {
-        const emhttp = getters.emhttp?.() ?? {};
-        const regState = emhttp?.var?.regState as string | undefined;
-
-        const paths = getters.paths?.() ?? {};
-        const activationBase = paths?.activationBase as string | undefined;
-
-        const activationPath =
-            typeof activationBase === 'string' && activationBase.length > 0
-                ? await findActivationCodeFile(activationBase, '.activationcode', this.logger)
-                : null;
-        const hasActivationCode = Boolean(activationPath);
-
-        return {
-            hasActivationCode,
-            regState,
-        };
+        return this.onboardingState.getActivationStepContext();
     }
 
     private isCompletionUpToDate(existingVersion: string | undefined, requiredVersion: string): boolean {
@@ -404,9 +437,101 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
             this.logger.error(error, 'Failed to persist onboarding tracker state');
         }
     }
+
+    private getOverrideSnapshot(): UpgradeProgressSnapshot | null {
+        const overrideState = this.onboardingOverrides.getState();
+        if (!overrideState?.activationOnboarding) {
+            return null;
+        }
+        return this.buildOverrideSnapshot(overrideState.activationOnboarding);
+    }
+
+    private buildOverrideSnapshot(override: ActivationOnboardingOverrideState): UpgradeProgressSnapshot {
+        const normalizedSteps = this.normalizeOverrideSteps(override.steps);
+        const currentVersion = override.currentVersion ?? undefined;
+        const computedUpgrade =
+            typeof override.isUpgrade === 'boolean'
+                ? override.isUpgrade
+                : Boolean(
+                      currentVersion &&
+                          override.previousVersion &&
+                          currentVersion !== override.previousVersion
+                  );
+        const lastTrackedVersion = computedUpgrade
+            ? (override.previousVersion ?? undefined)
+            : currentVersion;
+
+        return {
+            currentVersion,
+            lastTrackedVersion,
+            completedSteps: normalizedSteps.filter((step) => step.completed).map((step) => step.id),
+            steps: normalizedSteps.map((step) => ({
+                id: step.id,
+                required: step.required ?? false,
+                introducedIn: step.introducedIn,
+            })),
+        };
+    }
+
+    private normalizeOverrideSteps(
+        steps: ActivationOnboardingOverrideStepState[] | undefined
+    ): ActivationOnboardingOverrideStepState[] {
+        const sourceSteps = steps && steps.length > 0 ? steps : DEFAULT_OVERRIDE_STEPS;
+        return sourceSteps.map((step) => {
+            const defaults = DEFAULT_OVERRIDE_LOOKUP[step.id];
+            return {
+                id: step.id,
+                required: step.required ?? defaults?.required ?? false,
+                completed: step.completed ?? false,
+                introducedIn: step.introducedIn ?? defaults?.introducedIn,
+            };
+        });
+    }
+
+    private markOverrideStepCompleted(
+        overrideState: OnboardingOverrideState,
+        stepId: ActivationOnboardingStepId
+    ): OnboardingOverrideState {
+        const override = overrideState.activationOnboarding;
+        if (!override) {
+            return overrideState;
+        }
+
+        const normalizedSteps = this.normalizeOverrideSteps(override.steps);
+        const updatedSteps = normalizedSteps.map((step) =>
+            step.id === stepId ? { ...step, completed: true } : step
+        );
+
+        return {
+            ...overrideState,
+            activationOnboarding: {
+                ...override,
+                steps: updatedSteps,
+            },
+        };
+    }
+
+    private resetOverrideSteps(overrideState: OnboardingOverrideState): OnboardingOverrideState {
+        const override = overrideState.activationOnboarding;
+        if (!override) {
+            return overrideState;
+        }
+
+        const normalizedSteps = this.normalizeOverrideSteps(override.steps);
+        const resetSteps = normalizedSteps.map((step) => ({ ...step, completed: false }));
+
+        return {
+            ...overrideState,
+            activationOnboarding: {
+                ...override,
+                steps: resetSteps,
+            },
+        };
+    }
 }
 
 @Module({
+    imports: [OnboardingOverrideModule, OnboardingStateModule],
     providers: [OnboardingTracker],
     exports: [OnboardingTracker],
 })

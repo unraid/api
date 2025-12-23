@@ -20,19 +20,20 @@ import { useActivationCodeDataStore } from '~/components/Activation/store/activa
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { useUpgradeOnboardingStore } from '~/components/Activation/store/upgradeOnboarding';
 import { usePurchaseStore } from '~/store/purchase';
+import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
 const { t } = useI18n();
 
 const modalStore = useActivationCodeModalStore();
 const { isVisible, isHidden } = storeToRefs(modalStore);
-const { partnerInfo, activationCode } = storeToRefs(useActivationCodeDataStore());
+const { partnerInfo, activationRequired, hasActivationCode } = storeToRefs(useActivationCodeDataStore());
 const upgradeStore = useUpgradeOnboardingStore();
 const { shouldShowUpgradeOnboarding, upgradeSteps, allUpgradeSteps, currentVersion, previousVersion } =
   storeToRefs(upgradeStore);
 const { refetchActivationOnboarding } = upgradeStore;
 const purchaseStore = usePurchaseStore();
-
+const { keyfile } = storeToRefs(useServerStore());
 const themeStore = useThemeStore();
 
 // Ensure theme is loaded when modal opens
@@ -44,7 +45,9 @@ const themeStore = useThemeStore();
   }
 })();
 
-const hasActivationCode = computed(() => Boolean(activationCode.value?.code));
+const hasKeyfile = computed(() => Boolean(keyfile.value));
+const allowActivationSkip = computed(() => hasKeyfile.value || activationRequired.value);
+const showKeyfileHint = computed(() => activationRequired.value && hasKeyfile.value);
 
 type StepId = ActivationOnboardingQuery['activationOnboarding']['steps'][number]['id'];
 
@@ -266,6 +269,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         onComplete: handlePluginsComplete,
         onSkip: stepConfig?.required ? undefined : handlePluginsSkip,
         showSkip: !stepConfig?.required && !hasActivationCode.value,
+        isRequired: stepConfig?.required ?? false,
       };
 
     case 'ACTIVATION':
@@ -276,6 +280,8 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         docsButtons: docsButtons.value,
         canGoBack: canGoBack.value,
         purchaseStore,
+        allowSkip: allowActivationSkip.value,
+        showKeyfileHint: showKeyfileHint.value,
       };
 
     default:

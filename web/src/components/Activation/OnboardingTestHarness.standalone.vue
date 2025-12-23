@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
+import { useApolloClient } from '@vue/apollo-composable';
 
-import type { OnboardingTestOverrides } from '~/components/Activation/onboardingTestOverrides';
+import { parse } from 'graphql';
 
-import {
-  DEFAULT_ACTIVATION_STEPS,
-  isEnoKeyFile,
-  useOnboardingTestOverrides,
-} from '~/components/Activation/onboardingTestOverrides';
+import { DEFAULT_ACTIVATION_STEPS } from '~/components/Activation/onboardingTestDefaults';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { useUpgradeOnboardingStore } from '~/components/Activation/store/upgradeOnboarding';
@@ -16,14 +13,15 @@ import { useWelcomeModalDataStore } from '~/components/Activation/store/welcomeM
 import { ActivationOnboardingStepId, RegistrationState } from '~/composables/gql/graphql';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
-const { enabled, overrides, setEnabled, setOverrides, clearOverrides } = useOnboardingTestOverrides();
 const activationModalStore = useActivationCodeModalStore();
 const upgradeOnboardingStore = useUpgradeOnboardingStore();
 const activationCodeStore = useActivationCodeDataStore();
 const welcomeModalStore = useWelcomeModalDataStore();
 const callbackStore = useCallbackActionsStore();
+const apolloClient = useApolloClient().client;
 
-const { activationCode, isFreshInstall, partnerInfo, regState } = storeToRefs(activationCodeStore);
+const { activationRequired, hasActivationCode, isFreshInstall, partnerInfo, registrationState } =
+  storeToRefs(activationCodeStore);
 const { isInitialSetup } = storeToRefs(welcomeModalStore);
 const { callbackData } = storeToRefs(callbackStore);
 const { isHidden, isVisible } = storeToRefs(activationModalStore);
@@ -39,15 +37,89 @@ const {
 const draftJson = ref('');
 const selectedPreset = ref('');
 const errorMessage = ref('');
+const lastApplied = ref('');
+
+const SET_ONBOARDING_OVERRIDE_MUTATION = parse(/* GraphQL */ `
+  mutation SetOnboardingOverride($input: OnboardingOverrideInput!) {
+    onboarding {
+      setOnboardingOverride(input: $input) {
+        isUpgrade
+        previousVersion
+        currentVersion
+        hasPendingSteps
+        steps {
+          id
+          required
+          completed
+          introducedIn
+        }
+      }
+    }
+  }
+`);
+
+const CLEAR_ONBOARDING_OVERRIDE_MUTATION = parse(/* GraphQL */ `
+  mutation ClearOnboardingOverride {
+    onboarding {
+      clearOnboardingOverride {
+        isUpgrade
+        previousVersion
+        currentVersion
+        hasPendingSteps
+        steps {
+          id
+          required
+          completed
+          introducedIn
+        }
+      }
+    }
+  }
+`);
 
 const cloneSteps = () => DEFAULT_ACTIVATION_STEPS.map((step) => ({ ...step }));
 
-const presets: Array<{ id: string; label: string; overrides: OnboardingTestOverrides }> = [
+type OnboardingOverridePayload = {
+  activationOnboarding?: {
+    currentVersion?: string | null;
+    previousVersion?: string | null;
+    isUpgrade?: boolean;
+    steps?: Array<{
+      id: ActivationOnboardingStepId;
+      required?: boolean;
+      completed?: boolean;
+      introducedIn?: string;
+    }>;
+  };
+  activationCode?: {
+    code?: string;
+    partnerName?: string;
+    partnerUrl?: string;
+    serverName?: string;
+    sysModel?: string;
+    comment?: string;
+    header?: string;
+    headermetacolor?: string;
+    background?: string;
+    showBannerGradient?: boolean;
+    theme?: 'azure' | 'black' | 'gray' | 'white';
+  } | null;
+  partnerInfo?: {
+    hasPartnerLogo?: boolean | null;
+    partnerName?: string | null;
+    partnerUrl?: string | null;
+    partnerLogoUrl?: string | null;
+  } | null;
+  registrationState?: RegistrationState;
+  isInitialSetup?: boolean;
+};
+
+const presets: Array<{ id: string; label: string; overrides: OnboardingOverridePayload }> = [
   {
     id: 'fresh-install-activation',
     label: 'Fresh install (activation code)',
     overrides: {
-      regState: RegistrationState.ENOKEYFILE,
+      registrationState: RegistrationState.ENOKEYFILE,
       activationCode: {
         code: 'TEST-CODE-123',
         partnerName: 'Test Partner',
@@ -71,7 +143,7 @@ const presets: Array<{ id: string; label: string; overrides: OnboardingTestOverr
     id: 'fresh-install-no-code',
     label: 'Fresh install (no activation code)',
     overrides: {
-      regState: RegistrationState.ENOKEYFILE,
+      registrationState: RegistrationState.ENOKEYFILE,
       activationCode: null,
       partnerInfo: null,
       activationOnboarding: {
@@ -123,27 +195,46 @@ const presets: Array<{ id: string; label: string; overrides: OnboardingTestOverr
   },
 ];
 
-const formattedOverrides = (value: OnboardingTestOverrides | null) => {
+const formattedOverrides = (value: OnboardingOverridePayload | null) => {
   if (!value) return '';
   return JSON.stringify(value, null, 2);
 };
 
 const loadDraftFromOverrides = () => {
-  draftJson.value = formattedOverrides(overrides.value);
+  draftJson.value = lastApplied.value;
   errorMessage.value = '';
 };
 
-const applyOverrides = () => {
+const clearOverrides = async () => {
+  await apolloClient.mutate({
+    mutation: CLEAR_ONBOARDING_OVERRIDE_MUTATION,
+    fetchPolicy: 'no-cache',
+  });
+  lastApplied.value = '';
+  await apolloClient.refetchQueries({
+    include: ['ActivationCode', 'PublicWelcomeData', 'ActivationOnboarding'],
+  });
+};
+
+const applyOverrides = async () => {
   const trimmed = draftJson.value.trim();
   if (!trimmed) {
-    clearOverrides();
+    await clearOverrides();
     errorMessage.value = '';
     return;
   }
 
   try {
-    const parsed = JSON.parse(trimmed) as OnboardingTestOverrides;
-    setOverrides(parsed);
+    const parsed = JSON.parse(trimmed) as OnboardingOverridePayload;
+    await apolloClient.mutate({
+      mutation: SET_ONBOARDING_OVERRIDE_MUTATION,
+      variables: { input: parsed },
+      fetchPolicy: 'no-cache',
+    });
+    lastApplied.value = trimmed;
+    await apolloClient.refetchQueries({
+      include: ['ActivationCode', 'PublicWelcomeData', 'ActivationOnboarding'],
+    });
     errorMessage.value = '';
   } catch (error) {
     errorMessage.value =
@@ -182,11 +273,10 @@ const refetchOnboarding = async () => {
   await upgradeOnboardingStore.refetchActivationOnboarding();
 };
 
-const statusLabel = computed(() => (enabled.value ? 'Enabled' : 'Disabled'));
-const overrideLabel = computed(() => (overrides.value ? 'Overrides loaded' : 'No overrides'));
-const hasActivationCode = computed(() => Boolean(activationCode.value?.code));
-const regStateLabel = computed(() => (regState.value ? String(regState.value) : 'unknown'));
-const activationConditionMet = computed(() => hasActivationCode.value && isEnoKeyFile(regState.value));
+const regStateLabel = computed(() =>
+  registrationState.value ? String(registrationState.value) : 'unknown'
+);
+const activationConditionMet = computed(() => activationRequired.value);
 const activationModalShouldShow = computed(() => isVisible.value || shouldShowUpgradeOnboarding.value);
 const isLoginPage = computed(() => {
   if (typeof window === 'undefined') return false;
@@ -213,440 +303,242 @@ const stepDiagnostics = computed(() => {
   });
 });
 
+const stepColumns = [
+  { accessorKey: 'step', header: 'Step' },
+  { accessorKey: 'included', header: 'Included' },
+  { accessorKey: 'required', header: 'Required' },
+  { accessorKey: 'completed', header: 'Completed' },
+  { accessorKey: 'condition', header: 'Condition' },
+  { accessorKey: 'conditionMet', header: 'Condition Met' },
+];
+
+const stepRows = computed(() =>
+  stepDiagnostics.value.map((step) => ({
+    step: step.id,
+    included: step.included ? 'Yes' : 'No',
+    required: step.required ? 'Yes' : 'No',
+    completed: step.completed ? 'Yes' : 'No',
+    condition: step.condition,
+    conditionMet: step.conditionMet ? 'Yes' : 'No',
+  }))
+);
+
 onMounted(() => {
   loadDraftFromOverrides();
 });
 </script>
 
 <template>
-  <section class="onboarding-test-harness">
-    <div class="panel">
-      <div class="panel-header">
+  <section class="mx-auto max-w-6xl space-y-6">
+    <UCard>
+      <template #header>
         <div>
-          <p class="eyebrow">Onboarding State</p>
-          <h2>Activation + Upgrade Debug Controls</h2>
+          <p class="text-muted-foreground text-xs tracking-[0.2em] uppercase">Onboarding State</p>
+          <h2 class="text-lg font-semibold">Activation + Upgrade Debug Controls</h2>
         </div>
-        <label class="toggle">
-          <input type="checkbox" :checked="enabled" @change="setEnabled(!enabled)" />
-          <span>Overrides {{ statusLabel }}</span>
-        </label>
-      </div>
+      </template>
 
-      <div class="status-row">
-        <span class="status-pill">{{ overrideLabel }}</span>
-        <span class="status-pill">Overrides active on onboarding debug pages</span>
-      </div>
+      <UAlert
+        color="neutral"
+        variant="soft"
+        title="Server-side overrides"
+        description="Overrides are applied in the API and reset on restart. Use Clear Overrides to reload live state."
+      />
+    </UCard>
 
-      <div class="state-grid">
-        <div class="state-card">
-          <h3>Current State</h3>
-          <dl>
-            <div>
-              <dt>Reg state</dt>
-              <dd>{{ regStateLabel }}</dd>
-            </div>
-            <div>
-              <dt>Activation code</dt>
-              <dd>{{ hasActivationCode ? 'Present' : 'None' }}</dd>
-            </div>
-            <div>
-              <dt>Fresh install</dt>
-              <dd>{{ isFreshInstall ? 'Yes' : 'No' }}</dd>
-            </div>
-            <div>
-              <dt>Initial setup</dt>
-              <dd>{{ isInitialSetup ? 'Yes' : 'No' }}</dd>
-            </div>
-            <div>
-              <dt>Upgrade flow</dt>
-              <dd>{{ isUpgrade ? 'Yes' : 'No' }}</dd>
-            </div>
-            <div>
-              <dt>Current version</dt>
-              <dd>{{ currentVersion ?? 'unknown' }}</dd>
-            </div>
-            <div>
-              <dt>Previous version</dt>
-              <dd>{{ previousVersion ?? 'n/a' }}</dd>
-            </div>
-            <div>
-              <dt>Pending steps</dt>
-              <dd>{{ upgradeSteps.length }}</dd>
-            </div>
-            <div>
-              <dt>Partner</dt>
-              <dd>{{ partnerInfo?.partnerName ?? 'none' }}</dd>
-            </div>
-          </dl>
-        </div>
+    <div class="grid gap-6 lg:grid-cols-2">
+      <UCard>
+        <template #header>
+          <div class="font-medium">Current State</div>
+        </template>
+        <dl class="space-y-2 text-sm">
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Registration state</dt>
+            <dd class="font-medium">{{ regStateLabel }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Activation code</dt>
+            <dd class="font-medium">{{ hasActivationCode ? 'Present' : 'None' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Fresh install</dt>
+            <dd class="font-medium">{{ isFreshInstall ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Initial setup</dt>
+            <dd class="font-medium">{{ isInitialSetup ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Upgrade flow</dt>
+            <dd class="font-medium">{{ isUpgrade ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Current version</dt>
+            <dd class="font-medium">{{ currentVersion ?? 'unknown' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Previous version</dt>
+            <dd class="font-medium">{{ previousVersion ?? 'n/a' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Pending steps</dt>
+            <dd class="font-medium">{{ upgradeSteps.length }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Partner</dt>
+            <dd class="font-medium">{{ partnerInfo?.partnerName ?? 'none' }}</dd>
+          </div>
+        </dl>
+      </UCard>
 
-        <div class="state-card">
-          <h3>Modal Visibility</h3>
-          <dl>
-            <div>
-              <dt>Activation modal visible</dt>
-              <dd>{{ activationModalShouldShow ? 'Yes' : 'No' }}</dd>
-            </div>
-            <div>
-              <dt>Hidden flag</dt>
-              <dd>{{ isHidden === null ? 'unset' : isHidden ? 'true' : 'false' }}</dd>
-            </div>
-            <div>
-              <dt>Fresh install gate</dt>
-              <dd>{{ isFreshInstall ? 'Pass' : 'Block' }}</dd>
-            </div>
-            <div>
-              <dt>Callback data</dt>
-              <dd>{{ callbackData ? 'Present' : 'None' }}</dd>
-            </div>
-            <div>
-              <dt>Upgrade pending</dt>
-              <dd>{{ shouldShowUpgradeOnboarding ? 'Yes' : 'No' }}</dd>
-            </div>
-            <div>
-              <dt>Welcome auto-show</dt>
-              <dd>{{ welcomeModalAuto ? 'Yes' : 'No' }}</dd>
-            </div>
-          </dl>
-        </div>
-      </div>
+      <UCard>
+        <template #header>
+          <div class="font-medium">Modal Visibility</div>
+        </template>
+        <dl class="space-y-2 text-sm">
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Activation modal visible</dt>
+            <dd class="font-medium">{{ activationModalShouldShow ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Hidden flag</dt>
+            <dd class="font-medium">
+              {{ isHidden === null ? 'unset' : isHidden ? 'true' : 'false' }}
+            </dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Fresh install gate</dt>
+            <dd class="font-medium">{{ isFreshInstall ? 'Pass' : 'Block' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Callback data</dt>
+            <dd class="font-medium">{{ callbackData ? 'Present' : 'None' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Upgrade pending</dt>
+            <dd class="font-medium">{{ shouldShowUpgradeOnboarding ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <dt class="text-muted-foreground">Welcome auto-show</dt>
+            <dd class="font-medium">{{ welcomeModalAuto ? 'Yes' : 'No' }}</dd>
+          </div>
+        </dl>
+      </UCard>
+    </div>
 
-      <div class="state-card table-card">
-        <h3>Step Diagnostics</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Step</th>
-              <th>Included</th>
-              <th>Required</th>
-              <th>Completed</th>
-              <th>Condition</th>
-              <th>Condition Met</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="step in stepDiagnostics" :key="step.id">
-              <td>{{ step.id }}</td>
-              <td>{{ step.included ? 'Yes' : 'No' }}</td>
-              <td>{{ step.required ? 'Yes' : 'No' }}</td>
-              <td>{{ step.completed ? 'Yes' : 'No' }}</td>
-              <td>{{ step.condition }}</td>
-              <td>{{ step.conditionMet ? 'Yes' : 'No' }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <p class="hint">
+    <UCard>
+      <template #header>
+        <div class="font-medium">Step Diagnostics</div>
+      </template>
+      <UTable
+        :data="stepRows"
+        :columns="stepColumns"
+        sticky="header"
+        :ui="{ td: 'py-2 px-3', th: 'py-2 px-3 text-left text-muted-foreground' }"
+      >
+        <template #empty>
+          <div class="text-muted-foreground py-6 text-center text-sm">No steps available.</div>
+        </template>
+      </UTable>
+      <template #footer>
+        <p class="text-muted-foreground text-xs">
           Steps are supplied by the API. If a step is not included, its condition was not satisfied on
           the server side.
         </p>
-      </div>
+      </template>
+    </UCard>
 
-      <div class="panel-grid">
-        <div class="editor">
-          <label class="field-label" for="onboarding-override-json">Overrides (JSON)</label>
-          <textarea id="onboarding-override-json" v-model="draftJson" rows="18" spellcheck="false" />
-          <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-          <div class="button-row">
-            <button class="btn primary" type="button" @click="applyOverrides">Apply Overrides</button>
-            <button class="btn ghost" type="button" @click="loadDraftFromOverrides">Reload</button>
-            <button class="btn danger" type="button" @click="clearOverrides">Clear Overrides</button>
-          </div>
+    <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
+      <UCard>
+        <template #header>
+          <div class="font-medium">Overrides</div>
+        </template>
+        <UFormField label="Overrides (JSON)">
+          <UTextarea
+            v-model="draftJson"
+            :rows="18"
+            spellcheck="false"
+            :ui="{ base: 'font-mono text-xs' }"
+          />
+        </UFormField>
+        <UAlert
+          v-if="errorMessage"
+          color="error"
+          variant="soft"
+          title="Invalid overrides"
+          :description="errorMessage"
+          icon="i-lucide-alert-circle"
+          class="mt-4"
+        />
+        <div class="mt-4 flex flex-wrap gap-2">
+          <UButton color="primary" size="sm" @click="applyOverrides">Apply Overrides</UButton>
+          <UButton color="neutral" variant="outline" size="sm" @click="loadDraftFromOverrides">
+            Reload
+          </UButton>
+          <UButton color="error" variant="outline" size="sm" @click="clearOverrides">
+            Clear Overrides
+          </UButton>
         </div>
+      </UCard>
 
-        <div class="sidebar">
-          <div class="section">
-            <label class="field-label" for="onboarding-preset">Presets</label>
-            <select id="onboarding-preset" v-model="selectedPreset">
-              <option value="">Select a preset</option>
-              <option v-for="preset in presets" :key="preset.id" :value="preset.id">
-                {{ preset.label }}
-              </option>
-            </select>
-            <button class="btn secondary" type="button" @click="applyPreset">Load preset</button>
-          </div>
+      <div class="space-y-6">
+        <UCard>
+          <template #header>
+            <div class="font-medium">Presets</div>
+          </template>
+          <UFormField label="Preset">
+            <USelectMenu
+              v-model="selectedPreset"
+              :items="presets"
+              label-key="label"
+              value-key="id"
+              placeholder="Select a preset"
+            />
+          </UFormField>
+          <UButton color="neutral" variant="outline" size="sm" class="mt-3" @click="applyPreset">
+            Load preset
+          </UButton>
+        </UCard>
 
-          <div class="section">
-            <p class="field-label">Modal Actions</p>
-            <div class="button-stack">
-              <button class="btn primary" type="button" @click="showActivationModal">
-                Show Activation Modal
-              </button>
-              <button class="btn ghost" type="button" @click="resetActivationModal">
-                Reset Activation Modal
-              </button>
-              <button class="btn secondary" type="button" @click="hideActivationModal">
-                Hide Activation Modal
-              </button>
-              <button class="btn primary" type="button" @click="showWelcomeModal">
-                Show Welcome Modal
-              </button>
-              <button class="btn secondary" type="button" @click="hideWelcomeModal">
-                Hide Welcome Modal
-              </button>
-            </div>
+        <UCard>
+          <template #header>
+            <div class="font-medium">Modal Actions</div>
+          </template>
+          <div class="flex flex-col gap-2">
+            <UButton color="primary" variant="soft" size="sm" @click="showActivationModal">
+              Show Activation Modal
+            </UButton>
+            <UButton color="neutral" variant="outline" size="sm" @click="resetActivationModal">
+              Reset Activation Modal
+            </UButton>
+            <UButton color="neutral" variant="outline" size="sm" @click="hideActivationModal">
+              Hide Activation Modal
+            </UButton>
+            <UButton color="primary" variant="soft" size="sm" @click="showWelcomeModal">
+              Show Welcome Modal
+            </UButton>
+            <UButton color="neutral" variant="outline" size="sm" @click="hideWelcomeModal">
+              Hide Welcome Modal
+            </UButton>
           </div>
+        </UCard>
 
-          <div class="section">
-            <p class="field-label">Data Actions</p>
-            <button class="btn ghost" type="button" @click="refetchOnboarding">
-              Refetch Onboarding Query
-            </button>
-          </div>
+        <UCard>
+          <template #header>
+            <div class="font-medium">Data Actions</div>
+          </template>
+          <UButton color="neutral" variant="outline" size="sm" @click="refetchOnboarding">
+            Refetch Onboarding Query
+          </UButton>
+        </UCard>
 
-          <div class="section note">
-            <p>
-              Overrides are applied client-side and stored in localStorage on onboarding debug pages.
-              Clear overrides to return to server data.
-            </p>
-          </div>
-        </div>
+        <UAlert
+          color="neutral"
+          variant="soft"
+          title="Overrides live in the API"
+          description="Overrides are in-memory only and cleared on API restart. Clear overrides to return to disk-backed state."
+        />
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-.onboarding-test-harness {
-  margin: 24px auto;
-  max-width: 1200px;
-}
-
-.panel {
-  border-radius: 12px;
-  border: 1px solid var(--border, rgba(148, 163, 184, 0.4));
-  background: var(--card, var(--background-color, #fff));
-  padding: 20px;
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-}
-
-.panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.panel-header h2 {
-  margin: 0;
-  font-size: 22px;
-}
-
-.eyebrow {
-  margin: 0 0 6px;
-  text-transform: uppercase;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  color: var(--text-muted, #64748b);
-}
-
-.toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.status-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.status-pill {
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: 11px;
-  background: rgba(15, 23, 42, 0.08);
-  color: var(--text-color, #0f172a);
-}
-
-.state-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.state-card {
-  border-radius: 10px;
-  border: 1px solid var(--border, rgba(148, 163, 184, 0.4));
-  background: var(--background, #fff);
-  padding: 16px;
-}
-
-.state-card h3 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-}
-
-.state-card dl {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-}
-
-.state-card dl div {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 12px;
-}
-
-.state-card dt {
-  font-weight: 600;
-  color: var(--text-muted, #475569);
-}
-
-.state-card dd {
-  margin: 0;
-  text-align: right;
-}
-
-.table-card table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-
-.table-card th,
-.table-card td {
-  padding: 8px 6px;
-  border-bottom: 1px solid var(--border, rgba(148, 163, 184, 0.3));
-  text-align: left;
-}
-
-.table-card th {
-  color: var(--text-muted, #475569);
-  font-weight: 600;
-}
-
-.hint {
-  margin-top: 8px;
-  font-size: 11px;
-  color: var(--text-muted, #64748b);
-}
-
-.panel-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
-  gap: 20px;
-}
-
-.editor textarea {
-  width: 100%;
-  min-height: 360px;
-  border-radius: 10px;
-  border: 1px solid var(--border, rgba(148, 163, 184, 0.4));
-  padding: 12px;
-  background: var(--background, #fff);
-  color: var(--text-color, #0f172a);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
-  font-size: 12px;
-}
-
-.field-label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted, #475569);
-}
-
-.error {
-  margin: 8px 0 0;
-  color: #b91c1c;
-  font-size: 12px;
-}
-
-.button-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.button-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.btn {
-  border: 0;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    background 0.15s ease;
-}
-
-.btn.primary {
-  background: #2563eb;
-  color: #fff;
-  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.25);
-}
-
-.btn.secondary {
-  background: #0f172a;
-  color: #e2e8f0;
-}
-
-.btn.ghost {
-  background: transparent;
-  border: 1px solid var(--border, rgba(148, 163, 184, 0.5));
-  color: var(--text-color, #0f172a);
-}
-
-.btn.danger {
-  background: #b91c1c;
-  color: #fff;
-}
-
-.btn:active {
-  transform: translateY(1px);
-}
-
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.section select {
-  border-radius: 8px;
-  border: 1px solid var(--border, rgba(148, 163, 184, 0.4));
-  padding: 8px 10px;
-  font-size: 12px;
-  background: var(--background, #fff);
-  color: var(--text-color, #0f172a);
-}
-
-.note {
-  font-size: 11px;
-  color: var(--text-muted, #64748b);
-  line-height: 1.5;
-}
-
-@media (max-width: 900px) {
-  .state-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .panel-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>

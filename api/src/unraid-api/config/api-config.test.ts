@@ -9,6 +9,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { API_VERSION, PATHS_CONFIG_MODULES } from '@app/environment.js';
 import { ApiConfigPersistence, loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
+import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
+import { OnboardingStateService } from '@app/unraid-api/config/onboarding-state.service.js';
 import {
     OnboardingTracker,
     UPGRADE_MARKER_PATH,
@@ -52,6 +54,12 @@ const mockWriteFileFs = vi.mocked(writeFileFs);
 const mockUnlink = vi.mocked(unlink);
 const mockAtomicWriteFile = vi.mocked(atomicWriteFile);
 type ReaddirResult = Awaited<ReturnType<typeof readdir>>;
+
+const createOnboardingTracker = (configService: ConfigService) => {
+    const overrides = new OnboardingOverrideService();
+    const onboardingState = new OnboardingStateService(overrides);
+    return new OnboardingTracker(configService, overrides, onboardingState);
+};
 
 describe('ApiConfigPersistence', () => {
     let service: ApiConfigPersistence;
@@ -174,7 +182,7 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         const alreadyCompleted = await tracker.ensureFirstBootCompleted();
 
         expect(alreadyCompleted).toBe(false);
@@ -205,7 +213,7 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         const alreadyCompleted = await tracker.ensureFirstBootCompleted();
 
         expect(alreadyCompleted).toBe(true);
@@ -227,7 +235,7 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.2.0-beta.3.4', 'utf8');
@@ -268,7 +276,7 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
@@ -302,7 +310,7 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', '7.3.0');
@@ -327,7 +335,7 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.0.0', 'utf8');
@@ -353,7 +361,7 @@ describe('OnboardingTracker', () => {
     it('handles missing version file gracefully', async () => {
         mockReadFile.mockRejectedValue(new Error('permission denied'));
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', undefined);
@@ -382,7 +390,7 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         const snapshot = await tracker.getUpgradeSnapshot();
@@ -400,7 +408,7 @@ describe('OnboardingTracker', () => {
     it('still surfaces onboarding steps when version is unavailable', async () => {
         mockReadFile.mockRejectedValue(new Error('permission denied'));
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         expect(mockWriteFileFs).not.toHaveBeenCalled();
@@ -436,7 +444,7 @@ describe('OnboardingTracker', () => {
         mockReaddir.mockResolvedValue(['pending.activationcode'] as unknown as ReaddirResult);
         mockEmhttpState.var.regState = 'ENOKEYFILE_PENDING';
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
@@ -507,7 +515,7 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
@@ -544,7 +552,7 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
@@ -589,7 +597,7 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.0.0', 'utf8');
@@ -628,7 +636,7 @@ describe('OnboardingTracker', () => {
             throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
@@ -665,7 +673,7 @@ describe('OnboardingTracker', () => {
         mockReaddir.mockResolvedValueOnce(['pending.activationcode'] as unknown as ReaddirResult);
         mockEmhttpState.var.regState = 'ENOKEYFILE';
 
-        const tracker = new OnboardingTracker(configService);
+        const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
         const snapshot = await tracker.getUpgradeSnapshot();

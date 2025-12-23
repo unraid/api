@@ -1,5 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
+import { ActivationOnboarding } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { UpgradeInfo } from '@app/unraid-api/graph/resolvers/info/versions/versions.model.js';
 import { RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { PluginInstallOperation } from '@app/unraid-api/graph/resolvers/unraid-plugins/unraid-plugins.model.js';
@@ -60,6 +61,16 @@ export class OnboardingMutations {
         description: 'Reset upgrade onboarding progress for the current OS version',
     })
     resetUpgradeOnboarding!: UpgradeInfo;
+
+    @Field(() => ActivationOnboarding, {
+        description: 'Override onboarding state for testing (in-memory only)',
+    })
+    setOnboardingOverride!: ActivationOnboarding;
+
+    @Field(() => ActivationOnboarding, {
+        description: 'Clear onboarding override state and reload from disk',
+    })
+    clearOnboardingOverride!: ActivationOnboarding;
 }
 
 @ObjectType({

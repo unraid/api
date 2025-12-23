@@ -11,6 +11,7 @@ import {
     ActivationOnboarding,
     ActivationOnboardingStep,
     Customization,
+    OnboardingState,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
@@ -38,6 +39,12 @@ export class CustomizationResolver {
     @Public()
     async publicPartnerInfo(): Promise<PublicPartnerInfo | null> {
         return this.onboardingService.getPublicPartnerInfo();
+    }
+
+    @Query(() => Boolean)
+    @Public()
+    async isInitialSetup(): Promise<boolean> {
+        return this.onboardingService.isInitialSetup();
     }
 
     @Query(() => Theme)
@@ -88,6 +95,11 @@ export class CustomizationResolver {
     })
     async activationCode(): Promise<ActivationCode | null> {
         return this.onboardingService.getActivationData();
+    }
+
+    @ResolveField(() => OnboardingState, { name: 'onboardingState' })
+    async resolveOnboardingState(): Promise<OnboardingState> {
+        return this.onboardingService.getOnboardingState();
     }
 
     @ResolveField(() => Theme)

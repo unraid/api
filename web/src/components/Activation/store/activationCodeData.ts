@@ -6,11 +6,6 @@ import {
   ACTIVATION_CODE_QUERY,
   PARTNER_INFO_QUERY,
 } from '~/components/Activation/graphql/activationCode.query';
-import {
-  hasOverrideKey,
-  isEnoKeyFile,
-  useOnboardingTestOverrides,
-} from '~/components/Activation/onboardingTestOverrides';
 import { RegistrationState } from '~/composables/gql/graphql';
 
 export const useActivationCodeDataStore = defineStore('activationCodeData', () => {
@@ -25,46 +20,50 @@ export const useActivationCodeDataStore = defineStore('activationCodeData', () =
     { errorPolicy: 'all' }
   );
 
-  const { overrides, enabled } = useOnboardingTestOverrides();
+  const onboardingState = computed(() => activationCodeResult.value?.customization?.onboardingState);
 
-  const activationCode = computed(() => {
-    if (enabled.value && hasOverrideKey(overrides.value, 'activationCode')) {
-      return overrides.value?.activationCode ?? null;
-    }
-    return activationCodeResult.value?.customization?.activationCode;
-  });
+  const activationCode = computed(() => activationCodeResult.value?.customization?.activationCode);
 
-  const regState = computed(() => {
-    if (enabled.value && hasOverrideKey(overrides.value, 'regState')) {
-      return overrides.value?.regState ?? null;
-    }
-    return activationCodeResult.value?.vars?.regState ?? null;
-  });
+  const registrationState = computed(() => onboardingState.value?.registrationState ?? null);
 
   const isFreshInstall = computed(() => {
-    if (enabled.value && hasOverrideKey(overrides.value, 'regState')) {
-      return isEnoKeyFile(overrides.value?.regState);
+    if (onboardingState.value?.isFreshInstall != null) {
+      return onboardingState.value.isFreshInstall;
     }
-    return activationCodeResult.value?.vars?.regState === RegistrationState.ENOKEYFILE;
+    return registrationState.value === RegistrationState.ENOKEYFILE;
   });
 
   /**
    * Public Partner Info becomes null when the user has set a password, so we fall back to the partnerInfo from the activation code
    */
   const partnerInfo = computed(() => {
-    if (enabled.value && hasOverrideKey(overrides.value, 'partnerInfo')) {
-      return overrides.value?.partnerInfo ?? null;
-    }
     return (
       partnerInfoResult.value?.publicPartnerInfo ??
       activationCodeResult.value?.customization?.partnerInfo
     );
   });
+
+  const activationRequired = computed(() => onboardingState.value?.activationRequired ?? false);
+
+  const hasActivationCode = computed(() => {
+    if (onboardingState.value?.hasActivationCode != null) {
+      return onboardingState.value.hasActivationCode;
+    }
+    return Boolean(activationCode.value?.code);
+  });
+
+  const isRegistered = computed(() => onboardingState.value?.isRegistered ?? false);
+
+  const isInitialSetup = computed(() => onboardingState.value?.isInitialSetup ?? false);
   return {
     loading: computed(() => activationCodeLoading.value || partnerInfoLoading.value),
     activationCode,
-    regState,
+    registrationState,
     isFreshInstall,
     partnerInfo,
+    activationRequired,
+    hasActivationCode,
+    isRegistered,
+    isInitialSetup,
   };
 });
