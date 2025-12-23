@@ -55,7 +55,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Cache APT Packages
-        uses: awalsh128/cache-apt-pkgs-action@v1.5.3
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
         with:
           packages: bash procps python3 libvirt-dev jq zstd git build-essential
           version: 1.0
@@ -128,7 +128,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Cache APT Packages
-        uses: awalsh128/cache-apt-pkgs-action@v1.5.3
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.0
         with:
           packages: bash procps python3 libvirt-dev jq zstd git build-essential
           version: 1.0
