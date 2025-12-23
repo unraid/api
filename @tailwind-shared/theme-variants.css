@@ -36,7 +36,7 @@
 
 /* Gray Theme */
 .theme-gray {
-  --header-text-primary: #1c1b1b;
+  --header-text-primary: #ffffff;
   --header-text-secondary: #999999;
   --header-background-color: #1c1b1b;
   --header-gradient-start: rgba(28, 27, 27, 0);
