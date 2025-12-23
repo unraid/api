@@ -3,6 +3,10 @@ import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
 import { PUBLIC_WELCOME_DATA_QUERY } from '~/components/Activation/graphql/activationCode.query';
+import {
+  hasOverrideKey,
+  useOnboardingTestOverrides,
+} from '~/components/Activation/onboardingTestOverrides';
 
 // Uses the shared global Pinia instance
 
@@ -13,9 +17,21 @@ export const useWelcomeModalDataStore = defineStore('welcomeModalData', () => {
     { errorPolicy: 'all' }
   );
 
-  const partnerInfo = computed(() => publicWelcomeDataResult.value?.publicPartnerInfo);
+  const { overrides, enabled } = useOnboardingTestOverrides();
 
-  const isInitialSetup = computed(() => publicWelcomeDataResult.value?.isInitialSetup ?? false);
+  const partnerInfo = computed(() => {
+    if (enabled.value && hasOverrideKey(overrides.value, 'partnerInfo')) {
+      return overrides.value?.partnerInfo ?? null;
+    }
+    return publicWelcomeDataResult.value?.publicPartnerInfo;
+  });
+
+  const isInitialSetup = computed(() => {
+    if (enabled.value && hasOverrideKey(overrides.value, 'isInitialSetup')) {
+      return overrides.value?.isInitialSetup ?? false;
+    }
+    return publicWelcomeDataResult.value?.isInitialSetup ?? false;
+  });
 
   return {
     loading: computed(() => publicWelcomeDataLoading.value),

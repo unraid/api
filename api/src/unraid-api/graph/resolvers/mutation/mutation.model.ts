@@ -55,6 +55,11 @@ export class OnboardingMutations {
         description: 'Mark an upgrade onboarding step as completed for the current OS version',
     })
     completeUpgradeStep!: UpgradeInfo;
+
+    @Field(() => UpgradeInfo, {
+        description: 'Reset upgrade onboarding progress for the current OS version',
+    })
+    resetUpgradeOnboarding!: UpgradeInfo;
 }
 
 @ObjectType({

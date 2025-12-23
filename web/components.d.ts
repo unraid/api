@@ -102,6 +102,8 @@ declare module 'vue' {
     MultiValueCopyBadges: typeof import('./src/components/Common/MultiValueCopyBadges.vue')['default']
     OidcDebugButton: typeof import('./src/components/Logs/OidcDebugButton.vue')['default']
     OidcDebugLogs: typeof import('./src/components/ConnectSettings/OidcDebugLogs.vue')['default']
+    'OnboardingAdminPanel.standalone': typeof import('./src/components/Activation/OnboardingAdminPanel.standalone.vue')['default']
+    'OnboardingTestHarness.standalone': typeof import('./src/components/Activation/OnboardingTestHarness.standalone.vue')['default']
     Overview: typeof import('./src/components/Docker/Overview.vue')['default']
     PermissionCounter: typeof import('./src/components/ApiKey/PermissionCounter.vue')['default']
     Preview: typeof import('./src/components/Docker/Preview.vue')['default']

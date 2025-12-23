@@ -215,6 +215,21 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         return this.getUpgradeSnapshot();
     }
 
+    async resetUpgradeProgress(): Promise<UpgradeProgressSnapshot> {
+        await this.ensureStateLoaded();
+
+        const updatedState: TrackerState = {
+            ...this.state,
+            completedSteps: {} as Record<ActivationOnboardingStepId, CompletedStepState>,
+            updatedAt: new Date().toISOString(),
+        };
+
+        await this.writeTrackerState(updatedState);
+        this.syncConfig(this.currentVersion);
+
+        return this.getUpgradeSnapshot();
+    }
+
     private async ensureStateLoaded() {
         if (Object.keys(this.state).length > 0) {
             return;

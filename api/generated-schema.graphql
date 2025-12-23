@@ -1186,6 +1186,14 @@ type CustomizationMutations {
   ): Theme!
 }
 
+"""The theme name"""
+enum ThemeName {
+  azure
+  black
+  gray
+  white
+}
+
 """
 Parity check related mutations, WIP, response types and functionaliy will change
 """
@@ -1228,6 +1236,9 @@ type OnboardingMutations {
   Mark an upgrade onboarding step as completed for the current OS version
   """
   completeUpgradeStep(input: CompleteUpgradeStepInput!): UpgradeInfo!
+
+  """Reset upgrade onboarding progress for the current OS version"""
+  resetUpgradeOnboarding: UpgradeInfo!
 }
 
 """Input for marking an upgrade onboarding step as completed"""
@@ -1283,14 +1294,6 @@ type Theme {
 
   """The secondary text color of the header"""
   headerSecondaryTextColor: String
-}
-
-"""The theme name"""
-enum ThemeName {
-  azure
-  black
-  gray
-  white
 }
 
 type ExplicitStatusItem {

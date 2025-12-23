@@ -24,4 +24,16 @@ export class OnboardingMutationsResolver {
         const snapshot = await this.onboardingTracker.markStepCompleted(input.stepId);
         return buildUpgradeInfoFromSnapshot(snapshot);
     }
+
+    @ResolveField(() => UpgradeInfo, {
+        description: 'Reset upgrade onboarding progress for the current OS version',
+    })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.WELCOME,
+    })
+    async resetUpgradeOnboarding(): Promise<UpgradeInfo> {
+        const snapshot = await this.onboardingTracker.resetUpgradeProgress();
+        return buildUpgradeInfoFromSnapshot(snapshot);
+    }
 }

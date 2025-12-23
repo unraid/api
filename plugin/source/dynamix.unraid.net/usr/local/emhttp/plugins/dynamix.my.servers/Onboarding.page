@@ -1,0 +1,11 @@
+Menu="Tools:110"
+Title="Onboarding Wizard"
+Icon="icon-registration"
+Tag="pencil"
+---
+<!-- Onboarding state + reset -->
+<unraid-onboarding-admin-panel></unraid-onboarding-admin-panel>
+
+<!-- Modals -->
+<unraid-welcome-modal></unraid-welcome-modal>
+<unraid-modals></unraid-modals>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { Dialog } from '@unraid/ui';
@@ -7,6 +7,7 @@ import { Dialog } from '@unraid/ui';
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
 import ActivationWelcomeStep from '~/components/Activation/ActivationWelcomeStep.vue';
+import { useOnboardingTestOverrides } from '~/components/Activation/onboardingTestOverrides';
 import { useWelcomeModalDataStore } from '~/components/Activation/store/welcomeModalData';
 import { useThemeStore } from '~/store/theme';
 
@@ -45,6 +46,32 @@ const showWelcomeModal = () => {
 
 defineExpose({
   showWelcomeModal,
+});
+
+const hideWelcomeModal = () => {
+  showModal.value = false;
+};
+
+const { enabled } = useOnboardingTestOverrides();
+
+const handleShowEvent = () => {
+  if (!enabled.value) return;
+  showWelcomeModal();
+};
+
+const handleHideEvent = () => {
+  if (!enabled.value) return;
+  hideWelcomeModal();
+};
+
+onMounted(() => {
+  window?.addEventListener('unraid:onboarding-test:show-welcome', handleShowEvent);
+  window?.addEventListener('unraid:onboarding-test:hide-welcome', handleHideEvent);
+});
+
+onUnmounted(() => {
+  window?.removeEventListener('unraid:onboarding-test:show-welcome', handleShowEvent);
+  window?.removeEventListener('unraid:onboarding-test:hide-welcome', handleHideEvent);
 });
 </script>
 

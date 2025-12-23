@@ -1830,6 +1830,8 @@ export type OnboardingMutations = {
   __typename?: 'OnboardingMutations';
   /** Mark an upgrade onboarding step as completed for the current OS version */
   completeUpgradeStep: UpgradeInfo;
+  /** Reset upgrade onboarding progress for the current OS version */
+  resetUpgradeOnboarding: UpgradeInfo;
 };
 
 
