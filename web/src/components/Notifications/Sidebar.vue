@@ -170,7 +170,7 @@ const tabs = computed(() => [
     <UButton
       variant="ghost"
       color="neutral"
-      class="text-inverted hover:bg-[color-mix(in_oklab,hsl(var(--accent))_20%,transparent)] active:bg-transparent"
+      class="text-header-text-primary hover:bg-[color-mix(in_oklab,hsl(var(--accent))_20%,transparent)] active:bg-transparent"
       :style="{ color: themeStore.theme.textColor || undefined }"
       @click="
         () => {
