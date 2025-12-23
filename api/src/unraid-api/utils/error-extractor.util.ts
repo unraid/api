@@ -198,9 +198,9 @@ export class ErrorExtractor {
     static isOAuthResponseError(extracted: ExtractedError): boolean {
         return Boolean(
             extracted.code === 'OAUTH_RESPONSE_IS_NOT_JSON' ||
-                extracted.code === 'OAUTH_PARSE_ERROR' ||
-                extracted.message.includes('unexpected response content-type') ||
-                extracted.message.includes('parsing error')
+            extracted.code === 'OAUTH_PARSE_ERROR' ||
+            extracted.message.includes('unexpected response content-type') ||
+            extracted.message.includes('parsing error')
         );
     }
 
@@ -211,11 +211,11 @@ export class ErrorExtractor {
     static isNetworkError(extracted: ExtractedError): boolean {
         return Boolean(
             extracted.code === 'ECONNREFUSED' ||
-                extracted.code === 'ENOTFOUND' ||
-                extracted.code === 'ETIMEDOUT' ||
-                extracted.code === 'ECONNRESET' ||
-                extracted.message.includes('network') ||
-                extracted.message.includes('connect')
+            extracted.code === 'ENOTFOUND' ||
+            extracted.code === 'ETIMEDOUT' ||
+            extracted.code === 'ECONNRESET' ||
+            extracted.message.includes('network') ||
+            extracted.message.includes('connect')
         );
     }
 

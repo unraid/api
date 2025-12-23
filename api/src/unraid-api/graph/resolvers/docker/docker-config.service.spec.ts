@@ -41,9 +41,8 @@ describe('DockerConfigService - validate', () => {
             const inputConfig = { updateCheckCronSchedule: '0 6 * * *' };
             const validatedConfig = { updateCheckCronSchedule: '0 6 * * *' };
 
-            const { validateObject } = await import(
-                '@app/unraid-api/graph/resolvers/validation.utils.js'
-            );
+            const { validateObject } =
+                await import('@app/unraid-api/graph/resolvers/validation.utils.js');
             const { validateCronExpression } = await import('cron');
 
             vi.mocked(validateObject).mockResolvedValue(validatedConfig);
@@ -60,9 +59,8 @@ describe('DockerConfigService - validate', () => {
             const inputConfig = { updateCheckCronSchedule: CronExpression.EVERY_DAY_AT_6AM };
             const validatedConfig = { updateCheckCronSchedule: CronExpression.EVERY_DAY_AT_6AM };
 
-            const { validateObject } = await import(
-                '@app/unraid-api/graph/resolvers/validation.utils.js'
-            );
+            const { validateObject } =
+                await import('@app/unraid-api/graph/resolvers/validation.utils.js');
             const { validateCronExpression } = await import('cron');
 
             vi.mocked(validateObject).mockResolvedValue(validatedConfig);
@@ -79,9 +77,8 @@ describe('DockerConfigService - validate', () => {
             const inputConfig = { updateCheckCronSchedule: 'invalid-cron' };
             const validatedConfig = { updateCheckCronSchedule: 'invalid-cron' };
 
-            const { validateObject } = await import(
-                '@app/unraid-api/graph/resolvers/validation.utils.js'
-            );
+            const { validateObject } =
+                await import('@app/unraid-api/graph/resolvers/validation.utils.js');
             const { validateCronExpression } = await import('cron');
 
             vi.mocked(validateObject).mockResolvedValue(validatedConfig);
@@ -99,9 +96,8 @@ describe('DockerConfigService - validate', () => {
             const inputConfig = { updateCheckCronSchedule: '' };
             const validatedConfig = { updateCheckCronSchedule: '' };
 
-            const { validateObject } = await import(
-                '@app/unraid-api/graph/resolvers/validation.utils.js'
-            );
+            const { validateObject } =
+                await import('@app/unraid-api/graph/resolvers/validation.utils.js');
             const { validateCronExpression } = await import('cron');
 
             vi.mocked(validateObject).mockResolvedValue(validatedConfig);
@@ -119,9 +115,8 @@ describe('DockerConfigService - validate', () => {
             const inputConfig = { updateCheckCronSchedule: '* * * *' };
             const validatedConfig = { updateCheckCronSchedule: '* * * *' };
 
-            const { validateObject } = await import(
-                '@app/unraid-api/graph/resolvers/validation.utils.js'
-            );
+            const { validateObject } =
+                await import('@app/unraid-api/graph/resolvers/validation.utils.js');
             const { validateCronExpression } = await import('cron');
 
             vi.mocked(validateObject).mockResolvedValue(validatedConfig);
@@ -140,9 +135,8 @@ describe('DockerConfigService - validate', () => {
             const validationError = new ValidationError();
             validationError.property = 'updateCheckCronSchedule';
 
-            const { validateObject } = await import(
-                '@app/unraid-api/graph/resolvers/validation.utils.js'
-            );
+            const { validateObject } =
+                await import('@app/unraid-api/graph/resolvers/validation.utils.js');
 
             vi.mocked(validateObject).mockRejectedValue(validationError);
 
@@ -155,9 +149,8 @@ describe('DockerConfigService - validate', () => {
             const inputConfig = { updateCheckCronSchedule: '0 0,12 * * 1-5' };
             const validatedConfig = { updateCheckCronSchedule: '0 0,12 * * 1-5' };
 
-            const { validateObject } = await import(
-                '@app/unraid-api/graph/resolvers/validation.utils.js'
-            );
+            const { validateObject } =
+                await import('@app/unraid-api/graph/resolvers/validation.utils.js');
             const { validateCronExpression } = await import('cron');
 
             vi.mocked(validateObject).mockResolvedValue(validatedConfig);
@@ -177,9 +170,8 @@ describe('DockerConfigService - validate', () => {
             };
             const validatedConfig = { updateCheckCronSchedule: '0 6 * * *' };
 
-            const { validateObject } = await import(
-                '@app/unraid-api/graph/resolvers/validation.utils.js'
-            );
+            const { validateObject } =
+                await import('@app/unraid-api/graph/resolvers/validation.utils.js');
             const { validateCronExpression } = await import('cron');
 
             vi.mocked(validateObject).mockResolvedValue(validatedConfig);
