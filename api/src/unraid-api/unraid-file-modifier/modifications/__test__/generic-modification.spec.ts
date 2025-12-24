@@ -1,15 +1,24 @@
 import { Logger } from '@nestjs/common';
-import { readFile, writeFile } from 'fs/promises';
+import { constants } from 'fs';
+import { access, mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
-import { describe, expect, test, vi } from 'vitest';
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification.js';
+import DefaultAzureCssModification from '@app/unraid-api/unraid-file-modifier/modifications/default-azure-css.modification.js';
+import DefaultBaseCssModification from '@app/unraid-api/unraid-file-modifier/modifications/default-base-css.modification.js';
+import DefaultBlackCssModification from '@app/unraid-api/unraid-file-modifier/modifications/default-black-css.modification.js';
+import DefaultCfgModification from '@app/unraid-api/unraid-file-modifier/modifications/default-cfg.modification.js';
+import DefaultGrayCssModification from '@app/unraid-api/unraid-file-modifier/modifications/default-gray-css.modification.js';
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification.js';
+import DefaultWhiteCssModification from '@app/unraid-api/unraid-file-modifier/modifications/default-white-css.modification.js';
 import DisplaySettingsModification from '@app/unraid-api/unraid-file-modifier/modifications/display-settings.modification.js';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
+import NotifyPhpModification from '@app/unraid-api/unraid-file-modifier/modifications/notify-php.modification.js';
+import NotifyScriptModification from '@app/unraid-api/unraid-file-modifier/modifications/notify-script.modification.js';
 import RcNginxModification from '@app/unraid-api/unraid-file-modifier/modifications/rc-nginx.modification.js';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
 
@@ -31,10 +40,28 @@ const patchTestCases: ModificationTestCase[] = [
         fileName: 'DefaultPageLayout.php',
     },
     {
+        ModificationClass: DefaultBaseCssModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/styles/default-base.css',
+        fileName: 'default-base.css',
+    },
+    {
         ModificationClass: NotificationsPageModification,
         fileUrl:
             'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/Notifications.page',
         fileName: 'Notifications.page',
+    },
+    {
+        ModificationClass: DefaultCfgModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/default.cfg',
+        fileName: 'default.cfg',
+    },
+    {
+        ModificationClass: NotifyPhpModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/include/Notify.php',
+        fileName: 'Notify.php',
     },
     {
         ModificationClass: DisplaySettingsModification,
@@ -58,6 +85,36 @@ const patchTestCases: ModificationTestCase[] = [
         ModificationClass: RcNginxModification,
         fileUrl: 'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/etc/rc.d/rc.nginx',
         fileName: 'rc.nginx',
+    },
+    {
+        ModificationClass: NotifyScriptModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/scripts/notify',
+        fileName: 'notify',
+    },
+    {
+        ModificationClass: DefaultWhiteCssModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.0/emhttp/plugins/dynamix/styles/default-white.css',
+        fileName: 'default-white.css',
+    },
+    {
+        ModificationClass: DefaultBlackCssModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.0/emhttp/plugins/dynamix/styles/default-black.css',
+        fileName: 'default-black.css',
+    },
+    {
+        ModificationClass: DefaultGrayCssModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.0/emhttp/plugins/dynamix/styles/default-gray.css',
+        fileName: 'default-gray.css',
+    },
+    {
+        ModificationClass: DefaultAzureCssModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.0/emhttp/plugins/dynamix/styles/default-azure.css',
+        fileName: 'default-azure.css',
     },
 ];
 
@@ -122,7 +179,28 @@ async function testInvalidModification(testCase: ModificationTestCase) {
 
 const allTestCases = [...patchTestCases, ...simpleTestCases];
 
+async function ensureFixtureExists(testCase: ModificationTestCase) {
+    const fileName = basename(testCase.fileUrl);
+    const filePath = getPathToFixture(fileName);
+    try {
+        await access(filePath, constants.R_OK);
+    } catch {
+        console.log(`Downloading fixture: ${fileName} from ${testCase.fileUrl}`);
+        const response = await fetch(testCase.fileUrl);
+        if (!response.ok) {
+            throw new Error(`Failed to download fixture ${fileName}: ${response.statusText}`);
+        }
+        const text = await response.text();
+        await mkdir(dirname(filePath), { recursive: true });
+        await writeFile(filePath, text);
+    }
+}
+
 describe('File modifications', () => {
+    beforeAll(async () => {
+        await Promise.all(allTestCases.map(ensureFixtureExists));
+    });
+
     test.each(allTestCases)(
         `$fileName modifier correctly applies to fresh install`,
         async (testCase) => {
