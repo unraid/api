@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useApolloClient } from '@vue/apollo-composable';
 
+import { Button } from '@unraid/ui';
 import { parse } from 'graphql';
 
 import { DEFAULT_ACTIVATION_STEPS } from '~/components/Activation/onboardingTestDefaults';
@@ -153,15 +154,14 @@ const resetOnboarding = async () => {
               Review the current onboarding state and reset progress if needed.
             </p>
           </div>
-          <UButton
-            color="error"
-            variant="solid"
+          <Button
+            variant="destructive"
             size="sm"
-            :loading="resetStatus === 'loading'"
+            :disabled="resetStatus === 'loading'"
             @click="resetOnboarding"
           >
             Reset Onboarding
-          </UButton>
+          </Button>
         </div>
       </template>
 

@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useApolloClient } from '@vue/apollo-composable';
 
+import { Button } from '@unraid/ui';
 import { parse } from 'graphql';
 
 import { DEFAULT_ACTIVATION_STEPS } from '~/components/Activation/onboardingTestDefaults';
@@ -471,13 +472,9 @@ onMounted(() => {
           class="mt-4"
         />
         <div class="mt-4 flex flex-wrap gap-2">
-          <UButton color="primary" size="sm" @click="applyOverrides">Apply Overrides</UButton>
-          <UButton color="neutral" variant="outline" size="sm" @click="loadDraftFromOverrides">
-            Reload
-          </UButton>
-          <UButton color="error" variant="outline" size="sm" @click="clearOverrides">
-            Clear Overrides
-          </UButton>
+          <Button variant="primary" size="sm" @click="applyOverrides">Apply Overrides</Button>
+          <Button variant="outline" size="sm" @click="loadDraftFromOverrides"> Reload </Button>
+          <Button variant="destructive" size="sm" @click="clearOverrides"> Clear Overrides </Button>
         </div>
       </UCard>
 
@@ -495,9 +492,7 @@ onMounted(() => {
               placeholder="Select a preset"
             />
           </UFormField>
-          <UButton color="neutral" variant="outline" size="sm" class="mt-3" @click="applyPreset">
-            Load preset
-          </UButton>
+          <Button variant="outline" size="sm" class="mt-3" @click="applyPreset"> Load preset </Button>
         </UCard>
 
         <UCard>
@@ -505,21 +500,17 @@ onMounted(() => {
             <div class="font-medium">Modal Actions</div>
           </template>
           <div class="flex flex-col gap-2">
-            <UButton color="primary" variant="soft" size="sm" @click="showActivationModal">
+            <Button variant="primary" size="sm" @click="showActivationModal">
               Show Activation Modal
-            </UButton>
-            <UButton color="neutral" variant="outline" size="sm" @click="resetActivationModal">
+            </Button>
+            <Button variant="outline" size="sm" @click="resetActivationModal">
               Reset Activation Modal
-            </UButton>
-            <UButton color="neutral" variant="outline" size="sm" @click="hideActivationModal">
+            </Button>
+            <Button variant="outline" size="sm" @click="hideActivationModal">
               Hide Activation Modal
-            </UButton>
-            <UButton color="primary" variant="soft" size="sm" @click="showWelcomeModal">
-              Show Welcome Modal
-            </UButton>
-            <UButton color="neutral" variant="outline" size="sm" @click="hideWelcomeModal">
-              Hide Welcome Modal
-            </UButton>
+            </Button>
+            <Button variant="primary" size="sm" @click="showWelcomeModal"> Show Welcome Modal </Button>
+            <Button variant="outline" size="sm" @click="hideWelcomeModal"> Hide Welcome Modal </Button>
           </div>
         </UCard>
 
@@ -527,9 +518,9 @@ onMounted(() => {
           <template #header>
             <div class="font-medium">Data Actions</div>
           </template>
-          <UButton color="neutral" variant="outline" size="sm" @click="refetchOnboarding">
+          <Button variant="outline" size="sm" @click="refetchOnboarding">
             Refetch Onboarding Query
-          </UButton>
+          </Button>
         </UCard>
 
         <UAlert
