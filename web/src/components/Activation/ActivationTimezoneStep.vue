@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation } from '@vue/apollo-composable';
 
@@ -65,9 +65,20 @@ onMounted(() => {
   }
 });
 
+watch(selectedTimeZone, () => {
+  if (error.value) {
+    error.value = null;
+  }
+});
+
 const handleSubmit = async () => {
   if (!selectedTimeZone.value) {
     error.value = t('activation.timezoneStep.selectTimezoneError');
+    return;
+  }
+
+  if (error.value) {
+    props.onComplete();
     return;
   }
 
@@ -80,13 +91,13 @@ const handleSubmit = async () => {
         timeZone: selectedTimeZone.value,
       },
     });
+    props.onComplete();
   } catch (err) {
-    console.warn('Failed to update timezone, continuing anyway:', err);
+    console.warn('Failed to update timezone:', err);
+    error.value = err instanceof Error ? err.message : t('common.error');
   } finally {
     isSaving.value = false;
   }
-
-  props.onComplete();
 };
 
 const handleSkip = () => {

@@ -1,5 +1,6 @@
 {
   "activation.activationModal.activateNow": "Activate Now",
+  "activation.activationModal.activationCodeDetected": "Activation code detected on this server. You can activate without leaving this page.",
   "activation.activationModal.letSActivateYourUnraidOs": "Let's activate your Unraid OS License",
   "activation.activationModal.moreAboutLicensing": "More about Licensing",
   "activation.activationModal.moreAboutUnraidNetAccounts": "More about Unraid.net Accounts",

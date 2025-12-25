@@ -48,6 +48,8 @@ const themeStore = useThemeStore();
 const hasKeyfile = computed(() => Boolean(keyfile.value));
 const allowActivationSkip = computed(() => hasKeyfile.value || activationRequired.value);
 const showKeyfileHint = computed(() => activationRequired.value && hasKeyfile.value);
+const activateHref = computed(() => purchaseStore.generateUrl('activate'));
+const activateExternal = computed(() => purchaseStore.openInNewTab);
 
 type StepId = ActivationOnboardingQuery['activationOnboarding']['steps'][number]['id'];
 
@@ -58,6 +60,22 @@ const showModal = computed(() => isVisible.value || shouldShowUpgradeOnboarding.
 const availableSteps = computed<StepId[]>(() => allUpgradeSteps.value.map((step) => step.id as StepId));
 
 const currentStepIndex = ref(0);
+const stepSaveState = ref<'idle' | 'saving' | 'saved'>('idle');
+let stepSaveTimeout: ReturnType<typeof setTimeout> | null = null;
+
+const resolveInitialStepIndex = (steps: ActivationOnboardingQuery['activationOnboarding']['steps']) => {
+  if (steps.length === 0) {
+    return 0;
+  }
+  const firstIncomplete = steps.findIndex((step) => !step.completed);
+  return firstIncomplete >= 0 ? firstIncomplete : Math.max(steps.length - 1, 0);
+};
+
+const setInitialStepIndex = (
+  steps: ActivationOnboardingQuery['activationOnboarding']['steps'] = allUpgradeSteps.value
+) => {
+  currentStepIndex.value = resolveInitialStepIndex(steps);
+};
 
 const currentStep = computed<StepId | null>(() => {
   if (currentStepIndex.value < availableSteps.value.length) {
@@ -123,20 +141,40 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
 
 type MarkUpgradeStepOptions = {
   skipRefetch?: boolean;
+  showStatus?: boolean;
 };
 
 const { mutate: completeUpgradeStepMutation } = useMutation(COMPLETE_UPGRADE_STEP_MUTATION);
 
 const markUpgradeStepCompleted = async (stepId: StepId | null, options: MarkUpgradeStepOptions = {}) => {
   if (!stepId) return;
+  const showStatus = options.showStatus !== false;
+
+  if (showStatus) {
+    if (stepSaveTimeout) {
+      clearTimeout(stepSaveTimeout);
+      stepSaveTimeout = null;
+    }
+    stepSaveState.value = 'saving';
+  }
 
   try {
     await completeUpgradeStepMutation({ input: { stepId } });
     if (!options.skipRefetch) {
       await refetchActivationOnboarding();
     }
+    if (showStatus) {
+      stepSaveState.value = 'saved';
+      stepSaveTimeout = setTimeout(() => {
+        stepSaveState.value = 'idle';
+        stepSaveTimeout = null;
+      }, 2000);
+    }
   } catch (error) {
     console.error('[ActivationModal] Failed to mark upgrade step completed', error);
+    if (showStatus) {
+      stepSaveState.value = 'idle';
+    }
   }
 };
 
@@ -152,7 +190,7 @@ const completePendingUpgradeSteps = async () => {
 
   try {
     for (const stepId of pendingSteps) {
-      await markUpgradeStepCompleted(stepId, { skipRefetch: true });
+      await markUpgradeStepCompleted(stepId, { skipRefetch: true, showStatus: false });
     }
     await refetchActivationOnboarding();
   } catch (error) {
@@ -163,6 +201,11 @@ const completePendingUpgradeSteps = async () => {
 const closeModal = async () => {
   if (shouldShowUpgradeOnboarding.value) {
     await completePendingUpgradeSteps();
+  }
+  stepSaveState.value = 'idle';
+  if (stepSaveTimeout) {
+    clearTimeout(stepSaveTimeout);
+    stepSaveTimeout = null;
   }
   modalStore.setIsHidden(true);
 };
@@ -224,6 +267,8 @@ const currentStepConfig = computed(() => {
   return allUpgradeSteps.value[currentStepIndex.value] ?? null;
 });
 
+const isCurrentStepSaved = computed(() => currentStepConfig.value?.completed ?? false);
+
 const currentStepProps = computed<Record<string, unknown>>(() => {
   const step = currentStep.value;
   if (!step) {
@@ -279,9 +324,11 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         modalDescription: modalDescription.value,
         docsButtons: docsButtons.value,
         canGoBack: canGoBack.value,
-        purchaseStore,
+        activateHref: activateHref.value,
+        activateExternal: activateExternal.value,
         allowSkip: allowActivationSkip.value,
         showKeyfileHint: showKeyfileHint.value,
+        showActivationCodeHint: hasActivationCode.value,
       };
 
     default:
@@ -289,21 +336,30 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
   }
 });
 
-// Set to appropriate step on initial load
+watch(
+  () => showModal.value,
+  (isOpen) => {
+    if (isOpen) {
+      setInitialStepIndex();
+    }
+  }
+);
+
 watch(
   () => allUpgradeSteps.value,
   (newSteps) => {
-    // Only set step if this is the first time we're getting steps
-    // and we haven't manually navigated to a different step
-    if (newSteps.length > 0 && currentStepIndex.value === 0) {
-      const firstIncomplete = newSteps.findIndex((step) => !step.completed);
-      if (firstIncomplete >= 0) {
-        // Start at first incomplete step
-        currentStepIndex.value = firstIncomplete;
-      } else {
-        // All steps are completed, start at the last step
-        currentStepIndex.value = newSteps.length - 1;
-      }
+    if (newSteps.length === 0) {
+      currentStepIndex.value = 0;
+      return;
+    }
+
+    if (!showModal.value) {
+      setInitialStepIndex(newSteps);
+      return;
+    }
+
+    if (!currentStep.value || !newSteps.some((step) => step.id === currentStep.value)) {
+      setInitialStepIndex(newSteps);
     }
   },
   { immediate: true }
@@ -333,6 +389,15 @@ watch(
 
       <div class="flex w-full flex-col items-center">
         <component v-if="currentStepComponent" :is="currentStepComponent" v-bind="currentStepProps" />
+
+        <div
+          v-if="stepSaveState !== 'idle' || isCurrentStepSaved"
+          class="text-muted-foreground mt-3 text-xs"
+          role="status"
+        >
+          <span v-if="stepSaveState === 'saving'">Saving step...</span>
+          <span v-else>Step saved.</span>
+        </div>
 
         <ActivationSteps
           :steps="allUpgradeSteps"

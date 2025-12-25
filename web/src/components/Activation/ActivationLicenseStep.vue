@@ -13,9 +13,11 @@ defineProps<{
   canGoBack: boolean;
   onBack?: () => void;
   onComplete?: () => void;
+  activateHref: string;
+  activateExternal?: boolean;
   allowSkip?: boolean;
   showKeyfileHint?: boolean;
-  purchaseStore: { activate: () => void };
+  showActivationCodeHint?: boolean;
 }>();
 
 const { t } = useI18n();
@@ -35,12 +37,22 @@ const { t } = useI18n();
         <BrandButton
           :text="t('activation.activationModal.activateNow')"
           :icon-right="ArrowTopRightOnSquareIcon"
-          @click="purchaseStore.activate"
+          :href="activateHref"
+          :external="activateExternal"
         />
       </div>
 
-      <div v-if="showKeyfileHint" class="mx-auto mb-8 max-w-xl">
-        <p class="border-border text-muted-foreground rounded-md border border-dashed px-4 py-3 text-sm">
+      <div class="mx-auto mb-8 flex max-w-xl flex-col gap-4">
+        <p
+          v-if="showActivationCodeHint"
+          class="border-border text-muted-foreground rounded-md border border-dashed px-4 py-3 text-sm"
+        >
+          {{ t('activation.activationModal.activationCodeDetected') }}
+        </p>
+        <p
+          v-if="showKeyfileHint"
+          class="border-border text-muted-foreground rounded-md border border-dashed px-4 py-3 text-sm"
+        >
           Keyfile detected. You can activate from the User Profile menu (top right) and continue without
           activation here.
         </p>

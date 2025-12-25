@@ -73,6 +73,26 @@ const installationFinished = ref(false);
 
 const { installPlugin } = usePluginInstaller();
 
+const INSTALL_TIMEOUT_MS = 60000;
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error('Plugin installation timed out.'));
+    }, timeoutMs);
+
+    promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
 const combinedLogs = computed(() => {
   return availablePlugins.flatMap((plugin) =>
     pluginStates[plugin.id].logs.map((line) => `[${plugin.name}] ${line}`)
@@ -118,6 +138,7 @@ const handleInstall = async () => {
   isInstalling.value = true;
   error.value = null;
   installationFinished.value = false;
+  let hadError = false;
 
   try {
     const pluginsToInstall = availablePlugins.filter((p) => selectedPlugins.value.has(p.id));
@@ -132,27 +153,33 @@ const handleInstall = async () => {
       );
 
       let result;
+      const installPromise = installPlugin({
+        url: plugin.url,
+        name: plugin.name,
+        forced: true,
+        onEvent: (event) => {
+          if (event.output?.length) {
+            appendPluginLogs(plugin.id, event.output);
+          }
+        },
+      });
+
+      installPromise.catch(() => {});
+
       try {
-        result = await installPlugin({
-          url: plugin.url,
-          name: plugin.name,
-          forced: true,
-          onEvent: (event) => {
-            if (event.output?.length) {
-              appendPluginLogs(plugin.id, event.output);
-            }
-          },
-        });
+        result = await withTimeout(installPromise, INSTALL_TIMEOUT_MS);
       } catch (installError) {
         state.status = 'error';
         appendPluginLogs(plugin.id, t('activation.pluginsStep.installFailed'));
-        throw installError;
+        hadError = true;
+        continue;
       }
 
       if (result.status !== PluginInstallStatus.SUCCEEDED) {
         state.status = 'error';
         appendPluginLogs(plugin.id, t('activation.pluginsStep.installFailed'));
-        throw new Error(`Plugin installation failed for ${plugin.name}`);
+        hadError = true;
+        continue;
       }
 
       if (result.output?.length) {
@@ -165,9 +192,12 @@ const handleInstall = async () => {
       state.status = 'success';
     }
 
-    installationFinished.value = pluginsToInstall.every(
-      (plugin) => pluginStates[plugin.id].status === 'success'
+    installationFinished.value = pluginsToInstall.every((plugin) =>
+      ['success', 'error'].includes(pluginStates[plugin.id].status)
     );
+    if (hadError) {
+      error.value = t('activation.pluginsStep.installFailed');
+    }
   } catch (err) {
     error.value = t('activation.pluginsStep.installFailed');
     console.error('Failed to install plugins:', err);
