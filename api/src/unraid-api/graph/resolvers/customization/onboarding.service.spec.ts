@@ -11,6 +11,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { getters } from '@app/store/index.js';
+import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
+import { OnboardingStateService } from '@app/unraid-api/config/onboarding-state.service.js';
 import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
@@ -100,6 +102,18 @@ vi.mock('@app/core/utils/misc/sleep.js', async () => {
 const onboardingTrackerMock = {
     ensureFirstBootCompleted: vi.fn<() => Promise<boolean>>(),
 };
+const onboardingOverridesMock = {
+    getState: vi.fn(),
+    setState: vi.fn(),
+    clearState: vi.fn(),
+};
+const onboardingStateMock = {
+    getRegistrationState: vi.fn(),
+    hasActivationCode: vi.fn(),
+    isFreshInstall: vi.fn(),
+    isRegistered: vi.fn(),
+    isInitialSetup: vi.fn(),
+};
 
 describe('OnboardingService', () => {
     let service: OnboardingService;
@@ -144,6 +158,20 @@ describe('OnboardingService', () => {
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
         onboardingTrackerMock.ensureFirstBootCompleted.mockReset();
         onboardingTrackerMock.ensureFirstBootCompleted.mockResolvedValue(false);
+        onboardingOverridesMock.getState.mockReset();
+        onboardingOverridesMock.getState.mockReturnValue(null);
+        onboardingOverridesMock.setState.mockReset();
+        onboardingOverridesMock.clearState.mockReset();
+        onboardingStateMock.getRegistrationState.mockReset();
+        onboardingStateMock.getRegistrationState.mockReturnValue(undefined);
+        onboardingStateMock.hasActivationCode.mockReset();
+        onboardingStateMock.hasActivationCode.mockResolvedValue(false);
+        onboardingStateMock.isFreshInstall.mockReset();
+        onboardingStateMock.isFreshInstall.mockReturnValue(false);
+        onboardingStateMock.isRegistered.mockReset();
+        onboardingStateMock.isRegistered.mockReturnValue(false);
+        onboardingStateMock.isInitialSetup.mockReset();
+        onboardingStateMock.isInitialSetup.mockReturnValue(false);
         vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
         vi.mocked(fs.access).mockReset();
         vi.mocked(fs.readdir).mockReset();
@@ -162,6 +190,8 @@ describe('OnboardingService', () => {
             providers: [
                 OnboardingService,
                 { provide: OnboardingTracker, useValue: onboardingTrackerMock },
+                { provide: OnboardingOverrideService, useValue: onboardingOverridesMock },
+                { provide: OnboardingStateService, useValue: onboardingStateMock },
             ],
         }).compile();
 
@@ -914,12 +944,28 @@ describe('applyActivationCustomizations specific tests', () => {
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
         onboardingTrackerMock.ensureFirstBootCompleted.mockReset();
         onboardingTrackerMock.ensureFirstBootCompleted.mockResolvedValue(false);
+        onboardingOverridesMock.getState.mockReset();
+        onboardingOverridesMock.getState.mockReturnValue(null);
+        onboardingOverridesMock.setState.mockReset();
+        onboardingOverridesMock.clearState.mockReset();
+        onboardingStateMock.getRegistrationState.mockReset();
+        onboardingStateMock.getRegistrationState.mockReturnValue(undefined);
+        onboardingStateMock.hasActivationCode.mockReset();
+        onboardingStateMock.hasActivationCode.mockResolvedValue(false);
+        onboardingStateMock.isFreshInstall.mockReset();
+        onboardingStateMock.isFreshInstall.mockReturnValue(false);
+        onboardingStateMock.isRegistered.mockReset();
+        onboardingStateMock.isRegistered.mockReturnValue(false);
+        onboardingStateMock.isInitialSetup.mockReset();
+        onboardingStateMock.isInitialSetup.mockReturnValue(false);
         vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 OnboardingService,
                 { provide: OnboardingTracker, useValue: onboardingTrackerMock },
+                { provide: OnboardingOverrideService, useValue: onboardingOverridesMock },
+                { provide: OnboardingStateService, useValue: onboardingStateMock },
             ],
         }).compile();
         service = module.get<OnboardingService>(OnboardingService);
@@ -1072,6 +1118,20 @@ describe('OnboardingService - updateCfgFile', () => {
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
         onboardingTrackerMock.ensureFirstBootCompleted.mockReset();
         onboardingTrackerMock.ensureFirstBootCompleted.mockResolvedValue(false);
+        onboardingOverridesMock.getState.mockReset();
+        onboardingOverridesMock.getState.mockReturnValue(null);
+        onboardingOverridesMock.setState.mockReset();
+        onboardingOverridesMock.clearState.mockReset();
+        onboardingStateMock.getRegistrationState.mockReset();
+        onboardingStateMock.getRegistrationState.mockReturnValue(undefined);
+        onboardingStateMock.hasActivationCode.mockReset();
+        onboardingStateMock.hasActivationCode.mockResolvedValue(false);
+        onboardingStateMock.isFreshInstall.mockReset();
+        onboardingStateMock.isFreshInstall.mockReturnValue(false);
+        onboardingStateMock.isRegistered.mockReset();
+        onboardingStateMock.isRegistered.mockReturnValue(false);
+        onboardingStateMock.isInitialSetup.mockReset();
+        onboardingStateMock.isInitialSetup.mockReturnValue(false);
         vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
 
         // Need to compile a module to get an instance, even though we test a private method
@@ -1079,6 +1139,8 @@ describe('OnboardingService - updateCfgFile', () => {
             providers: [
                 OnboardingService,
                 { provide: OnboardingTracker, useValue: onboardingTrackerMock },
+                { provide: OnboardingOverrideService, useValue: onboardingOverridesMock },
+                { provide: OnboardingStateService, useValue: onboardingStateMock },
             ],
         }).compile();
         service = module.get<OnboardingService>(OnboardingService);
