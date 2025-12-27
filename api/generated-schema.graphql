@@ -2449,6 +2449,15 @@ type SystemTime {
   ntpServers: [String!]!
 }
 
+"""Selectable timezone option from the system list"""
+type TimeZoneOption {
+  """IANA timezone identifier"""
+  value: String!
+
+  """Display label for the timezone"""
+  label: String!
+}
+
 type UPSBattery {
   """
   Battery charge level as a percentage (0-100). Unit: percent (%). Example: 100 means battery is fully charged
@@ -2887,6 +2896,9 @@ type Query {
 
   """Retrieve current system time configuration"""
   systemTime: SystemTime!
+
+  """Retrieve available time zone options"""
+  timeZoneOptions: [TimeZoneOption!]!
   upsDevices: [UPSDevice!]!
   upsDeviceById(id: String!): UPSDevice
   upsConfiguration: UPSConfiguration!

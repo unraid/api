@@ -22,6 +22,7 @@ type Documents = {
     "\n  mutation InstallPlugin($input: InstallPluginInput!) {\n    unraidPlugins {\n      installPlugin(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n": typeof types.InstallPluginDocument,
     "\n  query PluginInstallOperation($operationId: ID!) {\n    pluginInstallOperation(operationId: $operationId) {\n      id\n      url\n      name\n      status\n      createdAt\n      updatedAt\n      finishedAt\n      output\n    }\n  }\n": typeof types.PluginInstallOperationDocument,
     "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n": typeof types.PluginInstallUpdatesDocument,
+    "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n": typeof types.TimeZoneOptionsDocument,
     "\n  mutation UpdateSystemTime($input: UpdateSystemTimeInput!) {\n    updateSystemTime(input: $input) {\n      currentTime\n      timeZone\n      useNtp\n      ntpServers\n    }\n  }\n": typeof types.UpdateSystemTimeDocument,
     "\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n": typeof types.GetApiKeyCreationFormSchemaDocument,
     "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKey\n      }\n    }\n  }\n": typeof types.CreateApiKeyDocument,
@@ -98,6 +99,7 @@ const documents: Documents = {
     "\n  mutation InstallPlugin($input: InstallPluginInput!) {\n    unraidPlugins {\n      installPlugin(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n": types.InstallPluginDocument,
     "\n  query PluginInstallOperation($operationId: ID!) {\n    pluginInstallOperation(operationId: $operationId) {\n      id\n      url\n      name\n      status\n      createdAt\n      updatedAt\n      finishedAt\n      output\n    }\n  }\n": types.PluginInstallOperationDocument,
     "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n": types.PluginInstallUpdatesDocument,
+    "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n": types.TimeZoneOptionsDocument,
     "\n  mutation UpdateSystemTime($input: UpdateSystemTimeInput!) {\n    updateSystemTime(input: $input) {\n      currentTime\n      timeZone\n      useNtp\n      ntpServers\n    }\n  }\n": types.UpdateSystemTimeDocument,
     "\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n": types.GetApiKeyCreationFormSchemaDocument,
     "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKey\n      }\n    }\n  }\n": types.CreateApiKeyDocument,
@@ -212,6 +214,10 @@ export function graphql(source: "\n  query PluginInstallOperation($operationId: 
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n"): (typeof documents)["\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n"): (typeof documents)["\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

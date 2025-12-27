@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useMutation } from '@vue/apollo-composable';
+import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { BrandButton, Select } from '@unraid/ui';
+import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Activation/timeZoneOptions.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Activation/updateSystemTime.mutation';
 import { getTimeZones } from '@vvo/tzdb';
 
@@ -23,16 +24,27 @@ const isSaving = ref(false);
 const error = ref<string | null>(null);
 
 const { mutate: updateSystemTime } = useMutation(UPDATE_SYSTEM_TIME_MUTATION);
+const { result: timeZoneOptionsResult } = useQuery(TIME_ZONE_OPTIONS_QUERY);
 
-const timeZones = getTimeZones();
+const tzdbTimeZones = getTimeZones();
+const timeZoneOptions = computed(() => timeZoneOptionsResult.value?.timeZoneOptions ?? []);
 
 const timeZoneItems = computed(() => {
-  return timeZones.map((tz) => {
-    const offset = tz.currentTimeOffsetInMinutes / 60;
-    const offsetStr = offset >= 0 ? `+${offset}` : `${offset}`;
+  if (timeZoneOptions.value.length > 0) {
+    return timeZoneOptions.value.map((tz) => ({ value: tz.value, label: tz.label }));
+  }
+
+  return tzdbTimeZones.map((tz) => {
+    const offsetMinutes = tz.currentTimeOffsetInMinutes;
+    const sign = offsetMinutes >= 0 ? '+' : '-';
+    const absMinutes = Math.abs(offsetMinutes);
+    const hours = Math.floor(absMinutes / 60);
+    const minutes = absMinutes % 60;
+    const paddedMinutes = String(minutes).padStart(2, '0');
+    const offsetStr = `UTC${sign}${hours}:${paddedMinutes}`;
     return {
       value: tz.name,
-      label: `${tz.alternativeName} (${tz.name}) UTC${offsetStr}`,
+      label: `${tz.alternativeName} (${tz.name}) ${offsetStr}`,
     };
   });
 });
@@ -41,12 +53,12 @@ const detectBrowserTimezone = (): string | null => {
   try {
     const detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    const exactMatch = timeZones.find((tz) => tz.name === detectedTz);
+    const exactMatch = tzdbTimeZones.find((tz) => tz.name === detectedTz);
     if (exactMatch) {
       return exactMatch.name;
     }
 
-    const groupMatch = timeZones.find((tz) => tz.group.includes(detectedTz));
+    const groupMatch = tzdbTimeZones.find((tz) => tz.group.includes(detectedTz));
     if (groupMatch) {
       return groupMatch.name;
     }
@@ -58,18 +70,34 @@ const detectBrowserTimezone = (): string | null => {
   }
 };
 
-onMounted(() => {
-  const detected = detectBrowserTimezone();
-  if (detected) {
-    selectedTimeZone.value = detected;
-  }
-});
+const hasAutoSelected = ref(false);
 
 watch(selectedTimeZone, () => {
   if (error.value) {
     error.value = null;
   }
 });
+
+watch(
+  timeZoneItems,
+  (items) => {
+    if (!items.length) return;
+
+    const available = new Set(items.map((item) => item.value));
+    if (selectedTimeZone.value && !available.has(selectedTimeZone.value)) {
+      selectedTimeZone.value = '';
+    }
+
+    if (!hasAutoSelected.value || !selectedTimeZone.value) {
+      const detected = detectBrowserTimezone();
+      if (detected && available.has(detected)) {
+        selectedTimeZone.value = detected;
+      }
+      hasAutoSelected.value = true;
+    }
+  },
+  { immediate: true }
+);
 
 const handleSubmit = async () => {
   if (!selectedTimeZone.value) {

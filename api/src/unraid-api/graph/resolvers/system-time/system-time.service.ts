@@ -1,8 +1,10 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { join } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 
 import type { Var } from '@app/core/types/states/var.js';
+import type { TimeZoneOption } from '@app/unraid-api/graph/resolvers/system-time/system-time.model.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { phpLoader } from '@app/core/utils/plugins/php-loader.js';
 import {
@@ -39,18 +41,30 @@ export class SystemTimeService {
         }
         this.validateTimeZone(desiredTimeZone);
 
-        const desiredUseNtp = input.useNtp ?? Boolean(current.useNtp);
-        const desiredServers = this.normalizeNtpServers(input.ntpServers, current);
+        const hasCurrentUseNtp = typeof current.useNtp !== 'undefined';
+        const desiredUseNtp = input.useNtp ?? (hasCurrentUseNtp ? Boolean(current.useNtp) : undefined);
+        const hasCurrentNtpServers = this.hasNtpServerState(current);
+        const desiredServers =
+            input.ntpServers !== undefined
+                ? this.normalizeNtpServers(input.ntpServers, current)
+                : hasCurrentNtpServers
+                  ? this.normalizeNtpServers(undefined, current)
+                  : null;
 
         const commands: Record<string, string> = {
             setDateTime: 'apply',
             timeZone: desiredTimeZone,
-            USE_NTP: desiredUseNtp ? 'yes' : 'no',
         };
 
-        desiredServers.forEach((server, index) => {
-            commands[`NTP_SERVER${index + 1}`] = server;
-        });
+        if (typeof desiredUseNtp !== 'undefined') {
+            commands.USE_NTP = desiredUseNtp ? 'yes' : 'no';
+        }
+
+        if (desiredServers) {
+            desiredServers.forEach((server, index) => {
+                commands[`NTP_SERVER${index + 1}`] = server;
+            });
+        }
 
         const switchingToManual = desiredUseNtp === false && Boolean(current.useNtp);
         if (desiredUseNtp === false) {
@@ -67,9 +81,10 @@ export class SystemTimeService {
         }
 
         const timezoneChanged = desiredTimeZone !== (current.timeZone ?? '');
+        const useNtpLabel = typeof desiredUseNtp === 'undefined' ? 'unchanged' : String(desiredUseNtp);
 
         this.logger.log(
-            `Updating system time settings (zone=${desiredTimeZone}, useNtp=${desiredUseNtp}, timezoneChanged=${timezoneChanged})`
+            `Updating system time settings (zone=${desiredTimeZone}, useNtp=${useNtpLabel}, timezoneChanged=${timezoneChanged})`
         );
 
         try {
@@ -85,6 +100,18 @@ export class SystemTimeService {
         }
 
         return this.getSystemTime();
+    }
+
+    public async getTimeZoneOptions(): Promise<TimeZoneOption[]> {
+        const timeZoneFile = this.getTimeZoneListPath();
+        try {
+            const contents = await readFile(timeZoneFile, 'utf-8');
+            return this.parseTimeZoneOptions(contents);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.warn(`Failed to read time zone list from ${timeZoneFile}: ${message}`);
+            return [];
+        }
     }
 
     private extractNtpServers(varState: Partial<Var>): string[] {
@@ -124,6 +151,44 @@ export class SystemTimeService {
             return '';
         }
         return server.trim().slice(0, 40);
+    }
+
+    private getTimeZoneListPath(): string {
+        const webGuiBase = this.configService.get<string>(
+            'store.paths.webGuiBase',
+            '/usr/local/emhttp/webGui'
+        );
+        return resolve(webGuiBase, '..', 'plugins', 'dynamix', 'include', 'timezones.key');
+    }
+
+    private parseTimeZoneOptions(contents: string): TimeZoneOption[] {
+        return contents
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0)
+            .map((line) => {
+                const separatorIndex = line.indexOf('|');
+                if (separatorIndex === -1) {
+                    const value = line.trim();
+                    return value ? { value, label: value } : null;
+                }
+                const value = line.slice(0, separatorIndex).trim();
+                if (!value) {
+                    return null;
+                }
+                const label = line.slice(separatorIndex + 1).trim() || value;
+                return { value, label };
+            })
+            .filter((entry): entry is TimeZoneOption => Boolean(entry));
+    }
+
+    private hasNtpServerState(varState: Partial<Var>): boolean {
+        return (
+            typeof varState.ntpServer1 !== 'undefined' ||
+            typeof varState.ntpServer2 !== 'undefined' ||
+            typeof varState.ntpServer3 !== 'undefined' ||
+            typeof varState.ntpServer4 !== 'undefined'
+        );
     }
 
     private validateTimeZone(timeZone: string) {

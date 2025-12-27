@@ -21,6 +21,15 @@ export class SystemTime {
     ntpServers!: string[];
 }
 
+@ObjectType({ description: 'Selectable timezone option from the system list' })
+export class TimeZoneOption {
+    @Field({ description: 'IANA timezone identifier' })
+    value!: string;
+
+    @Field({ description: 'Display label for the timezone' })
+    label!: string;
+}
+
 @InputType()
 export class UpdateSystemTimeInput {
     @Field({ nullable: true, description: 'New IANA timezone identifier to apply' })

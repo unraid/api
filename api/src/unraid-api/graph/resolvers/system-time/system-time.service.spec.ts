@@ -73,6 +73,27 @@ describe('SystemTimeService', () => {
         expect(typeof result.currentTime).toBe('string');
     });
 
+    it('does not override NTP settings when store state is missing', async () => {
+        vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: any) => {
+            if (key === 'store.emhttp.var') {
+                return {};
+            }
+            if (key === 'store.paths.webGuiBase') {
+                return '/usr/local/emhttp/webGui';
+            }
+            return defaultValue;
+        });
+
+        await service.updateSystemTime({ timeZone: 'America/New_York' });
+
+        expect(emcmd).toHaveBeenCalledTimes(1);
+        const [commands] = vi.mocked(emcmd).mock.calls[0];
+        expect(commands).toEqual({
+            setDateTime: 'apply',
+            timeZone: 'America/New_York',
+        });
+    });
+
     it('updates time settings, disables NTP, and triggers timezone reset', async () => {
         const oldState = {
             timeZone: 'UTC',
