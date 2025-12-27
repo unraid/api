@@ -6,7 +6,6 @@ import {
   ACTIVATION_CODE_QUERY,
   PARTNER_INFO_QUERY,
 } from '~/components/Activation/graphql/activationCode.query';
-import { RegistrationState } from '~/composables/gql/graphql';
 
 export const useActivationCodeDataStore = defineStore('activationCodeData', () => {
   const { result: activationCodeResult, loading: activationCodeLoading } = useQuery(
@@ -26,12 +25,7 @@ export const useActivationCodeDataStore = defineStore('activationCodeData', () =
 
   const registrationState = computed(() => onboardingState.value?.registrationState ?? null);
 
-  const isFreshInstall = computed(() => {
-    if (onboardingState.value?.isFreshInstall != null) {
-      return onboardingState.value.isFreshInstall;
-    }
-    return registrationState.value === RegistrationState.ENOKEYFILE;
-  });
+  const isFreshInstall = computed(() => onboardingState.value?.isFreshInstall ?? false);
 
   /**
    * Public Partner Info becomes null when the user has set a password, so we fall back to the partnerInfo from the activation code
@@ -45,12 +39,7 @@ export const useActivationCodeDataStore = defineStore('activationCodeData', () =
 
   const activationRequired = computed(() => onboardingState.value?.activationRequired ?? false);
 
-  const hasActivationCode = computed(() => {
-    if (onboardingState.value?.hasActivationCode != null) {
-      return onboardingState.value.hasActivationCode;
-    }
-    return Boolean(activationCode.value?.code);
-  });
+  const hasActivationCode = computed(() => onboardingState.value?.hasActivationCode ?? false);
 
   const isRegistered = computed(() => onboardingState.value?.isRegistered ?? false);
 

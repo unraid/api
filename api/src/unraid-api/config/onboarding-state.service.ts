@@ -35,7 +35,9 @@ export class OnboardingStateService {
         if (!regState) {
             return false;
         }
-        return String(regState).startsWith('ENOKEYFILE');
+        // Only ENOKEYFILE (without number suffix) indicates a fresh install.
+        // ENOKEYFILE1 and ENOKEYFILE2 are error states that can occur on existing installations.
+        return regState === RegistrationState.ENOKEYFILE;
     }
 
     isRegistered(regState: RegistrationState | undefined = this.getRegistrationState()): boolean {
