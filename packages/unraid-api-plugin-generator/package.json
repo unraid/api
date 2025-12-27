@@ -22,7 +22,7 @@
     "@nestjs/common": "11.1.10",
     "@nestjs/config": "4.0.2",
     "@nestjs/core": "11.1.10",
-    "@nestjs/graphql": "13.2.3",
+    "@nestjs/graphql": "13.1.0",
     "@types/fs-extra": "11.0.4",
     "@types/inquirer": "9.0.9",
     "@types/node": "22.19.3",
