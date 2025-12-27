@@ -203,7 +203,9 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         if (overrideState?.activationOnboarding) {
             const updatedOverride = this.markOverrideStepCompleted(overrideState, stepId);
             this.onboardingOverrides.setState(updatedOverride);
-            return this.buildOverrideSnapshot(updatedOverride.activationOnboarding);
+            if (updatedOverride.activationOnboarding) {
+                return this.buildOverrideSnapshot(updatedOverride.activationOnboarding);
+            }
         }
 
         const currentVersion =
@@ -261,7 +263,9 @@ export class OnboardingTracker implements OnApplicationBootstrap, OnApplicationS
         if (overrideState?.activationOnboarding) {
             const updatedOverride = this.resetOverrideSteps(overrideState);
             this.onboardingOverrides.setState(updatedOverride);
-            return this.buildOverrideSnapshot(updatedOverride.activationOnboarding);
+            if (updatedOverride.activationOnboarding) {
+                return this.buildOverrideSnapshot(updatedOverride.activationOnboarding);
+            }
         }
 
         await this.ensureStateLoaded();
