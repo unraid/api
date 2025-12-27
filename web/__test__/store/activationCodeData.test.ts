@@ -110,7 +110,9 @@ describe('ActivationCodeData Store', () => {
         if (query === ACTIVATION_CODE_QUERY) {
           return createCompleteQueryMock(
             {
-              vars: { regState: RegistrationState.ENOKEYFILE },
+              customization: {
+                onboardingState: { registrationState: RegistrationState.ENOKEYFILE },
+              },
             },
             false
           );
@@ -129,7 +131,9 @@ describe('ActivationCodeData Store', () => {
         if (query === ACTIVATION_CODE_QUERY) {
           return createCompleteQueryMock(
             {
-              vars: { regState: 'REGISTERED' as RegistrationState },
+              customization: {
+                onboardingState: { registrationState: 'REGISTERED' as RegistrationState },
+              },
             },
             false
           );

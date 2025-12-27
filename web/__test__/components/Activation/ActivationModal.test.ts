@@ -153,6 +153,14 @@ const mutateMock = vi.fn().mockResolvedValue(undefined);
 vi.mock('@vue/apollo-composable', () => ({
   useMutation: () => ({
     mutate: mutateMock,
+    onDone: vi.fn(),
+    onError: vi.fn(),
+  }),
+  useLazyQuery: () => ({
+    load: vi.fn(),
+    refetch: vi.fn().mockResolvedValue(undefined),
+    onResult: vi.fn(),
+    onError: vi.fn(),
   }),
 }));
 
@@ -197,6 +205,13 @@ vi.mock('~/store/theme', () => ({
 
 vi.mock('@heroicons/vue/24/solid', () => ({
   ArrowTopRightOnSquareIcon: {},
+  ArrowPathIcon: {},
+  ArrowRightOnRectangleIcon: {},
+  CogIcon: {},
+  GlobeAltIcon: {},
+  InformationCircleIcon: {},
+  KeyIcon: {},
+  QuestionMarkCircleIcon: {},
 }));
 
 vi.mock('@nuxt/ui', async (importOriginal) => {
@@ -235,7 +250,7 @@ describe('Activation/ActivationModal.vue', () => {
     // Reset window.location
     Object.defineProperty(window, 'location', {
       writable: true,
-      value: { href: '' },
+      value: { href: '', hostname: 'localhost' },
     });
 
     handleKeydown = null;
