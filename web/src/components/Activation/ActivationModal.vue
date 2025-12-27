@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useMutation } from '@vue/apollo-composable';
@@ -62,6 +62,13 @@ const availableSteps = computed<StepId[]>(() => allUpgradeSteps.value.map((step)
 const currentStepIndex = ref(0);
 const stepSaveState = ref<'idle' | 'saving' | 'saved'>('idle');
 let stepSaveTimeout: ReturnType<typeof setTimeout> | null = null;
+
+onBeforeUnmount(() => {
+  if (stepSaveTimeout !== null) {
+    clearTimeout(stepSaveTimeout);
+    stepSaveTimeout = null;
+  }
+});
 
 const resolveInitialStepIndex = (steps: ActivationOnboardingQuery['activationOnboarding']['steps']) => {
   if (steps.length === 0) {

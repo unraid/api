@@ -1,6 +1,8 @@
 {
   "activation.activationModal.activateNow": "Activate Now",
   "activation.activationModal.activationCodeDetected": "Activation code detected on this server. You can activate without leaving this page.",
+  "activation.keyfileHint": "Keyfile detected. You can activate from the User Profile menu (top right) and continue without activation here.",
+  "activation.skipForNow": "Skip for now",
   "activation.activationModal.letSActivateYourUnraidOs": "Let's activate your Unraid OS License",
   "activation.activationModal.moreAboutLicensing": "More about Licensing",
   "activation.activationModal.moreAboutUnraidNetAccounts": "More about Unraid.net Accounts",

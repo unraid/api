@@ -53,8 +53,7 @@ const { t } = useI18n();
           v-if="showKeyfileHint"
           class="border-border text-muted-foreground rounded-md border border-dashed px-4 py-3 text-sm"
         >
-          Keyfile detected. You can activate from the User Profile menu (top right) and continue without
-          activation here.
+          {{ t('activation.keyfileHint') }}
         </p>
       </div>
 
@@ -62,7 +61,7 @@ const { t } = useI18n();
         <div class="mx-auto flex w-full flex-col justify-center gap-4 sm:flex-row">
           <BrandButton
             v-if="allowSkip"
-            text="Skip for now"
+            :text="t('activation.skipForNow')"
             variant="underline"
             @click="onComplete?.()"
           />
