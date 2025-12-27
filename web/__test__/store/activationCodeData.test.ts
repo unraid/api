@@ -105,12 +105,17 @@ describe('ActivationCodeData Store', () => {
       expect(store.activationCode).toBe(mockActivationCode);
     });
 
-    it('should compute isFreshInstall as true when regState is ENOKEYFILE', () => {
+    it('should compute isFreshInstall from backend when regState is ENOKEYFILE', () => {
       vi.mocked(useQuery).mockImplementation((query) => {
         if (query === ACTIVATION_CODE_QUERY) {
           return createCompleteQueryMock(
             {
-              vars: { regState: RegistrationState.ENOKEYFILE },
+              customization: {
+                onboardingState: {
+                  registrationState: RegistrationState.ENOKEYFILE,
+                  isFreshInstall: true, // Backend determines this value
+                },
+              },
             },
             false
           );
@@ -124,12 +129,17 @@ describe('ActivationCodeData Store', () => {
       expect(store.isFreshInstall).toBe(true);
     });
 
-    it('should compute isFreshInstall as false when regState is not ENOKEYFILE', () => {
+    it('should compute isFreshInstall from backend when regState is ENOKEYFILE1', () => {
       vi.mocked(useQuery).mockImplementation((query) => {
         if (query === ACTIVATION_CODE_QUERY) {
           return createCompleteQueryMock(
             {
-              vars: { regState: 'REGISTERED' as RegistrationState },
+              customization: {
+                onboardingState: {
+                  registrationState: RegistrationState.ENOKEYFILE1,
+                  isFreshInstall: false, // Backend determines this value
+                },
+              },
             },
             false
           );
@@ -137,6 +147,62 @@ describe('ActivationCodeData Store', () => {
 
         return createCompleteQueryMock(null, false);
       });
+
+      const store = useActivationCodeDataStore();
+
+      expect(store.isFreshInstall).toBe(false);
+    });
+
+    it('should compute isFreshInstall from backend when regState is ENOKEYFILE2', () => {
+      vi.mocked(useQuery).mockImplementation((query) => {
+        if (query === ACTIVATION_CODE_QUERY) {
+          return createCompleteQueryMock(
+            {
+              customization: {
+                onboardingState: {
+                  registrationState: RegistrationState.ENOKEYFILE2,
+                  isFreshInstall: false, // Backend determines this value
+                },
+              },
+            },
+            false
+          );
+        }
+
+        return createCompleteQueryMock(null, false);
+      });
+
+      const store = useActivationCodeDataStore();
+
+      expect(store.isFreshInstall).toBe(false);
+    });
+
+    it('should compute isFreshInstall from backend when regState is not ENOKEYFILE', () => {
+      vi.mocked(useQuery).mockImplementation((query) => {
+        if (query === ACTIVATION_CODE_QUERY) {
+          return createCompleteQueryMock(
+            {
+              customization: {
+                onboardingState: {
+                  registrationState: 'REGISTERED' as RegistrationState,
+                  isFreshInstall: false, // Backend determines this value
+                },
+              },
+            },
+            false
+          );
+        }
+
+        return createCompleteQueryMock(null, false);
+      });
+
+      const store = useActivationCodeDataStore();
+
+      expect(store.isFreshInstall).toBe(false);
+    });
+
+    it('should return false for isFreshInstall when onboardingState is null (query not loaded)', () => {
+      vi.mocked(useQuery).mockImplementation(() => createCompleteQueryMock(null, false));
 
       const store = useActivationCodeDataStore();
 

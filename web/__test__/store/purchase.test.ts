@@ -94,7 +94,6 @@ describe('Purchase Store', () => {
             server: {
               guid: 'test-guid',
               name: 'test-server',
-              activationCodeData: null,
             },
             type: 'activate',
           },

@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
+import { OnboardingOverrideModule } from '@app/unraid-api/config/onboarding-override.module.js';
+import { OnboardingStateModule } from '@app/unraid-api/config/onboarding-state.module.js';
 import { ApiKeyModule } from '@app/unraid-api/graph/resolvers/api-key/api-key.module.js';
 import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 import { ArrayModule } from '@app/unraid-api/graph/resolvers/array/array.module.js';
@@ -17,6 +19,7 @@ import { MetricsModule } from '@app/unraid-api/graph/resolvers/metrics/metrics.m
 import { RootMutationsResolver } from '@app/unraid-api/graph/resolvers/mutation/mutation.resolver.js';
 import { NotificationsModule } from '@app/unraid-api/graph/resolvers/notifications/notifications.module.js';
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
+import { OnboardingMutationsResolver } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.mutation.js';
 import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.resolver.js';
 import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resolver.js';
 import { RCloneModule } from '@app/unraid-api/graph/resolvers/rclone/rclone.module.js';
@@ -24,6 +27,8 @@ import { RegistrationResolver } from '@app/unraid-api/graph/resolvers/registrati
 import { ServerResolver } from '@app/unraid-api/graph/resolvers/servers/server.resolver.js';
 import { SettingsModule } from '@app/unraid-api/graph/resolvers/settings/settings.module.js';
 import { SsoModule } from '@app/unraid-api/graph/resolvers/sso/sso.module.js';
+import { SystemTimeModule } from '@app/unraid-api/graph/resolvers/system-time/system-time.module.js';
+import { UnraidPluginsModule } from '@app/unraid-api/graph/resolvers/unraid-plugins/unraid-plugins.module.js';
 import { UPSModule } from '@app/unraid-api/graph/resolvers/ups/ups.module.js';
 import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver.js';
 import { VmMutationsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.mutations.resolver.js';
@@ -47,12 +52,16 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         FlashBackupModule,
         InfoModule,
         LogsModule,
+        OnboardingOverrideModule,
+        OnboardingStateModule,
         NotificationsModule,
         RCloneModule,
         SettingsModule,
         SsoModule,
         MetricsModule,
+        SystemTimeModule,
         UPSModule,
+        UnraidPluginsModule,
     ],
     providers: [
         ConfigResolver,
@@ -61,6 +70,7 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         NotificationsResolver,
         OnlineResolver,
         OwnerResolver,
+        OnboardingMutationsResolver,
         RegistrationResolver,
         RootMutationsResolver,
         ServerResolver,

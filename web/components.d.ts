@@ -8,10 +8,14 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ActivationLicenseStep: typeof import('./src/components/Activation/ActivationLicenseStep.vue')['default']
     ActivationModal: typeof import('./src/components/Activation/ActivationModal.vue')['default']
     ActivationPartnerLogo: typeof import('./src/components/Activation/ActivationPartnerLogo.vue')['default']
     ActivationPartnerLogoImg: typeof import('./src/components/Activation/ActivationPartnerLogoImg.vue')['default']
+    ActivationPluginsStep: typeof import('./src/components/Activation/ActivationPluginsStep.vue')['default']
     ActivationSteps: typeof import('./src/components/Activation/ActivationSteps.vue')['default']
+    ActivationTimezoneStep: typeof import('./src/components/Activation/ActivationTimezoneStep.vue')['default']
+    ActivationWelcomeStep: typeof import('./src/components/Activation/ActivationWelcomeStep.vue')['default']
     'ApiKeyAuthorize.standalone': typeof import('./src/components/ApiKeyAuthorize.standalone.vue')['default']
     ApiKeyCreate: typeof import('./src/components/ApiKey/ApiKeyCreate.vue')['default']
     ApiKeyManager: typeof import('./src/components/ApiKey/ApiKeyManager.vue')['default']
@@ -98,6 +102,8 @@ declare module 'vue' {
     MultiValueCopyBadges: typeof import('./src/components/Common/MultiValueCopyBadges.vue')['default']
     OidcDebugButton: typeof import('./src/components/Logs/OidcDebugButton.vue')['default']
     OidcDebugLogs: typeof import('./src/components/ConnectSettings/OidcDebugLogs.vue')['default']
+    'OnboardingAdminPanel.standalone': typeof import('./src/components/Activation/OnboardingAdminPanel.standalone.vue')['default']
+    'OnboardingTestHarness.standalone': typeof import('./src/components/Activation/OnboardingTestHarness.standalone.vue')['default']
     Overview: typeof import('./src/components/Docker/Overview.vue')['default']
     PermissionCounter: typeof import('./src/components/ApiKey/PermissionCounter.vue')['default']
     Preview: typeof import('./src/components/Docker/Preview.vue')['default']
@@ -152,9 +158,11 @@ declare module 'vue' {
     USelectMenu: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/SelectMenu.vue')['default']
     'UserProfile.standalone': typeof import('./src/components/UserProfile.standalone.vue')['default']
     USkeleton: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Skeleton.vue')['default']
+    UStepper: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Stepper.vue')['default']
     USwitch: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Switch.vue')['default']
     UTable: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Table.vue')['default']
     UTabs: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Tabs.vue')['default']
+    UTextarea: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Textarea.vue')['default']
     'WanIpCheck.standalone': typeof import('./src/components/WanIpCheck.standalone.vue')['default']
     'WelcomeModal.standalone': typeof import('./src/components/Activation/WelcomeModal.standalone.vue')['default']
   }

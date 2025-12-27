@@ -5,17 +5,24 @@ import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { Public } from '@app/unraid-api/auth/public.decorator.js'; // Import Public decorator
 
+import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import {
     ActivationCode,
+    ActivationOnboarding,
+    ActivationOnboardingStep,
     Customization,
+    OnboardingState,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
-import { CustomizationService } from '@app/unraid-api/graph/resolvers/customization/customization.service.js';
+import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 import { Theme } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 
 @Resolver(() => Customization)
 export class CustomizationResolver {
-    constructor(private readonly customizationService: CustomizationService) {}
+    constructor(
+        private readonly onboardingService: OnboardingService,
+        private readonly onboardingTracker: OnboardingTracker
+    ) {}
     // Authenticated query
     @Query(() => Customization, { nullable: true })
     @UsePermissions({
@@ -31,18 +38,54 @@ export class CustomizationResolver {
     @Query(() => PublicPartnerInfo, { nullable: true })
     @Public()
     async publicPartnerInfo(): Promise<PublicPartnerInfo | null> {
-        return this.customizationService.getPublicPartnerInfo();
+        return this.onboardingService.getPublicPartnerInfo();
+    }
+
+    @Query(() => Boolean)
+    @Public()
+    async isInitialSetup(): Promise<boolean> {
+        return this.onboardingService.isInitialSetup();
     }
 
     @Query(() => Theme)
     @Public()
     async publicTheme(): Promise<Theme> {
-        return this.customizationService.getTheme();
+        return this.onboardingService.getTheme();
+    }
+
+    @Query(() => ActivationOnboarding, {
+        description: 'Activation onboarding steps derived from current system state',
+    })
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CUSTOMIZATIONS,
+    })
+    async activationOnboarding(): Promise<ActivationOnboarding> {
+        const snapshot = await this.onboardingTracker.getUpgradeSnapshot();
+
+        const steps: ActivationOnboardingStep[] = snapshot.steps.map((step) => ({
+            id: step.id,
+            required: step.required,
+            introducedIn: step.introducedIn,
+            completed: snapshot.completedSteps.includes(step.id),
+        }));
+        const hasBothVersions = snapshot.lastTrackedVersion != null && snapshot.currentVersion != null;
+
+        return {
+            isUpgrade: hasBothVersions && snapshot.lastTrackedVersion !== snapshot.currentVersion,
+            previousVersion:
+                hasBothVersions && snapshot.lastTrackedVersion !== snapshot.currentVersion
+                    ? snapshot.lastTrackedVersion
+                    : undefined,
+            currentVersion: hasBothVersions ? snapshot.currentVersion : undefined,
+            hasPendingSteps: steps.some((step) => !step.completed),
+            steps,
+        };
     }
 
     @ResolveField(() => PublicPartnerInfo, { nullable: true, name: 'partnerInfo' })
     async resolvePartnerInfo(): Promise<PublicPartnerInfo | null> {
-        return this.customizationService.getPublicPartnerInfo();
+        return this.onboardingService.getPublicPartnerInfo();
     }
 
     @ResolveField(() => ActivationCode, { nullable: true, name: 'activationCode' })
@@ -51,11 +94,16 @@ export class CustomizationResolver {
         resource: Resource.ACTIVATION_CODE,
     })
     async activationCode(): Promise<ActivationCode | null> {
-        return this.customizationService.getActivationData();
+        return this.onboardingService.getActivationData();
+    }
+
+    @ResolveField(() => OnboardingState, { name: 'onboardingState' })
+    async resolveOnboardingState(): Promise<OnboardingState> {
+        return this.onboardingService.getOnboardingState();
     }
 
     @ResolveField(() => Theme)
     async theme(): Promise<Theme> {
-        return this.customizationService.getTheme();
+        return this.onboardingService.getTheme();
     }
 }

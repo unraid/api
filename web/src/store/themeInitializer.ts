@@ -29,7 +29,7 @@ export async function initializeTheme(): Promise<void> {
       const themeStore = useThemeStore();
 
       // Load theme from GraphQL
-      await themeStore.setTheme();
+      await themeStore.fetchTheme();
 
       isThemeInitialized = true;
 

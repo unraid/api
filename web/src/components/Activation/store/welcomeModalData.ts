@@ -13,9 +13,13 @@ export const useWelcomeModalDataStore = defineStore('welcomeModalData', () => {
     { errorPolicy: 'all' }
   );
 
-  const partnerInfo = computed(() => publicWelcomeDataResult.value?.publicPartnerInfo);
+  const partnerInfo = computed(() => {
+    return publicWelcomeDataResult.value?.publicPartnerInfo;
+  });
 
-  const isInitialSetup = computed(() => publicWelcomeDataResult.value?.isInitialSetup ?? false);
+  const isInitialSetup = computed(() => {
+    return publicWelcomeDataResult.value?.isInitialSetup ?? false;
+  });
 
   return {
     loading: computed(() => publicWelcomeDataLoading.value),
