@@ -144,7 +144,6 @@ export async function mountUnifiedApp() {
   app.use(ui);
   app.provide(DefaultApolloClient, apolloClient);
 
-
   // Fetch notification settings
   interface NotificationSettingsResponse {
     notifications?: {

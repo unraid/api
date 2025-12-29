@@ -136,20 +136,35 @@ async function handleRefresh() {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen" title="Container Sizes" :ui="{ footer: 'justify-end', content: 'sm:max-w-4xl' }">
+  <UModal
+    v-model:open="isOpen"
+    title="Container Sizes"
+    :ui="{ footer: 'justify-end', content: 'sm:max-w-4xl' }"
+  >
     <template #body>
       <div class="space-y-4">
         <div class="flex items-center justify-between gap-3">
           <p class="text-muted-foreground text-sm">
             Includes total filesystem, writable layer, and log file sizes per container.
           </p>
-          <UButton size="sm" variant="outline" icon="i-lucide-refresh-cw" :loading="loading" @click="handleRefresh">
+          <UButton
+            size="sm"
+            variant="outline"
+            icon="i-lucide-refresh-cw"
+            :loading="loading"
+            @click="handleRefresh"
+          >
             Refresh
           </UButton>
         </div>
 
-        <UTable :data="tableRows" :columns="columns" :loading="loading" sticky="header"
-          :ui="{ td: 'py-2 px-3', th: 'py-2 px-3 text-left', tfoot: 'bg-muted' }">
+        <UTable
+          :data="tableRows"
+          :columns="columns"
+          :loading="loading"
+          sticky="header"
+          :ui="{ td: 'py-2 px-3', th: 'py-2 px-3 text-left', tfoot: 'bg-muted' }"
+        >
           <template #empty>
             <div class="text-muted-foreground py-6 text-center text-sm">No containers found.</div>
           </template>

@@ -1,8 +1,8 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 
-import { WEBGUI_REDIRECT } from '~/helpers/urls';
 import { navigate } from '~/helpers/external-navigation';
+import { WEBGUI_REDIRECT } from '~/helpers/urls';
 import dayjs, { extend } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';

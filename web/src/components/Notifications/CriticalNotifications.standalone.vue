@@ -194,7 +194,10 @@ onNotificationAdded(({ data }) => {
         />
         <h2 class="text-base font-semibold text-gray-900">Warnings & Alerts</h2>
       </div>
-      <span v-if="!loading" class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+      <span
+        v-if="!loading"
+        class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
+      >
         {{ totalCount }}
       </span>
     </header>
@@ -209,10 +212,18 @@ onNotificationAdded(({ data }) => {
     </div>
 
     <ul v-else-if="enrichedNotifications.length" class="flex flex-col gap-3">
-      <li v-for="{ notification, displayTimestamp, meta } in enrichedNotifications" :key="notification.id"
-        class="grid gap-2 rounded-md border border-gray-200 p-3 transition hover:border-amber-300">
+      <li
+        v-for="{ notification, displayTimestamp, meta } in enrichedNotifications"
+        :key="notification.id"
+        class="grid gap-2 rounded-md border border-gray-200 p-3 transition hover:border-amber-300"
+      >
         <div class="flex items-start gap-3">
-          <UIcon :name="meta.icon" class="mt-0.5 size-5 flex-none" :class="meta.accent" aria-hidden="true" />
+          <UIcon
+            :name="meta.icon"
+            class="mt-0.5 size-5 flex-none"
+            :class="meta.accent"
+            aria-hidden="true"
+          />
           <div class="flex flex-1 flex-col gap-1">
             <div class="flex flex-wrap items-center gap-2">
               <span class="rounded-full px-2 py-0.5 text-xs font-medium" :class="meta.badge">
@@ -234,14 +245,21 @@ onNotificationAdded(({ data }) => {
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2 pt-1">
-          <a v-if="notification.link" :href="notification.link"
+          <a
+            v-if="notification.link"
+            :href="notification.link"
             class="inline-flex items-center gap-1 rounded-md border border-amber-500 px-3 py-1 text-sm font-medium text-amber-700 transition hover:bg-amber-50"
-            target="_blank" rel="noreferrer">
+            target="_blank"
+            rel="noreferrer"
+          >
             View Details
           </a>
-          <button type="button"
+          <button
+            type="button"
             class="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-            :disabled="dismissing.has(notification.id)" @click="dismissNotification(notification)">
+            :disabled="dismissing.has(notification.id)"
+            @click="dismissNotification(notification)"
+          >
             {{ dismissing.has(notification.id) ? 'Dismissing…' : 'Dismiss' }}
           </button>
         </div>

@@ -48,8 +48,14 @@ const handleRefresh = async () => {
 
     <div v-if="error" class="text-red-500">Error loading container data: {{ error.message }}</div>
 
-    <DockerContainersTable :containers="containers" :flat-entries="flatEntries" :root-folder-id="rootFolderId"
-      :view-prefs="viewPrefs" :loading="loading" @created-folder="handleRefresh" />
+    <DockerContainersTable
+      :containers="containers"
+      :flat-entries="flatEntries"
+      :root-folder-id="rootFolderId"
+      :view-prefs="viewPrefs"
+      :loading="loading"
+      @created-folder="handleRefresh"
+    />
   </div>
 </template>
 

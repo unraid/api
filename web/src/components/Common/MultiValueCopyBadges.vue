@@ -183,14 +183,29 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="hasValues" class="flex flex-wrap items-center gap-1">
-    <component :is="UBadge" v-for="entry in inlineEntries" :key="entry.key" :color="getBadgeColor(entry.key)"
-      :variant="getBadgeVariant(entry.key)" :size="size" :title="getBadgeTitle(entry.key)"
-      :aria-label="getBadgeAriaLabel(entry.key)" data-stop-row-click="true" role="button" tabindex="0"
-      class="max-w-[20ch] cursor-pointer items-center gap-1 truncate select-none" @click.stop="handleCopy(entry)"
-      @keydown="handleBadgeKeydown($event, entry)">
+    <component
+      :is="UBadge"
+      v-for="entry in inlineEntries"
+      :key="entry.key"
+      :color="getBadgeColor(entry.key)"
+      :variant="getBadgeVariant(entry.key)"
+      :size="size"
+      :title="getBadgeTitle(entry.key)"
+      :aria-label="getBadgeAriaLabel(entry.key)"
+      data-stop-row-click="true"
+      role="button"
+      tabindex="0"
+      class="max-w-[20ch] cursor-pointer items-center gap-1 truncate select-none"
+      @click.stop="handleCopy(entry)"
+      @keydown="handleBadgeKeydown($event, entry)"
+    >
       <span class="flex min-w-0 items-center gap-1">
-        <component :is="UIcon" v-if="isBadgeCopied(entry.key)" name="i-lucide-check"
-          class="h-4 w-4 flex-shrink-0 text-white/90" />
+        <component
+          :is="UIcon"
+          v-if="isBadgeCopied(entry.key)"
+          name="i-lucide-check"
+          class="h-4 w-4 flex-shrink-0 text-white/90"
+        />
         <span class="truncate">{{ entry.value }}</span>
       </span>
     </component>
@@ -198,21 +213,42 @@ onBeforeUnmount(() => {
     <component :is="UPopover" v-if="overflowEntries.length">
       <template #default>
         <span data-stop-row-click="true" @click.stop>
-          <component :is="UBadge" color="neutral" variant="outline" :size="size" class="cursor-pointer select-none">
+          <component
+            :is="UBadge"
+            color="neutral"
+            variant="outline"
+            :size="size"
+            class="cursor-pointer select-none"
+          >
             +{{ overflowEntries.length }} more
           </component>
         </span>
       </template>
       <template #content>
         <div class="max-h-64 max-w-xs space-y-1 overflow-y-auto p-1">
-          <component :is="UBadge" v-for="entry in overflowEntries" :key="entry.key" :color="getBadgeColor(entry.key)"
-            :variant="getBadgeVariant(entry.key)" :size="size" :title="getBadgeTitle(entry.key)"
-            :aria-label="getBadgeAriaLabel(entry.key)" data-stop-row-click="true" role="button" tabindex="0"
+          <component
+            :is="UBadge"
+            v-for="entry in overflowEntries"
+            :key="entry.key"
+            :color="getBadgeColor(entry.key)"
+            :variant="getBadgeVariant(entry.key)"
+            :size="size"
+            :title="getBadgeTitle(entry.key)"
+            :aria-label="getBadgeAriaLabel(entry.key)"
+            data-stop-row-click="true"
+            role="button"
+            tabindex="0"
             class="w-full cursor-pointer items-center justify-start gap-1 truncate select-none"
-            @click.stop="handleCopy(entry)" @keydown="handleBadgeKeydown($event, entry)">
+            @click.stop="handleCopy(entry)"
+            @keydown="handleBadgeKeydown($event, entry)"
+          >
             <span class="flex min-w-0 items-center gap-1">
-              <component :is="UIcon" v-if="isBadgeCopied(entry.key)" name="i-lucide-check"
-                class="h-4 w-4 flex-shrink-0 text-white/90" />
+              <component
+                :is="UIcon"
+                v-if="isBadgeCopied(entry.key)"
+                name="i-lucide-check"
+                class="h-4 w-4 flex-shrink-0 text-white/90"
+              />
               <span class="truncate">{{ entry.value }}</span>
             </span>
           </component>
