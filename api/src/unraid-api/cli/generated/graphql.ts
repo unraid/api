@@ -560,6 +560,17 @@ export type CpuLoad = {
   percentUser: Scalars['Float']['output'];
 };
 
+export type CpuPackages = Node & {
+  __typename?: 'CpuPackages';
+  id: Scalars['PrefixedID']['output'];
+  /** Power draw per package (W) */
+  power: Array<Scalars['Float']['output']>;
+  /** Temperature per package (°C) */
+  temp: Array<Scalars['Float']['output']>;
+  /** Total CPU package power draw (W) */
+  totalPower: Scalars['Float']['output'];
+};
+
 export type CpuUtilization = Node & {
   __typename?: 'CpuUtilization';
   /** CPU load for each core */
@@ -589,6 +600,19 @@ export type Customization = {
   activationCode?: Maybe<ActivationCode>;
   partnerInfo?: Maybe<PublicPartnerInfo>;
   theme: Theme;
+};
+
+/** Customization related mutations */
+export type CustomizationMutations = {
+  __typename?: 'CustomizationMutations';
+  /** Update the UI theme (writes dynamix.cfg) */
+  setTheme: Theme;
+};
+
+
+/** Customization related mutations */
+export type CustomizationMutationsSetThemeArgs = {
+  theme: ThemeName;
 };
 
 export type DeleteApiKeyInput = {
@@ -1065,6 +1089,7 @@ export type InfoCpu = Node & {
   manufacturer?: Maybe<Scalars['String']['output']>;
   /** CPU model */
   model?: Maybe<Scalars['String']['output']>;
+  packages: CpuPackages;
   /** Number of physical processors */
   processors?: Maybe<Scalars['Int']['output']>;
   /** CPU revision */
@@ -1081,6 +1106,8 @@ export type InfoCpu = Node & {
   stepping?: Maybe<Scalars['Int']['output']>;
   /** Number of CPU threads */
   threads?: Maybe<Scalars['Int']['output']>;
+  /** Per-package array of core/thread pairs, e.g. [[[0,1],[2,3]], [[4,5],[6,7]]] */
+  topology: Array<Array<Array<Scalars['Int']['output']>>>;
   /** CPU vendor */
   vendor?: Maybe<Scalars['String']['output']>;
   /** CPU voltage */
@@ -1422,6 +1449,7 @@ export type Mutation = {
   createDockerFolderWithItems: ResolvedOrganizerV1;
   /** Creates a new notification record */
   createNotification: Notification;
+  customization: CustomizationMutations;
   /** Deletes all archived notifications on server. */
   deleteArchivedNotifications: NotificationOverview;
   deleteDockerEntries: ResolvedOrganizerV1;
@@ -1659,6 +1687,14 @@ export type NotificationOverview = {
   unread: NotificationCounts;
 };
 
+export type NotificationSettings = {
+  __typename?: 'NotificationSettings';
+  duration: Scalars['Int']['output'];
+  expand: Scalars['Boolean']['output'];
+  max: Scalars['Int']['output'];
+  position: Scalars['String']['output'];
+};
+
 export enum NotificationType {
   ARCHIVE = 'ARCHIVE',
   UNREAD = 'UNREAD'
@@ -1670,6 +1706,7 @@ export type Notifications = Node & {
   list: Array<Notification>;
   /** A cached overview of the notifications in the system & their severity. */
   overview: NotificationOverview;
+  settings: NotificationSettings;
   /** Deduplicated list of unread warning and alert notifications, sorted latest first. */
   warningsAndAlerts: Array<Notification>;
 };
@@ -1886,7 +1923,6 @@ export type Query = {
   disk: Disk;
   disks: Array<Disk>;
   docker: Docker;
-  dockerContainerOverviewForm: DockerContainerOverviewForm;
   flash: Flash;
   /** Get JSON Schema for API key creation form */
   getApiKeyCreationFormSchema: ApiKeyFormSettings;
@@ -1947,11 +1983,6 @@ export type QueryApiKeyArgs = {
 
 export type QueryDiskArgs = {
   id: Scalars['PrefixedID']['input'];
-};
-
-
-export type QueryDockerContainerOverviewFormArgs = {
-  skipCache?: Scalars['Boolean']['input'];
 };
 
 
@@ -2275,6 +2306,7 @@ export type Subscription = {
   parityHistorySubscription: ParityCheck;
   serversSubscription: Server;
   systemMetricsCpu: CpuUtilization;
+  systemMetricsCpuTelemetry: CpuPackages;
   systemMetricsMemory: MemoryUtilization;
   upsUpdates: UpsDevice;
 };

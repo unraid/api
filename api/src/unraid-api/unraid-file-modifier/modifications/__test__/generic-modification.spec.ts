@@ -42,7 +42,7 @@ const patchTestCases: ModificationTestCase[] = [
     {
         ModificationClass: DefaultBaseCssModification,
         fileUrl:
-            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/styles/default-base.css',
+            'https://raw.githubusercontent.com/unraid/webgui/7.1.2/emhttp/plugins/dynamix/styles/default-base.css',
         fileName: 'default-base.css',
     },
     {

@@ -1,0 +1,22 @@
+Index: /usr/local/emhttp/plugins/dynamix/styles/default-white.css
+===================================================================
+--- /usr/local/emhttp/plugins/dynamix/styles/default-white.css	original
++++ /usr/local/emhttp/plugins/dynamix/styles/default-white.css	modified
+@@ -1,7 +1,8 @@
+ html{font-family:clear-sans,sans-serif;font-size:62.5%;height:100%}
+ body{font-size:1.3rem;color:#1c1b1b;background-color:#f2f2f2;padding:0;margin:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
++@scope (:root) to (.unapi) {
+ img{border:none;text-decoration:none;vertical-align:middle}
+ p{text-align:justify}
+ p.centered{text-align:left}
+ p:empty{display:none}
+ a:hover{text-decoration:underline}
+@@ -258,5 +259,7 @@
+ .bannerInfo::before {content:"\f05a";font-family:fontAwesome;color:#e68a00}
+ ::-webkit-scrollbar{width:8px;height:8px;background:transparent}
+ ::-webkit-scrollbar-thumb{background:lightgray;border-radius:10px}
+ ::-webkit-scrollbar-corner{background:lightgray;border-radius:10px}
+ ::-webkit-scrollbar-thumb:hover{background:gray}
++
++}
+\ No newline at end of file
