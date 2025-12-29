@@ -7,7 +7,7 @@ import {
 
 export default class DefaultBaseCssModification extends FileModification {
     id = 'default-base-css';
-    public readonly filePath = '/usr/local/emhttp/plugins/styles/default-base.css';
+    public readonly filePath = '/usr/local/emhttp/plugins/dynamix/styles/default-base.css';
 
     async shouldApply({
         checkOsVersion = true,
