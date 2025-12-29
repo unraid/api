@@ -94,6 +94,39 @@ describe('SystemTimeService', () => {
         });
     });
 
+    it('defaults to pool.ntp.org when no NTP servers are configured', async () => {
+        vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: any) => {
+            if (key === 'store.emhttp.var') {
+                return {
+                    timeZone: 'UTC',
+                    useNtp: true,
+                    ntpServer1: '',
+                    ntpServer2: '',
+                    ntpServer3: '',
+                    ntpServer4: '',
+                };
+            }
+            if (key === 'store.paths.webGuiBase') {
+                return '/usr/local/emhttp/webGui';
+            }
+            return defaultValue;
+        });
+
+        await service.updateSystemTime({ timeZone: 'America/New_York' });
+
+        expect(emcmd).toHaveBeenCalledTimes(1);
+        const [commands] = vi.mocked(emcmd).mock.calls[0];
+        expect(commands).toEqual({
+            setDateTime: 'apply',
+            timeZone: 'America/New_York',
+            USE_NTP: 'yes',
+            NTP_SERVER1: 'pool.ntp.org',
+            NTP_SERVER2: '',
+            NTP_SERVER3: '',
+            NTP_SERVER4: '',
+        });
+    });
+
     it('updates time settings, disables NTP, and triggers timezone reset', async () => {
         const oldState = {
             timeZone: 'UTC',

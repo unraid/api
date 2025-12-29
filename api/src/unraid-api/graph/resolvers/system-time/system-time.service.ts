@@ -13,6 +13,7 @@ import {
 } from '@app/unraid-api/graph/resolvers/system-time/system-time.model.js';
 
 const MAX_NTP_SERVERS = 4;
+const DEFAULT_NTP_SERVER = 'pool.ntp.org';
 
 @Injectable()
 export class SystemTimeService {
@@ -42,14 +43,28 @@ export class SystemTimeService {
         this.validateTimeZone(desiredTimeZone);
 
         const hasCurrentUseNtp = typeof current.useNtp !== 'undefined';
-        const desiredUseNtp = input.useNtp ?? (hasCurrentUseNtp ? Boolean(current.useNtp) : undefined);
         const hasCurrentNtpServers = this.hasNtpServerState(current);
-        const desiredServers =
-            input.ntpServers !== undefined
-                ? this.normalizeNtpServers(input.ntpServers, current)
-                : hasCurrentNtpServers
-                  ? this.normalizeNtpServers(undefined, current)
-                  : null;
+        const currentServers = hasCurrentNtpServers
+            ? this.normalizeNtpServers(undefined, current)
+            : null;
+        const hasConfiguredServers = currentServers
+            ? currentServers.some((server) => server.length > 0)
+            : false;
+        const allowDefaultNtp = input.useNtp !== false;
+
+        let desiredUseNtp = input.useNtp ?? (hasCurrentUseNtp ? Boolean(current.useNtp) : undefined);
+        let desiredServers: string[] | null = null;
+
+        if (input.ntpServers !== undefined) {
+            desiredServers = this.normalizeNtpServers(input.ntpServers, current);
+        } else if (hasCurrentNtpServers) {
+            if (!hasConfiguredServers && allowDefaultNtp) {
+                desiredServers = this.normalizeNtpServers([DEFAULT_NTP_SERVER], current);
+                desiredUseNtp = true;
+            } else {
+                desiredServers = currentServers;
+            }
+        }
 
         const commands: Record<string, string> = {
             setDateTime: 'apply',
