@@ -11,6 +11,32 @@ Index: /usr/local/emhttp/plugins/dynamix/styles/default-white.css
  p.centered{text-align:left}
  p:empty{display:none}
  a:hover{text-decoration:underline}
+@@ -69,11 +70,11 @@
+ .nav-item .system{vertical-align:middle;padding-bottom:2px}
+ .nav-item a{color:#f2f2f2;background-color:transparent;text-transform:uppercase;font-weight:bold;display:block;padding:0 10px}
+ .nav-item a{text-decoration:none;text-decoration-skip-ink:auto;-webkit-text-decoration-skip:objects;-webkit-transition:all .25s ease-out;transition:all .25s ease-out}
+ .nav-item:after,.nav-user.show:after{border-radius:4px;display:block;background-color:transparent;content:"";width:32px;height:2px;bottom:8px;position:absolute;left:50%;margin-left:-16px;-webkit-transition:all .25s ease-in-out;transition:all .25s ease-in-out;pointer-events:none}
+ .nav-item:focus:after,.nav-item:hover:after,.nav-user.show:hover:after{background-color:#f15a2c}
+-.nav-item.active:after{background-color:#f2f2f2}
++.nav-item.active:after{background-color: var(--header-background-color)}
+ .nav-user a{color:#f2f2f2;background-color:transparent;display:block;padding:0 10px}
+ .nav-user .system{vertical-align:middle;padding-bottom:2px}
+ #clear{clear:both}
+ #footer{position:fixed;bottom:0;left:0;color:#2b2a29;background-color:#d4d5d6;padding:5px 0;width:100%;height:1.6rem;line-height:1.6rem;text-align:center;z-index:10000}
+ #statusraid{float:left;padding-left:10px}
+@@ -151,11 +152,11 @@
+ table.dashboard tr:nth-child(even){background-color:transparent}
+ table.dashboard tr:last-child>td{padding-bottom:20px}
+ table.dashboard tr.last>td{padding-bottom:20px}
+ table.dashboard tr.header>td{padding-bottom:10px}
+ table.dashboard td{line-height:2.4rem;height:2.4rem}
+-table.dashboard td.stopgap{height:20px!important;line-height:20px!important;padding:0!important;background-color:#f2f2f2}
++table.dashboard td.stopgap{height:20px!important;line-height:20px!important;padding:0!important;background-color: var(--header-background-color)}
+ table.dashboard td.vpn{font-size:1.1rem;font-weight:bold;text-transform:uppercase;letter-spacing:1px}
+ table.dashboard td div.section{display:inline-block;vertical-align:top;margin-left:4px;font-size:1.2rem;font-weight:bold;text-transform:uppercase;letter-spacing:1px}
+ table.dashboard td div.section span{font-weight:normal;text-transform:none;letter-spacing:0;white-space:normal}
+ table.dashboard td span.info{float:right;margin-right:20px;font-size:1.2rem;font-weight:normal;text-transform:none;letter-spacing:0}
+ table.dashboard td span.info.title{font-weight:bold}
 @@ -258,5 +259,7 @@
  .bannerInfo::before {content:"\f05a";font-family:fontAwesome;color:#e68a00}
  ::-webkit-scrollbar{width:8px;height:8px;background:transparent}
