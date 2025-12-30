@@ -50,6 +50,6 @@ export default class DefaultBlackCssModification extends FileModification {
         const before = source.slice(0, insertIndex);
         const after = source.slice(insertIndex);
 
-        return `${before}\n@scope (:root) to (.unapi) {${after}\n}`;
+        return `${before}\n@layer default {\n@scope (:root) to (.unapi) {${after}\n}\n}`;
     }
 }

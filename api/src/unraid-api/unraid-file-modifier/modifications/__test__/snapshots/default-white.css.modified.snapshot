@@ -1,5 +1,6 @@
 html{font-family:clear-sans,sans-serif;font-size:62.5%;height:100%}
 body{font-size:1.3rem;color:#1c1b1b;background-color:#f2f2f2;padding:0;margin:0;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+@layer default {
 @scope (:root) to (.unapi) {
 img{border:none;text-decoration:none;vertical-align:middle}
 p{text-align:justify}
@@ -262,4 +263,5 @@ a.bannerInfo {cursor:pointer;text-decoration:none}
 ::-webkit-scrollbar-corner{background:lightgray;border-radius:10px}
 ::-webkit-scrollbar-thumb:hover{background:gray}
 
+}
 }
