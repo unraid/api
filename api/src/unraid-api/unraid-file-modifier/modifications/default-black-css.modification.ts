@@ -50,6 +50,6 @@ export default class DefaultBlackCssModification extends FileModification {
         const before = source.slice(0, insertIndex);
         const after = source.slice(insertIndex);
 
-        return `${before}\n@scope (:root) to (.unapi) {${after.replace(/background-color:\s*#f2f2f2/g, 'background-color: var(--header-background-color)')}\n}`;
+        return `${before}\n@scope (:root) to (.unapi) {${after}\n}`;
     }
 }
