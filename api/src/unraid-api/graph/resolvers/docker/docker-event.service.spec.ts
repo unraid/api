@@ -25,7 +25,6 @@ vi.mock('@nestjs/common', async () => {
             debug: vi.fn(),
             error: vi.fn(),
             log: vi.fn(),
-            verbose: vi.fn(),
         })),
     };
 });
@@ -61,21 +60,10 @@ vi.mock('./utils/docker-client.js', () => ({
 // Mock DockerService
 vi.mock('./docker.service.js', () => ({
     DockerService: vi.fn().mockImplementation(() => ({
+        getDockerClient: vi.fn(),
         clearContainerCache: vi.fn(),
         getAppInfo: vi.fn().mockResolvedValue({ info: { apps: { installed: 1, running: 1 } } }),
     })),
-}));
-
-const { mockDockerClientInstance } = vi.hoisted(() => {
-    const mock = {
-        getEvents: vi.fn(),
-    } as unknown as Docker;
-    return { mockDockerClientInstance: mock };
-});
-
-// Mock the docker client util
-vi.mock('@app/unraid-api/graph/resolvers/docker/utils/docker-client.js', () => ({
-    getDockerClient: vi.fn().mockReturnValue(mockDockerClientInstance),
 }));
 
 describe('DockerEventService', () => {
