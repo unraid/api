@@ -160,4 +160,9 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'docker-container-overview',
     decorateContainer: true,
   },
+  {
+    component: defineAsyncComponent(() => import('@nuxt/ui/components/Toast.vue')),
+    selector: ['unraid-toaster', 'uui-toaster'],
+    appId: 'toaster',
+  },
 ];

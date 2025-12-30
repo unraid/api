@@ -1,7 +1,7 @@
-Index: /usr/local/emhttp/plugins/styles/default-base.css
+Index: /usr/local/emhttp/plugins/dynamix/styles/default-base.css
 ===================================================================
---- /usr/local/emhttp/plugins/styles/default-base.css	original
-+++ /usr/local/emhttp/plugins/styles/default-base.css	modified
+--- /usr/local/emhttp/plugins/dynamix/styles/default-base.css	original
++++ /usr/local/emhttp/plugins/dynamix/styles/default-base.css	modified
 @@ -10,10 +10,12 @@
      padding: 0;
      margin: 0;

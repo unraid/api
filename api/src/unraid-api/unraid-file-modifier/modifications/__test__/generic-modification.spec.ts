@@ -16,10 +16,12 @@ import DefaultGrayCssModification from '@app/unraid-api/unraid-file-modifier/mod
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification.js';
 import DefaultWhiteCssModification from '@app/unraid-api/unraid-file-modifier/modifications/default-white-css.modification.js';
 import DisplaySettingsModification from '@app/unraid-api/unraid-file-modifier/modifications/display-settings.modification.js';
+import DockerContainersPageModification from '@app/unraid-api/unraid-file-modifier/modifications/docker-containers-page.modification.js';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
 import NotifyPhpModification from '@app/unraid-api/unraid-file-modifier/modifications/notify-php.modification.js';
 import NotifyScriptModification from '@app/unraid-api/unraid-file-modifier/modifications/notify-script.modification.js';
 import RcNginxModification from '@app/unraid-api/unraid-file-modifier/modifications/rc-nginx.modification.js';
+import SetPasswordModalModification from '@app/unraid-api/unraid-file-modifier/modifications/set-password-modal.modification.js';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
 
 interface ModificationTestCase {
@@ -115,6 +117,18 @@ const patchTestCases: ModificationTestCase[] = [
         fileUrl:
             'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.0/emhttp/plugins/dynamix/styles/default-azure.css',
         fileName: 'default-azure.css',
+    },
+    {
+        ModificationClass: DockerContainersPageModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix.docker.manager/DockerContainers.page',
+        fileName: 'DockerContainers.page',
+    },
+    {
+        ModificationClass: SetPasswordModalModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/include/.set-password.php',
+        fileName: '.set-password.php',
     },
 ];
 
