@@ -7,8 +7,10 @@ import ActivationPluginsStep from '~/components/Activation/ActivationPluginsStep
 import { PluginInstallStatus } from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 
-const installPluginMock = vi.fn();
-const useQueryMock = vi.fn();
+const { installPluginMock, useQueryMock } = vi.hoisted(() => ({
+  installPluginMock: vi.fn(),
+  useQueryMock: vi.fn(),
+}));
 
 vi.mock('@unraid/ui', () => ({
   BrandButton: {
@@ -117,7 +119,7 @@ describe('ActivationPluginsStep', () => {
   });
 
   it('shows error message when installation fails', async () => {
-    installPluginMock.mockRejectedValueOnce(new Error('install failed'));
+    installPluginMock.mockRejectedValue(new Error('install failed'));
 
     const { wrapper, props } = mountComponent();
 
