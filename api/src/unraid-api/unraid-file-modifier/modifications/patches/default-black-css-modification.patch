@@ -11,32 +11,6 @@ Index: /usr/local/emhttp/plugins/dynamix/styles/default-black.css
  p.centered{text-align:left}
  p:empty{display:none}
  a:hover{text-decoration:underline}
-@@ -44,11 +45,11 @@
- select.auto{min-width:auto}
- select.slot{min-width:44rem;max-width:44rem}
- input.narrow{width:166px}
- input.trim{width:76px;min-width:76px}
- textarea{resize:none}
--#header{position:absolute;top:0;left:0;width:100%;height:91px;z-index:102;margin:0;color:#1c1b1b;background-color:#f2f2f2;background-size:100% 90px;background-repeat:no-repeat}
-+#header{position:absolute;top:0;left:0;width:100%;height:91px;z-index:102;margin:0;color:#1c1b1b;background-color: var(--header-background-color);background-size:100% 90px;background-repeat:no-repeat}
- #header .logo{float:left;margin-left:10px;color:#e22828;text-align:center}
- #header .logo svg{width:160px;display:block;margin:25px 0 8px 0}
- #header .block{margin:0;float:right;text-align:right;background-color:rgba(242,242,242,0.2);padding:10px 12px}
- #header .text-left{float:left;text-align:right;padding-right:5px;border-right:solid medium #f15a2c}
- #header .text-right{float:right;text-align:left;padding-left:5px}
-@@ -58,11 +59,11 @@
- div.title span.left{font-size:1.4rem}
- div.title span.right{font-size:1.4rem;padding-top:2px;padding-right:10px;float:right}
- div.title span img{padding-right:4px}
- div.title.shift{margin-top:-30px}
- #menu{position:absolute;top:90px;left:0;right:0;display:grid;grid-template-columns:auto max-content;z-index:101}
--.nav-tile{height:4rem;line-height:4rem;padding:0;margin:0;font-size:1.2rem;letter-spacing:1.8px;background-color:#f2f2f2;white-space:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
-+.nav-tile{height:4rem;line-height:4rem;padding:0;margin:0;font-size:1.2rem;letter-spacing:1.8px;background-color: var(--header-background-color);white-space:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
- .nav-tile::-webkit-scrollbar{height:5px}
- .nav-tile.right{text-align:right}
- .nav-item,.nav-user{position:relative;display:inline-block;text-align:center;margin:0}
- .nav-item a{min-width:0}
- .nav-item a span{display:none}
 @@ -258,5 +259,7 @@
  .bannerInfo::before {content:"\f05a";font-family:fontAwesome;color:#e68a00}
  ::-webkit-scrollbar{width:8px;height:8px;background:transparent}
