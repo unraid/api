@@ -1,3 +1,4 @@
+import { ref } from 'vue';
 import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -7,6 +8,7 @@ import { PluginInstallStatus } from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 
 const installPluginMock = vi.fn();
+const useQueryMock = vi.fn();
 
 vi.mock('@unraid/ui', () => ({
   BrandButton: {
@@ -22,9 +24,23 @@ vi.mock('~/components/Activation/usePluginInstaller', () => ({
   }),
 }));
 
+vi.mock('@vue/apollo-composable', async () => {
+  const actual =
+    await vi.importActual<typeof import('@vue/apollo-composable')>('@vue/apollo-composable');
+  return {
+    ...actual,
+    useQuery: useQueryMock,
+  };
+});
+
 describe('ActivationPluginsStep', () => {
   beforeEach(() => {
     installPluginMock.mockReset();
+    useQueryMock.mockReturnValue({
+      result: ref({ installedUnraidPlugins: [] }),
+      loading: ref(false),
+      error: ref(null),
+    });
   });
 
   const mountComponent = (overrides: Record<string, unknown> = {}) => {

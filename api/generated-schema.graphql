@@ -2909,6 +2909,9 @@ type Query {
   """List all tracked plugin installation operations"""
   pluginInstallOperations: [PluginInstallOperation!]!
 
+  """List installed Unraid OS plugins by .plg filename"""
+  installedUnraidPlugins: [String!]!
+
   """List all installed plugins with their metadata"""
   plugins: [Plugin!]!
   remoteAccess: RemoteAccess!

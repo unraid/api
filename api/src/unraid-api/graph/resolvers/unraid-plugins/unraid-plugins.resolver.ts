@@ -38,6 +38,17 @@ export class UnraidPluginsResolver {
         return this.pluginsService.listOperations();
     }
 
+    @Query(() => [String], {
+        description: 'List installed Unraid OS plugins by .plg filename',
+    })
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.CONFIG,
+    })
+    async installedUnraidPlugins(): Promise<string[]> {
+        return this.pluginsService.listInstalledPlugins();
+    }
+
     @Subscription(() => PluginInstallEvent, {
         name: 'pluginInstallUpdates',
         resolve: (payload: { pluginInstallUpdates: PluginInstallEvent }) => payload.pluginInstallUpdates,

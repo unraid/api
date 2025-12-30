@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import EventEmitter from 'node:events';
 import { PassThrough } from 'node:stream';
 
@@ -24,7 +25,7 @@ describe('UnraidPluginsService', () => {
     let currentProcess: MockExecaProcess;
 
     beforeEach(() => {
-        service = new UnraidPluginsService();
+        service = new UnraidPluginsService(new ConfigService());
         currentProcess = new MockExecaProcess();
         currentProcess.all.setEncoding('utf-8');
         mockExeca.mockReset();

@@ -275,6 +275,7 @@ const currentStepConfig = computed(() => {
 });
 
 const isCurrentStepSaved = computed(() => currentStepConfig.value?.completed ?? false);
+const isStepSaving = computed(() => stepSaveState.value === 'saving');
 
 const currentStepProps = computed<Record<string, unknown>>(() => {
   const step = currentStep.value;
@@ -291,6 +292,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     onBack: goToPreviousStep,
     showBack: canGoBack.value,
     isCompleted: isCurrentStepCompleted,
+    isSavingStep: isStepSaving.value,
   };
 
   switch (step) {
@@ -409,7 +411,7 @@ watch(
         <ActivationSteps
           :steps="allUpgradeSteps"
           :active-step-index="currentDynamicStepIndex"
-          :on-step-click="goToStep"
+          :on-step-click="isStepSaving ? undefined : goToStep"
           class="mt-6"
         />
       </div>

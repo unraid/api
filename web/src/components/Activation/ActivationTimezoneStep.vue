@@ -14,6 +14,7 @@ export interface Props {
   onBack?: () => void;
   showSkip?: boolean;
   showBack?: boolean;
+  isSavingStep?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -135,6 +136,8 @@ const handleSkip = () => {
 const handleBack = () => {
   props.onBack?.();
 };
+
+const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
 </script>
 
 <template>
@@ -162,7 +165,7 @@ const handleBack = () => {
         v-if="onBack && showBack"
         :text="t('common.back')"
         variant="outline"
-        :disabled="isSaving"
+        :disabled="isBusy"
         @click="handleBack"
       />
       <div class="flex-1" />
@@ -170,13 +173,13 @@ const handleBack = () => {
         v-if="onSkip && showSkip"
         :text="t('common.skip')"
         variant="outline"
-        :disabled="isSaving"
+        :disabled="isBusy"
         @click="handleSkip"
       />
       <BrandButton
         :text="t('common.continue')"
-        :disabled="!selectedTimeZone || isSaving"
-        :loading="isSaving"
+        :disabled="!selectedTimeZone || isBusy"
+        :loading="isBusy"
         @click="handleSubmit"
       />
     </div>

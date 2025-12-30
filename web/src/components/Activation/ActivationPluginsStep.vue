@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useQuery } from '@vue/apollo-composable';
 
 import { BrandButton } from '@unraid/ui';
 
+import { INSTALLED_UNRAID_PLUGINS_QUERY } from '~/components/Activation/graphql/installedPlugins.query';
 import usePluginInstaller from '~/components/Activation/usePluginInstaller';
 import { PluginInstallStatus } from '~/composables/gql/graphql';
 
@@ -14,6 +16,7 @@ export interface Props {
   showSkip?: boolean;
   showBack?: boolean;
   isRequired?: boolean;
+  isSavingStep?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -25,6 +28,13 @@ interface Plugin {
   description: string;
   url: string;
 }
+
+const normalizePluginFileName = (value: string) => value.trim().toLowerCase();
+
+const getPluginFileName = (url: string) => {
+  const parts = url.split('/');
+  return parts[parts.length - 1] ?? url;
+};
 
 const availablePlugins: Plugin[] = [
   {
@@ -67,13 +77,70 @@ const pluginStates = reactive<Record<string, PluginState>>(
 );
 
 const selectedPlugins = ref<Set<string>>(new Set());
+const installedPluginIds = ref<Set<string>>(new Set());
 const isInstalling = ref(false);
 const error = ref<string | null>(null);
 const installationFinished = ref(false);
 
+const { result: installedPluginsResult } = useQuery(INSTALLED_UNRAID_PLUGINS_QUERY, null, {
+  fetchPolicy: 'network-only',
+});
+
 const { installPlugin } = usePluginInstaller();
 
 const INSTALL_TIMEOUT_MS = 60000;
+
+const installablePlugins = computed(() =>
+  availablePlugins.filter(
+    (plugin) => selectedPlugins.value.has(plugin.id) && !installedPluginIds.value.has(plugin.id)
+  )
+);
+
+const hasInstallableSelection = computed(() => installablePlugins.value.length > 0);
+
+const isPluginInstalled = (pluginId: string) => installedPluginIds.value.has(pluginId);
+const isBusy = computed(() => isInstalling.value || (props.isSavingStep ?? false));
+
+const applyInstalledPlugins = (installedPlugins: string[] | null | undefined) => {
+  if (!Array.isArray(installedPlugins)) {
+    return;
+  }
+
+  const installedFiles = new Set(installedPlugins.map((name) => normalizePluginFileName(name)));
+  const nextInstalledIds = new Set<string>();
+
+  for (const plugin of availablePlugins) {
+    const fileName = normalizePluginFileName(getPluginFileName(plugin.url));
+    if (installedFiles.has(fileName)) {
+      nextInstalledIds.add(plugin.id);
+    }
+  }
+
+  installedPluginIds.value = nextInstalledIds;
+
+  if (nextInstalledIds.size > 0) {
+    const nextSelected = new Set(selectedPlugins.value);
+    for (const id of nextInstalledIds) {
+      nextSelected.add(id);
+    }
+    selectedPlugins.value = nextSelected;
+  }
+
+  for (const id of nextInstalledIds) {
+    const state = pluginStates[id];
+    if (state && state.status !== 'installing') {
+      state.status = 'success';
+    }
+  }
+};
+
+watch(
+  () => installedPluginsResult.value?.installedUnraidPlugins,
+  (installedPlugins) => {
+    applyInstalledPlugins(installedPlugins);
+  },
+  { immediate: true }
+);
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
@@ -113,6 +180,10 @@ const resetCompletionState = () => {
 };
 
 const togglePlugin = (pluginId: string) => {
+  if (installedPluginIds.value.has(pluginId) || isBusy.value) {
+    return;
+  }
+
   const next = new Set(selectedPlugins.value);
   if (next.has(pluginId)) {
     next.delete(pluginId);
@@ -130,7 +201,8 @@ const togglePlugin = (pluginId: string) => {
 };
 
 const handleInstall = async () => {
-  if (selectedPlugins.value.size === 0) {
+  const pluginsToInstall = installablePlugins.value;
+  if (pluginsToInstall.length === 0) {
     installationFinished.value = true;
     return;
   }
@@ -141,8 +213,6 @@ const handleInstall = async () => {
   let hadError = false;
 
   try {
-    const pluginsToInstall = availablePlugins.filter((p) => selectedPlugins.value.has(p.id));
-
     for (const plugin of pluginsToInstall) {
       const state = pluginStates[plugin.id];
       state.status = 'installing';
@@ -190,6 +260,9 @@ const handleInstall = async () => {
         t('activation.pluginsStep.pluginInstalledMessage', { name: plugin.name })
       );
       state.status = 'success';
+      const nextInstalled = new Set(installedPluginIds.value);
+      nextInstalled.add(plugin.id);
+      installedPluginIds.value = nextInstalled;
     }
 
     installationFinished.value = pluginsToInstall.every((plugin) =>
@@ -216,12 +289,12 @@ const handleBack = () => {
 };
 
 const handlePrimaryAction = async () => {
-  if (installationFinished.value || selectedPlugins.value.size === 0) {
+  if (installationFinished.value || !hasInstallableSelection.value) {
     props.onComplete();
     return;
   }
 
-  if (!isInstalling.value) {
+  if (!isBusy.value) {
     await handleInstall();
   }
 };
@@ -230,14 +303,14 @@ const primaryButtonText = computed(() => {
   if (installationFinished.value) {
     return t('common.continue');
   }
-  if (selectedPlugins.value.size > 0) {
+  if (hasInstallableSelection.value) {
     return t('activation.pluginsStep.installSelected');
   }
   return t('common.continue');
 });
 
 const isPrimaryActionDisabled = computed(() => {
-  if (isInstalling.value) {
+  if (isBusy.value) {
     return true;
   }
 
@@ -279,7 +352,7 @@ const isPrimaryActionDisabled = computed(() => {
             :id="plugin.id"
             type="checkbox"
             :checked="selectedPlugins.has(plugin.id)"
-            :disabled="isInstalling"
+            :disabled="isBusy || isPluginInstalled(plugin.id)"
             @change="() => togglePlugin(plugin.id)"
             class="text-primary focus:ring-primary h-5 w-5 cursor-pointer rounded border-gray-300 focus:ring-2"
           />
@@ -329,7 +402,7 @@ const isPrimaryActionDisabled = computed(() => {
         v-if="onBack && showBack"
         :text="t('common.back')"
         variant="outline"
-        :disabled="isInstalling"
+        :disabled="isBusy"
         @click="handleBack"
       />
       <div class="flex-1" />
@@ -337,13 +410,13 @@ const isPrimaryActionDisabled = computed(() => {
         v-if="onSkip && showSkip"
         :text="t('common.skip')"
         variant="outline"
-        :disabled="isInstalling"
+        :disabled="isBusy"
         @click="handleSkip"
       />
       <BrandButton
         :text="primaryButtonText"
         :disabled="isPrimaryActionDisabled"
-        :loading="isInstalling"
+        :loading="isBusy"
         @click="handlePrimaryAction"
       />
     </div>

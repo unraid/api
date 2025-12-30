@@ -18,6 +18,7 @@ defineProps<{
   allowSkip?: boolean;
   showKeyfileHint?: boolean;
   showActivationCodeHint?: boolean;
+  isSavingStep?: boolean;
 }>();
 
 const { t } = useI18n();
@@ -33,12 +34,20 @@ const { t } = useI18n();
 
     <div class="flex flex-col">
       <div class="mx-auto mb-10 flex gap-4">
-        <BrandButton v-if="canGoBack" :text="t('common.back')" variant="outline" @click="onBack?.()" />
+        <BrandButton
+          v-if="canGoBack"
+          :text="t('common.back')"
+          variant="outline"
+          :disabled="isSavingStep"
+          @click="onBack?.()"
+        />
         <BrandButton
           :text="t('activation.activationModal.activateNow')"
           :icon-right="ArrowTopRightOnSquareIcon"
           :href="activateHref"
           :external="activateExternal"
+          :disabled="isSavingStep"
+          :loading="isSavingStep"
         />
       </div>
 
@@ -63,9 +72,15 @@ const { t } = useI18n();
             v-if="allowSkip"
             :text="t('activation.skipForNow')"
             variant="underline"
+            :disabled="isSavingStep"
             @click="onComplete?.()"
           />
-          <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
+          <BrandButton
+            v-for="button in docsButtons"
+            :key="button.text"
+            v-bind="button"
+            :disabled="isSavingStep"
+          />
         </div>
       </div>
     </div>

@@ -20,6 +20,7 @@ type Documents = {
     "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": typeof types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n      onboardingState {\n        registrationState\n        isRegistered\n        isFreshInstall\n        isInitialSetup\n        hasActivationCode\n        activationRequired\n      }\n    }\n  }\n": typeof types.ActivationCodeDocument,
     "\n  mutation InstallPlugin($input: InstallPluginInput!) {\n    unraidPlugins {\n      installPlugin(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n": typeof types.InstallPluginDocument,
+    "\n  query InstalledUnraidPlugins {\n    installedUnraidPlugins\n  }\n": typeof types.InstalledUnraidPluginsDocument,
     "\n  query PluginInstallOperation($operationId: ID!) {\n    pluginInstallOperation(operationId: $operationId) {\n      id\n      url\n      name\n      status\n      createdAt\n      updatedAt\n      finishedAt\n      output\n    }\n  }\n": typeof types.PluginInstallOperationDocument,
     "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n": typeof types.PluginInstallUpdatesDocument,
     "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n": typeof types.TimeZoneOptionsDocument,
@@ -97,6 +98,7 @@ const documents: Documents = {
     "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n      onboardingState {\n        registrationState\n        isRegistered\n        isFreshInstall\n        isInitialSetup\n        hasActivationCode\n        activationRequired\n      }\n    }\n  }\n": types.ActivationCodeDocument,
     "\n  mutation InstallPlugin($input: InstallPluginInput!) {\n    unraidPlugins {\n      installPlugin(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n": types.InstallPluginDocument,
+    "\n  query InstalledUnraidPlugins {\n    installedUnraidPlugins\n  }\n": types.InstalledUnraidPluginsDocument,
     "\n  query PluginInstallOperation($operationId: ID!) {\n    pluginInstallOperation(operationId: $operationId) {\n      id\n      url\n      name\n      status\n      createdAt\n      updatedAt\n      finishedAt\n      output\n    }\n  }\n": types.PluginInstallOperationDocument,
     "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n": types.PluginInstallUpdatesDocument,
     "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n": types.TimeZoneOptionsDocument,
@@ -206,6 +208,10 @@ export function graphql(source: "\n  query ActivationCode {\n    customization {
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation InstallPlugin($input: InstallPluginInput!) {\n    unraidPlugins {\n      installPlugin(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation InstallPlugin($input: InstallPluginInput!) {\n    unraidPlugins {\n      installPlugin(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query InstalledUnraidPlugins {\n    installedUnraidPlugins\n  }\n"): (typeof documents)["\n  query InstalledUnraidPlugins {\n    installedUnraidPlugins\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

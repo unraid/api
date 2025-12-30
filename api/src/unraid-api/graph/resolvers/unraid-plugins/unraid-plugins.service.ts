@@ -1,5 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 
 import type { ExecaError } from 'execa';
 import { execa } from 'execa';
@@ -39,6 +42,8 @@ export class UnraidPluginsService {
     private readonly logger = new Logger(UnraidPluginsService.name);
     private readonly operations = new Map<string, OperationState>();
     private readonly MAX_OUTPUT_LINES = 500;
+
+    constructor(private readonly configService: ConfigService) {}
 
     async installPlugin(input: InstallPluginInput): Promise<PluginInstallOperation> {
         const id = randomUUID();
@@ -101,6 +106,27 @@ export class UnraidPluginsService {
         });
 
         return this.toGraphqlOperation(operation);
+    }
+
+    async listInstalledPlugins(): Promise<string[]> {
+        const paths = this.configService.get<Record<string, string>>('store.paths', {});
+        const dynamixBase = paths?.['dynamix-base'] ?? '/boot/config/plugins/dynamix';
+        const pluginsDir = path.resolve(dynamixBase, '..');
+
+        try {
+            const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
+            return entries
+                .filter((entry) => entry.isFile() && entry.name.endsWith('.plg'))
+                .map((entry) => entry.name);
+        } catch (error: unknown) {
+            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+                this.logger.warn(`Plugin directory not found at ${pluginsDir}.`);
+                return [];
+            }
+
+            this.logger.error('Failed to read plugin directory.', error);
+            return [];
+        }
     }
 
     getOperation(id: string): PluginInstallOperation | null {

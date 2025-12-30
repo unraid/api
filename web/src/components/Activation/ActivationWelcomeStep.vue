@@ -18,6 +18,7 @@ export interface Props {
   showBack?: boolean;
   // For redirecting to login page after welcome
   redirectToLogin?: boolean;
+  isSavingStep?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -59,6 +60,8 @@ const buttonText = computed<string>(() => {
   return t('activation.welcomeModal.getStarted');
 });
 
+const isBusy = computed(() => props.isSavingStep ?? false);
+
 const handleComplete = () => {
   if (props.redirectToLogin) {
     // Redirect to login page for password creation
@@ -78,11 +81,23 @@ const handleComplete = () => {
     </div>
 
     <div class="flex space-x-4">
-      <BrandButton v-if="showBack" :text="t('common.back')" variant="outline" @click="onBack" />
+      <BrandButton
+        v-if="showBack"
+        :text="t('common.back')"
+        variant="outline"
+        :disabled="isBusy"
+        @click="onBack"
+      />
 
-      <BrandButton v-if="showSkip" :text="t('common.skip')" variant="outline" @click="onSkip" />
+      <BrandButton
+        v-if="showSkip"
+        :text="t('common.skip')"
+        variant="outline"
+        :disabled="isBusy"
+        @click="onSkip"
+      />
 
-      <BrandButton :text="buttonText" @click="handleComplete" />
+      <BrandButton :text="buttonText" :disabled="isBusy" :loading="isBusy" @click="handleComplete" />
     </div>
   </div>
 </template>
