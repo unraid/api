@@ -48,7 +48,10 @@ export default class DefaultGrayCssModification extends FileModification {
         const insertIndex = bodyEndIndex + 1;
 
         const before = source.slice(0, insertIndex);
-        const after = source.slice(insertIndex);
+        let after = source.slice(insertIndex);
+
+        // Replace #header background-color ONLY for default-gray.css
+        after = after.replace(/(#header\s*\{[^}]*background-color:)#121510/, '$1#f2f2f2');
 
         return `${before}\n@layer default {\n@scope (:root) to (.unapi) {${after}\n}\n}`;
     }

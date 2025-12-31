@@ -49,7 +49,7 @@ select.slot{min-width:44rem;max-width:44rem}
 input.narrow{width:174px}
 input.trim{width:74px;min-width:74px}
 textarea{resize:none}
-#header{position:fixed;top:0;left:0;width:100%;height:90px;z-index:100;margin:0;background-color:#121510;background-size:100% 90px;background-repeat:no-repeat;border-bottom:1px solid #42453e}
+#header{position:fixed;top:0;left:0;width:100%;height:90px;z-index:100;margin:0;background-color:#f2f2f2;background-size:100% 90px;background-repeat:no-repeat;border-bottom:1px solid #42453e}
 #header .logo{float:left;margin-left:75px;color:#e22828;text-align:center}
 #header .logo svg{width:160px;display:block;margin:25px 0 8px 0}
 #header .block{margin:0;float:right;text-align:right;background-color:rgba(18,21,16,0.2);padding:10px 12px}
