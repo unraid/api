@@ -77,6 +77,6 @@ export default class DefaultBaseCssModification extends FileModification {
             // 4. .Theme--width-boxed #displaybox
             .replace(/(\.Theme--width-boxed)(\s+#displaybox)/g, ':scope$1$2');
 
-        return `${before}\n\n@scope (:root) to (.unapi) {${after}\n}`;
+        return `${before}\n\n@layer default {\n@scope (:root) to (.unapi) {${after}\n}\n}`;
     }
 }
