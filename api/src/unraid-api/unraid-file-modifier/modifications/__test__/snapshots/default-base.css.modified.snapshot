@@ -13,6 +13,7 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+@layer default {
 @scope (:root) to (.unapi) {
 @media (max-width: 1280px) {
     #template {
@@ -2221,4 +2222,5 @@ span#wlan0 {
     }
 }
 
+}
 }
