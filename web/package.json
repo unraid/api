@@ -10,6 +10,7 @@
     "dev": "vite --mode development",
     "preview": "vite preview",
     "serve": "NODE_ENV=production PORT=${PORT:-4321} vite preview --port ${PORT:-4321}",
+    "docker:build-and-run": "pnpm --filter @unraid/connect-plugin docker:build-and-run",
     "// Build": "",
     "build:dev": "pnpm run build && pnpm run deploy-to-unraid:dev",
     "prebuild": "pnpm predev",
