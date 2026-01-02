@@ -30,7 +30,7 @@ vi.mock('../DevModalTest.standalone.vue', () => ({ default: 'DevModalTest' }));
 vi.mock('../LayoutViews/Detail/DetailTest.standalone.vue', () => ({ default: 'DetailTest' }));
 vi.mock('@/components/ThemeSwitcher.standalone.vue', () => ({ default: 'ThemeSwitcher' }));
 vi.mock('../ColorSwitcher.standalone.vue', () => ({ default: 'ColorSwitcher' }));
-vi.mock('@/components/UnraidToaster.vue', () => ({ default: 'UnraidToaster' }));
+
 vi.mock('../UpdateOs/TestUpdateModal.standalone.vue', () => ({ default: 'TestUpdateModal' }));
 vi.mock('../TestThemeSwitcher.standalone.vue', () => ({ default: 'TestThemeSwitcher' }));
 
