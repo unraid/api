@@ -5,7 +5,6 @@ import { type Cache } from 'cache-manager';
 import Docker from 'dockerode';
 import { execa } from 'execa';
 
-import { AppError } from '@app/core/errors/app-error.js';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
