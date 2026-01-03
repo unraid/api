@@ -1367,6 +1367,5 @@ function nchanFocusStop(banner=true) {
 }
 <?endif;?>
 </script>
-<uui-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></uui-toaster>
 </body>
 </html>
