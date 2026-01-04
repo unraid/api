@@ -39,7 +39,7 @@
         "// Testing": "",
         "test": "NODE_ENV=test vitest run",
         "test:watch": "NODE_ENV=test vitest --ui",
-        "test:modifications:update": "rm -rf src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded && NODE_ENV=test vitest run src/unraid-api/unraid-file-modifier/modifications/__test__/generic-modification.spec.ts -u",
+        "test:modifications:update": "rm -rf src/unraid-api/unraid-file-modifier/modifications/__test__/__fixtures__/downloaded && NODE_ENV=test vitest run src/unraid-api/unraid-file-modifier/modifications/__test__/generic-modification.spec.ts -u",
         "coverage": "NODE_ENV=test vitest run --coverage",
         "// Docker": "",
         "container:build": "./scripts/dc.sh build dev",
