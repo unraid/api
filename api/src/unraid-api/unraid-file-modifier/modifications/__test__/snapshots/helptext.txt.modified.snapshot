@@ -2133,9 +2133,9 @@ In *Summarized* view notifications will be counted only and the number of unread
 Click on the counters to either acknowledge or view the unread notifications.
 :end
 
+
 :notifications_display_position_help:
-Choose the position of where notifications appear on screen in *Detailed* view. Multiple notifications are stacked, bottom-to-top or
-top-to-bottom depending on the selected placement.
+Choose the position of where notification popups appear on screen.
 :end
 
 :notifications_stack_help:

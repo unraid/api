@@ -34,6 +34,9 @@ export default class HelptextModification extends FileModification {
         const targetEnd = ':end';
 
         const newHelpText = `
+:notifications_display_position_help:
+Choose the position of where notification popups appear on screen.
+:end
 
 :notifications_stack_help:
 When enabled, multiple notifications are stacked to conserve screen space.
@@ -54,9 +57,11 @@ Maximum number of notifications shown on screen at once.
             const endIndex = newContent.indexOf(targetEnd, startIndex);
 
             if (endIndex !== -1) {
-                const insertionPoint = endIndex + targetEnd.length;
+                const effectiveEndIndex = endIndex + targetEnd.length;
                 newContent =
-                    newContent.slice(0, insertionPoint) + newHelpText + newContent.slice(insertionPoint);
+                    newContent.substring(0, startIndex) +
+                    newHelpText +
+                    newContent.substring(effectiveEndIndex);
             }
         }
 

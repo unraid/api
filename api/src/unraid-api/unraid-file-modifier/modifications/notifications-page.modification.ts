@@ -28,7 +28,7 @@ export default class NotificationsPageModification extends FileModification {
         const newContent = NotificationsPageModification.applyToSource(
             fileContent,
             isBelow71,
-            isBelow70
+            isBelow71
         );
 
         return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
