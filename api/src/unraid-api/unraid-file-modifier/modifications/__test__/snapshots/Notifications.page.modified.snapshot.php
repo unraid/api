@@ -111,13 +111,7 @@ $(function(){
 <input type="hidden" name="docker_notify">
 <input type="hidden" name="language_notify">
 <input type="hidden" name="report">
-_(Notifications display)_:
-: <select class="a" name="display">
-  <?=mk_option($notify['display'], "0", _("Detailed"))?>
-  <?=mk_option($notify['display'], "1", _("Summarized"))?>
-  </select>
 
-:notifications_display_help:
 
 _(Store notifications to flash)_:
 : <select name="path" class="a">

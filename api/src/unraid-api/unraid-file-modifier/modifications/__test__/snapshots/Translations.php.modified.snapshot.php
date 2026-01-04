@@ -75,7 +75,7 @@ function parse_plugin($plugin) {
   $text = "$docroot/languages/$locale/$plugin.txt";
   if (file_exists($text)) {
     $store = "$docroot/languages/$locale/$plugin.dot";
-    if (!file_exists($store) || filemtime($text) > filemtime($store)) file_put_contents($store,serialize(parse_lang_file($text)));
+    clearstatcache(); if (!file_exists($store) || filemtime($text) > filemtime($store)) file_put_contents($store,serialize(parse_lang_file($text)));
     $language = array_merge($language,unserialize(file_get_contents($store)));
   }
 }
@@ -133,7 +133,7 @@ if ($locale) {
   if (file_exists($text)) {
     $store = "$docroot/languages/$locale/translations.dot";
     // global translations
-    if (!file_exists($store) || filemtime($text) > filemtime($store)) file_put_contents($store,serialize(parse_lang_file($text)));
+    clearstatcache(); if (!file_exists($store) || filemtime($text) > filemtime($store)) file_put_contents($store,serialize(parse_lang_file($text)));
     $language = unserialize(file_get_contents($store));
   }
   if (file_exists("$docroot/languages/$locale/helptext.txt")) {
@@ -163,13 +163,13 @@ foreach($uri as $more) {
   if (file_exists($text)) {
     // additional translations
     $store = "$docroot/languages/$locale/$more.dot";
-    if (!file_exists($store) || filemtime($text) > filemtime($store)) file_put_contents($store,serialize(parse_lang_file($text)));
+    clearstatcache(); if (!file_exists($store) || filemtime($text) > filemtime($store)) file_put_contents($store,serialize(parse_lang_file($text)));
     $language = array_merge($language,unserialize(file_get_contents($store)));
   }
 }
 // help text
 if (($_SERVER['REQUEST_URI'][0]??'')=='/') {
-  if (!file_exists($help) || filemtime($root) > filemtime($help)) file_put_contents($help,serialize(parse_help_file($root)));
+  clearstatcache(); if (!file_exists($help) || filemtime($root) > filemtime($help)) file_put_contents($help,serialize(parse_help_file($root)));
   $language = array_merge($language,unserialize(file_get_contents($help)));
 }
 // remove unused variables

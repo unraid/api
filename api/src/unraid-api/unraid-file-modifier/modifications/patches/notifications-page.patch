@@ -2,20 +2,27 @@ Index: /usr/local/emhttp/plugins/dynamix/Notifications.page
 ===================================================================
 --- /usr/local/emhttp/plugins/dynamix/Notifications.page	original
 +++ /usr/local/emhttp/plugins/dynamix/Notifications.page	modified
-@@ -117,51 +117,50 @@
-   <?=mk_option($notify['display'], "1", _("Summarized"))?>
-   </select>
- 
- :notifications_display_help:
- 
+@@ -109,59 +109,52 @@
+ <input type="hidden" name="unraid">
+ <input type="hidden" name="plugin">
+ <input type="hidden" name="docker_notify">
+ <input type="hidden" name="language_notify">
+ <input type="hidden" name="report">
+-_(Notifications display)_:
+-: <select class="a" name="display">
+-  <?=mk_option($notify['display'], "0", _("Detailed"))?>
+-  <?=mk_option($notify['display'], "1", _("Summarized"))?>
++
++
 +_(Store notifications to flash)_:
 +: <select name="path" class="a">
 +  <?=mk_option($notify['path'], "/tmp/notifications", _("No"))?>
 +  <?=mk_option($notify['path'], "/boot/config/plugins/dynamix/notifications", _("Yes"))?>
-+  </select>
-+
+   </select>
+ 
+-:notifications_display_help:
 +:notifications_store_flash_help:
-+
+ 
  _(Display position)_:
  : <select name="position" class="a">
    <?=mk_option($notify['position'], "top-left", _("top-left"))?>
