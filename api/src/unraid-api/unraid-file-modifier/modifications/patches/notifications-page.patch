@@ -2,7 +2,7 @@ Index: /usr/local/emhttp/plugins/dynamix/Notifications.page
 ===================================================================
 --- /usr/local/emhttp/plugins/dynamix/Notifications.page	original
 +++ /usr/local/emhttp/plugins/dynamix/Notifications.page	modified
-@@ -123,37 +123,41 @@
+@@ -123,37 +123,34 @@
  : <select name="position" class="a">
    <?=mk_option($notify['position'], "top-left", _("top-left"))?>
    <?=mk_option($notify['position'], "top-right", _("top-right"))?>
@@ -49,13 +49,7 @@ Index: /usr/local/emhttp/plugins/dynamix/Notifications.page
 +:notifications_max_help:
  
 -:notifications_time_format_help:
- 
-+_(Auto-close)_ (_(seconds)_):
-+: <input type="number" name="life" class="a" min="0" max="60" value="<?=$notify['life']?>"> _(a value of zero means no automatic closure)_
-+
-+:notifications_auto_close_help:
-+
-+
+-
  _(Store notifications to flash)_:
  : <select name="path" class="a">
    <?=mk_option($notify['path'], "/tmp/notifications", _("No"))?>

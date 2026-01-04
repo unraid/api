@@ -4,6 +4,7 @@ import { access, mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
+import { coerce, gte } from 'semver';
 import { beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
@@ -52,7 +53,7 @@ const patchTestCases: ModificationTestCase[] = [
     {
         ModificationClass: NotificationsPageModification,
         fileUrl:
-            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/Notifications.page',
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.0/emhttp/plugins/dynamix/Notifications.page',
         fileName: 'Notifications.page',
     },
     {
@@ -149,12 +150,37 @@ const patchTestCases: ModificationTestCase[] = [
 /** Modifications that simply add a new file & remove it on rollback. */
 const simpleTestCases: ModificationTestCase[] = [];
 
+// ... (existing imports)
+
+// ...
+
 async function testModification(testCase: ModificationTestCase) {
     const fileName = basename(testCase.fileUrl);
     const filePath = getPathToFixture(fileName);
     const originalContent = await readFile(filePath, 'utf-8').catch(() => '');
     const logger = new Logger();
     const patcher = await new testCase.ModificationClass(logger);
+
+    // Mock isUnraidVersionGreaterThanOrEqualTo to derive version from test case URL
+    // @ts-expect-error - Accessing protected method
+    patcher.isUnraidVersionGreaterThanOrEqualTo = vi.fn().mockImplementation(async (version) => {
+        // Extract version from URL, simple heuristic looking for /7.x/ or /6.x/
+        // URLs look like: .../heads/7.1/... or .../heads/7.0/...
+        const match =
+            testCase.fileUrl.match(/\/heads\/(\d+\.\d+)/) || testCase.fileUrl.match(/\/(\d+\.\d+\.\d+)/);
+        const urlVersion = match ? match[1] : '7.0.0'; // Default to 7.0.0 if not found
+
+        const v1 = coerce(urlVersion);
+        const v2 = coerce(version);
+        if (!v1 || !v2) return false;
+
+        return gte(v1, v2);
+    });
+
+    // Mock getPregeneratedPatch to return null, forcing use of dynamic generation for tests
+    // @ts-expect-error - Accessing protected method
+    patcher.getPregeneratedPatch = vi.fn().mockResolvedValue(null);
+
     const originalPath = patcher.filePath;
     // @ts-expect-error - Ignore for testing purposes
     patcher.filePath = filePath;
@@ -189,6 +215,22 @@ async function testInvalidModification(testCase: ModificationTestCase) {
     };
 
     const patcher = new testCase.ModificationClass(mockLogger as unknown as Logger);
+
+    // Mock isUnraidVersionGreaterThanOrEqualTo to derive version from test case URL
+    // @ts-expect-error - Accessing protected method
+    patcher.isUnraidVersionGreaterThanOrEqualTo = vi.fn().mockImplementation(async (version) => {
+        // Extract version from URL, simple heuristic looking for /7.x/ or /6.x/
+        // URLs look like: .../heads/7.1/... or .../heads/7.0/...
+        const match =
+            testCase.fileUrl.match(/\/heads\/(\d+\.\d+)/) || testCase.fileUrl.match(/\/(\d+\.\d+\.\d+)/);
+        const urlVersion = match ? match[1] : '7.0.0'; // Default to 7.0.0 if not found
+
+        const v1 = coerce(urlVersion);
+        const v2 = coerce(version);
+        if (!v1 || !v2) return false;
+
+        return gte(v1, v2);
+    });
 
     // @ts-expect-error - Testing invalid pregenerated patches
     patcher.getPregeneratedPatch = vi.fn().mockResolvedValue('I AM NOT A VALID PATCH');

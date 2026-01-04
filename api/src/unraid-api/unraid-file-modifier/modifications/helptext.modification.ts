@@ -60,6 +60,16 @@ Maximum number of notifications shown on screen at once.
             }
         }
 
+        if (!(await this.isUnraidVersionGreaterThanOrEqualTo('7.1.0'))) {
+            // Remove :notifications_auto_close_help: block
+            // Looks like:
+            // :notifications_auto_close_help:
+            // ...
+            // :end
+
+            newContent = newContent.replace(/:notifications_auto_close_help:[\s\S]*?:end\s*/gm, '');
+        }
+
         return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
     }
 }

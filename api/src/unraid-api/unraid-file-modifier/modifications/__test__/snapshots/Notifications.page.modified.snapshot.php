@@ -149,13 +149,6 @@ _(Max notifications)_:
 
 :notifications_max_help:
 
-
-_(Auto-close)_ (_(seconds)_):
-: <input type="number" name="life" class="a" min="0" max="60" value="<?=$notify['life']?>"> _(a value of zero means no automatic closure)_
-
-:notifications_auto_close_help:
-
-
 _(Store notifications to flash)_:
 : <select name="path" class="a">
   <?=mk_option($notify['path'], "/tmp/notifications", _("No"))?>
