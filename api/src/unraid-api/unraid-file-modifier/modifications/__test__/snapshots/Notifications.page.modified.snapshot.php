@@ -119,6 +119,14 @@ _(Notifications display)_:
 
 :notifications_display_help:
 
+_(Store notifications to flash)_:
+: <select name="path" class="a">
+  <?=mk_option($notify['path'], "/tmp/notifications", _("No"))?>
+  <?=mk_option($notify['path'], "/boot/config/plugins/dynamix/notifications", _("Yes"))?>
+  </select>
+
+:notifications_store_flash_help:
+
 _(Display position)_:
 : <select name="position" class="a">
   <?=mk_option($notify['position'], "top-left", _("top-left"))?>
@@ -131,7 +139,7 @@ _(Display position)_:
 
 :notifications_display_position_help:
         
-_(Stack notifications)_:
+_(Stack notification popups)_:
 : <select name="expand">
   <?=mk_option($notify['expand'] ?? 'true', "true", _("Yes"))?>
   <?=mk_option($notify['expand'] ?? 'true', "false", _("No"))?>
@@ -139,23 +147,17 @@ _(Stack notifications)_:
 
 :notifications_stack_help:
 
-_(Duration)_:
+_(Notification popup duration)_:
 : <input type="number" name="duration" value="<?=$notify['duration'] ?? 5000?>" min="1000" step="500">
 
 :notifications_duration_help:
 
-_(Max notifications)_:
+_(Max notification popups)_:
 : <input type="number" name="max" value="<?=$notify['max'] ?? 3?>" min="1" max="10">
 
 :notifications_max_help:
 
-_(Store notifications to flash)_:
-: <select name="path" class="a">
-  <?=mk_option($notify['path'], "/tmp/notifications", _("No"))?>
-  <?=mk_option($notify['path'], "/boot/config/plugins/dynamix/notifications", _("Yes"))?>
-  </select>
 
-:notifications_store_flash_help:
 
 _(System notifications)_:
 : <select name="system" class="a" onchange="prepareSystem(this.selectedIndex)">
