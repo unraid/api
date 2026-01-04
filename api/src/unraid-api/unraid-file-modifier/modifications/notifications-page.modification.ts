@@ -35,28 +35,22 @@ export default class NotificationsPageModification extends FileModification {
             // Remove lines between _(Time format)_: and :notifications_time_format_help:
             .replace(/^\s*_\(Time format\)_:(?:[^\n]*\n)*?\s*:notifications_time_format_help:/gm, '');
 
-        // Add bottom-center and top-center position options if not present
-        const positionSelectStart = '<select name="position">';
-        const positionSelectEnd = '</select>';
-        const bottomCenterOption =
-            '  <?=mk_option($notify[\'position\'], "bottom-center", _("bottom-center"))?>';
-        const topCenterOption = '  <?=mk_option($notify[\'position\'], "top-center", _("top-center"))?>';
+        // Replace "center" with "bottom-center" and "top-center"
+        const centerOption = '<?=mk_option($notify[\'position\'], "center", _("center"))?>';
 
-        if (newContent.includes(positionSelectStart) && !newContent.includes(bottomCenterOption)) {
+        if (newContent.includes(centerOption)) {
             newContent = newContent.replace(
-                '<?=mk_option($notify[\'position\'], "bottom-right", _("bottom-right"))?>',
-                '<?=mk_option($notify[\'position\'], "bottom-right", _("bottom-right"))?>\n' +
-                    bottomCenterOption +
-                    '\n' +
-                    topCenterOption
+                centerOption,
+                '<?=mk_option($notify[\'position\'], "bottom-center", _("bottom-center"))?>\n' +
+                    '  <?=mk_option($notify[\'position\'], "top-center", _("top-center"))?>'
             );
         }
 
         // Add Stack/Duration/Max settings
         const helpAnchor = ':notifications_display_position_help:';
         const newSettings = `
-:
- _(Stack notifications)_:
+        
+_(Stack notifications)_:
 : <select name="expand">
   <?=mk_option($notify['expand'] ?? 'true', "true", _("Yes"))?>
   <?=mk_option($notify['expand'] ?? 'true', "false", _("No"))?>

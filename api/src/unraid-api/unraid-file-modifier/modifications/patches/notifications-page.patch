@@ -2,14 +2,20 @@ Index: /usr/local/emhttp/plugins/dynamix/Notifications.page
 ===================================================================
 --- /usr/local/emhttp/plugins/dynamix/Notifications.page	original
 +++ /usr/local/emhttp/plugins/dynamix/Notifications.page	modified
-@@ -127,33 +127,36 @@
+@@ -123,37 +123,41 @@
+ : <select name="position" class="a">
+   <?=mk_option($notify['position'], "top-left", _("top-left"))?>
+   <?=mk_option($notify['position'], "top-right", _("top-right"))?>
+   <?=mk_option($notify['position'], "bottom-left", _("bottom-left"))?>
    <?=mk_option($notify['position'], "bottom-right", _("bottom-right"))?>
-   <?=mk_option($notify['position'], "center", _("center"))?>
+-  <?=mk_option($notify['position'], "center", _("center"))?>
++  <?=mk_option($notify['position'], "bottom-center", _("bottom-center"))?>
++  <?=mk_option($notify['position'], "top-center", _("top-center"))?>
    </select>
  
  :notifications_display_position_help:
-+:
-+ _(Stack notifications)_:
++        
++_(Stack notifications)_:
 +: <select name="expand">
 +  <?=mk_option($notify['expand'] ?? 'true', "true", _("Yes"))?>
 +  <?=mk_option($notify['expand'] ?? 'true', "false", _("No"))?>

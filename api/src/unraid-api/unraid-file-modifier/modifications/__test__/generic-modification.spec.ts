@@ -18,6 +18,7 @@ import DefaultWhiteCssModification from '@app/unraid-api/unraid-file-modifier/mo
 import DisplaySettingsModification from '@app/unraid-api/unraid-file-modifier/modifications/display-settings.modification.js';
 import DockerContainersPageModification from '@app/unraid-api/unraid-file-modifier/modifications/docker-containers-page.modification.js';
 import FontAwesomeCssModification from '@app/unraid-api/unraid-file-modifier/modifications/font-awesome-css.modification.js';
+import HelptextModification from '@app/unraid-api/unraid-file-modifier/modifications/helptext.modification.js';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
 import NotifyPhpModification from '@app/unraid-api/unraid-file-modifier/modifications/notify-php.modification.js';
 import NotifyScriptModification from '@app/unraid-api/unraid-file-modifier/modifications/notify-script.modification.js';
@@ -136,6 +137,12 @@ const patchTestCases: ModificationTestCase[] = [
         fileUrl:
             'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/styles/font-awesome.css',
         fileName: 'font-awesome.css',
+    },
+    {
+        ModificationClass: HelptextModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/languages/en_US/helptext.txt',
+        fileName: 'helptext.txt',
     },
 ];
 

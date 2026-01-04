@@ -125,12 +125,13 @@ _(Display position)_:
   <?=mk_option($notify['position'], "top-right", _("top-right"))?>
   <?=mk_option($notify['position'], "bottom-left", _("bottom-left"))?>
   <?=mk_option($notify['position'], "bottom-right", _("bottom-right"))?>
-  <?=mk_option($notify['position'], "center", _("center"))?>
+  <?=mk_option($notify['position'], "bottom-center", _("bottom-center"))?>
+  <?=mk_option($notify['position'], "top-center", _("top-center"))?>
   </select>
 
 :notifications_display_position_help:
-:
- _(Stack notifications)_:
+        
+_(Stack notifications)_:
 : <select name="expand">
   <?=mk_option($notify['expand'] ?? 'true', "true", _("Yes"))?>
   <?=mk_option($notify['expand'] ?? 'true', "false", _("No"))?>

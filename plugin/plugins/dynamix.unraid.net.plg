@@ -181,6 +181,16 @@ echo "Backing up original files..."
 
 # Define files to backup in a shell variable
 FILES_TO_BACKUP=(
+  "/usr/local/emhttp/plugins/dynamix/default.cfg"
+  "/usr/local/emhttp/plugins/dynamix/Notifications.page"
+  "/usr/local/emhttp/plugins/dynamix/include/Notify.php"
+  "/usr/local/emhttp/plugins/dynamix/scripts/notify"
+  "/usr/local/emhttp/plugins/dynamix/styles/default-base.css"
+  "/usr/local/emhttp/plugins/dynamix/styles/font-awesome.css"
+  "/usr/local/emhttp/plugins/dynamix/styles/default-white.css"
+  "/usr/local/emhttp/plugins/dynamix/styles/default-black.css"
+  "/usr/local/emhttp/plugins/dynamix/styles/default-gray.css"
+  "/usr/local/emhttp/plugins/dynamix/styles/default-azure.css"
   "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
   "/usr/local/emhttp/plugins/dynamix/Registration.page"
   "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
@@ -211,6 +221,7 @@ FILES_TO_BACKUP=(
   "/etc/nginx/nginx.conf"
   "/etc/rc.d/rc.nginx"
   "/usr/share/mozilla/firefox/9n35r0i1.default/user.js"
+  "/usr/local/emhttp/languages/en_US/helptext.txt"
 )
 
 # Backup each file if it exists and doesn't already have a backup
@@ -325,6 +336,16 @@ exit 0
       
       # Define files to restore in a shell variable - must match backup list
       FILES_TO_RESTORE=(
+        "/usr/local/emhttp/plugins/dynamix/Notifications.page"
+        "/usr/local/emhttp/plugins/dynamix/default.cfg"
+        "/usr/local/emhttp/plugins/dynamix/include/Notify.php"
+        "/usr/local/emhttp/plugins/dynamix/scripts/notify"
+        "/usr/local/emhttp/plugins/dynamix/styles/default-base.css"
+        "/usr/local/emhttp/plugins/dynamix/styles/font-awesome.css"
+        "/usr/local/emhttp/plugins/dynamix/styles/default-white.css"
+        "/usr/local/emhttp/plugins/dynamix/styles/default-black.css"
+        "/usr/local/emhttp/plugins/dynamix/styles/default-gray.css"
+        "/usr/local/emhttp/plugins/dynamix/styles/default-azure.css"
         "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
         "/usr/local/emhttp/plugins/dynamix/Registration.page"
         "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
@@ -355,6 +376,7 @@ exit 0
         "/etc/nginx/nginx.conf"
         "/etc/rc.d/rc.nginx"
         "/usr/share/mozilla/firefox/9n35r0i1.default/user.js"
+        "/usr/local/emhttp/languages/en_US/helptext.txt"
       )
       
       # Restore each file if backup exists
