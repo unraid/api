@@ -26,6 +26,7 @@ import NotifyScriptModification from '@app/unraid-api/unraid-file-modifier/modif
 import RcNginxModification from '@app/unraid-api/unraid-file-modifier/modifications/rc-nginx.modification.js';
 import SetPasswordModalModification from '@app/unraid-api/unraid-file-modifier/modifications/set-password-modal.modification.js';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
+import TranslationsPhpModification from '@app/unraid-api/unraid-file-modifier/modifications/translations-php.modification.js';
 
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;
@@ -144,6 +145,12 @@ const patchTestCases: ModificationTestCase[] = [
         fileUrl:
             'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/languages/en_US/helptext.txt',
         fileName: 'helptext.txt',
+    },
+    {
+        ModificationClass: TranslationsPhpModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/include/Translations.php',
+        fileName: 'Translations.php',
     },
 ];
 

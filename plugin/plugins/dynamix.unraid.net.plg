@@ -181,6 +181,7 @@ echo "Backing up original files..."
 
 # Define files to backup in a shell variable
 FILES_TO_BACKUP=(
+  "/usr/local/emhttp/plugins/dynamix/include/Translations.php"
   "/usr/local/emhttp/plugins/dynamix/default.cfg"
   "/usr/local/emhttp/plugins/dynamix/Notifications.page"
   "/usr/local/emhttp/plugins/dynamix/include/Notify.php"
@@ -336,6 +337,7 @@ exit 0
       
       # Define files to restore in a shell variable - must match backup list
       FILES_TO_RESTORE=(
+        "/usr/local/emhttp/plugins/dynamix/include/Translations.php"
         "/usr/local/emhttp/plugins/dynamix/Notifications.page"
         "/usr/local/emhttp/plugins/dynamix/default.cfg"
         "/usr/local/emhttp/plugins/dynamix/include/Notify.php"
