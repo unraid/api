@@ -2,7 +2,7 @@
 import { computed, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation } from '@vue/apollo-composable';
-import { computedAsync } from '@vueuse/core';
+import { computedAsync, useTimeAgo } from '@vueuse/core';
 
 import { Markdown } from '@/helpers/markdown';
 import { navigate } from '~/helpers/external-navigation';
@@ -64,7 +64,7 @@ const openLink = () => {
 
 const reformattedTimestamp = computed<string>(() => {
   if (!props.timestamp) return '';
-  const userLocale = navigator.language ?? 'en-US'; // Get the user's browser language (e.g., 'en-US', 'fr-FR')
+  const userLocale = navigator.language ?? 'en-US';
 
   const reformattedDate = new Intl.DateTimeFormat(userLocale, {
     localeMatcher: 'best fit',
@@ -76,63 +76,109 @@ const reformattedTimestamp = computed<string>(() => {
   }).format(new Date(props.timestamp));
   return reformattedDate;
 });
+
+const rawDisplayTimestamp = computed(() => props.formattedTimestamp || reformattedTimestamp.value);
+
+const parsedTimestamp = computed(() => {
+  const full = rawDisplayTimestamp.value;
+  // Try to find a time pattern at the end of the string: HH:MM or HH:MM AA
+  const timeMatch = full.match(/(\d{1,2}:\d{2}(?::\d{2})?(?:\s?[APap][Mm])?)$/);
+
+  if (timeMatch) {
+    const time = timeMatch[0];
+    const date = full.replace(time, '').trim();
+    return { date, time, split: true };
+  }
+
+  return { date: full, time: '', split: false };
+});
+
+const timeAgo = useTimeAgo(computed(() => props.timestamp || new Date()));
 </script>
 
 <template>
-  <div class="group/item relative flex flex-col gap-2 py-3 text-base">
-    <header class="flex -translate-y-1 flex-row items-baseline justify-between gap-2">
-      <h3
-        class="m-0 flex min-w-0 flex-row items-baseline gap-2 overflow-x-hidden text-base font-semibold normal-case"
-      >
-        <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
-        <UIcon v-if="icon" :name="icon.name" class="size-5 shrink-0 translate-y-1" :class="icon.color" />
-        <span class="min-w-0 flex-1 break-words" :title="title">{{ title }}</span>
-      </h3>
+  <div
+    class="group/item border-default relative flex flex-col gap-3 border-b py-4 text-base last:border-0 sm:gap-4"
+  >
+    <div class="flex items-start gap-4">
+      <!-- Icon -->
+      <UIcon v-if="icon" :name="icon.name" class="mt-0.5 size-6 shrink-0" :class="icon.color" />
 
-      <div
-        class="mt-1 flex shrink-0 flex-row items-baseline justify-end gap-2"
-        :title="formattedTimestamp ?? reformattedTimestamp"
-      >
-        <p class="text-secondary-foreground text-sm">{{ formattedTimestamp || reformattedTimestamp }}</p>
+      <div class="flex min-w-0 flex-1 flex-col gap-1">
+        <!-- Timestamp Row -->
+        <div class="mb-0.5 flex flex-wrap items-center gap-x-2 text-xs font-medium tabular-nums">
+          <span class="text-muted" :title="rawDisplayTimestamp">
+            <template v-if="parsedTimestamp.split">
+              {{ parsedTimestamp.date }} at {{ parsedTimestamp.time }}
+            </template>
+            <template v-else>
+              {{ rawDisplayTimestamp }}
+            </template>
+          </span>
+
+          <span class="text-muted/50">&bull;</span>
+
+          <span class="text-primary">
+            {{ timeAgo }}
+          </span>
+        </div>
+
+        <!-- Title -->
+        <h3 class="text-default pr-2 text-base leading-tight font-semibold break-words">
+          {{ title }}
+        </h3>
+
+        <!-- Subject -->
+        <p class="text-muted mb-1 text-sm font-medium break-words">
+          {{ subject }}
+        </p>
+
+        <!-- Description -->
+        <div class="prose prose-sm dark:prose-invert text-dimmed max-w-none text-sm break-words">
+          <div v-html="descriptionMarkup" />
+        </div>
+
+        <!-- Error Message -->
+        <p v-if="mutationError" class="text-destructive mt-2 text-sm">
+          {{ t('common.error') }}: {{ mutationError }}
+        </p>
+
+        <!-- Actions -->
+        <div class="mt-2 flex flex-wrap items-center justify-end gap-2">
+          <UButton
+            v-if="link"
+            size="xs"
+            variant="ghost"
+            icon="i-heroicons-link-20-solid"
+            color="gray"
+            @click="openLink"
+          >
+            {{ t('notifications.item.viewLink') }}
+          </UButton>
+          <UButton
+            v-if="type === NotificationType.UNREAD"
+            size="xs"
+            variant="soft"
+            :loading="archive.loading"
+            icon="i-heroicons-archive-box-20-solid"
+            color="primary"
+            @click="() => void archive.mutate({ id: props.id })"
+          >
+            {{ t('notifications.item.archive') }}
+          </UButton>
+          <UButton
+            v-if="type === NotificationType.ARCHIVE"
+            size="xs"
+            variant="soft"
+            :loading="deleteNotification.loading"
+            icon="i-heroicons-trash-20-solid"
+            color="red"
+            @click="() => void deleteNotification.mutate({ id: props.id, type: props.type })"
+          >
+            {{ t('notifications.item.delete') }}
+          </UButton>
+        </div>
       </div>
-    </header>
-
-    <h4 class="m-0 font-normal break-words">
-      {{ subject }}
-    </h4>
-
-    <div class="flex flex-row items-center justify-between gap-2">
-      <div class="min-w-0 break-words" v-html="descriptionMarkup" />
-    </div>
-
-    <p v-if="mutationError" class="text-destructive">{{ t('common.error') }}: {{ mutationError }}</p>
-
-    <div class="flex items-baseline justify-end gap-4">
-      <UButton
-        v-if="link"
-        variant="link"
-        icon="i-heroicons-link-20-solid"
-        color="neutral"
-        @click="openLink"
-      >
-        {{ t('notifications.item.viewLink') }}
-      </UButton>
-      <UButton
-        v-if="type === NotificationType.UNREAD"
-        :loading="archive.loading"
-        icon="i-heroicons-archive-box-20-solid"
-        @click="() => void archive.mutate({ id: props.id })"
-      >
-        {{ t('notifications.item.archive') }}
-      </UButton>
-      <UButton
-        v-if="type === NotificationType.ARCHIVE"
-        :loading="deleteNotification.loading"
-        icon="i-heroicons-trash-20-solid"
-        @click="() => void deleteNotification.mutate({ id: props.id, type: props.type })"
-      >
-        {{ t('notifications.item.delete') }}
-      </UButton>
     </div>
   </div>
 </template>
