@@ -137,11 +137,10 @@ const overview = computed(() => {
   return result.value.notifications.overview;
 });
 
-/** This recalculates the archived count due to notifications going to archived + unread when they are in an Unread state. */
+/** The archived count is now correctly reported by the API. */
 const readArchivedCount = computed(() => {
   if (!overview.value) return 0;
-  const { archive, unread } = overview.value;
-  return Math.max(0, archive.total - unread.total);
+  return overview.value.archive.total;
 });
 
 const prepareToViewNotifications = () => {

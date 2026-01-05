@@ -114,9 +114,18 @@ export class NotificationsService {
         const type = path.includes('/unread/') ? NotificationType.UNREAD : NotificationType.ARCHIVE;
         this.logger.log(`[handleNotificationAdd] Adding ${type} Notification: ${path}`);
 
-        // Note: We intentionally track duplicate files (files in both unread and archive)
-        // because the frontend relies on (Archive Total - Unread Total) to calculate the
-        // "Archived Only" count. If we ignore duplicates here, the math breaks.
+        // If adding to archive, check if it exists in unread.
+        // If so, we do not want to count it towards the archive stats yet.
+        if (type === NotificationType.ARCHIVE) {
+            const filename = basename(path);
+            const unreadPath = join(this.paths().UNREAD, filename);
+            if (await fileExists(unreadPath)) {
+                this.logger.debug(
+                    `[handleNotificationAdd] Ignoring archive notification shadowed by unread: ${filename}`
+                );
+                return;
+            }
+        }
 
         let notification: Notification | undefined;
         let lastError: unknown;
@@ -243,7 +252,16 @@ export class NotificationsService {
         //
         // recalculates stats for a particular notification type
         const recalculate = async (type: NotificationType) => {
-            const ids = await this.listFilesInFolder(this.paths()[type]);
+            let narrowContent = (contents: string[]) => contents;
+
+            // If listing archives, filter out any that are also in unread
+            // to avoid double counting in stats
+            if (type === NotificationType.ARCHIVE) {
+                const unreadIds = new Set(await readdir(this.paths().UNREAD));
+                narrowContent = (contents) => contents.filter((file) => !unreadIds.has(file));
+            }
+
+            const ids = await this.listFilesInFolder(this.paths()[type], narrowContent);
             const [notifications] = await this.loadNotificationsFromPaths(ids, {});
             notifications.forEach((n) => this.increment(n.importance, overview[type.toLowerCase()]));
         };
@@ -522,9 +540,12 @@ export class NotificationsService {
             // File already in archive, just delete the unread one
             await unlink(unreadPath);
 
-            // CRITICAL FIX: If the file already existed in archive, it should have been counted
-            // by handleNotificationAdd (since we removed the ignore logic).
-            // Therefore, we do NOT increment the archive count here to avoid double counting.
+            // Since we previously ignored this file in the archive definition (because it was in unread),
+            // we must now increment the archive stats because it has been "revealed" as an archived notification.
+            this.increment(notification.importance, NotificationsService.overview.archive);
+            if (snapshot) {
+                this.increment(notification.importance, snapshot.archive);
+            }
         } else {
             // File not in archive, move it there
             await rename(unreadPath, archivePath);
