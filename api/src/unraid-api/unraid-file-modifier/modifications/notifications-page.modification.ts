@@ -39,11 +39,7 @@ export default class NotificationsPageModification extends FileModification {
         removeAutoClose: boolean,
         removeDisplayOption: boolean
     ): string {
-        let newContent = fileContent
-            // Remove lines between _(Date format)_: and :notifications_date_format_help:
-            .replace(/^\s*_\(Date format\)_:(?:[^\n]*\n)*?\s*:notifications_date_format_help:/gm, '')
-            // Remove lines between _(Time format)_: and :notifications_time_format_help:
-            .replace(/^\s*_\(Time format\)_:(?:[^\n]*\n)*?\s*:notifications_time_format_help:/gm, '');
+        let newContent = fileContent;
 
         if (removeDisplayOption) {
             // Remove _(Notifications display)_ section

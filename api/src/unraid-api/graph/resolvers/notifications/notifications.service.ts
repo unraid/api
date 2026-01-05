@@ -972,16 +972,29 @@ export class NotificationsService {
     }
 
     private formatDatetime(date: Date) {
-        const { display: settings } = getters.dynamix();
-        if (!settings) {
+        const { display, notify } = getters.dynamix();
+        const settings = display || {};
+        const notifySettings = notify || {};
+
+        if (!settings && !notifySettings) {
             this.logger.warn(
-                '[formatTimestamp] Dynamix display settings not found. Cannot apply user settings.'
+                '[formatTimestamp] Dynamix display/notify settings not found. Cannot apply user settings.'
             );
             return date.toISOString();
         }
+
+        // Prioritize notification-specific settings, fall back to global display settings
+        const dateFormat = (notifySettings as any).date || (settings as any).date || null;
+        const timeFormat = (notifySettings as any).time || (settings as any).time || null;
+
+        if (!dateFormat || !timeFormat) {
+            // If we still don't have a format (e.g. neither config implies one), fallback to ISO
+            return date.toISOString();
+        }
+
         return formatDatetime(date, {
-            dateFormat: settings.date,
-            timeFormat: settings.time,
+            dateFormat: dateFormat,
+            timeFormat: timeFormat,
             omitTimezone: true,
         });
     }

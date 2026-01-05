@@ -2,7 +2,7 @@ Index: /usr/local/emhttp/plugins/dynamix/Notifications.page
 ===================================================================
 --- /usr/local/emhttp/plugins/dynamix/Notifications.page	original
 +++ /usr/local/emhttp/plugins/dynamix/Notifications.page	modified
-@@ -109,59 +109,52 @@
+@@ -109,34 +109,50 @@
  <input type="hidden" name="unraid">
  <input type="hidden" name="plugin">
  <input type="hidden" name="docker_notify">
@@ -50,26 +50,23 @@ Index: /usr/local/emhttp/plugins/dynamix/Notifications.page
 +_(Notification popup duration)_:
 +: <input type="number" name="duration" value="<?=$notify['duration'] ?? 5000?>" min="1000" step="500">
  
--_(Date format)_:
--: <select name="date" class="a">
--  <?=mk_option($notify['date'], "d-m-Y", _("DD-MM-YYYY"))?>
--  <?=mk_option($notify['date'], "m-d-Y", _("MM-DD-YYYY"))?>
--  <?=mk_option($notify['date'], "Y-m-d", _("YYYY-MM-DD"))?>
--  </select>
 +:notifications_duration_help:
- 
--:notifications_date_format_help:
++
 +_(Max notification popups)_:
 +: <input type="number" name="max" value="<?=$notify['max'] ?? 3?>" min="1" max="10">
- 
--_(Time format)_:
--: <select name="time" class="a">
--  <?=mk_option($notify['time'], "h:i A", _("12 hours"))?>
--  <?=mk_option($notify['time'], "H:i", _("24 hours"))?>
--  </select>
++
 +:notifications_max_help:
++
+ _(Date format)_:
+ : <select name="date" class="a">
+   <?=mk_option($notify['date'], "d-m-Y", _("DD-MM-YYYY"))?>
+   <?=mk_option($notify['date'], "m-d-Y", _("MM-DD-YYYY"))?>
+   <?=mk_option($notify['date'], "Y-m-d", _("YYYY-MM-DD"))?>
+@@ -150,17 +166,11 @@
+   <?=mk_option($notify['time'], "H:i", _("24 hours"))?>
+   </select>
  
--:notifications_time_format_help:
+ :notifications_time_format_help:
  
 -_(Store notifications to flash)_:
 -: <select name="path" class="a">
@@ -78,9 +75,8 @@ Index: /usr/local/emhttp/plugins/dynamix/Notifications.page
 -  </select>
  
 -:notifications_store_flash_help:
--
+ 
  _(System notifications)_:
  : <select name="system" class="a" onchange="prepareSystem(this.selectedIndex)">
    <?=mk_option($notify['system'], "", _("Disabled"))?>
    <?=mk_option($notify['system'], "*/1 * * * *", _("Enabled"))?>
-   </select>

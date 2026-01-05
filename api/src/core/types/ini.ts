@@ -73,10 +73,10 @@ interface Notify {
     plugin: string;
     docker_notify: string;
     report: string;
-    /** @deprecated (will remove in future release). Date format: DD-MM-YYYY, MM-DD-YYY, or YYYY-MM-DD */
+    /** Date format: DD-MM-YYYY, MM-DD-YYY, or YYYY-MM-DD */
     date: 'd-m-Y' | 'm-d-Y' | 'Y-m-d';
     /**
-     * @deprecated (will remove in future release). Time format:
+     * Time format:
      * - `hi: A` => 12 hr
      * - `H:i`   => 24 hr (default)
      */

@@ -151,6 +151,23 @@ _(Max notification popups)_:
 
 :notifications_max_help:
 
+_(Date format)_:
+: <select name="date" class="a">
+  <?=mk_option($notify['date'], "d-m-Y", _("DD-MM-YYYY"))?>
+  <?=mk_option($notify['date'], "m-d-Y", _("MM-DD-YYYY"))?>
+  <?=mk_option($notify['date'], "Y-m-d", _("YYYY-MM-DD"))?>
+  </select>
+
+:notifications_date_format_help:
+
+_(Time format)_:
+: <select name="time" class="a">
+  <?=mk_option($notify['time'], "h:i A", _("12 hours"))?>
+  <?=mk_option($notify['time'], "H:i", _("24 hours"))?>
+  </select>
+
+:notifications_time_format_help:
+
 
 
 _(System notifications)_:
