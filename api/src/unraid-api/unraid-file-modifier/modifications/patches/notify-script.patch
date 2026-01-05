@@ -93,7 +93,7 @@ Index: /usr/local/emhttp/plugins/dynamix/scripts/notify
       case 'e':
        $event = $value;
        break;
-@@ -213,19 +248,53 @@
+@@ -213,19 +248,65 @@
       case 'l':
        $nginx = (array)@parse_ini_file('/var/local/emhttp/nginx.ini');
        $link = $value;
@@ -107,6 +107,7 @@ Index: /usr/local/emhttp/plugins/dynamix/scripts/notify
  
 -  $unread = "{$unread}/".safe_filename("{$event}-{$ticket}.notify");
 -  $archive = "{$archive}/".safe_filename("{$event}-{$ticket}.notify");
+-  if (file_exists($archive)) break;
 +  if ($customFilename) {
 +    $filename = safe_filename($customFilename);
 +  } else {
@@ -121,7 +122,13 @@ Index: /usr/local/emhttp/plugins/dynamix/scripts/notify
 +
 +  $unread = "{$unread}/{$filename}";
 +  $archive = "{$archive}/{$filename}";
-   if (file_exists($archive)) break;
++
++  file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Processing {$event} -> {$filename}\n", FILE_APPEND);
++
++  if (file_exists($archive)) {
++    file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Archive exists, skipping: {$archive}\n", FILE_APPEND);
++    break;
++  }
    $entity = $overrule===false ? $notify[$importance] : $overrule;
 -  if (!$mailtest) file_put_contents($archive,"timestamp=$timestamp\nevent=$event\nsubject=$subject\ndescription=$description\nimportance=$importance\n".($message ? "message=".str_replace('\n','<br>',$message)."\n" : ""));
 -  if (($entity & 1)==1 && !$mailtest && !$noBrowser) file_put_contents($unread,"timestamp=$timestamp\nevent=$event\nsubject=$subject\ndescription=$description\nimportance=$importance\nlink=$link\n");
@@ -134,7 +141,10 @@ Index: /usr/local/emhttp/plugins/dynamix/scripts/notify
 +    'importance' => $importance,
 +  ];
 +  if ($message) $archiveData['message'] = str_replace('\n','<br>',$message);
-+  if (!$mailtest) file_put_contents($archive, build_ini_string($archiveData));
++  if (!$mailtest) {
++      file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Writing archive: {$archive}\n", FILE_APPEND);
++      file_put_contents($archive, build_ini_string($archiveData));
++  }
 +  if (($entity & 1)==1 && !$mailtest && !$noBrowser) {
 +    $unreadData = [
 +      'timestamp' => $timestamp,
@@ -144,14 +154,17 @@ Index: /usr/local/emhttp/plugins/dynamix/scripts/notify
 +      'importance' => $importance,
 +      'link' => $link,
 +    ];
++    file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Writing unread: {$unread}\n", FILE_APPEND);
 +    file_put_contents($unread, build_ini_string($unreadData));
++  } else {
++      file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Skipping unread. Entity: {$entity}, Mailtest: {$mailtest}, NoBrowser: {$noBrowser}\n", FILE_APPEND);
 +  }
    if (($entity & 2)==2 || $mailtest) generate_email($event, clean_subject($subject), str_replace('<br>','. ',$description), $importance, $message, $recipients, $fqdnlink);
    if (($entity & 4)==4 && !$mailtest) { if (is_array($agents)) {foreach ($agents as $agent) {exec("TIMESTAMP='$timestamp' EVENT=".escapeshellarg($event)." SUBJECT=".escapeshellarg(clean_subject($subject))." DESCRIPTION=".escapeshellarg($description)." IMPORTANCE=".escapeshellarg($importance)." CONTENT=".escapeshellarg($message)." LINK=".escapeshellarg($fqdnlink)." bash ".$agent);};}};
    break;
  
  case 'get':
-@@ -239,13 +308,16 @@
+@@ -239,13 +320,16 @@
      $time = true;
      $output[$i]['file'] = basename($file);
      $output[$i]['show'] = (fileperms($file) & 0x0FFF)==0400 ? 0 : 1;

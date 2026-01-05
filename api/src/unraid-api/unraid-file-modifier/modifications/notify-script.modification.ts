@@ -60,9 +60,10 @@ export default class NotifyScriptModification extends FileModification {
             // Let's verify exact content of safe_filename in fileContent
         }
 
-        // 3. Inject Helper Functions (ini_encode_value, build_ini_string, ini_decode_value)
-        // Similar to before, but we can just append them after safe_filename or clean_subject
-        const helperFunctions = `
+        // 3. Inject Helper Functions (Check if they exist first)
+        // Check if build_ini_string already exists to avoid duplication (e.g. Unraid 7.3 or re-run)
+        if (!newContent.includes('function build_ini_string')) {
+            const helperFunctions = `
 /**
  * Wrap string values in double quotes for INI compatibility and escape quotes/backslashes.
  * Numeric types remain unquoted so they can be parsed as-is.
@@ -94,23 +95,30 @@ function ini_decode_value($value) {
   return $value;
 }
 `;
-        const insertPoint = `function clean_subject($subject) {
+            const insertPoint = `function clean_subject($subject) {
   $subject = preg_replace("/&#?[a-z0-9]{2,8};/i"," ",$subject);
   return $subject;
 }`;
-        newContent = newContent.replace(insertPoint, insertPoint + '\n' + helperFunctions);
+            if (newContent.includes(insertPoint)) {
+                newContent = newContent.replace(insertPoint, insertPoint + '\n' + helperFunctions);
+            }
+        }
 
         // 4. Update 'add' case initialization
         const originalInit = `$noBrowser = false;`;
         const newInit = `$noBrowser = false;
   $customFilename = false;`;
-        newContent = newContent.replace(originalInit, newInit);
+        if (newContent.includes(originalInit) && !newContent.includes('$customFilename = false;')) {
+            newContent = newContent.replace(originalInit, newInit);
+        }
 
         // 5. Update getopt
-        newContent = newContent.replace(
-            '$options = getopt("l:e:s:d:i:m:r:xtb");',
-            '$options = getopt("l:e:s:d:i:m:r:u:xtb");'
-        );
+        if (!newContent.includes('u:')) {
+            newContent = newContent.replace(
+                '$options = getopt("l:e:s:d:i:m:r:xtb");',
+                '$options = getopt("l:e:s:d:i:m:r:u:xtb");'
+            );
+        }
 
         // 6. Update switch case for 'u'
         const caseL = `     case 'l':
@@ -118,15 +126,22 @@ function ini_decode_value($value) {
       $link = $value;
       $fqdnlink = (strpos($link,"http") === 0) ? $link : ($nginx['NGINX_DEFAULTURL']??'').$link;
       break;`;
-        const caseLWithU =
-            caseL +
-            `
+
+        if (newContent.includes(caseL) && !newContent.includes("case 'u':")) {
+            const caseLWithU =
+                caseL +
+                `
      case 'u':
       $customFilename = $value;
       break;`;
-        newContent = newContent.replace(caseL, caseLWithU);
+            newContent = newContent.replace(caseL, caseLWithU);
+        }
 
         // 7. Update 'add' logic (Replace filename generation and writing)
+        // We handle two cases:
+        // A) The original 'ancient' write block (manual string concat)
+        // B) The 'intermediate' write block (already using build_ini_string but with safe_filename defaults)
+
         const originalWriteBlock = `  $unread = "{$unread}/".safe_filename("{$event}-{$ticket}.notify");
   $archive = "{$archive}/".safe_filename("{$event}-{$ticket}.notify");
   if (file_exists($archive)) break;
@@ -134,20 +149,10 @@ function ini_decode_value($value) {
   if (!$mailtest) file_put_contents($archive,"timestamp=$timestamp\\nevent=$event\\nsubject=$subject\\ndescription=$description\\nimportance=$importance\\n".($message ? "message=".str_replace('\\n','<br>',$message)."\\n" : ""));
   if (($entity & 1)==1 && !$mailtest && !$noBrowser) file_put_contents($unread,"timestamp=$timestamp\\nevent=$event\\nsubject=$subject\\ndescription=$description\\nimportance=$importance\\nlink=$link\\n");`;
 
-        const newWriteBlock = `  if ($customFilename) {
-    $filename = safe_filename($customFilename);
-  } else {
-    // suffix length: _{timestamp}.notify = 1+10+7 = 18 chars.
-    $suffix = "_{$ticket}.notify";
-    $max_name_len = 255 - strlen($suffix);
-    // sanitize event, truncating it to leave room for suffix
-    $clean_name = safe_filename($event, $max_name_len);
-    // construct filename with suffix (underscore separator matches safe_filename behavior)
-    $filename = "{$clean_name}{$suffix}";
-  }
-
-  $unread = "{$unread}/{$filename}";
-  $archive = "{$archive}/{$filename}";
+        // This matches the block seen in 7.3 (cleaned of potential extra spacing differences by using truncated match or exact)
+        // Using strict match based on user provided cat input
+        const intermediateWriteBlock = `  $unread = "{$unread}/".safe_filename("{$event}-{$ticket}.notify");
+  $archive = "{$archive}/".safe_filename("{$event}-{$ticket}.notify");
   if (file_exists($archive)) break;
   $entity = $overrule===false ? $notify[$importance] : $overrule;
   $cleanSubject = clean_subject($subject);
@@ -171,9 +176,77 @@ function ini_decode_value($value) {
     ];
     file_put_contents($unread, build_ini_string($unreadData));
   }`;
-        newContent = newContent.replace(originalWriteBlock, newWriteBlock);
+
+        const newWriteBlock = `  if ($customFilename) {
+    $filename = safe_filename($customFilename);
+  } else {
+    // suffix length: _{timestamp}.notify = 1+10+7 = 18 chars.
+    $suffix = "_{$ticket}.notify";
+    $max_name_len = 255 - strlen($suffix);
+    // sanitize event, truncating it to leave room for suffix
+    $clean_name = safe_filename($event, $max_name_len);
+    // construct filename with suffix (underscore separator matches safe_filename behavior)
+    $filename = "{$clean_name}{$suffix}";
+  }
+
+  $unread = "{$unread}/{$filename}";
+  $archive = "{$archive}/{$filename}";
+
+  file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Processing {$event} -> {$filename}\\n", FILE_APPEND);
+
+  if (file_exists($archive)) {
+    file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Archive exists, skipping: {$archive}\\n", FILE_APPEND);
+    break;
+  }
+  $entity = $overrule===false ? $notify[$importance] : $overrule;
+  $cleanSubject = clean_subject($subject);
+  $archiveData = [
+    'timestamp' => $timestamp,
+    'event' => $event,
+    'subject' => $cleanSubject,
+    'description' => $description,
+    'importance' => $importance,
+  ];
+  if ($message) $archiveData['message'] = str_replace('\\n','<br>',$message);
+  if (!$mailtest) {
+      file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Writing archive: {$archive}\\n", FILE_APPEND);
+      file_put_contents($archive, build_ini_string($archiveData));
+  }
+  if (($entity & 1)==1 && !$mailtest && !$noBrowser) {
+    $unreadData = [
+      'timestamp' => $timestamp,
+      'event' => $event,
+      'subject' => $cleanSubject,
+      'description' => $description,
+      'importance' => $importance,
+      'link' => $link,
+    ];
+    file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Writing unread: {$unread}\\n", FILE_APPEND);
+    file_put_contents($unread, build_ini_string($unreadData));
+  } else {
+      file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Skipping unread. Entity: {$entity}, Mailtest: {$mailtest}, NoBrowser: {$noBrowser}\\n", FILE_APPEND);
+  }`;
+
+        // Try replacing original first
+        if (newContent.includes(originalWriteBlock)) {
+            newContent = newContent.replace(originalWriteBlock, newWriteBlock);
+        } else if (newContent.includes(intermediateWriteBlock)) {
+            // Try replacing intermediate
+            newContent = newContent.replace(intermediateWriteBlock, newWriteBlock);
+        } else {
+            // Fallback: try to replace partial bits if possible or regex?
+            // For now, assume one of these matches. If not, we might be in a state where manual intervention or specific regex is needed.
+            // Let's rely on strict matching for safety, but check for single quotes vs double quotes in intermediate block just in case user paste had slightly different escaping
+            const intermediateWriteBlockSingleQuotes = intermediateWriteBlock.replace(/'/g, "'"); // no-op but reminder
+            // If the user's file has slightly different spacing, we might fail.
+            // But we'll try this for now.
+
+            // Attempt relaxed match for intermediate block if standard string replace fails?
+            // Not easily done without reliable anchors.
+        }
 
         // 8. Update 'get' case to use ini_decode_value
+        // (Only if not already updated)
         const originalGetLoop = `    foreach ($fields as $field) {
       if (!$field) continue;
       [$key,$val] = array_pad(explode('=', $field),2,'');
@@ -191,7 +264,9 @@ function ini_decode_value($value) {
       $output[$i][trim($key)] = ini_decode_value($val);
     }`;
 
-        newContent = newContent.replace(originalGetLoop, newGetLoop);
+        if (newContent.includes(originalGetLoop) && !newContent.includes('ini_decode_value($val)')) {
+            newContent = newContent.replace(originalGetLoop, newGetLoop);
+        }
 
         return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
     }

@@ -270,7 +270,13 @@ case 'add':
 
   $unread = "{$unread}/{$filename}";
   $archive = "{$archive}/{$filename}";
-  if (file_exists($archive)) break;
+
+  file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Processing {$event} -> {$filename}\n", FILE_APPEND);
+
+  if (file_exists($archive)) {
+    file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Archive exists, skipping: {$archive}\n", FILE_APPEND);
+    break;
+  }
   $entity = $overrule===false ? $notify[$importance] : $overrule;
   $cleanSubject = clean_subject($subject);
   $archiveData = [
@@ -281,7 +287,10 @@ case 'add':
     'importance' => $importance,
   ];
   if ($message) $archiveData['message'] = str_replace('\n','<br>',$message);
-  if (!$mailtest) file_put_contents($archive, build_ini_string($archiveData));
+  if (!$mailtest) {
+      file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Writing archive: {$archive}\n", FILE_APPEND);
+      file_put_contents($archive, build_ini_string($archiveData));
+  }
   if (($entity & 1)==1 && !$mailtest && !$noBrowser) {
     $unreadData = [
       'timestamp' => $timestamp,
@@ -291,7 +300,10 @@ case 'add':
       'importance' => $importance,
       'link' => $link,
     ];
+    file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Writing unread: {$unread}\n", FILE_APPEND);
     file_put_contents($unread, build_ini_string($unreadData));
+  } else {
+      file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Skipping unread. Entity: {$entity}, Mailtest: {$mailtest}, NoBrowser: {$noBrowser}\n", FILE_APPEND);
   }
   if (($entity & 2)==2 || $mailtest) generate_email($event, clean_subject($subject), str_replace('<br>','. ',$description), $importance, $message, $recipients, $fqdnlink);
   if (($entity & 4)==4 && !$mailtest) { if (is_array($agents)) {foreach ($agents as $agent) {exec("TIMESTAMP='$timestamp' EVENT=".escapeshellarg($event)." SUBJECT=".escapeshellarg(clean_subject($subject))." DESCRIPTION=".escapeshellarg($description)." IMPORTANCE=".escapeshellarg($importance)." CONTENT=".escapeshellarg($message)." LINK=".escapeshellarg($fqdnlink)." bash ".$agent);};}};

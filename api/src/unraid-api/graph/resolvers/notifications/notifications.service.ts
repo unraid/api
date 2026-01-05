@@ -112,7 +112,7 @@ export class NotificationsService {
     private async handleNotificationAdd(path: string) {
         // The path looks like /{notification base path}/{type}/{notification id}
         const type = path.includes('/unread/') ? NotificationType.UNREAD : NotificationType.ARCHIVE;
-        this.logger.debug(`[handleNotificationAdd] Adding ${type} Notification: ${path}`);
+        this.logger.log(`[handleNotificationAdd] Adding ${type} Notification: ${path}`);
 
         // Note: We intentionally track duplicate files (files in both unread and archive)
         // because the frontend relies on (Archive Total - Unread Total) to calculate the
@@ -272,10 +272,11 @@ export class NotificationsService {
 
         try {
             const [command, args] = this.getLegacyScriptArgs(fileData, id);
+            this.logger.log(`[createNotification] Executing: ${command} ${args.join(' ')}`);
             await execa(command, args);
         } catch (error) {
             // manually write the file if the script fails entirely
-            this.logger.debug(`[createNotification] legacy notifier failed: ${error}`);
+            this.logger.warn(`[createNotification] legacy notifier failed: ${error}`);
             this.logger.verbose(`[createNotification] Writing: ${JSON.stringify(fileData, null, 4)}`);
 
             const path = join(this.paths().UNREAD, id);
