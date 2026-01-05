@@ -11,5 +11,5 @@ export * from './scroll-area/index.js';
 export * from './sheet/index.js';
 export * from './stepper/index.js';
 export * from './tabs/index.js';
-export * from './toast/index.js';
+
 export * from './tooltip/index.js';

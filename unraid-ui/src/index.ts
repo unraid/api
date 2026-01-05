@@ -13,5 +13,3 @@ export * from '@/lib/utils';
 
 // Composables
 export { default as useTeleport } from '@/composables/useTeleport';
-export { useToast } from '@/composables/useToast';
-export type { ToastInstance } from '@/composables/useToast';
