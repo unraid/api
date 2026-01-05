@@ -558,6 +558,7 @@ export class NotificationsService {
             }
         }
 
+        void this.publishOverview();
         void this.publishWarningsAndAlerts();
 
         return {
