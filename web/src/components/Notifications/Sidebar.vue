@@ -131,7 +131,11 @@ onNotificationAdded(({ data }) => {
   const color = NOTIFICATION_TOAST_COLORS[notif.importance];
   const createOpener = () => ({
     label: t('notifications.sidebar.toastOpen'),
-    onClick: () => navigate(notif.link as string),
+    onClick: () => {
+      if (notif.link) {
+        navigate(notif.link);
+      }
+    },
   });
 
   requestAnimationFrame(() =>

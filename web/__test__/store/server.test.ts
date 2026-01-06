@@ -288,6 +288,7 @@ vi.mock('~/store/unraidApi', () => ({
   useUnraidApiStore: vi.fn(() => ({
     unraidApiStatus: 'online',
     prioritizeCorsError: false,
+    setOnline: vi.fn(),
   })),
 }));
 

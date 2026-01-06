@@ -77,9 +77,7 @@ const { result, error, loading, fetchMore, refetch, subscribeToMore, onResult } 
 onResult((res) => {
   if (res.data) {
     emit('refetched');
-    if (unraidApiStore.unraidApiStatus === 'offline') {
-      unraidApiStore.unraidApiStatus = 'online';
-    }
+    unraidApiStore.setOnline();
   }
 });
 
@@ -232,7 +230,6 @@ async function onLoadMore() {
   } catch (error) {
     console.error('[Notifications] fetchMore Error:', error);
     canLoadMore.value = false;
-    throw error;
   }
 }
 
@@ -322,7 +319,7 @@ const displayErrorMessage = computed(() => {
           <USkeleton class="h-3 w-3/4" />
         </div>
       </div>
-      <p class="text-muted-foreground text-center text-sm">Loading Notifications...</p>
+      <p class="text-muted-foreground text-center text-sm">{{ t('notifications.list.loading') }}</p>
     </div>
 
     <!-- Error (centered, icon + title + message + full-width button) -->

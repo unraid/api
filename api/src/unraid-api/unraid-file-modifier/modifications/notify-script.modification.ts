@@ -151,6 +151,7 @@ function ini_decode_value($value) {
 
         // This matches the block seen in 7.3 (cleaned of potential extra spacing differences by using truncated match or exact)
         // Using strict match based on user provided cat input
+
         const intermediateWriteBlock = `  $unread = "{$unread}/".safe_filename("{$event}-{$ticket}.notify");
   $archive = "{$archive}/".safe_filename("{$event}-{$ticket}.notify");
   if (file_exists($archive)) break;
@@ -192,9 +193,7 @@ function ini_decode_value($value) {
   $unread = "{$unread}/{$filename}";
   $archive = "{$archive}/{$filename}";
 
-  if (file_exists($archive)) {
-    break;
-  }
+  if (file_exists($archive)) break;
   $entity = $overrule===false ? $notify[$importance] : $overrule;
   $cleanSubject = clean_subject($subject);
   $archiveData = [
@@ -205,9 +204,7 @@ function ini_decode_value($value) {
     'importance' => $importance,
   ];
   if ($message) $archiveData['message'] = str_replace('\\n','<br>',$message);
-  if (!$mailtest) {
-      file_put_contents($archive, build_ini_string($archiveData));
-  }
+  if (!$mailtest) file_put_contents($archive, build_ini_string($archiveData));
   if (($entity & 1)==1 && !$mailtest && !$noBrowser) {
     $unreadData = [
       'timestamp' => $timestamp,
@@ -220,7 +217,6 @@ function ini_decode_value($value) {
     file_put_contents($unread, build_ini_string($unreadData));
   }`;
 
-        // Try replacing original first
         if (newContent.includes(originalWriteBlock)) {
             newContent = newContent.replace(originalWriteBlock, newWriteBlock);
         } else if (newContent.includes(intermediateWriteBlock)) {
