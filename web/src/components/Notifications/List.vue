@@ -68,7 +68,10 @@ const { result, error, loading, fetchMore, refetch, subscribeToMore, onResult } 
       type: props.type,
       importance: props.importance,
     },
-  })
+  }),
+  {
+    fetchPolicy: 'cache-and-network',
+  }
 );
 
 onResult((res) => {
