@@ -104,7 +104,13 @@ subscribeToMore({
 });
 
 const handleRefetch = () => {
-  void refetch();
+  recalculateOverview()
+    .catch((e) => {
+      console.error('[Notifications] Recalculate overview failed:', e);
+    })
+    .finally(() => {
+      void refetch();
+    });
 };
 
 watch(

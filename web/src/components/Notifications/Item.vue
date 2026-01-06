@@ -6,6 +6,7 @@ import { computedAsync, useTimeAgo } from '@vueuse/core';
 
 import { Markdown } from '@/helpers/markdown';
 import { navigate } from '~/helpers/external-navigation';
+import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
 
@@ -15,10 +16,13 @@ import {
   deleteNotification as deleteMutation,
 } from '~/components/Notifications/graphql/notification.query';
 import { NotificationType } from '~/composables/gql/graphql';
+import { useUnraidApiStore } from '~/store/unraidApi';
 
 const props = defineProps<NotificationFragmentFragment>();
 
 const { t } = useI18n();
+const toast = useToast();
+const unraidApiStore = useUnraidApiStore();
 
 const descriptionMarkup = computedAsync(async () => {
   try {
@@ -52,8 +56,43 @@ const deleteNotification = reactive(
   })
 );
 
+const handleMutation = async (action: 'archive' | 'delete', mutateFn: () => Promise<unknown>) => {
+  try {
+    await mutateFn();
+  } catch (e: unknown) {
+    console.error(`[Notifications] ${action} failed:`, e);
+    let message = extractGraphQLErrorMessage(e);
+
+    if (
+      unraidApiStore.unraidApiStatus === 'offline' ||
+      message === 'Error message not found' ||
+      message === 'Failed to fetch' ||
+      (e as { message?: string })?.message === 'Failed to fetch'
+    ) {
+      const key = 'notifications.item.apiOfflineError';
+      const text = t(key);
+      message = text !== key ? text : 'The Unraid API is unreachable.';
+    }
+
+    toast.add({
+      title: t('common.error'),
+      description: message,
+      color: 'red',
+    });
+  }
+};
+
 const mutationError = computed(() => {
-  return archive.error?.message ?? deleteNotification.error?.message;
+  const err = archive.error || deleteNotification.error;
+  if (!err) return null;
+
+  if (unraidApiStore.unraidApiStatus === 'offline') {
+    const key = 'notifications.item.apiOfflineError';
+    const text = t(key);
+    return text !== key ? text : 'The Unraid API is unreachable.';
+  }
+
+  return extractGraphQLErrorMessage(err);
 });
 
 const openLink = () => {
@@ -165,7 +204,7 @@ const timeAgo = computed(() => (props.timestamp ? timeAgoReference.value : ''));
             :loading="archive.loading"
             icon="i-heroicons-archive-box-20-solid"
             color="primary"
-            @click="() => void archive.mutate({ id: props.id })"
+            @click="() => handleMutation('archive', () => archive.mutate({ id: props.id }))"
           >
             {{ t('notifications.item.archive') }}
           </UButton>
@@ -176,7 +215,12 @@ const timeAgo = computed(() => (props.timestamp ? timeAgoReference.value : ''));
             :loading="deleteNotification.loading"
             icon="i-heroicons-trash-20-solid"
             color="red"
-            @click="() => void deleteNotification.mutate({ id: props.id, type: props.type })"
+            @click="
+              () =>
+                handleMutation('delete', () =>
+                  deleteNotification.mutate({ id: props.id, type: props.type })
+                )
+            "
           >
             {{ t('notifications.item.delete') }}
           </UButton>
