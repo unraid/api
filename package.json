@@ -23,7 +23,6 @@
   "pnpm": {
     "overrides": {
       "graphql": "16.11.0",
-      "jiti": "2.6.1",
       "@graphql-tools/utils": "10.9.1"
     },
     "peerDependencyRules": {

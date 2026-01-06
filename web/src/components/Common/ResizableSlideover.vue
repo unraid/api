@@ -41,7 +41,7 @@ const clampSidebarWidth = (desired: number, viewport: number | null) => {
 
 const startResize = (e: MouseEvent) => {
   isResizing.value = true;
-  if (!import.meta.env.SSR) {
+  if (import.meta.client) {
     document.body.style.cursor = 'ew-resize';
     document.body.style.userSelect = 'none';
   }
@@ -59,7 +59,7 @@ const handleResize = (e: MouseEvent) => {
 const stopResize = () => {
   if (!isResizing.value) return;
   isResizing.value = false;
-  if (!import.meta.env.SSR) {
+  if (import.meta.client) {
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
   }
