@@ -88,9 +88,7 @@ subscribeToMore({
 });
 
 const handleRefetch = () => {
-  void recalculateOverview().finally(() => {
-    void refetch();
-  });
+  void refetch();
 };
 
 watch(
