@@ -61,7 +61,15 @@ const confirmAndArchiveAll = async () => {
     confirmVariant: 'primary',
   });
   if (confirmed) {
-    await archiveAll();
+    try {
+      await archiveAll();
+    } catch (e) {
+      console.error('[Notifications] Archive all failed:', e);
+      toast.add({
+        title: t('notifications.sidebar.archiveAllError'),
+        color: 'error',
+      });
+    }
   }
 };
 
@@ -73,7 +81,15 @@ const confirmAndDeleteArchives = async () => {
     confirmVariant: 'destructive',
   });
   if (confirmed) {
-    await deleteArchives();
+    try {
+      await deleteArchives();
+    } catch (e) {
+      console.error('[Notifications] Delete all failed:', e);
+      toast.add({
+        title: t('notifications.sidebar.deleteAllError'),
+        color: 'error',
+      });
+    }
   }
 };
 

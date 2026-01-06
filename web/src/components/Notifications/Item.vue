@@ -64,7 +64,7 @@ const openLink = () => {
 
 const reformattedTimestamp = computed<string>(() => {
   if (!props.timestamp) return '';
-  const userLocale = navigator.language ?? 'en-US';
+  const userLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
 
   const reformattedDate = new Intl.DateTimeFormat(userLocale, {
     localeMatcher: 'best fit',
@@ -93,7 +93,8 @@ const parsedTimestamp = computed(() => {
   return { date: full, time: '', split: false };
 });
 
-const timeAgo = useTimeAgo(computed(() => props.timestamp || new Date()));
+const timeAgoReference = useTimeAgo(computed(() => props.timestamp ?? new Date()));
+const timeAgo = computed(() => (props.timestamp ? timeAgoReference.value : ''));
 </script>
 
 <template>
@@ -116,11 +117,13 @@ const timeAgo = useTimeAgo(computed(() => props.timestamp || new Date()));
             </template>
           </span>
 
-          <span class="text-muted/50">&bull;</span>
+          <template v-if="timeAgo">
+            <span class="text-muted/50">&bull;</span>
 
-          <span class="text-primary">
-            {{ timeAgo }}
-          </span>
+            <span class="text-primary">
+              {{ timeAgo }}
+            </span>
+          </template>
         </div>
 
         <!-- Title -->

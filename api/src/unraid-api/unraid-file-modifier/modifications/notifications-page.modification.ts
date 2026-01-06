@@ -23,7 +23,6 @@ export default class NotificationsPageModification extends FileModification {
     protected async generatePatch(overridePath?: string): Promise<string> {
         const fileContent = await readFile(this.filePath, 'utf-8');
         const isBelow71 = !(await this.isUnraidVersionGreaterThanOrEqualTo('7.1.0'));
-        const isBelow70 = !(await this.isUnraidVersionGreaterThanOrEqualTo('7.0.0'));
 
         const newContent = NotificationsPageModification.applyToSource(
             fileContent,
@@ -58,23 +57,6 @@ export default class NotificationsPageModification extends FileModification {
             // :notifications_auto_close_help:
             newContent = newContent.replace(
                 /^\s*_\(Auto-close\)_ \(?_\(seconds\)_?\)?:\s*\n\s*:\s*<input[^>]+>.*?\n\s*\n\s*:notifications_auto_close_help:\s*/gm,
-                ''
-            );
-
-            // Try generic regex if the detailed one fails/is too brittle, but specific is better for safety
-            // Let's rely on the anchor strings
-            const autoCloseAnchor = '_((Auto-close))_ (_((seconds))_):';
-            // Since regex with multiple lines and potential slight variations is better handled loosely or with concrete bounds
-            // Let's use a simpler approach if the specific one is tricky without seeing exact whitespace chars
-            // The user provided snippet has:
-            // _(Auto-close)_ (_(seconds)_):
-            // : <input type="number" name="life" class="a" min="0" max="60" value="<?=$notify['life']?>"> _(a value of zero means no automatic closure)_
-            //
-            // :notifications_auto_close_help:
-
-            // Using a regex that captures from start to the help tag
-            newContent = newContent.replace(
-                /_\(Auto-close\)_[^:]*:(?:[^\n]*\n)*?\s*:notifications_auto_close_help:/gm,
                 ''
             );
         }

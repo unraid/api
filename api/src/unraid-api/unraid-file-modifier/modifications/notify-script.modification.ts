@@ -192,10 +192,7 @@ function ini_decode_value($value) {
   $unread = "{$unread}/{$filename}";
   $archive = "{$archive}/{$filename}";
 
-  file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Processing {$event} -> {$filename}\\n", FILE_APPEND);
-
   if (file_exists($archive)) {
-    file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Archive exists, skipping: {$archive}\\n", FILE_APPEND);
     break;
   }
   $entity = $overrule===false ? $notify[$importance] : $overrule;
@@ -209,7 +206,6 @@ function ini_decode_value($value) {
   ];
   if ($message) $archiveData['message'] = str_replace('\\n','<br>',$message);
   if (!$mailtest) {
-      file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Writing archive: {$archive}\\n", FILE_APPEND);
       file_put_contents($archive, build_ini_string($archiveData));
   }
   if (($entity & 1)==1 && !$mailtest && !$noBrowser) {
@@ -221,10 +217,7 @@ function ini_decode_value($value) {
       'importance' => $importance,
       'link' => $link,
     ];
-    file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Writing unread: {$unread}\\n", FILE_APPEND);
     file_put_contents($unread, build_ini_string($unreadData));
-  } else {
-      file_put_contents('/var/log/notify_debug.log', date('Y-m-d H:i:s')." [notify] Skipping unread. Entity: {$entity}, Mailtest: {$mailtest}, NoBrowser: {$noBrowser}\\n", FILE_APPEND);
   }`;
 
         // Try replacing original first
@@ -237,10 +230,8 @@ function ini_decode_value($value) {
             // Fallback: try to replace partial bits if possible or regex?
             // For now, assume one of these matches. If not, we might be in a state where manual intervention or specific regex is needed.
             // Let's rely on strict matching for safety, but check for single quotes vs double quotes in intermediate block just in case user paste had slightly different escaping
-            const intermediateWriteBlockSingleQuotes = intermediateWriteBlock.replace(/'/g, "'"); // no-op but reminder
             // If the user's file has slightly different spacing, we might fail.
             // But we'll try this for now.
-
             // Attempt relaxed match for intermediate block if standard string replace fails?
             // Not easily done without reliable anchors.
         }

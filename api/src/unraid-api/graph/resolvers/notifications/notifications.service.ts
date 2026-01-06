@@ -548,7 +548,18 @@ export class NotificationsService {
             }
         } else {
             // File not in archive, move it there
-            await rename(unreadPath, archivePath);
+            try {
+                await rename(unreadPath, archivePath);
+            } catch (err) {
+                // revert our earlier decrement
+                // we do it this way (decrement -> try rename -> revert if error) to avoid
+                // a race condition between `rename` and `decrement`
+                this.increment(notification.importance, NotificationsService.overview.unread);
+                if (snapshot) {
+                    this.increment(notification.importance, snapshot?.unread);
+                }
+                throw err;
+            }
 
             // We moved a file to archive that wasn't there.
             // We DO need to increment the stats.
@@ -996,10 +1007,8 @@ export class NotificationsService {
 
     private formatDatetime(date: Date) {
         const { display, notify } = getters.dynamix();
-        const settings = display || {};
-        const notifySettings = notify || {};
 
-        if (!settings && !notifySettings) {
+        if (!display && !notify) {
             this.logger.warn(
                 '[formatTimestamp] Dynamix display/notify settings not found. Cannot apply user settings.'
             );
@@ -1007,8 +1016,8 @@ export class NotificationsService {
         }
 
         // Prioritize notification-specific settings, fall back to global display settings
-        const dateFormat = (notifySettings as any).date || (settings as any).date || null;
-        const timeFormat = (notifySettings as any).time || (settings as any).time || null;
+        const dateFormat = notify?.date || display?.date || null;
+        const timeFormat = notify?.time || display?.time || null;
 
         if (!dateFormat || !timeFormat) {
             // If we still don't have a format (e.g. neither config implies one), fallback to ISO
@@ -1016,8 +1025,8 @@ export class NotificationsService {
         }
 
         return formatDatetime(date, {
-            dateFormat: dateFormat,
-            timeFormat: timeFormat,
+            dateFormat,
+            timeFormat,
             omitTimezone: true,
         });
     }

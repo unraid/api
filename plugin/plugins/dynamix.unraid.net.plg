@@ -339,8 +339,8 @@ exit 0
       FILES_TO_RESTORE=(
         "/usr/local/emhttp/languages/en_US/helptext.txt"
         "/usr/local/emhttp/plugins/dynamix/include/Translations.php"
-        "/usr/local/emhttp/plugins/dynamix/Notifications.page"
         "/usr/local/emhttp/plugins/dynamix/default.cfg"
+        "/usr/local/emhttp/plugins/dynamix/Notifications.page"
         "/usr/local/emhttp/plugins/dynamix/include/Notify.php"
         "/usr/local/emhttp/plugins/dynamix/scripts/notify"
         "/usr/local/emhttp/plugins/dynamix/styles/default-base.css"
