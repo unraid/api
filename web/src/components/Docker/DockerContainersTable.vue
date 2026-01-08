@@ -109,6 +109,7 @@ const baseTableRef = ref<
   (ColumnVisibilityTableInstance & { toggleExpanded?: (id: string) => void }) | null
 >(null);
 const busyRowIds = ref<Set<string>>(new Set());
+const startingRowIds = ref<Set<string>>(new Set());
 const columnSizing = useStorage<Record<string, number>>('docker-table-column-sizing', {});
 const columnOrder = useStorage<string[]>('docker-table-column-order', []);
 
@@ -175,6 +176,15 @@ function setRowsBusy(ids: string[], busy: boolean) {
   busyRowIds.value = next;
 }
 
+function setRowsStarting(ids: string[], starting: boolean) {
+  const next = new Set(startingRowIds.value);
+  for (const id of ids) {
+    if (starting) next.add(id);
+    else next.delete(id);
+  }
+  startingRowIds.value = next;
+}
+
 function getContainerRows(ids: string[]): TreeRow<DockerContainer>[] {
   const rows: TreeRow<DockerContainer>[] = [];
   for (const id of ids) {
@@ -209,6 +219,7 @@ const containerActions = useContainerActions({
   getRowById,
   treeData,
   setRowsBusy,
+  setRowsStarting,
   startMutation: startContainerMutation,
   stopMutation: stopContainerMutation,
   pauseMutation: pauseContainerMutation,
@@ -377,6 +388,7 @@ const { getRowActionItems } = useDockerRowActions({
 const { columns } = useDockerTableColumns({
   compact: compactRef,
   busyRowIds,
+  startingRowIds,
   updatingRowIds,
   containerStats,
   onUpdateContainer: handleUpdateContainer,
