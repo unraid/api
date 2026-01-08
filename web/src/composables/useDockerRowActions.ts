@@ -133,7 +133,7 @@ export function useDockerRowActions(options: DockerRowActionsOptions) {
 
     if (canVisit && webUiUrl) {
       quickActions.push({
-        label: 'Visit',
+        label: 'WebUI',
         icon: 'i-lucide-external-link',
         as: 'button',
         onSelect: () => openLanIpInNewTab(webUiUrl),
@@ -143,7 +143,7 @@ export function useDockerRowActions(options: DockerRowActionsOptions) {
     if (hasTailscale && row.meta?.id) {
       const containerId = row.meta.id;
       quickActions.push({
-        label: 'Visit (Tailscale)',
+        label: 'WebUI (Tailscale)',
         icon: 'i-lucide-external-link',
         as: 'button',
         onSelect: () => onVisitTailscale(containerId),
