@@ -73,7 +73,7 @@ describe('DockerModule', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 DockerResolver,
-                { provide: DockerService, useValue: { clearContainerCache: vi.fn() } },
+                { provide: DockerService, useValue: {} },
                 {
                     provide: DockerConfigService,
                     useValue: {

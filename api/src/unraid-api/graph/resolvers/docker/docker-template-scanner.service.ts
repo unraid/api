@@ -87,7 +87,7 @@ export class DockerTemplateScannerService {
         const templates = await this.loadAllTemplates(result);
 
         try {
-            const containers = await this.dockerService.getContainers({ skipCache: true });
+            const containers = await this.dockerService.getContainers();
             const config = this.dockerConfigService.getConfig();
             const currentMappings = config.templateMappings || {};
             const skipSet = new Set(config.skipTemplatePaths || []);

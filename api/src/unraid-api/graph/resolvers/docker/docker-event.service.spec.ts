@@ -61,7 +61,6 @@ vi.mock('./utils/docker-client.js', () => ({
 vi.mock('./docker.service.js', () => ({
     DockerService: vi.fn().mockImplementation(() => ({
         getDockerClient: vi.fn(),
-        clearContainerCache: vi.fn(),
         getAppInfo: vi.fn().mockResolvedValue({ info: { apps: { installed: 1, running: 1 } } }),
     })),
 }));
@@ -76,7 +75,6 @@ describe('DockerEventService', () => {
         // Create a mock Docker service *instance*
         const mockDockerServiceImpl = {
             getDockerClient: vi.fn(),
-            clearContainerCache: vi.fn(),
             getAppInfo: vi.fn().mockResolvedValue({ info: { apps: { installed: 1, running: 1 } } }),
         };
 
@@ -132,7 +130,6 @@ describe('DockerEventService', () => {
 
         await waitForEventProcessing();
 
-        expect(dockerService.clearContainerCache).toHaveBeenCalled();
         expect(dockerService.getAppInfo).toHaveBeenCalled();
         expect(pubsub.publish).toHaveBeenCalledWith(PUBSUB_CHANNEL.INFO, expect.any(Object));
     });
@@ -154,7 +151,6 @@ describe('DockerEventService', () => {
 
         await waitForEventProcessing();
 
-        expect(dockerService.clearContainerCache).not.toHaveBeenCalled();
         expect(dockerService.getAppInfo).not.toHaveBeenCalled();
         expect(pubsub.publish).not.toHaveBeenCalled();
     });
@@ -172,7 +168,6 @@ describe('DockerEventService', () => {
         await waitForEventProcessing();
 
         expect(service.isActive()).toBe(true);
-        expect(dockerService.clearContainerCache).toHaveBeenCalledTimes(1);
         expect(dockerService.getAppInfo).toHaveBeenCalledTimes(1);
         expect(pubsub.publish).toHaveBeenCalledTimes(1);
     });
@@ -190,7 +185,6 @@ describe('DockerEventService', () => {
 
         await waitForEventProcessing();
 
-        expect(dockerService.clearContainerCache).toHaveBeenCalledTimes(2);
         expect(dockerService.getAppInfo).toHaveBeenCalledTimes(2);
         expect(pubsub.publish).toHaveBeenCalledTimes(2);
     });
@@ -206,7 +200,6 @@ describe('DockerEventService', () => {
 
         await waitForEventProcessing();
 
-        expect(dockerService.clearContainerCache).toHaveBeenCalledTimes(1);
         expect(dockerService.getAppInfo).toHaveBeenCalledTimes(1);
         expect(pubsub.publish).toHaveBeenCalledTimes(1);
 
@@ -223,7 +216,6 @@ describe('DockerEventService', () => {
 
         await waitForEventProcessing();
 
-        expect(dockerService.clearContainerCache).toHaveBeenCalledTimes(1);
         expect(dockerService.getAppInfo).toHaveBeenCalledTimes(1);
         expect(pubsub.publish).toHaveBeenCalledTimes(1);
 

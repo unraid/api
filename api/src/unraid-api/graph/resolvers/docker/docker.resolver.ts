@@ -77,7 +77,7 @@ export class DockerResolver {
     })
     @ResolveField(() => DockerContainer, { nullable: true })
     public async container(@Args('id', { type: () => PrefixedID }) id: string) {
-        const containers = await this.dockerService.getContainers({ skipCache: false });
+        const containers = await this.dockerService.getContainers();
         return containers.find((c) => c.id === id) ?? null;
     }
 
@@ -87,14 +87,18 @@ export class DockerResolver {
     })
     @ResolveField(() => [DockerContainer])
     public async containers(
-        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean,
+        @Args('skipCache', {
+            defaultValue: false,
+            type: () => Boolean,
+            deprecationReason: 'Caching has been removed; this parameter is now ignored',
+        })
+        _skipCache: boolean,
         @Info() info: GraphQLResolveInfo
     ) {
         const requestsRootFsSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeRootFs');
         const requestsRwSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeRw');
         const requestsLogSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeLog');
         const containers = await this.dockerService.getContainers({
-            skipCache,
             size: requestsRootFsSize || requestsRwSize,
         });
 
@@ -114,7 +118,7 @@ export class DockerResolver {
         }
 
         const wasSynced = await this.dockerTemplateScannerService.syncMissingContainers(containers);
-        return wasSynced ? await this.dockerService.getContainers({ skipCache: true }) : containers;
+        return wasSynced ? await this.dockerService.getContainers() : containers;
     }
 
     @UsePermissions({
@@ -139,9 +143,14 @@ export class DockerResolver {
     })
     @ResolveField(() => [DockerNetwork])
     public async networks(
-        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
+        @Args('skipCache', {
+            defaultValue: false,
+            type: () => Boolean,
+            deprecationReason: 'Caching has been removed; this parameter is now ignored',
+        })
+        _skipCache: boolean
     ) {
-        return this.dockerService.getNetworks({ skipCache });
+        return this.dockerService.getNetworks();
     }
 
     @UsePermissions({
@@ -150,9 +159,14 @@ export class DockerResolver {
     })
     @ResolveField(() => DockerPortConflicts)
     public async portConflicts(
-        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
+        @Args('skipCache', {
+            defaultValue: false,
+            type: () => Boolean,
+            deprecationReason: 'Caching has been removed; this parameter is now ignored',
+        })
+        _skipCache: boolean
     ) {
-        return this.dockerService.getPortConflicts({ skipCache });
+        return this.dockerService.getPortConflicts();
     }
 
     @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
@@ -162,9 +176,14 @@ export class DockerResolver {
     })
     @ResolveField(() => ResolvedOrganizerV1)
     public async organizer(
-        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
+        @Args('skipCache', {
+            defaultValue: false,
+            type: () => Boolean,
+            deprecationReason: 'Caching has been removed; this parameter is now ignored',
+        })
+        _skipCache: boolean
     ) {
-        return this.dockerOrganizerService.resolveOrganizer(undefined, { skipCache });
+        return this.dockerOrganizerService.resolveOrganizer();
     }
 
     @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
@@ -351,7 +370,6 @@ export class DockerResolver {
         };
         const validated = await this.dockerConfigService.validate(resetConfig);
         this.dockerConfigService.replaceConfig(validated);
-        await this.dockerService.clearContainerCache();
         return true;
     }
 

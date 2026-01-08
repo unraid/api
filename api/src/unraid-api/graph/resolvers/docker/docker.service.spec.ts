@@ -1,5 +1,4 @@
 import type { TestingModule } from '@nestjs/testing';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
 
 import Docker from 'dockerode';
@@ -107,13 +106,6 @@ vi.mock('fs/promises', () => ({
     stat: statMock,
 }));
 
-// Mock Cache Manager
-const mockCacheManager = {
-    get: vi.fn(),
-    set: vi.fn(),
-    del: vi.fn(),
-};
-
 // Mock DockerConfigService
 const mockDockerConfigService = {
     getConfig: vi.fn().mockReturnValue({
@@ -188,9 +180,6 @@ describe('DockerService', () => {
         mockContainer.unpause.mockReset();
         mockContainer.inspect.mockReset();
 
-        mockCacheManager.get.mockReset();
-        mockCacheManager.set.mockReset();
-        mockCacheManager.del.mockReset();
         statMock.mockReset();
         statMock.mockResolvedValue({ size: 0 });
 
@@ -223,10 +212,6 @@ describe('DockerService', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 DockerService,
-                {
-                    provide: CACHE_MANAGER,
-                    useValue: mockCacheManager,
-                },
                 {
                     provide: DockerConfigService,
                     useValue: mockDockerConfigService,
@@ -287,9 +272,8 @@ describe('DockerService', () => {
         ];
 
         mockListContainers.mockResolvedValue(mockContainers);
-        mockCacheManager.get.mockResolvedValue(undefined);
 
-        const result = await service.getContainers({ skipCache: true });
+        const result = await service.getContainers();
 
         expect(result).toEqual(
             expect.arrayContaining([
@@ -322,7 +306,6 @@ describe('DockerService', () => {
             expect.any(Array),
             { persistUserPreferences: true }
         );
-        expect(mockCacheManager.del).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
     });
 
     it('should delegate getContainerLogSizes to DockerLogService', async () => {
@@ -332,13 +315,25 @@ describe('DockerService', () => {
     });
 
     describe('getAppInfo', () => {
-        const mockContainersForMethods = [
-            { id: 'abc1', state: ContainerState.RUNNING },
-            { id: 'def2', state: ContainerState.EXITED },
-        ] as DockerContainer[];
-
         it('should return correct app info object', async () => {
-            mockCacheManager.get.mockResolvedValue(mockContainersForMethods);
+            mockListContainers.mockResolvedValue([
+                {
+                    Id: 'abc1',
+                    Names: ['/test1'],
+                    State: 'running',
+                    Ports: [],
+                    Labels: {},
+                    HostConfig: {},
+                },
+                {
+                    Id: 'def2',
+                    Names: ['/test2'],
+                    State: 'exited',
+                    Ports: [],
+                    Labels: {},
+                    HostConfig: {},
+                },
+            ]);
 
             const result = await service.getAppInfo();
             expect(result).toEqual({
@@ -346,7 +341,7 @@ describe('DockerService', () => {
                     apps: { installed: 2, running: 1 },
                 },
             });
-            expect(mockCacheManager.get).toHaveBeenCalledWith(DockerService.CONTAINER_CACHE_KEY);
+            expect(mockListContainers).toHaveBeenCalled();
         });
     });
 
