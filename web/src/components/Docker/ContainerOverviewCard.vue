@@ -11,7 +11,7 @@ import {
   formatNetwork,
   formatUptime,
   formatVolumes,
-  getFirstLanIp,
+  getWebUiUrl,
   openLanIpInNewTab,
   stripLeadingSlash,
 } from '@/utils/docker';
@@ -77,7 +77,7 @@ const projectUrl = computed(() => props.container?.projectUrl || null);
 const registryUrl = computed(() => props.container?.registryUrl || null);
 const supportUrl = computed(() => props.container?.supportUrl || null);
 
-const lanIpAddress = computed(() => getFirstLanIp(props.container));
+const webUiAddress = computed(() => getWebUiUrl(props.container));
 
 const isTailscaleEnabled = computed(() => Boolean(props.container?.tailscaleEnabled));
 const isContainerRunning = computed(() => props.container?.state === 'RUNNING');
@@ -127,8 +127,8 @@ function formatTailscaleDate(dateStr: string | Date | null | undefined): string 
 }
 
 function handleOpenWebUI() {
-  if (lanIpAddress.value) {
-    openLanIpInNewTab(lanIpAddress.value);
+  if (webUiAddress.value) {
+    openLanIpInNewTab(webUiAddress.value);
   }
 }
 
@@ -204,14 +204,14 @@ function handleOpenTailscaleAuth() {
 
         <div class="flex shrink-0 items-center gap-2">
           <UButton
-            v-if="lanIpAddress"
+            v-if="webUiAddress"
             size="sm"
             variant="soft"
             color="primary"
             icon="i-lucide-external-link"
             @click="handleOpenWebUI"
           >
-            Web UI
+            WebUI
           </UButton>
           <UButton
             v-if="tailscaleStatus?.webUiUrl"
@@ -221,7 +221,7 @@ function handleOpenTailscaleAuth() {
             icon="i-lucide-external-link"
             @click="handleOpenTailscaleWebUI"
           >
-            Web UI (Tailscale)
+            WebUI (Tailscale)
           </UButton>
         </div>
       </div>

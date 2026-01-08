@@ -117,7 +117,7 @@ const handleToggleRunning = () => {
           <!-- Action Buttons - only visible on hover -->
           <div class="hidden items-center gap-2 group-hover:flex">
             <UButton color="primary" variant="outline" size="sm" @click.stop> Manage </UButton>
-            <UButton color="primary" variant="solid" size="sm" @click.stop> Visit </UButton>
+            <UButton color="primary" variant="solid" size="sm" @click.stop> WebUI </UButton>
           </div>
 
           <!-- Autostart Toggle - only visible on hover -->
