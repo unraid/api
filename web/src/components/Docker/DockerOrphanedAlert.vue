@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useMutation } from '@vue/apollo-composable';
 
 import { stripLeadingSlash } from '@/utils/docker';
@@ -23,19 +24,25 @@ const REMOVE_CONTAINER = gql`
 `;
 
 const { mutate: removeContainer, loading: removing } = useMutation(REMOVE_CONTAINER);
+const errorMessage = ref<string | null>(null);
 
 async function handleRemove(container: DockerContainer) {
   const name = stripLeadingSlash(container.names[0]) || 'container';
   if (!confirm(`Are you sure you want to remove orphaned container "${name}"?`)) return;
 
+  errorMessage.value = null;
   try {
     await removeContainer({ id: container.id });
     emit('refresh');
   } catch (e) {
     console.error('Failed to remove container', e);
-    // Simple alert for now, ideally use a toast notification service
-    alert('Failed to remove container');
+    const message = e instanceof Error ? e.message : 'Unknown error';
+    errorMessage.value = `Failed to remove "${name}": ${message}`;
   }
+}
+
+function dismissError() {
+  errorMessage.value = null;
 }
 
 function formatContainerName(container: DockerContainer): string {
@@ -60,6 +67,21 @@ function formatContainerName(container: DockerContainer): string {
             These containers do not have a corresponding template. You can remove them if they are no
             longer needed.
           </p>
+        </div>
+        <div
+          v-if="errorMessage"
+          class="bg-destructive/10 border-destructive/30 text-destructive flex items-start gap-2 rounded-md border p-2 text-xs"
+        >
+          <UIcon name="i-lucide-circle-x" class="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
+          <span class="flex-1">{{ errorMessage }}</span>
+          <button
+            type="button"
+            class="hover:text-destructive/80 flex-shrink-0"
+            title="Dismiss"
+            @click="dismissError"
+          >
+            <UIcon name="i-lucide-x" class="h-4 w-4" aria-hidden="true" />
+          </button>
         </div>
         <div class="space-y-4">
           <div class="space-y-2">
