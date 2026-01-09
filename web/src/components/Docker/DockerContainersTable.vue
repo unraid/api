@@ -353,6 +353,7 @@ async function handleConfirmRemoveContainer(withImage: boolean) {
 
 const { getRowActionItems } = useDockerRowActions({
   updatingRowIds,
+  checkingForUpdates,
   hasFlatEntries,
   hasActiveConsoleSession: (name) => consoleSessions.hasActiveSession(name),
   canMoveUp: (id) => entryReordering.canMoveUp(id),
@@ -368,6 +369,7 @@ const { getRowActionItems } = useDockerRowActions({
   onViewLogs: handleViewLogs,
   onOpenConsole: handleOpenConsole,
   onManageSettings: handleManageSettings,
+  onCheckForUpdates: (row) => void handleCheckForUpdates([row]),
   onUpdateContainer: handleUpdateContainer,
   onRemoveContainer: openRemoveContainerModal,
   onVisitTailscale: handleVisitTailscale,
