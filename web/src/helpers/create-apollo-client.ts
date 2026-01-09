@@ -85,7 +85,10 @@ const errorLink = onError(({ graphQLErrors, networkError }: ErrorResponse) => {
 const retryLink = new RetryLink({
   attempts: {
     max: 20,
-    retryIf: (error, _operation) => {
+    retryIf: (error, operation) => {
+      if (operation.getContext().noRetry) {
+        return false;
+      }
       return Boolean(error);
     },
   },

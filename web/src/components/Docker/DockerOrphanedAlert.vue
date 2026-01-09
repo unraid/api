@@ -32,7 +32,7 @@ async function handleRemove(container: DockerContainer) {
 
   errorMessage.value = null;
   try {
-    await removeContainer({ id: container.id });
+    await removeContainer({ id: container.id }, { context: { noRetry: true } });
     emit('refresh');
   } catch (e) {
     console.error('Failed to remove container', e);
