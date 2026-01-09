@@ -215,7 +215,9 @@ export function useDockerRowActions(options: DockerRowActionsOptions) {
     ]);
 
     const containerName = getContainerNameFromRow(row);
-    const hasConsoleSession = containerName ? hasActiveConsoleSession(containerName) : false;
+    const isRunning = row.meta?.state === ContainerState.RUNNING;
+    const hasConsoleSession =
+      containerName && isRunning ? hasActiveConsoleSession(containerName) : false;
 
     items.push([
       {
@@ -229,6 +231,7 @@ export function useDockerRowActions(options: DockerRowActionsOptions) {
         icon: 'i-lucide-terminal',
         as: 'button',
         color: hasConsoleSession ? 'success' : undefined,
+        disabled: !isRunning,
         onSelect: () => onOpenConsole(row),
       },
       {

@@ -27,6 +27,7 @@ interface Props {
   loadingMoreContent?: boolean;
   isAtTop?: boolean;
   canLoadMore?: boolean;
+  dimmed?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -42,6 +43,7 @@ const props = withDefaults(defineProps<Props>(), {
   loadingMoreContent: false,
   isAtTop: false,
   canLoadMore: false,
+  dimmed: false,
 });
 
 const emit = defineEmits<{
@@ -168,7 +170,11 @@ defineExpose({ forceScrollToBottom, scrollViewportRef });
 
       <pre
         class="hljs m-0 p-4 font-mono text-xs leading-6 whitespace-pre"
-        :class="{ 'theme-dark': isDarkMode, 'theme-light': !isDarkMode }"
+        :class="{
+          'theme-dark': isDarkMode,
+          'theme-light': !isDarkMode,
+          'opacity-50': dimmed,
+        }"
         v-html="highlightedContent"
       />
     </div>
