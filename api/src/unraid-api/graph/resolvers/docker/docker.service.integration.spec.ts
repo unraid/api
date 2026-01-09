@@ -11,6 +11,7 @@ import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
 import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
+import { DockerUpdateProgressService } from '@app/unraid-api/graph/resolvers/docker/docker-update-progress.service.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
@@ -26,6 +27,12 @@ const mockDockerConfigService = {
 const mockDockerManifestService = {
     getCachedUpdateStatuses: vi.fn().mockResolvedValue({}),
     isUpdateAvailableCached: vi.fn().mockResolvedValue(false),
+};
+
+const mockDockerUpdateProgressService = {
+    updateContainerWithProgress: vi.fn().mockResolvedValue(undefined),
+    isUpdating: vi.fn().mockReturnValue(false),
+    getActiveUpdates: vi.fn().mockReturnValue([]),
 };
 
 // Hoisted mock for paths
@@ -76,6 +83,7 @@ describe.runIf(dockerAvailable)('DockerService Integration', () => {
                 DockerPortService,
                 { provide: DockerConfigService, useValue: mockDockerConfigService },
                 { provide: DockerManifestService, useValue: mockDockerManifestService },
+                { provide: DockerUpdateProgressService, useValue: mockDockerUpdateProgressService },
                 { provide: NotificationsService, useValue: mockNotificationsService },
             ],
         }).compile();
