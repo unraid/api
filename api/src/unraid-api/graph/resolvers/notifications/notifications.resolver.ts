@@ -9,6 +9,7 @@ import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import {
     Notification,
     NotificationData,
+    NotificationEvent,
     NotificationFilter,
     NotificationImportance,
     NotificationOverview,
@@ -196,5 +197,14 @@ export class NotificationsResolver {
     })
     async notificationsWarningsAndAlerts() {
         return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_WARNINGS_AND_ALERTS);
+    }
+
+    @Subscription(() => NotificationEvent)
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.NOTIFICATIONS,
+    })
+    async notificationEvent() {
+        return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_EVENT);
     }
 }

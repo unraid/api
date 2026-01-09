@@ -1388,25 +1388,6 @@ type FlatOrganizerEntry {
   meta: DockerContainer
 }
 
-type NotificationCounts {
-  info: Int!
-  warning: Int!
-  alert: Int!
-  total: Int!
-}
-
-type NotificationSettings {
-  position: String!
-  expand: Boolean!
-  duration: Int!
-  max: Int!
-}
-
-type NotificationOverview {
-  unread: NotificationCounts!
-  archive: NotificationCounts!
-}
-
 type Notification implements Node {
   id: PrefixedID!
 
@@ -1432,6 +1413,37 @@ enum NotificationImportance {
 enum NotificationType {
   UNREAD
   ARCHIVE
+}
+
+type NotificationEvent {
+  type: NotificationEventType!
+  notification: Notification
+}
+
+enum NotificationEventType {
+  ADDED
+  UPDATED
+  DELETED
+  CLEARED
+}
+
+type NotificationCounts {
+  info: Int!
+  warning: Int!
+  alert: Int!
+  total: Int!
+}
+
+type NotificationSettings {
+  position: String!
+  expand: Boolean!
+  duration: Int!
+  max: Int!
+}
+
+type NotificationOverview {
+  unread: NotificationCounts!
+  archive: NotificationCounts!
 }
 
 type Notifications implements Node {
@@ -2901,6 +2913,7 @@ type Subscription {
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
   notificationsWarningsAndAlerts: [Notification!]!
+  notificationEvent: NotificationEvent!
   ownerSubscription: Owner!
   serversSubscription: Server!
   parityHistorySubscription: ParityCheck!

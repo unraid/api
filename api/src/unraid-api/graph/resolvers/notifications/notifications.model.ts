@@ -23,6 +23,69 @@ registerEnumType(NotificationImportance, {
     name: 'NotificationImportance',
 });
 
+export enum NotificationEventType {
+    ADDED = 'ADDED',
+    UPDATED = 'UPDATED',
+    DELETED = 'DELETED',
+    CLEARED = 'CLEARED',
+}
+
+registerEnumType(NotificationEventType, {
+    name: 'NotificationEventType',
+});
+
+@ObjectType({ implements: () => Node })
+export class Notification extends Node {
+    @Field({ description: "Also known as 'event'" })
+    @IsString()
+    @IsNotEmpty()
+    title!: string;
+
+    @Field()
+    @IsString()
+    @IsNotEmpty()
+    subject!: string;
+
+    @Field()
+    @IsString()
+    @IsNotEmpty()
+    description!: string;
+
+    @Field(() => NotificationImportance)
+    @IsEnum(NotificationImportance)
+    @IsNotEmpty()
+    importance!: NotificationImportance;
+
+    @Field({ nullable: true })
+    @IsString()
+    @IsOptional()
+    link?: string;
+
+    @Field(() => NotificationType)
+    @IsEnum(NotificationType)
+    @IsNotEmpty()
+    type!: NotificationType;
+
+    @Field({ nullable: true, description: 'ISO Timestamp for when the notification occurred' })
+    @IsString()
+    @IsOptional()
+    timestamp?: string;
+
+    @Field({ nullable: true })
+    @IsString()
+    @IsOptional()
+    formattedTimestamp?: string;
+}
+
+@ObjectType('NotificationEvent')
+export class NotificationEvent {
+    @Field(() => NotificationEventType)
+    type!: NotificationEventType;
+
+    @Field(() => Notification, { nullable: true })
+    notification?: Notification;
+}
+
 @InputType('NotificationFilter')
 export class NotificationFilter {
     @Field(() => NotificationImportance, { nullable: true })
@@ -133,49 +196,6 @@ export class NotificationOverview {
     @Field(() => NotificationCounts)
     @IsNotEmpty()
     archive!: NotificationCounts;
-}
-
-@ObjectType({ implements: () => Node })
-export class Notification extends Node {
-    @Field({ description: "Also known as 'event'" })
-    @IsString()
-    @IsNotEmpty()
-    title!: string;
-
-    @Field()
-    @IsString()
-    @IsNotEmpty()
-    subject!: string;
-
-    @Field()
-    @IsString()
-    @IsNotEmpty()
-    description!: string;
-
-    @Field(() => NotificationImportance)
-    @IsEnum(NotificationImportance)
-    @IsNotEmpty()
-    importance!: NotificationImportance;
-
-    @Field({ nullable: true })
-    @IsString()
-    @IsOptional()
-    link?: string;
-
-    @Field(() => NotificationType)
-    @IsEnum(NotificationType)
-    @IsNotEmpty()
-    type!: NotificationType;
-
-    @Field({ nullable: true, description: 'ISO Timestamp for when the notification occurred' })
-    @IsString()
-    @IsOptional()
-    timestamp?: string;
-
-    @Field({ nullable: true })
-    @IsString()
-    @IsOptional()
-    formattedTimestamp?: string;
 }
 
 @ObjectType({ implements: () => Node })

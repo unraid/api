@@ -15,7 +15,7 @@ import {
   resetOverview,
 } from '~/components/Notifications/graphql/notification.query';
 import {
-  notificationAddedSubscription,
+  notificationEventSubscription,
   notificationOverviewSubscription,
 } from '~/components/Notifications/graphql/notification.subscription';
 import NotificationsIndicator from '~/components/Notifications/Indicator.vue';
@@ -123,11 +123,18 @@ watch(
 );
 
 const { latestNotificationTimestamp, haveSeenNotifications } = useTrackLatestSeenNotification();
-const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
+// Subscribe to general events
+const { onResult: onNotificationEvent } = useSubscription(notificationEventSubscription);
 
-onNotificationAdded(({ data }) => {
-  if (!data) return;
-  const notif = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
+onNotificationEvent(({ data }) => {
+  if (!data?.notificationEvent) return;
+  const { type, notification: notifData } = data.notificationEvent;
+
+  // We primarily care about NEW items for toasts + timestamp tracking
+  // But strictly speaking, the old code only cared about ADDED to UNREAD.
+  if (type !== 'ADDED' || !notifData) return;
+
+  const notif = useFragment(NOTIFICATION_FRAGMENT, notifData);
   if (notif.type !== NotificationType.UNREAD) return;
 
   if (notif.timestamp) {

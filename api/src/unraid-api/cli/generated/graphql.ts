@@ -1668,6 +1668,19 @@ export type NotificationData = {
   title: Scalars['String']['input'];
 };
 
+export type NotificationEvent = {
+  __typename?: 'NotificationEvent';
+  notification?: Maybe<Notification>;
+  type: NotificationEventType;
+};
+
+export enum NotificationEventType {
+  ADDED = 'ADDED',
+  CLEARED = 'CLEARED',
+  DELETED = 'DELETED',
+  UPDATED = 'UPDATED'
+}
+
 export type NotificationFilter = {
   importance?: InputMaybe<NotificationImportance>;
   limit: Scalars['Int']['input'];
@@ -2300,6 +2313,7 @@ export type Subscription = {
   dockerContainerStats: DockerContainerStats;
   logFile: LogFileContent;
   notificationAdded: Notification;
+  notificationEvent: NotificationEvent;
   notificationsOverview: NotificationOverview;
   notificationsWarningsAndAlerts: Array<Notification>;
   ownerSubscription: Owner;

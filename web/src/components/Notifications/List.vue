@@ -21,7 +21,7 @@ import {
   getNotifications,
   NOTIFICATION_FRAGMENT,
 } from '~/components/Notifications/graphql/notification.query';
-import { notificationAddedSubscription } from '~/components/Notifications/graphql/notification.subscription';
+import { notificationEventSubscription } from '~/components/Notifications/graphql/notification.subscription';
 import NotificationsItem from '~/components/Notifications/Item.vue';
 import { useHaveSeenNotifications } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql/fragment-masking';
@@ -91,28 +91,37 @@ const debouncedRefetch = useDebounceFn(() => {
 }, 500);
 
 subscribeToMore({
-  document: notificationAddedSubscription,
+  document: notificationEventSubscription,
   updateQuery: (previousResult, { subscriptionData }) => {
     if (!subscriptionData.data) return previousResult;
 
-    const newNotification = subscriptionData.data.notificationAdded;
+    const event = subscriptionData.data.notificationEvent;
+    const { type: eventType, notification } = event;
 
-    // Check filters - only refetch if the new notification is relevant to this list
-    let isRelevant = newNotification.type === props.type;
-    if (isRelevant && props.importance) {
-      isRelevant = newNotification.importance === props.importance;
-    }
+    console.log('[Notifications] Event received:', eventType, notification?.id);
 
-    if (isRelevant) {
-      // Debug log to confirm event reception
-      console.log('[Notifications] Relevant subscription event received:', newNotification.id);
+    // If cleared (delete all), always refetch
+    if (eventType === 'CLEARED') {
       debouncedRefetch();
-    } else {
-      // console.log('[Notifications] Irrelevant subscription event ignored:', newNotification.id);
+      return previousResult;
     }
 
-    // Return previous result unchanged. We rely on refetch() to update the list.
-    // This avoids the "stale previousResult" issue where rapid updates overwrite each other.
+    // If updated, the item might have moved lists, so we should refetch
+    if (eventType === 'UPDATED') {
+      debouncedRefetch();
+      return previousResult;
+    }
+
+    // For Added/Deleted, check if it matches our list type
+    // If Deleted: checks type of deleted item. If matches props.type, refetch.
+    // If Added: checks type of added item. If matches props.type, refetch.
+    if (notification && notification.type === props.type) {
+      if (props.importance && notification.importance !== props.importance) {
+        return previousResult;
+      }
+      debouncedRefetch();
+    }
+
     return previousResult;
   },
 });

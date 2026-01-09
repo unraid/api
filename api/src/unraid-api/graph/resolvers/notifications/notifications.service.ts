@@ -22,6 +22,7 @@ import {
     Notification,
     NotificationCounts,
     NotificationData,
+    NotificationEventType,
     NotificationFilter,
     NotificationImportance,
     NotificationOverview,
@@ -161,10 +162,22 @@ export class NotificationsService {
             pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
                 notificationAdded: notification,
             });
+            pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+                notificationEvent: {
+                    type: NotificationEventType.ADDED,
+                    notification,
+                },
+            });
             void this.publishWarningsAndAlerts();
         }
         // Also publish overview updates for archive adds, so counts stay in sync
         if (type === NotificationType.ARCHIVE) {
+            pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+                notificationEvent: {
+                    type: NotificationEventType.ADDED,
+                    notification,
+                },
+            });
             this.publishOverview();
         }
     }
@@ -394,6 +407,14 @@ export class NotificationsService {
 
         this.decrement(notification.importance, NotificationsService.overview[type.toLowerCase()]);
         await this.publishOverview();
+
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+            notificationEvent: {
+                type: NotificationEventType.DELETED,
+                notification,
+            },
+        });
+
         if (type === NotificationType.UNREAD) {
             void this.publishWarningsAndAlerts();
         }
@@ -421,6 +442,14 @@ export class NotificationsService {
         if (type === NotificationType.UNREAD) {
             void this.publishWarningsAndAlerts();
         }
+
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+            notificationEvent: {
+                type: NotificationEventType.CLEARED,
+                notification: null,
+            },
+        });
+
         return this.getOverview();
     }
 
@@ -572,10 +601,19 @@ export class NotificationsService {
         void this.publishOverview();
         void this.publishWarningsAndAlerts();
 
-        return {
+        const updated = {
             ...notification,
             type: NotificationType.ARCHIVE,
         };
+
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+            notificationEvent: {
+                type: NotificationEventType.UPDATED,
+                notification: updated,
+            },
+        });
+
+        return updated;
     }
 
     public async markAsUnread({ id }: Pick<Notification, 'id'>): Promise<Notification> {
@@ -598,10 +636,20 @@ export class NotificationsService {
 
         await moveToUnread(notification);
         void this.publishWarningsAndAlerts();
-        return {
+
+        const updated = {
             ...notification,
             type: NotificationType.UNREAD,
         };
+
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+            notificationEvent: {
+                type: NotificationEventType.UPDATED,
+                notification: updated,
+            },
+        });
+
+        return updated;
     }
 
     public async archiveAll(importance?: NotificationImportance) {
