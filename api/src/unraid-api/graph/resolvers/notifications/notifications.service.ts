@@ -57,6 +57,13 @@ export class NotificationsService {
         },
     };
 
+    /**
+     * Tracks archive file paths that are currently being processed by batch operations.
+     * This allows us to suppress the file watcher's 'add' event for these files
+     * to prevent double counting stats and flooding pubsub events.
+     */
+    private processingArchives = new Set<string>();
+
     constructor() {
         this.path = getters.dynamix().notify!.path;
         void this.getNotificationsWatcher(this.path);
@@ -111,6 +118,12 @@ export class NotificationsService {
     }
 
     private async handleNotificationAdd(path: string) {
+        if (this.processingArchives.has(path)) {
+            this.processingArchives.delete(path);
+            // this.logger.debug(`[handleNotificationAdd] Ignoring batch-processed file: ${path}`);
+            return;
+        }
+
         // The path looks like /{notification base path}/{type}/{notification id}
         const type = path.includes('/unread/') ? NotificationType.UNREAD : NotificationType.ARCHIVE;
         this.logger.log(`[handleNotificationAdd] Adding ${type} Notification: ${path}`);
@@ -653,27 +666,67 @@ export class NotificationsService {
     }
 
     public async archiveAll(importance?: NotificationImportance) {
-        const { UNREAD } = this.paths();
+        const { UNREAD, ARCHIVE } = this.paths();
 
-        if (!importance) {
-            await readdir(UNREAD).then((ids) => this.archiveIds(ids));
-            return { overview: NotificationsService.overview };
+        // Get notifications to process
+        // This implicitly handles the importance filter if provided
+        const unreads = await this.listFilesInFolder(UNREAD);
+        const [notifications] = await this.loadNotificationsFromPaths(unreads, {
+            importance,
+            type: NotificationType.UNREAD,
+        });
+
+        if (notifications.length === 0) {
+            return { overview: this.getOverview() };
         }
 
-        const unreads = await this.listFilesInFolder(UNREAD);
-        const [notifications] = await this.loadNotificationsFromPaths(unreads, { importance });
+        const batchCreateArchive = async (notification: Notification) => {
+            const unreadPath = join(UNREAD, notification.id);
+            const archivePath = join(ARCHIVE, notification.id);
 
-        const archiveAction = async (notification: Notification) => {
-            // Reuse archiveNotification which handles the "exists" check logic
-            await this.archiveNotification({ id: notification.id });
+            try {
+                // If file already exists in archive, delete the unread copy
+                if (await fileExists(archivePath)) {
+                    await unlink(unreadPath);
+                } else {
+                    // Otherwise move it to archive
+                    // We must register this path to be ignored by the file watcher's 'add' event
+                    // to avoid double counting stats and flooding pubsub events.
+                    this.processingArchives.add(archivePath);
+                    await rename(unreadPath, archivePath);
+                }
+
+                // Update in-memory stats
+                this.decrement(notification.importance, NotificationsService.overview.unread);
+                this.increment(notification.importance, NotificationsService.overview.archive);
+            } catch (error) {
+                this.logger.error(
+                    `[archiveAll] Failed to archive ${notification.id}: ${error instanceof Error ? error.message : error}`
+                );
+            }
         };
 
-        const stats = await batchProcess(notifications, archiveAction);
+        const stats = await batchProcess(notifications, batchCreateArchive);
+
+        if (stats.errorOccurred) {
+            this.logger.warn(`[archiveAll] Finished with errors: ${stats.errors.length} failed.`);
+        }
+
+        // Publish updates once
+        void this.publishOverview();
         void this.publishWarningsAndAlerts();
 
-        // Return the *actual* current state of the service, which is properly updated
-        // by the individual archiveNotification calls.
-        return { ...stats, overview: this.getOverview() };
+        // Send a single event to trigger frontend refresh
+        // We use CLEARED because from the perspective of the unread list, they are cleared.
+        // The frontend handles CLEARED by refetching both lists.
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+            notificationEvent: {
+                type: NotificationEventType.CLEARED,
+                notification: null,
+            },
+        });
+
+        return { overview: this.getOverview() };
     }
 
     public async unarchiveAll(importance?: NotificationImportance) {

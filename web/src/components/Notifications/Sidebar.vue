@@ -94,14 +94,18 @@ const confirmAndDeleteArchives = async () => {
 };
 
 const { result, subscribeToMore, refetch } = useQuery(notificationsOverview);
-// subscribeToMore({
-//   document: notificationOverviewSubscription,
-//   updateQuery: (prev, { subscriptionData }) => {
-//     const snapshot = structuredClone(prev);
-//     snapshot.notifications.overview = subscriptionData.data.notificationsOverview;
-//     return snapshot;
-//   },
-// });
+subscribeToMore({
+  document: notificationOverviewSubscription,
+  updateQuery: (prev, { subscriptionData }) => {
+    // Check if subscriptionData exist and has data
+    if (!subscriptionData.data || !subscriptionData.data.notificationsOverview) {
+      return prev;
+    }
+    const snapshot = structuredClone(prev);
+    snapshot.notifications.overview = subscriptionData.data.notificationsOverview;
+    return snapshot;
+  },
+});
 
 const handleRefetch = () => {
   recalculateOverview()
