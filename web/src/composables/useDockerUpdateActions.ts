@@ -59,6 +59,10 @@ export function useDockerUpdateActions({
     updatingRowIds.value = next;
   }
 
+  // NOTE: Although this function accepts specific rows (e.g., a single container from a context menu),
+  // the backend mutation refreshes digests for ALL containers. This matches the webgui behavior where
+  // checking for updates always refreshes the entire container list. Scoping to specific containers
+  // on the backend is left for a future enhancement.
   async function handleCheckForUpdates(rows: TreeRow<DockerContainer>[]) {
     if (!rows.length) return;
 
