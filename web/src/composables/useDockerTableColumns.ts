@@ -26,7 +26,6 @@ const MULTI_VALUE_INLINE_LIMIT = 1;
 export interface DockerTableColumnsOptions {
   compact: Ref<boolean>;
   busyRowIds: Ref<Set<string>>;
-  startingRowIds: Ref<Set<string>>;
   updatingRowIds: Ref<Set<string>>;
   containerStats: Map<string, DockerContainerStats>;
   onUpdateContainer: (row: TreeRow<DockerContainer>) => void;
@@ -51,15 +50,8 @@ function makeMultiValueCell(accessor: MultiValueKey) {
 }
 
 export function useDockerTableColumns(options: DockerTableColumnsOptions) {
-  const {
-    compact,
-    busyRowIds,
-    startingRowIds,
-    updatingRowIds,
-    containerStats,
-    onUpdateContainer,
-    getRowActionItems,
-  } = options;
+  const { compact, busyRowIds, updatingRowIds, containerStats, onUpdateContainer, getRowActionItems } =
+    options;
 
   const UButton = resolveComponent('UButton');
   const UBadge = resolveComponent('UBadge');
@@ -90,7 +82,6 @@ export function useDockerTableColumns(options: DockerTableColumnsOptions) {
           const treeRow = row.original as TreeRow<DockerContainer>;
           const isRowUpdating = updatingRowIds.value.has(treeRow.id);
           const isRowBusy = busyRowIds.value.has(treeRow.id);
-          const isRowStarting = startingRowIds.value.has(treeRow.id);
           const canExpand = treeRow.type === 'folder' && !!(treeRow.children && treeRow.children.length);
           const isExpanded = row.getIsExpanded?.() ?? false;
 
@@ -99,7 +90,6 @@ export function useDockerTableColumns(options: DockerTableColumnsOptions) {
             depth: row.depth,
             isUpdating: isRowUpdating,
             isBusy: isRowBusy,
-            isStarting: isRowStarting,
             canExpand,
             isExpanded,
             onToggleExpand: () => {

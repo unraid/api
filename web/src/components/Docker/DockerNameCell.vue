@@ -11,7 +11,6 @@ const props = defineProps<{
   depth: number;
   isUpdating: boolean;
   isBusy?: boolean;
-  isStarting?: boolean;
   canExpand?: boolean;
   isExpanded?: boolean;
 }>();
@@ -29,15 +28,6 @@ const hasUpdate = computed(() => {
     treeRow.value.type === 'container' &&
     (treeRow.value.meta?.isUpdateAvailable || treeRow.value.meta?.isRebuildReady)
   );
-});
-
-const autoStartWait = computed(() => {
-  if (treeRow.value.type !== 'container') return 0;
-  return treeRow.value.meta?.autoStartWait ?? 0;
-});
-
-const showDelayedBadge = computed(() => {
-  return props.isStarting && autoStartWait.value > 0;
 });
 
 function handleToggleExpand(e: Event) {
@@ -90,19 +80,8 @@ function handleToggleExpand(e: Event) {
       class="text-primary-500 ml-2 h-4 w-4 flex-shrink-0 animate-spin"
     />
 
-    <UBadge
-      v-if="showDelayedBadge"
-      color="neutral"
-      variant="subtle"
-      size="sm"
-      class="ml-2 flex-shrink-0"
-      :title="`${autoStartWait}s startup delay`"
-    >
-      {{ autoStartWait }}s delay
-    </UBadge>
-
     <UIcon
-      v-else-if="hasUpdate"
+      v-if="hasUpdate"
       name="i-lucide-circle-arrow-up"
       class="text-warning-500 ml-2 h-4 w-4 flex-shrink-0"
       title="Update available"

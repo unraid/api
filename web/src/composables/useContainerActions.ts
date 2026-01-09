@@ -13,7 +13,6 @@ export interface ContainerActionOptions<T = unknown> {
   getRowById: (id: string, rows: TreeRow<T>[]) => TreeRow<T> | undefined;
   treeData: Ref<TreeRow<T>[]>;
   setRowsBusy: (ids: string[], busy: boolean) => void;
-  setRowsStarting?: (ids: string[], starting: boolean) => void;
   startMutation: ContainerMutationFn;
   stopMutation: ContainerMutationFn;
   pauseMutation: ContainerMutationFn;
@@ -28,7 +27,6 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
     getRowById,
     treeData,
     setRowsBusy,
-    setRowsStarting,
     startMutation,
     stopMutation,
     pauseMutation,
@@ -84,10 +82,6 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
   ) {
     if (toStart.length) {
       onWillStartContainers?.(toStart);
-      setRowsStarting?.(
-        toStart.map((i) => i.id),
-        true
-      );
     }
     const totalOps = toStop.length + toStart.length;
     let completed = 0;
@@ -115,12 +109,6 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
               awaitRefetchQueries: true,
             }
           : { awaitRefetchQueries: false }
-      );
-    }
-    if (toStart.length) {
-      setRowsStarting?.(
-        toStart.map((i) => i.id),
-        false
       );
     }
   }
@@ -176,7 +164,6 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
             name: row.name,
           },
         ]);
-        setRowsStarting?.([row.id], true);
       }
       await mutate(
         { id: containerId },
@@ -187,9 +174,6 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
       );
     } finally {
       setRowsBusy([row.id], false);
-      if (isStarting) {
-        setRowsStarting?.([row.id], false);
-      }
     }
   }
 
