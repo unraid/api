@@ -88,6 +88,7 @@ export const GET_DOCKER_CONTAINERS = gql`
                 type
               }
               autoStart
+              autoStartWait
               hostConfig {
                 networkMode
               }

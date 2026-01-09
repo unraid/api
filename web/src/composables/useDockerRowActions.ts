@@ -18,6 +18,7 @@ export type DropdownMenuItems = ActionDropdownItem[][];
 
 export interface DockerRowActionsOptions {
   updatingRowIds: Ref<Set<string>>;
+  checkingForUpdates: Ref<boolean>;
   hasFlatEntries: Ref<boolean>;
   hasActiveConsoleSession: (containerName: string) => boolean;
   canMoveUp: (id: string) => boolean;
@@ -33,6 +34,7 @@ export interface DockerRowActionsOptions {
   onViewLogs: (row: TreeRow<DockerContainer>) => void;
   onOpenConsole: (row: TreeRow<DockerContainer>) => void;
   onManageSettings: (row: TreeRow<DockerContainer>) => void;
+  onCheckForUpdates: (row: TreeRow<DockerContainer>) => void;
   onUpdateContainer: (row: TreeRow<DockerContainer>) => void;
   onRemoveContainer: (row: TreeRow<DockerContainer>) => void;
   onVisitTailscale: (containerId: string) => void;
@@ -41,6 +43,7 @@ export interface DockerRowActionsOptions {
 export function useDockerRowActions(options: DockerRowActionsOptions) {
   const {
     updatingRowIds,
+    checkingForUpdates,
     hasFlatEntries,
     hasActiveConsoleSession,
     canMoveUp,
@@ -56,6 +59,7 @@ export function useDockerRowActions(options: DockerRowActionsOptions) {
     onViewLogs,
     onOpenConsole,
     onManageSettings,
+    onCheckForUpdates,
     onUpdateContainer,
     onRemoveContainer,
     onVisitTailscale,
@@ -127,13 +131,14 @@ export function useDockerRowActions(options: DockerRowActionsOptions) {
     const canVisit = Boolean(webUiUrl) && row.meta?.state === ContainerState.RUNNING;
     const hasUpdate = row.meta?.isUpdateAvailable || row.meta?.isRebuildReady;
     const isRowUpdating = updatingRowIds.value.has(row.id);
+    const isCheckingUpdates = checkingForUpdates.value;
     const hasTailscale = row.meta?.tailscaleEnabled && row.meta?.state === ContainerState.RUNNING;
 
     const quickActions: ActionDropdownItem[] = [];
 
     if (canVisit && webUiUrl) {
       quickActions.push({
-        label: 'Visit',
+        label: 'WebUI',
         icon: 'i-lucide-external-link',
         as: 'button',
         onSelect: () => openLanIpInNewTab(webUiUrl),
@@ -143,19 +148,36 @@ export function useDockerRowActions(options: DockerRowActionsOptions) {
     if (hasTailscale && row.meta?.id) {
       const containerId = row.meta.id;
       quickActions.push({
-        label: 'Visit (Tailscale)',
+        label: 'WebUI (Tailscale)',
         icon: 'i-lucide-external-link',
         as: 'button',
         onSelect: () => onVisitTailscale(containerId),
       });
     }
 
+    const updateActions: ActionDropdownItem[] = [
+      {
+        label: 'Check for updates',
+        icon: 'i-lucide-refresh-cw',
+        as: 'button',
+        disabled: isCheckingUpdates,
+        onSelect: () => onCheckForUpdates(row),
+      },
+    ];
+
     if (hasUpdate && !isRowUpdating) {
-      quickActions.push({
+      updateActions.push({
         label: 'Update',
         icon: 'i-lucide-circle-arrow-up',
         as: 'button',
         onSelect: () => onUpdateContainer(row),
+      });
+    } else if (!isRowUpdating) {
+      updateActions.push({
+        label: hasUpdate === false ? 'Up to date' : 'Update',
+        icon: 'i-lucide-circle-arrow-up',
+        as: 'button',
+        disabled: true,
       });
     }
 
@@ -164,6 +186,8 @@ export function useDockerRowActions(options: DockerRowActionsOptions) {
     if (quickActions.length > 0) {
       items.push(quickActions);
     }
+
+    items.push(updateActions);
 
     if (reorderActions.length > 0) {
       items.push(reorderActions);

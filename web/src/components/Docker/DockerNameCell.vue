@@ -10,6 +10,7 @@ const props = defineProps<{
   row: TreeRow<DockerContainer>;
   depth: number;
   isUpdating: boolean;
+  isBusy?: boolean;
   canExpand?: boolean;
   isExpanded?: boolean;
 }>();
@@ -74,16 +75,16 @@ function handleToggleExpand(e: Event) {
     <span class="max-w-[40ch] truncate font-medium">{{ displayName }}</span>
 
     <UIcon
-      v-if="hasUpdate && !isUpdating"
-      name="i-lucide-circle-arrow-up"
-      class="text-warning-500 ml-2 h-4 w-4 flex-shrink-0"
-      title="Update available"
+      v-if="isBusy || isUpdating"
+      name="i-lucide-loader-2"
+      class="text-primary-500 ml-2 h-4 w-4 flex-shrink-0 animate-spin"
     />
 
     <UIcon
-      v-if="isUpdating"
-      name="i-lucide-loader-2"
-      class="text-primary-500 ml-2 h-4 w-4 flex-shrink-0 animate-spin"
+      v-if="hasUpdate"
+      name="i-lucide-circle-arrow-up"
+      class="text-warning-500 ml-2 h-4 w-4 flex-shrink-0"
+      title="Update available"
     />
   </div>
 </template>
