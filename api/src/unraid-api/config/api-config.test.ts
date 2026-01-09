@@ -1,11 +1,22 @@
 import { ConfigService } from '@nestjs/config';
+import { access, readdir, readFile, unlink, writeFile as writeFileFs } from 'fs/promises';
+import path from 'path';
 
+import type { ApiConfig } from '@unraid/shared/services/api-config.js';
+import { writeFile as atomicWriteFile } from 'atomically';
+import { Subject } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { API_VERSION, PATHS_CONFIG_MODULES } from '@app/environment.js';
 import { ApiConfigPersistence, loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
+import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
+import { OnboardingStateService } from '@app/unraid-api/config/onboarding-state.service.js';
+import {
+    OnboardingTracker,
+    UPGRADE_MARKER_PATH,
+} from '@app/unraid-api/config/onboarding-tracker.module.js';
+import { ActivationOnboardingStepId } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 
-// Mock file utilities
 vi.mock('@app/core/utils/files/file-exists.js', () => ({
     fileExists: vi.fn(),
 }));
@@ -14,185 +25,674 @@ vi.mock('@unraid/shared/util/file.js', () => ({
     fileExists: vi.fn(),
 }));
 
-// Mock fs/promises for file I/O operations
 vi.mock('fs/promises', () => ({
     readFile: vi.fn(),
+    readdir: vi.fn(),
+    access: vi.fn(),
+    writeFile: vi.fn(),
+    unlink: vi.fn(),
+}));
+
+const mockEmhttpState = { var: { regState: 'PRO' } } as any;
+const mockPathsState = { activationBase: '/activation' } as any;
+
+vi.mock('@app/store/index.js', () => ({
+    getters: {
+        emhttp: vi.fn(() => mockEmhttpState),
+        paths: vi.fn(() => mockPathsState),
+    },
+}));
+
+vi.mock('atomically', () => ({
     writeFile: vi.fn(),
 }));
+
+const mockReadFile = vi.mocked(readFile);
+const mockReaddir = vi.mocked(readdir);
+const mockAccess = vi.mocked(access);
+const mockWriteFileFs = vi.mocked(writeFileFs);
+const mockUnlink = vi.mocked(unlink);
+const mockAtomicWriteFile = vi.mocked(atomicWriteFile);
+type ReaddirResult = Awaited<ReturnType<typeof readdir>>;
+
+const createOnboardingTracker = (configService: ConfigService) => {
+    const overrides = new OnboardingOverrideService();
+    const onboardingState = new OnboardingStateService(overrides);
+    return new OnboardingTracker(configService, overrides, onboardingState);
+};
 
 describe('ApiConfigPersistence', () => {
     let service: ApiConfigPersistence;
     let configService: ConfigService;
+    let configChanges$: Subject<{ path?: string }>;
+    let setMock: ReturnType<typeof vi.fn>;
+    let getMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
+        configChanges$ = new Subject<{ path?: string }>();
+        setMock = vi.fn();
+        getMock = vi.fn();
+
         configService = {
-            get: vi.fn(),
-            set: vi.fn(),
+            get: getMock,
+            set: setMock,
             getOrThrow: vi.fn().mockReturnValue('test-config-path'),
+            changes$: configChanges$,
         } as any;
 
         service = new ApiConfigPersistence(configService);
     });
 
-    describe('required ConfigFilePersister methods', () => {
-        it('should return correct file name', () => {
-            expect(service.fileName()).toBe('api.json');
-        });
+    it('should return correct file name', () => {
+        expect(service.fileName()).toBe('api.json');
+    });
 
-        it('should return correct config key', () => {
-            expect(service.configKey()).toBe('api');
-        });
+    it('should return correct config key', () => {
+        expect(service.configKey()).toBe('api');
+    });
 
-        it('should return default config', () => {
-            const defaultConfig = service.defaultConfig();
-            expect(defaultConfig).toEqual({
-                version: expect.any(String),
-                extraOrigins: [],
-                sandbox: false,
-                ssoSubIds: [],
-                plugins: [],
-            });
-        });
-
-        it('should migrate config from legacy format', async () => {
-            const mockLegacyConfig = {
-                local: { sandbox: 'yes' },
-                api: { extraOrigins: 'https://example.com,https://test.com' },
-                remote: { ssoSubIds: 'sub1,sub2' },
-            };
-
-            vi.mocked(configService.get).mockReturnValue(mockLegacyConfig);
-
-            const result = await service.migrateConfig();
-
-            expect(result).toEqual({
-                version: expect.any(String),
-                extraOrigins: ['https://example.com', 'https://test.com'],
-                sandbox: true,
-                ssoSubIds: ['sub1', 'sub2'],
-                plugins: [],
-            });
+    it('should return default config', () => {
+        const defaultConfig = service.defaultConfig();
+        expect(defaultConfig).toEqual({
+            version: API_VERSION,
+            extraOrigins: [],
+            sandbox: false,
+            ssoSubIds: [],
+            plugins: [],
         });
     });
 
-    describe('convertLegacyConfig', () => {
-        it('should migrate sandbox from string "yes" to boolean true', () => {
-            const legacyConfig = {
-                local: { sandbox: 'yes' },
-                api: { extraOrigins: '' },
-                remote: { ssoSubIds: '' },
-            };
+    it('should migrate config from legacy format', async () => {
+        const legacyConfig = {
+            local: { sandbox: 'yes' },
+            api: { extraOrigins: 'https://example.com,https://test.com' },
+            remote: { ssoSubIds: 'sub1,sub2' },
+        };
 
-            const result = service.convertLegacyConfig(legacyConfig);
-
-            expect(result.sandbox).toBe(true);
+        getMock.mockImplementation((key: string) => {
+            if (key === 'store.config') {
+                return legacyConfig;
+            }
+            return undefined;
         });
 
-        it('should migrate sandbox from string "no" to boolean false', () => {
-            const legacyConfig = {
-                local: { sandbox: 'no' },
-                api: { extraOrigins: '' },
-                remote: { ssoSubIds: '' },
-            };
+        const result = await service.migrateConfig();
 
-            const result = service.convertLegacyConfig(legacyConfig);
+        expect(result).toEqual({
+            version: API_VERSION,
+            extraOrigins: ['https://example.com', 'https://test.com'],
+            sandbox: true,
+            ssoSubIds: ['sub1', 'sub2'],
+            plugins: [],
+        });
+    });
 
-            expect(result.sandbox).toBe(false);
+    it('sets api.version on bootstrap', async () => {
+        await service.onApplicationBootstrap();
+        expect(setMock).toHaveBeenCalledWith('api.version', API_VERSION);
+    });
+});
+
+describe('OnboardingTracker', () => {
+    const trackerPath = path.join(PATHS_CONFIG_MODULES, 'onboarding-tracker.json');
+    const dataDir = '/tmp/unraid-data';
+    const versionFilePath = path.join(dataDir, 'unraid-version');
+    let configService: ConfigService;
+    let setMock: ReturnType<typeof vi.fn>;
+    let configStore: Record<string, unknown>;
+
+    beforeEach(() => {
+        configStore = {};
+        setMock = vi.fn((key: string, value: unknown) => {
+            configStore[key] = value;
+        });
+        configStore['PATHS_UNRAID_DATA'] = dataDir;
+        configService = {
+            set: setMock,
+            get: vi.fn((key: string) => configStore[key]),
+            getOrThrow: vi.fn(),
+        } as any;
+
+        mockReadFile.mockReset();
+        mockReaddir.mockReset();
+        mockAccess.mockReset();
+        mockReaddir.mockResolvedValue([] as unknown as ReaddirResult);
+        mockAccess.mockResolvedValue(undefined);
+        mockAtomicWriteFile.mockReset();
+        mockWriteFileFs.mockReset();
+        mockWriteFileFs.mockResolvedValue(undefined);
+        mockUnlink.mockReset();
+        mockUnlink.mockResolvedValue(undefined);
+
+        mockEmhttpState.var.regState = 'PRO';
+        mockPathsState.activationBase = '/activation';
+    });
+
+    it('marks first boot as completed when no prior state exists', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === trackerPath) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            if (filePath === versionFilePath) {
+                return 'version="7.2.0"\n';
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        it('should migrate extraOrigins from comma-separated string to array', () => {
-            const legacyConfig = {
-                local: { sandbox: 'no' },
-                api: { extraOrigins: 'https://example.com,https://test.com' },
-                remote: { ssoSubIds: '' },
-            };
+        const tracker = createOnboardingTracker(configService);
+        const alreadyCompleted = await tracker.ensureFirstBootCompleted();
 
-            const result = service.convertLegacyConfig(legacyConfig);
+        expect(alreadyCompleted).toBe(false);
+        expect(mockAtomicWriteFile).toHaveBeenCalledWith(
+            trackerPath,
+            expect.stringContaining('"firstBootCompletedAt"'),
+            { mode: 0o644 }
+        );
+        expect(setMock).toHaveBeenCalledWith(
+            'onboardingTracker.firstBootCompletedAt',
+            expect.any(String)
+        );
+    });
 
-            expect(result.extraOrigins).toEqual(['https://example.com', 'https://test.com']);
+    it('returns true when first boot was already recorded', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    firstBootCompletedAt: '2025-01-01T00:00:00.000Z',
+                });
+            }
+            if (filePath === versionFilePath) {
+                return 'version="7.2.0"\n';
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        it('should filter out non-HTTP origins from extraOrigins', () => {
-            const legacyConfig = {
-                local: { sandbox: 'no' },
-                api: {
-                    extraOrigins: 'https://example.com,invalid-origin,http://test.com,ftp://bad.com',
-                },
-                remote: { ssoSubIds: '' },
-            };
+        const tracker = createOnboardingTracker(configService);
+        const alreadyCompleted = await tracker.ensureFirstBootCompleted();
 
-            const result = service.convertLegacyConfig(legacyConfig);
+        expect(alreadyCompleted).toBe(true);
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+        expect(setMock).toHaveBeenCalledWith(
+            'onboardingTracker.firstBootCompletedAt',
+            '2025-01-01T00:00:00.000Z'
+        );
+    });
 
-            expect(result.extraOrigins).toEqual(['https://example.com', 'http://test.com']);
+    it('keeps previous version when shutting down with pending steps', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="7.2.0-beta.3.4"\n';
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        it('should handle empty extraOrigins string', () => {
-            const legacyConfig = {
-                local: { sandbox: 'no' },
-                api: { extraOrigins: '' },
-                remote: { ssoSubIds: '' },
-            };
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
 
-            const result = service.convertLegacyConfig(legacyConfig);
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.2.0-beta.3.4', 'utf8');
 
-            expect(result.extraOrigins).toEqual([]);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', '7.2.0-beta.3.4');
+        expect(setMock).toHaveBeenCalledWith('store.emhttp.var.version', '7.2.0-beta.3.4');
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', undefined);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.completedSteps', {});
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+
+        await tracker.onApplicationShutdown();
+
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+        expect(mockUnlink).not.toHaveBeenCalled();
+        expect(configStore['onboardingTracker.lastTrackedVersion']).toBeUndefined();
+    });
+
+    it('does not rewrite when version has not changed', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="6.12.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '6.12.0',
+                    updatedAt: '2024-01-01T00:00:00.000Z',
+                    completedSteps: {
+                        TIMEZONE: {
+                            version: '6.12.0',
+                            completedAt: '2024-01-02T00:00:00.000Z',
+                        },
+                    },
+                });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        it('should migrate ssoSubIds from comma-separated string to array', () => {
-            const legacyConfig = {
-                local: { sandbox: 'no' },
-                api: { extraOrigins: '' },
-                remote: { ssoSubIds: 'user1,user2,user3' },
-            };
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
 
-            const result = service.convertLegacyConfig(legacyConfig);
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
 
-            expect(result.ssoSubIds).toEqual(['user1', 'user2', 'user3']);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', '6.12.0');
+        expect(setMock).toHaveBeenCalledWith('store.emhttp.var.version', '6.12.0');
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', '6.12.0');
+        expect(setMock).toHaveBeenCalledWith(
+            'onboardingTracker.completedSteps',
+            expect.objectContaining({
+                TIMEZONE: expect.objectContaining({ version: '6.12.0' }),
+            })
+        );
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+
+        await tracker.onApplicationShutdown();
+
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+    });
+
+    it('falls back to default version path when data directory is unavailable', async () => {
+        delete configStore['PATHS_UNRAID_DATA'];
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === '/etc/unraid-version') {
+                return 'version="7.3.0"\n';
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        it('should handle empty ssoSubIds string', () => {
-            const legacyConfig = {
-                local: { sandbox: 'no' },
-                api: { extraOrigins: '' },
-                remote: { ssoSubIds: '' },
-            };
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
 
-            const result = service.convertLegacyConfig(legacyConfig);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', '7.3.0');
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.3.0', 'utf8');
+    });
 
-            expect(result.ssoSubIds).toEqual([]);
+    it('keeps previous version available to signal upgrade until shutdown', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="7.1.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '7.0.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {},
+                });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        it('should handle undefined config sections', () => {
-            const legacyConfig = {};
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
 
-            const result = service.convertLegacyConfig(legacyConfig);
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.0.0', 'utf8');
 
-            expect(result.sandbox).toBe(false);
-            expect(result.extraOrigins).toEqual([]);
-            expect(result.ssoSubIds).toEqual([]);
+        const snapshot = await tracker.getUpgradeSnapshot();
+        expect(snapshot.currentVersion).toBe('7.1.0');
+        expect(snapshot.lastTrackedVersion).toBe('7.0.0');
+        expect(snapshot.completedSteps).toEqual([]);
+        expect(snapshot.steps.map((step) => step.id)).toEqual([
+            ActivationOnboardingStepId.WELCOME,
+            ActivationOnboardingStepId.TIMEZONE,
+            ActivationOnboardingStepId.PLUGINS,
+        ]);
+        expect(snapshot.steps.every((step) => step.id && step.introducedIn)).toBe(true);
+
+        expect(configStore['onboardingTracker.lastTrackedVersion']).toBe('7.0.0');
+        expect(configStore['store.emhttp.var.version']).toBe('7.1.0');
+        expect(configStore['onboardingTracker.completedSteps']).toEqual({});
+
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+    });
+
+    it('handles missing version file gracefully', async () => {
+        mockReadFile.mockRejectedValue(new Error('permission denied'));
+
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.currentVersion', undefined);
+        expect(setMock).toHaveBeenCalledWith('store.emhttp.var.version', undefined);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', undefined);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.completedSteps', {});
+        expect(mockAtomicWriteFile).not.toHaveBeenCalled();
+        expect(mockWriteFileFs).not.toHaveBeenCalled();
+    });
+
+    it('uses upgrade marker when tracker version matches current version', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="7.2.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '7.2.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {},
+                });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                return '7.1.0';
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
 
-        it('should handle complete migration with all fields', () => {
-            const legacyConfig = {
-                local: { sandbox: 'yes' },
-                api: { extraOrigins: 'https://app1.example.com,https://app2.example.com' },
-                remote: { ssoSubIds: 'sub1,sub2,sub3' },
-            };
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
 
-            const result = service.convertLegacyConfig(legacyConfig);
+        const snapshot = await tracker.getUpgradeSnapshot();
+        expect(snapshot.currentVersion).toBe('7.2.0');
+        expect(snapshot.lastTrackedVersion).toBe('7.1.0');
+        expect(snapshot.steps.map((step) => step.id)).toEqual([
+            ActivationOnboardingStepId.WELCOME,
+            ActivationOnboardingStepId.TIMEZONE,
+            ActivationOnboardingStepId.PLUGINS,
+        ]);
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', '7.1.0');
+        expect(mockWriteFileFs).not.toHaveBeenCalled();
+    });
 
-            expect(result.sandbox).toBe(true);
-            expect(result.extraOrigins).toEqual([
-                'https://app1.example.com',
-                'https://app2.example.com',
-            ]);
-            expect(result.ssoSubIds).toEqual(['sub1', 'sub2', 'sub3']);
+    it('still surfaces onboarding steps when version is unavailable', async () => {
+        mockReadFile.mockRejectedValue(new Error('permission denied'));
+
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).not.toHaveBeenCalled();
+
+        const snapshot = await tracker.getUpgradeSnapshot();
+        expect(snapshot.currentVersion).toBeUndefined();
+        expect(snapshot.steps.map((step) => step.id)).toEqual([
+            ActivationOnboardingStepId.WELCOME,
+            ActivationOnboardingStepId.TIMEZONE,
+            ActivationOnboardingStepId.PLUGINS,
+        ]);
+        expect(snapshot.steps.every((step) => step.introducedIn)).toBe(true);
+    });
+
+    it('marks onboarding steps complete for the current version without clearing upgrade flag', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="7.2.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '6.12.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {},
+                });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
         });
+
+        mockReaddir.mockResolvedValue(['pending.activationcode'] as unknown as ReaddirResult);
+        mockEmhttpState.var.regState = 'ENOKEYFILE_PENDING';
+
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
+
+        expect(configStore['store.emhttp.var.version']).toBe('7.2.0');
+        expect(configStore['onboardingTracker.lastTrackedVersion']).toBe('6.12.0');
+
+        setMock.mockClear();
+        mockAtomicWriteFile.mockReset();
+
+        const snapshot = await tracker.markStepCompleted(ActivationOnboardingStepId.TIMEZONE);
+
+        expect(snapshot.currentVersion).toBe('7.2.0');
+        expect(snapshot.completedSteps).toContain(ActivationOnboardingStepId.TIMEZONE);
+        expect(snapshot.lastTrackedVersion).toBe('6.12.0');
+        expect(snapshot.steps.map((step) => step.id)).toEqual([
+            ActivationOnboardingStepId.WELCOME,
+            ActivationOnboardingStepId.TIMEZONE,
+            ActivationOnboardingStepId.PLUGINS,
+            ActivationOnboardingStepId.ACTIVATION,
+        ]);
+
+        expect(mockAtomicWriteFile).toHaveBeenCalledWith(
+            trackerPath,
+            expect.stringContaining('"TIMEZONE"'),
+            { mode: 0o644 }
+        );
+
+        expect(setMock).toHaveBeenCalledWith(
+            'onboardingTracker.completedSteps',
+            expect.objectContaining({
+                TIMEZONE: expect.objectContaining({ version: '7.0.0' }),
+            })
+        );
+
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', '6.12.0');
+
+        const postSnapshot = await tracker.getUpgradeSnapshot();
+        expect(postSnapshot.lastTrackedVersion).toBe('6.12.0');
+        expect(postSnapshot.steps.map((step) => step.id)).toEqual([
+            ActivationOnboardingStepId.WELCOME,
+            ActivationOnboardingStepId.TIMEZONE,
+            ActivationOnboardingStepId.PLUGINS,
+            ActivationOnboardingStepId.ACTIVATION,
+        ]);
+    });
+
+    it('persists the new version on shutdown when required steps are completed', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="7.2.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '6.12.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {
+                        TIMEZONE: {
+                            version: '7.2.0',
+                            completedAt: '2025-01-02T00:00:00.000Z',
+                        },
+                    },
+                });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
+
+        mockAtomicWriteFile.mockClear();
+        mockWriteFileFs.mockClear();
+        mockUnlink.mockClear();
+
+        await tracker.onApplicationShutdown();
+
+        expect(mockAtomicWriteFile).toHaveBeenCalledWith(
+            trackerPath,
+            expect.stringContaining('"lastTrackedVersion": "7.2.0"'),
+            { mode: 0o644 }
+        );
+        expect(mockUnlink).toHaveBeenCalledWith(UPGRADE_MARKER_PATH);
+    });
+
+    it('updates last tracked version when the final required step is completed', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="7.2.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '6.12.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {},
+                });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
+
+        setMock.mockClear();
+        mockAtomicWriteFile.mockClear();
+        mockWriteFileFs.mockClear();
+        mockUnlink.mockClear();
+
+        const snapshot = await tracker.markStepCompleted(ActivationOnboardingStepId.TIMEZONE);
+
+        expect(snapshot.lastTrackedVersion).toBe('7.2.0');
+        expect(setMock).toHaveBeenCalledWith('onboardingTracker.lastTrackedVersion', '7.2.0');
+        expect(mockAtomicWriteFile).toHaveBeenCalledWith(
+            trackerPath,
+            expect.stringContaining('"lastTrackedVersion": "7.2.0"'),
+            { mode: 0o644 }
+        );
+        expect(mockUnlink).toHaveBeenCalledWith(UPGRADE_MARKER_PATH);
+    });
+
+    it('retains completed steps across patch upgrades when definitions are unchanged', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="7.0.1"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '7.0.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {
+                        TIMEZONE: {
+                            version: '7.0.0',
+                            completedAt: '2025-01-02T00:00:00.000Z',
+                        },
+                    },
+                });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '7.0.0', 'utf8');
+
+        const snapshot = await tracker.getUpgradeSnapshot();
+        expect(snapshot.currentVersion).toBe('7.0.1');
+        expect(snapshot.lastTrackedVersion).toBe('7.0.0');
+        expect(snapshot.completedSteps).toContain(ActivationOnboardingStepId.TIMEZONE);
+        expect(snapshot.steps.map((step) => step.id)).toEqual([
+            ActivationOnboardingStepId.WELCOME,
+            ActivationOnboardingStepId.TIMEZONE,
+            ActivationOnboardingStepId.PLUGINS,
+        ]);
+    });
+
+    it('surfaces steps when stored completion predates the definition version', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="7.0.0"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '6.12.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {
+                        TIMEZONE: {
+                            version: '6.11.0',
+                            completedAt: '2024-12-31T23:59:59.000Z',
+                        },
+                    },
+                });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        expect(mockWriteFileFs).toHaveBeenCalledWith(UPGRADE_MARKER_PATH, '6.12.0', 'utf8');
+
+        const snapshot = await tracker.getUpgradeSnapshot();
+        expect(snapshot.currentVersion).toBe('7.0.0');
+        expect(snapshot.lastTrackedVersion).toBe('6.12.0');
+        expect(snapshot.completedSteps).not.toContain(ActivationOnboardingStepId.TIMEZONE);
+        expect(snapshot.steps.map((step) => step.id)).toEqual([
+            ActivationOnboardingStepId.WELCOME,
+            ActivationOnboardingStepId.TIMEZONE,
+            ActivationOnboardingStepId.PLUGINS,
+        ]);
+    });
+
+    it('includes activation step when activation code is present and registration is pending', async () => {
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (filePath === versionFilePath) {
+                return 'version="7.0.1"\n';
+            }
+            if (filePath === trackerPath) {
+                return JSON.stringify({
+                    lastTrackedVersion: '7.0.0',
+                    updatedAt: '2025-01-01T00:00:00.000Z',
+                    completedSteps: {},
+                });
+            }
+            if (filePath === UPGRADE_MARKER_PATH) {
+                throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        mockReaddir.mockResolvedValueOnce(['pending.activationcode'] as unknown as ReaddirResult);
+        mockEmhttpState.var.regState = 'ENOKEYFILE';
+
+        const tracker = createOnboardingTracker(configService);
+        await tracker.onApplicationBootstrap();
+
+        const snapshot = await tracker.getUpgradeSnapshot();
+        expect(snapshot.steps.map((step) => step.id)).toEqual([
+            ActivationOnboardingStepId.WELCOME,
+            ActivationOnboardingStepId.TIMEZONE,
+            ActivationOnboardingStepId.PLUGINS,
+            ActivationOnboardingStepId.ACTIVATION,
+        ]);
+        const activationStep = snapshot.steps.find(
+            (step) => step.id === ActivationOnboardingStepId.ACTIVATION
+        );
+        expect(activationStep).toBeDefined();
+        expect(activationStep?.required).toBe(true);
     });
 });
 
 describe('loadApiConfig', () => {
-    beforeEach(async () => {
+    beforeEach(() => {
         vi.clearAllMocks();
     });
 
@@ -200,7 +700,7 @@ describe('loadApiConfig', () => {
         const result = await loadApiConfig();
 
         expect(result).toEqual({
-            version: expect.any(String),
+            version: API_VERSION,
             extraOrigins: [],
             sandbox: false,
             ssoSubIds: [],
@@ -212,7 +712,7 @@ describe('loadApiConfig', () => {
         const result = await loadApiConfig();
 
         expect(result).toEqual({
-            version: expect.any(String),
+            version: API_VERSION,
             extraOrigins: [],
             sandbox: false,
             ssoSubIds: [],

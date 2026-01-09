@@ -1,6 +1,9 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
+import { ActivationOnboarding } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import { UpgradeInfo } from '@app/unraid-api/graph/resolvers/info/versions/versions.model.js';
 import { RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { PluginInstallOperation } from '@app/unraid-api/graph/resolvers/unraid-plugins/unraid-plugins.model.js';
 
 /**
  * Important:
@@ -45,6 +48,41 @@ export class RCloneMutations {
     deleteRCloneRemote!: boolean;
 }
 
+@ObjectType({
+    description: 'Onboarding related mutations',
+})
+export class OnboardingMutations {
+    @Field(() => UpgradeInfo, {
+        description: 'Mark an upgrade onboarding step as completed for the current OS version',
+    })
+    completeUpgradeStep!: UpgradeInfo;
+
+    @Field(() => UpgradeInfo, {
+        description: 'Reset upgrade onboarding progress for the current OS version',
+    })
+    resetUpgradeOnboarding!: UpgradeInfo;
+
+    @Field(() => ActivationOnboarding, {
+        description: 'Override onboarding state for testing (in-memory only)',
+    })
+    setOnboardingOverride!: ActivationOnboarding;
+
+    @Field(() => ActivationOnboarding, {
+        description: 'Clear onboarding override state and reload from disk',
+    })
+    clearOnboardingOverride!: ActivationOnboarding;
+}
+
+@ObjectType({
+    description: 'Unraid plugin management mutations',
+})
+export class UnraidPluginsMutations {
+    @Field(() => PluginInstallOperation, {
+        description: 'Install an Unraid plugin and track installation progress',
+    })
+    installPlugin!: PluginInstallOperation;
+}
+
 @ObjectType()
 export class RootMutations {
     @Field(() => ArrayMutations, { description: 'Array related mutations' })
@@ -67,4 +105,10 @@ export class RootMutations {
 
     @Field(() => RCloneMutations, { description: 'RClone related mutations' })
     rclone: RCloneMutations = new RCloneMutations();
+
+    @Field(() => OnboardingMutations, { description: 'Onboarding related mutations' })
+    onboarding: OnboardingMutations = new OnboardingMutations();
+
+    @Field(() => UnraidPluginsMutations, { description: 'Unraid plugin related mutations' })
+    unraidPlugins: UnraidPluginsMutations = new UnraidPluginsMutations();
 }

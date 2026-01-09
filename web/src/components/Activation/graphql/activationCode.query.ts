@@ -25,9 +25,6 @@ export const PUBLIC_WELCOME_DATA_QUERY = graphql(/* GraphQL */ `
 
 export const ACTIVATION_CODE_QUERY = graphql(/* GraphQL */ `
   query ActivationCode {
-    vars {
-      regState
-    }
     customization {
       activationCode {
         code
@@ -46,6 +43,14 @@ export const ACTIVATION_CODE_QUERY = graphql(/* GraphQL */ `
         partnerName
         partnerUrl
         partnerLogoUrl
+      }
+      onboardingState {
+        registrationState
+        isRegistered
+        isFreshInstall
+        isInitialSetup
+        hasActivationCode
+        activationRequired
       }
     }
   }

@@ -201,9 +201,7 @@ export const useThemeStore = defineStore('theme', () => {
     devOverride.value = enabled;
   };
 
-  const fetchTheme = () => {
-    load();
-  };
+  const fetchTheme = () => load();
 
   // Only apply dark class when theme changes (for dev tools that don't refresh)
   // In production, PHP sets the dark class and page refreshes on theme change

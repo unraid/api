@@ -1,7 +1,9 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Transform } from 'class-transformer';
 import { IsBoolean, IsIn, IsOptional, IsString, IsUrl } from 'class-validator';
+
+import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
 // Helper function to check if a string is a valid hex color
 const isHexColor = (value: string): boolean => /^#([0-9A-F]{3}){1,2}$/i.test(value);
@@ -58,6 +60,17 @@ export class PublicPartnerInfo {
     @Transform(({ value }) => sanitizeString(value))
     partnerLogoUrl?: string | null;
 }
+
+export enum ActivationOnboardingStepId {
+    WELCOME = 'WELCOME',
+    TIMEZONE = 'TIMEZONE',
+    PLUGINS = 'PLUGINS',
+    ACTIVATION = 'ACTIVATION',
+}
+
+registerEnumType(ActivationOnboardingStepId, {
+    name: 'ActivationOnboardingStepId',
+});
 
 @ObjectType()
 export class ActivationCode {
@@ -132,10 +145,88 @@ export class ActivationCode {
 }
 
 @ObjectType()
+export class ActivationOnboardingStep {
+    @Field(() => ActivationOnboardingStepId, {
+        description: 'Identifier of the activation onboarding step',
+    })
+    id!: ActivationOnboardingStepId;
+
+    @Field(() => Boolean, { description: 'Indicates whether the step is required' })
+    required!: boolean;
+
+    @Field(() => Boolean, {
+        description: 'Indicates whether the step has been completed for the current version',
+    })
+    completed!: boolean;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Version of Unraid when this step was introduced',
+    })
+    introducedIn?: string;
+}
+
+@ObjectType()
+export class OnboardingState {
+    @Field(() => RegistrationState, { nullable: true })
+    registrationState?: RegistrationState;
+
+    @Field(() => Boolean, { description: 'Indicates whether the system is registered' })
+    isRegistered!: boolean;
+
+    @Field(() => Boolean, { description: 'Indicates whether the system is a fresh install' })
+    isFreshInstall!: boolean;
+
+    @Field(() => Boolean, { description: 'Indicates whether initial setup should be shown' })
+    isInitialSetup!: boolean;
+
+    @Field(() => Boolean, { description: 'Indicates whether an activation code is present' })
+    hasActivationCode!: boolean;
+
+    @Field(() => Boolean, {
+        description: 'Indicates whether activation is required based on current state',
+    })
+    activationRequired!: boolean;
+}
+
+@ObjectType()
 export class Customization {
     @Field(() => ActivationCode, { nullable: true })
     activationCode?: ActivationCode;
 
     @Field(() => PublicPartnerInfo, { nullable: true })
     partnerInfo?: PublicPartnerInfo;
+
+    @Field(() => OnboardingState, { nullable: true })
+    onboardingState?: OnboardingState;
+}
+
+@ObjectType()
+export class ActivationOnboarding {
+    @Field(() => Boolean, {
+        description: 'Indicates whether the system is currently in an upgrade state',
+    })
+    isUpgrade!: boolean;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Previous OS version prior to the current upgrade',
+    })
+    previousVersion?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Current OS version detected by the system',
+    })
+    currentVersion?: string;
+
+    @Field(() => Boolean, {
+        description: 'Whether there are any remaining activation onboarding steps',
+    })
+    hasPendingSteps!: boolean;
+
+    @Field(() => [ActivationOnboardingStep], {
+        description: 'Activation onboarding steps relevant to the current system state',
+    })
+    steps!: ActivationOnboardingStep[];
 }

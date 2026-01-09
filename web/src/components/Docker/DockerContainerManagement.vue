@@ -398,14 +398,14 @@ function handleLogRefresh() {
   logViewerRef.value?.refreshLogContent();
 }
 
-const [transitionContainerRef] = useAutoAnimate({
+const [_transitionContainerRef] = useAutoAnimate({
   duration: 200,
   easing: 'ease-in-out',
 });
 </script>
 
 <template>
-  <div ref="transitionContainerRef">
+  <div ref="_transitionContainerRef">
     <div v-if="!activeId">
       <template v-if="viewMode === 'overview'">
         <div class="mb-4 flex flex-wrap items-center justify-between gap-3">

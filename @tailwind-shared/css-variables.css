@@ -94,7 +94,7 @@
     --ui-text-toned: var(--ui-color-neutral-300);
     --ui-text: var(--ui-color-neutral-200);
     --ui-text-highlighted: white;
-    --ui-text-inverted: var(--ui-color-neutral-900);
+    --ui-text-inverted: var(--ui-color-neutral-300);
 
     /* Nuxt UI Design Tokens - Background (Dark) */
     --ui-bg: var(--ui-color-neutral-900);
