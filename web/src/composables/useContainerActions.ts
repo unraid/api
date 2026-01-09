@@ -152,10 +152,11 @@ export function useContainerActions<T = unknown>(options: ContainerActionOptions
     const containerId = (row as { containerId?: string }).containerId || row.id;
     if (!containerId) return;
     setRowsBusy([row.id], true);
+    const isRunning = (row as { state?: string }).state === ContainerState.RUNNING;
+    const isStarting = !isRunning;
     try {
-      const isRunning = (row as { state?: string }).state === ContainerState.RUNNING;
       const mutate = isRunning ? stopMutation : startMutation;
-      if (!isRunning) {
+      if (isStarting) {
         onWillStartContainers?.([
           {
             id: row.id,

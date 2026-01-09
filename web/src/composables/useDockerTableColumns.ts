@@ -81,6 +81,7 @@ export function useDockerTableColumns(options: DockerTableColumnsOptions) {
         }) => {
           const treeRow = row.original as TreeRow<DockerContainer>;
           const isRowUpdating = updatingRowIds.value.has(treeRow.id);
+          const isRowBusy = busyRowIds.value.has(treeRow.id);
           const canExpand = treeRow.type === 'folder' && !!(treeRow.children && treeRow.children.length);
           const isExpanded = row.getIsExpanded?.() ?? false;
 
@@ -88,6 +89,7 @@ export function useDockerTableColumns(options: DockerTableColumnsOptions) {
             row: treeRow,
             depth: row.depth,
             isUpdating: isRowUpdating,
+            isBusy: isRowBusy,
             canExpand,
             isExpanded,
             onToggleExpand: () => {
