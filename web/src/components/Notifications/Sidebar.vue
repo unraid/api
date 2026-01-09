@@ -14,10 +14,7 @@ import {
   notificationsOverview,
   resetOverview,
 } from '~/components/Notifications/graphql/notification.query';
-import {
-  notificationEventSubscription,
-  notificationOverviewSubscription,
-} from '~/components/Notifications/graphql/notification.subscription';
+import { notificationEventSubscription } from '~/components/Notifications/graphql/notification.subscription';
 import NotificationsIndicator from '~/components/Notifications/Indicator.vue';
 import NotificationsList from '~/components/Notifications/List.vue';
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
