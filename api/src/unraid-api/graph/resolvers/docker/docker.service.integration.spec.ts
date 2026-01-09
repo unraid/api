@@ -1,4 +1,3 @@
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test, TestingModule } from '@nestjs/testing';
 import { mkdtemp, readFile, rm } from 'fs/promises';
 import { tmpdir } from 'os';
@@ -27,12 +26,6 @@ const mockDockerConfigService = {
 const mockDockerManifestService = {
     getCachedUpdateStatuses: vi.fn().mockResolvedValue({}),
     isUpdateAvailableCached: vi.fn().mockResolvedValue(false),
-};
-
-const mockCacheManager = {
-    get: vi.fn(),
-    set: vi.fn(),
-    del: vi.fn(),
 };
 
 // Hoisted mock for paths
@@ -81,7 +74,6 @@ describe.runIf(dockerAvailable)('DockerService Integration', () => {
                 DockerLogService,
                 DockerNetworkService,
                 DockerPortService,
-                { provide: CACHE_MANAGER, useValue: mockCacheManager },
                 { provide: DockerConfigService, useValue: mockDockerConfigService },
                 { provide: DockerManifestService, useValue: mockDockerManifestService },
                 { provide: NotificationsService, useValue: mockNotificationsService },
@@ -99,7 +91,7 @@ describe.runIf(dockerAvailable)('DockerService Integration', () => {
     });
 
     it('should fetch containers from docker daemon', async () => {
-        const containers = await service.getContainers({ skipCache: true });
+        const containers = await service.getContainers();
         expect(Array.isArray(containers)).toBe(true);
         if (containers.length > 0) {
             expect(containers[0]).toHaveProperty('id');
@@ -109,7 +101,7 @@ describe.runIf(dockerAvailable)('DockerService Integration', () => {
     });
 
     it('should fetch networks from docker daemon', async () => {
-        const networks = await service.getNetworks({ skipCache: true });
+        const networks = await service.getNetworks();
         expect(Array.isArray(networks)).toBe(true);
         // Default networks (bridge, host, null) should always exist
         expect(networks.length).toBeGreaterThan(0);
@@ -118,7 +110,7 @@ describe.runIf(dockerAvailable)('DockerService Integration', () => {
     });
 
     it('should manage autostart configuration in temp files', async () => {
-        const containers = await service.getContainers({ skipCache: true });
+        const containers = await service.getContainers();
         if (containers.length === 0) {
             console.warn('No containers found, skipping autostart write test');
             return;
@@ -150,7 +142,7 @@ describe.runIf(dockerAvailable)('DockerService Integration', () => {
     });
 
     it('should get container logs using dockerode', async () => {
-        const containers = await service.getContainers({ skipCache: true });
+        const containers = await service.getContainers();
         const running = containers.find((c) => c.state === 'RUNNING'); // Enum value is string 'RUNNING'
 
         if (!running) {

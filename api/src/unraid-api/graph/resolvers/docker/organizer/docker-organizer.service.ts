@@ -54,14 +54,8 @@ export class DockerOrganizerService {
         private readonly dockerService: DockerService
     ) {}
 
-    async getResources(
-        opts?: Partial<ContainerListOptions> & { skipCache?: boolean }
-    ): Promise<OrganizerV1['resources']> {
-        const { skipCache = false, ...listOptions } = opts ?? {};
-        const containers = await this.dockerService.getContainers({
-            skipCache,
-            ...(listOptions as any),
-        });
+    async getResources(opts?: Partial<ContainerListOptions>): Promise<OrganizerV1['resources']> {
+        const containers = await this.dockerService.getContainers(opts);
         return containerListToResourcesObject(containers);
     }
 
@@ -83,20 +77,17 @@ export class DockerOrganizerService {
         return newOrganizer;
     }
 
-    async syncAndGetOrganizer(opts?: { skipCache?: boolean }): Promise<OrganizerV1> {
+    async syncAndGetOrganizer(): Promise<OrganizerV1> {
         let organizer = this.dockerConfigService.getConfig();
-        organizer.resources = await this.getResources(opts);
+        organizer.resources = await this.getResources();
         organizer = await this.syncDefaultView(organizer, organizer.resources);
         organizer = await this.dockerConfigService.validate(organizer);
         this.dockerConfigService.replaceConfig(organizer);
         return organizer;
     }
 
-    async resolveOrganizer(
-        organizer?: OrganizerV1,
-        opts?: { skipCache?: boolean }
-    ): Promise<ResolvedOrganizerV1> {
-        organizer ??= await this.syncAndGetOrganizer(opts);
+    async resolveOrganizer(organizer?: OrganizerV1): Promise<ResolvedOrganizerV1> {
+        organizer ??= await this.syncAndGetOrganizer();
         return resolveOrganizer(organizer);
     }
 

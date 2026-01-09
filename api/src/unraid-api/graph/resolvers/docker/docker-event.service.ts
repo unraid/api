@@ -124,14 +124,12 @@ export class DockerEventService implements OnModuleDestroy, OnModuleInit {
         if (shouldProcess) {
             this.logger.debug(`[${dockerEvent.from}] ${dockerEvent.Type}->${actionName}`);
 
-            // For container lifecycle events, update the container cache
+            // For container lifecycle events, publish updated app info
             if (
                 dockerEvent.Type === DockerEventType.CONTAINER &&
                 typeof actionName === 'string' &&
                 this.containerActions.includes(actionName as DockerEventAction)
             ) {
-                await this.dockerService.clearContainerCache();
-                // Get updated counts and publish
                 const appInfo = await this.dockerService.getAppInfo();
                 await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
                 this.logger.debug(`Published app info update due to event: ${actionName}`);

@@ -1,4 +1,3 @@
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -17,27 +16,14 @@ vi.mock('@app/unraid-api/graph/resolvers/docker/utils/docker-client.js', () => (
     getDockerClient: vi.fn().mockReturnValue(mockDockerInstance),
 }));
 
-const mockCacheManager = {
-    get: vi.fn(),
-    set: vi.fn(),
-};
-
 describe('DockerNetworkService', () => {
     let service: DockerNetworkService;
 
     beforeEach(async () => {
         mockListNetworks.mockReset();
-        mockCacheManager.get.mockReset();
-        mockCacheManager.set.mockReset();
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [
-                DockerNetworkService,
-                {
-                    provide: CACHE_MANAGER,
-                    useValue: mockCacheManager,
-                },
-            ],
+            providers: [DockerNetworkService],
         }).compile();
 
         service = module.get<DockerNetworkService>(DockerNetworkService);
@@ -48,16 +34,7 @@ describe('DockerNetworkService', () => {
     });
 
     describe('getNetworks', () => {
-        it('should return cached networks if available and not skipped', async () => {
-            const cached = [{ id: 'net1', name: 'test-net' }];
-            mockCacheManager.get.mockResolvedValue(cached);
-
-            const result = await service.getNetworks({ skipCache: false });
-            expect(result).toEqual(cached);
-            expect(mockListNetworks).not.toHaveBeenCalled();
-        });
-
-        it('should fetch networks from docker if cache skipped', async () => {
+        it('should fetch networks from docker', async () => {
             const rawNetworks = [
                 {
                     Id: 'net1',
@@ -67,22 +44,18 @@ describe('DockerNetworkService', () => {
             ];
             mockListNetworks.mockResolvedValue(rawNetworks);
 
-            const result = await service.getNetworks({ skipCache: true });
+            const result = await service.getNetworks();
             expect(result).toHaveLength(1);
             expect(result[0].id).toBe('net1');
+            expect(result[0].name).toBe('test-net');
             expect(mockListNetworks).toHaveBeenCalled();
-            expect(mockCacheManager.set).toHaveBeenCalledWith(
-                DockerNetworkService.NETWORK_CACHE_KEY,
-                expect.anything(),
-                expect.anything()
-            );
         });
 
-        it('should fetch networks from docker if cache miss', async () => {
-            mockCacheManager.get.mockResolvedValue(undefined);
+        it('should return empty array when no networks exist', async () => {
             mockListNetworks.mockResolvedValue([]);
 
-            await service.getNetworks({ skipCache: false });
+            const result = await service.getNetworks();
+            expect(result).toEqual([]);
             expect(mockListNetworks).toHaveBeenCalled();
         });
     });
