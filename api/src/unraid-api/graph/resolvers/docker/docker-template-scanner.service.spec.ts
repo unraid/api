@@ -24,7 +24,7 @@ describe('DockerTemplateScannerService', () => {
         await mkdir(testTemplateDir, { recursive: true });
 
         const mockDockerService = {
-            getContainers: vi.fn(),
+            getRawContainers: vi.fn(),
         };
 
         const mockDockerConfigService = {
@@ -196,7 +196,7 @@ describe('DockerTemplateScannerService', () => {
                 } as DockerContainer,
             ];
 
-            vi.mocked(dockerService.getContainers).mockResolvedValue(containers);
+            vi.mocked(dockerService.getRawContainers).mockResolvedValue(containers);
             vi.mocked(dockerConfigService.getConfig).mockReturnValue({
                 updateCheckCronSchedule: '0 6 * * *',
                 templateMappings: {},
@@ -236,7 +236,7 @@ describe('DockerTemplateScannerService', () => {
                 } as DockerContainer,
             ];
 
-            vi.mocked(dockerService.getContainers).mockResolvedValue(containers);
+            vi.mocked(dockerService.getRawContainers).mockResolvedValue(containers);
             vi.mocked(dockerConfigService.getConfig).mockReturnValue({
                 updateCheckCronSchedule: '0 6 * * *',
                 templateMappings: {},
@@ -254,7 +254,7 @@ describe('DockerTemplateScannerService', () => {
 
             const containers: DockerContainer[] = [];
 
-            vi.mocked(dockerService.getContainers).mockResolvedValue(containers);
+            vi.mocked(dockerService.getRawContainers).mockResolvedValue(containers);
             vi.mocked(dockerConfigService.getConfig).mockReturnValue({
                 updateCheckCronSchedule: '0 6 * * *',
                 templateMappings: {},
@@ -268,7 +268,7 @@ describe('DockerTemplateScannerService', () => {
         });
 
         it('should handle docker service errors gracefully', async () => {
-            vi.mocked(dockerService.getContainers).mockRejectedValue(new Error('Docker error'));
+            vi.mocked(dockerService.getRawContainers).mockRejectedValue(new Error('Docker error'));
             vi.mocked(dockerConfigService.getConfig).mockReturnValue({
                 updateCheckCronSchedule: '0 6 * * *',
                 templateMappings: {},
@@ -290,7 +290,7 @@ describe('DockerTemplateScannerService', () => {
                 } as DockerContainer,
             ];
 
-            vi.mocked(dockerService.getContainers).mockResolvedValue(containers);
+            vi.mocked(dockerService.getRawContainers).mockResolvedValue(containers);
             vi.mocked(dockerConfigService.getConfig).mockReturnValue({
                 updateCheckCronSchedule: '0 6 * * *',
                 templateMappings: {},
@@ -325,7 +325,7 @@ describe('DockerTemplateScannerService', () => {
                 skipTemplatePaths: [],
             });
 
-            vi.mocked(dockerService.getContainers).mockResolvedValue(containers);
+            vi.mocked(dockerService.getRawContainers).mockResolvedValue(containers);
 
             const scanSpy = vi.spyOn(service, 'scanTemplates').mockResolvedValue({
                 scanned: 0,

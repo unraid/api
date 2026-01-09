@@ -57,11 +57,9 @@ export class DockerOrganizerService {
     ) {}
 
     async getResources(opts?: Partial<ContainerListOptions>): Promise<OrganizerV1['resources']> {
-        let containers = await this.dockerService.getContainers(opts);
-        const wasSynced = await this.dockerTemplateScannerService.syncMissingContainers(containers);
-        if (wasSynced) {
-            containers = await this.dockerService.getContainers(opts);
-        }
+        const rawContainers = await this.dockerService.getRawContainers(opts);
+        await this.dockerTemplateScannerService.syncMissingContainers(rawContainers);
+        const containers = this.dockerService.enrichWithOrphanStatus(rawContainers);
         return containerListToResourcesObject(containers);
     }
 
