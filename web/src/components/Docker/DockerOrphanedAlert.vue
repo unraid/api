@@ -44,7 +44,7 @@ function formatContainerName(container: DockerContainer): string {
 </script>
 
 <template>
-  <div class="border-warning/30 bg-warning/10 text-warning rounded-lg border p-4 text-sm">
+  <div class="border-warning/30 bg-warning/10 rounded-lg border p-4 text-sm">
     <div class="flex items-start gap-3">
       <UIcon
         name="i-lucide-triangle-alert"
@@ -53,10 +53,10 @@ function formatContainerName(container: DockerContainer): string {
       />
       <div class="w-full space-y-3">
         <div>
-          <p class="text-sm font-semibold">
+          <p class="text-foreground text-sm font-semibold">
             Orphaned containers detected ({{ orphanedContainers.length }})
           </p>
-          <p class="text-warning/80 text-xs">
+          <p class="text-muted-foreground text-xs">
             These containers do not have a corresponding template. You can remove them if they are no
             longer needed.
           </p>
@@ -69,7 +69,7 @@ function formatContainerName(container: DockerContainer): string {
                   v-for="container in orphanedContainers"
                   :key="container.id"
                   type="button"
-                  class="border-warning/50 bg-warning/20 text-warning hover:bg-warning/30 focus-visible:ring-warning/50 inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium transition focus-visible:ring-2 focus-visible:outline-none"
+                  class="border-warning/50 bg-warning/20 text-foreground hover:bg-warning/30 focus-visible:ring-warning/50 inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium transition focus-visible:ring-2 focus-visible:outline-none"
                   :title="`Remove ${formatContainerName(container)}`"
                   :disabled="removing"
                   @click="handleRemove(container)"
