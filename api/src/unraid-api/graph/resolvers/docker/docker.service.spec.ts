@@ -12,6 +12,7 @@ import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
 import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
+import { DockerUpdateProgressService } from '@app/unraid-api/graph/resolvers/docker/docker-update-progress.service.js';
 import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
@@ -167,6 +168,13 @@ const mockDockerPortService = {
     calculateConflicts: vi.fn().mockReturnValue({ containerPorts: [], lanPorts: [] }),
 };
 
+// Mock DockerUpdateProgressService
+const mockDockerUpdateProgressService = {
+    updateContainerWithProgress: vi.fn().mockResolvedValue(undefined),
+    isUpdating: vi.fn().mockReturnValue(false),
+    getActiveUpdates: vi.fn().mockReturnValue([]),
+};
+
 describe('DockerService', () => {
     let service: DockerService;
 
@@ -209,6 +217,9 @@ describe('DockerService', () => {
         mockDockerPortService.deduplicateContainerPorts.mockClear();
         mockDockerPortService.calculateConflicts.mockReset();
 
+        mockDockerUpdateProgressService.updateContainerWithProgress.mockReset();
+        mockDockerUpdateProgressService.updateContainerWithProgress.mockResolvedValue(undefined);
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 DockerService,
@@ -239,6 +250,10 @@ describe('DockerService', () => {
                 {
                     provide: DockerPortService,
                     useValue: mockDockerPortService,
+                },
+                {
+                    provide: DockerUpdateProgressService,
+                    useValue: mockDockerUpdateProgressService,
                 },
             ],
         }).compile();

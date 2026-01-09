@@ -14,6 +14,8 @@ interface UpdateActionsOptions {
   showToast: (message: string) => void;
   showError: (message: string, options?: { description?: string }) => void;
   getRowById: (id: string) => TreeRow<DockerContainer> | undefined;
+  onUpdateStart?: (containerId: string, containerName: string) => void;
+  onUpdateComplete?: (containerId: string) => void;
 }
 
 export function useDockerUpdateActions({
@@ -21,6 +23,8 @@ export function useDockerUpdateActions({
   showToast,
   showError,
   getRowById,
+  onUpdateStart,
+  onUpdateComplete,
 }: UpdateActionsOptions) {
   const updatingRowIds = ref<Set<string>>(new Set());
 
@@ -93,6 +97,7 @@ export function useDockerUpdateActions({
 
     setRowsUpdating([row], true);
     setRowsBusy([row.id], true);
+    onUpdateStart?.(row.containerId, row.name);
 
     try {
       await updateContainersMutation(
@@ -110,6 +115,7 @@ export function useDockerUpdateActions({
     } finally {
       setRowsBusy([row.id], false);
       setRowsUpdating([row], false);
+      onUpdateComplete?.(row.containerId);
     }
   }
 
@@ -124,6 +130,12 @@ export function useDockerUpdateActions({
     const entryIds = Array.from(new Set(rows.map((row) => row.id)));
     setRowsUpdating(rows, true);
     setRowsBusy(entryIds, true);
+
+    for (const row of rows) {
+      if (row.containerId) {
+        onUpdateStart?.(row.containerId, row.name);
+      }
+    }
 
     try {
       await updateContainersMutation(
@@ -142,6 +154,11 @@ export function useDockerUpdateActions({
     } finally {
       setRowsBusy(entryIds, false);
       setRowsUpdating(rows, false);
+      for (const row of rows) {
+        if (row.containerId) {
+          onUpdateComplete?.(row.containerId);
+        }
+      }
     }
   }
 
@@ -151,6 +168,11 @@ export function useDockerUpdateActions({
     if (rows.length) {
       setRowsUpdating(rows, true);
       setRowsBusy(entryIds, true);
+      for (const row of rows) {
+        if (row.containerId) {
+          onUpdateStart?.(row.containerId, row.name);
+        }
+      }
     }
 
     try {
@@ -175,6 +197,11 @@ export function useDockerUpdateActions({
       if (rows.length) {
         setRowsBusy(entryIds, false);
         setRowsUpdating(rows, false);
+        for (const row of rows) {
+          if (row.containerId) {
+            onUpdateComplete?.(row.containerId);
+          }
+        }
       }
     }
   }
