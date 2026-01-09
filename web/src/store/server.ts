@@ -1175,8 +1175,7 @@ export const useServerStore = defineStore('server', () => {
 
   onResult((result) => {
     if (result.data) {
-      const { unraidApiStatus } = toRefs(useUnraidApiStore());
-      unraidApiStatus.value = 'online';
+      unraidApiStore.setOnline();
       apiServerStateRefresh.value = refetchServerState;
       const mutatedServerStateResult = mutateServerStateFromApi(result.data);
       setServer(mutatedServerStateResult);

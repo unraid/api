@@ -8,10 +8,14 @@ import { isDarkModeActive } from '@unraid/ui';
 import { componentMappings } from '@/components/Wrapper/component-registry';
 import { client } from '~/helpers/create-apollo-client';
 import { createI18nInstance, ensureLocale, getWindowLocale } from '~/helpers/i18n-loader';
+import { type ToastPosition } from '~/types/notifications';
 
+import { getNotificationSettings } from '~/components/Notifications/graphql/notification.query';
 // Import Pinia for use in Vue apps
 import { globalPinia } from '~/store/globalPinia';
 import { ensureUnapiScope, ensureUnapiScopeForSelectors, observeUnapiScope } from '~/utils/unapiScope';
+// Import the app config to pass runtime settings (like toaster position)
+import appConfig from '../../../app.config';
 
 // Ensure Apollo client is singleton
 const apolloClient = (typeof window !== 'undefined' && window.apolloClient) || client;
@@ -140,6 +144,62 @@ export async function mountUnifiedApp() {
   app.use(ui);
   app.provide(DefaultApolloClient, apolloClient);
 
+  // Fetch notification settings
+  interface NotificationSettingsResponse {
+    notifications?: {
+      settings?: {
+        position?: string;
+        expand?: boolean;
+        duration?: number;
+        max?: number;
+      };
+    };
+  }
+
+  const toasterSettings = { ...appConfig.ui.toaster } as {
+    position: ToastPosition;
+    expand: boolean;
+    duration: number;
+    max: number;
+  };
+
+  try {
+    const { data } = await apolloClient.query<NotificationSettingsResponse>({
+      query: getNotificationSettings,
+      fetchPolicy: 'network-only',
+    });
+    const fetchedSettings = data?.notifications?.settings;
+    console.log('[UnifiedMount] Fetched settings:', fetchedSettings);
+
+    if (fetchedSettings) {
+      if (fetchedSettings.position) {
+        const map: Record<string, ToastPosition> = {
+          'top-left': 'top-left',
+          'top-right': 'top-right',
+          'bottom-left': 'bottom-left',
+          'bottom-right': 'bottom-right',
+          'bottom-center': 'bottom-center',
+          'top-center': 'top-center',
+        };
+        const mappedPosition = map[fetchedSettings.position];
+        if (mappedPosition) {
+          toasterSettings.position = mappedPosition;
+        }
+      }
+      if (fetchedSettings.expand !== undefined && fetchedSettings.expand !== null) {
+        toasterSettings.expand = fetchedSettings.expand;
+      }
+      if (fetchedSettings.duration) {
+        toasterSettings.duration = fetchedSettings.duration;
+      }
+      if (fetchedSettings.max) {
+        toasterSettings.max = fetchedSettings.max;
+      }
+    }
+  } catch (e) {
+    console.error('[UnifiedMount] Failed to fetch notification settings', e);
+  }
+
   // Mount the app to establish context
   let rootElement = document.getElementById('unraid-unified-root');
   if (!rootElement) {
@@ -244,6 +304,7 @@ export async function mountUnifiedApp() {
             UApp,
             {
               portal: portalTarget,
+              toaster: toasterSettings,
             },
             {
               default: () => h(component, props),

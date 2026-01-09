@@ -137,6 +137,7 @@ describe('UpdateOs Store', () => {
           ...originalLocation,
           origin: 'https://littlebox.tail45affd.ts.net',
           href: 'https://littlebox.tail45affd.ts.net/Plugins',
+          assign: vi.fn(),
         },
       });
 
@@ -217,6 +218,9 @@ describe('UpdateOs Store', () => {
           set href(value) {
             hrefValue = value;
           },
+          assign: vi.fn((value) => {
+            hrefValue = value;
+          }),
         },
       });
 

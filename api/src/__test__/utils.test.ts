@@ -68,6 +68,29 @@ describe('formatDatetime', () => {
             }
         );
     });
+
+    describe('Unraid PHP-style date formats (conversion)', () => {
+        const phpFormats = [
+            ['d-m-Y', '14-02-2024'],
+            ['m-d-Y', '02-14-2024'],
+            ['Y-m-d', '2024-02-14'],
+        ];
+
+        const phpTimeFormats = [
+            ['h:i A', '12:34 PM'],
+            ['H:i', '12:34'],
+        ];
+
+        it.each(phpFormats)('converts and formats date with %s', (format, expected) => {
+            const result = formatDatetime(testDate, { dateFormat: format });
+            expect(result).toContain(expected);
+        });
+
+        it.each(phpTimeFormats)('converts and formats time with %s', (format, expected) => {
+            const result = formatDatetime(testDate, { timeFormat: format, dateFormat: 'Y-m-d' });
+            expect(result).toContain(expected);
+        });
+    });
 });
 
 describe('csvStringToArray', () => {

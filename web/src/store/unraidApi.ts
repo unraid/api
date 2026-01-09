@@ -128,5 +128,10 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     unraidApiRestartAction,
     closeUnraidApiClient,
     restartUnraidApiClient,
+    setOnline: () => {
+      if (unraidApiStatus.value !== 'online') {
+        unraidApiStatus.value = 'online';
+      }
+    },
   };
 });

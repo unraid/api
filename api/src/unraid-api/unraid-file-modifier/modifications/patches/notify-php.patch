@@ -1,0 +1,19 @@
+Index: /usr/local/emhttp/plugins/dynamix/include/Notify.php
+===================================================================
+--- /usr/local/emhttp/plugins/dynamix/include/Notify.php	original
++++ /usr/local/emhttp/plugins/dynamix/include/Notify.php	modified
+@@ -34,10 +34,14 @@
+     case 'd':
+     case 'i':
+     case 'm':
+       $notify .= " -{$option} ".escapeshellarg($value);
+       break;
++    case 'u':
++      $notify .= " -{$option} ".escapeshellarg($value);
++      break;
++    
+     case 'x':
+     case 't':
+       $notify .= " -{$option}";
+       break;
+     }

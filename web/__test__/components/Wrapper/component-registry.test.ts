@@ -30,7 +30,7 @@ vi.mock('../DevModalTest.standalone.vue', () => ({ default: 'DevModalTest' }));
 vi.mock('../LayoutViews/Detail/DetailTest.standalone.vue', () => ({ default: 'DetailTest' }));
 vi.mock('@/components/ThemeSwitcher.standalone.vue', () => ({ default: 'ThemeSwitcher' }));
 vi.mock('../ColorSwitcher.standalone.vue', () => ({ default: 'ColorSwitcher' }));
-vi.mock('@/components/UnraidToaster.vue', () => ({ default: 'UnraidToaster' }));
+
 vi.mock('../UpdateOs/TestUpdateModal.standalone.vue', () => ({ default: 'TestUpdateModal' }));
 vi.mock('../TestThemeSwitcher.standalone.vue', () => ({ default: 'TestThemeSwitcher' }));
 
@@ -93,15 +93,6 @@ describe('component-registry', () => {
     expect(apiKeyMapping?.selector).toContain('unraid-api-key-manager');
   });
 
-  it('should support multiple selectors for toaster', async () => {
-    const { componentMappings } = await import('~/components/Wrapper/component-registry');
-
-    const toasterMapping = componentMappings.find((m) => m.appId === 'toaster');
-    expect(Array.isArray(toasterMapping?.selector)).toBe(true);
-    expect(toasterMapping?.selector).toContain('unraid-toaster');
-    expect(toasterMapping?.selector).toContain('uui-toaster');
-  });
-
   it('should have unique appIds', async () => {
     const { componentMappings } = await import('~/components/Wrapper/component-registry');
 
@@ -150,7 +141,7 @@ describe('component-registry', () => {
       'detail-test',
       'theme-switcher',
       'color-switcher',
-      'toaster',
+
       'test-update-modal',
       'test-theme-switcher',
     ];

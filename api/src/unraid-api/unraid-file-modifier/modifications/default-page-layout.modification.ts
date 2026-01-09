@@ -9,14 +9,6 @@ export default class DefaultPageLayoutModification extends FileModification {
     id: string = 'default-page-layout';
     public readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php';
 
-    private addToaster(source: string): string {
-        if (source.includes('uui-toaster')) {
-            return source;
-        }
-        const insertion = `<uui-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></uui-toaster>`;
-        return source.replace(/<\/body>/, `${insertion}\n</body>`);
-    }
-
     private removeNotificationBell(source: string): string {
         return source.replace(/^.*(id='bell'|#bell).*$/gm, '');
     }
@@ -83,7 +75,6 @@ if (is_localhost() && !is_good_session()) {
         const transformers = [
             this.removeNotificationBell.bind(this),
             this.replaceToasts.bind(this),
-            this.addToaster.bind(this),
             this.patchGuiBootAuth.bind(this),
             this.addModalsWebComponent.bind(this),
             this.hideHeaderLogo.bind(this),

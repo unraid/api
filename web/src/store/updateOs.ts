@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 
+import { navigate } from '~/helpers/external-navigation';
 import { WEBGUI_REDIRECT } from '~/helpers/urls';
 import dayjs, { extend } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
@@ -109,7 +110,7 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
       // if current path is /Tools/Update, then we should redirect to /Tools
       // otherwise it will redirect to the account update os page.
       if (window.location.pathname === '/Tools/Update') {
-        window.location.href = '/Tools';
+        navigate('/Tools');
         return;
       }
       // otherwise refresh the page

@@ -1,0 +1,18 @@
+Index: /usr/local/emhttp/plugins/dynamix/default.cfg
+===================================================================
+--- /usr/local/emhttp/plugins/dynamix/default.cfg	original
++++ /usr/local/emhttp/plugins/dynamix/default.cfg	modified
+@@ -43,10 +43,13 @@
+ month="1"
+ day="0"
+ cron=""
+ write="NOCORRECT"
+ [notify]
++expand="true"
++duration="5000"
++max="3"
+ display="0"
+ life="5"
+ date="d-m-Y"
+ time="H:i"
+ position="top-right"

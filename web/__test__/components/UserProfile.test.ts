@@ -42,6 +42,7 @@ vi.mock('@vueuse/core', () => ({
     }
     return ref(storage.get(key) ?? initialValue);
   },
+  createSharedComposable: (fn: unknown) => fn,
 }));
 
 vi.mock('@unraid/ui', () => ({

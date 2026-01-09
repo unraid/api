@@ -3,6 +3,7 @@ import { defineStore, storeToRefs } from 'pinia';
 import { useSessionStorage } from '@vueuse/core';
 
 import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
+import { navigate } from '~/helpers/external-navigation';
 
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
@@ -66,7 +67,7 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
     if (sequenceIndex === keySequence.length) {
       setIsHidden(true);
       // Redirect only if explicitly hidden via konami code, not just closed normally
-      window.location.href = '/Tools/Registration';
+      navigate('/Tools/Registration');
     }
   };
 

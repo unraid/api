@@ -65,6 +65,9 @@ const mockLocation = {
   set href(value: string) {
     mockLocationHref = value;
   },
+  assign: vi.fn((url: string) => {
+    mockLocationHref = url;
+  }),
 };
 vi.stubGlobal('location', mockLocation);
 vi.stubGlobal('URLSearchParams', URLSearchParams);
@@ -261,7 +264,7 @@ describe('SsoButtons', () => {
     const redirectUri = `${mockLocation.origin}/graphql/api/auth/oidc/callback`;
     const expectedUrl = `/graphql/api/auth/oidc/authorize/unraid-net?state=${encodeURIComponent(generatedState)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-    expect(mockLocation.href).toBe(expectedUrl);
+    expect(mockLocation.assign).toHaveBeenCalledWith(expectedUrl);
   });
 
   it('handles OIDC callback with token successfully', async () => {
@@ -383,7 +386,7 @@ describe('SsoButtons', () => {
 
     // Should redirect to the OIDC callback endpoint
     const expectedUrl = `/graphql/api/auth/oidc/callback?code=${encodeURIComponent(mockCode)}&state=${encodeURIComponent(mockState)}`;
-    expect(mockLocation.href).toBe(expectedUrl);
+    expect(mockLocation.assign).toHaveBeenCalledWith(expectedUrl);
   });
 
   it('handles HTTPS with non-standard port correctly', async () => {
@@ -430,7 +433,7 @@ describe('SsoButtons', () => {
     const redirectUri = 'https://unraid.mytailnet.ts.net:1443/graphql/api/auth/oidc/callback';
     const expectedUrl = `/graphql/api/auth/oidc/authorize/tsidp?state=${encodeURIComponent(generatedState)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
-    expect(mockLocation.href).toBe(expectedUrl);
+    expect(mockLocation.assign).toHaveBeenCalledWith(expectedUrl);
 
     // Reset location mock for other tests
     mockLocation.protocol = 'http:';

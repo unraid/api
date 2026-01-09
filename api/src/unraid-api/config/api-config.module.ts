@@ -29,21 +29,25 @@ export const loadApiConfig = async () => {
     const defaultConfig = createDefaultConfig();
     const apiHandler = new ApiConfigPersistence(new ConfigService()).getFileHandler();
 
-    const diskConfig: Partial<ApiConfig> = await apiHandler.loadConfig();
-    // Hack: cleanup stale connect plugin entry if necessary
-    if (!isConnectPluginInstalled()) {
-        diskConfig.plugins = diskConfig.plugins?.filter(
-            (plugin) => plugin !== 'unraid-api-plugin-connect'
-        );
-        await apiHandler.writeConfigFile(diskConfig as ApiConfig);
-    }
+    try {
+        const diskConfig: Partial<ApiConfig> = await apiHandler.loadConfig();
+        // Hack: cleanup stale connect plugin entry if necessary
+        if (!isConnectPluginInstalled() && diskConfig.plugins) {
+            diskConfig.plugins = diskConfig.plugins?.filter(
+                (plugin) => plugin !== 'unraid-api-plugin-connect'
+            );
+            await apiHandler.writeConfigFile(diskConfig as ApiConfig);
+        }
 
-    return {
-        ...defaultConfig,
-        ...diskConfig,
-        // diskConfig's version may be older, but we still want to use the correct version
-        version: API_VERSION,
-    };
+        return {
+            ...defaultConfig,
+            ...diskConfig,
+            // diskConfig's version may be older, but we still want to use the correct version
+            version: API_VERSION,
+        };
+    } catch (e) {
+        return defaultConfig;
+    }
 };
 
 /**

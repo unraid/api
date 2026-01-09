@@ -294,6 +294,7 @@
   "notifications.item.archive": "Archive",
   "notifications.item.delete": "Delete",
   "notifications.item.viewLink": "View",
+  "notifications.list.loading": "Loading Notifications...",
   "notifications.list.noNotifications": "No notifications to see here!",
   "notifications.list.noNotificationsWithImportance": "No {importance} notifications to see here!",
   "notifications.list.reachedEnd": "You've reached the end...",

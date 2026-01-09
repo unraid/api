@@ -13,6 +13,7 @@ import {
   XCircleIcon,
 } from '@heroicons/vue/24/solid';
 import { Badge, BrandLoading, Button } from '@unraid/ui';
+import { navigate } from '~/helpers/external-navigation';
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 
 import useDateTimeHelper from '~/composables/dateTime';
@@ -113,7 +114,7 @@ const checkButton = computed(() => {
 
 const navigateToRegistration = () => {
   if (typeof window !== 'undefined') {
-    window.location.href = WEBGUI_TOOLS_REGISTRATION;
+    navigate(WEBGUI_TOOLS_REGISTRATION);
   }
 };
 </script>

@@ -40,8 +40,6 @@ declare global {
     mountApiKeyManager?: (selector?: string) => unknown;
     mountDevModalTest?: (selector?: string) => unknown;
     mountApiKeyAuthorize?: (selector?: string) => unknown;
-    mountToaster?: (selector?: string) => unknown;
-    mountToasterLegacy?: (selector?: string) => unknown;
 
     // Webgui provided functions
     flashBackup?: () => void;

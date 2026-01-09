@@ -8,6 +8,7 @@ import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
 import removeConsole from 'vite-plugin-remove-console';
 
+import appConfig from './app.config';
 import scopeTailwindToUnapi from './postcss/scopeTailwindToUnapi';
 import { serveStaticHtml } from './vite-plugin-serve-static';
 
@@ -72,7 +73,9 @@ export default defineConfig({
         },
       },
     }),
-    ui(),
+    ui({
+      ui: appConfig.ui,
+    }),
     serveStaticHtml(), // Serve static test pages
     // Remove console logs in production
     ...(dropConsole

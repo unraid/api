@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.page": "php"
+    },
+    "intelephense.format.enable": false,
+}

@@ -14,6 +14,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const toggle = () => (isOpen.value = !isOpen.value);
 
   const setNotifications = (newNotifications: NotificationFragmentFragment[]) => {
+    console.log('[NotificationsStore] setNotifications', newNotifications.length);
     notifications.value = newNotifications;
   };
 

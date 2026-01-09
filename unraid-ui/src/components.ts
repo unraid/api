@@ -15,7 +15,6 @@ export * from '@/components/common/stepper';
 export * from '@/components/common/sheet';
 export * from '@/components/common/tabs';
 export * from '@/components/common/tooltip';
-export * from '@/components/common/toast';
 export * from '@/components/common/popover';
 export * from '@/components/common/responsive-modal';
 export * from '@/components/modals';

@@ -28,3 +28,14 @@ export const warningsAndAlertsSubscription = graphql(/* GraphQL */ `
     }
   }
 `);
+
+export const notificationEventSubscription = graphql(/* GraphQL */ `
+  subscription NotificationEventSub {
+    notificationEvent {
+      type
+      notification {
+        ...NotificationFragment
+      }
+    }
+  }
+`);

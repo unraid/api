@@ -1,17 +1,32 @@
 import { Logger } from '@nestjs/common';
-import { readFile, writeFile } from 'fs/promises';
+import { constants } from 'fs';
+import { access, mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
-import { describe, expect, test, vi } from 'vitest';
+import { coerce, gte } from 'semver';
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification.js';
+import DefaultAzureCssModification from '@app/unraid-api/unraid-file-modifier/modifications/default-azure-css.modification.js';
+import DefaultBaseCssModification from '@app/unraid-api/unraid-file-modifier/modifications/default-base-css.modification.js';
+import DefaultBlackCssModification from '@app/unraid-api/unraid-file-modifier/modifications/default-black-css.modification.js';
+import DefaultCfgModification from '@app/unraid-api/unraid-file-modifier/modifications/default-cfg.modification.js';
+import DefaultGrayCssModification from '@app/unraid-api/unraid-file-modifier/modifications/default-gray-css.modification.js';
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification.js';
+import DefaultWhiteCssModification from '@app/unraid-api/unraid-file-modifier/modifications/default-white-css.modification.js';
 import DisplaySettingsModification from '@app/unraid-api/unraid-file-modifier/modifications/display-settings.modification.js';
+import DockerContainersPageModification from '@app/unraid-api/unraid-file-modifier/modifications/docker-containers-page.modification.js';
+import FontAwesomeCssModification from '@app/unraid-api/unraid-file-modifier/modifications/font-awesome-css.modification.js';
+import HelptextModification from '@app/unraid-api/unraid-file-modifier/modifications/helptext.modification.js';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
+import NotifyPhpModification from '@app/unraid-api/unraid-file-modifier/modifications/notify-php.modification.js';
+import NotifyScriptModification from '@app/unraid-api/unraid-file-modifier/modifications/notify-script.modification.js';
 import RcNginxModification from '@app/unraid-api/unraid-file-modifier/modifications/rc-nginx.modification.js';
+import SetPasswordModalModification from '@app/unraid-api/unraid-file-modifier/modifications/set-password-modal.modification.js';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
+import TranslationsPhpModification from '@app/unraid-api/unraid-file-modifier/modifications/translations-php.modification.js';
 
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;
@@ -31,10 +46,28 @@ const patchTestCases: ModificationTestCase[] = [
         fileName: 'DefaultPageLayout.php',
     },
     {
+        ModificationClass: DefaultBaseCssModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/7.1.2/emhttp/plugins/dynamix/styles/default-base.css',
+        fileName: 'default-base.css',
+    },
+    {
         ModificationClass: NotificationsPageModification,
         fileUrl:
-            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/Notifications.page',
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.0/emhttp/plugins/dynamix/Notifications.page',
         fileName: 'Notifications.page',
+    },
+    {
+        ModificationClass: DefaultCfgModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/default.cfg',
+        fileName: 'default.cfg',
+    },
+    {
+        ModificationClass: NotifyPhpModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/include/Notify.php',
+        fileName: 'Notify.php',
     },
     {
         ModificationClass: DisplaySettingsModification,
@@ -59,10 +92,74 @@ const patchTestCases: ModificationTestCase[] = [
         fileUrl: 'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/etc/rc.d/rc.nginx',
         fileName: 'rc.nginx',
     },
+    {
+        ModificationClass: NotifyScriptModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/scripts/notify',
+        fileName: 'notify',
+    },
+    {
+        ModificationClass: DefaultWhiteCssModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.0/emhttp/plugins/dynamix/styles/default-white.css',
+        fileName: 'default-white.css',
+    },
+    {
+        ModificationClass: DefaultBlackCssModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.0/emhttp/plugins/dynamix/styles/default-black.css',
+        fileName: 'default-black.css',
+    },
+    {
+        ModificationClass: DefaultGrayCssModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.0/emhttp/plugins/dynamix/styles/default-gray.css',
+        fileName: 'default-gray.css',
+    },
+    {
+        ModificationClass: DefaultAzureCssModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.0/emhttp/plugins/dynamix/styles/default-azure.css',
+        fileName: 'default-azure.css',
+    },
+    {
+        ModificationClass: DockerContainersPageModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix.docker.manager/DockerContainers.page',
+        fileName: 'DockerContainers.page',
+    },
+    {
+        ModificationClass: SetPasswordModalModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/include/.set-password.php',
+        fileName: '.set-password.php',
+    },
+    {
+        ModificationClass: FontAwesomeCssModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/styles/font-awesome.css',
+        fileName: 'font-awesome.css',
+    },
+    {
+        ModificationClass: HelptextModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/languages/en_US/helptext.txt',
+        fileName: 'helptext.txt',
+    },
+    {
+        ModificationClass: TranslationsPhpModification,
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/include/Translations.php',
+        fileName: 'Translations.php',
+    },
 ];
 
 /** Modifications that simply add a new file & remove it on rollback. */
 const simpleTestCases: ModificationTestCase[] = [];
+
+// ... (existing imports)
+
+// ...
 
 async function testModification(testCase: ModificationTestCase) {
     const fileName = basename(testCase.fileUrl);
@@ -70,6 +167,27 @@ async function testModification(testCase: ModificationTestCase) {
     const originalContent = await readFile(filePath, 'utf-8').catch(() => '');
     const logger = new Logger();
     const patcher = await new testCase.ModificationClass(logger);
+
+    // Mock isUnraidVersionGreaterThanOrEqualTo to derive version from test case URL
+    // @ts-expect-error - Accessing protected method
+    patcher.isUnraidVersionGreaterThanOrEqualTo = vi.fn().mockImplementation(async (version) => {
+        // Extract version from URL, simple heuristic looking for /7.x/ or /6.x/
+        // URLs look like: .../heads/7.1/... or .../heads/7.0/...
+        const match =
+            testCase.fileUrl.match(/\/heads\/(\d+\.\d+)/) || testCase.fileUrl.match(/\/(\d+\.\d+\.\d+)/);
+        const urlVersion = match ? match[1] : '7.0.0'; // Default to 7.0.0 if not found
+
+        const v1 = coerce(urlVersion);
+        const v2 = coerce(version);
+        if (!v1 || !v2) return false;
+
+        return gte(v1, v2);
+    });
+
+    // Mock getPregeneratedPatch to return null, forcing use of dynamic generation for tests
+    // @ts-expect-error - Accessing protected method
+    patcher.getPregeneratedPatch = vi.fn().mockResolvedValue(null);
+
     const originalPath = patcher.filePath;
     // @ts-expect-error - Ignore for testing purposes
     patcher.filePath = filePath;
@@ -105,6 +223,22 @@ async function testInvalidModification(testCase: ModificationTestCase) {
 
     const patcher = new testCase.ModificationClass(mockLogger as unknown as Logger);
 
+    // Mock isUnraidVersionGreaterThanOrEqualTo to derive version from test case URL
+    // @ts-expect-error - Accessing protected method
+    patcher.isUnraidVersionGreaterThanOrEqualTo = vi.fn().mockImplementation(async (version) => {
+        // Extract version from URL, simple heuristic looking for /7.x/ or /6.x/
+        // URLs look like: .../heads/7.1/... or .../heads/7.0/...
+        const match =
+            testCase.fileUrl.match(/\/heads\/(\d+\.\d+)/) || testCase.fileUrl.match(/\/(\d+\.\d+\.\d+)/);
+        const urlVersion = match ? match[1] : '7.0.0'; // Default to 7.0.0 if not found
+
+        const v1 = coerce(urlVersion);
+        const v2 = coerce(version);
+        if (!v1 || !v2) return false;
+
+        return gte(v1, v2);
+    });
+
     // @ts-expect-error - Testing invalid pregenerated patches
     patcher.getPregeneratedPatch = vi.fn().mockResolvedValue('I AM NOT A VALID PATCH');
 
@@ -122,7 +256,28 @@ async function testInvalidModification(testCase: ModificationTestCase) {
 
 const allTestCases = [...patchTestCases, ...simpleTestCases];
 
+async function ensureFixtureExists(testCase: ModificationTestCase) {
+    const fileName = basename(testCase.fileUrl);
+    const filePath = getPathToFixture(fileName);
+    try {
+        await access(filePath, constants.R_OK);
+    } catch {
+        console.log(`Downloading fixture: ${fileName} from ${testCase.fileUrl}`);
+        const response = await fetch(testCase.fileUrl);
+        if (!response.ok) {
+            throw new Error(`Failed to download fixture ${fileName}: ${response.statusText}`);
+        }
+        const text = await response.text();
+        await mkdir(dirname(filePath), { recursive: true });
+        await writeFile(filePath, text);
+    }
+}
+
 describe('File modifications', () => {
+    beforeAll(async () => {
+        await Promise.all(allTestCases.map(ensureFixtureExists));
+    });
+
     test.each(allTestCases)(
         `$fileName modifier correctly applies to fresh install`,
         async (testCase) => {

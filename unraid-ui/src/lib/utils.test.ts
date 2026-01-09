@@ -3,8 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('isDarkModeActive', () => {
   const originalGetComputedStyle = window.getComputedStyle;
-  const originalDocumentElement = document.documentElement;
-  const originalBody = document.body;
 
   beforeEach(() => {
     document.documentElement.classList.remove('dark');
