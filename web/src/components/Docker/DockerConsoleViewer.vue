@@ -6,10 +6,12 @@ import { useDockerConsoleSessions } from '@/composables/useDockerConsoleSessions
 interface Props {
   containerName: string;
   shell?: string;
+  isRunning?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   shell: 'sh',
+  isRunning: true,
 });
 
 const { getSession, createSession, showSession, hideSession, destroySession, markPoppedOut } =
@@ -26,7 +28,9 @@ const socketPath = computed(() => {
   return `/logterminal/${encodedName}/`;
 });
 
-const showPlaceholder = computed(() => !isConnecting.value && !hasError.value && !isPoppedOut.value);
+const showPlaceholder = computed(
+  () => props.isRunning && !isConnecting.value && !hasError.value && !isPoppedOut.value
+);
 
 function updatePosition() {
   if (placeholderRef.value && showPlaceholder.value) {
@@ -36,6 +40,13 @@ function updatePosition() {
 }
 
 async function initTerminal() {
+  if (!props.isRunning) {
+    isConnecting.value = false;
+    hasError.value = false;
+    isPoppedOut.value = false;
+    return;
+  }
+
   const existingSession = getSession(props.containerName);
 
   if (existingSession && !existingSession.isPoppedOut) {
@@ -90,6 +101,17 @@ watch(
       hideSession(oldName);
     }
     initTerminal();
+  }
+);
+
+watch(
+  () => props.isRunning,
+  (running) => {
+    if (running) {
+      initTerminal();
+    } else {
+      hideSession(props.containerName);
+    }
   }
 );
 
@@ -152,7 +174,14 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div v-if="isConnecting" class="flex flex-1 items-center justify-center rounded-lg bg-black">
+    <div v-if="!isRunning" class="flex flex-1 items-center justify-center rounded-lg bg-black">
+      <div class="text-center">
+        <UIcon name="i-lucide-terminal" class="h-8 w-8 text-neutral-500" />
+        <p class="mt-2 text-sm text-neutral-400">Container is not running</p>
+      </div>
+    </div>
+
+    <div v-else-if="isConnecting" class="flex flex-1 items-center justify-center rounded-lg bg-black">
       <div class="text-center">
         <UIcon name="i-lucide-loader-2" class="h-8 w-8 animate-spin text-green-400" />
         <p class="mt-2 text-sm text-green-400">Connecting to container...</p>

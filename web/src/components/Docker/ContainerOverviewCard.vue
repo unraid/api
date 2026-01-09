@@ -40,7 +40,8 @@ const stateColor = computed(() => {
 const stateLabel = computed(() => {
   const state = props.container?.state;
   if (!state) return 'Unknown';
-  return state.charAt(0).toUpperCase() + state.slice(1);
+  if (state === 'EXITED') return 'Stopped';
+  return state.charAt(0).toUpperCase() + state.slice(1).toLowerCase();
 });
 
 const imageVersion = computed(() => formatImage(props.container));

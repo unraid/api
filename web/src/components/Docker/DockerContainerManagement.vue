@@ -381,6 +381,15 @@ const hasActiveConsoleSession = computed(() => {
   return name ? hasActiveSession(name) : false;
 });
 
+const isContainerRunning = computed(() => activeContainer.value?.state === 'RUNNING');
+
+const consoleBadge = computed(() => {
+  if (isContainerRunning.value && hasActiveConsoleSession.value) {
+    return { color: 'success' as const, variant: 'solid' as const, class: 'w-2 h-2 p-0 min-w-0' };
+  }
+  return undefined;
+});
+
 const legacyPaneTabs = computed(() => [
   { label: 'Overview', value: 'overview' as const },
   { label: 'Settings', value: 'settings' as const },
@@ -388,9 +397,7 @@ const legacyPaneTabs = computed(() => [
   {
     label: 'Console',
     value: 'console' as const,
-    badge: hasActiveConsoleSession.value
-      ? { color: 'success' as const, variant: 'solid' as const, class: 'w-2 h-2 p-0 min-w-0' }
-      : undefined,
+    badge: consoleBadge.value,
   },
 ]);
 
@@ -550,12 +557,6 @@ const [transitionContainerRef] = useAutoAnimate({
                     {{ stripLeadingSlash(activeContainer?.names?.[0]) || 'Container' }}
                   </div>
                 </div>
-                <UBadge
-                  v-if="activeContainer?.state"
-                  :label="activeContainer.state"
-                  color="primary"
-                  variant="subtle"
-                />
               </div>
               <UTabs
                 v-model="legacyPaneTab"
@@ -606,6 +607,7 @@ const [transitionContainerRef] = useAutoAnimate({
               :container-name="stripLeadingSlash(activeContainer.names?.[0])"
               :auto-scroll="logAutoScroll"
               :client-filter="logFilterText"
+              :is-running="isContainerRunning"
               class="h-full flex-1"
             />
           </div>
@@ -617,6 +619,7 @@ const [transitionContainerRef] = useAutoAnimate({
               v-if="activeContainer"
               :container-name="activeContainerName"
               :shell="activeContainer.shell ?? 'sh'"
+              :is-running="isContainerRunning"
               class="h-full"
             />
           </div>
@@ -636,12 +639,6 @@ const [transitionContainerRef] = useAutoAnimate({
                 />
                 <div class="font-medium">Overview</div>
               </div>
-              <UBadge
-                v-if="activeContainer?.state"
-                :label="activeContainer.state"
-                color="primary"
-                variant="subtle"
-              />
             </div>
           </template>
           <div class="relative">
@@ -684,6 +681,7 @@ const [transitionContainerRef] = useAutoAnimate({
               v-if="activeContainer"
               :container-name="stripLeadingSlash(activeContainer.names?.[0])"
               :auto-scroll="true"
+              :is-running="isContainerRunning"
               class="h-full"
             />
           </div>
