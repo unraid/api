@@ -19,7 +19,9 @@ const emit = defineEmits<{ (e: 'refresh'): void }>();
 
 const REMOVE_CONTAINER = gql`
   mutation RemoveContainer($id: PrefixedID!) {
-    removeContainer(id: $id)
+    docker {
+      removeContainer(id: $id)
+    }
   }
 `;
 
