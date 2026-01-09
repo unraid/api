@@ -21,6 +21,7 @@ import { STOP_DOCKER_CONTAINER } from '@/components/Docker/docker-stop-container
 import { GET_CONTAINER_TAILSCALE_STATUS } from '@/components/Docker/docker-tailscale-status.query';
 import { UNPAUSE_DOCKER_CONTAINER } from '@/components/Docker/docker-unpause-container.mutation';
 import DockerLogViewerModal from '@/components/Docker/DockerLogViewerModal.vue';
+import DockerUpdateProgressModal from '@/components/Docker/DockerUpdateProgressModal.vue';
 import RemoveContainerModal from '@/components/Docker/RemoveContainerModal.vue';
 import { useContainerActions } from '@/composables/useContainerActions';
 import { useContextMenu } from '@/composables/useContextMenu';
@@ -36,6 +37,7 @@ import {
   useDockerTableColumns,
 } from '@/composables/useDockerTableColumns';
 import { useDockerUpdateActions } from '@/composables/useDockerUpdateActions';
+import { useDockerUpdateProgress } from '@/composables/useDockerUpdateProgress';
 import { useEntryReordering } from '@/composables/useEntryReordering';
 import { useFolderOperations } from '@/composables/useFolderOperations';
 import { useFolderTree } from '@/composables/useFolderTree';
@@ -120,6 +122,7 @@ const containerToRemove = ref<TreeRow<DockerContainer> | null>(null);
 const { containerStats } = useDockerContainerStats();
 const logs = useDockerLogSessions();
 const consoleSessions = useDockerConsoleSessions();
+const updateProgress = useDockerUpdateProgress();
 const contextMenu = useContextMenu<DockerContainer>();
 const { client: apolloClient } = useApolloClient();
 const { mergeServerPreferences, saveColumnVisibility, columnVisibilityRef } = useDockerViewPreferences();
@@ -202,6 +205,12 @@ const {
   showToast,
   showError,
   getRowById: (id) => getRowById(id, treeData.value),
+  onUpdateStart: (containerId, containerName) => {
+    updateProgress.startTracking(containerId, containerName);
+  },
+  onUpdateComplete: () => {
+    // Progress tracking is handled by subscription events, no need to stop tracking here
+  },
 });
 
 // Container actions
@@ -696,13 +705,15 @@ const rowActionDropdownUi = {
             </UButton>
           </UDropdownMenu>
         </div>
-        <div
+        <button
           v-if="isUpdatingContainers && activeUpdateSummary"
-          class="border-primary/30 bg-primary/5 text-primary my-2 flex items-center gap-2 rounded border px-3 py-2 text-sm"
+          class="border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 my-2 flex w-full cursor-pointer items-center gap-2 rounded border px-3 py-2 text-left text-sm transition-colors"
+          @click="updateProgress.openModal()"
         >
           <span class="i-lucide-loader-2 text-primary animate-spin" />
-          <span>Updating {{ activeUpdateSummary }}...</span>
-        </div>
+          <span class="flex-1">Updating {{ activeUpdateSummary }}...</span>
+          <span class="text-primary/70 text-xs">Click for details</span>
+        </button>
       </template>
     </BaseTreeTable>
 
@@ -775,6 +786,15 @@ const rowActionDropdownUi = {
       :loading="removingContainer"
       @update:open="removeContainerModalOpen = $event"
       @confirm="handleConfirmRemoveContainer"
+    />
+
+    <!-- Update Progress Modal -->
+    <DockerUpdateProgressModal
+      v-model:open="updateProgress.isModalOpen.value"
+      v-model:active-container-id="updateProgress.activeContainerId.value"
+      :container-states="updateProgress.allContainerStates.value"
+      :active-state="updateProgress.activeContainerState.value"
+      @clear-completed="updateProgress.clearCompleted"
     />
   </div>
 </template>

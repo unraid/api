@@ -1,7 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 
 import Docker from 'dockerode';
-import { execa } from 'execa';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
@@ -13,6 +12,7 @@ import { DockerLogService } from '@app/unraid-api/graph/resolvers/docker/docker-
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import { DockerNetworkService } from '@app/unraid-api/graph/resolvers/docker/docker-network.service.js';
 import { DockerPortService } from '@app/unraid-api/graph/resolvers/docker/docker-port.service.js';
+import { DockerUpdateProgressService } from '@app/unraid-api/graph/resolvers/docker/docker-update-progress.service.js';
 import {
     ContainerPortType,
     ContainerState,
@@ -37,7 +37,9 @@ export class DockerService {
         private readonly autostartService: DockerAutostartService,
         private readonly dockerLogService: DockerLogService,
         private readonly dockerNetworkService: DockerNetworkService,
-        private readonly dockerPortService: DockerPortService
+        private readonly dockerPortService: DockerPortService,
+        @Inject(forwardRef(() => DockerUpdateProgressService))
+        private readonly dockerUpdateProgressService: DockerUpdateProgressService
     ) {
         this.client = getDockerClient();
     }
@@ -336,11 +338,7 @@ export class DockerService {
         this.logger.log(`Updating container ${containerName} (${id})`);
 
         try {
-            await execa(
-                '/usr/local/emhttp/plugins/dynamix.docker.manager/scripts/update_container',
-                [encodeURIComponent(containerName)],
-                { shell: 'bash' }
-            );
+            await this.dockerUpdateProgressService.updateContainerWithProgress(id, containerName);
         } catch (error) {
             this.logger.error(`Failed to update container ${containerName}:`, error);
             throw new Error(`Failed to update container ${containerName}`);
