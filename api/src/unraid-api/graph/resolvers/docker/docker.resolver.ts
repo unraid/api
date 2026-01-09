@@ -98,27 +98,29 @@ export class DockerResolver {
         const requestsRootFsSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeRootFs');
         const requestsRwSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeRw');
         const requestsLogSize = GraphQLFieldHelper.isFieldRequested(info, 'sizeLog');
-        const containers = await this.dockerService.getContainers({
+        const rawContainers = await this.dockerService.getRawContainers({
             size: requestsRootFsSize || requestsRwSize,
         });
 
         if (requestsLogSize) {
             const names = Array.from(
                 new Set(
-                    containers
+                    rawContainers
                         .map((container) => container.names?.[0]?.replace(/^\//, '') || null)
                         .filter((name): name is string => Boolean(name))
                 )
             );
             const logSizes = await this.dockerService.getContainerLogSizes(names);
-            containers.forEach((container) => {
+            rawContainers.forEach((container) => {
                 const normalized = container.names?.[0]?.replace(/^\//, '') || '';
-                container.sizeLog = normalized ? (logSizes.get(normalized) ?? 0) : 0;
+                (container as { sizeLog?: number }).sizeLog = normalized
+                    ? (logSizes.get(normalized) ?? 0)
+                    : 0;
             });
         }
 
-        const wasSynced = await this.dockerTemplateScannerService.syncMissingContainers(containers);
-        return wasSynced ? await this.dockerService.getContainers() : containers;
+        await this.dockerTemplateScannerService.syncMissingContainers(rawContainers);
+        return this.dockerService.enrichWithOrphanStatus(rawContainers);
     }
 
     @UsePermissions({

@@ -1342,16 +1342,16 @@ type TailscaleStatus {
 
 type Docker implements Node {
   id: PrefixedID!
-  containers(skipCache: Boolean! = false): [DockerContainer!]!
-  networks(skipCache: Boolean! = false): [DockerNetwork!]!
-  portConflicts(skipCache: Boolean! = false): DockerPortConflicts!
+  containers(skipCache: Boolean! = false @deprecated(reason: "Caching has been removed; this parameter is now ignored")): [DockerContainer!]!
+  networks(skipCache: Boolean! = false @deprecated(reason: "Caching has been removed; this parameter is now ignored")): [DockerNetwork!]!
+  portConflicts(skipCache: Boolean! = false @deprecated(reason: "Caching has been removed; this parameter is now ignored")): DockerPortConflicts!
 
   """
   Access container logs. Requires specifying a target container id through resolver arguments.
   """
   logs(id: PrefixedID!, since: DateTime, tail: Int): DockerContainerLogs!
   container(id: PrefixedID!): DockerContainer
-  organizer(skipCache: Boolean! = false): ResolvedOrganizerV1!
+  organizer(skipCache: Boolean! = false @deprecated(reason: "Caching has been removed; this parameter is now ignored")): ResolvedOrganizerV1!
   containerUpdateStatuses: [ExplicitStatusItem!]!
 }
 

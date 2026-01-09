@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DockerTemplateIconService } from '@app/unraid-api/graph/resolvers/docker/docker-template-icon.service.js';
+import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import {
     ContainerPortType,
     ContainerState,
@@ -193,7 +194,7 @@ describe('DockerOrganizerService', () => {
                 {
                     provide: DockerService,
                     useValue: {
-                        getContainers: vi.fn().mockResolvedValue([
+                        getRawContainers: vi.fn().mockResolvedValue([
                             {
                                 id: 'container1',
                                 names: ['container1'],
@@ -219,12 +220,25 @@ describe('DockerOrganizerService', () => {
                                 autoStart: true,
                             },
                         ]),
+                        enrichWithOrphanStatus: vi.fn().mockImplementation((containers) =>
+                            containers.map((c: Record<string, unknown>) => ({
+                                ...c,
+                                isOrphaned: false,
+                                templatePath: '/path/to/template.xml',
+                            }))
+                        ),
                     },
                 },
                 {
                     provide: DockerTemplateIconService,
                     useValue: {
                         getIconsForContainers: vi.fn().mockResolvedValue(new Map()),
+                    },
+                },
+                {
+                    provide: DockerTemplateScannerService,
+                    useValue: {
+                        syncMissingContainers: vi.fn().mockResolvedValue(false),
                     },
                 },
             ],
@@ -551,7 +565,7 @@ describe('DockerOrganizerService', () => {
 
         it('should handle docker service failure gracefully', async () => {
             const dockerError = new Error('Docker service unavailable');
-            (dockerService.getContainers as any).mockRejectedValue(dockerError);
+            (dockerService.getRawContainers as any).mockRejectedValue(dockerError);
 
             await expect(
                 service.deleteEntries({
@@ -685,7 +699,7 @@ describe('DockerOrganizerService', () => {
             const TO_DELETE = ['entryB', 'entryD'];
             const EXPECTED_REMAINING = ['entryA', 'entryC'];
 
-            // Mock getContainers to return containers matching our test entries
+            // Mock getRawContainers to return containers matching our test entries
             const mockContainers = ENTRIES.map((entryId, i) => ({
                 id: `container-${entryId}`,
                 names: [`/${entryId}`],
@@ -698,7 +712,7 @@ describe('DockerOrganizerService', () => {
                 status: 'Up 1 hour',
                 autoStart: true,
             }));
-            (dockerService.getContainers as any).mockResolvedValue(mockContainers);
+            (dockerService.getRawContainers as any).mockResolvedValue(mockContainers);
 
             const organizerWithOrdering = createTestOrganizer();
             const rootFolder = getRootFolder(organizerWithOrdering);

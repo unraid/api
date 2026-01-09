@@ -3,6 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { ContainerListOptions } from 'dockerode';
 
 import { AppError } from '@app/core/errors/app-error.js';
+import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { DockerOrganizerConfigService } from '@app/unraid-api/graph/resolvers/docker/organizer/docker-organizer-config.service.js';
@@ -51,11 +52,14 @@ export class DockerOrganizerService {
     private readonly logger = new Logger(DockerOrganizerService.name);
     constructor(
         private readonly dockerConfigService: DockerOrganizerConfigService,
-        private readonly dockerService: DockerService
+        private readonly dockerService: DockerService,
+        private readonly dockerTemplateScannerService: DockerTemplateScannerService
     ) {}
 
     async getResources(opts?: Partial<ContainerListOptions>): Promise<OrganizerV1['resources']> {
-        const containers = await this.dockerService.getContainers(opts);
+        const rawContainers = await this.dockerService.getRawContainers(opts);
+        await this.dockerTemplateScannerService.syncMissingContainers(rawContainers);
+        const containers = this.dockerService.enrichWithOrphanStatus(rawContainers);
         return containerListToResourcesObject(containers);
     }
 

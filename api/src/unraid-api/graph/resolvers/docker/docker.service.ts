@@ -24,6 +24,8 @@ import {
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { getDockerClient } from '@app/unraid-api/graph/resolvers/docker/utils/docker-client.js';
 
+export type RawDockerContainer = Omit<DockerContainer, 'isOrphaned' | 'templatePath'>;
+
 @Injectable()
 export class DockerService {
     private client: Docker;
@@ -63,7 +65,7 @@ export class DockerService {
         return this.autostartService.getAutoStarts();
     }
 
-    public transformContainer(container: Docker.ContainerInfo): Omit<DockerContainer, 'isOrphaned'> {
+    public transformContainer(container: Docker.ContainerInfo): RawDockerContainer {
         const sizeValue = (container as Docker.ContainerInfo & { SizeRootFs?: number }).SizeRootFs;
         const primaryName = this.autostartService.getContainerPrimaryName(container) ?? '';
         const autoStartEntry = primaryName
@@ -91,7 +93,7 @@ export class DockerService {
             };
         });
 
-        const transformed: Omit<DockerContainer, 'isOrphaned'> = {
+        const transformed: RawDockerContainer = {
             id: container.Id,
             names: container.Names,
             image: container.Image,
@@ -125,11 +127,24 @@ export class DockerService {
         return transformed;
     }
 
-    public async getContainers({
+    public enrichWithOrphanStatus(containers: RawDockerContainer[]): DockerContainer[] {
+        const config = this.dockerConfigService.getConfig();
+        return containers.map((c) => {
+            const containerName = c.names[0]?.replace(/^\//, '').toLowerCase() ?? '';
+            const templatePath = config.templateMappings?.[containerName] || undefined;
+            return {
+                ...c,
+                templatePath,
+                isOrphaned: !templatePath,
+            };
+        });
+    }
+
+    public async getRawContainers({
         all = true,
         size = false,
         ...listOptions
-    }: Partial<Docker.ContainerListOptions> = {}): Promise<DockerContainer[]> {
+    }: Partial<Docker.ContainerListOptions> = {}): Promise<RawDockerContainer[]> {
         this.logger.debug(`Fetching docker containers (${size ? 'with' : 'without'} size)`);
         let rawContainers: Docker.ContainerInfo[] = [];
         try {
@@ -143,20 +158,14 @@ export class DockerService {
         }
 
         await this.autostartService.refreshAutoStartEntries();
-        const containers = rawContainers.map((container) => this.transformContainer(container));
+        return rawContainers.map((container) => this.transformContainer(container));
+    }
 
-        const config = this.dockerConfigService.getConfig();
-        const containersWithTemplatePaths = containers.map((c) => {
-            const containerName = c.names[0]?.replace(/^\//, '').toLowerCase() ?? '';
-            const templatePath = config.templateMappings?.[containerName] || undefined;
-            return {
-                ...c,
-                templatePath,
-                isOrphaned: !templatePath,
-            };
-        });
-
-        return containersWithTemplatePaths;
+    public async getContainers(
+        options: Partial<Docker.ContainerListOptions> = {}
+    ): Promise<DockerContainer[]> {
+        const raw = await this.getRawContainers(options);
+        return this.enrichWithOrphanStatus(raw);
     }
 
     public async getPortConflicts(): Promise<DockerPortConflicts> {

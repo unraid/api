@@ -8,8 +8,10 @@ import { XMLParser } from 'fast-xml-parser';
 import { ENABLE_NEXT_DOCKER_RELEASE, PATHS_DOCKER_TEMPLATES } from '@app/environment.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerTemplateSyncResult } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.model.js';
-import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
-import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import {
+    DockerService,
+    RawDockerContainer,
+} from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
 interface ParsedTemplate {
     filePath: string;
@@ -56,7 +58,7 @@ export class DockerTemplateScannerService {
         }
     }
 
-    async syncMissingContainers(containers: DockerContainer[]): Promise<boolean> {
+    async syncMissingContainers(containers: RawDockerContainer[]): Promise<boolean> {
         const config = this.dockerConfigService.getConfig();
         const mappings = config.templateMappings || {};
         const skipSet = new Set(config.skipTemplatePaths || []);
@@ -87,7 +89,7 @@ export class DockerTemplateScannerService {
         const templates = await this.loadAllTemplates(result);
 
         try {
-            const containers = await this.dockerService.getContainers();
+            const containers = await this.dockerService.getRawContainers();
             const config = this.dockerConfigService.getConfig();
             const currentMappings = config.templateMappings || {};
             const skipSet = new Set(config.skipTemplatePaths || []);
@@ -244,7 +246,7 @@ export class DockerTemplateScannerService {
     }
 
     private matchContainerToTemplate(
-        container: DockerContainer,
+        container: RawDockerContainer,
         templates: ParsedTemplate[]
     ): ParsedTemplate | null {
         const containerName = this.normalizeContainerName(container.names[0]);
