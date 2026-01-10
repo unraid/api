@@ -235,9 +235,8 @@ describe('OidcService Integration', () => {
             claimsService.validateClaims.mockReturnValue('user123');
 
             // Mock the OidcStateExtractor's static method
-            const OidcStateExtractor = await import(
-                '@app/unraid-api/graph/resolvers/sso/session/oidc-state-extractor.util.js'
-            );
+            const OidcStateExtractor =
+                await import('@app/unraid-api/graph/resolvers/sso/session/oidc-state-extractor.util.js');
             vi.spyOn(OidcStateExtractor.OidcStateExtractor, 'extractAndValidateState').mockResolvedValue(
                 {
                     providerId: 'test-provider',
@@ -317,9 +316,8 @@ describe('OidcService Integration', () => {
             );
 
             // Mock the OidcStateExtractor's static method
-            const OidcStateExtractor = await import(
-                '@app/unraid-api/graph/resolvers/sso/session/oidc-state-extractor.util.js'
-            );
+            const OidcStateExtractor =
+                await import('@app/unraid-api/graph/resolvers/sso/session/oidc-state-extractor.util.js');
             vi.spyOn(OidcStateExtractor.OidcStateExtractor, 'extractAndValidateState').mockResolvedValue(
                 {
                     providerId: 'test-provider',

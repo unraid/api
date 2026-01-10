@@ -600,9 +600,8 @@ describe('organizer.validation', () => {
             };
 
             // Import the validateObject function to test the actual transformation
-            const { validateObject } = await import(
-                '@app/unraid-api/graph/resolvers/validation.utils.js'
-            );
+            const { validateObject } =
+                await import('@app/unraid-api/graph/resolvers/validation.utils.js');
 
             const validated = await validateObject(OrganizerV1, plainConfig);
 

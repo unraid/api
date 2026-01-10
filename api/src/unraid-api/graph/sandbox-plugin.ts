@@ -29,9 +29,8 @@ const preconditionFailed = (preconditionName: string) => {
 };
 
 export const getSandboxPlugin = async (csrfToken: string) => {
-    const { ApolloServerPluginLandingPageLocalDefault } = await import(
-        '@apollo/server/plugin/landingPage/default'
-    );
+    const { ApolloServerPluginLandingPageLocalDefault } =
+        await import('@apollo/server/plugin/landingPage/default');
     const plugin = ApolloServerPluginLandingPageLocalDefault({
         footer: false,
         includeCookies: true,
