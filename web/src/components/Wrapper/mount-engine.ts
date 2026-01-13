@@ -173,17 +173,17 @@ export async function mountUnifiedApp() {
 
     if (fetchedSettings) {
       if (fetchedSettings.position) {
-        const map: Record<string, ToastPosition> = {
-          'top-left': 'top-left',
-          'top-right': 'top-right',
-          'bottom-left': 'bottom-left',
-          'bottom-right': 'bottom-right',
-          'bottom-center': 'bottom-center',
-          'top-center': 'top-center',
-        };
-        const mappedPosition = map[fetchedSettings.position];
-        if (mappedPosition) {
-          toasterSettings.position = mappedPosition;
+        const validPositions: ToastPosition[] = [
+          'top-left',
+          'top-right',
+          'bottom-left',
+          'bottom-right',
+          'bottom-center',
+          'top-center',
+        ];
+
+        if (validPositions.includes(fetchedSettings.position as ToastPosition)) {
+          toasterSettings.position = fetchedSettings.position as ToastPosition;
         }
       }
       if (fetchedSettings.expand !== undefined && fetchedSettings.expand !== null) {
