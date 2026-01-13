@@ -1,4 +1,4 @@
-import { createApp, createVNode, h, render } from 'vue';
+import { createApp, createVNode, h, reactive, render } from 'vue';
 import { DefaultApolloClient } from '@vue/apollo-composable';
 import UApp from '@nuxt/ui/components/App.vue';
 import ui from '@nuxt/ui/vue-plugin';
@@ -156,49 +156,51 @@ export async function mountUnifiedApp() {
     };
   }
 
-  const toasterSettings = { ...appConfig.ui.toaster } as {
+  const toasterSettings = reactive({ ...appConfig.ui.toaster }) as {
     position: ToastPosition;
     expand: boolean;
     duration: number;
     max: number;
   };
 
-  try {
-    const { data } = await apolloClient.query<NotificationSettingsResponse>({
+  apolloClient
+    .query<NotificationSettingsResponse>({
       query: getNotificationSettings,
       fetchPolicy: 'network-only',
-    });
-    const fetchedSettings = data?.notifications?.settings;
-    console.log('[UnifiedMount] Fetched settings:', fetchedSettings);
+    })
+    .then(({ data }) => {
+      const fetchedSettings = data?.notifications?.settings;
+      console.log('[UnifiedMount] Fetched settings:', fetchedSettings);
 
-    if (fetchedSettings) {
-      if (fetchedSettings.position) {
-        const validPositions: ToastPosition[] = [
-          'top-left',
-          'top-right',
-          'bottom-left',
-          'bottom-right',
-          'bottom-center',
-          'top-center',
-        ];
+      if (fetchedSettings) {
+        if (fetchedSettings.position) {
+          const validPositions: ToastPosition[] = [
+            'top-left',
+            'top-right',
+            'bottom-left',
+            'bottom-right',
+            'bottom-center',
+            'top-center',
+          ];
 
-        if (validPositions.includes(fetchedSettings.position as ToastPosition)) {
-          toasterSettings.position = fetchedSettings.position as ToastPosition;
+          if (validPositions.includes(fetchedSettings.position as ToastPosition)) {
+            toasterSettings.position = fetchedSettings.position as ToastPosition;
+          }
+        }
+        if (fetchedSettings.expand !== undefined && fetchedSettings.expand !== null) {
+          toasterSettings.expand = fetchedSettings.expand;
+        }
+        if (fetchedSettings.duration) {
+          toasterSettings.duration = fetchedSettings.duration;
+        }
+        if (fetchedSettings.max) {
+          toasterSettings.max = fetchedSettings.max;
         }
       }
-      if (fetchedSettings.expand !== undefined && fetchedSettings.expand !== null) {
-        toasterSettings.expand = fetchedSettings.expand;
-      }
-      if (fetchedSettings.duration) {
-        toasterSettings.duration = fetchedSettings.duration;
-      }
-      if (fetchedSettings.max) {
-        toasterSettings.max = fetchedSettings.max;
-      }
-    }
-  } catch (e) {
-    console.error('[UnifiedMount] Failed to fetch notification settings', e);
-  }
+    })
+    .catch((e) => {
+      console.error('[UnifiedMount] Failed to fetch notification settings', e);
+    });
 
   // Mount the app to establish context
   let rootElement = document.getElementById('unraid-unified-root');
