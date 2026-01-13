@@ -2312,7 +2312,6 @@ export type Subscription = {
   arraySubscription: UnraidArray;
   dockerContainerStats: DockerContainerStats;
   logFile: LogFileContent;
-  notificationAdded: Notification;
   notificationEvent: NotificationEvent;
   notificationsOverview: NotificationOverview;
   notificationsWarningsAndAlerts: Array<Notification>;

@@ -55,3 +55,30 @@ export function extractGraphQLErrorMessage(err: unknown): string {
   }
   return message;
 }
+
+/**
+ * Extracts the error code from a GraphQL error or generic error object.
+ */
+export function extractGraphQLErrorCode(err: unknown): string | undefined {
+  const e = err as { graphQLErrors?: unknown };
+  const graphQLErrors = Array.isArray(e?.graphQLErrors) ? e.graphQLErrors : undefined;
+
+  if (graphQLErrors && graphQLErrors.length) {
+    const gqlError = graphQLErrors[0] as {
+      extensions?: {
+        code?: string;
+        error?: { code?: string };
+      };
+    };
+
+    return gqlError?.extensions?.code || gqlError?.extensions?.error?.code;
+  }
+  return undefined;
+}
+
+/**
+ * Checks if the error is a network error (e.g. server offline, DNS failure).
+ */
+export function isGraphQLNetworkError(err: unknown): boolean {
+  return !!(err as { networkError?: unknown })?.networkError;
+}

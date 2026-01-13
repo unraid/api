@@ -263,6 +263,32 @@ describe.sequential('NotificationsService', () => {
         expect.soft(overview.unread.total).toEqual(0);
     });
 
+    it('throws NOTIFICATION_NOT_FOUND when archiving a non-existent notification', async ({
+        expect,
+    }) => {
+        const id = 'non-existent-id.notify';
+        try {
+            await service.archiveNotification({ id });
+            expect.fail('Should have thrown an error');
+        } catch (error: any) {
+            expect(error.code).toBe('NOTIFICATION_NOT_FOUND');
+            expect(error.status).toBe(404);
+        }
+    });
+
+    it('throws NOTIFICATION_NOT_FOUND when unarchiving a non-existent notification', async ({
+        expect,
+    }) => {
+        const id = 'non-existent-id.notify';
+        try {
+            await service.markAsUnread({ id });
+            expect.fail('Should have thrown an error');
+        } catch (error: any) {
+            expect(error.code).toBe('NOTIFICATION_NOT_FOUND');
+            expect(error.status).toBe(404);
+        }
+    });
+
     it.each(notificationImportance)('loadNotifications respects %s filter', async (importance) => {
         const notifications = await Promise.all([
             createNotification({ importance: NotificationImportance.ALERT }),

@@ -2910,7 +2910,6 @@ input AccessUrlInput {
 }
 
 type Subscription {
-  notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
   notificationsWarningsAndAlerts: [Notification!]!
   notificationEvent: NotificationEvent!

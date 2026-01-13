@@ -8,7 +8,13 @@ export class AppError extends Error {
     /** Should we kill the application when thrown. */
     public fatal = false;
 
-    constructor(message: string, status?: number) {
+    /** A stable error code for programmatic handling */
+    public code?: string;
+
+    /** GraphQL Extensions compatibility */
+    public extensions?: Record<string, any>;
+
+    constructor(message: string, status?: number, code?: string) {
         // Calling parent constructor of base Error class.
         super(message);
 
@@ -20,6 +26,10 @@ export class AppError extends Error {
 
         // We're using HTTP status codes with `500` as the default
         this.status = status ?? 500;
+        this.code = code;
+        if (code) {
+            this.extensions = { code };
+        }
     }
 
     /**

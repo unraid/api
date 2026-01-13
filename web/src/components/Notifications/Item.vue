@@ -6,7 +6,11 @@ import { computedAsync, useTimeAgo } from '@vueuse/core';
 
 import { Markdown } from '@/helpers/markdown';
 import { navigate } from '~/helpers/external-navigation';
-import { extractGraphQLErrorMessage } from '~/helpers/functions';
+import {
+  extractGraphQLErrorCode,
+  extractGraphQLErrorMessage,
+  isGraphQLNetworkError,
+} from '~/helpers/functions';
 
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
 
@@ -62,13 +66,11 @@ const handleMutation = async (action: 'archive' | 'delete', mutateFn: () => Prom
   } catch (e: unknown) {
     console.error(`[Notifications] ${action} failed:`, e);
     let message = extractGraphQLErrorMessage(e);
+    const code = extractGraphQLErrorCode(e);
 
-    if (
-      unraidApiStore.unraidApiStatus === 'offline' ||
-      message === 'Error message not found' ||
-      message === 'Failed to fetch' ||
-      (e as { message?: string })?.message === 'Failed to fetch'
-    ) {
+    if (code === 'NOTIFICATION_NOT_FOUND') {
+      message = t('notifications.item.notFoundError', 'Notification no longer exists.');
+    } else if (unraidApiStore.unraidApiStatus === 'offline' || isGraphQLNetworkError(e)) {
       const key = 'notifications.item.apiOfflineError';
       const text = t(key);
       message = text !== key ? text : 'The Unraid API is unreachable.';
@@ -77,7 +79,7 @@ const handleMutation = async (action: 'archive' | 'delete', mutateFn: () => Prom
     toast.add({
       title: t('common.error'),
       description: message,
-      color: 'red',
+      color: 'error',
     });
   }
 };
@@ -86,7 +88,13 @@ const mutationError = computed(() => {
   const err = archive.error || deleteNotification.error;
   if (!err) return null;
 
-  if (unraidApiStore.unraidApiStatus === 'offline') {
+  const code = extractGraphQLErrorCode(err);
+
+  if (code === 'NOTIFICATION_NOT_FOUND') {
+    return t('notifications.item.notFoundError', 'Notification no longer exists.');
+  }
+
+  if (unraidApiStore.unraidApiStatus === 'offline' || isGraphQLNetworkError(err)) {
     const key = 'notifications.item.apiOfflineError';
     const text = t(key);
     return text !== key ? text : 'The Unraid API is unreachable.';
@@ -181,7 +189,7 @@ const timeAgo = computed(() => (props.timestamp ? timeAgoReference.value : ''));
         </div>
 
         <!-- Error Message -->
-        <p v-if="mutationError" class="text-destructive mt-2 text-sm">
+        <p v-if="mutationError" class="text-destructive mt-2 text-sm break-all">
           {{ t('common.error') }}: {{ mutationError }}
         </p>
 

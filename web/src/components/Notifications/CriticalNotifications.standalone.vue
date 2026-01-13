@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
 import { navigate } from '~/helpers/external-navigation';
@@ -18,7 +19,7 @@ import {
   warningsAndAlerts,
 } from '~/components/Notifications/graphql/notification.query';
 import {
-  notificationAddedSubscription,
+  notificationEventSubscription,
   warningsAndAlertsSubscription,
 } from '~/components/Notifications/graphql/notification.subscription';
 import { useFragment } from '~/composables/gql';
@@ -142,13 +143,21 @@ const dismissNotification = async (notification: NotificationFragmentFragment) =
   }
 };
 
-const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
+const { onResult: onNotificationEvent } = useSubscription(notificationEventSubscription);
+const { t } = useI18n();
 
-onNotificationAdded(({ data }) => {
-  if (!data) {
+onNotificationEvent(({ data }) => {
+  if (!data?.notificationEvent) {
     return;
   }
-  const notification = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
+  const { type, notification: rawNotification } = data.notificationEvent;
+
+  // We only care about new notifications for this panel
+  if (type !== 'ADDED' || !rawNotification) {
+    return;
+  }
+
+  const notification = useFragment(NOTIFICATION_FRAGMENT, rawNotification);
   if (
     !notification ||
     (notification.importance !== NotificationImportance.ALERT &&
@@ -163,7 +172,7 @@ onNotificationAdded(({ data }) => {
     // Trigger the global toast in tandem with the subscription update.
     const color = NOTIFICATION_TOAST_COLORS[notification.importance];
     const createOpener = () => ({
-      label: 'Open',
+      label: t('notifications.sidebar.toastOpen', 'Open'),
       onClick: () => {
         if (notification.link) {
           navigate(notification.link);

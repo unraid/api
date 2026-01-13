@@ -544,27 +544,17 @@ export class NotificationsService {
         // has already been archived or deleted (e.g. retry logic, spike in network latency).
         if (!(await fileExists(unreadPath))) {
             this.logger.warn(`[archiveNotification] Could not find notification in unreads: ${id}`);
-            throw new AppError(`Could not find notification in unreads: ${id}`, 404);
+            throw new AppError(
+                `Could not find notification in unreads: ${id}`,
+                404,
+                'NOTIFICATION_NOT_FOUND'
+            );
         }
 
-        /**-----------------------
-         *     Why we use a snapshot
-         *
-         * An implicit update to `overview` creates a race condition:
-         * it might be missing changes from the 'add' event (i.e. incrementing the notification's new category).
-         *
-         * So, we use & modify a snapshot of the overview to make sure we're returning accurate
-         * data to the client.
-         *------------------------**/
-        const snapshot = this.getOverview();
         const notification = await this.loadNotificationFile(unreadPath, NotificationType.UNREAD);
 
         // Update stats
         this.decrement(notification.importance, NotificationsService.overview.unread);
-
-        if (snapshot) {
-            this.decrement(notification.importance, snapshot.unread);
-        }
 
         if (await fileExists(archivePath)) {
             // File already in archive, just delete the unread one
@@ -573,9 +563,6 @@ export class NotificationsService {
             // Since we previously ignored this file in the archive definition (because it was in unread),
             // we must now increment the archive stats because it has been "revealed" as an archived notification.
             this.increment(notification.importance, NotificationsService.overview.archive);
-            if (snapshot) {
-                this.increment(notification.importance, snapshot.archive);
-            }
         } else {
             // File not in archive, move it there
             try {
@@ -585,18 +572,13 @@ export class NotificationsService {
                 // we do it this way (decrement -> try rename -> revert if error) to avoid
                 // a race condition between `rename` and `decrement`
                 this.increment(notification.importance, NotificationsService.overview.unread);
-                if (snapshot) {
-                    this.increment(notification.importance, snapshot?.unread);
-                }
+
                 throw err;
             }
 
             // We moved a file to archive that wasn't there.
             // We DO need to increment the stats.
             this.increment(notification.importance, NotificationsService.overview.archive);
-            if (snapshot) {
-                this.increment(notification.importance, snapshot.archive);
-            }
         }
 
         void this.publishOverview();
@@ -622,17 +604,17 @@ export class NotificationsService {
         // the target notification might not be in the archive!
         if (!(await fileExists(archivePath))) {
             this.logger.warn(`[markAsUnread] Could not find notification in archive: ${id}`);
-            throw new AppError(`Could not find notification in archive: ${id}`, 404);
+            throw new AppError(
+                `Could not find notification in archive: ${id}`,
+                404,
+                'NOTIFICATION_NOT_FOUND'
+            );
         }
 
-        // we use a snapshot to provide an accurate overview update
-        // otherwise, we'd enter a race condition with the 'add' file watcher event handler
-        const snapshot = this.getOverview();
         const notification = await this.loadNotificationFile(archivePath, NotificationType.ARCHIVE);
         const moveToUnread = this.moveNotification({
             from: NotificationType.ARCHIVE,
             to: NotificationType.UNREAD,
-            snapshot,
         });
 
         await moveToUnread(notification);
