@@ -120,7 +120,6 @@ onNotificationEvent(({ data }) => {
   const { type, notification: notifData } = data.notificationEvent;
 
   // We primarily care about NEW items for toasts + timestamp tracking
-  // But strictly speaking, the old code only cared about ADDED to UNREAD.
   if (type !== 'ADDED' || !notifData) return;
 
   const notif = useFragment(NOTIFICATION_FRAGMENT, notifData);

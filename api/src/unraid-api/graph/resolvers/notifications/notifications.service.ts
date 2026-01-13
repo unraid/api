@@ -170,28 +170,16 @@ export class NotificationsService {
         }
         this.increment(notification.importance, NotificationsService.overview[type.toLowerCase()]);
 
+        this.publishOverview();
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+            notificationEvent: {
+                type: NotificationEventType.ADDED,
+                notification,
+            },
+        });
+
         if (type === NotificationType.UNREAD) {
-            this.publishOverview();
-            pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
-                notificationAdded: notification,
-            });
-            pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
-                notificationEvent: {
-                    type: NotificationEventType.ADDED,
-                    notification,
-                },
-            });
             void this.publishWarningsAndAlerts();
-        }
-        // Also publish overview updates for archive adds, so counts stay in sync
-        if (type === NotificationType.ARCHIVE) {
-            pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
-                notificationEvent: {
-                    type: NotificationEventType.ADDED,
-                    notification,
-                },
-            });
-            this.publishOverview();
         }
     }
 
@@ -489,7 +477,7 @@ export class NotificationsService {
      * 3. updates the stats snapshot if provided
      *
      * Note: the returned function implicitly triggers a pubsub event via `fs.rename`,
-     * which is expected to trigger `NOTIFICATION_ADDED` & `NOTIFICATION_OVERVIEW`.
+     * which is expected to trigger `NOTIFICATION_EVENT` & `NOTIFICATION_OVERVIEW`.
      *
      * The published overview will include the update from this operation.
      *
@@ -516,7 +504,7 @@ export class NotificationsService {
              * in the chokidar file watcher (see `getNotificationsWatcher`).
              *
              * We assume the 'add' handler publishes to
-             * NOTIFICATION_ADDED & NOTIFICATION_OVERVIEW,
+             * NOTIFICATION_EVENT & NOTIFICATION_OVERVIEW,
              * and that no pubsub or overview updates occur upon 'unlink'.
              *
              * Thus, we explicitly update our state here via `decrement` and implicitly expect

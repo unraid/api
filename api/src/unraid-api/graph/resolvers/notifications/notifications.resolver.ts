@@ -172,15 +172,6 @@ export class NotificationsResolver {
      *               Subscriptions
      *=============================================**/
 
-    @Subscription(() => Notification)
-    @UsePermissions({
-        action: AuthAction.READ_ANY,
-        resource: Resource.NOTIFICATIONS,
-    })
-    async notificationAdded() {
-        return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_ADDED);
-    }
-
     @Subscription(() => NotificationOverview)
     @UsePermissions({
         action: AuthAction.READ_ANY,
