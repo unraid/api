@@ -14,6 +14,13 @@ export class UPSResolver {
     ) {}
 
     private createUPSDevice(upsData: UPSData, id: string): UPSDevice {
+        const loadPercentage = parseInt(upsData.LOADPCT || '25', 10);
+        const nominalPower = upsData.NOMPOWER ? parseInt(upsData.NOMPOWER, 10) : undefined;
+        const currentPower =
+            nominalPower !== undefined
+                ? parseFloat(((nominalPower * loadPercentage) / 100).toFixed(2))
+                : undefined;
+
         return {
             id,
             name: upsData.MODEL || 'My UPS',
@@ -28,7 +35,9 @@ export class UPSResolver {
             power: {
                 inputVoltage: parseFloat(upsData.LINEV || '120.5'),
                 outputVoltage: parseFloat(upsData.OUTPUTV || '120.5'),
-                loadPercentage: parseInt(upsData.LOADPCT || '25', 10),
+                loadPercentage,
+                nominalPower,
+                currentPower,
             },
         };
     }
