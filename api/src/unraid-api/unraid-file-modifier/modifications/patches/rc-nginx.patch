@@ -44,6 +44,19 @@ Index: /etc/rc.d/rc.nginx
    T='    '
    if check && [[ $1 == lo ]]; then
      if [[ $IPV4 == yes ]]; then
+@@ -400,11 +418,11 @@
+ 	# my servers proxy
+ 	#
+ 	location /graphql {
+ 	    allow all;
+ 	    error_log /dev/null crit;
+-	    proxy_pass http://unix:/var/run/unraid-api.sock:/graphql;
++	    proxy_pass http://unix:/var/run/unraid-core.sock:/graphql;
+ 	    proxy_http_version 1.1;
+ 	    proxy_set_header Host $host;
+ 	    proxy_set_header Upgrade $http_upgrade;
+ 	    proxy_set_header Connection $connection_upgrade;
+ 	    proxy_cache_bypass $http_upgrade;
 @@ -566,11 +584,11 @@
      # extract common name from cert
      CERTNAME=$(openssl x509 -noout -subject -nameopt multiline -in $CERTPATH | sed -n 's/ *commonName *= //p')

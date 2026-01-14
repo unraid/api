@@ -42,10 +42,12 @@ echo "Performing comprehensive installation verification..."
 # Define critical files to check (POSIX-compliant, no arrays)
 CRITICAL_FILES="/usr/local/bin/unraid-api 
 /etc/rc.d/rc.unraid-api
+/etc/rc.d/rc.unraid
 /usr/local/emhttp/plugins/dynamix.my.servers/scripts/gitflash_log"
 
 # Define critical directories to check (POSIX-compliant, no arrays)
 CRITICAL_DIRS="/usr/local/unraid-api
+/usr/local/unraid
 /var/log/unraid-api
 /usr/local/emhttp/plugins/dynamix.my.servers
 /usr/local/emhttp/plugins/dynamix.unraid.net
@@ -156,6 +158,14 @@ if [ -x "/etc/rc.d/rc6.d/K20unraid-api" ]; then
   printf '✓ Shutdown script for unraid-api exists and is executable\n'
 else
   printf '✗ Shutdown script for unraid-api missing or not executable\n'
+  SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
+fi
+
+# Check for unraid-core shutdown script
+if [ -x "/etc/rc.d/rc6.d/K30unraid-core" ]; then
+  printf '✓ Shutdown script for unraid-core exists and is executable\n'
+else
+  printf '✗ Shutdown script for unraid-core missing or not executable\n'
   SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
 fi
 

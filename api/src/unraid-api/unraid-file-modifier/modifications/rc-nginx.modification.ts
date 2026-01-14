@@ -29,9 +29,9 @@ export default class RcNginxModification extends FileModification {
             throw new Error(`File ${this.filePath} not found.`);
         }
         const fileContent = await readFile(this.filePath, 'utf8');
-        if (!fileContent.includes('MYSERVERS=')) {
-            throw new Error(`MYSERVERS not found in the file; incorrect target?`);
-        }
+        // if (!fileContent.includes('MYSERVERS=')) {
+        //     throw new Error(`MYSERVERS not found in the file; incorrect target?`);
+        // }
 
         let newContent = fileContent.replace(
             'MYSERVERS="/boot/config/plugins/dynamix.my.servers/myservers.cfg"',
@@ -69,6 +69,11 @@ check_remote_access(){
         );
 
         newContent = newContent.replace(
+            'proxy_pass http://unix:/var/run/unraid-api.sock:/graphql;',
+            'proxy_pass http://unix:/var/run/unraid-core.sock:/graphql;'
+        );
+
+        newContent = newContent.replace(
             'for NET in ${!NET_FQDN6[@]}; do',
             'for NET in "${!NET_FQDN6[@]}"; do'
         );
@@ -91,7 +96,7 @@ check_remote_access(){
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
-        const { shouldApply, reason } = await super.shouldApply();
+        const { shouldApply, reason } = await super.shouldApply({ checkOsVersion: false });
         return {
             shouldApply,
             reason,

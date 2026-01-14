@@ -420,7 +420,7 @@ build_locations(){
 	location /graphql {
 	    allow all;
 	    error_log /dev/null crit;
-	    proxy_pass http://unix:/var/run/unraid-api.sock:/graphql;
+	    proxy_pass http://unix:/var/run/unraid-core.sock:/graphql;
 	    proxy_http_version 1.1;
 	    proxy_set_header Host $host;
 	    proxy_set_header Upgrade $http_upgrade;
