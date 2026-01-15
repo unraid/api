@@ -54,7 +54,7 @@ export function useDockerTableColumns(options: DockerTableColumnsOptions) {
     options;
 
   const UButton = resolveComponent('UButton');
-  const UBadge = resolveComponent('UBadge');
+  const UBadge = resolveComponent('UBadge') as Component;
   const UDropdownMenu = resolveComponent('UDropdownMenu');
   const USkeleton = resolveComponent('USkeleton') as Component;
   const UIcon = resolveComponent('UIcon');
@@ -106,16 +106,22 @@ export function useDockerTableColumns(options: DockerTableColumnsOptions) {
           if (row.original.type === 'folder') return '';
           const state = row.original.state ?? '';
           const isBusy = busyRowIds.value.has(row.original.id);
-          const colorMap: Record<string, 'success' | 'warning' | 'neutral'> = {
+          const colorMap: Record<string, 'success' | 'warning' | 'error' | 'neutral'> = {
             [ContainerState.RUNNING]: 'success',
             [ContainerState.PAUSED]: 'warning',
-            [ContainerState.EXITED]: 'neutral',
+            [ContainerState.EXITED]: 'error',
+          };
+          const labelMap: Record<string, string> = {
+            [ContainerState.RUNNING]: 'Running',
+            [ContainerState.PAUSED]: 'Paused',
+            [ContainerState.EXITED]: 'Stopped',
           };
           const color = colorMap[state] || 'neutral';
+          const label = labelMap[state] || state;
           if (isBusy) {
             return h(USkeleton, { class: 'h-5 w-20' });
           }
-          return h(UBadge, { color }, () => state);
+          return h(UBadge, { color, label, variant: 'subtle' });
         },
       },
       {
