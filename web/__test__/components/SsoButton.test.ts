@@ -253,7 +253,14 @@ describe('SsoButtons', () => {
     const button = wrapper.find('button');
     await button.trigger('click');
 
-    const expectedUrl = `/auth/sso/unraid-net`;
+    // Should set state and provider in sessionStorage
+    expect(sessionStorage.setItem).toHaveBeenCalledWith('sso_state', expect.any(String));
+    expect(sessionStorage.setItem).toHaveBeenCalledWith('sso_provider', 'unraid-net');
+
+    const generatedState = (sessionStorage.setItem as Mock).mock.calls[0][1];
+    const redirectUri = `${mockLocation.origin}/graphql/api/auth/oidc/callback`;
+    const expectedUrl = `/graphql/api/auth/oidc/authorize/unraid-net?state=${encodeURIComponent(generatedState)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
     expect(mockLocation.href).toBe(expectedUrl);
   });
 
@@ -340,6 +347,95 @@ describe('SsoButtons', () => {
     // The URL cleanup happens with both hash and query params being removed
     const expectedUrl = mockLocation.pathname;
     expect(mockHistory.replaceState).toHaveBeenCalledWith({}, 'Mock Title', expectedUrl);
+  });
+
+  it('redirects to OIDC callback endpoint when code and state are present', async () => {
+    const mockProviders = [
+      {
+        id: 'unraid-net',
+        name: 'Unraid.net',
+        buttonText: 'Log In With Unraid.net',
+      },
+    ];
+
+    mockUseQuery.mockReturnValue({
+      result: { value: { publicOidcProviders: mockProviders } },
+      refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
+    });
+
+    const mockCode = 'mock_auth_code';
+    const mockState = 'mock_session_state_value';
+
+    mockLocation.search = `?code=${mockCode}&state=${mockState}`;
+    mockLocation.pathname = '/login';
+
+    mount(SsoButtons, {
+      global: {
+        plugins: [createTestI18n()],
+        stubs: {
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' },
+        },
+      },
+    });
+
+    await flushPromises();
+
+    // Should redirect to the OIDC callback endpoint
+    const expectedUrl = `/graphql/api/auth/oidc/callback?code=${encodeURIComponent(mockCode)}&state=${encodeURIComponent(mockState)}`;
+    expect(mockLocation.href).toBe(expectedUrl);
+  });
+
+  it('handles HTTPS with non-standard port correctly', async () => {
+    const mockProviders = [
+      {
+        id: 'tsidp',
+        name: 'Tailscale IDP',
+        buttonText: 'Sign in with Tailscale',
+        buttonIcon: null,
+        buttonVariant: 'secondary',
+        buttonStyle: null,
+      },
+    ];
+
+    // Set up location with HTTPS and non-standard port
+    mockLocation.protocol = 'https:';
+    mockLocation.host = 'unraid.mytailnet.ts.net:1443';
+    mockLocation.origin = 'https://unraid.mytailnet.ts.net:1443';
+
+    mockUseQuery.mockReturnValue({
+      result: { value: { publicOidcProviders: mockProviders } },
+      refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
+    });
+
+    const wrapper = mount(SsoButtons, {
+      global: {
+        plugins: [createTestI18n()],
+        stubs: {
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' },
+        },
+      },
+    });
+
+    await flushPromises();
+    vi.runAllTimers();
+    await flushPromises();
+
+    const button = wrapper.find('button');
+    await button.trigger('click');
+
+    // Should include the correct redirect URI with HTTPS and port 1443
+    const generatedState = (sessionStorage.setItem as Mock).mock.calls[0][1];
+    const redirectUri = 'https://unraid.mytailnet.ts.net:1443/graphql/api/auth/oidc/callback';
+    const expectedUrl = `/graphql/api/auth/oidc/authorize/tsidp?state=${encodeURIComponent(generatedState)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+    expect(mockLocation.href).toBe(expectedUrl);
+
+    // Reset location mock for other tests
+    mockLocation.protocol = 'http:';
+    mockLocation.host = 'mock-origin.com';
+    mockLocation.origin = 'http://mock-origin.com';
   });
 
   it('handles multiple OIDC providers', async () => {

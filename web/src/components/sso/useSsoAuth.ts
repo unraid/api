@@ -35,6 +35,19 @@ export function useSsoAuth() {
     form.requestSubmit();
   };
 
+  const getStateToken = (): string | null => {
+    const state = sessionStorage.getItem('sso_state');
+    return state ?? null;
+  };
+
+  const generateStateToken = (): string => {
+    const array = new Uint8Array(32);
+    window.crypto.getRandomValues(array);
+    const state = Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
+    sessionStorage.setItem('sso_state', state);
+    return state;
+  };
+
   const disableFormOnSubmit = () => {
     const fields = getInputFields();
     if (fields?.form) {
@@ -52,7 +65,19 @@ export function useSsoAuth() {
   const navigateToProvider = (providerId: string) => {
     currentState.value = 'loading';
     error.value = null;
-    window.location.href = `/auth/sso/${encodeURIComponent(providerId)}`;
+    // Generate state token for CSRF protection
+    const state = generateStateToken();
+
+    // Store provider ID separately since state must be alphanumeric only
+    sessionStorage.setItem('sso_state', state);
+    sessionStorage.setItem('sso_provider', providerId);
+
+    // Build the redirect URI based on current window location
+    const redirectUri = `${window.location.protocol}//${window.location.host}/graphql/api/auth/oidc/callback`;
+
+    // Redirect to OIDC authorization endpoint with state token and redirect URI
+    const authUrl = `/graphql/api/auth/oidc/authorize/${encodeURIComponent(providerId)}?state=${encodeURIComponent(state)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    window.location.href = authUrl;
   };
 
   const handleOAuthCallback = async () => {
@@ -64,6 +89,9 @@ export function useSsoAuth() {
 
       // Then check query parameters (for error/token fallback)
       const search = new URLSearchParams(window.location.search);
+      const code = search.get('code') ?? '';
+      const state = search.get('state') ?? '';
+      const sessionState = getStateToken();
 
       // Check for error in hash (preferred) or query params (fallback)
       const errorParam = hashError || search.get('error') || '';
@@ -86,6 +114,22 @@ export function useSsoAuth() {
         // Clean up the URL (both hash and query params)
         window.history.replaceState({}, document.title, window.location.pathname);
         return;
+      }
+
+      // Handle Unraid.net SSO callback (comes to /login with code and state)
+      if (code && state && window.location.pathname === '/login') {
+        currentState.value = 'loading';
+
+        // Redirect to our OIDC callback endpoint to exchange the code
+        const callbackUrl = `/graphql/api/auth/oidc/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
+        window.location.href = callbackUrl;
+        return;
+      }
+
+      // Error if we have mismatched state
+      if (code && state && state !== sessionState) {
+        currentState.value = 'error';
+        error.value = t('sso.useSsoAuth.invalidCallbackParameters');
       }
 
       if (window.location.pathname !== '/login') {

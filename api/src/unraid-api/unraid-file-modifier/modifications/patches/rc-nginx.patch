@@ -66,20 +66,35 @@ Index: /etc/rc.d/rc.nginx
  	error_page 401 @401;
  	location @401 {
  	    return 302 $scheme://$http_host/login;
-@@ -400,11 +429,11 @@
+@@ -397,14 +426,26 @@
+ 	    nchan_stub_status;
+ 	}
+ 	#
  	# my servers proxy
  	#
++	location /graphql/api {
++	    allow all;
++	    proxy_pass http://unix:/var/run/unraid-api.sock:;
++	    proxy_http_version 1.1;
++	    proxy_set_header Host $host;
++	    proxy_set_header X-Real-IP $remote_addr;
++	    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
++	    proxy_set_header X-Forwarded-Proto $scheme;
++	}
  	location /graphql {
  	    allow all;
  	    error_log /dev/null crit;
 -	    proxy_pass http://unix:/var/run/unraid-api.sock:/graphql;
-+	    proxy_pass http://unix:/var/run/unraid-core.sock:/graphql;
++	    if ($http_upgrade = "websocket") {
++	        rewrite ^/graphql$ /graphql/socket break;
++	    }
++	    proxy_pass http://unix:/var/run/unraid-core.sock:;
  	    proxy_http_version 1.1;
  	    proxy_set_header Host $host;
  	    proxy_set_header Upgrade $http_upgrade;
  	    proxy_set_header Connection $connection_upgrade;
  	    proxy_cache_bypass $http_upgrade;
-@@ -566,11 +595,11 @@
+@@ -566,11 +607,11 @@
      # extract common name from cert
      CERTNAME=$(openssl x509 -noout -subject -nameopt multiline -in $CERTPATH | sed -n 's/ *commonName *= //p')
      # define CSP frame-ancestors for cert
@@ -92,7 +107,7 @@ Index: /etc/rc.d/rc.nginx
        WANIP6=$(curl https://wanip6.unraid.net/ 2>/dev/null)
      fi
      if [[ $CERTNAME == *\.myunraid\.net ]]; then
-@@ -660,14 +689,14 @@
+@@ -660,14 +701,14 @@
    echo "NGINX_WANFQDN=\"$WANFQDN\"" >>$INI
    echo "NGINX_WANFQDN6=\"$WANFQDN6\"" >>$INI
    # defined if ts_bundle.pem present:

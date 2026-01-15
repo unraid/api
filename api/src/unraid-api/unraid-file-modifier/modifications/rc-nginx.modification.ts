@@ -70,7 +70,7 @@ check_remote_access(){
 
         newContent = newContent.replace(
             'proxy_pass http://unix:/var/run/unraid-api.sock:/graphql;',
-            'proxy_pass http://unix:/var/run/unraid-core.sock:/graphql;'
+            'if ($http_upgrade = "websocket") {\n\t        rewrite ^/graphql$ /graphql/socket break;\n\t    }\n\t    proxy_pass http://unix:/var/run/unraid-core.sock:;'
         );
 
         if (!newContent.includes('location /auth/sso')) {
@@ -78,6 +78,14 @@ check_remote_access(){
                 '\t# Redirect to login page on failed authentication (401)\n',
                 // prettier-ignore
                 `\t# SSO endpoints (public)\n\tlocation /auth/sso {\n\t    allow all;\n\t    proxy_pass http://unix:/var/run/unraid-core.sock:;\n\t    proxy_http_version 1.1;\n\t    proxy_set_header Host $host;\n\t    proxy_set_header X-Real-IP $remote_addr;\n\t    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\t    proxy_set_header X-Forwarded-Proto $scheme;\n\t}\n\t#\n\t# Redirect to login page on failed authentication (401)\n`
+            );
+        }
+
+        if (!newContent.includes('location /graphql/api')) {
+            newContent = newContent.replace(
+                '\t# my servers proxy\n\t#\n\tlocation /graphql {',
+                // prettier-ignore
+                `\t# my servers proxy\n\t#\n\tlocation /graphql/api {\n\t    allow all;\n\t    proxy_pass http://unix:/var/run/unraid-api.sock:;\n\t    proxy_http_version 1.1;\n\t    proxy_set_header Host $host;\n\t    proxy_set_header X-Real-IP $remote_addr;\n\t    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\t    proxy_set_header X-Forwarded-Proto $scheme;\n\t}\n\tlocation /graphql {`
             );
         }
 
