@@ -5,6 +5,7 @@ import { useClipboard } from '@vueuse/core';
  */
 export function useClipboardWithToast() {
   const { copy, copied, isSupported } = useClipboard();
+  const toast = useToast();
 
   /**
    * Copy text and show toast
@@ -19,10 +20,7 @@ export function useClipboardWithToast() {
     if (isSupported.value) {
       try {
         await copy(text);
-        // Use global toast if available
-        if (globalThis.toast) {
-          globalThis.toast.success(successMessage);
-        }
+        toast.add({ title: successMessage, color: 'success' });
         return true;
       } catch (error) {
         console.error('Failed to copy to clipboard:', error);
@@ -43,9 +41,7 @@ export function useClipboardWithToast() {
       document.body.removeChild(textarea);
 
       if (success) {
-        if (globalThis.toast) {
-          globalThis.toast.success(successMessage);
-        }
+        toast.add({ title: successMessage, color: 'success' });
         return true;
       }
     } catch (error) {
@@ -53,9 +49,7 @@ export function useClipboardWithToast() {
     }
 
     // Both methods failed
-    if (globalThis.toast) {
-      globalThis.toast.error('Failed to copy to clipboard');
-    }
+    toast.add({ title: 'Failed to copy to clipboard', color: 'error' });
     return false;
   };
 

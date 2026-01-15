@@ -22,9 +22,11 @@ import {
     Notification,
     NotificationCounts,
     NotificationData,
+    NotificationEventType,
     NotificationFilter,
     NotificationImportance,
     NotificationOverview,
+    NotificationSettings,
     NotificationType,
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
@@ -54,6 +56,13 @@ export class NotificationsService {
             total: 0,
         },
     };
+
+    /**
+     * Tracks archive file paths that are currently being processed by batch operations.
+     * This allows us to suppress the file watcher's 'add' event for these files
+     * to prevent double counting stats and flooding pubsub events.
+     */
+    private processingArchives = new Set<string>();
 
     constructor() {
         this.path = getters.dynamix().notify!.path;
@@ -98,29 +107,78 @@ export class NotificationsService {
         }
         await NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
 
-        NotificationsService.watcher = watch(basePath, { usePolling: CHOKIDAR_USEPOLLING }).on(
-            'add',
-            (path) => {
-                void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
-            }
-        );
+        NotificationsService.watcher = watch(basePath, {
+            usePolling: CHOKIDAR_USEPOLLING,
+            ignoreInitial: true, // Only watch for new files
+        }).on('add', (path) => {
+            void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
+        });
 
         return NotificationsService.watcher;
     }
 
     private async handleNotificationAdd(path: string) {
+        if (this.processingArchives.has(path)) {
+            this.processingArchives.delete(path);
+            // this.logger.debug(`[handleNotificationAdd] Ignoring batch-processed file: ${path}`);
+            return;
+        }
+
         // The path looks like /{notification base path}/{type}/{notification id}
         const type = path.includes('/unread/') ? NotificationType.UNREAD : NotificationType.ARCHIVE;
-        // this.logger.debug(`Adding ${type} Notification: ${path}`);
+        this.logger.log(`[handleNotificationAdd] Adding ${type} Notification: ${path}`);
 
-        const notification = await this.loadNotificationFile(path, NotificationType[type]);
+        // If adding to archive, check if it exists in unread.
+        // If so, we do not want to count it towards the archive stats yet.
+        if (type === NotificationType.ARCHIVE) {
+            const filename = basename(path);
+            const unreadPath = join(this.paths().UNREAD, filename);
+            if (await fileExists(unreadPath)) {
+                this.logger.debug(
+                    `[handleNotificationAdd] Ignoring archive notification shadowed by unread: ${filename}`
+                );
+                return;
+            }
+        }
+
+        let notification: Notification | undefined;
+        let lastError: unknown;
+
+        for (let i = 0; i < 5; i++) {
+            try {
+                notification = await this.loadNotificationFile(path, NotificationType[type]);
+                this.logger.debug(
+                    `[handleNotificationAdd] Successfully loaded ${path} on attempt ${i + 1}`
+                );
+                break;
+            } catch (error) {
+                lastError = error;
+                this.logger.warn(
+                    `[handleNotificationAdd] Attempt ${i + 1} failed for ${path}: ${error}`
+                );
+                // wait 100ms before retrying
+                await new Promise((resolve) => setTimeout(resolve, 100));
+            }
+        }
+
+        if (!notification) {
+            this.logger.error(
+                `[handleNotificationAdd] Failed to load notification after 5 retries: ${path}`,
+                lastError
+            );
+            return;
+        }
         this.increment(notification.importance, NotificationsService.overview[type.toLowerCase()]);
 
+        this.publishOverview();
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+            notificationEvent: {
+                type: NotificationEventType.ADDED,
+                notification,
+            },
+        });
+
         if (type === NotificationType.UNREAD) {
-            this.publishOverview();
-            pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
-                notificationAdded: notification,
-            });
             void this.publishWarningsAndAlerts();
         }
     }
@@ -135,6 +193,26 @@ export class NotificationsService {
      */
     public getOverview(): NotificationOverview {
         return structuredClone(NotificationsService.overview);
+    }
+
+    public getSettings(): NotificationSettings {
+        const { notify } = getters.dynamix();
+        const parseBoolean = (value: unknown, defaultValue: boolean) => {
+            if (value === undefined || value === null || value === '') return defaultValue;
+            const s = String(value).toLowerCase();
+            return s === 'true' || s === '1' || s === 'yes';
+        };
+        const parsePositiveInt = (value: unknown, defaultValue: number) => {
+            const n = Number(value);
+            return !isNaN(n) && n > 0 ? n : defaultValue;
+        };
+
+        return {
+            position: notify?.position ?? 'top-right',
+            expand: parseBoolean(notify?.expand, true),
+            duration: parsePositiveInt(notify?.duration, 5000),
+            max: parsePositiveInt(notify?.max, 3),
+        };
     }
 
     private publishOverview(overview = NotificationsService.overview) {
@@ -188,7 +266,16 @@ export class NotificationsService {
         //
         // recalculates stats for a particular notification type
         const recalculate = async (type: NotificationType) => {
-            const ids = await this.listFilesInFolder(this.paths()[type]);
+            let narrowContent = (contents: string[]) => contents;
+
+            // If listing archives, filter out any that are also in unread
+            // to avoid double counting in stats
+            if (type === NotificationType.ARCHIVE) {
+                const unreadIds = new Set(await readdir(this.paths().UNREAD));
+                narrowContent = (contents) => contents.filter((file) => !unreadIds.has(file));
+            }
+
+            const ids = await this.listFilesInFolder(this.paths()[type], narrowContent);
             const [notifications] = await this.loadNotificationsFromPaths(ids, {});
             notifications.forEach((n) => this.increment(n.importance, overview[type.toLowerCase()]));
         };
@@ -216,11 +303,12 @@ export class NotificationsService {
         const fileData = this.makeNotificationFileData(data);
 
         try {
-            const [command, args] = this.getLegacyScriptArgs(fileData);
+            const [command, args] = this.getLegacyScriptArgs(fileData, id);
+            this.logger.log(`[createNotification] Executing: ${command} ${args.join(' ')}`);
             await execa(command, args);
         } catch (error) {
-            // manually write the file if the script fails
-            this.logger.debug(`[createNotification] legacy notifier failed: ${error}`);
+            // manually write the file if the script fails entirely
+            this.logger.warn(`[createNotification] legacy notifier failed: ${error}`);
             this.logger.verbose(`[createNotification] Writing: ${JSON.stringify(fileData, null, 4)}`);
 
             const path = join(this.paths().UNREAD, id);
@@ -243,7 +331,7 @@ export class NotificationsService {
      * @param notification The notification to be converted to command line arguments.
      * @returns A 2-element tuple containing the legacy notifier command and arguments.
      */
-    public getLegacyScriptArgs(notification: NotificationIni): [string, string[]] {
+    public getLegacyScriptArgs(notification: NotificationIni, id?: string): [string, string[]] {
         const { event, subject, description, link, importance } = notification;
         const args = [
             ['-i', importance],
@@ -253,6 +341,9 @@ export class NotificationsService {
         ];
         if (link) {
             args.push(['-l', link]);
+        }
+        if (id) {
+            args.push(['-u', id]);
         }
         return ['/usr/local/emhttp/webGui/scripts/notify', args.flat()];
     }
@@ -317,6 +408,14 @@ export class NotificationsService {
 
         this.decrement(notification.importance, NotificationsService.overview[type.toLowerCase()]);
         await this.publishOverview();
+
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+            notificationEvent: {
+                type: NotificationEventType.DELETED,
+                notification,
+            },
+        });
+
         if (type === NotificationType.UNREAD) {
             void this.publishWarningsAndAlerts();
         }
@@ -344,6 +443,14 @@ export class NotificationsService {
         if (type === NotificationType.UNREAD) {
             void this.publishWarningsAndAlerts();
         }
+
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+            notificationEvent: {
+                type: NotificationEventType.CLEARED,
+                notification: null,
+            },
+        });
+
         return this.getOverview();
     }
 
@@ -370,7 +477,7 @@ export class NotificationsService {
      * 3. updates the stats snapshot if provided
      *
      * Note: the returned function implicitly triggers a pubsub event via `fs.rename`,
-     * which is expected to trigger `NOTIFICATION_ADDED` & `NOTIFICATION_OVERVIEW`.
+     * which is expected to trigger `NOTIFICATION_EVENT` & `NOTIFICATION_OVERVIEW`.
      *
      * The published overview will include the update from this operation.
      *
@@ -397,7 +504,7 @@ export class NotificationsService {
              * in the chokidar file watcher (see `getNotificationsWatcher`).
              *
              * We assume the 'add' handler publishes to
-             * NOTIFICATION_ADDED & NOTIFICATION_OVERVIEW,
+             * NOTIFICATION_EVENT & NOTIFICATION_OVERVIEW,
              * and that no pubsub or overview updates occur upon 'unlink'.
              *
              * Thus, we explicitly update our state here via `decrement` and implicitly expect
@@ -431,38 +538,65 @@ export class NotificationsService {
 
     public async archiveNotification({ id }: Pick<Notification, 'id'>): Promise<Notification> {
         const unreadPath = join(this.paths().UNREAD, id);
+        const archivePath = join(this.paths().ARCHIVE, id);
 
         // We expect to only archive 'unread' notifications, but it's possible that the notification
         // has already been archived or deleted (e.g. retry logic, spike in network latency).
         if (!(await fileExists(unreadPath))) {
             this.logger.warn(`[archiveNotification] Could not find notification in unreads: ${id}`);
-            throw new AppError(`Could not find notification in unreads: ${id}`, 404);
+            throw new AppError(
+                `Could not find notification in unreads: ${id}`,
+                404,
+                'NOTIFICATION_NOT_FOUND'
+            );
         }
 
-        /**-----------------------
-         *     Why we use a snapshot
-         *
-         * An implicit update to `overview` creates a race condition:
-         * it might be missing changes from the 'add' event (i.e. incrementing the notification's new category).
-         *
-         * So, we use & modify a snapshot of the overview to make sure we're returning accurate
-         * data to the client.
-         *------------------------**/
-        const snapshot = this.getOverview();
         const notification = await this.loadNotificationFile(unreadPath, NotificationType.UNREAD);
-        const moveToArchive = this.moveNotification({
-            from: NotificationType.UNREAD,
-            to: NotificationType.ARCHIVE,
-            snapshot,
-        });
-        await moveToArchive(notification);
 
+        // Update stats
+        this.decrement(notification.importance, NotificationsService.overview.unread);
+
+        if (await fileExists(archivePath)) {
+            // File already in archive, just delete the unread one
+            await unlink(unreadPath);
+
+            // Since we previously ignored this file in the archive definition (because it was in unread),
+            // we must now increment the archive stats because it has been "revealed" as an archived notification.
+            this.increment(notification.importance, NotificationsService.overview.archive);
+        } else {
+            // File not in archive, move it there
+            try {
+                await rename(unreadPath, archivePath);
+            } catch (err) {
+                // revert our earlier decrement
+                // we do it this way (decrement -> try rename -> revert if error) to avoid
+                // a race condition between `rename` and `decrement`
+                this.increment(notification.importance, NotificationsService.overview.unread);
+
+                throw err;
+            }
+
+            // We moved a file to archive that wasn't there.
+            // We DO need to increment the stats.
+            this.increment(notification.importance, NotificationsService.overview.archive);
+        }
+
+        void this.publishOverview();
         void this.publishWarningsAndAlerts();
 
-        return {
+        const updated = {
             ...notification,
             type: NotificationType.ARCHIVE,
         };
+
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+            notificationEvent: {
+                type: NotificationEventType.UPDATED,
+                notification: updated,
+            },
+        });
+
+        return updated;
     }
 
     public async markAsUnread({ id }: Pick<Notification, 'id'>): Promise<Notification> {
@@ -470,47 +604,99 @@ export class NotificationsService {
         // the target notification might not be in the archive!
         if (!(await fileExists(archivePath))) {
             this.logger.warn(`[markAsUnread] Could not find notification in archive: ${id}`);
-            throw new AppError(`Could not find notification in archive: ${id}`, 404);
+            throw new AppError(
+                `Could not find notification in archive: ${id}`,
+                404,
+                'NOTIFICATION_NOT_FOUND'
+            );
         }
 
-        // we use a snapshot to provide an accurate overview update
-        // otherwise, we'd enter a race condition with the 'add' file watcher event handler
-        const snapshot = this.getOverview();
         const notification = await this.loadNotificationFile(archivePath, NotificationType.ARCHIVE);
         const moveToUnread = this.moveNotification({
             from: NotificationType.ARCHIVE,
             to: NotificationType.UNREAD,
-            snapshot,
         });
 
         await moveToUnread(notification);
         void this.publishWarningsAndAlerts();
-        return {
+
+        const updated = {
             ...notification,
             type: NotificationType.UNREAD,
         };
+
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+            notificationEvent: {
+                type: NotificationEventType.UPDATED,
+                notification: updated,
+            },
+        });
+
+        return updated;
     }
 
     public async archiveAll(importance?: NotificationImportance) {
-        const { UNREAD } = this.paths();
+        const { UNREAD, ARCHIVE } = this.paths();
 
-        if (!importance) {
-            await readdir(UNREAD).then((ids) => this.archiveIds(ids));
-            return { overview: NotificationsService.overview };
-        }
-
-        const overviewSnapshot = this.getOverview();
+        // Get notifications to process
+        // This implicitly handles the importance filter if provided
         const unreads = await this.listFilesInFolder(UNREAD);
-        const [notifications] = await this.loadNotificationsFromPaths(unreads, { importance });
-        const archive = this.moveNotification({
-            from: NotificationType.UNREAD,
-            to: NotificationType.ARCHIVE,
-            snapshot: overviewSnapshot,
+        const [notifications] = await this.loadNotificationsFromPaths(unreads, {
+            importance,
+            type: NotificationType.UNREAD,
         });
 
-        const stats = await batchProcess(notifications, archive);
+        if (notifications.length === 0) {
+            return { overview: this.getOverview() };
+        }
+
+        const batchCreateArchive = async (notification: Notification) => {
+            const unreadPath = join(UNREAD, notification.id);
+            const archivePath = join(ARCHIVE, notification.id);
+
+            try {
+                // If file already exists in archive, delete the unread copy
+                if (await fileExists(archivePath)) {
+                    await unlink(unreadPath);
+                } else {
+                    // Otherwise move it to archive
+                    // We must register this path to be ignored by the file watcher's 'add' event
+                    // to avoid double counting stats and flooding pubsub events.
+                    this.processingArchives.add(archivePath);
+                    await rename(unreadPath, archivePath);
+                }
+
+                // Update in-memory stats
+                this.decrement(notification.importance, NotificationsService.overview.unread);
+                this.increment(notification.importance, NotificationsService.overview.archive);
+            } catch (error) {
+                this.logger.error(
+                    `[archiveAll] Failed to archive ${notification.id}: ${error instanceof Error ? error.message : error}`
+                );
+            }
+        };
+
+        const stats = await batchProcess(notifications, batchCreateArchive);
+
+        if (stats.errorOccurred) {
+            this.logger.warn(`[archiveAll] Finished with errors: ${stats.errors.length} failed.`);
+        }
+
+        // Publish updates once
+        void this.publishOverview();
         void this.publishWarningsAndAlerts();
-        return { ...stats, overview: overviewSnapshot };
+
+        // Send a single event to trigger frontend refresh
+        // We use CLEARED because from the perspective of the unread list, they are cleared.
+        // The frontend handles CLEARED by refetching both lists.
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_EVENT, {
+            notificationEvent: {
+                type: NotificationEventType.CLEARED,
+                notification: null,
+            },
+        });
+
+        return { overview: this.getOverview() };
     }
 
     public async unarchiveAll(importance?: NotificationImportance) {
@@ -682,6 +868,29 @@ export class NotificationsService {
             .map(({ path }) => path);
     }
 
+    private async *getNotificationsGenerator(
+        files: string[],
+        type: NotificationType
+    ): AsyncGenerator<{ success: true; value: Notification } | { success: false; reason: unknown }> {
+        const BATCH_SIZE = 10;
+        for (let i = 0; i < files.length; i += BATCH_SIZE) {
+            const batch = files.slice(i, i + BATCH_SIZE);
+            const promises = batch.map(async (file) => {
+                try {
+                    const value = await this.loadNotificationFile(file, type);
+                    return { success: true, value } as const;
+                } catch (reason) {
+                    return { success: false, reason } as const;
+                }
+            });
+
+            const results = await Promise.all(promises);
+            for (const res of results) {
+                yield res;
+            }
+        }
+    }
+
     /**
      * Given a an array of files, reads and filters all the files in the directory,
      * and attempts to parse each file as a Notification.
@@ -699,27 +908,39 @@ export class NotificationsService {
         filters: Partial<NotificationFilter>
     ): Promise<[Notification[], unknown[]]> {
         const { importance, type, offset = 0, limit = files.length } = filters;
-
-        const fileReads = files
-            .slice(offset, limit + offset)
-            .map((file) => this.loadNotificationFile(file, type ?? NotificationType.UNREAD));
-        const results = await Promise.allSettled(fileReads);
+        const notifications: Notification[] = [];
+        const errors: unknown[] = [];
+        let skipped = 0;
 
         // if the filter is defined & truthy, tests if the actual value matches the filter
         const passesFilter = <T>(actual: T, filter?: unknown) => !filter || actual === filter;
+        const matches = (n: Notification) =>
+            passesFilter(n.importance, importance) &&
+            passesFilter(n.type, type ?? NotificationType.UNREAD);
 
-        return [
-            results
-                .filter(isFulfilled)
-                .map((result) => result.value)
-                .filter(
-                    (notification) =>
-                        passesFilter(notification.importance, importance) &&
-                        passesFilter(notification.type, type)
-                )
-                .sort(this.sortLatestFirst),
-            results.filter(isRejected).map((result) => result.reason),
-        ];
+        const generator = this.getNotificationsGenerator(files, type ?? NotificationType.UNREAD);
+
+        for await (const result of generator) {
+            if (!result.success) {
+                errors.push(result.reason);
+                continue;
+            }
+
+            const notification = result.value;
+
+            if (matches(notification)) {
+                if (skipped < offset) {
+                    skipped++;
+                } else {
+                    notifications.push(notification);
+                    if (notifications.length >= limit) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return [notifications.sort(this.sortLatestFirst), errors];
     }
 
     /**
@@ -856,16 +1077,27 @@ export class NotificationsService {
     }
 
     private formatDatetime(date: Date) {
-        const { display: settings } = getters.dynamix();
-        if (!settings) {
+        const { display, notify } = getters.dynamix();
+
+        if (!display && !notify) {
             this.logger.warn(
-                '[formatTimestamp] Dynamix display settings not found. Cannot apply user settings.'
+                '[formatTimestamp] Dynamix display/notify settings not found. Cannot apply user settings.'
             );
             return date.toISOString();
         }
+
+        // Prioritize notification-specific settings, fall back to global display settings
+        const dateFormat = notify?.date || display?.date || null;
+        const timeFormat = notify?.time || display?.time || null;
+
+        if (!dateFormat || !timeFormat) {
+            // If we still don't have a format (e.g. neither config implies one), fallback to ISO
+            return date.toISOString();
+        }
+
         return formatDatetime(date, {
-            dateFormat: settings.date,
-            timeFormat: settings.time,
+            dateFormat,
+            timeFormat,
             omitTimezone: true,
         });
     }

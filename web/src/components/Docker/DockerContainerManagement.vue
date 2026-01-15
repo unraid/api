@@ -20,6 +20,7 @@ import SingleDockerLogViewer from '@/components/Docker/SingleDockerLogViewer.vue
 import LogViewerToolbar from '@/components/Logs/LogViewerToolbar.vue';
 import { useDockerConsoleSessions } from '@/composables/useDockerConsoleSessions';
 import { useDockerEditNavigation } from '@/composables/useDockerEditNavigation';
+import { navigate } from '@/helpers/external-navigation';
 import { stripLeadingSlash } from '@/utils/docker';
 import { useAutoAnimate } from '@formkit/auto-animate/vue';
 
@@ -258,7 +259,7 @@ function handleAddContainerClick() {
   const sanitizedPath = rawPath.replace(/\?.*$/, '').replace(/\/+$/, '');
   const withoutAdd = sanitizedPath.replace(/\/AddContainer$/i, '');
   const targetPath = withoutAdd ? `${withoutAdd}/AddContainer` : '/AddContainer';
-  window.location.assign(targetPath);
+  navigate(targetPath);
 }
 
 async function refreshContainers() {
@@ -650,7 +651,7 @@ const [transitionContainerRef] = useAutoAnimate({
             </div>
             <DockerOverview v-else :item="detailsItem" :details="details" />
             <div v-if="isDetailsLoading" class="absolute inset-0 grid place-items-center">
-              <USkeleton class="h-6 w-6" />
+              <USkeleton class="size-6" />
             </div>
           </div>
         </UCard>

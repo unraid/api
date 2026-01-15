@@ -135,6 +135,8 @@ describe('mount-engine', () => {
     // Clean up DOM
     document.body.innerHTML = '';
     lastUAppPortal = undefined;
+
+    mockApolloClient.query.mockResolvedValue({ data: { notifications: { settings: {} } } });
   });
 
   afterEach(() => {

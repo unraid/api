@@ -9,10 +9,12 @@ import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import {
     Notification,
     NotificationData,
+    NotificationEvent,
     NotificationFilter,
     NotificationImportance,
     NotificationOverview,
     Notifications,
+    NotificationSettings,
     NotificationType,
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
@@ -39,6 +41,11 @@ export class NotificationsResolver {
     @ResolveField(() => NotificationOverview)
     public async overview(): Promise<NotificationOverview> {
         return this.notificationsService.getOverview();
+    }
+
+    @ResolveField(() => NotificationSettings)
+    public settings(): NotificationSettings {
+        return this.notificationsService.getSettings();
     }
 
     @ResolveField(() => [Notification])
@@ -165,15 +172,6 @@ export class NotificationsResolver {
      *               Subscriptions
      *=============================================**/
 
-    @Subscription(() => Notification)
-    @UsePermissions({
-        action: AuthAction.READ_ANY,
-        resource: Resource.NOTIFICATIONS,
-    })
-    async notificationAdded() {
-        return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_ADDED);
-    }
-
     @Subscription(() => NotificationOverview)
     @UsePermissions({
         action: AuthAction.READ_ANY,
@@ -190,5 +188,14 @@ export class NotificationsResolver {
     })
     async notificationsWarningsAndAlerts() {
         return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_WARNINGS_AND_ALERTS);
+    }
+
+    @Subscription(() => NotificationEvent)
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.NOTIFICATIONS,
+    })
+    async notificationEvent() {
+        return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_EVENT);
     }
 }

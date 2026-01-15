@@ -1,0 +1,1 @@
+export const DOCKER_SERVICE_TOKEN = Symbol('DOCKER_SERVICE');

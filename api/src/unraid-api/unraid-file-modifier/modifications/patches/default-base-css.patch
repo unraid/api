@@ -1,0 +1,41 @@
+Index: /usr/local/emhttp/plugins/dynamix/styles/default-base.css
+===================================================================
+--- /usr/local/emhttp/plugins/dynamix/styles/default-base.css	original
++++ /usr/local/emhttp/plugins/dynamix/styles/default-base.css	modified
+@@ -10,10 +10,13 @@
+     padding: 0;
+     margin: 0;
+     -webkit-font-smoothing: antialiased;
+     -moz-osx-font-smoothing: grayscale;
+ }
++
++@layer default {
++@scope (:root) to (.unapi) {
+ @media (max-width: 1280px) {
+     #template {
+         min-width: 1260px;
+         max-width: 1260px;
+         margin: 0;
+@@ -1521,11 +1524,11 @@
+  *
+  * @see https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_nesting
+  * @see https://developer.mozilla.org/en-US/docs/Web/CSS/Nesting_selector
+  * @see https://caniuse.com/?search=nesting
+  */
+-.Theme--sidebar {
++:scope.Theme--sidebar {
+     p {
+         text-align: left;
+     }
+ 
+     i.spacing {
+@@ -2216,5 +2219,8 @@
+     }
+     label.checkbox input:checked ~ .checkmark {
+         background-color: var(--brand-orange);
+     }
+ }
++
++}
++}
+\ No newline at end of file

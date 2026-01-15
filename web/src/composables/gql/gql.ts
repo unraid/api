@@ -57,6 +57,7 @@ type Documents = {
     "\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    type\n    timestamp\n    formattedTimestamp\n  }\n": typeof types.NotificationFragmentFragmentDoc,
     "\n  fragment NotificationCountFragment on NotificationCounts {\n    total\n    info\n    warning\n    alert\n  }\n": typeof types.NotificationCountFragmentFragmentDoc,
     "\n  query Notifications($filter: NotificationFilter!) {\n    notifications {\n      id\n      list(filter: $filter) {\n        ...NotificationFragment\n      }\n    }\n  }\n": typeof types.NotificationsDocument,
+    "\n  query GetNotificationSettings {\n    notifications {\n      id\n      settings {\n        position\n        expand\n        duration\n        max\n      }\n    }\n  }\n": typeof types.GetNotificationSettingsDocument,
     "\n  query WarningAndAlertNotifications {\n    notifications {\n      id\n      warningsAndAlerts {\n        ...NotificationFragment\n      }\n    }\n  }\n": typeof types.WarningAndAlertNotificationsDocument,
     "\n  mutation ArchiveNotification($id: PrefixedID!) {\n    archiveNotification(id: $id) {\n      ...NotificationFragment\n    }\n  }\n": typeof types.ArchiveNotificationDocument,
     "\n  mutation ArchiveAllNotifications {\n    archiveAll {\n      unread {\n        total\n      }\n      archive {\n        info\n        warning\n        alert\n        total\n      }\n    }\n  }\n": typeof types.ArchiveAllNotificationsDocument,
@@ -65,9 +66,9 @@ type Documents = {
     "\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n      }\n    }\n  }\n": typeof types.OverviewDocument,
     "\n  mutation RecomputeOverview {\n    recalculateOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": typeof types.RecomputeOverviewDocument,
     "\n  mutation NotifyIfUnique($input: NotificationData!) {\n    notifyIfUnique(input: $input) {\n      ...NotificationFragment\n    }\n  }\n": typeof types.NotifyIfUniqueDocument,
-    "\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n": typeof types.NotificationAddedSubDocument,
     "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": typeof types.NotificationOverviewSubDocument,
     "\n  subscription NotificationsWarningsAndAlertsSub {\n    notificationsWarningsAndAlerts {\n      ...NotificationFragment\n    }\n  }\n": typeof types.NotificationsWarningsAndAlertsSubDocument,
+    "\n  subscription NotificationEventSub {\n    notificationEvent {\n      type\n      notification {\n        ...NotificationFragment\n      }\n    }\n  }\n": typeof types.NotificationEventSubDocument,
     "\n  mutation CreateRCloneRemote($input: CreateRCloneRemoteInput!) {\n    rclone {\n      createRCloneRemote(input: $input) {\n        name\n        type\n        parameters\n      }\n    }\n  }\n": typeof types.CreateRCloneRemoteDocument,
     "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n": typeof types.DeleteRCloneRemoteDocument,
     "\n  query GetRCloneConfigForm($formOptions: RCloneConfigFormInput) {\n    rclone {\n      configForm(formOptions: $formOptions) {\n        id\n        dataSchema\n        uiSchema\n      }\n    }\n  }\n": typeof types.GetRCloneConfigFormDocument,
@@ -127,6 +128,7 @@ const documents: Documents = {
     "\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    type\n    timestamp\n    formattedTimestamp\n  }\n": types.NotificationFragmentFragmentDoc,
     "\n  fragment NotificationCountFragment on NotificationCounts {\n    total\n    info\n    warning\n    alert\n  }\n": types.NotificationCountFragmentFragmentDoc,
     "\n  query Notifications($filter: NotificationFilter!) {\n    notifications {\n      id\n      list(filter: $filter) {\n        ...NotificationFragment\n      }\n    }\n  }\n": types.NotificationsDocument,
+    "\n  query GetNotificationSettings {\n    notifications {\n      id\n      settings {\n        position\n        expand\n        duration\n        max\n      }\n    }\n  }\n": types.GetNotificationSettingsDocument,
     "\n  query WarningAndAlertNotifications {\n    notifications {\n      id\n      warningsAndAlerts {\n        ...NotificationFragment\n      }\n    }\n  }\n": types.WarningAndAlertNotificationsDocument,
     "\n  mutation ArchiveNotification($id: PrefixedID!) {\n    archiveNotification(id: $id) {\n      ...NotificationFragment\n    }\n  }\n": types.ArchiveNotificationDocument,
     "\n  mutation ArchiveAllNotifications {\n    archiveAll {\n      unread {\n        total\n      }\n      archive {\n        info\n        warning\n        alert\n        total\n      }\n    }\n  }\n": types.ArchiveAllNotificationsDocument,
@@ -135,9 +137,9 @@ const documents: Documents = {
     "\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n      }\n    }\n  }\n": types.OverviewDocument,
     "\n  mutation RecomputeOverview {\n    recalculateOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": types.RecomputeOverviewDocument,
     "\n  mutation NotifyIfUnique($input: NotificationData!) {\n    notifyIfUnique(input: $input) {\n      ...NotificationFragment\n    }\n  }\n": types.NotifyIfUniqueDocument,
-    "\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n": types.NotificationAddedSubDocument,
     "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": types.NotificationOverviewSubDocument,
     "\n  subscription NotificationsWarningsAndAlertsSub {\n    notificationsWarningsAndAlerts {\n      ...NotificationFragment\n    }\n  }\n": types.NotificationsWarningsAndAlertsSubDocument,
+    "\n  subscription NotificationEventSub {\n    notificationEvent {\n      type\n      notification {\n        ...NotificationFragment\n      }\n    }\n  }\n": types.NotificationEventSubDocument,
     "\n  mutation CreateRCloneRemote($input: CreateRCloneRemoteInput!) {\n    rclone {\n      createRCloneRemote(input: $input) {\n        name\n        type\n        parameters\n      }\n    }\n  }\n": types.CreateRCloneRemoteDocument,
     "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n": types.DeleteRCloneRemoteDocument,
     "\n  query GetRCloneConfigForm($formOptions: RCloneConfigFormInput) {\n    rclone {\n      configForm(formOptions: $formOptions) {\n        id\n        dataSchema\n        uiSchema\n      }\n    }\n  }\n": types.GetRCloneConfigFormDocument,
@@ -343,6 +345,10 @@ export function graphql(source: "\n  query Notifications($filter: NotificationFi
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n  query GetNotificationSettings {\n    notifications {\n      id\n      settings {\n        position\n        expand\n        duration\n        max\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetNotificationSettings {\n    notifications {\n      id\n      settings {\n        position\n        expand\n        duration\n        max\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n  query WarningAndAlertNotifications {\n    notifications {\n      id\n      warningsAndAlerts {\n        ...NotificationFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  query WarningAndAlertNotifications {\n    notifications {\n      id\n      warningsAndAlerts {\n        ...NotificationFragment\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -375,15 +381,15 @@ export function graphql(source: "\n  mutation NotifyIfUnique($input: Notificatio
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n"): (typeof documents)["\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
 export function graphql(source: "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  subscription NotificationsWarningsAndAlertsSub {\n    notificationsWarningsAndAlerts {\n      ...NotificationFragment\n    }\n  }\n"): (typeof documents)["\n  subscription NotificationsWarningsAndAlertsSub {\n    notificationsWarningsAndAlerts {\n      ...NotificationFragment\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  subscription NotificationEventSub {\n    notificationEvent {\n      type\n      notification {\n        ...NotificationFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  subscription NotificationEventSub {\n    notificationEvent {\n      type\n      notification {\n        ...NotificationFragment\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

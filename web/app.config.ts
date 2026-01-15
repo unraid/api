@@ -1,13 +1,63 @@
+// Objective: avoid hard-coded custom colors wherever possible, letting our theme system manage
+// styling consistently. During the migration from the legacy WebGUI, some components still depend
+// on specific colors to maintain visual continuity. This config file centralizes all temporary
+// overrides required for that transition.
+//
+// Pending migration cleanup:
+// - Notifications/Sidebar.vue → notification bell has temporary custom hover color to match legacy styles.
+
 export default {
   ui: {
     colors: {
-      primary: 'blue',
-      neutral: 'gray',
+      // overrided by tailwind-shared/css-variables.css
+      // these shared tailwind styles and colors are imported in src/assets/main.css
     },
-  },
-  toaster: {
-    position: 'bottom-right' as const,
-    expand: true,
-    duration: 5000,
+
+    // https://ui.nuxt.com/docs/components/button#theme
+    button: {
+      //keep in mind, there is a "variant" AND a "variants" property
+      variants: {
+        variant: {
+          ghost: '',
+          link: 'hover:underline focus:underline',
+        },
+      },
+    },
+
+    // https://ui.nuxt.com/docs/components/tabs#theme
+    tabs: {
+      variants: {
+        pill: {},
+      },
+    },
+
+    // https://ui.nuxt.com/docs/components/slideover#theme
+    slideover: {
+      slots: {
+        // title: 'text-3xl font-normal',
+      },
+      variants: {
+        right: {},
+      },
+    },
+
+    //css theming/style-overrides for the toast component
+    // https://ui.nuxt.com/docs/components/toast#theme
+    toast: {
+      slots: {
+        title: 'truncate', // can also use break-words instead of truncating
+        description: 'truncate',
+      },
+    },
+
+    // fallback, overridden by webgui settings
+    // Also, for toasts, BUT this is imported in the Root UApp in mount-engine.ts
+    // https://ui.nuxt.com/docs/components/toast#examples
+    toaster: {
+      position: 'top-right' as const,
+      expand: true,
+      duration: 5000,
+      max: 3,
+    },
   },
 };

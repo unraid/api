@@ -140,7 +140,10 @@ export function formatDatetime(
     options: Partial<{ dateFormat: string; timeFormat: string; omitTimezone?: boolean }> = {}
 ): string {
     const { dateFormat = '%c', timeFormat = '%I:%M %p', omitTimezone = true } = options;
-    let formatted = strftime(dateFormat, date);
+    const strftimeDate = convertPhpDateFormat(dateFormat);
+    const strftimeTime = convertPhpDateFormat(timeFormat);
+
+    let formatted = strftime(strftimeDate, date);
     if (dateFormat === '%c') {
         /**----------------------------------------------
          *                Omit Timezone
@@ -170,9 +173,47 @@ export function formatDatetime(
          *  the `[display]` section of the dynamix config file
          *  located at /boot/config/plugins/dynamix/dynamix.cfg
          *---------------------------------------------**/
-        formatted += ' ' + strftime(timeFormat, date);
+        formatted += ' ' + strftime(strftimeTime, date);
     }
     return formatted;
+}
+
+/**
+ * Converts a PHP date format string to a strftime format string.
+ * This is necessary because Unraid stores date/time formats in PHP syntax (e.g. 'd-m-Y'),
+ * but the API uses strftime (e.g. '%d-%m-%Y').
+ *
+ * This function handles the specific formats available in Unraid's Date and Time settings.
+ */
+export function convertPhpDateFormat(phpFormat: string): string {
+    // Known Unraid formats mapping
+    const mapping: Record<string, string> = {
+        'd-m-Y': '%d-%m-%Y', // DD-MM-YYYY
+        'm-d-Y': '%m-%d-%Y', // MM-DD-YYYY
+        'Y-m-d': '%Y-%m-%d', // YYYY-MM-DD
+        'h:i A': '%I:%M %p', // 12 hours
+        'H:i': '%H:%M', // 24 hours
+    };
+
+    if (mapping[phpFormat]) {
+        return mapping[phpFormat];
+    }
+
+    // Heuristic fallback for other formats (simple replacement)
+    // We check if it looks like it's NOT already a strftime string (no %)
+    if (!phpFormat.includes('%')) {
+        return phpFormat
+            .replace(/\bd\b/g, '%d')
+            .replace(/\bm\b/g, '%m')
+            .replace(/\bY\b/g, '%Y')
+            .replace(/\bh\b/g, '%I')
+            .replace(/\bH\b/g, '%H')
+            .replace(/\bi\b/g, '%M')
+            .replace(/\bs\b/g, '%S')
+            .replace(/\bA\b/g, '%p');
+    }
+
+    return phpFormat;
 }
 
 /**

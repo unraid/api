@@ -194,6 +194,12 @@ describe('ApiConfigPersistence', () => {
 describe('loadApiConfig', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
+        vi.spyOn(ApiConfigPersistence.prototype, 'getFileHandler').mockReturnValue({
+            loadConfig: vi.fn().mockResolvedValue({}),
+            readConfigFile: vi.fn().mockResolvedValue({}),
+            writeConfigFile: vi.fn().mockResolvedValue(true),
+            updateConfig: vi.fn().mockResolvedValue(true),
+        } as any);
     });
 
     it('should return default config with current API_VERSION', async () => {
@@ -209,6 +215,13 @@ describe('loadApiConfig', () => {
     });
 
     it('should handle errors gracefully and return defaults', async () => {
+        vi.spyOn(ApiConfigPersistence.prototype, 'getFileHandler').mockReturnValue({
+            loadConfig: vi.fn().mockRejectedValue(new Error('Config load failed')),
+            readConfigFile: vi.fn().mockResolvedValue({}),
+            writeConfigFile: vi.fn(),
+            updateConfig: vi.fn(),
+        } as any);
+
         const result = await loadApiConfig();
 
         expect(result).toEqual({

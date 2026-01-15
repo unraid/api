@@ -1,13 +1,5 @@
 import { graphql } from '~/composables/gql/gql';
 
-export const notificationAddedSubscription = graphql(/* GraphQL */ `
-  subscription NotificationAddedSub {
-    notificationAdded {
-      ...NotificationFragment
-    }
-  }
-`);
-
 export const notificationOverviewSubscription = graphql(/* GraphQL */ `
   subscription NotificationOverviewSub {
     notificationsOverview {
@@ -25,6 +17,17 @@ export const warningsAndAlertsSubscription = graphql(/* GraphQL */ `
   subscription NotificationsWarningsAndAlertsSub {
     notificationsWarningsAndAlerts {
       ...NotificationFragment
+    }
+  }
+`);
+
+export const notificationEventSubscription = graphql(/* GraphQL */ `
+  subscription NotificationEventSub {
+    notificationEvent {
+      type
+      notification {
+        ...NotificationFragment
+      }
     }
   }
 `);

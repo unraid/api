@@ -39,6 +39,7 @@
         "// Testing": "",
         "test": "NODE_ENV=test vitest run",
         "test:watch": "NODE_ENV=test vitest --ui",
+        "test:modifications:update": "rm -rf src/unraid-api/unraid-file-modifier/modifications/__test__/__fixtures__/downloaded src/unraid-api/unraid-file-modifier/modifications/patches /Users/ajitmehrotra/Projects/Unraid/api/api/src/unraid-api/unraid-file-modifier/modifications/__test__/snapshots && NODE_ENV=test vitest run src/unraid-api/unraid-file-modifier/modifications/__test__/generic-modification.spec.ts -u",
         "coverage": "NODE_ENV=test vitest run --coverage",
         "// Docker": "",
         "container:build": "./scripts/dc.sh build dev",
@@ -46,6 +47,7 @@
         "container:stop": "./scripts/dc.sh stop dev",
         "container:test": "./scripts/dc.sh run --rm builder pnpm run test",
         "container:enter": "./scripts/dc.sh exec dev /bin/bash",
+        "docker:build-and-run": "pnpm --filter @unraid/connect-plugin docker:build-and-run",
         "// Migration Scripts": "",
         "migration:codefirst": "tsx ./src/unraid-api/graph/migration-script.ts"
     },

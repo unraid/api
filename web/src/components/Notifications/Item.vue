@@ -2,31 +2,31 @@
 import { computed, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation } from '@vue/apollo-composable';
-import { computedAsync } from '@vueuse/core';
+import { computedAsync, useTimeAgo } from '@vueuse/core';
 
-import {
-  ArchiveBoxIcon,
-  CheckBadgeIcon,
-  ExclamationTriangleIcon,
-  LinkIcon,
-  ShieldExclamationIcon,
-  TrashIcon,
-} from '@heroicons/vue/24/solid';
-import { Button } from '@unraid/ui';
 import { Markdown } from '@/helpers/markdown';
+import { navigate } from '~/helpers/external-navigation';
+import {
+  extractGraphQLErrorCode,
+  extractGraphQLErrorMessage,
+  isGraphQLNetworkError,
+} from '~/helpers/functions';
 
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
-import type { Component } from 'vue';
 
+import { NOTIFICATION_COLORS, NOTIFICATION_ICONS } from '~/components/Notifications/constants';
 import {
   archiveNotification as archiveMutation,
   deleteNotification as deleteMutation,
 } from '~/components/Notifications/graphql/notification.query';
 import { NotificationType } from '~/composables/gql/graphql';
+import { useUnraidApiStore } from '~/store/unraidApi';
 
 const props = defineProps<NotificationFragmentFragment>();
 
 const { t } = useI18n();
+const toast = useToast();
+const unraidApiStore = useUnraidApiStore();
 
 const descriptionMarkup = computedAsync(async () => {
   try {
@@ -37,25 +37,15 @@ const descriptionMarkup = computedAsync(async () => {
   }
 }, '');
 
-const icon = computed<{ component: Component; color: string } | null>(() => {
-  switch (props.importance) {
-    case 'INFO':
-      return {
-        component: CheckBadgeIcon,
-        color: 'text-unraid-green',
-      };
-    case 'WARNING':
-      return {
-        component: ExclamationTriangleIcon,
-        color: 'text-yellow-accent',
-      };
-    case 'ALERT':
-      return {
-        component: ShieldExclamationIcon,
-        color: 'text-unraid-red',
-      };
+const icon = computed<{ name: string; color: string } | null>(() => {
+  if (!props.importance || !NOTIFICATION_ICONS[props.importance]) {
+    return null;
   }
-  return null;
+
+  return {
+    name: NOTIFICATION_ICONS[props.importance],
+    color: NOTIFICATION_COLORS[props.importance],
+  };
 });
 
 const archive = reactive(
@@ -70,13 +60,58 @@ const deleteNotification = reactive(
   })
 );
 
+const handleMutation = async (action: 'archive' | 'delete', mutateFn: () => Promise<unknown>) => {
+  try {
+    await mutateFn();
+  } catch (e: unknown) {
+    console.error(`[Notifications] ${action} failed:`, e);
+    let message = extractGraphQLErrorMessage(e);
+    const code = extractGraphQLErrorCode(e);
+
+    if (code === 'NOTIFICATION_NOT_FOUND') {
+      message = t('notifications.item.notFoundError', 'Notification no longer exists.');
+    } else if (unraidApiStore.unraidApiStatus === 'offline' || isGraphQLNetworkError(e)) {
+      const key = 'notifications.item.apiOfflineError';
+      const text = t(key);
+      message = text !== key ? text : 'The Unraid API is unreachable.';
+    }
+
+    toast.add({
+      title: t('common.error'),
+      description: message,
+      color: 'error',
+    });
+  }
+};
+
 const mutationError = computed(() => {
-  return archive.error?.message ?? deleteNotification.error?.message;
+  const err = archive.error || deleteNotification.error;
+  if (!err) return null;
+
+  const code = extractGraphQLErrorCode(err);
+
+  if (code === 'NOTIFICATION_NOT_FOUND') {
+    return t('notifications.item.notFoundError', 'Notification no longer exists.');
+  }
+
+  if (unraidApiStore.unraidApiStatus === 'offline' || isGraphQLNetworkError(err)) {
+    const key = 'notifications.item.apiOfflineError';
+    const text = t(key);
+    return text !== key ? text : 'The Unraid API is unreachable.';
+  }
+
+  return extractGraphQLErrorMessage(err);
 });
+
+const openLink = () => {
+  if (props.link) {
+    navigate(props.link);
+  }
+};
 
 const reformattedTimestamp = computed<string>(() => {
   if (!props.timestamp) return '';
-  const userLocale = navigator.language ?? 'en-US'; // Get the user's browser language (e.g., 'en-US', 'fr-FR')
+  const userLocale = typeof navigator !== 'undefined' ? navigator.language : 'en-US';
 
   const reformattedDate = new Intl.DateTimeFormat(userLocale, {
     localeMatcher: 'best fit',
@@ -88,67 +123,117 @@ const reformattedTimestamp = computed<string>(() => {
   }).format(new Date(props.timestamp));
   return reformattedDate;
 });
+
+const rawDisplayTimestamp = computed(() => props.formattedTimestamp || reformattedTimestamp.value);
+
+const parsedTimestamp = computed(() => {
+  const full = rawDisplayTimestamp.value;
+  // Try to find a time pattern at the end of the string: HH:MM or HH:MM AA
+  const timeMatch = full.match(/(\d{1,2}:\d{2}(?::\d{2})?(?:\s?[APap][Mm])?)$/);
+
+  if (timeMatch) {
+    const time = timeMatch[0];
+    const date = full.replace(time, '').trim();
+    return { date, time, split: true };
+  }
+
+  return { date: full, time: '', split: false };
+});
+
+const timeAgoReference = useTimeAgo(computed(() => props.timestamp ?? new Date()));
+const timeAgo = computed(() => (props.timestamp ? timeAgoReference.value : ''));
 </script>
 
 <template>
-  <div class="group/item relative flex flex-col gap-2 py-3 text-base">
-    <header class="flex -translate-y-1 flex-row items-baseline justify-between gap-2">
-      <h3
-        class="m-0 flex flex-row items-baseline gap-2 overflow-x-hidden text-base font-semibold normal-case"
-      >
-        <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
-        <component
-          :is="icon.component"
-          v-if="icon"
-          class="size-5 shrink-0 translate-y-1"
-          :class="icon.color"
-        />
-        <span class="flex-1 truncate" :title="title">{{ title }}</span>
-      </h3>
+  <div
+    class="group/item border-default relative flex flex-col gap-3 border-b py-4 text-base last:border-0 sm:gap-4"
+  >
+    <div class="flex items-start gap-4">
+      <!-- Icon -->
+      <UIcon v-if="icon" :name="icon.name" class="mt-0.5 size-6 shrink-0" :class="icon.color" />
 
-      <div
-        class="mt-1 flex shrink-0 flex-row items-baseline justify-end gap-2"
-        :title="formattedTimestamp ?? reformattedTimestamp"
-      >
-        <p class="text-secondary-foreground text-sm">{{ reformattedTimestamp }}</p>
+      <div class="flex min-w-0 flex-1 flex-col gap-1">
+        <!-- Timestamp Row -->
+        <div class="mb-0.5 flex flex-wrap items-center gap-x-2 text-xs font-medium tabular-nums">
+          <span class="text-muted" :title="rawDisplayTimestamp">
+            <template v-if="parsedTimestamp.split">
+              {{ parsedTimestamp.date }} at {{ parsedTimestamp.time }}
+            </template>
+            <template v-else>
+              {{ rawDisplayTimestamp }}
+            </template>
+          </span>
+
+          <template v-if="timeAgo">
+            <span class="text-muted/50">&bull;</span>
+
+            <span class="text-primary">
+              {{ timeAgo }}
+            </span>
+          </template>
+        </div>
+
+        <!-- Title -->
+        <h3 class="text-default pr-2 text-base leading-tight font-semibold break-words">
+          {{ title }}
+        </h3>
+
+        <!-- Subject -->
+        <p class="text-muted mb-1 text-sm font-medium break-words">
+          {{ subject }}
+        </p>
+
+        <!-- Description -->
+        <div class="prose prose-sm dark:prose-invert text-dimmed max-w-none text-sm break-words">
+          <div v-html="descriptionMarkup" />
+        </div>
+
+        <!-- Error Message -->
+        <p v-if="mutationError" class="text-destructive mt-2 text-sm break-all">
+          {{ t('common.error') }}: {{ mutationError }}
+        </p>
+
+        <!-- Actions -->
+        <div class="mt-2 flex flex-wrap items-center justify-end gap-2">
+          <UButton
+            v-if="link"
+            size="xs"
+            variant="ghost"
+            icon="i-heroicons-link-20-solid"
+            color="gray"
+            @click="openLink"
+          >
+            {{ t('notifications.item.viewLink') }}
+          </UButton>
+          <UButton
+            v-if="type === NotificationType.UNREAD"
+            size="xs"
+            variant="soft"
+            :loading="archive.loading"
+            icon="i-heroicons-archive-box-20-solid"
+            color="primary"
+            @click="() => handleMutation('archive', () => archive.mutate({ id: props.id }))"
+          >
+            {{ t('notifications.item.archive') }}
+          </UButton>
+          <UButton
+            v-if="type === NotificationType.ARCHIVE"
+            size="xs"
+            variant="soft"
+            :loading="deleteNotification.loading"
+            icon="i-heroicons-trash-20-solid"
+            color="red"
+            @click="
+              () =>
+                handleMutation('delete', () =>
+                  deleteNotification.mutate({ id: props.id, type: props.type })
+                )
+            "
+          >
+            {{ t('notifications.item.delete') }}
+          </UButton>
+        </div>
       </div>
-    </header>
-
-    <h4 class="m-0 font-normal">
-      {{ subject }}
-    </h4>
-
-    <div class="flex flex-row items-center justify-between gap-2">
-      <div class="" v-html="descriptionMarkup" />
-    </div>
-
-    <p v-if="mutationError" class="text-red-600">{{ t('common.error') }}: {{ mutationError }}</p>
-
-    <div class="flex items-baseline justify-end gap-4">
-      <a
-        v-if="link"
-        :href="link"
-        class="text-primary inline-flex items-center justify-center text-sm font-medium hover:underline focus:underline"
-      >
-        <LinkIcon class="mr-2 size-4" />
-        <span class="text-sm">{{ t('notifications.item.viewLink') }}</span>
-      </a>
-      <Button
-        v-if="type === NotificationType.UNREAD"
-        :disabled="archive.loading"
-        @click="() => archive.mutate({ id: props.id })"
-      >
-        <ArchiveBoxIcon class="mr-2 size-4" />
-        <span class="text-sm">{{ t('notifications.item.archive') }}</span>
-      </Button>
-      <Button
-        v-if="type === NotificationType.ARCHIVE"
-        :disabled="deleteNotification.loading"
-        @click="() => deleteNotification.mutate({ id: props.id, type: props.type })"
-      >
-        <TrashIcon class="mr-2 size-4" />
-        <span class="text-sm">{{ t('notifications.item.delete') }}</span>
-      </Button>
     </div>
   </div>
 </template>

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
-import { AlertTriangle, Octagon } from 'lucide-vue-next';
+import { navigate } from '~/helpers/external-navigation';
 
 import type { FragmentType } from '~/composables/gql';
 import type {
@@ -11,17 +12,20 @@ import type {
   WarningAndAlertNotificationsQueryVariables,
 } from '~/composables/gql/graphql';
 
+import { NOTIFICATION_ICONS, NOTIFICATION_TOAST_COLORS } from '~/components/Notifications/constants';
 import {
   archiveNotification,
   NOTIFICATION_FRAGMENT,
   warningsAndAlerts,
 } from '~/components/Notifications/graphql/notification.query';
 import {
-  notificationAddedSubscription,
+  notificationEventSubscription,
   warningsAndAlertsSubscription,
 } from '~/components/Notifications/graphql/notification.subscription';
 import { useFragment } from '~/composables/gql';
 import { NotificationImportance } from '~/composables/gql/graphql';
+
+const toast = useToast();
 
 const { result, loading, error, refetch } = useQuery<
   WarningAndAlertNotificationsQuery,
@@ -88,24 +92,24 @@ const formatTimestamp = (notification: NotificationFragmentFragment) => {
 
 const importanceMeta: Record<
   NotificationImportance,
-  { label: string; badge: string; icon: typeof AlertTriangle; accent: string }
+  { label: string; badge: string; icon: string; accent: string }
 > = {
   [NotificationImportance.ALERT]: {
     label: 'Alert',
     badge: 'bg-red-100 text-red-700 border border-red-300',
-    icon: Octagon,
+    icon: NOTIFICATION_ICONS[NotificationImportance.ALERT],
     accent: 'text-red-600',
   },
   [NotificationImportance.WARNING]: {
     label: 'Warning',
     badge: 'bg-amber-100 text-amber-700 border border-amber-300',
-    icon: AlertTriangle,
+    icon: NOTIFICATION_ICONS[NotificationImportance.WARNING],
     accent: 'text-amber-600',
   },
   [NotificationImportance.INFO]: {
     label: 'Info',
     badge: 'bg-blue-100 text-blue-700 border border-blue-300',
-    icon: AlertTriangle,
+    icon: NOTIFICATION_ICONS[NotificationImportance.INFO],
     accent: 'text-blue-600',
   },
 };
@@ -139,49 +143,49 @@ const dismissNotification = async (notification: NotificationFragmentFragment) =
   }
 };
 
-const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
+const { onResult: onNotificationEvent } = useSubscription(notificationEventSubscription);
+const { t } = useI18n();
 
-onNotificationAdded(({ data }) => {
-  if (!data?.notificationAdded) {
+onNotificationEvent(({ data }) => {
+  if (!data?.notificationEvent) {
+    return;
+  }
+  const { type, notification: rawNotification } = data.notificationEvent;
+
+  // We only care about new notifications for this panel
+  if (type !== 'ADDED' || !rawNotification) {
     return;
   }
 
-  // Access raw subscription data directly - don't call useFragment in async callback
-  const rawNotification = data.notificationAdded as unknown as NotificationFragmentFragment;
+  const notification = useFragment(NOTIFICATION_FRAGMENT, rawNotification);
   if (
-    !rawNotification ||
-    (rawNotification.importance !== NotificationImportance.ALERT &&
-      rawNotification.importance !== NotificationImportance.WARNING)
+    !notification ||
+    (notification.importance !== NotificationImportance.ALERT &&
+      notification.importance !== NotificationImportance.WARNING)
   ) {
     return;
   }
 
   void refetch();
 
-  if (!globalThis.toast) {
-    return;
-  }
-
-  if (rawNotification.timestamp) {
+  if (notification.timestamp) {
     // Trigger the global toast in tandem with the subscription update.
-    const funcMapping: Record<
-      NotificationImportance,
-      (typeof globalThis)['toast']['info' | 'error' | 'warning']
-    > = {
-      [NotificationImportance.ALERT]: globalThis.toast.error,
-      [NotificationImportance.WARNING]: globalThis.toast.warning,
-      [NotificationImportance.INFO]: globalThis.toast.info,
-    };
-    const toast = funcMapping[rawNotification.importance];
+    const color = NOTIFICATION_TOAST_COLORS[notification.importance];
     const createOpener = () => ({
-      label: 'Open',
-      onClick: () => rawNotification.link && window.open(rawNotification.link, '_blank', 'noopener'),
+      label: t('notifications.sidebar.toastOpen', 'Open'),
+      onClick: () => {
+        if (notification.link) {
+          navigate(notification.link);
+        }
+      },
     });
 
     requestAnimationFrame(() =>
-      toast(rawNotification.title, {
-        description: rawNotification.subject,
-        action: rawNotification.link ? createOpener() : undefined,
+      toast.add({
+        title: notification.title,
+        description: notification.subject,
+        color,
+        actions: notification.link ? [createOpener()] : undefined,
       })
     );
   }
@@ -192,7 +196,11 @@ onNotificationAdded(({ data }) => {
   <section class="flex flex-col gap-4 rounded-lg border border-amber-200 bg-white p-4 shadow-sm">
     <header class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-2">
-        <AlertTriangle class="h-5 w-5 text-amber-600" aria-hidden="true" />
+        <UIcon
+          name="i-heroicons-exclamation-triangle-20-solid"
+          class="size-5 text-amber-600"
+          aria-hidden="true"
+        />
         <h2 class="text-base font-semibold text-gray-900">Warnings & Alerts</h2>
       </div>
       <span
@@ -208,7 +216,7 @@ onNotificationAdded(({ data }) => {
     </div>
 
     <div v-else-if="loading" class="flex items-center gap-2 text-sm text-gray-500">
-      <span class="h-2 w-2 animate-pulse rounded-full bg-amber-400" aria-hidden="true" />
+      <span class="size-2 animate-pulse rounded-full bg-amber-400" aria-hidden="true" />
       Loading latest notifications…
     </div>
 
@@ -219,9 +227,9 @@ onNotificationAdded(({ data }) => {
         class="grid gap-2 rounded-md border border-gray-200 p-3 transition hover:border-amber-300"
       >
         <div class="flex items-start gap-3">
-          <component
-            :is="meta.icon"
-            class="mt-0.5 h-5 w-5 flex-none"
+          <UIcon
+            :name="meta.icon"
+            class="mt-0.5 size-5 flex-none"
             :class="meta.accent"
             aria-hidden="true"
           />
@@ -269,7 +277,7 @@ onNotificationAdded(({ data }) => {
 
     <div v-else class="flex flex-col items-start gap-2 rounded-md border border-gray-200 p-3">
       <div class="flex items-center gap-2 text-sm font-medium text-gray-700">
-        <span class="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true" />
+        <span class="size-2 rounded-full bg-emerald-400" aria-hidden="true" />
         All clear. No active warnings or alerts.
       </div>
       <p class="text-sm text-gray-500">

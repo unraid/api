@@ -158,12 +158,18 @@ const { mutate: removeContainerMutation, loading: removingContainer } =
 
 // Helpers
 
+const toast = useToast();
+
 function showToast(message: string) {
-  window.toast?.success(message);
+  toast.add({ title: message, color: 'success' });
 }
 
 function showError(message: string, options?: { description?: string }) {
-  window.toast?.error?.(message, options);
+  toast.add({
+    title: message,
+    description: options?.description,
+    color: 'error',
+  });
 }
 
 function setRowsBusy(ids: string[], busy: boolean) {

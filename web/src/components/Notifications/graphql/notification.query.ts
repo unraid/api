@@ -1,3 +1,5 @@
+import gql from 'graphql-tag';
+
 import { graphql } from '~/composables/gql/gql';
 
 export const NOTIFICATION_FRAGMENT = graphql(/* GraphQL */ `
@@ -33,6 +35,20 @@ export const getNotifications = graphql(/* GraphQL */ `
     }
   }
 `);
+
+export const getNotificationSettings = gql`
+  query GetNotificationSettings {
+    notifications {
+      id
+      settings {
+        position
+        expand
+        duration
+        max
+      }
+    }
+  }
+`;
 
 export const warningsAndAlerts = graphql(/* GraphQL */ `
   query WarningAndAlertNotifications {

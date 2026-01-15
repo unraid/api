@@ -58,9 +58,6 @@ vi.mock('~/components/DevModalTest.standalone.vue', () => ({
 vi.mock('~/components/ApiKeyAuthorize.standalone.vue', () => ({
   default: { name: 'MockApiKeyAuthorize', template: '<div>ApiKeyAuthorize</div>' },
 }));
-vi.mock('~/components/UnraidToaster.vue', () => ({
-  default: { name: 'MockUnraidToaster', template: '<div>UnraidToaster</div>' },
-}));
 
 // Mock theme initializer
 const mockInitializeTheme = vi.fn(() => Promise.resolve());

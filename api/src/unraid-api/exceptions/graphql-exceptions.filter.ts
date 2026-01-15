@@ -18,6 +18,15 @@ export class GraphQLExceptionsFilter<T extends GraphQLError> implements Exceptio
                         message: exception.message,
                         locations: exception.locations,
                         path: exception.path,
+                        extensions: {
+                            ...exception.extensions,
+                            ...((exception.originalError as any)?.code
+                                ? { code: (exception.originalError as any).code }
+                                : {}),
+                            ...((exception.originalError as any)?.extensions
+                                ? (exception.originalError as any).extensions
+                                : {}),
+                        },
                     },
                 ],
             });

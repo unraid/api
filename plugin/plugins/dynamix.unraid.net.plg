@@ -181,6 +181,18 @@ echo "Backing up original files..."
 
 # Define files to backup in a shell variable
 FILES_TO_BACKUP=(
+  "/usr/local/emhttp/languages/en_US/helptext.txt"
+  "/usr/local/emhttp/plugins/dynamix/include/Translations.php"
+  "/usr/local/emhttp/plugins/dynamix/default.cfg"
+  "/usr/local/emhttp/plugins/dynamix/Notifications.page"
+  "/usr/local/emhttp/plugins/dynamix/include/Notify.php"
+  "/usr/local/emhttp/plugins/dynamix/scripts/notify"
+  "/usr/local/emhttp/plugins/dynamix/styles/default-base.css"
+  "/usr/local/emhttp/plugins/dynamix/styles/font-awesome.css"
+  "/usr/local/emhttp/plugins/dynamix/styles/default-white.css"
+  "/usr/local/emhttp/plugins/dynamix/styles/default-black.css"
+  "/usr/local/emhttp/plugins/dynamix/styles/default-gray.css"
+  "/usr/local/emhttp/plugins/dynamix/styles/default-azure.css"
   "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
   "/usr/local/emhttp/plugins/dynamix/Registration.page"
   "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
@@ -325,6 +337,18 @@ exit 0
       
       # Define files to restore in a shell variable - must match backup list
       FILES_TO_RESTORE=(
+        "/usr/local/emhttp/languages/en_US/helptext.txt"
+        "/usr/local/emhttp/plugins/dynamix/include/Translations.php"
+        "/usr/local/emhttp/plugins/dynamix/default.cfg"
+        "/usr/local/emhttp/plugins/dynamix/Notifications.page"
+        "/usr/local/emhttp/plugins/dynamix/include/Notify.php"
+        "/usr/local/emhttp/plugins/dynamix/scripts/notify"
+        "/usr/local/emhttp/plugins/dynamix/styles/default-base.css"
+        "/usr/local/emhttp/plugins/dynamix/styles/font-awesome.css"
+        "/usr/local/emhttp/plugins/dynamix/styles/default-white.css"
+        "/usr/local/emhttp/plugins/dynamix/styles/default-black.css"
+        "/usr/local/emhttp/plugins/dynamix/styles/default-gray.css"
+        "/usr/local/emhttp/plugins/dynamix/styles/default-azure.css"
         "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
         "/usr/local/emhttp/plugins/dynamix/Registration.page"
         "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
@@ -390,9 +414,30 @@ exit 0
         rm -rf "$DIR"
       fi
       if [ -d "$DIR-" ]; then
-        mv "$DIR-" "$DIR"
-        echo "Restored directory: $DIR- to $DIR"
-      fi
+    mv "$DIR-" "$DIR"
+    echo "Restored directory: $DIR- to $DIR"
+  fi
+
+  # Clean up .dot cache files to force regeneration
+  # Unraid 7.4+ natively handles cache invalidation via filemtime checks in Translations.php.
+  # For older versions (< 7.4), we must force a clear to ensure the restored logic doesn't load invalid cache.
+  
+  # Check if we need to clear cache (Unraid version < 7.4.0)
+  SHOULD_CLEAR_CACHE="no"
+  if [ -n "$UNRAID_VERSION" ]; then
+    SHOULD_CLEAR_CACHE=$(php -r "echo version_compare('$UNRAID_VERSION', '7.4.0', '<') ? 'yes' : 'no';")
+  else
+    # Fallback: if we can't detect version, safer to clear cache
+    SHOULD_CLEAR_CACHE="yes"
+  fi
+
+  if [ "$SHOULD_CLEAR_CACHE" = "yes" ]; then
+    echo "Unraid version < 7.4 detected. Cleaning up translation cache..."
+    rm -f /usr/local/emhttp/languages/en_US/helptext.dot
+    rm -f /usr/local/emhttp/languages/en_US/translations.dot
+  else
+    echo "Unraid version >= 7.4 detected. Skipping translation cache cleanup (handled natively)."
+  fi
       ]]>
     </INLINE>
   </FILE>
