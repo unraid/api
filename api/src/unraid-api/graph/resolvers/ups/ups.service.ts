@@ -15,6 +15,7 @@ const UPSSchema = z.object({
     LINEV: z.string().optional(),
     OUTPUTV: z.string().optional(),
     LOADPCT: z.string().optional(),
+    NOMPOWER: z.string().optional(),
 });
 
 export type UPSData = z.infer<typeof UPSSchema>;

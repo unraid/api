@@ -40,6 +40,20 @@ export class UPSPower {
             'Current load on the UPS as a percentage of its capacity. Unit: percent (%). Example: 25 means UPS is loaded at 25% of its maximum capacity',
     })
     loadPercentage!: number;
+
+    @Field(() => Int, {
+        nullable: true,
+        description:
+            'Nominal power capacity of the UPS. Unit: watts (W). Example: 1000 means the UPS is rated for 1000 watts. This is the maximum power the UPS can deliver',
+    })
+    nominalPower?: number;
+
+    @Field(() => Float, {
+        nullable: true,
+        description:
+            'Current power consumption calculated from load percentage and nominal power. Unit: watts (W). Example: 350 means 350 watts currently being used. Calculated as: nominalPower * (loadPercentage / 100)',
+    })
+    currentPower?: number;
 }
 
 @ObjectType()
