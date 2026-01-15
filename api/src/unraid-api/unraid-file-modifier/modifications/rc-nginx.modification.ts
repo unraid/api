@@ -73,6 +73,14 @@ check_remote_access(){
             'proxy_pass http://unix:/var/run/unraid-core.sock:/graphql;'
         );
 
+        if (!newContent.includes('location /auth/sso')) {
+            newContent = newContent.replace(
+                '\t# Redirect to login page on failed authentication (401)\n',
+                // prettier-ignore
+                `\t# SSO endpoints (public)\n\tlocation /auth/sso {\n\t    allow all;\n\t    proxy_pass http://unix:/var/run/unraid-core.sock:;\n\t    proxy_http_version 1.1;\n\t    proxy_set_header Host $host;\n\t    proxy_set_header X-Real-IP $remote_addr;\n\t    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\t    proxy_set_header X-Forwarded-Proto $scheme;\n\t}\n\t#\n\t# Redirect to login page on failed authentication (401)\n`
+            );
+        }
+
         newContent = newContent.replace(
             'for NET in ${!NET_FQDN6[@]}; do',
             'for NET in "${!NET_FQDN6[@]}"; do'

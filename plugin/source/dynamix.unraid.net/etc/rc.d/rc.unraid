@@ -29,6 +29,7 @@ export RUN_ERL_LOG="${RUN_ERL_LOG:-$LOG_PATH}"
 export RELEASE_LOG_DIR="${RELEASE_LOG_DIR:-$(dirname "$LOG_PATH")}"
 export RELEASE_NODE="${UNRAID_RELEASE_NODE:-unraid}"
 export RELEASE_DISTRIBUTION="${UNRAID_RELEASE_DISTRIBUTION:-sname}"
+export RELEASE_MODE="${UNRAID_RELEASE_MODE:-interactive}"
 
 # Import user's runtime.exs if exists
 [ -f "$CONFIG_DIR/runtime.exs" ] && export RELEASE_CONFIG_DIR="$CONFIG_DIR"
