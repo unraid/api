@@ -10,9 +10,9 @@
   <!ENTITY txz_url "">
   <!ENTITY txz_name "">
   <!ENTITY core_source "/boot/config/plugins/dynamix.my.servers/&core_txz_name;">
-  <!ENTITY core_txz_sha256 "1c1dc2dc6b94f44e33ee4208d98f533184fc248e0a29e8693aa01be4abf86bdd">
-  <!ENTITY core_txz_url "https://pub-7247242eea6d482488594f04a3d7d4be.r2.dev/unraid-0.1.0-2026.01.14.1.txz">
-  <!ENTITY core_txz_name "unraid-0.1.0-2026.01.14.1.txz">
+  <!ENTITY core_txz_sha256 "6e6849c8b47dcdd3f6e23806a8656b0c4d33171e5eced06a5d2c8f42097fb7a8">
+  <!ENTITY core_txz_url "https://pub-7247242eea6d482488594f04a3d7d4be.r2.dev/unraid-0.1.0-2026.01.15.1.txz">
+  <!ENTITY core_txz_name "unraid-0.1.0-2026.01.15.1.txz">
   <!ENTITY arch "x86_64">
   <!ENTITY build "1">
   <!ENTITY tag "">
