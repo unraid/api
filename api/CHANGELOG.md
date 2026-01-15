@@ -1,5 +1,21 @@
 # Changelog
 
+## [4.30.0](https://github.com/unraid/api/compare/v4.29.2...v4.30.0) (2026-01-09)
+
+
+### Features
+
+* docker overview ([#1855](https://github.com/unraid/api/issues/1855)) ([9ef1cf1](https://github.com/unraid/api/commit/9ef1cf1eca96254350d9152d43f05ad11dd3811e))
+* **docker:** add update actions to container context menu ([#1867](https://github.com/unraid/api/issues/1867)) ([4ca3e06](https://github.com/unraid/api/commit/4ca3e06fae391942c46ed9aa93ecbc5e714e3e73))
+
+
+### Bug Fixes
+
+* **docker:** change "visit" to "webui" & use correct link ([#1863](https://github.com/unraid/api/issues/1863)) ([cab0880](https://github.com/unraid/api/commit/cab0880263f3b59a8974e64a9c28c10e3608678f))
+* **docker:** improve start/stop UX with visual feedback ([#1865](https://github.com/unraid/api/issues/1865)) ([c084e25](https://github.com/unraid/api/commit/c084e25db9eae3cc47f4803861a867feeaf4509f))
+* **docker:** remove aggressive caching to ensure data correctness ([#1864](https://github.com/unraid/api/issues/1864)) ([1c1bae8](https://github.com/unraid/api/commit/1c1bae8ce1c1ffc478e62acb176565a1e524e74c))
+* **docker:** sync template mappings in organizer to prevent false orphan warnings ([#1866](https://github.com/unraid/api/issues/1866)) ([38a6f0c](https://github.com/unraid/api/commit/38a6f0c380e7a84b1dd08170419dad557ed0880f))
+
 ## [4.29.2](https://github.com/unraid/api/compare/v4.29.1...v4.29.2) (2025-12-19)
 
 
