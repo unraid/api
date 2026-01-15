@@ -26,6 +26,7 @@ describe('UPSResolver', () => {
         LINEV: '120.5',
         OUTPUTV: '120.5',
         LOADPCT: '25',
+        NOMPOWER: '600',
     };
 
     beforeEach(async () => {
