@@ -17,7 +17,7 @@ const emit = defineEmits<{
   close: [];
 }>();
 
-const iframeRef = ref<HTMLIFrameElement | null>(null);
+const _iframeRef = ref<HTMLIFrameElement | null>(null);
 const isLoading = ref(true);
 
 const releaseNotesUrl = computed(() => {
@@ -58,7 +58,7 @@ const handleClose = () => {
         <!-- iframe for release notes -->
         <div class="-mx-6 -my-6 h-[75vh] max-h-[800px] w-[calc(100%+3rem)]">
           <iframe
-            ref="iframeRef"
+            ref="_iframeRef"
             :src="releaseNotesUrl"
             class="h-full w-full rounded-md border-0"
             sandbox="allow-scripts allow-same-origin"

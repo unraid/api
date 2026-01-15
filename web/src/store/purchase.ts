@@ -10,28 +10,50 @@ import { useServerStore } from '~/store/server';
 export const usePurchaseStore = defineStore('purchase', () => {
   const callbackStore = useCallbackActionsStore();
   const serverStore = useServerStore();
+  const { activationCode } = storeToRefs(useActivationCodeDataStore());
 
   const serverPurchasePayload = computed(() => serverStore.serverPurchasePayload);
   const inIframe = computed(() => serverStore.inIframe);
   const sendType = computed(() => callbackStore.sendType);
 
-  const activate = () => {
-    const { activationCode } = storeToRefs(useActivationCodeDataStore());
+  const buildServerPayload = () => {
+    const payload = {
+      ...serverPurchasePayload.value,
+    };
+    if (activationCode.value) {
+      return {
+        ...payload,
+        activationCodeData: activationCode.value,
+      };
+    }
+    return payload;
+  };
 
+  type PurchaseActionType = 'activate' | 'redeem' | 'purchase' | 'upgrade' | 'renew';
+
+  const buildActionPayload = (type: PurchaseActionType) => [
+    {
+      /**
+       * @todo Remove the type cast once the payload type can be more specific.
+       */
+      server: buildServerPayload(),
+      type,
+    },
+  ];
+
+  const generateUrl = (type: PurchaseActionType) => {
+    return callbackStore.generateUrl(
+      PURCHASE_CALLBACK.toString(),
+      buildActionPayload(type),
+      sendType.value,
+      undefined
+    );
+  };
+
+  const activate = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
-      [
-        {
-          /**
-           * @todo Remove the type cast once the payload type can be more specific.
-           */
-          server: {
-            ...serverPurchasePayload.value,
-            activationCodeData: activationCode.value,
-          },
-          type: 'activate',
-        },
-      ],
+      buildActionPayload('activate'),
       inIframe.value ? 'newTab' : undefined,
       sendType.value
     );
@@ -39,14 +61,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const redeem = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverPurchasePayload.value,
-          },
-          type: 'redeem',
-        },
-      ],
+      buildActionPayload('redeem'),
       inIframe.value ? 'newTab' : undefined,
       sendType.value
     );
@@ -54,14 +69,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const purchase = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverPurchasePayload.value,
-          },
-          type: 'purchase',
-        },
-      ],
+      buildActionPayload('purchase'),
       inIframe.value ? 'newTab' : undefined,
       sendType.value
     );
@@ -69,14 +77,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const upgrade = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverPurchasePayload.value,
-          },
-          type: 'upgrade',
-        },
-      ],
+      buildActionPayload('upgrade'),
       inIframe.value ? 'newTab' : undefined,
       sendType.value
     );
@@ -84,14 +85,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const renew = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverPurchasePayload.value,
-          },
-          type: 'renew',
-        },
-      ],
+      buildActionPayload('renew'),
       inIframe.value ? 'newTab' : undefined,
       sendType.value
     );
@@ -103,5 +97,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
     purchase,
     upgrade,
     renew,
+    generateUrl,
+    openInNewTab: computed(() => inIframe.value),
   };
 });

@@ -41,7 +41,8 @@ const hideNavIfEmbeddedInIFrame = () => {
 declare global {
   interface Window {
     globalPinia: typeof globalPinia;
-    LOCALE?: string;
+    themeStore?: ReturnType<typeof import('~/store/theme').useThemeStore>;
+    LOCALE_DATA?: string;
   }
 }
 

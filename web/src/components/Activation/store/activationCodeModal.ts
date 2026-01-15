@@ -10,7 +10,7 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 export const useActivationCodeModalStore = defineStore('activationCodeModal', () => {
   const isHidden = useSessionStorage<boolean | null>(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, null);
 
-  const { isFreshInstall, activationCode } = storeToRefs(useActivationCodeDataStore());
+  const { isFreshInstall } = storeToRefs(useActivationCodeDataStore());
   const { callbackData } = storeToRefs(useCallbackActionsStore());
 
   const setIsHidden = (value: boolean | null) => {
@@ -24,19 +24,18 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
    * 2. It's a fresh server install where no keyfile has been present before
    * 3. there's not callback data
    * 4. it's not been explicitly hidden (isHidden === null)
+   *
+   * Shows for:
+   * - Fresh installs with activation code (timezone → plugins → activation flow)
+   * - Fresh installs without activation code (timezone → plugins)
+   *
+   * Note: Upgrade onboarding visibility is checked separately in the modal via upgradeOnboardingStore
    */
   const isVisible = computed<boolean>(() => {
-    // Force show if explicitly set to false
     if (isHidden.value === false) {
       return true;
     }
-    // Default visibility logic (show if not explicitly hidden AND fresh install AND no callback data AND activation code is present)
-    return (
-      isHidden.value === null &&
-      isFreshInstall.value &&
-      !callbackData.value &&
-      Boolean(activationCode.value?.code)
-    );
+    return isHidden.value === null && isFreshInstall.value && !callbackData.value;
   });
 
   /**

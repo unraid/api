@@ -1,0 +1,9 @@
+Menu="UNRAID-OS"
+Title="Onboarding Status"
+Icon="icon-registration"
+Tag="pencil"
+---
+<!-- Onboarding state + reset -->
+<unraid-onboarding-admin-panel></unraid-onboarding-admin-panel>
+<!-- Onboarding override test harness (apply/clear overrides) -->
+<unraid-onboarding-test-harness></unraid-onboarding-test-harness>

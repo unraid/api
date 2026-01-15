@@ -3,15 +3,21 @@ import { ResolveField, Resolver } from '@nestjs/graphql';
 
 import { versions } from 'systeminformation';
 
+import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
+import { buildUpgradeInfoFromSnapshot } from '@app/unraid-api/graph/resolvers/info/versions/upgrade-info.util.js';
 import {
     CoreVersions,
     InfoVersions,
     PackageVersions,
+    UpgradeInfo,
 } from '@app/unraid-api/graph/resolvers/info/versions/versions.model.js';
 
 @Resolver(() => InfoVersions)
 export class VersionsResolver {
-    constructor(private readonly configService: ConfigService) {}
+    constructor(
+        private readonly configService: ConfigService,
+        private readonly onboardingTracker: OnboardingTracker
+    ) {}
 
     @ResolveField(() => CoreVersions)
     core(): CoreVersions {
@@ -44,5 +50,11 @@ export class VersionsResolver {
             console.error('Failed to get package versions:', error);
             return null;
         }
+    }
+
+    @ResolveField(() => UpgradeInfo)
+    async upgrade(): Promise<UpgradeInfo> {
+        const snapshot = await this.onboardingTracker.getUpgradeSnapshot();
+        return buildUpgradeInfoFromSnapshot(snapshot);
     }
 }

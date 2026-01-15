@@ -31,7 +31,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean];
 }>();
 
-const logViewerRef = ref<InstanceType<typeof SingleLogViewer> | null>(null);
+const _logViewerRef = ref<InstanceType<typeof SingleLogViewer> | null>(null);
 
 const fullLogPath = computed(() => {
   if (props.logFilePath.startsWith('/')) {
@@ -56,7 +56,7 @@ const handleOpenChange = (open: boolean) => {
   >
     <div class="flex h-[600px] flex-col">
       <SingleLogViewer
-        ref="logViewerRef"
+        ref="_logViewerRef"
         :log-file-path="fullLogPath"
         :line-count="lineCount"
         :auto-scroll="autoScroll"
