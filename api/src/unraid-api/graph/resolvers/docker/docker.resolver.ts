@@ -23,6 +23,7 @@ import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-
 import { DockerStatsService } from '@app/unraid-api/graph/resolvers/docker/docker-stats.service.js';
 import { DockerTemplateSyncResult } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.model.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
+import { DockerUpdateProgress } from '@app/unraid-api/graph/resolvers/docker/docker-update-progress.model.js';
 import { ExplicitStatusItem } from '@app/unraid-api/graph/resolvers/docker/docker-update-status.model.js';
 import {
     Docker,
@@ -384,5 +385,18 @@ export class DockerResolver {
     })
     public dockerContainerStats() {
         return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.DOCKER_STATS);
+    }
+
+    @UseFeatureFlag('ENABLE_NEXT_DOCKER_RELEASE')
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DOCKER,
+    })
+    @Subscription(() => DockerUpdateProgress, {
+        description: 'Real-time progress updates for Docker container update operations',
+        resolve: (payload) => payload.dockerUpdateProgress,
+    })
+    public dockerUpdateProgress() {
+        return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.DOCKER_UPDATE_PROGRESS);
     }
 }

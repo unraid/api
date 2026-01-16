@@ -857,6 +857,21 @@ export type DockerLanPortConflict = {
   type: ContainerPortType;
 };
 
+/** Progress information for a single image layer */
+export type DockerLayerProgress = {
+  __typename?: 'DockerLayerProgress';
+  /** Bytes downloaded/processed */
+  current?: Maybe<Scalars['Int']['output']>;
+  /** Layer ID (short hash) */
+  layerId: Scalars['String']['output'];
+  /** Download/extract progress percentage (0-100) */
+  progress?: Maybe<Scalars['Float']['output']>;
+  /** Current status of the layer */
+  status: Scalars['String']['output'];
+  /** Total bytes for this layer */
+  total?: Maybe<Scalars['Int']['output']>;
+};
+
 export type DockerMutations = {
   __typename?: 'DockerMutations';
   /** Pause (Suspend) a container */
@@ -958,6 +973,40 @@ export type DockerTemplateSyncResult = {
   matched: Scalars['Int']['output'];
   scanned: Scalars['Int']['output'];
   skipped: Scalars['Int']['output'];
+};
+
+/** Type of Docker update progress event */
+export enum DockerUpdateEventType {
+  COMPLETE = 'COMPLETE',
+  ERROR = 'ERROR',
+  LAYER_ALREADY_EXISTS = 'LAYER_ALREADY_EXISTS',
+  LAYER_COMPLETE = 'LAYER_COMPLETE',
+  LAYER_DOWNLOADING = 'LAYER_DOWNLOADING',
+  LAYER_EXTRACTING = 'LAYER_EXTRACTING',
+  LOG = 'LOG',
+  PULLING = 'PULLING',
+  STARTED = 'STARTED'
+}
+
+/** Real-time progress update for a Docker container update operation */
+export type DockerUpdateProgress = {
+  __typename?: 'DockerUpdateProgress';
+  /** Container ID being updated */
+  containerId: Scalars['PrefixedID']['output'];
+  /** Container name being updated */
+  containerName: Scalars['String']['output'];
+  /** Error message if type is ERROR */
+  error?: Maybe<Scalars['String']['output']>;
+  /** Layer ID for layer-specific events */
+  layerId?: Maybe<Scalars['String']['output']>;
+  /** Per-layer progress details */
+  layers?: Maybe<Array<DockerLayerProgress>>;
+  /** Human-readable message or log line */
+  message?: Maybe<Scalars['String']['output']>;
+  /** Overall progress percentage (0-100) for the current operation */
+  overallProgress?: Maybe<Scalars['Float']['output']>;
+  /** Type of progress event */
+  type: DockerUpdateEventType;
 };
 
 export type DynamicRemoteAccessStatus = {
@@ -2289,6 +2338,8 @@ export type Subscription = {
   __typename?: 'Subscription';
   arraySubscription: UnraidArray;
   dockerContainerStats: DockerContainerStats;
+  /** Real-time progress updates for Docker container update operations */
+  dockerUpdateProgress: DockerUpdateProgress;
   logFile: LogFileContent;
   notificationAdded: Notification;
   notificationsOverview: NotificationOverview;
@@ -3114,6 +3165,11 @@ export type UpdateDockerContainersMutationVariables = Exact<{
 
 export type UpdateDockerContainersMutation = { __typename?: 'Mutation', docker: { __typename?: 'DockerMutations', updateContainers: Array<{ __typename?: 'DockerContainer', id: string, names: Array<string>, state: ContainerState, isUpdateAvailable?: boolean | null, isRebuildReady?: boolean | null }> } };
 
+export type DockerUpdateProgressSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type DockerUpdateProgressSubscription = { __typename?: 'Subscription', dockerUpdateProgress: { __typename?: 'DockerUpdateProgress', containerId: string, containerName: string, type: DockerUpdateEventType, message?: string | null, layerId?: string | null, overallProgress?: number | null, error?: string | null, layers?: Array<{ __typename?: 'DockerLayerProgress', layerId: string, status: string, progress?: number | null, current?: number | null, total?: number | null }> | null } };
+
 export type UpdateDockerViewPreferencesMutationVariables = Exact<{
   viewId?: InputMaybe<Scalars['String']['input']>;
   prefs: Scalars['JSON']['input'];
@@ -3363,6 +3419,7 @@ export const UnpauseDockerContainerDocument = {"kind":"Document","definitions":[
 export const UpdateAllDockerContainersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateAllDockerContainers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateAllContainers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateAllDockerContainersMutation, UpdateAllDockerContainersMutationVariables>;
 export const UpdateDockerAutostartConfigurationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerAutostartConfiguration"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"entries"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DockerAutostartEntryInput"}}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"persistUserPreferences"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateAutostartConfiguration"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"entries"},"value":{"kind":"Variable","name":{"kind":"Name","value":"entries"}}},{"kind":"Argument","name":{"kind":"Name","value":"persistUserPreferences"},"value":{"kind":"Variable","name":{"kind":"Name","value":"persistUserPreferences"}}}]}]}}]}}]} as unknown as DocumentNode<UpdateDockerAutostartConfigurationMutation, UpdateDockerAutostartConfigurationMutationVariables>;
 export const UpdateDockerContainersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerContainers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"ids"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"docker"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateContainers"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"ids"},"value":{"kind":"Variable","name":{"kind":"Name","value":"ids"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateDockerContainersMutation, UpdateDockerContainersMutationVariables>;
+export const DockerUpdateProgressDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"DockerUpdateProgress"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dockerUpdateProgress"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"containerId"}},{"kind":"Field","name":{"kind":"Name","value":"containerName"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"layerId"}},{"kind":"Field","name":{"kind":"Name","value":"overallProgress"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"layers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"layerId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"progress"}},{"kind":"Field","name":{"kind":"Name","value":"current"}},{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]} as unknown as DocumentNode<DockerUpdateProgressSubscription, DockerUpdateProgressSubscriptionVariables>;
 export const UpdateDockerViewPreferencesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateDockerViewPreferences"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"viewId"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"prefs"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"JSON"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateDockerViewPreferences"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"viewId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"viewId"}}},{"kind":"Argument","name":{"kind":"Name","value":"prefs"},"value":{"kind":"Variable","name":{"kind":"Name","value":"prefs"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"views"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"rootId"}},{"kind":"Field","name":{"kind":"Name","value":"prefs"}},{"kind":"Field","name":{"kind":"Name","value":"flatEntries"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"parentId"}},{"kind":"Field","name":{"kind":"Name","value":"depth"}},{"kind":"Field","name":{"kind":"Name","value":"position"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"hasChildren"}},{"kind":"Field","name":{"kind":"Name","value":"childrenIds"}},{"kind":"Field","name":{"kind":"Name","value":"meta"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"names"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"image"}},{"kind":"Field","name":{"kind":"Name","value":"ports"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"privatePort"}},{"kind":"Field","name":{"kind":"Name","value":"publicPort"}},{"kind":"Field","name":{"kind":"Name","value":"type"}}]}},{"kind":"Field","name":{"kind":"Name","value":"autoStart"}},{"kind":"Field","name":{"kind":"Name","value":"hostConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"networkMode"}}]}},{"kind":"Field","name":{"kind":"Name","value":"created"}},{"kind":"Field","name":{"kind":"Name","value":"isUpdateAvailable"}},{"kind":"Field","name":{"kind":"Name","value":"isRebuildReady"}}]}}]}}]}}]}}]}}]} as unknown as DocumentNode<UpdateDockerViewPreferencesMutation, UpdateDockerViewPreferencesMutationVariables>;
 export const LogFilesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"size"}},{"kind":"Field","name":{"kind":"Name","value":"modifiedAt"}}]}}]}}]} as unknown as DocumentNode<LogFilesQuery, LogFilesQueryVariables>;
 export const LogFileContentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFileContent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"lines"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"startLine"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}},{"kind":"Argument","name":{"kind":"Name","value":"lines"},"value":{"kind":"Variable","name":{"kind":"Name","value":"lines"}}},{"kind":"Argument","name":{"kind":"Name","value":"startLine"},"value":{"kind":"Variable","name":{"kind":"Name","value":"startLine"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"totalLines"}},{"kind":"Field","name":{"kind":"Name","value":"startLine"}}]}}]}}]} as unknown as DocumentNode<LogFileContentQuery, LogFileContentQueryVariables>;
