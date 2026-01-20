@@ -35,14 +35,15 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
             $context = stream_context_create([
                 "http" => [
                     "method" => "POST",
-                    "header" => "Content-Type: application/json\r\n",
+                    "header" => "Content-Type: application/json
+",
                     "content" => $payload,
                     "timeout" => 5,
                 ],
             ]);
             $response = @file_get_contents("http://127.0.0.1/auth/sso/validate", false, $context);
             if (isset($http_response_header[0])) {
-                $code = (int) preg_replace('/^HTTP\\/[0-9.]+\\s+(\\d+).*/', '$1', $http_response_header[0]);
+                $code = (int) preg_replace('/^HTTP\/[0-9.]+\s+(\d+).*/', '', $http_response_header[0]);
             }
         }
         my_logger("SSO Login Attempt Code: $code");
