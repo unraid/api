@@ -66,16 +66,36 @@ status() {
 }
 
 rollback() {
-    if [ -d "/usr/local/unraid.prev" ]; then
+    local current_dir="/usr/local/unraid"
+    local previous_dir="/usr/local/unraid.prev"
+    local temp_dir="/usr/local/unraid.tmp"
+
+    if [ -d "$previous_dir" ]; then
         echo "Rolling back to previous version..."
         stop
-        rm -rf /usr/local/unraid
-        mv /usr/local/unraid.prev /usr/local/unraid
+        if [ -e "$temp_dir" ]; then
+            echo "Rollback failed: temp backup already exists at $temp_dir"
+            return 1
+        fi
+        if ! mv "$current_dir" "$temp_dir"; then
+            echo "Rollback failed: unable to move current install to temp backup"
+            return 1
+        fi
+        if ! mv "$previous_dir" "$current_dir"; then
+            echo "Rollback failed: unable to restore previous version"
+            if [ -d "$temp_dir" ]; then
+                mv "$temp_dir" "$current_dir" || echo "Rollback recovery failed: unable to restore current install"
+            fi
+            return 1
+        fi
+        if ! rm -rf "$temp_dir"; then
+            echo "Rollback warning: unable to remove temp backup at $temp_dir"
+        fi
         start
         echo "Rollback complete"
     else
         echo "No previous version available"
-        exit 1
+        return 1
     fi
 }
 

@@ -463,6 +463,9 @@ compare_versions() {
   return $result
 }
 
+# Track whether we updated the API package during this run.
+API_PKG_INSTALLED=0
+
 # Check if API is already installed and get its version
 CURRENT_API_VERSION=""
 if [ -f "/usr/local/share/dynamix.unraid.net/config/vendor_archive.json" ] && command -v jq >/dev/null 2>&1; then
@@ -542,6 +545,7 @@ if [ "$SKIP_API_INSTALL" = false ]; then
     echo "⚠️ Package installation failed"
     exit 1
   fi
+  API_PKG_INSTALLED=1
 
   if [[ -n "$TAG" && "$TAG" != "" ]]; then
     printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect (%s)**@' "$TAG"
@@ -572,6 +576,10 @@ if [ -f "$CORE_PKG_FILE" ]; then
   upgradepkg --install-new --reinstall "${CORE_PKG_FILE}"
   if [ $? -ne 0 ]; then
     echo "⚠️ Core package installation failed"
+    if [ "$API_PKG_INSTALLED" -eq 1 ]; then
+      echo "⚠️ Unraid API package was installed; leaving it in place for troubleshooting."
+      echo "   Re-run install or uninstall via Plugins > Installed Plugins to rollback."
+    fi
     exit 1
   fi
 
@@ -580,6 +588,10 @@ if [ -f "$CORE_PKG_FILE" ]; then
   fi
 else
   echo "⚠️ Core package file not found: $CORE_PKG_FILE"
+  if [ "$API_PKG_INSTALLED" -eq 1 ]; then
+    echo "⚠️ Unraid API package was installed; leaving it in place for troubleshooting."
+    echo "   Re-run install or uninstall via Plugins > Installed Plugins to rollback."
+  fi
   exit 1
 fi
 
