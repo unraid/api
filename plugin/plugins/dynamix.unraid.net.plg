@@ -9,6 +9,10 @@
   <!ENTITY txz_sha256 "">
   <!ENTITY txz_url "">
   <!ENTITY txz_name "">
+  <!ENTITY core_source "/boot/config/plugins/dynamix.my.servers/&core_txz_name;">
+  <!ENTITY core_txz_sha256 "aab63b6beb3420048b84d03b891dba2f3976c59f7d6adee39ca1d38045f9435f">
+  <!ENTITY core_txz_url "https://pub-7247242eea6d482488594f04a3d7d4be.r2.dev/unraid-0.1.0-2026.01.20.1.txz">
+  <!ENTITY core_txz_name "unraid-0.1.0-2026.01.20.1.txz">
   <!ENTITY arch "x86_64">
   <!ENTITY build "1">
   <!ENTITY tag "">
@@ -50,6 +54,12 @@ exit 0
   <FILE Name="&source;">
     <URL>&txz_url;</URL>
     <SHA256>&txz_sha256;</SHA256>
+  </FILE>
+
+  <!-- download unraid core txz -->
+  <FILE Name="&core_source;">
+    <URL>&core_txz_url;</URL>
+    <SHA256>&core_txz_sha256;</SHA256>
   </FILE>
 
   <!-- Check for compatible Unraid version -->
@@ -320,6 +330,21 @@ exit 0
         fi
       fi
 
+      # Stop and remove Unraid Core package
+      if [ -x "/etc/rc.d/rc.unraid" ]; then
+        echo "Stopping Unraid Core..."
+        /etc/rc.d/rc.unraid stop || echo "Warning: Failed to stop Unraid Core"
+      fi
+
+      core_pkg_installed=$(ls -1 /var/log/packages/unraid-* 2>/dev/null | head -1)
+      if [ -n "$core_pkg_installed" ]; then
+        core_pkg_basename=$(basename "$core_pkg_installed")
+        echo "Removing core package: $core_pkg_basename"
+        removepkg --terse "$core_pkg_basename"
+      else
+        echo "No Unraid Core package found"
+      fi
+
       # File restoration function
       echo "Restoring files..."
       
@@ -404,6 +429,9 @@ exit 0
       PKG_FILE="&source;"      # Full path to the package file including .txz extension
       PKG_URL="&txz_url;"      # URL where package was downloaded from
       PKG_NAME="&txz_name;"    # Name of the package file
+      CORE_PKG_FILE="&core_source;"
+      CORE_PKG_URL="&core_txz_url;"
+      CORE_PKG_NAME="&core_txz_name;"
       CONNECT_API_VERSION="&api_version;" # Version of API included with Connect
     <![CDATA[
 # Function to compare version numbers using PHP's version_compare
@@ -434,6 +462,9 @@ compare_versions() {
 
   return $result
 }
+
+# Track whether we updated the API package during this run.
+API_PKG_INSTALLED=0
 
 # Check if API is already installed and get its version
 CURRENT_API_VERSION=""
@@ -514,6 +545,7 @@ if [ "$SKIP_API_INSTALL" = false ]; then
     echo "⚠️ Package installation failed"
     exit 1
   fi
+  API_PKG_INSTALLED=1
 
   if [[ -n "$TAG" && "$TAG" != "" ]]; then
     printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect (%s)**@' "$TAG"
@@ -522,6 +554,45 @@ if [ "$SKIP_API_INSTALL" = false ]; then
 else
   echo "API package installation skipped due to version conflict"
   echo "Connect plugin remains installed but API was not modified"
+fi
+
+# Install Unraid Core package
+if [ -f "$CORE_PKG_FILE" ]; then
+  echo "Installing Unraid Core package..."
+  # Clean up any old core package txz files if they don't match our current version
+  for txz_file in /boot/config/plugins/dynamix.my.servers/unraid-*.txz; do
+    if [ -f "$txz_file" ] && [ "$txz_file" != "${CORE_PKG_FILE}" ]; then
+      echo "Removing old core package file: $txz_file"
+      rm -f "$txz_file"
+    fi
+  done
+
+  # Stop the core service before mutating /usr/local/unraid
+  if [ -x "/etc/rc.d/rc.unraid" ]; then
+    echo "Stopping Unraid Core service before upgrade..."
+    /etc/rc.d/rc.unraid stop || echo "Warning: Failed to stop Unraid Core service"
+  fi
+
+  upgradepkg --install-new --reinstall "${CORE_PKG_FILE}"
+  if [ $? -ne 0 ]; then
+    echo "⚠️ Core package installation failed"
+    if [ "$API_PKG_INSTALLED" -eq 1 ]; then
+      echo "⚠️ Unraid API package was installed; leaving it in place for troubleshooting."
+      echo "   Re-run install or uninstall via Plugins > Installed Plugins to rollback."
+    fi
+    exit 1
+  fi
+
+  if [ -f "/etc/rc.d/rc.unraid" ]; then
+    chmod +x /etc/rc.d/rc.unraid
+  fi
+else
+  echo "⚠️ Core package file not found: $CORE_PKG_FILE"
+  if [ "$API_PKG_INSTALLED" -eq 1 ]; then
+    echo "⚠️ Unraid API package was installed; leaving it in place for troubleshooting."
+    echo "   Re-run install or uninstall via Plugins > Installed Plugins to rollback."
+  fi
+  exit 1
 fi
 
 exit 0
@@ -599,6 +670,13 @@ echo "If no additional messages appear within 30 seconds, it is safe to refresh 
 /etc/rc.d/rc.unraid-api start
 
 echo "Unraid API service started"
+if [ -x "/etc/rc.d/rc.unraid" ]; then
+  echo "Starting Unraid Core service"
+  /etc/rc.d/rc.unraid start
+  echo "Unraid Core service started"
+else
+  echo "Warning: rc.unraid not found; core service not started"
+fi
 echo "✅ Installation is complete, it is safe to close this window"
 echo
 exit 0

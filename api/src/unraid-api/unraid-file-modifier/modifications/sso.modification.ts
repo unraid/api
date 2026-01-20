@@ -9,6 +9,11 @@ export default class SSOFileModification extends FileModification {
     id: string = 'sso';
     public readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/include/.login.php';
 
+    protected async getPregeneratedPatch(): Promise<string | null> {
+        // Prefer the dynamic patch to avoid stale pregenerated SSO patches.
+        return null;
+    }
+
     protected async generatePatch(overridePath?: string): Promise<string> {
         // Define the new PHP function to insert
         /* eslint-disable no-useless-escape */
@@ -29,30 +34,48 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
             my_logger("SSO Login Attempt Failed: Invalid token format");
             return false;
         }
-        $safePassword = escapeshellarg($password);
+        $payload = json_encode(["token" => $password]);
+        $response = false;
+        $code = 0;
 
-        $output = array();
-        exec("/etc/rc.d/rc.unraid-api sso validate-token $safePassword 2>&1", $output, $code);
+        if (function_exists("curl_init")) {
+            $ch = curl_init("http://127.0.0.1/auth/sso/validate");
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            $response = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            curl_close($ch);
+        } else {
+            $context = stream_context_create([
+                "http" => [
+                    "method" => "POST",
+                    "header" => "Content-Type: application/json\r\n",
+                    "content" => $payload,
+                    "timeout" => 5,
+                ],
+            ]);
+            $response = @file_get_contents("http://127.0.0.1/auth/sso/validate", false, $context);
+            if (isset($http_response_header[0])) {
+                $code = (int) preg_replace('/^HTTP\\/[0-9.]+\\s+(\\d+).*/', '$1', $http_response_header[0]);
+            }
+        }
         my_logger("SSO Login Attempt Code: $code");
-        my_logger("SSO Login Attempt Response: " . print_r($output, true));
+        my_logger("SSO Login Attempt Response: " . print_r($response, true));
 
-        if ($code !== 0) {
+        if ($code !== 200) {
             return false;
         }
 
-        if (empty($output)) {
+        if (empty($response)) {
             return false;
         }
 
         try {
-            // Split on first { and take everything after it
-            $jsonParts = explode('{', $output[0], 2);
-            if (count($jsonParts) < 2) {
-                my_logger("SSO Login Attempt Failed: No JSON found in response");
-                return false;
-            }
-            $response = json_decode('{' . $jsonParts[1], true);
-            if (isset($response['valid']) && $response['valid'] === true) {
+            $decoded = json_decode($response, true);
+            if (isset($decoded['valid']) && $decoded['valid'] === true) {
                 return true;
             }
         } catch (Exception $e) {
@@ -89,7 +112,7 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
-        const superShouldApply = await super.shouldApply();
+        const superShouldApply = await super.shouldApply({ checkOsVersion: false });
         if (!superShouldApply.shouldApply) {
             return superShouldApply;
         }

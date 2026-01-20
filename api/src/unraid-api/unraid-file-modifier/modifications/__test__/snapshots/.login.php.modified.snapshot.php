@@ -17,30 +17,49 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
             my_logger("SSO Login Attempt Failed: Invalid token format");
             return false;
         }
-        $safePassword = escapeshellarg($password);
+        $payload = json_encode(["token" => $password]);
+        $response = false;
+        $code = 0;
 
-        $output = array();
-        exec("/etc/rc.d/rc.unraid-api sso validate-token $safePassword 2>&1", $output, $code);
+        if (function_exists("curl_init")) {
+            $ch = curl_init("http://127.0.0.1/auth/sso/validate");
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            $response = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+            curl_close($ch);
+        } else {
+            $context = stream_context_create([
+                "http" => [
+                    "method" => "POST",
+                    "header" => "Content-Type: application/json
+",
+                    "content" => $payload,
+                    "timeout" => 5,
+                ],
+            ]);
+            $response = @file_get_contents("http://127.0.0.1/auth/sso/validate", false, $context);
+            if (isset($http_response_header[0])) {
+                $code = (int) preg_replace('/^HTTP\/[0-9.]+\s+(\d+).*/', '', $http_response_header[0]);
+            }
+        }
         my_logger("SSO Login Attempt Code: $code");
-        my_logger("SSO Login Attempt Response: " . print_r($output, true));
+        my_logger("SSO Login Attempt Response: " . print_r($response, true));
 
-        if ($code !== 0) {
+        if ($code !== 200) {
             return false;
         }
 
-        if (empty($output)) {
+        if (empty($response)) {
             return false;
         }
 
         try {
-            // Split on first { and take everything after it
-            $jsonParts = explode('{', $output[0], 2);
-            if (count($jsonParts) < 2) {
-                my_logger("SSO Login Attempt Failed: No JSON found in response");
-                return false;
-            }
-            $response = json_decode('{' . $jsonParts[1], true);
-            if (isset($response['valid']) && $response['valid'] === true) {
+            $decoded = json_decode($response, true);
+            if (isset($decoded['valid']) && $decoded['valid'] === true) {
                 return true;
             }
         } catch (Exception $e) {

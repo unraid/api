@@ -1,0 +1,7 @@
+#!/bin/sh
+# Stop Unraid Core on shutdown/reboot
+
+if [ -x /etc/rc.d/rc.unraid ]; then
+  echo "Stopping Unraid Core..."
+  /etc/rc.d/rc.unraid stop
+fi

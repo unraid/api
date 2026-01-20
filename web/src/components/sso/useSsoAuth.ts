@@ -63,6 +63,8 @@ export function useSsoAuth() {
   };
 
   const navigateToProvider = (providerId: string) => {
+    currentState.value = 'loading';
+    error.value = null;
     // Generate state token for CSRF protection
     const state = generateStateToken();
 
@@ -85,7 +87,7 @@ export function useSsoAuth() {
       const hashToken = hashParams.get('token');
       const hashError = hashParams.get('error');
 
-      // Then check query parameters (for OAuth code/state from provider redirects)
+      // Then check query parameters (for error/token fallback)
       const search = new URLSearchParams(window.location.search);
       const code = search.get('code') ?? '';
       const state = search.get('state') ?? '';
@@ -128,6 +130,10 @@ export function useSsoAuth() {
       if (code && state && state !== sessionState) {
         currentState.value = 'error';
         error.value = t('sso.useSsoAuth.invalidCallbackParameters');
+      }
+
+      if (window.location.pathname !== '/login') {
+        return;
       }
     } catch (err) {
       console.error('Error fetching token', err);
