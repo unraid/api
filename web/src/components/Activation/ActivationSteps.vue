@@ -67,14 +67,6 @@ const includeInitialStep = computed(() => dynamicSteps.value.length > 0);
 const timelineSteps = computed<StepItem[]>(() => {
   const items: StepItem[] = [];
 
-  if (includeInitialStep.value) {
-    items.push({
-      title: t('activation.activationSteps.createDevicePassword'),
-      description: t('activation.activationSteps.secureYourDevice'),
-      icon: 'i-heroicons-lock-closed',
-    });
-  }
-
   items.push(...dynamicSteps.value);
 
   items.push({

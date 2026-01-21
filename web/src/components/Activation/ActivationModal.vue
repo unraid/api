@@ -397,6 +397,13 @@ watch(
       </div>
 
       <div class="flex w-full flex-col items-center">
+        <ActivationSteps
+          :steps="allUpgradeSteps"
+          :active-step-index="currentDynamicStepIndex"
+          :on-step-click="isStepSaving ? undefined : goToStep"
+          class="mb-8"
+        />
+
         <component v-if="currentStepComponent" :is="currentStepComponent" v-bind="currentStepProps" />
 
         <div
@@ -407,13 +414,6 @@ watch(
           <span v-if="stepSaveState === 'saving'">Saving step...</span>
           <span v-else>Step saved.</span>
         </div>
-
-        <ActivationSteps
-          :steps="allUpgradeSteps"
-          :active-step-index="currentDynamicStepIndex"
-          :on-step-click="isStepSaving ? undefined : goToStep"
-          class="mt-6"
-        />
       </div>
     </div>
   </Dialog>

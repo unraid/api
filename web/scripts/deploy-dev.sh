@@ -32,6 +32,11 @@ retry() {
   done
 }
 
+# Clean and Build
+echo "Building project..."
+pnpm run clean
+pnpm run build
+
 # Source directory paths
 standalone_directory="dist/"
 

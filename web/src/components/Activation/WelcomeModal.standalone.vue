@@ -11,6 +11,7 @@ import { useWelcomeModalDataStore } from '~/components/Activation/store/welcomeM
 import { useThemeStore } from '~/store/theme';
 
 // Disable attribute inheritance to prevent modelValue from showing on root element
+
 defineOptions({
   inheritAttrs: false,
 });
@@ -30,9 +31,11 @@ const { fetchTheme } = useThemeStore();
 const isLoginPage = computed(() => window.location.pathname.includes('login'));
 
 // Initialize showModal based on conditions
+
 const showModal = ref(isLoginPage.value || isInitialSetup.value);
 
 // Template ref for the teleport container
+
 const modalContainer = ref<HTMLElement>();
 
 const dropdownHide = () => {
@@ -73,6 +76,7 @@ onUnmounted(() => {
 <template>
   <div>
     <div ref="modalContainer" />
+
     <Dialog
       :to="modalContainer"
       :model-value="showModal"
@@ -104,14 +108,12 @@ onUnmounted(() => {
         <div v-if="partnerInfo?.hasPartnerLogo">
           <ActivationPartnerLogo :partner-info="partnerInfo" />
         </div>
-
+        <ActivationSteps :steps="[]" :active-step-index="0" class="mb-8" />
         <ActivationWelcomeStep
           :partner-name="partnerInfo?.partnerName || undefined"
           :on-complete="dropdownHide"
           :redirect-to-login="true"
         />
-
-        <ActivationSteps :steps="[]" :active-step-index="0" class="mt-6" />
       </div>
     </Dialog>
   </div>
