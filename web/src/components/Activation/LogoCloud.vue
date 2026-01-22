@@ -70,7 +70,7 @@ const originalRows: { direction: string; duration: string; items: CloudItem[] }[
     duration: '70s',
     items: [
       { name: 'Tailscale', icon: 'simple-icons-tailscale.svg' },
-      { name: 'Plex', icon: 'simple-icons-plex.svg' },
+      { name: 'Plex', icon: '' }, // logo exists, but not using cuz it looks weird
       { name: 'Jellyfin', icon: 'simple-icons-jellyfin.svg' },
       { name: 'Nextcloud', icon: 'simple-icons-nextcloud.svg' },
       { name: 'Home Assistant', icon: 'simple-icons-home-assistant.svg' },
@@ -97,8 +97,8 @@ const originalRows: { direction: string; duration: string; items: CloudItem[] }[
     direction: 'right',
     duration: '75s',
     items: [
-      { name: '', icon: 'simple-icons-intel.svg' },
-      { name: '', icon: 'simple-icons-amd.svg' },
+      { name: 'Intel', icon: '' }, // logo exists, but not using cuz it looks weird
+      { name: 'AMD', icon: '' }, // logo exists, but not using cuz it looks weird
       { name: 'NVIDIA', icon: 'simple-icons-nvidia.svg' },
       { name: 'Seagate', icon: 'simple-icons-seagate.svg' },
       { name: 'Western Digital', icon: 'simple-icons-westerndigital.svg' },
