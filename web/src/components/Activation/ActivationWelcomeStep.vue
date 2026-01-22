@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
+import LogoCloud from '@/components/Activation/LogoCloud.vue';
 
 // Mock icons (assuming these exist or similar ones do)
 const BOOK_ICON = 'i-heroicons-book-open';
@@ -33,9 +34,14 @@ const openDocs = () => {
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
+  <div class="relative mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
+    <!-- Background Logo Cloud -->
+    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      <LogoCloud />
+    </div>
+
     <!-- Main Card Container -->
-    <div class="bg-elevated border-muted rounded-xl border p-6 shadow-sm md:p-10">
+    <div class="bg-elevated border-muted relative z-10 rounded-xl border p-6 shadow-sm md:p-10">
       <!-- Header Row (Title, Subtitle, and Badge) -->
       <div class="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div class="space-y-2">
