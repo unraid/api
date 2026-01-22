@@ -3,8 +3,8 @@ import { computed } from 'vue';
 
 // Centralized configuration for logo/text colors
 const CLOUD_COLORS = {
-  unraid: '#F15A2C', // Special Unraid/highlight color
-  default: 'rgba(var(--foreground), 0.4)', // Default text/icon color
+  unraid: 'var(--ui-secondary)', // Special Unraid/highlight color
+  default: 'var(--ui-secondary)', // Default text/icon color
 };
 
 // Helper to determine color based on item property
@@ -12,41 +12,33 @@ const getItemColor = (isUnraid?: boolean) => {
   return isUnraid ? CLOUD_COLORS.unraid : CLOUD_COLORS.default;
 };
 
-// Dynamically import all SVGs from the partners assets directory
-// We use 'as any' to avoid potential TS issues with the glob return type in this context,
-// though strictly it returns Record<string, string> with { eager: true, import: 'default' }
+// Dynamically import all SVGs from the partners assets directory as RAW strings
 const partnerIcons = import.meta.glob('@/assets/partners/*.svg', {
   eager: true,
   import: 'default',
-  query: '?url', // Ensure we get the URL string, not a component
+  query: '?raw', // Get content as string
 }) as Record<string, string>;
 
-// Helper to resolve icon URL from filename
-const getIconUrl = (filename: string) => {
+// Helper to resolve icon content from filename
+const getIconContent = (filename: string) => {
   if (!filename) return '';
 
   // Check if it's a UIcon class (starts with i-)
-  if (filename.startsWith('i-')) return filename;
+  if (filename.startsWith('i-')) return '';
 
   // Try to find the file in the imported glob
-  // The keys in import.meta.glob are absolute local paths relative to the project root or src depending on alias
-  // Since we used @ alias, keys usually look like: /src/assets/partners/filename.svg
-  // Let's match by ending.
   const key = Object.keys(partnerIcons).find((k) => k.endsWith(`/${filename}`));
   return key ? partnerIcons[key] : '';
 };
 
-// Helper to check if it's an image url
-const isImageUrl = (iconStr: string) => {
-  const url = getIconUrl(iconStr);
-  return !!(url && !iconStr.startsWith('i-') && (url.startsWith('/') || url.startsWith('data:')));
+// Helper to check if it's a raw SVG
+const isRawSvg = (iconStr: string) => {
+  return !!(iconStr && !iconStr.startsWith('i-') && getIconContent(iconStr));
 };
 
 // Define structure for cloud items
 interface CloudItem {
   name: string;
-  // INSTRUCTION: Use the filename like 'simple-icons-unraid.svg' if in @/assets/partners/
-  // OR use a UIcon class like 'i-heroicons-squares-2x2'
   icon: string;
   isUnraid?: boolean;
 }
@@ -56,7 +48,7 @@ const originalRows: { direction: string; duration: string; items: CloudItem[] }[
   // Row 1 (Unraid Ecosystem)
   {
     direction: 'left',
-    duration: '60s',
+    duration: '120s',
     items: [
       { name: 'Unraid', icon: 'simple-icons-unraid.svg', isUnraid: true },
       { name: 'Community Apps', icon: 'i-heroicons-squares-2x2', isUnraid: true },
@@ -67,7 +59,7 @@ const originalRows: { direction: string; duration: string; items: CloudItem[] }[
   // Row 2 (Apps)
   {
     direction: 'right',
-    duration: '70s',
+    duration: '140s',
     items: [
       { name: 'Tailscale', icon: 'simple-icons-tailscale.svg' },
       { name: 'Plex', icon: '' }, // logo exists, but not using cuz it looks weird
@@ -82,7 +74,7 @@ const originalRows: { direction: string; duration: string; items: CloudItem[] }[
   // Row 3 (Tools)
   {
     direction: 'left',
-    duration: '65s',
+    duration: '130s',
     items: [
       { name: 'Jellyseerr', icon: '' }, // no icon
       { name: 'GitLab', icon: 'simple-icons-github.svg' },
@@ -95,10 +87,10 @@ const originalRows: { direction: string; duration: string; items: CloudItem[] }[
   // Row 4 (Hardware)
   {
     direction: 'right',
-    duration: '75s',
+    duration: '150s',
     items: [
-      { name: 'Intel', icon: '' }, // logo exists, but not using cuz it looks weird
-      { name: 'AMD', icon: '' }, // logo exists, but not using cuz it looks weird
+      { name: 'Intel', icon: '' },
+      { name: 'AMD', icon: '' },
       { name: 'NVIDIA', icon: 'simple-icons-nvidia.svg' },
       { name: 'Seagate', icon: 'simple-icons-seagate.svg' },
       { name: 'Western Digital', icon: 'simple-icons-westerndigital.svg' },
@@ -133,7 +125,7 @@ const rows = computed(() => {
 
     <!-- Rotated & Scaled Container -->
     <div
-      class="relative -top-32 left-0 h-[150%] w-[150%] -translate-x-[25%] scale-150 rotate-12 transform opacity-30 grayscale transition-all duration-1000"
+      class="relative -top-32 left-0 h-[150%] w-[150%] -translate-x-[25%] scale-150 rotate-12 transform opacity-30 transition-all duration-1000"
     >
       <div class="flex h-full flex-col justify-center gap-10">
         <div v-for="(row, rowIndex) in rows" :key="rowIndex" class="flex w-full overflow-hidden">
@@ -152,11 +144,11 @@ const rows = computed(() => {
                 class="flex items-center justify-center p-2"
                 :style="{ color: getItemColor(item.isUnraid) }"
               >
-                <img
-                  v-if="isImageUrl(item.icon)"
-                  :src="getIconUrl(item.icon)"
-                  class="h-8 w-8 object-contain"
-                  style="filter: brightness(0) saturate(100%)"
+                <!-- Use inline SVG for local files to allow coloring -->
+                <div
+                  v-if="isRawSvg(item.icon)"
+                  v-html="getIconContent(item.icon)"
+                  class="h-8 w-8 [&_path]:fill-current [&>svg]:h-full [&>svg]:w-full [&>svg]:fill-current"
                 />
                 <UIcon v-else-if="item.icon" :name="item.icon" class="h-8 w-8" />
               </div>
@@ -185,11 +177,11 @@ const rows = computed(() => {
                 class="flex items-center justify-center p-2"
                 :style="{ color: getItemColor(item.isUnraid) }"
               >
-                <img
-                  v-if="isImageUrl(item.icon)"
-                  :src="getIconUrl(item.icon)"
-                  class="h-8 w-8 object-contain"
-                  style="filter: brightness(0) saturate(100%)"
+                <!-- Use inline SVG for local files to allow coloring -->
+                <div
+                  v-if="isRawSvg(item.icon)"
+                  v-html="getIconContent(item.icon)"
+                  class="h-8 w-8 [&_path]:fill-current [&>svg]:h-full [&>svg]:w-full [&>svg]:fill-current"
                 />
                 <UIcon v-else-if="item.icon" :name="item.icon" class="h-8 w-8" />
               </div>
