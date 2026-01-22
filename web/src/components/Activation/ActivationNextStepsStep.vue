@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n';
 
+import { ChevronLeftIcon, RocketLaunchIcon } from '@heroicons/vue/24/outline';
+import { CheckCircleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 
 export interface Props {
@@ -12,7 +14,13 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 
-const sections = [
+interface SectionItem {
+  label: string;
+  url: string;
+  icon?: string;
+}
+
+const sections: { title: string; items: SectionItem[] }[] = [
   {
     title: t('activation.nextSteps.doNext'),
     items: [
@@ -87,42 +95,70 @@ const openLink = (url: string) => {
 </script>
 
 <template>
-  <div class="mx-auto flex w-full max-w-3xl flex-col items-center space-y-6 pb-4">
-    <div class="text-center">
-      <h1 class="text-2xl font-semibold">{{ t('activation.nextSteps.title') }}</h1>
-      <p class="mt-2 text-sm opacity-75">{{ t('activation.nextSteps.description') }}</p>
-    </div>
-
-    <div
-      class="grid w-full grid-cols-1 gap-8 rounded-xl border border-gray-100 bg-gray-50 p-6 text-left md:grid-cols-2 dark:border-gray-800 dark:bg-gray-800/30"
-    >
-      <div v-for="section in sections" :key="section.title" class="space-y-4">
-        <h3
-          class="border-b border-gray-200 pb-2 text-lg font-semibold text-gray-900 dark:border-gray-700 dark:text-gray-100"
-        >
-          {{ section.title }}
-        </h3>
-        <ul class="space-y-2.5">
-          <li v-for="item in section.items" :key="item.label">
-            <button
-              @click="openLink(item.url)"
-              class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 group flex items-center gap-2 text-sm transition-colors hover:underline"
-            >
-              <UIcon v-if="item.icon" :name="item.icon" class="h-4 w-4 flex-shrink-0" />
-              <span
-                v-else
-                class="bg-primary-500 h-1.5 w-1.5 flex-shrink-0 rounded-full opacity-60 group-hover:opacity-100"
-              />
-              <span class="text-left">{{ item.label }}</span>
-            </button>
-          </li>
-        </ul>
+  <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
+    <div class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
+      <!-- Header -->
+      <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-start">
+        <div class="space-y-2">
+          <div class="flex items-center gap-3">
+            <RocketLaunchIcon class="text-primary h-8 w-8" />
+            <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
+              {{ t('activation.nextSteps.title') }}
+            </h2>
+          </div>
+          <p class="text-muted text-lg">
+            {{ t('activation.nextSteps.description') }}
+          </p>
+        </div>
       </div>
-    </div>
 
-    <div class="flex space-x-4 pt-6">
-      <BrandButton v-if="showBack" :text="t('common.back')" variant="outline" @click="onBack" />
-      <BrandButton :text="t('common.finish')" @click="handleComplete" />
+      <!-- Content Grid -->
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
+        <div v-for="section in sections" :key="section.title" class="space-y-4">
+          <h3 class="border-muted text-highlighted border-b pb-2 text-lg font-bold">
+            {{ section.title }}
+          </h3>
+          <ul class="space-y-2">
+            <li v-for="item in section.items" :key="item.label">
+              <button
+                @click="openLink(item.url)"
+                class="text-primary hover:text-primary/80 group flex items-center gap-2.5 text-sm font-medium transition-colors hover:underline"
+              >
+                <UIcon v-if="item.icon" :name="item.icon" class="h-4 w-4 flex-shrink-0" />
+                <span
+                  v-else
+                  class="bg-primary/60 group-hover:bg-primary h-1.5 w-1.5 flex-shrink-0 rounded-full transition-colors"
+                />
+                <span class="text-muted group-hover:text-highlighted text-left transition-colors">{{
+                  item.label
+                }}</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div
+        class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
+      >
+        <button
+          v-if="showBack"
+          @click="props.onBack"
+          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
+        >
+          <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
+          {{ t('common.back') }}
+        </button>
+        <div v-else class="hidden w-1 sm:block" />
+
+        <BrandButton
+          :text="t('common.finish')"
+          class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
+          @click="handleComplete"
+          :icon-right="CheckCircleIcon"
+        />
+      </div>
     </div>
   </div>
 </template>

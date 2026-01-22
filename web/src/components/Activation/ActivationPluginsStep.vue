@@ -331,12 +331,11 @@ const primaryButtonText = computed(() => {
       </div>
 
       <!-- Pro Tip -->
-      <blockquote class="border-primary bg-bg/50 text-muted my-8 border-s-4 p-4">
+      <blockquote class="border-primary bg-primary-100 text my-8 border-s-4 p-4">
         <div class="flex items-start gap-2">
-          <InformationCircleIcon class="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-500" />
-          <p class="text-sm leading-relaxed italic">
-            <span class="mr-1 font-bold text-orange-500 not-italic">Tip:</span>
-            {{ t('activation.pluginsStep.tip') }}
+          <InformationCircleIcon class="text-primary mt-0.5 h-6 w-6 flex-shrink-0" />
+          <p class="text-sm leading-relaxed">
+            <span class="mr-1 mb-1 block">{{ t('activation.pluginsStep.tip') }}</span>
           </p>
         </div>
       </blockquote>

@@ -300,21 +300,23 @@ const ipItems = [
       </div>
 
       <!-- Footer -->
-      <div class="border-muted mt-8 flex items-center justify-between border-t pt-8">
+      <div
+        class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
+      >
         <button
           v-if="showBack"
           @click="handleBack"
-          class="text-muted hover:text-toned group flex items-center gap-2 font-medium transition-colors"
+          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
           :disabled="isBusy"
         >
           <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
           {{ t('common.back') }}
         </button>
-        <div v-else class="w-1" />
+        <div v-else class="hidden w-1 sm:block" />
 
         <BrandButton
           :text="t('activation.coreSettings.next')"
-          class="!bg-primary hover:!bg-primary/90 min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg"
+          class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
           :disabled="isBusy || !!serverNameValidation"
           :loading="isBusy"
           @click="handleSubmit"

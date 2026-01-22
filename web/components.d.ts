@@ -8,13 +8,15 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ActivationCoreSettingsStep: typeof import('./src/components/Activation/ActivationCoreSettingsStep.vue')['default']
     ActivationLicenseStep: typeof import('./src/components/Activation/ActivationLicenseStep.vue')['default']
     ActivationModal: typeof import('./src/components/Activation/ActivationModal.vue')['default']
+    ActivationNextStepsStep: typeof import('./src/components/Activation/ActivationNextStepsStep.vue')['default']
     ActivationPartnerLogo: typeof import('./src/components/Activation/ActivationPartnerLogo.vue')['default']
     ActivationPartnerLogoImg: typeof import('./src/components/Activation/ActivationPartnerLogoImg.vue')['default']
     ActivationPluginsStep: typeof import('./src/components/Activation/ActivationPluginsStep.vue')['default']
     ActivationSteps: typeof import('./src/components/Activation/ActivationSteps.vue')['default']
-    ActivationTimezoneStep: typeof import('./src/components/Activation/ActivationTimezoneStep.vue')['default']
+    ActivationSummaryStep: typeof import('./src/components/Activation/ActivationSummaryStep.vue')['default']
     ActivationWelcomeStep: typeof import('./src/components/Activation/ActivationWelcomeStep.vue')['default']
     'ApiKeyAuthorize.standalone': typeof import('./src/components/ApiKeyAuthorize.standalone.vue')['default']
     ApiKeyCreate: typeof import('./src/components/ApiKey/ApiKeyCreate.vue')['default']
