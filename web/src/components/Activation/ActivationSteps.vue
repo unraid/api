@@ -31,56 +31,44 @@ t('activation.activationSteps.activateLicense');
 t('activation.activationSteps.createAnUnraidNetAccountAnd');
 t('activation.pluginsStep.addHelpfulPlugins');
 
-const translateStep = (meta: StepMetadataEntry): StepItem => ({
-  title: t(meta.titleKey),
-  description: t(meta.descriptionKey),
-  icon: meta.icon,
+const formatStep = (title: string, index: number, icon?: string): StepItem => ({
+  title: `Step ${index + 1}`,
+  description: title,
+  icon,
 });
 
 const dynamicSteps = computed(() => {
   const metadataLookup: Record<ActivationOnboardingStepId, StepMetadataEntry> = stepMetadata;
 
   if (props.steps.length === 0) {
-    return [
-      translateStep(metadataLookup.WELCOME),
-      translateStep(metadataLookup.TIMEZONE),
-      translateStep(metadataLookup.PLUGINS),
-      translateStep(metadataLookup.ACTIVATION),
+    const defaultSteps = [
+      metadataLookup.WELCOME,
+      metadataLookup.TIMEZONE,
+      metadataLookup.PLUGINS,
+      metadataLookup.ACTIVATION,
     ];
+    return defaultSteps.map((meta, index) => formatStep(t(meta.titleKey), index, meta.icon));
   }
 
-  return props.steps.map((step) => {
+  return props.steps.map((step, index) => {
     const metadata = metadataLookup[step.id];
     if (metadata) {
-      return translateStep(metadata);
+      return formatStep(t(metadata.titleKey), index, metadata.icon);
     }
-    return {
-      title: step.id,
-      description: '',
-      icon: 'i-heroicons-circle-stack',
-    };
+    return formatStep(step.id, index, 'i-heroicons-circle-stack');
   });
 });
-
-const includeInitialStep = computed(() => dynamicSteps.value.length > 0);
 
 const timelineSteps = computed<StepItem[]>(() => {
   const items: StepItem[] = [];
 
   items.push(...dynamicSteps.value);
 
-  items.push({
-    title: t('activation.activationSteps.unleashYourHardware'),
-    description: t('activation.activationSteps.deviceIsReadyToConfigure'),
-    icon: 'i-heroicons-server-stack',
-  });
-
   return items;
 });
 
 const currentStepIndex = computed(() => {
-  const offset = includeInitialStep.value ? 1 : 0;
-  const targetIndex = (props.activeStepIndex ?? 0) + offset;
+  const targetIndex = props.activeStepIndex ?? 0;
   return Math.min(Math.max(targetIndex, 0), timelineSteps.value.length - 1);
 });
 
@@ -115,9 +103,7 @@ const handleStepClick = (clickedStepIndex: string | number | undefined) => {
   if (isNaN(stepIndex)) return;
 
   // Map the clicked step index to the actual step index
-  // Account for the "Create Device Password" step that's added at the beginning
-  const offset = includeInitialStep.value ? 1 : 0;
-  const actualStepIndex = Math.max(0, stepIndex - offset);
+  const actualStepIndex = Math.max(0, stepIndex);
 
   // Allow clicking on any step that exists (completed or incomplete)
   if (actualStepIndex < props.steps.length) {

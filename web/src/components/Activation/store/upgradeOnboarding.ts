@@ -21,10 +21,27 @@ export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => 
   const previousVersion = computed(() => onboardingData.value?.previousVersion);
   const currentVersion = computed(() => onboardingData.value?.currentVersion);
 
-  const allUpgradeSteps = computed(
-    () =>
-      onboardingData.value?.steps ?? ([] as ActivationOnboardingQuery['activationOnboarding']['steps'])
-  );
+  const allUpgradeSteps = computed(() => {
+    const steps =
+      onboardingData.value?.steps ?? ([] as ActivationOnboardingQuery['activationOnboarding']['steps']);
+    // Append Custom Overlay Steps
+    // Mark as completed to avoid API calls (markUpgradeStepCompleted) when navigating "Next"
+    return [
+      ...steps,
+      {
+        id: 'SUMMARY',
+        completed: true,
+        required: false,
+        introducedIn: 'custom',
+      },
+      {
+        id: 'NEXT_STEPS',
+        completed: true,
+        required: false,
+        introducedIn: 'custom',
+      },
+    ] as ActivationOnboardingQuery['activationOnboarding']['steps'];
+  });
 
   const upgradeSteps = computed(() => allUpgradeSteps.value.filter((step) => !step.completed));
 

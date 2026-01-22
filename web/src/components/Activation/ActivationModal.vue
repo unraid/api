@@ -277,6 +277,15 @@ const currentStepConfig = computed(() => {
 const isCurrentStepSaved = computed(() => currentStepConfig.value?.completed ?? false);
 const isStepSaving = computed(() => stepSaveState.value === 'saving');
 
+const handleActivationSkip = async () => {
+  // Just move to next step without marking complete
+  if (currentStepIndex.value < availableSteps.value.length - 1) {
+    currentStepIndex.value++;
+  } else {
+    await closeModal();
+  }
+};
+
 const currentStepProps = computed<Record<string, unknown>>(() => {
   const step = currentStep.value;
   if (!step) {
@@ -295,7 +304,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     isSavingStep: isStepSaving.value,
   };
 
-  switch (step) {
+  switch (step as string) {
     case 'WELCOME':
       console.log('[ActivationModal] WELCOME step props:', {
         currentVersion: currentVersion.value,
@@ -329,6 +338,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     case 'ACTIVATION':
       return {
         ...baseProps,
+        onComplete: handleActivationSkip,
         modalTitle: modalTitle.value,
         modalDescription: modalDescription.value,
         docsButtons: docsButtons.value,
@@ -338,6 +348,12 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         allowSkip: allowActivationSkip.value,
         showKeyfileHint: showKeyfileHint.value,
         showActivationCodeHint: hasActivationCode.value,
+      };
+
+    case 'SUMMARY':
+    case 'NEXT_STEPS':
+      return {
+        ...baseProps,
       };
 
     default:
@@ -391,7 +407,7 @@ watch(
       }
     "
   >
-    <div class="flex flex-col items-center justify-start">
+    <div class="flex h-full w-full flex-col items-center justify-start overflow-y-auto">
       <div v-if="partnerInfo?.hasPartnerLogo && !shouldShowUpgradeOnboarding">
         <ActivationPartnerLogo :partner-info="partnerInfo" />
       </div>

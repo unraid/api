@@ -1,16 +1,19 @@
-import type { ActivationOnboardingStepId } from '~/composables/gql/graphql';
 import type { Component } from 'vue';
 
+import ActivationCoreSettingsStep from '~/components/Activation/ActivationCoreSettingsStep.vue';
 import ActivationLicenseStep from '~/components/Activation/ActivationLicenseStep.vue';
+import ActivationNextStepsStep from '~/components/Activation/ActivationNextStepsStep.vue';
 import ActivationPluginsStep from '~/components/Activation/ActivationPluginsStep.vue';
-import ActivationTimezoneStep from '~/components/Activation/ActivationTimezoneStep.vue';
+import ActivationSummaryStep from '~/components/Activation/ActivationSummaryStep.vue';
 import ActivationWelcomeStep from '~/components/Activation/ActivationWelcomeStep.vue';
 
-export const stepComponents: Record<ActivationOnboardingStepId, Component> = {
+export const stepComponents: Record<string, Component> = {
   WELCOME: ActivationWelcomeStep,
-  TIMEZONE: ActivationTimezoneStep,
+  TIMEZONE: ActivationCoreSettingsStep,
   PLUGINS: ActivationPluginsStep,
   ACTIVATION: ActivationLicenseStep,
+  SUMMARY: ActivationSummaryStep,
+  NEXT_STEPS: ActivationNextStepsStep,
 };
 
 export type StepMetadataEntry = {
@@ -19,16 +22,16 @@ export type StepMetadataEntry = {
   icon: string;
 };
 
-export const stepMetadata: Record<ActivationOnboardingStepId, StepMetadataEntry> = {
+export const stepMetadata: Record<string, StepMetadataEntry> = {
   WELCOME: {
     titleKey: 'activation.welcomeModal.welcomeToUnraid',
     descriptionKey: 'activation.welcomeModal.getStartedWithYourNewSystem',
     icon: 'i-heroicons-sparkles',
   },
   TIMEZONE: {
-    titleKey: 'activation.timezoneStep.setYourTimeZone',
-    descriptionKey: 'activation.timezoneStep.selectTimezoneDescription',
-    icon: 'i-heroicons-clock',
+    titleKey: 'activation.coreSettings.title',
+    descriptionKey: 'activation.coreSettings.description',
+    icon: 'i-heroicons-cog-6-tooth',
   },
   PLUGINS: {
     titleKey: 'activation.pluginsStep.installEssentialPlugins',
@@ -39,5 +42,15 @@ export const stepMetadata: Record<ActivationOnboardingStepId, StepMetadataEntry>
     titleKey: 'activation.activationSteps.activateLicense',
     descriptionKey: 'activation.activationSteps.createAnUnraidNetAccountAnd',
     icon: 'i-heroicons-key',
+  },
+  SUMMARY: {
+    titleKey: 'activation.summaryStep.title',
+    descriptionKey: 'activation.summaryStep.description',
+    icon: 'i-heroicons-clipboard-document-check',
+  },
+  NEXT_STEPS: {
+    titleKey: 'activation.nextSteps.title',
+    descriptionKey: 'activation.nextSteps.description',
+    icon: 'i-heroicons-arrow-right-circle',
   },
 };

@@ -3,11 +3,13 @@ import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useQuery } from '@vue/apollo-composable';
 
+import { ChevronLeftIcon, Squares2X2Icon } from '@heroicons/vue/24/outline';
+import { ChevronRightIcon, InformationCircleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
-
-import { INSTALLED_UNRAID_PLUGINS_QUERY } from '~/components/Activation/graphql/installedPlugins.query';
-import usePluginInstaller from '~/components/Activation/usePluginInstaller';
-import { PluginInstallStatus } from '~/composables/gql/graphql';
+import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Activation/graphql/installedPlugins.query';
+import usePluginInstaller from '@/components/Activation/usePluginInstaller';
+import { PluginInstallStatus } from '@/composables/gql/graphql';
+import { Switch } from '@headlessui/vue';
 
 export interface Props {
   onComplete: () => void;
@@ -15,7 +17,6 @@ export interface Props {
   onBack?: () => void;
   showSkip?: boolean;
   showBack?: boolean;
-  isRequired?: boolean;
   isSavingStep?: boolean;
 }
 
@@ -40,19 +41,19 @@ const availablePlugins: Plugin[] = [
   {
     id: 'community-apps',
     name: 'Community Apps',
-    description: 'Browse and install plugins and Docker containers',
+    description: 'The essential app store for Unraid. Access thousands of applications.',
     url: 'https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
   },
   {
     id: 'fix-common-problems',
     name: 'Fix Common Problems',
-    description: 'Automatically detect and fix common configuration issues',
+    description: 'Diagnostic tool to help you identify and resolve configuration issues.',
     url: 'https://raw.githubusercontent.com/unraid/fix.common.problems/master/plugins/fix.common.problems.plg',
   },
   {
     id: 'tailscale',
     name: 'Tailscale',
-    description: 'Secure remote access with Tailscale VPN',
+    description: 'Zero-config VPN. Securely access your server from anywhere.',
     url: 'https://raw.githubusercontent.com/unraid/unraid-tailscale/main/plugin/tailscale.plg',
   },
 ];
@@ -76,7 +77,8 @@ const pluginStates = reactive<Record<string, PluginState>>(
   )
 );
 
-const selectedPlugins = ref<Set<string>>(new Set());
+// Default to selecting all plugins initially (optional, but good for UX)
+const selectedPlugins = ref<Set<string>>(new Set(['community-apps', 'fix-common-problems']));
 const installedPluginIds = ref<Set<string>>(new Set());
 const isInstalling = ref(false);
 const error = ref<string | null>(null);
@@ -160,12 +162,6 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
   });
 }
 
-const combinedLogs = computed(() => {
-  return availablePlugins.flatMap((plugin) =>
-    pluginStates[plugin.id].logs.map((line) => `[${plugin.name}] ${line}`)
-  );
-});
-
 const appendPluginLogs = (pluginId: string, lines: string[] | string) => {
   const state = pluginStates[pluginId];
   if (Array.isArray(lines)) {
@@ -179,22 +175,22 @@ const resetCompletionState = () => {
   installationFinished.value = false;
 };
 
-const togglePlugin = (pluginId: string) => {
+const togglePlugin = (pluginId: string, value: boolean) => {
   if (installedPluginIds.value.has(pluginId) || isBusy.value) {
     return;
   }
 
   const next = new Set(selectedPlugins.value);
-  if (next.has(pluginId)) {
-    next.delete(pluginId);
-    pluginStates[pluginId].status = 'pending';
-    pluginStates[pluginId].logs = [];
-  } else {
+  if (value) {
     next.add(pluginId);
     if (pluginStates[pluginId].status !== 'pending') {
       pluginStates[pluginId].status = 'pending';
       pluginStates[pluginId].logs = [];
     }
+  } else {
+    next.delete(pluginId);
+    pluginStates[pluginId].status = 'pending';
+    pluginStates[pluginId].logs = [];
   }
   selectedPlugins.value = next;
   resetCompletionState();
@@ -296,129 +292,157 @@ const handlePrimaryAction = async () => {
 
   if (!isBusy.value) {
     await handleInstall();
+    // After install, check if successful and proceed?
+    // The current logic sets installationFinished, and next click will complete.
+    // Ideally, we auto-complete if successful.
+    if (!error.value && installationFinished.value) {
+      props.onComplete();
+    }
   }
 };
 
 const primaryButtonText = computed(() => {
-  if (installationFinished.value) {
-    return t('common.continue');
-  }
-  if (hasInstallableSelection.value) {
-    return t('activation.pluginsStep.installSelected');
-  }
-  return t('common.continue');
-});
-
-const isPrimaryActionDisabled = computed(() => {
-  if (isBusy.value) {
-    return true;
-  }
-
-  if (installationFinished.value) {
-    return false;
-  }
-
-  if (!props.isRequired) {
-    return false;
-  }
-
-  return selectedPlugins.value.size === 0;
+  if (isInstalling.value) return t('activation.pluginsStep.installing');
+  return 'Next Step'; // Hardcoded as per design or use t key
 });
 </script>
 
 <template>
-  <div class="mx-auto flex w-full max-w-2xl flex-col items-center justify-center">
-    <h2 class="mb-4 text-xl font-semibold">
-      {{ t('activation.pluginsStep.installEssentialPlugins') }}
-    </h2>
-    <p class="mb-8 text-center text-sm opacity-75">
-      {{ t('activation.pluginsStep.selectPluginsDescription') }}
-    </p>
-
-    <div class="mb-8 flex w-full flex-col gap-4">
-      <label
-        v-for="plugin in availablePlugins"
-        :key="plugin.id"
-        :for="plugin.id"
-        class="border-border bg-card hover:bg-accent/50 flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
-      >
-        <div class="mt-1 h-5 w-5">
-          <div
-            v-if="pluginStates[plugin.id].status === 'installing'"
-            class="border-primary h-5 w-5 animate-spin rounded-full border-2 border-t-transparent"
-          />
-          <input
-            v-else
-            :id="plugin.id"
-            type="checkbox"
-            :checked="selectedPlugins.has(plugin.id)"
-            :disabled="isBusy || isPluginInstalled(plugin.id)"
-            @change="() => togglePlugin(plugin.id)"
-            class="text-primary focus:ring-primary h-5 w-5 cursor-pointer rounded border-gray-300 focus:ring-2"
-          />
+  <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
+    <div class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
+      <!-- Header -->
+      <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-start">
+        <div class="space-y-2">
+          <div class="flex items-center gap-3">
+            <Squares2X2Icon class="text-primary h-8 w-8" />
+            <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
+              {{ t('activation.pluginsStep.title', 'PLUGINS') }}
+            </h2>
+          </div>
+          <p class="text-muted text-lg">
+            {{
+              t(
+                'activation.pluginsStep.description',
+                "Extend your server's capabilities with community tools."
+              )
+            }}
+          </p>
         </div>
-        <div class="flex-1">
-          <div class="flex items-center gap-2">
-            <div class="font-semibold">{{ plugin.name }}</div>
-            <span
+      </div>
+
+      <!-- Pro Tip -->
+      <blockquote class="border-primary bg-bg/50 text-muted my-8 border-s-4 p-4">
+        <div class="flex items-start gap-2">
+          <InformationCircleIcon class="mt-0.5 h-5 w-5 flex-shrink-0 text-orange-500" />
+          <p class="text-sm leading-relaxed italic">
+            <span class="mr-1 font-bold text-orange-500 not-italic">Tip:</span>
+            {{ t('activation.pluginsStep.tip') }}
+          </p>
+        </div>
+      </blockquote>
+
+      <!-- Plugin List -->
+      <div class="mb-8 grid gap-4">
+        <div
+          v-for="plugin in availablePlugins"
+          :key="plugin.id"
+          class="border-muted bg-bg hover:border-primary/50 flex items-center justify-between rounded-lg border p-5 transition-colors"
+        >
+          <div class="flex-1 pr-4">
+            <h3 class="text-highlighted mb-1 text-base font-bold">
+              {{ plugin.name }}
+            </h3>
+            <p class="text-muted text-sm leading-relaxed">
+              {{ plugin.description }}
+            </p>
+            <!-- Install Status Text -->
+            <p
               v-if="pluginStates[plugin.id].status === 'installing'"
-              class="text-primary flex items-center gap-1 text-xs"
+              class="text-primary mt-2 flex items-center gap-1 text-xs"
             >
               <span
-                class="h-3 w-3 animate-spin rounded-full border border-current border-t-transparent"
+                class="border-primary h-3 w-3 animate-spin rounded-full border-2 border-t-transparent"
               />
-              {{ t('activation.pluginsStep.status.installing') }}
-            </span>
-            <span
+              Installing...
+            </p>
+            <p
               v-else-if="pluginStates[plugin.id].status === 'success'"
-              class="text-xs text-green-600"
+              class="mt-2 text-xs font-medium text-green-600"
             >
-              {{ t('activation.pluginsStep.status.success') }}
-            </span>
-            <span v-else-if="pluginStates[plugin.id].status === 'error'" class="text-xs text-red-500">
-              {{ t('activation.pluginsStep.status.error') }}
-            </span>
+              Installed Successfully
+            </p>
+            <p
+              v-else-if="pluginStates[plugin.id].status === 'error'"
+              class="mt-2 text-xs font-medium text-red-500"
+            >
+              Installation Failed
+            </p>
           </div>
-          <div class="text-sm opacity-75">{{ plugin.description }}</div>
+
+          <Switch
+            :model-value="selectedPlugins.has(plugin.id)"
+            @update:model-value="(val: boolean) => togglePlugin(plugin.id, val)"
+            :disabled="isBusy || isPluginInstalled(plugin.id)"
+            :class="[
+              selectedPlugins.has(plugin.id) ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700',
+              'focus:ring-primary relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
+            ]"
+          >
+            <span class="sr-only">Enable {{ plugin.name }}</span>
+            <span
+              aria-hidden="true"
+              :class="[
+                selectedPlugins.has(plugin.id) ? 'translate-x-5' : 'translate-x-0',
+                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+              ]"
+            />
+          </Switch>
         </div>
-      </label>
-    </div>
-
-    <div
-      v-if="combinedLogs.length > 0"
-      class="border-border bg-muted/40 mb-4 max-h-48 w-full overflow-y-auto rounded border p-3 text-left font-mono text-xs"
-    >
-      <div v-for="(line, index) in combinedLogs" :key="`${index}-${line}`">
-        {{ line }}
       </div>
-    </div>
 
-    <div v-if="error" class="mb-4 text-sm text-red-500">
-      {{ error }}
-    </div>
+      <!-- Error Message -->
+      <div
+        v-if="error"
+        class="mb-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
+      >
+        <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
+          {{ error }}
+        </p>
+      </div>
 
-    <div class="flex gap-4">
-      <BrandButton
-        v-if="onBack && showBack"
-        :text="t('common.back')"
-        variant="outline"
-        :disabled="isBusy"
-        @click="handleBack"
-      />
-      <div class="flex-1" />
-      <BrandButton
-        v-if="onSkip && showSkip"
-        :text="t('common.skip')"
-        variant="outline"
-        :disabled="isBusy"
-        @click="handleSkip"
-      />
-      <BrandButton
-        :text="primaryButtonText"
-        :disabled="isPrimaryActionDisabled"
-        :loading="isBusy"
-        @click="handlePrimaryAction"
-      />
+      <div
+        class="border-muted flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
+      >
+        <button
+          v-if="showBack"
+          @click="handleBack"
+          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
+          :disabled="isBusy"
+        >
+          <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
+          {{ t('common.back') }}
+        </button>
+        <div v-else class="hidden w-1 sm:block" />
+
+        <div class="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row">
+          <button
+            v-if="showSkip && !isInstalling"
+            @click="handleSkip"
+            class="text-muted hover:text-highlighted text-sm font-medium transition-colors sm:mr-2"
+            :disabled="isBusy"
+          >
+            {{ t('common.skipForNow', 'Skip for now') }}
+          </button>
+          <BrandButton
+            :text="primaryButtonText"
+            class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
+            :disabled="isBusy"
+            :loading="isBusy"
+            @click="handlePrimaryAction"
+            :icon-right="ChevronRightIcon"
+          />
+        </div>
+      </div>
     </div>
   </div>
 </template>
