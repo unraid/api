@@ -1,4 +1,4 @@
-import { Query, Resolver, Subscription } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
@@ -27,5 +27,14 @@ export class DisplayResolver {
     })
     public async displaySubscription() {
         return createSubscription(PUBSUB_CHANNEL.DISPLAY);
+    }
+
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.DISPLAY,
+    })
+    @Mutation(() => Display, { description: 'Set the display locale (language)' })
+    public async setLocale(@Args('locale') locale: string): Promise<Display> {
+        return this.displayService.setLocale(locale);
     }
 }

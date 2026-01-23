@@ -1,13 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { Injectable, Logger } from '@nestjs/common';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+
+import * as ini from 'ini';
 
 import { type DynamixConfig } from '@app/core/types/ini.js';
 import { toBoolean } from '@app/core/utils/casting.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { loadState } from '@app/core/utils/misc/load-state.js';
 import { validateEnumValue } from '@app/core/utils/validation/enum-validator.js';
-import { getters } from '@app/store/index.js';
+import { loadDynamixConfigFromDiskSync } from '@app/store/actions/load-dynamix-config-file.js';
+import { getters, store } from '@app/store/index.js';
+import { updateDynamixConfig } from '@app/store/modules/dynamix.js';
 import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 import { Display, Temperature } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
 
@@ -68,6 +72,8 @@ const states = {
 
 @Injectable()
 export class DisplayService {
+    private readonly logger = new Logger(DisplayService.name);
+
     async generateDisplay(): Promise<Display> {
         // Get case information
         const caseInfo = await this.getCaseInfo();
@@ -95,6 +101,67 @@ export class DisplayService {
         };
 
         return display;
+    }
+
+    async setLocale(locale: string): Promise<Display> {
+        this.logger.log(`Updating locale to ${locale}`);
+        const paths = getters.paths();
+        const configFile = paths['dynamix-config']?.[1];
+
+        if (!configFile) {
+            throw new Error('Dynamix config path not found');
+        }
+
+        await this.updateCfgFile(configFile, 'display', { locale });
+
+        // Refresh in-memory store
+        const updatedConfig = loadDynamixConfigFromDiskSync(paths['dynamix-config']);
+        store.dispatch(updateDynamixConfig(updatedConfig));
+
+        return this.generateDisplay();
+    }
+
+    private async updateCfgFile(
+        filePath: string,
+        section: string | null,
+        updates: Record<string, string>
+    ) {
+        let configData: Record<string, Record<string, string> | string> = {};
+        try {
+            const content = await readFile(filePath, 'utf-8');
+            configData = ini.parse(content) as Record<string, Record<string, string> | string>;
+        } catch (error: unknown) {
+            // If creation is needed, we handle it. But typically dynamix.cfg exists.
+            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+                this.logger.log(`Config file ${filePath} not found, will create it.`);
+            } else {
+                this.logger.error(`Error reading config file ${filePath}:`, error);
+                throw error;
+            }
+        }
+
+        if (section) {
+            if (!configData[section] || typeof configData[section] === 'string') {
+                configData[section] = {};
+            }
+            Object.entries(updates).forEach(([key, value]) => {
+                (configData[section] as Record<string, string>)[key] = value;
+            });
+        } else {
+            Object.entries(updates).forEach(([key, value]) => {
+                configData[key] = value;
+            });
+        }
+
+        try {
+            const newContent = ini.stringify(configData);
+            await mkdir(dirname(filePath), { recursive: true });
+            await writeFile(filePath, newContent + '\n');
+            this.logger.log(`Config file ${filePath} updated successfully.`);
+        } catch (error: unknown) {
+            this.logger.error(`Error writing config file ${filePath}:`, error);
+            throw error;
+        }
     }
 
     private async getCaseInfo() {
