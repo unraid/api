@@ -38,6 +38,9 @@ export class Server extends Node {
     @Field()
     name!: string;
 
+    @Field({ nullable: true, description: 'Server description/comment' })
+    comment?: string;
+
     @Field(() => ServerStatus, {
         description: 'Whether this server is online or offline',
     })

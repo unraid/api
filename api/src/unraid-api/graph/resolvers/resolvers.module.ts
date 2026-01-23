@@ -25,6 +25,7 @@ import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resol
 import { RCloneModule } from '@app/unraid-api/graph/resolvers/rclone/rclone.module.js';
 import { RegistrationResolver } from '@app/unraid-api/graph/resolvers/registration/registration.resolver.js';
 import { ServerResolver } from '@app/unraid-api/graph/resolvers/servers/server.resolver.js';
+import { ServerService } from '@app/unraid-api/graph/resolvers/servers/server.service.js';
 import { SettingsModule } from '@app/unraid-api/graph/resolvers/settings/settings.module.js';
 import { SsoModule } from '@app/unraid-api/graph/resolvers/sso/sso.module.js';
 import { SystemTimeModule } from '@app/unraid-api/graph/resolvers/system-time/system-time.module.js';
@@ -74,6 +75,7 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         RegistrationResolver,
         RootMutationsResolver,
         ServerResolver,
+        ServerService,
         ServicesResolver,
         SharesResolver,
         VarsResolver,
