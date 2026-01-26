@@ -398,7 +398,7 @@ watch(
     :show-footer="false"
     :show-close-button="isHidden === false || shouldShowUpgradeOnboarding"
     size="full"
-    class="bg-background"
+    class="bg-background pb-0"
     @update:model-value="
       async (value) => {
         if (!value) {

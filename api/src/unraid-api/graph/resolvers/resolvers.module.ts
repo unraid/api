@@ -33,6 +33,7 @@ import { SystemTimeModule } from '@app/unraid-api/graph/resolvers/system-time/sy
 import { UnraidPluginsModule } from '@app/unraid-api/graph/resolvers/unraid-plugins/unraid-plugins.module.js';
 import { UPSModule } from '@app/unraid-api/graph/resolvers/ups/ups.module.js';
 import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver.js';
+import { VarsService } from '@app/unraid-api/graph/resolvers/vars/vars.service.js';
 import { VmMutationsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.mutations.resolver.js';
 import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
@@ -81,6 +82,7 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         ServicesResolver,
         SharesResolver,
         VarsResolver,
+        VarsService,
         VmMutationsResolver,
         VmsResolver,
         VmsService,

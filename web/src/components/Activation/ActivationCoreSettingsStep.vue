@@ -14,6 +14,7 @@ import {
   SET_LOCALE_MUTATION,
   SET_THEME_MUTATION,
   UPDATE_SERVER_IDENTITY_MUTATION,
+  UPDATE_SSH_SETTINGS_MUTATION,
 } from '@/components/Activation/coreSettings.mutations';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Activation/getCoreSettings.query';
 import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Activation/timeZoneOptions.query';
@@ -48,6 +49,7 @@ const { mutate: setTheme } = useMutation(SET_THEME_MUTATION); // Added
 const { mutate: setLocale } = useMutation(SET_LOCALE_MUTATION); // Added
 const { mutate: installPlugin } = useMutation(INSTALL_PLUGIN_MUTATION); // Added
 const { mutate: installLanguage } = useMutation(INSTALL_LANGUAGE_MUTATION); // Added
+const { mutate: updateSshSettings } = useMutation(UPDATE_SSH_SETTINGS_MUTATION); // Added
 
 const { result: timeZoneOptionsResult } = useQuery(TIME_ZONE_OPTIONS_QUERY);
 const { result: coreSettingsResult, onResult: onCoreSettingsResult } = useQuery(
@@ -260,6 +262,13 @@ const handleSubmit = async () => {
       promises.push(langFlow());
     }
 
+    // Update SSH
+    if (useSsh.value !== coreSettingsResult.value?.vars?.useSsh) {
+      // Default port 22 if not specified. The UI doesn't have a port input yet, so we assume default or current
+      const currentPort = coreSettingsResult.value?.vars?.portssh || 22;
+      promises.push(updateSshSettings({ enabled: useSsh.value, port: currentPort }));
+    }
+
     await Promise.all(promises);
     props.onComplete();
   } catch (err: unknown) {
@@ -443,10 +452,11 @@ const ipItems = [
               <!-- Custom Switch Implementation using Headless UI to match Theme -->
               <Switch
                 v-model="useSsh"
-                disabled
+                :disabled="isBusy"
                 :class="[
                   useSsh ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700',
-                  'focus:ring-primary relative inline-flex h-6 w-11 shrink-0 cursor-not-allowed rounded-full border-2 border-transparent opacity-50 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none',
+                  isBusy ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+                  'focus:ring-primary relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none',
                 ]"
               >
                 <span class="sr-only">{{ t('activation.coreSettings.ssh') }}</span>

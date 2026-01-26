@@ -49,3 +49,13 @@ export const INSTALL_LANGUAGE_MUTATION = gql`
     }
   }
 `;
+
+export const UPDATE_SSH_SETTINGS_MUTATION = gql`
+  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {
+    updateSshSettings(input: { enabled: $enabled, port: $port }) {
+      id
+      useSsh
+      portssh
+    }
+  }
+`;
