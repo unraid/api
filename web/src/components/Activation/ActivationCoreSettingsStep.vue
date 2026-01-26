@@ -3,14 +3,18 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import { ChevronLeftIcon, Cog6ToothIcon } from '@heroicons/vue/24/outline';
+import { ChevronLeftIcon, Cog6ToothIcon, GlobeAltIcon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, Select } from '@unraid/ui';
+// --- Theme Images ---
+import azureThemeImg from '@/assets/unraid-azure-theme.png';
+import blackThemeImg from '@/assets/unraid-black-theme.png';
+import grayThemeImg from '@/assets/unraid-gray-theme.png';
+import whiteThemeImg from '@/assets/unraid-white-theme.png';
 // --- Language Logic ---
 import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Activation/availableLanguages.query';
 import {
   INSTALL_LANGUAGE_MUTATION,
-  INSTALL_PLUGIN_MUTATION,
   SET_LOCALE_MUTATION,
   SET_THEME_MUTATION,
   UPDATE_SERVER_IDENTITY_MUTATION,
@@ -33,13 +37,31 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 
+const themeImages: Record<string, string> = {
+  azure: azureThemeImg,
+  black: blackThemeImg,
+  gray: grayThemeImg,
+  white: whiteThemeImg,
+};
+
+// ... inside script setup ...
+
 const selectedTimeZone = ref<string>('');
 const serverName = ref<string>('');
-const serverDescription = ref<string>(''); // Added
-const selectedTheme = ref<string>(''); // Added
-const selectedLanguage = ref<string>(''); // Added
+const serverDescription = ref<string>('');
+const selectedTheme = ref<string>('');
+const selectedLanguage = ref<string>('');
 const useSsh = ref<boolean>(false);
-const ipAssignment = ref<string>('dhcp'); // Mock for UI
+// ipAssignment removed
+const currentIp = ref<string>('');
+const localTld = ref<string>('local'); // Store localTld for hostname computation
+
+const currentHostname = computed(() => {
+  const name = serverName.value || 'Tower';
+  const tld = localTld.value || 'local';
+  return `${name.toLowerCase()}.${tld}`;
+});
+
 const isSaving = ref(false);
 const error = ref<string | null>(null);
 
@@ -47,7 +69,6 @@ const { mutate: updateSystemTime } = useMutation(UPDATE_SYSTEM_TIME_MUTATION);
 const { mutate: updateServerIdentity } = useMutation(UPDATE_SERVER_IDENTITY_MUTATION); // Added
 const { mutate: setTheme } = useMutation(SET_THEME_MUTATION); // Added
 const { mutate: setLocale } = useMutation(SET_LOCALE_MUTATION); // Added
-const { mutate: installPlugin } = useMutation(INSTALL_PLUGIN_MUTATION); // Added
 const { mutate: installLanguage } = useMutation(INSTALL_LANGUAGE_MUTATION); // Added
 const { mutate: updateSshSettings } = useMutation(UPDATE_SSH_SETTINGS_MUTATION); // Added
 
@@ -80,6 +101,14 @@ onCoreSettingsResult((res) => {
   if (res.data?.display) {
     selectedTheme.value = res.data.display.theme || 'white';
     selectedLanguage.value = res.data.display.locale || 'en_US';
+  }
+
+  if (res.data?.vars) {
+    localTld.value = res.data.vars.localTld || 'local';
+  }
+
+  if (res.data?.info?.primaryNetwork) {
+    currentIp.value = res.data.info.primaryNetwork.ipAddress || '';
   }
 });
 
@@ -295,19 +324,13 @@ const serverNameValidation = computed(() => {
 });
 
 const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
-
-// Mock items for IP Assignment
-const ipItems = [
-  { label: 'DHCP', value: 'dhcp' },
-  { label: 'Static', value: 'static', disabled: true },
-];
 </script>
 
 <template>
   <!-- Main Step Container with Relative Positioning -->
   <div class="relative w-full">
     <!-- Typography Cloud Background -->
-    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div class="pointer-events-none fixed inset-0 -z-10 hidden overflow-hidden md:block">
       <TypographyCloud />
     </div>
 
@@ -328,13 +351,34 @@ const ipItems = [
             <p class="text-muted text-lg">
               {{ t('activation.coreSettings.description') }}
             </p>
+            <!-- Badge Container -->
+            <div class="mt-2 flex flex-wrap gap-2">
+              <!-- IP Address Badge -->
+              <div
+                v-if="currentIp"
+                class="flex items-center gap-1 rounded border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+              >
+                <span class="h-1.5 w-1.5 rounded-full bg-green-500" />
+                {{ currentIp }}
+              </div>
+              <!-- Local Hostname Badge -->
+              <div
+                v-if="currentHostname"
+                class="flex items-center gap-1 rounded border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+              >
+                <GlobeAltIcon class="text-primary h-3 w-3" />
+                {{ currentHostname }}
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Main Form Grid -->
-        <div class="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2">
+        <!-- Main Form Content -->
+
+        <!-- Top Grid: Server Identity & Region -->
+        <div class="mb-8 grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2">
           <!-- Server Name -->
-          <div class="flex flex-col gap-3">
+          <div class="flex flex-col gap-2">
             <label class="text-highlighted text-base font-bold">
               {{ t('activation.coreSettings.serverName') }}
             </label>
@@ -354,23 +398,21 @@ const ipItems = [
           </div>
 
           <!-- Server Description -->
-          <div class="flex flex-col gap-3">
+          <div class="flex flex-col gap-2">
             <label class="text-highlighted text-base font-bold">
               {{ t('activation.coreSettings.serverDescription') }}
             </label>
-            <div class="space-y-1">
-              <UInput
-                v-model="serverDescription"
-                :placeholder="t('activation.coreSettings.serverDescriptionPlaceholder')"
-                :disabled="isBusy"
-                size="lg"
-                class="w-full"
-              />
-            </div>
+            <UInput
+              v-model="serverDescription"
+              :placeholder="t('activation.coreSettings.serverDescriptionPlaceholder')"
+              :disabled="isBusy"
+              size="lg"
+              class="w-full"
+            />
           </div>
 
           <!-- Time Zone -->
-          <div class="flex flex-col gap-3">
+          <div class="flex flex-col gap-2">
             <label class="text-highlighted text-base font-bold">
               {{ t('activation.timezoneStep.setYourTimeZone') }}
             </label>
@@ -385,7 +427,7 @@ const ipItems = [
           </div>
 
           <!-- Language -->
-          <div class="flex flex-col gap-3">
+          <div class="flex flex-col gap-2">
             <label class="text-highlighted text-base font-bold">
               {{ t('activation.coreSettings.language') }}
             </label>
@@ -400,56 +442,23 @@ const ipItems = [
               size="lg"
             />
           </div>
-
-          <!-- Theme -->
-          <div class="flex flex-col gap-3">
-            <label class="text-highlighted text-base font-bold">
-              {{ t('activation.coreSettings.theme') }}
-            </label>
-            <Select
-              v-model="selectedTheme"
-              :items="themeItems"
-              class="w-full"
-              :disabled="isBusy"
-              size="lg"
-            />
-          </div>
         </div>
 
-        <!-- Divider -->
         <div class="border-muted my-8 w-full border-t" />
 
-        <!-- Settings List -->
+        <!-- Bottom Section: Toggles & Theme -->
         <div class="space-y-8">
-          <!-- IP Assignment -->
-          <div class="flex flex-col justify-between gap-4 md:flex-row md:items-start">
-            <div class="space-y-1">
-              <h3 class="text-highlighted text-base font-bold">
-                {{ t('activation.coreSettings.ipAddress') }}
-              </h3>
-              <p class="text-muted text-sm">Automatic (DHCP) is recommended for most users.</p>
-            </div>
-            <div class="w-full md:w-64">
-              <Select
-                v-model="ipAssignment"
-                :items="ipItems"
-                disabled
-                class="w-full opacity-75"
-                size="lg"
-              />
-            </div>
-          </div>
-
           <!-- SSH Access -->
           <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div class="space-y-1">
               <h3 class="text-highlighted text-base font-bold">
                 {{ t('activation.coreSettings.ssh') }}
               </h3>
-              <p class="text-muted text-sm">Allow command line access via port 22.</p>
+              <p class="text-muted text-sm">
+                {{ t('activation.coreSettings.sshDescription') }}
+              </p>
             </div>
             <div class="flex items-center">
-              <!-- Custom Switch Implementation using Headless UI to match Theme -->
               <Switch
                 v-model="useSsh"
                 :disabled="isBusy"
@@ -469,6 +478,40 @@ const ipItems = [
                 />
               </Switch>
             </div>
+          </div>
+          <!-- Border -->
+          <div class="border-muted my-8 w-full border-t" />
+
+          <!-- Theme Selection -->
+          <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div class="space-y-1">
+              <h3 class="text-highlighted text-base font-bold">
+                {{ t('activation.coreSettings.theme') }}
+              </h3>
+              <p class="text-muted text-sm">
+                {{ t('activation.coreSettings.themeDescription') }}
+              </p>
+            </div>
+            <div class="w-full md:w-64">
+              <Select
+                v-model="selectedTheme"
+                :items="themeItems"
+                class="w-full"
+                :disabled="isBusy"
+                size="lg"
+              />
+            </div>
+          </div>
+
+          <!-- Theme Preview Image -->
+          <div
+            class="min-h-[200px] w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100 shadow-sm dark:border-gray-800 dark:bg-gray-800"
+          >
+            <img
+              :src="themeImages[selectedTheme] || themeImages['white']"
+              :alt="selectedTheme + ' theme preview'"
+              class="h-auto w-full object-cover"
+            />
           </div>
         </div>
 

@@ -5,6 +5,7 @@ export const GET_CORE_SETTINGS_QUERY = gql`
     vars {
       name
       useSsh
+      localTld
     }
     server {
       name
@@ -16,6 +17,11 @@ export const GET_CORE_SETTINGS_QUERY = gql`
     }
     systemTime {
       timeZone
+    }
+    info {
+      primaryNetwork {
+        ipAddress
+      }
     }
   }
 `;
