@@ -83,7 +83,7 @@ onUnmounted(() => {
       :show-footer="false"
       :show-close-button="isLoginPage"
       size="full"
-      class="bg-background"
+      class="bg-background pb-0"
       @update:model-value="(value) => (showModal = value)"
     >
       <div
