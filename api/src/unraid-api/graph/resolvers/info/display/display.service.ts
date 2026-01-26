@@ -13,7 +13,11 @@ import { loadDynamixConfigFromDiskSync } from '@app/store/actions/load-dynamix-c
 import { getters, store } from '@app/store/index.js';
 import { updateDynamixConfig } from '@app/store/modules/dynamix.js';
 import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
-import { Display, Temperature } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
+import {
+    Display,
+    Language,
+    Temperature,
+} from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
 
 const states = {
     // Success
@@ -113,6 +117,24 @@ export class DisplayService {
         }
 
         await this.updateCfgFile(configFile, 'display', { locale });
+
+        // Refresh in-memory store
+        const updatedConfig = loadDynamixConfigFromDiskSync(paths['dynamix-config']);
+        store.dispatch(updateDynamixConfig(updatedConfig));
+
+        return this.generateDisplay();
+    }
+
+    async setTheme(theme: string): Promise<Display> {
+        this.logger.log(`Updating theme to ${theme}`);
+        const paths = getters.paths();
+        const configFile = paths['dynamix-config']?.[1];
+
+        if (!configFile) {
+            throw new Error('Dynamix config path not found');
+        }
+
+        await this.updateCfgFile(configFile, 'display', { theme });
 
         // Refresh in-memory store
         const updatedConfig = loadDynamixConfigFromDiskSync(paths['dynamix-config']);
@@ -231,5 +253,29 @@ export class DisplayService {
             max: Number.parseInt(display.max, 10),
             locale: display.locale || 'en_US',
         };
+    }
+
+    async getAvailableLanguages(): Promise<Language[]> {
+        try {
+            const response = await fetch('https://assets.ca.unraid.net/feed/languageSelection.json');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch languages: ${response.statusText}`);
+            }
+            const data = (await response.json()) as Record<string, { Desc: string; URL: string }>;
+
+            const languages: Language[] = Object.entries(data).map(([code, info]) => ({
+                code,
+                name: info.Desc,
+                url: info.URL,
+            }));
+
+            // Ensure English is present/first if desired, though usually client handles sort.
+            // But let's just return what the feed has.
+            return languages;
+        } catch (error) {
+            this.logger.error('Failed to fetch available languages', error);
+            // Return empty list or basic English fallback on error
+            return [{ code: 'en_US', name: 'English' }];
+        }
     }
 }

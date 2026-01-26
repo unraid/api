@@ -23,8 +23,11 @@ type PluginInstallSubscriberIterator = AsyncIterableIterator<{
 
 type PluginInstallChildProcess = ReturnType<typeof execa>;
 
+type OperationType = 'plugin' | 'language';
+
 interface OperationState {
     id: string;
+    type: OperationType;
     url: string;
     name?: string | null;
     status: PluginInstallStatus;
@@ -46,11 +49,23 @@ export class UnraidPluginsService {
     constructor(private readonly configService: ConfigService) {}
 
     async installPlugin(input: InstallPluginInput): Promise<PluginInstallOperation> {
+        return this.startOperation('plugin', input);
+    }
+
+    async installLanguage(input: InstallPluginInput): Promise<PluginInstallOperation> {
+        return this.startOperation('language', input);
+    }
+
+    private async startOperation(
+        type: OperationType,
+        input: InstallPluginInput
+    ): Promise<PluginInstallOperation> {
         const id = randomUUID();
         const createdAt = new Date();
 
         const operation: OperationState = {
             id,
+            type,
             url: input.url,
             name: input.name,
             status: PluginInstallStatus.RUNNING,
@@ -64,13 +79,15 @@ export class UnraidPluginsService {
         this.operations.set(id, operation);
 
         this.logger.log(
-            `Starting plugin installation for "${input.name ?? input.url}" (operation ${id})`
+            `Starting ${type} installation for "${input.name ?? input.url}" (operation ${id})`
         );
 
         this.publishEvent(operation, []);
 
-        const args = this.buildPluginArgs(operation);
-        const child = execa('plugin', args, {
+        const args = this.buildArgs(operation);
+        const command = type === 'plugin' ? 'plugin' : 'language';
+
+        const child = execa(command, args, {
             all: true,
             reject: false,
             timeout: 5 * 60 * 1000,
@@ -101,7 +118,7 @@ export class UnraidPluginsService {
             if (code === 0) {
                 this.handleSuccess(operation);
             } else {
-                this.handleFailure(operation, new Error(`Plugin command exited with ${code}`));
+                this.handleFailure(operation, new Error(`${type} command exited with ${code}`));
             }
         });
 
@@ -152,9 +169,13 @@ export class UnraidPluginsService {
         }>(this.getChannel(operationId));
     }
 
-    private buildPluginArgs(operation: OperationState): string[] {
+    private buildArgs(operation: OperationState): string[] {
         const args = ['install', operation.url];
-        if (operation.forced) {
+        // 'language' command doesn't support 'forced' flag in same way, or at all?
+        // Checking doc: language install LANGUAGE-FILE
+        // plugin install PLUGIN-FILE [forced]
+
+        if (operation.type === 'plugin' && operation.forced) {
             args.push('forced');
         }
         return args;

@@ -2116,6 +2116,8 @@ export type Query = {
   /** Get the actual permissions that would be granted by a set of roles */
   getPermissionsForRoles: Array<Permission>;
   info: Info;
+  /** List installed Unraid OS plugins by .plg filename */
+  installedUnraidPlugins: Array<Scalars['String']['output']>;
   isInitialSetup: Scalars['Boolean']['output'];
   isSSOEnabled: Scalars['Boolean']['output'];
   logFile: LogFileContent;
@@ -2156,6 +2158,8 @@ export type Query = {
   shares: Array<Share>;
   /** Retrieve current system time configuration */
   systemTime: SystemTime;
+  /** Retrieve available time zone options */
+  timeZoneOptions: Array<TimeZoneOption>;
   upsConfiguration: UpsConfiguration;
   upsDeviceById?: Maybe<UpsDevice>;
   upsDevices: Array<UpsDevice>;
@@ -2612,6 +2616,15 @@ export enum ThemeName {
   GRAY = 'gray',
   WHITE = 'white'
 }
+
+/** Selectable timezone option from the system list */
+export type TimeZoneOption = {
+  __typename?: 'TimeZoneOption';
+  /** Display label for the timezone */
+  label: Scalars['String']['output'];
+  /** IANA timezone identifier */
+  value: Scalars['String']['output'];
+};
 
 export type UpsBattery = {
   __typename?: 'UPSBattery';

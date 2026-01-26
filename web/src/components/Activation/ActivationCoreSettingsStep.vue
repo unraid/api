@@ -6,6 +6,15 @@ import { useMutation, useQuery } from '@vue/apollo-composable';
 import { ChevronLeftIcon, Cog6ToothIcon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, Select } from '@unraid/ui';
+// --- Language Logic ---
+import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Activation/availableLanguages.query';
+import {
+  INSTALL_LANGUAGE_MUTATION,
+  INSTALL_PLUGIN_MUTATION,
+  SET_LOCALE_MUTATION,
+  SET_THEME_MUTATION,
+  UPDATE_SERVER_IDENTITY_MUTATION,
+} from '@/components/Activation/coreSettings.mutations';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Activation/getCoreSettings.query';
 import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Activation/timeZoneOptions.query';
 import TypographyCloud from '@/components/Activation/TypographyCloud.vue';
@@ -25,12 +34,21 @@ const { t } = useI18n();
 
 const selectedTimeZone = ref<string>('');
 const serverName = ref<string>('');
+const serverDescription = ref<string>(''); // Added
+const selectedTheme = ref<string>(''); // Added
+const selectedLanguage = ref<string>(''); // Added
 const useSsh = ref<boolean>(false);
 const ipAssignment = ref<string>('dhcp'); // Mock for UI
 const isSaving = ref(false);
 const error = ref<string | null>(null);
 
 const { mutate: updateSystemTime } = useMutation(UPDATE_SYSTEM_TIME_MUTATION);
+const { mutate: updateServerIdentity } = useMutation(UPDATE_SERVER_IDENTITY_MUTATION); // Added
+const { mutate: setTheme } = useMutation(SET_THEME_MUTATION); // Added
+const { mutate: setLocale } = useMutation(SET_LOCALE_MUTATION); // Added
+const { mutate: installPlugin } = useMutation(INSTALL_PLUGIN_MUTATION); // Added
+const { mutate: installLanguage } = useMutation(INSTALL_LANGUAGE_MUTATION); // Added
+
 const { result: timeZoneOptionsResult } = useQuery(TIME_ZONE_OPTIONS_QUERY);
 const { result: coreSettingsResult, onResult: onCoreSettingsResult } = useQuery(
   GET_CORE_SETTINGS_QUERY,
@@ -45,9 +63,21 @@ onCoreSettingsResult((res) => {
     selectedTimeZone.value = res.data.systemTime.timeZone;
     hasAutoSelected.value = true;
   }
-  if (res.data?.vars) {
+  // Fallback to vars if server not fully populated, but server should take precedence
+  if (res.data?.server) {
+    serverName.value = res.data.server.name || res.data.vars?.name || '';
+    serverDescription.value = res.data.server.comment || '';
+  } else if (res.data?.vars) {
     serverName.value = res.data.vars.name || '';
+  }
+
+  if (res.data?.vars) {
     useSsh.value = res.data.vars.useSsh || false;
+  }
+
+  if (res.data?.display) {
+    selectedTheme.value = res.data.display.theme || 'white';
+    selectedLanguage.value = res.data.display.locale || 'en_US';
   }
 });
 
@@ -102,7 +132,7 @@ const detectBrowserTimezone = (): string | null => {
 
 const hasAutoSelected = ref(false);
 
-watch([selectedTimeZone, serverName, useSsh], () => {
+watch([selectedTimeZone, serverName, useSsh, serverDescription, selectedTheme, selectedLanguage], () => {
   if (error.value) {
     error.value = null;
   }
@@ -130,6 +160,47 @@ watch(
   { immediate: true }
 );
 
+// --- Theme Logic ---
+const themeItems = [
+  { value: 'white', label: 'White' },
+  { value: 'black', label: 'Black' },
+  { value: 'gray', label: 'Gray' },
+  { value: 'azure', label: 'Azure' },
+];
+
+const {
+  result: languagesResult,
+  loading: isLanguagesLoading,
+  error: languagesQueryError,
+} = useQuery(GET_AVAILABLE_LANGUAGES_QUERY);
+
+// Define interface for the language data
+interface AvailableLanguage {
+  code: string;
+  name: string;
+  url: string;
+}
+
+const languageItems = computed(() => {
+  const languages = (languagesResult.value?.availableLanguages || []) as AvailableLanguage[];
+
+  const items: { value: string; label: string; url?: string }[] = languages.map((lang) => ({
+    value: lang.code,
+    label: lang.name,
+    url: lang.url,
+  }));
+
+  // Ensure en_US is there if fetch failed or weird input
+  if (!items.find((i) => i.value === 'en_US')) {
+    items.unshift({ value: 'en_US', label: 'English' });
+  }
+  return items;
+});
+
+const isLanguageDisabled = computed(() => isLanguagesLoading.value || !!languagesQueryError.value);
+
+// --- Submit Logic ---
+
 const handleSubmit = async () => {
   isSaving.value = true;
   error.value = null;
@@ -145,7 +216,49 @@ const handleSubmit = async () => {
       promises.push(updateSystemTime({ input: { timeZone: selectedTimeZone.value } }));
     }
 
-    // Server Name and SSH are currently read-only in this step as API support is pending.
+    // Update Server Identity
+    const originalName = coreSettingsResult.value?.server?.name || coreSettingsResult.value?.vars?.name;
+    const originalComment = coreSettingsResult.value?.server?.comment;
+
+    if (
+      (serverName.value && serverName.value !== originalName) ||
+      (serverDescription.value !== undefined && serverDescription.value !== originalComment)
+    ) {
+      promises.push(
+        updateServerIdentity({
+          name: serverName.value,
+          comment: serverDescription.value,
+        })
+      );
+    }
+
+    // Update Theme
+    if (selectedTheme.value && selectedTheme.value !== coreSettingsResult.value?.display?.theme) {
+      promises.push(setTheme({ theme: selectedTheme.value }));
+    }
+
+    // Update Language
+    if (selectedLanguage.value && selectedLanguage.value !== coreSettingsResult.value?.display?.locale) {
+      // Logic: Install language first if not en_US and assuming not installed (or just re-install to be safe/simple)
+      // Then set locale.
+      const langFlow = async () => {
+        if (selectedLanguage.value !== 'en_US') {
+          const selectedItem = languageItems.value.find((i) => i.value === selectedLanguage.value);
+          if (selectedItem?.url) {
+            // Install Language
+            await installLanguage({
+              input: {
+                url: selectedItem.url,
+                name: `Language Pack: ${selectedLanguage.value}`,
+              },
+            });
+          }
+        }
+        // Set Locale
+        await setLocale({ locale: selectedLanguage.value });
+      };
+      promises.push(langFlow());
+    }
 
     await Promise.all(promises);
     props.onComplete();
@@ -220,14 +333,30 @@ const ipItems = [
               <UInput
                 v-model="serverName"
                 placeholder="Tower"
-                disabled
+                :disabled="isBusy"
                 size="lg"
-                class="w-full cursor-not-allowed opacity-75"
+                class="w-full"
                 :class="{ '!border-red-500 focus:!border-red-500': !!serverNameValidation }"
               />
               <p v-if="serverNameValidation" class="text-sm font-medium text-red-500">
                 {{ serverNameValidation }}
               </p>
+            </div>
+          </div>
+
+          <!-- Server Description -->
+          <div class="flex flex-col gap-3">
+            <label class="text-highlighted text-base font-bold">
+              {{ t('activation.coreSettings.serverDescription') }}
+            </label>
+            <div class="space-y-1">
+              <UInput
+                v-model="serverDescription"
+                :placeholder="t('activation.coreSettings.serverDescriptionPlaceholder')"
+                :disabled="isBusy"
+                size="lg"
+                class="w-full"
+              />
             </div>
           </div>
 
@@ -240,6 +369,37 @@ const ipItems = [
               v-model="selectedTimeZone"
               :items="timeZoneItems"
               :placeholder="t('activation.timezoneStep.selectTimezonePlaceholder')"
+              class="w-full"
+              :disabled="isBusy"
+              size="lg"
+            />
+          </div>
+
+          <!-- Language -->
+          <div class="flex flex-col gap-3">
+            <label class="text-highlighted text-base font-bold">
+              {{ t('activation.coreSettings.language') }}
+            </label>
+            <Select
+              v-model="selectedLanguage"
+              :items="languageItems"
+              :placeholder="
+                isLanguagesLoading ? t('common.loading') : t('activation.coreSettings.selectLanguage')
+              "
+              class="w-full"
+              :disabled="isBusy || isLanguageDisabled"
+              size="lg"
+            />
+          </div>
+
+          <!-- Theme -->
+          <div class="flex flex-col gap-3">
+            <label class="text-highlighted text-base font-bold">
+              {{ t('activation.coreSettings.theme') }}
+            </label>
+            <Select
+              v-model="selectedTheme"
+              :items="themeItems"
               class="w-full"
               :disabled="isBusy"
               size="lg"

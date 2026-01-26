@@ -24,4 +24,15 @@ export class UnraidPluginsMutationsResolver {
     async installPlugin(@Args('input') input: InstallPluginInput): Promise<PluginInstallOperation> {
         return this.pluginsService.installPlugin(input);
     }
+
+    @ResolveField(() => PluginInstallOperation, {
+        description: 'Installs an Unraid language pack and begins tracking its progress',
+    })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.CONFIG,
+    })
+    async installLanguage(@Args('input') input: InstallPluginInput): Promise<PluginInstallOperation> {
+        return this.pluginsService.installLanguage(input);
+    }
 }

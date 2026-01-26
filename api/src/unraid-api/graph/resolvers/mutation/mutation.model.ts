@@ -81,6 +81,11 @@ export class UnraidPluginsMutations {
         description: 'Install an Unraid plugin and track installation progress',
     })
     installPlugin!: PluginInstallOperation;
+
+    @Field(() => PluginInstallOperation, {
+        description: 'Install an Unraid language pack and track installation progress',
+    })
+    installLanguage!: PluginInstallOperation;
 }
 
 @ObjectType()
