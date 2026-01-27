@@ -323,6 +323,13 @@ const serverNameValidation = computed(() => {
   return null;
 });
 
+const serverDescriptionValidation = computed(() => {
+  if (serverDescription.value && serverDescription.value.length > 64) {
+    return t('activation.coreSettings.serverDescriptionError.tooLong');
+  }
+  return null;
+});
+
 const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
 </script>
 
@@ -402,13 +409,19 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
             <label class="text-highlighted text-base font-bold">
               {{ t('activation.coreSettings.serverDescription') }}
             </label>
-            <UInput
-              v-model="serverDescription"
-              :placeholder="t('activation.coreSettings.serverDescriptionPlaceholder')"
-              :disabled="isBusy"
-              size="lg"
-              class="w-full"
-            />
+            <div class="space-y-1">
+              <UInput
+                v-model="serverDescription"
+                :placeholder="t('activation.coreSettings.serverDescriptionPlaceholder')"
+                :disabled="isBusy"
+                size="lg"
+                class="w-full"
+                :class="{ '!border-red-500 focus:!border-red-500': !!serverDescriptionValidation }"
+              />
+              <p v-if="serverDescriptionValidation" class="text-sm font-medium text-red-500">
+                {{ serverDescriptionValidation }}
+              </p>
+            </div>
           </div>
 
           <!-- Time Zone -->
@@ -543,7 +556,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
           <BrandButton
             :text="t('activation.coreSettings.next')"
             class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
-            :disabled="isBusy || !!serverNameValidation"
+            :disabled="isBusy || !!serverNameValidation || !!serverDescriptionValidation"
             :loading="isBusy"
             @click="handleSubmit"
             :icon-right="ChevronRightIcon"
