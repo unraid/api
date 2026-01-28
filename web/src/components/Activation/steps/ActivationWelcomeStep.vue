@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
-import LogoCloud from '@/components/Activation/LogoCloud.vue';
+import LogoCloud from '@/components/Activation/components/LogoCloud.vue';
 
 // Mock icons (assuming these exist or similar ones do)
 const BOOK_ICON = 'i-heroicons-book-open';
@@ -79,7 +79,7 @@ const openDocs = () => {
         <!-- Left Column: Graphic -->
         <div class="flex h-full items-center justify-center">
           <img
-            src="../../assets/limitless_possibilities.jpg"
+            src="@/assets/limitless_possibilities.jpg"
             alt="Limitless Possibilities"
             class="h-auto w-full rounded-xl object-cover shadow-sm"
           />

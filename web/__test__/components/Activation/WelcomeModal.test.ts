@@ -9,7 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ComposerTranslation } from 'vue-i18n';
 
-import WelcomeModal from '~/components/Activation/WelcomeModal.standalone.vue';
+import WelcomeModal from '~/components/Activation/standalone/WelcomeModal.standalone.vue';
 import { testTranslate } from '../../utils/i18n';
 
 type ActivationWelcomeStepStubProps = {

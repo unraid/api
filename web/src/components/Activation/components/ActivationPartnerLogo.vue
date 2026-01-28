@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import ActivationPartnerLogoImg from '~/components/Activation/ActivationPartnerLogoImg.vue';
+import ActivationPartnerLogoImg from '@/components/Activation/components/ActivationPartnerLogoImg.vue';
 
 interface Props {
   partnerInfo?: {

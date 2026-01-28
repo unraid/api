@@ -3,8 +3,8 @@ import { nextTick, ref } from 'vue';
 
 import { Button } from '@unraid/ui';
 
+import WelcomeModalCe from '~/components/Activation/standalone/WelcomeModal.standalone.vue';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
-import WelcomeModalCe from '~/components/Activation/WelcomeModal.standalone.vue';
 
 const activationModalStore = useActivationCodeModalStore();
 const welcomeModalRef = ref<InstanceType<typeof WelcomeModalCe>>();

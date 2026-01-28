@@ -2,7 +2,7 @@ import { computed } from 'vue';
 import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
-import { ACTIVATION_ONBOARDING_QUERY } from '~/components/Activation/activationOnboarding.query';
+import { ACTIVATION_ONBOARDING_QUERY } from '@/components/Activation/graphql/activationOnboarding.query';
 
 export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => {
   const {

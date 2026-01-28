@@ -15,23 +15,23 @@ import {
 } from '@heroicons/vue/24/outline';
 import { CheckCircleIcon, ChevronDownIcon, ChevronRightIcon, ClockIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
+import OnboardingConsole from '@/components/Activation/components/OnboardingConsole.vue';
+import usePluginInstaller from '@/components/Activation/composables/usePluginInstaller';
+import { COMPLETE_UPGRADE_ONBOARDING_MUTATION } from '@/components/Activation/graphql/completeUpgradeStep.mutation';
 import {
   SET_LOCALE_MUTATION,
   SET_THEME_MUTATION,
   UPDATE_SERVER_IDENTITY_MUTATION,
   UPDATE_SSH_SETTINGS_MUTATION,
-} from '@/components/Activation/coreSettings.mutations';
-import OnboardingConsole from '@/components/Activation/OnboardingConsole.vue';
+} from '@/components/Activation/graphql/coreSettings.mutations';
+import { GET_CORE_SETTINGS_QUERY } from '@/components/Activation/graphql/getCoreSettings.query';
+import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Activation/graphql/updateSystemTime.mutation';
 import { useActivationCodeModalStore } from '@/components/Activation/store/activationCodeModal';
 import { useUpgradeOnboardingStore } from '@/components/Activation/store/upgradeOnboarding';
-import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Activation/updateSystemTime.mutation';
-import usePluginInstaller from '@/components/Activation/usePluginInstaller';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 
-import type { LogEntry } from '@/components/Activation/OnboardingConsole.vue';
+import type { LogEntry } from '@/components/Activation/components/OnboardingConsole.vue';
 
-import { COMPLETE_UPGRADE_ONBOARDING_MUTATION } from '~/components/Activation/completeUpgradeStep.mutation';
-import { GET_CORE_SETTINGS_QUERY } from '~/components/Activation/getCoreSettings.query';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useOnboardingDraftStore } from '~/components/Activation/store/onboardingDraft';
 
@@ -180,7 +180,7 @@ const handleComplete = async () => {
               url: details.url,
               name: details.name,
               forced: false,
-              onEvent: (_evt) => {
+              onEvent: (_evt: unknown) => {
                 /* verbose */
               },
             });

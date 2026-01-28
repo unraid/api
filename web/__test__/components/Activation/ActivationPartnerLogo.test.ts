@@ -6,7 +6,7 @@ import { mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
+import ActivationPartnerLogo from '~/components/Activation/components/ActivationPartnerLogo.vue';
 
 const mockActivationPartnerLogoImg = {
   template: '<div data-testid="partner-logo-img"></div>',

@@ -1,11 +1,11 @@
 import type { Component } from 'vue';
 
-import ActivationCoreSettingsStep from '~/components/Activation/ActivationCoreSettingsStep.vue';
-import ActivationLicenseStep from '~/components/Activation/ActivationLicenseStep.vue';
-import ActivationNextStepsStep from '~/components/Activation/ActivationNextStepsStep.vue';
-import ActivationPluginsStep from '~/components/Activation/ActivationPluginsStep.vue';
-import ActivationSummaryStep from '~/components/Activation/ActivationSummaryStep.vue';
-import ActivationWelcomeStep from '~/components/Activation/ActivationWelcomeStep.vue';
+import ActivationCoreSettingsStep from '~/components/Activation/steps/ActivationCoreSettingsStep.vue';
+import ActivationLicenseStep from '~/components/Activation/steps/ActivationLicenseStep.vue';
+import ActivationNextStepsStep from '~/components/Activation/steps/ActivationNextStepsStep.vue';
+import ActivationPluginsStep from '~/components/Activation/steps/ActivationPluginsStep.vue';
+import ActivationSummaryStep from '~/components/Activation/steps/ActivationSummaryStep.vue';
+import ActivationWelcomeStep from '~/components/Activation/steps/ActivationWelcomeStep.vue';
 
 export const stepComponents: Record<string, Component> = {
   OVERVIEW: ActivationWelcomeStep,

@@ -11,13 +11,13 @@ import azureThemeImg from '@/assets/unraid-azure-theme.png';
 import blackThemeImg from '@/assets/unraid-black-theme.png';
 import grayThemeImg from '@/assets/unraid-gray-theme.png';
 import whiteThemeImg from '@/assets/unraid-white-theme.png';
+import TypographyCloud from '@/components/Activation/components/TypographyCloud.vue';
 // --- Language Logic ---
-import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Activation/availableLanguages.query';
-import { GET_CORE_SETTINGS_QUERY } from '@/components/Activation/getCoreSettings.query';
+import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Activation/graphql/availableLanguages.query';
+import { GET_CORE_SETTINGS_QUERY } from '@/components/Activation/graphql/getCoreSettings.query';
+import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Activation/graphql/timeZoneOptions.query';
 // --- Submit Logic ---
 import { useOnboardingDraftStore } from '@/components/Activation/store/onboardingDraft';
-import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Activation/timeZoneOptions.query';
-import TypographyCloud from '@/components/Activation/TypographyCloud.vue';
 import { Switch } from '@headlessui/vue';
 import { getTimeZones } from '@vvo/tzdb';
 
@@ -184,7 +184,7 @@ watch(
     if (!items.length) return;
     if (hasAutoSelected.value) return;
 
-    const available = new Set(items.map((item) => item.value));
+    const available = new Set(items.map((item: { value: string }) => item.value));
     if (selectedTimeZone.value && !available.has(selectedTimeZone.value)) {
       selectedTimeZone.value = '';
     }

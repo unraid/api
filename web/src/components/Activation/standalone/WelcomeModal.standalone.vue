@@ -4,9 +4,9 @@ import { storeToRefs } from 'pinia';
 
 import { Dialog } from '@unraid/ui';
 
-import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
-import ActivationWelcomeStep from '~/components/Activation/ActivationWelcomeStep.vue';
+import ActivationPartnerLogo from '~/components/Activation/components/ActivationPartnerLogo.vue';
+import ActivationWelcomeStep from '~/components/Activation/steps/ActivationWelcomeStep.vue';
 import { useWelcomeModalDataStore } from '~/components/Activation/store/welcomeModalData';
 import { useThemeStore } from '~/store/theme';
 

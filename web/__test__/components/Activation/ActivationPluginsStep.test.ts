@@ -3,7 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import ActivationPluginsStep from '~/components/Activation/ActivationPluginsStep.vue';
+import ActivationPluginsStep from '~/components/Activation/steps/ActivationPluginsStep.vue';
 import { PluginInstallStatus } from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 

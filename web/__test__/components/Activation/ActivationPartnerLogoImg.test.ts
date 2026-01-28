@@ -7,7 +7,7 @@ import { mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import ActivationPartnerLogoImg from '~/components/Activation/ActivationPartnerLogoImg.vue';
+import ActivationPartnerLogoImg from '~/components/Activation/components/ActivationPartnerLogoImg.vue';
 
 const mockThemeStore = {
   darkMode: ref(false),

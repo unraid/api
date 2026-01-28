@@ -6,14 +6,14 @@ import { useMutation } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
+import { COMPLETE_UPGRADE_ONBOARDING_MUTATION } from '@/components/Activation/graphql/completeUpgradeStep.mutation';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 
 import type { BrandButtonProps } from '@unraid/ui';
 import type { Component } from 'vue';
 
-import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
-import { COMPLETE_UPGRADE_ONBOARDING_MUTATION } from '~/components/Activation/completeUpgradeStep.mutation';
+import ActivationPartnerLogo from '~/components/Activation/components/ActivationPartnerLogo.vue';
 import { stepComponents } from '~/components/Activation/stepRegistry';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
