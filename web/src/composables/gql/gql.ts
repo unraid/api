@@ -14,8 +14,14 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n  query ActivationOnboarding {\n    activationOnboarding {\n      isUpgrade\n      previousVersion\n      currentVersion\n      hasPendingSteps\n      steps {\n        id\n        required\n        completed\n        introducedIn\n      }\n    }\n  }\n": typeof types.ActivationOnboardingDocument,
-    "\n  mutation CompleteUpgradeStep($input: CompleteUpgradeStepInput!) {\n    onboarding {\n      completeUpgradeStep(input: $input) {\n        isUpgrade\n        previousVersion\n        currentVersion\n        completedSteps\n        steps {\n          id\n          required\n          introducedIn\n        }\n      }\n    }\n  }\n": typeof types.CompleteUpgradeStepDocument,
+    "\n  query ActivationOnboarding {\n    activationOnboarding {\n      isUpgrade\n      previousVersion\n      currentVersion\n      completed\n    }\n  }\n": typeof types.ActivationOnboardingDocument,
+    "\n  query GetAvailableLanguages {\n    availableLanguages {\n      code\n      name\n      url\n    }\n  }\n": typeof types.GetAvailableLanguagesDocument,
+    "\n  mutation CompleteUpgradeOnboarding {\n    onboarding {\n      completeUpgradeOnboarding {\n        isUpgrade\n        previousVersion\n        currentVersion\n      }\n    }\n  }\n": typeof types.CompleteUpgradeOnboardingDocument,
+    "\n  mutation UpdateServerIdentity($name: String!, $comment: String) {\n    updateServerIdentity(name: $name, comment: $comment) {\n      id\n      name\n      comment\n    }\n  }\n": typeof types.UpdateServerIdentityDocument,
+    "\n  mutation SetLegacyTheme($theme: String!) {\n    setTheme(theme: $theme) {\n      id\n      theme\n    }\n  }\n": typeof types.SetLegacyThemeDocument,
+    "\n  mutation SetLocale($locale: String!) {\n    setLocale(locale: $locale) {\n      id\n      locale\n    }\n  }\n": typeof types.SetLocaleDocument,
+    "\n  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {\n    updateSshSettings(input: { enabled: $enabled, port: $port }) {\n      id\n      useSsh\n      portssh\n    }\n  }\n": typeof types.UpdateSshSettingsDocument,
+    "\n  query GetCoreSettings {\n    vars {\n      name\n      useSsh\n      localTld\n    }\n    server {\n      name\n      comment\n    }\n    display {\n      theme\n      locale\n    }\n    systemTime {\n      timeZone\n    }\n    info {\n      primaryNetwork {\n        ipAddress\n      }\n    }\n  }\n": typeof types.GetCoreSettingsDocument,
     "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n": typeof types.PartnerInfoDocument,
     "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": typeof types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n      onboardingState {\n        registrationState\n        isRegistered\n        isFreshInstall\n        isInitialSetup\n        hasActivationCode\n        activationRequired\n      }\n    }\n  }\n": typeof types.ActivationCodeDocument,
@@ -23,6 +29,7 @@ type Documents = {
     "\n  query InstalledUnraidPlugins {\n    installedUnraidPlugins\n  }\n": typeof types.InstalledUnraidPluginsDocument,
     "\n  query PluginInstallOperation($operationId: ID!) {\n    pluginInstallOperation(operationId: $operationId) {\n      id\n      url\n      name\n      status\n      createdAt\n      updatedAt\n      finishedAt\n      output\n    }\n  }\n": typeof types.PluginInstallOperationDocument,
     "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n": typeof types.PluginInstallUpdatesDocument,
+    "\n  mutation InstallLanguage($input: InstallPluginInput!) {\n    unraidPlugins {\n      installLanguage(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n": typeof types.InstallLanguageDocument,
     "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n": typeof types.TimeZoneOptionsDocument,
     "\n  mutation UpdateSystemTime($input: UpdateSystemTimeInput!) {\n    updateSystemTime(input: $input) {\n      currentTime\n      timeZone\n      useNtp\n      ntpServers\n    }\n  }\n": typeof types.UpdateSystemTimeDocument,
     "\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n": typeof types.GetApiKeyCreationFormSchemaDocument,
@@ -92,8 +99,14 @@ type Documents = {
     "\n  query getTheme {\n    publicTheme {\n      name\n      showBannerImage\n      showBannerGradient\n      headerBackgroundColor\n      showHeaderDescription\n      headerPrimaryTextColor\n      headerSecondaryTextColor\n    }\n  }\n": typeof types.GetThemeDocument,
 };
 const documents: Documents = {
-    "\n  query ActivationOnboarding {\n    activationOnboarding {\n      isUpgrade\n      previousVersion\n      currentVersion\n      hasPendingSteps\n      steps {\n        id\n        required\n        completed\n        introducedIn\n      }\n    }\n  }\n": types.ActivationOnboardingDocument,
-    "\n  mutation CompleteUpgradeStep($input: CompleteUpgradeStepInput!) {\n    onboarding {\n      completeUpgradeStep(input: $input) {\n        isUpgrade\n        previousVersion\n        currentVersion\n        completedSteps\n        steps {\n          id\n          required\n          introducedIn\n        }\n      }\n    }\n  }\n": types.CompleteUpgradeStepDocument,
+    "\n  query ActivationOnboarding {\n    activationOnboarding {\n      isUpgrade\n      previousVersion\n      currentVersion\n      completed\n    }\n  }\n": types.ActivationOnboardingDocument,
+    "\n  query GetAvailableLanguages {\n    availableLanguages {\n      code\n      name\n      url\n    }\n  }\n": types.GetAvailableLanguagesDocument,
+    "\n  mutation CompleteUpgradeOnboarding {\n    onboarding {\n      completeUpgradeOnboarding {\n        isUpgrade\n        previousVersion\n        currentVersion\n      }\n    }\n  }\n": types.CompleteUpgradeOnboardingDocument,
+    "\n  mutation UpdateServerIdentity($name: String!, $comment: String) {\n    updateServerIdentity(name: $name, comment: $comment) {\n      id\n      name\n      comment\n    }\n  }\n": types.UpdateServerIdentityDocument,
+    "\n  mutation SetLegacyTheme($theme: String!) {\n    setTheme(theme: $theme) {\n      id\n      theme\n    }\n  }\n": types.SetLegacyThemeDocument,
+    "\n  mutation SetLocale($locale: String!) {\n    setLocale(locale: $locale) {\n      id\n      locale\n    }\n  }\n": types.SetLocaleDocument,
+    "\n  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {\n    updateSshSettings(input: { enabled: $enabled, port: $port }) {\n      id\n      useSsh\n      portssh\n    }\n  }\n": types.UpdateSshSettingsDocument,
+    "\n  query GetCoreSettings {\n    vars {\n      name\n      useSsh\n      localTld\n    }\n    server {\n      name\n      comment\n    }\n    display {\n      theme\n      locale\n    }\n    systemTime {\n      timeZone\n    }\n    info {\n      primaryNetwork {\n        ipAddress\n      }\n    }\n  }\n": types.GetCoreSettingsDocument,
     "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n": types.PartnerInfoDocument,
     "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n      onboardingState {\n        registrationState\n        isRegistered\n        isFreshInstall\n        isInitialSetup\n        hasActivationCode\n        activationRequired\n      }\n    }\n  }\n": types.ActivationCodeDocument,
@@ -101,6 +114,7 @@ const documents: Documents = {
     "\n  query InstalledUnraidPlugins {\n    installedUnraidPlugins\n  }\n": types.InstalledUnraidPluginsDocument,
     "\n  query PluginInstallOperation($operationId: ID!) {\n    pluginInstallOperation(operationId: $operationId) {\n      id\n      url\n      name\n      status\n      createdAt\n      updatedAt\n      finishedAt\n      output\n    }\n  }\n": types.PluginInstallOperationDocument,
     "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n": types.PluginInstallUpdatesDocument,
+    "\n  mutation InstallLanguage($input: InstallPluginInput!) {\n    unraidPlugins {\n      installLanguage(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n": types.InstallLanguageDocument,
     "\n  query TimeZoneOptions {\n    timeZoneOptions {\n      value\n      label\n    }\n  }\n": types.TimeZoneOptionsDocument,
     "\n  mutation UpdateSystemTime($input: UpdateSystemTimeInput!) {\n    updateSystemTime(input: $input) {\n      currentTime\n      timeZone\n      useNtp\n      ntpServers\n    }\n  }\n": types.UpdateSystemTimeDocument,
     "\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n": types.GetApiKeyCreationFormSchemaDocument,
@@ -187,11 +201,35 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query ActivationOnboarding {\n    activationOnboarding {\n      isUpgrade\n      previousVersion\n      currentVersion\n      hasPendingSteps\n      steps {\n        id\n        required\n        completed\n        introducedIn\n      }\n    }\n  }\n"): (typeof documents)["\n  query ActivationOnboarding {\n    activationOnboarding {\n      isUpgrade\n      previousVersion\n      currentVersion\n      hasPendingSteps\n      steps {\n        id\n        required\n        completed\n        introducedIn\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  query ActivationOnboarding {\n    activationOnboarding {\n      isUpgrade\n      previousVersion\n      currentVersion\n      completed\n    }\n  }\n"): (typeof documents)["\n  query ActivationOnboarding {\n    activationOnboarding {\n      isUpgrade\n      previousVersion\n      currentVersion\n      completed\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation CompleteUpgradeStep($input: CompleteUpgradeStepInput!) {\n    onboarding {\n      completeUpgradeStep(input: $input) {\n        isUpgrade\n        previousVersion\n        currentVersion\n        completedSteps\n        steps {\n          id\n          required\n          introducedIn\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CompleteUpgradeStep($input: CompleteUpgradeStepInput!) {\n    onboarding {\n      completeUpgradeStep(input: $input) {\n        isUpgrade\n        previousVersion\n        currentVersion\n        completedSteps\n        steps {\n          id\n          required\n          introducedIn\n        }\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  query GetAvailableLanguages {\n    availableLanguages {\n      code\n      name\n      url\n    }\n  }\n"): (typeof documents)["\n  query GetAvailableLanguages {\n    availableLanguages {\n      code\n      name\n      url\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CompleteUpgradeOnboarding {\n    onboarding {\n      completeUpgradeOnboarding {\n        isUpgrade\n        previousVersion\n        currentVersion\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CompleteUpgradeOnboarding {\n    onboarding {\n      completeUpgradeOnboarding {\n        isUpgrade\n        previousVersion\n        currentVersion\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateServerIdentity($name: String!, $comment: String) {\n    updateServerIdentity(name: $name, comment: $comment) {\n      id\n      name\n      comment\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateServerIdentity($name: String!, $comment: String) {\n    updateServerIdentity(name: $name, comment: $comment) {\n      id\n      name\n      comment\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation SetLegacyTheme($theme: String!) {\n    setTheme(theme: $theme) {\n      id\n      theme\n    }\n  }\n"): (typeof documents)["\n  mutation SetLegacyTheme($theme: String!) {\n    setTheme(theme: $theme) {\n      id\n      theme\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation SetLocale($locale: String!) {\n    setLocale(locale: $locale) {\n      id\n      locale\n    }\n  }\n"): (typeof documents)["\n  mutation SetLocale($locale: String!) {\n    setLocale(locale: $locale) {\n      id\n      locale\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {\n    updateSshSettings(input: { enabled: $enabled, port: $port }) {\n      id\n      useSsh\n      portssh\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {\n    updateSshSettings(input: { enabled: $enabled, port: $port }) {\n      id\n      useSsh\n      portssh\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query GetCoreSettings {\n    vars {\n      name\n      useSsh\n      localTld\n    }\n    server {\n      name\n      comment\n    }\n    display {\n      theme\n      locale\n    }\n    systemTime {\n      timeZone\n    }\n    info {\n      primaryNetwork {\n        ipAddress\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetCoreSettings {\n    vars {\n      name\n      useSsh\n      localTld\n    }\n    server {\n      name\n      comment\n    }\n    display {\n      theme\n      locale\n    }\n    systemTime {\n      timeZone\n    }\n    info {\n      primaryNetwork {\n        ipAddress\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -220,6 +258,10 @@ export function graphql(source: "\n  query PluginInstallOperation($operationId: 
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n"): (typeof documents)["\n  subscription PluginInstallUpdates($operationId: ID!) {\n    pluginInstallUpdates(operationId: $operationId) {\n      operationId\n      status\n      output\n      timestamp\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation InstallLanguage($input: InstallPluginInput!) {\n    unraidPlugins {\n      installLanguage(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation InstallLanguage($input: InstallPluginInput!) {\n    unraidPlugins {\n      installLanguage(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

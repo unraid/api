@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useMutation, useQuery } from '@vue/apollo-composable';
+import { useQuery } from '@vue/apollo-composable';
 
 import { ChevronLeftIcon, Cog6ToothIcon, GlobeAltIcon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
@@ -13,17 +13,11 @@ import grayThemeImg from '@/assets/unraid-gray-theme.png';
 import whiteThemeImg from '@/assets/unraid-white-theme.png';
 // --- Language Logic ---
 import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Activation/availableLanguages.query';
-import {
-  INSTALL_LANGUAGE_MUTATION,
-  SET_LOCALE_MUTATION,
-  SET_THEME_MUTATION,
-  UPDATE_SERVER_IDENTITY_MUTATION,
-  UPDATE_SSH_SETTINGS_MUTATION,
-} from '@/components/Activation/coreSettings.mutations';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Activation/getCoreSettings.query';
+// --- Submit Logic ---
+import { useOnboardingDraftStore } from '@/components/Activation/store/onboardingDraft';
 import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Activation/timeZoneOptions.query';
 import TypographyCloud from '@/components/Activation/TypographyCloud.vue';
-import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Activation/updateSystemTime.mutation';
 import { Switch } from '@headlessui/vue';
 import { getTimeZones } from '@vvo/tzdb';
 
@@ -65,42 +59,57 @@ const currentHostname = computed(() => {
 const isSaving = ref(false);
 const error = ref<string | null>(null);
 
-const { mutate: updateSystemTime } = useMutation(UPDATE_SYSTEM_TIME_MUTATION);
-const { mutate: updateServerIdentity } = useMutation(UPDATE_SERVER_IDENTITY_MUTATION); // Added
-const { mutate: setTheme } = useMutation(SET_THEME_MUTATION); // Added
-const { mutate: setLocale } = useMutation(SET_LOCALE_MUTATION); // Added
-const { mutate: installLanguage } = useMutation(INSTALL_LANGUAGE_MUTATION); // Added
-const { mutate: updateSshSettings } = useMutation(UPDATE_SSH_SETTINGS_MUTATION); // Added
-
 const { result: timeZoneOptionsResult } = useQuery(TIME_ZONE_OPTIONS_QUERY);
-const { result: coreSettingsResult, onResult: onCoreSettingsResult } = useQuery(
-  GET_CORE_SETTINGS_QUERY,
-  null,
-  {
-    fetchPolicy: 'network-only',
-  }
-);
+const { onResult: onCoreSettingsResult } = useQuery(GET_CORE_SETTINGS_QUERY, null, {
+  fetchPolicy: 'network-only',
+});
 
 onCoreSettingsResult((res) => {
-  if (res.data?.systemTime?.timeZone) {
+  // If draft store has values, use them. Otherwise fall back to server data.
+  const d = draftStore; // Alias for brevity
+
+  if (d.serverName) {
+    serverName.value = d.serverName;
+  } else if (res.data?.server || res.data?.vars) {
+    serverName.value = res.data?.server?.name || res.data?.vars?.name || '';
+  }
+
+  if (d.serverDescription) {
+    serverDescription.value = d.serverDescription;
+  } else if (res.data?.server) {
+    serverDescription.value = res.data.server.comment || '';
+  }
+
+  // Timezone
+  if (d.selectedTimeZone) {
+    selectedTimeZone.value = d.selectedTimeZone;
+    hasAutoSelected.value = true;
+  } else if (res.data?.systemTime?.timeZone) {
     selectedTimeZone.value = res.data.systemTime.timeZone;
     hasAutoSelected.value = true;
   }
-  // Fallback to vars if server not fully populated, but server should take precedence
-  if (res.data?.server) {
-    serverName.value = res.data.server.name || res.data.vars?.name || '';
-    serverDescription.value = res.data.server.comment || '';
-  } else if (res.data?.vars) {
-    serverName.value = res.data.vars.name || '';
-  }
 
-  if (res.data?.vars) {
-    useSsh.value = res.data.vars.useSsh || false;
-  }
+  // SSH
+  // Note: boolean defaults to false in ref, so we need to know if draft was *ever* set?
+  // Ideally draftStore initializes with undefined or we check if it was touched.
+  // For simplicity, let's assume if any string field is set in draft, we trust the draft boolean too.
+  // Or better, we can just use the draft store directly in v-model but we are using local refs.
+  // Let's just blindly copy strict values if we think we are in "draft mode".
+  // A simple heuristic: if `serverName` is in draft, we assume draft is active.
+  const hasDraft = !!d.serverName;
 
-  if (res.data?.display) {
-    selectedTheme.value = res.data.display.theme || 'white';
-    selectedLanguage.value = res.data.display.locale || 'en_US';
+  if (hasDraft) {
+    useSsh.value = d.useSsh;
+    selectedTheme.value = d.selectedTheme;
+    selectedLanguage.value = d.selectedLanguage;
+  } else {
+    if (res.data?.vars) {
+      useSsh.value = res.data.vars.useSsh || false;
+    }
+    if (res.data?.display) {
+      selectedTheme.value = res.data.display.theme || 'white';
+      selectedLanguage.value = res.data.display.locale || 'en_US';
+    }
   }
 
   if (res.data?.vars) {
@@ -230,78 +239,26 @@ const languageItems = computed(() => {
 
 const isLanguageDisabled = computed(() => isLanguagesLoading.value || !!languagesQueryError.value);
 
-// --- Submit Logic ---
+const draftStore = useOnboardingDraftStore();
 
 const handleSubmit = async () => {
   isSaving.value = true;
   error.value = null;
 
   try {
-    const promises = [];
+    draftStore.setCoreSettings({
+      serverName: serverName.value,
+      serverDescription: serverDescription.value,
+      timeZone: selectedTimeZone.value,
+      theme: selectedTheme.value,
+      language: selectedLanguage.value,
+      useSsh: useSsh.value,
+    });
 
-    // Update Timezone
-    if (
-      selectedTimeZone.value &&
-      selectedTimeZone.value !== coreSettingsResult.value?.systemTime?.timeZone
-    ) {
-      promises.push(updateSystemTime({ input: { timeZone: selectedTimeZone.value } }));
-    }
-
-    // Update Server Identity
-    const originalName = coreSettingsResult.value?.server?.name || coreSettingsResult.value?.vars?.name;
-    const originalComment = coreSettingsResult.value?.server?.comment;
-
-    if (
-      (serverName.value && serverName.value !== originalName) ||
-      (serverDescription.value !== undefined && serverDescription.value !== originalComment)
-    ) {
-      promises.push(
-        updateServerIdentity({
-          name: serverName.value,
-          comment: serverDescription.value,
-        })
-      );
-    }
-
-    // Update Theme
-    if (selectedTheme.value && selectedTheme.value !== coreSettingsResult.value?.display?.theme) {
-      promises.push(setTheme({ theme: selectedTheme.value }));
-    }
-
-    // Update Language
-    if (selectedLanguage.value && selectedLanguage.value !== coreSettingsResult.value?.display?.locale) {
-      // Logic: Install language first if not en_US and assuming not installed (or just re-install to be safe/simple)
-      // Then set locale.
-      const langFlow = async () => {
-        if (selectedLanguage.value !== 'en_US') {
-          const selectedItem = languageItems.value.find((i) => i.value === selectedLanguage.value);
-          if (selectedItem?.url) {
-            // Install Language
-            await installLanguage({
-              input: {
-                url: selectedItem.url,
-                name: `Language Pack: ${selectedLanguage.value}`,
-              },
-            });
-          }
-        }
-        // Set Locale
-        await setLocale({ locale: selectedLanguage.value });
-      };
-      promises.push(langFlow());
-    }
-
-    // Update SSH
-    if (useSsh.value !== coreSettingsResult.value?.vars?.useSsh) {
-      // Default port 22 if not specified. The UI doesn't have a port input yet, so we assume default or current
-      const currentPort = coreSettingsResult.value?.vars?.portssh || 22;
-      promises.push(updateSshSettings({ enabled: useSsh.value, port: currentPort }));
-    }
-
-    await Promise.all(promises);
+    // Simulate a small delay for UX or just proceed
     props.onComplete();
   } catch (err: unknown) {
-    console.warn('Failed to update settings:', err);
+    console.warn('Failed to save draft settings:', err);
     error.value = err instanceof Error ? err.message : t('common.error');
   } finally {
     isSaving.value = false;

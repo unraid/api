@@ -1,18 +1,12 @@
 import { graphql } from '~/composables/gql';
 
-export const COMPLETE_UPGRADE_STEP_MUTATION = graphql(/* GraphQL */ `
-  mutation CompleteUpgradeStep($input: CompleteUpgradeStepInput!) {
+export const COMPLETE_UPGRADE_ONBOARDING_MUTATION = graphql(/* GraphQL */ `
+  mutation CompleteUpgradeOnboarding {
     onboarding {
-      completeUpgradeStep(input: $input) {
+      completeUpgradeOnboarding {
         isUpgrade
         previousVersion
         currentVersion
-        completedSteps
-        steps {
-          id
-          required
-          introducedIn
-        }
       }
     }
   }

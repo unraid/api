@@ -136,52 +136,22 @@ export type ActivationCodeOverrideInput = {
 
 export type ActivationOnboarding = {
   __typename?: 'ActivationOnboarding';
+  /** Whether the onboarding flow has been completed for the current version */
+  completed: Scalars['Boolean']['output'];
   /** Current OS version detected by the system */
   currentVersion?: Maybe<Scalars['String']['output']>;
-  /** Whether there are any remaining activation onboarding steps */
-  hasPendingSteps: Scalars['Boolean']['output'];
   /** Indicates whether the system is currently in an upgrade state */
   isUpgrade: Scalars['Boolean']['output'];
   /** Previous OS version prior to the current upgrade */
   previousVersion?: Maybe<Scalars['String']['output']>;
-  /** Activation onboarding steps relevant to the current system state */
-  steps: Array<ActivationOnboardingStep>;
 };
 
 /** Activation onboarding override input */
 export type ActivationOnboardingOverrideInput = {
+  completed?: InputMaybe<Scalars['Boolean']['input']>;
   currentVersion?: InputMaybe<Scalars['String']['input']>;
   isUpgrade?: InputMaybe<Scalars['Boolean']['input']>;
   previousVersion?: InputMaybe<Scalars['String']['input']>;
-  steps?: InputMaybe<Array<ActivationOnboardingStepOverrideInput>>;
-};
-
-export type ActivationOnboardingStep = {
-  __typename?: 'ActivationOnboardingStep';
-  /** Indicates whether the step has been completed for the current version */
-  completed: Scalars['Boolean']['output'];
-  /** Identifier of the activation onboarding step */
-  id: ActivationOnboardingStepId;
-  /** Version of Unraid when this step was introduced */
-  introducedIn?: Maybe<Scalars['String']['output']>;
-  /** Indicates whether the step is required */
-  required: Scalars['Boolean']['output'];
-};
-
-export enum ActivationOnboardingStepId {
-  ACTIVATION = 'ACTIVATION',
-  PLUGINS = 'PLUGINS',
-  TIMEZONE = 'TIMEZONE',
-  WELCOME = 'WELCOME'
-}
-
-/** Activation onboarding step override input */
-export type ActivationOnboardingStepOverrideInput = {
-  completed?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Identifier of the onboarding step */
-  id: ActivationOnboardingStepId;
-  introducedIn?: InputMaybe<Scalars['String']['input']>;
-  required?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type AddPermissionInput = {
@@ -497,12 +467,6 @@ export type CloudResponse = {
   error?: Maybe<Scalars['String']['output']>;
   ip?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
-};
-
-/** Input for marking an upgrade onboarding step as completed */
-export type CompleteUpgradeStepInput = {
-  /** Identifier of the onboarding step to mark completed */
-  stepId: ActivationOnboardingStepId;
 };
 
 export type Config = Node & {
@@ -1115,8 +1079,12 @@ export type Info = Node & {
   machineId?: Maybe<Scalars['ID']['output']>;
   /** Memory information */
   memory: InfoMemory;
+  /** Network interfaces */
+  networkInterfaces: Array<InfoNetworkInterface>;
   /** Operating system information */
   os: InfoOs;
+  /** Primary management interface */
+  primaryNetwork?: Maybe<InfoNetworkInterface>;
   /** System information */
   system: InfoSystem;
   /** Current server time */
@@ -1290,6 +1258,37 @@ export type InfoNetwork = Node & {
   virtual?: Maybe<Scalars['Boolean']['output']>;
 };
 
+export type InfoNetworkInterface = Node & {
+  __typename?: 'InfoNetworkInterface';
+  /** Interface description/label */
+  description?: Maybe<Scalars['String']['output']>;
+  /** IPv4 Gateway */
+  gateway?: Maybe<Scalars['String']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** IPv4 Address */
+  ipAddress?: Maybe<Scalars['String']['output']>;
+  /** IPv6 Address */
+  ipv6Address?: Maybe<Scalars['String']['output']>;
+  /** IPv6 Gateway */
+  ipv6Gateway?: Maybe<Scalars['String']['output']>;
+  /** IPv6 Netmask */
+  ipv6Netmask?: Maybe<Scalars['String']['output']>;
+  /** MAC Address */
+  macAddress?: Maybe<Scalars['String']['output']>;
+  /** Interface name (e.g. eth0) */
+  name: Scalars['String']['output'];
+  /** IPv4 Netmask */
+  netmask?: Maybe<Scalars['String']['output']>;
+  /** IPv4 Protocol mode */
+  protocol?: Maybe<Scalars['String']['output']>;
+  /** Connection status */
+  status?: Maybe<Scalars['String']['output']>;
+  /** Using DHCP for IPv4 */
+  useDhcp?: Maybe<Scalars['Boolean']['output']>;
+  /** Using DHCP for IPv6 */
+  useDhcp6?: Maybe<Scalars['Boolean']['output']>;
+};
+
 export type InfoOs = Node & {
   __typename?: 'InfoOs';
   /** OS architecture */
@@ -1410,6 +1409,16 @@ export type KeyFile = {
   __typename?: 'KeyFile';
   contents?: Maybe<Scalars['String']['output']>;
   location?: Maybe<Scalars['String']['output']>;
+};
+
+export type Language = {
+  __typename?: 'Language';
+  /** Language code (e.g. en_US) */
+  code: Scalars['String']['output'];
+  /** Language description/name */
+  name: Scalars['String']['output'];
+  /** URL to the language pack XML */
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type LogFile = {
@@ -1558,6 +1567,10 @@ export type Mutation = {
   /** Reset Docker template mappings to defaults. Use this to recover from corrupted state. */
   resetDockerTemplateMappings: Scalars['Boolean']['output'];
   setDockerFolderChildren: ResolvedOrganizerV1;
+  /** Set the display locale (language) */
+  setLocale: InfoDisplay;
+  /** Set the display theme */
+  setTheme: InfoDisplay;
   setupRemoteAccess: Scalars['Boolean']['output'];
   syncDockerTemplatePaths: DockerTemplateSyncResult;
   unarchiveAll: NotificationOverview;
@@ -1567,7 +1580,10 @@ export type Mutation = {
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
   updateDockerViewPreferences: ResolvedOrganizerV1;
+  /** Update server name and comment */
+  updateServerIdentity: Server;
   updateSettings: UpdateSettingsResponse;
+  updateSshSettings: Vars;
   /** Update system time configuration */
   updateSystemTime: SystemTime;
   vm: VmMutations;
@@ -1680,6 +1696,16 @@ export type MutationSetDockerFolderChildrenArgs = {
 };
 
 
+export type MutationSetLocaleArgs = {
+  locale: Scalars['String']['input'];
+};
+
+
+export type MutationSetThemeArgs = {
+  theme: Scalars['String']['input'];
+};
+
+
 export type MutationSetupRemoteAccessArgs = {
   input: SetupRemoteAccessInput;
 };
@@ -1711,8 +1737,19 @@ export type MutationUpdateDockerViewPreferencesArgs = {
 };
 
 
+export type MutationUpdateServerIdentityArgs = {
+  comment?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+};
+
+
 export type MutationUpdateSettingsArgs = {
   input: Scalars['JSON']['input'];
+};
+
+
+export type MutationUpdateSshSettingsArgs = {
+  input: UpdateSshInput;
 };
 
 
@@ -1863,18 +1900,12 @@ export type OnboardingMutations = {
   __typename?: 'OnboardingMutations';
   /** Clear onboarding override state and reload from disk */
   clearOnboardingOverride: ActivationOnboarding;
-  /** Mark an upgrade onboarding step as completed for the current OS version */
-  completeUpgradeStep: UpgradeInfo;
+  /** Mark onboarding as completed for the current OS version */
+  completeUpgradeOnboarding: UpgradeInfo;
   /** Reset upgrade onboarding progress for the current OS version */
   resetUpgradeOnboarding: UpgradeInfo;
   /** Override onboarding state for testing (in-memory only) */
   setOnboardingOverride: ActivationOnboarding;
-};
-
-
-/** Onboarding related mutations */
-export type OnboardingMutationsCompleteUpgradeStepArgs = {
-  input: CompleteUpgradeStepInput;
 };
 
 
@@ -2101,12 +2132,15 @@ export type Query = {
   apiKeyPossibleRoles: Array<Role>;
   apiKeys: Array<ApiKey>;
   array: UnraidArray;
+  /** Get available languages for installation */
+  availableLanguages: Array<Language>;
   cloud: Cloud;
   config: Config;
   connect: Connect;
   customization?: Maybe<Customization>;
   disk: Disk;
   disks: Array<Disk>;
+  display: InfoDisplay;
   docker: Docker;
   flash: Flash;
   /** Get JSON Schema for API key creation form */
@@ -2405,6 +2439,8 @@ export enum Role {
 export type Server = Node & {
   __typename?: 'Server';
   apikey: Scalars['String']['output'];
+  /** Server description/comment */
+  comment?: Maybe<Scalars['String']['output']>;
   guid: Scalars['String']['output'];
   id: Scalars['PrefixedID']['output'];
   lanip: Scalars['String']['output'];
@@ -2497,6 +2533,7 @@ export type SsoSettings = Node & {
 export type Subscription = {
   __typename?: 'Subscription';
   arraySubscription: UnraidArray;
+  displaySubscription: InfoDisplay;
   dockerContainerStats: DockerContainerStats;
   logFile: LogFileContent;
   notificationAdded: Notification;
@@ -2791,8 +2828,16 @@ export type UnraidArray = Node & {
 /** Unraid plugin management mutations */
 export type UnraidPluginsMutations = {
   __typename?: 'UnraidPluginsMutations';
+  /** Install an Unraid language pack and track installation progress */
+  installLanguage: PluginInstallOperation;
   /** Install an Unraid plugin and track installation progress */
   installPlugin: PluginInstallOperation;
+};
+
+
+/** Unraid plugin management mutations */
+export type UnraidPluginsMutationsInstallLanguageArgs = {
+  input: InstallPluginInput;
 };
 
 
@@ -2817,6 +2862,12 @@ export type UpdateSettingsResponse = {
   values: Scalars['JSON']['output'];
   /** Warning messages about configuration issues found during validation */
   warnings?: Maybe<Array<Scalars['String']['output']>>;
+};
+
+export type UpdateSshInput = {
+  enabled: Scalars['Boolean']['input'];
+  /** SSH Port (default 22) */
+  port: Scalars['Int']['input'];
 };
 
 /** Update status of a container. */

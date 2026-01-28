@@ -13,12 +13,10 @@ import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { getters } from '@app/store/index.js';
 import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
 import { OnboardingStateService } from '@app/unraid-api/config/onboarding-state.service.js';
-import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
+import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 
-// Mocks
-vi.mock('fs/promises');
 vi.mock('@app/core/utils/files/file-exists.js');
 
 const mockPaths = {
@@ -189,7 +187,7 @@ describe('OnboardingService', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 OnboardingService,
-                { provide: OnboardingTracker, useValue: onboardingTrackerMock },
+                { provide: OnboardingTrackerService, useValue: onboardingTrackerMock },
                 { provide: OnboardingOverrideService, useValue: onboardingOverridesMock },
                 { provide: OnboardingStateService, useValue: onboardingStateMock },
             ],
@@ -963,7 +961,7 @@ describe('applyActivationCustomizations specific tests', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 OnboardingService,
-                { provide: OnboardingTracker, useValue: onboardingTrackerMock },
+                { provide: OnboardingTrackerService, useValue: onboardingTrackerMock },
                 { provide: OnboardingOverrideService, useValue: onboardingOverridesMock },
                 { provide: OnboardingStateService, useValue: onboardingStateMock },
             ],
@@ -1138,7 +1136,7 @@ describe('OnboardingService - updateCfgFile', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 OnboardingService,
-                { provide: OnboardingTracker, useValue: onboardingTrackerMock },
+                { provide: OnboardingTrackerService, useValue: onboardingTrackerMock },
                 { provide: OnboardingOverrideService, useValue: onboardingOverridesMock },
                 { provide: OnboardingStateService, useValue: onboardingStateMock },
             ],

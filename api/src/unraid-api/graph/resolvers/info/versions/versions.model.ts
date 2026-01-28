@@ -2,8 +2,6 @@ import { Field, ObjectType } from '@nestjs/graphql';
 
 import { Node } from '@unraid/shared/graphql.model.js';
 
-import { ActivationOnboardingStepId } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
-
 @ObjectType()
 export class CoreVersions {
     @Field(() => String, { nullable: true, description: 'Unraid version' })

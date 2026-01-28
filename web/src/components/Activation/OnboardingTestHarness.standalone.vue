@@ -1,44 +1,29 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useApolloClient } from '@vue/apollo-composable';
 
-import { Button } from '@unraid/ui';
 import { parse } from 'graphql';
 
-import { DEFAULT_ACTIVATION_STEPS } from '~/components/Activation/onboardingTestDefaults';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { useUpgradeOnboardingStore } from '~/components/Activation/store/upgradeOnboarding';
-import { useWelcomeModalDataStore } from '~/components/Activation/store/welcomeModalData';
-import { ActivationOnboardingStepId, RegistrationState } from '~/composables/gql/graphql';
-import { useCallbackActionsStore } from '~/store/callbackActions';
+import { RegistrationState } from '~/composables/gql/graphql';
 
 const activationModalStore = useActivationCodeModalStore();
 const upgradeOnboardingStore = useUpgradeOnboardingStore();
 const activationCodeStore = useActivationCodeDataStore();
-const welcomeModalStore = useWelcomeModalDataStore();
-const callbackStore = useCallbackActionsStore();
+
 const apolloClient = useApolloClient().client;
 
-const { activationRequired, hasActivationCode, isFreshInstall, partnerInfo, registrationState } =
+const { hasActivationCode, isFreshInstall, partnerInfo, registrationState } =
   storeToRefs(activationCodeStore);
-const { isInitialSetup } = storeToRefs(welcomeModalStore);
-const { callbackData } = storeToRefs(callbackStore);
-const { isHidden, isVisible } = storeToRefs(activationModalStore);
-const {
-  allUpgradeSteps,
-  upgradeSteps,
-  shouldShowUpgradeOnboarding,
-  currentVersion,
-  previousVersion,
-  isUpgrade,
-} = storeToRefs(upgradeOnboardingStore);
+const { currentVersion, previousVersion, isUpgrade, isCompleted } = storeToRefs(upgradeOnboardingStore);
 
 const draftJson = ref('');
-const selectedPreset = ref('');
 const errorMessage = ref('');
 const lastApplied = ref('');
+const activePresetId = ref<string | null>(null);
 
 const SET_ONBOARDING_OVERRIDE_MUTATION = parse(/* GraphQL */ `
   mutation SetOnboardingOverride($input: OnboardingOverrideInput!) {
@@ -47,13 +32,7 @@ const SET_ONBOARDING_OVERRIDE_MUTATION = parse(/* GraphQL */ `
         isUpgrade
         previousVersion
         currentVersion
-        hasPendingSteps
-        steps {
-          id
-          required
-          completed
-          introducedIn
-        }
+        completed
       }
     }
   }
@@ -66,31 +45,18 @@ const CLEAR_ONBOARDING_OVERRIDE_MUTATION = parse(/* GraphQL */ `
         isUpgrade
         previousVersion
         currentVersion
-        hasPendingSteps
-        steps {
-          id
-          required
-          completed
-          introducedIn
-        }
+        completed
       }
     }
   }
 `);
-
-const cloneSteps = () => DEFAULT_ACTIVATION_STEPS.map((step) => ({ ...step }));
 
 type OnboardingOverridePayload = {
   activationOnboarding?: {
     currentVersion?: string | null;
     previousVersion?: string | null;
     isUpgrade?: boolean;
-    steps?: Array<{
-      id: ActivationOnboardingStepId;
-      required?: boolean;
-      completed?: boolean;
-      introducedIn?: string;
-    }>;
+    completed?: boolean;
   };
   activationCode?: {
     code?: string;
@@ -98,11 +64,6 @@ type OnboardingOverridePayload = {
     partnerUrl?: string;
     serverName?: string;
     sysModel?: string;
-    comment?: string;
-    header?: string;
-    headermetacolor?: string;
-    background?: string;
-    showBannerGradient?: boolean;
     theme?: 'azure' | 'black' | 'gray' | 'white';
   } | null;
   partnerInfo?: {
@@ -115,95 +76,178 @@ type OnboardingOverridePayload = {
   isInitialSetup?: boolean;
 };
 
-const presets: Array<{ id: string; label: string; overrides: OnboardingOverridePayload }> = [
+type Preset = {
+  id: string;
+  label: string;
+  description: string;
+  overrides: OnboardingOverridePayload;
+};
+
+// Made reactive to allow adding new presets in session
+const presets = ref<Preset[]>([
+  // ============ REGULAR USER STATES ============
   {
-    id: 'fresh-install-activation',
-    label: 'Fresh install (activation code)',
+    id: 'regular-first-time',
+    label: '1. Regular User - First Time',
+    description: 'Fresh install, no partner, onboarding not completed',
     overrides: {
       registrationState: RegistrationState.ENOKEYFILE,
-      activationCode: {
-        code: 'TEST-CODE-123',
-        partnerName: 'Test Partner',
-        serverName: 'TestServer',
-        sysModel: 'Test Model',
-      },
-      partnerInfo: {
-        hasPartnerLogo: false,
-        partnerName: 'Test Partner',
-        partnerUrl: 'https://example.com',
-        partnerLogoUrl: null,
-      },
       activationOnboarding: {
         currentVersion: '7.0.0',
+        previousVersion: null,
         isUpgrade: false,
-        steps: [],
+        completed: false,
       },
-    },
-  },
-  {
-    id: 'fresh-install-no-code',
-    label: 'Fresh install (no activation code)',
-    overrides: {
-      registrationState: RegistrationState.ENOKEYFILE,
       activationCode: null,
       partnerInfo: null,
-      activationOnboarding: {
-        currentVersion: '7.0.0',
-        isUpgrade: false,
-        steps: [],
-      },
-    },
-  },
-  {
-    id: 'upgrade-all-steps',
-    label: 'Upgrade onboarding (all steps pending)',
-    overrides: {
-      activationOnboarding: {
-        currentVersion: '7.0.0',
-        previousVersion: '6.12.0',
-        isUpgrade: true,
-        steps: cloneSteps(),
-      },
-    },
-  },
-  {
-    id: 'upgrade-resume-activation',
-    label: 'Upgrade onboarding (resume at activation)',
-    overrides: {
-      activationOnboarding: {
-        currentVersion: '7.0.0',
-        previousVersion: '6.12.0',
-        isUpgrade: true,
-        steps: cloneSteps().map((step) => ({
-          ...step,
-          completed: step.id !== ActivationOnboardingStepId.ACTIVATION,
-        })),
-      },
-    },
-  },
-  {
-    id: 'welcome-initial-setup',
-    label: 'Welcome modal (initial setup)',
-    overrides: {
       isInitialSetup: true,
-      partnerInfo: {
-        hasPartnerLogo: false,
-        partnerName: 'Test Partner',
-        partnerUrl: 'https://example.com',
-        partnerLogoUrl: null,
-      },
     },
   },
-];
+  {
+    id: 'regular-upgrading',
+    label: '2. Regular User - Upgrading',
+    description: 'Upgraded from 6.12.0 to 7.0.0, onboarding not completed',
+    overrides: {
+      registrationState: RegistrationState.ENOKEYFILE,
+      activationOnboarding: {
+        currentVersion: '7.0.0',
+        previousVersion: '6.12.0',
+        isUpgrade: true,
+        completed: false,
+      },
+      activationCode: null,
+      partnerInfo: null,
+      isInitialSetup: false,
+    },
+  },
+  {
+    id: 'regular-incomplete',
+    label: '3. Regular User - Incomplete Setup',
+    description: 'Started onboarding but not completed, modal should reopen',
+    overrides: {
+      registrationState: RegistrationState.ENOKEYFILE,
+      activationOnboarding: {
+        currentVersion: '7.0.0',
+        previousVersion: null,
+        isUpgrade: false,
+        completed: false,
+      },
+      activationCode: null,
+      partnerInfo: null,
+      isInitialSetup: true,
+    },
+  },
+
+  // ============ PARTNER USER STATES (e.g., 45Drives) ============
+  {
+    id: 'partner-first-time',
+    label: '4. Partner User - First Time',
+    description: 'Fresh partner install with activation code, shows activation step',
+    overrides: {
+      registrationState: RegistrationState.ENOKEYFILE,
+      activationOnboarding: {
+        currentVersion: '7.0.0',
+        previousVersion: null,
+        isUpgrade: false,
+        completed: false,
+      },
+      activationCode: {
+        code: 'DEMO-PARTNER-CODE-123',
+        partnerName: '45Drives',
+        partnerUrl: 'https://45drives.com',
+        serverName: 'Storinator S45',
+        sysModel: 'Storinator',
+        theme: 'azure',
+      },
+      partnerInfo: {
+        hasPartnerLogo: true,
+        partnerName: '45Drives',
+        partnerUrl: 'https://45drives.com',
+        partnerLogoUrl: '/config/activate/45drives-logo.png',
+      },
+      isInitialSetup: true,
+    },
+  },
+  {
+    id: 'partner-upgrading',
+    label: '5. Partner User - Upgrading',
+    description: 'Partner user upgrading from 6.12.0, shows activation step',
+    overrides: {
+      registrationState: RegistrationState.ENOKEYFILE,
+      activationOnboarding: {
+        currentVersion: '7.0.0',
+        previousVersion: '6.12.0',
+        isUpgrade: true,
+        completed: false,
+      },
+      activationCode: {
+        code: 'DEMO-PARTNER-CODE-456',
+        partnerName: '45Drives',
+        partnerUrl: 'https://45drives.com',
+        serverName: 'Storinator AV15',
+        sysModel: 'Storinator',
+        theme: 'azure',
+      },
+      partnerInfo: {
+        hasPartnerLogo: true,
+        partnerName: '45Drives',
+        partnerUrl: 'https://45drives.com',
+        partnerLogoUrl: '/config/activate/45drives-logo.png',
+      },
+      isInitialSetup: false,
+    },
+  },
+  {
+    id: 'partner-incomplete',
+    label: '6. Partner User - Incomplete Setup',
+    description: 'Partner user started onboarding but not completed',
+    overrides: {
+      registrationState: RegistrationState.ENOKEYFILE,
+      activationOnboarding: {
+        currentVersion: '7.0.0',
+        previousVersion: null,
+        isUpgrade: false,
+        completed: false,
+      },
+      activationCode: {
+        code: 'DEMO-PARTNER-CODE-789',
+        partnerName: '45Drives',
+        partnerUrl: 'https://45drives.com',
+        serverName: 'Storinator Q30',
+        sysModel: 'Storinator',
+        theme: 'azure',
+      },
+      partnerInfo: {
+        hasPartnerLogo: true,
+        partnerName: '45Drives',
+        partnerUrl: 'https://45drives.com',
+        partnerLogoUrl: '/config/activate/45drives-logo.png',
+      },
+      isInitialSetup: true,
+    },
+  },
+]);
 
 const formattedOverrides = (value: OnboardingOverridePayload | null) => {
   if (!value) return '';
   return JSON.stringify(value, null, 2);
 };
 
-const loadDraftFromOverrides = () => {
-  draftJson.value = lastApplied.value;
+// "Load" the preset into the editor (for editing) - and set as active selection
+const loadPreset = (preset: Preset) => {
+  draftJson.value = formattedOverrides(preset.overrides);
   errorMessage.value = '';
+  activePresetId.value = preset.id;
+};
+
+// Apply preset directly - Acts as "Activate"
+const applyAndOpenPreset = async (preset: Preset) => {
+  activePresetId.value = preset.id;
+  draftJson.value = formattedOverrides(preset.overrides);
+  errorMessage.value = '';
+  await applyOverrides();
+  // Force open modal
+  setTimeout(() => activationModalStore.setIsHidden(false), 100);
 };
 
 const clearOverrides = async () => {
@@ -212,6 +256,7 @@ const clearOverrides = async () => {
     fetchPolicy: 'no-cache',
   });
   lastApplied.value = '';
+  activePresetId.value = null; // Clear active state
   await apolloClient.refetchQueries({
     include: ['ActivationCode', 'PublicWelcomeData', 'ActivationOnboarding'],
   });
@@ -237,299 +282,236 @@ const applyOverrides = async () => {
       include: ['ActivationCode', 'PublicWelcomeData', 'ActivationOnboarding'],
     });
     errorMessage.value = '';
+
+    // Auto-open modal if configuration suggests it should be open
+    if (!parsed.activationOnboarding?.completed) {
+      setTimeout(() => activationModalStore.setIsHidden(false), 100);
+    }
   } catch (error) {
     errorMessage.value =
       error instanceof Error ? `Invalid JSON: ${error.message}` : 'Invalid JSON payload';
   }
 };
 
-const applyPreset = () => {
-  const preset = presets.find((item) => item.id === selectedPreset.value);
-  if (!preset) return;
-  draftJson.value = formattedOverrides(preset.overrides);
-  errorMessage.value = '';
-};
+const createPresetFromCurrent = () => {
+  const trimmed = draftJson.value.trim();
+  if (!trimmed) {
+    errorMessage.value = 'Cannot create preset from empty configuration';
+    return;
+  }
 
-const showActivationModal = () => {
-  activationModalStore.setIsHidden(false);
-};
-
-const hideActivationModal = () => {
-  activationModalStore.setIsHidden(true);
-};
-
-const resetActivationModal = () => {
-  activationModalStore.setIsHidden(null);
-};
-
-const showWelcomeModal = () => {
-  window.dispatchEvent(new CustomEvent('unraid:onboarding-test:show-welcome'));
-};
-
-const hideWelcomeModal = () => {
-  window.dispatchEvent(new CustomEvent('unraid:onboarding-test:hide-welcome'));
-};
-
-const refetchOnboarding = async () => {
-  await upgradeOnboardingStore.refetchActivationOnboarding();
-};
-
-const regStateLabel = computed(() =>
-  registrationState.value ? String(registrationState.value) : 'unknown'
-);
-const activationConditionMet = computed(() => activationRequired.value);
-const activationModalShouldShow = computed(() => isVisible.value || shouldShowUpgradeOnboarding.value);
-const isLoginPage = computed(() => {
-  if (typeof window === 'undefined') return false;
-  return window.location?.pathname?.includes('login') ?? false;
-});
-const welcomeModalAuto = computed(() => isInitialSetup.value || isLoginPage.value);
-
-const stepDiagnostics = computed(() => {
-  const byId = new Map(allUpgradeSteps.value.map((step) => [step.id, step]));
-  return DEFAULT_ACTIVATION_STEPS.map((definition) => {
-    const serverStep = byId.get(definition.id);
-    const isActivationStep = definition.id === ActivationOnboardingStepId.ACTIVATION;
-    const condition = isActivationStep ? 'activation code + ENOKEYFILE regState' : 'always';
-    const conditionMet = isActivationStep ? activationConditionMet.value : true;
-    return {
-      id: definition.id,
-      included: Boolean(serverStep),
-      required: serverStep?.required ?? definition.required,
-      completed: serverStep?.completed ?? false,
-      introducedIn: serverStep?.introducedIn ?? definition.introducedIn ?? 'unknown',
-      condition,
-      conditionMet,
+  try {
+    const parsed = JSON.parse(trimmed) as OnboardingOverridePayload;
+    const newPreset: Preset = {
+      id: `custom-${Date.now()}`,
+      label: `Custom Preset ${presets.value.length + 1}`,
+      description: 'Created from current editor state',
+      overrides: parsed,
     };
-  });
-});
+    presets.value.push(newPreset);
+    activePresetId.value = newPreset.id;
 
-const stepColumns = [
-  { accessorKey: 'step', header: 'Step' },
-  { accessorKey: 'included', header: 'Included' },
-  { accessorKey: 'required', header: 'Required' },
-  { accessorKey: 'completed', header: 'Completed' },
-  { accessorKey: 'condition', header: 'Condition' },
-  { accessorKey: 'conditionMet', header: 'Condition Met' },
-];
-
-const stepRows = computed(() =>
-  stepDiagnostics.value.map((step) => ({
-    step: step.id,
-    included: step.included ? 'Yes' : 'No',
-    required: step.required ? 'Yes' : 'No',
-    completed: step.completed ? 'Yes' : 'No',
-    condition: step.condition,
-    conditionMet: step.conditionMet ? 'Yes' : 'No',
-  }))
-);
-
-onMounted(() => {
-  loadDraftFromOverrides();
-});
+    // Log to console for version control tracing
+    console.info('New Preset Created. Copy the object below to add to source code:', newPreset);
+    alert('Preset added to list! Check browser console to copy the JSON for version control.');
+  } catch (error) {
+    errorMessage.value = 'Invalid JSON, cannot create preset.';
+  }
+};
 </script>
 
 <template>
-  <section class="mx-auto max-w-6xl space-y-6">
-    <UCard>
-      <template #header>
-        <div>
-          <p class="text-muted-foreground text-xs tracking-[0.2em] uppercase">Onboarding State</p>
-          <h2 class="text-lg font-semibold">Activation + Upgrade Debug Controls</h2>
+  <div class="bg-background text-foreground flex h-full max-h-screen flex-col gap-6 overflow-hidden p-6">
+    <!-- Current State Panel -->
+    <div class="border-border bg-card shrink-0 rounded-lg border p-5 shadow-sm">
+      <div class="mb-4">
+        <div class="mb-2 flex items-center justify-between">
+          <div class="flex gap-2">
+            <span
+              v-if="isCompleted"
+              class="rounded-full bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
+              >Status: Completed</span
+            >
+            <span
+              v-else
+              class="rounded-full bg-orange-500/15 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-400"
+              >Status: In Progress</span
+            >
+          </div>
         </div>
-      </template>
+        <h2 class="text-muted-foreground text-xs font-bold tracking-wider uppercase">Current State</h2>
+      </div>
 
-      <UAlert
-        color="neutral"
-        variant="soft"
-        title="Server-side overrides"
-        description="Overrides are applied in the API and reset on restart. Use Clear Overrides to reload live state."
-      />
-    </UCard>
-
-    <div class="grid gap-6 lg:grid-cols-2">
-      <UCard>
-        <template #header>
-          <div class="font-medium">Current State</div>
-        </template>
-        <dl class="space-y-2 text-sm">
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Registration state</dt>
-            <dd class="font-medium">{{ regStateLabel }}</dd>
+      <div class="grid grid-cols-1 gap-6 text-sm md:grid-cols-4">
+        <!-- Registration -->
+        <div class="space-y-1">
+          <h3 class="border-border text-foreground mb-2 border-b pb-1 text-xs font-semibold uppercase">
+            Configuration context
+          </h3>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Initial Setup:</span>
+            <span
+              class="font-mono text-xs"
+              :class="
+                isFreshInstall
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-blue-600 dark:text-blue-400'
+              "
+              >{{ isFreshInstall }}</span
+            >
           </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Activation code</dt>
-            <dd class="font-medium">{{ hasActivationCode ? 'Present' : 'None' }}</dd>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Reg State:</span>
+            <span class="font-mono text-xs">{{ registrationState || 'N/A' }}</span>
           </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Fresh install</dt>
-            <dd class="font-medium">{{ isFreshInstall ? 'Yes' : 'No' }}</dd>
-          </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Initial setup</dt>
-            <dd class="font-medium">{{ isInitialSetup ? 'Yes' : 'No' }}</dd>
-          </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Upgrade flow</dt>
-            <dd class="font-medium">{{ isUpgrade ? 'Yes' : 'No' }}</dd>
-          </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Current version</dt>
-            <dd class="font-medium">{{ currentVersion ?? 'unknown' }}</dd>
-          </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Previous version</dt>
-            <dd class="font-medium">{{ previousVersion ?? 'n/a' }}</dd>
-          </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Pending steps</dt>
-            <dd class="font-medium">{{ upgradeSteps.length }}</dd>
-          </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Partner</dt>
-            <dd class="font-medium">{{ partnerInfo?.partnerName ?? 'none' }}</dd>
-          </div>
-        </dl>
-      </UCard>
-
-      <UCard>
-        <template #header>
-          <div class="font-medium">Modal Visibility</div>
-        </template>
-        <dl class="space-y-2 text-sm">
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Activation modal visible</dt>
-            <dd class="font-medium">{{ activationModalShouldShow ? 'Yes' : 'No' }}</dd>
-          </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Hidden flag</dt>
-            <dd class="font-medium">
-              {{ isHidden === null ? 'unset' : isHidden ? 'true' : 'false' }}
-            </dd>
-          </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Fresh install gate</dt>
-            <dd class="font-medium">{{ isFreshInstall ? 'Pass' : 'Block' }}</dd>
-          </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Callback data</dt>
-            <dd class="font-medium">{{ callbackData ? 'Present' : 'None' }}</dd>
-          </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Upgrade pending</dt>
-            <dd class="font-medium">{{ shouldShowUpgradeOnboarding ? 'Yes' : 'No' }}</dd>
-          </div>
-          <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Welcome auto-show</dt>
-            <dd class="font-medium">{{ welcomeModalAuto ? 'Yes' : 'No' }}</dd>
-          </div>
-        </dl>
-      </UCard>
-    </div>
-
-    <UCard>
-      <template #header>
-        <div class="font-medium">Step Diagnostics</div>
-      </template>
-      <UTable
-        :data="stepRows"
-        :columns="stepColumns"
-        sticky="header"
-        :ui="{ td: 'py-2 px-3', th: 'py-2 px-3 text-left text-muted-foreground' }"
-      >
-        <template #empty>
-          <div class="text-muted-foreground py-6 text-center text-sm">No steps available.</div>
-        </template>
-      </UTable>
-      <template #footer>
-        <p class="text-muted-foreground text-xs">
-          Steps are supplied by the API. If a step is not included, its condition was not satisfied on
-          the server side.
-        </p>
-      </template>
-    </UCard>
-
-    <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
-      <UCard>
-        <template #header>
-          <div class="font-medium">Overrides</div>
-        </template>
-        <UFormField label="Overrides (JSON)">
-          <UTextarea
-            v-model="draftJson"
-            :rows="18"
-            spellcheck="false"
-            :ui="{ base: 'font-mono text-xs' }"
-          />
-        </UFormField>
-        <UAlert
-          v-if="errorMessage"
-          color="error"
-          variant="soft"
-          title="Invalid overrides"
-          :description="errorMessage"
-          icon="i-lucide-alert-circle"
-          class="mt-4"
-        />
-        <div class="mt-4 flex flex-wrap gap-2">
-          <Button variant="primary" size="sm" @click="applyOverrides">Apply Overrides</Button>
-          <Button variant="outline" size="sm" @click="loadDraftFromOverrides"> Reload </Button>
-          <Button variant="destructive" size="sm" @click="clearOverrides"> Clear Overrides </Button>
         </div>
-      </UCard>
 
-      <div class="space-y-6">
-        <UCard>
-          <template #header>
-            <div class="font-medium">Presets</div>
-          </template>
-          <UFormField label="Preset">
-            <USelectMenu
-              v-model="selectedPreset"
-              :items="presets"
-              label-key="label"
-              value-key="id"
-              placeholder="Select a preset"
-            />
-          </UFormField>
-          <Button variant="outline" size="sm" class="mt-3" @click="applyPreset"> Load preset </Button>
-        </UCard>
-
-        <UCard>
-          <template #header>
-            <div class="font-medium">Modal Actions</div>
-          </template>
-          <div class="flex flex-col gap-2">
-            <Button variant="primary" size="sm" @click="showActivationModal">
-              Show Activation Modal
-            </Button>
-            <Button variant="outline" size="sm" @click="resetActivationModal">
-              Reset Activation Modal
-            </Button>
-            <Button variant="outline" size="sm" @click="hideActivationModal">
-              Hide Activation Modal
-            </Button>
-            <Button variant="primary" size="sm" @click="showWelcomeModal"> Show Welcome Modal </Button>
-            <Button variant="outline" size="sm" @click="hideWelcomeModal"> Hide Welcome Modal </Button>
+        <!-- Versioning -->
+        <div class="space-y-1">
+          <h3 class="border-border text-foreground mb-2 border-b pb-1 text-xs font-semibold uppercase">
+            Versioning
+          </h3>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Current:</span>
+            <span class="font-mono text-xs">{{ currentVersion || '-' }}</span>
           </div>
-        </UCard>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Previous:</span>
+            <span class="font-mono text-xs">{{ previousVersion || '-' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Upgrade?:</span>
+            <span
+              class="font-mono text-xs font-bold"
+              :class="isUpgrade ? 'text-purple-600 dark:text-purple-400' : 'text-muted-foreground'"
+              >{{ isUpgrade }}</span
+            >
+          </div>
+        </div>
 
-        <UCard>
-          <template #header>
-            <div class="font-medium">Data Actions</div>
-          </template>
-          <Button variant="outline" size="sm" @click="refetchOnboarding">
-            Refetch Onboarding Query
-          </Button>
-        </UCard>
+        <!-- Partner -->
+        <div class="space-y-1">
+          <h3 class="border-border text-foreground mb-2 border-b pb-1 text-xs font-semibold uppercase">
+            Partner Data
+          </h3>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Has Activation Code:</span>
+            <span class="font-mono text-xs">{{ hasActivationCode }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Partner:</span>
+            <span class="font-mono text-xs">{{ partnerInfo?.partnerName || '-' }}</span>
+          </div>
+        </div>
 
-        <UAlert
-          color="neutral"
-          variant="soft"
-          title="Overrides live in the API"
-          description="Overrides are in-memory only and cleared on API restart. Clear overrides to return to disk-backed state."
-        />
+        <!-- System -->
+        <div class="space-y-1">
+          <h3 class="border-border text-foreground mb-2 border-b pb-1 text-xs font-semibold uppercase">
+            System
+          </h3>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Logo:</span>
+            <span class="font-mono text-xs">{{
+              partnerInfo?.hasPartnerLogo ? 'Custom' : 'Default'
+            }}</span>
+          </div>
+        </div>
       </div>
     </div>
-  </section>
+
+    <!-- Controls Area -->
+    <div class="grid min-h-0 flex-1 grid-cols-1 gap-6 lg:grid-cols-12">
+      <!-- Presets List (Left) -->
+      <div class="border-border bg-card flex min-h-0 flex-col rounded-lg border shadow-sm lg:col-span-4">
+        <div class="border-border bg-muted flex items-center justify-between rounded-t-lg border-b p-3">
+          <h3 class="text-sm font-semibold">Quick Presets</h3>
+          <div class="flex items-center gap-2">
+            <button
+              @click="activationModalStore.setIsHidden(false)"
+              class="border-primary bg-primary/10 text-primary hover:bg-primary/20 rounded border px-2 py-0.5 text-xs font-medium"
+            >
+              Open Onboarding Modal
+            </button>
+            <button
+              @click="createPresetFromCurrent"
+              class="text-primary hover:text-primary/80 text-xs font-medium hover:underline"
+              title="Create from current editor JSON"
+            >
+              + Add Custom
+            </button>
+          </div>
+        </div>
+
+        <div class="flex-1 space-y-2 overflow-y-auto p-3">
+          <div
+            v-for="preset in presets"
+            :key="preset.id"
+            class="group hover:bg-muted flex flex-col gap-2 rounded border p-3 transition-colors"
+            :class="
+              activePresetId === preset.id
+                ? 'border-primary bg-primary/5 ring-primary ring-1'
+                : 'border-border'
+            "
+            @click="loadPreset(preset)"
+          >
+            <div>
+              <div class="text-foreground text-sm font-medium">{{ preset.label }}</div>
+              <div class="text-muted-foreground text-xs">{{ preset.description }}</div>
+            </div>
+            <div class="mt-1 flex gap-2">
+              <button
+                @click.stop="applyAndOpenPreset(preset)"
+                class="bg-primary text-primary-foreground flex-1 rounded px-2 py-1 text-xs font-medium shadow-sm hover:opacity-90"
+              >
+                Open
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JSON Editor (Right) -->
+      <div class="border-border bg-card flex min-h-0 flex-col rounded-lg border shadow-sm lg:col-span-8">
+        <div class="border-border bg-muted flex items-center justify-between rounded-t-lg border-b p-3">
+          <h3 class="text-sm font-semibold">Overrides JSON</h3>
+          <div class="flex gap-2">
+            <button
+              @click="clearOverrides"
+              class="rounded border border-transparent px-3 py-1 text-xs font-medium text-red-600 hover:border-red-200 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+            >
+              Clear
+            </button>
+            <button
+              @click="applyOverrides"
+              class="bg-primary text-primary-foreground rounded px-3 py-1 text-xs font-medium shadow-sm transition-opacity hover:opacity-90"
+            >
+              Apply Changes
+            </button>
+          </div>
+        </div>
+
+        <div class="relative flex-1">
+          <textarea
+            v-model="draftJson"
+            class="absolute inset-0 h-full w-full resize-none bg-black p-4 font-mono text-xs text-gray-300 focus:outline-none"
+            placeholder="// Paste overrides JSON here..."
+          />
+        </div>
+
+        <div
+          v-if="errorMessage"
+          class="border-t border-red-500/20 bg-red-500/10 p-2 font-mono text-xs break-all text-red-600 dark:text-red-400"
+        >
+          {{ errorMessage }}
+        </div>
+        <div
+          v-else-if="lastApplied"
+          class="flex items-center justify-between border-t border-green-500/20 bg-green-500/10 p-2 text-xs text-green-600 dark:text-green-400"
+        >
+          <span>✓ Configuration applied</span>
+          <span class="text-xs opacity-75">Modified just now</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>

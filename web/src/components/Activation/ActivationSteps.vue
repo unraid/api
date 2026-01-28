@@ -3,13 +3,23 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import type { StepMetadataEntry } from '~/components/Activation/stepRegistry';
-import type { ActivationOnboardingQuery, ActivationOnboardingStepId } from '~/composables/gql/graphql';
 
 import { stepMetadata } from '~/components/Activation/stepRegistry';
 
+// Hardcoded step type matching ActivationModal
+type StepId =
+  | 'OVERVIEW'
+  | 'CONFIGURE_SETTINGS'
+  | 'ADD_PLUGINS'
+  | 'ACTIVATE_LICENSE'
+  | 'SUMMARY'
+  | 'NEXT_STEPS';
+
+type HardcodedStep = { id: StepId; required: boolean };
+
 const props = withDefaults(
   defineProps<{
-    steps: ActivationOnboardingQuery['activationOnboarding']['steps'];
+    steps: HardcodedStep[];
     activeStepIndex?: number;
     onStepClick?: (stepIndex: number) => void;
   }>(),
@@ -38,14 +48,14 @@ const formatStep = (title: string, index: number, icon?: string): StepItem => ({
 });
 
 const dynamicSteps = computed(() => {
-  const metadataLookup: Record<ActivationOnboardingStepId, StepMetadataEntry> = stepMetadata;
+  const metadataLookup: Record<StepId, StepMetadataEntry> = stepMetadata;
 
   if (props.steps.length === 0) {
     const defaultSteps = [
-      metadataLookup.WELCOME,
-      metadataLookup.TIMEZONE,
-      metadataLookup.PLUGINS,
-      metadataLookup.ACTIVATION,
+      metadataLookup.OVERVIEW,
+      metadataLookup.CONFIGURE_SETTINGS,
+      metadataLookup.ADD_PLUGINS,
+      metadataLookup.ACTIVATE_LICENSE,
     ];
     return defaultSteps.map((meta, index) => formatStep(t(meta.titleKey), index, meta.icon));
   }

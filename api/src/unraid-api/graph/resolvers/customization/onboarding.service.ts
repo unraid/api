@@ -14,7 +14,7 @@ import { getters, store } from '@app/store/index.js';
 import { updateDynamixConfig } from '@app/store/modules/dynamix.js';
 import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
 import { OnboardingStateService } from '@app/unraid-api/config/onboarding-state.service.js';
-import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
+import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import {
     ActivationCode,
     OnboardingState,
@@ -35,7 +35,7 @@ export class OnboardingService implements OnModuleInit {
     private activationData: ActivationCode | null = null;
 
     constructor(
-        private readonly onboardingTracker: OnboardingTracker,
+        private readonly onboardingTracker: OnboardingTrackerService,
         private readonly onboardingOverrides: OnboardingOverrideService,
         private readonly onboardingState: OnboardingStateService
     ) {}

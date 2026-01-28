@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useQuery } from '@vue/apollo-composable';
 
@@ -7,8 +7,7 @@ import { ChevronLeftIcon, Squares2X2Icon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon, InformationCircleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Activation/graphql/installedPlugins.query';
-import usePluginInstaller from '@/components/Activation/usePluginInstaller';
-import { PluginInstallStatus } from '@/composables/gql/graphql';
+import { useOnboardingDraftStore } from '@/components/Activation/store/onboardingDraft';
 import { Switch } from '@headlessui/vue';
 
 export interface Props {
@@ -22,6 +21,7 @@ export interface Props {
 
 const props = defineProps<Props>();
 const { t } = useI18n();
+const draftStore = useOnboardingDraftStore();
 
 interface Plugin {
   id: string;
@@ -58,50 +58,24 @@ const availablePlugins: Plugin[] = [
   },
 ];
 
-type PluginStatus = 'pending' | 'installing' | 'success' | 'error';
-
-type PluginState = {
-  status: PluginStatus;
-  logs: string[];
-};
-
-const pluginStates = reactive<Record<string, PluginState>>(
-  Object.fromEntries(
-    availablePlugins.map((plugin) => [
-      plugin.id,
-      {
-        status: 'pending',
-        logs: [],
-      },
-    ])
-  )
-);
-
 // Default to selecting all plugins initially (optional, but good for UX)
-const selectedPlugins = ref<Set<string>>(new Set(['community-apps', 'fix-common-problems']));
+// But if draft store has values (even empty set if user deselected all), respect that?
+// We need to differentiate "first visit" vs "returning visit".
+// Checking if draft store is populated is a good hint.
+const initialSelection =
+  draftStore.selectedPlugins.size > 0
+    ? new Set(draftStore.selectedPlugins)
+    : new Set(['community-apps', 'fix-common-problems']); // Default
+
+const selectedPlugins = ref<Set<string>>(initialSelection);
 const installedPluginIds = ref<Set<string>>(new Set());
-const isInstalling = ref(false);
-const error = ref<string | null>(null);
-const installationFinished = ref(false);
 
 const { result: installedPluginsResult } = useQuery(INSTALLED_UNRAID_PLUGINS_QUERY, null, {
   fetchPolicy: 'network-only',
 });
 
-const { installPlugin } = usePluginInstaller();
-
-const INSTALL_TIMEOUT_MS = 60000;
-
-const installablePlugins = computed(() =>
-  availablePlugins.filter(
-    (plugin) => selectedPlugins.value.has(plugin.id) && !installedPluginIds.value.has(plugin.id)
-  )
-);
-
-const hasInstallableSelection = computed(() => installablePlugins.value.length > 0);
-
 const isPluginInstalled = (pluginId: string) => installedPluginIds.value.has(pluginId);
-const isBusy = computed(() => isInstalling.value || (props.isSavingStep ?? false));
+const isBusy = computed(() => props.isSavingStep ?? false);
 
 const applyInstalledPlugins = (installedPlugins: string[] | null | undefined) => {
   if (!Array.isArray(installedPlugins)) {
@@ -120,20 +94,10 @@ const applyInstalledPlugins = (installedPlugins: string[] | null | undefined) =>
 
   installedPluginIds.value = nextInstalledIds;
 
-  if (nextInstalledIds.size > 0) {
-    const nextSelected = new Set(selectedPlugins.value);
-    for (const id of nextInstalledIds) {
-      nextSelected.add(id);
-    }
-    selectedPlugins.value = nextSelected;
-  }
-
-  for (const id of nextInstalledIds) {
-    const state = pluginStates[id];
-    if (state && state.status !== 'installing') {
-      state.status = 'success';
-    }
-  }
+  // Auto-select uninstalled recommended plugins, but maybe respect user choice?
+  // Current logic: If installed, add to selection?
+  // If installed, we probably can't "install" it again easily, but we can verify it.
+  // We'll leave them selected if they are installed, or disable them?
 };
 
 watch(
@@ -143,37 +107,6 @@ watch(
   },
   { immediate: true }
 );
-
-async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error('Plugin installation timed out.'));
-    }, timeoutMs);
-
-    promise
-      .then((value) => {
-        clearTimeout(timer);
-        resolve(value);
-      })
-      .catch((err) => {
-        clearTimeout(timer);
-        reject(err);
-      });
-  });
-}
-
-const appendPluginLogs = (pluginId: string, lines: string[] | string) => {
-  const state = pluginStates[pluginId];
-  if (Array.isArray(lines)) {
-    state.logs.push(...lines);
-  } else {
-    state.logs.push(lines);
-  }
-};
-
-const resetCompletionState = () => {
-  installationFinished.value = false;
-};
 
 const isJigglingLeft = ref(false);
 const isJigglingRight = ref(false);
@@ -202,101 +135,21 @@ const togglePlugin = (pluginId: string, value: boolean) => {
   const next = new Set(selectedPlugins.value);
   if (value) {
     next.add(pluginId);
-    if (pluginStates[pluginId].status !== 'pending') {
-      pluginStates[pluginId].status = 'pending';
-      pluginStates[pluginId].logs = [];
-    }
   } else {
     next.delete(pluginId);
-    pluginStates[pluginId].status = 'pending';
-    pluginStates[pluginId].logs = [];
   }
   selectedPlugins.value = next;
-  resetCompletionState();
-};
-
-const handleInstall = async () => {
-  const pluginsToInstall = installablePlugins.value;
-  if (pluginsToInstall.length === 0) {
-    installationFinished.value = true;
-    return;
-  }
-
-  isInstalling.value = true;
-  error.value = null;
-  installationFinished.value = false;
-  let hadError = false;
-
-  try {
-    for (const plugin of pluginsToInstall) {
-      const state = pluginStates[plugin.id];
-      state.status = 'installing';
-      state.logs = [];
-      appendPluginLogs(
-        plugin.id,
-        t('activation.pluginsStep.installingPluginMessage', { name: plugin.name })
-      );
-
-      let result;
-      const installPromise = installPlugin({
-        url: plugin.url,
-        name: plugin.name,
-        forced: true,
-        onEvent: (event) => {
-          if (event.output?.length) {
-            appendPluginLogs(plugin.id, event.output);
-          }
-        },
-      });
-
-      installPromise.catch(() => {});
-
-      try {
-        result = await withTimeout(installPromise, INSTALL_TIMEOUT_MS);
-      } catch (installError) {
-        state.status = 'error';
-        appendPluginLogs(plugin.id, t('activation.pluginsStep.installFailed'));
-        hadError = true;
-        continue;
-      }
-
-      if (result.status !== PluginInstallStatus.SUCCEEDED) {
-        state.status = 'error';
-        appendPluginLogs(plugin.id, t('activation.pluginsStep.installFailed'));
-        hadError = true;
-        continue;
-      }
-
-      if (result.output?.length) {
-        appendPluginLogs(plugin.id, result.output);
-      }
-      appendPluginLogs(
-        plugin.id,
-        t('activation.pluginsStep.pluginInstalledMessage', { name: plugin.name })
-      );
-      state.status = 'success';
-      const nextInstalled = new Set(installedPluginIds.value);
-      nextInstalled.add(plugin.id);
-      installedPluginIds.value = nextInstalled;
-    }
-
-    installationFinished.value = pluginsToInstall.every((plugin) =>
-      ['success', 'error'].includes(pluginStates[plugin.id].status)
-    );
-    if (hadError) {
-      error.value = t('activation.pluginsStep.installFailed');
-    }
-  } catch (err) {
-    error.value = t('activation.pluginsStep.installFailed');
-    console.error('Failed to install plugins:', err);
-    installationFinished.value = false;
-  } finally {
-    isInstalling.value = false;
-  }
 };
 
 const handleSkip = () => {
-  props.onSkip?.();
+  // Clear selection? Or just move on?
+  // User clicked "Skip", so we probably shouldn't install anything.
+  draftStore.setPlugins(new Set());
+  if (props.onSkip) {
+    props.onSkip();
+  } else {
+    props.onComplete();
+  }
 };
 
 const handleBack = () => {
@@ -304,26 +157,11 @@ const handleBack = () => {
 };
 
 const handlePrimaryAction = async () => {
-  if (installationFinished.value || !hasInstallableSelection.value) {
-    props.onComplete();
-    return;
-  }
-
-  if (!isBusy.value) {
-    await handleInstall();
-    // After install, check if successful and proceed?
-    // The current logic sets installationFinished, and next click will complete.
-    // Ideally, we auto-complete if successful.
-    if (!error.value && installationFinished.value) {
-      props.onComplete();
-    }
-  }
+  draftStore.setPlugins(selectedPlugins.value);
+  props.onComplete();
 };
 
-const primaryButtonText = computed(() => {
-  if (isInstalling.value) return t('activation.pluginsStep.installing');
-  return 'Next Step'; // Hardcoded as per design or use t key
-});
+const primaryButtonText = computed(() => 'Next Step');
 </script>
 
 <template>
@@ -402,28 +240,6 @@ const primaryButtonText = computed(() => {
             <p class="text-muted text-sm leading-relaxed">
               {{ plugin.description }}
             </p>
-            <!-- Install Status Text -->
-            <p
-              v-if="pluginStates[plugin.id].status === 'installing'"
-              class="text-primary mt-2 flex items-center gap-1 text-xs"
-            >
-              <span
-                class="border-primary h-3 w-3 animate-spin rounded-full border-2 border-t-transparent"
-              />
-              Installing...
-            </p>
-            <p
-              v-else-if="pluginStates[plugin.id].status === 'success'"
-              class="mt-2 text-xs font-medium text-green-600"
-            >
-              Installed Successfully
-            </p>
-            <p
-              v-else-if="pluginStates[plugin.id].status === 'error'"
-              class="mt-2 text-xs font-medium text-red-500"
-            >
-              Installation Failed
-            </p>
           </div>
 
           <Switch
@@ -447,16 +263,6 @@ const primaryButtonText = computed(() => {
         </div>
       </div>
 
-      <!-- Error Message -->
-      <div
-        v-if="error"
-        class="mb-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
-      >
-        <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
-          {{ error }}
-        </p>
-      </div>
-
       <div
         class="border-muted flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
       >
@@ -473,7 +279,7 @@ const primaryButtonText = computed(() => {
 
         <div class="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row">
           <button
-            v-if="showSkip && !isInstalling"
+            v-if="showSkip"
             @click="handleSkip"
             class="text-muted hover:text-highlighted text-sm font-medium transition-colors sm:mr-2"
             :disabled="isBusy"

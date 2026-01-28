@@ -2,8 +2,6 @@ import { Logger } from '@nestjs/common';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-import { ActivationOnboardingStepId } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
-
 export async function findActivationCodeFile(
     activationDir: string,
     extension = '.activationcode',
@@ -31,46 +29,4 @@ export type ActivationStepContext = {
     regState?: string;
 };
 
-export type ActivationStepDefinition = {
-    id: ActivationOnboardingStepId;
-    required: boolean;
-    introducedIn: string;
-    condition?: (context: ActivationStepContext) => boolean | Promise<boolean>;
-};
-
-export const activationStepDefinitions: ActivationStepDefinition[] = [
-    {
-        id: ActivationOnboardingStepId.WELCOME,
-        required: false,
-        introducedIn: '7.0.0',
-    },
-    {
-        id: ActivationOnboardingStepId.TIMEZONE,
-        required: true,
-        introducedIn: '7.0.0',
-    },
-    {
-        id: ActivationOnboardingStepId.PLUGINS,
-        required: false,
-        introducedIn: '7.0.0',
-    },
-    {
-        id: ActivationOnboardingStepId.ACTIVATION,
-        required: true,
-        introducedIn: '7.0.0',
-        condition: (context) =>
-            context.hasActivationCode && Boolean(context.regState?.startsWith('ENOKEYFILE')),
-    },
-];
-
-export async function resolveActivationStepDefinitions(
-    context: ActivationStepContext
-): Promise<ActivationStepDefinition[]> {
-    const results: ActivationStepDefinition[] = [];
-    for (const definition of activationStepDefinitions) {
-        if (!definition.condition || (await definition.condition(context))) {
-            results.push(definition);
-        }
-    }
-    return results;
-}
+// End of file

@@ -11,7 +11,7 @@ export const UPDATE_SERVER_IDENTITY_MUTATION = gql`
 `;
 
 export const SET_THEME_MUTATION = gql`
-  mutation SetTheme($theme: String!) {
+  mutation SetLegacyTheme($theme: String!) {
     setTheme(theme: $theme) {
       id
       theme
@@ -24,28 +24,6 @@ export const SET_LOCALE_MUTATION = gql`
     setLocale(locale: $locale) {
       id
       locale
-    }
-  }
-`;
-
-export const INSTALL_PLUGIN_MUTATION = gql`
-  mutation InstallPlugin($input: InstallPluginInput!) {
-    unraidPlugins {
-      installPlugin(input: $input) {
-        id
-        status
-      }
-    }
-  }
-`;
-
-export const INSTALL_LANGUAGE_MUTATION = gql`
-  mutation InstallLanguage($input: InstallPluginInput!) {
-    unraidPlugins {
-      installLanguage(input: $input) {
-        id
-        status
-      }
     }
   }
 `;

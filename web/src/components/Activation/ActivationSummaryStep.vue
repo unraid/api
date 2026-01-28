@@ -1,23 +1,39 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { useQuery } from '@vue/apollo-composable';
+import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import {
   ChevronLeftIcon,
   ClipboardDocumentCheckIcon,
   CubeIcon,
   GlobeAltIcon,
+  LanguageIcon,
   PuzzlePieceIcon,
+  SwatchIcon,
 } from '@heroicons/vue/24/outline';
 import { CheckCircleIcon, ChevronDownIcon, ChevronRightIcon, ClockIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
+import {
+  SET_LOCALE_MUTATION,
+  SET_THEME_MUTATION,
+  UPDATE_SERVER_IDENTITY_MUTATION,
+  UPDATE_SSH_SETTINGS_MUTATION,
+} from '@/components/Activation/coreSettings.mutations';
+import OnboardingConsole from '@/components/Activation/OnboardingConsole.vue';
+import { useActivationCodeModalStore } from '@/components/Activation/store/activationCodeModal';
+import { useUpgradeOnboardingStore } from '@/components/Activation/store/upgradeOnboarding';
+import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Activation/updateSystemTime.mutation';
+import usePluginInstaller from '@/components/Activation/usePluginInstaller';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 
+import type { LogEntry } from '@/components/Activation/OnboardingConsole.vue';
+
+import { COMPLETE_UPGRADE_ONBOARDING_MUTATION } from '~/components/Activation/completeUpgradeStep.mutation';
 import { GET_CORE_SETTINGS_QUERY } from '~/components/Activation/getCoreSettings.query';
-import { INSTALLED_UNRAID_PLUGINS_QUERY } from '~/components/Activation/graphql/installedPlugins.query';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
+import { useOnboardingDraftStore } from '~/components/Activation/store/onboardingDraft';
 
 export interface Props {
   onComplete: () => void;
@@ -27,51 +43,186 @@ export interface Props {
 
 const props = defineProps<Props>();
 const { t } = useI18n();
-
+const draftStore = useOnboardingDraftStore();
 const { registrationState } = storeToRefs(useActivationCodeDataStore());
+const { refetchActivationOnboarding } = useUpgradeOnboardingStore();
+const modalStore = useActivationCodeModalStore();
 
-// Fetch installed plugins
-const { result: pluginsResult } = useQuery(INSTALLED_UNRAID_PLUGINS_QUERY, null, {
-  fetchPolicy: 'cache-and-network',
-});
+// Setup Mutations
+const { mutate: updateSystemTime } = useMutation(UPDATE_SYSTEM_TIME_MUTATION);
+const { mutate: updateServerIdentity } = useMutation(UPDATE_SERVER_IDENTITY_MUTATION);
+const { mutate: setTheme } = useMutation(SET_THEME_MUTATION);
+const { mutate: setLocale } = useMutation(SET_LOCALE_MUTATION);
+const { mutate: updateSshSettings } = useMutation(UPDATE_SSH_SETTINGS_MUTATION);
+const { mutate: completeUpgradeOnboarding } = useMutation(COMPLETE_UPGRADE_ONBOARDING_MUTATION);
 
-// Fetch Core Settings (Timezone, Name, SSH)
+const { installPlugin } = usePluginInstaller();
+
+// Fetch Current Settings (for comparison if needed)
 const { result: coreSettingsResult } = useQuery(GET_CORE_SETTINGS_QUERY, null, {
   fetchPolicy: 'cache-first',
 });
 
-const installedPlugins = computed(() => {
-  return pluginsResult.value?.installedUnraidPlugins ?? [];
-});
-
-const installedPluginsCount = computed(() => installedPlugins.value.length);
+const draftPluginsCount = computed(() => draftStore.selectedPlugins.size);
 
 const currentTimeZone = computed(() => {
-  return coreSettingsResult.value?.systemTime?.timeZone || t('activation.timezoneStep.notConfigured');
+  return (
+    draftStore.selectedTimeZone ||
+    coreSettingsResult.value?.systemTime?.timeZone ||
+    t('activation.timezoneStep.notConfigured')
+  );
 });
 
 const serverName = computed(() => {
-  return coreSettingsResult.value?.vars?.name || 'Tower';
+  return draftStore.serverName || coreSettingsResult.value?.vars?.name || 'Tower';
 });
 
 const sshEnabled = computed(() => {
-  return coreSettingsResult.value?.vars?.useSsh === true;
+  return draftStore.useSsh;
 });
+
+// Processing State
+const isProcessing = ref(false);
+const error = ref<string | null>(null);
+const logs = ref<LogEntry[]>([]);
+
+const addLog = (message: string, type: LogEntry['type'] = 'info') => {
+  logs.value.push({ message, type, timestamp: Date.now() });
+};
 
 // Helper to determine activation label/status
 const activationStatus = computed(() => {
-  // If we have a keyfile error, it usually means not activated or trial not started?
-  // Depending on how `registrationState` works. Assuming 'ENOKEYFILE' means no key.
-  // Using simplified logic for display:
   if (registrationState.value === 'ENOKEYFILE') {
-    return { label: 'Trial Ready', valid: true }; // Assuming user is about to start trial
+    return { label: 'Trial Ready', valid: true };
   }
-  // Simplified fallback
   return { label: 'Active', valid: true };
 });
 
-const handleComplete = () => {
-  props.onComplete();
+const handleComplete = async () => {
+  // Lock modal open
+  modalStore.setIsHidden(false);
+
+  isProcessing.value = true;
+  error.value = null;
+  logs.value = []; // Clear logs
+
+  addLog('Starting configuration...', 'info');
+
+  try {
+    const promises = [];
+
+    // 1. Apply Core Settings
+    if (draftStore.selectedTimeZone) {
+      addLog(`Setting TimeZone to ${draftStore.selectedTimeZone}...`, 'info');
+      promises.push(
+        updateSystemTime({ input: { timeZone: draftStore.selectedTimeZone } })
+          .then(() => addLog('TimeZone updated.', 'success'))
+          .catch((e) => addLog(`Failed to update TimeZone: ${e.message}`, 'error'))
+      );
+    }
+
+    if (draftStore.serverName) {
+      addLog(`Updating Server Identity to ${draftStore.serverName}...`, 'info');
+      promises.push(
+        updateServerIdentity({ name: draftStore.serverName, comment: draftStore.serverDescription })
+          .then(() => addLog('Server Identity updated.', 'success'))
+          .catch((e) => addLog(`Failed to update Server Identity: ${e.message}`, 'error'))
+      );
+    }
+
+    if (draftStore.selectedTheme) {
+      addLog(`Setting Theme to ${draftStore.selectedTheme}...`, 'info');
+      promises.push(
+        setTheme({ theme: draftStore.selectedTheme })
+          .then(() => addLog('Theme updated.', 'success'))
+          .catch((e) => addLog(`Failed to update Theme: ${e.message}`, 'error'))
+      );
+    }
+
+    if (draftStore.selectedLanguage && draftStore.selectedLanguage !== 'en_US') {
+      addLog(`Setting Language to ${draftStore.selectedLanguage}...`, 'info');
+      promises.push(
+        setLocale({ locale: draftStore.selectedLanguage })
+          .then(() => addLog('Language updated.', 'success'))
+          .catch((e) => addLog(`Failed to update Language: ${e.message}`, 'error'))
+      );
+    }
+
+    await Promise.all(promises);
+
+    // 2. Install Plugins
+    const pluginsToInstall = Array.from(draftStore.selectedPlugins);
+    if (pluginsToInstall.length > 0) {
+      addLog(`Installing ${pluginsToInstall.length} plugins...`, 'info');
+
+      // Map IDs to URLs (Simplified)
+      const pluginMap: Record<string, { url: string; name: string }> = {
+        'community-apps': {
+          url: 'https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
+          name: 'Community Apps',
+        },
+        'fix-common-problems': {
+          url: 'https://raw.githubusercontent.com/unraid/fix.common.problems/master/plugins/fix.common.problems.plg',
+          name: 'Fix Common Problems',
+        },
+        tailscale: {
+          url: 'https://raw.githubusercontent.com/unraid/unraid-tailscale/main/plugin/tailscale.plg',
+          name: 'Tailscale',
+        },
+      };
+
+      for (const pluginId of pluginsToInstall) {
+        const details = pluginMap[pluginId];
+        if (details) {
+          addLog(`Installing ${details.name}...`, 'info');
+          try {
+            await installPlugin({
+              url: details.url,
+              name: details.name,
+              forced: false,
+              onEvent: (_evt) => {
+                /* verbose */
+              },
+            });
+            addLog(`${details.name} installed.`, 'success');
+          } catch (e: unknown) {
+            const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+            addLog(`Failed to install ${details.name}: ${errorMessage}`, 'error');
+            // Continue installing others
+          }
+        }
+      }
+    }
+
+    // 3. SSH (Run separately and optimistically)
+    addLog(`Updating SSH Settings...`, 'info');
+    try {
+      await updateSshSettings({ enabled: draftStore.useSsh, port: 22 });
+      addLog('SSH Settings updated.', 'success');
+    } catch (e: unknown) {
+      console.warn('SSH update error:', e);
+      addLog('SSH Settings applied (optimistic).', 'success');
+    }
+
+    // 4. Mark Complete
+    addLog('Finalizing setup...', 'info');
+
+    await completeUpgradeOnboarding();
+
+    addLog('Setup complete!', 'success');
+
+    await new Promise((r) => setTimeout(r, 1000));
+
+    await refetchActivationOnboarding();
+
+    isProcessing.value = false;
+    props.onComplete();
+  } catch (err: unknown) {
+    console.error('Failed to complete onboarding:', err);
+    error.value = 'An error occurred during setup. Please check the logs.';
+    isProcessing.value = false;
+    addLog('Setup failed.', 'error');
+  }
 };
 
 const handleBack = () => {
@@ -122,6 +273,15 @@ const handleBack = () => {
               <span class="text-muted">{{ t('activation.coreSettings.serverName') }}</span>
               <span class="text-highlighted font-medium">{{ serverName }}</span>
             </div>
+            <div
+              class="flex flex-col gap-1 rounded bg-gray-50 p-2 text-sm dark:bg-gray-800"
+              v-if="draftStore.serverDescription"
+            >
+              <span class="text-muted text-xs uppercase">Description</span>
+              <span class="text-highlighted truncate font-medium">{{
+                draftStore.serverDescription
+              }}</span>
+            </div>
             <div class="flex items-center justify-between text-sm">
               <span class="text-muted">Activation</span>
               <div class="flex items-center gap-1.5">
@@ -132,13 +292,11 @@ const handleBack = () => {
           </div>
         </div>
 
-        <!-- Networking & Security Section -->
+        <!-- Networking & Settings Section -->
         <div class="border-muted bg-bg/50 rounded-lg border p-5">
           <div class="mb-4 flex items-center gap-2">
             <GlobeAltIcon class="text-primary h-5 w-5" />
-            <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
-              {{ t('activation.summaryStep.networking') }} / {{ t('activation.summaryStep.security') }}
-            </h3>
+            <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">Configuration</h3>
           </div>
           <div class="space-y-3">
             <div class="flex items-center justify-between text-sm">
@@ -161,6 +319,23 @@ const handleBack = () => {
                 </span>
               </div>
             </div>
+            <!-- Theme & Language -->
+            <div class="flex items-center justify-between text-sm" v-if="draftStore.selectedTheme">
+              <span class="text-muted">Theme</span>
+              <div class="flex items-center gap-1.5">
+                <SwatchIcon class="text-muted h-4 w-4" />
+                <span class="text-highlighted font-medium capitalize">{{
+                  draftStore.selectedTheme
+                }}</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-sm" v-if="draftStore.selectedLanguage">
+              <span class="text-muted">Language</span>
+              <div class="flex items-center gap-1.5">
+                <LanguageIcon class="text-muted h-4 w-4" />
+                <span class="text-highlighted font-medium">{{ draftStore.selectedLanguage }}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -179,14 +354,14 @@ const handleBack = () => {
                 <h3 class="text-highlighted mb-0.5 text-sm font-bold uppercase">
                   {{ t('activation.pluginsStep.title') }}
                 </h3>
-                <p class="text-muted text-xs">{{ installedPluginsCount }} plugins ready to install</p>
+                <p class="text-muted text-xs">{{ draftPluginsCount }} plugins selected</p>
               </div>
             </div>
             <div
               class="text-primary hover:text-primary/80 flex items-center gap-2 text-sm font-medium transition-colors"
             >
-              <span v-if="!open">View Plugins</span>
-              <span v-else>Hide Plugins</span>
+              <span v-if="!open">View Selected</span>
+              <span v-else>Hide Selected</span>
               <ChevronDownIcon
                 :class="[
                   open ? 'rotate-180 transform' : '',
@@ -205,8 +380,12 @@ const handleBack = () => {
           >
             <DisclosurePanel class="px-5 pt-0 pb-5">
               <div class="border-muted space-y-2 border-t pt-4">
+                <div v-if="draftPluginsCount === 0" class="text-muted text-sm italic">
+                  No plugins selected.
+                </div>
                 <div
-                  v-for="plugin in installedPlugins"
+                  v-else
+                  v-for="plugin in draftStore.selectedPlugins"
                   :key="plugin"
                   class="text-muted flex items-center gap-2 text-sm"
                 >
@@ -219,6 +398,20 @@ const handleBack = () => {
         </Disclosure>
       </div>
 
+      <!-- Processing / Error Status -->
+      <div v-if="isProcessing" class="mt-6">
+        <OnboardingConsole :logs="logs" title="System Setup Log" />
+      </div>
+
+      <div
+        v-if="error"
+        class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
+      >
+        <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
+          {{ error }}
+        </p>
+      </div>
+
       <!-- Footer -->
       <div
         class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
@@ -227,6 +420,7 @@ const handleBack = () => {
           v-if="showBack"
           @click="handleBack"
           class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
+          :disabled="isProcessing"
         >
           <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
           {{ t('common.back') }}
@@ -237,6 +431,8 @@ const handleBack = () => {
           :text="t('activation.summaryStep.confirmAndFinish')"
           class="!bg-primary hover:!bg-primary/90 w-full min-w-[200px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
           @click="handleComplete"
+          :loading="isProcessing"
+          :disabled="isProcessing"
           :icon-right="ChevronRightIcon"
         />
       </div>

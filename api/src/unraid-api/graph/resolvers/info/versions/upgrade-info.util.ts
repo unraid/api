@@ -2,21 +2,17 @@ import type { UpgradeProgressSnapshot } from '@app/unraid-api/config/onboarding-
 import type { UpgradeInfo } from '@app/unraid-api/graph/resolvers/info/versions/versions.model.js';
 
 export const buildUpgradeInfoFromSnapshot = (snapshot: UpgradeProgressSnapshot): UpgradeInfo => {
-    const { currentVersion, lastTrackedVersion, completedSteps, steps } = snapshot;
+    const { currentVersion, lastTrackedVersion } = snapshot;
 
-    const isUpgrade = Boolean(
+    const isUpgradeBoolean = Boolean(
         lastTrackedVersion && currentVersion && lastTrackedVersion !== currentVersion
     );
 
     return {
-        isUpgrade,
-        previousVersion: isUpgrade ? lastTrackedVersion : undefined,
+        isUpgrade: isUpgradeBoolean,
+        previousVersion: isUpgradeBoolean ? lastTrackedVersion : undefined,
         currentVersion: currentVersion ?? undefined,
-        completedSteps,
-        steps: steps.map((step) => ({
-            id: step.id,
-            required: step.required,
-            introducedIn: step.introducedIn,
-        })),
+        completedSteps: [],
+        steps: [],
     };
 };

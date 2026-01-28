@@ -106,6 +106,7 @@ declare module 'vue' {
     OidcDebugButton: typeof import('./src/components/Logs/OidcDebugButton.vue')['default']
     OidcDebugLogs: typeof import('./src/components/ConnectSettings/OidcDebugLogs.vue')['default']
     'OnboardingAdminPanel.standalone': typeof import('./src/components/Activation/OnboardingAdminPanel.standalone.vue')['default']
+    OnboardingConsole: typeof import('./src/components/Activation/OnboardingConsole.vue')['default']
     'OnboardingTestHarness.standalone': typeof import('./src/components/Activation/OnboardingTestHarness.standalone.vue')['default']
     Overview: typeof import('./src/components/Docker/Overview.vue')['default']
     PermissionCounter: typeof import('./src/components/ApiKey/PermissionCounter.vue')['default']
@@ -166,7 +167,6 @@ declare module 'vue' {
     USwitch: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Switch.vue')['default']
     UTable: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Table.vue')['default']
     UTabs: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Tabs.vue')['default']
-    UTextarea: typeof import('./../node_modules/.pnpm/@nuxt+ui@4.0.0-alpha.0_@babel+parser@7.28.4_@netlify+blobs@9.1.2_change-case@5.4.4_db0@_655bac6707ae017754653173419b3890/node_modules/@nuxt/ui/dist/runtime/components/Textarea.vue')['default']
     'WanIpCheck.standalone': typeof import('./src/components/WanIpCheck.standalone.vue')['default']
     'WelcomeModal.standalone': typeof import('./src/components/Activation/WelcomeModal.standalone.vue')['default']
   }

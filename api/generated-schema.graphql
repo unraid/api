@@ -708,97 +708,6 @@ enum Role {
   VIEWER
 }
 
-type PublicPartnerInfo {
-  partnerName: String
-
-  """Indicates if a partner logo exists"""
-  hasPartnerLogo: Boolean!
-  partnerUrl: String
-
-  """
-  The path to the partner logo image on the flash drive, relative to the activation code file
-  """
-  partnerLogoUrl: String
-}
-
-type ActivationCode {
-  code: String
-  partnerName: String
-  partnerUrl: String
-  serverName: String
-  sysModel: String
-  comment: String
-  header: String
-  headermetacolor: String
-  background: String
-  showBannerGradient: Boolean
-  theme: String
-}
-
-type ActivationOnboardingStep {
-  """Identifier of the activation onboarding step"""
-  id: ActivationOnboardingStepId!
-
-  """Indicates whether the step is required"""
-  required: Boolean!
-
-  """Indicates whether the step has been completed for the current version"""
-  completed: Boolean!
-
-  """Version of Unraid when this step was introduced"""
-  introducedIn: String
-}
-
-enum ActivationOnboardingStepId {
-  WELCOME
-  TIMEZONE
-  PLUGINS
-  ACTIVATION
-}
-
-type OnboardingState {
-  registrationState: RegistrationState
-
-  """Indicates whether the system is registered"""
-  isRegistered: Boolean!
-
-  """Indicates whether the system is a fresh install"""
-  isFreshInstall: Boolean!
-
-  """Indicates whether initial setup should be shown"""
-  isInitialSetup: Boolean!
-
-  """Indicates whether an activation code is present"""
-  hasActivationCode: Boolean!
-
-  """Indicates whether activation is required based on current state"""
-  activationRequired: Boolean!
-}
-
-type Customization {
-  activationCode: ActivationCode
-  partnerInfo: PublicPartnerInfo
-  onboardingState: OnboardingState!
-  theme: Theme!
-}
-
-type ActivationOnboarding {
-  """Indicates whether the system is currently in an upgrade state"""
-  isUpgrade: Boolean!
-
-  """Previous OS version prior to the current upgrade"""
-  previousVersion: String
-
-  """Current OS version detected by the system"""
-  currentVersion: String
-
-  """Whether there are any remaining activation onboarding steps"""
-  hasPendingSteps: Boolean!
-
-  """Activation onboarding steps relevant to the current system state"""
-  steps: [ActivationOnboardingStep!]!
-}
-
 type SsoSettings implements Node {
   id: PrefixedID!
 
@@ -870,6 +779,73 @@ type Settings implements Node {
 
   """The API setting values"""
   api: ApiConfig!
+}
+
+type PublicPartnerInfo {
+  partnerName: String
+
+  """Indicates if a partner logo exists"""
+  hasPartnerLogo: Boolean!
+  partnerUrl: String
+
+  """
+  The path to the partner logo image on the flash drive, relative to the activation code file
+  """
+  partnerLogoUrl: String
+}
+
+type ActivationCode {
+  code: String
+  partnerName: String
+  partnerUrl: String
+  serverName: String
+  sysModel: String
+  comment: String
+  header: String
+  headermetacolor: String
+  background: String
+  showBannerGradient: Boolean
+  theme: String
+}
+
+type OnboardingState {
+  registrationState: RegistrationState
+
+  """Indicates whether the system is registered"""
+  isRegistered: Boolean!
+
+  """Indicates whether the system is a fresh install"""
+  isFreshInstall: Boolean!
+
+  """Indicates whether initial setup should be shown"""
+  isInitialSetup: Boolean!
+
+  """Indicates whether an activation code is present"""
+  hasActivationCode: Boolean!
+
+  """Indicates whether activation is required based on current state"""
+  activationRequired: Boolean!
+}
+
+type Customization {
+  activationCode: ActivationCode
+  partnerInfo: PublicPartnerInfo
+  onboardingState: OnboardingState!
+  theme: Theme!
+}
+
+type ActivationOnboarding {
+  """Indicates whether the system is currently in an upgrade state"""
+  isUpgrade: Boolean!
+
+  """Previous OS version prior to the current upgrade"""
+  previousVersion: String
+
+  """Current OS version detected by the system"""
+  currentVersion: String
+
+  """Whether the onboarding flow has been completed for the current version"""
+  completed: Boolean!
 }
 
 type CoreVersions {
@@ -1252,10 +1228,8 @@ input DeleteRCloneRemoteInput {
 
 """Onboarding related mutations"""
 type OnboardingMutations {
-  """
-  Mark an upgrade onboarding step as completed for the current OS version
-  """
-  completeUpgradeStep(input: CompleteUpgradeStepInput!): UpgradeInfo!
+  """Mark onboarding as completed for the current OS version"""
+  completeUpgradeOnboarding: UpgradeInfo!
 
   """Reset upgrade onboarding progress for the current OS version"""
   resetUpgradeOnboarding: UpgradeInfo!
@@ -1265,12 +1239,6 @@ type OnboardingMutations {
 
   """Clear onboarding override state and reload from disk"""
   clearOnboardingOverride: ActivationOnboarding!
-}
-
-"""Input for marking an upgrade onboarding step as completed"""
-input CompleteUpgradeStepInput {
-  """Identifier of the onboarding step to mark completed"""
-  stepId: ActivationOnboardingStepId!
 }
 
 """Onboarding override input"""
@@ -1287,16 +1255,7 @@ input ActivationOnboardingOverrideInput {
   currentVersion: String
   previousVersion: String
   isUpgrade: Boolean
-  steps: [ActivationOnboardingStepOverrideInput!]
-}
-
-"""Activation onboarding step override input"""
-input ActivationOnboardingStepOverrideInput {
-  """Identifier of the onboarding step"""
-  id: ActivationOnboardingStepId!
-  required: Boolean
   completed: Boolean
-  introducedIn: String
 }
 
 """Activation code override input"""
@@ -1326,6 +1285,9 @@ input PartnerInfoOverrideInput {
 type UnraidPluginsMutations {
   """Install an Unraid plugin and track installation progress"""
   installPlugin(input: InstallPluginInput!): PluginInstallOperation!
+
+  """Install an Unraid language pack and track installation progress"""
+  installLanguage(input: InstallPluginInput!): PluginInstallOperation!
 }
 
 """Input payload for installing a plugin"""
@@ -1369,6 +1331,88 @@ type Theme {
 
   """The secondary text color of the header"""
   headerSecondaryTextColor: String
+}
+
+type InfoDisplayCase implements Node {
+  id: PrefixedID!
+
+  """Case image URL"""
+  url: String!
+
+  """Case icon identifier"""
+  icon: String!
+
+  """Error message if any"""
+  error: String!
+
+  """Base64 encoded case image"""
+  base64: String!
+}
+
+type InfoDisplay implements Node {
+  id: PrefixedID!
+
+  """Case display configuration"""
+  case: InfoDisplayCase!
+
+  """UI theme name"""
+  theme: ThemeName!
+
+  """Temperature unit (C or F)"""
+  unit: Temperature!
+
+  """Enable UI scaling"""
+  scale: Boolean!
+
+  """Show tabs in UI"""
+  tabs: Boolean!
+
+  """Enable UI resize"""
+  resize: Boolean!
+
+  """Show WWN identifiers"""
+  wwn: Boolean!
+
+  """Show totals"""
+  total: Boolean!
+
+  """Show usage statistics"""
+  usage: Boolean!
+
+  """Show text labels"""
+  text: Boolean!
+
+  """Warning temperature threshold"""
+  warning: Int!
+
+  """Critical temperature threshold"""
+  critical: Int!
+
+  """Hot temperature threshold"""
+  hot: Int!
+
+  """Maximum temperature threshold"""
+  max: Int
+
+  """Locale setting"""
+  locale: String
+}
+
+"""Temperature unit"""
+enum Temperature {
+  CELSIUS
+  FAHRENHEIT
+}
+
+type Language {
+  """Language code (e.g. en_US)"""
+  code: String!
+
+  """Language description/name"""
+  name: String!
+
+  """URL to the language pack XML"""
+  url: String
 }
 
 type ExplicitStatusItem {
@@ -1846,77 +1890,6 @@ type InfoDevices implements Node {
   usb: [InfoUsb!]
 }
 
-type InfoDisplayCase implements Node {
-  id: PrefixedID!
-
-  """Case image URL"""
-  url: String!
-
-  """Case icon identifier"""
-  icon: String!
-
-  """Error message if any"""
-  error: String!
-
-  """Base64 encoded case image"""
-  base64: String!
-}
-
-type InfoDisplay implements Node {
-  id: PrefixedID!
-
-  """Case display configuration"""
-  case: InfoDisplayCase!
-
-  """UI theme name"""
-  theme: ThemeName!
-
-  """Temperature unit (C or F)"""
-  unit: Temperature!
-
-  """Enable UI scaling"""
-  scale: Boolean!
-
-  """Show tabs in UI"""
-  tabs: Boolean!
-
-  """Enable UI resize"""
-  resize: Boolean!
-
-  """Show WWN identifiers"""
-  wwn: Boolean!
-
-  """Show totals"""
-  total: Boolean!
-
-  """Show usage statistics"""
-  usage: Boolean!
-
-  """Show text labels"""
-  text: Boolean!
-
-  """Warning temperature threshold"""
-  warning: Int!
-
-  """Critical temperature threshold"""
-  critical: Int!
-
-  """Hot temperature threshold"""
-  hot: Int!
-
-  """Maximum temperature threshold"""
-  max: Int
-
-  """Locale setting"""
-  locale: String
-}
-
-"""Temperature unit"""
-enum Temperature {
-  CELSIUS
-  FAHRENHEIT
-}
-
 """CPU load for a single core"""
 type CpuLoad {
   """The total CPU load on a single core, in percent."""
@@ -2111,6 +2084,49 @@ type InfoMemory implements Node {
   layout: [MemoryLayout!]!
 }
 
+type InfoNetworkInterface implements Node {
+  id: PrefixedID!
+
+  """Interface name (e.g. eth0)"""
+  name: String!
+
+  """Interface description/label"""
+  description: String
+
+  """MAC Address"""
+  macAddress: String
+
+  """Connection status"""
+  status: String
+
+  """IPv4 Protocol mode"""
+  protocol: String
+
+  """IPv4 Address"""
+  ipAddress: String
+
+  """IPv4 Netmask"""
+  netmask: String
+
+  """IPv4 Gateway"""
+  gateway: String
+
+  """Using DHCP for IPv4"""
+  useDhcp: Boolean
+
+  """IPv6 Address"""
+  ipv6Address: String
+
+  """IPv6 Netmask"""
+  ipv6Netmask: String
+
+  """IPv6 Gateway"""
+  ipv6Gateway: String
+
+  """Using DHCP for IPv6"""
+  useDhcp6: Boolean
+}
+
 type InfoOs implements Node {
   id: PrefixedID!
 
@@ -2239,6 +2255,12 @@ type Info implements Node {
 
   """Software versions"""
   versions: InfoVersions!
+
+  """Network interfaces"""
+  networkInterfaces: [InfoNetworkInterface!]!
+
+  """Primary management interface"""
+  primaryNetwork: InfoNetworkInterface
 }
 
 type LogFile {
@@ -2299,6 +2321,9 @@ type Server implements Node {
   guid: String!
   apikey: String!
   name: String!
+
+  """Server description/comment"""
+  comment: String
 
   """Whether this server is online or offline"""
   status: ServerStatus!
@@ -2843,6 +2868,10 @@ type Query {
   """Get JSON Schema for API key creation form"""
   getApiKeyCreationFormSchema: ApiKeyFormSettings!
   config: Config!
+  display: InfoDisplay!
+
+  """Get available languages for installation"""
+  availableLanguages: [Language!]!
   flash: Flash!
   me: UserAccount!
 
@@ -2921,6 +2950,12 @@ type Query {
 }
 
 type Mutation {
+  """Set the display locale (language)"""
+  setLocale(locale: String!): InfoDisplay!
+
+  """Set the display theme"""
+  setTheme(theme: String!): InfoDisplay!
+
   """Creates a new notification record"""
   createNotification(input: NotificationData!): Notification!
   deleteNotification(id: PrefixedID!, type: NotificationType!): NotificationOverview!
@@ -2954,6 +2989,10 @@ type Mutation {
   rclone: RCloneMutations!
   onboarding: OnboardingMutations!
   unraidPlugins: UnraidPluginsMutations!
+
+  """Update server name and comment"""
+  updateServerIdentity(name: String!, comment: String): Server!
+  updateSshSettings(input: UpdateSshInput!): Vars!
   createDockerFolder(name: String!, parentId: String, childrenIds: [String!]): ResolvedOrganizerV1!
   setDockerFolderChildren(folderId: String, childrenIds: [String!]!): ResolvedOrganizerV1!
   deleteDockerEntries(entryIds: [String!]!): ResolvedOrganizerV1!
@@ -3000,6 +3039,13 @@ input NotificationData {
   description: String!
   importance: NotificationImportance!
   link: String
+}
+
+input UpdateSshInput {
+  enabled: Boolean!
+
+  """SSH Port (default 22)"""
+  port: Int!
 }
 
 input InitiateFlashBackupInput {
@@ -3188,6 +3234,7 @@ input AccessUrlInput {
 }
 
 type Subscription {
+  displaySubscription: InfoDisplay!
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
   notificationsWarningsAndAlerts: [Notification!]!

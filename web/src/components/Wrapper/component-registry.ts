@@ -115,13 +115,8 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'dev-modal-test',
   },
   {
-    component: defineAsyncComponent(() => import('../Activation/OnboardingAdminPanel.standalone.vue')),
-    selector: 'unraid-onboarding-admin-panel',
-    appId: 'onboarding-admin-panel',
-  },
-  {
     component: defineAsyncComponent(() => import('../Activation/OnboardingTestHarness.standalone.vue')),
-    selector: 'unraid-onboarding-test-harness',
+    selector: ['unraid-onboarding-test-harness', 'unraid-onboarding-admin-panel'], // Handle both selectors
     appId: 'onboarding-test-harness',
   },
   {

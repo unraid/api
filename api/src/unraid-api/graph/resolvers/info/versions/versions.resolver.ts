@@ -3,7 +3,7 @@ import { ResolveField, Resolver } from '@nestjs/graphql';
 
 import { versions } from 'systeminformation';
 
-import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
+import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import { buildUpgradeInfoFromSnapshot } from '@app/unraid-api/graph/resolvers/info/versions/upgrade-info.util.js';
 import {
     CoreVersions,
@@ -16,7 +16,7 @@ import {
 export class VersionsResolver {
     constructor(
         private readonly configService: ConfigService,
-        private readonly onboardingTracker: OnboardingTracker
+        private readonly onboardingTracker: OnboardingTrackerService
     ) {}
 
     @ResolveField(() => CoreVersions)

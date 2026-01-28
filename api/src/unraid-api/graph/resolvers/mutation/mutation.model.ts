@@ -53,9 +53,9 @@ export class RCloneMutations {
 })
 export class OnboardingMutations {
     @Field(() => UpgradeInfo, {
-        description: 'Mark an upgrade onboarding step as completed for the current OS version',
+        description: 'Mark onboarding as completed for the current OS version',
     })
-    completeUpgradeStep!: UpgradeInfo;
+    completeUpgradeOnboarding!: UpgradeInfo;
 
     @Field(() => UpgradeInfo, {
         description: 'Reset upgrade onboarding progress for the current OS version',

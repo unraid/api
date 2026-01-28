@@ -61,17 +61,6 @@ export class PublicPartnerInfo {
     partnerLogoUrl?: string | null;
 }
 
-export enum ActivationOnboardingStepId {
-    WELCOME = 'WELCOME',
-    TIMEZONE = 'TIMEZONE',
-    PLUGINS = 'PLUGINS',
-    ACTIVATION = 'ACTIVATION',
-}
-
-registerEnumType(ActivationOnboardingStepId, {
-    name: 'ActivationOnboardingStepId',
-});
-
 @ObjectType()
 export class ActivationCode {
     @Field(() => String, { nullable: true })
@@ -145,28 +134,6 @@ export class ActivationCode {
 }
 
 @ObjectType()
-export class ActivationOnboardingStep {
-    @Field(() => ActivationOnboardingStepId, {
-        description: 'Identifier of the activation onboarding step',
-    })
-    id!: ActivationOnboardingStepId;
-
-    @Field(() => Boolean, { description: 'Indicates whether the step is required' })
-    required!: boolean;
-
-    @Field(() => Boolean, {
-        description: 'Indicates whether the step has been completed for the current version',
-    })
-    completed!: boolean;
-
-    @Field(() => String, {
-        nullable: true,
-        description: 'Version of Unraid when this step was introduced',
-    })
-    introducedIn?: string;
-}
-
-@ObjectType()
 export class OnboardingState {
     @Field(() => RegistrationState, { nullable: true })
     registrationState?: RegistrationState;
@@ -221,12 +188,7 @@ export class ActivationOnboarding {
     currentVersion?: string;
 
     @Field(() => Boolean, {
-        description: 'Whether there are any remaining activation onboarding steps',
+        description: 'Whether the onboarding flow has been completed for the current version',
     })
-    hasPendingSteps!: boolean;
-
-    @Field(() => [ActivationOnboardingStep], {
-        description: 'Activation onboarding steps relevant to the current system state',
-    })
-    steps!: ActivationOnboardingStep[];
+    completed!: boolean;
 }

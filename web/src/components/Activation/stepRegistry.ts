@@ -8,10 +8,10 @@ import ActivationSummaryStep from '~/components/Activation/ActivationSummaryStep
 import ActivationWelcomeStep from '~/components/Activation/ActivationWelcomeStep.vue';
 
 export const stepComponents: Record<string, Component> = {
-  WELCOME: ActivationWelcomeStep,
-  TIMEZONE: ActivationCoreSettingsStep,
-  PLUGINS: ActivationPluginsStep,
-  ACTIVATION: ActivationLicenseStep,
+  OVERVIEW: ActivationWelcomeStep,
+  CONFIGURE_SETTINGS: ActivationCoreSettingsStep,
+  ADD_PLUGINS: ActivationPluginsStep,
+  ACTIVATE_LICENSE: ActivationLicenseStep,
   SUMMARY: ActivationSummaryStep,
   NEXT_STEPS: ActivationNextStepsStep,
 };
@@ -23,22 +23,22 @@ export type StepMetadataEntry = {
 };
 
 export const stepMetadata: Record<string, StepMetadataEntry> = {
-  WELCOME: {
+  OVERVIEW: {
     titleKey: 'activation.welcomeModal.welcomeToUnraid',
     descriptionKey: 'activation.welcomeModal.getStartedWithYourNewSystem',
     icon: 'i-heroicons-sparkles',
   },
-  TIMEZONE: {
+  CONFIGURE_SETTINGS: {
     titleKey: 'activation.coreSettings.title',
     descriptionKey: 'activation.coreSettings.description',
     icon: 'i-heroicons-cog-6-tooth',
   },
-  PLUGINS: {
+  ADD_PLUGINS: {
     titleKey: 'activation.pluginsStep.installEssentialPlugins',
     descriptionKey: 'activation.pluginsStep.addHelpfulPlugins',
     icon: 'i-heroicons-puzzle-piece',
   },
-  ACTIVATION: {
+  ACTIVATE_LICENSE: {
     titleKey: 'activation.activationSteps.activateLicense',
     descriptionKey: 'activation.activationSteps.createAnUnraidNetAccountAnd',
     icon: 'i-heroicons-key',

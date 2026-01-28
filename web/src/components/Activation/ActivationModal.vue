@@ -9,12 +9,11 @@ import { Dialog } from '@unraid/ui';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 
 import type { BrandButtonProps } from '@unraid/ui';
-import type { ActivationOnboardingQuery } from '~/composables/gql/graphql';
 import type { Component } from 'vue';
 
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
-import { COMPLETE_UPGRADE_STEP_MUTATION } from '~/components/Activation/completeUpgradeStep.mutation';
+import { COMPLETE_UPGRADE_ONBOARDING_MUTATION } from '~/components/Activation/completeUpgradeStep.mutation';
 import { stepComponents } from '~/components/Activation/stepRegistry';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
@@ -29,8 +28,7 @@ const modalStore = useActivationCodeModalStore();
 const { isVisible, isHidden } = storeToRefs(modalStore);
 const { partnerInfo, activationRequired, hasActivationCode } = storeToRefs(useActivationCodeDataStore());
 const upgradeStore = useUpgradeOnboardingStore();
-const { shouldShowUpgradeOnboarding, upgradeSteps, allUpgradeSteps, currentVersion, previousVersion } =
-  storeToRefs(upgradeStore);
+const { shouldShowUpgradeOnboarding, currentVersion, previousVersion } = storeToRefs(upgradeStore);
 const { refetchActivationOnboarding } = upgradeStore;
 const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
@@ -51,13 +49,48 @@ const showKeyfileHint = computed(() => activationRequired.value && hasKeyfile.va
 const activateHref = computed(() => purchaseStore.generateUrl('activate'));
 const activateExternal = computed(() => purchaseStore.openInNewTab);
 
-type StepId = ActivationOnboardingQuery['activationOnboarding']['steps'][number]['id'];
+// Hardcoded step IDs matching the actual step flow
+type StepId =
+  | 'OVERVIEW'
+  | 'CONFIGURE_SETTINGS'
+  | 'ADD_PLUGINS'
+  | 'ACTIVATE_LICENSE'
+  | 'SUMMARY'
+  | 'NEXT_STEPS';
 
-const allStepIds = computed<StepId[]>(() => allUpgradeSteps.value.map((step) => step.id as StepId));
+// Hardcoded step definitions - order matters for UI flow
+const HARDCODED_STEPS: Array<{ id: StepId; required: boolean }> = [
+  { id: 'OVERVIEW', required: false },
+  { id: 'CONFIGURE_SETTINGS', required: false },
+  { id: 'ADD_PLUGINS', required: false },
+  { id: 'ACTIVATE_LICENSE', required: true },
+  { id: 'SUMMARY', required: false },
+  { id: 'NEXT_STEPS', required: false },
+];
+
+// Determine which steps to show based on user state
+const availableSteps = computed<StepId[]>(() => {
+  const isPartnerUser = hasActivationCode.value;
+
+  // For partner users, show all steps including activation
+  if (isPartnerUser) {
+    return HARDCODED_STEPS.map((s) => s.id);
+  }
+
+  // For regular users, exclude the activation step
+  return HARDCODED_STEPS.filter((s) => s.id !== 'ACTIVATE_LICENSE').map((s) => s.id);
+});
+
+// Filtered steps as full objects for ActivationSteps component
+const filteredSteps = computed(() => {
+  const isPartnerUser = hasActivationCode.value;
+  if (isPartnerUser) {
+    return HARDCODED_STEPS;
+  }
+  return HARDCODED_STEPS.filter((s) => s.id !== 'ACTIVATE_LICENSE');
+});
 
 const showModal = computed(() => isVisible.value || shouldShowUpgradeOnboarding.value);
-
-const availableSteps = computed<StepId[]>(() => allUpgradeSteps.value.map((step) => step.id as StepId));
 
 const currentStepIndex = ref(0);
 const stepSaveState = ref<'idle' | 'saving' | 'saved'>('idle');
@@ -70,18 +103,9 @@ onBeforeUnmount(() => {
   }
 });
 
-const resolveInitialStepIndex = (steps: ActivationOnboardingQuery['activationOnboarding']['steps']) => {
-  if (steps.length === 0) {
-    return 0;
-  }
-  const firstIncomplete = steps.findIndex((step) => !step.completed);
-  return firstIncomplete >= 0 ? firstIncomplete : Math.max(steps.length - 1, 0);
-};
-
-const setInitialStepIndex = (
-  steps: ActivationOnboardingQuery['activationOnboarding']['steps'] = allUpgradeSteps.value
-) => {
-  currentStepIndex.value = resolveInitialStepIndex(steps);
+// Since we're using simple completed boolean, always start at first step
+const setInitialStepIndex = () => {
+  currentStepIndex.value = 0;
 };
 
 const currentStep = computed<StepId | null>(() => {
@@ -97,26 +121,21 @@ const currentStepComponent = computed<Component | null>(() =>
 
 const currentDynamicStepIndex = computed(() => {
   if (!currentStep.value) {
-    return allStepIds.value.length;
+    return availableSteps.value.length;
   }
-  const index = allStepIds.value.findIndex((id) => id === currentStep.value);
-  return index >= 0 ? index : allStepIds.value.length;
+  const index = availableSteps.value.findIndex((id) => id === currentStep.value);
+  return index >= 0 ? index : availableSteps.value.length;
 });
 
 const modalTitle = computed<string>(() => {
-  if (shouldShowUpgradeOnboarding.value && upgradeSteps.value.length > 0 && currentVersion.value) {
+  if (shouldShowUpgradeOnboarding.value && currentVersion.value) {
     return t('activation.activationModal.welcomeToUnraidVersion', { version: currentVersion.value });
   }
   return t('activation.activationModal.letSActivateYourUnraidOs');
 });
 
 const modalDescription = computed<string>(() => {
-  if (
-    shouldShowUpgradeOnboarding.value &&
-    upgradeSteps.value.length > 0 &&
-    previousVersion.value &&
-    currentVersion.value
-  ) {
+  if (shouldShowUpgradeOnboarding.value && previousVersion.value && currentVersion.value) {
     return t('activation.activationModal.youVeUpgradedFromPrevToCurr', {
       prev: previousVersion.value,
       curr: currentVersion.value,
@@ -146,62 +165,18 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
   ];
 });
 
-type MarkUpgradeStepOptions = {
-  skipRefetch?: boolean;
-  showStatus?: boolean;
-};
-
-const { mutate: completeUpgradeStepMutation } = useMutation(COMPLETE_UPGRADE_STEP_MUTATION);
-
-const markUpgradeStepCompleted = async (stepId: StepId | null, options: MarkUpgradeStepOptions = {}) => {
-  if (!stepId) return;
-  const showStatus = options.showStatus !== false;
-
-  if (showStatus) {
-    if (stepSaveTimeout) {
-      clearTimeout(stepSaveTimeout);
-      stepSaveTimeout = null;
-    }
-    stepSaveState.value = 'saving';
-  }
-
-  try {
-    await completeUpgradeStepMutation({ input: { stepId } });
-    if (!options.skipRefetch) {
-      await refetchActivationOnboarding();
-    }
-    if (showStatus) {
-      stepSaveState.value = 'saved';
-      stepSaveTimeout = setTimeout(() => {
-        stepSaveState.value = 'idle';
-        stepSaveTimeout = null;
-      }, 2000);
-    }
-  } catch (error) {
-    console.error('[ActivationModal] Failed to mark upgrade step completed', error);
-    if (showStatus) {
-      stepSaveState.value = 'idle';
-    }
-  }
-};
+const { mutate: completeUpgradeOnboardingMutation } = useMutation(COMPLETE_UPGRADE_ONBOARDING_MUTATION);
 
 const completePendingUpgradeSteps = async () => {
   if (!shouldShowUpgradeOnboarding.value) {
     return;
   }
 
-  const pendingSteps = upgradeSteps.value.map((step) => step.id as StepId);
-  if (pendingSteps.length === 0) {
-    return;
-  }
-
   try {
-    for (const stepId of pendingSteps) {
-      await markUpgradeStepCompleted(stepId, { skipRefetch: true, showStatus: false });
-    }
+    await completeUpgradeOnboardingMutation();
     await refetchActivationOnboarding();
   } catch (error) {
-    console.error('[ActivationModal] Failed to complete pending upgrade steps', error);
+    console.error('[ActivationModal] Failed to complete upgrade onboarding', error);
   }
 };
 
@@ -219,12 +194,6 @@ const closeModal = async () => {
 
 const goToNextStep = async () => {
   if (availableSteps.value.length > 0) {
-    // Only mark as completed if the current step is not already completed
-    const currentStepData = allUpgradeSteps.value[currentStepIndex.value];
-    if (currentStepData && !currentStepData.completed) {
-      await markUpgradeStepCompleted(currentStep.value);
-    }
-
     // Move to next step
     if (currentStepIndex.value < availableSteps.value.length - 1) {
       currentStepIndex.value++;
@@ -270,11 +239,9 @@ const handlePluginsSkip = async () => {
   await goToNextStep();
 };
 
-const currentStepConfig = computed(() => {
-  return allUpgradeSteps.value[currentStepIndex.value] ?? null;
-});
-
-const isCurrentStepSaved = computed(() => currentStepConfig.value?.completed ?? false);
+// Since we don't track individual step completion on server anymore,
+// we just check if step is in progress
+const isCurrentStepSaved = computed(() => false);
 const isStepSaving = computed(() => stepSaveState.value === 'saving');
 
 const handleActivationSkip = async () => {
@@ -292,21 +259,17 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     return {};
   }
 
-  const stepConfig = currentStepConfig.value;
-
-  const isCurrentStepCompleted = stepConfig?.completed ?? false;
-
   const baseProps = {
     onComplete: () => goToNextStep(),
     onBack: goToPreviousStep,
     showBack: canGoBack.value,
-    isCompleted: isCurrentStepCompleted,
+    isCompleted: false, // No server-side step completion tracking
     isSavingStep: isStepSaving.value,
   };
 
-  switch (step as string) {
-    case 'WELCOME':
-      console.log('[ActivationModal] WELCOME step props:', {
+  switch (step) {
+    case 'OVERVIEW':
+      console.log('[ActivationModal] OVERVIEW step props:', {
         currentVersion: currentVersion.value,
         previousVersion: previousVersion.value,
       });
@@ -318,24 +281,28 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         showSkip: false,
       };
 
-    case 'TIMEZONE':
+    case 'CONFIGURE_SETTINGS': {
+      const hardcodedStep = HARDCODED_STEPS.find((s) => s.id === 'CONFIGURE_SETTINGS');
       return {
         ...baseProps,
         onComplete: handleTimezoneComplete,
-        onSkip: stepConfig?.required ? undefined : handleTimezoneSkip,
-        showSkip: !stepConfig?.required,
+        onSkip: hardcodedStep?.required ? undefined : handleTimezoneSkip,
+        showSkip: !hardcodedStep?.required,
       };
+    }
 
-    case 'PLUGINS':
+    case 'ADD_PLUGINS': {
+      const hardcodedStep = HARDCODED_STEPS.find((s) => s.id === 'ADD_PLUGINS');
       return {
         ...baseProps,
         onComplete: handlePluginsComplete,
-        onSkip: stepConfig?.required ? undefined : handlePluginsSkip,
-        showSkip: !stepConfig?.required && !hasActivationCode.value,
-        isRequired: stepConfig?.required ?? false,
+        onSkip: hardcodedStep?.required ? undefined : handlePluginsSkip,
+        showSkip: !hardcodedStep?.required && !hasActivationCode.value,
+        isRequired: hardcodedStep?.required ?? false,
       };
+    }
 
-    case 'ACTIVATION':
+    case 'ACTIVATE_LICENSE':
       return {
         ...baseProps,
         onComplete: handleActivationSkip,
@@ -361,6 +328,8 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
   }
 });
 
+// No need to watch steps since they're hardcoded
+// Just ensure we're on first step when modal opens
 watch(
   () => showModal.value,
   (isOpen) => {
@@ -368,26 +337,6 @@ watch(
       setInitialStepIndex();
     }
   }
-);
-
-watch(
-  () => allUpgradeSteps.value,
-  (newSteps) => {
-    if (newSteps.length === 0) {
-      currentStepIndex.value = 0;
-      return;
-    }
-
-    if (!showModal.value) {
-      setInitialStepIndex(newSteps);
-      return;
-    }
-
-    if (!currentStep.value || !newSteps.some((step) => step.id === currentStep.value)) {
-      setInitialStepIndex(newSteps);
-    }
-  },
-  { immediate: true }
 );
 </script>
 
@@ -414,7 +363,7 @@ watch(
 
       <div class="flex w-full flex-col items-center">
         <ActivationSteps
-          :steps="allUpgradeSteps"
+          :steps="filteredSteps"
           :active-step-index="currentDynamicStepIndex"
           :on-step-click="isStepSaving ? undefined : goToStep"
           class="mb-8"

@@ -1,4 +1,7 @@
-import { ActivationOnboardingStepId } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import type {
+    ActivationOnboardingOverrideState,
+    OnboardingOverrideState,
+} from '@app/unraid-api/config/onboarding-override.model.js';
 
 export type CompletedStepState = {
     version: string;
@@ -8,19 +11,13 @@ export type CompletedStepState = {
 export type TrackerState = {
     lastTrackedVersion?: string;
     updatedAt?: string;
-    completedSteps?: Record<ActivationOnboardingStepId, CompletedStepState>;
+    // List of OS versions where onboarding has been completed
+    completedVersions?: string[];
     firstBootCompletedAt?: string;
-};
-
-export type UpgradeStepState = {
-    id: ActivationOnboardingStepId;
-    required: boolean;
-    introducedIn?: string;
 };
 
 export type UpgradeProgressSnapshot = {
     currentVersion?: string;
     lastTrackedVersion?: string;
-    completedSteps: ActivationOnboardingStepId[];
-    steps: UpgradeStepState[];
+    completed: boolean;
 };

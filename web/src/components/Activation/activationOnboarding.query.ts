@@ -6,13 +6,7 @@ export const ACTIVATION_ONBOARDING_QUERY = graphql(/* GraphQL */ `
       isUpgrade
       previousVersion
       currentVersion
-      hasPendingSteps
-      steps {
-        id
-        required
-        completed
-        introducedIn
-      }
+      completed
     }
   }
 `);

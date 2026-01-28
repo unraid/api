@@ -1,22 +1,14 @@
 import type {
     ActivationCode,
-    ActivationOnboardingStepId,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import type { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
-
-export type ActivationOnboardingOverrideStepState = {
-    id: ActivationOnboardingStepId;
-    required?: boolean;
-    completed?: boolean;
-    introducedIn?: string;
-};
 
 export type ActivationOnboardingOverrideState = {
     currentVersion?: string | null;
     previousVersion?: string | null;
     isUpgrade?: boolean;
-    steps?: ActivationOnboardingOverrideStepState[];
+    completed?: boolean;
 };
 
 export type OnboardingOverrideState = {

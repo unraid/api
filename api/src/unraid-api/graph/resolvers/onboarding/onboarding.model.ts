@@ -5,47 +5,9 @@ import { IsBoolean, IsEnum, IsIn, IsOptional, IsString, ValidateNested } from 'c
 
 import {
     ActivationCode,
-    ActivationOnboardingStepId,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
-
-@InputType({
-    description: 'Input for marking an upgrade onboarding step as completed',
-})
-export class CompleteUpgradeStepInput {
-    @Field(() => ActivationOnboardingStepId, {
-        description: 'Identifier of the onboarding step to mark completed',
-    })
-    @IsEnum(ActivationOnboardingStepId)
-    stepId!: ActivationOnboardingStepId;
-}
-
-@InputType({
-    description: 'Activation onboarding step override input',
-})
-export class ActivationOnboardingStepOverrideInput {
-    @Field(() => ActivationOnboardingStepId, {
-        description: 'Identifier of the onboarding step',
-    })
-    @IsEnum(ActivationOnboardingStepId)
-    id!: ActivationOnboardingStepId;
-
-    @Field(() => Boolean, { nullable: true })
-    @IsOptional()
-    @IsBoolean()
-    required?: boolean;
-
-    @Field(() => Boolean, { nullable: true })
-    @IsOptional()
-    @IsBoolean()
-    completed?: boolean;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    introducedIn?: string;
-}
 
 @InputType({
     description: 'Activation onboarding override input',
@@ -66,11 +28,10 @@ export class ActivationOnboardingOverrideInput {
     @IsBoolean()
     isUpgrade?: boolean;
 
-    @Field(() => [ActivationOnboardingStepOverrideInput], { nullable: true })
+    @Field(() => Boolean, { nullable: true })
     @IsOptional()
-    @ValidateNested({ each: true })
-    @Type(() => ActivationOnboardingStepOverrideInput)
-    steps?: ActivationOnboardingStepOverrideInput[];
+    @IsBoolean()
+    completed?: boolean;
 }
 
 @InputType({

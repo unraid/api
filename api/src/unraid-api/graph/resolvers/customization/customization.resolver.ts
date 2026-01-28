@@ -5,11 +5,10 @@ import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { Public } from '@app/unraid-api/auth/public.decorator.js'; // Import Public decorator
 
-import { OnboardingTracker } from '@app/unraid-api/config/onboarding-tracker.module.js';
+import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import {
     ActivationCode,
     ActivationOnboarding,
-    ActivationOnboardingStep,
     Customization,
     OnboardingState,
     PublicPartnerInfo,
@@ -21,7 +20,7 @@ import { Theme } from '@app/unraid-api/graph/resolvers/customization/theme.model
 export class CustomizationResolver {
     constructor(
         private readonly onboardingService: OnboardingService,
-        private readonly onboardingTracker: OnboardingTracker
+        private readonly onboardingTracker: OnboardingTrackerService
     ) {}
     // Authenticated query
     @Query(() => Customization, { nullable: true })
@@ -63,12 +62,6 @@ export class CustomizationResolver {
     async activationOnboarding(): Promise<ActivationOnboarding> {
         const snapshot = await this.onboardingTracker.getUpgradeSnapshot();
 
-        const steps: ActivationOnboardingStep[] = snapshot.steps.map((step) => ({
-            id: step.id,
-            required: step.required,
-            introducedIn: step.introducedIn,
-            completed: snapshot.completedSteps.includes(step.id),
-        }));
         const hasBothVersions = snapshot.lastTrackedVersion != null && snapshot.currentVersion != null;
 
         return {
@@ -78,8 +71,7 @@ export class CustomizationResolver {
                     ? snapshot.lastTrackedVersion
                     : undefined,
             currentVersion: hasBothVersions ? snapshot.currentVersion : undefined,
-            hasPendingSteps: steps.some((step) => !step.completed),
-            steps,
+            completed: snapshot.completed,
         };
     }
 

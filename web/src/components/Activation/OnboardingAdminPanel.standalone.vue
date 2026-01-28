@@ -6,12 +6,10 @@ import { useApolloClient } from '@vue/apollo-composable';
 import { Button } from '@unraid/ui';
 import { parse } from 'graphql';
 
-import { DEFAULT_ACTIVATION_STEPS } from '~/components/Activation/onboardingTestDefaults';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { useUpgradeOnboardingStore } from '~/components/Activation/store/upgradeOnboarding';
 import { useWelcomeModalDataStore } from '~/components/Activation/store/welcomeModalData';
-import { ActivationOnboardingStepId } from '~/composables/gql/graphql';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
 const activationModalStore = useActivationCodeModalStore();
@@ -25,14 +23,8 @@ const { activationRequired, hasActivationCode, isFreshInstall, partnerInfo, regi
 const { isInitialSetup } = storeToRefs(welcomeModalStore);
 const { callbackData } = storeToRefs(callbackStore);
 const { isHidden, isVisible } = storeToRefs(activationModalStore);
-const {
-  allUpgradeSteps,
-  upgradeSteps,
-  shouldShowUpgradeOnboarding,
-  currentVersion,
-  previousVersion,
-  isUpgrade,
-} = storeToRefs(upgradeOnboardingStore);
+const { shouldShowUpgradeOnboarding, currentVersion, previousVersion, isUpgrade, isCompleted } =
+  storeToRefs(upgradeOnboardingStore);
 
 const { refetchActivationOnboarding } = upgradeOnboardingStore;
 const apolloClient = useApolloClient().client;
@@ -44,12 +36,7 @@ const RESET_UPGRADE_ONBOARDING_MUTATION = parse(/* GraphQL */ `
         isUpgrade
         previousVersion
         currentVersion
-        completedSteps
-        steps {
-          id
-          required
-          introducedIn
-        }
+        completed
       }
     }
   }
@@ -64,64 +51,11 @@ const regStateLabel = computed(() =>
 const activationConditionMet = computed(() => activationRequired.value);
 const activationModalShouldShow = computed(() => isVisible.value || shouldShowUpgradeOnboarding.value);
 
-const stepDiagnostics = computed(() => {
-  const byId = new Map(allUpgradeSteps.value.map((step) => [step.id, step]));
-  const base = DEFAULT_ACTIVATION_STEPS.map((definition) => {
-    const serverStep = byId.get(definition.id);
-    const isActivationStep = definition.id === ActivationOnboardingStepId.ACTIVATION;
-    const condition = isActivationStep ? 'activation code + ENOKEYFILE regState' : 'always';
-    const conditionMet = isActivationStep ? activationConditionMet.value : true;
-    return {
-      id: definition.id,
-      included: Boolean(serverStep),
-      required: serverStep?.required ?? definition.required,
-      completed: serverStep?.completed ?? false,
-      introducedIn: serverStep?.introducedIn ?? definition.introducedIn ?? 'unknown',
-      condition,
-      conditionMet,
-    };
-  });
-
-  const extra = allUpgradeSteps.value
-    .filter((step) => !DEFAULT_ACTIVATION_STEPS.some((definition) => definition.id === step.id))
-    .map((step) => ({
-      id: step.id,
-      included: true,
-      required: step.required,
-      completed: step.completed,
-      introducedIn: step.introducedIn ?? 'unknown',
-      condition: 'server supplied',
-      conditionMet: true,
-    }));
-
-  return [...base, ...extra];
-});
-
-const stepColumns = [
-  { accessorKey: 'step', header: 'Step' },
-  { accessorKey: 'included', header: 'Included' },
-  { accessorKey: 'required', header: 'Required' },
-  { accessorKey: 'completed', header: 'Completed' },
-  { accessorKey: 'condition', header: 'Condition' },
-  { accessorKey: 'conditionMet', header: 'Condition Met' },
-];
-
-const stepRows = computed(() =>
-  stepDiagnostics.value.map((step) => ({
-    step: step.id,
-    included: step.included ? 'Yes' : 'No',
-    required: step.required ? 'Yes' : 'No',
-    completed: step.completed ? 'Yes' : 'No',
-    condition: step.condition,
-    conditionMet: step.conditionMet ? 'Yes' : 'No',
-  }))
-);
-
 const resetOnboarding = async () => {
   if (resetStatus.value === 'loading') return;
   if (typeof window === 'undefined') return;
   const confirmed = window.confirm(
-    'Reset onboarding progress for this system? This will clear completed steps.'
+    'Reset onboarding progress for this system? This will clear completed status.'
   );
   if (!confirmed) return;
 
@@ -223,8 +157,8 @@ const resetOnboarding = async () => {
             <dd class="font-medium">{{ previousVersion ?? 'n/a' }}</dd>
           </div>
           <div class="flex items-center justify-between gap-4">
-            <dt class="text-muted-foreground">Pending steps</dt>
-            <dd class="font-medium">{{ upgradeSteps.length }}</dd>
+            <dt class="text-muted-foreground">Onboarding Completed</dt>
+            <dd class="font-medium">{{ isCompleted ? 'Yes' : 'No' }}</dd>
           </div>
           <div class="flex items-center justify-between gap-4">
             <dt class="text-muted-foreground">Partner</dt>
@@ -263,27 +197,5 @@ const resetOnboarding = async () => {
         </dl>
       </UCard>
     </div>
-
-    <UCard>
-      <template #header>
-        <div class="font-medium">Step Diagnostics</div>
-      </template>
-      <UTable
-        :data="stepRows"
-        :columns="stepColumns"
-        sticky="header"
-        :ui="{ td: 'py-2 px-3', th: 'py-2 px-3 text-left text-muted-foreground' }"
-      >
-        <template #empty>
-          <div class="text-muted-foreground py-6 text-center text-sm">No steps available.</div>
-        </template>
-      </UTable>
-      <template #footer>
-        <p class="text-muted-foreground text-xs">
-          Steps are supplied by the API. If a step is not included, its condition was not satisfied on
-          the server.
-        </p>
-      </template>
-    </UCard>
   </section>
 </template>
