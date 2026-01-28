@@ -1,5 +1,5 @@
 /**
- * Activation Modal Component Test Coverage
+ * Onboarding Modal Component Test Coverage
  */
 
 import { ref } from 'vue';
@@ -7,7 +7,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import ActivationModal from '~/components/Activation/ActivationModal.vue';
+import OnboardingModal from '~/components/Onboarding/OnboardingModal.vue';
 import { createTestI18n, testTranslate } from '../../utils/i18n';
 
 vi.mock('@unraid/ui', async (importOriginal) => {
@@ -38,23 +38,23 @@ vi.mock('@unraid/ui', async (importOriginal) => {
 const mockT = testTranslate;
 
 const mockComponents = {
-  ActivationPartnerLogo: {
+  OnboardingPartnerLogo: {
     template: '<div data-testid="partner-logo"></div>',
     props: ['partnerInfo'],
   },
-  ActivationSteps: {
-    template: '<div data-testid="activation-steps" :active-step="activeStepIndex"></div>',
+  OnboardingSteps: {
+    template: '<div data-testid="onboarding-steps" :active-step="activeStepIndex"></div>',
     props: ['steps', 'activeStepIndex', 'onStepClick'],
   },
-  ActivationPluginsStep: {
+  OnboardingPluginsStep: {
     template: '<div data-testid="plugins-step"></div>',
     props: ['t', 'onComplete', 'onSkip', 'onBack', 'showSkip', 'showBack'],
   },
-  ActivationTimezoneStep: {
+  OnboardingTimezoneStep: {
     template: '<div data-testid="timezone-step"></div>',
     props: ['t', 'onComplete', 'onSkip', 'onBack', 'showSkip', 'showBack'],
   },
-  ActivationWelcomeStep: {
+  OnboardingWelcomeStep: {
     template: '<div data-testid="welcome-step"></div>',
     props: [
       'currentVersion',
@@ -68,7 +68,7 @@ const mockComponents = {
       'redirectToLogin',
     ],
   },
-  ActivationLicenseStep: {
+  OnboardingLicenseStep: {
     template: '<div data-testid="license-step"></div>',
     props: [
       'modalTitle',
@@ -175,7 +175,7 @@ vi.mock('vue-i18n', async (importOriginal) => {
   } as typeof import('vue-i18n');
 });
 
-vi.mock('~/components/Activation/store/activationCodeModal', () => {
+vi.mock('~/components/Onboarding/store/activationCodeModal', () => {
   const store = {
     useActivationCodeModalStore: () => {
       mockActivationCodeModalStore._store = mockActivationCodeModalStore;
@@ -185,11 +185,11 @@ vi.mock('~/components/Activation/store/activationCodeModal', () => {
   return store;
 });
 
-vi.mock('~/components/Activation/store/activationCodeData', () => ({
+vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: () => mockActivationCodeDataStore,
 }));
 
-vi.mock('~/components/Activation/store/upgradeOnboarding', () => ({
+vi.mock('~/components/Onboarding/store/upgradeOnboarding', () => ({
   useUpgradeOnboardingStore: () => mockUpgradeOnboardingStore,
 }));
 
@@ -234,7 +234,7 @@ window.addEventListener = vi.fn((event: string, handler: EventListenerOrEventLis
   return originalAddEventListener(event, handler);
 });
 
-describe('Activation/ActivationModal.vue', () => {
+describe('Onboarding/OnboardingModal.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mutateMock.mockClear();
@@ -262,7 +262,7 @@ describe('Activation/ActivationModal.vue', () => {
   });
 
   const mountComponent = () => {
-    return mount(ActivationModal, {
+    return mount(OnboardingModal, {
       global: {
         plugins: [createTestI18n()],
         stubs: mockComponents,
@@ -273,7 +273,7 @@ describe('Activation/ActivationModal.vue', () => {
   it('uses the correct title text', () => {
     mountComponent();
 
-    expect(mockT('activation.activationModal.letSActivateYourUnraidOs')).toBe(
+    expect(mockT('onboarding.activationModal.letSActivateYourUnraidOs')).toBe(
       "Let's activate your Unraid OS License"
     );
   });
@@ -281,7 +281,7 @@ describe('Activation/ActivationModal.vue', () => {
   it('uses the correct description text', () => {
     mountComponent();
 
-    const descriptionText = mockT('activation.activationModal.onTheFollowingScreenYourLicense');
+    const descriptionText = mockT('onboarding.activationModal.onTheFollowingScreenYourLicense');
 
     expect(descriptionText).toBe(
       "On the following screen, your license will be activated. You'll then create an Unraid.net Account to manage your license going forward."
@@ -290,8 +290,8 @@ describe('Activation/ActivationModal.vue', () => {
 
   it('provides documentation links with correct URLs', () => {
     mountComponent();
-    const licensingText = mockT('activation.activationModal.moreAboutLicensing');
-    const accountsText = mockT('activation.activationModal.moreAboutUnraidNetAccounts');
+    const licensingText = mockT('onboarding.activationModal.moreAboutLicensing');
+    const accountsText = mockT('onboarding.activationModal.moreAboutUnraidNetAccounts');
 
     expect(licensingText).toBe('More about Licensing');
     expect(accountsText).toBe('More about Unraid.net Accounts');
@@ -313,7 +313,7 @@ describe('Activation/ActivationModal.vue', () => {
 
     // The component now renders steps dynamically based on the step registry
     // Check that the activation steps component is rendered
-    expect(wrapper.html()).toContain('data-testid="activation-steps"');
+    expect(wrapper.html()).toContain('data-testid="onboarding-steps"');
   });
 
   it('handles Konami code sequence to close modal and redirect', async () => {
@@ -408,9 +408,9 @@ describe('Activation/ActivationModal.vue', () => {
   it('renders activation steps with correct active step', () => {
     const wrapper = mountComponent();
 
-    expect(wrapper.html()).toContain('data-testid="activation-steps"');
+    expect(wrapper.html()).toContain('data-testid="onboarding-steps"');
     // The component now uses activeStepIndex prop instead of active-step attribute
-    const activationSteps = wrapper.find('[data-testid="activation-steps"]');
-    expect(activationSteps.exists()).toBe(true);
+    const onboardingSteps = wrapper.find('[data-testid="onboarding-steps"]');
+    expect(onboardingSteps.exists()).toBe(true);
   });
 });

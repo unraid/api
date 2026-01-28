@@ -2,9 +2,9 @@ import { useApolloClient } from '@vue/apollo-composable';
 
 import type { PluginInstallEvent } from '~/composables/gql/graphql';
 
-import { INSTALL_PLUGIN_MUTATION } from '~/components/Activation/graphql/installPlugin.mutation';
-import { PLUGIN_INSTALL_OPERATION_QUERY } from '~/components/Activation/graphql/pluginInstallOperation.query';
-import { PLUGIN_INSTALL_UPDATES_SUBSCRIPTION } from '~/components/Activation/graphql/pluginInstallUpdates.subscription';
+import { INSTALL_PLUGIN_MUTATION } from '~/components/Onboarding/graphql/installPlugin.mutation';
+import { PLUGIN_INSTALL_OPERATION_QUERY } from '~/components/Onboarding/graphql/pluginInstallOperation.query';
+import { PLUGIN_INSTALL_UPDATES_SUBSCRIPTION } from '~/components/Onboarding/graphql/pluginInstallUpdates.subscription';
 import { PluginInstallStatus } from '~/composables/gql/graphql';
 
 export interface InstallPluginOptions {

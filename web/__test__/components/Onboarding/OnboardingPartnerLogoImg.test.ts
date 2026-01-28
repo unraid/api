@@ -1,5 +1,5 @@
 /**
- * ActivationPartnerLogoImg Component Test Coverage
+ * OnboardingPartnerLogoImg Component Test Coverage
  */
 
 import { ref } from 'vue';
@@ -7,7 +7,7 @@ import { mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import ActivationPartnerLogoImg from '~/components/Activation/components/ActivationPartnerLogoImg.vue';
+import OnboardingPartnerLogoImg from '~/components/Onboarding/components/OnboardingPartnerLogoImg.vue';
 
 const mockThemeStore = {
   darkMode: ref(false),
@@ -17,14 +17,14 @@ vi.mock('~/store/theme', () => ({
   useThemeStore: () => mockThemeStore,
 }));
 
-describe('ActivationPartnerLogoImg', () => {
+describe('OnboardingPartnerLogoImg', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockThemeStore.darkMode.value = false;
   });
 
   const mountComponent = (props = {}) => {
-    return mount(ActivationPartnerLogoImg, {
+    return mount(OnboardingPartnerLogoImg, {
       props,
     });
   };

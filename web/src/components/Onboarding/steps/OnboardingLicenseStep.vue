@@ -42,7 +42,7 @@ const { t } = useI18n();
           @click="onBack?.()"
         />
         <BrandButton
-          :text="t('activation.activationModal.activateNow')"
+          :text="t('onboarding.activationModal.activateNow')"
           :icon-right="ArrowTopRightOnSquareIcon"
           :href="activateHref"
           :external="activateExternal"
@@ -56,13 +56,13 @@ const { t } = useI18n();
           v-if="showActivationCodeHint"
           class="border-border text-muted-foreground rounded-md border border-dashed px-4 py-3 text-sm"
         >
-          {{ t('activation.activationModal.activationCodeDetected') }}
+          {{ t('onboarding.activationModal.activationCodeDetected') }}
         </p>
         <p
           v-if="showKeyfileHint"
           class="border-border text-muted-foreground rounded-md border border-dashed px-4 py-3 text-sm"
         >
-          {{ t('activation.keyfileHint') }}
+          {{ t('onboarding.keyfileHint') }}
         </p>
       </div>
 
@@ -70,7 +70,7 @@ const { t } = useI18n();
         <div class="mx-auto flex w-full flex-col justify-center gap-4 sm:flex-row">
           <BrandButton
             v-if="allowSkip"
-            :text="t('activation.skipForNow')"
+            :text="t('onboarding.skipForNow')"
             variant="underline"
             :disabled="isSavingStep"
             @click="onComplete?.()"

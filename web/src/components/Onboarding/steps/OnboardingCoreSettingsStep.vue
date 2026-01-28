@@ -11,13 +11,13 @@ import azureThemeImg from '@/assets/unraid-azure-theme.png';
 import blackThemeImg from '@/assets/unraid-black-theme.png';
 import grayThemeImg from '@/assets/unraid-gray-theme.png';
 import whiteThemeImg from '@/assets/unraid-white-theme.png';
-import TypographyCloud from '@/components/Activation/components/TypographyCloud.vue';
+import TypographyCloud from '@/components/Onboarding/components/TypographyCloud.vue';
 // --- Language Logic ---
-import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Activation/graphql/availableLanguages.query';
-import { GET_CORE_SETTINGS_QUERY } from '@/components/Activation/graphql/getCoreSettings.query';
-import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Activation/graphql/timeZoneOptions.query';
+import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Onboarding/graphql/availableLanguages.query';
+import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
+import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Onboarding/graphql/timeZoneOptions.query';
 // --- Submit Logic ---
-import { useOnboardingDraftStore } from '@/components/Activation/store/onboardingDraft';
+import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { Switch } from '@headlessui/vue';
 import { getTimeZones } from '@vvo/tzdb';
 
@@ -271,18 +271,18 @@ const handleBack = () => {
 
 const serverNameValidation = computed(() => {
   // Basic check for empty if required, though API might handle it. UI usually requires it.
-  if (!serverName.value) return t('activation.coreSettings.serverNameError.empty');
+  if (!serverName.value) return t('onboarding.coreSettings.serverNameError.empty');
   // Invalid chars: anything not alphanumeric, dot, or dash
   if (/[^a-zA-Z0-9.-]/.test(serverName.value))
-    return t('activation.coreSettings.serverNameError.invalidChars');
+    return t('onboarding.coreSettings.serverNameError.invalidChars');
   // Invalid end: must not end with dot or dash
-  if (/[.-]$/.test(serverName.value)) return t('activation.coreSettings.serverNameError.invalidEnd');
+  if (/[.-]$/.test(serverName.value)) return t('onboarding.coreSettings.serverNameError.invalidEnd');
   return null;
 });
 
 const serverDescriptionValidation = computed(() => {
   if (serverDescription.value && serverDescription.value.length > 64) {
-    return t('activation.coreSettings.serverDescriptionError.tooLong');
+    return t('onboarding.coreSettings.serverDescriptionError.tooLong');
   }
   return null;
 });
@@ -309,11 +309,11 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
             <div class="flex items-center gap-3">
               <Cog6ToothIcon class="text-primary h-8 w-8" />
               <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
-                {{ t('activation.coreSettings.title') }}
+                {{ t('onboarding.coreSettings.title') }}
               </h2>
             </div>
             <p class="text-muted text-lg">
-              {{ t('activation.coreSettings.description') }}
+              {{ t('onboarding.coreSettings.description') }}
             </p>
             <!-- Badge Container -->
             <div class="mt-2 flex flex-wrap gap-2">
@@ -344,7 +344,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
           <!-- Server Name -->
           <div class="flex flex-col gap-2">
             <label class="text-highlighted text-base font-bold">
-              {{ t('activation.coreSettings.serverName') }}
+              {{ t('onboarding.coreSettings.serverName') }}
             </label>
             <div class="space-y-1">
               <UInput
@@ -364,12 +364,12 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
           <!-- Server Description -->
           <div class="flex flex-col gap-2">
             <label class="text-highlighted text-base font-bold">
-              {{ t('activation.coreSettings.serverDescription') }}
+              {{ t('onboarding.coreSettings.serverDescription') }}
             </label>
             <div class="space-y-1">
               <UInput
                 v-model="serverDescription"
-                :placeholder="t('activation.coreSettings.serverDescriptionPlaceholder')"
+                :placeholder="t('onboarding.coreSettings.serverDescriptionPlaceholder')"
                 :disabled="isBusy"
                 size="lg"
                 class="w-full"
@@ -384,12 +384,12 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
           <!-- Time Zone -->
           <div class="flex flex-col gap-2">
             <label class="text-highlighted text-base font-bold">
-              {{ t('activation.timezoneStep.setYourTimeZone') }}
+              {{ t('onboarding.timezoneStep.setYourTimeZone') }}
             </label>
             <Select
               v-model="selectedTimeZone"
               :items="timeZoneItems"
-              :placeholder="t('activation.timezoneStep.selectTimezonePlaceholder')"
+              :placeholder="t('onboarding.timezoneStep.selectTimezonePlaceholder')"
               class="w-full"
               :disabled="isBusy"
               size="lg"
@@ -399,13 +399,13 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
           <!-- Language -->
           <div class="flex flex-col gap-2">
             <label class="text-highlighted text-base font-bold">
-              {{ t('activation.coreSettings.language') }}
+              {{ t('onboarding.coreSettings.language') }}
             </label>
             <Select
               v-model="selectedLanguage"
               :items="languageItems"
               :placeholder="
-                isLanguagesLoading ? t('common.loading') : t('activation.coreSettings.selectLanguage')
+                isLanguagesLoading ? t('common.loading') : t('onboarding.coreSettings.selectLanguage')
               "
               class="w-full"
               :disabled="isBusy || isLanguageDisabled"
@@ -422,10 +422,10 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
           <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div class="space-y-1">
               <h3 class="text-highlighted text-base font-bold">
-                {{ t('activation.coreSettings.ssh') }}
+                {{ t('onboarding.coreSettings.ssh') }}
               </h3>
               <p class="text-muted text-sm">
-                {{ t('activation.coreSettings.sshDescription') }}
+                {{ t('onboarding.coreSettings.sshDescription') }}
               </p>
             </div>
             <div class="flex items-center">
@@ -438,7 +438,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
                   'focus:ring-primary relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none',
                 ]"
               >
-                <span class="sr-only">{{ t('activation.coreSettings.ssh') }}</span>
+                <span class="sr-only">{{ t('onboarding.coreSettings.ssh') }}</span>
                 <span
                   aria-hidden="true"
                   :class="[
@@ -456,10 +456,10 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
           <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div class="space-y-1">
               <h3 class="text-highlighted text-base font-bold">
-                {{ t('activation.coreSettings.theme') }}
+                {{ t('onboarding.coreSettings.theme') }}
               </h3>
               <p class="text-muted text-sm">
-                {{ t('activation.coreSettings.themeDescription') }}
+                {{ t('onboarding.coreSettings.themeDescription') }}
               </p>
             </div>
             <div class="w-full md:w-64">
@@ -511,7 +511,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
           <div v-else class="hidden w-1 sm:block" />
 
           <BrandButton
-            :text="t('activation.coreSettings.next')"
+            :text="t('onboarding.coreSettings.next')"
             class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
             :disabled="isBusy || !!serverNameValidation || !!serverDescriptionValidation"
             :loading="isBusy"

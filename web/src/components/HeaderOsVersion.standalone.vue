@@ -23,7 +23,7 @@ import {
 } from '@unraid/ui';
 import { getReleaseNotesUrl, WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import ChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
 import { INFO_VERSIONS_QUERY } from '~/components/UserProfile/versions.query';
 import { useClipboardWithToast } from '~/composables/useClipboardWithToast';

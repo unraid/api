@@ -40,7 +40,7 @@ import type {
   ServerUpdateOsResponse,
 } from '~/types/server';
 
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { WebguiState, WebguiUpdateIgnore } from '~/composables/services/webgui';
 import { useAccountStore } from '~/store/account';

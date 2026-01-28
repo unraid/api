@@ -22,57 +22,57 @@ interface SectionItem {
 
 const sections: { title: string; items: SectionItem[] }[] = [
   {
-    title: t('activation.nextSteps.doNext'),
+    title: t('onboarding.nextSteps.doNext'),
     items: [
       {
-        label: t('activation.nextSteps.assignDisks'),
+        label: t('onboarding.nextSteps.assignDisks'),
         url: 'https://docs.unraid.net/unraid-os/manual/storage-management/#assigning-devices-to-the-array-and-cache',
       },
       {
-        label: t('activation.nextSteps.createShare'),
+        label: t('onboarding.nextSteps.createShare'),
         url: 'https://docs.unraid.net/unraid-os/manual/shares/user-shares/',
       },
       {
-        label: t('activation.nextSteps.installApp'),
+        label: t('onboarding.nextSteps.installApp'),
         url: 'https://docs.unraid.net/unraid-os/manual/applications/community-applications/',
       },
       {
-        label: t('activation.nextSteps.setBackups'),
+        label: t('onboarding.nextSteps.setBackups'),
         url: 'https://docs.unraid.net/connect/flash-backup/',
       },
       {
-        label: t('activation.nextSteps.notifications'),
+        label: t('onboarding.nextSteps.notifications'),
         url: 'https://docs.unraid.net/unraid-os/manual/notifications/',
       },
     ],
   },
   {
-    title: t('activation.nextSteps.resources'),
+    title: t('onboarding.nextSteps.resources'),
     items: [
       {
-        label: t('activation.nextSteps.gettingStarted'),
+        label: t('onboarding.nextSteps.gettingStarted'),
         url: 'https://docs.unraid.net/unraid-os/getting-started/',
       },
-      { label: t('activation.nextSteps.communityForum'), url: 'https://forums.unraid.net/' },
+      { label: t('onboarding.nextSteps.communityForum'), url: 'https://forums.unraid.net/' },
       {
-        label: t('activation.nextSteps.troubleshooting'),
+        label: t('onboarding.nextSteps.troubleshooting'),
         url: 'https://docs.unraid.net/unraid-os/troubleshooting/diagnostics-information/',
       },
-      { label: t('activation.nextSteps.changeSettings'), url: '/Dashboard' },
+      { label: t('onboarding.nextSteps.changeSettings'), url: '/Dashboard' },
     ],
   },
   {
-    title: t('activation.nextSteps.contribute'),
+    title: t('onboarding.nextSteps.contribute'),
     items: [
       {
-        label: t('activation.nextSteps.github'),
+        label: t('onboarding.nextSteps.github'),
         url: 'https://github.com/unraid',
         icon: 'i-simple-icons-github',
       },
     ],
   },
   {
-    title: t('activation.nextSteps.socials'),
+    title: t('onboarding.nextSteps.socials'),
     items: [
       { label: 'Reddit', url: 'https://reddit.com/r/unraid', icon: 'i-simple-icons-reddit' },
       { label: 'Uncast', url: 'https://unraid.net/uncast', icon: 'i-heroicons-microphone' },
@@ -103,11 +103,11 @@ const openLink = (url: string) => {
           <div class="flex items-center gap-3">
             <RocketLaunchIcon class="text-primary h-8 w-8" />
             <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
-              {{ t('activation.nextSteps.title') }}
+              {{ t('onboarding.nextSteps.title') }}
             </h2>
           </div>
           <p class="text-muted text-lg">
-            {{ t('activation.nextSteps.description') }}
+            {{ t('onboarding.nextSteps.description') }}
           </p>
         </div>
       </div>

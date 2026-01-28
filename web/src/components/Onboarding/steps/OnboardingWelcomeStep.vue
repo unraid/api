@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
-import LogoCloud from '@/components/Activation/components/LogoCloud.vue';
+import LogoCloud from '@/components/Onboarding/components/LogoCloud.vue';
 
 // Mock icons (assuming these exist or similar ones do)
 const BOOK_ICON = 'i-heroicons-book-open';
@@ -48,11 +48,11 @@ const openDocs = () => {
           <div class="flex items-center gap-3">
             <UIcon :name="WELCOME_ICON" class="text-primary h-8 w-8" />
             <h1 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
-              {{ t('activation.welcomeModal.title') }}
+              {{ t('onboarding.welcomeModal.title') }}
             </h1>
           </div>
           <p class="text-muted text-lg">
-            {{ t('activation.welcomeModal.subtitle') }}
+            {{ t('onboarding.welcomeModal.subtitle') }}
           </p>
         </div>
 
@@ -62,7 +62,7 @@ const openDocs = () => {
         >
           <UIcon :name="CLOCK_ICON" class="h-5 w-5" />
           <span class="text-sm font-bold tracking-wide">{{
-            t('activation.welcomeModal.setupTime')
+            t('onboarding.welcomeModal.setupTime')
           }}</span>
         </div>
       </div>
@@ -70,7 +70,7 @@ const openDocs = () => {
       <!-- Introduction (Full Width) -->
       <div class="border-primary/40 mb-10 border-l-4 pl-4">
         <p class="text-muted max-w-full text-base italic">
-          {{ t('activation.welcomeModal.intro') }}
+          {{ t('onboarding.welcomeModal.intro') }}
         </p>
       </div>
 
@@ -92,19 +92,19 @@ const openDocs = () => {
             <div class="mb-4 flex items-center gap-3">
               <UIcon :name="BOOK_ICON" class="text-primary h-6 w-6" />
               <h3 class="text-primary text-sm font-bold tracking-wider uppercase">
-                {{ t('activation.welcomeModal.needHelp.title') }}
+                {{ t('onboarding.welcomeModal.needHelp.title') }}
               </h3>
             </div>
 
             <p class="text-muted mb-6 flex-grow">
-              {{ t('activation.welcomeModal.needHelp.description') }}
+              {{ t('onboarding.welcomeModal.needHelp.description') }}
             </p>
 
             <button
               @click="openDocs"
               class="border-muted hover:border-toned hover:bg-muted text-toned flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 font-medium transition-all"
             >
-              {{ t('activation.welcomeModal.needHelp.button') }}
+              {{ t('onboarding.welcomeModal.needHelp.button') }}
               <UIcon name="i-heroicons-arrow-top-right-on-square" class="ml-1 h-4 w-4 opacity-70" />
             </button>
           </div>
@@ -114,7 +114,7 @@ const openDocs = () => {
       <!-- Disclaimer Box (Full Width) -->
       <!-- <div class="p-5 rounded-xl bg-accented border border-muted/50 mb-8">
         <p class="text-muted italic text-sm leading-relaxed text-center">
-          {{ t('activation.welcomeModal.disclaimer') }}
+          {{ t('onboarding.welcomeModal.disclaimer') }}
         </p>
       </div> -->
 
@@ -135,7 +135,7 @@ const openDocs = () => {
         <div v-else class="w-1" />
 
         <BrandButton
-          :text="t('activation.welcomeModal.nextStep')"
+          :text="t('onboarding.welcomeModal.nextStep')"
           class="!bg-primary hover:!bg-primary/90 min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg"
           :disabled="isBusy"
           :loading="isBusy"

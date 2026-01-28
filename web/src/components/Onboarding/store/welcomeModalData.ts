@@ -2,7 +2,7 @@ import { computed } from 'vue';
 import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
-import { PUBLIC_WELCOME_DATA_QUERY } from '~/components/Activation/graphql/activationCode.query';
+import { PUBLIC_WELCOME_DATA_QUERY } from '~/components/Onboarding/graphql/activationCode.query';
 
 // Uses the shared global Pinia instance
 

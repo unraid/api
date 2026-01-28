@@ -4,7 +4,7 @@ import { useSessionStorage } from '@vueuse/core';
 
 import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
 
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
 export const useActivationCodeModalStore = defineStore('activationCodeModal', () => {

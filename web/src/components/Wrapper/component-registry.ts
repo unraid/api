@@ -74,7 +74,7 @@ export const componentMappings: ComponentMapping[] = [
   },
   {
     component: defineAsyncComponent(
-      () => import('../Activation/standalone/WelcomeModal.standalone.vue')
+      () => import('../Onboarding/standalone/WelcomeModal.standalone.vue')
     ),
     selector: 'unraid-welcome-modal',
     appId: 'welcome-modal',
@@ -118,7 +118,7 @@ export const componentMappings: ComponentMapping[] = [
   },
   {
     component: defineAsyncComponent(
-      () => import('../Activation/standalone/OnboardingAdminPanel.standalone.vue')
+      () => import('../Onboarding/standalone/OnboardingAdminPanel.standalone.vue')
     ),
     selector: ['unraid-onboarding-test-harness', 'unraid-onboarding-admin-panel'], // Handle both selectors
     appId: 'onboarding-admin-panel',

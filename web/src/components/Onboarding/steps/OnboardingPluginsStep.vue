@@ -6,8 +6,8 @@ import { useQuery } from '@vue/apollo-composable';
 import { ChevronLeftIcon, Squares2X2Icon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon, InformationCircleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
-import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Activation/graphql/installedPlugins.query';
-import { useOnboardingDraftStore } from '@/components/Activation/store/onboardingDraft';
+import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
+import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { Switch } from '@headlessui/vue';
 
 export interface Props {
@@ -202,13 +202,13 @@ const primaryButtonText = computed(() => 'Next Step');
           <div class="flex items-center gap-3">
             <Squares2X2Icon class="text-primary h-8 w-8" />
             <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
-              {{ t('activation.pluginsStep.title', 'PLUGINS') }}
+              {{ t('onboarding.pluginsStep.title', 'PLUGINS') }}
             </h2>
           </div>
           <p class="text-muted text-lg">
             {{
               t(
-                'activation.pluginsStep.description',
+                'onboarding.pluginsStep.description',
                 "Extend your server's capabilities with community tools."
               )
             }}
@@ -221,7 +221,7 @@ const primaryButtonText = computed(() => 'Next Step');
         <div class="flex items-start gap-2">
           <InformationCircleIcon class="text-primary mt-0.5 h-6 w-6 flex-shrink-0" />
           <p class="text-sm leading-relaxed">
-            <span class="mr-1 mb-1 block">{{ t('activation.pluginsStep.tip') }}</span>
+            <span class="mr-1 mb-1 block">{{ t('onboarding.pluginsStep.tip') }}</span>
           </p>
         </div>
       </blockquote>

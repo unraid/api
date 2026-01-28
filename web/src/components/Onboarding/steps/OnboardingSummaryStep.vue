@@ -15,25 +15,25 @@ import {
 } from '@heroicons/vue/24/outline';
 import { CheckCircleIcon, ChevronDownIcon, ChevronRightIcon, ClockIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
-import OnboardingConsole from '@/components/Activation/components/OnboardingConsole.vue';
-import usePluginInstaller from '@/components/Activation/composables/usePluginInstaller';
-import { COMPLETE_UPGRADE_ONBOARDING_MUTATION } from '@/components/Activation/graphql/completeUpgradeStep.mutation';
+import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
+import usePluginInstaller from '@/components/Onboarding/composables/usePluginInstaller';
+import { COMPLETE_UPGRADE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import {
   SET_LOCALE_MUTATION,
   SET_THEME_MUTATION,
   UPDATE_SERVER_IDENTITY_MUTATION,
   UPDATE_SSH_SETTINGS_MUTATION,
-} from '@/components/Activation/graphql/coreSettings.mutations';
-import { GET_CORE_SETTINGS_QUERY } from '@/components/Activation/graphql/getCoreSettings.query';
-import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Activation/graphql/updateSystemTime.mutation';
-import { useActivationCodeModalStore } from '@/components/Activation/store/activationCodeModal';
-import { useUpgradeOnboardingStore } from '@/components/Activation/store/upgradeOnboarding';
+} from '@/components/Onboarding/graphql/coreSettings.mutations';
+import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
+import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
+import { useActivationCodeModalStore } from '@/components/Onboarding/store/activationCodeModal';
+import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgradeOnboarding';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 
-import type { LogEntry } from '@/components/Activation/components/OnboardingConsole.vue';
+import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
 
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
-import { useOnboardingDraftStore } from '~/components/Activation/store/onboardingDraft';
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
+import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 
 export interface Props {
   onComplete: () => void;
@@ -69,7 +69,7 @@ const currentTimeZone = computed(() => {
   return (
     draftStore.selectedTimeZone ||
     coreSettingsResult.value?.systemTime?.timeZone ||
-    t('activation.timezoneStep.notConfigured')
+    t('onboarding.timezoneStep.notConfigured')
   );
 });
 
@@ -239,11 +239,11 @@ const handleBack = () => {
           <div class="flex items-center gap-3">
             <ClipboardDocumentCheckIcon class="text-primary h-8 w-8" />
             <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
-              {{ t('activation.summaryStep.title') }}
+              {{ t('onboarding.summaryStep.title') }}
             </h2>
           </div>
           <p class="text-muted text-lg">
-            {{ t('activation.summaryStep.description') }}
+            {{ t('onboarding.summaryStep.description') }}
           </p>
         </div>
       </div>
@@ -253,7 +253,7 @@ const handleBack = () => {
         <div class="flex items-start gap-2">
           <CheckCircleIcon class="text-success mt-0.5 h-6 w-6 flex-shrink-0" />
           <p class="text-sm leading-relaxed">
-            <span class="mr-1 mb-1 block">{{ t('activation.summaryStep.initializationMessage') }}</span>
+            <span class="mr-1 mb-1 block">{{ t('onboarding.summaryStep.initializationMessage') }}</span>
           </p>
         </div>
       </blockquote>
@@ -265,12 +265,12 @@ const handleBack = () => {
           <div class="mb-4 flex items-center gap-2">
             <CubeIcon class="text-primary h-5 w-5" />
             <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
-              {{ t('activation.summaryStep.systemIdentity') }}
+              {{ t('onboarding.summaryStep.systemIdentity') }}
             </h3>
           </div>
           <div class="space-y-3">
             <div class="flex items-center justify-between text-sm">
-              <span class="text-muted">{{ t('activation.coreSettings.serverName') }}</span>
+              <span class="text-muted">{{ t('onboarding.coreSettings.serverName') }}</span>
               <span class="text-highlighted font-medium">{{ serverName }}</span>
             </div>
             <div
@@ -300,21 +300,21 @@ const handleBack = () => {
           </div>
           <div class="space-y-3">
             <div class="flex items-center justify-between text-sm">
-              <span class="text-muted">{{ t('activation.timezoneStep.setYourTimeZone') }}</span>
+              <span class="text-muted">{{ t('onboarding.timezoneStep.setYourTimeZone') }}</span>
               <div class="flex items-center gap-1.5">
                 <ClockIcon class="text-muted h-4 w-4" />
                 <span class="text-highlighted font-medium">{{ currentTimeZone }}</span>
               </div>
             </div>
             <div class="flex items-center justify-between text-sm">
-              <span class="text-muted">{{ t('activation.coreSettings.ssh') }}</span>
+              <span class="text-muted">{{ t('onboarding.coreSettings.ssh') }}</span>
               <div class="flex items-center gap-1.5">
                 <div :class="[sshEnabled ? 'bg-green-500' : 'bg-gray-400', 'h-2 w-2 rounded-full']" />
                 <span class="text-highlighted font-medium">
                   {{
                     sshEnabled
-                      ? t('activation.summaryStep.sshActive')
-                      : t('activation.summaryStep.sshInactive')
+                      ? t('onboarding.summaryStep.sshActive')
+                      : t('onboarding.summaryStep.sshInactive')
                   }}
                 </span>
               </div>
@@ -352,7 +352,7 @@ const handleBack = () => {
               </div>
               <div>
                 <h3 class="text-highlighted mb-0.5 text-sm font-bold uppercase">
-                  {{ t('activation.pluginsStep.title') }}
+                  {{ t('onboarding.pluginsStep.title') }}
                 </h3>
                 <p class="text-muted text-xs">{{ draftPluginsCount }} plugins selected</p>
               </div>
@@ -428,7 +428,7 @@ const handleBack = () => {
         <div v-else class="hidden w-1 sm:block" />
 
         <BrandButton
-          :text="t('activation.summaryStep.confirmAndFinish')"
+          :text="t('onboarding.summaryStep.confirmAndFinish')"
           class="!bg-primary hover:!bg-primary/90 w-full min-w-[200px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
           @click="handleComplete"
           :loading="isProcessing"

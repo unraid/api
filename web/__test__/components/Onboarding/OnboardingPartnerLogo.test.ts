@@ -1,29 +1,29 @@
 /**
- * ActivationPartnerLogo Component Test Coverage
+ * OnboardingPartnerLogo Component Test Coverage
  */
 
 import { mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import ActivationPartnerLogo from '~/components/Activation/components/ActivationPartnerLogo.vue';
+import OnboardingPartnerLogo from '~/components/Onboarding/components/OnboardingPartnerLogo.vue';
 
 const mockActivationPartnerLogoImg = {
   template: '<div data-testid="partner-logo-img"></div>',
   props: ['partnerInfo'],
 };
 
-describe('ActivationPartnerLogo', () => {
+describe('OnboardingPartnerLogo', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   const mountComponent = (props = {}) => {
-    return mount(ActivationPartnerLogo, {
+    return mount(OnboardingPartnerLogo, {
       props,
       global: {
         stubs: {
-          ActivationPartnerLogoImg: mockActivationPartnerLogoImg,
+          OnboardingPartnerLogoImg: mockActivationPartnerLogoImg,
         },
       },
     });

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import ActivationPartnerLogoImg from '@/components/Activation/components/ActivationPartnerLogoImg.vue';
+import OnboardingPartnerLogoImg from '@/components/Onboarding/components/OnboardingPartnerLogoImg.vue';
 
 interface Props {
   partnerInfo?: {
@@ -21,8 +21,8 @@ defineProps<Props>();
       target="_blank"
       rel="noopener noreferrer"
     >
-      <ActivationPartnerLogoImg :partner-info="partnerInfo" />
+      <OnboardingPartnerLogoImg :partner-info="partnerInfo" />
     </a>
-    <ActivationPartnerLogoImg v-else :partner-info="partnerInfo" />
+    <OnboardingPartnerLogoImg v-else :partner-info="partnerInfo" />
   </template>
 </template>

@@ -51,7 +51,7 @@ vi.mock('~/store/activationCode', () => ({
   })),
 }));
 
-vi.mock('~/components/Activation/store/activationCodeData', () => ({
+vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: () => ({
     loading: ref(false),
     activationCode: ref(null),

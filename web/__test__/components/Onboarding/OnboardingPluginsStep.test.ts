@@ -3,7 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import ActivationPluginsStep from '~/components/Activation/steps/ActivationPluginsStep.vue';
+import OnboardingPluginsStep from '~/components/Onboarding/steps/OnboardingPluginsStep.vue';
 import { PluginInstallStatus } from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 
@@ -20,7 +20,7 @@ vi.mock('@unraid/ui', () => ({
   },
 }));
 
-vi.mock('~/components/Activation/usePluginInstaller', () => ({
+vi.mock('~/components/Onboarding/usePluginInstaller', () => ({
   default: () => ({
     installPlugin: installPluginMock,
   }),
@@ -35,7 +35,7 @@ vi.mock('@vue/apollo-composable', async () => {
   };
 });
 
-describe('ActivationPluginsStep', () => {
+describe('OnboardingPluginsStep', () => {
   beforeEach(() => {
     installPluginMock.mockReset();
     useQueryMock.mockReturnValue({
@@ -56,7 +56,7 @@ describe('ActivationPluginsStep', () => {
     };
 
     return {
-      wrapper: mount(ActivationPluginsStep, {
+      wrapper: mount(OnboardingPluginsStep, {
         props,
         global: {
           plugins: [createTestI18n()],

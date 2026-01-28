@@ -9,10 +9,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ComposerTranslation } from 'vue-i18n';
 
-import WelcomeModal from '~/components/Activation/standalone/WelcomeModal.standalone.vue';
+import WelcomeModal from '~/components/Onboarding/standalone/WelcomeModal.standalone.vue';
 import { testTranslate } from '../../utils/i18n';
 
-type ActivationWelcomeStepStubProps = {
+type OnboardingWelcomeStepStubProps = {
   t?: ComposerTranslation;
   partnerName?: string | null;
   currentVersion?: string;
@@ -53,15 +53,15 @@ vi.mock('@unraid/ui', async (importOriginal) => {
 const mockT = testTranslate;
 
 const mockComponents = {
-  ActivationPartnerLogo: {
+  OnboardingPartnerLogo: {
     template: '<div data-testid="partner-logo"></div>',
     props: ['partnerInfo'],
   },
-  ActivationSteps: {
-    template: '<div data-testid="activation-steps" :active-step="activeStepIndex"></div>',
+  OnboardingSteps: {
+    template: '<div data-testid="onboarding-steps" :active-step="activeStepIndex"></div>',
     props: ['steps', 'activeStepIndex'],
   },
-  ActivationWelcomeStep: {
+  OnboardingWelcomeStep: {
     props: [
       't',
       'partnerName',
@@ -74,30 +74,30 @@ const mockComponents = {
       'showSkip',
       'showBack',
     ],
-    setup(props: ActivationWelcomeStepStubProps) {
+    setup(props: OnboardingWelcomeStepStubProps) {
       const translate = props.t ?? mockT;
 
       const buildTitle = () => {
         if (props.partnerName) {
-          return translate('activation.welcomeModal.welcomeToYourNewSystemPowered', [props.partnerName]);
+          return translate('onboarding.welcomeModal.welcomeToYourNewSystemPowered', [props.partnerName]);
         }
         if (props.currentVersion) {
-          return translate('activation.welcomeModal.welcomeToUnraidVersion', [props.currentVersion]);
+          return translate('onboarding.welcomeModal.welcomeToUnraidVersion', [props.currentVersion]);
         }
-        return translate('activation.welcomeModal.welcomeToUnraid');
+        return translate('onboarding.welcomeModal.welcomeToUnraid');
       };
 
       const buildDescription = () => {
         if (props.previousVersion && props.currentVersion) {
-          return translate('activation.welcomeModal.youVeUpgradedFromPrevToCurr', [
+          return translate('onboarding.welcomeModal.youVeUpgradedFromPrevToCurr', [
             props.previousVersion,
             props.currentVersion,
           ]);
         }
         if (props.currentVersion) {
-          return translate('activation.welcomeModal.welcomeToYourUnraidSystem', [props.currentVersion]);
+          return translate('onboarding.welcomeModal.welcomeToYourUnraidSystem', [props.currentVersion]);
         }
-        return translate('activation.welcomeModal.getStartedWithYourNewSystem');
+        return translate('onboarding.welcomeModal.getStartedWithYourNewSystem');
       };
 
       const handleClick = () => {
@@ -111,7 +111,7 @@ const mockComponents = {
       return {
         title: buildTitle(),
         description: buildDescription(),
-        buttonText: translate('activation.welcomeModal.getStarted'),
+        buttonText: translate('onboarding.welcomeModal.getStarted'),
         handleClick,
       };
     },
@@ -144,7 +144,7 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
-vi.mock('~/components/Activation/store/welcomeModalData', () => ({
+vi.mock('~/components/Onboarding/store/welcomeModalData', () => ({
   useWelcomeModalDataStore: () => mockWelcomeModalDataStore,
 }));
 
@@ -152,7 +152,7 @@ vi.mock('~/store/theme', () => ({
   useThemeStore: () => mockThemeStore,
 }));
 
-describe('Activation/WelcomeModal.standalone.vue', () => {
+describe('Onboarding/WelcomeModal.standalone.vue', () => {
   let mockSetProperty: ReturnType<typeof vi.fn>;
   let mockQuerySelector: ReturnType<typeof vi.fn>;
 
@@ -205,7 +205,7 @@ describe('Activation/WelcomeModal.standalone.vue', () => {
   it('uses the correct title text when no partner name is provided', async () => {
     const wrapper = await mountComponent();
 
-    expect(wrapper.find('h1').text()).toBe(testTranslate('activation.welcomeModal.welcomeToUnraid'));
+    expect(wrapper.find('h1').text()).toBe(testTranslate('onboarding.welcomeModal.welcomeToUnraid'));
   });
 
   it('uses the correct title text when partner name is provided', async () => {
@@ -216,14 +216,14 @@ describe('Activation/WelcomeModal.standalone.vue', () => {
     const wrapper = await mountComponent();
 
     expect(wrapper.find('h1').text()).toBe(
-      testTranslate('activation.welcomeModal.welcomeToYourNewSystemPowered', ['Test Partner'])
+      testTranslate('onboarding.welcomeModal.welcomeToYourNewSystemPowered', ['Test Partner'])
     );
   });
 
   it('uses the correct description text', async () => {
     const wrapper = await mountComponent();
 
-    const description = testTranslate('activation.welcomeModal.getStartedWithYourNewSystem');
+    const description = testTranslate('onboarding.welcomeModal.getStartedWithYourNewSystem');
     expect(wrapper.text()).toContain(description);
   });
 
@@ -281,10 +281,10 @@ describe('Activation/WelcomeModal.standalone.vue', () => {
   it('renders activation steps with correct active step', async () => {
     const wrapper = await mountComponent();
 
-    const activationSteps = wrapper.find('[data-testid="activation-steps"]');
-    expect(activationSteps.exists()).toBe(true);
+    const onboardingSteps = wrapper.find('[data-testid="onboarding-steps"]');
+    expect(onboardingSteps.exists()).toBe(true);
     // The WelcomeModal passes activeStepIndex: 0, which gets mapped to active-step="0"
-    expect(activationSteps.attributes('active-step')).toBe('0');
+    expect(onboardingSteps.attributes('active-step')).toBe('0');
   });
 
   it('calls fetchTheme on mount', () => {

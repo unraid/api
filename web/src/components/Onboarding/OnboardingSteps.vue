@@ -2,11 +2,11 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import type { StepMetadataEntry } from '~/components/Activation/stepRegistry';
+import type { StepMetadataEntry } from '~/components/Onboarding/stepRegistry';
 
-import { stepMetadata } from '~/components/Activation/stepRegistry';
+import { stepMetadata } from '~/components/Onboarding/stepRegistry';
 
-// Hardcoded step type matching ActivationModal
+// Hardcoded step type matching OnboardingModal
 type StepId =
   | 'OVERVIEW'
   | 'CONFIGURE_SETTINGS'
@@ -37,9 +37,9 @@ interface StepItem {
 const { t } = useI18n();
 
 // Ensure translation extractor retains keys used via metadata lookups
-t('activation.activationSteps.activateLicense');
-t('activation.activationSteps.createAnUnraidNetAccountAnd');
-t('activation.pluginsStep.addHelpfulPlugins');
+t('onboarding.activationSteps.activateLicense');
+t('onboarding.activationSteps.createAnUnraidNetAccountAnd');
+t('onboarding.pluginsStep.addHelpfulPlugins');
 
 const formatStep = (title: string, index: number, icon?: string): StepItem => ({
   title: `Step ${index + 1}`,

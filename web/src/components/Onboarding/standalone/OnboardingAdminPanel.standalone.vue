@@ -5,9 +5,9 @@ import { useApolloClient } from '@vue/apollo-composable';
 
 import { parse } from 'graphql';
 
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
-import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
-import { useUpgradeOnboardingStore } from '~/components/Activation/store/upgradeOnboarding';
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
+import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
+import { useUpgradeOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding';
 import { RegistrationState } from '~/composables/gql/graphql';
 
 const activationModalStore = useActivationCodeModalStore();

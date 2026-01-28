@@ -3,7 +3,7 @@ import { defineStore, storeToRefs } from 'pinia';
 
 import { PURCHASE_CALLBACK } from '~/helpers/urls';
 
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 

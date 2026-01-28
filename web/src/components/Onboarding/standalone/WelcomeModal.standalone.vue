@@ -4,10 +4,10 @@ import { storeToRefs } from 'pinia';
 
 import { Dialog } from '@unraid/ui';
 
-import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
-import ActivationPartnerLogo from '~/components/Activation/components/ActivationPartnerLogo.vue';
-import ActivationWelcomeStep from '~/components/Activation/steps/ActivationWelcomeStep.vue';
-import { useWelcomeModalDataStore } from '~/components/Activation/store/welcomeModalData';
+import OnboardingPartnerLogo from '~/components/Onboarding/components/OnboardingPartnerLogo.vue';
+import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
+import OnboardingWelcomeStep from '~/components/Onboarding/steps/OnboardingWelcomeStep.vue';
+import { useWelcomeModalDataStore } from '~/components/Onboarding/store/welcomeModalData';
 import { useThemeStore } from '~/store/theme';
 
 // Disable attribute inheritance to prevent modelValue from showing on root element
@@ -106,10 +106,10 @@ onUnmounted(() => {
         }"
       >
         <div v-if="partnerInfo?.hasPartnerLogo">
-          <ActivationPartnerLogo :partner-info="partnerInfo" />
+          <OnboardingPartnerLogo :partner-info="partnerInfo" />
         </div>
-        <ActivationSteps :steps="[]" :active-step-index="0" class="mb-8" />
-        <ActivationWelcomeStep
+        <OnboardingSteps :steps="[]" :active-step-index="0" class="mb-8" />
+        <OnboardingWelcomeStep
           :partner-name="partnerInfo?.partnerName || undefined"
           :on-complete="dropdownHide"
           :redirect-to-login="true"

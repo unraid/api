@@ -7,8 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   ACTIVATION_CODE_QUERY,
   PARTNER_INFO_QUERY,
-} from '~/components/Activation/graphql/activationCode.query';
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
+} from '~/components/Onboarding/graphql/activationCode.query';
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { RegistrationState } from '~/composables/gql/graphql';
 
 // Create a complete mock of UseQueryReturn with all required properties

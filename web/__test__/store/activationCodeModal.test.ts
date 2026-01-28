@@ -7,15 +7,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { App } from 'vue';
 
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
-import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
+import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
 vi.mock('@vueuse/core', () => ({
   useSessionStorage: vi.fn(),
 }));
 
-vi.mock('~/components/Activation/store/activationCodeData', () => ({
+vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: vi.fn(),
 }));
 

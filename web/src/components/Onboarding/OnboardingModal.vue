@@ -6,18 +6,18 @@ import { useMutation } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
-import { COMPLETE_UPGRADE_ONBOARDING_MUTATION } from '@/components/Activation/graphql/completeUpgradeStep.mutation';
+import { COMPLETE_UPGRADE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 
 import type { BrandButtonProps } from '@unraid/ui';
 import type { Component } from 'vue';
 
-import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
-import ActivationPartnerLogo from '~/components/Activation/components/ActivationPartnerLogo.vue';
-import { stepComponents } from '~/components/Activation/stepRegistry';
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
-import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
-import { useUpgradeOnboardingStore } from '~/components/Activation/store/upgradeOnboarding';
+import OnboardingPartnerLogo from '~/components/Onboarding/components/OnboardingPartnerLogo.vue';
+import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
+import { stepComponents } from '~/components/Onboarding/stepRegistry';
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
+import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
+import { useUpgradeOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
@@ -81,7 +81,7 @@ const availableSteps = computed<StepId[]>(() => {
   return HARDCODED_STEPS.filter((s) => s.id !== 'ACTIVATE_LICENSE').map((s) => s.id);
 });
 
-// Filtered steps as full objects for ActivationSteps component
+// Filtered steps as full objects for OnboardingSteps component
 const filteredSteps = computed(() => {
   const isPartnerUser = hasActivationCode.value;
   if (isPartnerUser) {
@@ -129,19 +129,19 @@ const currentDynamicStepIndex = computed(() => {
 
 const modalTitle = computed<string>(() => {
   if (shouldShowUpgradeOnboarding.value && currentVersion.value) {
-    return t('activation.activationModal.welcomeToUnraidVersion', { version: currentVersion.value });
+    return t('onboarding.activationModal.welcomeToUnraidVersion', { version: currentVersion.value });
   }
-  return t('activation.activationModal.letSActivateYourUnraidOs');
+  return t('onboarding.activationModal.letSActivateYourUnraidOs');
 });
 
 const modalDescription = computed<string>(() => {
   if (shouldShowUpgradeOnboarding.value && previousVersion.value && currentVersion.value) {
-    return t('activation.activationModal.youVeUpgradedFromPrevToCurr', {
+    return t('onboarding.activationModal.youVeUpgradedFromPrevToCurr', {
       prev: previousVersion.value,
       curr: currentVersion.value,
     });
   }
-  return t('activation.activationModal.onTheFollowingScreenYourLicense');
+  return t('onboarding.activationModal.onTheFollowingScreenYourLicense');
 });
 
 const docsButtons = computed<BrandButtonProps[]>(() => {
@@ -152,7 +152,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       href: DOCS_URL_LICENSING_FAQ,
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: t('activation.activationModal.moreAboutLicensing'),
+      text: t('onboarding.activationModal.moreAboutLicensing'),
     },
     {
       variant: 'underline',
@@ -160,7 +160,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       href: DOCS_URL_ACCOUNT,
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: t('activation.activationModal.moreAboutUnraidNetAccounts'),
+      text: t('onboarding.activationModal.moreAboutUnraidNetAccounts'),
     },
   ];
 });
@@ -176,7 +176,7 @@ const completePendingUpgradeSteps = async () => {
     await completeUpgradeOnboardingMutation();
     await refetchActivationOnboarding();
   } catch (error) {
-    console.error('[ActivationModal] Failed to complete upgrade onboarding', error);
+    console.error('[OnboardingModal] Failed to complete upgrade onboarding', error);
   }
 };
 
@@ -223,7 +223,7 @@ const goToStep = (stepIndex: number) => {
 const canGoBack = computed(() => currentStepIndex.value > 0);
 
 const handleTimezoneComplete = async () => {
-  console.log('[ActivationModal] Timezone complete, moving to next step');
+  console.log('[OnboardingModal] Timezone complete, moving to next step');
   await goToNextStep();
 };
 
@@ -269,7 +269,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
 
   switch (step) {
     case 'OVERVIEW':
-      console.log('[ActivationModal] OVERVIEW step props:', {
+      console.log('[OnboardingModal] OVERVIEW step props:', {
         currentVersion: currentVersion.value,
         previousVersion: previousVersion.value,
       });
@@ -358,11 +358,11 @@ watch(
   >
     <div class="flex h-full w-full flex-col items-center justify-start overflow-y-auto">
       <div v-if="partnerInfo?.hasPartnerLogo && !shouldShowUpgradeOnboarding">
-        <ActivationPartnerLogo :partner-info="partnerInfo" />
+        <OnboardingPartnerLogo :partner-info="partnerInfo" />
       </div>
 
       <div class="flex w-full flex-col items-center">
-        <ActivationSteps
+        <OnboardingSteps
           :steps="filteredSteps"
           :active-step-index="currentDynamicStepIndex"
           :on-step-click="isStepSaving ? undefined : goToStep"

@@ -5,7 +5,7 @@ import { useQuery } from '@vue/apollo-composable';
 import {
   ACTIVATION_CODE_QUERY,
   PARTNER_INFO_QUERY,
-} from '~/components/Activation/graphql/activationCode.query';
+} from '~/components/Onboarding/graphql/activationCode.query';
 
 export const useActivationCodeDataStore = defineStore('activationCodeData', () => {
   const { result: activationCodeResult, loading: activationCodeLoading } = useQuery(
