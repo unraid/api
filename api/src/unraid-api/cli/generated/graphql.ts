@@ -134,26 +134,6 @@ export type ActivationCodeOverrideInput = {
   theme?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type ActivationOnboarding = {
-  __typename?: 'ActivationOnboarding';
-  /** Whether the onboarding flow has been completed for the current version */
-  completed: Scalars['Boolean']['output'];
-  /** Current OS version detected by the system */
-  currentVersion?: Maybe<Scalars['String']['output']>;
-  /** Indicates whether the system is currently in an upgrade state */
-  isUpgrade: Scalars['Boolean']['output'];
-  /** Previous OS version prior to the current upgrade */
-  previousVersion?: Maybe<Scalars['String']['output']>;
-};
-
-/** Activation onboarding override input */
-export type ActivationOnboardingOverrideInput = {
-  completed?: InputMaybe<Scalars['Boolean']['input']>;
-  currentVersion?: InputMaybe<Scalars['String']['input']>;
-  isUpgrade?: InputMaybe<Scalars['Boolean']['input']>;
-  previousVersion?: InputMaybe<Scalars['String']['input']>;
-};
-
 export type AddPermissionInput = {
   actions: Array<AuthAction>;
   resource: Resource;
@@ -1380,8 +1360,6 @@ export type InfoVersions = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Software package versions */
   packages?: Maybe<PackageVersions>;
-  /** OS upgrade information */
-  upgrade: UpgradeInfo;
 };
 
 export type InitiateFlashBackupInput = {
@@ -1895,17 +1873,30 @@ export type OidcSessionValidation = {
   valid: Scalars['Boolean']['output'];
 };
 
+/** Onboarding completion state and context */
+export type Onboarding = {
+  __typename?: 'Onboarding';
+  /** Whether the onboarding flow has been completed */
+  completed: Scalars['Boolean']['output'];
+  /** The OS version when onboarding was completed */
+  completedAtVersion?: Maybe<Scalars['String']['output']>;
+  /** Whether this is a partner/OEM build with activation code */
+  isPartnerBuild: Scalars['Boolean']['output'];
+  /** The current onboarding status (INCOMPLETE, UPGRADE, or COMPLETED) */
+  status: OnboardingStatus;
+};
+
 /** Onboarding related mutations */
 export type OnboardingMutations = {
   __typename?: 'OnboardingMutations';
   /** Clear onboarding override state and reload from disk */
-  clearOnboardingOverride: ActivationOnboarding;
-  /** Mark onboarding as completed for the current OS version */
-  completeUpgradeOnboarding: UpgradeInfo;
-  /** Reset upgrade onboarding progress for the current OS version */
-  resetUpgradeOnboarding: UpgradeInfo;
+  clearOnboardingOverride: Onboarding;
+  /** Mark onboarding as completed */
+  completeOnboarding: Onboarding;
+  /** Reset onboarding progress (for testing) */
+  resetOnboarding: Onboarding;
   /** Override onboarding state for testing (in-memory only) */
-  setOnboardingOverride: ActivationOnboarding;
+  setOnboardingOverride: Onboarding;
 };
 
 
@@ -1914,11 +1905,16 @@ export type OnboardingMutationsSetOnboardingOverrideArgs = {
   input: OnboardingOverrideInput;
 };
 
-/** Onboarding override input */
+/** Onboarding completion override input */
+export type OnboardingOverrideCompletionInput = {
+  completed?: InputMaybe<Scalars['Boolean']['input']>;
+  completedAtVersion?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Onboarding override input for testing */
 export type OnboardingOverrideInput = {
   activationCode?: InputMaybe<ActivationCodeOverrideInput>;
-  activationOnboarding?: InputMaybe<ActivationOnboardingOverrideInput>;
-  isInitialSetup?: InputMaybe<Scalars['Boolean']['input']>;
+  onboarding?: InputMaybe<OnboardingOverrideCompletionInput>;
   partnerInfo?: InputMaybe<PartnerInfoOverrideInput>;
   registrationState?: InputMaybe<RegistrationState>;
 };
@@ -1931,12 +1927,17 @@ export type OnboardingState = {
   hasActivationCode: Scalars['Boolean']['output'];
   /** Indicates whether the system is a fresh install */
   isFreshInstall: Scalars['Boolean']['output'];
-  /** Indicates whether initial setup should be shown */
-  isInitialSetup: Scalars['Boolean']['output'];
   /** Indicates whether the system is registered */
   isRegistered: Scalars['Boolean']['output'];
   registrationState?: Maybe<RegistrationState>;
 };
+
+/** The current onboarding status based on completion state and version */
+export enum OnboardingStatus {
+  COMPLETED = 'COMPLETED',
+  INCOMPLETE = 'INCOMPLETE',
+  UPGRADE = 'UPGRADE'
+}
 
 export type Owner = {
   __typename?: 'Owner';
@@ -2123,8 +2124,6 @@ export type PublicPartnerInfo = {
 
 export type Query = {
   __typename?: 'Query';
-  /** Activation onboarding steps derived from current system state */
-  activationOnboarding: ActivationOnboarding;
   apiKey?: Maybe<ApiKey>;
   /** All possible permissions for API keys */
   apiKeyPossiblePermissions: Array<Permission>;
@@ -2152,7 +2151,8 @@ export type Query = {
   info: Info;
   /** List installed Unraid OS plugins by .plg filename */
   installedUnraidPlugins: Array<Scalars['String']['output']>;
-  isInitialSetup: Scalars['Boolean']['output'];
+  /** Whether the system is a fresh install (no license key) */
+  isFreshInstall: Scalars['Boolean']['output'];
   isSSOEnabled: Scalars['Boolean']['output'];
   logFile: LogFileContent;
   logFiles: Array<LogFile>;
@@ -2167,6 +2167,8 @@ export type Query = {
   oidcProvider?: Maybe<OidcProvider>;
   /** Get all configured OIDC providers (admin only) */
   oidcProviders: Array<OidcProvider>;
+  /** Onboarding completion state and context */
+  onboarding: Onboarding;
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
@@ -2887,30 +2889,6 @@ export type UpdateSystemTimeInput = {
   timeZone?: InputMaybe<Scalars['String']['input']>;
   /** Enable or disable NTP-based synchronization */
   useNtp?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type UpgradeInfo = {
-  __typename?: 'UpgradeInfo';
-  /** Onboarding step identifiers completed for the current OS version */
-  completedSteps: Array<Scalars['String']['output']>;
-  /** Current OS version */
-  currentVersion?: Maybe<Scalars['String']['output']>;
-  /** Whether the OS version has changed since last boot */
-  isUpgrade: Scalars['Boolean']['output'];
-  /** Previous OS version before upgrade */
-  previousVersion?: Maybe<Scalars['String']['output']>;
-  /** Onboarding step definitions applicable to the current upgrade path */
-  steps: Array<UpgradeStep>;
-};
-
-export type UpgradeStep = {
-  __typename?: 'UpgradeStep';
-  /** Identifier of the onboarding step */
-  id: Scalars['String']['output'];
-  /** Version of Unraid when this step was introduced */
-  introducedIn?: Maybe<Scalars['String']['output']>;
-  /** Whether the step is required to continue */
-  required: Scalars['Boolean']['output'];
 };
 
 export type Uptime = {

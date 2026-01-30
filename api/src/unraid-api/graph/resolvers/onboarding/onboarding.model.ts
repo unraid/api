@@ -10,28 +10,18 @@ import {
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
 @InputType({
-    description: 'Activation onboarding override input',
+    description: 'Onboarding completion override input',
 })
-export class ActivationOnboardingOverrideInput {
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    currentVersion?: string | null;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    previousVersion?: string | null;
-
-    @Field(() => Boolean, { nullable: true })
-    @IsOptional()
-    @IsBoolean()
-    isUpgrade?: boolean;
-
+export class OnboardingOverrideCompletionInput {
     @Field(() => Boolean, { nullable: true })
     @IsOptional()
     @IsBoolean()
     completed?: boolean;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    completedAtVersion?: string | null;
 }
 
 @InputType({
@@ -121,14 +111,14 @@ export class PartnerInfoOverrideInput implements Partial<PublicPartnerInfo> {
 }
 
 @InputType({
-    description: 'Onboarding override input',
+    description: 'Onboarding override input for testing',
 })
 export class OnboardingOverrideInput {
-    @Field(() => ActivationOnboardingOverrideInput, { nullable: true })
+    @Field(() => OnboardingOverrideCompletionInput, { nullable: true })
     @IsOptional()
     @ValidateNested()
-    @Type(() => ActivationOnboardingOverrideInput)
-    activationOnboarding?: ActivationOnboardingOverrideInput;
+    @Type(() => OnboardingOverrideCompletionInput)
+    onboarding?: OnboardingOverrideCompletionInput;
 
     @Field(() => ActivationCodeOverrideInput, { nullable: true })
     @IsOptional()
@@ -146,9 +136,4 @@ export class OnboardingOverrideInput {
     @IsOptional()
     @IsEnum(RegistrationState)
     registrationState?: RegistrationState;
-
-    @Field(() => Boolean, { nullable: true })
-    @IsOptional()
-    @IsBoolean()
-    isInitialSetup?: boolean;
 }

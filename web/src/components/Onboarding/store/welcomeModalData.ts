@@ -17,13 +17,13 @@ export const useWelcomeModalDataStore = defineStore('welcomeModalData', () => {
     return publicWelcomeDataResult.value?.publicPartnerInfo;
   });
 
-  const isInitialSetup = computed(() => {
-    return publicWelcomeDataResult.value?.isInitialSetup ?? false;
+  const isFreshInstall = computed(() => {
+    return publicWelcomeDataResult.value?.isFreshInstall ?? false;
   });
 
   return {
     loading: computed(() => publicWelcomeDataLoading.value),
     partnerInfo,
-    isInitialSetup,
+    isFreshInstall,
   };
 });

@@ -43,7 +43,6 @@ export const useActivationCodeDataStore = defineStore('activationCodeData', () =
 
   const isRegistered = computed(() => onboardingState.value?.isRegistered ?? false);
 
-  const isInitialSetup = computed(() => onboardingState.value?.isInitialSetup ?? false);
   return {
     loading: computed(() => activationCodeLoading.value || partnerInfoLoading.value),
     activationCode,
@@ -53,6 +52,5 @@ export const useActivationCodeDataStore = defineStore('activationCodeData', () =
     activationRequired,
     hasActivationCode,
     isRegistered,
-    isInitialSetup,
   };
 });

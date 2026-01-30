@@ -3,14 +3,14 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
-import { Public } from '@app/unraid-api/auth/public.decorator.js'; // Import Public decorator
-
+import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import {
     ActivationCode,
-    ActivationOnboarding,
     Customization,
+    Onboarding,
     OnboardingState,
+    OnboardingStatus,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
@@ -22,6 +22,7 @@ export class CustomizationResolver {
         private readonly onboardingService: OnboardingService,
         private readonly onboardingTracker: OnboardingTrackerService
     ) {}
+
     // Authenticated query
     @Query(() => Customization, { nullable: true })
     @UsePermissions({
@@ -40,10 +41,12 @@ export class CustomizationResolver {
         return this.onboardingService.getPublicPartnerInfo();
     }
 
-    @Query(() => Boolean)
+    @Query(() => Boolean, {
+        description: 'Whether the system is a fresh install (no license key)',
+    })
     @Public()
-    async isInitialSetup(): Promise<boolean> {
-        return this.onboardingService.isInitialSetup();
+    async isFreshInstall(): Promise<boolean> {
+        return this.onboardingService.isFreshInstall();
     }
 
     @Query(() => Theme)
@@ -52,26 +55,38 @@ export class CustomizationResolver {
         return this.onboardingService.getTheme();
     }
 
-    @Query(() => ActivationOnboarding, {
-        description: 'Activation onboarding steps derived from current system state',
+    @Query(() => Onboarding, {
+        description: 'Onboarding completion state and context',
     })
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.CUSTOMIZATIONS,
     })
-    async activationOnboarding(): Promise<ActivationOnboarding> {
-        const snapshot = await this.onboardingTracker.getUpgradeSnapshot();
+    async onboarding(): Promise<Onboarding> {
+        const state = this.onboardingTracker.getState();
+        const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
+        const partnerInfo = await this.onboardingService.getPublicPartnerInfo();
+        const activationData = await this.onboardingService.getActivationData();
 
-        const hasBothVersions = snapshot.lastTrackedVersion != null && snapshot.currentVersion != null;
+        // Compute the status based on completion state and version
+        let status: OnboardingStatus;
+        if (!state.completed) {
+            status = OnboardingStatus.INCOMPLETE;
+        } else if (state.completedAtVersion && state.completedAtVersion !== currentVersion) {
+            status = OnboardingStatus.UPGRADE;
+        } else {
+            status = OnboardingStatus.COMPLETED;
+        }
+
+        // Get the activation code string if present and non-empty
+        const activationCode = activationData?.code?.trim() || undefined;
 
         return {
-            isUpgrade: hasBothVersions && snapshot.lastTrackedVersion !== snapshot.currentVersion,
-            previousVersion:
-                hasBothVersions && snapshot.lastTrackedVersion !== snapshot.currentVersion
-                    ? snapshot.lastTrackedVersion
-                    : undefined,
-            currentVersion: hasBothVersions ? snapshot.currentVersion : undefined,
-            completed: snapshot.completed,
+            status,
+            isPartnerBuild: partnerInfo !== null,
+            completed: state.completed,
+            completedAtVersion: state.completedAtVersion,
+            activationCode,
         };
     }
 

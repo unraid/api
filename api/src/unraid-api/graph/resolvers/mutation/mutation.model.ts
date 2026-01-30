@@ -1,7 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
-import { ActivationOnboarding } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
-import { UpgradeInfo } from '@app/unraid-api/graph/resolvers/info/versions/versions.model.js';
+import { Onboarding } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { PluginInstallOperation } from '@app/unraid-api/graph/resolvers/unraid-plugins/unraid-plugins.model.js';
 
@@ -52,25 +51,25 @@ export class RCloneMutations {
     description: 'Onboarding related mutations',
 })
 export class OnboardingMutations {
-    @Field(() => UpgradeInfo, {
-        description: 'Mark onboarding as completed for the current OS version',
+    @Field(() => Onboarding, {
+        description: 'Mark onboarding as completed',
     })
-    completeUpgradeOnboarding!: UpgradeInfo;
+    completeOnboarding!: Onboarding;
 
-    @Field(() => UpgradeInfo, {
-        description: 'Reset upgrade onboarding progress for the current OS version',
+    @Field(() => Onboarding, {
+        description: 'Reset onboarding progress (for testing)',
     })
-    resetUpgradeOnboarding!: UpgradeInfo;
+    resetOnboarding!: Onboarding;
 
-    @Field(() => ActivationOnboarding, {
+    @Field(() => Onboarding, {
         description: 'Override onboarding state for testing (in-memory only)',
     })
-    setOnboardingOverride!: ActivationOnboarding;
+    setOnboardingOverride!: Onboarding;
 
-    @Field(() => ActivationOnboarding, {
+    @Field(() => Onboarding, {
         description: 'Clear onboarding override state and reload from disk',
     })
-    clearOnboardingOverride!: ActivationOnboarding;
+    clearOnboardingOverride!: Onboarding;
 }
 
 @ObjectType({

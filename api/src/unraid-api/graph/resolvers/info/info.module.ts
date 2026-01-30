@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { OnboardingTrackerModule } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import { CpuModule } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.module.js';
 import { DevicesResolver } from '@app/unraid-api/graph/resolvers/info/devices/devices.resolver.js';
 import { DevicesService } from '@app/unraid-api/graph/resolvers/info/devices/devices.service.js';
@@ -17,7 +16,7 @@ import { VersionsService } from '@app/unraid-api/graph/resolvers/info/versions/v
 import { ServicesModule } from '@app/unraid-api/graph/services/services.module.js';
 
 @Module({
-    imports: [ConfigModule, ServicesModule, CpuModule, OnboardingTrackerModule],
+    imports: [ConfigModule, ServicesModule, CpuModule],
     providers: [
         // Main resolver
         InfoResolver,

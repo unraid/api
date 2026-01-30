@@ -6,7 +6,7 @@ import { useMutation } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
-import { COMPLETE_UPGRADE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
+import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 
 import type { BrandButtonProps } from '@unraid/ui';
@@ -27,9 +27,9 @@ const { t } = useI18n();
 const modalStore = useActivationCodeModalStore();
 const { isVisible, isHidden } = storeToRefs(modalStore);
 const { partnerInfo, activationRequired, hasActivationCode } = storeToRefs(useActivationCodeDataStore());
-const upgradeStore = useUpgradeOnboardingStore();
-const { shouldShowUpgradeOnboarding, currentVersion, previousVersion } = storeToRefs(upgradeStore);
-const { refetchActivationOnboarding } = upgradeStore;
+const onboardingStore = useUpgradeOnboardingStore();
+const { shouldShowOnboarding, isUpgrade, completedAtVersion } = storeToRefs(onboardingStore);
+const { refetchOnboarding } = onboardingStore;
 const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
 const themeStore = useThemeStore();
@@ -90,7 +90,7 @@ const filteredSteps = computed(() => {
   return HARDCODED_STEPS.filter((s) => s.id !== 'ACTIVATE_LICENSE');
 });
 
-const showModal = computed(() => isVisible.value || shouldShowUpgradeOnboarding.value);
+const showModal = computed(() => isVisible.value || shouldShowOnboarding.value);
 
 const currentStepIndex = ref(0);
 const stepSaveState = ref<'idle' | 'saving' | 'saved'>('idle');
@@ -128,17 +128,17 @@ const currentDynamicStepIndex = computed(() => {
 });
 
 const modalTitle = computed<string>(() => {
-  if (shouldShowUpgradeOnboarding.value && currentVersion.value) {
-    return t('onboarding.activationModal.welcomeToUnraidVersion', { version: currentVersion.value });
+  if (isUpgrade.value) {
+    return t('onboarding.activationModal.welcomeToUnraidVersion', { version: 'Unraid OS' });
   }
   return t('onboarding.activationModal.letSActivateYourUnraidOs');
 });
 
 const modalDescription = computed<string>(() => {
-  if (shouldShowUpgradeOnboarding.value && previousVersion.value && currentVersion.value) {
+  if (isUpgrade.value && completedAtVersion.value) {
     return t('onboarding.activationModal.youVeUpgradedFromPrevToCurr', {
-      prev: previousVersion.value,
-      curr: currentVersion.value,
+      prev: completedAtVersion.value,
+      curr: 'current version',
     });
   }
   return t('onboarding.activationModal.onTheFollowingScreenYourLicense');
@@ -165,24 +165,24 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
   ];
 });
 
-const { mutate: completeUpgradeOnboardingMutation } = useMutation(COMPLETE_UPGRADE_ONBOARDING_MUTATION);
+const { mutate: completeOnboardingMutation } = useMutation(COMPLETE_ONBOARDING_MUTATION);
 
-const completePendingUpgradeSteps = async () => {
-  if (!shouldShowUpgradeOnboarding.value) {
+const completePendingOnboarding = async () => {
+  if (!shouldShowOnboarding.value) {
     return;
   }
 
   try {
-    await completeUpgradeOnboardingMutation();
-    await refetchActivationOnboarding();
+    await completeOnboardingMutation();
+    await refetchOnboarding();
   } catch (error) {
-    console.error('[OnboardingModal] Failed to complete upgrade onboarding', error);
+    console.error('[OnboardingModal] Failed to complete onboarding', error);
   }
 };
 
 const closeModal = async () => {
-  if (shouldShowUpgradeOnboarding.value) {
-    await completePendingUpgradeSteps();
+  if (shouldShowOnboarding.value) {
+    await completePendingOnboarding();
   }
   stepSaveState.value = 'idle';
   if (stepSaveTimeout) {
@@ -270,13 +270,13 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
   switch (step) {
     case 'OVERVIEW':
       console.log('[OnboardingModal] OVERVIEW step props:', {
-        currentVersion: currentVersion.value,
-        previousVersion: previousVersion.value,
+        isUpgrade: isUpgrade.value,
+        completedAtVersion: completedAtVersion.value,
       });
       return {
         ...baseProps,
-        currentVersion: currentVersion.value,
-        previousVersion: previousVersion.value,
+        isUpgrade: isUpgrade.value,
+        completedAtVersion: completedAtVersion.value,
         onSkip: undefined,
         showSkip: false,
       };
@@ -345,7 +345,7 @@ watch(
     v-if="showModal"
     :model-value="showModal"
     :show-footer="false"
-    :show-close-button="isHidden === false || shouldShowUpgradeOnboarding"
+    :show-close-button="isHidden === false || shouldShowOnboarding"
     size="full"
     class="bg-background pb-0"
     @update:model-value="
@@ -357,7 +357,7 @@ watch(
     "
   >
     <div class="flex h-full w-full flex-col items-center justify-start overflow-y-auto">
-      <div v-if="partnerInfo?.hasPartnerLogo && !shouldShowUpgradeOnboarding">
+      <div v-if="partnerInfo?.hasPartnerLogo && !isUpgrade">
         <OnboardingPartnerLogo :partner-info="partnerInfo" />
       </div>
 

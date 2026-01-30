@@ -71,15 +71,6 @@ export class OnboardingStateService {
         return (await this.hasActivationCode()) && this.isFreshInstall();
     }
 
-    isInitialSetup(): boolean {
-        const override = this.onboardingOverrides.getState();
-        if (override?.isInitialSetup !== undefined) {
-            return override.isInitialSetup;
-        }
-
-        return this.isFreshInstall();
-    }
-
     async getActivationStepContext(): Promise<ActivationStepContext> {
         const regState = this.getRegistrationState();
         const hasActivationCode = await this.hasActivationCode();

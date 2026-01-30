@@ -1,16 +1,12 @@
 import { Module } from '@nestjs/common';
 
 import { OnboardingOverrideModule } from '@app/unraid-api/config/onboarding-override.module.js';
-import { OnboardingStateModule } from '@app/unraid-api/config/onboarding-state.module.js';
-import {
-    OnboardingTrackerService,
-    UPGRADE_MARKER_PATH,
-} from '@app/unraid-api/config/onboarding-tracker.service.js';
+import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.service.js';
 
-export { OnboardingTrackerService, UPGRADE_MARKER_PATH };
+export { OnboardingTrackerService };
 
 @Module({
-    imports: [OnboardingOverrideModule, OnboardingStateModule],
+    imports: [OnboardingOverrideModule],
     providers: [OnboardingTrackerService],
     exports: [OnboardingTrackerService],
 })

@@ -42,12 +42,13 @@ export class OnboardingService implements OnModuleInit {
 
     private async ensureFirstBootCompletion(): Promise<boolean> {
         await fs.mkdir(this.activationDir, { recursive: true });
-        const alreadyCompleted = await this.onboardingTracker.ensureFirstBootCompleted();
+        // Check if onboarding has already been completed
+        const alreadyCompleted = this.onboardingTracker.isCompleted();
         if (alreadyCompleted) {
-            this.logger.log('First boot setup flag file already exists.');
+            this.logger.log('Onboarding already completed, skipping first boot setup.');
             return true;
         }
-        this.logger.log('First boot setup flag file created.');
+        this.logger.log('First boot setup in progress.');
         return false;
     }
 
@@ -117,12 +118,21 @@ export class OnboardingService implements OnModuleInit {
         }
 
         const activationData = await this.getActivationData();
+        if (!activationData) {
+            return null;
+        }
+        
         const paths = getters.paths();
         return {
             hasPartnerLogo: await fileExists(paths.activation.logo),
-            partnerName: activationData?.partnerName,
-            partnerUrl: activationData?.partnerUrl,
+            partnerName: activationData.partnerName,
+            partnerUrl: activationData.partnerUrl,
             partnerLogoUrl: paths.webgui.logo.assetPath,
+            // New link fields
+            hardwareSpecsUrl: activationData.hardwareSpecsUrl,
+            manualUrl: activationData.manualUrl,
+            supportUrl: activationData.supportUrl,
+            extraLinks: activationData.extraLinks,
         };
     }
 
@@ -137,20 +147,18 @@ export class OnboardingService implements OnModuleInit {
         const hasActivationCode = await this.onboardingState.hasActivationCode();
         const isFreshInstall = this.onboardingState.isFreshInstall(registrationState);
         const isRegistered = this.onboardingState.isRegistered(registrationState);
-        const isInitialSetup = this.onboardingState.isInitialSetup();
 
         return {
             registrationState,
             isRegistered,
             isFreshInstall,
-            isInitialSetup,
             hasActivationCode,
             activationRequired: hasActivationCode && isFreshInstall,
         };
     }
 
-    public isInitialSetup(): boolean {
-        return this.onboardingState.isInitialSetup();
+    public isFreshInstall(): boolean {
+        return this.onboardingState.isFreshInstall();
     }
 
     /**

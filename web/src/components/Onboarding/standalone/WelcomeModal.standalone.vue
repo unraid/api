@@ -16,7 +16,7 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const { partnerInfo, isInitialSetup } = storeToRefs(useWelcomeModalDataStore());
+const { partnerInfo, isFreshInstall } = storeToRefs(useWelcomeModalDataStore());
 
 const { fetchTheme } = useThemeStore();
 
@@ -32,7 +32,7 @@ const isLoginPage = computed(() => window.location.pathname.includes('login'));
 
 // Initialize showModal based on conditions
 
-const showModal = ref(isLoginPage.value || isInitialSetup.value);
+const showModal = ref(isLoginPage.value || isFreshInstall.value);
 
 // Template ref for the teleport container
 

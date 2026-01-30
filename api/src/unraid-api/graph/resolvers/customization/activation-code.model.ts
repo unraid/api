@@ -32,6 +32,23 @@ const sanitizeAndValidateHexColor = (value: any): string => {
     return ''; // Return empty string if not a valid hex color after potential modification
 };
 
+/**
+ * Represents a custom link provided by partners
+ */
+@ObjectType()
+export class PartnerLink {
+    @Field(() => String, { description: 'Display title for the link' })
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value, 100))
+    title!: string;
+
+    @Field(() => String, { description: 'The URL' })
+    @IsString()
+    @IsUrl({}, { message: 'Must be a valid URL' })
+    @Transform(({ value }) => sanitizeString(value))
+    url!: string;
+}
+
 @ObjectType()
 export class PublicPartnerInfo {
     @Field(() => String, { nullable: true })
@@ -59,6 +76,40 @@ export class PublicPartnerInfo {
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
     partnerLogoUrl?: string | null;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Link to hardware specifications for this system',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    hardwareSpecsUrl?: string | null;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Link to the system manual/documentation',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    manualUrl?: string | null;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Link to manufacturer support page',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    supportUrl?: string | null;
+
+    @Field(() => [PartnerLink], {
+        nullable: true,
+        description: 'Additional custom links provided by the partner',
+    })
+    @IsOptional()
+    extraLinks?: PartnerLink[] | null;
 }
 
 @ObjectType()
@@ -131,6 +182,41 @@ export class ActivationCode {
     @IsIn(['azure', 'black', 'gray', 'white'])
     @Transform(({ value }) => sanitizeString(value))
     theme?: 'azure' | 'black' | 'gray' | 'white';
+
+    // New partner link fields
+    @Field(() => String, {
+        nullable: true,
+        description: 'Link to hardware specifications for this system',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    hardwareSpecsUrl?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Link to the system manual/documentation',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    manualUrl?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Link to manufacturer support page',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    supportUrl?: string;
+
+    @Field(() => [PartnerLink], {
+        nullable: true,
+        description: 'Additional custom links provided by the partner',
+    })
+    @IsOptional()
+    extraLinks?: PartnerLink[];
 }
 
 @ObjectType()
@@ -143,9 +229,6 @@ export class OnboardingState {
 
     @Field(() => Boolean, { description: 'Indicates whether the system is a fresh install' })
     isFreshInstall!: boolean;
-
-    @Field(() => Boolean, { description: 'Indicates whether initial setup should be shown' })
-    isInitialSetup!: boolean;
 
     @Field(() => Boolean, { description: 'Indicates whether an activation code is present' })
     hasActivationCode!: boolean;
@@ -168,27 +251,52 @@ export class Customization {
     onboardingState?: OnboardingState;
 }
 
-@ObjectType()
-export class ActivationOnboarding {
+/**
+ * Enum representing the current onboarding status.
+ * Used to determine which onboarding flow/UI to show.
+ */
+export enum OnboardingStatus {
+    /** User has not completed onboarding yet */
+    INCOMPLETE = 'INCOMPLETE',
+    /** User completed onboarding on a previous OS version and has since upgraded */
+    UPGRADE = 'UPGRADE',
+    /** User has already completed onboarding on the current OS version */
+    COMPLETED = 'COMPLETED',
+}
+
+registerEnumType(OnboardingStatus, {
+    name: 'OnboardingStatus',
+    description: 'The current onboarding status based on completion state and version',
+});
+
+@ObjectType({
+    description: 'Onboarding completion state and context',
+})
+export class Onboarding {
+    @Field(() => OnboardingStatus, {
+        description: 'The current onboarding status (INCOMPLETE, UPGRADE, or COMPLETED)',
+    })
+    status!: OnboardingStatus;
+
     @Field(() => Boolean, {
-        description: 'Indicates whether the system is currently in an upgrade state',
+        description: 'Whether this is a partner/OEM build with activation code',
     })
-    isUpgrade!: boolean;
-
-    @Field(() => String, {
-        nullable: true,
-        description: 'Previous OS version prior to the current upgrade',
-    })
-    previousVersion?: string;
-
-    @Field(() => String, {
-        nullable: true,
-        description: 'Current OS version detected by the system',
-    })
-    currentVersion?: string;
+    isPartnerBuild!: boolean;
 
     @Field(() => Boolean, {
-        description: 'Whether the onboarding flow has been completed for the current version',
+        description: 'Whether the onboarding flow has been completed',
     })
     completed!: boolean;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'The OS version when onboarding was completed',
+    })
+    completedAtVersion?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'The activation code from the .activationcode file, if present',
+    })
+    activationCode?: string;
 }

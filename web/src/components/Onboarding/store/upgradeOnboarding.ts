@@ -2,36 +2,52 @@ import { computed } from 'vue';
 import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
-import { ACTIVATION_ONBOARDING_QUERY } from '@/components/Onboarding/graphql/activationOnboarding.query';
+import { ONBOARDING_QUERY } from '@/components/Onboarding/graphql/activationOnboarding.query';
 
-export const useUpgradeOnboardingStore = defineStore('upgradeOnboarding', () => {
+import type { OnboardingStatus } from '~/composables/gql/graphql';
+
+export const useOnboardingStore = defineStore('onboarding', () => {
   const {
-    result: activationOnboardingResult,
-    loading: activationOnboardingLoading,
+    result: onboardingResult,
+    loading: onboardingLoading,
     refetch,
-  } = useQuery(ACTIVATION_ONBOARDING_QUERY, {}, { errorPolicy: 'all' });
+  } = useQuery(ONBOARDING_QUERY, {}, { errorPolicy: 'all' });
 
-  const onboardingData = computed(() => activationOnboardingResult.value?.activationOnboarding);
+  const onboardingData = computed(() => onboardingResult.value?.onboarding);
 
-  const isUpgrade = computed(() => onboardingData.value?.isUpgrade ?? false);
-  const previousVersion = computed(() => onboardingData.value?.previousVersion);
-  const currentVersion = computed(() => onboardingData.value?.currentVersion);
+  // Core state from API
+  const status = computed<OnboardingStatus | undefined>(() => onboardingData.value?.status);
+  const isPartnerBuild = computed(() => onboardingData.value?.isPartnerBuild ?? false);
+  const completed = computed(() => onboardingData.value?.completed ?? false);
+  const completedAtVersion = computed(() => onboardingData.value?.completedAtVersion);
 
-  // New simplified API: check 'completed' boolean
-  const isCompleted = computed(() => onboardingData.value?.completed ?? false);
+  // Derived helpers for component logic
+  const isUpgrade = computed(() => status.value === 'UPGRADE');
+  const isIncomplete = computed(() => status.value === 'INCOMPLETE');
+  const isCompleted = computed(() => status.value === 'COMPLETED');
 
-  const shouldShowUpgradeOnboarding = computed(() => {
-    // If we are an upgrade and NOT completed, show the wizard
-    return isUpgrade.value && !isCompleted.value;
+  // Decision: should we show the onboarding modal?
+  const shouldShowOnboarding = computed(() => {
+    // Show onboarding if status is INCOMPLETE or UPGRADE
+    return status.value === 'INCOMPLETE' || status.value === 'UPGRADE';
   });
 
   return {
-    loading: computed(() => activationOnboardingLoading.value),
+    loading: computed(() => onboardingLoading.value),
+    // Core state
+    status,
+    isPartnerBuild,
+    completed,
+    completedAtVersion,
+    // Derived helpers
     isUpgrade,
-    previousVersion,
-    currentVersion,
+    isIncomplete,
     isCompleted,
-    shouldShowUpgradeOnboarding,
-    refetchActivationOnboarding: refetch,
+    shouldShowOnboarding,
+    // Actions
+    refetchOnboarding: refetch,
   };
 });
+
+// Keep the old name as an alias for backward compatibility during migration
+export const useUpgradeOnboardingStore = useOnboardingStore;

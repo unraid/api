@@ -817,9 +817,6 @@ type OnboardingState {
   """Indicates whether the system is a fresh install"""
   isFreshInstall: Boolean!
 
-  """Indicates whether initial setup should be shown"""
-  isInitialSetup: Boolean!
-
   """Indicates whether an activation code is present"""
   hasActivationCode: Boolean!
 
@@ -834,96 +831,26 @@ type Customization {
   theme: Theme!
 }
 
-type ActivationOnboarding {
-  """Indicates whether the system is currently in an upgrade state"""
-  isUpgrade: Boolean!
+"""Onboarding completion state and context"""
+type Onboarding {
+  """The current onboarding status (INCOMPLETE, UPGRADE, or COMPLETED)"""
+  status: OnboardingStatus!
 
-  """Previous OS version prior to the current upgrade"""
-  previousVersion: String
+  """Whether this is a partner/OEM build with activation code"""
+  isPartnerBuild: Boolean!
 
-  """Current OS version detected by the system"""
-  currentVersion: String
-
-  """Whether the onboarding flow has been completed for the current version"""
+  """Whether the onboarding flow has been completed"""
   completed: Boolean!
+
+  """The OS version when onboarding was completed"""
+  completedAtVersion: String
 }
 
-type CoreVersions {
-  """Unraid version"""
-  unraid: String
-
-  """Unraid API version"""
-  api: String
-
-  """Kernel version"""
-  kernel: String
-}
-
-type PackageVersions {
-  """OpenSSL version"""
-  openssl: String
-
-  """Node.js version"""
-  node: String
-
-  """npm version"""
-  npm: String
-
-  """pm2 version"""
-  pm2: String
-
-  """Git version"""
-  git: String
-
-  """nginx version"""
-  nginx: String
-
-  """PHP version"""
-  php: String
-
-  """Docker version"""
-  docker: String
-}
-
-type UpgradeStep {
-  """Identifier of the onboarding step"""
-  id: String!
-
-  """Whether the step is required to continue"""
-  required: Boolean!
-
-  """Version of Unraid when this step was introduced"""
-  introducedIn: String
-}
-
-type UpgradeInfo {
-  """Whether the OS version has changed since last boot"""
-  isUpgrade: Boolean!
-
-  """Previous OS version before upgrade"""
-  previousVersion: String
-
-  """Current OS version"""
-  currentVersion: String
-
-  """Onboarding step identifiers completed for the current OS version"""
-  completedSteps: [String!]!
-
-  """Onboarding step definitions applicable to the current upgrade path"""
-  steps: [UpgradeStep!]!
-}
-
-type InfoVersions implements Node {
-  id: PrefixedID!
-
-  """Core system versions"""
-  core: CoreVersions!
-
-  """Software package versions"""
-  packages: PackageVersions
-
-  """OS upgrade information"""
-  upgrade: UpgradeInfo!
+"""The current onboarding status based on completion state and version"""
+enum OnboardingStatus {
+  INCOMPLETE
+  UPGRADE
+  COMPLETED
 }
 
 type RCloneDrive {
@@ -1228,34 +1155,31 @@ input DeleteRCloneRemoteInput {
 
 """Onboarding related mutations"""
 type OnboardingMutations {
-  """Mark onboarding as completed for the current OS version"""
-  completeUpgradeOnboarding: UpgradeInfo!
+  """Mark onboarding as completed"""
+  completeOnboarding: Onboarding!
 
-  """Reset upgrade onboarding progress for the current OS version"""
-  resetUpgradeOnboarding: UpgradeInfo!
+  """Reset onboarding progress (for testing)"""
+  resetOnboarding: Onboarding!
 
   """Override onboarding state for testing (in-memory only)"""
-  setOnboardingOverride(input: OnboardingOverrideInput!): ActivationOnboarding!
+  setOnboardingOverride(input: OnboardingOverrideInput!): Onboarding!
 
   """Clear onboarding override state and reload from disk"""
-  clearOnboardingOverride: ActivationOnboarding!
+  clearOnboardingOverride: Onboarding!
 }
 
-"""Onboarding override input"""
+"""Onboarding override input for testing"""
 input OnboardingOverrideInput {
-  activationOnboarding: ActivationOnboardingOverrideInput
+  onboarding: OnboardingOverrideCompletionInput
   activationCode: ActivationCodeOverrideInput
   partnerInfo: PartnerInfoOverrideInput
   registrationState: RegistrationState
-  isInitialSetup: Boolean
 }
 
-"""Activation onboarding override input"""
-input ActivationOnboardingOverrideInput {
-  currentVersion: String
-  previousVersion: String
-  isUpgrade: Boolean
+"""Onboarding completion override input"""
+input OnboardingOverrideCompletionInput {
   completed: Boolean
+  completedAtVersion: String
 }
 
 """Activation code override input"""
@@ -2223,6 +2147,53 @@ type InfoBaseboard implements Node {
   memSlots: Float
 }
 
+type CoreVersions {
+  """Unraid version"""
+  unraid: String
+
+  """Unraid API version"""
+  api: String
+
+  """Kernel version"""
+  kernel: String
+}
+
+type PackageVersions {
+  """OpenSSL version"""
+  openssl: String
+
+  """Node.js version"""
+  node: String
+
+  """npm version"""
+  npm: String
+
+  """pm2 version"""
+  pm2: String
+
+  """Git version"""
+  git: String
+
+  """nginx version"""
+  nginx: String
+
+  """PHP version"""
+  php: String
+
+  """Docker version"""
+  docker: String
+}
+
+type InfoVersions implements Node {
+  id: PrefixedID!
+
+  """Core system versions"""
+  core: CoreVersions!
+
+  """Software package versions"""
+  packages: PackageVersions
+}
+
 type Info implements Node {
   id: PrefixedID!
 
@@ -2892,11 +2863,13 @@ type Query {
   array: UnraidArray!
   customization: Customization
   publicPartnerInfo: PublicPartnerInfo
-  isInitialSetup: Boolean!
+
+  """Whether the system is a fresh install (no license key)"""
+  isFreshInstall: Boolean!
   publicTheme: Theme!
 
-  """Activation onboarding steps derived from current system state"""
-  activationOnboarding: ActivationOnboarding!
+  """Onboarding completion state and context"""
+  onboarding: Onboarding!
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!

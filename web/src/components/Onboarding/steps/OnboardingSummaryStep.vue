@@ -17,7 +17,7 @@ import { CheckCircleIcon, ChevronDownIcon, ChevronRightIcon, ClockIcon } from '@
 import { BrandButton } from '@unraid/ui';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import usePluginInstaller from '@/components/Onboarding/composables/usePluginInstaller';
-import { COMPLETE_UPGRADE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
+import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import {
   SET_LOCALE_MUTATION,
   SET_THEME_MUTATION,
@@ -45,7 +45,7 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
 const { registrationState } = storeToRefs(useActivationCodeDataStore());
-const { refetchActivationOnboarding } = useUpgradeOnboardingStore();
+const { refetchOnboarding } = useUpgradeOnboardingStore();
 const modalStore = useActivationCodeModalStore();
 
 // Setup Mutations
@@ -54,7 +54,7 @@ const { mutate: updateServerIdentity } = useMutation(UPDATE_SERVER_IDENTITY_MUTA
 const { mutate: setTheme } = useMutation(SET_THEME_MUTATION);
 const { mutate: setLocale } = useMutation(SET_LOCALE_MUTATION);
 const { mutate: updateSshSettings } = useMutation(UPDATE_SSH_SETTINGS_MUTATION);
-const { mutate: completeUpgradeOnboarding } = useMutation(COMPLETE_UPGRADE_ONBOARDING_MUTATION);
+const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
 
 const { installPlugin } = usePluginInstaller();
 
@@ -207,13 +207,13 @@ const handleComplete = async () => {
     // 4. Mark Complete
     addLog('Finalizing setup...', 'info');
 
-    await completeUpgradeOnboarding();
+    await completeOnboarding();
 
     addLog('Setup complete!', 'success');
 
     await new Promise((r) => setTimeout(r, 1000));
 
-    await refetchActivationOnboarding();
+    await refetchOnboarding();
 
     isProcessing.value = false;
     props.onComplete();

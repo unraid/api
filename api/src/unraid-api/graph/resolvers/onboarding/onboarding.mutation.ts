@@ -4,13 +4,13 @@ import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import type { OnboardingOverrideState } from '@app/unraid-api/config/onboarding-override.model.js';
-import type { UpgradeProgressSnapshot } from '@app/unraid-api/config/onboarding-tracker.model.js';
 import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
 import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
-import { ActivationOnboarding } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import {
+    Onboarding,
+    OnboardingStatus,
+} from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
-import { buildUpgradeInfoFromSnapshot } from '@app/unraid-api/graph/resolvers/info/versions/upgrade-info.util.js';
-import { UpgradeInfo } from '@app/unraid-api/graph/resolvers/info/versions/versions.model.js';
 import { OnboardingMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { OnboardingOverrideInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 
@@ -22,78 +22,85 @@ export class OnboardingMutationsResolver {
         private readonly onboardingService: OnboardingService
     ) {}
 
-    @ResolveField(() => UpgradeInfo, {
-        description: 'Marks the onboarding flow as completed for the current OS version',
+    /**
+     * Build a full Onboarding response with computed status
+     */
+    private async buildOnboardingResponse(): Promise<Onboarding> {
+        const state = this.onboardingTracker.getState();
+        const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
+        const partnerInfo = await this.onboardingService.getPublicPartnerInfo();
+
+        // Compute the status based on completion state and version
+        let status: OnboardingStatus;
+        if (!state.completed) {
+            status = OnboardingStatus.INCOMPLETE;
+        } else if (state.completedAtVersion && state.completedAtVersion !== currentVersion) {
+            status = OnboardingStatus.UPGRADE;
+        } else {
+            status = OnboardingStatus.COMPLETED;
+        }
+
+        return {
+            status,
+            isPartnerBuild: partnerInfo !== null,
+            completed: state.completed,
+            completedAtVersion: state.completedAtVersion,
+        };
+    }
+
+    @ResolveField(() => Onboarding, {
+        description: 'Marks the onboarding flow as completed',
     })
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.WELCOME,
     })
-    async completeUpgradeOnboarding(): Promise<UpgradeInfo> {
-        const snapshot = await this.onboardingTracker.markOnboardingCompleted();
-        return buildUpgradeInfoFromSnapshot(snapshot);
+    async completeOnboarding(): Promise<Onboarding> {
+        await this.onboardingTracker.markCompleted();
+        return this.buildOnboardingResponse();
     }
 
-    @ResolveField(() => UpgradeInfo, {
-        description: 'Reset upgrade onboarding progress for the current OS version',
+    @ResolveField(() => Onboarding, {
+        description: 'Reset onboarding progress (for testing)',
     })
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.WELCOME,
     })
-    async resetUpgradeOnboarding(): Promise<UpgradeInfo> {
-        const snapshot = await this.onboardingTracker.resetUpgradeProgress();
-        return buildUpgradeInfoFromSnapshot(snapshot);
+    async resetOnboarding(): Promise<Onboarding> {
+        await this.onboardingTracker.reset();
+        return this.buildOnboardingResponse();
     }
 
-    @ResolveField(() => ActivationOnboarding, {
+    @ResolveField(() => Onboarding, {
         description: 'Override onboarding state for testing (in-memory only)',
     })
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.WELCOME,
     })
-    async setOnboardingOverride(
-        @Args('input') input: OnboardingOverrideInput
-    ): Promise<ActivationOnboarding> {
+    async setOnboardingOverride(@Args('input') input: OnboardingOverrideInput): Promise<Onboarding> {
         const override: OnboardingOverrideState = {
-            activationOnboarding: input.activationOnboarding,
+            onboarding: input.onboarding,
             activationCode: input.activationCode,
             partnerInfo: input.partnerInfo,
             registrationState: input.registrationState,
-            isInitialSetup: input.isInitialSetup,
         };
         this.onboardingOverrides.setState(override);
         this.onboardingService.clearActivationDataCache();
-        const snapshot = await this.onboardingTracker.getUpgradeSnapshot();
-        return this.buildActivationOnboarding(snapshot);
+        return this.buildOnboardingResponse();
     }
 
-    @ResolveField(() => ActivationOnboarding, {
+    @ResolveField(() => Onboarding, {
         description: 'Clear onboarding override state and reload from disk',
     })
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.WELCOME,
     })
-    async clearOnboardingOverride(): Promise<ActivationOnboarding> {
+    async clearOnboardingOverride(): Promise<Onboarding> {
         this.onboardingOverrides.clearState();
         this.onboardingService.clearActivationDataCache();
-        const snapshot = await this.onboardingTracker.getUpgradeSnapshot();
-        return this.buildActivationOnboarding(snapshot);
-    }
-
-    private buildActivationOnboarding(snapshot: UpgradeProgressSnapshot): ActivationOnboarding {
-        const hasBothVersions = snapshot.lastTrackedVersion != null && snapshot.currentVersion != null;
-
-        return {
-            isUpgrade: hasBothVersions && snapshot.lastTrackedVersion !== snapshot.currentVersion,
-            previousVersion:
-                hasBothVersions && snapshot.lastTrackedVersion !== snapshot.currentVersion
-                    ? snapshot.lastTrackedVersion
-                    : undefined,
-            currentVersion: hasBothVersions ? snapshot.currentVersion : undefined,
-            completed: snapshot.completed,
-        };
+        return this.buildOnboardingResponse();
     }
 }

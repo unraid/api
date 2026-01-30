@@ -3,22 +3,23 @@ import { ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useApolloClient } from '@vue/apollo-composable';
 
+import { InformationCircleIcon } from '@heroicons/vue/24/outline';
 import { parse } from 'graphql';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
-import { useUpgradeOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding';
+import { useOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding';
 import { RegistrationState } from '~/composables/gql/graphql';
 
 const activationModalStore = useActivationCodeModalStore();
-const upgradeOnboardingStore = useUpgradeOnboardingStore();
+const onboardingStore = useOnboardingStore();
 const activationCodeStore = useActivationCodeDataStore();
 
 const apolloClient = useApolloClient().client;
 
 const { hasActivationCode, isFreshInstall, partnerInfo, registrationState } =
   storeToRefs(activationCodeStore);
-const { currentVersion, previousVersion, isUpgrade, isCompleted } = storeToRefs(upgradeOnboardingStore);
+const { status, isPartnerBuild, completed, completedAtVersion } = storeToRefs(onboardingStore);
 
 const draftJson = ref('');
 const errorMessage = ref('');
@@ -29,10 +30,10 @@ const SET_ONBOARDING_OVERRIDE_MUTATION = parse(/* GraphQL */ `
   mutation SetOnboardingOverride($input: OnboardingOverrideInput!) {
     onboarding {
       setOnboardingOverride(input: $input) {
-        isUpgrade
-        previousVersion
-        currentVersion
+        status
+        isPartnerBuild
         completed
+        completedAtVersion
       }
     }
   }
@@ -42,21 +43,19 @@ const CLEAR_ONBOARDING_OVERRIDE_MUTATION = parse(/* GraphQL */ `
   mutation ClearOnboardingOverride {
     onboarding {
       clearOnboardingOverride {
-        isUpgrade
-        previousVersion
-        currentVersion
+        status
+        isPartnerBuild
         completed
+        completedAtVersion
       }
     }
   }
 `);
 
 type OnboardingOverridePayload = {
-  activationOnboarding?: {
-    currentVersion?: string | null;
-    previousVersion?: string | null;
-    isUpgrade?: boolean;
+  onboarding?: {
     completed?: boolean;
+    completedAtVersion?: string | null;
   };
   activationCode?: {
     code?: string;
@@ -65,15 +64,24 @@ type OnboardingOverridePayload = {
     serverName?: string;
     sysModel?: string;
     theme?: 'azure' | 'black' | 'gray' | 'white';
+    // New link fields
+    hardwareSpecsUrl?: string;
+    manualUrl?: string;
+    supportUrl?: string;
+    extraLinks?: Array<{ title: string; url: string }>;
   } | null;
   partnerInfo?: {
     hasPartnerLogo?: boolean | null;
     partnerName?: string | null;
     partnerUrl?: string | null;
     partnerLogoUrl?: string | null;
+    // New link fields
+    hardwareSpecsUrl?: string | null;
+    manualUrl?: string | null;
+    supportUrl?: string | null;
+    extraLinks?: Array<{ title: string; url: string }> | null;
   } | null;
   registrationState?: RegistrationState;
-  isInitialSetup?: boolean;
 };
 
 type Preset = {
@@ -87,69 +95,58 @@ type Preset = {
 const presets = ref<Preset[]>([
   // ============ REGULAR USER STATES ============
   {
-    id: 'regular-first-time',
-    label: '1. Regular User - First Time',
+    id: 'regular-incomplete',
+    label: '1. Regular User - Incomplete',
     description: 'Fresh install, no partner, onboarding not completed',
     overrides: {
       registrationState: RegistrationState.ENOKEYFILE,
-      activationOnboarding: {
-        currentVersion: '7.0.0',
-        previousVersion: null,
-        isUpgrade: false,
+      onboarding: {
         completed: false,
+        completedAtVersion: null,
       },
       activationCode: null,
       partnerInfo: null,
-      isInitialSetup: true,
     },
   },
   {
-    id: 'regular-upgrading',
-    label: '2. Regular User - Upgrading',
-    description: 'Upgraded from 6.12.0 to 7.0.0, onboarding not completed',
+    id: 'regular-upgrade',
+    label: '2. Regular User - Upgrade',
+    description: 'Completed onboarding on older version (7.1.0), now on 7.2.0',
     overrides: {
-      registrationState: RegistrationState.ENOKEYFILE,
-      activationOnboarding: {
-        currentVersion: '7.0.0',
-        previousVersion: '6.12.0',
-        isUpgrade: true,
-        completed: false,
+      registrationState: RegistrationState.EGUID,
+      onboarding: {
+        completed: true,
+        completedAtVersion: '7.1.0', // Older than current version
       },
       activationCode: null,
       partnerInfo: null,
-      isInitialSetup: false,
     },
   },
   {
-    id: 'regular-incomplete',
-    label: '3. Regular User - Incomplete Setup',
-    description: 'Started onboarding but not completed, modal should reopen',
+    id: 'regular-completed',
+    label: '3. Regular User - Completed',
+    description: 'Onboarding already completed on current version',
     overrides: {
-      registrationState: RegistrationState.ENOKEYFILE,
-      activationOnboarding: {
-        currentVersion: '7.0.0',
-        previousVersion: null,
-        isUpgrade: false,
-        completed: false,
+      registrationState: RegistrationState.EGUID,
+      onboarding: {
+        completed: true,
+        completedAtVersion: '7.2.0', // Same as current version
       },
       activationCode: null,
       partnerInfo: null,
-      isInitialSetup: true,
     },
   },
 
   // ============ PARTNER USER STATES (e.g., 45Drives) ============
   {
-    id: 'partner-first-time',
-    label: '4. Partner User - First Time',
-    description: 'Fresh partner install with activation code, shows activation step',
+    id: 'partner-incomplete',
+    label: '4. Partner User - Incomplete',
+    description: 'Partner install with activation code, onboarding not completed',
     overrides: {
       registrationState: RegistrationState.ENOKEYFILE,
-      activationOnboarding: {
-        currentVersion: '7.0.0',
-        previousVersion: null,
-        isUpgrade: false,
+      onboarding: {
         completed: false,
+        completedAtVersion: null,
       },
       activationCode: {
         code: 'DEMO-PARTNER-CODE-123',
@@ -158,27 +155,38 @@ const presets = ref<Preset[]>([
         serverName: 'Storinator S45',
         sysModel: 'Storinator',
         theme: 'azure',
+        hardwareSpecsUrl: 'https://45drives.com/specs/storinator-s45',
+        manualUrl: 'https://45drives.com/docs/storinator-manual',
+        supportUrl: 'https://45drives.com/support',
+        extraLinks: [
+          { title: 'Community Forums', url: 'https://45drives.com/forums' },
+          { title: 'Knowledge Base', url: 'https://45drives.com/kb' },
+        ],
       },
       partnerInfo: {
         hasPartnerLogo: true,
         partnerName: '45Drives',
         partnerUrl: 'https://45drives.com',
         partnerLogoUrl: '/config/activate/45drives-logo.png',
+        hardwareSpecsUrl: 'https://45drives.com/specs/storinator-s45',
+        manualUrl: 'https://45drives.com/docs/storinator-manual',
+        supportUrl: 'https://45drives.com/support',
+        extraLinks: [
+          { title: 'Community Forums', url: 'https://45drives.com/forums' },
+          { title: 'Knowledge Base', url: 'https://45drives.com/kb' },
+        ],
       },
-      isInitialSetup: true,
     },
   },
   {
-    id: 'partner-upgrading',
-    label: '5. Partner User - Upgrading',
-    description: 'Partner user upgrading from 6.12.0, shows activation step',
+    id: 'partner-upgrade',
+    label: '5. Partner User - Upgrade',
+    description: 'Partner user completed on older version, now upgraded',
     overrides: {
-      registrationState: RegistrationState.ENOKEYFILE,
-      activationOnboarding: {
-        currentVersion: '7.0.0',
-        previousVersion: '6.12.0',
-        isUpgrade: true,
-        completed: false,
+      registrationState: RegistrationState.EGUID,
+      onboarding: {
+        completed: true,
+        completedAtVersion: '7.1.0',
       },
       activationCode: {
         code: 'DEMO-PARTNER-CODE-456',
@@ -187,27 +195,30 @@ const presets = ref<Preset[]>([
         serverName: 'Storinator AV15',
         sysModel: 'Storinator',
         theme: 'azure',
+        hardwareSpecsUrl: 'https://45drives.com/specs/storinator-av15',
+        manualUrl: 'https://45drives.com/docs/storinator-manual',
+        supportUrl: 'https://45drives.com/support',
       },
       partnerInfo: {
         hasPartnerLogo: true,
         partnerName: '45Drives',
         partnerUrl: 'https://45drives.com',
         partnerLogoUrl: '/config/activate/45drives-logo.png',
+        hardwareSpecsUrl: 'https://45drives.com/specs/storinator-av15',
+        manualUrl: 'https://45drives.com/docs/storinator-manual',
+        supportUrl: 'https://45drives.com/support',
       },
-      isInitialSetup: false,
     },
   },
   {
-    id: 'partner-incomplete',
-    label: '6. Partner User - Incomplete Setup',
-    description: 'Partner user started onboarding but not completed',
+    id: 'partner-completed',
+    label: '6. Partner User - Completed',
+    description: 'Partner user already completed onboarding',
     overrides: {
-      registrationState: RegistrationState.ENOKEYFILE,
-      activationOnboarding: {
-        currentVersion: '7.0.0',
-        previousVersion: null,
-        isUpgrade: false,
-        completed: false,
+      registrationState: RegistrationState.EGUID,
+      onboarding: {
+        completed: true,
+        completedAtVersion: '7.2.0',
       },
       activationCode: {
         code: 'DEMO-PARTNER-CODE-789',
@@ -223,7 +234,6 @@ const presets = ref<Preset[]>([
         partnerUrl: 'https://45drives.com',
         partnerLogoUrl: '/config/activate/45drives-logo.png',
       },
-      isInitialSetup: true,
     },
   },
 ]);
@@ -258,7 +268,7 @@ const clearOverrides = async () => {
   lastApplied.value = '';
   activePresetId.value = null; // Clear active state
   await apolloClient.refetchQueries({
-    include: ['ActivationCode', 'PublicWelcomeData', 'ActivationOnboarding'],
+    include: ['ActivationCode', 'PublicWelcomeData', 'Onboarding'],
   });
 };
 
@@ -279,12 +289,12 @@ const applyOverrides = async () => {
     });
     lastApplied.value = trimmed;
     await apolloClient.refetchQueries({
-      include: ['ActivationCode', 'PublicWelcomeData', 'ActivationOnboarding'],
+      include: ['ActivationCode', 'PublicWelcomeData', 'Onboarding'],
     });
     errorMessage.value = '';
 
     // Auto-open modal if configuration suggests it should be open
-    if (!parsed.activationOnboarding?.completed) {
+    if (!parsed.onboarding?.completed) {
       setTimeout(() => activationModalStore.setIsHidden(false), 100);
     }
   } catch (error) {
@@ -318,24 +328,40 @@ const createPresetFromCurrent = () => {
     errorMessage.value = 'Invalid JSON, cannot create preset.';
   }
 };
+
+// Helper to get status badge color
+const getStatusBadgeClass = (statusValue: string | undefined) => {
+  switch (statusValue) {
+    case 'COMPLETED':
+      return 'bg-green-500/15 text-green-600 dark:text-green-400';
+    case 'INCOMPLETE':
+      return 'bg-orange-500/15 text-orange-600 dark:text-orange-400';
+    case 'UPGRADE':
+      return 'bg-purple-500/15 text-purple-600 dark:text-purple-400';
+    default:
+      return 'bg-gray-500/15 text-gray-600 dark:text-gray-400';
+  }
+};
 </script>
 
 <template>
-  <div class="bg-background text-foreground flex h-full max-h-screen flex-col gap-6 overflow-hidden p-6">
+  <div
+    class="bg-background text-foreground flex h-full max-h-screen flex-col gap-6 overflow-auto p-6 pb-8"
+  >
     <!-- Current State Panel -->
     <div class="border-border bg-card shrink-0 rounded-lg border p-5 shadow-sm">
       <div class="mb-4">
         <div class="mb-2 flex items-center justify-between">
           <div class="flex gap-2">
             <span
-              v-if="isCompleted"
-              class="rounded-full bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400"
-              >Status: Completed</span
+              :class="getStatusBadgeClass(status)"
+              class="rounded-full px-2 py-0.5 text-xs font-medium"
+              >Status: {{ status || 'Loading...' }}</span
             >
             <span
-              v-else
-              class="rounded-full bg-orange-500/15 px-2 py-0.5 text-xs font-medium text-orange-600 dark:text-orange-400"
-              >Status: In Progress</span
+              v-if="isPartnerBuild"
+              class="rounded-full bg-blue-500/15 px-2 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400"
+              >Partner Build</span
             >
           </div>
         </div>
@@ -343,13 +369,32 @@ const createPresetFromCurrent = () => {
       </div>
 
       <div class="grid grid-cols-1 gap-6 text-sm md:grid-cols-4">
+        <!-- Onboarding Status -->
+        <div class="space-y-1">
+          <h3 class="border-border text-foreground mb-2 border-b pb-1 text-xs font-semibold uppercase">
+            Onboarding
+          </h3>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Status:</span>
+            <span class="font-mono text-xs font-bold">{{ status || 'N/A' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Completed:</span>
+            <span class="font-mono text-xs">{{ completed }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Completed At:</span>
+            <span class="font-mono text-xs">{{ completedAtVersion || '-' }}</span>
+          </div>
+        </div>
+
         <!-- Registration -->
         <div class="space-y-1">
           <h3 class="border-border text-foreground mb-2 border-b pb-1 text-xs font-semibold uppercase">
-            Configuration context
+            Configuration Context
           </h3>
           <div class="flex justify-between">
-            <span class="text-muted-foreground">Initial Setup:</span>
+            <span class="text-muted-foreground">Fresh Install:</span>
             <span
               class="font-mono text-xs"
               :class="
@@ -366,34 +411,15 @@ const createPresetFromCurrent = () => {
           </div>
         </div>
 
-        <!-- Versioning -->
-        <div class="space-y-1">
-          <h3 class="border-border text-foreground mb-2 border-b pb-1 text-xs font-semibold uppercase">
-            Versioning
-          </h3>
-          <div class="flex justify-between">
-            <span class="text-muted-foreground">Current:</span>
-            <span class="font-mono text-xs">{{ currentVersion || '-' }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-muted-foreground">Previous:</span>
-            <span class="font-mono text-xs">{{ previousVersion || '-' }}</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-muted-foreground">Upgrade?:</span>
-            <span
-              class="font-mono text-xs font-bold"
-              :class="isUpgrade ? 'text-purple-600 dark:text-purple-400' : 'text-muted-foreground'"
-              >{{ isUpgrade }}</span
-            >
-          </div>
-        </div>
-
         <!-- Partner -->
         <div class="space-y-1">
           <h3 class="border-border text-foreground mb-2 border-b pb-1 text-xs font-semibold uppercase">
             Partner Data
           </h3>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Is Partner Build:</span>
+            <span class="font-mono text-xs">{{ isPartnerBuild }}</span>
+          </div>
           <div class="flex justify-between">
             <span class="text-muted-foreground">Has Activation Code:</span>
             <span class="font-mono text-xs">{{ hasActivationCode }}</span>
@@ -420,7 +446,7 @@ const createPresetFromCurrent = () => {
     </div>
 
     <!-- Controls Area -->
-    <div class="grid min-h-0 flex-1 grid-cols-1 gap-6 lg:grid-cols-12">
+    <div class="grid h-[400px] min-h-[400px] grid-cols-1 gap-6 lg:grid-cols-12">
       <!-- Presets List (Left) -->
       <div class="border-border bg-card flex min-h-0 flex-col rounded-lg border shadow-sm lg:col-span-4">
         <div class="border-border bg-muted flex items-center justify-between rounded-t-lg border-b p-3">
@@ -511,6 +537,138 @@ const createPresetFromCurrent = () => {
           <span>✓ Configuration applied</span>
           <span class="text-xs opacity-75">Modified just now</span>
         </div>
+      </div>
+    </div>
+
+    <!-- Data Source Reference Section -->
+    <div class="border-border bg-elevated mt-4 shrink-0 rounded-lg border p-4">
+      <div class="mb-4 flex items-center gap-2">
+        <InformationCircleIcon class="text-muted-foreground h-5 w-5" />
+        <h3 class="text-sm font-semibold">Data Source Reference</h3>
+      </div>
+      <p class="text-muted-foreground mb-4 text-xs">
+        This table shows where each override field originates from on a real Unraid system.
+      </p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead>
+            <tr class="border-border border-b">
+              <th class="text-muted-foreground py-2 pr-4 font-medium">Override Field</th>
+              <th class="text-muted-foreground py-2 pr-4 font-medium">Original Source</th>
+              <th class="text-muted-foreground py-2 font-medium">Notes</th>
+            </tr>
+          </thead>
+          <tbody class="divide-border divide-y">
+            <tr>
+              <td class="py-2 pr-4 font-mono text-orange-500">registrationState</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">/var/local/emhttp/var.ini</code>
+              </td>
+              <td class="text-muted-foreground py-2">
+                Read from <code>regCheck</code> or <code>regTy</code> field
+              </td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-mono text-blue-500">onboarding.completed</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">onboarding-tracker.json</code>
+              </td>
+              <td class="text-muted-foreground py-2">Stored in flash config directory</td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-mono text-blue-500">onboarding.completedAtVersion</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">onboarding-tracker.json</code>
+              </td>
+              <td class="text-muted-foreground py-2">Used to detect upgrades</td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-mono text-green-500">activationCode.*</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">/boot/config/activate/*.activationcode</code>
+              </td>
+              <td class="text-muted-foreground py-2">Partner/OEM activation JSON file</td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-mono text-green-500">activationCode.code</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">*.activationcode → code</code>
+              </td>
+              <td class="text-muted-foreground py-2">
+                Unique activation code string (exposed as <code>onboarding.activationCode</code>)
+              </td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-mono text-cyan-500">hardwareSpecsUrl</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">*.activationcode</code>
+              </td>
+              <td class="text-muted-foreground py-2">Link to hardware specifications (optional)</td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-mono text-cyan-500">manualUrl</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">*.activationcode</code>
+              </td>
+              <td class="text-muted-foreground py-2">Link to system manual (optional)</td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-mono text-cyan-500">supportUrl</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">*.activationcode</code>
+              </td>
+              <td class="text-muted-foreground py-2">Link to support page (optional)</td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-mono text-cyan-500">extraLinks[]</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">*.activationcode</code>
+              </td>
+              <td class="text-muted-foreground py-2">
+                Array of {title, url} for custom partner links (optional)
+              </td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-mono text-purple-500">partnerInfo.*</td>
+              <td class="py-2 pr-4">
+                <span class="italic">Computed</span>
+              </td>
+              <td class="text-muted-foreground py-2">
+                Derived from activation code + logo file presence
+              </td>
+            </tr>
+            <tr class="bg-muted/30">
+              <td class="py-2 pr-4 font-mono text-gray-400">status</td>
+              <td class="py-2 pr-4">
+                <span class="italic">Computed by API</span>
+              </td>
+              <td class="text-muted-foreground py-2">
+                INCOMPLETE | UPGRADE | COMPLETED (based on tracker + current version)
+              </td>
+            </tr>
+            <tr class="bg-muted/30">
+              <td class="py-2 pr-4 font-mono text-gray-400">isPartnerBuild</td>
+              <td class="py-2 pr-4">
+                <span class="italic">Computed by API</span>
+              </td>
+              <td class="text-muted-foreground py-2">true if activation code exists</td>
+            </tr>
+            <tr class="bg-muted/30">
+              <td class="py-2 pr-4 font-mono text-gray-400">currentVersion</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">/etc/unraid-version</code>
+              </td>
+              <td class="text-muted-foreground py-2">
+                Available via <code>info.versions.core.unraid</code> query
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="border-border text-muted-foreground mt-4 border-t pt-3 text-xs">
+        <strong class="text-foreground">Tip:</strong> Fields in
+        <span class="text-gray-400">gray</span> are computed and cannot be directly overridden. The
+        override system mocks the source data, and the API computes derived fields from it.
       </div>
     </div>
   </div>

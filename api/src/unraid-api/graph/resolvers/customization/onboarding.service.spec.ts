@@ -98,7 +98,9 @@ vi.mock('@app/core/utils/misc/sleep.js', async () => {
 });
 
 const onboardingTrackerMock = {
-    ensureFirstBootCompleted: vi.fn<() => Promise<boolean>>(),
+    isCompleted: vi.fn<() => boolean>(),
+    getState: vi.fn<() => { completed: boolean; completedAtVersion?: string }>(),
+    markCompleted: vi.fn<() => Promise<{ completed: boolean; completedAtVersion?: string }>>(),
 };
 const onboardingOverridesMock = {
     getState: vi.fn(),
@@ -110,7 +112,6 @@ const onboardingStateMock = {
     hasActivationCode: vi.fn(),
     isFreshInstall: vi.fn(),
     isRegistered: vi.fn(),
-    isInitialSetup: vi.fn(),
 };
 
 describe('OnboardingService', () => {
@@ -154,8 +155,8 @@ describe('OnboardingService', () => {
         loggerLogSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
         loggerWarnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
-        onboardingTrackerMock.ensureFirstBootCompleted.mockReset();
-        onboardingTrackerMock.ensureFirstBootCompleted.mockResolvedValue(false);
+        onboardingTrackerMock.isCompleted.mockReset();
+        onboardingTrackerMock.isCompleted.mockReturnValue(false);
         onboardingOverridesMock.getState.mockReset();
         onboardingOverridesMock.getState.mockReturnValue(null);
         onboardingOverridesMock.setState.mockReset();
@@ -168,8 +169,6 @@ describe('OnboardingService', () => {
         onboardingStateMock.isFreshInstall.mockReturnValue(false);
         onboardingStateMock.isRegistered.mockReset();
         onboardingStateMock.isRegistered.mockReturnValue(false);
-        onboardingStateMock.isInitialSetup.mockReset();
-        onboardingStateMock.isInitialSetup.mockReturnValue(false);
         vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
         vi.mocked(fs.access).mockReset();
         vi.mocked(fs.readdir).mockReset();
@@ -221,7 +220,7 @@ describe('OnboardingService', () => {
             expect(loggerErrorSpy).toHaveBeenCalledWith(
                 'User dynamix config path missing. Skipping activation setup.'
             );
-            expect(onboardingTrackerMock.ensureFirstBootCompleted).not.toHaveBeenCalled();
+            expect(onboardingTrackerMock.isCompleted).not.toHaveBeenCalled();
 
             mockPaths['dynamix-config'] = originalDynamixConfig;
         });
@@ -254,13 +253,15 @@ describe('OnboardingService', () => {
         });
 
         it('should skip customizations when first boot already completed', async () => {
-            onboardingTrackerMock.ensureFirstBootCompleted.mockResolvedValueOnce(true);
+            onboardingTrackerMock.isCompleted.mockReturnValueOnce(true);
 
             await service.onModuleInit();
 
-            expect(onboardingTrackerMock.ensureFirstBootCompleted).toHaveBeenCalledTimes(1);
+            expect(onboardingTrackerMock.isCompleted).toHaveBeenCalledTimes(1);
             expect(fs.readdir).not.toHaveBeenCalled();
-            expect(loggerLogSpy).toHaveBeenCalledWith('First boot setup flag file already exists.');
+            expect(loggerLogSpy).toHaveBeenCalledWith(
+                'Onboarding already completed, skipping first boot setup.'
+            );
             expect(loggerLogSpy).toHaveBeenCalledWith(
                 'First boot setup previously completed, skipping customizations.'
             );
@@ -288,8 +289,8 @@ describe('OnboardingService', () => {
             await promise;
 
             // Check .done flag creation
-            expect(onboardingTrackerMock.ensureFirstBootCompleted).toHaveBeenCalledTimes(1);
-            expect(loggerLogSpy).toHaveBeenCalledWith('First boot setup flag file created.');
+            expect(onboardingTrackerMock.isCompleted).toHaveBeenCalledTimes(1);
+            expect(loggerLogSpy).toHaveBeenCalledWith('First boot setup in progress.');
 
             // Check activation data loaded
             expect(loggerLogSpy).toHaveBeenCalledWith(
@@ -358,8 +359,8 @@ describe('OnboardingService', () => {
 
             // --- Assertions ---
             // 1. First boot completion is recorded
-            expect(onboardingTrackerMock.ensureFirstBootCompleted).toHaveBeenCalledTimes(1);
-            expect(loggerLogSpy).toHaveBeenCalledWith('First boot setup flag file created.');
+            expect(onboardingTrackerMock.isCompleted).toHaveBeenCalledTimes(1);
+            expect(loggerLogSpy).toHaveBeenCalledWith('First boot setup in progress.');
 
             // 2. Activation data loaded
             expect(loggerLogSpy).toHaveBeenCalledWith(
@@ -940,8 +941,8 @@ describe('applyActivationCustomizations specific tests', () => {
         loggerLogSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
         loggerWarnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
-        onboardingTrackerMock.ensureFirstBootCompleted.mockReset();
-        onboardingTrackerMock.ensureFirstBootCompleted.mockResolvedValue(false);
+        onboardingTrackerMock.isCompleted.mockReset();
+        onboardingTrackerMock.isCompleted.mockReturnValue(false);
         onboardingOverridesMock.getState.mockReset();
         onboardingOverridesMock.getState.mockReturnValue(null);
         onboardingOverridesMock.setState.mockReset();
@@ -954,8 +955,6 @@ describe('applyActivationCustomizations specific tests', () => {
         onboardingStateMock.isFreshInstall.mockReturnValue(false);
         onboardingStateMock.isRegistered.mockReset();
         onboardingStateMock.isRegistered.mockReturnValue(false);
-        onboardingStateMock.isInitialSetup.mockReset();
-        onboardingStateMock.isInitialSetup.mockReturnValue(false);
         vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
 
         const module: TestingModule = await Test.createTestingModule({
@@ -1114,8 +1113,8 @@ describe('OnboardingService - updateCfgFile', () => {
         vi.clearAllMocks();
         loggerLogSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
-        onboardingTrackerMock.ensureFirstBootCompleted.mockReset();
-        onboardingTrackerMock.ensureFirstBootCompleted.mockResolvedValue(false);
+        onboardingTrackerMock.isCompleted.mockReset();
+        onboardingTrackerMock.isCompleted.mockReturnValue(false);
         onboardingOverridesMock.getState.mockReset();
         onboardingOverridesMock.getState.mockReturnValue(null);
         onboardingOverridesMock.setState.mockReset();
@@ -1128,8 +1127,6 @@ describe('OnboardingService - updateCfgFile', () => {
         onboardingStateMock.isFreshInstall.mockReturnValue(false);
         onboardingStateMock.isRegistered.mockReset();
         onboardingStateMock.isRegistered.mockReturnValue(false);
-        onboardingStateMock.isInitialSetup.mockReset();
-        onboardingStateMock.isInitialSetup.mockReturnValue(false);
         vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
 
         // Need to compile a module to get an instance, even though we test a private method

@@ -1,23 +1,10 @@
-import type {
-    ActivationOnboardingOverrideState,
-    OnboardingOverrideState,
-} from '@app/unraid-api/config/onboarding-override.model.js';
-
-export type CompletedStepState = {
-    version: string;
-    completedAt: string;
-};
-
+/**
+ * Simplified onboarding tracker state.
+ * Tracks whether onboarding has been completed and at which version.
+ */
 export type TrackerState = {
-    lastTrackedVersion?: string;
-    updatedAt?: string;
-    // List of OS versions where onboarding has been completed
-    completedVersions?: string[];
-    firstBootCompletedAt?: string;
-};
-
-export type UpgradeProgressSnapshot = {
-    currentVersion?: string;
-    lastTrackedVersion?: string;
-    completed: boolean;
+    /** Whether the onboarding flow has been completed */
+    completed?: boolean;
+    /** The OS version when onboarding was completed (for future upgrade detection) */
+    completedAtVersion?: string;
 };

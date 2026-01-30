@@ -19,7 +19,7 @@ export const PUBLIC_WELCOME_DATA_QUERY = graphql(/* GraphQL */ `
       partnerUrl
       partnerLogoUrl
     }
-    isInitialSetup
+    isFreshInstall
   }
 `);
 
@@ -48,7 +48,6 @@ export const ACTIVATION_CODE_QUERY = graphql(/* GraphQL */ `
         registrationState
         isRegistered
         isFreshInstall
-        isInitialSetup
         hasActivationCode
         activationRequired
       }
