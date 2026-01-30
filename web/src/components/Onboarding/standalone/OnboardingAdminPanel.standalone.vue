@@ -52,6 +52,31 @@ const CLEAR_ONBOARDING_OVERRIDE_MUTATION = parse(/* GraphQL */ `
   }
 `);
 
+type PartnerConfigPayload = {
+  name?: string;
+  url?: string;
+  hardwareSpecsUrl?: string;
+  manualUrl?: string;
+  supportUrl?: string;
+  extraLinks?: Array<{ title: string; url: string }>;
+};
+
+type BrandingConfigPayload = {
+  header?: string;
+  headermetacolor?: string;
+  background?: string;
+  showBannerGradient?: boolean;
+  theme?: 'azure' | 'black' | 'gray' | 'white';
+  logoUrl?: string;
+  hasPartnerLogo?: boolean;
+};
+
+type SystemConfigPayload = {
+  serverName?: string;
+  model?: string;
+  comment?: string;
+};
+
 type OnboardingOverridePayload = {
   onboarding?: {
     completed?: boolean;
@@ -59,27 +84,13 @@ type OnboardingOverridePayload = {
   };
   activationCode?: {
     code?: string;
-    partnerName?: string;
-    partnerUrl?: string;
-    serverName?: string;
-    sysModel?: string;
-    theme?: 'azure' | 'black' | 'gray' | 'white';
-    // New link fields
-    hardwareSpecsUrl?: string;
-    manualUrl?: string;
-    supportUrl?: string;
-    extraLinks?: Array<{ title: string; url: string }>;
+    partner?: PartnerConfigPayload;
+    branding?: BrandingConfigPayload;
+    system?: SystemConfigPayload;
   } | null;
   partnerInfo?: {
-    hasPartnerLogo?: boolean | null;
-    partnerName?: string | null;
-    partnerUrl?: string | null;
-    partnerLogoUrl?: string | null;
-    // New link fields
-    hardwareSpecsUrl?: string | null;
-    manualUrl?: string | null;
-    supportUrl?: string | null;
-    extraLinks?: Array<{ title: string; url: string }> | null;
+    partner?: PartnerConfigPayload;
+    branding?: BrandingConfigPayload;
   } | null;
   registrationState?: RegistrationState;
 };
@@ -150,31 +161,41 @@ const presets = ref<Preset[]>([
       },
       activationCode: {
         code: 'DEMO-PARTNER-CODE-123',
-        partnerName: '45Drives',
-        partnerUrl: 'https://45drives.com',
-        serverName: 'Storinator S45',
-        sysModel: 'Storinator',
-        theme: 'azure',
-        hardwareSpecsUrl: 'https://45drives.com/specs/storinator-s45',
-        manualUrl: 'https://45drives.com/docs/storinator-manual',
-        supportUrl: 'https://45drives.com/support',
-        extraLinks: [
-          { title: 'Community Forums', url: 'https://45drives.com/forums' },
-          { title: 'Knowledge Base', url: 'https://45drives.com/kb' },
-        ],
+        partner: {
+          name: '45Drives',
+          url: 'https://45drives.com',
+          hardwareSpecsUrl: 'https://45drives.com/specs/storinator-s45',
+          manualUrl: 'https://45drives.com/docs/storinator-manual',
+          supportUrl: 'https://45drives.com/support',
+          extraLinks: [
+            { title: 'Community Forums', url: 'https://45drives.com/forums' },
+            { title: 'Knowledge Base', url: 'https://45drives.com/kb' },
+          ],
+        },
+        branding: {
+          theme: 'azure',
+        },
+        system: {
+          serverName: 'Storinator S45',
+          model: 'Storinator',
+        },
       },
       partnerInfo: {
-        hasPartnerLogo: true,
-        partnerName: '45Drives',
-        partnerUrl: 'https://45drives.com',
-        partnerLogoUrl: '/config/activate/45drives-logo.png',
-        hardwareSpecsUrl: 'https://45drives.com/specs/storinator-s45',
-        manualUrl: 'https://45drives.com/docs/storinator-manual',
-        supportUrl: 'https://45drives.com/support',
-        extraLinks: [
-          { title: 'Community Forums', url: 'https://45drives.com/forums' },
-          { title: 'Knowledge Base', url: 'https://45drives.com/kb' },
-        ],
+        branding: {
+          hasPartnerLogo: true,
+          logoUrl: '/config/activate/45drives-logo.png',
+        },
+        partner: {
+          name: '45Drives',
+          url: 'https://45drives.com',
+          hardwareSpecsUrl: 'https://45drives.com/specs/storinator-s45',
+          manualUrl: 'https://45drives.com/docs/storinator-manual',
+          supportUrl: 'https://45drives.com/support',
+          extraLinks: [
+            { title: 'Community Forums', url: 'https://45drives.com/forums' },
+            { title: 'Knowledge Base', url: 'https://45drives.com/kb' },
+          ],
+        },
       },
     },
   },
@@ -190,23 +211,33 @@ const presets = ref<Preset[]>([
       },
       activationCode: {
         code: 'DEMO-PARTNER-CODE-456',
-        partnerName: '45Drives',
-        partnerUrl: 'https://45drives.com',
-        serverName: 'Storinator AV15',
-        sysModel: 'Storinator',
-        theme: 'azure',
-        hardwareSpecsUrl: 'https://45drives.com/specs/storinator-av15',
-        manualUrl: 'https://45drives.com/docs/storinator-manual',
-        supportUrl: 'https://45drives.com/support',
+        partner: {
+          name: '45Drives',
+          url: 'https://45drives.com',
+          hardwareSpecsUrl: 'https://45drives.com/specs/storinator-av15',
+          manualUrl: 'https://45drives.com/docs/storinator-manual',
+          supportUrl: 'https://45drives.com/support',
+        },
+        branding: {
+          theme: 'azure',
+        },
+        system: {
+          serverName: 'Storinator AV15',
+          model: 'Storinator',
+        },
       },
       partnerInfo: {
-        hasPartnerLogo: true,
-        partnerName: '45Drives',
-        partnerUrl: 'https://45drives.com',
-        partnerLogoUrl: '/config/activate/45drives-logo.png',
-        hardwareSpecsUrl: 'https://45drives.com/specs/storinator-av15',
-        manualUrl: 'https://45drives.com/docs/storinator-manual',
-        supportUrl: 'https://45drives.com/support',
+        branding: {
+          hasPartnerLogo: true,
+          logoUrl: '/config/activate/45drives-logo.png',
+        },
+        partner: {
+          name: '45Drives',
+          url: 'https://45drives.com',
+          hardwareSpecsUrl: 'https://45drives.com/specs/storinator-av15',
+          manualUrl: 'https://45drives.com/docs/storinator-manual',
+          supportUrl: 'https://45drives.com/support',
+        },
       },
     },
   },
@@ -222,17 +253,27 @@ const presets = ref<Preset[]>([
       },
       activationCode: {
         code: 'DEMO-PARTNER-CODE-789',
-        partnerName: '45Drives',
-        partnerUrl: 'https://45drives.com',
-        serverName: 'Storinator Q30',
-        sysModel: 'Storinator',
-        theme: 'azure',
+        partner: {
+          name: '45Drives',
+          url: 'https://45drives.com',
+        },
+        branding: {
+          theme: 'azure',
+        },
+        system: {
+          serverName: 'Storinator Q30',
+          model: 'Storinator',
+        },
       },
       partnerInfo: {
-        hasPartnerLogo: true,
-        partnerName: '45Drives',
-        partnerUrl: 'https://45drives.com',
-        partnerLogoUrl: '/config/activate/45drives-logo.png',
+        branding: {
+          hasPartnerLogo: true,
+          logoUrl: '/config/activate/45drives-logo.png',
+        },
+        partner: {
+          name: '45Drives',
+          url: 'https://45drives.com',
+        },
       },
     },
   },
@@ -426,7 +467,7 @@ const getStatusBadgeClass = (statusValue: string | undefined) => {
           </div>
           <div class="flex justify-between">
             <span class="text-muted-foreground">Partner:</span>
-            <span class="font-mono text-xs">{{ partnerInfo?.partnerName || '-' }}</span>
+            <span class="font-mono text-xs">{{ partnerInfo?.partner?.name || '-' }}</span>
           </div>
         </div>
 
@@ -438,7 +479,7 @@ const getStatusBadgeClass = (statusValue: string | undefined) => {
           <div class="flex justify-between">
             <span class="text-muted-foreground">Logo:</span>
             <span class="font-mono text-xs">{{
-              partnerInfo?.hasPartnerLogo ? 'Custom' : 'Default'
+              partnerInfo?.branding?.hasPartnerLogo ? 'Custom' : 'Default'
             }}</span>
           </div>
         </div>
@@ -599,28 +640,28 @@ const getStatusBadgeClass = (statusValue: string | undefined) => {
               </td>
             </tr>
             <tr>
-              <td class="py-2 pr-4 font-mono text-cyan-500">hardwareSpecsUrl</td>
+              <td class="py-2 pr-4 font-mono text-cyan-500">activationCode.partner.hardwareSpecsUrl</td>
               <td class="py-2 pr-4">
                 <code class="bg-muted rounded px-1">*.activationcode</code>
               </td>
               <td class="text-muted-foreground py-2">Link to hardware specifications (optional)</td>
             </tr>
             <tr>
-              <td class="py-2 pr-4 font-mono text-cyan-500">manualUrl</td>
+              <td class="py-2 pr-4 font-mono text-cyan-500">activationCode.partner.manualUrl</td>
               <td class="py-2 pr-4">
                 <code class="bg-muted rounded px-1">*.activationcode</code>
               </td>
               <td class="text-muted-foreground py-2">Link to system manual (optional)</td>
             </tr>
             <tr>
-              <td class="py-2 pr-4 font-mono text-cyan-500">supportUrl</td>
+              <td class="py-2 pr-4 font-mono text-cyan-500">activationCode.partner.supportUrl</td>
               <td class="py-2 pr-4">
                 <code class="bg-muted rounded px-1">*.activationcode</code>
               </td>
               <td class="text-muted-foreground py-2">Link to support page (optional)</td>
             </tr>
             <tr>
-              <td class="py-2 pr-4 font-mono text-cyan-500">extraLinks[]</td>
+              <td class="py-2 pr-4 font-mono text-cyan-500">activationCode.partner.extraLinks[]</td>
               <td class="py-2 pr-4">
                 <code class="bg-muted rounded px-1">*.activationcode</code>
               </td>
@@ -629,7 +670,9 @@ const getStatusBadgeClass = (statusValue: string | undefined) => {
               </td>
             </tr>
             <tr>
-              <td class="py-2 pr-4 font-mono text-purple-500">partnerInfo.*</td>
+              <td class="py-2 pr-4 font-mono text-purple-500">
+                partnerInfo.partner.* / partnerInfo.branding.*
+              </td>
               <td class="py-2 pr-4">
                 <span class="italic">Computed</span>
               </td>

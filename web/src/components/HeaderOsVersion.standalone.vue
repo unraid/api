@@ -107,9 +107,9 @@ const copyApiVersion = () => {
 };
 
 const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => {
-  if (partnerInfo.value?.partnerUrl) {
+  if (partnerInfo.value?.partner?.url) {
     return {
-      href: partnerInfo.value.partnerUrl,
+      href: partnerInfo.value.partner.url,
       title: t('headerOsVersion.visitPartnerWebsite'),
     };
   }

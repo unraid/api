@@ -121,18 +121,17 @@ export class OnboardingService implements OnModuleInit {
         if (!activationData) {
             return null;
         }
-        
+
         const paths = getters.paths();
+
+        // Construct BrandingConfig with computed logo presence
+        const branding = activationData.branding ? { ...activationData.branding } : {};
+        branding.hasPartnerLogo = await fileExists(paths.activation.logo);
+        branding.logoUrl = paths.webgui.logo.assetPath; // Using default for now as placeholder
+
         return {
-            hasPartnerLogo: await fileExists(paths.activation.logo),
-            partnerName: activationData.partnerName,
-            partnerUrl: activationData.partnerUrl,
-            partnerLogoUrl: paths.webgui.logo.assetPath,
-            // New link fields
-            hardwareSpecsUrl: activationData.hardwareSpecsUrl,
-            manualUrl: activationData.manualUrl,
-            supportUrl: activationData.supportUrl,
-            extraLinks: activationData.extraLinks,
+            partner: activationData.partner,
+            branding: branding as any, // Type assertion for now to match strict class structure if needed, or instantiate class
         };
     }
 
@@ -312,12 +311,14 @@ export class OnboardingService implements OnModuleInit {
         };
 
         // Apply mappings
+        const brandingConfig = this.activationData.branding || {};
+
         Object.entries(displayMappings).forEach(([prop, mapping]) => {
-            const value = this.activationData?.[prop];
+            const value = brandingConfig[prop as keyof typeof brandingConfig];
             if (value !== undefined && value !== null) {
                 const transformedValue = mapping.transform ? mapping.transform(value) : value;
                 if (!mapping.skipIfEmpty || transformedValue) {
-                    settingsToUpdate[mapping.key] = transformedValue;
+                    settingsToUpdate[mapping.key] = transformedValue as string; // Ensure string type for record
                 }
             }
         });
@@ -398,7 +399,7 @@ export class OnboardingService implements OnModuleInit {
             `Current identity - Name: ${currentName}, Model: ${currentSysModel}, Comment: ${currentComment}`
         );
 
-        const { serverName, sysModel, comment } = this.activationData;
+        const { serverName, model: sysModel, comment } = this.activationData.system || {};
         const paramsToUpdate: Record<string, string> = {
             ...(serverName && { NAME: serverName }),
             ...(sysModel && { SYS_MODEL: sysModel }),

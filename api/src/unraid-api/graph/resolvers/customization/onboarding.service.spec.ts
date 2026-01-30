@@ -137,14 +137,18 @@ describe('OnboardingService', () => {
 
     // Add mockActivationData definition here
     const mockActivationData = {
-        header: '#112233',
-        headermetacolor: '#445566',
-        background: '#778899',
-        showBannerGradient: true,
-        theme: 'black',
-        serverName: 'PartnerServer',
-        sysModel: 'PartnerModel',
-        comment: 'Partner Comment',
+        branding: {
+            header: '#112233',
+            headermetacolor: '#445566',
+            background: '#778899',
+            showBannerGradient: true,
+            theme: 'black',
+        },
+        system: {
+            serverName: 'PartnerServer',
+            model: 'PartnerModel',
+            comment: 'Partner Comment',
+        },
     };
 
     beforeEach(async () => {
@@ -466,7 +470,11 @@ describe('OnboardingService', () => {
             vi.mocked(fs.access).mockResolvedValue(undefined);
             vi.mocked(fs.readdir).mockResolvedValue([activationJsonFile as any]);
             // Provide data with an invalid hex color format
-            const invalidHexData = { ...mockActivationData, header: 'not a hex color' };
+            // Provide data with an invalid hex color format
+            const invalidHexData = {
+                ...mockActivationData,
+                branding: { ...mockActivationData.branding, header: 'not a hex color' },
+            };
             vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(invalidHexData));
 
             // Validation should now pass because the transformer handles the invalid value
@@ -474,9 +482,9 @@ describe('OnboardingService', () => {
 
             expect(result).toBeInstanceOf(ActivationCode);
             // Check that the invalid hex was transformed to an empty string
-            expect(result?.header).toBe('');
+            expect(result?.branding?.header).toBe('');
             // Check other valid fields remain
-            expect(result?.theme).toBe(mockActivationData.theme);
+            expect(result?.branding?.theme).toBe(mockActivationData.branding.theme);
             // Validation errors are handled by validateOrReject throwing, not loggerErrorSpy here
             expect(loggerErrorSpy).not.toHaveBeenCalled();
         });
@@ -487,16 +495,19 @@ describe('OnboardingService', () => {
             vi.mocked(fs.readdir).mockResolvedValue([activationJsonFile as any]);
             const hexWithoutHashData = {
                 ...mockActivationData,
-                header: 'ABCDEF',
-                headermetacolor: '123',
+                branding: {
+                    ...mockActivationData.branding,
+                    header: 'ABCDEF',
+                    headermetacolor: '123',
+                },
             };
             vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(hexWithoutHashData));
 
             const result = await service.getActivationData();
 
             expect(result).toBeInstanceOf(ActivationCode);
-            expect(result?.header).toBe('#ABCDEF');
-            expect(result?.headermetacolor).toBe('#123');
+            expect(result?.branding?.header).toBe('#ABCDEF');
+            expect(result?.branding?.headermetacolor).toBe('#123');
         });
 
         it('should return validated DTO on success', async () => {
@@ -633,7 +644,9 @@ describe('OnboardingService', () => {
 
         it('applyDisplaySettings should skip banner field if banner file does not exist', async () => {
             const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
-            (service as any).activationData = plainToInstance(ActivationCode, { theme: 'white' }); // Some data, but no banner
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                branding: { theme: 'white' },
+            }); // Some data, but no banner
 
             // Clear any previous mocks for fileExists and set a specific one for this test
             vi.mocked(fileExists).mockClear();
@@ -664,9 +677,12 @@ describe('OnboardingService', () => {
             // Simulate data after transformation results in empty strings
             (service as any).activationData = plainToInstance(ActivationCode, {
                 ...mockActivationData,
-                header: '', // Was invalid, transformed to empty
-                headermetacolor: '#445566', // Valid
-                background: '', // Was invalid, transformed to empty
+                branding: {
+                    ...mockActivationData.branding,
+                    header: '', // Was invalid, transformed to empty
+                    headermetacolor: '#445566', // Valid
+                    background: '', // Was invalid, transformed to empty
+                },
             });
             vi.mocked(fileExists).mockResolvedValue(true); // Assume banner file exists
             await (service as any).setupPartnerBanner(); // Run banner setup
@@ -690,9 +706,12 @@ describe('OnboardingService', () => {
             // Simulate data after transformation where # was added
             (service as any).activationData = plainToInstance(ActivationCode, {
                 ...mockActivationData,
-                header: '#ABCDEF', // Originally 'ABCDEF', now includes #
-                headermetacolor: '#123', // Originally '123', now includes #
-                background: '#778899', // Original, includes #
+                branding: {
+                    ...mockActivationData.branding,
+                    header: '#ABCDEF', // Originally 'ABCDEF', now includes #
+                    headermetacolor: '#123', // Originally '123', now includes #
+                    background: '#778899', // Original, includes #
+                },
             });
             vi.mocked(fileExists).mockResolvedValue(true); // Assume banner exists
             await (service as any).setupPartnerBanner(); // Run banner setup
@@ -783,7 +802,9 @@ describe('OnboardingService', () => {
         it('applyServerIdentity should skip if activation data has no relevant fields', async () => {
             const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
             // Simulate DTO with non-identity fields
-            (service as any).activationData = plainToInstance(ActivationCode, { theme: 'white' });
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                branding: { theme: 'white' },
+            });
             await (service as any).applyServerIdentity();
             expect(updateSpy).not.toHaveBeenCalled();
             expect(emcmd).not.toHaveBeenCalled();
@@ -797,9 +818,11 @@ describe('OnboardingService', () => {
 
             // Set up activation data directly
             (service as any).activationData = plainToInstance(ActivationCode, {
-                serverName: 'PartnerServer',
-                sysModel: 'PartnerModel',
-                comment: 'Partner Comment',
+                system: {
+                    serverName: 'PartnerServer',
+                    model: 'PartnerModel',
+                    comment: 'Partner Comment',
+                },
             });
 
             // Mock emcmd to throw
@@ -826,10 +849,10 @@ describe('OnboardingService', () => {
 
             const testActivationParser = await plainToInstance(ActivationCode, {
                 ...mockActivationData,
-                serverName: longServerName,
+                system: { ...mockActivationData.system, serverName: longServerName },
             });
 
-            expect(testActivationParser.serverName).toBe(truncatedServerName);
+            expect(testActivationParser.system?.serverName).toBe(truncatedServerName);
         });
 
         it('should correctly pass server_https parameter based on nginx state', async () => {
@@ -842,9 +865,11 @@ describe('OnboardingService', () => {
 
             // Set up the service's activationData field directly
             (service as any).activationData = plainToInstance(ActivationCode, {
-                serverName: 'PartnerServer',
-                sysModel: 'PartnerModel',
-                comment: 'Partner Comment',
+                system: {
+                    serverName: 'PartnerServer',
+                    model: 'PartnerModel',
+                    comment: 'Partner Comment',
+                },
             });
 
             // Mock emcmd and capture the params for snapshot testing

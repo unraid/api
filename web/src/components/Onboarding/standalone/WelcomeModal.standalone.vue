@@ -105,12 +105,12 @@ onUnmounted(() => {
           '--spacing': '0.25rem',
         }"
       >
-        <div v-if="partnerInfo?.hasPartnerLogo">
+        <div v-if="partnerInfo?.branding?.hasPartnerLogo">
           <OnboardingPartnerLogo :partner-info="partnerInfo" />
         </div>
         <OnboardingSteps :steps="[]" :active-step-index="0" class="mb-8" />
         <OnboardingWelcomeStep
-          :partner-name="partnerInfo?.partnerName || undefined"
+          :partner-name="partnerInfo?.partner?.name || undefined"
           :on-complete="dropdownHide"
           :redirect-to-login="true"
         />

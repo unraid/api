@@ -357,7 +357,7 @@ watch(
     "
   >
     <div class="flex h-full w-full flex-col items-center justify-start overflow-y-auto">
-      <div v-if="partnerInfo?.hasPartnerLogo && !isUpgrade">
+      <div v-if="partnerInfo?.branding?.hasPartnerLogo && !isUpgrade">
         <OnboardingPartnerLogo :partner-info="partnerInfo" />
       </div>
 

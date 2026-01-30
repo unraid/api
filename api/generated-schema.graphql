@@ -781,31 +781,63 @@ type Settings implements Node {
   api: ApiConfig!
 }
 
-type PublicPartnerInfo {
-  partnerName: String
+type PartnerLink {
+  """Display title for the link"""
+  title: String!
 
-  """Indicates if a partner logo exists"""
-  hasPartnerLogo: Boolean!
-  partnerUrl: String
-
-  """
-  The path to the partner logo image on the flash drive, relative to the activation code file
-  """
-  partnerLogoUrl: String
+  """The URL"""
+  url: String!
 }
 
-type ActivationCode {
-  code: String
-  partnerName: String
-  partnerUrl: String
-  serverName: String
-  sysModel: String
-  comment: String
+type PartnerConfig {
+  name: String
+  url: String
+
+  """Link to hardware specifications for this system"""
+  hardwareSpecsUrl: String
+
+  """Link to the system manual/documentation"""
+  manualUrl: String
+
+  """Link to manufacturer support page"""
+  supportUrl: String
+
+  """Additional custom links provided by the partner"""
+  extraLinks: [PartnerLink!]
+}
+
+type BrandingConfig {
   header: String
   headermetacolor: String
   background: String
   showBannerGradient: Boolean
   theme: String
+
+  """
+  The path to the partner logo image on the flash drive, relative to the activation code file
+  """
+  logoUrl: String
+
+  """Indicates if a partner logo exists"""
+  hasPartnerLogo: Boolean!
+}
+
+type SystemConfig {
+  serverName: String
+  model: String
+  comment: String
+}
+
+type PublicPartnerInfo {
+  partner: PartnerConfig
+  branding: BrandingConfig
+}
+
+type ActivationCode {
+  code: String
+  partner: PartnerConfig
+  branding: BrandingConfig
+  system: SystemConfig
 }
 
 type OnboardingState {
@@ -844,6 +876,9 @@ type Onboarding {
 
   """The OS version when onboarding was completed"""
   completedAtVersion: String
+
+  """The activation code from the .activationcode file, if present"""
+  activationCode: String
 }
 
 """The current onboarding status based on completion state and version"""
@@ -1185,24 +1220,46 @@ input OnboardingOverrideCompletionInput {
 """Activation code override input"""
 input ActivationCodeOverrideInput {
   code: String
-  partnerName: String
-  partnerUrl: String
-  serverName: String
-  sysModel: String
-  comment: String
+  partner: PartnerConfigInput
+  branding: BrandingConfigInput
+  system: SystemConfigInput
+}
+
+input PartnerConfigInput {
+  name: String
+  url: String
+  hardwareSpecsUrl: String
+  manualUrl: String
+  supportUrl: String
+  extraLinks: [PartnerLinkInput!]
+}
+
+"""Partner link input for custom links"""
+input PartnerLinkInput {
+  title: String!
+  url: String!
+}
+
+input BrandingConfigInput {
   header: String
   headermetacolor: String
   background: String
   showBannerGradient: Boolean
   theme: String
+  logoUrl: String
+  hasPartnerLogo: Boolean
+}
+
+input SystemConfigInput {
+  serverName: String
+  model: String
+  comment: String
 }
 
 """Partner info override input"""
 input PartnerInfoOverrideInput {
-  partnerName: String
-  hasPartnerLogo: Boolean
-  partnerUrl: String
-  partnerLogoUrl: String
+  partner: PartnerConfigInput
+  branding: BrandingConfigInput
 }
 
 """Unraid plugin management mutations"""

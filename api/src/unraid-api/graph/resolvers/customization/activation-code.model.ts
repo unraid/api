@@ -1,7 +1,7 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-import { Transform } from 'class-transformer';
-import { IsBoolean, IsIn, IsOptional, IsString, IsUrl } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsIn, IsOptional, IsString, IsUrl, ValidateNested } from 'class-validator';
 
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
@@ -50,140 +50,19 @@ export class PartnerLink {
 }
 
 @ObjectType()
-export class PublicPartnerInfo {
+export class PartnerConfig {
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
-    partnerName?: string | null;
-
-    @Field(() => Boolean, { description: 'Indicates if a partner logo exists' })
-    @IsBoolean()
-    hasPartnerLogo?: boolean | null;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => sanitizeString(value))
-    partnerUrl?: string | null;
-
-    @Field(() => String, {
-        nullable: true,
-        description:
-            'The path to the partner logo image on the flash drive, relative to the activation code file',
-    })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => sanitizeString(value))
-    partnerLogoUrl?: string | null;
-
-    @Field(() => String, {
-        nullable: true,
-        description: 'Link to hardware specifications for this system',
-    })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => sanitizeString(value))
-    hardwareSpecsUrl?: string | null;
-
-    @Field(() => String, {
-        nullable: true,
-        description: 'Link to the system manual/documentation',
-    })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => sanitizeString(value))
-    manualUrl?: string | null;
-
-    @Field(() => String, {
-        nullable: true,
-        description: 'Link to manufacturer support page',
-    })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => sanitizeString(value))
-    supportUrl?: string | null;
-
-    @Field(() => [PartnerLink], {
-        nullable: true,
-        description: 'Additional custom links provided by the partner',
-    })
-    @IsOptional()
-    extraLinks?: PartnerLink[] | null;
-}
-
-@ObjectType()
-export class ActivationCode {
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => sanitizeString(value))
-    code?: string;
+    name?: string;
 
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
-    partnerName?: string;
+    url?: string;
 
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => sanitizeString(value))
-    partnerUrl?: string;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => sanitizeString(value, 15))
-    serverName?: string;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => sanitizeString(value))
-    sysModel?: string;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => sanitizeString(value))
-    comment?: string;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString() // Keep IsString to ensure it's a string after transformation
-    @Transform(({ value }) => sanitizeAndValidateHexColor(value))
-    header?: string;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString() // Keep IsString
-    @Transform(({ value }) => sanitizeAndValidateHexColor(value))
-    headermetacolor?: string;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString() // Keep IsString
-    @Transform(({ value }) => sanitizeAndValidateHexColor(value))
-    background?: string;
-
-    @Field(() => Boolean, { nullable: true })
-    @IsOptional()
-    @Transform(({ value }) => {
-        if (typeof value === 'boolean') return value;
-        const sanitized = sanitizeString(value);
-        return sanitized === 'yes';
-    })
-    showBannerGradient?: boolean = true;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsIn(['azure', 'black', 'gray', 'white'])
-    @Transform(({ value }) => sanitizeString(value))
-    theme?: 'azure' | 'black' | 'gray' | 'white';
-
-    // New partner link fields
     @Field(() => String, {
         nullable: true,
         description: 'Link to hardware specifications for this system',
@@ -216,7 +95,117 @@ export class ActivationCode {
         description: 'Additional custom links provided by the partner',
     })
     @IsOptional()
+    @ValidateNested({ each: true })
+    @Type(() => PartnerLink)
     extraLinks?: PartnerLink[];
+}
+
+@ObjectType()
+export class BrandingConfig {
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeAndValidateHexColor(value))
+    header?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeAndValidateHexColor(value))
+    headermetacolor?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeAndValidateHexColor(value))
+    background?: string;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @Transform(({ value }) => {
+        if (typeof value === 'boolean') return value;
+        const sanitized = sanitizeString(value);
+        return sanitized === 'yes';
+    })
+    showBannerGradient?: boolean = true;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsIn(['azure', 'black', 'gray', 'white'])
+    @Transform(({ value }) => sanitizeString(value))
+    theme?: 'azure' | 'black' | 'gray' | 'white';
+
+    @Field(() => String, {
+        nullable: true,
+        description:
+            'The path to the partner logo image on the flash drive, relative to the activation code file',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    logoUrl?: string | null;
+
+    @Field(() => Boolean, { description: 'Indicates if a partner logo exists' })
+    @IsOptional()
+    @IsBoolean()
+    hasPartnerLogo?: boolean | null;
+}
+
+@ObjectType()
+export class SystemConfig {
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value, 15))
+    serverName?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    model?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    comment?: string;
+}
+
+@ObjectType()
+export class PublicPartnerInfo {
+    @Field(() => PartnerConfig, { nullable: true })
+    partner?: PartnerConfig;
+
+    @Field(() => BrandingConfig, { nullable: true })
+    branding?: BrandingConfig;
+}
+
+@ObjectType()
+export class ActivationCode {
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    code?: string;
+
+    @Field(() => PartnerConfig, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => PartnerConfig)
+    partner?: PartnerConfig;
+
+    @Field(() => BrandingConfig, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => BrandingConfig)
+    branding?: BrandingConfig;
+
+    @Field(() => SystemConfig, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => SystemConfig)
+    system?: SystemConfig;
 }
 
 @ObjectType()

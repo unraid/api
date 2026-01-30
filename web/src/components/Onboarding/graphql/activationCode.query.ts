@@ -3,10 +3,21 @@ import { graphql } from '~/composables/gql/gql';
 export const PARTNER_INFO_QUERY = graphql(/* GraphQL */ `
   query PartnerInfo {
     publicPartnerInfo {
-      hasPartnerLogo
-      partnerName
-      partnerUrl
-      partnerLogoUrl
+      partner {
+        name
+        url
+        hardwareSpecsUrl
+        manualUrl
+        supportUrl
+        extraLinks {
+          title
+          url
+        }
+      }
+      branding {
+        hasPartnerLogo
+        logoUrl
+      }
     }
   }
 `);
@@ -14,10 +25,21 @@ export const PARTNER_INFO_QUERY = graphql(/* GraphQL */ `
 export const PUBLIC_WELCOME_DATA_QUERY = graphql(/* GraphQL */ `
   query PublicWelcomeData {
     publicPartnerInfo {
-      hasPartnerLogo
-      partnerName
-      partnerUrl
-      partnerLogoUrl
+      partner {
+        name
+        url
+        hardwareSpecsUrl
+        manualUrl
+        supportUrl
+        extraLinks {
+          title
+          url
+        }
+      }
+      branding {
+        hasPartnerLogo
+        logoUrl
+      }
     }
     isFreshInstall
   }
@@ -28,21 +50,48 @@ export const ACTIVATION_CODE_QUERY = graphql(/* GraphQL */ `
     customization {
       activationCode {
         code
-        partnerName
-        serverName
-        sysModel
-        comment
-        header
-        headermetacolor
-        background
-        showBannerGradient
-        theme
+        partner {
+          name
+          url
+          hardwareSpecsUrl
+          manualUrl
+          supportUrl
+          extraLinks {
+            title
+            url
+          }
+        }
+        branding {
+          header
+          headermetacolor
+          background
+          showBannerGradient
+          theme
+          logoUrl
+          hasPartnerLogo
+        }
+        system {
+          serverName
+          model
+          comment
+        }
       }
       partnerInfo {
-        hasPartnerLogo
-        partnerName
-        partnerUrl
-        partnerLogoUrl
+        partner {
+          name
+          url
+          hardwareSpecsUrl
+          manualUrl
+          supportUrl
+          extraLinks {
+            title
+            url
+          }
+        }
+        branding {
+          hasPartnerLogo
+          logoUrl
+        }
       }
       onboardingState {
         registrationState

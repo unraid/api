@@ -3,10 +3,6 @@ import { Field, InputType } from '@nestjs/graphql';
 import { Type } from 'class-transformer';
 import { IsBoolean, IsEnum, IsIn, IsOptional, IsString, ValidateNested } from 'class-validator';
 
-import {
-    ActivationCode,
-    PublicPartnerInfo,
-} from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
 @InputType({
@@ -25,39 +21,54 @@ export class OnboardingOverrideCompletionInput {
 }
 
 @InputType({
-    description: 'Activation code override input',
+    description: 'Partner link input for custom links',
 })
-export class ActivationCodeOverrideInput implements Partial<ActivationCode> {
+export class PartnerLinkInput {
+    @Field(() => String)
+    @IsString()
+    title!: string;
+
+    @Field(() => String)
+    @IsString()
+    url!: string;
+}
+
+@InputType()
+export class PartnerConfigInput {
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
-    code?: string;
+    name?: string;
 
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
-    partnerName?: string;
+    url?: string;
 
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
-    partnerUrl?: string;
+    hardwareSpecsUrl?: string;
 
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
-    serverName?: string;
+    manualUrl?: string;
 
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
-    sysModel?: string;
+    supportUrl?: string;
 
-    @Field(() => String, { nullable: true })
+    @Field(() => [PartnerLinkInput], { nullable: true })
     @IsOptional()
-    @IsString()
-    comment?: string;
+    @ValidateNested({ each: true })
+    @Type(() => PartnerLinkInput)
+    extraLinks?: PartnerLinkInput[];
+}
 
+@InputType()
+export class BrandingConfigInput {
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
@@ -83,31 +94,79 @@ export class ActivationCodeOverrideInput implements Partial<ActivationCode> {
     @IsString()
     @IsIn(['azure', 'black', 'gray', 'white'])
     theme?: 'azure' | 'black' | 'gray' | 'white';
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    logoUrl?: string;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    hasPartnerLogo?: boolean;
+}
+
+@InputType()
+export class SystemConfigInput {
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    serverName?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    model?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    comment?: string;
+}
+
+@InputType({
+    description: 'Activation code override input',
+})
+export class ActivationCodeOverrideInput {
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    code?: string;
+
+    @Field(() => PartnerConfigInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => PartnerConfigInput)
+    partner?: PartnerConfigInput;
+
+    @Field(() => BrandingConfigInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => BrandingConfigInput)
+    branding?: BrandingConfigInput;
+
+    @Field(() => SystemConfigInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => SystemConfigInput)
+    system?: SystemConfigInput;
 }
 
 @InputType({
     description: 'Partner info override input',
 })
-export class PartnerInfoOverrideInput implements Partial<PublicPartnerInfo> {
-    @Field(() => String, { nullable: true })
+export class PartnerInfoOverrideInput {
+    @Field(() => PartnerConfigInput, { nullable: true })
     @IsOptional()
-    @IsString()
-    partnerName?: string | null;
+    @ValidateNested()
+    @Type(() => PartnerConfigInput)
+    partner?: PartnerConfigInput;
 
-    @Field(() => Boolean, { nullable: true })
+    @Field(() => BrandingConfigInput, { nullable: true })
     @IsOptional()
-    @IsBoolean()
-    hasPartnerLogo?: boolean | null;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    partnerUrl?: string | null;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    partnerLogoUrl?: string | null;
+    @ValidateNested()
+    @Type(() => BrandingConfigInput)
+    branding?: BrandingConfigInput;
 }
 
 @InputType({

@@ -9,9 +9,8 @@ import { useThemeStore } from '~/store/theme';
 
 interface Props {
   partnerInfo?: {
-    partnerLogoUrl?: string | null;
-    hasPartnerLogo?: boolean;
-  };
+    branding?: { logoUrl?: string | null; hasPartnerLogo?: boolean | null } | null;
+  } | null;
 }
 
 defineProps<Props>();
@@ -21,9 +20,9 @@ const { darkMode } = storeToRefs(useThemeStore());
 
 <template>
   <img
-    v-if="partnerInfo?.partnerLogoUrl"
-    :src="partnerInfo?.partnerLogoUrl"
+    v-if="partnerInfo?.branding?.logoUrl"
+    :src="partnerInfo?.branding?.logoUrl"
     class="w-72"
-    :class="{ invert: darkMode && partnerInfo.hasPartnerLogo }"
+    :class="{ invert: darkMode && partnerInfo.branding?.hasPartnerLogo }"
   />
 </template>

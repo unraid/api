@@ -106,32 +106,18 @@ export type AccessUrlObjectInput = {
 
 export type ActivationCode = {
   __typename?: 'ActivationCode';
-  background?: Maybe<Scalars['String']['output']>;
+  branding?: Maybe<BrandingConfig>;
   code?: Maybe<Scalars['String']['output']>;
-  comment?: Maybe<Scalars['String']['output']>;
-  header?: Maybe<Scalars['String']['output']>;
-  headermetacolor?: Maybe<Scalars['String']['output']>;
-  partnerName?: Maybe<Scalars['String']['output']>;
-  partnerUrl?: Maybe<Scalars['String']['output']>;
-  serverName?: Maybe<Scalars['String']['output']>;
-  showBannerGradient?: Maybe<Scalars['Boolean']['output']>;
-  sysModel?: Maybe<Scalars['String']['output']>;
-  theme?: Maybe<Scalars['String']['output']>;
+  partner?: Maybe<PartnerConfig>;
+  system?: Maybe<SystemConfig>;
 };
 
 /** Activation code override input */
 export type ActivationCodeOverrideInput = {
-  background?: InputMaybe<Scalars['String']['input']>;
+  branding?: InputMaybe<BrandingConfigInput>;
   code?: InputMaybe<Scalars['String']['input']>;
-  comment?: InputMaybe<Scalars['String']['input']>;
-  header?: InputMaybe<Scalars['String']['input']>;
-  headermetacolor?: InputMaybe<Scalars['String']['input']>;
-  partnerName?: InputMaybe<Scalars['String']['input']>;
-  partnerUrl?: InputMaybe<Scalars['String']['input']>;
-  serverName?: InputMaybe<Scalars['String']['input']>;
-  showBannerGradient?: InputMaybe<Scalars['Boolean']['input']>;
-  sysModel?: InputMaybe<Scalars['String']['input']>;
-  theme?: InputMaybe<Scalars['String']['input']>;
+  partner?: InputMaybe<PartnerConfigInput>;
+  system?: InputMaybe<SystemConfigInput>;
 };
 
 export type AddPermissionInput = {
@@ -421,6 +407,29 @@ export enum AuthorizationRuleMode {
   AND = 'AND',
   OR = 'OR'
 }
+
+export type BrandingConfig = {
+  __typename?: 'BrandingConfig';
+  background?: Maybe<Scalars['String']['output']>;
+  /** Indicates if a partner logo exists */
+  hasPartnerLogo: Scalars['Boolean']['output'];
+  header?: Maybe<Scalars['String']['output']>;
+  headermetacolor?: Maybe<Scalars['String']['output']>;
+  /** The path to the partner logo image on the flash drive, relative to the activation code file */
+  logoUrl?: Maybe<Scalars['String']['output']>;
+  showBannerGradient?: Maybe<Scalars['Boolean']['output']>;
+  theme?: Maybe<Scalars['String']['output']>;
+};
+
+export type BrandingConfigInput = {
+  background?: InputMaybe<Scalars['String']['input']>;
+  hasPartnerLogo?: InputMaybe<Scalars['Boolean']['input']>;
+  header?: InputMaybe<Scalars['String']['input']>;
+  headermetacolor?: InputMaybe<Scalars['String']['input']>;
+  logoUrl?: InputMaybe<Scalars['String']['input']>;
+  showBannerGradient?: InputMaybe<Scalars['Boolean']['input']>;
+  theme?: InputMaybe<Scalars['String']['input']>;
+};
 
 export type Capacity = {
   __typename?: 'Capacity';
@@ -1876,6 +1885,8 @@ export type OidcSessionValidation = {
 /** Onboarding completion state and context */
 export type Onboarding = {
   __typename?: 'Onboarding';
+  /** The activation code from the .activationcode file, if present */
+  activationCode?: Maybe<Scalars['String']['output']>;
   /** Whether the onboarding flow has been completed */
   completed: Scalars['Boolean']['output'];
   /** The OS version when onboarding was completed */
@@ -2016,12 +2027,47 @@ export enum ParityCheckStatus {
   RUNNING = 'RUNNING'
 }
 
+export type PartnerConfig = {
+  __typename?: 'PartnerConfig';
+  /** Additional custom links provided by the partner */
+  extraLinks?: Maybe<Array<PartnerLink>>;
+  /** Link to hardware specifications for this system */
+  hardwareSpecsUrl?: Maybe<Scalars['String']['output']>;
+  /** Link to the system manual/documentation */
+  manualUrl?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  /** Link to manufacturer support page */
+  supportUrl?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export type PartnerConfigInput = {
+  extraLinks?: InputMaybe<Array<PartnerLinkInput>>;
+  hardwareSpecsUrl?: InputMaybe<Scalars['String']['input']>;
+  manualUrl?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  supportUrl?: InputMaybe<Scalars['String']['input']>;
+  url?: InputMaybe<Scalars['String']['input']>;
+};
+
 /** Partner info override input */
 export type PartnerInfoOverrideInput = {
-  hasPartnerLogo?: InputMaybe<Scalars['Boolean']['input']>;
-  partnerLogoUrl?: InputMaybe<Scalars['String']['input']>;
-  partnerName?: InputMaybe<Scalars['String']['input']>;
-  partnerUrl?: InputMaybe<Scalars['String']['input']>;
+  branding?: InputMaybe<BrandingConfigInput>;
+  partner?: InputMaybe<PartnerConfigInput>;
+};
+
+export type PartnerLink = {
+  __typename?: 'PartnerLink';
+  /** Display title for the link */
+  title: Scalars['String']['output'];
+  /** The URL */
+  url: Scalars['String']['output'];
+};
+
+/** Partner link input for custom links */
+export type PartnerLinkInput = {
+  title: Scalars['String']['input'];
+  url: Scalars['String']['input'];
 };
 
 export type Permission = {
@@ -2114,12 +2160,8 @@ export type PublicOidcProvider = {
 
 export type PublicPartnerInfo = {
   __typename?: 'PublicPartnerInfo';
-  /** Indicates if a partner logo exists */
-  hasPartnerLogo: Scalars['Boolean']['output'];
-  /** The path to the partner logo image on the flash drive, relative to the activation code file */
-  partnerLogoUrl?: Maybe<Scalars['String']['output']>;
-  partnerName?: Maybe<Scalars['String']['output']>;
-  partnerUrl?: Maybe<Scalars['String']['output']>;
+  branding?: Maybe<BrandingConfig>;
+  partner?: Maybe<PartnerConfig>;
 };
 
 export type Query = {
@@ -2559,6 +2601,19 @@ export type SubscriptionLogFileArgs = {
 
 export type SubscriptionPluginInstallUpdatesArgs = {
   operationId: Scalars['ID']['input'];
+};
+
+export type SystemConfig = {
+  __typename?: 'SystemConfig';
+  comment?: Maybe<Scalars['String']['output']>;
+  model?: Maybe<Scalars['String']['output']>;
+  serverName?: Maybe<Scalars['String']['output']>;
+};
+
+export type SystemConfigInput = {
+  comment?: InputMaybe<Scalars['String']['input']>;
+  model?: InputMaybe<Scalars['String']['input']>;
+  serverName?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** System time configuration and current status */
