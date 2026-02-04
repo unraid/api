@@ -2,7 +2,7 @@
  * Onboarding Modal Component Test Coverage
  */
 
-import { ref } from 'vue';
+import { reactive, ref } from 'vue';
 import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -90,6 +90,8 @@ const mockActivationCodeDataStore = {
   }),
   activationCode: ref({ code: 'TEST-CODE-123' }),
   isFreshInstall: ref(true),
+  activationRequired: ref(false),
+  hasActivationCode: ref(false),
 };
 
 let handleKeydown: ((e: KeyboardEvent) => void) | null = null;
@@ -145,6 +147,8 @@ const mockUpgradeOnboardingStore = {
   allUpgradeSteps: ref(mockStepDefinitions),
   currentVersion: ref('7.0.0'),
   previousVersion: ref('6.12.0'),
+  isUpgrade: ref(false),
+  completedAtVersion: ref(null),
   refetchActivationOnboarding: vi.fn().mockResolvedValue(undefined),
 };
 
@@ -179,18 +183,18 @@ vi.mock('~/components/Onboarding/store/activationCodeModal', () => {
   const store = {
     useActivationCodeModalStore: () => {
       mockActivationCodeModalStore._store = mockActivationCodeModalStore;
-      return mockActivationCodeModalStore;
+      return reactive(mockActivationCodeModalStore);
     },
   };
   return store;
 });
 
 vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
-  useActivationCodeDataStore: () => mockActivationCodeDataStore,
+  useActivationCodeDataStore: () => reactive(mockActivationCodeDataStore),
 }));
 
 vi.mock('~/components/Onboarding/store/upgradeOnboarding', () => ({
-  useUpgradeOnboardingStore: () => mockUpgradeOnboardingStore,
+  useUpgradeOnboardingStore: () => reactive(mockUpgradeOnboardingStore),
 }));
 
 vi.mock('~/store/purchase', () => ({

@@ -1209,18 +1209,20 @@ export const useServerStore = defineStore('server', () => {
     }
   };
 
-  let refreshCount = 0;
+  // let refreshCount = 0; // Removed persistent counter
   const refreshLimit = 20;
   const refreshTimeout = 250;
   const refreshServerStateStatus = ref<'done' | 'ready' | 'refreshing' | 'timeout'>('ready');
-  const refreshServerState = async () => {
+  const refreshServerState = async (options?: { poll?: boolean; attempt?: number }) => {
+    const poll = options?.poll ?? true;
+    const attempt = options?.attempt ?? 0;
+
     // If we've reached the refresh limit, stop refreshing
-    if (refreshCount >= refreshLimit) {
+    if (attempt >= refreshLimit) {
       refreshServerStateStatus.value = 'timeout';
       return false;
     }
 
-    refreshCount++;
     refreshServerStateStatus.value = 'refreshing';
 
     // Values to compare to response values should be set before the response is set
@@ -1232,9 +1234,12 @@ export const useServerStore = defineStore('server', () => {
     // Fetch the server state from the API or PHP
     const response = fromApi ? await refetchServerState() : await phpServerStateRefresh();
     if (!response) {
-      return setTimeout(() => {
-        refreshServerState();
-      }, refreshTimeout);
+      if (poll) {
+        return setTimeout(() => {
+          refreshServerState({ poll, attempt: attempt + 1 });
+        }, refreshTimeout);
+      }
+      return false;
     }
 
     // Extract the new values from the response
@@ -1266,10 +1271,16 @@ export const useServerStore = defineStore('server', () => {
       refreshServerStateStatus.value = 'done';
       return true;
     }
+
+    // If we're not polling, we're done
+    if (!poll) {
+      refreshServerStateStatus.value = 'done';
+      return true;
+    }
+
     // If we haven't reached the refresh limit, try again
-    setTimeout(() => {
-      return refreshServerState();
-    }, refreshTimeout);
+    await new Promise((resolve) => setTimeout(resolve, refreshTimeout));
+    return refreshServerState({ poll, attempt: attempt + 1 });
   };
 
   const filteredKeyActions = (

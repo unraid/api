@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useApolloClient } from '@vue/apollo-composable';
 
@@ -344,6 +344,28 @@ const applyOverrides = async () => {
   }
 };
 
+const updateRegistrationState = (newState: string) => {
+  if (!newState) return;
+
+  let current: OnboardingOverridePayload = {};
+  if (draftJson.value) {
+    try {
+      current = JSON.parse(draftJson.value);
+    } catch (e) {
+      // ignore, start fresh if invalid
+    }
+  }
+
+  // Merge
+  current.registrationState = newState as RegistrationState;
+
+  // Update Draft
+  draftJson.value = formattedOverrides(current);
+
+  // Apply
+  applyOverrides();
+};
+
 const createPresetFromCurrent = () => {
   const trimmed = draftJson.value.trim();
   if (!trimmed) {
@@ -383,6 +405,21 @@ const getStatusBadgeClass = (statusValue: string | undefined) => {
       return 'bg-gray-500/15 text-gray-600 dark:text-gray-400';
   }
 };
+
+const currentRegistrationState = computed({
+  get: () => {
+    try {
+      if (!draftJson.value) return '';
+      const parsed = JSON.parse(draftJson.value);
+      return parsed.registrationState || '';
+    } catch {
+      return '';
+    }
+  },
+  set: (val) => {
+    updateRegistrationState(val);
+  },
+});
 </script>
 
 <template>
@@ -488,50 +525,77 @@ const getStatusBadgeClass = (statusValue: string | undefined) => {
 
     <!-- Controls Area -->
     <div class="grid h-[400px] min-h-[400px] grid-cols-1 gap-6 lg:grid-cols-12">
-      <!-- Presets List (Left) -->
-      <div class="border-border bg-card flex min-h-0 flex-col rounded-lg border shadow-sm lg:col-span-4">
-        <div class="border-border bg-muted flex items-center justify-between rounded-t-lg border-b p-3">
-          <h3 class="text-sm font-semibold">Quick Presets</h3>
-          <div class="flex items-center gap-2">
-            <button
-              @click="activationModalStore.setIsHidden(false)"
-              class="border-primary bg-primary/10 text-primary hover:bg-primary/20 rounded border px-2 py-0.5 text-xs font-medium"
-            >
-              Open Onboarding Modal
-            </button>
-            <button
-              @click="createPresetFromCurrent"
-              class="text-primary hover:text-primary/80 text-xs font-medium hover:underline"
-              title="Create from current editor JSON"
-            >
-              + Add Custom
-            </button>
-          </div>
+      <!-- Left Column -->
+      <div class="flex min-h-0 flex-col gap-4 lg:col-span-4">
+        <!-- Quick State Override -->
+        <div class="border-border bg-card shrink-0 rounded-lg border p-3 shadow-sm">
+          <label class="text-muted-foreground mb-2 block text-xs font-semibold uppercase"
+            >Force License State</label
+          >
+          <select
+            v-model="currentRegistrationState"
+            class="border-input bg-background text-foreground focus:ring-primary w-full rounded border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none"
+          >
+            <option value="" disabled selected>Select State...</option>
+            <option value="ENOKEYFILE">ENOKEYFILE (Unregistered)</option>
+            <option value="TRIAL">TRIAL</option>
+            <option value="BASIC">BASIC</option>
+            <option value="PLUS">PLUS</option>
+            <option value="PRO">PRO</option>
+            <option value="UNLEASHED">UNLEASHED</option>
+            <option value="LIFETIME">LIFETIME</option>
+            <option value="EGUID">EGUID (Error)</option>
+            <option value="EEXPIRED">EEXPIRED (Trial End)</option>
+          </select>
         </div>
 
-        <div class="flex-1 space-y-2 overflow-y-auto p-3">
+        <!-- Presets List -->
+        <div class="border-border bg-card flex min-h-0 flex-1 flex-col rounded-lg border shadow-sm">
           <div
-            v-for="preset in presets"
-            :key="preset.id"
-            class="group hover:bg-muted flex flex-col gap-2 rounded border p-3 transition-colors"
-            :class="
-              activePresetId === preset.id
-                ? 'border-primary bg-primary/5 ring-primary ring-1'
-                : 'border-border'
-            "
-            @click="loadPreset(preset)"
+            class="border-border bg-muted flex items-center justify-between rounded-t-lg border-b p-3"
           >
-            <div>
-              <div class="text-foreground text-sm font-medium">{{ preset.label }}</div>
-              <div class="text-muted-foreground text-xs">{{ preset.description }}</div>
-            </div>
-            <div class="mt-1 flex gap-2">
+            <h3 class="text-sm font-semibold">Quick Presets</h3>
+            <div class="flex items-center gap-2">
               <button
-                @click.stop="applyAndOpenPreset(preset)"
-                class="bg-primary text-primary-foreground flex-1 rounded px-2 py-1 text-xs font-medium shadow-sm hover:opacity-90"
+                @click="activationModalStore.setIsHidden(false)"
+                class="border-primary bg-primary/10 text-primary hover:bg-primary/20 rounded border px-2 py-0.5 text-xs font-medium"
               >
-                Open
+                Open Onboarding Modal
               </button>
+              <button
+                @click="createPresetFromCurrent"
+                class="text-primary hover:text-primary/80 text-xs font-medium hover:underline"
+                title="Create from current editor JSON"
+              >
+                + Add Custom
+              </button>
+            </div>
+          </div>
+
+          <div class="flex-1 space-y-2 overflow-y-auto p-3">
+            <div
+              v-for="preset in presets"
+              :key="preset.id"
+              class="group hover:bg-muted flex flex-col gap-2 rounded border p-3 transition-colors"
+              :class="
+                activePresetId === preset.id
+                  ? 'border-primary bg-primary/5 ring-primary ring-1'
+                  : 'border-border'
+              "
+              @click="loadPreset(preset)"
+            >
+              <div>
+                <div class="text-foreground text-sm font-medium">{{ preset.label }}</div>
+                <div class="text-muted-foreground text-xs">{{ preset.description }}</div>
+              </div>
+              <div class="mt-1 flex gap-2">
+                <button
+                  @click.stop="applyAndOpenPreset(preset)"
+                  class="bg-primary text-primary-foreground flex-1 rounded px-2 py-1 text-xs font-medium shadow-sm hover:opacity-90"
+                >
+                  Open
+                </button>
+              </div>
             </div>
           </div>
         </div>

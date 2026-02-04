@@ -100,13 +100,13 @@ const handleKeydown = (event: KeyboardEvent) => {
     @keydown="handleKeydown"
   >
     <div
-      v-if="variant === 'fill'"
+      v-if="variant === 'fill' && !disabled"
       class="from-unraid-red to-orange absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 rounded-md bg-linear-to-r opacity-100 transition-all group-hover:!opacity-60 group-focus:!opacity-60"
     />
 
     <!-- gives outline buttons the brand gradient background -->
     <div
-      v-if="needsBrandGradientBackground"
+      v-if="needsBrandGradientBackground && !disabled"
       :class="[
         'from-unraid-red to-orange pointer-events-none absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-linear-to-r transition-all',
         variant === 'outline-primary' ? 'rounded-sm' : 'rounded-md',

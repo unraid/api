@@ -17,6 +17,7 @@ import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
 import { stepComponents } from '~/components/Onboarding/stepRegistry';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
+import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import { useUpgradeOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
@@ -26,13 +27,17 @@ const { t } = useI18n();
 
 const modalStore = useActivationCodeModalStore();
 const { isVisible, isHidden } = storeToRefs(modalStore);
-const { partnerInfo, activationRequired, hasActivationCode } = storeToRefs(useActivationCodeDataStore());
+const { partnerInfo, activationRequired, hasActivationCode, registrationState } = storeToRefs(
+  useActivationCodeDataStore()
+);
 const onboardingStore = useUpgradeOnboardingStore();
 const { shouldShowOnboarding, isUpgrade, completedAtVersion } = storeToRefs(onboardingStore);
 const { refetchOnboarding } = onboardingStore;
 const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
 const themeStore = useThemeStore();
+const draftStore = useOnboardingDraftStore();
+const { currentStepIndex } = storeToRefs(draftStore);
 
 // Ensure theme is loaded when modal opens
 (async () => {
@@ -68,23 +73,23 @@ const HARDCODED_STEPS: Array<{ id: StepId; required: boolean }> = [
   { id: 'NEXT_STEPS', required: false },
 ];
 
+const showActivationStep = computed(() => {
+  const hasCode = hasActivationCode.value;
+  const isUnregistered = registrationState.value === 'ENOKEYFILE';
+  return hasCode && isUnregistered;
+});
+
 // Determine which steps to show based on user state
 const availableSteps = computed<StepId[]>(() => {
-  const isPartnerUser = hasActivationCode.value;
-
-  // For partner users, show all steps including activation
-  if (isPartnerUser) {
+  if (showActivationStep.value) {
     return HARDCODED_STEPS.map((s) => s.id);
   }
-
-  // For regular users, exclude the activation step
   return HARDCODED_STEPS.filter((s) => s.id !== 'ACTIVATE_LICENSE').map((s) => s.id);
 });
 
 // Filtered steps as full objects for OnboardingSteps component
 const filteredSteps = computed(() => {
-  const isPartnerUser = hasActivationCode.value;
-  if (isPartnerUser) {
+  if (showActivationStep.value) {
     return HARDCODED_STEPS;
   }
   return HARDCODED_STEPS.filter((s) => s.id !== 'ACTIVATE_LICENSE');
@@ -92,7 +97,6 @@ const filteredSteps = computed(() => {
 
 const showModal = computed(() => isVisible.value || shouldShowOnboarding.value);
 
-const currentStepIndex = ref(0);
 const stepSaveState = ref<'idle' | 'saving' | 'saved'>('idle');
 let stepSaveTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -102,11 +106,6 @@ onBeforeUnmount(() => {
     stepSaveTimeout = null;
   }
 });
-
-// Since we're using simple completed boolean, always start at first step
-const setInitialStepIndex = () => {
-  currentStepIndex.value = 0;
-};
 
 const currentStep = computed<StepId | null>(() => {
   if (currentStepIndex.value < availableSteps.value.length) {
@@ -330,12 +329,15 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
 
 // No need to watch steps since they're hardcoded
 // Just ensure we're on first step when modal opens
+// We rely on persisted state now, so no auto-reset
 watch(
   () => showModal.value,
-  (isOpen) => {
-    if (isOpen) {
-      setInitialStepIndex();
-    }
+  () => {
+    // If we wanted to reset on every fresh open, we'd do it here.
+    // But we want persistence.
+    // if (isOpen) {
+    //   currentStepIndex.value = 0;
+    // }
   }
 );
 </script>
