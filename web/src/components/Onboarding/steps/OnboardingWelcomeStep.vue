@@ -1,10 +1,13 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useMutation } from '@vue/apollo-composable';
 
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import LogoCloud from '@/components/Onboarding/components/LogoCloud.vue';
+import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
+import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgradeOnboarding';
 
 // Mock icons (assuming these exist or similar ones do)
 const BOOK_ICON = 'i-heroicons-book-open';
@@ -22,10 +25,27 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 
-const isBusy = computed(() => props.isSavingStep ?? false);
+const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
+const { refetchOnboarding } = useUpgradeOnboardingStore();
+const isSkipping = ref(false);
+
+const isBusy = computed(() => props.isSavingStep || isSkipping.value);
 
 const handleComplete = () => {
   props.onComplete();
+};
+
+const handleSkipOnboarding = async () => {
+  isSkipping.value = true;
+  try {
+    await completeOnboarding();
+    await new Promise((r) => setTimeout(r, 500));
+    await refetchOnboarding();
+    window.location.reload();
+  } catch (e) {
+    console.error(e);
+    isSkipping.value = false;
+  }
 };
 
 const openDocs = () => {
@@ -134,14 +154,24 @@ const openDocs = () => {
         </button>
         <div v-else class="w-1" />
 
-        <BrandButton
-          :text="t('onboarding.welcomeModal.nextStep')"
-          class="!bg-primary hover:!bg-primary/90 min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg"
-          :disabled="isBusy"
-          :loading="isBusy"
-          @click="handleComplete"
-          :icon-right="ChevronRightIcon"
-        />
+        <div class="flex items-center gap-6">
+          <button
+            @click="handleSkipOnboarding"
+            class="text-muted hover:text-toned text-sm font-medium transition-colors"
+            :disabled="isBusy"
+          >
+            Skip Setup
+          </button>
+
+          <BrandButton
+            :text="t('onboarding.welcomeModal.nextStep')"
+            class="!bg-primary hover:!bg-primary/90 min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg"
+            :disabled="isBusy"
+            :loading="isBusy"
+            @click="handleComplete"
+            :icon-right="ChevronRightIcon"
+          />
+        </div>
       </div>
     </div>
   </div>

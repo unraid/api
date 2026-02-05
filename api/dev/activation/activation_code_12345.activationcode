@@ -26,7 +26,6 @@
   },
   "system": {
     "serverName": "MyAwesomeServer",
-    "model": "CustomBuild v1.0",
-    "comment": "This is a test activation code for development."
+    "model": "CustomBuild v1.0"
   }
 }

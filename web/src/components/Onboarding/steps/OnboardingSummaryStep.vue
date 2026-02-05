@@ -13,7 +13,14 @@ import {
   PuzzlePieceIcon,
   SwatchIcon,
 } from '@heroicons/vue/24/outline';
-import { CheckCircleIcon, ChevronDownIcon, ChevronRightIcon, ClockIcon } from '@heroicons/vue/24/solid';
+import {
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ClockIcon,
+  ExclamationCircleIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import usePluginInstaller from '@/components/Onboarding/composables/usePluginInstaller';
@@ -63,7 +70,7 @@ const { result: coreSettingsResult } = useQuery(GET_CORE_SETTINGS_QUERY, null, {
   fetchPolicy: 'cache-first',
 });
 
-const draftPluginsCount = computed(() => draftStore.selectedPlugins.size);
+const draftPluginsCount = computed(() => draftStore.selectedPlugins?.size ?? 0);
 
 const currentTimeZone = computed(() => {
   return (
@@ -81,6 +88,14 @@ const sshEnabled = computed(() => {
   return draftStore.useSsh;
 });
 
+const displayTheme = computed(() => {
+  return draftStore.selectedTheme || coreSettingsResult.value?.display?.theme || 'white';
+});
+
+const displayLanguage = computed(() => {
+  return draftStore.selectedLanguage || coreSettingsResult.value?.display?.locale || 'en_US';
+});
+
 // Processing State
 const isProcessing = ref(false);
 const error = ref<string | null>(null);
@@ -92,10 +107,52 @@ const addLog = (message: string, type: LogEntry['type'] = 'info') => {
 
 // Helper to determine activation label/status
 const activationStatus = computed(() => {
-  if (registrationState.value === 'ENOKEYFILE') {
-    return { label: 'Trial Ready', valid: true };
+  const state = registrationState.value;
+  const VALID_STATES = ['TRIAL', 'BASIC', 'PLUS', 'PRO', 'STARTER', 'UNLEASHED', 'LIFETIME'];
+
+  if (state && VALID_STATES.includes(state as string)) {
+    return {
+      label: state,
+      valid: true,
+      icon: CheckCircleIcon,
+      color: 'text-green-500',
+    };
   }
-  return { label: 'Active', valid: true };
+
+  if (state === 'ENOKEYFILE') {
+    return {
+      label: 'Unregistered',
+      valid: false,
+      icon: ExclamationTriangleIcon,
+      color: 'text-yellow-500',
+    };
+  }
+
+  // Error Mappings
+  const errorMap: Record<string, string> = {
+    ENOKEYFILE1: 'Key Missing',
+    ENOKEYFILE2: 'Validation Error',
+    EGUID: 'GUID Mismatch',
+    EEXPIRED: 'Trial Expired',
+    EBLACKLISTED: 'Blacklisted',
+  };
+
+  if (typeof state === 'string' && state.startsWith('E')) {
+    const label = errorMap[state] || `Error: ${state}`;
+    return {
+      label,
+      valid: false,
+      icon: ExclamationCircleIcon,
+      color: 'text-red-500',
+    };
+  }
+
+  return {
+    label: state || 'Unknown',
+    valid: false,
+    icon: ExclamationCircleIcon,
+    color: 'text-gray-400',
+  };
 });
 
 const handleComplete = async () => {
@@ -273,11 +330,8 @@ const handleBack = () => {
               <span class="text-muted">{{ t('onboarding.coreSettings.serverName') }}</span>
               <span class="text-highlighted font-medium">{{ serverName }}</span>
             </div>
-            <div
-              class="flex flex-col gap-1 rounded bg-gray-50 p-2 text-sm dark:bg-gray-800"
-              v-if="draftStore.serverDescription"
-            >
-              <span class="text-muted text-xs uppercase">Description</span>
+            <div class="bg-elevated flex flex-col rounded text-sm" v-if="draftStore.serverDescription">
+              <span class="text-muted">Server Description</span>
               <span class="text-highlighted truncate font-medium">{{
                 draftStore.serverDescription
               }}</span>
@@ -285,7 +339,7 @@ const handleBack = () => {
             <div class="flex items-center justify-between text-sm">
               <span class="text-muted">Activation</span>
               <div class="flex items-center gap-1.5">
-                <CheckCircleIcon v-if="activationStatus.valid" class="h-4 w-4 text-green-500" />
+                <component :is="activationStatus.icon" :class="['h-4 w-4', activationStatus.color]" />
                 <span class="text-highlighted font-medium">{{ activationStatus.label }}</span>
               </div>
             </div>
@@ -320,20 +374,18 @@ const handleBack = () => {
               </div>
             </div>
             <!-- Theme & Language -->
-            <div class="flex items-center justify-between text-sm" v-if="draftStore.selectedTheme">
+            <div class="flex items-center justify-between text-sm">
               <span class="text-muted">Theme</span>
               <div class="flex items-center gap-1.5">
                 <SwatchIcon class="text-muted h-4 w-4" />
-                <span class="text-highlighted font-medium capitalize">{{
-                  draftStore.selectedTheme
-                }}</span>
+                <span class="text-highlighted font-medium capitalize">{{ displayTheme }}</span>
               </div>
             </div>
-            <div class="flex items-center justify-between text-sm" v-if="draftStore.selectedLanguage">
+            <div class="flex items-center justify-between text-sm">
               <span class="text-muted">Language</span>
               <div class="flex items-center gap-1.5">
                 <LanguageIcon class="text-muted h-4 w-4" />
-                <span class="text-highlighted font-medium">{{ draftStore.selectedLanguage }}</span>
+                <span class="text-highlighted font-medium">{{ displayLanguage }}</span>
               </div>
             </div>
           </div>
@@ -344,7 +396,11 @@ const handleBack = () => {
       <div class="border-muted bg-bg/50 mt-6 rounded-lg border">
         <Disclosure v-slot="{ open }">
           <DisclosureButton
-            class="flex w-full items-center justify-between p-5 text-left focus:outline-none"
+            :disabled="draftPluginsCount === 0"
+            :class="[
+              'flex w-full items-center justify-between p-5 text-left focus:outline-none',
+              draftPluginsCount === 0 ? 'cursor-default' : 'cursor-pointer',
+            ]"
           >
             <div class="flex items-center gap-3">
               <div class="bg-primary/10 rounded-lg p-2">
@@ -358,6 +414,7 @@ const handleBack = () => {
               </div>
             </div>
             <div
+              v-if="draftPluginsCount > 0"
               class="text-primary hover:text-primary/80 flex items-center gap-2 text-sm font-medium transition-colors"
             >
               <span v-if="!open">View Selected</span>
@@ -419,7 +476,7 @@ const handleBack = () => {
         <button
           v-if="showBack"
           @click="handleBack"
-          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
+          class="text-muted hover:text-toned group flex items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
           :disabled="isProcessing"
         >
           <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
@@ -428,7 +485,7 @@ const handleBack = () => {
         <div v-else class="hidden w-1 sm:block" />
 
         <BrandButton
-          :text="t('onboarding.summaryStep.confirmAndFinish')"
+          :text="t('onboarding.summaryStep.confirmAndApply')"
           class="!bg-primary hover:!bg-primary/90 w-full min-w-[200px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
           @click="handleComplete"
           :loading="isProcessing"
