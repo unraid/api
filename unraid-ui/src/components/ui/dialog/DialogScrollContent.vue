@@ -59,7 +59,7 @@ const { teleportTarget } = useTeleport();
 
         <DialogClose
           v-if="showCloseButton !== false"
-          class="hover:bg-secondary absolute top-3 right-3 rounded-md p-0.5 transition-colors"
+          class="hover:bg-secondary absolute top-3 right-3 z-10 rounded-md p-3 transition-colors"
         >
           <X class="h-4 w-4" />
           <span class="sr-only">Close</span>

@@ -21,6 +21,7 @@ const WELCOME_ICON = 'i-heroicons-server-stack';
 export interface Props {
   // Common props
   onComplete: () => void;
+  onSkipSetup?: () => void;
   onBack?: () => void;
   showBack?: boolean;
   isSavingStep?: boolean;
@@ -78,6 +79,11 @@ const handleComplete = () => {
 };
 
 const handleSkipOnboarding = async () => {
+  if (props.onSkipSetup) {
+    props.onSkipSetup();
+    return;
+  }
+
   isSkipping.value = true;
   try {
     await completeOnboarding();

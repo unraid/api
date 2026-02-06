@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useMutation } from '@vue/apollo-composable';
 
-import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import { ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
@@ -25,7 +25,7 @@ import { useThemeStore } from '~/store/theme';
 const { t } = useI18n();
 
 const modalStore = useActivationCodeModalStore();
-const { isVisible, isHidden } = storeToRefs(modalStore);
+const { isVisible } = storeToRefs(modalStore);
 const { activationRequired, hasActivationCode, registrationState } = storeToRefs(
   useActivationCodeDataStore()
 );
@@ -95,6 +95,7 @@ const filteredSteps = computed(() => {
 });
 
 const showModal = computed(() => isVisible.value || shouldShowOnboarding.value);
+const showExitConfirmDialog = ref(false);
 
 const stepSaveState = ref<'idle' | 'saving' | 'saved'>('idle');
 let stepSaveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -212,8 +213,8 @@ const goToPreviousStep = () => {
 };
 
 const goToStep = (stepIndex: number) => {
-  // Allow navigation to any step within available steps (completed or incomplete)
-  if (stepIndex >= 0 && stepIndex < availableSteps.value.length) {
+  // Prevent skipping ahead via stepper; only allow current or previous steps.
+  if (stepIndex >= 0 && stepIndex < availableSteps.value.length && stepIndex <= currentStepIndex.value) {
     currentStepIndex.value = stepIndex;
   }
 };
@@ -235,6 +236,19 @@ const handlePluginsComplete = async () => {
 
 const handlePluginsSkip = async () => {
   await goToNextStep();
+};
+
+const handleExitIntent = () => {
+  showExitConfirmDialog.value = true;
+};
+
+const handleExitCancel = () => {
+  showExitConfirmDialog.value = false;
+};
+
+const handleExitConfirm = async () => {
+  showExitConfirmDialog.value = false;
+  await closeModal();
 };
 
 // Since we don't track individual step completion on server anymore,
@@ -275,6 +289,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         ...baseProps,
         isUpgrade: isUpgrade.value,
         completedAtVersion: completedAtVersion.value,
+        onSkipSetup: handleExitIntent,
         onSkip: undefined,
         showSkip: false,
       };
@@ -346,19 +361,28 @@ watch(
     v-if="showModal"
     :model-value="showModal"
     :show-footer="false"
-    :show-close-button="isHidden === false || shouldShowOnboarding"
+    :show-close-button="false"
     size="full"
     class="bg-background pb-0"
     @update:model-value="
       async (value) => {
         if (!value) {
-          await closeModal();
+          handleExitIntent();
         }
       }
     "
   >
-    <div class="flex h-full w-full flex-col items-center justify-start overflow-y-auto">
-      <div class="flex w-full flex-col items-center">
+    <div class="relative flex h-full min-h-0 w-full flex-col items-center justify-start overflow-y-auto">
+      <button
+        type="button"
+        class="bg-background/90 text-foreground hover:bg-muted fixed top-5 right-8 z-20 rounded-md p-1.5 shadow-sm transition-colors"
+        aria-label="Close onboarding"
+        @click="handleExitIntent"
+      >
+        <XMarkIcon class="h-5 w-5" />
+      </button>
+
+      <div class="flex min-h-0 w-full flex-1 flex-col items-center">
         <OnboardingSteps
           :steps="filteredSteps"
           :active-step-index="currentDynamicStepIndex"
@@ -376,6 +400,48 @@ watch(
           <span v-if="stepSaveState === 'saving'">Saving step...</span>
           <span v-else>Step saved.</span>
         </div>
+      </div>
+    </div>
+  </Dialog>
+
+  <Dialog
+    v-if="showExitConfirmDialog"
+    :model-value="showExitConfirmDialog"
+    :show-footer="false"
+    :show-close-button="false"
+    size="md"
+    class="max-w-md"
+    @update:model-value="
+      (value) => {
+        if (!value) {
+          handleExitCancel();
+        }
+      }
+    "
+  >
+    <div class="space-y-6 p-2">
+      <div class="space-y-2">
+        <h3 class="text-lg font-semibold">Exit onboarding?</h3>
+        <p class="text-muted-foreground text-sm">
+          You can skip setup now and continue from the dashboard later.
+        </p>
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button
+          type="button"
+          class="border-muted text-foreground hover:bg-muted rounded-md border px-4 py-2 text-sm"
+          @click="handleExitCancel"
+        >
+          Keep onboarding
+        </button>
+        <button
+          type="button"
+          class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
+          @click="handleExitConfirm"
+        >
+          Exit setup
+        </button>
       </div>
     </div>
   </Dialog>

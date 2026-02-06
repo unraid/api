@@ -1,6 +1,18 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 
+const normalizePersistedPlugins = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string');
+  }
+
+  if (value instanceof Set) {
+    return Array.from(value).filter((item): item is string => typeof item === 'string');
+  }
+
+  return [];
+};
+
 export const useOnboardingDraftStore = defineStore(
   'onboardingDraft',
   () => {
@@ -61,6 +73,28 @@ export const useOnboardingDraftStore = defineStore(
     };
   },
   {
-    persist: true,
+    persist: {
+      serializer: {
+        serialize: (value) => {
+          const state = value as Record<string, unknown>;
+          const selectedPlugins = normalizePersistedPlugins(state.selectedPlugins);
+          return JSON.stringify({ ...state, selectedPlugins });
+        },
+        deserialize: (value) => {
+          const parsed = JSON.parse(value) as Record<string, unknown>;
+          const hadLegacyPluginShape =
+            parsed.selectedPlugins !== undefined &&
+            parsed.selectedPlugins !== null &&
+            !Array.isArray(parsed.selectedPlugins);
+          return {
+            ...parsed,
+            selectedPlugins: new Set(normalizePersistedPlugins(parsed.selectedPlugins)),
+            pluginSelectionInitialized: hadLegacyPluginShape
+              ? false
+              : Boolean(parsed.pluginSelectionInitialized),
+          };
+        },
+      },
+    },
   }
 );
