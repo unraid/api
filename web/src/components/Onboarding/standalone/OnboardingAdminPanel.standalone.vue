@@ -70,7 +70,8 @@ type BrandingConfigPayload = {
   background?: string;
   showBannerGradient?: boolean;
   theme?: 'azure' | 'black' | 'gray' | 'white';
-  logoUrl?: string;
+  partnerLogoLightUrl?: string;
+  partnerLogoDarkUrl?: string;
   hasPartnerLogo?: boolean;
   onboardingTitle?: string;
   onboardingSubtitle?: string;
@@ -182,7 +183,8 @@ const presets = ref<Preset[]>([
         branding: {
           theme: 'azure',
           hasPartnerLogo: true,
-          logoUrl: '/config/activate/45drives-logo.png',
+          partnerLogoLightUrl: '/config/activate/45drives-logo-light.png',
+          partnerLogoDarkUrl: '/config/activate/45drives-logo-dark.png',
           onboardingTitle: 'Welcome to Storinator',
           onboardingSubtitle: 'Unleash your massive storage',
         },
@@ -215,7 +217,8 @@ const presets = ref<Preset[]>([
         branding: {
           theme: 'azure',
           hasPartnerLogo: true,
-          logoUrl: '/config/activate/45drives-logo.png',
+          partnerLogoLightUrl: '/config/activate/45drives-logo-light.png',
+          partnerLogoDarkUrl: '/config/activate/45drives-logo-dark.png',
           onboardingTitle: 'Welcome to Storinator',
           onboardingSubtitle: 'Your powerful storage solution',
         },
@@ -245,7 +248,8 @@ const presets = ref<Preset[]>([
         branding: {
           theme: 'azure',
           hasPartnerLogo: true,
-          logoUrl: '/config/activate/45drives-logo.png',
+          partnerLogoLightUrl: '/config/activate/45drives-logo-light.png',
+          partnerLogoDarkUrl: '/config/activate/45drives-logo-dark.png',
           onboardingTitle: 'Welcome to Storinator',
           onboardingSubtitle: 'High-performance storage',
         },
@@ -785,6 +789,24 @@ const currentRegistrationState = computed({
               </td>
             </tr>
             <tr>
+              <td class="py-2 pr-4 font-mono text-cyan-500">
+                activationCode.branding.partnerLogoLightUrl
+              </td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">*.activationcode</code>
+              </td>
+              <td class="text-muted-foreground py-2">Partner logo URL used for azure/white themes</td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-mono text-cyan-500">
+                activationCode.branding.partnerLogoDarkUrl
+              </td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">*.activationcode</code>
+              </td>
+              <td class="text-muted-foreground py-2">Partner logo URL used for black/gray themes</td>
+            </tr>
+            <tr>
               <td class="py-2 pr-4 font-mono text-purple-500">
                 partnerInfo.partner.* / partnerInfo.branding.*
               </td>
@@ -792,7 +814,7 @@ const currentRegistrationState = computed({
                 <span class="italic">Computed</span>
               </td>
               <td class="text-muted-foreground py-2">
-                Derived from activation code + logo file presence
+                Derived from activation code + logo fields + logo file presence
               </td>
             </tr>
             <tr class="bg-muted/30">

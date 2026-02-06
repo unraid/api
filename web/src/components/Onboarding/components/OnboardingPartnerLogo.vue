@@ -4,7 +4,11 @@ import OnboardingPartnerLogoImg from '@/components/Onboarding/components/Onboard
 interface Props {
   partnerInfo?: {
     partner?: { url?: string | null } | null;
-    branding?: { logoUrl?: string | null; hasPartnerLogo?: boolean | null } | null;
+    branding?: {
+      partnerLogoLightUrl?: string | null;
+      partnerLogoDarkUrl?: string | null;
+      hasPartnerLogo?: boolean | null;
+    } | null;
   } | null;
 }
 

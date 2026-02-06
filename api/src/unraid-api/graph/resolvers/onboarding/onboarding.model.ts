@@ -100,6 +100,16 @@ export class BrandingConfigInput {
     @IsString()
     logoUrl?: string;
 
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    partnerLogoLightUrl?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    partnerLogoDarkUrl?: string;
+
     @Field(() => Boolean, { nullable: true })
     @IsOptional()
     @IsBoolean()

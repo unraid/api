@@ -1,6 +1,6 @@
-import { graphql } from '~/composables/gql/gql';
+import { parse } from 'graphql';
 
-export const PARTNER_INFO_QUERY = graphql(/* GraphQL */ `
+export const PARTNER_INFO_QUERY = parse(/* GraphQL */ `
   query PartnerInfo {
     publicPartnerInfo {
       partner {
@@ -16,7 +16,8 @@ export const PARTNER_INFO_QUERY = graphql(/* GraphQL */ `
       }
       branding {
         hasPartnerLogo
-        logoUrl
+        partnerLogoLightUrl
+        partnerLogoDarkUrl
         onboardingTitle
         onboardingSubtitle
       }
@@ -24,7 +25,7 @@ export const PARTNER_INFO_QUERY = graphql(/* GraphQL */ `
   }
 `);
 
-export const PUBLIC_WELCOME_DATA_QUERY = graphql(/* GraphQL */ `
+export const PUBLIC_WELCOME_DATA_QUERY = parse(/* GraphQL */ `
   query PublicWelcomeData {
     publicPartnerInfo {
       partner {
@@ -40,7 +41,8 @@ export const PUBLIC_WELCOME_DATA_QUERY = graphql(/* GraphQL */ `
       }
       branding {
         hasPartnerLogo
-        logoUrl
+        partnerLogoLightUrl
+        partnerLogoDarkUrl
         onboardingTitle
         onboardingSubtitle
       }
@@ -49,7 +51,7 @@ export const PUBLIC_WELCOME_DATA_QUERY = graphql(/* GraphQL */ `
   }
 `);
 
-export const ACTIVATION_CODE_QUERY = graphql(/* GraphQL */ `
+export const ACTIVATION_CODE_QUERY = parse(/* GraphQL */ `
   query ActivationCode {
     customization {
       activationCode {
@@ -71,7 +73,8 @@ export const ACTIVATION_CODE_QUERY = graphql(/* GraphQL */ `
           background
           showBannerGradient
           theme
-          logoUrl
+          partnerLogoLightUrl
+          partnerLogoDarkUrl
           hasPartnerLogo
           onboardingTitle
           onboardingSubtitle
@@ -95,7 +98,8 @@ export const ACTIVATION_CODE_QUERY = graphql(/* GraphQL */ `
         }
         branding {
           hasPartnerLogo
-          logoUrl
+          partnerLogoLightUrl
+          partnerLogoDarkUrl
           onboardingTitle
           onboardingSubtitle
         }

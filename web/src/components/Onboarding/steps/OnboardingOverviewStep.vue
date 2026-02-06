@@ -11,6 +11,7 @@ import LogoCloud from '@/components/Onboarding/components/LogoCloud.vue';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
 import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgradeOnboarding';
+import { useThemeStore } from '@/store/theme';
 
 // Mock icons (assuming these exist or similar ones do)
 const BOOK_ICON = 'i-heroicons-book-open';
@@ -31,17 +32,33 @@ const { t } = useI18n();
 const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
 const { refetchOnboarding } = useUpgradeOnboardingStore();
 const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
+const { theme } = storeToRefs(useThemeStore());
 
 const isSkipping = ref(false);
 
 const isBusy = computed(() => props.isSavingStep || isSkipping.value);
 
 const isPartnerLogo = computed(
-  () => partnerInfo.value?.branding?.hasPartnerLogo && partnerInfo.value?.branding?.logoUrl
+  () =>
+    partnerInfo.value?.branding?.hasPartnerLogo &&
+    (partnerInfo.value?.branding?.partnerLogoLightUrl || partnerInfo.value?.branding?.partnerLogoDarkUrl)
 );
 
+const isDarkTheme = computed(() => ['black', 'gray'].includes(theme.value.name));
+
+const partnerGraphicSrc = computed(() => {
+  const branding = partnerInfo.value?.branding;
+  if (!branding) return null;
+
+  if (isDarkTheme.value) {
+    return branding.partnerLogoDarkUrl || branding.partnerLogoLightUrl || null;
+  }
+
+  return branding.partnerLogoLightUrl || branding.partnerLogoDarkUrl || null;
+});
+
 const graphicSrc = computed(() =>
-  isPartnerLogo.value ? partnerInfo.value!.branding!.logoUrl! : limitlessImage
+  isPartnerLogo.value ? partnerGraphicSrc.value || limitlessImage : limitlessImage
 );
 
 const graphicAlt = computed(() =>

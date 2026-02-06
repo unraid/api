@@ -1,28 +1,37 @@
 <script lang="ts" setup>
-/**
- * The actual image should be full black filled #000000.
- * This allows us to use the `invert` class to change the color to white when displayed in dark mode.
- */
+import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { useThemeStore } from '~/store/theme';
 
 interface Props {
   partnerInfo?: {
-    branding?: { logoUrl?: string | null; hasPartnerLogo?: boolean | null } | null;
+    branding?: {
+      partnerLogoLightUrl?: string | null;
+      partnerLogoDarkUrl?: string | null;
+      hasPartnerLogo?: boolean | null;
+    } | null;
   } | null;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
-const { darkMode } = storeToRefs(useThemeStore());
+const { theme } = storeToRefs(useThemeStore());
+
+const isDarkTheme = computed(() => ['black', 'gray'].includes(theme.value.name));
+
+const selectedLogoUrl = computed(() => {
+  const branding = props.partnerInfo?.branding;
+  if (!branding) return null;
+
+  if (isDarkTheme.value) {
+    return branding.partnerLogoDarkUrl || branding.partnerLogoLightUrl || null;
+  }
+
+  return branding.partnerLogoLightUrl || branding.partnerLogoDarkUrl || null;
+});
 </script>
 
 <template>
-  <img
-    v-if="partnerInfo?.branding?.logoUrl"
-    :src="partnerInfo?.branding?.logoUrl"
-    class="w-72"
-    :class="{ invert: darkMode && partnerInfo.branding?.hasPartnerLogo }"
-  />
+  <img v-if="selectedLogoUrl" :src="selectedLogoUrl" class="w-72" />
 </template>

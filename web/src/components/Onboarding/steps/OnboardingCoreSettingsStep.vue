@@ -242,6 +242,11 @@ const isLanguageDisabled = computed(() => isLanguagesLoading.value || !!language
 const draftStore = useOnboardingDraftStore();
 
 const handleSubmit = async () => {
+  if (serverNameValidation.value || serverDescriptionValidation.value) {
+    error.value = t('common.error');
+    return;
+  }
+
   isSaving.value = true;
   error.value = null;
 
@@ -272,6 +277,7 @@ const handleBack = () => {
 const serverNameValidation = computed(() => {
   // Basic check for empty if required, though API might handle it. UI usually requires it.
   if (!serverName.value) return t('onboarding.coreSettings.serverNameError.empty');
+  if (serverName.value.length > 15) return t('onboarding.coreSettings.serverNameError.tooLong');
   // Invalid chars: anything not alphanumeric, dot, or dash
   if (/[^a-zA-Z0-9.-]/.test(serverName.value))
     return t('onboarding.coreSettings.serverNameError.invalidChars');
@@ -350,6 +356,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
               <UInput
                 v-model="serverName"
                 placeholder="Tower"
+                maxlength="15"
                 :disabled="isBusy"
                 size="lg"
                 class="w-full"

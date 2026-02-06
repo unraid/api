@@ -295,7 +295,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         ...baseProps,
         onComplete: handlePluginsComplete,
         onSkip: hardcodedStep?.required ? undefined : handlePluginsSkip,
-        showSkip: !hardcodedStep?.required && !hasActivationCode.value,
+        showSkip: !hardcodedStep?.required,
         isRequired: hardcodedStep?.required ?? false,
       };
     }

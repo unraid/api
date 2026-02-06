@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OnboardingPartnerLogoImg from '~/components/Onboarding/components/OnboardingPartnerLogoImg.vue';
 
 const mockThemeStore = {
-  darkMode: ref(false),
+  theme: ref({ name: 'white' }),
 };
 
 vi.mock('~/store/theme', () => ({
@@ -20,7 +20,7 @@ vi.mock('~/store/theme', () => ({
 describe('OnboardingPartnerLogoImg', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockThemeStore.darkMode.value = false;
+    mockThemeStore.theme.value = { name: 'white' };
   });
 
   const mountComponent = (props = {}) => {
@@ -29,25 +29,29 @@ describe('OnboardingPartnerLogoImg', () => {
     });
   };
 
-  it('renders the image when partnerLogoUrl exists', () => {
+  it('renders the image when a partner light logo exists', () => {
     const wrapper = mountComponent({
       partnerInfo: {
-        partnerLogoUrl: 'https://example.com/logo.png',
-        hasPartnerLogo: true,
+        branding: {
+          partnerLogoLightUrl: 'https://example.com/logo-light.png',
+          hasPartnerLogo: true,
+        },
       },
     });
     const img = wrapper.find('img');
 
     expect(img.exists()).toBe(true);
-    expect(img.attributes('src')).toBe('https://example.com/logo.png');
+    expect(img.attributes('src')).toBe('https://example.com/logo-light.png');
     expect(img.classes()).toContain('w-72');
   });
 
   it('does not render when partnerLogoUrl is null', () => {
     const wrapper = mountComponent({
       partnerInfo: {
-        partnerLogoUrl: null,
-        hasPartnerLogo: false,
+        branding: {
+          logoUrl: null,
+          hasPartnerLogo: false,
+        },
       },
     });
     const img = wrapper.find('img');
@@ -55,42 +59,50 @@ describe('OnboardingPartnerLogoImg', () => {
     expect(img.exists()).toBe(false);
   });
 
-  it('applies invert class when in dark mode and has partner logo', () => {
-    mockThemeStore.darkMode.value = true;
+  it('uses dark logo when theme is dark', () => {
+    mockThemeStore.theme.value = { name: 'gray' };
     const wrapper = mountComponent({
       partnerInfo: {
-        partnerLogoUrl: 'https://example.com/logo.png',
-        hasPartnerLogo: true,
+        branding: {
+          partnerLogoLightUrl: 'https://example.com/logo-light.png',
+          partnerLogoDarkUrl: 'https://example.com/logo-dark.png',
+          hasPartnerLogo: true,
+        },
       },
     });
     const img = wrapper.find('img');
 
-    expect(img.classes()).toContain('invert');
+    expect(img.attributes('src')).toBe('https://example.com/logo-dark.png');
   });
 
-  it('does not apply invert class when in dark mode but no partner logo', () => {
-    mockThemeStore.darkMode.value = true;
+  it('uses light logo when theme is light', () => {
+    mockThemeStore.theme.value = { name: 'azure' };
     const wrapper = mountComponent({
       partnerInfo: {
-        partnerLogoUrl: 'https://example.com/logo.png',
-        hasPartnerLogo: false,
+        branding: {
+          partnerLogoLightUrl: 'https://example.com/logo-light.png',
+          partnerLogoDarkUrl: 'https://example.com/logo-dark.png',
+          hasPartnerLogo: true,
+        },
       },
     });
     const img = wrapper.find('img');
 
-    expect(img.classes()).not.toContain('invert');
+    expect(img.attributes('src')).toBe('https://example.com/logo-light.png');
   });
 
-  it('does not apply invert class when not in dark mode', () => {
-    mockThemeStore.darkMode.value = false;
+  it('falls back to light logo when dark logo is missing', () => {
+    mockThemeStore.theme.value = { name: 'black' };
     const wrapper = mountComponent({
       partnerInfo: {
-        partnerLogoUrl: 'https://example.com/logo.png',
-        hasPartnerLogo: true,
+        branding: {
+          partnerLogoLightUrl: 'https://example.com/logo-light.png',
+          hasPartnerLogo: true,
+        },
       },
     });
     const img = wrapper.find('img');
 
-    expect(img.classes()).not.toContain('invert');
+    expect(img.attributes('src')).toBe('https://example.com/logo-light.png');
   });
 });

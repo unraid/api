@@ -145,6 +145,24 @@ export class BrandingConfig {
     @Transform(({ value }) => sanitizeString(value))
     logoUrl?: string | null;
 
+    @Field(() => String, {
+        nullable: true,
+        description: 'Partner logo URL to use on light themes (azure/white)',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    partnerLogoLightUrl?: string | null;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Partner logo URL to use on dark themes (black/gray)',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    partnerLogoDarkUrl?: string | null;
+
     @Field(() => Boolean, { description: 'Indicates if a partner logo exists' })
     @IsOptional()
     @IsBoolean()

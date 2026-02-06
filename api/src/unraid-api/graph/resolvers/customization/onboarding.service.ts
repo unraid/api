@@ -136,12 +136,15 @@ export class OnboardingService implements OnModuleInit {
             return null;
         }
 
-        const paths = getters.paths();
-
-        // Construct BrandingConfig with computed logo presence
+        // Construct BrandingConfig with computed logo presence and theme-specific logo URLs
         const branding = activationData.branding ? { ...activationData.branding } : {};
-        branding.hasPartnerLogo = await fileExists(paths.activation.logo);
-        branding.logoUrl = paths.webgui.logo.assetPath; // Using default for now as placeholder
+        const darkLogoUrl = branding.partnerLogoDarkUrl ?? null;
+        const lightLogoUrl = branding.partnerLogoLightUrl ?? null;
+
+        // If only one variant is provided, use it for both themes.
+        branding.partnerLogoDarkUrl = darkLogoUrl ?? lightLogoUrl;
+        branding.partnerLogoLightUrl = lightLogoUrl ?? darkLogoUrl;
+        branding.hasPartnerLogo = Boolean(branding.partnerLogoDarkUrl || branding.partnerLogoLightUrl);
 
         return {
             partner: activationData.partner,

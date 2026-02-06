@@ -32,6 +32,7 @@ import {
   UPDATE_SSH_SETTINGS_MUTATION,
 } from '@/components/Onboarding/graphql/coreSettings.mutations';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
+import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
 import { useActivationCodeModalStore } from '@/components/Onboarding/store/activationCodeModal';
 import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgradeOnboarding';
@@ -69,6 +70,9 @@ const { installPlugin } = usePluginInstaller();
 const { result: coreSettingsResult } = useQuery(GET_CORE_SETTINGS_QUERY, null, {
   fetchPolicy: 'cache-first',
 });
+const { result: installedPluginsResult } = useQuery(INSTALLED_UNRAID_PLUGINS_QUERY, null, {
+  fetchPolicy: 'cache-first',
+});
 
 const draftPluginsCount = computed(() => draftStore.selectedPlugins?.size ?? 0);
 
@@ -104,6 +108,64 @@ const logs = ref<LogEntry[]>([]);
 const addLog = (message: string, type: LogEntry['type'] = 'info') => {
   logs.value.push({ message, type, timestamp: Date.now() });
 };
+
+const normalizePluginFileName = (value: string) => value.trim().toLowerCase();
+const getPluginFileName = (url: string) => {
+  const parts = url.split('/');
+  return parts[parts.length - 1] ?? url;
+};
+
+const pluginMap: Record<string, { url: string; name: string }> = {
+  'community-apps': {
+    url: 'https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
+    name: 'Community Apps',
+  },
+  'fix-common-problems': {
+    url: 'https://raw.githubusercontent.com/unraid/fix.common.problems/master/plugins/fix.common.problems.plg',
+    name: 'Fix Common Problems',
+  },
+  tailscale: {
+    url: 'https://raw.githubusercontent.com/unraid/unraid-tailscale/main/plugin/tailscale.plg',
+    name: 'Tailscale',
+  },
+};
+
+const installedPluginFileNames = computed(() => {
+  const installed = installedPluginsResult.value?.installedUnraidPlugins ?? [];
+  return new Set(installed.map((name) => normalizePluginFileName(name)));
+});
+
+const pluginIdsToInstall = computed(() => {
+  return Array.from(draftStore.selectedPlugins).filter((pluginId) => {
+    const details = pluginMap[pluginId];
+    if (!details) return false;
+    const fileName = normalizePluginFileName(getPluginFileName(details.url));
+    return !installedPluginFileNames.value.has(fileName);
+  });
+});
+
+const hasCoreSettingChanges = computed(() => {
+  const currentTimezone = coreSettingsResult.value?.systemTime?.timeZone || '';
+  const currentName =
+    coreSettingsResult.value?.server?.name || coreSettingsResult.value?.vars?.name || '';
+  const currentDescription = coreSettingsResult.value?.server?.comment || '';
+  const currentTheme = coreSettingsResult.value?.display?.theme || 'white';
+  const currentLocale = coreSettingsResult.value?.display?.locale || 'en_US';
+  const currentSsh = Boolean(coreSettingsResult.value?.vars?.useSsh || false);
+
+  return (
+    draftStore.selectedTimeZone !== currentTimezone ||
+    draftStore.serverName !== currentName ||
+    draftStore.serverDescription !== currentDescription ||
+    draftStore.selectedTheme !== currentTheme ||
+    draftStore.selectedLanguage !== currentLocale ||
+    draftStore.useSsh !== currentSsh
+  );
+});
+
+const hasAnyChangesToApply = computed(
+  () => hasCoreSettingChanges.value || pluginIdsToInstall.value.length > 0
+);
 
 // Helper to determine activation label/status
 const activationStatus = computed(() => {
@@ -156,6 +218,10 @@ const activationStatus = computed(() => {
 });
 
 const handleComplete = async () => {
+  if (isProcessing.value) {
+    return;
+  }
+
   // Lock modal open
   modalStore.setIsHidden(false);
 
@@ -169,7 +235,19 @@ const handleComplete = async () => {
     const promises = [];
 
     // 1. Apply Core Settings
-    if (draftStore.selectedTimeZone) {
+    const currentTimezone = coreSettingsResult.value?.systemTime?.timeZone || '';
+    const currentName =
+      coreSettingsResult.value?.server?.name || coreSettingsResult.value?.vars?.name || '';
+    const currentDescription = coreSettingsResult.value?.server?.comment || '';
+    const currentTheme = coreSettingsResult.value?.display?.theme || 'white';
+    const currentLocale = coreSettingsResult.value?.display?.locale || 'en_US';
+    const currentSsh = Boolean(coreSettingsResult.value?.vars?.useSsh || false);
+
+    if (!hasAnyChangesToApply.value) {
+      addLog('No settings changed. Skipping configuration mutations.', 'info');
+    }
+
+    if (draftStore.selectedTimeZone !== currentTimezone) {
       addLog(`Setting TimeZone to ${draftStore.selectedTimeZone}...`, 'info');
       promises.push(
         updateSystemTime({ input: { timeZone: draftStore.selectedTimeZone } })
@@ -178,7 +256,7 @@ const handleComplete = async () => {
       );
     }
 
-    if (draftStore.serverName) {
+    if (draftStore.serverName !== currentName || draftStore.serverDescription !== currentDescription) {
       addLog(`Updating Server Identity to ${draftStore.serverName}...`, 'info');
       promises.push(
         updateServerIdentity({ name: draftStore.serverName, comment: draftStore.serverDescription })
@@ -187,7 +265,7 @@ const handleComplete = async () => {
       );
     }
 
-    if (draftStore.selectedTheme) {
+    if (draftStore.selectedTheme !== currentTheme) {
       addLog(`Setting Theme to ${draftStore.selectedTheme}...`, 'info');
       promises.push(
         setTheme({ theme: draftStore.selectedTheme })
@@ -196,7 +274,7 @@ const handleComplete = async () => {
       );
     }
 
-    if (draftStore.selectedLanguage && draftStore.selectedLanguage !== 'en_US') {
+    if (draftStore.selectedLanguage !== currentLocale) {
       addLog(`Setting Language to ${draftStore.selectedLanguage}...`, 'info');
       promises.push(
         setLocale({ locale: draftStore.selectedLanguage })
@@ -208,25 +286,9 @@ const handleComplete = async () => {
     await Promise.all(promises);
 
     // 2. Install Plugins
-    const pluginsToInstall = Array.from(draftStore.selectedPlugins);
+    const pluginsToInstall = pluginIdsToInstall.value;
     if (pluginsToInstall.length > 0) {
       addLog(`Installing ${pluginsToInstall.length} plugins...`, 'info');
-
-      // Map IDs to URLs (Simplified)
-      const pluginMap: Record<string, { url: string; name: string }> = {
-        'community-apps': {
-          url: 'https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
-          name: 'Community Apps',
-        },
-        'fix-common-problems': {
-          url: 'https://raw.githubusercontent.com/unraid/fix.common.problems/master/plugins/fix.common.problems.plg',
-          name: 'Fix Common Problems',
-        },
-        tailscale: {
-          url: 'https://raw.githubusercontent.com/unraid/unraid-tailscale/main/plugin/tailscale.plg',
-          name: 'Tailscale',
-        },
-      };
 
       for (const pluginId of pluginsToInstall) {
         const details = pluginMap[pluginId];
@@ -252,13 +314,15 @@ const handleComplete = async () => {
     }
 
     // 3. SSH (Run separately and optimistically)
-    addLog(`Updating SSH Settings...`, 'info');
-    try {
-      await updateSshSettings({ enabled: draftStore.useSsh, port: 22 });
-      addLog('SSH Settings updated.', 'success');
-    } catch (e: unknown) {
-      console.warn('SSH update error:', e);
-      addLog('SSH Settings applied (optimistic).', 'success');
+    if (draftStore.useSsh !== currentSsh) {
+      addLog(`Updating SSH Settings...`, 'info');
+      try {
+        await updateSshSettings({ enabled: draftStore.useSsh, port: 22 });
+        addLog('SSH Settings updated.', 'success');
+      } catch (e: unknown) {
+        console.warn('SSH update error:', e);
+        addLog('SSH Settings applied (optimistic).', 'success');
+      }
     }
 
     // 4. Mark Complete
@@ -486,7 +550,11 @@ const handleBack = () => {
 
         <BrandButton
           :text="t('onboarding.summaryStep.confirmAndApply')"
-          class="!bg-primary hover:!bg-primary/90 w-full min-w-[200px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
+          :class="`w-full min-w-[200px] font-bold tracking-wide uppercase shadow-md transition-all sm:w-auto ${
+            isProcessing
+              ? '!bg-gray-400 !text-white hover:!bg-gray-400'
+              : '!bg-primary hover:!bg-primary/90 !text-white hover:shadow-lg'
+          }`"
           @click="handleComplete"
           :loading="isProcessing"
           :disabled="isProcessing"

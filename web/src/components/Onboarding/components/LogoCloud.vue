@@ -140,36 +140,40 @@ const rows = computed(() => {
 
     <!-- Rotated & Scaled Container -->
     <div
-      class="relative -top-32 left-0 h-[150%] w-[150%] -translate-x-[25%] scale-150 rotate-12 transform opacity-30 transition-all duration-1000"
+      class="relative -top-32 left-0 h-[150%] w-[150%] -translate-x-[25%] scale-110 rotate-12 transform opacity-30 transition-all duration-1000 md:scale-125 lg:-top-32 lg:scale-150"
     >
-      <div class="flex h-full flex-col justify-center gap-10">
+      <div class="flex h-full flex-col justify-center gap-6 md:gap-8 lg:gap-10">
         <div v-for="(row, rowIndex) in rows" :key="rowIndex" class="flex w-full overflow-hidden">
           <!-- Track 1 -->
           <div
-            class="flex min-w-full shrink-0 items-center justify-around gap-16 px-8"
+            class="flex min-w-full shrink-0 items-center justify-around gap-6 px-4 md:gap-10 md:px-6 lg:gap-16 lg:px-8"
             :class="[row.direction === 'left' ? 'animate-marquee' : 'animate-marquee-reverse']"
             :style="{ animationDuration: row.duration }"
           >
             <div
               v-for="(item, index) in row.items"
               :key="`${rowIndex}-${index}`"
-              class="flex items-center gap-3"
+              class="flex items-center gap-2 md:gap-3"
             >
               <div
-                class="flex items-center justify-center p-2"
+                class="flex items-center justify-center p-1 md:p-2"
                 :style="{ color: getItemColor(item.isUnraid) }"
               >
                 <!-- Use inline SVG for local files to allow coloring -->
                 <div
                   v-if="isRawSvg(item.icon)"
                   v-html="getIconContent(item.icon)"
-                  class="h-8 w-8 [&_path]:fill-current [&>svg]:h-full [&>svg]:w-full [&>svg]:fill-current"
+                  class="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 [&_path]:fill-current [&>svg]:h-full [&>svg]:w-full [&>svg]:fill-current"
                 />
-                <UIcon v-else-if="item.icon" :name="item.icon" class="h-8 w-8" />
+                <UIcon
+                  v-else-if="item.icon"
+                  :name="item.icon"
+                  class="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8"
+                />
               </div>
               <span
                 v-if="item.name"
-                class="text-xl font-bold tracking-wider uppercase"
+                class="text-sm font-bold tracking-wider uppercase md:text-lg lg:text-xl"
                 :style="{ color: getItemColor(item.isUnraid) }"
               >
                 {{ item.name }}
@@ -179,30 +183,34 @@ const rows = computed(() => {
 
           <!-- Track 2 (Duplicate for infinite loop) -->
           <div
-            class="flex min-w-full shrink-0 items-center justify-around gap-16 px-8"
+            class="flex min-w-full shrink-0 items-center justify-around gap-6 px-4 md:gap-10 md:px-6 lg:gap-16 lg:px-8"
             :class="[row.direction === 'left' ? 'animate-marquee' : 'animate-marquee-reverse']"
             :style="{ animationDuration: row.duration }"
           >
             <div
               v-for="(item, index) in row.items"
               :key="`${rowIndex}-${index}-dup`"
-              class="flex items-center gap-3"
+              class="flex items-center gap-2 md:gap-3"
             >
               <div
-                class="flex items-center justify-center p-2"
+                class="flex items-center justify-center p-1 md:p-2"
                 :style="{ color: getItemColor(item.isUnraid) }"
               >
                 <!-- Use inline SVG for local files to allow coloring -->
                 <div
                   v-if="isRawSvg(item.icon)"
                   v-html="getIconContent(item.icon)"
-                  class="h-8 w-8 [&_path]:fill-current [&>svg]:h-full [&>svg]:w-full [&>svg]:fill-current"
+                  class="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 [&_path]:fill-current [&>svg]:h-full [&>svg]:w-full [&>svg]:fill-current"
                 />
-                <UIcon v-else-if="item.icon" :name="item.icon" class="h-8 w-8" />
+                <UIcon
+                  v-else-if="item.icon"
+                  :name="item.icon"
+                  class="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8"
+                />
               </div>
               <span
                 v-if="item.name"
-                class="text-xl font-bold tracking-wider uppercase"
+                class="text-sm font-bold tracking-wider uppercase md:text-lg lg:text-xl"
                 :style="{ color: getItemColor(item.isUnraid) }"
               >
                 {{ item.name }}
