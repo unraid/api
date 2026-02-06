@@ -20,6 +20,14 @@ export const PARTNER_INFO_QUERY = parse(/* GraphQL */ `
         partnerLogoDarkUrl
         onboardingTitle
         onboardingSubtitle
+        onboardingTitleFreshInstall
+        onboardingSubtitleFreshInstall
+        onboardingTitleUpgrade
+        onboardingSubtitleUpgrade
+        onboardingTitleDowngrade
+        onboardingSubtitleDowngrade
+        onboardingTitleIncomplete
+        onboardingSubtitleIncomplete
       }
     }
   }
@@ -45,6 +53,14 @@ export const PUBLIC_WELCOME_DATA_QUERY = parse(/* GraphQL */ `
         partnerLogoDarkUrl
         onboardingTitle
         onboardingSubtitle
+        onboardingTitleFreshInstall
+        onboardingSubtitleFreshInstall
+        onboardingTitleUpgrade
+        onboardingSubtitleUpgrade
+        onboardingTitleDowngrade
+        onboardingSubtitleDowngrade
+        onboardingTitleIncomplete
+        onboardingSubtitleIncomplete
       }
     }
     isFreshInstall
@@ -78,6 +94,14 @@ export const ACTIVATION_CODE_QUERY = parse(/* GraphQL */ `
           hasPartnerLogo
           onboardingTitle
           onboardingSubtitle
+          onboardingTitleFreshInstall
+          onboardingSubtitleFreshInstall
+          onboardingTitleUpgrade
+          onboardingSubtitleUpgrade
+          onboardingTitleDowngrade
+          onboardingSubtitleDowngrade
+          onboardingTitleIncomplete
+          onboardingSubtitleIncomplete
         }
         system {
           serverName
@@ -102,6 +126,14 @@ export const ACTIVATION_CODE_QUERY = parse(/* GraphQL */ `
           partnerLogoDarkUrl
           onboardingTitle
           onboardingSubtitle
+          onboardingTitleFreshInstall
+          onboardingSubtitleFreshInstall
+          onboardingTitleUpgrade
+          onboardingSubtitleUpgrade
+          onboardingTitleDowngrade
+          onboardingSubtitleDowngrade
+          onboardingTitleIncomplete
+          onboardingSubtitleIncomplete
         }
       }
       onboardingState {

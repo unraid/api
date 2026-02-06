@@ -30,7 +30,7 @@ const { activationRequired, hasActivationCode, registrationState } = storeToRefs
   useActivationCodeDataStore()
 );
 const onboardingStore = useUpgradeOnboardingStore();
-const { shouldShowOnboarding, isUpgrade, completedAtVersion } = storeToRefs(onboardingStore);
+const { shouldShowOnboarding, isVersionDrift, completedAtVersion } = storeToRefs(onboardingStore);
 const { refetchOnboarding } = onboardingStore;
 const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
@@ -127,14 +127,14 @@ const currentDynamicStepIndex = computed(() => {
 });
 
 const modalTitle = computed<string>(() => {
-  if (isUpgrade.value) {
+  if (isVersionDrift.value) {
     return t('onboarding.activationModal.welcomeToUnraidVersion', { version: 'Unraid OS' });
   }
   return t('onboarding.activationModal.letSActivateYourUnraidOs');
 });
 
 const modalDescription = computed<string>(() => {
-  if (isUpgrade.value && completedAtVersion.value) {
+  if (isVersionDrift.value && completedAtVersion.value) {
     return t('onboarding.activationModal.youVeUpgradedFromPrevToCurr', {
       prev: completedAtVersion.value,
       curr: 'current version',
@@ -179,7 +179,7 @@ const completePendingOnboarding = async () => {
   }
 };
 
-const closeModal = async () => {
+const closeModal = async (options?: { reload?: boolean }) => {
   if (shouldShowOnboarding.value) {
     await completePendingOnboarding();
   }
@@ -189,6 +189,10 @@ const closeModal = async () => {
     stepSaveTimeout = null;
   }
   modalStore.setIsHidden(true);
+
+  if (options?.reload) {
+    window.location.reload();
+  }
 };
 
 const goToNextStep = async () => {
@@ -198,7 +202,7 @@ const goToNextStep = async () => {
       currentStepIndex.value++;
     } else {
       // If we're at the last step, close the modal
-      await closeModal();
+      await closeModal({ reload: true });
     }
     return;
   }
@@ -282,12 +286,12 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
   switch (step) {
     case 'OVERVIEW':
       console.log('[OnboardingModal] OVERVIEW step props:', {
-        isUpgrade: isUpgrade.value,
+        isUpgrade: isVersionDrift.value,
         completedAtVersion: completedAtVersion.value,
       });
       return {
         ...baseProps,
-        isUpgrade: isUpgrade.value,
+        isUpgrade: isVersionDrift.value,
         completedAtVersion: completedAtVersion.value,
         onSkipSetup: handleExitIntent,
         onSkip: undefined,

@@ -818,6 +818,12 @@ type BrandingConfig {
   """
   logoUrl: String
 
+  """Partner logo URL to use on light themes (azure/white)"""
+  partnerLogoLightUrl: String
+
+  """Partner logo URL to use on dark themes (black/gray)"""
+  partnerLogoDarkUrl: String
+
   """Indicates if a partner logo exists"""
   hasPartnerLogo: Boolean!
 
@@ -826,6 +832,30 @@ type BrandingConfig {
 
   """Custom subtitle for onboarding welcome step"""
   onboardingSubtitle: String
+
+  """Custom title for fresh install onboarding"""
+  onboardingTitleFreshInstall: String
+
+  """Custom subtitle for fresh install onboarding"""
+  onboardingSubtitleFreshInstall: String
+
+  """Custom title for upgrade onboarding"""
+  onboardingTitleUpgrade: String
+
+  """Custom subtitle for upgrade onboarding"""
+  onboardingSubtitleUpgrade: String
+
+  """Custom title for downgrade onboarding"""
+  onboardingTitleDowngrade: String
+
+  """Custom subtitle for downgrade onboarding"""
+  onboardingSubtitleDowngrade: String
+
+  """Custom title for incomplete onboarding"""
+  onboardingTitleIncomplete: String
+
+  """Custom subtitle for incomplete onboarding"""
+  onboardingSubtitleIncomplete: String
 }
 
 type SystemConfig {
@@ -870,7 +900,9 @@ type Customization {
 
 """Onboarding completion state and context"""
 type Onboarding {
-  """The current onboarding status (INCOMPLETE, UPGRADE, or COMPLETED)"""
+  """
+  The current onboarding status (INCOMPLETE, UPGRADE, DOWNGRADE, or COMPLETED)
+  """
   status: OnboardingStatus!
 
   """Whether this is a partner/OEM build with activation code"""
@@ -886,10 +918,13 @@ type Onboarding {
   activationCode: String
 }
 
-"""The current onboarding status based on completion state and version"""
+"""
+The current onboarding status based on completion state and version relationship
+"""
 enum OnboardingStatus {
   INCOMPLETE
   UPGRADE
+  DOWNGRADE
   COMPLETED
 }
 
@@ -1252,9 +1287,19 @@ input BrandingConfigInput {
   showBannerGradient: Boolean
   theme: String
   logoUrl: String
+  partnerLogoLightUrl: String
+  partnerLogoDarkUrl: String
   hasPartnerLogo: Boolean
   onboardingTitle: String
   onboardingSubtitle: String
+  onboardingTitleFreshInstall: String
+  onboardingSubtitleFreshInstall: String
+  onboardingTitleUpgrade: String
+  onboardingSubtitleUpgrade: String
+  onboardingTitleDowngrade: String
+  onboardingSubtitleDowngrade: String
+  onboardingTitleIncomplete: String
+  onboardingSubtitleIncomplete: String
 }
 
 input SystemConfigInput {

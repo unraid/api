@@ -179,6 +179,78 @@ export class BrandingConfig {
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
     onboardingSubtitle?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Custom title for fresh install onboarding',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    onboardingTitleFreshInstall?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Custom subtitle for fresh install onboarding',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    onboardingSubtitleFreshInstall?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Custom title for upgrade onboarding',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    onboardingTitleUpgrade?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Custom subtitle for upgrade onboarding',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    onboardingSubtitleUpgrade?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Custom title for downgrade onboarding',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    onboardingTitleDowngrade?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Custom subtitle for downgrade onboarding',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    onboardingSubtitleDowngrade?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Custom title for incomplete onboarding',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    onboardingTitleIncomplete?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Custom subtitle for incomplete onboarding',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    onboardingSubtitleIncomplete?: string;
 }
 
 @ObjectType()
@@ -273,13 +345,15 @@ export enum OnboardingStatus {
     INCOMPLETE = 'INCOMPLETE',
     /** User completed onboarding on a previous OS version and has since upgraded */
     UPGRADE = 'UPGRADE',
+    /** User completed onboarding on a newer OS version and has since downgraded */
+    DOWNGRADE = 'DOWNGRADE',
     /** User has already completed onboarding on the current OS version */
     COMPLETED = 'COMPLETED',
 }
 
 registerEnumType(OnboardingStatus, {
     name: 'OnboardingStatus',
-    description: 'The current onboarding status based on completion state and version',
+    description: 'The current onboarding status based on completion state and version relationship',
 });
 
 @ObjectType({
@@ -287,7 +361,7 @@ registerEnumType(OnboardingStatus, {
 })
 export class Onboarding {
     @Field(() => OnboardingStatus, {
-        description: 'The current onboarding status (INCOMPLETE, UPGRADE, or COMPLETED)',
+        description: 'The current onboarding status (INCOMPLETE, UPGRADE, DOWNGRADE, or COMPLETED)',
     })
     status!: OnboardingStatus;
 

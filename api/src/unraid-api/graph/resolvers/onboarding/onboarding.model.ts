@@ -124,6 +124,46 @@ export class BrandingConfigInput {
     @IsOptional()
     @IsString()
     onboardingSubtitle?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    onboardingTitleFreshInstall?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    onboardingSubtitleFreshInstall?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    onboardingTitleUpgrade?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    onboardingSubtitleUpgrade?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    onboardingTitleDowngrade?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    onboardingSubtitleDowngrade?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    onboardingTitleIncomplete?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    onboardingSubtitleIncomplete?: string;
 }
 
 @InputType()

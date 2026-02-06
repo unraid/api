@@ -32,7 +32,8 @@ const { t } = useI18n();
 
 const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
 const { refetchOnboarding } = useUpgradeOnboardingStore();
-const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
+const { partnerInfo, isFreshInstall } = storeToRefs(useActivationCodeDataStore());
+const { isUpgrade, isDowngrade, isIncomplete } = storeToRefs(useUpgradeOnboardingStore());
 const { theme } = storeToRefs(useThemeStore());
 
 const isSkipping = ref(false);
@@ -66,13 +67,107 @@ const graphicAlt = computed(() =>
   isPartnerLogo.value ? (partnerInfo.value?.partner?.name ?? 'Partner Logo') : 'Limitless Possibilities'
 );
 
-const welcomeTitle = computed(
-  () => partnerInfo.value?.branding?.onboardingTitle || t('onboarding.overviewStep.title')
-);
+const defaultWelcomeTitle = computed(() => {
+  if (isFreshInstall.value) {
+    return t('onboarding.overviewStep.titleFreshInstall');
+  }
 
-const welcomeSubtitle = computed(
-  () => partnerInfo.value?.branding?.onboardingSubtitle || t('onboarding.overviewStep.subtitle')
-);
+  if (isUpgrade.value) {
+    return t('onboarding.overviewStep.titleUpgrade');
+  }
+
+  if (isDowngrade.value) {
+    return t('onboarding.overviewStep.titleDowngrade');
+  }
+
+  if (isIncomplete.value) {
+    return t('onboarding.overviewStep.titleIncomplete');
+  }
+
+  return t('onboarding.overviewStep.title');
+});
+
+const defaultWelcomeSubtitle = computed(() => {
+  if (isFreshInstall.value) {
+    return t('onboarding.overviewStep.subtitleFreshInstall');
+  }
+
+  if (isUpgrade.value) {
+    return t('onboarding.overviewStep.subtitleUpgrade');
+  }
+
+  if (isDowngrade.value) {
+    return t('onboarding.overviewStep.subtitleDowngrade');
+  }
+
+  if (isIncomplete.value) {
+    return t('onboarding.overviewStep.subtitleIncomplete');
+  }
+
+  return t('onboarding.overviewStep.subtitle');
+});
+
+const welcomeTitle = computed(() => {
+  const branding = partnerInfo.value?.branding;
+  if (!branding) {
+    return defaultWelcomeTitle.value;
+  }
+
+  if (isFreshInstall.value) {
+    return branding.onboardingTitleFreshInstall || branding.onboardingTitle || defaultWelcomeTitle.value;
+  }
+
+  if (isUpgrade.value) {
+    return branding.onboardingTitleUpgrade || branding.onboardingTitle || defaultWelcomeTitle.value;
+  }
+
+  if (isDowngrade.value) {
+    return branding.onboardingTitleDowngrade || branding.onboardingTitle || defaultWelcomeTitle.value;
+  }
+
+  if (isIncomplete.value) {
+    return branding.onboardingTitleIncomplete || branding.onboardingTitle || defaultWelcomeTitle.value;
+  }
+
+  return branding.onboardingTitle || defaultWelcomeTitle.value;
+});
+
+const welcomeSubtitle = computed(() => {
+  const branding = partnerInfo.value?.branding;
+  if (!branding) {
+    return defaultWelcomeSubtitle.value;
+  }
+
+  if (isFreshInstall.value) {
+    return (
+      branding.onboardingSubtitleFreshInstall ||
+      branding.onboardingSubtitle ||
+      defaultWelcomeSubtitle.value
+    );
+  }
+
+  if (isUpgrade.value) {
+    return (
+      branding.onboardingSubtitleUpgrade || branding.onboardingSubtitle || defaultWelcomeSubtitle.value
+    );
+  }
+
+  if (isDowngrade.value) {
+    return (
+      branding.onboardingSubtitleDowngrade || branding.onboardingSubtitle || defaultWelcomeSubtitle.value
+    );
+  }
+
+  if (isIncomplete.value) {
+    return (
+      branding.onboardingSubtitleIncomplete ||
+      branding.onboardingSubtitle ||
+      defaultWelcomeSubtitle.value
+    );
+  }
+
+  return branding.onboardingSubtitle || defaultWelcomeSubtitle.value;
+});
 
 const handleComplete = () => {
   props.onComplete();

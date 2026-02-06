@@ -419,8 +419,28 @@ export type BrandingConfig = {
   logoUrl?: Maybe<Scalars['String']['output']>;
   /** Custom subtitle for onboarding welcome step */
   onboardingSubtitle?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for downgrade onboarding */
+  onboardingSubtitleDowngrade?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for fresh install onboarding */
+  onboardingSubtitleFreshInstall?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for incomplete onboarding */
+  onboardingSubtitleIncomplete?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for upgrade onboarding */
+  onboardingSubtitleUpgrade?: Maybe<Scalars['String']['output']>;
   /** Custom title for onboarding welcome step */
   onboardingTitle?: Maybe<Scalars['String']['output']>;
+  /** Custom title for downgrade onboarding */
+  onboardingTitleDowngrade?: Maybe<Scalars['String']['output']>;
+  /** Custom title for fresh install onboarding */
+  onboardingTitleFreshInstall?: Maybe<Scalars['String']['output']>;
+  /** Custom title for incomplete onboarding */
+  onboardingTitleIncomplete?: Maybe<Scalars['String']['output']>;
+  /** Custom title for upgrade onboarding */
+  onboardingTitleUpgrade?: Maybe<Scalars['String']['output']>;
+  /** Partner logo URL to use on dark themes (black/gray) */
+  partnerLogoDarkUrl?: Maybe<Scalars['String']['output']>;
+  /** Partner logo URL to use on light themes (azure/white) */
+  partnerLogoLightUrl?: Maybe<Scalars['String']['output']>;
   showBannerGradient?: Maybe<Scalars['Boolean']['output']>;
   theme?: Maybe<Scalars['String']['output']>;
 };
@@ -432,7 +452,17 @@ export type BrandingConfigInput = {
   headermetacolor?: InputMaybe<Scalars['String']['input']>;
   logoUrl?: InputMaybe<Scalars['String']['input']>;
   onboardingSubtitle?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitleDowngrade?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitleFreshInstall?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitleIncomplete?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitleUpgrade?: InputMaybe<Scalars['String']['input']>;
   onboardingTitle?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitleDowngrade?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitleFreshInstall?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitleIncomplete?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitleUpgrade?: InputMaybe<Scalars['String']['input']>;
+  partnerLogoDarkUrl?: InputMaybe<Scalars['String']['input']>;
+  partnerLogoLightUrl?: InputMaybe<Scalars['String']['input']>;
   showBannerGradient?: InputMaybe<Scalars['Boolean']['input']>;
   theme?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1899,7 +1929,7 @@ export type Onboarding = {
   completedAtVersion?: Maybe<Scalars['String']['output']>;
   /** Whether this is a partner/OEM build with activation code */
   isPartnerBuild: Scalars['Boolean']['output'];
-  /** The current onboarding status (INCOMPLETE, UPGRADE, or COMPLETED) */
+  /** The current onboarding status (INCOMPLETE, UPGRADE, DOWNGRADE, or COMPLETED) */
   status: OnboardingStatus;
 };
 
@@ -1949,9 +1979,10 @@ export type OnboardingState = {
   registrationState?: Maybe<RegistrationState>;
 };
 
-/** The current onboarding status based on completion state and version */
+/** The current onboarding status based on completion state and version relationship */
 export enum OnboardingStatus {
   COMPLETED = 'COMPLETED',
+  DOWNGRADE = 'DOWNGRADE',
   INCOMPLETE = 'INCOMPLETE',
   UPGRADE = 'UPGRADE'
 }

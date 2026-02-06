@@ -74,6 +74,22 @@ describe('CustomizationResolver', () => {
         });
     });
 
+    it('returns DOWNGRADE status when completed on newer version', async () => {
+        (onboardingTracker.getState as any).mockReturnValue({
+            completed: true,
+            completedAtVersion: '7.3.0',
+        });
+
+        const result = await resolver.onboarding();
+
+        expect(result).toEqual({
+            status: OnboardingStatus.DOWNGRADE,
+            isPartnerBuild: false,
+            completed: true,
+            completedAtVersion: '7.3.0',
+        });
+    });
+
     it('returns isPartnerBuild true when partner info exists', async () => {
         (onboardingTracker.getState as any).mockReturnValue({
             completed: false,

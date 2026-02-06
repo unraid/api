@@ -23,13 +23,15 @@ export const useOnboardingStore = defineStore('onboarding', () => {
 
   // Derived helpers for component logic
   const isUpgrade = computed(() => status.value === 'UPGRADE');
+  const isDowngrade = computed(() => status.value === 'DOWNGRADE');
+  const isVersionDrift = computed(() => status.value === 'UPGRADE' || status.value === 'DOWNGRADE');
   const isIncomplete = computed(() => status.value === 'INCOMPLETE');
   const isCompleted = computed(() => status.value === 'COMPLETED');
 
   // Decision: should we show the onboarding modal?
   const shouldShowOnboarding = computed(() => {
     // Show onboarding if status is INCOMPLETE or UPGRADE
-    return status.value === 'INCOMPLETE' || status.value === 'UPGRADE';
+    return status.value === 'INCOMPLETE' || status.value === 'UPGRADE' || status.value === 'DOWNGRADE';
   });
 
   return {
@@ -41,6 +43,8 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     completedAtVersion,
     // Derived helpers
     isUpgrade,
+    isDowngrade,
+    isVersionDrift,
     isIncomplete,
     isCompleted,
     shouldShowOnboarding,

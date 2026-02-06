@@ -12,6 +12,7 @@ import {
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 import { OnboardingMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
+import { getOnboardingVersionDirection } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-status.util.js';
 import { OnboardingOverrideInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 
 @Resolver(() => OnboardingMutations)
@@ -29,12 +30,15 @@ export class OnboardingMutationsResolver {
         const state = this.onboardingTracker.getState();
         const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
         const partnerInfo = await this.onboardingService.getPublicPartnerInfo();
+        const versionDirection = getOnboardingVersionDirection(state.completedAtVersion, currentVersion);
 
         // Compute the status based on completion state and version
         let status: OnboardingStatus;
         if (!state.completed) {
             status = OnboardingStatus.INCOMPLETE;
-        } else if (state.completedAtVersion && state.completedAtVersion !== currentVersion) {
+        } else if (versionDirection === 'DOWNGRADE') {
+            status = OnboardingStatus.DOWNGRADE;
+        } else if (versionDirection === 'UPGRADE') {
             status = OnboardingStatus.UPGRADE;
         } else {
             status = OnboardingStatus.COMPLETED;

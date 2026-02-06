@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useApolloClient } from '@vue/apollo-composable';
 
@@ -75,6 +75,14 @@ type BrandingConfigPayload = {
   hasPartnerLogo?: boolean;
   onboardingTitle?: string;
   onboardingSubtitle?: string;
+  onboardingTitleFreshInstall?: string;
+  onboardingSubtitleFreshInstall?: string;
+  onboardingTitleUpgrade?: string;
+  onboardingSubtitleUpgrade?: string;
+  onboardingTitleDowngrade?: string;
+  onboardingSubtitleDowngrade?: string;
+  onboardingTitleIncomplete?: string;
+  onboardingSubtitleIncomplete?: string;
 };
 
 type SystemConfigPayload = {
@@ -114,7 +122,7 @@ const presets = ref<Preset[]>([
   {
     id: 'regular-incomplete',
     label: '1. Regular User - Incomplete',
-    description: 'Fresh install, no partner, onboarding not completed',
+    description: 'Incomplete onboarding state (commonly fresh install), no partner',
     overrides: {
       registrationState: RegistrationState.ENOKEYFILE,
       onboarding: {
@@ -140,14 +148,28 @@ const presets = ref<Preset[]>([
     },
   },
   {
-    id: 'regular-completed',
-    label: '3. Regular User - Completed',
-    description: 'Onboarding already completed on current version',
+    id: 'regular-downgrade',
+    label: '3. Regular User - Downgrade',
+    description: 'Completed onboarding on newer version, now downgraded',
     overrides: {
       registrationState: RegistrationState.EGUID,
       onboarding: {
         completed: true,
-        completedAtVersion: '7.2.0', // Same as current version
+        completedAtVersion: '9.0.0',
+      },
+      activationCode: null,
+      partnerInfo: null,
+    },
+  },
+  {
+    id: 'regular-completed',
+    label: '4. Regular User - Completed',
+    description: 'Onboarding completed state (version-agnostic)',
+    overrides: {
+      registrationState: RegistrationState.EGUID,
+      onboarding: {
+        completed: true,
+        completedAtVersion: null, // Null forces COMPLETED regardless of current version
       },
       activationCode: null,
       partnerInfo: null,
@@ -159,8 +181,8 @@ const presets = ref<Preset[]>([
   // So we only need to set activationCode - no duplication needed!
   {
     id: 'partner-incomplete',
-    label: '4. Partner User - Incomplete',
-    description: 'Partner install with activation code, onboarding not completed',
+    label: '5. Partner User - Incomplete',
+    description: 'Partner user in incomplete onboarding state',
     overrides: {
       registrationState: RegistrationState.ENOKEYFILE,
       onboarding: {
@@ -187,6 +209,10 @@ const presets = ref<Preset[]>([
           partnerLogoDarkUrl: '/config/activate/45drives-logo-dark.png',
           onboardingTitle: 'Welcome to Storinator',
           onboardingSubtitle: 'Unleash your massive storage',
+          onboardingTitleFreshInstall: 'Welcome to your new Storinator',
+          onboardingSubtitleFreshInstall: 'Let us get your storage stack configured.',
+          onboardingTitleIncomplete: 'Finish Storinator setup',
+          onboardingSubtitleIncomplete: 'Pick up right where you left off.',
         },
         system: {
           serverName: 'Storinator S45',
@@ -197,7 +223,7 @@ const presets = ref<Preset[]>([
   },
   {
     id: 'partner-upgrade',
-    label: '5. Partner User - Upgrade',
+    label: '6. Partner User - Upgrade',
     description: 'Partner user completed on older version, now upgraded',
     overrides: {
       registrationState: RegistrationState.EGUID,
@@ -221,6 +247,14 @@ const presets = ref<Preset[]>([
           partnerLogoDarkUrl: '/config/activate/45drives-logo-dark.png',
           onboardingTitle: 'Welcome to Storinator',
           onboardingSubtitle: 'Your powerful storage solution',
+          onboardingTitleFreshInstall: 'Welcome to your Storinator',
+          onboardingSubtitleFreshInstall: 'We will walk through first-time setup.',
+          onboardingTitleUpgrade: 'Thanks for upgrading Storinator',
+          onboardingSubtitleUpgrade: 'Review the latest updates and continue.',
+          onboardingTitleDowngrade: 'Welcome back to Storinator',
+          onboardingSubtitleDowngrade: 'You are on an earlier release. Let us re-check setup.',
+          onboardingTitleIncomplete: 'Finish Storinator setup',
+          onboardingSubtitleIncomplete: 'Pick up right where you left off.',
         },
         system: {
           serverName: 'Storinator AV15',
@@ -230,14 +264,53 @@ const presets = ref<Preset[]>([
     },
   },
   {
-    id: 'partner-completed',
-    label: '6. Partner User - Completed',
-    description: 'Partner user already completed onboarding',
+    id: 'partner-downgrade',
+    label: '7. Partner User - Downgrade',
+    description: 'Partner user completed on newer version, now downgraded',
     overrides: {
       registrationState: RegistrationState.EGUID,
       onboarding: {
         completed: true,
-        completedAtVersion: '7.2.0',
+        completedAtVersion: '9.0.0',
+      },
+      activationCode: {
+        code: 'DEMO-PARTNER-CODE-654',
+        partner: {
+          name: '45Drives',
+          url: 'https://45drives.com',
+        },
+        branding: {
+          theme: 'azure',
+          hasPartnerLogo: true,
+          partnerLogoLightUrl: '/config/activate/45drives-logo-light.png',
+          partnerLogoDarkUrl: '/config/activate/45drives-logo-dark.png',
+          onboardingTitle: 'Welcome to Storinator',
+          onboardingSubtitle: 'High-performance storage',
+          onboardingTitleFreshInstall: 'Welcome to your Storinator',
+          onboardingSubtitleFreshInstall: 'Let us configure the essentials.',
+          onboardingTitleUpgrade: 'Thanks for upgrading Storinator',
+          onboardingSubtitleUpgrade: 'Review updates before continuing.',
+          onboardingTitleDowngrade: 'Welcome back to Storinator',
+          onboardingSubtitleDowngrade: 'You are on an earlier release. Let us re-check setup.',
+          onboardingTitleIncomplete: 'Finish Storinator setup',
+          onboardingSubtitleIncomplete: 'Complete the remaining steps.',
+        },
+        system: {
+          serverName: 'Storinator X',
+          model: 'Storinator',
+        },
+      },
+    },
+  },
+  {
+    id: 'partner-completed',
+    label: '8. Partner User - Completed',
+    description: 'Partner user in completed onboarding state (version-agnostic)',
+    overrides: {
+      registrationState: RegistrationState.EGUID,
+      onboarding: {
+        completed: true,
+        completedAtVersion: null,
       },
       activationCode: {
         code: 'DEMO-PARTNER-CODE-789',
@@ -252,6 +325,14 @@ const presets = ref<Preset[]>([
           partnerLogoDarkUrl: '/config/activate/45drives-logo-dark.png',
           onboardingTitle: 'Welcome to Storinator',
           onboardingSubtitle: 'High-performance storage',
+          onboardingTitleFreshInstall: 'Welcome to your Storinator',
+          onboardingSubtitleFreshInstall: 'Get your system configured in minutes.',
+          onboardingTitleUpgrade: 'Thanks for upgrading Storinator',
+          onboardingSubtitleUpgrade: 'Let us review what changed.',
+          onboardingTitleDowngrade: 'Welcome back to Storinator',
+          onboardingSubtitleDowngrade: 'You are on an earlier release. Let us re-check setup.',
+          onboardingTitleIncomplete: 'Finish Storinator setup',
+          onboardingSubtitleIncomplete: 'Complete the final setup items.',
         },
         system: {
           serverName: 'Storinator Q30',
@@ -309,8 +390,10 @@ const applyAndOpenPreset = async (preset: Preset) => {
 
   errorMessage.value = '';
   await applyOverrides();
-  // Force open modal
-  setTimeout(() => activationModalStore.setIsHidden(false), 100);
+  await nextTick();
+  const shouldOpen =
+    status.value === 'INCOMPLETE' || status.value === 'UPGRADE' || status.value === 'DOWNGRADE';
+  activationModalStore.setIsHidden(!shouldOpen);
 };
 
 const clearOverrides = async () => {
@@ -370,10 +453,7 @@ const applyOverrides = async () => {
     });
     errorMessage.value = '';
 
-    // Auto-open modal if configuration suggests it should be open
-    if (!parsed.onboarding?.completed) {
-      setTimeout(() => activationModalStore.setIsHidden(false), 100);
-    }
+    // Do not auto-open modal on generic apply; use preset "Open" or manual button.
   } catch (error) {
     errorMessage.value =
       error instanceof Error ? `Invalid JSON: ${error.message}` : 'Invalid JSON payload';
@@ -437,6 +517,8 @@ const getStatusBadgeClass = (statusValue: string | undefined) => {
       return 'bg-orange-500/15 text-orange-600 dark:text-orange-400';
     case 'UPGRADE':
       return 'bg-purple-500/15 text-purple-600 dark:text-purple-400';
+    case 'DOWNGRADE':
+      return 'bg-blue-500/15 text-blue-600 dark:text-blue-400';
     default:
       return 'bg-gray-500/15 text-gray-600 dark:text-gray-400';
   }
