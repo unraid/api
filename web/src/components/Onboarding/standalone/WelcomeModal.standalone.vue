@@ -6,7 +6,7 @@ import { Dialog } from '@unraid/ui';
 
 import OnboardingPartnerLogo from '~/components/Onboarding/components/OnboardingPartnerLogo.vue';
 import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
-import OnboardingWelcomeStep from '~/components/Onboarding/steps/OnboardingWelcomeStep.vue';
+import OnboardingOverviewStep from '~/components/Onboarding/steps/OnboardingOverviewStep.vue';
 import { useWelcomeModalDataStore } from '~/components/Onboarding/store/welcomeModalData';
 import { useThemeStore } from '~/store/theme';
 
@@ -109,7 +109,7 @@ onUnmounted(() => {
           <OnboardingPartnerLogo :partner-info="partnerInfo" />
         </div>
         <OnboardingSteps :steps="[]" :active-step-index="0" class="mb-8" />
-        <OnboardingWelcomeStep
+        <OnboardingOverviewStep
           :partner-name="partnerInfo?.partner?.name || undefined"
           :on-complete="dropdownHide"
           :redirect-to-login="true"

@@ -384,12 +384,12 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
           <!-- Time Zone -->
           <div class="flex flex-col gap-2">
             <label class="text-highlighted text-base font-bold">
-              {{ t('onboarding.timezoneStep.setYourTimeZone') }}
+              {{ t('onboarding.coreSettings.timezone') }}
             </label>
             <Select
               v-model="selectedTimeZone"
               :items="timeZoneItems"
-              :placeholder="t('onboarding.timezoneStep.selectTimezonePlaceholder')"
+              :placeholder="t('onboarding.coreSettings.selectTimezonePlaceholder')"
               class="w-full"
               :disabled="isBusy"
               size="lg"

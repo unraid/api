@@ -12,7 +12,7 @@ import type { ComposerTranslation } from 'vue-i18n';
 import WelcomeModal from '~/components/Onboarding/standalone/WelcomeModal.standalone.vue';
 import { testTranslate } from '../../utils/i18n';
 
-type OnboardingWelcomeStepStubProps = {
+type OnboardingOverviewStepStubProps = {
   t?: ComposerTranslation;
   partnerName?: string | null;
   currentVersion?: string;
@@ -61,7 +61,7 @@ const mockComponents = {
     template: '<div data-testid="onboarding-steps" :active-step="activeStepIndex"></div>',
     props: ['steps', 'activeStepIndex'],
   },
-  OnboardingWelcomeStep: {
+  OnboardingOverviewStep: {
     props: [
       't',
       'partnerName',
@@ -74,30 +74,30 @@ const mockComponents = {
       'showSkip',
       'showBack',
     ],
-    setup(props: OnboardingWelcomeStepStubProps) {
+    setup(props: OnboardingOverviewStepStubProps) {
       const translate = props.t ?? mockT;
 
       const buildTitle = () => {
         if (props.partnerName) {
-          return translate('onboarding.welcomeModal.welcomeToYourNewSystemPowered', [props.partnerName]);
+          return translate('onboarding.overviewStep.welcomeToYourNewSystemPowered', [props.partnerName]);
         }
         if (props.currentVersion) {
-          return translate('onboarding.welcomeModal.welcomeToUnraidVersion', [props.currentVersion]);
+          return translate('onboarding.overviewStep.welcomeToUnraidVersion', [props.currentVersion]);
         }
-        return translate('onboarding.welcomeModal.welcomeToUnraid');
+        return translate('onboarding.overviewStep.welcomeToUnraid');
       };
 
       const buildDescription = () => {
         if (props.previousVersion && props.currentVersion) {
-          return translate('onboarding.welcomeModal.youVeUpgradedFromPrevToCurr', [
+          return translate('onboarding.overviewStep.youVeUpgradedFromPrevToCurr', [
             props.previousVersion,
             props.currentVersion,
           ]);
         }
         if (props.currentVersion) {
-          return translate('onboarding.welcomeModal.welcomeToYourUnraidSystem', [props.currentVersion]);
+          return translate('onboarding.overviewStep.welcomeToYourUnraidSystem', [props.currentVersion]);
         }
-        return translate('onboarding.welcomeModal.getStartedWithYourNewSystem');
+        return translate('onboarding.overviewStep.getStartedWithYourNewSystem');
       };
 
       const handleClick = () => {
@@ -111,7 +111,7 @@ const mockComponents = {
       return {
         title: buildTitle(),
         description: buildDescription(),
-        buttonText: translate('onboarding.welcomeModal.getStarted'),
+        buttonText: translate('onboarding.overviewStep.getStarted'),
         handleClick,
       };
     },
@@ -205,7 +205,7 @@ describe('Onboarding/WelcomeModal.standalone.vue', () => {
   it('uses the correct title text when no partner name is provided', async () => {
     const wrapper = await mountComponent();
 
-    expect(wrapper.find('h1').text()).toBe(testTranslate('onboarding.welcomeModal.welcomeToUnraid'));
+    expect(wrapper.find('h1').text()).toBe(testTranslate('onboarding.overviewStep.welcomeToUnraid'));
   });
 
   it('uses the correct title text when partner name is provided', async () => {
@@ -216,14 +216,14 @@ describe('Onboarding/WelcomeModal.standalone.vue', () => {
     const wrapper = await mountComponent();
 
     expect(wrapper.find('h1').text()).toBe(
-      testTranslate('onboarding.welcomeModal.welcomeToYourNewSystemPowered', ['Test Partner'])
+      testTranslate('onboarding.overviewStep.welcomeToYourNewSystemPowered', ['Test Partner'])
     );
   });
 
   it('uses the correct description text', async () => {
     const wrapper = await mountComponent();
 
-    const description = testTranslate('onboarding.welcomeModal.getStartedWithYourNewSystem');
+    const description = testTranslate('onboarding.overviewStep.getStartedWithYourNewSystem');
     expect(wrapper.text()).toContain(description);
   });
 
@@ -405,7 +405,8 @@ describe('Onboarding/WelcomeModal.standalone.vue', () => {
       // Check that the modal is rendered
       const dialog = wrapper.findComponent({ name: 'Dialog' });
       expect(dialog.exists()).toBe(true);
-      expect(wrapper.text()).toContain('Welcome to Unraid!');
+      // The stub renders the translated title from testTranslate
+      expect(wrapper.text()).toContain('Get started with your new Unraid system');
       expect(wrapper.text()).toContain('Get Started');
     });
   });

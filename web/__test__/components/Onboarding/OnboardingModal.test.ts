@@ -54,7 +54,7 @@ const mockComponents = {
     template: '<div data-testid="timezone-step"></div>',
     props: ['t', 'onComplete', 'onSkip', 'onBack', 'showSkip', 'showBack'],
   },
-  OnboardingWelcomeStep: {
+  OnboardingOverviewStep: {
     template: '<div data-testid="welcome-step"></div>',
     props: [
       'currentVersion',

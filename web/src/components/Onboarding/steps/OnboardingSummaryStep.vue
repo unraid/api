@@ -76,7 +76,7 @@ const currentTimeZone = computed(() => {
   return (
     draftStore.selectedTimeZone ||
     coreSettingsResult.value?.systemTime?.timeZone ||
-    t('onboarding.timezoneStep.notConfigured')
+    t('onboarding.coreSettings.notConfigured')
   );
 });
 
@@ -354,7 +354,7 @@ const handleBack = () => {
           </div>
           <div class="space-y-3">
             <div class="flex items-center justify-between text-sm">
-              <span class="text-muted">{{ t('onboarding.timezoneStep.setYourTimeZone') }}</span>
+              <span class="text-muted">{{ t('onboarding.coreSettings.timezone') }}</span>
               <div class="flex items-center gap-1.5">
                 <ClockIcon class="text-muted h-4 w-4" />
                 <span class="text-highlighted font-medium">{{ currentTimeZone }}</span>

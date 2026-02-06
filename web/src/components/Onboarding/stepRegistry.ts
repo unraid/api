@@ -3,12 +3,12 @@ import type { Component } from 'vue';
 import OnboardingCoreSettingsStep from '~/components/Onboarding/steps/OnboardingCoreSettingsStep.vue';
 import OnboardingLicenseStep from '~/components/Onboarding/steps/OnboardingLicenseStep.vue';
 import OnboardingNextStepsStep from '~/components/Onboarding/steps/OnboardingNextStepsStep.vue';
+import OnboardingOverviewStep from '~/components/Onboarding/steps/OnboardingOverviewStep.vue';
 import OnboardingPluginsStep from '~/components/Onboarding/steps/OnboardingPluginsStep.vue';
 import OnboardingSummaryStep from '~/components/Onboarding/steps/OnboardingSummaryStep.vue';
-import OnboardingWelcomeStep from '~/components/Onboarding/steps/OnboardingWelcomeStep.vue';
 
 export const stepComponents: Record<string, Component> = {
-  OVERVIEW: OnboardingWelcomeStep,
+  OVERVIEW: OnboardingOverviewStep,
   CONFIGURE_SETTINGS: OnboardingCoreSettingsStep,
   ADD_PLUGINS: OnboardingPluginsStep,
   ACTIVATE_LICENSE: OnboardingLicenseStep,
@@ -24,8 +24,8 @@ export type StepMetadataEntry = {
 
 export const stepMetadata: Record<string, StepMetadataEntry> = {
   OVERVIEW: {
-    titleKey: 'onboarding.welcomeModal.welcomeToUnraid',
-    descriptionKey: 'onboarding.welcomeModal.getStartedWithYourNewSystem',
+    titleKey: 'onboarding.overviewStep.welcomeToUnraid',
+    descriptionKey: 'onboarding.overviewStep.getStartedWithYourNewSystem',
     icon: 'i-heroicons-sparkles',
   },
   CONFIGURE_SETTINGS: {

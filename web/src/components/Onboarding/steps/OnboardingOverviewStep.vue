@@ -49,11 +49,11 @@ const graphicAlt = computed(() =>
 );
 
 const welcomeTitle = computed(
-  () => partnerInfo.value?.branding?.onboardingTitle || t('onboarding.welcomeModal.title')
+  () => partnerInfo.value?.branding?.onboardingTitle || t('onboarding.overviewStep.title')
 );
 
 const welcomeSubtitle = computed(
-  () => partnerInfo.value?.branding?.onboardingSubtitle || t('onboarding.welcomeModal.subtitle')
+  () => partnerInfo.value?.branding?.onboardingSubtitle || t('onboarding.overviewStep.subtitle')
 );
 
 const handleComplete = () => {
@@ -107,7 +107,7 @@ const openDocs = () => {
         >
           <UIcon :name="CLOCK_ICON" class="h-5 w-5" />
           <span class="text-sm font-bold tracking-wide">{{
-            t('onboarding.welcomeModal.setupTime')
+            t('onboarding.overviewStep.setupTime')
           }}</span>
         </div>
       </div>
@@ -115,7 +115,7 @@ const openDocs = () => {
       <!-- Introduction (Full Width) -->
       <div class="border-primary/40 mb-10 border-l-4 pl-4">
         <p class="text-muted max-w-full text-base italic">
-          {{ t('onboarding.welcomeModal.intro') }}
+          {{ t('onboarding.overviewStep.intro') }}
         </p>
       </div>
 
@@ -139,19 +139,19 @@ const openDocs = () => {
             <div class="mb-4 flex items-center gap-3">
               <UIcon :name="BOOK_ICON" class="text-primary h-6 w-6" />
               <h3 class="text-primary text-sm font-bold tracking-wider uppercase">
-                {{ t('onboarding.welcomeModal.needHelp.title') }}
+                {{ t('onboarding.overviewStep.needHelp.title') }}
               </h3>
             </div>
 
             <p class="text-muted mb-6 flex-grow">
-              {{ t('onboarding.welcomeModal.needHelp.description') }}
+              {{ t('onboarding.overviewStep.needHelp.description') }}
             </p>
 
             <button
               @click="openDocs"
               class="border-muted hover:border-toned hover:bg-muted text-toned flex w-full items-center justify-center gap-2 rounded-lg border px-4 py-3 font-medium transition-all"
             >
-              {{ t('onboarding.welcomeModal.needHelp.button') }}
+              {{ t('onboarding.overviewStep.needHelp.button') }}
               <UIcon name="i-heroicons-arrow-top-right-on-square" class="ml-1 h-4 w-4 opacity-70" />
             </button>
           </div>
@@ -161,7 +161,7 @@ const openDocs = () => {
       <!-- Disclaimer Box (Full Width) -->
       <!-- <div class="p-5 rounded-xl bg-accented border border-muted/50 mb-8">
         <p class="text-muted italic text-sm leading-relaxed text-center">
-          {{ t('onboarding.welcomeModal.disclaimer') }}
+          {{ t('onboarding.overviewStep.disclaimer') }}
         </p>
       </div> -->
 
@@ -191,7 +191,7 @@ const openDocs = () => {
           </button>
 
           <BrandButton
-            :text="t('onboarding.welcomeModal.nextStep')"
+            :text="t('onboarding.overviewStep.nextStep')"
             class="!bg-primary hover:!bg-primary/90 min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg"
             :disabled="isBusy"
             :loading="isBusy"
