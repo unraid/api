@@ -149,6 +149,18 @@ export class BrandingConfig {
     @IsOptional()
     @IsBoolean()
     hasPartnerLogo?: boolean | null;
+
+    @Field(() => String, { nullable: true, description: 'Custom title for onboarding welcome step' })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    onboardingTitle?: string;
+
+    @Field(() => String, { nullable: true, description: 'Custom subtitle for onboarding welcome step' })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    onboardingSubtitle?: string;
 }
 
 @ObjectType()

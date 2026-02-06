@@ -26,6 +26,9 @@ const errorMessage = ref('');
 const lastApplied = ref('');
 const activePresetId = ref<string | null>(null);
 
+// Cache for storing edited JSON per preset - survives switching between presets
+const presetEditCache = ref<Map<string, string>>(new Map());
+
 const SET_ONBOARDING_OVERRIDE_MUTATION = parse(/* GraphQL */ `
   mutation SetOnboardingOverride($input: OnboardingOverrideInput!) {
     onboarding {
@@ -69,6 +72,8 @@ type BrandingConfigPayload = {
   theme?: 'azure' | 'black' | 'gray' | 'white';
   logoUrl?: string;
   hasPartnerLogo?: boolean;
+  onboardingTitle?: string;
+  onboardingSubtitle?: string;
 };
 
 type SystemConfigPayload = {
@@ -149,6 +154,8 @@ const presets = ref<Preset[]>([
   },
 
   // ============ PARTNER USER STATES (e.g., 45Drives) ============
+  // Note: partnerInfo is automatically derived from activationCode by the API
+  // So we only need to set activationCode - no duplication needed!
   {
     id: 'partner-incomplete',
     label: '4. Partner User - Incomplete',
@@ -174,27 +181,14 @@ const presets = ref<Preset[]>([
         },
         branding: {
           theme: 'azure',
+          hasPartnerLogo: true,
+          logoUrl: '/config/activate/45drives-logo.png',
+          onboardingTitle: 'Welcome to Storinator',
+          onboardingSubtitle: 'Unleash your massive storage',
         },
         system: {
           serverName: 'Storinator S45',
           model: 'Storinator',
-        },
-      },
-      partnerInfo: {
-        branding: {
-          hasPartnerLogo: true,
-          logoUrl: '/config/activate/45drives-logo.png',
-        },
-        partner: {
-          name: '45Drives',
-          url: 'https://45drives.com',
-          hardwareSpecsUrl: 'https://45drives.com/specs/storinator-s45',
-          manualUrl: 'https://45drives.com/docs/storinator-manual',
-          supportUrl: 'https://45drives.com/support',
-          extraLinks: [
-            { title: 'Community Forums', url: 'https://45drives.com/forums' },
-            { title: 'Knowledge Base', url: 'https://45drives.com/kb' },
-          ],
         },
       },
     },
@@ -220,23 +214,14 @@ const presets = ref<Preset[]>([
         },
         branding: {
           theme: 'azure',
+          hasPartnerLogo: true,
+          logoUrl: '/config/activate/45drives-logo.png',
+          onboardingTitle: 'Welcome to Storinator',
+          onboardingSubtitle: 'Your powerful storage solution',
         },
         system: {
           serverName: 'Storinator AV15',
           model: 'Storinator',
-        },
-      },
-      partnerInfo: {
-        branding: {
-          hasPartnerLogo: true,
-          logoUrl: '/config/activate/45drives-logo.png',
-        },
-        partner: {
-          name: '45Drives',
-          url: 'https://45drives.com',
-          hardwareSpecsUrl: 'https://45drives.com/specs/storinator-av15',
-          manualUrl: 'https://45drives.com/docs/storinator-manual',
-          supportUrl: 'https://45drives.com/support',
         },
       },
     },
@@ -259,20 +244,14 @@ const presets = ref<Preset[]>([
         },
         branding: {
           theme: 'azure',
+          hasPartnerLogo: true,
+          logoUrl: '/config/activate/45drives-logo.png',
+          onboardingTitle: 'Welcome to Storinator',
+          onboardingSubtitle: 'High-performance storage',
         },
         system: {
           serverName: 'Storinator Q30',
           model: 'Storinator',
-        },
-      },
-      partnerInfo: {
-        branding: {
-          hasPartnerLogo: true,
-          logoUrl: '/config/activate/45drives-logo.png',
-        },
-        partner: {
-          name: '45Drives',
-          url: 'https://45drives.com',
         },
       },
     },
@@ -285,16 +264,45 @@ const formattedOverrides = (value: OnboardingOverridePayload | null) => {
 };
 
 // "Load" the preset into the editor (for editing) - and set as active selection
+// If the same preset is already selected, don't reset the editor (preserve edits)
+// When switching presets, save current edits to cache and restore cached edits if available
 const loadPreset = (preset: Preset) => {
-  draftJson.value = formattedOverrides(preset.overrides);
-  errorMessage.value = '';
+  // If same preset, do nothing - preserve any edits
+  if (activePresetId.value === preset.id) {
+    return;
+  }
+
+  // Save current edits to cache before switching (if we have an active preset)
+  if (activePresetId.value && draftJson.value.trim()) {
+    presetEditCache.value.set(activePresetId.value, draftJson.value);
+  }
+
+  // Switch to new preset
   activePresetId.value = preset.id;
+  errorMessage.value = '';
+
+  // Check if we have cached edits for this preset
+  const cachedEdits = presetEditCache.value.get(preset.id);
+  if (cachedEdits) {
+    // Restore cached edits
+    draftJson.value = cachedEdits;
+  } else {
+    // Load fresh from preset defaults
+    draftJson.value = formattedOverrides(preset.overrides);
+  }
 };
 
 // Apply preset directly - Acts as "Activate"
+// If the same preset is already selected, preserve any edits made to the JSON
 const applyAndOpenPreset = async (preset: Preset) => {
-  activePresetId.value = preset.id;
-  draftJson.value = formattedOverrides(preset.overrides);
+  const isSamePreset = activePresetId.value === preset.id;
+
+  // Only reset to preset defaults if switching to a different preset
+  if (!isSamePreset) {
+    activePresetId.value = preset.id;
+    draftJson.value = formattedOverrides(preset.overrides);
+  }
+
   errorMessage.value = '';
   await applyOverrides();
   // Force open modal
@@ -302,15 +310,39 @@ const applyAndOpenPreset = async (preset: Preset) => {
 };
 
 const clearOverrides = async () => {
+  if (!confirm('Clear all overrides? This will return to reading real data from disk.')) {
+    return;
+  }
   await apolloClient.mutate({
     mutation: CLEAR_ONBOARDING_OVERRIDE_MUTATION,
     fetchPolicy: 'no-cache',
   });
   lastApplied.value = '';
+  draftJson.value = '';
   activePresetId.value = null; // Clear active state
+  presetEditCache.value.clear(); // Clear all cached edits
   await apolloClient.refetchQueries({
-    include: ['ActivationCode', 'PublicWelcomeData', 'Onboarding'],
+    include: ['ActivationCode', 'PublicWelcomeData', 'Onboarding', 'PartnerInfo'],
   });
+};
+
+// Reset the JSON editor back to the currently selected preset's original values
+// Also clears the edit cache for this preset
+const resetToPreset = () => {
+  if (!activePresetId.value) {
+    errorMessage.value = 'No preset selected. Select a preset first.';
+    return;
+  }
+  const activePreset = presets.value.find((p) => p.id === activePresetId.value);
+  if (!activePreset) {
+    errorMessage.value = 'Selected preset not found.';
+    return;
+  }
+  // Clear cached edits for this preset
+  presetEditCache.value.delete(activePresetId.value);
+  // Restore original preset values
+  draftJson.value = formattedOverrides(activePreset.overrides);
+  errorMessage.value = '';
 };
 
 const applyOverrides = async () => {
@@ -330,7 +362,7 @@ const applyOverrides = async () => {
     });
     lastApplied.value = trimmed;
     await apolloClient.refetchQueries({
-      include: ['ActivationCode', 'PublicWelcomeData', 'Onboarding'],
+      include: ['ActivationCode', 'PublicWelcomeData', 'Onboarding', 'PartnerInfo'],
     });
     errorMessage.value = '';
 
@@ -604,13 +636,32 @@ const currentRegistrationState = computed({
       <!-- JSON Editor (Right) -->
       <div class="border-border bg-card flex min-h-0 flex-col rounded-lg border shadow-sm lg:col-span-8">
         <div class="border-border bg-muted flex items-center justify-between rounded-t-lg border-b p-3">
-          <h3 class="text-sm font-semibold">Overrides JSON</h3>
+          <div class="flex items-center gap-2">
+            <!-- overrides for .activationcode, onboarding-tracker, and some api and os files -->
+            <h3 class="text-sm font-semibold">Overrides</h3>
+            <span v-if="activePresetId" class="text-muted-foreground text-xs">
+              ({{ presets.find((p) => p.id === activePresetId)?.label || 'Custom' }})
+            </span>
+          </div>
           <div class="flex gap-2">
             <button
               @click="clearOverrides"
-              class="rounded border border-transparent px-3 py-1 text-xs font-medium text-red-600 hover:border-red-200 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+              class="border-border text-foreground hover:bg-muted rounded border px-3 py-1 text-xs font-medium transition-colors"
+              title="Clear all overrides and return to real server data"
             >
-              Clear
+              Simulate Current Server's Onboarding
+            </button>
+            <button
+              @click="resetToPreset"
+              :disabled="!activePresetId"
+              class="rounded border px-3 py-1 text-xs font-medium transition-colors"
+              :class="
+                activePresetId
+                  ? 'border-orange-500 text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-900/20'
+                  : 'border-border cursor-not-allowed text-gray-400'
+              "
+            >
+              Reset Current Preset
             </button>
             <button
               @click="applyOverrides"
@@ -772,10 +823,17 @@ const currentRegistrationState = computed({
           </tbody>
         </table>
       </div>
-      <div class="border-border text-muted-foreground mt-4 border-t pt-3 text-xs">
-        <strong class="text-foreground">Tip:</strong> Fields in
-        <span class="text-gray-400">gray</span> are computed and cannot be directly overridden. The
-        override system mocks the source data, and the API computes derived fields from it.
+      <div class="border-border text-muted-foreground mt-4 space-y-2 border-t pt-3 text-xs">
+        <p>
+          <strong class="text-foreground">Tip:</strong> Fields in
+          <span class="text-gray-400">gray</span> are computed and cannot be directly overridden. The
+          override system mocks the source data, and the API computes derived fields from it.
+        </p>
+        <p>
+          <strong class="text-green-500">Simplified:</strong> You only need to edit
+          <code class="bg-muted rounded px-1">activationCode.*</code> fields. The API automatically
+          derives <code class="bg-muted rounded px-1">partnerInfo</code> from it!
+        </p>
       </div>
     </div>
   </div>

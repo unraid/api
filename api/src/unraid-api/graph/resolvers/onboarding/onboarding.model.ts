@@ -104,6 +104,16 @@ export class BrandingConfigInput {
     @IsOptional()
     @IsBoolean()
     hasPartnerLogo?: boolean;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    onboardingTitle?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    onboardingSubtitle?: string;
 }
 
 @InputType()

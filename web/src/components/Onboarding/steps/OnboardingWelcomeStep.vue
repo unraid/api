@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
 import { useMutation } from '@vue/apollo-composable';
 
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
+import limitlessImage from '@/assets/limitless_possibilities.jpg';
 import LogoCloud from '@/components/Onboarding/components/LogoCloud.vue';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
+import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
 import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgradeOnboarding';
 
 // Mock icons (assuming these exist or similar ones do)
@@ -27,9 +30,31 @@ const { t } = useI18n();
 
 const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
 const { refetchOnboarding } = useUpgradeOnboardingStore();
+const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
+
 const isSkipping = ref(false);
 
 const isBusy = computed(() => props.isSavingStep || isSkipping.value);
+
+const isPartnerLogo = computed(
+  () => partnerInfo.value?.branding?.hasPartnerLogo && partnerInfo.value?.branding?.logoUrl
+);
+
+const graphicSrc = computed(() =>
+  isPartnerLogo.value ? partnerInfo.value!.branding!.logoUrl! : limitlessImage
+);
+
+const graphicAlt = computed(() =>
+  isPartnerLogo.value ? (partnerInfo.value?.partner?.name ?? 'Partner Logo') : 'Limitless Possibilities'
+);
+
+const welcomeTitle = computed(
+  () => partnerInfo.value?.branding?.onboardingTitle || t('onboarding.welcomeModal.title')
+);
+
+const welcomeSubtitle = computed(
+  () => partnerInfo.value?.branding?.onboardingSubtitle || t('onboarding.welcomeModal.subtitle')
+);
 
 const handleComplete = () => {
   props.onComplete();
@@ -68,11 +93,11 @@ const openDocs = () => {
           <div class="flex items-center gap-3">
             <UIcon :name="WELCOME_ICON" class="text-primary h-8 w-8" />
             <h1 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
-              {{ t('onboarding.welcomeModal.title') }}
+              {{ welcomeTitle }}
             </h1>
           </div>
           <p class="text-muted text-lg">
-            {{ t('onboarding.welcomeModal.subtitle') }}
+            {{ welcomeSubtitle }}
           </p>
         </div>
 
@@ -97,12 +122,14 @@ const openDocs = () => {
       <!-- Main Content Grid (Image on left, Help on right) -->
       <div class="mb-8 grid grid-cols-1 gap-10 text-left md:grid-cols-2">
         <!-- Left Column: Graphic -->
-        <div class="flex h-full items-center justify-center">
-          <img
-            src="@/assets/limitless_possibilities.jpg"
-            alt="Limitless Possibilities"
-            class="h-auto w-full rounded-xl object-cover shadow-sm"
-          />
+        <div class="flex h-full flex-col justify-center">
+          <div class="relative aspect-video w-full overflow-hidden rounded-xl shadow-sm">
+            <img
+              :src="graphicSrc"
+              :alt="graphicAlt"
+              class="h-full w-full object-cover transition-all duration-300"
+            />
+          </div>
         </div>
 
         <!-- Right Column: Actions (Help Section) -->

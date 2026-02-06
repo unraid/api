@@ -17,6 +17,8 @@ export const PARTNER_INFO_QUERY = graphql(/* GraphQL */ `
       branding {
         hasPartnerLogo
         logoUrl
+        onboardingTitle
+        onboardingSubtitle
       }
     }
   }
@@ -39,6 +41,8 @@ export const PUBLIC_WELCOME_DATA_QUERY = graphql(/* GraphQL */ `
       branding {
         hasPartnerLogo
         logoUrl
+        onboardingTitle
+        onboardingSubtitle
       }
     }
     isFreshInstall
@@ -69,11 +73,12 @@ export const ACTIVATION_CODE_QUERY = graphql(/* GraphQL */ `
           theme
           logoUrl
           hasPartnerLogo
+          onboardingTitle
+          onboardingSubtitle
         }
         system {
           serverName
           model
-          comment
         }
       }
       partnerInfo {
@@ -91,6 +96,8 @@ export const ACTIVATION_CODE_QUERY = graphql(/* GraphQL */ `
         branding {
           hasPartnerLogo
           logoUrl
+          onboardingTitle
+          onboardingSubtitle
         }
       }
       onboardingState {

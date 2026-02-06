@@ -113,8 +113,22 @@ export class OnboardingService implements OnModuleInit {
 
     public async getPublicPartnerInfo(): Promise<PublicPartnerInfo | null> {
         const override = this.onboardingOverrides.getState();
+
+        // If partnerInfo is explicitly overridden, use it
         if (override?.partnerInfo !== undefined) {
             return override.partnerInfo ?? null;
+        }
+
+        // If activationCode is overridden, derive partnerInfo from it
+        // This ensures edits to activationCode.branding are reflected in the UI
+        if (override?.activationCode !== undefined) {
+            if (override.activationCode === null) {
+                return null;
+            }
+            return {
+                partner: override.activationCode.partner,
+                branding: override.activationCode.branding,
+            };
         }
 
         const activationData = await this.getActivationData();

@@ -12,7 +12,6 @@ import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 import type { BrandButtonProps } from '@unraid/ui';
 import type { Component } from 'vue';
 
-import OnboardingPartnerLogo from '~/components/Onboarding/components/OnboardingPartnerLogo.vue';
 import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
 import { stepComponents } from '~/components/Onboarding/stepRegistry';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
@@ -27,7 +26,7 @@ const { t } = useI18n();
 
 const modalStore = useActivationCodeModalStore();
 const { isVisible, isHidden } = storeToRefs(modalStore);
-const { partnerInfo, activationRequired, hasActivationCode, registrationState } = storeToRefs(
+const { activationRequired, hasActivationCode, registrationState } = storeToRefs(
   useActivationCodeDataStore()
 );
 const onboardingStore = useUpgradeOnboardingStore();
@@ -359,10 +358,6 @@ watch(
     "
   >
     <div class="flex h-full w-full flex-col items-center justify-start overflow-y-auto">
-      <div v-if="partnerInfo?.branding?.hasPartnerLogo && !isUpgrade">
-        <OnboardingPartnerLogo :partner-info="partnerInfo" />
-      </div>
-
       <div class="flex w-full flex-col items-center">
         <OnboardingSteps
           :steps="filteredSteps"

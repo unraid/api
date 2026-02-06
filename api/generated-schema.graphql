@@ -820,12 +820,17 @@ type BrandingConfig {
 
   """Indicates if a partner logo exists"""
   hasPartnerLogo: Boolean!
+
+  """Custom title for onboarding welcome step"""
+  onboardingTitle: String
+
+  """Custom subtitle for onboarding welcome step"""
+  onboardingSubtitle: String
 }
 
 type SystemConfig {
   serverName: String
   model: String
-  comment: String
 }
 
 type PublicPartnerInfo {
@@ -1248,6 +1253,8 @@ input BrandingConfigInput {
   theme: String
   logoUrl: String
   hasPartnerLogo: Boolean
+  onboardingTitle: String
+  onboardingSubtitle: String
 }
 
 input SystemConfigInput {

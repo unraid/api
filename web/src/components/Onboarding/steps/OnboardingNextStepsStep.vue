@@ -30,7 +30,21 @@ const store = useActivationCodeDataStore();
 
 const partnerInfo = computed(() => store.partnerInfo);
 const activationCode = computed(() => store.activationCode);
-const hasPartner = computed(() => !!partnerInfo.value || !!activationCode.value?.system?.model);
+
+// Check if we have any core documentation links
+const hasCoreDocsLinks = computed(
+  () =>
+    !!partnerInfo.value?.partner?.manualUrl ||
+    !!partnerInfo.value?.partner?.hardwareSpecsUrl ||
+    !!partnerInfo.value?.partner?.supportUrl
+);
+
+// Check if we have any extra links
+const hasExtraLinks = computed(() => (partnerInfo.value?.partner?.extraLinks?.length ?? 0) > 0);
+
+// Check if we have any content to show in the "Learn about your server" section
+// Only show if there are LINKS (docs or extra links) - system specs alone isn't enough
+const hasAnyPartnerContent = computed(() => hasCoreDocsLinks.value || hasExtraLinks.value);
 
 const basicsItems = [
   { label: t('onboarding.nextSteps.basics.shares'), url: 'https://docs.unraid.net/go/shares/' },
@@ -100,10 +114,10 @@ const handleMouseMove = (e: MouseEvent) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 @click.stop
-                class="text-primary hover:text-primary/80 group flex items-center gap-2 text-sm hover:underline"
+                class="text-primary hover:text-primary/60 group flex items-center gap-2 text-sm transition-colors hover:underline"
               >
                 <span
-                  class="bg-primary/40 group-hover:bg-primary h-1.5 w-1.5 flex-shrink-0 rounded-full transition-colors"
+                  class="bg-primary group-hover:bg-primary/60 h-1.5 w-1.5 flex-shrink-0 rounded-full transition-colors"
                 />
                 {{ item.label }}
               </a>
@@ -211,9 +225,9 @@ const handleMouseMove = (e: MouseEvent) => {
         </div>
       </div>
 
-      <!-- Partner Box (Optional Row) -->
+      <!-- Partner Box (Optional Row) - Only show if there's any content -->
       <div
-        v-if="hasPartner"
+        v-if="hasAnyPartnerContent"
         class="border-primary/20 bg-primary/5 relative mt-6 overflow-hidden rounded-lg border p-6"
       >
         <!-- Decorative background hint -->
@@ -253,8 +267,8 @@ const handleMouseMove = (e: MouseEvent) => {
               </div>
             </div>
 
-            <!-- Core Docs -->
-            <div class="space-y-2">
+            <!-- Core Docs - Only show if there are any core doc links -->
+            <div v-if="hasCoreDocsLinks" class="space-y-2">
               <a
                 v-if="partnerInfo?.partner?.manualUrl"
                 :href="partnerInfo.partner.manualUrl"
@@ -289,12 +303,12 @@ const handleMouseMove = (e: MouseEvent) => {
           </div>
 
           <!-- Additional Links -->
-          <div v-if="partnerInfo?.partner?.extraLinks?.length" class="border-primary/10 border-t pt-4">
+          <div v-if="hasExtraLinks" class="border-primary/10 border-t pt-4">
             <p class="text-muted mb-2 text-xs font-bold tracking-wide uppercase opacity-70">
               Additional Links
             </p>
             <ul class="space-y-1.5">
-              <li v-for="link in partnerInfo.partner.extraLinks" :key="link.title">
+              <li v-for="link in partnerInfo?.partner?.extraLinks" :key="link.title">
                 <a
                   :href="link.url"
                   target="_blank"

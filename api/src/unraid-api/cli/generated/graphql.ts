@@ -417,6 +417,10 @@ export type BrandingConfig = {
   headermetacolor?: Maybe<Scalars['String']['output']>;
   /** The path to the partner logo image on the flash drive, relative to the activation code file */
   logoUrl?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for onboarding welcome step */
+  onboardingSubtitle?: Maybe<Scalars['String']['output']>;
+  /** Custom title for onboarding welcome step */
+  onboardingTitle?: Maybe<Scalars['String']['output']>;
   showBannerGradient?: Maybe<Scalars['Boolean']['output']>;
   theme?: Maybe<Scalars['String']['output']>;
 };
@@ -427,6 +431,8 @@ export type BrandingConfigInput = {
   header?: InputMaybe<Scalars['String']['input']>;
   headermetacolor?: InputMaybe<Scalars['String']['input']>;
   logoUrl?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitle?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitle?: InputMaybe<Scalars['String']['input']>;
   showBannerGradient?: InputMaybe<Scalars['Boolean']['input']>;
   theme?: InputMaybe<Scalars['String']['input']>;
 };
@@ -2605,7 +2611,6 @@ export type SubscriptionPluginInstallUpdatesArgs = {
 
 export type SystemConfig = {
   __typename?: 'SystemConfig';
-  comment?: Maybe<Scalars['String']['output']>;
   model?: Maybe<Scalars['String']['output']>;
   serverName?: Maybe<Scalars['String']['output']>;
 };

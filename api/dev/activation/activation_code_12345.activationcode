@@ -19,6 +19,8 @@
   },
   "branding": {
     "theme": "black",
+    "onboardingTitle": "Welcome to MyPartner",
+    "onboardingSubtitle": "Setting up your CustomBuild v1.0",
     "header": "#336699",
     "headermetacolor": "#FFFFFF",
     "background": "#F0F0F0",
