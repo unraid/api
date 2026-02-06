@@ -14,6 +14,7 @@ export const useOnboardingDraftStore = defineStore(
 
     // Plugins
     const selectedPlugins = ref<Set<string>>(new Set());
+    const pluginSelectionInitialized = ref(false);
 
     // Navigation
     const currentStepIndex = ref(0);
@@ -37,6 +38,7 @@ export const useOnboardingDraftStore = defineStore(
 
     function setPlugins(plugins: Set<string>) {
       selectedPlugins.value = new Set(plugins);
+      pluginSelectionInitialized.value = true;
     }
 
     function setStepIndex(index: number) {
@@ -51,6 +53,7 @@ export const useOnboardingDraftStore = defineStore(
       selectedLanguage,
       useSsh,
       selectedPlugins,
+      pluginSelectionInitialized,
       currentStepIndex,
       setCoreSettings,
       setPlugins,

@@ -62,10 +62,9 @@ const availablePlugins: Plugin[] = [
 // But if draft store has values (even empty set if user deselected all), respect that?
 // We need to differentiate "first visit" vs "returning visit".
 // Checking if draft store is populated is a good hint.
-const initialSelection =
-  draftStore.selectedPlugins.size > 0
-    ? new Set(draftStore.selectedPlugins)
-    : new Set(['community-apps', 'fix-common-problems']); // Default
+const initialSelection = draftStore.pluginSelectionInitialized
+  ? new Set(draftStore.selectedPlugins)
+  : new Set(availablePlugins.map((plugin) => plugin.id)); // Default all on first visit only
 
 const selectedPlugins = ref<Set<string>>(initialSelection);
 const installedPluginIds = ref<Set<string>>(new Set());
@@ -75,6 +74,8 @@ const { result: installedPluginsResult } = useQuery(INSTALLED_UNRAID_PLUGINS_QUE
 });
 
 const isPluginInstalled = (pluginId: string) => installedPluginIds.value.has(pluginId);
+const isPluginEnabled = (pluginId: string) =>
+  installedPluginIds.value.has(pluginId) || selectedPlugins.value.has(pluginId);
 const isBusy = computed(() => props.isSavingStep ?? false);
 
 const applyInstalledPlugins = (installedPlugins: string[] | null | undefined) => {
@@ -243,11 +244,11 @@ const primaryButtonText = computed(() => 'Next Step');
           </div>
 
           <Switch
-            :model-value="selectedPlugins.has(plugin.id)"
+            :model-value="isPluginEnabled(plugin.id)"
             @update:model-value="(val: boolean) => togglePlugin(plugin.id, val)"
             :disabled="isBusy || isPluginInstalled(plugin.id)"
             :class="[
-              selectedPlugins.has(plugin.id) ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700',
+              isPluginEnabled(plugin.id) ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700',
               'focus:ring-primary relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
             ]"
           >
@@ -255,7 +256,7 @@ const primaryButtonText = computed(() => 'Next Step');
             <span
               aria-hidden="true"
               :class="[
-                selectedPlugins.has(plugin.id) ? 'translate-x-5' : 'translate-x-0',
+                isPluginEnabled(plugin.id) ? 'translate-x-5' : 'translate-x-0',
                 'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
               ]"
             />
