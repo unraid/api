@@ -43,9 +43,8 @@ interface CloudItem {
   isUnraid?: boolean;
 }
 
-// Row configuration
 const originalRows: { direction: string; duration: string; items: CloudItem[] }[] = [
-  // Row 1 (Unraid Ecosystem)
+  // Row 1
   {
     direction: 'left',
     duration: '120s',
@@ -54,47 +53,63 @@ const originalRows: { direction: string; duration: string; items: CloudItem[] }[
       { name: 'Community Apps', icon: 'i-heroicons-squares-2x2', isUnraid: true },
       { name: 'Unraid Connect', icon: 'simple-icons-unraid.svg', isUnraid: true },
       { name: 'Unraid Forums', icon: 'i-heroicons-chat-bubble-left-right', isUnraid: true },
+      { name: 'Unraid Docs', icon: 'i-heroicons-book-open', isUnraid: true },
+      { name: 'The Uncast Show', icon: 'simple-icons-unraid.svg', isUnraid: true },
+      { name: 'Tailscale', icon: 'simple-icons-tailscale.svg' },
+      { name: 'Docker', icon: 'i-heroicons-cube' },
+      { name: 'VMs', icon: 'i-heroicons-server-stack' },
+      { name: 'ZFS', icon: 'i-heroicons-circle-stack' },
     ],
   },
-  // Row 2 (Apps)
+  // Row 2
   {
     direction: 'right',
     duration: '140s',
     items: [
       { name: 'Tailscale', icon: 'simple-icons-tailscale.svg' },
-      { name: 'Plex', icon: '' }, // logo exists, but not using cuz it looks weird
-      { name: 'Jellyfin', icon: 'simple-icons-jellyfin.svg' },
-      { name: 'Nextcloud', icon: 'simple-icons-nextcloud.svg' },
-      { name: 'Home Assistant', icon: 'simple-icons-home-assistant.svg' },
-      { name: 'Pi-hole', icon: 'simple-icons-pihole.svg' },
-      { name: 'Vaultwarden', icon: 'simple-icons-vaultwarden.svg' },
-      { name: 'Grafana', icon: 'simple-icons-grafana.svg' },
+      { name: 'Docker', icon: 'i-heroicons-cube' },
+      { name: 'VMs', icon: 'i-heroicons-server-stack' },
+      { name: 'ZFS', icon: 'i-heroicons-circle-stack' },
+      { name: 'Unraid', icon: 'simple-icons-unraid.svg', isUnraid: true },
+      { name: 'Community Apps', icon: 'i-heroicons-squares-2x2', isUnraid: true },
+      { name: 'Unraid Connect', icon: 'simple-icons-unraid.svg', isUnraid: true },
+      { name: 'Unraid Forums', icon: 'i-heroicons-chat-bubble-left-right', isUnraid: true },
+      { name: 'Unraid Docs', icon: 'i-heroicons-book-open', isUnraid: true },
+      { name: 'The Uncast Show', icon: 'simple-icons-unraid.svg', isUnraid: true },
     ],
   },
-  // Row 3 (Tools)
+  // Row 3
   {
     direction: 'left',
     duration: '130s',
     items: [
-      { name: 'Jellyseerr', icon: '' }, // no icon
-      { name: 'GitLab', icon: 'simple-icons-github.svg' },
-      { name: 'Syncthing', icon: 'simple-icons-syncthing.svg' },
-      { name: 'Uptime Kuma', icon: 'simple-icons-uptime-kuma.svg' },
-      { name: 'Traefik', icon: 'simple-icons-traefik.svg' },
-      { name: 'Overseerr', icon: '' }, // no icon
+      { name: 'Unraid Forums', icon: 'i-heroicons-chat-bubble-left-right', isUnraid: true },
+      { name: 'Unraid Docs', icon: 'i-heroicons-book-open', isUnraid: true },
+      { name: 'The Uncast Show', icon: 'simple-icons-unraid.svg', isUnraid: true },
+      { name: 'Tailscale', icon: 'simple-icons-tailscale.svg' },
+      { name: 'Docker', icon: 'i-heroicons-cube' },
+      { name: 'VMs', icon: 'i-heroicons-server-stack' },
+      { name: 'ZFS', icon: 'i-heroicons-circle-stack' },
+      { name: 'Unraid', icon: 'simple-icons-unraid.svg', isUnraid: true },
+      { name: 'Community Apps', icon: 'i-heroicons-squares-2x2', isUnraid: true },
+      { name: 'Unraid Connect', icon: 'simple-icons-unraid.svg', isUnraid: true },
     ],
   },
-  // Row 4 (Hardware)
+  // Row 4
   {
     direction: 'right',
     duration: '150s',
     items: [
-      { name: 'Intel', icon: '' },
-      { name: 'AMD', icon: '' },
-      { name: 'NVIDIA', icon: 'simple-icons-nvidia.svg' },
-      { name: 'Seagate', icon: 'simple-icons-seagate.svg' },
-      { name: 'Western Digital', icon: 'simple-icons-westerndigital.svg' },
-      { name: '45Drives', icon: '' }, // no icon
+      { name: 'Unraid', icon: 'simple-icons-unraid.svg', isUnraid: true },
+      { name: 'Community Apps', icon: 'i-heroicons-squares-2x2', isUnraid: true },
+      { name: 'Unraid Connect', icon: 'simple-icons-unraid.svg', isUnraid: true },
+      { name: 'Unraid Forums', icon: 'i-heroicons-chat-bubble-left-right', isUnraid: true },
+      { name: 'Unraid Docs', icon: 'i-heroicons-book-open', isUnraid: true },
+      { name: 'The Uncast Show', icon: 'simple-icons-unraid.svg', isUnraid: true },
+      { name: 'Tailscale', icon: 'simple-icons-tailscale.svg' },
+      { name: 'Docker', icon: 'i-heroicons-cube' },
+      { name: 'VMs', icon: 'i-heroicons-server-stack' },
+      { name: 'ZFS', icon: 'i-heroicons-circle-stack' },
     ],
   },
 ];
