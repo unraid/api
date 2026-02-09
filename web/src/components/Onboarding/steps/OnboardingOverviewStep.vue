@@ -7,7 +7,6 @@ import { useMutation } from '@vue/apollo-composable';
 import { ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import limitlessImage from '@/assets/limitless_possibilities.jpg';
-import LogoCloud from '@/components/Onboarding/components/LogoCloud.vue';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
 import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgradeOnboarding';
@@ -198,13 +197,8 @@ const openDocs = () => {
 
 <template>
   <div class="relative mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
-    <!-- Background Logo Cloud -->
-    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      <LogoCloud />
-    </div>
-
     <!-- Main Card Container -->
-    <div class="bg-elevated border-muted relative z-10 rounded-xl border p-6 shadow-sm md:p-10">
+    <div class="bg-elevated border-muted rounded-xl border p-6 shadow-sm md:p-10">
       <!-- Header Row (Title, Subtitle, and Badge) -->
       <div class="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div class="space-y-2">

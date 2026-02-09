@@ -109,25 +109,6 @@ watch(
   { immediate: true }
 );
 
-const isJigglingLeft = ref(false);
-const isJigglingRight = ref(false);
-
-const triggerJiggleLeft = () => {
-  if (isJigglingLeft.value) return;
-  isJigglingLeft.value = true;
-  setTimeout(() => {
-    isJigglingLeft.value = false;
-  }, 400);
-};
-
-const triggerJiggleRight = () => {
-  if (isJigglingRight.value) return;
-  isJigglingRight.value = true;
-  setTimeout(() => {
-    isJigglingRight.value = false;
-  }, 400);
-};
-
 const togglePlugin = (pluginId: string, value: boolean) => {
   if (installedPluginIds.value.has(pluginId) || isBusy.value) {
     return;
@@ -166,37 +147,8 @@ const primaryButtonText = computed(() => 'Next Step');
 </script>
 
 <template>
-  <div class="relative mx-auto flex w-full max-w-6xl items-center justify-center px-4 pb-4 md:px-8">
-    <!-- Left Decor Card -->
-    <div
-      @click="triggerJiggleLeft"
-      :class="{ 'animate-jiggle-left': isJigglingLeft }"
-      class="absolute top-1/2 left-0 z-0 hidden h-[80%] w-[300px] -translate-x-12 -translate-y-1/2 scale-90 -rotate-6 transform overflow-hidden rounded-xl opacity-80 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-x-20 hover:scale-95 hover:-rotate-3 hover:cursor-pointer hover:opacity-100 xl:block"
-    >
-      <img
-        src="https://cdn.craft.cloud/481d40bf-939a-4dc1-918d-b4d4b48b7c04/assets/uploads/img_DoMoreWithCommunityApp.jpg?width=863&quality=100&fit=crop&s=p28hSLnHzCsBYd9QcPaxkmf6PYCxnM-o8W88fnPPjuU"
-        class="h-full w-full object-cover"
-        alt="Community Apps"
-      />
-    </div>
-
-    <!-- Right Decor Card -->
-    <div
-      @click="triggerJiggleRight"
-      :class="{ 'animate-jiggle-right': isJigglingRight }"
-      class="absolute top-1/2 right-0 z-0 hidden h-[80%] w-[300px] translate-x-12 -translate-y-1/2 scale-90 rotate-6 transform overflow-hidden rounded-xl opacity-80 shadow-2xl transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:translate-x-20 hover:scale-95 hover:rotate-3 hover:cursor-pointer hover:opacity-100 xl:block"
-    >
-      <img
-        src="https://cdn.craft.cloud/481d40bf-939a-4dc1-918d-b4d4b48b7c04/assets/uploads/img_BuildDifferent_2024-02-03-002039_rzqy.jpg?width=863&quality=100&fit=crop&s=LgyWuB6EyLmeBzoJz5vyQhlu8RVJbooDhjy5Ie-SWyg"
-        class="h-full w-full object-cover"
-        alt="Build Different"
-      />
-    </div>
-
-    <!-- Main Card -->
-    <div
-      class="bg-elevated border-muted bg-opacity-95 relative z-10 w-full max-w-4xl rounded-xl border p-6 text-left shadow-sm backdrop-blur-sm md:p-10"
-    >
+  <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
+    <div class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
       <!-- Header -->
       <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div class="space-y-2">
@@ -300,109 +252,3 @@ const primaryButtonText = computed(() => 'Next Step');
     </div>
   </div>
 </template>
-
-<style scoped>
-@keyframes wobble-left {
-  0% {
-    transform: rotate(-6deg) scale(0.9);
-  }
-
-  25% {
-    transform: rotate(-8deg) scale(0.9);
-  }
-
-  50% {
-    transform: rotate(-6deg) scale(0.9);
-  }
-
-  75% {
-    transform: rotate(-4deg) scale(0.9);
-  }
-
-  100% {
-    transform: rotate(-6deg) scale(0.9);
-  }
-}
-
-@keyframes wobble-right {
-  0% {
-    transform: rotate(6deg) scale(0.9);
-  }
-
-  25% {
-    transform: rotate(8deg) scale(0.9);
-  }
-
-  50% {
-    transform: rotate(6deg) scale(0.9);
-  }
-
-  75% {
-    transform: rotate(4deg) scale(0.9);
-  }
-
-  100% {
-    transform: rotate(6deg) scale(0.9);
-  }
-}
-
-.animate-wobble-left {
-  animation: wobble-left 0.4s ease-in-out infinite;
-}
-
-.animate-wobble-right {
-  animation: wobble-right 0.4s ease-in-out infinite;
-}
-
-@keyframes jiggle-left {
-  0% {
-    transform: rotate(-3deg);
-  }
-
-  25% {
-    transform: rotate(-6deg);
-  }
-
-  50% {
-    transform: rotate(0deg);
-  }
-
-  75% {
-    transform: rotate(-5deg);
-  }
-
-  100% {
-    transform: rotate(-3deg);
-  }
-}
-
-@keyframes jiggle-right {
-  0% {
-    transform: rotate(3deg);
-  }
-
-  25% {
-    transform: rotate(6deg);
-  }
-
-  50% {
-    transform: rotate(0deg);
-  }
-
-  75% {
-    transform: rotate(5deg);
-  }
-
-  100% {
-    transform: rotate(3deg);
-  }
-}
-
-.animate-jiggle-left {
-  animation: jiggle-left 0.4s ease-in-out;
-}
-
-.animate-jiggle-right {
-  animation: jiggle-right 0.4s ease-in-out;
-}
-</style>

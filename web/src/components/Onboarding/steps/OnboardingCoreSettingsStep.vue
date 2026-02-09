@@ -11,7 +11,6 @@ import azureThemeImg from '@/assets/unraid-azure-theme.png';
 import blackThemeImg from '@/assets/unraid-black-theme.png';
 import grayThemeImg from '@/assets/unraid-gray-theme.png';
 import whiteThemeImg from '@/assets/unraid-white-theme.png';
-import TypographyCloud from '@/components/Onboarding/components/TypographyCloud.vue';
 // --- Language Logic ---
 import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Onboarding/graphql/availableLanguages.query';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
@@ -297,235 +296,224 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
 </script>
 
 <template>
-  <!-- Main Step Container with Relative Positioning -->
-  <div class="relative w-full">
-    <!-- Typography Cloud Background -->
-    <div class="pointer-events-none fixed inset-0 -z-10 hidden overflow-hidden md:block">
-      <TypographyCloud />
-    </div>
-
-    <!-- Content Card -->
-    <div class="relative z-10 mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
-      <div
-        class="bg-elevated border-muted bg-opacity-95 rounded-xl border p-6 text-left shadow-sm backdrop-blur-sm md:p-10"
-      >
-        <!-- Header -->
-        <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-start">
-          <div class="space-y-2">
-            <div class="flex items-center gap-3">
-              <Cog6ToothIcon class="text-primary h-8 w-8" />
-              <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
-                {{ t('onboarding.coreSettings.title') }}
-              </h2>
+  <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
+    <div class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
+      <!-- Header -->
+      <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-start">
+        <div class="space-y-2">
+          <div class="flex items-center gap-3">
+            <Cog6ToothIcon class="text-primary h-8 w-8" />
+            <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
+              {{ t('onboarding.coreSettings.title') }}
+            </h2>
+          </div>
+          <p class="text-muted text-lg">
+            {{ t('onboarding.coreSettings.description') }}
+          </p>
+          <!-- Badge Container -->
+          <div class="mt-2 flex flex-wrap gap-2">
+            <!-- IP Address Badge -->
+            <div
+              v-if="currentIp"
+              class="flex items-center gap-1 rounded border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+            >
+              <span class="h-1.5 w-1.5 rounded-full bg-green-500" />
+              {{ currentIp }}
             </div>
-            <p class="text-muted text-lg">
-              {{ t('onboarding.coreSettings.description') }}
-            </p>
-            <!-- Badge Container -->
-            <div class="mt-2 flex flex-wrap gap-2">
-              <!-- IP Address Badge -->
-              <div
-                v-if="currentIp"
-                class="flex items-center gap-1 rounded border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-              >
-                <span class="h-1.5 w-1.5 rounded-full bg-green-500" />
-                {{ currentIp }}
-              </div>
-              <!-- Local Hostname Badge -->
-              <div
-                v-if="currentHostname"
-                class="flex items-center gap-1 rounded border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-              >
-                <GlobeAltIcon class="text-primary h-3 w-3" />
-                {{ currentHostname }}
-              </div>
+            <!-- Local Hostname Badge -->
+            <div
+              v-if="currentHostname"
+              class="flex items-center gap-1 rounded border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+            >
+              <GlobeAltIcon class="text-primary h-3 w-3" />
+              {{ currentHostname }}
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Main Form Content -->
+      <!-- Main Form Content -->
 
-        <!-- Top Grid: Server Identity & Region -->
-        <div class="mb-8 grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2">
-          <!-- Server Name -->
-          <div class="flex flex-col gap-2">
-            <label class="text-highlighted text-base font-bold">
-              {{ t('onboarding.coreSettings.serverName') }}
-            </label>
-            <div class="space-y-1">
-              <UInput
-                v-model="serverName"
-                placeholder="Tower"
-                maxlength="15"
-                :disabled="isBusy"
-                size="lg"
-                class="w-full"
-                :class="{ '!border-red-500 focus:!border-red-500': !!serverNameValidation }"
-              />
-              <p v-if="serverNameValidation" class="text-sm font-medium text-red-500">
-                {{ serverNameValidation }}
-              </p>
-            </div>
+      <!-- Top Grid: Server Identity & Region -->
+      <div class="mb-8 grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-2">
+        <!-- Server Name -->
+        <div class="flex flex-col gap-2">
+          <label class="text-highlighted text-base font-bold">
+            {{ t('onboarding.coreSettings.serverName') }}
+          </label>
+          <div class="space-y-1">
+            <UInput
+              v-model="serverName"
+              placeholder="Tower"
+              maxlength="15"
+              :disabled="isBusy"
+              size="lg"
+              class="w-full"
+              :class="{ '!border-red-500 focus:!border-red-500': !!serverNameValidation }"
+            />
+            <p v-if="serverNameValidation" class="text-sm font-medium text-red-500">
+              {{ serverNameValidation }}
+            </p>
           </div>
+        </div>
 
-          <!-- Server Description -->
-          <div class="flex flex-col gap-2">
-            <label class="text-highlighted text-base font-bold">
-              {{ t('onboarding.coreSettings.serverDescription') }}
-            </label>
-            <div class="space-y-1">
-              <UInput
-                v-model="serverDescription"
-                :placeholder="t('onboarding.coreSettings.serverDescriptionPlaceholder')"
-                :disabled="isBusy"
-                size="lg"
-                class="w-full"
-                :class="{ '!border-red-500 focus:!border-red-500': !!serverDescriptionValidation }"
-              />
-              <p v-if="serverDescriptionValidation" class="text-sm font-medium text-red-500">
-                {{ serverDescriptionValidation }}
-              </p>
-            </div>
+        <!-- Server Description -->
+        <div class="flex flex-col gap-2">
+          <label class="text-highlighted text-base font-bold">
+            {{ t('onboarding.coreSettings.serverDescription') }}
+          </label>
+          <div class="space-y-1">
+            <UInput
+              v-model="serverDescription"
+              :placeholder="t('onboarding.coreSettings.serverDescriptionPlaceholder')"
+              :disabled="isBusy"
+              size="lg"
+              class="w-full"
+              :class="{ '!border-red-500 focus:!border-red-500': !!serverDescriptionValidation }"
+            />
+            <p v-if="serverDescriptionValidation" class="text-sm font-medium text-red-500">
+              {{ serverDescriptionValidation }}
+            </p>
           </div>
+        </div>
 
-          <!-- Time Zone -->
-          <div class="flex flex-col gap-2">
-            <label class="text-highlighted text-base font-bold">
-              {{ t('onboarding.coreSettings.timezone') }}
-            </label>
+        <!-- Time Zone -->
+        <div class="flex flex-col gap-2">
+          <label class="text-highlighted text-base font-bold">
+            {{ t('onboarding.coreSettings.timezone') }}
+          </label>
+          <Select
+            v-model="selectedTimeZone"
+            :items="timeZoneItems"
+            :placeholder="t('onboarding.coreSettings.selectTimezonePlaceholder')"
+            class="w-full"
+            :disabled="isBusy"
+            size="lg"
+          />
+        </div>
+
+        <!-- Language -->
+        <div class="flex flex-col gap-2">
+          <label class="text-highlighted text-base font-bold">
+            {{ t('onboarding.coreSettings.language') }}
+          </label>
+          <Select
+            v-model="selectedLanguage"
+            :items="languageItems"
+            :placeholder="
+              isLanguagesLoading ? t('common.loading') : t('onboarding.coreSettings.selectLanguage')
+            "
+            class="w-full"
+            :disabled="isBusy || isLanguageDisabled"
+            size="lg"
+          />
+        </div>
+      </div>
+
+      <div class="border-muted my-8 w-full border-t" />
+
+      <!-- Bottom Section: Toggles & Theme -->
+      <div class="space-y-8">
+        <!-- SSH Access -->
+        <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div class="space-y-1">
+            <h3 class="text-highlighted text-base font-bold">
+              {{ t('onboarding.coreSettings.ssh') }}
+            </h3>
+            <p class="text-muted text-sm">
+              {{ t('onboarding.coreSettings.sshDescription') }}
+            </p>
+          </div>
+          <div class="flex items-center">
+            <Switch
+              v-model="useSsh"
+              :disabled="isBusy"
+              :class="[
+                useSsh ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700',
+                isBusy ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+                'focus:ring-primary relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none',
+              ]"
+            >
+              <span class="sr-only">{{ t('onboarding.coreSettings.ssh') }}</span>
+              <span
+                aria-hidden="true"
+                :class="[
+                  useSsh ? 'translate-x-5' : 'translate-x-0',
+                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                ]"
+              />
+            </Switch>
+          </div>
+        </div>
+        <!-- Border -->
+        <div class="border-muted my-8 w-full border-t" />
+
+        <!-- Theme Selection -->
+        <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div class="space-y-1">
+            <h3 class="text-highlighted text-base font-bold">
+              {{ t('onboarding.coreSettings.theme') }}
+            </h3>
+            <p class="text-muted text-sm">
+              {{ t('onboarding.coreSettings.themeDescription') }}
+            </p>
+          </div>
+          <div class="w-full md:w-64">
             <Select
-              v-model="selectedTimeZone"
-              :items="timeZoneItems"
-              :placeholder="t('onboarding.coreSettings.selectTimezonePlaceholder')"
+              v-model="selectedTheme"
+              :items="themeItems"
               class="w-full"
               :disabled="isBusy"
               size="lg"
             />
           </div>
-
-          <!-- Language -->
-          <div class="flex flex-col gap-2">
-            <label class="text-highlighted text-base font-bold">
-              {{ t('onboarding.coreSettings.language') }}
-            </label>
-            <Select
-              v-model="selectedLanguage"
-              :items="languageItems"
-              :placeholder="
-                isLanguagesLoading ? t('common.loading') : t('onboarding.coreSettings.selectLanguage')
-              "
-              class="w-full"
-              :disabled="isBusy || isLanguageDisabled"
-              size="lg"
-            />
-          </div>
         </div>
 
-        <div class="border-muted my-8 w-full border-t" />
-
-        <!-- Bottom Section: Toggles & Theme -->
-        <div class="space-y-8">
-          <!-- SSH Access -->
-          <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-            <div class="space-y-1">
-              <h3 class="text-highlighted text-base font-bold">
-                {{ t('onboarding.coreSettings.ssh') }}
-              </h3>
-              <p class="text-muted text-sm">
-                {{ t('onboarding.coreSettings.sshDescription') }}
-              </p>
-            </div>
-            <div class="flex items-center">
-              <Switch
-                v-model="useSsh"
-                :disabled="isBusy"
-                :class="[
-                  useSsh ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700',
-                  isBusy ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
-                  'focus:ring-primary relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none',
-                ]"
-              >
-                <span class="sr-only">{{ t('onboarding.coreSettings.ssh') }}</span>
-                <span
-                  aria-hidden="true"
-                  :class="[
-                    useSsh ? 'translate-x-5' : 'translate-x-0',
-                    'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
-                  ]"
-                />
-              </Switch>
-            </div>
-          </div>
-          <!-- Border -->
-          <div class="border-muted my-8 w-full border-t" />
-
-          <!-- Theme Selection -->
-          <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-            <div class="space-y-1">
-              <h3 class="text-highlighted text-base font-bold">
-                {{ t('onboarding.coreSettings.theme') }}
-              </h3>
-              <p class="text-muted text-sm">
-                {{ t('onboarding.coreSettings.themeDescription') }}
-              </p>
-            </div>
-            <div class="w-full md:w-64">
-              <Select
-                v-model="selectedTheme"
-                :items="themeItems"
-                class="w-full"
-                :disabled="isBusy"
-                size="lg"
-              />
-            </div>
-          </div>
-
-          <!-- Theme Preview Image -->
-          <div
-            class="min-h-[200px] w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100 shadow-sm dark:border-gray-800 dark:bg-gray-800"
-          >
-            <img
-              :src="themeImages[selectedTheme] || themeImages['white']"
-              :alt="selectedTheme + ' theme preview'"
-              class="h-auto w-full object-cover"
-            />
-          </div>
-        </div>
-
-        <!-- Error Message -->
+        <!-- Theme Preview Image -->
         <div
-          v-if="error"
-          class="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
+          class="min-h-[200px] w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100 shadow-sm dark:border-gray-800 dark:bg-gray-800"
         >
-          <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
-            {{ error }}
-          </p>
-        </div>
-
-        <!-- Footer -->
-        <div
-          class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
-        >
-          <button
-            v-if="showBack"
-            @click="handleBack"
-            class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
-            :disabled="isBusy"
-          >
-            <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
-            {{ t('common.back') }}
-          </button>
-          <div v-else class="hidden w-1 sm:block" />
-
-          <BrandButton
-            :text="t('onboarding.coreSettings.next')"
-            class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
-            :disabled="isBusy || !!serverNameValidation || !!serverDescriptionValidation"
-            :loading="isBusy"
-            @click="handleSubmit"
-            :icon-right="ChevronRightIcon"
+          <img
+            :src="themeImages[selectedTheme] || themeImages['white']"
+            :alt="selectedTheme + ' theme preview'"
+            class="h-auto w-full object-cover"
           />
         </div>
+      </div>
+
+      <!-- Error Message -->
+      <div
+        v-if="error"
+        class="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/10"
+      >
+        <p class="text-center text-sm font-medium text-red-600 dark:text-red-400">
+          {{ error }}
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div
+        class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
+      >
+        <button
+          v-if="showBack"
+          @click="handleBack"
+          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
+          :disabled="isBusy"
+        >
+          <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
+          {{ t('common.back') }}
+        </button>
+        <div v-else class="hidden w-1 sm:block" />
+
+        <BrandButton
+          :text="t('onboarding.coreSettings.next')"
+          class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
+          :disabled="isBusy || !!serverNameValidation || !!serverDescriptionValidation"
+          :loading="isBusy"
+          @click="handleSubmit"
+          :icon-right="ChevronRightIcon"
+        />
       </div>
     </div>
   </div>
