@@ -25,6 +25,7 @@ import {
 import { BrandButton } from '@unraid/ui';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import usePluginInstaller from '@/components/Onboarding/composables/usePluginInstaller';
+import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Onboarding/graphql/availableLanguages.query';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import {
   SET_LOCALE_MUTATION,
@@ -43,6 +44,7 @@ import type { LogEntry } from '@/components/Onboarding/components/OnboardingCons
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
+import { PluginInstallStatus } from '~/composables/gql/graphql';
 
 export interface Props {
   onComplete: () => void;
@@ -65,13 +67,20 @@ const { mutate: setLocale } = useMutation(SET_LOCALE_MUTATION);
 const { mutate: updateSshSettings } = useMutation(UPDATE_SSH_SETTINGS_MUTATION);
 const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
 
-const { installPlugin } = usePluginInstaller();
+const { installLanguage, installPlugin } = usePluginInstaller();
 
 // Fetch Current Settings (for comparison if needed)
 const { result: coreSettingsResult } = useQuery(GET_CORE_SETTINGS_QUERY, null, {
   fetchPolicy: 'cache-first',
 });
-const { result: installedPluginsResult } = useQuery(INSTALLED_UNRAID_PLUGINS_QUERY, null, {
+const { result: installedPluginsResult, refetch: refetchInstalledPlugins } = useQuery(
+  INSTALLED_UNRAID_PLUGINS_QUERY,
+  null,
+  {
+    fetchPolicy: 'cache-first',
+  }
+);
+const { result: availableLanguagesResult } = useQuery(GET_AVAILABLE_LANGUAGES_QUERY, null, {
   fetchPolicy: 'cache-first',
 });
 
@@ -142,6 +151,21 @@ const pluginIdsToInstall = computed(() => {
     if (!details) return false;
     const fileName = normalizePluginFileName(getPluginFileName(details.url));
     return !installedPluginFileNames.value.has(fileName);
+  });
+});
+
+const selectedPluginSummaries = computed(() => {
+  return Array.from(draftStore.selectedPlugins).map((pluginId) => {
+    const details = pluginMap[pluginId];
+    const pluginName = details?.name ?? pluginId;
+    const pluginFileName = details ? normalizePluginFileName(getPluginFileName(details.url)) : null;
+    const installed = pluginFileName ? installedPluginFileNames.value.has(pluginFileName) : false;
+
+    return {
+      id: pluginId,
+      name: pluginName,
+      installed,
+    };
   });
 });
 
@@ -314,20 +338,70 @@ const handleComplete = async () => {
       );
     }
 
+    await Promise.all(promises);
+
+    // Install language pack first for non-default locales; only then switch locale.
     if (draftStore.selectedLanguage !== currentLocale) {
-      addLog(`Setting Language to ${draftStore.selectedLanguage}...`, 'info');
-      promises.push(
-        setLocale({ locale: draftStore.selectedLanguage })
+      const targetLocale = draftStore.selectedLanguage;
+      if (targetLocale === 'en_US') {
+        addLog(`Setting Language to ${targetLocale}...`, 'info');
+        await setLocale({ locale: targetLocale })
           .then(() => addLog('Language updated.', 'success'))
           .catch((e) => {
             addLog(`Language request returned an error, continuing: ${e.message}`, 'info');
-          })
-      );
+          });
+      } else {
+        const availableLanguages = availableLanguagesResult.value?.availableLanguages ?? [];
+        const language = availableLanguages.find(
+          (item: { code: string; name: string; url?: string | null }) => item.code === targetLocale
+        );
+
+        if (!language?.url) {
+          addLog(
+            `Language pack metadata for ${targetLocale} is unavailable. Skipping locale change.`,
+            'error'
+          );
+        } else {
+          addLog(`Installing language pack for ${language.name}...`, 'info');
+          try {
+            const installResult = await installLanguage({
+              forced: false,
+              name: language.name,
+              url: language.url,
+            });
+
+            if (installResult.status !== PluginInstallStatus.SUCCEEDED) {
+              addLog(
+                `Language pack installation did not succeed for ${language.name}. Keeping current locale.`,
+                'error'
+              );
+            } else {
+              addLog(`Language pack installed for ${language.name}.`, 'success');
+              addLog(`Setting Language to ${targetLocale}...`, 'info');
+              await setLocale({ locale: targetLocale })
+                .then(() => addLog('Language updated.', 'success'))
+                .catch((e) => {
+                  addLog(`Language request returned an error, continuing: ${e.message}`, 'info');
+                });
+            }
+          } catch (e: unknown) {
+            const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+            addLog(
+              `Language pack installation failed for ${language.name}. Keeping current locale: ${errorMessage}`,
+              'error'
+            );
+          }
+        }
+      }
     }
 
-    await Promise.all(promises);
-
     // 2. Install Plugins
+    try {
+      await refetchInstalledPlugins();
+    } catch {
+      addLog('Could not refresh installed plugins list. Continuing with current plugin state.', 'info');
+    }
+
     const pluginsToInstall = pluginIdsToInstall.value;
     if (pluginsToInstall.length > 0) {
       addLog(`Installing ${pluginsToInstall.length} plugins...`, 'info');
@@ -335,6 +409,12 @@ const handleComplete = async () => {
       for (const pluginId of pluginsToInstall) {
         const details = pluginMap[pluginId];
         if (details) {
+          const fileName = normalizePluginFileName(getPluginFileName(details.url));
+          if (installedPluginFileNames.value.has(fileName)) {
+            addLog(`${details.name} is already installed. Skipping.`, 'info');
+            continue;
+          }
+
           addLog(`Installing ${details.name}...`, 'info');
           try {
             await installPlugin({
@@ -551,12 +631,32 @@ const handleBack = () => {
                 </div>
                 <div
                   v-else
-                  v-for="plugin in draftStore.selectedPlugins"
-                  :key="plugin"
+                  v-for="plugin in selectedPluginSummaries"
+                  :key="plugin.id"
                   class="text-muted flex items-center gap-2 text-sm"
                 >
-                  <CheckCircleIcon class="h-4 w-4 flex-shrink-0 text-green-500" />
-                  <span>{{ plugin }}</span>
+                  <component
+                    :is="plugin.installed ? CheckCircleIcon : ClockIcon"
+                    :class="[
+                      'h-4 w-4 flex-shrink-0',
+                      plugin.installed ? 'text-green-500' : 'text-primary',
+                    ]"
+                  />
+                  <span>{{ plugin.name }}</span>
+                  <span
+                    :class="[
+                      'rounded px-1.5 py-0.5 text-xs font-medium',
+                      plugin.installed
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                        : 'bg-primary/10 text-primary',
+                    ]"
+                  >
+                    {{
+                      plugin.installed
+                        ? t('onboarding.pluginsStep.alreadyInstalled')
+                        : t('onboarding.pluginsStep.willInstall')
+                    }}
+                  </span>
                 </div>
               </div>
             </DisclosurePanel>

@@ -88,19 +88,14 @@ onCoreSettingsResult((res) => {
     hasAutoSelected.value = true;
   }
 
-  // SSH
-  // Note: boolean defaults to false in ref, so we need to know if draft was *ever* set?
-  // Ideally draftStore initializes with undefined or we check if it was touched.
-  // For simplicity, let's assume if any string field is set in draft, we trust the draft boolean too.
-  // Or better, we can just use the draft store directly in v-model but we are using local refs.
-  // Let's just blindly copy strict values if we think we are in "draft mode".
-  // A simple heuristic: if `serverName` is in draft, we assume draft is active.
-  const hasDraft = !!d.serverName;
+  // Use draft values when they are present; otherwise, fall back to server values.
+  // We treat a saved serverName as the indicator that core-settings draft has been initialized.
+  const hasDraft = Boolean(d.serverName);
 
   if (hasDraft) {
     useSsh.value = d.useSsh;
-    selectedTheme.value = d.selectedTheme;
-    selectedLanguage.value = d.selectedLanguage;
+    selectedTheme.value = d.selectedTheme || res.data?.display?.theme || 'white';
+    selectedLanguage.value = d.selectedLanguage || res.data?.display?.locale || 'en_US';
   } else {
     if (res.data?.vars) {
       useSsh.value = res.data.vars.useSsh || false;

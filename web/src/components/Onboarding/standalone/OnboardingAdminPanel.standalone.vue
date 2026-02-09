@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useApolloClient } from '@vue/apollo-composable';
 
@@ -25,6 +25,8 @@ const draftJson = ref('');
 const errorMessage = ref('');
 const lastApplied = ref('');
 const activePresetId = ref<string | null>(null);
+const resetDraftAndHardRefreshOnOpen = ref(false);
+const RESET_DRAFT_AND_REFRESH_KEY = 'onboardingAdminPanel.resetDraftAndHardRefreshOnOpen';
 
 // Cache for storing edited JSON per preset - survives switching between presets
 const presetEditCache = ref<Map<string, string>>(new Map());
@@ -348,6 +350,46 @@ const formattedOverrides = (value: OnboardingOverridePayload | null) => {
   return JSON.stringify(value, null, 2);
 };
 
+const clearOnboardingDraftStorage = () => {
+  if (typeof window === 'undefined') return;
+
+  localStorage.removeItem('onboardingDraft');
+  const keysToRemove = Object.keys(localStorage).filter((key) => key.includes('onboardingDraft'));
+  keysToRemove.forEach((key) => localStorage.removeItem(key));
+};
+
+const hardRefreshPageBestEffort = async () => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    if ('caches' in window) {
+      const cacheKeys = await caches.keys();
+      await Promise.all(cacheKeys.map((cacheKey) => caches.delete(cacheKey)));
+    }
+  } catch (error) {
+    console.warn('[OnboardingAdminPanel] Failed to clear CacheStorage before refresh:', error);
+  }
+
+  window.location.reload();
+};
+
+onMounted(() => {
+  if (typeof window === 'undefined') return;
+  resetDraftAndHardRefreshOnOpen.value = localStorage.getItem(RESET_DRAFT_AND_REFRESH_KEY) === 'true';
+});
+
+const setResetDraftAndHardRefreshOnOpen = (value: boolean) => {
+  resetDraftAndHardRefreshOnOpen.value = value;
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(RESET_DRAFT_AND_REFRESH_KEY, value ? 'true' : 'false');
+  }
+};
+
+const onResetDraftAndHardRefreshChange = (event: Event) => {
+  const target = event.target as HTMLInputElement | null;
+  setResetDraftAndHardRefreshOnOpen(Boolean(target?.checked));
+};
+
 // "Load" the preset into the editor (for editing) - and set as active selection
 // If the same preset is already selected, don't reset the editor (preserve edits)
 // When switching presets, save current edits to cache and restore cached edits if available
@@ -389,11 +431,20 @@ const applyAndOpenPreset = async (preset: Preset) => {
   }
 
   errorMessage.value = '';
+
+  if (resetDraftAndHardRefreshOnOpen.value) {
+    clearOnboardingDraftStorage();
+  }
+
   await applyOverrides();
   await nextTick();
   const shouldOpen =
     status.value === 'INCOMPLETE' || status.value === 'UPGRADE' || status.value === 'DOWNGRADE';
   activationModalStore.setIsHidden(!shouldOpen);
+
+  if (resetDraftAndHardRefreshOnOpen.value) {
+    await hardRefreshPageBestEffort();
+  }
 };
 
 const clearOverrides = async () => {
@@ -665,6 +716,27 @@ const currentRegistrationState = computed({
             <option value="EGUID">EGUID (Error)</option>
             <option value="EEXPIRED">EEXPIRED (Trial End)</option>
           </select>
+        </div>
+
+        <div class="border-border bg-card shrink-0 rounded-lg border p-3 shadow-sm">
+          <label class="flex cursor-pointer items-start gap-2">
+            <input
+              type="checkbox"
+              class="mt-0.5"
+              :checked="resetDraftAndHardRefreshOnOpen"
+              @change="onResetDraftAndHardRefreshChange"
+            />
+            <div>
+              <div class="text-foreground text-xs font-semibold uppercase">
+                Reset Draft + Hard Refresh on Open
+              </div>
+              <div class="text-muted-foreground text-xs">
+                When enabled, pressing <strong>Open</strong> clears
+                <code class="bg-muted rounded px-1">onboardingDraft</code> from localStorage, then
+                reloads the page after applying overrides.
+              </div>
+            </div>
+          </label>
         </div>
 
         <!-- Presets List -->

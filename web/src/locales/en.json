@@ -30,7 +30,9 @@
   "onboarding.pluginsStep.pluginInstalledMessage": "{name} installed successfully.",
   "onboarding.pluginsStep.selectPluginsDescription": "Select the plugins you want to install. You can always add more later.",
   "onboarding.pluginsStep.tip": "These are just the essentials. Once you reach the dashboard, you can explore thousands of other community-built plugins and Docker containers.",
-  
+  "onboarding.pluginsStep.alreadyInstalled": "Already installed",
+  "onboarding.pluginsStep.willInstall": "Pending install",
+
   "onboarding.overviewStep.getStarted": "Get Started",
   "onboarding.overviewStep.getStartedWithYourNewSystem": "Get started with your new Unraid system",
   "onboarding.overviewStep.welcomeToUnraid": "Overview",
