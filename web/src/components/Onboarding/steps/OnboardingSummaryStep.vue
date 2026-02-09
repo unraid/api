@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
@@ -14,6 +14,7 @@ import {
   SwatchIcon,
 } from '@heroicons/vue/24/outline';
 import {
+  ArrowPathIcon,
   CheckCircleIcon,
   ChevronDownIcon,
   ChevronRightIcon,
@@ -166,6 +167,32 @@ const hasCoreSettingChanges = computed(() => {
 const hasAnyChangesToApply = computed(
   () => hasCoreSettingChanges.value || pluginIdsToInstall.value.length > 0
 );
+const isApplyDataReady = computed(() =>
+  Boolean(coreSettingsResult.value?.server && coreSettingsResult.value?.vars)
+);
+const applyReadinessTimedOut = ref(false);
+const APPLY_READINESS_TIMEOUT_MS = 10000;
+let applyReadinessTimer: ReturnType<typeof setTimeout> | null = null;
+
+const canApply = computed(() => isApplyDataReady.value || applyReadinessTimedOut.value);
+const showApplyReadinessWarning = computed(
+  () => applyReadinessTimedOut.value && !isApplyDataReady.value
+);
+
+onMounted(() => {
+  applyReadinessTimer = setTimeout(() => {
+    if (!isApplyDataReady.value) {
+      applyReadinessTimedOut.value = true;
+    }
+  }, APPLY_READINESS_TIMEOUT_MS);
+});
+
+onBeforeUnmount(() => {
+  if (applyReadinessTimer) {
+    clearTimeout(applyReadinessTimer);
+    applyReadinessTimer = null;
+  }
+});
 
 // Helper to determine activation label/status
 const activationStatus = computed(() => {
@@ -221,6 +248,10 @@ const handleComplete = async () => {
   if (isProcessing.value) {
     return;
   }
+  if (!canApply.value) {
+    error.value = 'Settings are still loading. Please wait a moment and try again.';
+    return;
+  }
 
   // Lock modal open
   modalStore.setIsHidden(false);
@@ -230,6 +261,9 @@ const handleComplete = async () => {
   logs.value = []; // Clear logs
 
   addLog('Starting configuration...', 'info');
+  if (showApplyReadinessWarning.value) {
+    addLog('Baseline settings did not load in time. Continuing in best-effort mode.', 'info');
+  }
 
   try {
     const promises = [];
@@ -252,7 +286,9 @@ const handleComplete = async () => {
       promises.push(
         updateSystemTime({ input: { timeZone: draftStore.selectedTimeZone } })
           .then(() => addLog('TimeZone updated.', 'success'))
-          .catch((e) => addLog(`Failed to update TimeZone: ${e.message}`, 'error'))
+          .catch((e) => {
+            addLog(`TimeZone request returned an error, continuing: ${e.message}`, 'info');
+          })
       );
     }
 
@@ -261,7 +297,9 @@ const handleComplete = async () => {
       promises.push(
         updateServerIdentity({ name: draftStore.serverName, comment: draftStore.serverDescription })
           .then(() => addLog('Server Identity updated.', 'success'))
-          .catch((e) => addLog(`Failed to update Server Identity: ${e.message}`, 'error'))
+          .catch((e) => {
+            addLog(`Server identity request returned an error, continuing: ${e.message}`, 'info');
+          })
       );
     }
 
@@ -270,7 +308,9 @@ const handleComplete = async () => {
       promises.push(
         setTheme({ theme: draftStore.selectedTheme })
           .then(() => addLog('Theme updated.', 'success'))
-          .catch((e) => addLog(`Failed to update Theme: ${e.message}`, 'error'))
+          .catch((e) => {
+            addLog(`Theme request returned an error, continuing: ${e.message}`, 'info');
+          })
       );
     }
 
@@ -279,7 +319,9 @@ const handleComplete = async () => {
       promises.push(
         setLocale({ locale: draftStore.selectedLanguage })
           .then(() => addLog('Language updated.', 'success'))
-          .catch((e) => addLog(`Failed to update Language: ${e.message}`, 'error'))
+          .catch((e) => {
+            addLog(`Language request returned an error, continuing: ${e.message}`, 'info');
+          })
       );
     }
 
@@ -306,7 +348,10 @@ const handleComplete = async () => {
             addLog(`${details.name} installed.`, 'success');
           } catch (e: unknown) {
             const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-            addLog(`Failed to install ${details.name}: ${errorMessage}`, 'error');
+            addLog(
+              `Plugin install reported an error for ${details.name}, continuing: ${errorMessage}`,
+              'info'
+            );
             // Continue installing others
           }
         }
@@ -321,7 +366,7 @@ const handleComplete = async () => {
         addLog('SSH Settings updated.', 'success');
       } catch (e: unknown) {
         console.warn('SSH update error:', e);
-        addLog('SSH Settings applied (optimistic).', 'success');
+        addLog('SSH update request returned an error, continuing (service may have restarted).', 'info');
       }
     }
 
@@ -532,6 +577,15 @@ const handleBack = () => {
           {{ error }}
         </p>
       </div>
+      <div
+        v-if="showApplyReadinessWarning"
+        class="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/10"
+      >
+        <p class="text-center text-sm font-medium text-yellow-700 dark:text-yellow-300">
+          We couldn't verify current settings from the server. You can still continue, but setup will
+          apply changes in best-effort mode.
+        </p>
+      </div>
 
       <!-- Footer -->
       <div
@@ -549,17 +603,25 @@ const handleBack = () => {
         <div v-else class="hidden w-1 sm:block" />
 
         <BrandButton
-          :text="t('onboarding.summaryStep.confirmAndApply')"
+          :text="''"
           :class="`w-full min-w-[200px] font-bold tracking-wide uppercase shadow-md transition-all sm:w-auto ${
             isProcessing
               ? '!bg-gray-400 !text-white hover:!bg-gray-400'
               : '!bg-primary hover:!bg-primary/90 !text-white hover:shadow-lg'
           }`"
           @click="handleComplete"
-          :loading="isProcessing"
-          :disabled="isProcessing"
-          :icon-right="ChevronRightIcon"
-        />
+          :disabled="isProcessing || !canApply"
+          :icon-right="isProcessing ? undefined : ChevronRightIcon"
+        >
+          <span class="inline-flex items-center gap-2">
+            <ArrowPathIcon v-if="isProcessing" class="h-4 w-4 animate-spin" />
+            <span>{{
+              isProcessing
+                ? t('common.loading', 'Loading...')
+                : t('onboarding.summaryStep.confirmAndApply')
+            }}</span>
+          </span>
+        </BrandButton>
       </div>
     </div>
   </div>
