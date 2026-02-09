@@ -8,6 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ActivationCode: typeof import('./src/components/Registration/ActivationCode.vue')['default']
     'ApiKeyAuthorize.standalone': typeof import('./src/components/ApiKeyAuthorize.standalone.vue')['default']
     ApiKeyCreate: typeof import('./src/components/ApiKey/ApiKeyCreate.vue')['default']
     ApiKeyManager: typeof import('./src/components/ApiKey/ApiKeyManager.vue')['default']

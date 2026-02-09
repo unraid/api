@@ -21,9 +21,16 @@ export const usePurchaseStore = defineStore('purchase', () => {
       ...serverPurchasePayload.value,
     };
     if (activationCode.value) {
+      const { code, partner, system } = activationCode.value;
+      const activationCodeData = {
+        ...(code ? { code } : {}),
+        ...(partner ? { partner } : {}),
+        ...(system ? { system } : {}),
+      };
+
       return {
         ...payload,
-        activationCodeData: activationCode.value,
+        activationCodeData: Object.keys(activationCodeData).length ? activationCodeData : null,
       };
     }
     return payload;

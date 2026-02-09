@@ -57,6 +57,7 @@ export const useServerStore = defineStore('server', () => {
   const purchaseStore = usePurchaseStore();
   const themeStore = useThemeStore();
   const unraidApiStore = useUnraidApiStore();
+  const { activationCode } = storeToRefs(useActivationCodeDataStore());
   /**
    * State
    */
@@ -357,10 +358,13 @@ export const useServerStore = defineStore('server', () => {
     };
   });
   const redeemAction = computed((): ServerStateDataAction => {
-    const { activationCode } = storeToRefs(useActivationCodeDataStore());
+    const isPartnerActivationState =
+      state.value === 'ENOKEYFILE' || state.value === 'TRIAL' || state.value === 'EEXPIRED';
+    const shouldUsePartnerActivate = Boolean(activationCode.value?.code) && isPartnerActivationState;
+
     return {
       click: () => {
-        if (activationCode.value?.code) {
+        if (shouldUsePartnerActivate) {
           purchaseStore.activate();
         } else {
           purchaseStore.redeem();
@@ -369,9 +373,9 @@ export const useServerStore = defineStore('server', () => {
       disabled: serverActionsDisable.value.disable,
       external: true,
       icon: KeyIcon,
-      name: activationCode.value?.code ? 'activate' : 'redeem',
-      text: activationCode.value?.code
-        ? t('server.actions.activateNow')
+      name: shouldUsePartnerActivate ? 'activate' : 'redeem',
+      text: shouldUsePartnerActivate
+        ? t('registration.actions.activateLicense')
         : t('server.actions.redeemActivationCode'),
       title: serverActionsDisable.value.title,
     };
@@ -466,13 +470,20 @@ export const useServerStore = defineStore('server', () => {
 
   let messageEGUID = '';
   let trialMessage = '';
+  const shouldUsePartnerActivationOnly = computed(() => {
+    const isPartnerActivationState =
+      state.value === 'ENOKEYFILE' || state.value === 'TRIAL' || state.value === 'EEXPIRED';
+    return Boolean(activationCode.value?.code) && isPartnerActivationState;
+  });
   const stateData = computed((): ServerStateData => {
     switch (state.value) {
       case 'ENOKEYFILE':
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...[trialStartAction.value, purchaseAction.value, redeemAction.value, recoverAction.value],
+            ...(shouldUsePartnerActivationOnly.value
+              ? [redeemAction.value, recoverAction.value]
+              : [redeemAction.value, trialStartAction.value, purchaseAction.value, recoverAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: t('server.state.enokeyfile.humanReadable'),
@@ -494,8 +505,12 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...[purchaseAction.value, redeemAction.value],
-            ...(trialExtensionEligibleInsideRenewalWindow.value ? [trialExtendAction.value] : []),
+            ...(shouldUsePartnerActivationOnly.value
+              ? [redeemAction.value]
+              : [redeemAction.value, purchaseAction.value]),
+            ...(!shouldUsePartnerActivationOnly.value && trialExtensionEligibleInsideRenewalWindow.value
+              ? [trialExtendAction.value]
+              : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: t('server.state.trial.humanReadable'),
@@ -506,7 +521,9 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...[purchaseAction.value, redeemAction.value],
+            ...(shouldUsePartnerActivationOnly.value
+              ? [redeemAction.value]
+              : [redeemAction.value, purchaseAction.value]),
             ...(trialExtensionEligible.value ? [trialExtendAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
