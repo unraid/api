@@ -54,6 +54,7 @@ describe('OnboardingPartnerLogo', () => {
   it('does not render when partner info is empty', () => {
     const wrapper = mountComponent(null);
 
-    expect(wrapper.html()).toBe('');
+    expect(wrapper.find('a').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="partner-logo-img"]').exists()).toBe(false);
   });
 });

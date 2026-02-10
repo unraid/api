@@ -1,4 +1,3 @@
-import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -8,13 +7,13 @@ import { createTestI18n } from '../../utils/i18n';
 
 const { serverStoreMock, activationStoreMock } = vi.hoisted(() => ({
   serverStoreMock: {
-    state: ref('ENOKEYFILE'),
+    state: { value: 'ENOKEYFILE' },
     refreshServerState: vi.fn(),
   },
   activationStoreMock: {
-    activationCode: ref({ code: 'TEST-GUID-123' }),
-    registrationState: ref('ENOKEYFILE'),
-    hasActivationCode: ref(true),
+    activationCode: { value: { code: 'TEST-GUID-123' } },
+    registrationState: { value: 'ENOKEYFILE' },
+    hasActivationCode: { value: true },
   },
 }));
 
@@ -149,6 +148,14 @@ describe('OnboardingLicenseStep.vue', () => {
 
     expect(skipButton).toBeTruthy();
     await skipButton!.trigger('click');
+    await wrapper.vm.$nextTick();
+
+    const confirmSkipButton = wrapper
+      .findAll('[data-testid="brand-button"]')
+      .find((button) => button.text().toLowerCase().includes('understand'));
+
+    expect(confirmSkipButton).toBeTruthy();
+    await confirmSkipButton!.trigger('click');
 
     expect(onComplete).toHaveBeenCalledTimes(1);
   });

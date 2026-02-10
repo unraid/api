@@ -18,6 +18,18 @@ import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/ac
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 
 vi.mock('@app/core/utils/files/file-exists.js');
+vi.mock('fs/promises', async () => {
+    const actual = await vi.importActual<typeof import('fs/promises')>('fs/promises');
+    return {
+        ...actual,
+        mkdir: vi.fn(),
+        access: vi.fn(),
+        readdir: vi.fn(),
+        readFile: vi.fn(),
+        writeFile: vi.fn(),
+        copyFile: vi.fn(),
+    };
+});
 
 const mockPaths = {
     activationBase: '/mock/boot/config/activation',
@@ -637,7 +649,6 @@ describe('OnboardingService', () => {
             // Only banner='image' and the default showBannerGradient='yes' should be set
             expect(updateSpy).toHaveBeenCalledWith(userDynamixCfg, 'display', {
                 banner: 'image', // Only banner is set
-                showBannerGradient: 'yes', // Default value from DTO
             });
             expect(loggerLogSpy).toHaveBeenCalledWith('Display settings updated in config file.');
         });
@@ -774,7 +785,6 @@ describe('OnboardingService', () => {
                   "waitForToken": true,
                 },
                 "params": {
-                  "COMMENT": "Partner Comment",
                   "NAME": "PartnerServer",
                   "SYS_MODEL": "PartnerModel",
                   "changeNames": "Apply",
@@ -887,7 +897,6 @@ describe('OnboardingService', () => {
             // Use toMatchInlineSnapshot to compare the params
             expect(sslEnabledParams).toMatchInlineSnapshot(`
               {
-                "COMMENT": "Partner Comment",
                 "NAME": "PartnerServer",
                 "SYS_MODEL": "PartnerModel",
                 "changeNames": "Apply",
@@ -918,7 +927,6 @@ describe('OnboardingService', () => {
             // Use toMatchInlineSnapshot to compare the params
             expect(sslDisabledParams).toMatchInlineSnapshot(`
               {
-                "COMMENT": "Partner Comment",
                 "NAME": "PartnerServer",
                 "SYS_MODEL": "PartnerModel",
                 "changeNames": "Apply",

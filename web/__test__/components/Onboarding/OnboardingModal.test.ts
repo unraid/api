@@ -1,4 +1,4 @@
-import { reactive, ref } from 'vue';
+import { reactive } from 'vue';
 import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -18,34 +18,36 @@ const {
 } = vi.hoisted(() => ({
   mutateMock: vi.fn().mockResolvedValue(undefined),
   activationCodeModalStore: {
-    isVisible: ref(true),
+    isVisible: { value: true },
     setIsHidden: vi.fn(),
   },
   activationCodeDataStore: {
-    activationRequired: ref(false),
-    hasActivationCode: ref(true),
-    registrationState: ref('ENOKEYFILE'),
-    partnerInfo: ref({
-      partner: { name: null, url: null },
-      branding: { hasPartnerLogo: false },
-    }),
-    isFreshInstall: ref(true),
+    activationRequired: { value: false },
+    hasActivationCode: { value: true },
+    registrationState: { value: 'ENOKEYFILE' },
+    partnerInfo: {
+      value: {
+        partner: { name: null, url: null },
+        branding: { hasPartnerLogo: false },
+      },
+    },
+    isFreshInstall: { value: true },
   },
   upgradeOnboardingStore: {
-    shouldShowOnboarding: ref(false),
-    isVersionDrift: ref(false),
-    completedAtVersion: ref(null),
+    shouldShowOnboarding: { value: false },
+    isVersionDrift: { value: false },
+    completedAtVersion: { value: null },
     refetchOnboarding: vi.fn().mockResolvedValue(undefined),
   },
   onboardingDraftStore: {
-    currentStepIndex: ref(0),
+    currentStepIndex: { value: 0 },
   },
   purchaseStore: {
     generateUrl: vi.fn(() => 'https://example.com/activate'),
     openInNewTab: true,
   },
   serverStore: {
-    keyfile: ref(null),
+    keyfile: { value: null },
   },
   themeStore: {
     fetchTheme: vi.fn().mockResolvedValue(undefined),

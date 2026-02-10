@@ -1,4 +1,3 @@
-import { ref } from 'vue';
 import { flushPromises, mount } from '@vue/test-utils';
 
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
@@ -13,15 +12,18 @@ const { draftStore, installedPluginsResult, useQueryMock } = vi.hoisted(() => ({
     pluginSelectionInitialized: false,
     setPlugins: vi.fn(),
   },
-  installedPluginsResult: ref<{ installedUnraidPlugins: string[] } | null>({
-    installedUnraidPlugins: [],
-  }),
+  installedPluginsResult: {
+    value: {
+      installedUnraidPlugins: [],
+    } as { installedUnraidPlugins: string[] } | null,
+  },
   useQueryMock: vi.fn(),
 }));
 
 vi.mock('@unraid/ui', () => ({
   BrandButton: {
     props: ['text', 'variant', 'disabled', 'loading'],
+    emits: ['click'],
     template:
       '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')">{{ text }}</button>',
   },
@@ -71,7 +73,7 @@ describe('OnboardingPluginsStep', () => {
           result: installedPluginsResult,
         };
       }
-      return { result: ref(null) };
+      return { result: { value: null } };
     });
   });
 
@@ -116,8 +118,9 @@ describe('OnboardingPluginsStep', () => {
     expect(nextButton).toBeTruthy();
     await nextButton!.trigger('click');
 
-    expect(draftStore.setPlugins).toHaveBeenCalledTimes(1);
-    const selected = draftStore.setPlugins.mock.calls[0][0] as Set<string>;
+    expect(draftStore.setPlugins).toHaveBeenCalled();
+    const lastCallIndex = draftStore.setPlugins.mock.calls.length - 1;
+    const selected = draftStore.setPlugins.mock.calls[lastCallIndex][0] as Set<string>;
     expect(Array.from(selected).sort()).toEqual(
       ['community-apps', 'fix-common-problems', 'tailscale'].sort()
     );

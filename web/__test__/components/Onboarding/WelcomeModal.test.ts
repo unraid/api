@@ -1,4 +1,3 @@
-import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,12 +9,15 @@ import { testTranslate } from '../../utils/i18n';
 
 const { welcomeModalDataStore, themeStore } = vi.hoisted(() => ({
   welcomeModalDataStore: {
-    partnerInfo: ref({
-      partner: { name: null, url: null },
-      branding: { hasPartnerLogo: false },
-    }),
-    isFreshInstall: ref(true),
-    loading: ref(false),
+    partnerInfo: {
+      value: {
+        partner: { name: null, url: null },
+        branding: { hasPartnerLogo: false },
+      },
+      __v_isRef: true,
+    },
+    isFreshInstall: { value: true, __v_isRef: true },
+    loading: { value: false, __v_isRef: true },
   },
   themeStore: {
     fetchTheme: vi.fn().mockResolvedValue(undefined),
@@ -68,6 +70,14 @@ vi.mock('~/components/Onboarding/store/welcomeModalData', () => ({
 vi.mock('~/store/theme', () => ({
   useThemeStore: () => themeStore,
 }));
+
+vi.mock('pinia', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('pinia')>();
+  return {
+    ...actual,
+    storeToRefs: (store: Record<string, unknown>) => store,
+  };
+});
 
 describe('WelcomeModal.standalone.vue', () => {
   beforeEach(() => {
