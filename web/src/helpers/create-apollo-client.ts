@@ -42,6 +42,18 @@ const httpEndpoint = getGraphQLEndpoint();
 const wsEndpoint = new URL(httpEndpoint);
 wsEndpoint.protocol = wsEndpoint.protocol === 'https:' ? 'wss:' : 'ws:';
 const DEV_MODE = (globalThis as unknown as { __DEV__: boolean }).__DEV__ ?? false;
+let hasLoggedOfflineGraphQLError = false;
+let hasLoggedOfflineNetworkError = false;
+
+const isOfflineLikeMessage = (value: string) => {
+  const normalized = value.toLowerCase();
+  return (
+    normalized.includes('offline') ||
+    normalized.includes('failed to fetch') ||
+    normalized.includes('network request failed') ||
+    normalized.includes('graphql is offline')
+  );
+};
 
 const headers = {
   'x-csrf-token': globalThis.csrf_token ?? '0000000000000000',
@@ -63,19 +75,33 @@ const wsLink = new GraphQLWsLink(
 const errorLink = onError(({ graphQLErrors, networkError }: ErrorResponse) => {
   if (graphQLErrors) {
     graphQLErrors.forEach((error: GraphQLFormattedError) => {
-      console.error('[GraphQL error]', error);
       const errorMsg =
         (error as GraphQLFormattedError & { error?: { message?: string } }).error?.message ??
         error.message;
-      if (errorMsg?.includes('offline')) {
+      if (typeof errorMsg === 'string' && isOfflineLikeMessage(errorMsg)) {
+        if (!hasLoggedOfflineGraphQLError) {
+          hasLoggedOfflineGraphQLError = true;
+          console.warn('[GraphQL] API appears offline; suppressing repeated offline errors.');
+        }
         // @todo restart the api, but make sure not to trigger infinite loop
+        return;
       }
+
+      console.error('[GraphQL error]', error);
     });
   }
 
   if (networkError) {
-    console.error(`[Network error]: ${networkError}`);
     const msg = networkError.message ? networkError.message : networkError;
+    if (typeof msg === 'string' && isOfflineLikeMessage(msg)) {
+      if (!hasLoggedOfflineNetworkError) {
+        hasLoggedOfflineNetworkError = true;
+        console.warn('[Network] API appears offline; suppressing repeated offline errors.');
+      }
+      return;
+    }
+
+    console.error(`[Network error]: ${networkError}`);
     if (typeof msg === 'string' && msg.includes('Unexpected token < in JSON at position 0')) {
       console.error('Unraid API • CORS Error');
     }

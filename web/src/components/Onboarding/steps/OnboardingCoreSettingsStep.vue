@@ -29,6 +29,24 @@ export interface Props {
 
 const props = defineProps<Props>();
 const { t } = useI18n();
+const draftStore = useOnboardingDraftStore();
+
+const TRUSTED_DEFAULT_PROFILE = Object.freeze({
+  serverName: 'Tower',
+  serverDescription: '',
+  timeZone: 'UTC',
+  theme: 'white',
+  locale: 'en_US',
+  useSsh: false,
+});
+
+const resolveInitialTimeZone = () => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || TRUSTED_DEFAULT_PROFILE.timeZone;
+  } catch {
+    return TRUSTED_DEFAULT_PROFILE.timeZone;
+  }
+};
 
 const themeImages: Record<string, string> = {
   azure: azureThemeImg,
@@ -39,12 +57,16 @@ const themeImages: Record<string, string> = {
 
 // ... inside script setup ...
 
-const selectedTimeZone = ref<string>('');
-const serverName = ref<string>('');
-const serverDescription = ref<string>('');
-const selectedTheme = ref<string>('');
-const selectedLanguage = ref<string>('');
-const useSsh = ref<boolean>(false);
+const selectedTimeZone = ref<string>(draftStore.selectedTimeZone || resolveInitialTimeZone());
+const serverName = ref<string>(draftStore.serverName || TRUSTED_DEFAULT_PROFILE.serverName);
+const serverDescription = ref<string>(
+  draftStore.serverDescription || TRUSTED_DEFAULT_PROFILE.serverDescription
+);
+const selectedTheme = ref<string>(draftStore.selectedTheme || TRUSTED_DEFAULT_PROFILE.theme);
+const selectedLanguage = ref<string>(draftStore.selectedLanguage || TRUSTED_DEFAULT_PROFILE.locale);
+const useSsh = ref<boolean>(
+  typeof draftStore.useSsh === 'boolean' ? draftStore.useSsh : TRUSTED_DEFAULT_PROFILE.useSsh
+);
 // ipAssignment removed
 const currentIp = ref<string>('');
 const localTld = ref<string>('local'); // Store localTld for hostname computation
@@ -232,8 +254,6 @@ const languageItems = computed(() => {
 });
 
 const isLanguageDisabled = computed(() => isLanguagesLoading.value || !!languagesQueryError.value);
-
-const draftStore = useOnboardingDraftStore();
 
 const handleSubmit = async () => {
   if (serverNameValidation.value || serverDescriptionValidation.value) {

@@ -22,7 +22,7 @@ import {
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { BrandButton, Dialog } from '@unraid/ui';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import usePluginInstaller from '@/components/Onboarding/composables/usePluginInstaller';
 import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Onboarding/graphql/availableLanguages.query';
@@ -70,9 +70,13 @@ const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION)
 const { installLanguage, installPlugin } = usePluginInstaller();
 
 // Fetch Current Settings (for comparison if needed)
-const { result: coreSettingsResult } = useQuery(GET_CORE_SETTINGS_QUERY, null, {
-  fetchPolicy: 'cache-first',
-});
+const { result: coreSettingsResult, error: coreSettingsError } = useQuery(
+  GET_CORE_SETTINGS_QUERY,
+  null,
+  {
+    fetchPolicy: 'cache-first',
+  }
+);
 const { result: installedPluginsResult, refetch: refetchInstalledPlugins } = useQuery(
   INSTALLED_UNRAID_PLUGINS_QUERY,
   null,
@@ -114,10 +118,41 @@ const displayLanguage = computed(() => {
 const isProcessing = ref(false);
 const error = ref<string | null>(null);
 const logs = ref<LogEntry[]>([]);
+const showConsole = computed(() => isProcessing.value || logs.value.length > 0);
+const showApplyResultDialog = ref(false);
+const applyResultTitle = ref('');
+const applyResultMessage = ref('');
 
 const addLog = (message: string, type: LogEntry['type'] = 'info') => {
   logs.value.push({ message, type, timestamp: Date.now() });
 };
+
+const TRUSTED_DEFAULT_PROFILE = Object.freeze({
+  serverName: 'Tower',
+  serverDescription: '',
+  timeZone: 'UTC',
+  theme: 'white',
+  locale: 'en_US',
+  useSsh: false,
+});
+
+interface CoreSettingsSnapshot {
+  serverName: string;
+  serverDescription: string;
+  timeZone: string;
+  theme: string;
+  locale: string;
+  useSsh: boolean;
+}
+
+const resolveTargetCoreSettings = (): CoreSettingsSnapshot => ({
+  serverName: draftStore.serverName || TRUSTED_DEFAULT_PROFILE.serverName,
+  serverDescription: draftStore.serverDescription || TRUSTED_DEFAULT_PROFILE.serverDescription,
+  timeZone: draftStore.selectedTimeZone || TRUSTED_DEFAULT_PROFILE.timeZone,
+  theme: draftStore.selectedTheme || TRUSTED_DEFAULT_PROFILE.theme,
+  locale: draftStore.selectedLanguage || TRUSTED_DEFAULT_PROFILE.locale,
+  useSsh: typeof draftStore.useSsh === 'boolean' ? draftStore.useSsh : TRUSTED_DEFAULT_PROFILE.useSsh,
+});
 
 const normalizePluginFileName = (value: string) => value.trim().toLowerCase();
 const getPluginFileName = (url: string) => {
@@ -194,13 +229,16 @@ const hasAnyChangesToApply = computed(
 const isApplyDataReady = computed(() =>
   Boolean(coreSettingsResult.value?.server && coreSettingsResult.value?.vars)
 );
+const hasBaselineQueryError = computed(() => Boolean(coreSettingsError.value));
 const applyReadinessTimedOut = ref(false);
 const APPLY_READINESS_TIMEOUT_MS = 10000;
 let applyReadinessTimer: ReturnType<typeof setTimeout> | null = null;
 
-const canApply = computed(() => isApplyDataReady.value || applyReadinessTimedOut.value);
+const canApply = computed(
+  () => isApplyDataReady.value || applyReadinessTimedOut.value || hasBaselineQueryError.value
+);
 const showApplyReadinessWarning = computed(
-  () => applyReadinessTimedOut.value && !isApplyDataReady.value
+  () => !isApplyDataReady.value && (applyReadinessTimedOut.value || hasBaselineQueryError.value)
 );
 
 onMounted(() => {
@@ -286,53 +324,98 @@ const handleComplete = async () => {
 
   addLog('Starting configuration...', 'info');
   if (showApplyReadinessWarning.value) {
-    addLog('Baseline settings did not load in time. Continuing in best-effort mode.', 'info');
+    addLog('Baseline settings unavailable. Continuing in best-effort mode.', 'info');
   }
 
   try {
     const promises = [];
+    const baselineLoaded = isApplyDataReady.value;
+    const targetCoreSettings = resolveTargetCoreSettings();
+    let hadNonOptimisticFailures = false;
+    let hadWarnings = !baselineLoaded;
+    let usedOptimisticSshPath = false;
+    let completionMarked = false;
 
     // 1. Apply Core Settings
-    const currentTimezone = coreSettingsResult.value?.systemTime?.timeZone || '';
-    const currentName =
-      coreSettingsResult.value?.server?.name || coreSettingsResult.value?.vars?.name || '';
-    const currentDescription = coreSettingsResult.value?.server?.comment || '';
-    const currentTheme = coreSettingsResult.value?.display?.theme || 'white';
-    const currentLocale = coreSettingsResult.value?.display?.locale || 'en_US';
-    const currentSsh = Boolean(coreSettingsResult.value?.vars?.useSsh || false);
+    const currentTimezone = baselineLoaded
+      ? coreSettingsResult.value?.systemTime?.timeZone || TRUSTED_DEFAULT_PROFILE.timeZone
+      : TRUSTED_DEFAULT_PROFILE.timeZone;
+    const currentName = baselineLoaded
+      ? coreSettingsResult.value?.server?.name ||
+        coreSettingsResult.value?.vars?.name ||
+        TRUSTED_DEFAULT_PROFILE.serverName
+      : TRUSTED_DEFAULT_PROFILE.serverName;
+    const currentDescription = baselineLoaded
+      ? coreSettingsResult.value?.server?.comment || TRUSTED_DEFAULT_PROFILE.serverDescription
+      : TRUSTED_DEFAULT_PROFILE.serverDescription;
+    const currentTheme = baselineLoaded
+      ? coreSettingsResult.value?.display?.theme || TRUSTED_DEFAULT_PROFILE.theme
+      : TRUSTED_DEFAULT_PROFILE.theme;
+    const currentLocale = baselineLoaded
+      ? coreSettingsResult.value?.display?.locale || TRUSTED_DEFAULT_PROFILE.locale
+      : TRUSTED_DEFAULT_PROFILE.locale;
+    const currentSsh = baselineLoaded
+      ? Boolean(coreSettingsResult.value?.vars?.useSsh || false)
+      : TRUSTED_DEFAULT_PROFILE.useSsh;
+
+    if (!baselineLoaded) {
+      hadWarnings = true;
+      addLog(
+        'Baseline settings unavailable. Applying trusted defaults + draft values without diff checks.',
+        'info'
+      );
+    }
+
+    const shouldApplyTimeZone = baselineLoaded ? targetCoreSettings.timeZone !== currentTimezone : true;
+    const shouldApplyServerIdentity = baselineLoaded
+      ? targetCoreSettings.serverName !== currentName ||
+        targetCoreSettings.serverDescription !== currentDescription
+      : true;
+    const shouldApplyTheme = baselineLoaded ? targetCoreSettings.theme !== currentTheme : true;
+    const shouldApplyLocale = baselineLoaded ? targetCoreSettings.locale !== currentLocale : true;
+    const shouldApplySsh = baselineLoaded ? targetCoreSettings.useSsh !== currentSsh : true;
 
     if (!hasAnyChangesToApply.value) {
       addLog('No settings changed. Skipping configuration mutations.', 'info');
     }
 
-    if (draftStore.selectedTimeZone !== currentTimezone) {
-      addLog(`Setting TimeZone to ${draftStore.selectedTimeZone}...`, 'info');
+    if (shouldApplyTimeZone) {
+      addLog(`Setting TimeZone to ${targetCoreSettings.timeZone}...`, 'info');
       promises.push(
-        updateSystemTime({ input: { timeZone: draftStore.selectedTimeZone } })
+        updateSystemTime({ input: { timeZone: targetCoreSettings.timeZone } })
           .then(() => addLog('TimeZone updated.', 'success'))
           .catch((e) => {
+            hadNonOptimisticFailures = true;
+            hadWarnings = true;
             addLog(`TimeZone request returned an error, continuing: ${e.message}`, 'info');
           })
       );
     }
 
-    if (draftStore.serverName !== currentName || draftStore.serverDescription !== currentDescription) {
-      addLog(`Updating Server Identity to ${draftStore.serverName}...`, 'info');
+    if (shouldApplyServerIdentity) {
+      addLog(`Updating Server Identity to ${targetCoreSettings.serverName}...`, 'info');
       promises.push(
-        updateServerIdentity({ name: draftStore.serverName, comment: draftStore.serverDescription })
+        updateServerIdentity({
+          name: targetCoreSettings.serverName,
+          comment: targetCoreSettings.serverDescription,
+        })
           .then(() => addLog('Server Identity updated.', 'success'))
           .catch((e) => {
+            hadNonOptimisticFailures = true;
+            hadWarnings = true;
             addLog(`Server identity request returned an error, continuing: ${e.message}`, 'info');
           })
       );
     }
 
-    if (draftStore.selectedTheme !== currentTheme) {
-      addLog(`Setting Theme to ${draftStore.selectedTheme}...`, 'info');
+    if (shouldApplyTheme) {
+      addLog(`Setting Theme to ${targetCoreSettings.theme}...`, 'info');
       promises.push(
-        setTheme({ theme: draftStore.selectedTheme })
+        setTheme({ theme: targetCoreSettings.theme })
           .then(() => addLog('Theme updated.', 'success'))
           .catch((e) => {
+            hadNonOptimisticFailures = true;
+            hadWarnings = true;
             addLog(`Theme request returned an error, continuing: ${e.message}`, 'info');
           })
       );
@@ -341,13 +424,15 @@ const handleComplete = async () => {
     await Promise.all(promises);
 
     // Install language pack first for non-default locales; only then switch locale.
-    if (draftStore.selectedLanguage !== currentLocale) {
-      const targetLocale = draftStore.selectedLanguage;
+    if (shouldApplyLocale) {
+      const targetLocale = targetCoreSettings.locale;
       if (targetLocale === 'en_US') {
         addLog(`Setting Language to ${targetLocale}...`, 'info');
         await setLocale({ locale: targetLocale })
           .then(() => addLog('Language updated.', 'success'))
           .catch((e) => {
+            hadNonOptimisticFailures = true;
+            hadWarnings = true;
             addLog(`Language request returned an error, continuing: ${e.message}`, 'info');
           });
       } else {
@@ -357,6 +442,8 @@ const handleComplete = async () => {
         );
 
         if (!language?.url) {
+          hadNonOptimisticFailures = true;
+          hadWarnings = true;
           addLog(
             `Language pack metadata for ${targetLocale} is unavailable. Skipping locale change.`,
             'error'
@@ -371,6 +458,8 @@ const handleComplete = async () => {
             });
 
             if (installResult.status !== PluginInstallStatus.SUCCEEDED) {
+              hadNonOptimisticFailures = true;
+              hadWarnings = true;
               addLog(
                 `Language pack installation did not succeed for ${language.name}. Keeping current locale.`,
                 'error'
@@ -381,10 +470,14 @@ const handleComplete = async () => {
               await setLocale({ locale: targetLocale })
                 .then(() => addLog('Language updated.', 'success'))
                 .catch((e) => {
+                  hadNonOptimisticFailures = true;
+                  hadWarnings = true;
                   addLog(`Language request returned an error, continuing: ${e.message}`, 'info');
                 });
             }
           } catch (e: unknown) {
+            hadNonOptimisticFailures = true;
+            hadWarnings = true;
             const errorMessage = e instanceof Error ? e.message : 'Unknown error';
             addLog(
               `Language pack installation failed for ${language.name}. Keeping current locale: ${errorMessage}`,
@@ -399,6 +492,7 @@ const handleComplete = async () => {
     try {
       await refetchInstalledPlugins();
     } catch {
+      hadWarnings = true;
       addLog('Could not refresh installed plugins list. Continuing with current plugin state.', 'info');
     }
 
@@ -417,7 +511,7 @@ const handleComplete = async () => {
 
           addLog(`Installing ${details.name}...`, 'info');
           try {
-            await installPlugin({
+            const installResult = await installPlugin({
               url: details.url,
               name: details.name,
               forced: false,
@@ -425,8 +519,16 @@ const handleComplete = async () => {
                 /* verbose */
               },
             });
-            addLog(`${details.name} installed.`, 'success');
+            if (installResult.status === PluginInstallStatus.SUCCEEDED) {
+              addLog(`${details.name} installed.`, 'success');
+            } else {
+              hadNonOptimisticFailures = true;
+              hadWarnings = true;
+              addLog(`${details.name} installation failed. Continuing.`, 'error');
+            }
           } catch (e: unknown) {
+            hadNonOptimisticFailures = true;
+            hadWarnings = true;
             const errorMessage = e instanceof Error ? e.message : 'Unknown error';
             addLog(
               `Plugin install reported an error for ${details.name}, continuing: ${errorMessage}`,
@@ -439,13 +541,13 @@ const handleComplete = async () => {
     }
 
     // 3. SSH (Run separately and optimistically)
-    if (draftStore.useSsh !== currentSsh) {
+    if (shouldApplySsh) {
+      usedOptimisticSshPath = true;
       addLog(`Updating SSH Settings...`, 'info');
       try {
-        await updateSshSettings({ enabled: draftStore.useSsh, port: 22 });
+        await updateSshSettings({ enabled: targetCoreSettings.useSsh, port: 22 });
         addLog('SSH Settings updated.', 'success');
-      } catch (e: unknown) {
-        console.warn('SSH update error:', e);
+      } catch {
         addLog('SSH update request returned an error, continuing (service may have restarted).', 'info');
       }
     }
@@ -453,22 +555,71 @@ const handleComplete = async () => {
     // 4. Mark Complete
     addLog('Finalizing setup...', 'info');
 
-    await completeOnboarding();
+    try {
+      await completeOnboarding();
+      completionMarked = true;
+      addLog('Setup complete!', 'success');
+    } catch (e: unknown) {
+      hadWarnings = true;
+      const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+      addLog(
+        `Could not mark onboarding complete right now (API may be offline): ${errorMessage}`,
+        'info'
+      );
+    }
 
-    addLog('Setup complete!', 'success');
+    if (completionMarked) {
+      await new Promise((r) => setTimeout(r, 1000));
+    }
 
-    await new Promise((r) => setTimeout(r, 1000));
+    // Avoid blocking completion UI when API is offline/retrying.
+    if (completionMarked && baselineLoaded) {
+      try {
+        await Promise.race([
+          refetchOnboarding(),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Onboarding refresh timed out')), 1500)
+          ),
+        ]);
+      } catch {
+        hadWarnings = true;
+        addLog('Could not refresh onboarding state right now. Continuing.', 'info');
+      }
+    } else {
+      hadWarnings = true;
+      addLog('Skipping onboarding state refresh while API is unavailable.', 'info');
+    }
 
-    await refetchOnboarding();
+    if (!completionMarked) {
+      applyResultTitle.value = 'Setup Saved in Best-Effort Mode';
+      applyResultMessage.value =
+        'We applied what we could, but some results could not be verified because the API is offline. You can review and update settings anytime from the Unraid Dashboard.';
+    } else if (hadNonOptimisticFailures) {
+      applyResultTitle.value = 'Setup Applied with Warnings';
+      applyResultMessage.value =
+        'Some settings could not be fully applied or verified. You can review and change any setting later from the Unraid Dashboard.';
+    } else if (hadWarnings || usedOptimisticSshPath) {
+      applyResultTitle.value = 'Setup Saved in Best-Effort Mode';
+      applyResultMessage.value =
+        'Your onboarding settings were applied. Some operations (such as SSH updates) are best-effort and may take a moment to reflect. You can adjust settings later from the Unraid Dashboard.';
+    } else {
+      applyResultTitle.value = 'Setup Applied';
+      applyResultMessage.value = 'Your onboarding settings were applied successfully.';
+    }
 
     isProcessing.value = false;
-    props.onComplete();
+    showApplyResultDialog.value = true;
   } catch (err: unknown) {
     console.error('Failed to complete onboarding:', err);
     error.value = 'An error occurred during setup. Please check the logs.';
     isProcessing.value = false;
     addLog('Setup failed.', 'error');
   }
+};
+
+const handleApplyResultConfirm = () => {
+  showApplyResultDialog.value = false;
+  props.onComplete();
 };
 
 const handleBack = () => {
@@ -665,7 +816,7 @@ const handleBack = () => {
       </div>
 
       <!-- Processing / Error Status -->
-      <div v-if="isProcessing" class="mt-6">
+      <div v-if="showConsole" class="mt-6">
         <OnboardingConsole :logs="logs" title="System Setup Log" />
       </div>
 
@@ -686,6 +837,34 @@ const handleBack = () => {
           apply changes in best-effort mode.
         </p>
       </div>
+
+      <Dialog
+        v-if="showApplyResultDialog"
+        :model-value="showApplyResultDialog"
+        :show-footer="false"
+        :show-close-button="false"
+        size="md"
+        class="max-w-md"
+      >
+        <div class="space-y-6 p-2">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold">{{ applyResultTitle }}</h3>
+            <p class="text-muted-foreground text-sm">
+              {{ applyResultMessage }}
+            </p>
+          </div>
+
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
+              @click="handleApplyResultConfirm"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </Dialog>
 
       <!-- Footer -->
       <div
