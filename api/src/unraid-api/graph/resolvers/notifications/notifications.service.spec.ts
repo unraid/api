@@ -27,6 +27,14 @@ import {
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 
+vi.mock('chokidar', () => ({
+    watch: vi.fn(() => ({
+        on: vi.fn().mockReturnThis(),
+        close: vi.fn().mockResolvedValue(undefined),
+    })),
+    FSWatcher: class {},
+}));
+
 // defined outside `describe` so it's defined inside the `beforeAll`
 // needed to mock the dynamix import
 const basePath = '/tmp/test/notifications';

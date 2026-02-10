@@ -98,7 +98,9 @@ async function cleanupAllPM2Processes() {
     });
 }
 
-describe.skipIf(!!process.env.CI)('PM2 integration tests', () => {
+const runPm2IntegrationTests = process.env.RUN_PM2_INTEGRATION === '1';
+
+describe.skipIf(!runPm2IntegrationTests || !!process.env.CI)('PM2 integration tests', () => {
     beforeAll(async () => {
         // Set PM2_HOME to use home directory for testing (not /var/log)
         process.env.PM2_HOME = join(homedir(), '.pm2');

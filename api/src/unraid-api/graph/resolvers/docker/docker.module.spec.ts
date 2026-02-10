@@ -19,6 +19,14 @@ import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/o
 import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
+vi.mock('chokidar', () => ({
+    watch: vi.fn(() => ({
+        on: vi.fn().mockReturnThis(),
+        close: vi.fn().mockResolvedValue(undefined),
+    })),
+    FSWatcher: class {},
+}));
+
 describe('DockerModule', () => {
     it('should compile the module', async () => {
         const module = await Test.createTestingModule({

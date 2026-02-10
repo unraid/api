@@ -14,6 +14,14 @@ import {
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
+vi.mock('chokidar', () => ({
+    watch: vi.fn(() => ({
+        on: vi.fn().mockReturnThis(),
+        close: vi.fn().mockResolvedValue(undefined),
+    })),
+    FSWatcher: class {},
+}));
+
 // Mock fs/promises for unit tests
 vi.mock('fs/promises', async () => {
     const actual = await vi.importActual<typeof import('fs/promises')>('fs/promises');

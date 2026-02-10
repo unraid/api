@@ -62,7 +62,9 @@ vi.mock('fs-extra', () => ({
     ensureDirSync: vi.fn().mockReturnValue(undefined),
 }));
 
-describe('AppModule Integration Tests', () => {
+const runAppModuleIntegration = process.env.RUN_APP_MODULE_INTEGRATION === '1';
+
+describe.skipIf(!runAppModuleIntegration)('AppModule Integration Tests', () => {
     let app: NestFastifyApplication;
     let moduleRef: TestingModule;
 

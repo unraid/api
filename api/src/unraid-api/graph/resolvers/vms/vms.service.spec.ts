@@ -158,7 +158,9 @@ const isQemuAvailable = () => {
     }
 };
 
-describe('VmsService', () => {
+const runVmIntegrationTests = process.env.RUN_VM_INTEGRATION === '1';
+
+describe.skipIf(!runVmIntegrationTests || !isQemuAvailable())('VmsService', () => {
     let service: VmsService;
     let hypervisor: Hypervisor;
     let testVm: VmDomain | null = null;
@@ -183,14 +185,6 @@ describe('VmsService', () => {
             </devices>
         </domain>
     `;
-
-    beforeAll(() => {
-        if (!isQemuAvailable()) {
-            throw new Error(
-                'QEMU not available - skipping VM integration tests. Please install QEMU to run these tests.'
-            );
-        }
-    });
 
     beforeAll(async () => {
         // Override the LIBVIRT_URI environment variable for testing

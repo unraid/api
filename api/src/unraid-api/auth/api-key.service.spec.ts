@@ -61,7 +61,8 @@ describe('ApiKeyService', () => {
     };
 
     beforeEach(async () => {
-        environment.IS_MAIN_PROCESS = true;
+        // Disable file watching in unit tests to avoid leaking FS watchers across cases.
+        environment.IS_MAIN_PROCESS = false;
         vi.resetAllMocks();
 
         // Create mock logger methods
