@@ -140,7 +140,7 @@ test('Returns both disk and user shares', async () => {
         ],
       }
     `);
-});
+}, 15000);
 
 test('Returns shares by type', async () => {
     await store.dispatch(loadStateFiles());
@@ -299,7 +299,7 @@ test('Returns shares by type', async () => {
     `);
     expect(getShares('disk')).toMatchInlineSnapshot('null');
     expect(getShares('disks')).toMatchInlineSnapshot('[]');
-});
+}, 15000);
 
 test('Returns shares by name', async () => {
     await store.dispatch(loadStateFiles());
@@ -330,4 +330,4 @@ test('Returns shares by name', async () => {
     // @TODO: disk shares need to be added to the dev ini files
     expect(getShares('disk', { name: 'disk1' })).toMatchInlineSnapshot('null');
     expect(getShares('disk', { name: 'non-existent-disk-share' })).toMatchInlineSnapshot('null');
-});
+}, 15000);

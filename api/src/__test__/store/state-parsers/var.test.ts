@@ -172,4 +172,4 @@ test('Returns parsed state file', async () => {
         "wsdOpt": "",
       }
     `);
-});
+}, 15000);

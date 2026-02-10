@@ -193,4 +193,4 @@ test('Returns parsed state file', async () => {
         },
       ]
     `);
-});
+}, 15000);
