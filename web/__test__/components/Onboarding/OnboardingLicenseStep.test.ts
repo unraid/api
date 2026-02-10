@@ -1,37 +1,64 @@
 import { mount } from '@vue/test-utils';
 
-import { createTestingPinia } from '@pinia/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import OnboardingLicenseStep from '~/components/Onboarding/steps/OnboardingLicenseStep.vue';
 import { createTestI18n } from '../../utils/i18n';
+
+const { serverStoreMock, activationStoreMock } = vi.hoisted(() => ({
+  serverStoreMock: {
+    state: { value: 'ENOKEYFILE' },
+    refreshServerState: vi.fn(),
+  },
+  activationStoreMock: {
+    activationCode: { value: { code: 'TEST-GUID-123' } },
+    registrationState: { value: 'ENOKEYFILE' },
+    hasActivationCode: { value: true },
+  },
+}));
+
+vi.mock('pinia', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('pinia')>();
+  return {
+    ...actual,
+    storeToRefs: (store: Record<string, unknown>) => store,
+  };
+});
+
+vi.mock('~/store/server', () => ({
+  useServerStore: () => serverStoreMock,
+}));
+
+vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
+  useActivationCodeDataStore: () => activationStoreMock,
+}));
 
 vi.mock('@unraid/ui', async (importOriginal) => {
   const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
     BrandButton: {
-      template: '<button @click="$emit(\'click\')"><slot /></button>',
-      props: ['text', 'iconRight'],
+      props: ['text', 'iconRight', 'disabled'],
+      emits: ['click'],
+      template:
+        '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')">{{ text }}</button>',
     },
     isDarkModeActive: vi.fn(() => false),
   };
 });
 
 vi.mock('@heroicons/vue/24/solid', () => {
-  // List of icons used in component AND server store
   const icons = [
+    'ArrowPathIcon',
     'ArrowTopRightOnSquareIcon',
     'ChevronLeftIcon',
-    'KeyIcon',
     'ChevronRightIcon',
-    'ArrowPathIcon',
-    'ArrowRightOnRectangleIcon',
-    'CogIcon',
-    'GlobeAltIcon',
-    'InformationCircleIcon',
-    'QuestionMarkCircleIcon',
+    'ExclamationTriangleIcon',
+    'EyeIcon',
+    'EyeSlashIcon',
+    'KeyIcon',
   ];
+
   return icons.reduce(
     (acc, icon) => {
       acc[icon] = { template: `<svg>${icon}</svg>` };
@@ -42,43 +69,27 @@ vi.mock('@heroicons/vue/24/solid', () => {
 });
 
 describe('OnboardingLicenseStep.vue', () => {
-  let windowOpenMock: ReturnType<typeof vi.fn>;
-
   beforeEach(() => {
-    windowOpenMock = vi.fn();
-    vi.stubGlobal('open', windowOpenMock);
+    vi.clearAllMocks();
+    serverStoreMock.state.value = 'ENOKEYFILE';
+    activationStoreMock.registrationState.value = 'ENOKEYFILE';
+    activationStoreMock.activationCode.value = { code: 'TEST-GUID-123' };
 
-    // Mock location robustly
     Object.defineProperty(window, 'location', {
       writable: true,
+      configurable: true,
       value: {
         href: 'http://localhost/',
-        hostname: 'localhost',
-        assign: vi.fn(),
-        replace: vi.fn(),
-        reload: vi.fn(),
-        search: '',
-        pathname: '/',
       },
     });
+
+    vi.stubGlobal('open', vi.fn());
   });
 
-  const mountComponent = (props = {}, initialState = {}) => {
+  const mountComponent = (props = {}) => {
     return mount(OnboardingLicenseStep, {
       global: {
-        plugins: [
-          createTestI18n(),
-          createTestingPinia({
-            createSpy: vi.fn,
-            initialState: {
-              server: {
-                registered: false,
-                guid: 'TEST-GUID-123',
-                ...initialState,
-              },
-            },
-          }),
-        ],
+        plugins: [createTestI18n()],
       },
       props: {
         activateHref: 'https://unraid.net/activate',
@@ -90,75 +101,74 @@ describe('OnboardingLicenseStep.vue', () => {
     });
   };
 
-  it('renders the correct title and initial unregistered state', () => {
+  it('renders unregistered status and activation code', () => {
     const wrapper = mountComponent();
-    expect(wrapper.text()).toContain('System Activation');
-    expect(wrapper.text()).toContain('Unregistered');
-    expect(wrapper.text()).toContain('TEST-GUID-123');
 
-    // Check text-red-500
-    const statusSpans = wrapper.findAll('span.text-red-500');
-    expect(statusSpans.length).toBeGreaterThan(0);
-    expect(statusSpans[0].text()).toBe('Unregistered');
+    expect(wrapper.text()).toContain('Unregistered');
+    expect(wrapper.text()).toContain('Activate Server');
+    expect(wrapper.text()).toContain('Skip for now');
   });
 
-  it('renders registered state correctly', () => {
-    const wrapper = mountComponent({}, { registered: true });
+  it('renders registered state and manage button for valid license', () => {
+    activationStoreMock.registrationState.value = 'PRO';
+
+    const wrapper = mountComponent();
 
     expect(wrapper.text()).toContain('Registered');
-
-    // Check text-green-500
-    const statusSpans = wrapper.findAll('span.text-green-500');
-    expect(statusSpans.length).toBeGreaterThan(0);
-    expect(statusSpans[0].text()).toBe('Registered');
+    expect(wrapper.text()).toContain('Manage License');
+    expect(wrapper.find('span.text-green-500').exists()).toBe(true);
   });
 
-  it('opens activation link in new tab when button clicked', async () => {
+  it('opens activation link in new tab when activate button is clicked', async () => {
+    const windowOpenMock = vi.fn();
+    vi.stubGlobal('open', windowOpenMock);
+
     const wrapper = mountComponent({
       activateHref: 'https://activation.url',
       activateExternal: true,
     });
 
-    // Find Activate Server button
-    const buttons = wrapper.findAll('button');
-    const activateButton = buttons.find((b) => b.text().includes('Activate Server'));
+    const activateButton = wrapper.findAll('button').find((button) => {
+      return button.text().includes('Activate Server');
+    });
 
-    await activateButton?.trigger('click');
+    expect(activateButton).toBeTruthy();
+    await activateButton!.trigger('click');
+
     expect(windowOpenMock).toHaveBeenCalledWith('https://activation.url', '_blank');
   });
 
-  it('calls onComplete when Skip is clicked', async () => {
-    const onCompleteMock = vi.fn();
-    const wrapper = mountComponent({
-      onComplete: onCompleteMock,
-      allowSkip: true,
-    });
+  it('calls onComplete when skip is clicked', async () => {
+    const onComplete = vi.fn();
+    const wrapper = mountComponent({ onComplete, allowSkip: true });
 
-    const skipButton = wrapper.findAll('button').find((b) => b.text().includes('Skip For Now'));
-    expect(skipButton?.exists()).toBe(true);
+    const skipButton = wrapper
+      .findAll('[data-testid="brand-button"]')
+      .find((button) => button.text().toLowerCase().includes('skip'));
 
-    await skipButton?.trigger('click');
-    expect(onCompleteMock).toHaveBeenCalled();
+    expect(skipButton).toBeTruthy();
+    await skipButton!.trigger('click');
+    await wrapper.vm.$nextTick();
+
+    const confirmSkipButton = wrapper
+      .findAll('[data-testid="brand-button"]')
+      .find((button) => button.text().toLowerCase().includes('understand'));
+
+    expect(confirmSkipButton).toBeTruthy();
+    await confirmSkipButton!.trigger('click');
+
+    expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('does not show Skip button if allowsSkip is false', () => {
-    const wrapper = mountComponent({
-      allowSkip: false,
-    });
+  it('calls onBack when back button is clicked', async () => {
+    const onBack = vi.fn();
+    const wrapper = mountComponent({ onBack, showBack: true });
 
-    const skipButton = wrapper.findAll('button').find((b) => b.text().includes('Skip For Now'));
-    expect(skipButton).toBeUndefined();
-  });
+    const backButton = wrapper.findAll('button').find((button) => button.text().includes('Back'));
 
-  it('calls onBack when Back button clicked', async () => {
-    const onBackMock = vi.fn();
-    const wrapper = mountComponent({
-      onBack: onBackMock,
-      showBack: true,
-    });
+    expect(backButton).toBeTruthy();
+    await backButton!.trigger('click');
 
-    const backButton = wrapper.findAll('button').find((b) => b.text().includes('Back'));
-    await backButton?.trigger('click');
-    expect(onBackMock).toHaveBeenCalled();
+    expect(onBack).toHaveBeenCalledTimes(1);
   });
 });

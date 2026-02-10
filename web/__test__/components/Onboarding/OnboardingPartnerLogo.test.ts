@@ -1,73 +1,60 @@
-/**
- * OnboardingPartnerLogo Component Test Coverage
- */
-
 import { mount } from '@vue/test-utils';
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import OnboardingPartnerLogo from '~/components/Onboarding/components/OnboardingPartnerLogo.vue';
 
-const mockActivationPartnerLogoImg = {
-  template: '<div data-testid="partner-logo-img"></div>',
-  props: ['partnerInfo'],
-};
-
 describe('OnboardingPartnerLogo', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  const mountComponent = (props = {}) => {
+  const mountComponent = (partnerInfo?: Record<string, unknown> | null) => {
     return mount(OnboardingPartnerLogo, {
-      props,
+      props: { partnerInfo },
       global: {
         stubs: {
-          OnboardingPartnerLogoImg: mockActivationPartnerLogoImg,
+          OnboardingPartnerLogoImg: {
+            template: '<div data-testid="partner-logo-img"></div>',
+          },
         },
       },
     });
   };
 
-  it('renders a link with partner logo when partnerUrl exists', () => {
+  it('renders a link with partner logo when partner url exists', () => {
     const wrapper = mountComponent({
-      partnerInfo: {
-        partnerUrl: 'https://example.com',
+      partner: {
+        url: 'https://example.com',
+      },
+      branding: {
+        hasPartnerLogo: true,
       },
     });
+
     const link = wrapper.find('a');
-    const logoImg = wrapper.find('[data-testid="partner-logo-img"]');
 
     expect(link.exists()).toBe(true);
     expect(link.attributes('href')).toBe('https://example.com');
     expect(link.attributes('target')).toBe('_blank');
     expect(link.attributes('rel')).toBe('noopener noreferrer');
-    expect(logoImg.exists()).toBe(true);
-  });
-
-  it('does not render anything when no partnerUrl exists', () => {
-    const wrapper = mountComponent({
-      partnerInfo: {
-        partnerUrl: null,
-      },
-    });
-    const link = wrapper.find('a');
-    const logoImg = wrapper.find('[data-testid="partner-logo-img"]');
-
-    expect(link.exists()).toBe(false);
-    expect(logoImg.exists()).toBe(false);
-  });
-
-  it('applies correct opacity classes for hover and focus states', () => {
-    const wrapper = mountComponent({
-      partnerInfo: {
-        partnerUrl: 'https://example.com',
-      },
-    });
-    const link = wrapper.find('a');
-
+    expect(wrapper.find('[data-testid="partner-logo-img"]').exists()).toBe(true);
     expect(link.classes()).toContain('opacity-100');
     expect(link.classes()).toContain('hover:opacity-75');
     expect(link.classes()).toContain('focus:opacity-75');
+  });
+
+  it('does not render logo/link when partner url is missing', () => {
+    const wrapper = mountComponent({
+      partner: {
+        url: null,
+      },
+    });
+
+    expect(wrapper.find('a').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="partner-logo-img"]').exists()).toBe(false);
+  });
+
+  it('does not render when partner info is empty', () => {
+    const wrapper = mountComponent(null);
+
+    expect(wrapper.find('a').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="partner-logo-img"]').exists()).toBe(false);
   });
 });

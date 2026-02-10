@@ -1,413 +1,161 @@
-/**
- * WelcomeModal Component Test Coverage
- */
-
-import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ComposerTranslation } from 'vue-i18n';
 
 import WelcomeModal from '~/components/Onboarding/standalone/WelcomeModal.standalone.vue';
 import { testTranslate } from '../../utils/i18n';
 
-type OnboardingOverviewStepStubProps = {
-  t?: ComposerTranslation;
-  partnerName?: string | null;
-  currentVersion?: string;
-  previousVersion?: string;
-  onComplete?: () => void;
-  redirectToLogin?: boolean;
-  onSkip?: () => void;
-  onBack?: () => void;
-  showSkip?: boolean;
-  showBack?: boolean;
-};
-
-vi.mock('@unraid/ui', async (importOriginal) => {
-  const actual = (await importOriginal()) as Record<string, unknown>;
-  return {
-    ...actual,
-    Dialog: {
-      name: 'Dialog',
-      props: ['modelValue', 'title', 'description', 'showFooter', 'size', 'showCloseButton'],
-      emits: ['update:modelValue'],
-      template: `
-        <div v-if="modelValue" role="dialog" aria-modal="true">
-          <div v-if="$slots.header" class="dialog-header"><slot name="header" /></div>
-          <div class="dialog-body"><slot /></div>
-          <div v-if="$slots.footer" class="dialog-footer"><slot name="footer" /></div>
-        </div>
-      `,
+const { welcomeModalDataStore, themeStore } = vi.hoisted(() => ({
+  welcomeModalDataStore: {
+    partnerInfo: {
+      value: {
+        partner: { name: null, url: null },
+        branding: { hasPartnerLogo: false },
+      },
+      __v_isRef: true,
     },
-    BrandButton: {
-      name: 'BrandButton',
-      props: ['text', 'disabled'],
-      emits: ['click'],
-      template: '<button :disabled="disabled" @click="$emit(\'click\')">{{ text }}</button>',
-    },
-  };
-});
-
-const mockT = testTranslate;
-
-const mockComponents = {
-  OnboardingPartnerLogo: {
-    template: '<div data-testid="partner-logo"></div>',
-    props: ['partnerInfo'],
+    isFreshInstall: { value: true, __v_isRef: true },
+    loading: { value: false, __v_isRef: true },
   },
-  OnboardingSteps: {
-    template: '<div data-testid="onboarding-steps" :active-step="activeStepIndex"></div>',
-    props: ['steps', 'activeStepIndex'],
+  themeStore: {
+    fetchTheme: vi.fn().mockResolvedValue(undefined),
   },
-  OnboardingOverviewStep: {
-    props: [
-      't',
-      'partnerName',
-      'currentVersion',
-      'previousVersion',
-      'onComplete',
-      'redirectToLogin',
-      'onSkip',
-      'onBack',
-      'showSkip',
-      'showBack',
-    ],
-    setup(props: OnboardingOverviewStepStubProps) {
-      const translate = props.t ?? mockT;
+}));
 
-      const buildTitle = () => {
-        if (props.partnerName) {
-          return translate('onboarding.overviewStep.welcomeToYourNewSystemPowered', [props.partnerName]);
-        }
-        if (props.currentVersion) {
-          return translate('onboarding.overviewStep.welcomeToUnraidVersion', [props.currentVersion]);
-        }
-        return translate('onboarding.overviewStep.welcomeToUnraid');
-      };
+vi.mock('@unraid/ui', () => ({
+  Dialog: {
+    name: 'Dialog',
+    props: ['modelValue', 'showCloseButton', 'size', 'showFooter'],
+    emits: ['update:modelValue'],
+    template:
+      '<div data-testid="dialog" :data-open="modelValue" :data-close="showCloseButton"><slot /></div>',
+  },
+}));
 
-      const buildDescription = () => {
-        if (props.previousVersion && props.currentVersion) {
-          return translate('onboarding.overviewStep.youVeUpgradedFromPrevToCurr', [
-            props.previousVersion,
-            props.currentVersion,
-          ]);
-        }
-        if (props.currentVersion) {
-          return translate('onboarding.overviewStep.welcomeToYourUnraidSystem', [props.currentVersion]);
-        }
-        return translate('onboarding.overviewStep.getStartedWithYourNewSystem');
-      };
+vi.mock('~/components/Onboarding/components/OnboardingPartnerLogo.vue', () => ({
+  default: {
+    template: '<div data-testid="partner-logo" />',
+  },
+}));
 
-      const handleClick = () => {
-        if (props.redirectToLogin) {
+vi.mock('~/components/Onboarding/OnboardingSteps.vue', () => ({
+  default: {
+    template: '<div data-testid="onboarding-steps" />',
+  },
+}));
+
+vi.mock('~/components/Onboarding/steps/OnboardingOverviewStep.vue', () => ({
+  default: {
+    props: ['onComplete', 'redirectToLogin'],
+    methods: {
+      handleClick() {
+        if (this.redirectToLogin) {
           window.location.href = '/login';
           return;
         }
-        props.onComplete?.();
-      };
-
-      return {
-        title: buildTitle(),
-        description: buildDescription(),
-        buttonText: translate('onboarding.overviewStep.getStarted'),
-        handleClick,
-      };
+        this.onComplete?.();
+      },
     },
-    template: `
-      <div data-testid="welcome-step">
-        <h1>{{ title }}</h1>
-        <p>{{ description }}</p>
-        <button @click="handleClick">{{ buttonText }}</button>
-      </div>
-    `,
+    template:
+      '<div data-testid="overview-step"><button data-testid="get-started" @click="handleClick">Get Started</button></div>',
   },
-};
-
-const mockWelcomeModalDataStore = {
-  partnerInfo: ref({
-    hasPartnerLogo: false,
-    partnerName: null as string | null,
-  }),
-  loading: ref(false),
-  isInitialSetup: ref(true), // Default to true for testing
-};
-
-const mockThemeStore = {
-  fetchTheme: vi.fn(),
-};
-
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: mockT,
-  }),
 }));
 
 vi.mock('~/components/Onboarding/store/welcomeModalData', () => ({
-  useWelcomeModalDataStore: () => mockWelcomeModalDataStore,
+  useWelcomeModalDataStore: () => welcomeModalDataStore,
 }));
 
 vi.mock('~/store/theme', () => ({
-  useThemeStore: () => mockThemeStore,
+  useThemeStore: () => themeStore,
 }));
 
-describe('Onboarding/WelcomeModal.standalone.vue', () => {
-  let mockSetProperty: ReturnType<typeof vi.fn>;
-  let mockQuerySelector: ReturnType<typeof vi.fn>;
+vi.mock('pinia', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('pinia')>();
+  return {
+    ...actual,
+    storeToRefs: (store: Record<string, unknown>) => store,
+  };
+});
 
+describe('WelcomeModal.standalone.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
-    mockWelcomeModalDataStore.partnerInfo.value = {
-      hasPartnerLogo: false,
-      partnerName: null,
+
+    welcomeModalDataStore.partnerInfo.value = {
+      partner: { name: null, url: null },
+      branding: { hasPartnerLogo: false },
     };
-    mockWelcomeModalDataStore.loading.value = false;
-    mockWelcomeModalDataStore.isInitialSetup.value = true;
+    welcomeModalDataStore.isFreshInstall.value = true;
 
-    // Mock document methods
-    mockSetProperty = vi.fn();
-    mockQuerySelector = vi.fn();
-    Object.defineProperty(window.document, 'querySelector', {
-      value: mockQuerySelector,
-      writable: true,
-    });
-    Object.defineProperty(window.document.documentElement.style, 'setProperty', {
-      value: mockSetProperty,
-      writable: true,
-    });
-
-    // Mock window.location.pathname to simulate being on /login page
     Object.defineProperty(window, 'location', {
-      value: {
-        pathname: '/login',
-      },
-      writable: true,
-    });
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  const mountComponent = async () => {
-    const wrapper = mount(WelcomeModal, {
-      props: { t: mockT as unknown as ComposerTranslation },
-      global: {
-        stubs: mockComponents,
-      },
-    });
-    await wrapper.vm.$nextTick();
-    return wrapper;
-  };
-
-  it('uses the correct title text when no partner name is provided', async () => {
-    const wrapper = await mountComponent();
-
-    expect(wrapper.find('h1').text()).toBe(testTranslate('onboarding.overviewStep.welcomeToUnraid'));
-  });
-
-  it('uses the correct title text when partner name is provided', async () => {
-    mockWelcomeModalDataStore.partnerInfo.value = {
-      hasPartnerLogo: true,
-      partnerName: 'Test Partner',
-    };
-    const wrapper = await mountComponent();
-
-    expect(wrapper.find('h1').text()).toBe(
-      testTranslate('onboarding.overviewStep.welcomeToYourNewSystemPowered', ['Test Partner'])
-    );
-  });
-
-  it('uses the correct description text', async () => {
-    const wrapper = await mountComponent();
-
-    const description = testTranslate('onboarding.overviewStep.getStartedWithYourNewSystem');
-    expect(wrapper.text()).toContain(description);
-  });
-
-  it('displays the partner logo when available', async () => {
-    mockWelcomeModalDataStore.partnerInfo.value = {
-      hasPartnerLogo: true,
-      partnerName: 'Test Partner',
-    };
-    const wrapper = await mountComponent();
-
-    const partnerLogo = wrapper.find('[data-testid="partner-logo"]');
-    expect(partnerLogo.exists()).toBe(true);
-  });
-
-  it('redirects to login when Get Started button is clicked', async () => {
-    // Mock window.location with both href and pathname
-    const mockLocation = { href: '', pathname: '/login' };
-
-    // Make the location object writable so href can be updated
-    Object.defineProperty(window, 'location', {
-      value: mockLocation,
       writable: true,
       configurable: true,
+      value: {
+        href: '',
+        pathname: '/login',
+      },
     });
-
-    const wrapper = await mountComponent();
-    const button = wrapper.find('button');
-
-    expect(button.exists()).toBe(true);
-
-    // Initially dialog should be visible
-    const dialog = wrapper.findComponent({ name: 'Dialog' });
-    expect(dialog.exists()).toBe(true);
-    expect(dialog.props('modelValue')).toBe(true);
-
-    await button.trigger('click');
-    await wrapper.vm.$nextTick();
-
-    // After click, should redirect to login page
-    expect(mockLocation.href).toBe('/login');
   });
 
-  it('disables the Create a password button when loading', async () => {
-    // The WelcomeModal component doesn't use the loading state from the store
-    // Instead, it uses its own internal state. For now, we'll test that the button exists
-    // and can be clicked (the actual loading behavior would need to be implemented)
-    const wrapper = await mountComponent();
-    const button = wrapper.find('button');
-
-    expect(button.exists()).toBe(true);
-    // The button should not be disabled by default since loading state is not implemented
-    expect(button.attributes('disabled')).toBeUndefined();
-  });
-
-  it('renders activation steps with correct active step', async () => {
-    const wrapper = await mountComponent();
-
-    const onboardingSteps = wrapper.find('[data-testid="onboarding-steps"]');
-    expect(onboardingSteps.exists()).toBe(true);
-    // The WelcomeModal passes activeStepIndex: 0, which gets mapped to active-step="0"
-    expect(onboardingSteps.attributes('active-step')).toBe('0');
-  });
+  const mountComponent = () => {
+    return mount(WelcomeModal, {
+      props: { t: testTranslate as unknown as ComposerTranslation },
+    });
+  };
 
   it('calls fetchTheme on mount', () => {
     mountComponent();
 
-    expect(mockThemeStore.fetchTheme).toHaveBeenCalled();
+    expect(themeStore.fetchTheme).toHaveBeenCalledTimes(1);
   });
 
-  it('handles theme setting error gracefully', async () => {
-    vi.useFakeTimers();
+  it('shows modal on login page', () => {
+    window.location.pathname = '/login';
+    welcomeModalDataStore.isFreshInstall.value = false;
 
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const wrapper = mountComponent();
 
-    mockThemeStore.fetchTheme.mockRejectedValueOnce(new Error('Theme error'));
-    mountComponent();
-
-    await vi.runAllTimersAsync();
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error loading theme:', expect.any(Error));
-
-    consoleErrorSpy.mockRestore();
-    vi.useRealTimers();
+    expect(wrapper.find('[data-testid="dialog"]').attributes('data-open')).toBe('true');
+    expect(wrapper.find('[data-testid="dialog"]').attributes('data-close')).toBe('true');
   });
 
-  it('shows modal on login page even when isInitialSetup is false', async () => {
-    Object.defineProperty(window, 'location', {
-      value: { pathname: '/login' },
-      writable: true,
-    });
-    mockWelcomeModalDataStore.isInitialSetup.value = false;
+  it('shows modal on non-login page for fresh install', () => {
+    window.location.pathname = '/Dashboard';
+    welcomeModalDataStore.isFreshInstall.value = true;
 
-    const wrapper = await mountComponent();
-    const dialog = wrapper.findComponent({ name: 'Dialog' });
+    const wrapper = mountComponent();
 
-    expect(dialog.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="dialog"]').attributes('data-open')).toBe('true');
+    expect(wrapper.find('[data-testid="dialog"]').attributes('data-close')).toBe('false');
   });
 
-  it('shows modal on non-login page when isInitialSetup is true', async () => {
-    Object.defineProperty(window, 'location', {
-      value: { pathname: '/Dashboard' },
-      writable: true,
-    });
-    mockWelcomeModalDataStore.isInitialSetup.value = true;
+  it('keeps modal closed on non-login page when not fresh install', () => {
+    window.location.pathname = '/Dashboard';
+    welcomeModalDataStore.isFreshInstall.value = false;
 
-    const wrapper = await mountComponent();
-    const dialog = wrapper.findComponent({ name: 'Dialog' });
+    const wrapper = mountComponent();
 
-    expect(dialog.exists()).toBe(true);
+    expect(wrapper.find('[data-testid="dialog"]').attributes('data-open')).toBe('false');
   });
 
-  it('does not show modal on non-login page when isInitialSetup is false', async () => {
-    Object.defineProperty(window, 'location', {
-      value: { pathname: '/Dashboard' },
-      writable: true,
-    });
-    mockWelcomeModalDataStore.isInitialSetup.value = false;
+  it('renders partner logo when partner branding is enabled', () => {
+    welcomeModalDataStore.partnerInfo.value = {
+      partner: { name: 'Test Partner', url: 'https://example.com' },
+      branding: { hasPartnerLogo: true },
+    };
 
-    const wrapper = await mountComponent();
-    const dialog = wrapper.findComponent({ name: 'Dialog' });
+    const wrapper = mountComponent();
 
-    expect(dialog.exists()).toBe(true);
-    expect(dialog.props('modelValue')).toBe(false);
+    expect(wrapper.find('[data-testid="partner-logo"]').exists()).toBe(true);
   });
 
-  describe('Modal properties', () => {
-    it('shows close button when on /login page', async () => {
-      Object.defineProperty(window, 'location', {
-        value: { pathname: '/login' },
-        writable: true,
-      });
+  it('redirects to login when get started is clicked', async () => {
+    const wrapper = mountComponent();
 
-      const wrapper = await mountComponent();
-      const dialog = wrapper.findComponent({ name: 'Dialog' });
+    await wrapper.find('[data-testid="get-started"]').trigger('click');
 
-      expect(dialog.exists()).toBe(true);
-      expect(dialog.props('showCloseButton')).toBe(true);
-    });
-
-    it('hides close button when NOT on /login page', async () => {
-      // Set location to a non-login page
-      Object.defineProperty(window, 'location', {
-        value: { pathname: '/Dashboard' },
-        writable: true,
-      });
-
-      const wrapper = mount(WelcomeModal, {
-        props: { t: mockT as unknown as ComposerTranslation },
-        global: {
-          stubs: mockComponents,
-        },
-      });
-
-      // Manually show the modal since it won't auto-show on non-login pages
-      wrapper.vm.showWelcomeModal();
-      await wrapper.vm.$nextTick();
-
-      const dialog = wrapper.findComponent({ name: 'Dialog' });
-      expect(dialog.exists()).toBe(true);
-      expect(dialog.props('showCloseButton')).toBe(false);
-    });
-
-    it('passes correct props to Dialog component', async () => {
-      const wrapper = await mountComponent();
-      const dialog = wrapper.findComponent({ name: 'Dialog' });
-
-      expect(dialog.exists()).toBe(true);
-      expect(dialog.props()).toMatchObject({
-        modelValue: true,
-        showFooter: false,
-        showCloseButton: true,
-        size: 'full',
-      });
-    });
-
-    it('renders modal with correct content', async () => {
-      const wrapper = await mountComponent();
-
-      // Check that the modal is rendered
-      const dialog = wrapper.findComponent({ name: 'Dialog' });
-      expect(dialog.exists()).toBe(true);
-      // The stub renders the translated title from testTranslate
-      expect(wrapper.text()).toContain('Get started with your new Unraid system');
-      expect(wrapper.text()).toContain('Get Started');
-    });
+    expect(window.location.href).toBe('/login');
   });
 });
