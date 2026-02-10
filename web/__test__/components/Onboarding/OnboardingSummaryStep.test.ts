@@ -49,13 +49,7 @@ const {
   },
   registrationStateRef: { value: 'ENOKEYFILE' },
   coreSettingsResult: {
-    value: {
-      vars: { name: 'Tower', useSsh: false, localTld: 'local' },
-      server: { name: 'Tower', comment: '' },
-      display: { theme: 'white', locale: 'en_US' },
-      systemTime: { timeZone: 'UTC' },
-      info: { primaryNetwork: { ipAddress: '192.168.1.2' } },
-    },
+    value: null as unknown,
   },
   coreSettingsError: { value: null as unknown },
   installedPluginsResult: { value: { installedUnraidPlugins: [] as string[] } },

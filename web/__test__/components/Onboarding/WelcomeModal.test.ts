@@ -11,7 +11,7 @@ const { welcomeModalDataStore, themeStore } = vi.hoisted(() => ({
   welcomeModalDataStore: {
     partnerInfo: {
       value: {
-        partner: { name: null, url: null },
+        partner: { name: null as string | null, url: null as string | null },
         branding: { hasPartnerLogo: false },
       },
       __v_isRef: true,
@@ -49,14 +49,15 @@ vi.mock('~/components/Onboarding/OnboardingSteps.vue', () => ({
 vi.mock('~/components/Onboarding/steps/OnboardingOverviewStep.vue', () => ({
   default: {
     props: ['onComplete', 'redirectToLogin'],
-    methods: {
-      handleClick() {
-        if (this.redirectToLogin) {
+    setup(props: { onComplete?: () => void; redirectToLogin?: boolean }) {
+      const handleClick = () => {
+        if (props.redirectToLogin) {
           window.location.href = '/login';
           return;
         }
-        this.onComplete?.();
-      },
+        props.onComplete?.();
+      };
+      return { handleClick };
     },
     template:
       '<div data-testid="overview-step"><button data-testid="get-started" @click="handleClick">Get Started</button></div>',
