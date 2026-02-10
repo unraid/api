@@ -12,6 +12,8 @@ import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-ove
 const TRACKER_FILE_NAME = 'onboarding-tracker.json';
 const CONFIG_PREFIX = 'onboardingTracker';
 const DEFAULT_OS_VERSION_FILE_PATH = '/etc/unraid-version';
+const WRITE_RETRY_ATTEMPTS = 3;
+const WRITE_RETRY_DELAY_MS = 100;
 
 /**
  * Simplified onboarding tracker service.
@@ -175,11 +177,26 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
     }
 
     private async writeTrackerState(state: TrackerState): Promise<void> {
-        try {
-            await writeFile(this.trackerPath, JSON.stringify(state, null, 2), { mode: 0o644 });
-            this.state = state;
-        } catch (error) {
-            this.logger.error(`Failed to persist onboarding tracker state: ${error}`);
+        let lastError: unknown = null;
+
+        for (let attempt = 1; attempt <= WRITE_RETRY_ATTEMPTS; attempt += 1) {
+            try {
+                await writeFile(this.trackerPath, JSON.stringify(state, null, 2), { mode: 0o644 });
+                this.state = state;
+                return;
+            } catch (error) {
+                lastError = error;
+                this.logger.error(
+                    `Failed to persist onboarding tracker state (attempt ${attempt}/${WRITE_RETRY_ATTEMPTS}): ${error}`
+                );
+                if (attempt < WRITE_RETRY_ATTEMPTS) {
+                    await new Promise((resolve) => setTimeout(resolve, WRITE_RETRY_DELAY_MS));
+                }
+            }
         }
+
+        throw lastError instanceof Error
+            ? lastError
+            : new Error('Failed to persist onboarding tracker state');
     }
 }
