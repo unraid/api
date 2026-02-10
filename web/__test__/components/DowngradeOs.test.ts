@@ -41,29 +41,6 @@ vi.mock('vue-i18n', async (importOriginal) => {
   };
 });
 
-vi.mock('@vue/apollo-composable', async () => {
-  const actual =
-    await vi.importActual<typeof import('@vue/apollo-composable')>('@vue/apollo-composable');
-
-  return {
-    ...actual,
-    useLazyQuery: vi.fn(() => ({
-      load: vi.fn(),
-      refetch: vi.fn(),
-      onResult: vi.fn(),
-      onError: vi.fn(),
-    })),
-    useQuery: vi.fn(() => ({
-      result: { value: null },
-      loading: { value: false },
-      error: { value: null },
-      onResult: vi.fn(),
-      onError: vi.fn(),
-      refetch: vi.fn(),
-    })),
-  };
-});
-
 const PageContainerStub = {
   template: '<div><slot /></div>',
 };

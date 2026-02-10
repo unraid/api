@@ -174,9 +174,9 @@ describe('OidcService Integration Tests - Enhanced Logging', () => {
 
             // Verify that the service attempted to handle the callback
             // Note: Detailed token exchange logging now happens in OidcTokenExchangeService
-            const allLogs = [...errorLogs, ...warnLogs, ...logLogs, ...debugLogs];
-            expect(allLogs.length).toBeGreaterThan(0);
-            expect(allLogs.some((log) => /token|callback|oidc/i.test(log))).toBe(true);
+            expect(errorLogs.length).toBeGreaterThan(0);
+            // Changed logging format to use error extractor
+            expect(errorLogs.some((log) => log.includes('Token exchange failed'))).toBe(true);
         });
 
         it('should log discovery failure details with invalid issuer URL', async () => {
@@ -451,13 +451,9 @@ describe('OidcService Integration Tests - Enhanced Logging', () => {
 
             // Verify that we attempted the operation
             // Detailed parameter logging is now in OidcTokenExchangeService
-            const requestLogs = [...debugLogs, ...logLogs];
-            expect(requestLogs.length).toBeGreaterThan(0);
-            expect(
-                requestLogs.some(
-                    (log) => log.includes('detailed-client-id') || log.includes('token-params-test')
-                )
-            ).toBe(true);
+            expect(debugLogs.length).toBeGreaterThan(0);
+            expect(debugLogs.some((log) => log.includes('Client ID: detailed-client-id'))).toBe(true);
+            expect(debugLogs.some((log) => log.includes('Client secret configured: Yes'))).toBe(true);
         });
 
         it('should capture and log all error properties from openid-client', async () => {
@@ -478,12 +474,12 @@ describe('OidcService Integration Tests - Enhanced Logging', () => {
             expect(result.error).toBeDefined();
             // Should detect SSL/certificate issues or connection failure
             expect(result.error).toMatch(
-                /SSL\/TLS certificate error|Failed to connect to OIDC provider|certificate|Cannot resolve domain name|temporarily unavailable/
+                /SSL\/TLS certificate error|Failed to connect to OIDC provider|certificate/
             );
             expect(result.details).toBeDefined();
             expect(result.details).toHaveProperty('type');
-            // Should be one of the known transport failure types
-            expect(['SSL_ERROR', 'FETCH_ERROR', 'DNS_ERROR']).toContain((result.details as any).type);
+            // Should be either SSL_ERROR or FETCH_ERROR
+            expect(['SSL_ERROR', 'FETCH_ERROR']).toContain((result.details as any).type);
         });
     });
 });

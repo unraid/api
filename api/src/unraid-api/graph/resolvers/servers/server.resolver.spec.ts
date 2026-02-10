@@ -5,7 +5,6 @@ import { Test } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ServerResolver } from '@app/unraid-api/graph/resolvers/servers/server.resolver.js';
-import { ServerService } from '@app/unraid-api/graph/resolvers/servers/server.service.js';
 
 describe('ServersResolver', () => {
     let resolver: ServerResolver;
@@ -18,10 +17,6 @@ describe('ServersResolver', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 ServerResolver,
-                {
-                    provide: ServerService,
-                    useValue: {},
-                },
                 {
                     provide: ConfigService,
                     useValue: mockConfigService,

@@ -12,7 +12,6 @@ import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.ser
 vi.mock('chokidar', () => ({
     watch: vi.fn().mockReturnValue({
         on: vi.fn().mockReturnThis(),
-        close: vi.fn().mockResolvedValue(undefined),
     }),
 }));
 

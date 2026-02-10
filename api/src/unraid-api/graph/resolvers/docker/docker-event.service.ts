@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Readable } from 'stream';
 
-import { FSWatcher, watch } from 'chokidar';
+import { watch } from 'chokidar';
 import Docker from 'dockerode';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
@@ -39,7 +39,6 @@ interface DockerEvent {
 export class DockerEventService implements OnModuleDestroy, OnModuleInit {
     private client: Docker;
     private dockerEventStream: Readable | null = null;
-    private varRunWatcher: FSWatcher | null = null;
     private readonly logger = new Logger(DockerEventService.name);
 
     private watchedActions = [
@@ -77,13 +76,11 @@ export class DockerEventService implements OnModuleDestroy, OnModuleInit {
 
     onModuleDestroy() {
         this.stopEventStream();
-        void this.varRunWatcher?.close();
-        this.varRunWatcher = null;
     }
 
     private setupVarRunWatch() {
         const paths = getters.paths();
-        this.varRunWatcher = watch(paths['var-run'], { ignoreInitial: false })
+        watch(paths['var-run'], { ignoreInitial: false })
             .on('add', async (path) => {
                 if (path === paths['docker-socket']) {
                     this.logger.debug('Starting docker event watch');
