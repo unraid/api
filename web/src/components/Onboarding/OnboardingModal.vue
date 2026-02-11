@@ -30,7 +30,8 @@ const { activationRequired, hasActivationCode, registrationState } = storeToRefs
   useActivationCodeDataStore()
 );
 const onboardingStore = useUpgradeOnboardingStore();
-const { shouldShowOnboarding, isVersionDrift, completedAtVersion } = storeToRefs(onboardingStore);
+const { shouldShowOnboarding, isVersionDrift, completedAtVersion, canDisplayOnboardingModal } =
+  storeToRefs(onboardingStore);
 const { refetchOnboarding } = onboardingStore;
 const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
@@ -94,7 +95,13 @@ const filteredSteps = computed(() => {
   return HARDCODED_STEPS.filter((s) => s.id !== 'ACTIVATE_LICENSE');
 });
 
-const showModal = computed(() => isVisible.value || shouldShowOnboarding.value);
+const isLoginPage = computed(() => window.location.pathname.includes('login'));
+const showModal = computed(
+  () =>
+    !isLoginPage.value &&
+    canDisplayOnboardingModal.value &&
+    (isVisible.value || shouldShowOnboarding.value)
+);
 const showExitConfirmDialog = ref(false);
 
 const stepSaveState = ref<'idle' | 'saving' | 'saved'>('idle');

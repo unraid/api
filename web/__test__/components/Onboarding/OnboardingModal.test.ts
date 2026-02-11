@@ -37,6 +37,7 @@ const {
     shouldShowOnboarding: { value: false },
     isVersionDrift: { value: false },
     completedAtVersion: { value: null },
+    canDisplayOnboardingModal: { value: true },
     refetchOnboarding: vi.fn().mockResolvedValue(undefined),
   },
   onboardingDraftStore: {
@@ -139,7 +140,17 @@ describe('OnboardingModal.vue', () => {
     upgradeOnboardingStore.shouldShowOnboarding.value = false;
     upgradeOnboardingStore.isVersionDrift.value = false;
     upgradeOnboardingStore.completedAtVersion.value = null;
+    upgradeOnboardingStore.canDisplayOnboardingModal.value = true;
     onboardingDraftStore.currentStepIndex.value = 0;
+
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      configurable: true,
+      value: {
+        href: '',
+        pathname: '/Dashboard',
+      },
+    });
   });
 
   const mountComponent = () => {
@@ -161,6 +172,34 @@ describe('OnboardingModal.vue', () => {
   it('does not render when modal is hidden and onboarding flag is false', () => {
     activationCodeModalStore.isVisible.value = false;
     upgradeOnboardingStore.shouldShowOnboarding.value = false;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(false);
+  });
+
+  it('does not render when modal display is blocked', () => {
+    activationCodeModalStore.isVisible.value = true;
+    upgradeOnboardingStore.shouldShowOnboarding.value = true;
+    upgradeOnboardingStore.canDisplayOnboardingModal.value = false;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(false);
+  });
+
+  it('does not render on login route', () => {
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      configurable: true,
+      value: {
+        href: '',
+        pathname: '/login',
+      },
+    });
+
+    activationCodeModalStore.isVisible.value = true;
+    upgradeOnboardingStore.canDisplayOnboardingModal.value = true;
 
     const wrapper = mountComponent();
 
