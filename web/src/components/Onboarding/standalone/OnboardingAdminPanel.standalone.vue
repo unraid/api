@@ -19,7 +19,8 @@ const apolloClient = useApolloClient().client;
 
 const { hasActivationCode, isFreshInstall, partnerInfo, registrationState } =
   storeToRefs(activationCodeStore);
-const { status, isPartnerBuild, completed, completedAtVersion } = storeToRefs(onboardingStore);
+const { status, isPartnerBuild, completed, completedAtVersion, mockUnauthenticated } =
+  storeToRefs(onboardingStore);
 
 const draftJson = ref('');
 const errorMessage = ref('');
@@ -390,6 +391,11 @@ const onResetDraftAndHardRefreshChange = (event: Event) => {
   setResetDraftAndHardRefreshOnOpen(Boolean(target?.checked));
 };
 
+const onMockUnauthenticatedChange = (event: Event) => {
+  const target = event.target as HTMLInputElement | null;
+  onboardingStore.setMockUnauthenticated(Boolean(target?.checked));
+};
+
 // "Load" the preset into the editor (for editing) - and set as active selection
 // If the same preset is already selected, don't reset the editor (preserve edits)
 // When switching presets, save current edits to cache and restore cached edits if available
@@ -734,6 +740,26 @@ const currentRegistrationState = computed({
                 When enabled, pressing <strong>Open</strong> clears
                 <code class="bg-muted rounded px-1">onboardingDraft</code> from localStorage, then
                 reloads the page after applying overrides.
+              </div>
+            </div>
+          </label>
+        </div>
+
+        <div class="border-border bg-card shrink-0 rounded-lg border p-3 shadow-sm">
+          <label class="flex cursor-pointer items-start gap-2">
+            <input
+              type="checkbox"
+              class="mt-0.5"
+              :checked="mockUnauthenticated"
+              @change="onMockUnauthenticatedChange"
+            />
+            <div>
+              <div class="text-foreground text-xs font-semibold uppercase">
+                Mock Unauthenticated User
+              </div>
+              <div class="text-muted-foreground text-xs">
+                Simulates unauthenticated onboarding requests (401/CSRF) to verify onboarding modals
+                remain hidden. This setting persists in localStorage.
               </div>
             </div>
           </label>

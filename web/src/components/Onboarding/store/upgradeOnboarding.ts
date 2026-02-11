@@ -1,4 +1,4 @@
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { defineStore, storeToRefs } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
@@ -10,6 +10,14 @@ import { useServerStore } from '~/store/server';
 
 const MIN_ONBOARDING_MAJOR = 7;
 const MIN_ONBOARDING_MINOR = 3;
+const ONBOARDING_TEST_UNAUTHENTICATED_STORAGE_KEY = 'onboardingAdminPanel.mockUnauthenticated';
+
+const readMockUnauthenticatedFromStorage = () => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  return localStorage.getItem(ONBOARDING_TEST_UNAUTHENTICATED_STORAGE_KEY) === 'true';
+};
 
 const parseMajorMinorVersion = (version: string | null | undefined) => {
   const match = version?.match(/(\d+)\.(\d+)/);
@@ -85,6 +93,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   } = useQuery(ONBOARDING_QUERY, {}, { errorPolicy: 'all' });
 
   const onboardingData = computed(() => onboardingResult.value?.onboarding);
+  const mockUnauthenticated = ref(readMockUnauthenticatedFromStorage());
 
   // Core state from API
   const status = computed<OnboardingStatus | undefined>(() => onboardingData.value?.status);
@@ -113,7 +122,16 @@ export const useOnboardingStore = defineStore('onboarding', () => {
 
     return parsedVersion.minor >= MIN_ONBOARDING_MINOR;
   });
-  const isUnauthenticated = computed(() => isUnauthenticatedApolloError(onboardingError.value));
+  const setMockUnauthenticated = (value: boolean) => {
+    mockUnauthenticated.value = value;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(ONBOARDING_TEST_UNAUTHENTICATED_STORAGE_KEY, value ? 'true' : 'false');
+    }
+  };
+
+  const isUnauthenticated = computed(
+    () => mockUnauthenticated.value || isUnauthenticatedApolloError(onboardingError.value)
+  );
   const canDisplayOnboardingModal = computed(() => isVersionSupported.value && !isUnauthenticated.value);
 
   // Decision: should we show the onboarding modal?
@@ -140,11 +158,13 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     isIncomplete,
     isCompleted,
     isVersionSupported,
+    mockUnauthenticated,
     isUnauthenticated,
     canDisplayOnboardingModal,
     shouldShowOnboarding,
     // Actions
     refetchOnboarding: refetch,
+    setMockUnauthenticated,
   };
 });
 
