@@ -19,8 +19,16 @@ const apolloClient = useApolloClient().client;
 
 const { hasActivationCode, isFreshInstall, partnerInfo, registrationState } =
   storeToRefs(activationCodeStore);
-const { status, isPartnerBuild, completed, completedAtVersion, mockUnauthenticated } =
-  storeToRefs(onboardingStore);
+const {
+  status,
+  isPartnerBuild,
+  completed,
+  completedAtVersion,
+  mockUnauthenticated,
+  osVersion,
+  effectiveOsVersion,
+  isVersionSupported,
+} = storeToRefs(onboardingStore);
 
 const draftJson = ref('');
 const errorMessage = ref('');
@@ -95,6 +103,7 @@ type SystemConfigPayload = {
 };
 
 type OnboardingOverridePayload = {
+  currentVersion?: string | null;
   onboarding?: {
     completed?: boolean;
     completedAtVersion?: string | null;
@@ -127,6 +136,7 @@ const presets = ref<Preset[]>([
     label: '1. Regular User - Incomplete',
     description: 'Incomplete onboarding state (commonly fresh install), no partner',
     overrides: {
+      currentVersion: '7.3.0',
       registrationState: RegistrationState.ENOKEYFILE,
       onboarding: {
         completed: false,
@@ -141,6 +151,7 @@ const presets = ref<Preset[]>([
     label: '2. Regular User - Upgrade',
     description: 'Completed onboarding on older version (7.1.0), now on 7.2.0',
     overrides: {
+      currentVersion: '7.3.0',
       registrationState: RegistrationState.EGUID,
       onboarding: {
         completed: true,
@@ -155,6 +166,7 @@ const presets = ref<Preset[]>([
     label: '3. Regular User - Downgrade',
     description: 'Completed onboarding on newer version, now downgraded',
     overrides: {
+      currentVersion: '7.3.0',
       registrationState: RegistrationState.EGUID,
       onboarding: {
         completed: true,
@@ -169,6 +181,7 @@ const presets = ref<Preset[]>([
     label: '4. Regular User - Completed',
     description: 'Onboarding completed state (version-agnostic)',
     overrides: {
+      currentVersion: '7.3.0',
       registrationState: RegistrationState.EGUID,
       onboarding: {
         completed: true,
@@ -187,6 +200,7 @@ const presets = ref<Preset[]>([
     label: '5. Partner User - Incomplete',
     description: 'Partner user in incomplete onboarding state',
     overrides: {
+      currentVersion: '7.3.0',
       registrationState: RegistrationState.ENOKEYFILE,
       onboarding: {
         completed: false,
@@ -229,6 +243,7 @@ const presets = ref<Preset[]>([
     label: '6. Partner User - Upgrade',
     description: 'Partner user completed on older version, now upgraded',
     overrides: {
+      currentVersion: '7.3.0',
       registrationState: RegistrationState.EGUID,
       onboarding: {
         completed: true,
@@ -271,6 +286,7 @@ const presets = ref<Preset[]>([
     label: '7. Partner User - Downgrade',
     description: 'Partner user completed on newer version, now downgraded',
     overrides: {
+      currentVersion: '7.3.0',
       registrationState: RegistrationState.EGUID,
       onboarding: {
         completed: true,
@@ -310,6 +326,7 @@ const presets = ref<Preset[]>([
     label: '8. Partner User - Completed',
     description: 'Partner user in completed onboarding state (version-agnostic)',
     overrides: {
+      currentVersion: '7.3.0',
       registrationState: RegistrationState.EGUID,
       onboarding: {
         completed: true,
@@ -396,6 +413,12 @@ const onMockUnauthenticatedChange = (event: Event) => {
   onboardingStore.setMockUnauthenticated(Boolean(target?.checked));
 };
 
+const getMutationInput = (payload: OnboardingOverridePayload) => {
+  const mutationInput = { ...payload };
+  delete mutationInput.currentVersion;
+  return mutationInput;
+};
+
 // "Load" the preset into the editor (for editing) - and set as active selection
 // If the same preset is already selected, don't reset the editor (preserve edits)
 // When switching presets, save current edits to cache and restore cached edits if available
@@ -461,6 +484,7 @@ const clearOverrides = async () => {
     mutation: CLEAR_ONBOARDING_OVERRIDE_MUTATION,
     fetchPolicy: 'no-cache',
   });
+  onboardingStore.setMockOsVersion(null);
   lastApplied.value = '';
   draftJson.value = '';
   activePresetId.value = null; // Clear active state
@@ -499,9 +523,12 @@ const applyOverrides = async () => {
 
   try {
     const parsed = JSON.parse(trimmed) as OnboardingOverridePayload;
+    if (Object.prototype.hasOwnProperty.call(parsed, 'currentVersion')) {
+      onboardingStore.setMockOsVersion(parsed.currentVersion ?? null);
+    }
     await apolloClient.mutate({
       mutation: SET_ONBOARDING_OVERRIDE_MUTATION,
-      variables: { input: parsed },
+      variables: { input: getMutationInput(parsed) },
       fetchPolicy: 'no-cache',
     });
     lastApplied.value = trimmed;
@@ -689,6 +716,26 @@ const currentRegistrationState = computed({
             System
           </h3>
           <div class="flex justify-between">
+            <span class="text-muted-foreground">Unraid Version:</span>
+            <span class="font-mono text-xs">{{ osVersion || '-' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Effective Version:</span>
+            <span class="font-mono text-xs">{{ effectiveOsVersion || '-' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-muted-foreground">Supports Onboarding:</span>
+            <span
+              class="font-mono text-xs"
+              :class="
+                isVersionSupported
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-orange-600 dark:text-orange-400'
+              "
+              >{{ isVersionSupported }}</span
+            >
+          </div>
+          <div class="flex justify-between">
             <span class="text-muted-foreground">Logo:</span>
             <span class="font-mono text-xs">{{
               partnerInfo?.branding?.hasPartnerLogo ? 'Custom' : 'Default'
@@ -698,12 +745,14 @@ const currentRegistrationState = computed({
       </div>
     </div>
 
-    <!-- Controls Area -->
-    <div class="grid h-[400px] min-h-[400px] grid-cols-1 gap-6 lg:grid-cols-12">
-      <!-- Left Column -->
-      <div class="flex min-h-0 flex-col gap-4 lg:col-span-4">
-        <!-- Quick State Override -->
-        <div class="border-border bg-card shrink-0 rounded-lg border p-3 shadow-sm">
+    <!-- Extra Settings -->
+    <div class="border-border bg-card shrink-0 rounded-lg border p-5 shadow-sm">
+      <div class="mb-4">
+        <h2 class="text-muted-foreground text-xs font-bold tracking-wider uppercase">Extra Settings</h2>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div class="border-border bg-background rounded-lg border p-3 shadow-sm">
           <label class="text-muted-foreground mb-2 block text-xs font-semibold uppercase"
             >Force License State</label
           >
@@ -724,7 +773,7 @@ const currentRegistrationState = computed({
           </select>
         </div>
 
-        <div class="border-border bg-card shrink-0 rounded-lg border p-3 shadow-sm">
+        <div class="border-border bg-background rounded-lg border p-3 shadow-sm">
           <label class="flex cursor-pointer items-start gap-2">
             <input
               type="checkbox"
@@ -745,7 +794,7 @@ const currentRegistrationState = computed({
           </label>
         </div>
 
-        <div class="border-border bg-card shrink-0 rounded-lg border p-3 shadow-sm">
+        <div class="border-border bg-background rounded-lg border p-3 shadow-sm">
           <label class="flex cursor-pointer items-start gap-2">
             <input
               type="checkbox"
@@ -764,7 +813,13 @@ const currentRegistrationState = computed({
             </div>
           </label>
         </div>
+      </div>
+    </div>
 
+    <!-- Controls Area -->
+    <div class="grid h-[460px] min-h-[460px] grid-cols-1 gap-6 lg:grid-cols-12">
+      <!-- Left Column -->
+      <div class="flex min-h-0 flex-col lg:col-span-4">
         <!-- Presets List -->
         <div class="border-border bg-card flex min-h-0 flex-1 flex-col rounded-lg border shadow-sm">
           <div
@@ -1019,7 +1074,8 @@ const currentRegistrationState = computed({
                 <code class="bg-muted rounded px-1">/etc/unraid-version</code>
               </td>
               <td class="text-muted-foreground py-2">
-                Available via <code>info.versions.core.unraid</code> query
+                Available via <code>info.versions.core.unraid</code> query. For testing, you can also set
+                top-level <code>currentVersion</code> in JSON (UI-only override).
               </td>
             </tr>
           </tbody>
@@ -1028,8 +1084,9 @@ const currentRegistrationState = computed({
       <div class="border-border text-muted-foreground mt-4 space-y-2 border-t pt-3 text-xs">
         <p>
           <strong class="text-foreground">Tip:</strong> Fields in
-          <span class="text-gray-400">gray</span> are computed and cannot be directly overridden. The
-          override system mocks the source data, and the API computes derived fields from it.
+          <span class="text-gray-400">gray</span> are computed and cannot be directly overridden.
+          <code class="bg-muted rounded px-1">currentVersion</code> is the one exception and is treated
+          as a local UI testing override.
         </p>
         <p>
           <strong class="text-green-500">Simplified:</strong> You only need to edit

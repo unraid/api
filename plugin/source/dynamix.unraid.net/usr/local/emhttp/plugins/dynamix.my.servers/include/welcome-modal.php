@@ -7,6 +7,9 @@
  * 
  * The modification of these files should be done via the plugin's install script.
  */
+
+return;
+
 require_once("$docroot/plugins/dynamix.my.servers/include/state.php");
 require_once("$docroot/plugins/dynamix.my.servers/include/web-components-extractor.php");
 
@@ -15,4 +18,4 @@ echo $wcExtractor->getScriptTagHtml();
 ?>
 
 <!-- Welcome modal -->
-<unraid-welcome-modal></unraid-welcome-modal>
+<!-- <unraid-welcome-modal></unraid-welcome-modal> -->

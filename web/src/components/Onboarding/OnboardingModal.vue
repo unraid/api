@@ -49,7 +49,10 @@ const { currentStepIndex } = storeToRefs(draftStore);
 })();
 
 const hasKeyfile = computed(() => Boolean(keyfile.value));
-const allowActivationSkip = computed(() => hasKeyfile.value || activationRequired.value);
+const ACTIVATION_STEP_REGISTRATION_STATES = new Set(['ENOKEYFILE', 'ENOKEYFILE1', 'ENOKEYFILE2']);
+const allowActivationSkip = computed(
+  () => hasKeyfile.value || activationRequired.value || showActivationStep.value
+);
 const showKeyfileHint = computed(() => activationRequired.value && hasKeyfile.value);
 const activateHref = computed(() => purchaseStore.generateUrl('activate'));
 const activateExternal = computed(() => purchaseStore.openInNewTab);
@@ -75,8 +78,8 @@ const HARDCODED_STEPS: Array<{ id: StepId; required: boolean }> = [
 
 const showActivationStep = computed(() => {
   const hasCode = hasActivationCode.value;
-  const isUnregistered = registrationState.value === 'ENOKEYFILE';
-  return hasCode && isUnregistered;
+  const regState = registrationState.value ?? '';
+  return hasCode && ACTIVATION_STEP_REGISTRATION_STATES.has(regState);
 });
 
 // Determine which steps to show based on user state
@@ -95,7 +98,11 @@ const filteredSteps = computed(() => {
   return HARDCODED_STEPS.filter((s) => s.id !== 'ACTIVATE_LICENSE');
 });
 
-const isLoginPage = computed(() => window.location.pathname.includes('login'));
+const isLoginPage = computed(() => {
+  const hasLoginRoute = window.location.pathname.includes('login');
+  const hasLoginMarkup = Boolean(document.querySelector('#login, form[action="/login"]'));
+  return hasLoginRoute || hasLoginMarkup;
+});
 const showModal = computed(
   () =>
     !isLoginPage.value &&

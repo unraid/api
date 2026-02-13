@@ -8,7 +8,7 @@
 # ./plugin/scripts/rsync-activation-dir.sh --local-directory /Users/zack/Downloads/activation_code_pdfs_12_19_2024_1436 --remote-host unraid.local --remove-password
 
 # Default values
-REMOTE_PATH="/boot/config/activation"
+REMOTE_PATH="/boot/config/activate"
 REMOVE_PASSWORD=false
 
 # Parse named flag parameters

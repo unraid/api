@@ -189,13 +189,35 @@ describe('UpdateOsActions Store', () => {
       expect(result).toEqual(mockRelease);
     });
 
-    it('should throw error when getting release without keyfile', async () => {
-      await expect(
-        store.getReleaseFromKeyServer({
-          keyfile: '',
-          sha256: 'test-sha256',
-        })
-      ).rejects.toThrow('No payload.keyfile provided');
+    it('should get release from key server without keyfile', async () => {
+      const mockRelease: Release = {
+        version: '6.12.5',
+        name: 'Unraid 6.12.5',
+        basefile: 'unRAIDServer-6.12.5-x86_64.zip',
+        date: '2023-10-15',
+        url: 'https://example.com/download.zip',
+        changelog: 'https://example.com/changelog.md',
+        changelogPretty: 'https://example.com/changelog',
+        md5: 'abc123',
+        size: '400000000',
+        sha256: 'test-sha256',
+        plugin_url: 'https://example.com/plugin.plg',
+        plugin_sha256: 'plugin-sha256',
+        announce_url: 'https://example.com/announce',
+      };
+
+      mockGetOsReleaseBySha256.mockResolvedValue(mockRelease);
+
+      const result = await store.getReleaseFromKeyServer({
+        keyfile: '',
+        sha256: 'test-sha256',
+      });
+
+      expect(mockGetOsReleaseBySha256).toHaveBeenCalledWith({
+        keyfile: '',
+        sha256: 'test-sha256',
+      });
+      expect(result).toEqual(mockRelease);
     });
 
     it('should throw error when getting release without sha256', async () => {
@@ -544,6 +566,16 @@ describe('UpdateOsActions Store', () => {
       mockServerStore.osVersion = '6.12.4';
       mockServerStore.regUpdatesExpired = false;
       store = useUpdateOsActionsStore();
+      expect(store.ineligibleText).toBe('');
+    });
+
+    it('should stay eligible without a keyfile', () => {
+      mockServerStore.guid = 'test-guid';
+      mockServerStore.keyfile = '';
+      mockServerStore.osVersion = '6.12.4';
+      mockServerStore.regUpdatesExpired = false;
+      store = useUpdateOsActionsStore();
+      expect(store.ineligible).toBe(false);
       expect(store.ineligibleText).toBe('');
     });
   });

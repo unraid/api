@@ -3,7 +3,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { ActivationStepContext } from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
 import { getters } from '@app/store/index.js';
 import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
-import { findActivationCodeFile } from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
+import {
+    findActivationCodeFileInDirs,
+    getActivationDirCandidates,
+} from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
 const REGISTERED_STATES = new Set<RegistrationState>([
@@ -14,6 +17,12 @@ const REGISTERED_STATES = new Set<RegistrationState>([
     RegistrationState.STARTER,
     RegistrationState.UNLEASHED,
     RegistrationState.LIFETIME,
+]);
+
+const ACTIVATION_STEP_STATES = new Set<RegistrationState>([
+    RegistrationState.ENOKEYFILE,
+    RegistrationState.ENOKEYFILE1,
+    RegistrationState.ENOKEYFILE2,
 ]);
 
 @Injectable()
@@ -40,6 +49,15 @@ export class OnboardingStateService {
         return regState === RegistrationState.ENOKEYFILE;
     }
 
+    requiresActivationStep(
+        regState: RegistrationState | undefined = this.getRegistrationState()
+    ): boolean {
+        if (!regState) {
+            return false;
+        }
+        return ACTIVATION_STEP_STATES.has(regState);
+    }
+
     isRegistered(regState: RegistrationState | undefined = this.getRegistrationState()): boolean {
         if (!regState) {
             return false;
@@ -59,8 +77,8 @@ export class OnboardingStateService {
             return false;
         }
 
-        const activationPath = await findActivationCodeFile(
-            activationBase,
+        const activationPath = await findActivationCodeFileInDirs(
+            getActivationDirCandidates(activationBase),
             '.activationcode',
             this.logger
         );
@@ -68,7 +86,7 @@ export class OnboardingStateService {
     }
 
     async activationRequired(): Promise<boolean> {
-        return (await this.hasActivationCode()) && this.isFreshInstall();
+        return (await this.hasActivationCode()) && this.requiresActivationStep();
     }
 
     async getActivationStepContext(): Promise<ActivationStepContext> {

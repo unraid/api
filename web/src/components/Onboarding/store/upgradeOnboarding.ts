@@ -3,32 +3,58 @@ import { defineStore, storeToRefs } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
 import { ONBOARDING_QUERY } from '@/components/Onboarding/graphql/activationOnboarding.query';
+import coerce from 'semver/functions/coerce';
+import gte from 'semver/functions/gte';
 
 import type { OnboardingStatus } from '~/composables/gql/graphql';
 
 import { useServerStore } from '~/store/server';
 
-const MIN_ONBOARDING_MAJOR = 7;
-const MIN_ONBOARDING_MINOR = 3;
+const MIN_ONBOARDING_VERSION = '7.3.0';
 const ONBOARDING_TEST_UNAUTHENTICATED_STORAGE_KEY = 'onboardingAdminPanel.mockUnauthenticated';
+const ONBOARDING_TEST_OS_VERSION_STORAGE_KEY = 'onboardingAdminPanel.mockOsVersion';
+
+const isOnboardingAdminPanelContext = () => {
+  if (typeof document === 'undefined') {
+    return false;
+  }
+  return Boolean(
+    document.querySelector('unraid-onboarding-admin-panel, unraid-onboarding-test-harness')
+  );
+};
 
 const readMockUnauthenticatedFromStorage = () => {
   if (typeof window === 'undefined') {
     return false;
   }
+  if (!isOnboardingAdminPanelContext()) {
+    localStorage.removeItem(ONBOARDING_TEST_UNAUTHENTICATED_STORAGE_KEY);
+    return false;
+  }
   return localStorage.getItem(ONBOARDING_TEST_UNAUTHENTICATED_STORAGE_KEY) === 'true';
 };
 
-const parseMajorMinorVersion = (version: string | null | undefined) => {
-  const match = version?.match(/(\d+)\.(\d+)/);
-  if (!match) {
+const readMockOsVersionFromStorage = () => {
+  if (typeof window === 'undefined') {
     return null;
   }
+  if (!isOnboardingAdminPanelContext()) {
+    localStorage.removeItem(ONBOARDING_TEST_OS_VERSION_STORAGE_KEY);
+    return null;
+  }
+  const persistedValue = localStorage.getItem(ONBOARDING_TEST_OS_VERSION_STORAGE_KEY);
+  const trimmedValue = persistedValue?.trim();
+  return trimmedValue ? trimmedValue : null;
+};
 
-  return {
-    major: Number.parseInt(match[1] ?? '0', 10),
-    minor: Number.parseInt(match[2] ?? '0', 10),
-  };
+const isVersionAtLeast = (version: string | null | undefined, minVersion: string): boolean => {
+  const normalizedVersion = coerce(version);
+  const normalizedMinVersion = coerce(minVersion);
+  if (!normalizedVersion || !normalizedMinVersion) {
+    return false;
+  }
+
+  return gte(normalizedVersion, normalizedMinVersion);
 };
 
 const isUnauthenticatedApolloError = (error: unknown): boolean => {
@@ -94,6 +120,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
 
   const onboardingData = computed(() => onboardingResult.value?.onboarding);
   const mockUnauthenticated = ref(readMockUnauthenticatedFromStorage());
+  const mockOsVersion = ref<string | null>(readMockOsVersionFromStorage());
 
   // Core state from API
   const status = computed<OnboardingStatus | undefined>(() => onboardingData.value?.status);
@@ -107,25 +134,25 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   const isVersionDrift = computed(() => status.value === 'UPGRADE' || status.value === 'DOWNGRADE');
   const isIncomplete = computed(() => status.value === 'INCOMPLETE');
   const isCompleted = computed(() => status.value === 'COMPLETED');
-  const isVersionSupported = computed(() => {
-    const parsedVersion = parseMajorMinorVersion(osVersion.value);
-    if (!parsedVersion) {
-      return false;
-    }
-
-    if (parsedVersion.major > MIN_ONBOARDING_MAJOR) {
-      return true;
-    }
-    if (parsedVersion.major < MIN_ONBOARDING_MAJOR) {
-      return false;
-    }
-
-    return parsedVersion.minor >= MIN_ONBOARDING_MINOR;
-  });
+  const effectiveOsVersion = computed(() => mockOsVersion.value ?? osVersion.value);
+  const isVersionSupported = computed(() =>
+    isVersionAtLeast(effectiveOsVersion.value, MIN_ONBOARDING_VERSION)
+  );
   const setMockUnauthenticated = (value: boolean) => {
     mockUnauthenticated.value = value;
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && isOnboardingAdminPanelContext()) {
       localStorage.setItem(ONBOARDING_TEST_UNAUTHENTICATED_STORAGE_KEY, value ? 'true' : 'false');
+    }
+  };
+  const setMockOsVersion = (value: string | null) => {
+    const normalizedValue = value?.trim() || null;
+    mockOsVersion.value = normalizedValue;
+    if (typeof window !== 'undefined' && isOnboardingAdminPanelContext()) {
+      if (normalizedValue) {
+        localStorage.setItem(ONBOARDING_TEST_OS_VERSION_STORAGE_KEY, normalizedValue);
+      } else {
+        localStorage.removeItem(ONBOARDING_TEST_OS_VERSION_STORAGE_KEY);
+      }
     }
   };
 
@@ -157,14 +184,18 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     isVersionDrift,
     isIncomplete,
     isCompleted,
+    osVersion,
+    effectiveOsVersion,
     isVersionSupported,
     mockUnauthenticated,
+    mockOsVersion,
     isUnauthenticated,
     canDisplayOnboardingModal,
     shouldShowOnboarding,
     // Actions
     refetchOnboarding: refetch,
     setMockUnauthenticated,
+    setMockOsVersion,
   };
 });
 

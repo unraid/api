@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { Dialog } from '@unraid/ui';
@@ -28,11 +28,28 @@ const { fetchTheme } = useThemeStore();
   }
 })();
 
-const isLoginPage = computed(() => window.location.pathname.includes('login'));
+const isLoginPage = computed(() => {
+  const hasLoginRoute = window.location.pathname.includes('login');
+  const hasLoginMarkup = Boolean(document.querySelector('#login, form[action="/login"]'));
+  return hasLoginRoute || hasLoginMarkup;
+});
 
-// Initialize showModal based on conditions
+// Never auto-open onboarding welcome over login/set-password contexts.
+const showModal = ref(!isLoginPage.value && isFreshInstall.value);
 
-const showModal = ref(isLoginPage.value || isFreshInstall.value);
+watch(
+  [isFreshInstall, isLoginPage],
+  ([freshInstall, loginContext]) => {
+    if (loginContext) {
+      showModal.value = false;
+      return;
+    }
+    if (freshInstall) {
+      showModal.value = true;
+    }
+  },
+  { immediate: true }
+);
 
 // Template ref for the teleport container
 
@@ -43,6 +60,9 @@ const dropdownHide = () => {
 };
 
 const showWelcomeModal = () => {
+  if (isLoginPage.value) {
+    return;
+  }
   showModal.value = true;
 };
 
@@ -81,12 +101,13 @@ onUnmounted(() => {
       :to="modalContainer"
       :model-value="showModal"
       :show-footer="false"
-      :show-close-button="isLoginPage"
+      :show-close-button="!isLoginPage"
       size="full"
       class="bg-background pb-0"
       @update:model-value="(value) => (showModal = value)"
     >
       <div
+        v-if="showModal"
         class="flex flex-col items-center justify-start"
         :style="{
           '--text-xs': '0.75rem',

@@ -20,7 +20,10 @@ import {
     OnboardingState,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
-import { findActivationCodeFile } from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
+import {
+    findActivationCodeFile,
+    getActivationDirCandidates,
+} from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
 import { Theme, ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 
 @Injectable()
@@ -67,19 +70,20 @@ export class OnboardingService implements OnModuleInit {
         }
 
         try {
-            // Check if activation dir exists using the initialized path
-            try {
-                await fs.access(this.activationDir);
-                this.logger.log(`Activation directory found: ${this.activationDir}`);
-            } catch (dirError: unknown) {
-                if (dirError instanceof Error && 'code' in dirError && dirError.code === 'ENOENT') {
-                    this.logger.log(
-                        `Activation directory ${this.activationDir} not found. Skipping activation setup.`
-                    );
-                    return; // Exit if activation dir doesn't exist
-                }
-                throw dirError; // Rethrow other access errors
+            const resolvedActivationDir = await this.resolveActivationDir(this.activationDir);
+            if (!resolvedActivationDir) {
+                this.logger.log(
+                    `Activation directory ${this.activationDir} not found. Skipping activation setup.`
+                );
+                return;
             }
+            if (resolvedActivationDir !== this.activationDir) {
+                this.logger.log(
+                    `Activation directory fallback detected. Using ${resolvedActivationDir} (configured ${this.activationDir}).`
+                );
+                this.activationDir = resolvedActivationDir;
+            }
+            this.logger.log(`Activation directory found: ${this.activationDir}`);
 
             // Proceed with first boot check and activation data retrieval ONLY if dir exists
             const hasRunFirstBootSetup = await this.ensureFirstBootCompletion();
@@ -105,6 +109,25 @@ export class OnboardingService implements OnModuleInit {
                 this.logger.error('Error during activation check/setup on init:', error);
             }
         }
+    }
+
+    private async resolveActivationDir(configuredDir: string): Promise<string | null> {
+        const candidates = getActivationDirCandidates(configuredDir);
+        for (const activationDir of candidates) {
+            try {
+                await fs.access(activationDir);
+                return activationDir;
+            } catch (dirError: unknown) {
+                if (
+                    !(dirError instanceof Error) ||
+                    !('code' in dirError) ||
+                    dirError.code !== 'ENOENT'
+                ) {
+                    throw dirError;
+                }
+            }
+        }
+        return null;
     }
 
     private async getActivationJsonPath(): Promise<string | null> {
@@ -163,13 +186,15 @@ export class OnboardingService implements OnModuleInit {
         const hasActivationCode = await this.onboardingState.hasActivationCode();
         const isFreshInstall = this.onboardingState.isFreshInstall(registrationState);
         const isRegistered = this.onboardingState.isRegistered(registrationState);
+        const activationRequired =
+            hasActivationCode && this.onboardingState.requiresActivationStep(registrationState);
 
         return {
             registrationState,
             isRegistered,
             isFreshInstall,
             hasActivationCode,
-            activationRequired: hasActivationCode && isFreshInstall,
+            activationRequired,
         };
     }
 

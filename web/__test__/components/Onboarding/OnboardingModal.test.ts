@@ -206,6 +206,34 @@ describe('OnboardingModal.vue', () => {
     expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(false);
   });
 
+  it('shows activation step for ENOKEYFILE1', () => {
+    activationCodeDataStore.registrationState.value = 'ENOKEYFILE1';
+    onboardingDraftStore.currentStepIndex.value = 3;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="license-step"]').exists()).toBe(true);
+  });
+
+  it('shows activation step for ENOKEYFILE2', () => {
+    activationCodeDataStore.registrationState.value = 'ENOKEYFILE2';
+    onboardingDraftStore.currentStepIndex.value = 3;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="license-step"]').exists()).toBe(true);
+  });
+
+  it('omits activation step for non-activation registration states', () => {
+    activationCodeDataStore.registrationState.value = 'BASIC';
+    onboardingDraftStore.currentStepIndex.value = 3;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="license-step"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="summary-step"]').exists()).toBe(true);
+  });
+
   it('opens exit confirmation when close button is clicked', async () => {
     const wrapper = mountComponent();
 

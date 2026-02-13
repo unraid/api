@@ -123,6 +123,7 @@ const onboardingStateMock = {
     getRegistrationState: vi.fn(),
     hasActivationCode: vi.fn(),
     isFreshInstall: vi.fn(),
+    requiresActivationStep: vi.fn(),
     isRegistered: vi.fn(),
 };
 
@@ -183,6 +184,8 @@ describe('OnboardingService', () => {
         onboardingStateMock.hasActivationCode.mockResolvedValue(false);
         onboardingStateMock.isFreshInstall.mockReset();
         onboardingStateMock.isFreshInstall.mockReturnValue(false);
+        onboardingStateMock.requiresActivationStep.mockReset();
+        onboardingStateMock.requiresActivationStep.mockReturnValue(false);
         onboardingStateMock.isRegistered.mockReset();
         onboardingStateMock.isRegistered.mockReturnValue(false);
         vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
@@ -257,7 +260,9 @@ describe('OnboardingService', () => {
             const error = new Error('ENOENT: no such file or directory') as NodeJS.ErrnoException;
             error.code = 'ENOENT';
             vi.mocked(fs.access).mockImplementation(async (p) => {
-                if (p === activationDir) throw error;
+                if (p === activationDir || p === activationDir.replace('/activation', '/activate')) {
+                    throw error;
+                }
             });
 
             await service.onModuleInit();
@@ -443,7 +448,7 @@ describe('OnboardingService', () => {
             const result = await service.getActivationData();
             expect(result).toBeNull();
             expect(loggerErrorSpy).toHaveBeenCalledWith(
-                'Error accessing activation directory or reading its content.',
+                expect.stringContaining('Error accessing activation directory'),
                 readDirError
             );
         });
@@ -986,6 +991,8 @@ describe('applyActivationCustomizations specific tests', () => {
         onboardingStateMock.hasActivationCode.mockResolvedValue(false);
         onboardingStateMock.isFreshInstall.mockReset();
         onboardingStateMock.isFreshInstall.mockReturnValue(false);
+        onboardingStateMock.requiresActivationStep.mockReset();
+        onboardingStateMock.requiresActivationStep.mockReturnValue(false);
         onboardingStateMock.isRegistered.mockReset();
         onboardingStateMock.isRegistered.mockReturnValue(false);
         vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
@@ -1158,6 +1165,8 @@ describe('OnboardingService - updateCfgFile', () => {
         onboardingStateMock.hasActivationCode.mockResolvedValue(false);
         onboardingStateMock.isFreshInstall.mockReset();
         onboardingStateMock.isFreshInstall.mockReturnValue(false);
+        onboardingStateMock.requiresActivationStep.mockReset();
+        onboardingStateMock.requiresActivationStep.mockReturnValue(false);
         onboardingStateMock.isRegistered.mockReset();
         onboardingStateMock.isRegistered.mockReturnValue(false);
         vi.mocked(fs.mkdir).mockResolvedValue(undefined as any);
