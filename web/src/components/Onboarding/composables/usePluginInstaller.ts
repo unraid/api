@@ -24,14 +24,30 @@ export interface InstallPluginResult {
 const isFinalStatus = (status: PluginInstallStatus) =>
   status === PluginInstallStatus.SUCCEEDED || status === PluginInstallStatus.FAILED;
 
+const INSTALL_RESULT_POLL_MS = 2000;
+const INSTALL_RESULT_TIMEOUT_MS = 6 * 60 * 1000;
+
 const usePluginInstaller = () => {
   const apolloClient = useApolloClient().client;
 
-  const trackInstallOperation = async (operation: {
-    id: string;
-    status: PluginInstallStatus;
-    output?: string[] | null;
-  }) => {
+  const fetchInstallOperation = async (operationId: string) => {
+    const result = await apolloClient.query({
+      query: PLUGIN_INSTALL_OPERATION_QUERY,
+      variables: { operationId },
+      fetchPolicy: 'network-only',
+    });
+
+    return result.data?.pluginInstallOperation ?? null;
+  };
+
+  const trackInstallOperation = async (
+    operation: {
+      id: string;
+      status: PluginInstallStatus;
+      output?: string[] | null;
+    },
+    options?: { onEvent?: (event: PluginInstallEvent) => void }
+  ) => {
     const trackedOutput = [...(operation.output ?? [])];
 
     if (isFinalStatus(operation.status)) {
@@ -43,13 +59,92 @@ const usePluginInstaller = () => {
     }
 
     return new Promise<InstallPluginResult>((resolve, reject) => {
+      let settled = false;
+
+      let pollTimer: ReturnType<typeof setInterval> | null = null;
+      let timeoutTimer: ReturnType<typeof setTimeout> | null = null;
+
+      const settle = (result: InstallPluginResult) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        if (pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
+        if (timeoutTimer) {
+          clearTimeout(timeoutTimer);
+          timeoutTimer = null;
+        }
+        resolve(result);
+      };
+
+      const fail = (error: unknown) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        if (pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
+        if (timeoutTimer) {
+          clearTimeout(timeoutTimer);
+          timeoutTimer = null;
+        }
+        reject(error);
+      };
+
+      const finalizeFromQuery = async (fallbackStatus?: PluginInstallStatus) => {
+        const operationResult = await fetchInstallOperation(operation.id);
+        settle({
+          operationId: operation.id,
+          status: operationResult?.status ?? fallbackStatus ?? PluginInstallStatus.FAILED,
+          output: operationResult?.output ?? trackedOutput,
+        });
+      };
+
+      const pollForFinalResult = async () => {
+        if (settled) {
+          return;
+        }
+
+        try {
+          const operationResult = await fetchInstallOperation(operation.id);
+          if (!operationResult) {
+            return;
+          }
+
+          if (operationResult.output?.length) {
+            trackedOutput.splice(0, trackedOutput.length, ...operationResult.output);
+          }
+
+          if (isFinalStatus(operationResult.status)) {
+            settle({
+              operationId: operation.id,
+              status: operationResult.status,
+              output: operationResult.output ?? trackedOutput,
+            });
+          }
+        } catch {
+          // Keep polling until timeout.
+        }
+      };
+
       const observable = apolloClient.subscribe({
         query: PLUGIN_INSTALL_UPDATES_SUBSCRIPTION,
         variables: { operationId: operation.id },
       });
 
-      const subscription = observable.subscribe({
+      let subscription: { unsubscribe: () => void } | null = null;
+
+      subscription = observable.subscribe({
         next: ({ data: subscriptionData }) => {
+          if (settled) {
+            return;
+          }
+
           const event = subscriptionData?.pluginInstallUpdates;
           if (!event) {
             return;
@@ -59,33 +154,45 @@ const usePluginInstaller = () => {
             trackedOutput.push(...event.output);
           }
 
+          options?.onEvent?.(event);
+
           if (isFinalStatus(event.status)) {
-            void apolloClient
-              .query({
-                query: PLUGIN_INSTALL_OPERATION_QUERY,
-                variables: { operationId: operation.id },
-                fetchPolicy: 'network-only',
-              })
-              .then((result) => {
-                const operationResult = result.data?.pluginInstallOperation;
-                subscription.unsubscribe();
-                resolve({
-                  operationId: operation.id,
-                  status: event.status,
-                  output: operationResult?.output ?? trackedOutput,
-                });
-              })
-              .catch((error) => {
-                subscription.unsubscribe();
-                reject(error);
-              });
+            subscription?.unsubscribe();
+            void finalizeFromQuery(event.status).catch((error) => {
+              fail(error);
+            });
           }
         },
-        error: (error) => {
-          subscription.unsubscribe();
-          reject(error);
+        error: () => {
+          // Subscription transport may be unavailable in some contexts.
+          // Polling continues and can still resolve this operation.
+          subscription?.unsubscribe();
         },
       });
+
+      pollTimer = setInterval(() => {
+        void pollForFinalResult();
+      }, INSTALL_RESULT_POLL_MS);
+
+      timeoutTimer = setTimeout(() => {
+        subscription?.unsubscribe();
+        void fetchInstallOperation(operation.id)
+          .then((operationResult) => {
+            if (operationResult && isFinalStatus(operationResult.status)) {
+              settle({
+                operationId: operation.id,
+                status: operationResult.status,
+                output: operationResult.output ?? trackedOutput,
+              });
+              return;
+            }
+
+            fail(new Error(`Timed out waiting for install operation ${operation.id} to finish`));
+          })
+          .catch((error) => {
+            fail(error);
+          });
+      }, INSTALL_RESULT_TIMEOUT_MS);
     });
   };
 
@@ -106,63 +213,7 @@ const usePluginInstaller = () => {
       throw new Error('Failed to start plugin installation');
     }
 
-    const trackedOutput = [...(operation.output ?? [])];
-
-    if (isFinalStatus(operation.status)) {
-      return {
-        operationId: operation.id,
-        status: operation.status,
-        output: trackedOutput,
-      };
-    }
-
-    return new Promise<InstallPluginResult>((resolve, reject) => {
-      const observable = apolloClient.subscribe({
-        query: PLUGIN_INSTALL_UPDATES_SUBSCRIPTION,
-        variables: { operationId: operation.id },
-      });
-
-      const subscription = observable.subscribe({
-        next: ({ data: subscriptionData }) => {
-          const event = subscriptionData?.pluginInstallUpdates;
-          if (!event) {
-            return;
-          }
-
-          if (event.output?.length) {
-            trackedOutput.push(...event.output);
-          }
-
-          onEvent?.(event);
-
-          if (isFinalStatus(event.status)) {
-            void apolloClient
-              .query({
-                query: PLUGIN_INSTALL_OPERATION_QUERY,
-                variables: { operationId: operation.id },
-                fetchPolicy: 'network-only',
-              })
-              .then((result) => {
-                const operationResult = result.data?.pluginInstallOperation;
-                subscription.unsubscribe();
-                resolve({
-                  operationId: operation.id,
-                  status: event.status,
-                  output: operationResult?.output ?? trackedOutput,
-                });
-              })
-              .catch((error) => {
-                subscription.unsubscribe();
-                reject(error);
-              });
-          }
-        },
-        error: (error) => {
-          subscription.unsubscribe();
-          reject(error);
-        },
-      });
-    });
+    return trackInstallOperation(operation, { onEvent });
   };
 
   const installLanguage = async ({

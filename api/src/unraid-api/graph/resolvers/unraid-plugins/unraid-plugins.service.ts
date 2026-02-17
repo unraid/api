@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'node:crypto';
+import { constants as fsConstants } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
@@ -25,6 +26,19 @@ type PluginInstallChildProcess = ReturnType<typeof execa>;
 
 type OperationType = 'plugin' | 'language';
 
+const INSTALLER_COMMAND_CANDIDATES: Record<OperationType, string[]> = {
+    plugin: [
+        '/usr/local/sbin/plugin',
+        '/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/plugin',
+        'plugin',
+    ],
+    language: [
+        '/usr/local/sbin/language',
+        '/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/language',
+        'language',
+    ],
+};
+
 interface OperationState {
     id: string;
     type: OperationType;
@@ -44,6 +58,7 @@ interface OperationState {
 export class UnraidPluginsService {
     private readonly logger = new Logger(UnraidPluginsService.name);
     private readonly operations = new Map<string, OperationState>();
+    private readonly installerCommandCache = new Map<OperationType, string>();
     private readonly MAX_OUTPUT_LINES = 500;
 
     constructor(private readonly configService: ConfigService) {}
@@ -85,7 +100,7 @@ export class UnraidPluginsService {
         this.publishEvent(operation, []);
 
         const args = this.buildArgs(operation);
-        const command = type === 'plugin' ? 'plugin' : 'language';
+        const command = await this.resolveInstallerCommand(type);
 
         const child = execa(command, args, {
             all: true,
@@ -179,6 +194,35 @@ export class UnraidPluginsService {
             args.push('forced');
         }
         return args;
+    }
+
+    private async resolveInstallerCommand(type: OperationType): Promise<string> {
+        const cached = this.installerCommandCache.get(type);
+        if (cached) {
+            return cached;
+        }
+
+        const candidates = INSTALLER_COMMAND_CANDIDATES[type];
+
+        for (const candidate of candidates) {
+            if (!candidate.includes('/')) {
+                this.installerCommandCache.set(type, candidate);
+                return candidate;
+            }
+
+            try {
+                await fs.access(candidate, fsConstants.X_OK);
+                this.installerCommandCache.set(type, candidate);
+                return candidate;
+            } catch {
+                // Try next candidate.
+            }
+        }
+
+        // Should be unreachable because final candidate is command name.
+        const fallback = type;
+        this.installerCommandCache.set(type, fallback);
+        return fallback;
     }
 
     private handleOutput(operation: OperationState, chunk: string) {
