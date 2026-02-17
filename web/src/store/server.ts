@@ -1226,16 +1226,22 @@ export const useServerStore = defineStore('server', () => {
     }
   };
 
-  // let refreshCount = 0; // Removed persistent counter
-  const refreshLimit = 20;
-  const refreshTimeout = 250;
+  const refreshLimit = 120;
+  const refreshTimeout = 500;
   const refreshServerStateStatus = ref<'done' | 'ready' | 'refreshing' | 'timeout'>('ready');
-  const refreshServerState = async (options?: { poll?: boolean; attempt?: number }) => {
+  const refreshServerState = async (options?: {
+    poll?: boolean;
+    attempt?: number;
+    maxAttempts?: number;
+    intervalMs?: number;
+  }) => {
     const poll = options?.poll ?? true;
     const attempt = options?.attempt ?? 0;
+    const maxAttempts = options?.maxAttempts ?? refreshLimit;
+    const intervalMs = options?.intervalMs ?? refreshTimeout;
 
     // If we've reached the refresh limit, stop refreshing
-    if (attempt >= refreshLimit) {
+    if (attempt >= maxAttempts) {
       refreshServerStateStatus.value = 'timeout';
       return false;
     }
@@ -1253,8 +1259,8 @@ export const useServerStore = defineStore('server', () => {
     if (!response) {
       if (poll) {
         return setTimeout(() => {
-          refreshServerState({ poll, attempt: attempt + 1 });
-        }, refreshTimeout);
+          refreshServerState({ poll, attempt: attempt + 1, maxAttempts, intervalMs });
+        }, intervalMs);
       }
       return false;
     }
@@ -1296,8 +1302,8 @@ export const useServerStore = defineStore('server', () => {
     }
 
     // If we haven't reached the refresh limit, try again
-    await new Promise((resolve) => setTimeout(resolve, refreshTimeout));
-    return refreshServerState({ poll, attempt: attempt + 1 });
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    return refreshServerState({ poll, attempt: attempt + 1, maxAttempts, intervalMs });
   };
 
   const filteredKeyActions = (

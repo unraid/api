@@ -25,8 +25,8 @@ start() {
 
   # Restore vendored API plugins if they were installed
   if [ -x "$scripts_dir/dependencies.sh" ]; then
-    "$scripts_dir/dependencies.sh" restore || {
-      echo "Failed to restore API plugin dependencies! Continuing with start, but API plugins may be unavailable."
+    "$scripts_dir/dependencies.sh" ensure || {
+      echo "Failed to ensure API plugin dependencies! Continuing with start, but API plugins may be unavailable."
     }
   else
     echo "Warning: dependencies.sh script not found or not executable"
