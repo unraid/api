@@ -23,6 +23,15 @@ import { batchProcess, handleAuthError } from '@app/utils.js';
 export class AuthService {
     private readonly logger = new Logger(AuthService.name);
 
+    private logTrace(message: string): void {
+        const traceLogger = this.logger as unknown as { trace?: (msg: string) => void };
+        if (typeof traceLogger.trace === 'function') {
+            traceLogger.trace(message);
+            return;
+        }
+        this.logger.verbose(message);
+    }
+
     constructor(
         private cookieService: CookieService,
         private apiKeyService: ApiKeyService,
@@ -84,7 +93,7 @@ export class AuthService {
 
             // Now get the updated roles
             const existingRoles = await this.authzService.getRolesForUser(user.id);
-            this.logger.debug(`User ${user.id} has roles: ${existingRoles}`);
+            this.logTrace(`User ${user.id} has roles: ${existingRoles}`);
 
             return user;
         } catch (error: unknown) {
@@ -108,7 +117,7 @@ export class AuthService {
 
             // Now get the updated roles
             const existingRoles = await this.authzService.getRolesForUser(user.id);
-            this.logger.debug(`Local session user ${user.id} has roles: ${existingRoles}`);
+            this.logTrace(`Local session user ${user.id} has roles: ${existingRoles}`);
 
             return user;
         } catch (error: unknown) {
@@ -264,7 +273,7 @@ export class AuthService {
                 ...rolesToRemove.map((role) => this.authzService.deleteRoleForUser(userId, role)),
             ]);
 
-            this.logger.debug(
+            this.logTrace(
                 `Synced roles for user ${userId}. Added: ${rolesToAdd.join(
                     ','
                 )}, Removed: ${rolesToRemove.join(',')}`
