@@ -22,6 +22,30 @@ function loadConfigFileSync<ConfigType>(path: string): RecursivePartial<ConfigTy
         : {};
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const deepMergeConfig = (
+    base: RecursivePartial<DynamixConfig>,
+    override: RecursivePartial<DynamixConfig>
+): RecursivePartial<DynamixConfig> => {
+    const output: Record<string, unknown> = { ...(base as Record<string, unknown>) };
+
+    Object.entries(override as Record<string, unknown>).forEach(([key, value]) => {
+        const existingValue = output[key];
+        if (isRecord(existingValue) && isRecord(value)) {
+            output[key] = deepMergeConfig(
+                existingValue as RecursivePartial<DynamixConfig>,
+                value as RecursivePartial<DynamixConfig>
+            );
+            return;
+        }
+        output[key] = value;
+    });
+
+    return output as RecursivePartial<DynamixConfig>;
+};
+
 type ConfigPaths = readonly (string | undefined | null)[];
 const CACHE_WINDOW_MS = 250;
 
@@ -39,10 +63,7 @@ const memoizedConfigLoader = createTtlMemoizedLoader<
         }
         const configFiles = validPaths.map((path) => loadConfigFileSync<DynamixConfig>(path));
         return configFiles.reduce<RecursivePartial<DynamixConfig>>(
-            (accumulator, configFile) => ({
-                ...accumulator,
-                ...configFile,
-            }),
+            (accumulator, configFile) => deepMergeConfig(accumulator, configFile),
             {}
         );
     },

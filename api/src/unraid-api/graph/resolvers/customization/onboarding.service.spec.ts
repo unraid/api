@@ -67,13 +67,15 @@ vi.mock('@app/store/index.js', async () => {
         ...actual,
         getters: {
             paths: vi.fn(() => mockPaths),
-            dynamix: vi.fn(() => ({ display: { theme: 'azure', header: 'FFFFFF' } })),
+            dynamix: vi.fn(() => ({
+                display: { theme: 'azure', header: 'FFFFFF', terminalButton: 'yes' },
+            })),
             emhttp: vi.fn(() => ({ var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' } })),
         },
         store: {
             getState: vi.fn(() => ({
                 paths: mockPaths,
-                dynamix: { display: { theme: 'azure', header: 'FFFFFF' } },
+                dynamix: { display: { theme: 'azure', header: 'FFFFFF', terminalButton: 'yes' } },
                 emhttp: { var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' } },
             })),
         },
@@ -322,11 +324,11 @@ describe('OnboardingService', () => {
             // Check customizations applied (verify mocks were called)
             expect(fs.copyFile).toHaveBeenCalledWith(bannerSource, bannerTarget.fullPath); // Banner copied
 
-            // Verify we write to dynamix config with theme=black
+            // Verify we write to dynamix config without forcing activation branding theme
             const writeFileCalls = vi.mocked(fs.writeFile).mock.calls;
             const dynamixCfgCall = writeFileCalls.find((call) => call[0] === userDynamixCfg);
             expect(dynamixCfgCall).toBeDefined();
-            expect(dynamixCfgCall?.[1]).toContain('theme=black');
+            expect(dynamixCfgCall?.[1]).toContain('theme=azure');
 
             // We no longer write directly to ident.cfg, instead we call emcmd
             // Run timers again to ensure emcmd is called
@@ -631,15 +633,20 @@ describe('OnboardingService', () => {
             vi.mocked(fileExists).mockResolvedValue(true); // Assume banner exists for banner: 'image' logic
             await (service as any).setupPartnerBanner(); // Run banner setup first
             await (service as any).applyDisplaySettings();
-            // Expect the hash to be stripped by applyDisplaySettings
-            expect(updateSpy).toHaveBeenCalledWith(userDynamixCfg, 'display', {
-                header: '112233', // # stripped
-                headermetacolor: '445566', // # stripped
-                background: '778899', // # stripped
-                showBannerGradient: 'yes',
-                theme: 'black',
-                banner: 'image',
-            });
+            // Expect the hash to be stripped and existing display settings preserved
+            expect(updateSpy).toHaveBeenCalledWith(
+                userDynamixCfg,
+                'display',
+                expect.objectContaining({
+                    terminalButton: 'yes',
+                    theme: 'azure',
+                    header: '112233', // # stripped
+                    headermetacolor: '445566', // # stripped
+                    background: '778899', // # stripped
+                    showBannerGradient: 'yes',
+                    banner: 'image',
+                })
+            );
             expect(loggerLogSpy).toHaveBeenCalledWith('Display settings updated in config file.');
         });
 
@@ -651,10 +658,16 @@ describe('OnboardingService', () => {
             await (service as any).setupPartnerBanner(); // Ensure banner='image' logic runs
             await (service as any).applyDisplaySettings();
 
-            // Only banner='image' and the default showBannerGradient='yes' should be set
-            expect(updateSpy).toHaveBeenCalledWith(userDynamixCfg, 'display', {
-                banner: 'image', // Only banner is set
-            });
+            // Activation updates should merge into existing display settings
+            expect(updateSpy).toHaveBeenCalledWith(
+                userDynamixCfg,
+                'display',
+                expect.objectContaining({
+                    terminalButton: 'yes',
+                    theme: 'azure',
+                    banner: 'image',
+                })
+            );
             expect(loggerLogSpy).toHaveBeenCalledWith('Display settings updated in config file.');
         });
 
@@ -678,12 +691,18 @@ describe('OnboardingService', () => {
             await (service as any).setupPartnerBanner(); // Run banner setup (will log skip)
             await (service as any).applyDisplaySettings();
 
-            // theme and default showBannerGradient are set, but banner field is not
-            expect(updateSpy).toHaveBeenCalledWith(userDynamixCfg, 'display', {
-                theme: 'white',
-                showBannerGradient: 'yes', // Default value from DTO
-                // banner: 'image' // Should NOT be present
-            });
+            // Existing theme is preserved; default showBannerGradient is set from branding defaults.
+            expect(updateSpy).toHaveBeenCalledWith(
+                userDynamixCfg,
+                'display',
+                expect.objectContaining({
+                    terminalButton: 'yes',
+                    theme: 'azure',
+                    showBannerGradient: 'yes',
+                })
+            );
+            const updatePayload = (updateSpy.mock.calls.at(-1)?.[2] ?? {}) as Record<string, string>;
+            expect(updatePayload.banner).toBeUndefined();
             expect(loggerLogSpy).toHaveBeenCalledWith('Display settings updated in config file.');
         });
 
@@ -704,15 +723,18 @@ describe('OnboardingService', () => {
             await (service as any).setupPartnerBanner(); // Run banner setup
             await (service as any).applyDisplaySettings();
 
-            // Expect empty strings to be filtered out, and valid hex stripped of #
-            expect(updateSpy).toHaveBeenCalledWith(userDynamixCfg, 'display', {
-                // header: '', // Should NOT be included (falsy check in service)
-                headermetacolor: '445566', // '#' stripped (truthy)
-                // background: '', // Should NOT be included (falsy check in service)
-                showBannerGradient: 'yes', // truthy
-                theme: 'black', // truthy
-                banner: 'image', // Added by setupPartnerBanner success
-            });
+            // Expect empty strings to be filtered out and valid hex stripped of #
+            expect(updateSpy).toHaveBeenCalledWith(
+                userDynamixCfg,
+                'display',
+                expect.objectContaining({
+                    terminalButton: 'yes',
+                    theme: 'azure',
+                    headermetacolor: '445566', // '#' stripped (truthy)
+                    showBannerGradient: 'yes',
+                    banner: 'image',
+                })
+            );
             expect(loggerLogSpy).toHaveBeenCalledWith('Display settings updated in config file.');
         });
 
@@ -734,14 +756,19 @@ describe('OnboardingService', () => {
             await (service as any).applyDisplaySettings();
 
             // Expect '#' to be stripped by applyDisplaySettings before writing
-            expect(updateSpy).toHaveBeenCalledWith(userDynamixCfg, 'display', {
-                header: 'ABCDEF', // # stripped
-                headermetacolor: '123', // # stripped
-                background: '778899', // # stripped
-                showBannerGradient: 'yes',
-                theme: 'black',
-                banner: 'image',
-            });
+            expect(updateSpy).toHaveBeenCalledWith(
+                userDynamixCfg,
+                'display',
+                expect.objectContaining({
+                    terminalButton: 'yes',
+                    theme: 'azure',
+                    header: 'ABCDEF',
+                    headermetacolor: '123',
+                    background: '778899',
+                    showBannerGradient: 'yes',
+                    banner: 'image',
+                })
+            );
             expect(loggerLogSpy).toHaveBeenCalledWith('Display settings updated in config file.');
         });
 

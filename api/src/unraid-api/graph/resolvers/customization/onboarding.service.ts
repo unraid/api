@@ -320,6 +320,15 @@ export class OnboardingService implements OnModuleInit {
         const currentDisplaySettings = getters.dynamix()?.display || {};
         this.logger.debug('Current display settings from store:', currentDisplaySettings);
 
+        const existingDisplaySettings = Object.entries(currentDisplaySettings).reduce<
+            Record<string, string>
+        >((accumulator, [key, value]) => {
+            if (typeof value === 'string') {
+                accumulator[key] = value;
+            }
+            return accumulator;
+        }, {});
+
         const settingsToUpdate: Record<string, string> = {};
 
         // Map activation data properties to their corresponding config keys
@@ -349,7 +358,6 @@ export class OnboardingService implements OnModuleInit {
                 key: 'showBannerGradient',
                 transform: (v: unknown) => (v === true ? 'yes' : 'no'),
             },
-            theme: { key: 'theme' },
         };
 
         // Apply mappings
@@ -389,7 +397,10 @@ export class OnboardingService implements OnModuleInit {
         this.logger.log('Updating display settings:', settingsToUpdate);
 
         try {
-            await this.updateCfgFile(this.configFile, 'display', settingsToUpdate);
+            await this.updateCfgFile(this.configFile, 'display', {
+                ...existingDisplaySettings,
+                ...settingsToUpdate,
+            });
             this.logger.log('Display settings updated in config file.');
         } catch (error) {
             this.logger.error('Error applying display settings:', error);
