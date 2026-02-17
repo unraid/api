@@ -7,6 +7,7 @@ import * as ini from 'ini';
 import { type DynamixConfig } from '@app/core/types/ini.js';
 import { toBoolean } from '@app/core/utils/casting.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer.js';
 import { loadState } from '@app/core/utils/misc/load-state.js';
 import { validateEnumValue } from '@app/core/utils/validation/enum-validator.js';
 import { loadDynamixConfigFromDiskSync } from '@app/store/actions/load-dynamix-config-file.js';
@@ -176,7 +177,12 @@ export class DisplayService {
         }
 
         try {
-            const newContent = ini.stringify(configData);
+            const hasTopLevelScalarValues = Object.values(configData).some(
+                (value) => value === null || typeof value !== 'object' || Array.isArray(value)
+            );
+            const newContent = hasTopLevelScalarValues
+                ? ini.stringify(configData)
+                : safelySerializeObjectToIni(configData);
             await mkdir(dirname(filePath), { recursive: true });
             await writeFile(filePath, newContent + '\n');
             this.logger.log(`Config file ${filePath} updated successfully.`);

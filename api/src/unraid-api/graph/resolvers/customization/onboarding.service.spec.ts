@@ -1276,6 +1276,24 @@ describe('OnboardingService - updateCfgFile', () => {
         );
     });
 
+    it('should preserve quoted yes/no-style values in display section writes', async () => {
+        const section = 'display';
+        const updates = { theme: 'white' };
+        const existingData = '[display]\nterminalButton="yes"\n';
+        vi.mocked(fs.readFile).mockResolvedValue(existingData);
+
+        await (service as any).updateCfgFile(filePath, section, updates);
+
+        expect(fs.writeFile).toHaveBeenCalledOnce();
+        const writeArgs = vi.mocked(fs.writeFile).mock.calls[0];
+        const writtenRaw = writeArgs[1] as string;
+        expect(writtenRaw).toContain('terminalButton="yes"');
+
+        const writtenContent = ini.parse(writtenRaw);
+        expect((writtenContent.display as Record<string, string>).terminalButton).toBe('yes');
+        expect((writtenContent.display as Record<string, string>).theme).toBe('white');
+    });
+
     it('should merge updates with existing content (no section)', async () => {
         const updates = { key1: 'newValue1', key3: 'newValue3' };
         const existingData = { key1: 'oldValue1', key2: 'oldValue2' };

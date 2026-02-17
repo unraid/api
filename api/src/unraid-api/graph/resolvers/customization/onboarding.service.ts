@@ -9,6 +9,7 @@ import * as ini from 'ini';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer.js';
 import { loadDynamixConfigFromDiskSync } from '@app/store/actions/load-dynamix-config-file.js';
 import { getters, store } from '@app/store/index.js';
 import { updateDynamixConfig } from '@app/store/modules/dynamix.js';
@@ -520,7 +521,12 @@ export class OnboardingService implements OnModuleInit {
         }
 
         try {
-            const newContent = ini.stringify(configData);
+            const hasTopLevelScalarValues = Object.values(configData).some(
+                (value) => value === null || typeof value !== 'object' || Array.isArray(value)
+            );
+            const newContent = hasTopLevelScalarValues
+                ? ini.stringify(configData)
+                : safelySerializeObjectToIni(configData);
 
             await fs.mkdir(path.dirname(filePath), { recursive: true });
             await fs.writeFile(filePath, newContent + '\n');
