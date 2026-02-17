@@ -38,6 +38,7 @@ const INSTALLER_COMMAND_CANDIDATES: Record<OperationType, string[]> = {
         'language',
     ],
 };
+const INSTALLER_COMMAND_TIMEOUT_MS = 85 * 1000;
 
 interface OperationState {
     id: string;
@@ -105,7 +106,7 @@ export class UnraidPluginsService {
         const child = execa(command, args, {
             all: true,
             reject: false,
-            timeout: 5 * 60 * 1000,
+            timeout: INSTALLER_COMMAND_TIMEOUT_MS,
         });
 
         operation.child = child;

@@ -25,7 +25,8 @@ const isFinalStatus = (status: PluginInstallStatus) =>
   status === PluginInstallStatus.SUCCEEDED || status === PluginInstallStatus.FAILED;
 
 const INSTALL_RESULT_POLL_MS = 2000;
-const INSTALL_RESULT_TIMEOUT_MS = 6 * 60 * 1000;
+// Keep the client timeout slightly above server command timeout so final status can be observed.
+const INSTALL_RESULT_TIMEOUT_MS = 90 * 1000;
 
 const usePluginInstaller = () => {
   const apolloClient = useApolloClient().client;
