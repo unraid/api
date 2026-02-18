@@ -44,6 +44,12 @@ describe('DisplayResolver', () => {
 
     const mockDisplayService = {
         generateDisplay: vi.fn().mockResolvedValue(mockDisplayData),
+        setLocale: vi.fn().mockResolvedValue({ ...mockDisplayData, locale: 'fr_FR' }),
+        setTheme: vi.fn().mockResolvedValue({ ...mockDisplayData, theme: 'azure' }),
+        getAvailableLanguages: vi.fn().mockResolvedValue([
+            { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
+            { code: 'fr_FR', name: 'French', url: 'https://example.com/fr_FR.txz' },
+        ]),
     };
 
     beforeEach(async () => {
@@ -86,6 +92,36 @@ describe('DisplayResolver', () => {
 
             expect(createSubscription).toHaveBeenCalledWith(PUBSUB_CHANNEL.DISPLAY);
             expect(result).toBe('mock-subscription');
+        });
+    });
+
+    describe('setLocale', () => {
+        it('should call service setLocale and return display', async () => {
+            const result = await resolver.setLocale('fr_FR');
+
+            expect(mockDisplayService.setLocale).toHaveBeenCalledWith('fr_FR');
+            expect(result).toEqual(expect.objectContaining({ locale: 'fr_FR' }));
+        });
+    });
+
+    describe('setTheme', () => {
+        it('should call service setTheme and return display', async () => {
+            const result = await resolver.setTheme('azure');
+
+            expect(mockDisplayService.setTheme).toHaveBeenCalledWith('azure');
+            expect(result).toEqual(expect.objectContaining({ theme: 'azure' }));
+        });
+    });
+
+    describe('availableLanguages', () => {
+        it('should return language options from service', async () => {
+            const result = await resolver.availableLanguages();
+
+            expect(mockDisplayService.getAvailableLanguages).toHaveBeenCalledOnce();
+            expect(result).toEqual([
+                { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
+                { code: 'fr_FR', name: 'French', url: 'https://example.com/fr_FR.txz' },
+            ]);
         });
     });
 });
