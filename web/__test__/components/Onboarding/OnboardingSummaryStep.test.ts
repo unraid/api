@@ -24,6 +24,7 @@ const {
   coreSettingsError,
   installedPluginsResult,
   availableLanguagesResult,
+  refetchCoreSettingsMock,
   refetchInstalledPluginsMock,
   refetchOnboardingMock,
   setModalHiddenMock,
@@ -61,6 +62,7 @@ const {
       ],
     },
   },
+  refetchCoreSettingsMock: vi.fn(),
   refetchInstalledPluginsMock: vi.fn().mockResolvedValue(undefined),
   refetchOnboardingMock: vi.fn().mockResolvedValue(undefined),
   setModalHiddenMock: vi.fn(),
@@ -182,7 +184,11 @@ const setupApolloMocks = () => {
 
   useQueryMock.mockImplementation((doc: unknown) => {
     if (doc === GET_CORE_SETTINGS_QUERY) {
-      return { result: coreSettingsResult, error: coreSettingsError };
+      return {
+        result: coreSettingsResult,
+        error: coreSettingsError,
+        refetch: refetchCoreSettingsMock,
+      };
     }
     if (doc === INSTALLED_UNRAID_PLUGINS_QUERY) {
       return {
@@ -271,6 +277,9 @@ describe('OnboardingSummaryStep', () => {
     });
     refetchInstalledPluginsMock.mockResolvedValue(undefined);
     refetchOnboardingMock.mockResolvedValue(undefined);
+    refetchCoreSettingsMock.mockImplementation(async () => ({
+      data: coreSettingsResult.value,
+    }));
   });
 
   it('logs plugin failure when installer returns FAILED', async () => {
@@ -388,5 +397,37 @@ describe('OnboardingSummaryStep', () => {
 
     expect(wrapper.text()).toContain('Server identity request returned an error, continuing');
     expect(wrapper.text()).toContain('Setup Applied with Warnings');
+  });
+
+  it('verifies SSH settings and reports fully applied setup when state matches', async () => {
+    draftStore.useSsh = true;
+    refetchCoreSettingsMock.mockResolvedValue({
+      data: {
+        ...coreSettingsResult.value,
+        vars: { name: 'Tower', useSsh: true, portssh: 22, localTld: 'local' },
+      },
+    });
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: true, port: 22 });
+    expect(wrapper.text()).toContain('SSH settings verified.');
+    expect(wrapper.text()).toContain('Setup Applied');
+    expect(wrapper.text()).not.toContain('Best-Effort');
+  });
+
+  it('keeps best-effort messaging when SSH state cannot be verified in time', async () => {
+    draftStore.useSsh = true;
+    refetchCoreSettingsMock.mockRejectedValue(new Error('api unavailable'));
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: true, port: 22 });
+    expect(wrapper.text()).toContain(
+      'SSH update submitted, but final SSH state could not be verified yet.'
+    );
+    expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
   });
 });

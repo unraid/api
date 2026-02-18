@@ -72,13 +72,13 @@ const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION)
 const { installLanguage, installPlugin } = usePluginInstaller();
 
 // Fetch Current Settings (for comparison if needed)
-const { result: coreSettingsResult, error: coreSettingsError } = useQuery(
-  GET_CORE_SETTINGS_QUERY,
-  null,
-  {
-    fetchPolicy: 'cache-first',
-  }
-);
+const {
+  result: coreSettingsResult,
+  error: coreSettingsError,
+  refetch: refetchCoreSettings,
+} = useQuery(GET_CORE_SETTINGS_QUERY, null, {
+  fetchPolicy: 'cache-first',
+});
 const { result: installedPluginsResult, refetch: refetchInstalledPlugins } = useQuery(
   INSTALLED_UNRAID_PLUGINS_QUERY,
   null,
@@ -139,6 +139,54 @@ const isInstallTimeoutError = (error: unknown): boolean => {
     candidate.code === INSTALL_OPERATION_TIMEOUT_CODE ||
     Boolean(candidate.message?.includes('Timed out waiting for install operation'))
   );
+};
+
+const SSH_VERIFICATION_MAX_ATTEMPTS = 5;
+const SSH_VERIFICATION_RETRY_MS = 1000;
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isSshStateVerified = (
+  vars: { useSsh?: boolean | null; portssh?: number | string | null } | undefined,
+  targetEnabled: boolean,
+  targetPort: number
+) => {
+  if (!vars) {
+    return false;
+  }
+
+  const currentEnabled = Boolean(vars.useSsh);
+  if (currentEnabled !== targetEnabled) {
+    return false;
+  }
+
+  if (!targetEnabled) {
+    return true;
+  }
+
+  const currentPort = Number(vars.portssh);
+  return Number.isFinite(currentPort) && currentPort === targetPort;
+};
+
+const verifySshSettingsApplied = async (targetEnabled: boolean, targetPort: number) => {
+  for (let attempt = 0; attempt < SSH_VERIFICATION_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const refreshed = await refetchCoreSettings();
+      const vars = (refreshed?.data as { vars?: { useSsh?: boolean; portssh?: number | string } })?.vars;
+
+      if (isSshStateVerified(vars, targetEnabled, targetPort)) {
+        return true;
+      }
+    } catch {
+      // Keep retrying until verification window is exhausted.
+    }
+
+    if (attempt < SSH_VERIFICATION_MAX_ATTEMPTS - 1) {
+      await wait(SSH_VERIFICATION_RETRY_MS);
+    }
+  }
+
+  return false;
 };
 
 const TRUSTED_DEFAULT_PROFILE = Object.freeze({
@@ -347,7 +395,7 @@ const handleComplete = async () => {
     const targetCoreSettings = resolveTargetCoreSettings();
     let hadNonOptimisticFailures = false;
     let hadWarnings = !baselineLoaded;
-    let usedOptimisticSshPath = false;
+    let hadSshVerificationUncertainty = false;
     let completionMarked = false;
     let hadInstallTimeout = false;
 
@@ -559,13 +607,24 @@ const handleComplete = async () => {
 
     // 3. SSH (Run separately and optimistically)
     if (shouldApplySsh) {
-      usedOptimisticSshPath = true;
       addLog(`Updating SSH Settings...`, 'info');
       try {
         await updateSshSettings({ enabled: targetCoreSettings.useSsh, port: 22 });
-        addLog('SSH Settings updated.', 'success');
+        addLog('SSH settings update submitted. Verifying state...', 'info');
       } catch {
         addLog('SSH update request returned an error, continuing (service may have restarted).', 'info');
+      }
+
+      const sshVerified = await verifySshSettingsApplied(targetCoreSettings.useSsh, 22);
+      if (sshVerified) {
+        addLog('SSH settings verified.', 'success');
+      } else {
+        hadWarnings = true;
+        hadSshVerificationUncertainty = true;
+        addLog(
+          'SSH update submitted, but final SSH state could not be verified yet. Continuing.',
+          'info'
+        );
       }
     }
 
@@ -619,10 +678,14 @@ const handleComplete = async () => {
       applyResultTitle.value = 'Setup Applied with Warnings';
       applyResultMessage.value =
         'Some settings could not be fully applied or verified. You can review and change any setting later from the Unraid Dashboard.';
-    } else if (hadWarnings || usedOptimisticSshPath) {
+    } else if (hadSshVerificationUncertainty) {
       applyResultTitle.value = 'Setup Saved in Best-Effort Mode';
       applyResultMessage.value =
-        'Your onboarding settings were applied. Some operations (such as SSH updates) are best-effort and may take a moment to reflect. You can adjust settings later from the Unraid Dashboard.';
+        'Your SSH setting update was submitted, but final state could not be verified yet. You can verify and adjust it later from the Unraid Dashboard.';
+    } else if (hadWarnings) {
+      applyResultTitle.value = 'Setup Saved in Best-Effort Mode';
+      applyResultMessage.value =
+        'Your onboarding settings were applied. Some operations are best-effort and may take a moment to reflect. You can adjust settings later from the Unraid Dashboard.';
     } else {
       applyResultTitle.value = 'Setup Applied';
       applyResultMessage.value = 'Your onboarding settings were applied successfully.';
