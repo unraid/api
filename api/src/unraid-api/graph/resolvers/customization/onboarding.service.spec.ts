@@ -328,7 +328,7 @@ describe('OnboardingService', () => {
             const writeFileCalls = vi.mocked(fs.writeFile).mock.calls;
             const dynamixCfgCall = writeFileCalls.find((call) => call[0] === userDynamixCfg);
             expect(dynamixCfgCall).toBeDefined();
-            expect(dynamixCfgCall?.[1]).toContain('theme=azure');
+            expect(dynamixCfgCall?.[1]).toContain('theme="azure"');
 
             // We no longer write directly to ident.cfg, instead we call emcmd
             // Run timers again to ensure emcmd is called
