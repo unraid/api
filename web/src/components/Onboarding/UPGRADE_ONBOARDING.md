@@ -134,3 +134,4 @@ To test the upgrade flow:
 - Dismissal is tracked through the onboarding mutations so all browsers stay in sync
 - Version comparison uses semver for reliable ordering
 - The same modal component handles both modes for consistency
+- During apply in the summary step, if baseline core-settings query data is unavailable, onboarding runs in best-effort mode using trusted defaults plus draft values and still proceeds. This behavior is intentional to avoid hard-blocking onboarding when baseline reads are unavailable.
