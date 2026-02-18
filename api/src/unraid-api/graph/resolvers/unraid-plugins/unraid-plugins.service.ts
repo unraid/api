@@ -38,7 +38,7 @@ const INSTALLER_COMMAND_CANDIDATES: Record<OperationType, string[]> = {
         'language',
     ],
 };
-const INSTALLER_COMMAND_TIMEOUT_MS = 85 * 1000;
+const INSTALLER_COMMAND_TIMEOUT_MS = 5 * 60 * 1000;
 
 interface OperationState {
     id: string;

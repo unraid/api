@@ -26,7 +26,19 @@ const isFinalStatus = (status: PluginInstallStatus) =>
 
 const INSTALL_RESULT_POLL_MS = 2000;
 // Keep the client timeout slightly above server command timeout so final status can be observed.
-const INSTALL_RESULT_TIMEOUT_MS = 90 * 1000;
+const INSTALL_RESULT_TIMEOUT_MS = 5 * 60 * 1000 + 5000;
+
+export const INSTALL_OPERATION_TIMEOUT_CODE = 'INSTALL_OPERATION_TIMEOUT';
+
+const createInstallTimeoutError = (operationId: string) => {
+  const error = new Error(
+    `Timed out waiting for install operation ${operationId} to finish`
+  ) as Error & {
+    code?: string;
+  };
+  error.code = INSTALL_OPERATION_TIMEOUT_CODE;
+  return error;
+};
 
 const usePluginInstaller = () => {
   const apolloClient = useApolloClient().client;
@@ -188,7 +200,7 @@ const usePluginInstaller = () => {
               return;
             }
 
-            fail(new Error(`Timed out waiting for install operation ${operation.id} to finish`));
+            fail(createInstallTimeoutError(operation.id));
           })
           .catch((error) => {
             fail(error);

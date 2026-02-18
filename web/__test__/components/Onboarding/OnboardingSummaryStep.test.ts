@@ -140,6 +140,7 @@ vi.mock('@/components/Onboarding/store/upgradeOnboarding', () => ({
 }));
 
 vi.mock('@/components/Onboarding/composables/usePluginInstaller', () => ({
+  INSTALL_OPERATION_TIMEOUT_CODE: 'INSTALL_OPERATION_TIMEOUT',
   default: () => ({
     installLanguage: installLanguageMock,
     installPlugin: installPluginMock,
@@ -286,6 +287,25 @@ describe('OnboardingSummaryStep', () => {
     const text = wrapper.text();
     expect(text).toContain('Community Apps installation failed. Continuing.');
     expect(text).not.toContain('Community Apps installed.');
+  });
+
+  it('shows timeout-specific completion dialog when plugin install tracking times out', async () => {
+    draftStore.selectedPlugins = new Set(['community-apps']);
+    const timeoutError = new Error(
+      'Timed out waiting for install operation plugin-op to finish'
+    ) as Error & {
+      code?: string;
+    };
+    timeoutError.code = 'INSTALL_OPERATION_TIMEOUT';
+    installPluginMock.mockRejectedValue(timeoutError);
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(wrapper.text()).toContain('Setup Continued After Timeout');
+    expect(wrapper.text()).toContain(
+      'One or more install operations timed out. Some settings may have been applied.'
+    );
   });
 
   it('does not call setLocale when language install fails', async () => {

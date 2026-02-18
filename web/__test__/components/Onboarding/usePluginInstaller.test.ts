@@ -105,4 +105,53 @@ describe('usePluginInstaller', () => {
     expect(result.status).toBe(PluginInstallStatus.FAILED);
     expect(result.output).toEqual(['starting', 'network failed']);
   });
+
+  it('throws timeout error with code when operation does not finish in time', async () => {
+    vi.useFakeTimers();
+    try {
+      mutateMock.mockResolvedValue({
+        data: {
+          unraidPlugins: {
+            installPlugin: {
+              id: 'plugin-op-timeout',
+              status: PluginInstallStatus.RUNNING,
+              output: [],
+            },
+          },
+        },
+      });
+
+      queryMock.mockResolvedValue({
+        data: {
+          pluginInstallOperation: {
+            id: 'plugin-op-timeout',
+            status: PluginInstallStatus.RUNNING,
+            output: [],
+          },
+        },
+      });
+
+      subscribeMock.mockImplementation(() => ({
+        subscribe: () => ({
+          unsubscribe: vi.fn(),
+        }),
+      }));
+
+      const { installPlugin } = usePluginInstaller();
+      const pending = installPlugin({
+        url: 'https://example.com/plugin.plg',
+        name: 'Slow Plugin',
+      });
+      const handled = pending.then(
+        () => null,
+        (error) => error as { code?: string }
+      );
+
+      await vi.advanceTimersByTimeAsync(5 * 60 * 1000 + 5000);
+      const error = await handled;
+      expect(error).toMatchObject({ code: 'INSTALL_OPERATION_TIMEOUT' });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

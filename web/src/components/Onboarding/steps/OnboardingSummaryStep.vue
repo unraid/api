@@ -24,7 +24,9 @@ import {
 } from '@heroicons/vue/24/solid';
 import { BrandButton, Dialog } from '@unraid/ui';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
-import usePluginInstaller from '@/components/Onboarding/composables/usePluginInstaller';
+import usePluginInstaller, {
+  INSTALL_OPERATION_TIMEOUT_CODE,
+} from '@/components/Onboarding/composables/usePluginInstaller';
 import { GET_AVAILABLE_LANGUAGES_QUERY } from '@/components/Onboarding/graphql/availableLanguages.query';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import {
@@ -125,6 +127,18 @@ const applyResultMessage = ref('');
 
 const addLog = (message: string, type: LogEntry['type'] = 'info') => {
   logs.value.push({ message, type, timestamp: Date.now() });
+};
+
+const isInstallTimeoutError = (error: unknown): boolean => {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const candidate = error as { code?: string; message?: string };
+  return (
+    candidate.code === INSTALL_OPERATION_TIMEOUT_CODE ||
+    Boolean(candidate.message?.includes('Timed out waiting for install operation'))
+  );
 };
 
 const TRUSTED_DEFAULT_PROFILE = Object.freeze({
@@ -335,6 +349,7 @@ const handleComplete = async () => {
     let hadWarnings = !baselineLoaded;
     let usedOptimisticSshPath = false;
     let completionMarked = false;
+    let hadInstallTimeout = false;
 
     // 1. Apply Core Settings
     const currentTimezone = baselineLoaded
@@ -478,6 +493,7 @@ const handleComplete = async () => {
           } catch (e: unknown) {
             hadNonOptimisticFailures = true;
             hadWarnings = true;
+            hadInstallTimeout = hadInstallTimeout || isInstallTimeoutError(e);
             const errorMessage = e instanceof Error ? e.message : 'Unknown error';
             addLog(
               `Language pack installation failed for ${language.name}. Keeping current locale: ${errorMessage}`,
@@ -529,6 +545,7 @@ const handleComplete = async () => {
           } catch (e: unknown) {
             hadNonOptimisticFailures = true;
             hadWarnings = true;
+            hadInstallTimeout = hadInstallTimeout || isInstallTimeoutError(e);
             const errorMessage = e instanceof Error ? e.message : 'Unknown error';
             addLog(
               `Plugin install reported an error for ${details.name}, continuing: ${errorMessage}`,
@@ -594,6 +611,10 @@ const handleComplete = async () => {
       applyResultTitle.value = 'Setup Saved in Best-Effort Mode';
       applyResultMessage.value =
         'We applied what we could, but some results could not be verified because the API is offline. You can review and update settings anytime from the Unraid Dashboard.';
+    } else if (hadInstallTimeout) {
+      applyResultTitle.value = 'Setup Continued After Timeout';
+      applyResultMessage.value =
+        'One or more install operations timed out. Some settings may have been applied. You can verify and adjust settings later from the Unraid Dashboard.';
     } else if (hadNonOptimisticFailures) {
       applyResultTitle.value = 'Setup Applied with Warnings';
       applyResultMessage.value =
