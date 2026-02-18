@@ -301,6 +301,9 @@ const serverDescriptionValidation = computed(() => {
   if (serverDescription.value && serverDescription.value.length > 64) {
     return t('onboarding.coreSettings.serverDescriptionError.tooLong');
   }
+  if (/["\\]/.test(serverDescription.value)) {
+    return t('onboarding.coreSettings.serverDescriptionError.invalidChars');
+  }
   return null;
 });
 

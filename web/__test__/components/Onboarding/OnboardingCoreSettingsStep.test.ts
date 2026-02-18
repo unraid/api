@@ -244,6 +244,29 @@ describe('OnboardingCoreSettingsStep', () => {
     expect(onComplete).not.toHaveBeenCalled();
   });
 
+  it('blocks submission with invalid server description characters', async () => {
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        server: { name: 'Tower', comment: 'bad "desc' },
+        vars: { name: 'Tower', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).not.toHaveBeenCalled();
+    expect(onComplete).not.toHaveBeenCalled();
+  });
+
   it('submits valid values to draft store', async () => {
     const { wrapper, onComplete } = mountComponent();
     await flushPromises();

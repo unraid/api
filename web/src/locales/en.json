@@ -79,6 +79,7 @@
   "onboarding.coreSettings.serverNameError.tooLong": "Server name must be 15 characters or less.",
   "onboarding.coreSettings.serverNameError.empty": "Server name is required.",
   "onboarding.coreSettings.serverDescriptionError.tooLong": "Server description must be 64 characters or less.",
+  "onboarding.coreSettings.serverDescriptionError.invalidChars": "Server description cannot contain quotes or backslashes.",
   "onboarding.coreSettings.ssh": "SSH Access",
   "onboarding.coreSettings.sshDescription": "Allow command line access via port 22.",
   "onboarding.coreSettings.next": "NEXT",
