@@ -1,5 +1,8 @@
 import { ConfigService } from '@nestjs/config';
 import EventEmitter from 'node:events';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -109,5 +112,64 @@ describe('UnraidPluginsService', () => {
                 status: PluginInstallStatus.FAILED,
             }),
         });
+    });
+
+    it('installs language without forced arg and tracks operation list', async () => {
+        const operation = await service.installLanguage({
+            url: 'https://example.com/language.txz',
+            name: 'French',
+            forced: true,
+        });
+
+        expect(mockExeca).toHaveBeenCalledWith(
+            'language',
+            ['install', 'https://example.com/language.txz'],
+            expect.objectContaining({
+                all: true,
+                reject: false,
+                timeout: 5 * 60 * 1000,
+            })
+        );
+
+        expect(service.getOperation(operation.id)).toMatchObject({
+            id: operation.id,
+            status: PluginInstallStatus.RUNNING,
+        });
+        expect(service.getOperation('missing-operation-id')).toBeNull();
+        expect(service.listOperations().map((entry) => entry.id)).toContain(operation.id);
+    });
+
+    it('listInstalledPlugins returns plugin files from configured directory', async () => {
+        const tempDir = await mkdtemp(join(tmpdir(), 'unraid-plugins-test-'));
+        try {
+            const pluginsDir = join(tempDir, 'plugins');
+            const dynamixBase = join(pluginsDir, 'dynamix');
+            await mkdir(dynamixBase, { recursive: true });
+            await writeFile(join(pluginsDir, 'community.applications.plg'), 'plugin-data');
+            await writeFile(join(pluginsDir, 'README.txt'), 'not-a-plugin');
+
+            const configService = {
+                get: vi.fn().mockReturnValue({
+                    'dynamix-base': dynamixBase,
+                }),
+            } as unknown as ConfigService;
+            const configuredService = new UnraidPluginsService(configService);
+
+            const result = await configuredService.listInstalledPlugins();
+            expect(result).toEqual(['community.applications.plg']);
+        } finally {
+            await rm(tempDir, { recursive: true, force: true });
+        }
+    });
+
+    it('listInstalledPlugins returns empty array when plugin directory is missing', async () => {
+        const configService = {
+            get: vi.fn().mockReturnValue({
+                'dynamix-base': '/tmp/definitely-missing-dynamix-base',
+            }),
+        } as unknown as ConfigService;
+        const configuredService = new UnraidPluginsService(configService);
+
+        await expect(configuredService.listInstalledPlugins()).resolves.toEqual([]);
     });
 });
