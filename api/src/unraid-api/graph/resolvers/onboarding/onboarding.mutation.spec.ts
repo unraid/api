@@ -25,6 +25,13 @@ describe('OnboardingMutationsResolver', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        onboardingTracker.getState.mockReturnValue({
+            completed: false,
+            completedAtVersion: undefined,
+        });
+        onboardingTracker.getCurrentVersion.mockReturnValue('7.2.0');
+        onboardingService.getPublicPartnerInfo.mockResolvedValue(null);
+
         resolver = new OnboardingMutationsResolver(
             onboardingTracker as any,
             onboardingOverrides as any,
@@ -58,5 +65,90 @@ describe('OnboardingMutationsResolver', () => {
         expect(result.completedAtVersion).toBe('7.2.0');
         expect(result.status).toBe(OnboardingStatus.COMPLETED);
         expect(result.isPartnerBuild).toBe(false);
+    });
+
+    it('returns incomplete status after resetOnboarding', async () => {
+        onboardingTracker.reset.mockResolvedValue(undefined);
+        onboardingTracker.getState.mockReturnValue({
+            completed: false,
+            completedAtVersion: undefined,
+        });
+
+        const result = await resolver.resetOnboarding();
+
+        expect(onboardingTracker.reset).toHaveBeenCalledTimes(1);
+        expect(result.status).toBe(OnboardingStatus.INCOMPLETE);
+        expect(result.completed).toBe(false);
+    });
+
+    it('returns upgrade status when completed version is behind current', async () => {
+        onboardingTracker.markCompleted.mockResolvedValue(undefined);
+        onboardingTracker.getState.mockReturnValue({
+            completed: true,
+            completedAtVersion: '7.1.0',
+        });
+        onboardingTracker.getCurrentVersion.mockReturnValue('7.2.0');
+
+        const result = await resolver.completeOnboarding();
+
+        expect(result.status).toBe(OnboardingStatus.UPGRADE);
+    });
+
+    it('returns downgrade status when completed version is ahead of current', async () => {
+        onboardingTracker.markCompleted.mockResolvedValue(undefined);
+        onboardingTracker.getState.mockReturnValue({
+            completed: true,
+            completedAtVersion: '7.2.0',
+        });
+        onboardingTracker.getCurrentVersion.mockReturnValue('7.1.0');
+
+        const result = await resolver.completeOnboarding();
+
+        expect(result.status).toBe(OnboardingStatus.DOWNGRADE);
+    });
+
+    it('setOnboardingOverride stores override, clears cache, and returns onboarding state', async () => {
+        onboardingTracker.getState.mockReturnValue({
+            completed: true,
+            completedAtVersion: '7.2.0',
+        });
+        onboardingTracker.getCurrentVersion.mockReturnValue('7.2.0');
+        onboardingService.getPublicPartnerInfo.mockResolvedValue({
+            partner: { name: 'Partner' },
+            branding: {},
+        } as any);
+
+        const input = {
+            onboarding: {
+                completed: true,
+                completedAtVersion: '7.2.0',
+            },
+            registrationState: undefined,
+        } as any;
+
+        const result = await resolver.setOnboardingOverride(input);
+
+        expect(onboardingOverrides.setState).toHaveBeenCalledWith({
+            onboarding: input.onboarding,
+            activationCode: undefined,
+            partnerInfo: undefined,
+            registrationState: undefined,
+        });
+        expect(onboardingService.clearActivationDataCache).toHaveBeenCalledTimes(1);
+        expect(result.status).toBe(OnboardingStatus.COMPLETED);
+        expect(result.isPartnerBuild).toBe(true);
+    });
+
+    it('clearOnboardingOverride clears override and cache', async () => {
+        onboardingTracker.getState.mockReturnValue({
+            completed: false,
+            completedAtVersion: undefined,
+        });
+
+        const result = await resolver.clearOnboardingOverride();
+
+        expect(onboardingOverrides.clearState).toHaveBeenCalledTimes(1);
+        expect(onboardingService.clearActivationDataCache).toHaveBeenCalledTimes(1);
+        expect(result.status).toBe(OnboardingStatus.INCOMPLETE);
     });
 });
