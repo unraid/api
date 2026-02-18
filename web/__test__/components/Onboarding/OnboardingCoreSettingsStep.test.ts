@@ -26,6 +26,7 @@ const {
     selectedTheme: '',
     selectedLanguage: '',
     useSsh: false,
+    coreSettingsInitialized: false,
     setCoreSettings: vi.fn(),
   },
   timeZoneOptionsResult: {
@@ -172,6 +173,7 @@ describe('OnboardingCoreSettingsStep', () => {
     draftStore.selectedTheme = '';
     draftStore.selectedLanguage = '';
     draftStore.useSsh = false;
+    draftStore.coreSettingsInitialized = false;
 
     languagesLoading.value = false;
     languagesError.value = null;
@@ -268,6 +270,44 @@ describe('OnboardingCoreSettingsStep', () => {
       theme: 'black',
       language: 'fr_FR',
       useSsh: true,
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves intentionally empty draft description when baseline data is loaded', async () => {
+    draftStore.coreSettingsInitialized = true;
+    draftStore.serverName = 'Tower2';
+    draftStore.serverDescription = '';
+    draftStore.selectedTimeZone = 'UTC';
+    draftStore.selectedTheme = 'white';
+    draftStore.selectedLanguage = 'en_US';
+    draftStore.useSsh = false;
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        server: { name: 'Tower2', comment: 'Should not override draft empty' },
+        vars: { name: 'Tower2', useSsh: false, localTld: 'local' },
+        display: { theme: 'black', locale: 'fr_FR' },
+        systemTime: { timeZone: 'America/New_York' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledWith({
+      serverName: 'Tower2',
+      serverDescription: '',
+      timeZone: 'UTC',
+      theme: 'white',
+      language: 'en_US',
+      useSsh: false,
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
   });

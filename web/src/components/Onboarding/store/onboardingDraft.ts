@@ -23,6 +23,7 @@ export const useOnboardingDraftStore = defineStore(
     const selectedTheme = ref('');
     const selectedLanguage = ref('');
     const useSsh = ref(false);
+    const coreSettingsInitialized = ref(false);
 
     // Plugins
     const selectedPlugins = ref<Set<string>>(new Set());
@@ -46,6 +47,7 @@ export const useOnboardingDraftStore = defineStore(
       selectedTheme.value = settings.theme;
       selectedLanguage.value = settings.language;
       useSsh.value = settings.useSsh;
+      coreSettingsInitialized.value = true;
     }
 
     function setPlugins(plugins: Set<string>) {
@@ -64,6 +66,7 @@ export const useOnboardingDraftStore = defineStore(
       selectedTheme,
       selectedLanguage,
       useSsh,
+      coreSettingsInitialized,
       selectedPlugins,
       pluginSelectionInitialized,
       currentStepIndex,
@@ -82,6 +85,13 @@ export const useOnboardingDraftStore = defineStore(
         },
         deserialize: (value) => {
           const parsed = JSON.parse(value) as Record<string, unknown>;
+          const hasLegacyCoreDraft =
+            (typeof parsed.serverName === 'string' && parsed.serverName.length > 0) ||
+            (typeof parsed.serverDescription === 'string' && parsed.serverDescription.length > 0) ||
+            (typeof parsed.selectedTimeZone === 'string' && parsed.selectedTimeZone.length > 0) ||
+            (typeof parsed.selectedTheme === 'string' && parsed.selectedTheme.length > 0) ||
+            (typeof parsed.selectedLanguage === 'string' && parsed.selectedLanguage.length > 0) ||
+            parsed.useSsh === true;
           const hadLegacyPluginShape =
             parsed.selectedPlugins !== undefined &&
             parsed.selectedPlugins !== null &&
@@ -89,6 +99,7 @@ export const useOnboardingDraftStore = defineStore(
           return {
             ...parsed,
             selectedPlugins: new Set(normalizePersistedPlugins(parsed.selectedPlugins)),
+            coreSettingsInitialized: Boolean(parsed.coreSettingsInitialized || hasLegacyCoreDraft),
             pluginSelectionInitialized: hadLegacyPluginShape
               ? false
               : Boolean(parsed.pluginSelectionInitialized),

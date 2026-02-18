@@ -57,16 +57,24 @@ const themeImages: Record<string, string> = {
 
 // ... inside script setup ...
 
-const selectedTimeZone = ref<string>(draftStore.selectedTimeZone || resolveInitialTimeZone());
-const serverName = ref<string>(draftStore.serverName || TRUSTED_DEFAULT_PROFILE.serverName);
+const hasCoreDraft = Boolean(draftStore.coreSettingsInitialized);
+
+const selectedTimeZone = ref<string>(
+  hasCoreDraft ? draftStore.selectedTimeZone : resolveInitialTimeZone()
+);
+const serverName = ref<string>(
+  hasCoreDraft ? draftStore.serverName : TRUSTED_DEFAULT_PROFILE.serverName
+);
 const serverDescription = ref<string>(
-  draftStore.serverDescription || TRUSTED_DEFAULT_PROFILE.serverDescription
+  hasCoreDraft ? draftStore.serverDescription : TRUSTED_DEFAULT_PROFILE.serverDescription
 );
-const selectedTheme = ref<string>(draftStore.selectedTheme || TRUSTED_DEFAULT_PROFILE.theme);
-const selectedLanguage = ref<string>(draftStore.selectedLanguage || TRUSTED_DEFAULT_PROFILE.locale);
-const useSsh = ref<boolean>(
-  typeof draftStore.useSsh === 'boolean' ? draftStore.useSsh : TRUSTED_DEFAULT_PROFILE.useSsh
+const selectedTheme = ref<string>(
+  hasCoreDraft ? draftStore.selectedTheme : TRUSTED_DEFAULT_PROFILE.theme
 );
+const selectedLanguage = ref<string>(
+  hasCoreDraft ? draftStore.selectedLanguage : TRUSTED_DEFAULT_PROFILE.locale
+);
+const useSsh = ref<boolean>(hasCoreDraft ? draftStore.useSsh : TRUSTED_DEFAULT_PROFILE.useSsh);
 // ipAssignment removed
 const currentIp = ref<string>('');
 const localTld = ref<string>('local'); // Store localTld for hostname computation
@@ -89,36 +97,25 @@ onCoreSettingsResult((res) => {
   // If draft store has values, use them. Otherwise fall back to server data.
   const d = draftStore; // Alias for brevity
 
-  if (d.serverName) {
+  if (d.coreSettingsInitialized) {
     serverName.value = d.serverName;
-  } else if (res.data?.server || res.data?.vars) {
-    serverName.value = res.data?.server?.name || res.data?.vars?.name || '';
-  }
-
-  if (d.serverDescription) {
     serverDescription.value = d.serverDescription;
-  } else if (res.data?.server) {
-    serverDescription.value = res.data.server.comment || '';
-  }
-
-  // Timezone
-  if (d.selectedTimeZone) {
     selectedTimeZone.value = d.selectedTimeZone;
-    hasAutoSelected.value = true;
-  } else if (res.data?.systemTime?.timeZone) {
-    selectedTimeZone.value = res.data.systemTime.timeZone;
-    hasAutoSelected.value = true;
-  }
-
-  // Use draft values when they are present; otherwise, fall back to server values.
-  // We treat a saved serverName as the indicator that core-settings draft has been initialized.
-  const hasDraft = Boolean(d.serverName);
-
-  if (hasDraft) {
     useSsh.value = d.useSsh;
-    selectedTheme.value = d.selectedTheme || res.data?.display?.theme || 'white';
-    selectedLanguage.value = d.selectedLanguage || res.data?.display?.locale || 'en_US';
+    selectedTheme.value = d.selectedTheme;
+    selectedLanguage.value = d.selectedLanguage;
+    hasAutoSelected.value = true;
   } else {
+    if (res.data?.server || res.data?.vars) {
+      serverName.value = res.data?.server?.name || res.data?.vars?.name || '';
+    }
+    if (res.data?.server) {
+      serverDescription.value = res.data.server.comment || '';
+    }
+    if (res.data?.systemTime?.timeZone) {
+      selectedTimeZone.value = res.data.systemTime.timeZone;
+      hasAutoSelected.value = true;
+    }
     if (res.data?.vars) {
       useSsh.value = res.data.vars.useSsh || false;
     }
