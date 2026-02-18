@@ -33,7 +33,6 @@ declare global {
     mountDowngradeOs?: (selector?: string) => unknown;
     mountRegistration?: (selector?: string) => unknown;
     mountWanIpCheck?: (selector?: string) => unknown;
-    mountWelcomeModal?: (selector?: string) => unknown;
     mountSsoButton?: (selector?: string) => unknown;
     mountLogViewer?: (selector?: string) => unknown;
     mountThemeSwitcher?: (selector?: string) => unknown;

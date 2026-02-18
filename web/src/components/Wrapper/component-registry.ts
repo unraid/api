@@ -73,13 +73,6 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'sso-button',
   },
   {
-    component: defineAsyncComponent(
-      () => import('../Onboarding/standalone/WelcomeModal.standalone.vue')
-    ),
-    selector: 'unraid-welcome-modal',
-    appId: 'welcome-modal',
-  },
-  {
     component: defineAsyncComponent(() => import('../UpdateOs.standalone.vue')),
     selector: 'unraid-update-os',
     appId: 'update-os',

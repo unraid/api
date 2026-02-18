@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { access, readFile, unlink, writeFile } from 'fs/promises';
+import { access, unlink, writeFile } from 'fs/promises';
 
 import type { CanonicalInternalClientService } from '@unraid/shared';
 import { CANONICAL_INTERNAL_CLIENT_TOKEN } from '@unraid/shared';
@@ -103,7 +103,6 @@ describe('DeveloperToolsService', () => {
         it('should create modal test page file', async () => {
             vi.mocked(access).mockResolvedValue(undefined);
             vi.mocked(writeFile).mockResolvedValue(undefined);
-            vi.mocked(readFile).mockResolvedValue('<html><body></body></html>');
 
             await service.enableModalTest();
 
@@ -196,7 +195,7 @@ describe('DeveloperToolsService', () => {
 
             expect(guide).toBeInstanceOf(Array);
             expect(guide[0]).toBe('Modal Testing Guide');
-            expect(guide).toContainEqual('  - Show/hide the Welcome Modal');
+            expect(guide).toContainEqual('  - Show/hide the Activation Modal');
         });
     });
 });
