@@ -1,12 +1,71 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
-import { getters } from '@app/store/index.js';
+import { sleep } from '@app/core/utils/misc/sleep.js';
+import { getters, store } from '@app/store/index.js';
+import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
+import { StateFileKey } from '@app/store/types.js';
 import { Vars } from '@app/unraid-api/graph/resolvers/vars/vars.model.js';
 
 @Injectable()
 export class VarsService {
     private readonly logger = new Logger(VarsService.name);
+    private readonly VERIFY_MAX_ATTEMPTS = 5;
+    private readonly VERIFY_RETRY_MS = 1000;
+
+    private isSshStateApplied(vars: Record<string, unknown>, enabled: boolean, port: number): boolean {
+        const currentEnabled = Boolean(vars.useSsh);
+        if (currentEnabled !== enabled) {
+            return false;
+        }
+
+        if (!enabled) {
+            return true;
+        }
+
+        const currentPort = Number(vars.portssh);
+        return Number.isFinite(currentPort) && currentPort === port;
+    }
+
+    private async reloadVarsState(): Promise<Record<string, unknown>> {
+        try {
+            await store.dispatch(loadSingleStateFile(StateFileKey.var)).unwrap();
+        } catch (error) {
+            this.logger.debug('Failed to refresh var state during SSH verification', error as Error);
+        }
+
+        return (getters.emhttp().var ?? {}) as Record<string, unknown>;
+    }
+
+    private async waitForSshState(
+        enabled: boolean,
+        port: number
+    ): Promise<{ verified: boolean; vars: Record<string, unknown> }> {
+        let latestVars = (getters.emhttp().var ?? {}) as Record<string, unknown>;
+
+        for (let attempt = 0; attempt < this.VERIFY_MAX_ATTEMPTS; attempt += 1) {
+            const refreshedVars = await this.reloadVarsState();
+            if (Object.keys(refreshedVars).length > 0) {
+                latestVars = refreshedVars;
+            }
+
+            if (this.isSshStateApplied(refreshedVars, enabled, port)) {
+                return {
+                    verified: true,
+                    vars: refreshedVars,
+                };
+            }
+
+            if (attempt < this.VERIFY_MAX_ATTEMPTS - 1) {
+                await sleep(this.VERIFY_RETRY_MS);
+            }
+        }
+
+        return {
+            verified: false,
+            vars: latestVars,
+        };
+    }
 
     public async updateSshSettings(enabled: boolean, port: number): Promise<Vars> {
         this.logger.log(`Updating SSH settings: enabled=${enabled}, port=${port}`);
@@ -56,13 +115,26 @@ export class VarsService {
             );
         }
 
-        // Return updated vars - construct expected state
-        // Note: The store might take a moment to update via SSE, so we return optimistic values
-        return {
-            id: 'vars',
+        const { verified, vars } = await this.waitForSshState(enabled, port);
+        if (verified) {
+            this.logger.log('SSH settings verified after update.');
+        } else {
+            this.logger.warn(
+                'SSH settings update submitted, but final state could not be verified yet.'
+            );
+        }
+
+        const fallbackVars = {
             ...currentVars,
             useSsh: enabled,
             portssh: port,
+        };
+
+        const responseVars = Object.keys(vars).length > 0 ? vars : fallbackVars;
+
+        return {
+            id: 'vars',
+            ...responseVars,
         } as unknown as Vars;
     }
 }

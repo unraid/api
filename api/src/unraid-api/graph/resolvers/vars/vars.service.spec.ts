@@ -1,46 +1,89 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
-import { getters } from '@app/store/index.js';
+import { sleep } from '@app/core/utils/misc/sleep.js';
+import { getters, store } from '@app/store/index.js';
+import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
 import { VarsService } from '@app/unraid-api/graph/resolvers/vars/vars.service.js';
 
 vi.mock('@app/core/utils/clients/emcmd.js', () => ({
     emcmd: vi.fn(),
 }));
 
+vi.mock('@app/core/utils/misc/sleep.js', () => ({
+    sleep: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@app/store/modules/emhttp.js', () => ({
+    loadSingleStateFile: vi.fn((key: unknown) => key),
+}));
+
 vi.mock('@app/store/index.js', () => ({
     getters: {
         emhttp: vi.fn(),
+    },
+    store: {
+        dispatch: vi.fn(),
     },
 }));
 
 describe('VarsService', () => {
     let service: VarsService;
+    let currentVarState: Record<string, unknown>;
 
     beforeEach(() => {
         vi.clearAllMocks();
         service = new VarsService();
 
-        vi.mocked(getters.emhttp).mockReturnValue({
-            var: {
-                startPage: 'Main',
-                useTelnet: false,
-                porttelnet: 23,
-                useUpnp: false,
-                useSsl: 'no',
-                port: 80,
-                portssl: 443,
-                localTld: 'local',
-            },
-        } as any);
+        currentVarState = {
+            startPage: 'Main',
+            useTelnet: false,
+            porttelnet: 23,
+            useUpnp: false,
+            useSsl: 'no',
+            port: 80,
+            portssl: 443,
+            localTld: 'local',
+            useSsh: false,
+            portssh: 22,
+        };
+
+        vi.mocked(getters.emhttp).mockImplementation(
+            () =>
+                ({
+                    var: currentVarState,
+                }) as any
+        );
 
         vi.mocked(emcmd).mockResolvedValue({
             body: '',
             ok: true,
         } as any);
+
+        vi.mocked(store.dispatch).mockImplementation(
+            () =>
+                ({
+                    unwrap: vi.fn().mockResolvedValue({
+                        var: currentVarState,
+                    }),
+                }) as any
+        );
     });
 
-    it('sends expected emcmd payload and returns optimistic vars', async () => {
+    it('sends expected emcmd payload and returns verified vars when state converges', async () => {
+        vi.mocked(store.dispatch).mockImplementation(() => {
+            currentVarState = {
+                ...currentVarState,
+                useSsh: true,
+                portssh: 2222,
+            };
+            return {
+                unwrap: vi.fn().mockResolvedValue({
+                    var: currentVarState,
+                }),
+            } as any;
+        });
+
         const result = await service.updateSshSettings(true, 2222);
 
         expect(emcmd).toHaveBeenCalledWith(
@@ -67,12 +110,13 @@ describe('VarsService', () => {
             useSsh: true,
             portssh: 2222,
         });
+        expect(loadSingleStateFile).toHaveBeenCalled();
     });
 
     it('uses safe defaults when current vars are missing', async () => {
-        vi.mocked(getters.emhttp).mockReturnValue({ var: {} } as any);
+        currentVarState = {};
 
-        await service.updateSshSettings(false, 22);
+        const result = await service.updateSshSettings(false, 22);
 
         expect(emcmd).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -89,14 +133,26 @@ describe('VarsService', () => {
             }),
             { waitForToken: false }
         );
-    });
-
-    it('swallows emcmd errors and still returns optimistic vars state', async () => {
-        vi.mocked(emcmd).mockRejectedValue(new Error('connection reset'));
-
-        await expect(service.updateSshSettings(true, 22)).resolves.toMatchObject({
-            useSsh: true,
+        expect(result).toMatchObject({
+            useSsh: false,
             portssh: 22,
         });
+    });
+
+    it('swallows emcmd errors and returns last observed vars when unverifiable', async () => {
+        vi.mocked(emcmd).mockRejectedValue(new Error('connection reset'));
+
+        vi.mocked(store.dispatch).mockImplementation(
+            () =>
+                ({
+                    unwrap: vi.fn().mockRejectedValue(new Error('store refresh failed')),
+                }) as any
+        );
+
+        await expect(service.updateSshSettings(true, 22)).resolves.toMatchObject({
+            useSsh: false,
+            portssh: 22,
+        });
+        expect(sleep).toHaveBeenCalled();
     });
 });

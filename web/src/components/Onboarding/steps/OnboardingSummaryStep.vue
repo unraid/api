@@ -72,13 +72,13 @@ const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION)
 const { installLanguage, installPlugin } = usePluginInstaller();
 
 // Fetch Current Settings (for comparison if needed)
-const {
-  result: coreSettingsResult,
-  error: coreSettingsError,
-  refetch: refetchCoreSettings,
-} = useQuery(GET_CORE_SETTINGS_QUERY, null, {
-  fetchPolicy: 'cache-first',
-});
+const { result: coreSettingsResult, error: coreSettingsError } = useQuery(
+  GET_CORE_SETTINGS_QUERY,
+  null,
+  {
+    fetchPolicy: 'cache-first',
+  }
+);
 const { result: installedPluginsResult, refetch: refetchInstalledPlugins } = useQuery(
   INSTALLED_UNRAID_PLUGINS_QUERY,
   null,
@@ -141,11 +141,6 @@ const isInstallTimeoutError = (error: unknown): boolean => {
   );
 };
 
-const SSH_VERIFICATION_MAX_ATTEMPTS = 5;
-const SSH_VERIFICATION_RETRY_MS = 1000;
-
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 const isSshStateVerified = (
   vars: { useSsh?: boolean | null; portssh?: number | string | null } | undefined,
   targetEnabled: boolean,
@@ -168,25 +163,17 @@ const isSshStateVerified = (
   return Number.isFinite(currentPort) && currentPort === targetPort;
 };
 
-const verifySshSettingsApplied = async (targetEnabled: boolean, targetPort: number) => {
-  for (let attempt = 0; attempt < SSH_VERIFICATION_MAX_ATTEMPTS; attempt += 1) {
-    try {
-      const refreshed = await refetchCoreSettings();
-      const vars = (refreshed?.data as { vars?: { useSsh?: boolean; portssh?: number | string } })?.vars;
-
-      if (isSshStateVerified(vars, targetEnabled, targetPort)) {
-        return true;
-      }
-    } catch {
-      // Keep retrying until verification window is exhausted.
-    }
-
-    if (attempt < SSH_VERIFICATION_MAX_ATTEMPTS - 1) {
-      await wait(SSH_VERIFICATION_RETRY_MS);
-    }
+const getSshVarsFromMutationResult = (result: unknown) => {
+  if (!result || typeof result !== 'object') {
+    return undefined;
   }
 
-  return false;
+  const response = result as {
+    data?: { updateSshSettings?: { useSsh?: boolean | null; portssh?: number | string | null } };
+    updateSshSettings?: { useSsh?: boolean | null; portssh?: number | string | null };
+  };
+
+  return response.data?.updateSshSettings ?? response.updateSshSettings;
 };
 
 const TRUSTED_DEFAULT_PROFILE = Object.freeze({
@@ -609,22 +596,26 @@ const handleComplete = async () => {
     if (shouldApplySsh) {
       addLog(`Updating SSH Settings...`, 'info');
       try {
-        await updateSshSettings({ enabled: targetCoreSettings.useSsh, port: 22 });
-        addLog('SSH settings update submitted. Verifying state...', 'info');
-      } catch {
-        addLog('SSH update request returned an error, continuing (service may have restarted).', 'info');
-      }
+        const sshUpdateResult = await updateSshSettings({
+          enabled: targetCoreSettings.useSsh,
+          port: 22,
+        });
+        const sshVars = getSshVarsFromMutationResult(sshUpdateResult);
 
-      const sshVerified = await verifySshSettingsApplied(targetCoreSettings.useSsh, 22);
-      if (sshVerified) {
-        addLog('SSH settings verified.', 'success');
-      } else {
+        if (isSshStateVerified(sshVars, targetCoreSettings.useSsh, 22)) {
+          addLog('SSH settings verified.', 'success');
+        } else {
+          hadWarnings = true;
+          hadSshVerificationUncertainty = true;
+          addLog(
+            'SSH update submitted, but final SSH state could not be verified yet. Continuing.',
+            'info'
+          );
+        }
+      } catch {
         hadWarnings = true;
         hadSshVerificationUncertainty = true;
-        addLog(
-          'SSH update submitted, but final SSH state could not be verified yet. Continuing.',
-          'info'
-        );
+        addLog('SSH update request returned an error, continuing (service may have restarted).', 'info');
       }
     }
 

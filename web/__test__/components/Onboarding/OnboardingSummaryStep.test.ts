@@ -24,7 +24,6 @@ const {
   coreSettingsError,
   installedPluginsResult,
   availableLanguagesResult,
-  refetchCoreSettingsMock,
   refetchInstalledPluginsMock,
   refetchOnboardingMock,
   setModalHiddenMock,
@@ -62,7 +61,6 @@ const {
       ],
     },
   },
-  refetchCoreSettingsMock: vi.fn(),
   refetchInstalledPluginsMock: vi.fn().mockResolvedValue(undefined),
   refetchOnboardingMock: vi.fn().mockResolvedValue(undefined),
   setModalHiddenMock: vi.fn(),
@@ -184,11 +182,7 @@ const setupApolloMocks = () => {
 
   useQueryMock.mockImplementation((doc: unknown) => {
     if (doc === GET_CORE_SETTINGS_QUERY) {
-      return {
-        result: coreSettingsResult,
-        error: coreSettingsError,
-        refetch: refetchCoreSettingsMock,
-      };
+      return { result: coreSettingsResult, error: coreSettingsError };
     }
     if (doc === INSTALLED_UNRAID_PLUGINS_QUERY) {
       return {
@@ -277,9 +271,6 @@ describe('OnboardingSummaryStep', () => {
     });
     refetchInstalledPluginsMock.mockResolvedValue(undefined);
     refetchOnboardingMock.mockResolvedValue(undefined);
-    refetchCoreSettingsMock.mockImplementation(async () => ({
-      data: coreSettingsResult.value,
-    }));
   });
 
   it('logs plugin failure when installer returns FAILED', async () => {
@@ -401,10 +392,9 @@ describe('OnboardingSummaryStep', () => {
 
   it('verifies SSH settings and reports fully applied setup when state matches', async () => {
     draftStore.useSsh = true;
-    refetchCoreSettingsMock.mockResolvedValue({
+    updateSshSettingsMock.mockResolvedValue({
       data: {
-        ...coreSettingsResult.value,
-        vars: { name: 'Tower', useSsh: true, portssh: 22, localTld: 'local' },
+        updateSshSettings: { id: 'vars', useSsh: true, portssh: 22 },
       },
     });
 
@@ -419,7 +409,11 @@ describe('OnboardingSummaryStep', () => {
 
   it('keeps best-effort messaging when SSH state cannot be verified in time', async () => {
     draftStore.useSsh = true;
-    refetchCoreSettingsMock.mockRejectedValue(new Error('api unavailable'));
+    updateSshSettingsMock.mockResolvedValue({
+      data: {
+        updateSshSettings: { id: 'vars', useSsh: false, portssh: 22 },
+      },
+    });
 
     const { wrapper } = mountComponent();
     await clickApply(wrapper);
