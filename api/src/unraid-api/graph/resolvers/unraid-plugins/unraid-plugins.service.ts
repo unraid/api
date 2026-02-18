@@ -59,10 +59,18 @@ interface OperationState {
 export class UnraidPluginsService {
     private readonly logger = new Logger(UnraidPluginsService.name);
     private readonly operations = new Map<string, OperationState>();
+    private readonly operationCleanupTimers = new Map<string, ReturnType<typeof setTimeout>>();
     private readonly installerCommandCache = new Map<OperationType, string>();
     private readonly MAX_OUTPUT_LINES = 500;
+    private readonly COMPLETED_OPERATION_TTL_MS: number;
 
-    constructor(private readonly configService: ConfigService) {}
+    constructor(private readonly configService: ConfigService) {
+        const ttlFromConfig = this.configService.get<number>(
+            'plugins.installOperationRetentionMs',
+            15 * 60 * 1000
+        );
+        this.COMPLETED_OPERATION_TTL_MS = Math.max(ttlFromConfig ?? 15 * 60 * 1000, 1000);
+    }
 
     async installPlugin(input: InstallPluginInput): Promise<PluginInstallOperation> {
         return this.startOperation('plugin', input);
@@ -264,6 +272,7 @@ export class UnraidPluginsService {
         this.trimOutput(operation);
         this.publishEvent(operation, trailingOutput);
         this.publishEvent(operation, [], true);
+        this.scheduleOperationCleanup(operation.id);
         this.logger.log(
             `Plugin installation for "${operation.name ?? operation.url}" completed successfully (operation ${operation.id})`
         );
@@ -296,6 +305,7 @@ export class UnraidPluginsService {
         }
         this.publishEvent(operation, outputLines);
         this.publishEvent(operation, [], true);
+        this.scheduleOperationCleanup(operation.id);
 
         this.logger.error(
             `Plugin installation for "${operation.name ?? operation.url}" failed (operation ${operation.id})`,
@@ -415,5 +425,23 @@ export class UnraidPluginsService {
 
     private getChannel(operationId: string): string {
         return `${CHANNEL_PREFIX}${operationId}`;
+    }
+
+    private scheduleOperationCleanup(operationId: string) {
+        const existing = this.operationCleanupTimers.get(operationId);
+        if (existing) {
+            clearTimeout(existing);
+        }
+
+        const timer = setTimeout(() => {
+            this.operations.delete(operationId);
+            this.operationCleanupTimers.delete(operationId);
+        }, this.COMPLETED_OPERATION_TTL_MS);
+
+        if (typeof (timer as { unref?: () => void }).unref === 'function') {
+            (timer as { unref: () => void }).unref();
+        }
+
+        this.operationCleanupTimers.set(operationId, timer);
     }
 }

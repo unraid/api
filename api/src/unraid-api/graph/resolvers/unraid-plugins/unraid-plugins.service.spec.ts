@@ -21,7 +21,9 @@ vi.mock('execa', () => ({
     execa: (...args: unknown[]) => mockExeca(...args),
 }));
 
-const flushAsync = () => new Promise((resolve) => setTimeout(resolve, 0));
+const flushAsync = async () => {
+    await Promise.resolve();
+};
 
 describe('UnraidPluginsService', () => {
     let service: UnraidPluginsService;
@@ -171,5 +173,40 @@ describe('UnraidPluginsService', () => {
         const configuredService = new UnraidPluginsService(configService);
 
         await expect(configuredService.listInstalledPlugins()).resolves.toEqual([]);
+    });
+
+    it('removes completed operations after retention ttl', async () => {
+        vi.useFakeTimers();
+        try {
+            const ttlConfigService = {
+                get: vi.fn((key: string, defaultValue: unknown) => {
+                    if (key === 'plugins.installOperationRetentionMs') {
+                        return 1_000;
+                    }
+                    return defaultValue;
+                }),
+            } as unknown as ConfigService;
+            const serviceWithShortTtl = new UnraidPluginsService(ttlConfigService);
+
+            const processWithShortTtl = new MockExecaProcess();
+            processWithShortTtl.all.setEncoding('utf-8');
+            mockExeca.mockImplementation(() => processWithShortTtl as unknown as any);
+
+            const operation = await serviceWithShortTtl.installPlugin({
+                url: 'https://example.com/plugin.plg',
+                name: 'Cleanup Test Plugin',
+            });
+
+            emitSuccess(processWithShortTtl, ['done']);
+            await flushAsync();
+
+            expect(serviceWithShortTtl.getOperation(operation.id)).toBeTruthy();
+
+            await vi.advanceTimersByTimeAsync(1_001);
+
+            expect(serviceWithShortTtl.getOperation(operation.id)).toBeNull();
+        } finally {
+            vi.useRealTimers();
+        }
     });
 });
