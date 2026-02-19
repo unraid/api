@@ -453,10 +453,11 @@ export class OnboardingService implements OnModuleInit {
             `Current identity - Name: ${currentName}, Model: ${currentSysModel}, Comment: ${currentComment}`
         );
 
-        const { serverName, model: sysModel } = this.activationData.system || {};
+        const { serverName, model: sysModel, comment } = this.activationData.system || {};
         const paramsToUpdate: Record<string, string> = {
             ...(serverName && { NAME: serverName }),
             ...(sysModel && { SYS_MODEL: sysModel }),
+            ...(comment !== undefined && { COMMENT: comment }),
         };
 
         if (Object.keys(paramsToUpdate).length === 0) {

@@ -266,6 +266,12 @@ export class SystemConfig {
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
     model?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value, 64))
+    comment?: string;
 }
 
 @ObjectType()

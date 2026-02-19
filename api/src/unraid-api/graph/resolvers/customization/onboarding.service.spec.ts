@@ -817,6 +817,7 @@ describe('OnboardingService', () => {
                   "waitForToken": true,
                 },
                 "params": {
+                  "COMMENT": "Partner Comment",
                   "NAME": "PartnerServer",
                   "SYS_MODEL": "PartnerModel",
                   "changeNames": "Apply",
@@ -884,6 +885,80 @@ describe('OnboardingService', () => {
             );
         }, 10000);
 
+        it('applyServerIdentity should apply comment even when name/model are absent', async () => {
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                system: {
+                    comment: 'Partner Comment',
+                },
+            });
+
+            let commentOnlyParams: Record<string, string> | undefined;
+            vi.mocked(emcmd).mockImplementation(async (params) => {
+                commentOnlyParams = params as Record<string, string>;
+                return { body: '', ok: true } as any;
+            });
+
+            await (service as any).applyServerIdentity();
+
+            expect(emcmd).toHaveBeenCalled();
+            expect(commentOnlyParams).toMatchObject({
+                COMMENT: 'Partner Comment',
+                changeNames: 'Apply',
+                server_addr: '',
+                server_name: '',
+            });
+            expect(commentOnlyParams).not.toHaveProperty('NAME');
+            expect(commentOnlyParams).not.toHaveProperty('SYS_MODEL');
+        });
+
+        it('applyServerIdentity should omit comment when activation data does not provide one', async () => {
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                system: {
+                    serverName: 'PartnerServer',
+                    model: 'PartnerModel',
+                },
+            });
+
+            let paramsWithoutComment: Record<string, string> | undefined;
+            vi.mocked(emcmd).mockImplementation(async (params) => {
+                paramsWithoutComment = params as Record<string, string>;
+                return { body: '', ok: true } as any;
+            });
+
+            await (service as any).applyServerIdentity();
+
+            expect(emcmd).toHaveBeenCalled();
+            expect(paramsWithoutComment).toMatchObject({
+                NAME: 'PartnerServer',
+                SYS_MODEL: 'PartnerModel',
+            });
+            expect(paramsWithoutComment).not.toHaveProperty('COMMENT');
+        });
+
+        it('applyServerIdentity should allow explicitly empty comments from activation data', async () => {
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                system: {
+                    comment: '',
+                },
+            });
+
+            let emptyCommentParams: Record<string, string> | undefined;
+            vi.mocked(emcmd).mockImplementation(async (params) => {
+                emptyCommentParams = params as Record<string, string>;
+                return { body: '', ok: true } as any;
+            });
+
+            await (service as any).applyServerIdentity();
+
+            expect(emcmd).toHaveBeenCalled();
+            expect(emptyCommentParams).toMatchObject({
+                COMMENT: '',
+                changeNames: 'Apply',
+                server_addr: '',
+                server_name: '',
+            });
+        });
+
         it('applyServerIdentity should truncate serverName if too long', async () => {
             const longServerName = 'ThisServerNameIsWayTooLongForUnraid'; // Length > 16
             const truncatedServerName = longServerName.slice(0, 15); // Expected truncated length
@@ -895,6 +970,19 @@ describe('OnboardingService', () => {
             });
 
             expect(testActivationParser.system?.serverName).toBe(truncatedServerName);
+        });
+
+        it('applyServerIdentity should sanitize and truncate activation comments', async () => {
+            const unsafeLongComment = `${'"\\'.repeat(40)}${'A'.repeat(100)}`;
+            const parsedActivation = plainToInstance(ActivationCode, {
+                system: {
+                    comment: unsafeLongComment,
+                },
+            });
+
+            expect(parsedActivation.system?.comment).toBeDefined();
+            expect(parsedActivation.system?.comment).not.toMatch(/["\\]/);
+            expect(parsedActivation.system?.comment!.length).toBeLessThanOrEqual(64);
         });
 
         it('should correctly pass server_https parameter based on nginx state', async () => {
@@ -929,6 +1017,7 @@ describe('OnboardingService', () => {
             // Use toMatchInlineSnapshot to compare the params
             expect(sslEnabledParams).toMatchInlineSnapshot(`
               {
+                "COMMENT": "Partner Comment",
                 "NAME": "PartnerServer",
                 "SYS_MODEL": "PartnerModel",
                 "changeNames": "Apply",
@@ -959,6 +1048,7 @@ describe('OnboardingService', () => {
             // Use toMatchInlineSnapshot to compare the params
             expect(sslDisabledParams).toMatchInlineSnapshot(`
               {
+                "COMMENT": "Partner Comment",
                 "NAME": "PartnerServer",
                 "SYS_MODEL": "PartnerModel",
                 "changeNames": "Apply",
