@@ -287,6 +287,18 @@ describe('OnboardingSummaryStep', () => {
       },
     },
     {
+      caseName: 'skips install when installed plugin matches after trim/lowercase normalization',
+      apply: () => {
+        draftStore.selectedPlugins = new Set(['community-apps']);
+        installedPluginsResult.value = { installedUnraidPlugins: ['  COMMUNITY.APPLICATIONS.PLG  '] };
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(installPluginMock).not.toHaveBeenCalled();
+        expect(wrapper.text()).toContain('Already installed');
+        expect(wrapper.text()).toContain('Setup Applied');
+      },
+    },
+    {
       caseName: 'skips unknown plugin ids',
       apply: () => {
         draftStore.selectedPlugins = new Set(['unknown-plugin-id']);
@@ -423,6 +435,43 @@ describe('OnboardingSummaryStep', () => {
       },
     },
     {
+      caseName: 'keeps locale when language installer returns malformed payload',
+      apply: () => {
+        draftStore.selectedLanguage = 'fr_FR';
+        installLanguageMock.mockResolvedValue({
+          operationId: 'lang-op',
+          output: ['missing status'],
+        });
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(installLanguageMock).toHaveBeenCalled();
+        expect(setLocaleMock).not.toHaveBeenCalledWith({ locale: 'fr_FR' });
+        expect(wrapper.text()).toContain(
+          'Language pack installation did not succeed for French. Keeping current locale.'
+        );
+        expect(wrapper.text()).toContain('Setup Applied with Warnings');
+      },
+    },
+    {
+      caseName: 'keeps locale when language installer returns unknown status',
+      apply: () => {
+        draftStore.selectedLanguage = 'fr_FR';
+        installLanguageMock.mockResolvedValue({
+          operationId: 'lang-op',
+          status: 'UNKNOWN',
+          output: ['unknown status'],
+        });
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(installLanguageMock).toHaveBeenCalled();
+        expect(setLocaleMock).not.toHaveBeenCalledWith({ locale: 'fr_FR' });
+        expect(wrapper.text()).toContain(
+          'Language pack installation did not succeed for French. Keeping current locale.'
+        );
+        expect(wrapper.text()).toContain('Setup Applied with Warnings');
+      },
+    },
+    {
       caseName: 'classifies language install timeout separately',
       apply: () => {
         draftStore.selectedLanguage = 'fr_FR';
@@ -447,6 +496,37 @@ describe('OnboardingSummaryStep', () => {
     await clickApply(wrapper);
 
     scenario.assertExpected(wrapper);
+  });
+
+  it('locks modal visibility and ignores duplicate apply clicks while processing', async () => {
+    draftStore.selectedTimeZone = 'America/New_York';
+    let resolveSystemTime: (() => void) | undefined;
+    updateSystemTimeMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveSystemTime = () => resolve({});
+        })
+    );
+
+    const { wrapper } = mountComponent();
+    const buttons = wrapper.findAll('[data-testid="brand-button"]');
+    const applyButton = buttons[buttons.length - 1];
+
+    await applyButton.trigger('click');
+    await applyButton.trigger('click');
+
+    expect(setModalHiddenMock).toHaveBeenCalledWith(false);
+    expect(updateSystemTimeMock).toHaveBeenCalledTimes(1);
+    expect(applyButton.attributes('disabled')).toBeDefined();
+
+    if (resolveSystemTime) {
+      resolveSystemTime();
+    }
+    await flushPromises();
+    await vi.runAllTimersAsync();
+    await flushPromises();
+
+    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
   });
 
   it('skips core setting mutations when baseline is loaded and nothing changed', async () => {
@@ -622,6 +702,43 @@ describe('OnboardingSummaryStep', () => {
     expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: false, port: 22 });
   });
 
+  it('keeps best-effort fallback path once readiness times out before baseline is ready', async () => {
+    coreSettingsResult.value = null;
+    coreSettingsError.value = null;
+    draftStore.serverName = 'Tower';
+    draftStore.serverDescription = '';
+    draftStore.selectedTimeZone = 'UTC';
+    draftStore.selectedTheme = 'white';
+    draftStore.selectedLanguage = 'en_US';
+    draftStore.useSsh = false;
+
+    const { wrapper } = mountComponent();
+    await vi.advanceTimersByTimeAsync(10000);
+
+    coreSettingsResult.value = {
+      vars: { name: 'Tower', useSsh: false, localTld: 'local' },
+      server: { name: 'Tower', comment: '' },
+      display: { theme: 'white', locale: 'en_US' },
+      systemTime: { timeZone: 'UTC' },
+      info: { primaryNetwork: { ipAddress: '192.168.1.2' } },
+    };
+    await flushPromises();
+
+    await clickApply(wrapper);
+
+    expect(updateSystemTimeMock).toHaveBeenCalledWith({ input: { timeZone: 'UTC' } });
+    expect(updateServerIdentityMock).toHaveBeenCalledWith({
+      name: 'Tower',
+      comment: '',
+    });
+    expect(setThemeMock).toHaveBeenCalledWith({ theme: 'white' });
+    expect(setLocaleMock).toHaveBeenCalledWith({ locale: 'en_US' });
+    expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: false, port: 22 });
+    expect(wrapper.text()).toContain(
+      'Baseline settings unavailable. Applying trusted defaults + draft values without diff checks.'
+    );
+  });
+
   it.each([
     {
       caseName: 'baseline available + completion/refetch succeed',
@@ -679,6 +796,43 @@ describe('OnboardingSummaryStep', () => {
     await clickApply(wrapper);
 
     scenario.assertExpected(wrapper);
+  });
+
+  it('prefers best-effort result over timeout classification when completion fails', async () => {
+    draftStore.selectedPlugins = new Set(['community-apps']);
+    const timeoutError = new Error(
+      'Timed out waiting for install operation plugin-op to finish'
+    ) as Error & {
+      code?: string;
+    };
+    timeoutError.code = 'INSTALL_OPERATION_TIMEOUT';
+    installPluginMock.mockRejectedValue(timeoutError);
+    completeOnboardingMock.mockRejectedValue(new Error('offline'));
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
+    expect(wrapper.text()).not.toContain('Setup Continued After Timeout');
+  });
+
+  it('prefers timeout result over warning classification when completion succeeds', async () => {
+    draftStore.selectedPlugins = new Set(['community-apps']);
+    draftStore.serverName = 'bad name!';
+    updateServerIdentityMock.mockRejectedValue(new Error('Server name contains invalid characters'));
+    const timeoutError = new Error(
+      'Timed out waiting for install operation plugin-op to finish'
+    ) as Error & {
+      code?: string;
+    };
+    timeoutError.code = 'INSTALL_OPERATION_TIMEOUT';
+    installPluginMock.mockRejectedValue(timeoutError);
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(wrapper.text()).toContain('Setup Continued After Timeout');
+    expect(wrapper.text()).not.toContain('Setup Applied with Warnings');
   });
 
   it('shows completion dialog in offline mode and advances only after OK', async () => {
