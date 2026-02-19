@@ -120,6 +120,31 @@ Persistence model:
 - Boot-aware: bypass stores a boot marker derived from server uptime, and is treated as invalid after reboot.
 - URL param is consumed once and removed from the URL via `history.replaceState`.
 
+### Why This Persistence Model
+
+Bypass persistence intentionally uses `sessionStorage + boot marker` rather than `sessionStorage` alone or `localStorage`.
+
+`sessionStorage + boot marker` (chosen):
+
+- Meets operator expectation for partner testing: bypass can survive refresh/navigation in the same browser session.
+- Resets after server reboot even if browser tab/session remains open.
+- Keeps scope per browser session and avoids cross-session leakage.
+
+`sessionStorage` only (not chosen):
+
+- Survives refresh/navigation, but does **not** reset on reboot if the tab remains open.
+- Can leave onboarding unintentionally bypassed after reboot, which conflicts with expected re-check behavior.
+
+`localStorage` only (not chosen):
+
+- Persists across browser restarts and future sessions.
+- Makes temporary bypass too sticky and increases risk of users forgetting onboarding is still incomplete.
+- Harder to reason about during support because bypass state can linger indefinitely on a client.
+
+Net result:
+
+- The chosen model gives temporary convenience for active setup workflows while retaining reboot-bound safety and predictable re-entry into onboarding.
+
 ## Core Settings Timezone Precedence
 
 Component: `web/src/components/Onboarding/steps/OnboardingCoreSettingsStep.vue`
