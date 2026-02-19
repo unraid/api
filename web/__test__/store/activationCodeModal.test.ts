@@ -96,8 +96,18 @@ describe('ActivationCodeModal Store', () => {
   });
 
   it('initializes hidden and temporary bypass session-storage keys', () => {
-    expect(useSessionStorage).toHaveBeenCalledWith(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, null);
-    expect(useSessionStorage).toHaveBeenCalledWith(ONBOARDING_TEMP_BYPASS_STORAGE_KEY, null);
+    expect(useSessionStorage).toHaveBeenNthCalledWith(1, ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, null);
+    expect(useSessionStorage).toHaveBeenNthCalledWith(
+      2,
+      ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
+      null,
+      expect.objectContaining({
+        serializer: expect.objectContaining({
+          read: expect.any(Function),
+          write: expect.any(Function),
+        }),
+      })
+    );
   });
 
   it('sets hidden state directly', () => {
@@ -111,9 +121,44 @@ describe('ActivationCodeModal Store', () => {
     expect(mockIsHidden.value).toBe(null);
   });
 
+  it('uses robust serializer for temporary bypass state', () => {
+    const call = vi.mocked(useSessionStorage).mock.calls[1];
+    const options = call?.[2] as
+      | {
+          serializer?: {
+            read: (value: string) => unknown;
+            write: (value: unknown) => string;
+          };
+        }
+      | undefined;
+
+    expect(options?.serializer).toBeDefined();
+
+    const serializer = options!.serializer!;
+    expect(serializer.read('[object Object]')).toBe(null);
+    expect(serializer.read('')).toBe(null);
+    expect(
+      serializer.read(
+        JSON.stringify({
+          active: true,
+          bootMarker: 123,
+        })
+      )
+    ).toEqual({ active: true, bootMarker: 123 });
+    expect(serializer.write({ active: true, bootMarker: 123 })).toBe(
+      JSON.stringify({ active: true, bootMarker: 123 })
+    );
+  });
+
   it('applies keyboard shortcut bypass without completing onboarding', () => {
     window.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'o', ctrlKey: true, altKey: true, shiftKey: true })
+      new KeyboardEvent('keydown', {
+        key: 'o',
+        code: 'KeyO',
+        ctrlKey: true,
+        altKey: true,
+        shiftKey: true,
+      })
     );
 
     expect(store.isTemporarilyBypassed).toBe(true);

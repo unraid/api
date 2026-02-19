@@ -9,7 +9,7 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
 const ONBOARDING_QUERY_PARAM = 'onboarding';
-const ONBOARDING_BYPASS_SHORTCUT_KEY = 'o';
+const ONBOARDING_BYPASS_SHORTCUT_CODE = 'KeyO';
 const SECONDS_PER_MINUTE = 60;
 
 type TemporaryBypassState = {
@@ -21,7 +21,34 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
   const isHidden = useSessionStorage<boolean | null>(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, null);
   const temporaryBypassState = useSessionStorage<TemporaryBypassState | null>(
     ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
-    null
+    null,
+    {
+      serializer: {
+        read: (value: string) => {
+          if (!value) {
+            return null;
+          }
+
+          try {
+            const parsed = JSON.parse(value) as Partial<TemporaryBypassState>;
+            if (typeof parsed !== 'object' || parsed === null) {
+              return null;
+            }
+
+            const active = parsed.active === true;
+            const bootMarker = Number(parsed.bootMarker);
+
+            return {
+              active,
+              bootMarker: Number.isFinite(bootMarker) ? bootMarker : null,
+            };
+          } catch {
+            return null;
+          }
+        },
+        write: (value: TemporaryBypassState | null) => JSON.stringify(value),
+      },
+    }
   );
 
   const { isFreshInstall } = storeToRefs(useActivationCodeDataStore());
@@ -135,7 +162,7 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
       isPrimaryModifierPressed &&
       event.altKey &&
       event.shiftKey &&
-      event.key.toLowerCase() === ONBOARDING_BYPASS_SHORTCUT_KEY
+      event.code === ONBOARDING_BYPASS_SHORTCUT_CODE
     );
   };
 
