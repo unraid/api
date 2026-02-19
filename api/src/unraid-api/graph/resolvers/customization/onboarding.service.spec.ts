@@ -290,6 +290,32 @@ describe('OnboardingService', () => {
             );
         });
 
+        it('should be idempotent across init calls when tracker marks setup complete', async () => {
+            onboardingTrackerMock.isCompleted
+                .mockReturnValueOnce(false) // first init applies customizations
+                .mockReturnValueOnce(true); // second init should skip
+            vi.mocked(fs.access).mockResolvedValue(undefined);
+            vi.mocked(fs.readdir).mockResolvedValue([activationJsonFile as any]);
+            vi.mocked(fs.readFile).mockImplementation(async (p) => {
+                if (p === activationJsonPath) return JSON.stringify(mockActivationData);
+                if (p === userDynamixCfg) return ini.stringify({});
+                if (p === identCfg) return ini.stringify({});
+                if (p === caseModelCfg) throw { code: 'ENOENT' };
+                throw new Error(`Unexpected readFile: ${p}`);
+            });
+
+            await service.onModuleInit();
+            await service.onModuleInit();
+
+            expect(onboardingTrackerMock.isCompleted).toHaveBeenCalledTimes(2);
+            expect(fs.readdir).toHaveBeenCalledTimes(1);
+            expect(fs.copyFile).toHaveBeenCalledTimes(1);
+            expect(emcmd).toHaveBeenCalledTimes(1);
+            expect(loggerLogSpy).toHaveBeenCalledWith(
+                'First boot setup previously completed, skipping customizations.'
+            );
+        });
+
         it('should create flag and apply customizations if activation dir exists and flag is missing', async () => {
             // Setup mocks for full run: .done missing, activation JSON exists, assets exist
             vi.mocked(fileExists).mockImplementation(async (p) => {
@@ -959,6 +985,59 @@ describe('OnboardingService', () => {
             });
         });
 
+        it.each([
+            {
+                caseName: 'name only',
+                system: { serverName: 'PartnerServer' },
+                expected: { NAME: 'PartnerServer' },
+                omitted: ['SYS_MODEL', 'COMMENT'],
+            },
+            {
+                caseName: 'model only',
+                system: { model: 'PartnerModel' },
+                expected: { SYS_MODEL: 'PartnerModel' },
+                omitted: ['NAME', 'COMMENT'],
+            },
+            {
+                caseName: 'comment only',
+                system: { comment: 'Partner Comment' },
+                expected: { COMMENT: 'Partner Comment' },
+                omitted: ['NAME', 'SYS_MODEL'],
+            },
+            {
+                caseName: 'explicit empty comment',
+                system: { comment: '' },
+                expected: { COMMENT: '' },
+                omitted: ['NAME', 'SYS_MODEL'],
+            },
+        ])(
+            'applyServerIdentity should map partial identity fields correctly ($caseName)',
+            async (scenario) => {
+                (service as any).activationData = plainToInstance(ActivationCode, {
+                    system: scenario.system,
+                });
+
+                let params: Record<string, string> | undefined;
+                vi.mocked(emcmd).mockImplementation(async (incomingParams) => {
+                    params = incomingParams as Record<string, string>;
+                    return { body: '', ok: true } as any;
+                });
+
+                await (service as any).applyServerIdentity();
+
+                expect(emcmd).toHaveBeenCalledTimes(1);
+                expect(params).toMatchObject({
+                    ...scenario.expected,
+                    changeNames: 'Apply',
+                    server_addr: '',
+                    server_name: '',
+                });
+                scenario.omitted.forEach((key) => {
+                    expect(params).not.toHaveProperty(key);
+                });
+            }
+        );
+
         it('applyServerIdentity should truncate serverName if too long', async () => {
             const longServerName = 'ThisServerNameIsWayTooLongForUnraid'; // Length > 16
             const truncatedServerName = longServerName.slice(0, 15); // Expected truncated length
@@ -983,6 +1062,35 @@ describe('OnboardingService', () => {
             expect(parsedActivation.system?.comment).toBeDefined();
             expect(parsedActivation.system?.comment).not.toMatch(/["\\]/);
             expect(parsedActivation.system?.comment!.length).toBeLessThanOrEqual(64);
+        });
+
+        it('applyServerIdentity should send sanitized identity values from transformed activation data', async () => {
+            const unsafeIdentity = plainToInstance(ActivationCode, {
+                system: {
+                    serverName: 'Par"t\\nerServer',
+                    model: 'Pa"rt\\nerModel',
+                    comment: 'Partn"er\\Comment',
+                },
+            });
+            (service as any).activationData = unsafeIdentity;
+
+            let params: Record<string, string> | undefined;
+            vi.mocked(emcmd).mockImplementation(async (incomingParams) => {
+                params = incomingParams as Record<string, string>;
+                return { body: '', ok: true } as any;
+            });
+
+            await (service as any).applyServerIdentity();
+
+            expect(emcmd).toHaveBeenCalledTimes(1);
+            expect(params).toMatchObject({
+                NAME: 'PartnerServer',
+                SYS_MODEL: 'PartnerModel',
+                COMMENT: 'PartnerComment',
+            });
+            expect(params?.NAME).not.toMatch(/["\\]/);
+            expect(params?.SYS_MODEL).not.toMatch(/["\\]/);
+            expect(params?.COMMENT).not.toMatch(/["\\]/);
         });
 
         it('should correctly pass server_https parameter based on nginx state', async () => {
@@ -1254,6 +1362,46 @@ describe('applyActivationCustomizations specific tests', () => {
 
         // Overall error from applyActivationCustomizations' catch block
         // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', existsError);
+    }, 10000);
+
+    it('should continue through chained banner/case-model failures and still apply identity', async () => {
+        const bannerCopyError = new Error('Banner copy failed');
+        const caseModelWriteError = new Error('Case model write failed');
+        (service as any).activationData = plainToInstance(ActivationCode, {
+            system: {
+                serverName: 'PartnerServer',
+                model: 'PartnerModel',
+                comment: 'Partner Comment',
+            },
+            branding: {
+                header: '#112233',
+            },
+        });
+
+        vi.mocked(fileExists).mockImplementation(async (p) => {
+            return p === bannerSource || p === caseModelSource || p === bannerTarget.fullPath;
+        });
+        vi.mocked(fs.copyFile).mockImplementation(async (source, dest) => {
+            if (source === bannerSource && dest === bannerTarget.fullPath) {
+                throw bannerCopyError;
+            }
+        });
+        vi.mocked(fs.writeFile).mockImplementation(async (filePath) => {
+            if (filePath === caseModelCfg) {
+                throw caseModelWriteError;
+            }
+        });
+
+        const applyServerIdentitySpy = vi.spyOn(service as any, 'applyServerIdentity');
+
+        await (service as any).applyActivationCustomizations();
+
+        expect(loggerWarnSpy).toHaveBeenCalledWith(
+            `Failed to replace the original banner with the partner banner: ${bannerCopyError.message}`
+        );
+        expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying case model:', caseModelWriteError);
+        expect(applyServerIdentitySpy).toHaveBeenCalledTimes(1);
+        expect(emcmd).toHaveBeenCalledTimes(1);
     }, 10000);
 
     // We no longer update config files in applyServerIdentity, so this test is removed
