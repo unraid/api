@@ -135,3 +135,5 @@ To test the upgrade flow:
 - Version comparison uses semver for reliable ordering
 - The same modal component handles both modes for consistency
 - During apply in the summary step, if baseline core-settings query data is unavailable, onboarding runs in best-effort mode using trusted defaults plus draft values and still proceeds. This behavior is intentional to avoid hard-blocking onboarding when baseline reads are unavailable.
+- Core-settings timezone precedence is mode-aware: for initial setup (`onboarding.completed=false`), the step prefers non-empty draft timezone, then browser timezone, then API baseline; for completed onboarding (upgrade/downgrade paths), API baseline timezone remains authoritative.
+- Detailed runtime/init flow and regression decision tables live in `api/docs/developer/onboarding-test-matrix-and-init.md`.

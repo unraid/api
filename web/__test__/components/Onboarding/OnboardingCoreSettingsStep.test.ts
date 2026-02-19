@@ -10,12 +10,14 @@ import { createTestI18n } from '../../utils/i18n';
 
 const {
   draftStore,
+  onboardingStore,
   setCoreSettingsMock,
   timeZoneOptionsResult,
   languagesResult,
   languagesLoading,
   languagesError,
   coreOnResultHandlers,
+  coreSettingsResult,
   useQueryMock,
 } = vi.hoisted(() => ({
   setCoreSettingsMock: vi.fn(),
@@ -28,6 +30,10 @@ const {
     useSsh: false,
     coreSettingsInitialized: false,
     setCoreSettings: vi.fn(),
+  },
+  onboardingStore: {
+    completed: { value: true, __v_isRef: true },
+    loading: { value: false, __v_isRef: true },
   },
   timeZoneOptionsResult: {
     value: {
@@ -48,6 +54,7 @@ const {
   languagesLoading: { value: false },
   languagesError: { value: null as unknown },
   coreOnResultHandlers: [] as Array<(payload: unknown) => void>,
+  coreSettingsResult: { value: null as unknown },
   useQueryMock: vi.fn(),
 }));
 
@@ -113,6 +120,10 @@ vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
   useOnboardingDraftStore: () => draftStore,
 }));
 
+vi.mock('@/components/Onboarding/store/upgradeOnboarding', () => ({
+  useUpgradeOnboardingStore: () => onboardingStore,
+}));
+
 vi.mock('@vue/apollo-composable', async () => {
   const actual =
     await vi.importActual<typeof import('@vue/apollo-composable')>('@vue/apollo-composable');
@@ -129,8 +140,13 @@ const setupQueryMocks = () => {
     }
     if (doc === GET_CORE_SETTINGS_QUERY) {
       return {
+        result: coreSettingsResult,
         onResult: (cb: (payload: unknown) => void) => {
-          coreOnResultHandlers.push(cb);
+          coreOnResultHandlers.push((payload: unknown) => {
+            const candidate = payload as { data?: unknown };
+            coreSettingsResult.value = candidate.data ?? null;
+            cb(payload);
+          });
         },
       };
     }
@@ -174,9 +190,115 @@ describe('OnboardingCoreSettingsStep', () => {
     draftStore.selectedLanguage = '';
     draftStore.useSsh = false;
     draftStore.coreSettingsInitialized = false;
+    onboardingStore.completed.value = true;
+    onboardingStore.loading.value = false;
+    coreSettingsResult.value = null;
 
     languagesLoading.value = false;
     languagesError.value = null;
+  });
+
+  it('prefers browser timezone over API on initial setup when draft timezone is empty', async () => {
+    onboardingStore.completed.value = false;
+
+    const dateTimeFormatSpy = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+      () =>
+        ({
+          resolvedOptions: () => ({ timeZone: 'America/New_York' }),
+        }) as Intl.DateTimeFormat
+    );
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        server: { name: 'Tower', comment: '' },
+        vars: { name: 'Tower', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(setCoreSettingsMock.mock.calls[0][0].timeZone).toBe('America/New_York');
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    dateTimeFormatSpy.mockRestore();
+  });
+
+  it('prefers non-empty draft timezone over browser and API on initial setup', async () => {
+    onboardingStore.completed.value = false;
+    draftStore.selectedTimeZone = 'UTC';
+
+    const dateTimeFormatSpy = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+      () =>
+        ({
+          resolvedOptions: () => ({ timeZone: 'America/New_York' }),
+        }) as Intl.DateTimeFormat
+    );
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        server: { name: 'Tower', comment: '' },
+        vars: { name: 'Tower', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'America/New_York' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(setCoreSettingsMock.mock.calls[0][0].timeZone).toBe('UTC');
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    dateTimeFormatSpy.mockRestore();
+  });
+
+  it('prefers API timezone over browser when onboarding was already completed', async () => {
+    onboardingStore.completed.value = true;
+
+    const dateTimeFormatSpy = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+      () =>
+        ({
+          resolvedOptions: () => ({ timeZone: 'America/New_York' }),
+        }) as Intl.DateTimeFormat
+    );
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        server: { name: 'Tower', comment: '' },
+        vars: { name: 'Tower', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(setCoreSettingsMock.mock.calls[0][0].timeZone).toBe('UTC');
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    dateTimeFormatSpy.mockRestore();
   });
 
   it('uses trusted defaults when API baseline is unavailable', async () => {

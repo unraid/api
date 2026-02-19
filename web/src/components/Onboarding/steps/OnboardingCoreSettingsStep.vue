@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
 import { ChevronLeftIcon, Cog6ToothIcon, GlobeAltIcon } from '@heroicons/vue/24/outline';
@@ -17,6 +18,7 @@ import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCore
 import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Onboarding/graphql/timeZoneOptions.query';
 // --- Submit Logic ---
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
+import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgradeOnboarding';
 import { Switch } from '@headlessui/vue';
 import { getTimeZones } from '@vvo/tzdb';
 
@@ -30,6 +32,9 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
+const { completed: onboardingCompleted, loading: onboardingLoading } = storeToRefs(
+  useUpgradeOnboardingStore()
+);
 
 const TRUSTED_DEFAULT_PROFILE = Object.freeze({
   serverName: 'Tower',
@@ -89,9 +94,57 @@ const isSaving = ref(false);
 const error = ref<string | null>(null);
 
 const { result: timeZoneOptionsResult } = useQuery(TIME_ZONE_OPTIONS_QUERY);
-const { onResult: onCoreSettingsResult } = useQuery(GET_CORE_SETTINGS_QUERY, null, {
-  fetchPolicy: 'network-only',
-});
+const { result: coreSettingsResult, onResult: onCoreSettingsResult } = useQuery(
+  GET_CORE_SETTINGS_QUERY,
+  null,
+  {
+    fetchPolicy: 'network-only',
+  }
+);
+
+const applyPreferredTimeZone = (apiTimeZone?: string | null) => {
+  if (draftStore.coreSettingsInitialized) {
+    selectedTimeZone.value = draftStore.selectedTimeZone;
+    hasAutoSelected.value = true;
+    return;
+  }
+
+  // Wait for onboarding tracker state before deciding browser-vs-API precedence.
+  if (onboardingLoading.value) {
+    return;
+  }
+
+  const normalizedApiTimeZone = apiTimeZone?.trim();
+  const draftTimeZone = draftStore.selectedTimeZone?.trim();
+  const isInitialSetup = onboardingCompleted.value === false;
+
+  if (isInitialSetup) {
+    if (draftTimeZone) {
+      selectedTimeZone.value = draftTimeZone;
+      hasAutoSelected.value = true;
+      return;
+    }
+
+    const browserTimeZone = detectBrowserTimezone();
+    if (browserTimeZone) {
+      selectedTimeZone.value = browserTimeZone;
+      hasAutoSelected.value = true;
+      return;
+    }
+
+    if (normalizedApiTimeZone) {
+      selectedTimeZone.value = normalizedApiTimeZone;
+      hasAutoSelected.value = true;
+    }
+
+    return;
+  }
+
+  if (normalizedApiTimeZone) {
+    selectedTimeZone.value = normalizedApiTimeZone;
+    hasAutoSelected.value = true;
+  }
+};
 
 onCoreSettingsResult((res) => {
   // If draft store has values, use them. Otherwise fall back to server data.
@@ -112,10 +165,7 @@ onCoreSettingsResult((res) => {
     if (res.data?.server) {
       serverDescription.value = res.data.server.comment || '';
     }
-    if (res.data?.systemTime?.timeZone) {
-      selectedTimeZone.value = res.data.systemTime.timeZone;
-      hasAutoSelected.value = true;
-    }
+    applyPreferredTimeZone(res.data?.systemTime?.timeZone);
     if (res.data?.vars) {
       useSsh.value = res.data.vars.useSsh || false;
     }
@@ -131,6 +181,12 @@ onCoreSettingsResult((res) => {
 
   if (res.data?.info?.primaryNetwork) {
     currentIp.value = res.data.info.primaryNetwork.ipAddress || '';
+  }
+});
+
+watch([onboardingLoading, onboardingCompleted], () => {
+  if (!draftStore.coreSettingsInitialized) {
+    applyPreferredTimeZone(coreSettingsResult.value?.systemTime?.timeZone);
   }
 });
 
