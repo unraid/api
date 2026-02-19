@@ -68,6 +68,15 @@ describe('ServerService', () => {
         );
     });
 
+    it('throws for invalid model characters', async () => {
+        await expect(service.updateServerIdentity('Tower', 'desc', 'bad "model')).rejects.toThrow(
+            'Server model cannot contain quotes or backslashes.'
+        );
+        await expect(service.updateServerIdentity('Tower', 'desc', 'bad \\ model')).rejects.toThrow(
+            'Server model cannot contain quotes or backslashes.'
+        );
+    });
+
     it('requires stopped array only when name changes', async () => {
         vi.mocked(getters.emhttp).mockReturnValue({
             var: {
@@ -103,6 +112,20 @@ describe('ServerService', () => {
             name: 'Tower',
             comment: 'Primary host',
         });
+    });
+
+    it('includes SYS_MODEL when provided', async () => {
+        await service.updateServerIdentity('Tower', 'Primary host', 'Storinator');
+
+        expect(emcmd).toHaveBeenCalledWith(
+            {
+                changeNames: 'Apply',
+                NAME: 'Tower',
+                COMMENT: 'Primary host',
+                SYS_MODEL: 'Storinator',
+            },
+            { waitForToken: true }
+        );
     });
 
     it('throws generic failure when emcmd fails', async () => {

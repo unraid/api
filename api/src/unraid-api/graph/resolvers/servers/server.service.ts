@@ -14,8 +14,10 @@ export class ServerService {
      * Updates the server identity (name and comment/description).
      * The array must be stopped to change the server name.
      */
-    async updateServerIdentity(name: string, comment?: string): Promise<Server> {
-        this.logger.log(`Updating server identity to Name: ${name}, Comment: ${comment}`);
+    async updateServerIdentity(name: string, comment?: string, sysModel?: string): Promise<Server> {
+        this.logger.log(
+            `Updating server identity to Name: ${name}, Comment: ${comment}, Model: ${sysModel}`
+        );
 
         // Frontend validation logic:
         // Invalid chars: anything not alphanumeric, dot, or dash
@@ -43,6 +45,9 @@ export class ServerService {
                 throw new GraphQLError('Server description cannot contain quotes or backslashes.');
             }
         }
+        if (sysModel !== undefined && /["\\]/.test(sysModel)) {
+            throw new GraphQLError('Server model cannot contain quotes or backslashes.');
+        }
 
         // Check if array is stopped (required for changing name)
         // We only enforce this if name is changing, but to be safe and consistent with UI, likely good to enforce.
@@ -65,6 +70,9 @@ export class ServerService {
 
         if (comment !== undefined) {
             params.COMMENT = comment;
+        }
+        if (sysModel !== undefined) {
+            params.SYS_MODEL = sysModel;
         }
 
         try {

@@ -49,16 +49,17 @@ export class ServerResolver {
         return createSubscription(PUBSUB_CHANNEL.SERVERS);
     }
 
-    @Mutation(() => ServerModel, { description: 'Update server name and comment' })
+    @Mutation(() => ServerModel, { description: 'Update server name, comment, and model' })
     @UsePermissions({
         action: AuthAction.UPDATE_ANY,
         resource: Resource.SERVERS,
     })
     public async updateServerIdentity(
         @Args('name') name: string,
-        @Args('comment', { nullable: true }) comment?: string
+        @Args('comment', { nullable: true }) comment?: string,
+        @Args('sysModel', { nullable: true }) sysModel?: string
     ): Promise<ServerModel> {
-        return this.serverService.updateServerIdentity(name, comment);
+        return this.serverService.updateServerIdentity(name, comment, sysModel);
     }
 
     private getLocalServer(): ServerModel {
