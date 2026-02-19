@@ -310,7 +310,7 @@ describe('OnboardingService', () => {
             expect(onboardingTrackerMock.isCompleted).toHaveBeenCalledTimes(2);
             expect(fs.readdir).toHaveBeenCalledTimes(1);
             expect(fs.copyFile).toHaveBeenCalledTimes(1);
-            expect(emcmd).toHaveBeenCalledTimes(1);
+            expect(emcmd).not.toHaveBeenCalled();
             expect(loggerLogSpy).toHaveBeenCalledWith(
                 'First boot setup previously completed, skipping customizations.'
             );
@@ -356,13 +356,6 @@ describe('OnboardingService', () => {
             expect(dynamixCfgCall).toBeDefined();
             expect(dynamixCfgCall?.[1]).toContain('theme="azure"');
 
-            // We no longer write directly to ident.cfg, instead we call emcmd
-            // Run timers again to ensure emcmd is called
-            await vi.runAllTimers();
-            expect(emcmd).toHaveBeenCalledWith(expect.objectContaining({ NAME: 'PartnerServer' }), {
-                waitForToken: true,
-            }); // emcmd called
-
             expect(loggerLogSpy).toHaveBeenCalledWith('Activation setup complete.');
         }, 10000);
 
@@ -398,7 +391,6 @@ describe('OnboardingService', () => {
             // --- Spy on subsequent steps to ensure they are still called ---
             // We already mock fs.writeFile, so we can check calls to userDynamixCfg and identCfg
             const applyDisplaySettingsSpy = vi.spyOn(service as any, 'applyDisplaySettings');
-            const applyServerIdentitySpy = vi.spyOn(service as any, 'applyServerIdentity');
             const updateCfgFileSpy = vi.spyOn(service as any, 'updateCfgFile');
 
             // --- Execute ---
@@ -433,12 +425,7 @@ describe('OnboardingService', () => {
                 expect.any(Object)
             );
 
-            expect(applyServerIdentitySpy).toHaveBeenCalled();
-            // We no longer update ident.cfg directly, so we don't check updateCfgFile for it
-
-            // Run timers again to ensure emcmd is called
-            await vi.runAllTimers();
-            expect(emcmd).toHaveBeenCalledWith(expect.any(Object), { waitForToken: true }); // emcmd should still be called
+            expect(emcmd).not.toHaveBeenCalled();
         }, 10000);
     });
 
@@ -1297,7 +1284,7 @@ describe('applyActivationCustomizations specific tests', () => {
 
         // Other steps after display settings should still be attempted
         expect(loggerLogSpy).toHaveBeenCalledWith('Applying case model...'); // Check if next step's log appears
-        expect(loggerLogSpy).toHaveBeenCalledWith('Applying server identity...');
+        expect(loggerLogSpy).not.toHaveBeenCalledWith('Applying server identity...');
 
         // Overall error from applyActivationCustomizations' catch block
         // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', updateError);
@@ -1333,7 +1320,7 @@ describe('applyActivationCustomizations specific tests', () => {
         // Other steps should still run
         expect(loggerLogSpy).toHaveBeenCalledWith('Setting up partner banner...');
         expect(loggerLogSpy).toHaveBeenCalledWith('Applying display settings...');
-        expect(loggerLogSpy).toHaveBeenCalledWith('Applying server identity...');
+        expect(loggerLogSpy).not.toHaveBeenCalledWith('Applying server identity...');
 
         // NO overall error logged because the writeFile error is caught internally
         expect(loggerErrorSpy).not.toHaveBeenCalledWith(
@@ -1358,13 +1345,13 @@ describe('applyActivationCustomizations specific tests', () => {
         // Other steps should still run
         expect(loggerLogSpy).toHaveBeenCalledWith('Setting up partner banner...');
         expect(loggerLogSpy).toHaveBeenCalledWith('Applying display settings...');
-        expect(loggerLogSpy).toHaveBeenCalledWith('Applying server identity...');
+        expect(loggerLogSpy).not.toHaveBeenCalledWith('Applying server identity...');
 
         // Overall error from applyActivationCustomizations' catch block
         // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', existsError);
     }, 10000);
 
-    it('should continue through chained banner/case-model failures and still apply identity', async () => {
+    it('should continue through chained banner/case-model failures without applying identity', async () => {
         const bannerCopyError = new Error('Banner copy failed');
         const caseModelWriteError = new Error('Case model write failed');
         (service as any).activationData = plainToInstance(ActivationCode, {
@@ -1392,16 +1379,13 @@ describe('applyActivationCustomizations specific tests', () => {
             }
         });
 
-        const applyServerIdentitySpy = vi.spyOn(service as any, 'applyServerIdentity');
-
         await (service as any).applyActivationCustomizations();
 
         expect(loggerWarnSpy).toHaveBeenCalledWith(
             `Failed to replace the original banner with the partner banner: ${bannerCopyError.message}`
         );
         expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying case model:', caseModelWriteError);
-        expect(applyServerIdentitySpy).toHaveBeenCalledTimes(1);
-        expect(emcmd).toHaveBeenCalledTimes(1);
+        expect(emcmd).not.toHaveBeenCalled();
     }, 10000);
 
     // We no longer update config files in applyServerIdentity, so this test is removed

@@ -61,6 +61,7 @@ export class OnboardingService implements OnModuleInit {
 
         this.activationDir = paths.activationBase;
         this.configFile = paths['dynamix-config']?.[1];
+        this.caseModelCfg = paths.boot?.caseModelConfig;
         this.identCfg = paths.identConfig;
 
         this.logger.log('OnboardingService initialized with paths from store.');
@@ -275,7 +276,6 @@ export class OnboardingService implements OnModuleInit {
             await this.setupPartnerBanner();
             await this.applyDisplaySettings();
             await this.applyCaseModelConfig();
-            await this.applyServerIdentity();
 
             this.logger.log('Activation setup complete.');
         } catch (error: unknown) {
@@ -411,6 +411,10 @@ export class OnboardingService implements OnModuleInit {
     private async applyCaseModelConfig() {
         if (!this.activationData) {
             this.logger.warn('No activation data available for case model setup.');
+            return;
+        }
+        if (!this.caseModelCfg) {
+            this.logger.warn('Case model config path missing. Skipping case model setup.');
             return;
         }
 
