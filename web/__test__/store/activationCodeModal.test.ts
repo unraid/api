@@ -166,6 +166,37 @@ describe('ActivationCodeModal Store', () => {
     expect(mockTemporaryBypassState.value).toMatchObject({ active: true });
   });
 
+  it('does not bypass when using 0 key with modifiers', () => {
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: ')',
+        code: 'Digit0',
+        metaKey: true,
+        altKey: true,
+        shiftKey: true,
+      })
+    );
+
+    expect(store.isTemporarilyBypassed).toBe(false);
+    expect(mockIsHidden.value).toBe(null);
+    expect(mockTemporaryBypassState.value).toBe(null);
+  });
+
+  it('does not bypass when required modifiers are missing', () => {
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'o',
+        code: 'KeyO',
+        metaKey: true,
+        altKey: true,
+      })
+    );
+
+    expect(store.isTemporarilyBypassed).toBe(false);
+    expect(mockIsHidden.value).toBe(null);
+    expect(mockTemporaryBypassState.value).toBe(null);
+  });
+
   it('is visible on fresh install when not hidden or bypassed', () => {
     mockIsFreshInstall.value = true;
     mockIsHidden.value = null;
