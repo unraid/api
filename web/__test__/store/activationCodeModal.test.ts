@@ -66,8 +66,16 @@ describe('ActivationCodeModal Store', () => {
     mockCallbackData = ref(null);
     mockUptime = ref(3600);
 
-    vi.mocked(useSessionStorage).mockReturnValueOnce(mockIsHidden);
-    vi.mocked(useSessionStorage).mockReturnValueOnce(mockTemporaryBypassState);
+    vi.mocked(useSessionStorage).mockImplementation(((key: unknown, initialValue: unknown) => {
+      const storageKey = typeof key === 'string' ? key : '';
+      if (storageKey === ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY) {
+        return mockIsHidden as unknown as ReturnType<typeof useSessionStorage>;
+      }
+      if (storageKey === ONBOARDING_TEMP_BYPASS_STORAGE_KEY) {
+        return mockTemporaryBypassState as unknown as ReturnType<typeof useSessionStorage>;
+      }
+      return ref(initialValue) as unknown as ReturnType<typeof useSessionStorage>;
+    }) as typeof useSessionStorage);
 
     vi.mocked(useActivationCodeDataStore).mockReturnValue({
       isFreshInstall: mockIsFreshInstall,
@@ -197,6 +205,23 @@ describe('ActivationCodeModal Store', () => {
     expect(mockTemporaryBypassState.value).toBe(null);
   });
 
+  it('does not bypass on repeated keydown events', () => {
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'o',
+        code: 'KeyO',
+        metaKey: true,
+        altKey: true,
+        shiftKey: true,
+        repeat: true,
+      })
+    );
+
+    expect(store.isTemporarilyBypassed).toBe(false);
+    expect(mockIsHidden.value).toBe(null);
+    expect(mockTemporaryBypassState.value).toBe(null);
+  });
+
   it('is visible on fresh install when not hidden or bypassed', () => {
     mockIsFreshInstall.value = true;
     mockIsHidden.value = null;
@@ -225,6 +250,20 @@ describe('ActivationCodeModal Store', () => {
     expect(replaceStateSpy).toHaveBeenCalled();
   });
 
+  it('applies onboarding=bypass automatically on mount', () => {
+    if (app) {
+      app.unmount();
+      app = null;
+    }
+
+    window.history.replaceState({}, '', '/Dashboard?onboarding=bypass');
+    mountStoreHost();
+
+    expect(store.isTemporarilyBypassed).toBe(true);
+    expect(mockIsHidden.value).toBe(true);
+    expect(window.location.search).not.toContain('onboarding=');
+  });
+
   it('supports onboarding=resume URL param and removes bypass', () => {
     store.setTemporaryBypass(true);
     mockIsHidden.value = true;
@@ -236,6 +275,42 @@ describe('ActivationCodeModal Store', () => {
     expect(mockTemporaryBypassState.value).toBe(null);
     expect(mockIsHidden.value).toBe(false);
     expect(window.location.search).not.toContain('onboarding=');
+  });
+
+  it('applies onboarding=resume automatically on mount', () => {
+    if (app) {
+      app.unmount();
+      app = null;
+    }
+
+    mockTemporaryBypassState.value = { active: true, bootMarker: 0 };
+    mockIsHidden.value = true;
+    window.history.replaceState({}, '', '/Dashboard?onboarding=resume');
+    mountStoreHost();
+
+    expect(store.isTemporarilyBypassed).toBe(false);
+    expect(mockTemporaryBypassState.value).toBe(null);
+    expect(mockIsHidden.value).toBe(false);
+    expect(window.location.search).not.toContain('onboarding=');
+  });
+
+  it('ignores unknown onboarding URL param actions', () => {
+    window.history.replaceState({}, '', '/Dashboard?onboarding=unknown');
+
+    store.applyBypassFromUrlParam();
+
+    expect(store.isTemporarilyBypassed).toBe(false);
+    expect(mockTemporaryBypassState.value).toBe(null);
+    expect(mockIsHidden.value).toBe(null);
+    expect(window.location.search).toContain('onboarding=unknown');
+  });
+
+  it('keeps bypass active in-session when uptime is unavailable', async () => {
+    mockUptime.value = 0;
+    store.setTemporaryBypass(true);
+    await nextTick();
+
+    expect(store.isTemporarilyBypassed).toBe(true);
   });
 
   it('automatically invalidates bypass when boot marker changes', async () => {
