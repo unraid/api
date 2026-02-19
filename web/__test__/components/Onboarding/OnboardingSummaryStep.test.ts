@@ -335,6 +335,121 @@ describe('OnboardingSummaryStep', () => {
     expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps custom baseline server identity when draft mirrors baseline values', async () => {
+    coreSettingsResult.value = {
+      vars: { name: 'MyServer', useSsh: false, localTld: 'local' },
+      server: { name: 'MyServer', comment: 'Primary host' },
+      display: { theme: 'white', locale: 'en_US' },
+      systemTime: { timeZone: 'UTC' },
+      info: { primaryNetwork: { ipAddress: '192.168.1.2' } },
+    };
+    draftStore.serverName = 'MyServer';
+    draftStore.serverDescription = 'Primary host';
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(updateServerIdentityMock).not.toHaveBeenCalled();
+    expect(updateSystemTimeMock).not.toHaveBeenCalled();
+    expect(setThemeMock).not.toHaveBeenCalled();
+    expect(setLocaleMock).not.toHaveBeenCalled();
+    expect(updateSshSettingsMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      caseName: 'server identity name only',
+      apply: () => {
+        draftStore.serverName = 'Tower2';
+      },
+      assertExpected: () => {
+        expect(updateServerIdentityMock).toHaveBeenCalledWith({ name: 'Tower2', comment: '' });
+      },
+    },
+    {
+      caseName: 'server identity description only',
+      apply: () => {
+        draftStore.serverDescription = 'Edge host';
+      },
+      assertExpected: () => {
+        expect(updateServerIdentityMock).toHaveBeenCalledWith({
+          name: 'Tower',
+          comment: 'Edge host',
+        });
+      },
+    },
+    {
+      caseName: 'timezone only',
+      apply: () => {
+        draftStore.selectedTimeZone = 'America/New_York';
+      },
+      assertExpected: () => {
+        expect(updateSystemTimeMock).toHaveBeenCalledWith({
+          input: { timeZone: 'America/New_York' },
+        });
+      },
+    },
+    {
+      caseName: 'theme only',
+      apply: () => {
+        draftStore.selectedTheme = 'black';
+      },
+      assertExpected: () => {
+        expect(setThemeMock).toHaveBeenCalledWith({ theme: 'black' });
+      },
+    },
+    {
+      caseName: 'language only',
+      apply: () => {
+        draftStore.selectedLanguage = 'fr_FR';
+      },
+      assertExpected: () => {
+        expect(installLanguageMock).toHaveBeenCalledWith({
+          forced: false,
+          name: 'French',
+          url: 'https://example.com/fr_FR.txz',
+        });
+        expect(setLocaleMock).toHaveBeenCalledWith({ locale: 'fr_FR' });
+      },
+    },
+    {
+      caseName: 'ssh only',
+      apply: () => {
+        draftStore.useSsh = true;
+      },
+      assertExpected: () => {
+        expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: true, port: 22 });
+      },
+    },
+  ])('applies only the changed core setting when baseline is loaded ($caseName)', async (scenario) => {
+    scenario.apply();
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    scenario.assertExpected();
+
+    if (
+      scenario.caseName !== 'server identity name only' &&
+      scenario.caseName !== 'server identity description only'
+    ) {
+      expect(updateServerIdentityMock).not.toHaveBeenCalled();
+    }
+    if (scenario.caseName !== 'timezone only') {
+      expect(updateSystemTimeMock).not.toHaveBeenCalled();
+    }
+    if (scenario.caseName !== 'theme only') {
+      expect(setThemeMock).not.toHaveBeenCalled();
+    }
+    if (scenario.caseName !== 'language only') {
+      expect(setLocaleMock).not.toHaveBeenCalled();
+      expect(installLanguageMock).not.toHaveBeenCalled();
+    }
+    if (scenario.caseName !== 'ssh only') {
+      expect(updateSshSettingsMock).not.toHaveBeenCalled();
+    }
+  });
+
   it('applies trusted defaults + draft values when baseline query is down', async () => {
     coreSettingsResult.value = null;
     coreSettingsError.value = new Error('Graphql is offline.');
@@ -356,6 +471,29 @@ describe('OnboardingSummaryStep', () => {
     expect(setThemeMock).toHaveBeenCalledWith({ theme: 'black' });
     expect(setLocaleMock).toHaveBeenCalledWith({ locale: 'en_US' });
     expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: true, port: 22 });
+  });
+
+  it('applies trusted defaults when baseline query is down and draft values are empty', async () => {
+    coreSettingsResult.value = null;
+    coreSettingsError.value = new Error('Graphql is offline.');
+    draftStore.serverName = '';
+    draftStore.serverDescription = '';
+    draftStore.selectedTimeZone = '';
+    draftStore.selectedTheme = '';
+    draftStore.selectedLanguage = '';
+    draftStore.useSsh = false;
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(updateSystemTimeMock).toHaveBeenCalledWith({ input: { timeZone: 'UTC' } });
+    expect(updateServerIdentityMock).toHaveBeenCalledWith({
+      name: 'Tower',
+      comment: '',
+    });
+    expect(setThemeMock).toHaveBeenCalledWith({ theme: 'white' });
+    expect(setLocaleMock).toHaveBeenCalledWith({ locale: 'en_US' });
+    expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: false, port: 22 });
   });
 
   it('shows completion dialog in offline mode and advances only after OK', async () => {
