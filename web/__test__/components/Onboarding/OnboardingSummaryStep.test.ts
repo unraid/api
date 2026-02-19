@@ -273,54 +273,180 @@ describe('OnboardingSummaryStep', () => {
     refetchOnboardingMock.mockResolvedValue(undefined);
   });
 
-  it('logs plugin failure when installer returns FAILED', async () => {
-    draftStore.selectedPlugins = new Set(['community-apps']);
-    installPluginMock.mockResolvedValue({
-      operationId: 'plugin-op',
-      status: PluginInstallStatus.FAILED,
-      output: ['failure'],
-    });
+  it.each([
+    {
+      caseName: 'skips install when plugin is already present',
+      apply: () => {
+        draftStore.selectedPlugins = new Set(['community-apps']);
+        installedPluginsResult.value = { installedUnraidPlugins: ['community.applications.plg'] };
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(installPluginMock).not.toHaveBeenCalled();
+        expect(wrapper.text()).toContain('Already installed');
+        expect(wrapper.text()).toContain('Setup Applied');
+      },
+    },
+    {
+      caseName: 'skips unknown plugin ids',
+      apply: () => {
+        draftStore.selectedPlugins = new Set(['unknown-plugin-id']);
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(installPluginMock).not.toHaveBeenCalled();
+        expect(wrapper.text()).toContain('Setup Applied');
+      },
+    },
+    {
+      caseName: 'installs missing plugin successfully',
+      apply: () => {
+        draftStore.selectedPlugins = new Set(['community-apps']);
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(installPluginMock).toHaveBeenCalledWith({
+          url: 'https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
+          name: 'Community Apps',
+          forced: false,
+          onEvent: expect.any(Function),
+        });
+        expect(wrapper.text()).toContain('Community Apps installed.');
+      },
+    },
+    {
+      caseName: 'marks warning when plugin install returns FAILED',
+      apply: () => {
+        draftStore.selectedPlugins = new Set(['community-apps']);
+        installPluginMock.mockResolvedValue({
+          operationId: 'plugin-op',
+          status: PluginInstallStatus.FAILED,
+          output: ['failure'],
+        });
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(wrapper.text()).toContain('Community Apps installation failed. Continuing.');
+        expect(wrapper.text()).toContain('Setup Applied with Warnings');
+      },
+    },
+    {
+      caseName: 'marks timeout result when plugin tracking times out',
+      apply: () => {
+        draftStore.selectedPlugins = new Set(['community-apps']);
+        const timeoutError = new Error(
+          'Timed out waiting for install operation plugin-op to finish'
+        ) as Error & {
+          code?: string;
+        };
+        timeoutError.code = 'INSTALL_OPERATION_TIMEOUT';
+        installPluginMock.mockRejectedValue(timeoutError);
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(wrapper.text()).toContain('Setup Continued After Timeout');
+        expect(wrapper.text()).toContain(
+          'One or more install operations timed out. Some settings may have been applied.'
+        );
+      },
+    },
+  ])('follows plugin install decision matrix ($caseName)', async (scenario) => {
+    scenario.apply();
 
     const { wrapper } = mountComponent();
     await clickApply(wrapper);
 
-    const text = wrapper.text();
-    expect(text).toContain('Community Apps installation failed. Continuing.');
-    expect(text).not.toContain('Community Apps installed.');
+    scenario.assertExpected(wrapper);
   });
 
-  it('shows timeout-specific completion dialog when plugin install tracking times out', async () => {
-    draftStore.selectedPlugins = new Set(['community-apps']);
-    const timeoutError = new Error(
-      'Timed out waiting for install operation plugin-op to finish'
-    ) as Error & {
-      code?: string;
-    };
-    timeoutError.code = 'INSTALL_OPERATION_TIMEOUT';
-    installPluginMock.mockRejectedValue(timeoutError);
+  it.each([
+    {
+      caseName: 'switches to en_US directly without language pack install',
+      apply: () => {
+        coreSettingsResult.value = {
+          vars: { name: 'Tower', useSsh: false, localTld: 'local' },
+          server: { name: 'Tower', comment: '' },
+          display: { theme: 'white', locale: 'fr_FR' },
+          systemTime: { timeZone: 'UTC' },
+          info: { primaryNetwork: { ipAddress: '192.168.1.2' } },
+        };
+        draftStore.selectedLanguage = 'en_US';
+      },
+      assertExpected: () => {
+        expect(installLanguageMock).not.toHaveBeenCalled();
+        expect(setLocaleMock).toHaveBeenCalledWith({ locale: 'en_US' });
+      },
+    },
+    {
+      caseName: 'installs language pack then sets locale',
+      apply: () => {
+        draftStore.selectedLanguage = 'fr_FR';
+      },
+      assertExpected: () => {
+        expect(installLanguageMock).toHaveBeenCalledWith({
+          forced: false,
+          name: 'French',
+          url: 'https://example.com/fr_FR.txz',
+        });
+        expect(setLocaleMock).toHaveBeenCalledWith({ locale: 'fr_FR' });
+      },
+    },
+    {
+      caseName: 'skips locale change when language metadata is missing',
+      apply: () => {
+        draftStore.selectedLanguage = 'fr_FR';
+        availableLanguagesResult.value = {
+          availableLanguages: [{ code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' }],
+        };
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(installLanguageMock).not.toHaveBeenCalled();
+        expect(setLocaleMock).not.toHaveBeenCalledWith({ locale: 'fr_FR' });
+        expect(wrapper.text()).toContain(
+          'Language pack metadata for fr_FR is unavailable. Skipping locale change.'
+        );
+        expect(wrapper.text()).toContain('Setup Applied with Warnings');
+      },
+    },
+    {
+      caseName: 'keeps locale when language install returns FAILED',
+      apply: () => {
+        draftStore.selectedLanguage = 'fr_FR';
+        installLanguageMock.mockResolvedValue({
+          operationId: 'lang-op',
+          status: PluginInstallStatus.FAILED,
+          output: ['failed'],
+        });
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(installLanguageMock).toHaveBeenCalled();
+        expect(setLocaleMock).not.toHaveBeenCalledWith({ locale: 'fr_FR' });
+        expect(wrapper.text()).toContain(
+          'Language pack installation did not succeed for French. Keeping current locale.'
+        );
+        expect(wrapper.text()).toContain('Setup Applied with Warnings');
+      },
+    },
+    {
+      caseName: 'classifies language install timeout separately',
+      apply: () => {
+        draftStore.selectedLanguage = 'fr_FR';
+        const timeoutError = new Error(
+          'Timed out waiting for install operation lang-op to finish'
+        ) as Error & {
+          code?: string;
+        };
+        timeoutError.code = 'INSTALL_OPERATION_TIMEOUT';
+        installLanguageMock.mockRejectedValue(timeoutError);
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(installLanguageMock).toHaveBeenCalled();
+        expect(setLocaleMock).not.toHaveBeenCalledWith({ locale: 'fr_FR' });
+        expect(wrapper.text()).toContain('Setup Continued After Timeout');
+      },
+    },
+  ])('follows locale endpoint decision matrix ($caseName)', async (scenario) => {
+    scenario.apply();
 
     const { wrapper } = mountComponent();
     await clickApply(wrapper);
 
-    expect(wrapper.text()).toContain('Setup Continued After Timeout');
-    expect(wrapper.text()).toContain(
-      'One or more install operations timed out. Some settings may have been applied.'
-    );
-  });
-
-  it('does not call setLocale when language install fails', async () => {
-    draftStore.selectedLanguage = 'fr_FR';
-    installLanguageMock.mockResolvedValue({
-      operationId: 'lang-op',
-      status: PluginInstallStatus.FAILED,
-      output: ['failed'],
-    });
-
-    const { wrapper } = mountComponent();
-    await clickApply(wrapper);
-
-    expect(installLanguageMock).toHaveBeenCalled();
-    expect(setLocaleMock).not.toHaveBeenCalledWith({ locale: 'fr_FR' });
+    scenario.assertExpected(wrapper);
   });
 
   it('skips core setting mutations when baseline is loaded and nothing changed', async () => {
@@ -494,6 +620,65 @@ describe('OnboardingSummaryStep', () => {
     expect(setThemeMock).toHaveBeenCalledWith({ theme: 'white' });
     expect(setLocaleMock).toHaveBeenCalledWith({ locale: 'en_US' });
     expect(updateSshSettingsMock).toHaveBeenCalledWith({ enabled: false, port: 22 });
+  });
+
+  it.each([
+    {
+      caseName: 'baseline available + completion/refetch succeed',
+      apply: () => {},
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+        expect(refetchOnboardingMock).toHaveBeenCalledTimes(1);
+        expect(wrapper.text()).toContain('Setup Applied');
+        expect(wrapper.text()).not.toContain('Setup Saved in Best-Effort Mode');
+      },
+    },
+    {
+      caseName: 'baseline available + onboarding refetch fails',
+      apply: () => {
+        refetchOnboardingMock.mockRejectedValue(new Error('refresh failed'));
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+        expect(refetchOnboardingMock).toHaveBeenCalledTimes(1);
+        expect(wrapper.text()).toContain('Could not refresh onboarding state right now. Continuing.');
+        expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
+      },
+    },
+    {
+      caseName: 'baseline unavailable + completion succeeds',
+      apply: () => {
+        coreSettingsResult.value = null;
+        coreSettingsError.value = new Error('Graphql is offline.');
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+        expect(refetchOnboardingMock).not.toHaveBeenCalled();
+        expect(wrapper.text()).toContain('Skipping onboarding state refresh while API is unavailable.');
+        expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
+      },
+    },
+    {
+      caseName: 'completion mutation fails',
+      apply: () => {
+        completeOnboardingMock.mockRejectedValue(new Error('offline'));
+      },
+      assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
+        expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+        expect(refetchOnboardingMock).not.toHaveBeenCalled();
+        expect(wrapper.text()).toContain(
+          'Could not mark onboarding complete right now (API may be offline): offline'
+        );
+        expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
+      },
+    },
+  ])('follows completion endpoint decision matrix ($caseName)', async (scenario) => {
+    scenario.apply();
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    scenario.assertExpected(wrapper);
   });
 
   it('shows completion dialog in offline mode and advances only after OK', async () => {
