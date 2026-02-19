@@ -334,4 +334,73 @@ describe('OnboardingCoreSettingsStep', () => {
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
+
+  it('preserves initialized draft values for timezone/theme/language even when empty', async () => {
+    draftStore.coreSettingsInitialized = true;
+    draftStore.serverName = 'Tower2';
+    draftStore.serverDescription = '';
+    draftStore.selectedTimeZone = '';
+    draftStore.selectedTheme = '';
+    draftStore.selectedLanguage = '';
+    draftStore.useSsh = true;
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        server: { name: 'TowerBaseline', comment: 'Baseline comment' },
+        vars: { name: 'TowerBaseline', useSsh: false, localTld: 'local' },
+        display: { theme: 'black', locale: 'fr_FR' },
+        systemTime: { timeZone: 'America/New_York' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledWith({
+      serverName: 'Tower2',
+      serverDescription: '',
+      timeZone: '',
+      theme: '',
+      language: '',
+      useSsh: true,
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps initialized empty server name invalid even if baseline has a valid name', async () => {
+    draftStore.coreSettingsInitialized = true;
+    draftStore.serverName = '';
+    draftStore.serverDescription = '';
+    draftStore.selectedTimeZone = 'UTC';
+    draftStore.selectedTheme = 'white';
+    draftStore.selectedLanguage = 'en_US';
+    draftStore.useSsh = false;
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        server: { name: 'TowerBaseline', comment: '' },
+        vars: { name: 'TowerBaseline', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).not.toHaveBeenCalled();
+    expect(onComplete).not.toHaveBeenCalled();
+  });
 });
