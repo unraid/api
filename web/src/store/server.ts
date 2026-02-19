@@ -482,7 +482,7 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...(shouldUsePartnerActivationOnly.value
-              ? [redeemAction.value, recoverAction.value]
+              ? [redeemAction.value, recoverAction.value, trialStartAction.value]
               : [redeemAction.value, trialStartAction.value, purchaseAction.value, recoverAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
