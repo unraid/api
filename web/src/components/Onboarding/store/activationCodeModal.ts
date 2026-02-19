@@ -1,20 +1,99 @@
-import { computed, onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, watch } from 'vue';
 import { defineStore, storeToRefs } from 'pinia';
 import { useSessionStorage } from '@vueuse/core';
 
-import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
+import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, ONBOARDING_TEMP_BYPASS_STORAGE_KEY } from '~/consts';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
+import { useServerStore } from '~/store/server';
+
+const ONBOARDING_QUERY_PARAM = 'onboarding';
+const ONBOARDING_BYPASS_SHORTCUT_KEY = 'o';
+const SECONDS_PER_MINUTE = 60;
+
+type TemporaryBypassState = {
+  active: boolean;
+  bootMarker: number | null;
+};
 
 export const useActivationCodeModalStore = defineStore('activationCodeModal', () => {
   const isHidden = useSessionStorage<boolean | null>(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, null);
+  const temporaryBypassState = useSessionStorage<TemporaryBypassState | null>(
+    ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
+    null
+  );
 
   const { isFreshInstall } = storeToRefs(useActivationCodeDataStore());
   const { callbackData } = storeToRefs(useCallbackActionsStore());
+  const { uptime } = storeToRefs(useServerStore());
 
   const setIsHidden = (value: boolean | null) => {
     isHidden.value = value;
+  };
+
+  const getCurrentBootMarker = () => {
+    const uptimeSeconds = Number(uptime.value);
+    if (!Number.isFinite(uptimeSeconds) || uptimeSeconds <= 0) {
+      return null;
+    }
+
+    const bootEpochSeconds = Date.now() / 1000 - uptimeSeconds;
+    return Math.floor(bootEpochSeconds / SECONDS_PER_MINUTE);
+  };
+
+  const clearTemporaryBypass = () => {
+    temporaryBypassState.value = null;
+  };
+
+  const setTemporaryBypass = (enabled: boolean) => {
+    if (!enabled) {
+      clearTemporaryBypass();
+      return;
+    }
+
+    temporaryBypassState.value = {
+      active: true,
+      bootMarker: getCurrentBootMarker(),
+    };
+    setIsHidden(true);
+  };
+
+  const isTemporarilyBypassed = computed(() => {
+    const state = temporaryBypassState.value;
+    if (!state?.active) {
+      return false;
+    }
+
+    const currentBootMarker = getCurrentBootMarker();
+    if (state.bootMarker === null || currentBootMarker === null) {
+      // If uptime is not yet available, keep bypass active for this browser session.
+      return true;
+    }
+
+    return state.bootMarker === currentBootMarker;
+  });
+
+  const applyBypassFromUrlParam = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    const action = url.searchParams.get(ONBOARDING_QUERY_PARAM);
+
+    if (action === 'bypass') {
+      setTemporaryBypass(true);
+    } else if (action === 'resume') {
+      clearTemporaryBypass();
+      setIsHidden(false);
+    } else {
+      return;
+    }
+
+    url.searchParams.delete(ONBOARDING_QUERY_PARAM);
+    const nextPath = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState({}, '', nextPath || '/');
   };
 
   /**
@@ -32,44 +111,43 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
    * Note: Upgrade onboarding visibility is checked separately in the modal via upgradeOnboardingStore
    */
   const isVisible = computed<boolean>(() => {
+    if (isTemporarilyBypassed.value) {
+      return false;
+    }
     if (isHidden.value === false) {
       return true;
     }
     return isHidden.value === null && isFreshInstall.value && !callbackData.value;
   });
 
-  /**
-   * Listen for konami code sequence to close the modal
-   */
-  const keySequence = [
-    'ArrowUp',
-    'ArrowUp',
-    'ArrowDown',
-    'ArrowDown',
-    'ArrowLeft',
-    'ArrowRight',
-    'ArrowLeft',
-    'ArrowRight',
-    'b',
-    'a',
-  ];
-  let sequenceIndex = 0;
+  watch(isTemporarilyBypassed, (active) => {
+    if (!active && temporaryBypassState.value?.active) {
+      clearTemporaryBypass();
+    }
+  });
+
+  const isBypassShortcut = (event: KeyboardEvent) => {
+    if (event.repeat) {
+      return false;
+    }
+    const isPrimaryModifierPressed = event.ctrlKey || event.metaKey;
+    return (
+      isPrimaryModifierPressed &&
+      event.altKey &&
+      event.shiftKey &&
+      event.key.toLowerCase() === ONBOARDING_BYPASS_SHORTCUT_KEY
+    );
+  };
 
   const handleKeydown = (event: KeyboardEvent) => {
-    if (event.key === keySequence[sequenceIndex]) {
-      sequenceIndex++;
-    } else {
-      sequenceIndex = 0;
-    }
-
-    if (sequenceIndex === keySequence.length) {
-      setIsHidden(true);
-      // Redirect only if explicitly hidden via konami code, not just closed normally
-      window.location.href = '/Tools/Registration';
+    if (isBypassShortcut(event)) {
+      event.preventDefault();
+      setTemporaryBypass(true);
     }
   };
 
   onMounted(() => {
+    applyBypassFromUrlParam();
     window?.addEventListener('keydown', handleKeydown);
   });
 
@@ -79,7 +157,11 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
 
   return {
     isVisible,
+    isTemporarilyBypassed,
     isHidden,
     setIsHidden,
+    setTemporaryBypass,
+    clearTemporaryBypass,
+    applyBypassFromUrlParam,
   };
 });

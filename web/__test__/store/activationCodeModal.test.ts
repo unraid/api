@@ -1,8 +1,8 @@
-import { createApp, defineComponent, ref } from 'vue';
+import { createApp, defineComponent, nextTick, ref } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import { useSessionStorage } from '@vueuse/core';
 
-import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
+import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, ONBOARDING_TEMP_BYPASS_STORAGE_KEY } from '~/consts';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { App } from 'vue';
@@ -10,6 +10,7 @@ import type { App } from 'vue';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
 import { useCallbackActionsStore } from '~/store/callbackActions';
+import { useServerStore } from '~/store/server';
 
 vi.mock('@vueuse/core', () => ({
   useSessionStorage: vi.fn(),
@@ -23,38 +24,21 @@ vi.mock('~/store/callbackActions', () => ({
   useCallbackActionsStore: vi.fn(),
 }));
 
+vi.mock('~/store/server', () => ({
+  useServerStore: vi.fn(),
+}));
+
 describe('ActivationCodeModal Store', () => {
   let store: ReturnType<typeof useActivationCodeModalStore>;
   let mockIsHidden: ReturnType<typeof ref>;
+  let mockTemporaryBypassState: ReturnType<typeof ref>;
   let mockIsFreshInstall: ReturnType<typeof ref>;
-  let mockActivationCode: ReturnType<typeof ref>;
   let mockCallbackData: ReturnType<typeof ref>;
+  let mockUptime: ReturnType<typeof ref>;
   let app: App<Element> | null = null;
   let mountTarget: HTMLElement | null = null;
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-
-    // Mock window.location to prevent navigation errors
-    Object.defineProperty(window, 'location', {
-      value: { href: '' },
-      writable: true,
-    });
-
-    mockIsHidden = ref(null);
-    mockIsFreshInstall = ref(false);
-    mockActivationCode = ref(null);
-    mockCallbackData = ref(null);
-
-    vi.mocked(useSessionStorage).mockReturnValue(mockIsHidden);
-    vi.mocked(useActivationCodeDataStore).mockReturnValue({
-      isFreshInstall: mockIsFreshInstall,
-      activationCode: mockActivationCode,
-    } as unknown as ReturnType<typeof useActivationCodeDataStore>);
-    vi.mocked(useCallbackActionsStore).mockReturnValue({
-      callbackData: mockCallbackData,
-    } as unknown as ReturnType<typeof useCallbackActionsStore>);
-
+  const mountStoreHost = () => {
     const pinia = createPinia();
     setActivePinia(pinia);
 
@@ -69,6 +53,36 @@ describe('ActivationCodeModal Store', () => {
     app = createApp(TestHost);
     app.use(pinia);
     app.mount(mountTarget);
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-02-19T12:00:00.000Z'));
+    vi.clearAllMocks();
+
+    mockIsHidden = ref(null);
+    mockTemporaryBypassState = ref(null);
+    mockIsFreshInstall = ref(false);
+    mockCallbackData = ref(null);
+    mockUptime = ref(3600);
+
+    vi.mocked(useSessionStorage).mockReturnValueOnce(mockIsHidden);
+    vi.mocked(useSessionStorage).mockReturnValueOnce(mockTemporaryBypassState);
+
+    vi.mocked(useActivationCodeDataStore).mockReturnValue({
+      isFreshInstall: mockIsFreshInstall,
+    } as unknown as ReturnType<typeof useActivationCodeDataStore>);
+
+    vi.mocked(useCallbackActionsStore).mockReturnValue({
+      callbackData: mockCallbackData,
+    } as unknown as ReturnType<typeof useCallbackActionsStore>);
+
+    vi.mocked(useServerStore).mockReturnValue({
+      uptime: mockUptime,
+    } as unknown as ReturnType<typeof useServerStore>);
+
+    window.history.replaceState({}, '', '/Dashboard');
+    mountStoreHost();
   });
 
   afterEach(() => {
@@ -77,99 +91,85 @@ describe('ActivationCodeModal Store', () => {
       app = null;
     }
     mountTarget = null;
-
+    vi.useRealTimers();
     vi.resetAllMocks();
+  });
+
+  it('initializes hidden and temporary bypass session-storage keys', () => {
+    expect(useSessionStorage).toHaveBeenCalledWith(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, null);
+    expect(useSessionStorage).toHaveBeenCalledWith(ONBOARDING_TEMP_BYPASS_STORAGE_KEY, null);
+  });
+
+  it('sets hidden state directly', () => {
+    store.setIsHidden(true);
+    expect(mockIsHidden.value).toBe(true);
+
+    store.setIsHidden(false);
+    expect(mockIsHidden.value).toBe(false);
+
+    store.setIsHidden(null);
+    expect(mockIsHidden.value).toBe(null);
+  });
+
+  it('applies keyboard shortcut bypass without completing onboarding', () => {
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'o', ctrlKey: true, altKey: true, shiftKey: true })
+    );
+
+    expect(store.isTemporarilyBypassed).toBe(true);
+    expect(mockIsHidden.value).toBe(true);
+    expect(mockTemporaryBypassState.value).toMatchObject({ active: true });
+  });
+
+  it('is visible on fresh install when not hidden or bypassed', () => {
+    mockIsFreshInstall.value = true;
     mockIsHidden.value = null;
-    mockIsFreshInstall.value = false;
-    mockActivationCode.value = null;
     mockCallbackData.value = null;
+
+    expect(store.isVisible).toBe(true);
   });
 
-  describe('State Management', () => {
-    it('should initialize with correct storage key', () => {
-      expect(useSessionStorage).toHaveBeenCalledWith(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, null);
-    });
+  it('is not visible when temporary bypass is active', () => {
+    mockIsFreshInstall.value = true;
+    store.setTemporaryBypass(true);
 
-    it('should set isHidden value correctly', () => {
-      store.setIsHidden(true);
-      expect(mockIsHidden.value).toBe(true);
-
-      store.setIsHidden(false);
-      expect(mockIsHidden.value).toBe(false);
-
-      store.setIsHidden(null);
-      expect(mockIsHidden.value).toBe(null);
-    });
+    expect(store.isTemporarilyBypassed).toBe(true);
+    expect(store.isVisible).toBe(false);
   });
 
-  describe('Computed Properties', () => {
-    it('should be visible when explicitly set to show', () => {
-      mockIsHidden.value = false;
+  it('supports onboarding=bypass URL param and removes it from URL', () => {
+    const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
+    window.history.replaceState({}, '', '/Dashboard?onboarding=bypass');
 
-      expect(store.isVisible).toBe(true);
-    });
+    store.applyBypassFromUrlParam();
 
-    it('should be visible when fresh install and not explicitly hidden', () => {
-      mockIsHidden.value = null;
-      mockIsFreshInstall.value = true;
-      mockActivationCode.value = { code: '12345' };
-      mockCallbackData.value = null;
-
-      expect(store.isVisible).toBe(true);
-    });
-
-    it('should not be visible when explicitly hidden', () => {
-      mockIsHidden.value = true;
-
-      expect(store.isVisible).toBe(false);
-    });
-
-    it('should not be visible when not fresh install', () => {
-      mockIsHidden.value = null;
-      mockIsFreshInstall.value = false;
-
-      expect(store.isVisible).toBe(false);
-    });
-
-    it('should be visible when activation code is missing on fresh install (for timezone setup)', () => {
-      mockIsHidden.value = null;
-      mockIsFreshInstall.value = true;
-      mockActivationCode.value = null;
-
-      expect(store.isVisible).toBe(true);
-    });
-
-    it('should not be visible when callback data exists', () => {
-      mockIsHidden.value = null;
-      mockIsFreshInstall.value = true;
-      mockActivationCode.value = { code: '12345' };
-      mockCallbackData.value = { someData: 'test' };
-
-      expect(store.isVisible).toBe(false);
-    });
+    expect(store.isTemporarilyBypassed).toBe(true);
+    expect(mockIsHidden.value).toBe(true);
+    expect(window.location.search).not.toContain('onboarding=');
+    expect(replaceStateSpy).toHaveBeenCalled();
   });
 
-  describe('Konami Code Handling', () => {
-    const keySequence = [
-      'ArrowUp',
-      'ArrowUp',
-      'ArrowDown',
-      'ArrowDown',
-      'ArrowLeft',
-      'ArrowRight',
-      'ArrowLeft',
-      'ArrowRight',
-      'b',
-      'a',
-    ];
+  it('supports onboarding=resume URL param and removes bypass', () => {
+    store.setTemporaryBypass(true);
+    mockIsHidden.value = true;
+    window.history.replaceState({}, '', '/Dashboard?onboarding=resume');
 
-    it('should not trigger on partial sequence', () => {
-      keySequence.slice(0, 3).forEach((key) => {
-        window.dispatchEvent(new KeyboardEvent('keydown', { key }));
-      });
+    store.applyBypassFromUrlParam();
 
-      expect(mockIsHidden.value).toBe(null);
-      expect(window.location.href).toBe('');
-    });
+    expect(store.isTemporarilyBypassed).toBe(false);
+    expect(mockTemporaryBypassState.value).toBe(null);
+    expect(mockIsHidden.value).toBe(false);
+    expect(window.location.search).not.toContain('onboarding=');
+  });
+
+  it('automatically invalidates bypass when boot marker changes', async () => {
+    store.setTemporaryBypass(true);
+    expect(store.isTemporarilyBypassed).toBe(true);
+
+    // Simulate a reboot by drastically changing uptime-derived boot marker.
+    mockUptime.value = 120;
+    await nextTick();
+
+    expect(store.isTemporarilyBypassed).toBe(false);
   });
 });

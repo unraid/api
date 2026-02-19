@@ -97,6 +97,29 @@ On mount, summary step starts:
 | Install language pack | `InstallLanguage` (+ operation tracking query/subscription) |
 | Mark onboarding complete | `CompleteOnboarding` |
 
+## Temporary Bypass Controls
+
+Store: `web/src/components/Onboarding/store/activationCodeModal.ts`  
+Modal gate: `web/src/components/Onboarding/OnboardingModal.vue`
+
+Bypass is intentionally separate from onboarding completion state:
+
+1. Temporary bypass does **not** call `CompleteOnboarding`.
+2. Normal exit behavior still follows existing completion flow.
+3. Bypass applies to fresh and upgrade/downgrade onboarding.
+
+Supported controls:
+
+- Keyboard shortcut: `Ctrl/Cmd + Alt + Shift + O`
+- URL query param: `?onboarding=bypass`
+- URL query param to resume: `?onboarding=resume`
+
+Persistence model:
+
+- Stored per browser session (`sessionStorage`) under `onboardingTemporaryBypass`.
+- Boot-aware: bypass stores a boot marker derived from server uptime, and is treated as invalid after reboot.
+- URL param is consumed once and removed from the URL via `history.replaceState`.
+
 ## Core Settings Timezone Precedence
 
 Component: `web/src/components/Onboarding/steps/OnboardingCoreSettingsStep.vue`
@@ -204,6 +227,20 @@ Test file: `api/src/unraid-api/graph/resolvers/customization/onboarding.service.
 | B5 | identity has explicit empty `comment` | Send `COMMENT: ""` (do not omit). |
 | B6 | identity contains unsafe chars | Send sanitized values (quotes/backslashes stripped). |
 | B7 | banner copy fails + case model write fails | Continue to identity apply; do not hard-stop chain. |
+
+### H) Modal Bypass Matrix
+
+Test files:
+- `web/__test__/store/activationCodeModal.test.ts`
+- `web/__test__/components/Onboarding/OnboardingModal.test.ts`
+
+| Case | Input | Expected behavior |
+| --- | --- | --- |
+| M1 | Keyboard shortcut entered | Set temporary bypass active for current session/boot; modal hides without completion mutation. |
+| M2 | `onboarding=bypass` in URL | Activate temporary bypass and remove param from URL. |
+| M3 | `onboarding=resume` in URL | Clear temporary bypass, force modal visibility path, remove param from URL. |
+| M4 | Temporary bypass active + upgrade onboarding pending | Modal remains hidden due bypass gate. |
+| M5 | Normal close path (no bypass trigger) | Existing completion behavior remains unchanged. |
 
 ## How To Run The Targeted Suites
 

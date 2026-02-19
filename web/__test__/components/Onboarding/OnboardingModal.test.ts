@@ -19,6 +19,7 @@ const {
   mutateMock: vi.fn().mockResolvedValue(undefined),
   activationCodeModalStore: {
     isVisible: { value: true },
+    isTemporarilyBypassed: { value: false },
     setIsHidden: vi.fn(),
   },
   activationCodeDataStore: {
@@ -134,6 +135,7 @@ describe('OnboardingModal.vue', () => {
     vi.clearAllMocks();
 
     activationCodeModalStore.isVisible.value = true;
+    activationCodeModalStore.isTemporarilyBypassed.value = false;
     activationCodeDataStore.activationRequired.value = false;
     activationCodeDataStore.hasActivationCode.value = true;
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE';
@@ -182,6 +184,16 @@ describe('OnboardingModal.vue', () => {
     activationCodeModalStore.isVisible.value = true;
     upgradeOnboardingStore.shouldShowOnboarding.value = true;
     upgradeOnboardingStore.canDisplayOnboardingModal.value = false;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(false);
+  });
+
+  it('does not render when temporary bypass is active', () => {
+    activationCodeModalStore.isVisible.value = true;
+    activationCodeModalStore.isTemporarilyBypassed.value = true;
+    upgradeOnboardingStore.shouldShowOnboarding.value = true;
 
     const wrapper = mountComponent();
 

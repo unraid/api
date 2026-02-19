@@ -25,7 +25,7 @@ import { useThemeStore } from '~/store/theme';
 const { t } = useI18n();
 
 const modalStore = useActivationCodeModalStore();
-const { isVisible } = storeToRefs(modalStore);
+const { isVisible, isTemporarilyBypassed } = storeToRefs(modalStore);
 const { activationRequired, hasActivationCode, registrationState } = storeToRefs(
   useActivationCodeDataStore()
 );
@@ -107,6 +107,7 @@ const showModal = computed(
   () =>
     !isLoginPage.value &&
     canDisplayOnboardingModal.value &&
+    !isTemporarilyBypassed.value &&
     (isVisible.value || shouldShowOnboarding.value)
 );
 const showExitConfirmDialog = ref(false);
