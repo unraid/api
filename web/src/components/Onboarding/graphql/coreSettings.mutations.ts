@@ -1,8 +1,8 @@
 import gql from 'graphql-tag';
 
 export const UPDATE_SERVER_IDENTITY_MUTATION = gql`
-  mutation UpdateServerIdentity($name: String!, $comment: String) {
-    updateServerIdentity(name: $name, comment: $comment) {
+  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {
+    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {
       id
       name
       comment

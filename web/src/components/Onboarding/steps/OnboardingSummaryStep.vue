@@ -57,7 +57,7 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
-const { registrationState } = storeToRefs(useActivationCodeDataStore());
+const { activationCode, isFreshInstall, registrationState } = storeToRefs(useActivationCodeDataStore());
 const { refetchOnboarding } = useUpgradeOnboardingStore();
 const modalStore = useActivationCodeModalStore();
 
@@ -103,6 +103,8 @@ const currentTimeZone = computed(() => {
 const serverName = computed(() => {
   return draftStore.serverName || coreSettingsResult.value?.vars?.name || 'Tower';
 });
+
+const activationSystemModel = computed(() => activationCode.value?.system?.model?.trim() || undefined);
 
 const sshEnabled = computed(() => {
   return draftStore.useSsh;
@@ -407,6 +409,12 @@ const handleComplete = async () => {
     const currentSsh = baselineLoaded
       ? Boolean(coreSettingsResult.value?.vars?.useSsh || false)
       : TRUSTED_DEFAULT_PROFILE.useSsh;
+    const currentSysModel = baselineLoaded ? coreSettingsResult.value?.vars?.sysModel || '' : '';
+    const shouldApplyPartnerSysModel = Boolean(
+      isFreshInstall.value &&
+        activationSystemModel.value &&
+        (!baselineLoaded || activationSystemModel.value !== currentSysModel)
+    );
 
     if (!baselineLoaded) {
       hadWarnings = true;
@@ -415,11 +423,15 @@ const handleComplete = async () => {
         'info'
       );
     }
+    if (shouldApplyPartnerSysModel) {
+      addLog('Applying partner customizations...', 'info');
+    }
 
     const shouldApplyTimeZone = baselineLoaded ? targetCoreSettings.timeZone !== currentTimezone : true;
     const shouldApplyServerIdentity = baselineLoaded
       ? targetCoreSettings.serverName !== currentName ||
-        targetCoreSettings.serverDescription !== currentDescription
+        targetCoreSettings.serverDescription !== currentDescription ||
+        shouldApplyPartnerSysModel
       : true;
     const shouldApplyTheme = baselineLoaded ? targetCoreSettings.theme !== currentTheme : true;
     const shouldApplyLocale = baselineLoaded ? targetCoreSettings.locale !== currentLocale : true;
@@ -448,6 +460,7 @@ const handleComplete = async () => {
         updateServerIdentity({
           name: targetCoreSettings.serverName,
           comment: targetCoreSettings.serverDescription,
+          sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
         })
           .then(() => addLog('Server Identity updated.', 'success'))
           .catch((e) => {

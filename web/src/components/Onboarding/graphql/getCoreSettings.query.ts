@@ -4,6 +4,7 @@ export const GET_CORE_SETTINGS_QUERY = gql`
   query GetCoreSettings {
     vars {
       name
+      sysModel
       useSsh
       localTld
     }
