@@ -110,7 +110,7 @@ Bypass is intentionally separate from onboarding completion state:
 
 Supported controls:
 
-- Keyboard shortcut: `Ctrl/Cmd + Alt + Shift + O`
+- Keyboard shortcut: `Ctrl/Cmd + Alt + Shift + O` (also accepts `0` / numpad `0`)
 - URL query param: `?onboarding=bypass`
 - URL query param to resume: `?onboarding=resume`
 

@@ -9,7 +9,7 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
 const ONBOARDING_QUERY_PARAM = 'onboarding';
-const ONBOARDING_BYPASS_SHORTCUT_CODE = 'KeyO';
+const ONBOARDING_BYPASS_SHORTCUT_CODES = new Set(['KeyO', 'Digit0', 'Numpad0']);
 const SECONDS_PER_MINUTE = 60;
 
 type TemporaryBypassState = {
@@ -162,7 +162,7 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
       isPrimaryModifierPressed &&
       event.altKey &&
       event.shiftKey &&
-      event.code === ONBOARDING_BYPASS_SHORTCUT_CODE
+      ONBOARDING_BYPASS_SHORTCUT_CODES.has(event.code)
     );
   };
 

@@ -166,6 +166,38 @@ describe('ActivationCodeModal Store', () => {
     expect(mockTemporaryBypassState.value).toMatchObject({ active: true });
   });
 
+  it('applies keyboard shortcut bypass for Digit0 on mac layouts', () => {
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: ')',
+        code: 'Digit0',
+        metaKey: true,
+        altKey: true,
+        shiftKey: true,
+      })
+    );
+
+    expect(store.isTemporarilyBypassed).toBe(true);
+    expect(mockIsHidden.value).toBe(true);
+    expect(mockTemporaryBypassState.value).toMatchObject({ active: true });
+  });
+
+  it('applies keyboard shortcut bypass for Numpad0', () => {
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: '0',
+        code: 'Numpad0',
+        ctrlKey: true,
+        altKey: true,
+        shiftKey: true,
+      })
+    );
+
+    expect(store.isTemporarilyBypassed).toBe(true);
+    expect(mockIsHidden.value).toBe(true);
+    expect(mockTemporaryBypassState.value).toMatchObject({ active: true });
+  });
+
   it('is visible on fresh install when not hidden or bypassed', () => {
     mockIsFreshInstall.value = true;
     mockIsHidden.value = null;
