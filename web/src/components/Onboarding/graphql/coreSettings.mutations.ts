@@ -1,21 +1,13 @@
 import gql from 'graphql-tag';
 
+export { SET_THEME_MUTATION } from '~/components/DevThemeSwitcher.mutation';
+
 export const UPDATE_SERVER_IDENTITY_MUTATION = gql`
   mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {
     updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {
       id
       name
       comment
-    }
-  }
-`;
-
-export const SET_THEME_MUTATION = gql`
-  mutation SetTheme($theme: ThemeName!) {
-    customization {
-      setTheme(theme: $theme) {
-        name
-      }
     }
   }
 `;
