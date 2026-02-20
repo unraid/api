@@ -46,7 +46,7 @@ import type { LogEntry } from '@/components/Onboarding/components/OnboardingCons
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
-import { PluginInstallStatus } from '~/composables/gql/graphql';
+import { PluginInstallStatus, ThemeName } from '~/composables/gql/graphql';
 
 export interface Props {
   onComplete: () => void;
@@ -178,11 +178,18 @@ const getSshVarsFromMutationResult = (result: unknown) => {
   return response.data?.updateSshSettings ?? response.updateSshSettings;
 };
 
+const THEME_NAMES = new Set<ThemeName>(Object.values(ThemeName));
+
+const normalizeThemeName = (value?: string | null): ThemeName => {
+  const normalized = (value ?? '').trim().toLowerCase() as ThemeName;
+  return THEME_NAMES.has(normalized) ? normalized : ThemeName.WHITE;
+};
+
 const TRUSTED_DEFAULT_PROFILE = Object.freeze({
   serverName: 'Tower',
   serverDescription: '',
   timeZone: 'UTC',
-  theme: 'white',
+  theme: ThemeName.WHITE,
   locale: 'en_US',
   useSsh: false,
 });
@@ -191,7 +198,7 @@ interface CoreSettingsSnapshot {
   serverName: string;
   serverDescription: string;
   timeZone: string;
-  theme: string;
+  theme: ThemeName;
   locale: string;
   useSsh: boolean;
 }
@@ -200,7 +207,7 @@ const resolveTargetCoreSettings = (): CoreSettingsSnapshot => ({
   serverName: draftStore.serverName || TRUSTED_DEFAULT_PROFILE.serverName,
   serverDescription: draftStore.serverDescription || TRUSTED_DEFAULT_PROFILE.serverDescription,
   timeZone: draftStore.selectedTimeZone || TRUSTED_DEFAULT_PROFILE.timeZone,
-  theme: draftStore.selectedTheme || TRUSTED_DEFAULT_PROFILE.theme,
+  theme: normalizeThemeName(draftStore.selectedTheme || TRUSTED_DEFAULT_PROFILE.theme),
   locale: draftStore.selectedLanguage || TRUSTED_DEFAULT_PROFILE.locale,
   useSsh: typeof draftStore.useSsh === 'boolean' ? draftStore.useSsh : TRUSTED_DEFAULT_PROFILE.useSsh,
 });
