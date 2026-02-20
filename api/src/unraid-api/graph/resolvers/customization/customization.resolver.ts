@@ -112,9 +112,4 @@ export class CustomizationResolver {
     async resolveOnboardingState(): Promise<OnboardingState> {
         return this.onboardingService.getOnboardingState();
     }
-
-    @ResolveField(() => Theme)
-    async theme(): Promise<Theme> {
-        return this.onboardingService.getTheme();
-    }
 }
