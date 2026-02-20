@@ -86,7 +86,14 @@ describe('ApiReportService', () => {
         };
 
         const mockConnectData = {
-            isSSOEnabled: true,
+            connect: {
+                id: 'connect',
+                dynamicRemoteAccess: {
+                    enabledType: 'STATIC',
+                    runningType: 'STATIC',
+                    error: null,
+                },
+            },
         };
 
         const mockServicesData = {
@@ -152,8 +159,8 @@ describe('ApiReportService', () => {
                 connect: {
                     installed: true,
                     dynamicRemoteAccess: {
-                        enabledType: 'ENABLED',
-                        runningType: 'ENABLED',
+                        enabledType: 'STATIC',
+                        runningType: 'STATIC',
                         error: null,
                     },
                 },
@@ -365,16 +372,23 @@ describe('ApiReportService', () => {
             expect(result.system.machineId).toBe('REDACTED');
         });
 
-        it('should handle connect when SSO is disabled', async () => {
-            const mockConnectDataWithSsoDisabled = {
-                isSSOEnabled: false,
+        it('should handle connect when dynamic remote access is disabled', async () => {
+            const mockConnectDataWithDynamicRemoteAccessDisabled = {
+                connect: {
+                    id: 'connect',
+                    dynamicRemoteAccess: {
+                        enabledType: 'DISABLED',
+                        runningType: 'DISABLED',
+                        error: null,
+                    },
+                },
             };
 
             mockClient.query.mockImplementation(({ query }) => {
                 if (query === SYSTEM_REPORT_QUERY) {
                     return Promise.resolve({ data: mockSystemData });
                 } else if (query === CONNECT_STATUS_QUERY) {
-                    return Promise.resolve({ data: mockConnectDataWithSsoDisabled });
+                    return Promise.resolve({ data: mockConnectDataWithDynamicRemoteAccessDisabled });
                 } else if (query === SERVICES_QUERY) {
                     return Promise.resolve({ data: mockServicesData });
                 }

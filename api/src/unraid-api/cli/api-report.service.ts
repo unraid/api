@@ -70,7 +70,7 @@ export class ApiReportService {
     private createApiReportData(params: {
         apiRunning: boolean;
         systemData?: SystemReportQuery;
-        connectData?: ConnectStatusQuery | null;
+        connectData?: ConnectStatusQuery['connect'] | null;
         servicesData?: ServiceInfo[];
         errorReason?: string;
     }): ApiReportData {
@@ -99,9 +99,9 @@ export class ApiReportService {
                 ? {
                       installed: true,
                       dynamicRemoteAccess: {
-                          enabledType: connectData.isSSOEnabled ? 'ENABLED' : 'DISABLED',
-                          runningType: connectData.isSSOEnabled ? 'ENABLED' : 'DISABLED',
-                          error: null,
+                          enabledType: connectData.dynamicRemoteAccess.enabledType,
+                          runningType: connectData.dynamicRemoteAccess.runningType,
+                          error: connectData.dynamicRemoteAccess.error || null,
                       },
                   }
                 : {
@@ -160,7 +160,7 @@ export class ApiReportService {
         }
 
         // Try to query connect status
-        let connectData: ConnectStatusQuery | null = null;
+        let connectData: ConnectStatusQuery['connect'] | null = null;
         try {
             const connectResult = await Promise.race([
                 client.query({
@@ -170,7 +170,7 @@ export class ApiReportService {
                     setTimeout(() => reject(new Error('Connect query timeout after 10 seconds')), 10000)
                 ),
             ]);
-            connectData = connectResult.data;
+            connectData = connectResult.data.connect;
         } catch (error) {
             this.logger.debug('Connect plugin not available: ' + error);
         }
