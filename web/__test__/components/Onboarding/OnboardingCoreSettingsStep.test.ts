@@ -303,6 +303,278 @@ describe('OnboardingCoreSettingsStep', () => {
     dateTimeFormatSpy.mockRestore();
   });
 
+  it('keeps existing timezone while onboarding tracker is still loading', async () => {
+    onboardingStore.loading.value = true;
+    onboardingStore.completed.value = false;
+
+    const dateTimeFormatSpy = vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
+      () =>
+        ({
+          resolvedOptions: () => ({ timeZone: 'America/New_York' }),
+        }) as Intl.DateTimeFormat
+    );
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        server: { name: 'Tower', comment: '' },
+        vars: { name: 'Tower', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(setCoreSettingsMock.mock.calls[0][0].timeZone).toBe('America/New_York');
+    expect(onComplete).toHaveBeenCalledTimes(1);
+    dateTimeFormatSpy.mockRestore();
+  });
+
+  it('prefers activation identity on initial setup when activation metadata exists', async () => {
+    onboardingStore.completed.value = false;
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        customization: {
+          activationCode: {
+            system: { serverName: 'Storinator45', comment: 'Primary storage node' },
+          },
+        },
+        server: { name: 'Tower', comment: 'Media server' },
+        vars: { name: 'Tower', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
+      serverName: 'Storinator45',
+      serverDescription: 'Primary storage node',
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps initial-setup description empty when activation comment is missing', async () => {
+    onboardingStore.completed.value = false;
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        customization: {
+          activationCode: {
+            system: { serverName: 'Storinator45' },
+          },
+        },
+        server: { name: 'Tower', comment: 'Media server' },
+        vars: { name: 'Tower', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
+      serverName: 'Storinator45',
+      serverDescription: '',
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses API identity first on returning setup and falls back to activation fields', async () => {
+    onboardingStore.completed.value = true;
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        customization: {
+          activationCode: {
+            system: { serverName: 'Storinator45', comment: 'Primary storage node' },
+          },
+        },
+        server: { name: '', comment: '' },
+        vars: { name: 'TowerFromVars', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
+      serverName: 'TowerFromVars',
+      serverDescription: 'Primary storage node',
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses API identity while onboarding tracker state is still loading', async () => {
+    onboardingStore.loading.value = true;
+    onboardingStore.completed.value = false;
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        customization: {
+          activationCode: {
+            system: { serverName: 'Storinator45', comment: 'Partner-provided comment' },
+          },
+        },
+        server: { name: 'TowerFromServer', comment: 'Comment from API' },
+        vars: { name: 'TowerFromVars', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
+      serverName: 'TowerFromServer',
+      serverDescription: 'Comment from API',
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps server.name ahead of vars.name and activation system name on returning setup', async () => {
+    onboardingStore.completed.value = true;
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        customization: {
+          activationCode: {
+            system: { serverName: 'Storinator45', comment: 'Partner-provided comment' },
+          },
+        },
+        server: { name: 'TowerFromServer', comment: '' },
+        vars: { name: 'TowerFromVars', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
+      serverName: 'TowerFromServer',
+      serverDescription: 'Partner-provided comment',
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps API comment ahead of activation comment on returning setup', async () => {
+    onboardingStore.completed.value = true;
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        customization: {
+          activationCode: {
+            system: { serverName: 'Storinator45', comment: 'Partner-provided comment' },
+          },
+        },
+        server: { name: 'TowerFromServer', comment: 'Comment from API' },
+        vars: { name: 'TowerFromVars', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
+      serverName: 'TowerFromServer',
+      serverDescription: 'Comment from API',
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses API identity on initial setup when activation system metadata is missing', async () => {
+    onboardingStore.completed.value = false;
+
+    const { wrapper, onComplete } = mountComponent();
+    await flushPromises();
+
+    const coreOnResult = coreOnResultHandlers[0];
+    coreOnResult({
+      data: {
+        customization: {
+          activationCode: {},
+        },
+        server: { name: 'TowerFromServer', comment: 'Comment from API' },
+        vars: { name: 'TowerFromVars', useSsh: false, localTld: 'local' },
+        display: { theme: 'white', locale: 'en_US' },
+        systemTime: { timeZone: 'UTC' },
+      },
+    });
+    await flushPromises();
+
+    const submitButton = wrapper.find('[data-testid="brand-button"]');
+    await submitButton.trigger('click');
+    await flushPromises();
+
+    expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
+    expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
+      serverName: 'TowerFromServer',
+      serverDescription: 'Comment from API',
+    });
+    expect(onComplete).toHaveBeenCalledTimes(1);
+  });
+
   it('uses trusted defaults when API baseline is unavailable', async () => {
     const { wrapper, onComplete } = mountComponent();
     await flushPromises();
