@@ -28,7 +28,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const { t } = useI18n();
+const { t, te } = useI18n();
 const serverStore = useServerStore();
 const { state } = storeToRefs(serverStore);
 const { refreshServerState } = serverStore;
@@ -38,6 +38,7 @@ const { activationCode, registrationState, hasActivationCode } = storeToRefs(
 
 // Valid license states where the server is considered "Registered/Licensed"
 const VALID_LICENSE_STATES = ['TRIAL', 'BASIC', 'STARTER', 'PLUS', 'PRO', 'UNLEASHED', 'LIFETIME'];
+const lt = (key: string, fallback: string) => (te(key) ? t(key) : fallback);
 
 const effectiveState = computed(() => registrationState.value || state.value);
 
@@ -46,11 +47,17 @@ const hasValidLicense = computed(() => {
 });
 
 // Computeds
-const statusText = computed(() => (hasValidLicense.value ? 'Registered' : 'Unregistered'));
+const statusText = computed(() =>
+  hasValidLicense.value
+    ? lt('onboarding.licenseStep.status.registered', 'Registered')
+    : lt('onboarding.licenseStep.status.unregistered', 'Unregistered')
+);
 const statusBoxTextClass = computed(() => (hasValidLicense.value ? 'text-green-500' : 'text-red-500'));
 
 const activateButtonText = computed(() =>
-  hasValidLicense.value ? 'Manage License' : 'Activate Server'
+  hasValidLicense.value
+    ? lt('onboarding.licenseStep.actions.manageLicense', 'Manage License')
+    : lt('onboarding.licenseStep.actions.activateServer', 'Activate Server')
 );
 
 // State
@@ -62,10 +69,17 @@ const isRefreshing = ref(false);
 // Methods
 const openActivate = () => {
   if (props.activateExternal) {
-    window.open(props.activateHref, '_blank');
+    const opened = window.open(props.activateHref, '_blank', 'noopener,noreferrer');
+    if (opened) {
+      opened.opener = null;
+    }
   } else {
     window.location.href = props.activateHref;
   }
+};
+
+const handleBack = () => {
+  props.onBack?.();
 };
 
 const toggleCodeReveal = () => {
@@ -98,7 +112,11 @@ const handleNext = () => {
   isSkipDialogOpen.value = true;
 };
 
-const nextButtonText = computed(() => (hasValidLicense.value ? 'NEXT STEP' : 'Skip for now'));
+const nextButtonText = computed(() =>
+  hasValidLicense.value
+    ? lt('onboarding.licenseStep.actions.nextStep', 'NEXT STEP')
+    : lt('onboarding.licenseStep.actions.skipForNow', 'Skip for now')
+);
 
 const closeSkipDialog = () => {
   isSkipDialogOpen.value = false;
@@ -127,10 +145,16 @@ const doSkip = () => {
 
         <!-- Title & Description -->
         <div class="text-center">
-          <h2 class="text-highlighted text-xl font-bold tracking-wider uppercase">Unraid OS License</h2>
+          <h2 class="text-highlighted text-xl font-bold tracking-wider uppercase">
+            {{ lt('onboarding.licenseStep.title', 'Unraid OS License') }}
+          </h2>
           <p class="text-muted mx-auto mt-2 max-w-md text-sm">
-            Ready for activation. Click below to manage your license and server registration in the
-            Unraid Account App.
+            {{
+              lt(
+                'onboarding.licenseStep.description',
+                'Ready for activation. Click below to manage your license and server registration in the Unraid Account App.'
+              )
+            }}
           </p>
         </div>
 
@@ -141,13 +165,13 @@ const doSkip = () => {
             class="bg-bg border-muted group relative flex flex-col items-start justify-center rounded-lg border p-4"
           >
             <div class="mb-1 flex w-full items-center justify-between">
-              <span class="text-muted-foreground text-[10px] font-bold tracking-wider uppercase"
-                >Status</span
-              >
+              <span class="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">{{
+                lt('onboarding.licenseStep.labels.status', 'Status')
+              }}</span>
               <button
                 @click="refreshStatus"
                 class="text-muted hover:text-primary -mt-1 -mr-2 p-1 transition-colors focus:outline-none"
-                title="Refresh Status"
+                :title="lt('onboarding.licenseStep.actions.refreshStatus', 'Refresh Status')"
                 :disabled="isRefreshing"
               >
                 <ArrowPathIcon class="h-3.5 w-3.5" :class="{ 'animate-spin': isRefreshing }" />
@@ -162,9 +186,9 @@ const doSkip = () => {
           <div
             class="bg-bg border-muted group relative flex flex-col items-start justify-center rounded-lg border p-4"
           >
-            <span class="text-muted-foreground mb-1 text-[10px] font-bold tracking-wider uppercase"
-              >Activation Code</span
-            >
+            <span class="text-muted-foreground mb-1 text-[10px] font-bold tracking-wider uppercase">{{
+              lt('onboarding.licenseStep.labels.activationCode', 'Activation Code')
+            }}</span>
             <div class="flex w-full items-center gap-2">
               <span class="text-highlighted truncate font-mono text-sm font-bold tracking-wide">
                 {{ isCodeRevealed ? activationCode?.code || 'None' : '••••••••••••••••' }}
@@ -172,7 +196,11 @@ const doSkip = () => {
               <button
                 @click.stop="toggleCodeReveal"
                 class="text-muted hover:text-primary ml-auto transition-colors focus:outline-none"
-                :title="isCodeRevealed ? 'Hide' : 'Show'"
+                :title="
+                  isCodeRevealed
+                    ? lt('onboarding.licenseStep.actions.hideCode', 'Hide')
+                    : lt('onboarding.licenseStep.actions.showCode', 'Show')
+                "
               >
                 <EyeIcon v-if="!isCodeRevealed" class="h-4 w-4" />
                 <EyeSlashIcon v-else class="h-4 w-4" />
@@ -212,7 +240,7 @@ const doSkip = () => {
           @click="openHelpDialog"
           class="text-muted hover:text-highlighted mt-4 text-xs font-medium underline underline-offset-2 transition-colors"
         >
-          Having trouble? Contact Support
+          {{ lt('onboarding.licenseStep.actions.contactSupport', 'Having trouble? Contact Support') }}
         </button>
 
         <!-- Footer / Navigation (Moved Inside Card) -->
@@ -221,7 +249,7 @@ const doSkip = () => {
         >
           <button
             v-if="showBack"
-            @click="onBack"
+            @click="handleBack"
             class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
           >
             <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
@@ -253,9 +281,16 @@ const doSkip = () => {
       <div class="bg-elevated border-muted relative w-full max-w-md rounded-xl border p-6 shadow-xl">
         <h3 class="text-highlighted mb-2 text-lg font-bold">Contact Support</h3>
         <div class="text-muted space-y-4 text-sm">
-          <p>If you are experiencing issues with activation, please contact our support team.</p>
           <p>
-            <strong>Support:</strong>
+            {{
+              lt(
+                'onboarding.licenseStep.help.contactSupportDescription',
+                'If you are experiencing issues with activation, please contact our support team.'
+              )
+            }}
+          </p>
+          <p>
+            <strong>{{ lt('onboarding.licenseStep.help.supportLabel', 'Support:') }}</strong>
             <a
               href="https://unraid.net/support"
               target="_blank"
@@ -266,8 +301,12 @@ const doSkip = () => {
           </p>
           <div v-if="hasActivationCode">
             <p class="text-muted-foreground text-xs">
-              Please include your <strong>Activation Code</strong> (copied below) in your email for
-              faster service.
+              {{
+                lt(
+                  'onboarding.licenseStep.help.activationCodeHint',
+                  'Please include your Activation Code (copied below) in your email for faster service.'
+                )
+              }}
             </p>
 
             <!-- Copy Code in Dialog -->
@@ -279,7 +318,12 @@ const doSkip = () => {
           </div>
         </div>
         <div class="mt-6 flex justify-end">
-          <BrandButton text="Close" @click="closeHelpDialog" class="uppercase" variant="outline" />
+          <BrandButton
+            :text="lt('onboarding.licenseStep.actions.close', 'Close')"
+            @click="closeHelpDialog"
+            class="uppercase"
+            variant="outline"
+          />
         </div>
       </div>
     </div>
@@ -298,7 +342,9 @@ const doSkip = () => {
       >
         <div class="mb-4 flex items-center gap-3">
           <ExclamationTriangleIcon class="h-8 w-8 flex-shrink-0 text-yellow-500" />
-          <h3 class="text-highlighted text-lg font-bold">Are you sure?</h3>
+          <h3 class="text-highlighted text-lg font-bold">
+            {{ lt('onboarding.licenseStep.skipDialog.title', 'Are you sure?') }}
+          </h3>
         </div>
 
         <div class="text-muted mt-2 space-y-4 text-sm">
@@ -312,8 +358,22 @@ const doSkip = () => {
 
           <!-- Standard Warning (Always Visible) -->
           <div>
-            <p>Skipping activation will <strong>severely</strong> limit system functionality.</p>
-            <p>You can always activate your server again later through the Unraid dashboard.</p>
+            <p>
+              {{
+                lt(
+                  'onboarding.licenseStep.skipDialog.warningLine1',
+                  'Skipping activation will severely limit system functionality.'
+                )
+              }}
+            </p>
+            <p>
+              {{
+                lt(
+                  'onboarding.licenseStep.skipDialog.warningLine2',
+                  'You can always activate your server again later through the Unraid dashboard.'
+                )
+              }}
+            </p>
           </div>
         </div>
 
@@ -322,10 +382,10 @@ const doSkip = () => {
             @click="closeSkipDialog"
             class="text-muted hover:text-highlighted text-sm font-medium tracking-wide transition-colors hover:underline"
           >
-            Cancel
+            {{ lt('onboarding.licenseStep.actions.cancel', 'Cancel') }}
           </button>
           <BrandButton
-            text="I UNDERSTAND"
+            :text="lt('onboarding.licenseStep.actions.iUnderstand', 'I UNDERSTAND')"
             @click="doSkip"
             class="border-none !bg-yellow-600 !text-white hover:!bg-yellow-700"
           />

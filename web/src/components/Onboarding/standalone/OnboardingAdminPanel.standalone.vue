@@ -516,8 +516,15 @@ const resetToPreset = () => {
 const applyOverrides = async () => {
   const trimmed = draftJson.value.trim();
   if (!trimmed) {
-    await clearOverrides();
-    errorMessage.value = '';
+    try {
+      await clearOverrides();
+      errorMessage.value = '';
+    } catch (error) {
+      errorMessage.value =
+        error instanceof Error
+          ? `Failed to clear overrides: ${error.message}`
+          : 'Failed to clear overrides';
+    }
     return;
   }
 
@@ -563,7 +570,7 @@ const updateRegistrationState = (newState: string) => {
   draftJson.value = formattedOverrides(current);
 
   // Apply
-  applyOverrides();
+  void applyOverrides();
 };
 
 const createPresetFromCurrent = () => {

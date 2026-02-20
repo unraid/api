@@ -1234,7 +1234,7 @@ export const useServerStore = defineStore('server', () => {
     attempt?: number;
     maxAttempts?: number;
     intervalMs?: number;
-  }) => {
+  }): Promise<boolean> => {
     const poll = options?.poll ?? true;
     const attempt = options?.attempt ?? 0;
     const maxAttempts = options?.maxAttempts ?? refreshLimit;
@@ -1258,9 +1258,10 @@ export const useServerStore = defineStore('server', () => {
     const response = fromApi ? await refetchServerState() : await phpServerStateRefresh();
     if (!response) {
       if (poll) {
-        return setTimeout(() => {
-          refreshServerState({ poll, attempt: attempt + 1, maxAttempts, intervalMs });
+        setTimeout(() => {
+          void refreshServerState({ poll, attempt: attempt + 1, maxAttempts, intervalMs });
         }, intervalMs);
+        return false;
       }
       return false;
     }

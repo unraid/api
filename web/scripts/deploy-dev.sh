@@ -34,8 +34,9 @@ retry() {
 
 # Clean and Build
 echo "Building project..."
-pnpm run clean
-pnpm run build
+pnpm codegen || exit 1
+pnpm run clean || exit 1
+pnpm run build || exit 1
 
 # Source directory paths
 standalone_directory="dist/"

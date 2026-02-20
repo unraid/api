@@ -1,4 +1,4 @@
-import { graphql } from '~/composables/gql';
+import { graphql } from '~/composables/gql/index.js';
 
 export const INSTALL_PLUGIN_MUTATION = graphql(/* GraphQL */ `
   mutation InstallPlugin($input: InstallPluginInput!) {

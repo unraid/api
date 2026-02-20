@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useMutation } from '@vue/apollo-composable';
@@ -39,14 +39,13 @@ const themeStore = useThemeStore();
 const draftStore = useOnboardingDraftStore();
 const { currentStepIndex } = storeToRefs(draftStore);
 
-// Ensure theme is loaded when modal opens
-(async () => {
+onMounted(async () => {
   try {
     await themeStore.fetchTheme();
   } catch (error) {
     console.error('Error loading theme:', error);
   }
-})();
+});
 
 const hasKeyfile = computed(() => Boolean(keyfile.value));
 const ACTIVATION_STEP_REGISTRATION_STATES = new Set(['ENOKEYFILE', 'ENOKEYFILE1', 'ENOKEYFILE2']);
@@ -111,16 +110,6 @@ const showModal = computed(
     (isVisible.value || shouldShowOnboarding.value)
 );
 const showExitConfirmDialog = ref(false);
-
-const stepSaveState = ref<'idle' | 'saving' | 'saved'>('idle');
-let stepSaveTimeout: ReturnType<typeof setTimeout> | null = null;
-
-onBeforeUnmount(() => {
-  if (stepSaveTimeout !== null) {
-    clearTimeout(stepSaveTimeout);
-    stepSaveTimeout = null;
-  }
-});
 
 const currentStep = computed<StepId | null>(() => {
   if (currentStepIndex.value < availableSteps.value.length) {
@@ -198,11 +187,6 @@ const closeModal = async (options?: { reload?: boolean }) => {
   if (shouldShowOnboarding.value) {
     await completePendingOnboarding();
   }
-  stepSaveState.value = 'idle';
-  if (stepSaveTimeout) {
-    clearTimeout(stepSaveTimeout);
-    stepSaveTimeout = null;
-  }
   modalStore.setIsHidden(true);
 
   if (options?.reload) {
@@ -241,7 +225,6 @@ const goToStep = (stepIndex: number) => {
 const canGoBack = computed(() => currentStepIndex.value > 0);
 
 const handleTimezoneComplete = async () => {
-  console.log('[OnboardingModal] Timezone complete, moving to next step');
   await goToNextStep();
 };
 
@@ -270,11 +253,6 @@ const handleExitConfirm = async () => {
   await closeModal();
 };
 
-// Since we don't track individual step completion on server anymore,
-// we just check if step is in progress
-const isCurrentStepSaved = computed(() => false);
-const isStepSaving = computed(() => stepSaveState.value === 'saving');
-
 const handleActivationSkip = async () => {
   // Just move to next step without marking complete
   if (currentStepIndex.value < availableSteps.value.length - 1) {
@@ -295,15 +273,11 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
     onBack: goToPreviousStep,
     showBack: canGoBack.value,
     isCompleted: false, // No server-side step completion tracking
-    isSavingStep: isStepSaving.value,
+    isSavingStep: false,
   };
 
   switch (step) {
     case 'OVERVIEW':
-      console.log('[OnboardingModal] OVERVIEW step props:', {
-        isUpgrade: isVersionDrift.value,
-        completedAtVersion: completedAtVersion.value,
-      });
       return {
         ...baseProps,
         isUpgrade: isVersionDrift.value,
@@ -359,20 +333,6 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
       return baseProps;
   }
 });
-
-// No need to watch steps since they're hardcoded
-// Just ensure we're on first step when modal opens
-// We rely on persisted state now, so no auto-reset
-watch(
-  () => showModal.value,
-  () => {
-    // If we wanted to reset on every fresh open, we'd do it here.
-    // But we want persistence.
-    // if (isOpen) {
-    //   currentStepIndex.value = 0;
-    // }
-  }
-);
 </script>
 
 <template>
@@ -405,20 +365,11 @@ watch(
         <OnboardingSteps
           :steps="filteredSteps"
           :active-step-index="currentDynamicStepIndex"
-          :on-step-click="isStepSaving ? undefined : goToStep"
+          :on-step-click="goToStep"
           class="mb-8"
         />
 
         <component v-if="currentStepComponent" :is="currentStepComponent" v-bind="currentStepProps" />
-
-        <div
-          v-if="stepSaveState !== 'idle' || isCurrentStepSaved"
-          class="text-muted-foreground mt-3 text-xs"
-          role="status"
-        >
-          <span v-if="stepSaveState === 'saving'">Saving step...</span>
-          <span v-else>Step saved.</span>
-        </div>
       </div>
     </div>
   </Dialog>

@@ -174,7 +174,7 @@ describe('ActivationCodeData Store', () => {
               customization: {
                 onboarding: {
                   onboardingState: {
-                    registrationState: 'REGISTERED' as RegistrationState,
+                    registrationState: RegistrationState.PRO,
                     isFreshInstall: false, // Backend determines this value
                   },
                 },

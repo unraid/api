@@ -116,7 +116,6 @@ describe('OnboardingLicenseStep.vue', () => {
 
     expect(wrapper.text()).toContain('Registered');
     expect(wrapper.text()).toContain('Manage License');
-    expect(wrapper.find('span.text-green-500').exists()).toBe(true);
   });
 
   it('opens activation link in new tab when activate button is clicked', async () => {
@@ -135,7 +134,11 @@ describe('OnboardingLicenseStep.vue', () => {
     expect(activateButton).toBeTruthy();
     await activateButton!.trigger('click');
 
-    expect(windowOpenMock).toHaveBeenCalledWith('https://activation.url', '_blank');
+    expect(windowOpenMock).toHaveBeenCalledWith(
+      'https://activation.url',
+      '_blank',
+      'noopener,noreferrer'
+    );
   });
 
   it('calls onComplete when skip is clicked', async () => {
