@@ -411,6 +411,10 @@ export enum AuthorizationRuleMode {
 export type BrandingConfig = {
   __typename?: 'BrandingConfig';
   background?: Maybe<Scalars['String']['output']>;
+  /** Banner image source. Supports local path, remote URL, or data URI/base64. */
+  bannerImage?: Maybe<Scalars['String']['output']>;
+  /** Case model image source. Supports local path, remote URL, or data URI/base64. */
+  caseModelImage?: Maybe<Scalars['String']['output']>;
   /** Indicates if a partner logo exists */
   hasPartnerLogo: Scalars['Boolean']['output'];
   header?: Maybe<Scalars['String']['output']>;
@@ -435,9 +439,9 @@ export type BrandingConfig = {
   onboardingTitleIncomplete?: Maybe<Scalars['String']['output']>;
   /** Custom title for upgrade onboarding */
   onboardingTitleUpgrade?: Maybe<Scalars['String']['output']>;
-  /** Partner logo URL to use on dark themes (black/gray) */
+  /** Partner logo source for dark themes (black/gray). Supports local path, remote URL, or data URI/base64. */
   partnerLogoDarkUrl?: Maybe<Scalars['String']['output']>;
-  /** Partner logo URL to use on light themes (azure/white) */
+  /** Partner logo source for light themes (azure/white). Supports local path, remote URL, or data URI/base64. */
   partnerLogoLightUrl?: Maybe<Scalars['String']['output']>;
   showBannerGradient?: Maybe<Scalars['Boolean']['output']>;
   theme?: Maybe<Scalars['String']['output']>;
@@ -445,6 +449,8 @@ export type BrandingConfig = {
 
 export type BrandingConfigInput = {
   background?: InputMaybe<Scalars['String']['input']>;
+  bannerImage?: InputMaybe<Scalars['String']['input']>;
+  caseModelImage?: InputMaybe<Scalars['String']['input']>;
   hasPartnerLogo?: InputMaybe<Scalars['Boolean']['input']>;
   header?: InputMaybe<Scalars['String']['input']>;
   headermetacolor?: InputMaybe<Scalars['String']['input']>;
@@ -655,16 +661,24 @@ export type CreateRCloneRemoteInput = {
 export type Customization = {
   __typename?: 'Customization';
   activationCode?: Maybe<ActivationCode>;
-  onboardingState: OnboardingState;
-  partnerInfo?: Maybe<PublicPartnerInfo>;
-  theme: Theme;
+  availableLanguages?: Maybe<Array<Language>>;
+  /** Onboarding completion state and context */
+  onboarding: Onboarding;
 };
 
 /** Customization related mutations */
 export type CustomizationMutations = {
   __typename?: 'CustomizationMutations';
+  /** Update the display locale (language) */
+  setLocale: Scalars['String']['output'];
   /** Update the UI theme (writes dynamix.cfg) */
   setTheme: Theme;
+};
+
+
+/** Customization related mutations */
+export type CustomizationMutationsSetLocaleArgs = {
+  locale: Scalars['String']['input'];
 };
 
 
@@ -1587,10 +1601,6 @@ export type Mutation = {
   /** Reset Docker template mappings to defaults. Use this to recover from corrupted state. */
   resetDockerTemplateMappings: Scalars['Boolean']['output'];
   setDockerFolderChildren: ResolvedOrganizerV1;
-  /** Set the display locale (language) */
-  setLocale: InfoDisplay;
-  /** Set the display theme */
-  setTheme: InfoDisplay;
   setupRemoteAccess: Scalars['Boolean']['output'];
   syncDockerTemplatePaths: DockerTemplateSyncResult;
   unarchiveAll: NotificationOverview;
@@ -1600,7 +1610,7 @@ export type Mutation = {
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
   updateDockerViewPreferences: ResolvedOrganizerV1;
-  /** Update server name and comment */
+  /** Update server name, comment, and model */
   updateServerIdentity: Server;
   updateSettings: UpdateSettingsResponse;
   updateSshSettings: Vars;
@@ -1716,16 +1726,6 @@ export type MutationSetDockerFolderChildrenArgs = {
 };
 
 
-export type MutationSetLocaleArgs = {
-  locale: Scalars['String']['input'];
-};
-
-
-export type MutationSetThemeArgs = {
-  theme: Scalars['String']['input'];
-};
-
-
 export type MutationSetupRemoteAccessArgs = {
   input: SetupRemoteAccessInput;
 };
@@ -1760,6 +1760,7 @@ export type MutationUpdateDockerViewPreferencesArgs = {
 export type MutationUpdateServerIdentityArgs = {
   comment?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
+  sysModel?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1926,6 +1927,8 @@ export type Onboarding = {
   completedAtVersion?: Maybe<Scalars['String']['output']>;
   /** Whether this is a partner/OEM build with activation code */
   isPartnerBuild: Scalars['Boolean']['output'];
+  /** Runtime onboarding state values used by the onboarding flow */
+  onboardingState: OnboardingState;
   /** The current onboarding status (INCOMPLETE, UPGRADE, DOWNGRADE, or COMPLETED) */
   status: OnboardingStatus;
 };
@@ -2192,12 +2195,6 @@ export type PublicOidcProvider = {
   name: Scalars['String']['output'];
 };
 
-export type PublicPartnerInfo = {
-  __typename?: 'PublicPartnerInfo';
-  branding?: Maybe<BrandingConfig>;
-  partner?: Maybe<PartnerConfig>;
-};
-
 export type Query = {
   __typename?: 'Query';
   apiKey?: Maybe<ApiKey>;
@@ -2207,8 +2204,6 @@ export type Query = {
   apiKeyPossibleRoles: Array<Role>;
   apiKeys: Array<ApiKey>;
   array: UnraidArray;
-  /** Get available languages for installation */
-  availableLanguages: Array<Language>;
   cloud: Cloud;
   config: Config;
   connect: Connect;
@@ -2243,8 +2238,6 @@ export type Query = {
   oidcProvider?: Maybe<OidcProvider>;
   /** Get all configured OIDC providers (admin only) */
   oidcProviders: Array<OidcProvider>;
-  /** Onboarding completion state and context */
-  onboarding: Onboarding;
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
@@ -2258,7 +2251,6 @@ export type Query = {
   previewEffectivePermissions: Array<Permission>;
   /** Get public OIDC provider information for login buttons */
   publicOidcProviders: Array<PublicOidcProvider>;
-  publicPartnerInfo?: Maybe<PublicPartnerInfo>;
   publicTheme: Theme;
   rclone: RCloneBackupSettings;
   registration?: Maybe<Registration>;
@@ -2639,6 +2631,7 @@ export type SubscriptionPluginInstallUpdatesArgs = {
 
 export type SystemConfig = {
   __typename?: 'SystemConfig';
+  comment?: Maybe<Scalars['String']['output']>;
   model?: Maybe<Scalars['String']['output']>;
   serverName?: Maybe<Scalars['String']['output']>;
 };
@@ -3633,30 +3626,20 @@ export type NotificationsWarningsAndAlertsSubSubscription = { __typename?: 'Subs
     & { ' $fragmentRefs'?: { 'NotificationFragmentFragment': NotificationFragmentFragment } }
   )> };
 
-export type PartnerInfoQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type PartnerInfoQuery = { __typename?: 'Query', publicPartnerInfo?: { __typename?: 'PublicPartnerInfo', partner?: { __typename?: 'PartnerConfig', name?: string | null, url?: string | null, hardwareSpecsUrl?: string | null, manualUrl?: string | null, supportUrl?: string | null, extraLinks?: Array<{ __typename?: 'PartnerLink', title: string, url: string }> | null } | null, branding?: { __typename?: 'BrandingConfig', hasPartnerLogo: boolean, partnerLogoLightUrl?: string | null, partnerLogoDarkUrl?: string | null, onboardingTitle?: string | null, onboardingSubtitle?: string | null, onboardingTitleFreshInstall?: string | null, onboardingSubtitleFreshInstall?: string | null, onboardingTitleUpgrade?: string | null, onboardingSubtitleUpgrade?: string | null, onboardingTitleDowngrade?: string | null, onboardingSubtitleDowngrade?: string | null, onboardingTitleIncomplete?: string | null, onboardingSubtitleIncomplete?: string | null } | null } | null };
-
-export type PublicWelcomeDataQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type PublicWelcomeDataQuery = { __typename?: 'Query', isFreshInstall: boolean, publicPartnerInfo?: { __typename?: 'PublicPartnerInfo', partner?: { __typename?: 'PartnerConfig', name?: string | null, url?: string | null, hardwareSpecsUrl?: string | null, manualUrl?: string | null, supportUrl?: string | null, extraLinks?: Array<{ __typename?: 'PartnerLink', title: string, url: string }> | null } | null, branding?: { __typename?: 'BrandingConfig', hasPartnerLogo: boolean, partnerLogoLightUrl?: string | null, partnerLogoDarkUrl?: string | null, onboardingTitle?: string | null, onboardingSubtitle?: string | null, onboardingTitleFreshInstall?: string | null, onboardingSubtitleFreshInstall?: string | null, onboardingTitleUpgrade?: string | null, onboardingSubtitleUpgrade?: string | null, onboardingTitleDowngrade?: string | null, onboardingSubtitleDowngrade?: string | null, onboardingTitleIncomplete?: string | null, onboardingSubtitleIncomplete?: string | null } | null } | null };
-
 export type ActivationCodeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ActivationCodeQuery = { __typename?: 'Query', customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', code?: string | null, partner?: { __typename?: 'PartnerConfig', name?: string | null, url?: string | null, hardwareSpecsUrl?: string | null, manualUrl?: string | null, supportUrl?: string | null, extraLinks?: Array<{ __typename?: 'PartnerLink', title: string, url: string }> | null } | null, branding?: { __typename?: 'BrandingConfig', header?: string | null, headermetacolor?: string | null, background?: string | null, showBannerGradient?: boolean | null, theme?: string | null, partnerLogoLightUrl?: string | null, partnerLogoDarkUrl?: string | null, hasPartnerLogo: boolean, onboardingTitle?: string | null, onboardingSubtitle?: string | null, onboardingTitleFreshInstall?: string | null, onboardingSubtitleFreshInstall?: string | null, onboardingTitleUpgrade?: string | null, onboardingSubtitleUpgrade?: string | null, onboardingTitleDowngrade?: string | null, onboardingSubtitleDowngrade?: string | null, onboardingTitleIncomplete?: string | null, onboardingSubtitleIncomplete?: string | null } | null, system?: { __typename?: 'SystemConfig', serverName?: string | null, model?: string | null } | null } | null, partnerInfo?: { __typename?: 'PublicPartnerInfo', partner?: { __typename?: 'PartnerConfig', name?: string | null, url?: string | null, hardwareSpecsUrl?: string | null, manualUrl?: string | null, supportUrl?: string | null, extraLinks?: Array<{ __typename?: 'PartnerLink', title: string, url: string }> | null } | null, branding?: { __typename?: 'BrandingConfig', hasPartnerLogo: boolean, partnerLogoLightUrl?: string | null, partnerLogoDarkUrl?: string | null, onboardingTitle?: string | null, onboardingSubtitle?: string | null, onboardingTitleFreshInstall?: string | null, onboardingSubtitleFreshInstall?: string | null, onboardingTitleUpgrade?: string | null, onboardingSubtitleUpgrade?: string | null, onboardingTitleDowngrade?: string | null, onboardingSubtitleDowngrade?: string | null, onboardingTitleIncomplete?: string | null, onboardingSubtitleIncomplete?: string | null } | null } | null, onboardingState: { __typename?: 'OnboardingState', registrationState?: RegistrationState | null, isRegistered: boolean, isFreshInstall: boolean, hasActivationCode: boolean, activationRequired: boolean } } | null };
+export type ActivationCodeQuery = { __typename?: 'Query', customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', code?: string | null, partner?: { __typename?: 'PartnerConfig', name?: string | null, url?: string | null, hardwareSpecsUrl?: string | null, manualUrl?: string | null, supportUrl?: string | null, extraLinks?: Array<{ __typename?: 'PartnerLink', title: string, url: string }> | null } | null, branding?: { __typename?: 'BrandingConfig', header?: string | null, headermetacolor?: string | null, background?: string | null, showBannerGradient?: boolean | null, theme?: string | null, partnerLogoLightUrl?: string | null, partnerLogoDarkUrl?: string | null, hasPartnerLogo: boolean, onboardingTitle?: string | null, onboardingSubtitle?: string | null, onboardingTitleFreshInstall?: string | null, onboardingSubtitleFreshInstall?: string | null, onboardingTitleUpgrade?: string | null, onboardingSubtitleUpgrade?: string | null, onboardingTitleDowngrade?: string | null, onboardingSubtitleDowngrade?: string | null, onboardingTitleIncomplete?: string | null, onboardingSubtitleIncomplete?: string | null } | null, system?: { __typename?: 'SystemConfig', serverName?: string | null, model?: string | null } | null } | null, onboarding: { __typename?: 'Onboarding', onboardingState: { __typename?: 'OnboardingState', registrationState?: RegistrationState | null, isRegistered: boolean, isFreshInstall: boolean, hasActivationCode: boolean, activationRequired: boolean } } } | null };
 
 export type OnboardingQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnboardingQuery = { __typename?: 'Query', onboarding: { __typename?: 'Onboarding', status: OnboardingStatus, isPartnerBuild: boolean, completed: boolean, completedAtVersion?: string | null } };
+export type OnboardingQuery = { __typename?: 'Query', customization?: { __typename?: 'Customization', onboarding: { __typename?: 'Onboarding', status: OnboardingStatus, isPartnerBuild: boolean, completed: boolean, completedAtVersion?: string | null } } | null };
 
 export type GetAvailableLanguagesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAvailableLanguagesQuery = { __typename?: 'Query', availableLanguages: Array<{ __typename?: 'Language', code: string, name: string, url?: string | null }> };
+export type GetAvailableLanguagesQuery = { __typename?: 'Query', customization?: { __typename?: 'Customization', availableLanguages?: Array<{ __typename?: 'Language', code: string, name: string, url?: string | null }> | null } | null };
 
 export type CompleteOnboardingMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -3666,24 +3649,18 @@ export type CompleteOnboardingMutation = { __typename?: 'Mutation', onboarding: 
 export type UpdateServerIdentityMutationVariables = Exact<{
   name: Scalars['String']['input'];
   comment?: InputMaybe<Scalars['String']['input']>;
+  sysModel?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
 export type UpdateServerIdentityMutation = { __typename?: 'Mutation', updateServerIdentity: { __typename?: 'Server', id: string, name: string, comment?: string | null } };
-
-export type SetLegacyThemeMutationVariables = Exact<{
-  theme: Scalars['String']['input'];
-}>;
-
-
-export type SetLegacyThemeMutation = { __typename?: 'Mutation', setTheme: { __typename?: 'InfoDisplay', id: string, theme: ThemeName } };
 
 export type SetLocaleMutationVariables = Exact<{
   locale: Scalars['String']['input'];
 }>;
 
 
-export type SetLocaleMutation = { __typename?: 'Mutation', setLocale: { __typename?: 'InfoDisplay', id: string, locale?: string | null } };
+export type SetLocaleMutation = { __typename?: 'Mutation', customization: { __typename?: 'CustomizationMutations', setLocale: string } };
 
 export type UpdateSshSettingsMutationVariables = Exact<{
   enabled: Scalars['Boolean']['input'];
@@ -3696,7 +3673,7 @@ export type UpdateSshSettingsMutation = { __typename?: 'Mutation', updateSshSett
 export type GetCoreSettingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetCoreSettingsQuery = { __typename?: 'Query', vars: { __typename?: 'Vars', name?: string | null, useSsh?: boolean | null, localTld?: string | null }, server?: { __typename?: 'Server', name: string, comment?: string | null } | null, display: { __typename?: 'InfoDisplay', theme: ThemeName, locale?: string | null }, systemTime: { __typename?: 'SystemTime', timeZone: string }, info: { __typename?: 'Info', primaryNetwork?: { __typename?: 'InfoNetworkInterface', ipAddress?: string | null } | null } };
+export type GetCoreSettingsQuery = { __typename?: 'Query', vars: { __typename?: 'Vars', name?: string | null, sysModel?: string | null, useSsh?: boolean | null, localTld?: string | null }, server?: { __typename?: 'Server', name: string, comment?: string | null } | null, display: { __typename?: 'InfoDisplay', theme: ThemeName, locale?: string | null }, systemTime: { __typename?: 'SystemTime', timeZone: string }, info: { __typename?: 'Info', primaryNetwork?: { __typename?: 'InfoNetworkInterface', ipAddress?: string | null } | null } };
 
 export type InstallLanguageMutationVariables = Exact<{
   input: InstallPluginInput;
@@ -3873,17 +3850,14 @@ export const NotifyIfUniqueDocument = {"kind":"Document","definitions":[{"kind":
 export const NotificationAddedSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationAddedSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationAdded"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationAddedSubSubscription, NotificationAddedSubSubscriptionVariables>;
 export const NotificationOverviewSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationOverviewSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationsOverview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationOverviewSubSubscription, NotificationOverviewSubSubscriptionVariables>;
 export const NotificationsWarningsAndAlertsSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationsWarningsAndAlertsSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationsWarningsAndAlerts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationsWarningsAndAlertsSubSubscription, NotificationsWarningsAndAlertsSubSubscriptionVariables>;
-export const PartnerInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"partner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"hardwareSpecsUrl"}},{"kind":"Field","name":{"kind":"Name","value":"manualUrl"}},{"kind":"Field","name":{"kind":"Name","value":"supportUrl"}},{"kind":"Field","name":{"kind":"Name","value":"extraLinks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"branding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoLightUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoDarkUrl"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleIncomplete"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleIncomplete"}}]}}]}}]}}]} as unknown as DocumentNode<PartnerInfoQuery, PartnerInfoQueryVariables>;
-export const PublicWelcomeDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PublicWelcomeData"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"partner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"hardwareSpecsUrl"}},{"kind":"Field","name":{"kind":"Name","value":"manualUrl"}},{"kind":"Field","name":{"kind":"Name","value":"supportUrl"}},{"kind":"Field","name":{"kind":"Name","value":"extraLinks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"branding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoLightUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoDarkUrl"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleIncomplete"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleIncomplete"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"isFreshInstall"}}]}}]} as unknown as DocumentNode<PublicWelcomeDataQuery, PublicWelcomeDataQueryVariables>;
-export const ActivationCodeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"partner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"hardwareSpecsUrl"}},{"kind":"Field","name":{"kind":"Name","value":"manualUrl"}},{"kind":"Field","name":{"kind":"Name","value":"supportUrl"}},{"kind":"Field","name":{"kind":"Name","value":"extraLinks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"branding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"header"}},{"kind":"Field","name":{"kind":"Name","value":"headermetacolor"}},{"kind":"Field","name":{"kind":"Name","value":"background"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoLightUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoDarkUrl"}},{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleIncomplete"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleIncomplete"}}]}},{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"model"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"partnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"partner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"hardwareSpecsUrl"}},{"kind":"Field","name":{"kind":"Name","value":"manualUrl"}},{"kind":"Field","name":{"kind":"Name","value":"supportUrl"}},{"kind":"Field","name":{"kind":"Name","value":"extraLinks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"branding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoLightUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoDarkUrl"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleIncomplete"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleIncomplete"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"onboardingState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"registrationState"}},{"kind":"Field","name":{"kind":"Name","value":"isRegistered"}},{"kind":"Field","name":{"kind":"Name","value":"isFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"hasActivationCode"}},{"kind":"Field","name":{"kind":"Name","value":"activationRequired"}}]}}]}}]}}]} as unknown as DocumentNode<ActivationCodeQuery, ActivationCodeQueryVariables>;
-export const OnboardingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"isPartnerBuild"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedAtVersion"}}]}}]}}]} as unknown as DocumentNode<OnboardingQuery, OnboardingQueryVariables>;
-export const GetAvailableLanguagesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAvailableLanguages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"availableLanguages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}}]} as unknown as DocumentNode<GetAvailableLanguagesQuery, GetAvailableLanguagesQueryVariables>;
+export const ActivationCodeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"partner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"hardwareSpecsUrl"}},{"kind":"Field","name":{"kind":"Name","value":"manualUrl"}},{"kind":"Field","name":{"kind":"Name","value":"supportUrl"}},{"kind":"Field","name":{"kind":"Name","value":"extraLinks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"branding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"header"}},{"kind":"Field","name":{"kind":"Name","value":"headermetacolor"}},{"kind":"Field","name":{"kind":"Name","value":"background"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoLightUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoDarkUrl"}},{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleIncomplete"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleIncomplete"}}]}},{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"model"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboardingState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"registrationState"}},{"kind":"Field","name":{"kind":"Name","value":"isRegistered"}},{"kind":"Field","name":{"kind":"Name","value":"isFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"hasActivationCode"}},{"kind":"Field","name":{"kind":"Name","value":"activationRequired"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ActivationCodeQuery, ActivationCodeQueryVariables>;
+export const OnboardingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"isPartnerBuild"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedAtVersion"}}]}}]}}]}}]} as unknown as DocumentNode<OnboardingQuery, OnboardingQueryVariables>;
+export const GetAvailableLanguagesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAvailableLanguages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"availableLanguages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}}]}}]} as unknown as DocumentNode<GetAvailableLanguagesQuery, GetAvailableLanguagesQueryVariables>;
 export const CompleteOnboardingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CompleteOnboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"completeOnboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"isPartnerBuild"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedAtVersion"}}]}}]}}]}}]} as unknown as DocumentNode<CompleteOnboardingMutation, CompleteOnboardingMutationVariables>;
-export const UpdateServerIdentityDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateServerIdentity"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"comment"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateServerIdentity"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"comment"},"value":{"kind":"Variable","name":{"kind":"Name","value":"comment"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}}]}}]} as unknown as DocumentNode<UpdateServerIdentityMutation, UpdateServerIdentityMutationVariables>;
-export const SetLegacyThemeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SetLegacyTheme"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"theme"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setTheme"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"theme"},"value":{"kind":"Variable","name":{"kind":"Name","value":"theme"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}}]}}]}}]} as unknown as DocumentNode<SetLegacyThemeMutation, SetLegacyThemeMutationVariables>;
-export const SetLocaleDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SetLocale"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"locale"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setLocale"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"locale"},"value":{"kind":"Variable","name":{"kind":"Name","value":"locale"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"locale"}}]}}]}}]} as unknown as DocumentNode<SetLocaleMutation, SetLocaleMutationVariables>;
+export const UpdateServerIdentityDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateServerIdentity"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"comment"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sysModel"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateServerIdentity"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"comment"},"value":{"kind":"Variable","name":{"kind":"Name","value":"comment"}}},{"kind":"Argument","name":{"kind":"Name","value":"sysModel"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sysModel"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}}]}}]} as unknown as DocumentNode<UpdateServerIdentityMutation, UpdateServerIdentityMutationVariables>;
+export const SetLocaleDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SetLocale"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"locale"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setLocale"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"locale"},"value":{"kind":"Variable","name":{"kind":"Name","value":"locale"}}}]}]}}]}}]} as unknown as DocumentNode<SetLocaleMutation, SetLocaleMutationVariables>;
 export const UpdateSshSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSshSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"enabled"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"port"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"22"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSshSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"enabled"},"value":{"kind":"Variable","name":{"kind":"Name","value":"enabled"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"port"},"value":{"kind":"Variable","name":{"kind":"Name","value":"port"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"useSsh"}},{"kind":"Field","name":{"kind":"Name","value":"portssh"}}]}}]}}]} as unknown as DocumentNode<UpdateSshSettingsMutation, UpdateSshSettingsMutationVariables>;
-export const GetCoreSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCoreSettings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"useSsh"}},{"kind":"Field","name":{"kind":"Name","value":"localTld"}}]}},{"kind":"Field","name":{"kind":"Name","value":"server"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"display"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"theme"}},{"kind":"Field","name":{"kind":"Name","value":"locale"}}]}},{"kind":"Field","name":{"kind":"Name","value":"systemTime"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"timeZone"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"primaryNetwork"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ipAddress"}}]}}]}}]}}]} as unknown as DocumentNode<GetCoreSettingsQuery, GetCoreSettingsQueryVariables>;
+export const GetCoreSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCoreSettings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sysModel"}},{"kind":"Field","name":{"kind":"Name","value":"useSsh"}},{"kind":"Field","name":{"kind":"Name","value":"localTld"}}]}},{"kind":"Field","name":{"kind":"Name","value":"server"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"display"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"theme"}},{"kind":"Field","name":{"kind":"Name","value":"locale"}}]}},{"kind":"Field","name":{"kind":"Name","value":"systemTime"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"timeZone"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"primaryNetwork"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ipAddress"}}]}}]}}]}}]} as unknown as DocumentNode<GetCoreSettingsQuery, GetCoreSettingsQueryVariables>;
 export const InstallLanguageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InstallLanguage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InstallPluginInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraidPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installLanguage"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"finishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]}}]} as unknown as DocumentNode<InstallLanguageMutation, InstallLanguageMutationVariables>;
 export const InstallPluginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InstallPlugin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InstallPluginInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraidPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installPlugin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"finishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]}}]} as unknown as DocumentNode<InstallPluginMutation, InstallPluginMutationVariables>;
 export const InstalledUnraidPluginsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"InstalledUnraidPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installedUnraidPlugins"}}]}}]} as unknown as DocumentNode<InstalledUnraidPluginsQuery, InstalledUnraidPluginsQueryVariables>;
