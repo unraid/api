@@ -28,6 +28,9 @@ vi.mock('fs/promises', async () => {
         readFile: vi.fn(),
         writeFile: vi.fn(),
         copyFile: vi.fn(),
+        rename: vi.fn(),
+        unlink: vi.fn(),
+        symlink: vi.fn(),
     };
 });
 
@@ -148,6 +151,7 @@ describe('OnboardingService', () => {
     const bannerTarget = mockPaths.webgui.banner;
     const caseModelSource = mockPaths.activation.caseModel;
     const caseModelTarget = mockPaths.webgui.caseModel;
+    const logoSource = mockPaths.activation.logo;
     const caseModelCfg = mockPaths.boot.caseModelConfig;
 
     // Add mockActivationData definition here
@@ -158,6 +162,11 @@ describe('OnboardingService', () => {
             background: '#778899',
             showBannerGradient: true,
             theme: 'black',
+            logoUrl: './assets/logo.svg',
+            bannerImage: './assets/banner.png',
+            caseModelImage: './assets/case-model.png',
+            partnerLogoLightUrl: './assets/partner-logo-light.png',
+            partnerLogoDarkUrl: './assets/partner-logo-dark.png',
         },
         system: {
             serverName: 'PartnerServer',
@@ -196,12 +205,18 @@ describe('OnboardingService', () => {
         vi.mocked(fs.readFile).mockReset();
         vi.mocked(fs.writeFile).mockReset();
         vi.mocked(fs.copyFile).mockReset();
+        vi.mocked(fs.rename).mockReset();
+        vi.mocked(fs.unlink).mockReset();
+        vi.mocked(fs.symlink).mockReset();
         vi.mocked(fileExists).mockReset();
         vi.mocked(fs.access).mockResolvedValue(undefined as any);
         vi.mocked(fs.readdir).mockResolvedValue([]);
         vi.mocked(fs.readFile).mockResolvedValue('');
         vi.mocked(fs.writeFile).mockResolvedValue(undefined as any);
         vi.mocked(fs.copyFile).mockResolvedValue(undefined as any);
+        vi.mocked(fs.rename).mockResolvedValue(undefined as any);
+        vi.mocked(fs.unlink).mockResolvedValue(undefined as any);
+        vi.mocked(fs.symlink).mockRejectedValue(new Error('symlink not supported'));
         vi.mocked(fileExists).mockResolvedValue(false);
 
         const module: TestingModule = await Test.createTestingModule({
@@ -218,7 +233,12 @@ describe('OnboardingService', () => {
         // Mock fileExists needed by customization methods
         vi.mocked(fileExists).mockImplementation(async (p) => {
             // Assume relevant assets/targets exist unless overridden
-            return p === bannerSource || p === caseModelSource || p === bannerTarget.fullPath;
+            return (
+                p === bannerSource ||
+                p === caseModelSource ||
+                p === bannerTarget.fullPath ||
+                p === logoSource
+            );
         });
     });
 
@@ -309,7 +329,7 @@ describe('OnboardingService', () => {
 
             expect(onboardingTrackerMock.isCompleted).toHaveBeenCalledTimes(2);
             expect(fs.readdir).toHaveBeenCalledTimes(1);
-            expect(fs.copyFile).toHaveBeenCalledTimes(1);
+            expect(fs.copyFile).toHaveBeenCalledTimes(3);
             expect(emcmd).not.toHaveBeenCalled();
             expect(loggerLogSpy).toHaveBeenCalledWith(
                 'First boot setup previously completed, skipping customizations.'
@@ -348,7 +368,10 @@ describe('OnboardingService', () => {
             expect((service as any).activationData).toEqual(expect.objectContaining(mockActivationData));
 
             // Check customizations applied (verify mocks were called)
-            expect(fs.copyFile).toHaveBeenCalledWith(bannerSource, bannerTarget.fullPath); // Banner copied
+            expect(fs.copyFile).toHaveBeenCalledWith(
+                bannerSource,
+                expect.stringContaining(`${bannerTarget.fullPath}.tmp-`)
+            ); // Banner staged copy
 
             // Verify we write to dynamix config without forcing activation branding theme
             const writeFileCalls = vi.mocked(fs.writeFile).mock.calls;
@@ -365,8 +388,8 @@ describe('OnboardingService', () => {
 
             // Setup mocks: dir exists, .done missing, JSON exists, read JSON ok
             vi.mocked(fileExists).mockImplementation(async (p) => {
-                // .done is missing, banner asset exists
-                return p === bannerSource;
+                // .done is missing, all json-declared assets exist
+                return p === bannerSource || p === caseModelSource || p === logoSource;
             });
             vi.mocked(fs.access).mockResolvedValue(undefined);
             vi.mocked(fs.readdir).mockResolvedValue([activationJsonFile as any]);
@@ -382,7 +405,11 @@ describe('OnboardingService', () => {
             // --- Introduce failure point ---
             // Mock fs.copyFile used by setupPartnerBanner to fail
             vi.mocked(fs.copyFile).mockImplementation(async (source, dest) => {
-                if (source === bannerSource && dest === bannerTarget.fullPath) {
+                if (
+                    source === bannerSource &&
+                    typeof dest === 'string' &&
+                    dest.startsWith(`${bannerTarget.fullPath}.tmp-`)
+                ) {
                     throw bannerCopyError;
                 }
                 // Allow other potential copy operations (if any)
@@ -567,6 +594,12 @@ describe('OnboardingService', () => {
             (service as any).caseModelCfg = caseModelCfg;
             (service as any).identCfg = identCfg;
             (service as any).activationData = plainToInstance(ActivationCode, { ...mockActivationData });
+            (service as any).activationJsonPath = activationJsonPath;
+            (service as any).materializedPartnerMedia = {
+                banner: true,
+                caseModel: true,
+                logo: true,
+            };
             // Mock necessary file reads/writes
             vi.mocked(fs.readFile).mockImplementation(async (p) => {
                 if (p === userDynamixCfg) return ini.stringify({ display: { existing: 'value' } });
@@ -586,7 +619,10 @@ describe('OnboardingService', () => {
         it('setupPartnerBanner should copy banner if asset exists', async () => {
             vi.mocked(fileExists).mockResolvedValue(true); // Banner asset exists
             await (service as any).setupPartnerBanner();
-            expect(fs.copyFile).toHaveBeenCalledWith(bannerSource, bannerTarget.fullPath);
+            expect(fs.copyFile).toHaveBeenCalledWith(
+                bannerSource,
+                expect.stringContaining(`${bannerTarget.fullPath}.tmp-`)
+            );
             expect(loggerLogSpy).toHaveBeenCalledWith(
                 `Partner banner found at ${bannerSource}, overwriting original.`
             );
@@ -635,9 +671,151 @@ describe('OnboardingService', () => {
             vi.mocked(fileExists).mockResolvedValue(true); // Asset exists
             vi.mocked(fs.copyFile).mockRejectedValue(copyError); // Copy fails
             await (service as any).setupPartnerBanner();
-            expect(fs.copyFile).toHaveBeenCalledWith(bannerSource, bannerTarget.fullPath);
+            expect(fs.copyFile).toHaveBeenCalledWith(
+                bannerSource,
+                expect.stringContaining(`${bannerTarget.fullPath}.tmp-`)
+            );
             expect(loggerWarnSpy).toHaveBeenCalledWith(
                 expect.stringContaining(`Failed to replace the original banner`)
+            );
+        });
+
+        it('materializes banner image from local path by symlinking into activation assets', async () => {
+            const localBannerPath = path.join(activationDir, 'partner-assets/banner-custom.png');
+            (service as any).activationJsonPath = activationJsonPath;
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                branding: {
+                    bannerImage: './partner-assets/banner-custom.png',
+                },
+            });
+
+            vi.mocked(fileExists).mockImplementation(async (p) => p === localBannerPath);
+            vi.mocked(fs.symlink).mockResolvedValue(undefined as any);
+            await (service as any).materializePartnerMediaAssets();
+
+            expect(fs.symlink).toHaveBeenCalledWith(localBannerPath, bannerSource);
+        });
+
+        it('materializes case-model image from remote URL into activation assets', async () => {
+            const remoteBytes = Uint8Array.from([137, 80, 78, 71]).buffer;
+            const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+                ok: true,
+                status: 200,
+                statusText: 'OK',
+                headers: new Headers({ 'content-type': 'image/png' }),
+                arrayBuffer: async () => remoteBytes,
+            } as any);
+
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                branding: {
+                    caseModelImage: 'https://example.com/case-model.png',
+                },
+            });
+
+            await (service as any).materializePartnerMediaAssets();
+
+            expect(fetchSpy).toHaveBeenCalledWith('https://example.com/case-model.png', {
+                signal: expect.any(AbortSignal),
+            });
+            expect(fs.writeFile).toHaveBeenCalledWith(
+                caseModelSource,
+                expect.objectContaining({
+                    length: 4,
+                })
+            );
+            fetchSpy.mockRestore();
+        });
+
+        it('materializes main logo from data URI into activation assets', async () => {
+            const logoDataUri = `data:image/svg+xml;base64,${Buffer.from('<svg></svg>').toString('base64')}`;
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                branding: {
+                    logoUrl: logoDataUri,
+                },
+            });
+
+            await (service as any).materializePartnerMediaAssets();
+
+            expect(fs.writeFile).toHaveBeenCalledWith(
+                mockPaths.activation.logo,
+                expect.objectContaining({
+                    length: 11,
+                })
+            );
+        });
+
+        it('normalizes partner logo local paths into browser-safe data URIs', async () => {
+            const localLightLogoPath = path.join(activationDir, 'partner-assets/light-logo.svg');
+            const localDarkLogoPath = path.join(activationDir, 'partner-assets/dark-logo.svg');
+            (service as any).activationJsonPath = activationJsonPath;
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                branding: {
+                    partnerLogoLightUrl: './partner-assets/light-logo.svg',
+                    partnerLogoDarkUrl: './partner-assets/dark-logo.svg',
+                },
+                partner: {
+                    name: 'Partner Inc',
+                },
+            });
+
+            vi.mocked(fileExists).mockImplementation(async (p) => {
+                return p === localLightLogoPath || p === localDarkLogoPath;
+            });
+            vi.mocked(fs.readFile).mockImplementation(async (p) => {
+                if (p === localLightLogoPath) {
+                    return Buffer.from('<svg id="light"></svg>');
+                }
+                if (p === localDarkLogoPath) {
+                    return Buffer.from('<svg id="dark"></svg>');
+                }
+                return '';
+            });
+
+            const partnerInfo = await service.getPublicPartnerInfo();
+
+            expect(partnerInfo?.branding?.partnerLogoLightUrl).toMatch(/^data:image\/svg\+xml;base64,/);
+            expect(partnerInfo?.branding?.partnerLogoDarkUrl).toMatch(/^data:image\/svg\+xml;base64,/);
+            expect(partnerInfo?.branding?.hasPartnerLogo).toBe(true);
+        });
+
+        it('falls back to the light partner logo for dark themes when dark source is missing', async () => {
+            const localLightLogoPath = path.join(activationDir, 'partner-assets/light-only-logo.svg');
+            (service as any).activationJsonPath = activationJsonPath;
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                branding: {
+                    partnerLogoLightUrl: './partner-assets/light-only-logo.svg',
+                },
+            });
+
+            vi.mocked(fileExists).mockImplementation(async (p) => {
+                return p === localLightLogoPath;
+            });
+            vi.mocked(fs.readFile).mockImplementation(async (p) => {
+                if (p === localLightLogoPath) {
+                    return Buffer.from('<svg id="light"></svg>');
+                }
+                return '';
+            });
+
+            const partnerInfo = await service.getPublicPartnerInfo();
+
+            expect(partnerInfo?.branding?.partnerLogoLightUrl).toMatch(/^data:image\/svg\+xml;base64,/);
+            expect(partnerInfo?.branding?.partnerLogoDarkUrl).toBe(
+                partnerInfo?.branding?.partnerLogoLightUrl
+            );
+        });
+
+        it('setupPartnerLogo should link activation logo into webgui logo path', async () => {
+            vi.mocked(fileExists).mockImplementation(async (p) => p === mockPaths.activation.logo);
+            vi.mocked(fs.symlink).mockResolvedValue(undefined as any);
+            await (service as any).setupPartnerLogo();
+
+            expect(fs.symlink).toHaveBeenCalledWith(
+                mockPaths.activation.logo,
+                expect.stringContaining(`${mockPaths.webgui.logo.fullPath}.tmp-`)
+            );
+            expect(loggerLogSpy).toHaveBeenCalledWith(
+                `Partner logo symlinked to ${mockPaths.webgui.logo.fullPath}`
             );
         });
 
@@ -788,6 +966,10 @@ describe('OnboardingService', () => {
         it('applyCaseModelConfig should set model from asset if exists', async () => {
             vi.mocked(fileExists).mockImplementation(async (p) => p === caseModelSource); // Asset exists
             await (service as any).applyCaseModelConfig();
+            expect(fs.copyFile).toHaveBeenCalledWith(
+                caseModelSource,
+                expect.stringContaining(`${caseModelTarget.fullPath}.tmp-`)
+            );
             expect(fs.writeFile).toHaveBeenCalledWith(
                 caseModelCfg,
                 path.basename(caseModelTarget.fullPath)
@@ -1171,17 +1353,27 @@ describe('applyActivationCustomizations specific tests', () => {
     const bannerTarget = mockPaths.webgui.banner;
     const caseModelSource = mockPaths.activation.caseModel;
     const caseModelTarget = mockPaths.webgui.caseModel;
+    const logoSource = mockPaths.activation.logo;
 
     // Add mockActivationData definition here
     const mockActivationData = {
-        header: '#112233',
-        headermetacolor: '#445566',
-        background: '#778899',
-        showBannerGradient: true,
-        theme: 'black',
-        serverName: 'PartnerServer',
-        sysModel: 'PartnerModel',
-        comment: 'Partner Comment',
+        branding: {
+            header: '#112233',
+            headermetacolor: '#445566',
+            background: '#778899',
+            showBannerGradient: true,
+            theme: 'black',
+            bannerImage: './assets/banner.png',
+            caseModelImage: './assets/case-model.png',
+            logoUrl: './assets/logo.svg',
+            partnerLogoLightUrl: './assets/partner-logo-light.png',
+            partnerLogoDarkUrl: './assets/partner-logo-dark.png',
+        },
+        system: {
+            serverName: 'PartnerServer',
+            model: 'PartnerModel',
+            comment: 'Partner Comment',
+        },
     };
 
     beforeEach(async () => {
@@ -1239,11 +1431,13 @@ describe('applyActivationCustomizations specific tests', () => {
         });
         vi.mocked(fileExists).mockImplementation(async (p) => {
             // Assume relevant assets/targets exist unless overridden
-            return p === bannerSource || p === caseModelSource || p === bannerTarget.fullPath;
+            return (
+                p === bannerSource ||
+                p === caseModelSource ||
+                p === bannerTarget.fullPath ||
+                p === logoSource
+            );
         });
-
-        // Import getters from the store mock
-        const { getters } = await import('@app/store/index.js');
     });
 
     it('should log warning and skip if activation dir disappears after init', async () => {
@@ -1301,22 +1495,7 @@ describe('applyActivationCustomizations specific tests', () => {
         await (service as any).applyActivationCustomizations();
 
         // Check specific log from applyCaseModelConfig's *inner* catch block
-        expect(loggerErrorSpy).toMatchInlineSnapshot(`
-          [MockFunction spy] {
-            "calls": [
-              [
-                "Error applying case model:",
-                [Error: Write permission denied],
-              ],
-            ],
-            "results": [
-              {
-                "type": "return",
-                "value": undefined,
-              },
-            ],
-          }
-        `);
+        expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying case model:', writeError);
         // Other steps should still run
         expect(loggerLogSpy).toHaveBeenCalledWith('Setting up partner banner...');
         expect(loggerLogSpy).toHaveBeenCalledWith('Applying display settings...');
@@ -1339,8 +1518,15 @@ describe('applyActivationCustomizations specific tests', () => {
 
         await (service as any).applyActivationCustomizations();
 
-        // Check specific log from applyCaseModelConfig's catch block
-        expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying case model:', existsError);
+        // Case model materialization failed, so case model apply step is skipped safely.
+        expect(loggerWarnSpy).toHaveBeenCalledWith(
+            expect.stringContaining(
+                `Failed to materialize activation case-model asset: ${existsError.message}`
+            )
+        );
+        expect(loggerLogSpy).toHaveBeenCalledWith(
+            'No partner case-model image configured in activation code, skipping case model setup.'
+        );
 
         // Other steps should still run
         expect(loggerLogSpy).toHaveBeenCalledWith('Setting up partner banner...');
@@ -1362,14 +1548,25 @@ describe('applyActivationCustomizations specific tests', () => {
             },
             branding: {
                 header: '#112233',
+                bannerImage: './assets/banner.png',
+                caseModelImage: './assets/case-model.png',
             },
         });
 
         vi.mocked(fileExists).mockImplementation(async (p) => {
-            return p === bannerSource || p === caseModelSource || p === bannerTarget.fullPath;
+            return (
+                p === bannerSource ||
+                p === caseModelSource ||
+                p === bannerTarget.fullPath ||
+                p === logoSource
+            );
         });
         vi.mocked(fs.copyFile).mockImplementation(async (source, dest) => {
-            if (source === bannerSource && dest === bannerTarget.fullPath) {
+            if (
+                source === bannerSource &&
+                typeof dest === 'string' &&
+                dest.startsWith(`${bannerTarget.fullPath}.tmp-`)
+            ) {
                 throw bannerCopyError;
             }
         });

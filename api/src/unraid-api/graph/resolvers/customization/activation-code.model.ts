@@ -138,7 +138,7 @@ export class BrandingConfig {
     @Field(() => String, {
         nullable: true,
         description:
-            'The path to the partner logo image on the flash drive, relative to the activation code file',
+            'Main header logo image source. Supports local path, remote URL, or data URI/base64.',
     })
     @IsOptional()
     @IsString()
@@ -147,7 +147,26 @@ export class BrandingConfig {
 
     @Field(() => String, {
         nullable: true,
-        description: 'Partner logo URL to use on light themes (azure/white)',
+        description: 'Banner image source. Supports local path, remote URL, or data URI/base64.',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    bannerImage?: string | null;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Case model image source. Supports local path, remote URL, or data URI/base64.',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    caseModelImage?: string | null;
+
+    @Field(() => String, {
+        nullable: true,
+        description:
+            'Partner logo source for light themes (azure/white). Supports local path, remote URL, or data URI/base64.',
     })
     @IsOptional()
     @IsString()
@@ -156,7 +175,8 @@ export class BrandingConfig {
 
     @Field(() => String, {
         nullable: true,
-        description: 'Partner logo URL to use on dark themes (black/gray)',
+        description:
+            'Partner logo source for dark themes (black/gray). Supports local path, remote URL, or data URI/base64.',
     })
     @IsOptional()
     @IsString()

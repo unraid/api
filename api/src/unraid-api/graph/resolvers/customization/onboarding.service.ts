@@ -31,10 +31,17 @@ import { Theme, ThemeName } from '@app/unraid-api/graph/resolvers/customization/
 export class OnboardingService implements OnModuleInit {
     private readonly logger = new Logger(OnboardingService.name);
     private readonly activationJsonExtension = '.activationcode';
+    private readonly maxActivationImageBytes = 10 * 1024 * 1024;
     private activationDir!: string;
     private configFile!: string;
     private caseModelCfg!: string;
     private identCfg!: string;
+    private activationJsonPath: string | null = null;
+    private materializedPartnerMedia: Record<'banner' | 'caseModel' | 'logo', boolean> = {
+        banner: false,
+        caseModel: false,
+        logo: false,
+    };
 
     private activationData: ActivationCode | null = null;
 
@@ -141,7 +148,13 @@ export class OnboardingService implements OnModuleInit {
 
         // If partnerInfo is explicitly overridden, use it
         if (override?.partnerInfo !== undefined) {
-            return override.partnerInfo ?? null;
+            if (override.partnerInfo === null) {
+                return null;
+            }
+            return this.buildPublicPartnerInfo(
+                override.partnerInfo.partner,
+                override.partnerInfo.branding
+            );
         }
 
         // If activationCode is overridden, derive partnerInfo from it
@@ -150,10 +163,10 @@ export class OnboardingService implements OnModuleInit {
             if (override.activationCode === null) {
                 return null;
             }
-            return {
-                partner: override.activationCode.partner,
-                branding: override.activationCode.branding,
-            };
+            return this.buildPublicPartnerInfo(
+                override.activationCode.partner,
+                override.activationCode.branding
+            );
         }
 
         const activationData = await this.getActivationData();
@@ -161,8 +174,117 @@ export class OnboardingService implements OnModuleInit {
             return null;
         }
 
-        // Construct BrandingConfig with computed logo presence and theme-specific logo URLs
-        const branding = activationData.branding ? { ...activationData.branding } : {};
+        return this.buildPublicPartnerInfo(activationData.partner, activationData.branding);
+    }
+
+    private detectImageMime(buffer: Buffer): string {
+        if (buffer.length >= 8) {
+            if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
+                return 'image/png';
+            }
+
+            if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+                return 'image/jpeg';
+            }
+
+            if (
+                buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+                buffer.subarray(8, 12).toString('ascii') === 'WEBP'
+            ) {
+                return 'image/webp';
+            }
+        }
+
+        if (buffer.length >= 6 && buffer.subarray(0, 6).toString('ascii') === 'GIF87a') {
+            return 'image/gif';
+        }
+
+        if (buffer.length >= 6 && buffer.subarray(0, 6).toString('ascii') === 'GIF89a') {
+            return 'image/gif';
+        }
+
+        const textChunk = buffer.subarray(0, 1024).toString('utf8').trimStart();
+        if (textChunk.startsWith('<svg') || textChunk.startsWith('<?xml')) {
+            return 'image/svg+xml';
+        }
+
+        return 'application/octet-stream';
+    }
+
+    private bufferToDataUri(payload: Buffer): string {
+        const mime = this.detectImageMime(payload);
+        return `data:${mime};base64,${payload.toString('base64')}`;
+    }
+
+    private async normalizePartnerLogoSourceForBrowser(
+        source: string,
+        label: 'light' | 'dark'
+    ): Promise<string> {
+        const normalizedSource = source.trim();
+        if (!normalizedSource) {
+            throw new Error('Image source is empty.');
+        }
+
+        if (this.looksLikeHttpUrl(normalizedSource)) {
+            return normalizedSource;
+        }
+
+        const dataUriPayload = this.tryDecodeDataUri(normalizedSource);
+        if (dataUriPayload) {
+            this.assertImageSize(dataUriPayload);
+            return this.bufferToDataUri(dataUriPayload);
+        }
+
+        const rawBase64Payload = this.tryDecodeRawBase64(normalizedSource);
+        if (rawBase64Payload) {
+            this.assertImageSize(rawBase64Payload);
+            return this.bufferToDataUri(rawBase64Payload);
+        }
+
+        const localSourcePath = this.resolveLocalImagePath(normalizedSource);
+        if (!(await fileExists(localSourcePath))) {
+            throw new Error(`Local ${label} partner logo source not found: ${localSourcePath}`);
+        }
+
+        const payload = await fs.readFile(localSourcePath);
+        this.assertImageSize(payload);
+        return this.bufferToDataUri(payload);
+    }
+
+    private async buildPublicPartnerInfo(
+        partner: PublicPartnerInfo['partner'],
+        brandingInput: PublicPartnerInfo['branding']
+    ): Promise<PublicPartnerInfo> {
+        const branding = brandingInput ? { ...brandingInput } : {};
+
+        if (branding.partnerLogoLightUrl?.trim()) {
+            try {
+                branding.partnerLogoLightUrl = await this.normalizePartnerLogoSourceForBrowser(
+                    branding.partnerLogoLightUrl,
+                    'light'
+                );
+            } catch (error: unknown) {
+                branding.partnerLogoLightUrl = null;
+                this.logger.warn(
+                    `Failed to normalize light partner logo source: ${error instanceof Error ? error.message : 'Unknown error'}`
+                );
+            }
+        }
+
+        if (branding.partnerLogoDarkUrl?.trim()) {
+            try {
+                branding.partnerLogoDarkUrl = await this.normalizePartnerLogoSourceForBrowser(
+                    branding.partnerLogoDarkUrl,
+                    'dark'
+                );
+            } catch (error: unknown) {
+                branding.partnerLogoDarkUrl = null;
+                this.logger.warn(
+                    `Failed to normalize dark partner logo source: ${error instanceof Error ? error.message : 'Unknown error'}`
+                );
+            }
+        }
+
         const darkLogoUrl = branding.partnerLogoDarkUrl ?? null;
         const lightLogoUrl = branding.partnerLogoLightUrl ?? null;
 
@@ -172,8 +294,8 @@ export class OnboardingService implements OnModuleInit {
         branding.hasPartnerLogo = Boolean(branding.partnerLogoDarkUrl || branding.partnerLogoLightUrl);
 
         return {
-            partner: activationData.partner,
-            branding: branding as any, // Type assertion for now to match strict class structure if needed, or instantiate class
+            partner,
+            branding: branding as any,
         };
     }
 
@@ -228,6 +350,7 @@ export class OnboardingService implements OnModuleInit {
             this.logger.debug('No activation JSON file found.');
             return null;
         }
+        this.activationJsonPath = activationJsonPath;
 
         try {
             const fileContent = await fs.readFile(activationJsonPath, 'utf-8');
@@ -249,6 +372,12 @@ export class OnboardingService implements OnModuleInit {
 
     public clearActivationDataCache(): void {
         this.activationData = null;
+        this.activationJsonPath = null;
+        this.materializedPartnerMedia = {
+            banner: false,
+            caseModel: false,
+            logo: false,
+        };
     }
 
     async applyActivationCustomizations() {
@@ -273,9 +402,11 @@ export class OnboardingService implements OnModuleInit {
 
             this.logger.log(`Using validated activation data to apply customizations.`);
 
+            await this.materializePartnerMediaAssets();
             await this.setupPartnerBanner();
             await this.applyDisplaySettings();
             await this.applyCaseModelConfig();
+            await this.setupPartnerLogo();
 
             this.logger.log('Activation setup complete.');
         } catch (error: unknown) {
@@ -285,8 +416,237 @@ export class OnboardingService implements OnModuleInit {
         }
     }
 
+    private async materializePartnerMediaAssets() {
+        this.materializedPartnerMedia = {
+            banner: false,
+            caseModel: false,
+            logo: false,
+        };
+        if (!this.activationData?.branding) {
+            return;
+        }
+
+        const paths = getters.paths();
+        const mediaSources: Array<{
+            key: 'banner' | 'caseModel' | 'logo';
+            label: string;
+            source?: string | null;
+            targetPath: string;
+        }> = [
+            {
+                key: 'banner',
+                label: 'banner',
+                source: this.activationData.branding.bannerImage,
+                targetPath: paths.activation.banner,
+            },
+            {
+                key: 'caseModel',
+                label: 'case-model',
+                source: this.activationData.branding.caseModelImage,
+                targetPath: paths.activation.caseModel,
+            },
+            {
+                key: 'logo',
+                label: 'main-logo',
+                source: this.activationData.branding.logoUrl,
+                targetPath: paths.activation.logo,
+            },
+        ];
+
+        for (const media of mediaSources) {
+            if (!media.source?.trim()) {
+                continue;
+            }
+
+            try {
+                await this.materializeImageAsset(media.source, media.targetPath);
+                this.materializedPartnerMedia[media.key] = true;
+                this.logger.log(`Materialized activation ${media.label} asset at ${media.targetPath}`);
+            } catch (error: unknown) {
+                this.materializedPartnerMedia[media.key] = false;
+                await this.safeUnlink(media.targetPath);
+                this.logger.warn(
+                    `Failed to materialize activation ${media.label} asset: ${error instanceof Error ? error.message : 'Unknown error'}`
+                );
+            }
+        }
+    }
+
+    private looksLikeHttpUrl(source: string): boolean {
+        try {
+            const parsed = new URL(source);
+            return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+        } catch {
+            return false;
+        }
+    }
+
+    private tryDecodeDataUri(source: string): Buffer | null {
+        if (!source.startsWith('data:')) {
+            return null;
+        }
+
+        const separator = source.indexOf(',');
+        if (separator < 0) {
+            return null;
+        }
+
+        const meta = source.slice(5, separator);
+        const payload = source.slice(separator + 1);
+        const isBase64 = /;base64/i.test(meta);
+
+        try {
+            if (isBase64) {
+                return Buffer.from(payload, 'base64');
+            }
+            return Buffer.from(decodeURIComponent(payload), 'utf8');
+        } catch {
+            return null;
+        }
+    }
+
+    private tryDecodeRawBase64(source: string): Buffer | null {
+        const normalized = source.replace(/\s+/g, '');
+        if (normalized.length < 64 || normalized.length % 4 !== 0) {
+            return null;
+        }
+        if (!/^[A-Za-z0-9+/=]+$/.test(normalized)) {
+            return null;
+        }
+
+        try {
+            const decoded = Buffer.from(normalized, 'base64');
+            if (!decoded.length) {
+                return null;
+            }
+            const normalizedInput = normalized.replace(/=+$/g, '');
+            const normalizedDecoded = decoded.toString('base64').replace(/=+$/g, '');
+            if (normalizedInput !== normalizedDecoded) {
+                return null;
+            }
+            return decoded;
+        } catch {
+            return null;
+        }
+    }
+
+    private resolveLocalImagePath(source: string): string {
+        if (path.isAbsolute(source)) {
+            return path.resolve(source);
+        }
+
+        const activationJsonDir = this.activationJsonPath
+            ? path.dirname(this.activationJsonPath)
+            : this.activationDir;
+        return path.resolve(activationJsonDir, source);
+    }
+
+    private async safeUnlink(filePath: string) {
+        try {
+            await fs.unlink(filePath);
+        } catch (error: unknown) {
+            if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') {
+                throw error;
+            }
+        }
+    }
+
+    private assertImageSize(buffer: Buffer) {
+        if (!buffer.length) {
+            throw new Error('Image source resolved to an empty payload.');
+        }
+        if (buffer.length > this.maxActivationImageBytes) {
+            throw new Error(`Image payload exceeds max size (${this.maxActivationImageBytes} bytes).`);
+        }
+    }
+
+    private async writeBinaryAsset(targetPath: string, payload: Buffer) {
+        this.assertImageSize(payload);
+        await fs.mkdir(path.dirname(targetPath), { recursive: true });
+        await fs.writeFile(targetPath, payload);
+    }
+
+    private async replaceTargetWithSource(sourcePath: string, targetPath: string) {
+        await fs.mkdir(path.dirname(targetPath), { recursive: true });
+        const tempTarget = `${targetPath}.tmp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+        try {
+            try {
+                await fs.symlink(sourcePath, tempTarget);
+            } catch {
+                await fs.copyFile(sourcePath, tempTarget);
+            }
+            await fs.rename(tempTarget, targetPath);
+        } finally {
+            await this.safeUnlink(tempTarget);
+        }
+    }
+
+    private async materializeImageAsset(source: string, targetPath: string) {
+        const normalizedSource = source.trim();
+        if (!normalizedSource) {
+            throw new Error('Image source is empty.');
+        }
+
+        const dataUriPayload = this.tryDecodeDataUri(normalizedSource);
+        if (dataUriPayload) {
+            await this.writeBinaryAsset(targetPath, dataUriPayload);
+            return;
+        }
+
+        if (this.looksLikeHttpUrl(normalizedSource)) {
+            const response = await fetch(normalizedSource, {
+                signal: AbortSignal.timeout(15_000),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status} ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get('content-type')?.toLowerCase();
+            if (contentType && !contentType.includes('image/') && !contentType.includes('svg')) {
+                throw new Error(`Remote source is not an image (content-type: ${contentType})`);
+            }
+
+            const remotePayload = Buffer.from(await response.arrayBuffer());
+            await this.writeBinaryAsset(targetPath, remotePayload);
+            return;
+        }
+
+        const rawBase64Payload = this.tryDecodeRawBase64(normalizedSource);
+        if (rawBase64Payload) {
+            await this.writeBinaryAsset(targetPath, rawBase64Payload);
+            return;
+        }
+
+        const localSourcePath = this.resolveLocalImagePath(normalizedSource);
+        if (!(await fileExists(localSourcePath))) {
+            throw new Error(`Local image source not found: ${localSourcePath}`);
+        }
+
+        const resolvedSource = path.resolve(localSourcePath);
+        const resolvedTarget = path.resolve(targetPath);
+        if (resolvedSource === resolvedTarget) {
+            return;
+        }
+
+        await fs.mkdir(path.dirname(targetPath), { recursive: true });
+        await this.safeUnlink(targetPath);
+
+        try {
+            await fs.symlink(resolvedSource, targetPath);
+        } catch {
+            await fs.copyFile(resolvedSource, targetPath);
+        }
+    }
+
     private async setupPartnerBanner() {
         this.logger.log('Setting up partner banner...');
+        if (!this.materializedPartnerMedia.banner) {
+            this.logger.log(
+                'No partner banner image configured in activation code, skipping banner setup.'
+            );
+            return;
+        }
         const paths = getters.paths();
         const bannerSource = paths.activation.banner;
         const bannerTarget = paths.webgui.banner.fullPath;
@@ -296,7 +656,7 @@ export class OnboardingService implements OnModuleInit {
             if (await fileExists(bannerSource)) {
                 this.logger.log(`Partner banner found at ${bannerSource}, overwriting original.`);
                 try {
-                    await fs.copyFile(bannerSource, bannerTarget);
+                    await this.replaceTargetWithSource(bannerSource, bannerTarget);
                     this.logger.log('Partner banner copied over the original banner.');
                 } catch (copyError: unknown) {
                     this.logger.warn(
@@ -379,7 +739,7 @@ export class OnboardingService implements OnModuleInit {
         const paths = getters.paths();
         const bannerSource = paths.activation.banner;
 
-        if (await fileExists(bannerSource)) {
+        if (this.materializedPartnerMedia.banner && (await fileExists(bannerSource))) {
             settingsToUpdate['banner'] = 'image';
             this.logger.debug(`Webgui banner exists at ${bannerSource}, setting banner=image.`);
         } else {
@@ -413,6 +773,12 @@ export class OnboardingService implements OnModuleInit {
             this.logger.warn('No activation data available for case model setup.');
             return;
         }
+        if (!this.materializedPartnerMedia.caseModel) {
+            this.logger.log(
+                'No partner case-model image configured in activation code, skipping case model setup.'
+            );
+            return;
+        }
         if (!this.caseModelCfg) {
             this.logger.warn('Case model config path missing. Skipping case model setup.');
             return;
@@ -426,6 +792,7 @@ export class OnboardingService implements OnModuleInit {
             if (await fileExists(caseModelSource)) {
                 this.logger.log('Case model found in activation assets, applying...');
                 const modelToSet = path.basename(paths.webgui.caseModel.fullPath); // e.g., 'case-model.png'
+                await this.replaceTargetWithSource(caseModelSource, paths.webgui.caseModel.fullPath);
                 await fs.mkdir(path.dirname(this.caseModelCfg), { recursive: true });
                 await fs.writeFile(this.caseModelCfg, modelToSet);
                 this.logger.log(`Case model set to ${modelToSet} in ${this.caseModelCfg}`);
@@ -434,6 +801,30 @@ export class OnboardingService implements OnModuleInit {
             }
         } catch (error) {
             this.logger.error('Error applying case model:', error);
+        }
+    }
+
+    private async setupPartnerLogo() {
+        this.logger.log('Setting up partner logo...');
+        if (!this.materializedPartnerMedia.logo) {
+            this.logger.log(
+                'No partner main-logo image configured in activation code, skipping logo setup.'
+            );
+            return;
+        }
+        const paths = getters.paths();
+        const logoSource = paths.activation.logo;
+        const logoTarget = paths.webgui.logo.fullPath;
+
+        try {
+            if (await fileExists(logoSource)) {
+                await this.replaceTargetWithSource(logoSource, logoTarget);
+                this.logger.log(`Partner logo symlinked to ${logoTarget}`);
+            } else {
+                this.logger.log('Partner logo file not found, skipping logo setup.');
+            }
+        } catch (error) {
+            this.logger.error('Error setting up partner logo:', error);
         }
     }
 

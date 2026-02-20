@@ -19,8 +19,11 @@
   },
   "branding": {
     "theme": "black",
-    "partnerLogoLightUrl": "/config/activate/my-partner-logo-light.svg",
-    "partnerLogoDarkUrl": "/config/activate/my-partner-logo-dark.svg",
+    "logoUrl": "./assets/logo.svg",
+    "bannerImage": "./assets/banner.png",
+    "caseModelImage": "./assets/case-model.png",
+    "partnerLogoLightUrl": "./assets/partner-logo-light.svg",
+    "partnerLogoDarkUrl": "./assets/partner-logo-dark.svg",
     "onboardingTitle": "Welcome to MyPartner",
     "onboardingSubtitle": "Setting up your CustomBuild v1.0",
     "header": "#336699",
