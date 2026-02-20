@@ -4,6 +4,7 @@ import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import escapeHtml from 'escape-html';
 
+import type { CustomizationType } from '@app/unraid-api/rest/rest.service.js';
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/core/oidc-config.service.js';
@@ -35,13 +36,16 @@ export class RestController {
         resource: Resource.CUSTOMIZATIONS,
     })
     async getCustomizations(@Param('type') type: string, @Res() res: FastifyReply) {
-        if (type !== 'banner' && type !== 'case') {
+        const validTypes: CustomizationType[] = ['banner', 'case'];
+        if (!validTypes.includes(type as CustomizationType)) {
             throw new Error('Invalid Customization Type');
         }
 
         try {
-            const customizationStream = await this.restService.getCustomizationStream(type);
-            return res.status(200).type('image/png').send(customizationStream);
+            const customization = await this.restService.getCustomizationStream(
+                type as CustomizationType
+            );
+            return res.status(200).type(customization.contentType).send(customization.stream);
         } catch (error: unknown) {
             this.logger.error(error);
             return res.status(500).send(`Error: Failed to get customizations`);
