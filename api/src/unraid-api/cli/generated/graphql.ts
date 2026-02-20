@@ -415,8 +415,6 @@ export type BrandingConfig = {
   hasPartnerLogo: Scalars['Boolean']['output'];
   header?: Maybe<Scalars['String']['output']>;
   headermetacolor?: Maybe<Scalars['String']['output']>;
-  /** The path to the partner logo image on the flash drive, relative to the activation code file */
-  logoUrl?: Maybe<Scalars['String']['output']>;
   /** Custom subtitle for onboarding welcome step */
   onboardingSubtitle?: Maybe<Scalars['String']['output']>;
   /** Custom subtitle for downgrade onboarding */
@@ -450,7 +448,6 @@ export type BrandingConfigInput = {
   hasPartnerLogo?: InputMaybe<Scalars['Boolean']['input']>;
   header?: InputMaybe<Scalars['String']['input']>;
   headermetacolor?: InputMaybe<Scalars['String']['input']>;
-  logoUrl?: InputMaybe<Scalars['String']['input']>;
   onboardingSubtitle?: InputMaybe<Scalars['String']['input']>;
   onboardingSubtitleDowngrade?: InputMaybe<Scalars['String']['input']>;
   onboardingSubtitleFreshInstall?: InputMaybe<Scalars['String']['input']>;

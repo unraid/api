@@ -19,7 +19,6 @@
   },
   "branding": {
     "theme": "black",
-    "logoUrl": "./assets/logo.svg",
     "bannerImage": "./assets/banner.png",
     "caseModelImage": "./assets/case-model.png",
     "partnerLogoLightUrl": "./assets/partner-logo-light.svg",

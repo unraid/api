@@ -137,16 +137,6 @@ export class BrandingConfig {
 
     @Field(() => String, {
         nullable: true,
-        description:
-            'Main header logo image source. Supports local path, remote URL, or data URI/base64.',
-    })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => sanitizeString(value))
-    logoUrl?: string | null;
-
-    @Field(() => String, {
-        nullable: true,
         description: 'Banner image source. Supports local path, remote URL, or data URI/base64.',
     })
     @IsOptional()

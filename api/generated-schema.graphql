@@ -813,11 +813,6 @@ type BrandingConfig {
   showBannerGradient: Boolean
   theme: String
 
-  """
-  The path to the partner logo image on the flash drive, relative to the activation code file
-  """
-  logoUrl: String
-
   """Partner logo URL to use on light themes (azure/white)"""
   partnerLogoLightUrl: String
 
@@ -1286,7 +1281,6 @@ input BrandingConfigInput {
   background: String
   showBannerGradient: Boolean
   theme: String
-  logoUrl: String
   partnerLogoLightUrl: String
   partnerLogoDarkUrl: String
   hasPartnerLogo: Boolean

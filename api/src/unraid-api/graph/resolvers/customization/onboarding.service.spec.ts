@@ -151,7 +151,6 @@ describe('OnboardingService', () => {
     const bannerTarget = mockPaths.webgui.banner;
     const caseModelSource = mockPaths.activation.caseModel;
     const caseModelTarget = mockPaths.webgui.caseModel;
-    const logoSource = mockPaths.activation.logo;
     const caseModelCfg = mockPaths.boot.caseModelConfig;
 
     // Add mockActivationData definition here
@@ -162,7 +161,6 @@ describe('OnboardingService', () => {
             background: '#778899',
             showBannerGradient: true,
             theme: 'black',
-            logoUrl: './assets/logo.svg',
             bannerImage: './assets/banner.png',
             caseModelImage: './assets/case-model.png',
             partnerLogoLightUrl: './assets/partner-logo-light.png',
@@ -233,12 +231,7 @@ describe('OnboardingService', () => {
         // Mock fileExists needed by customization methods
         vi.mocked(fileExists).mockImplementation(async (p) => {
             // Assume relevant assets/targets exist unless overridden
-            return (
-                p === bannerSource ||
-                p === caseModelSource ||
-                p === bannerTarget.fullPath ||
-                p === logoSource
-            );
+            return p === bannerSource || p === caseModelSource || p === bannerTarget.fullPath;
         });
     });
 
@@ -329,7 +322,7 @@ describe('OnboardingService', () => {
 
             expect(onboardingTrackerMock.isCompleted).toHaveBeenCalledTimes(2);
             expect(fs.readdir).toHaveBeenCalledTimes(1);
-            expect(fs.copyFile).toHaveBeenCalledTimes(3);
+            expect(fs.copyFile).toHaveBeenCalledTimes(2);
             expect(emcmd).not.toHaveBeenCalled();
             expect(loggerLogSpy).toHaveBeenCalledWith(
                 'First boot setup previously completed, skipping customizations.'
@@ -389,7 +382,7 @@ describe('OnboardingService', () => {
             // Setup mocks: dir exists, .done missing, JSON exists, read JSON ok
             vi.mocked(fileExists).mockImplementation(async (p) => {
                 // .done is missing, all json-declared assets exist
-                return p === bannerSource || p === caseModelSource || p === logoSource;
+                return p === bannerSource || p === caseModelSource;
             });
             vi.mocked(fs.access).mockResolvedValue(undefined);
             vi.mocked(fs.readdir).mockResolvedValue([activationJsonFile as any]);
@@ -598,7 +591,6 @@ describe('OnboardingService', () => {
             (service as any).materializedPartnerMedia = {
                 banner: true,
                 caseModel: true,
-                logo: true,
             };
             // Mock necessary file reads/writes
             vi.mocked(fs.readFile).mockImplementation(async (p) => {
@@ -726,24 +718,6 @@ describe('OnboardingService', () => {
             fetchSpy.mockRestore();
         });
 
-        it('materializes main logo from data URI into activation assets', async () => {
-            const logoDataUri = `data:image/svg+xml;base64,${Buffer.from('<svg></svg>').toString('base64')}`;
-            (service as any).activationData = plainToInstance(ActivationCode, {
-                branding: {
-                    logoUrl: logoDataUri,
-                },
-            });
-
-            await (service as any).materializePartnerMediaAssets();
-
-            expect(fs.writeFile).toHaveBeenCalledWith(
-                mockPaths.activation.logo,
-                expect.objectContaining({
-                    length: 11,
-                })
-            );
-        });
-
         it('normalizes partner logo local paths into browser-safe data URIs', async () => {
             const localLightLogoPath = path.join(activationDir, 'partner-assets/light-logo.svg');
             const localDarkLogoPath = path.join(activationDir, 'partner-assets/dark-logo.svg');
@@ -802,20 +776,6 @@ describe('OnboardingService', () => {
             expect(partnerInfo?.branding?.partnerLogoLightUrl).toMatch(/^data:image\/svg\+xml;base64,/);
             expect(partnerInfo?.branding?.partnerLogoDarkUrl).toBe(
                 partnerInfo?.branding?.partnerLogoLightUrl
-            );
-        });
-
-        it('setupPartnerLogo should link activation logo into webgui logo path', async () => {
-            vi.mocked(fileExists).mockImplementation(async (p) => p === mockPaths.activation.logo);
-            vi.mocked(fs.symlink).mockResolvedValue(undefined as any);
-            await (service as any).setupPartnerLogo();
-
-            expect(fs.symlink).toHaveBeenCalledWith(
-                mockPaths.activation.logo,
-                expect.stringContaining(`${mockPaths.webgui.logo.fullPath}.tmp-`)
-            );
-            expect(loggerLogSpy).toHaveBeenCalledWith(
-                `Partner logo symlinked to ${mockPaths.webgui.logo.fullPath}`
             );
         });
 
@@ -1353,7 +1313,6 @@ describe('applyActivationCustomizations specific tests', () => {
     const bannerTarget = mockPaths.webgui.banner;
     const caseModelSource = mockPaths.activation.caseModel;
     const caseModelTarget = mockPaths.webgui.caseModel;
-    const logoSource = mockPaths.activation.logo;
 
     // Add mockActivationData definition here
     const mockActivationData = {
@@ -1365,7 +1324,6 @@ describe('applyActivationCustomizations specific tests', () => {
             theme: 'black',
             bannerImage: './assets/banner.png',
             caseModelImage: './assets/case-model.png',
-            logoUrl: './assets/logo.svg',
             partnerLogoLightUrl: './assets/partner-logo-light.png',
             partnerLogoDarkUrl: './assets/partner-logo-dark.png',
         },
@@ -1431,12 +1389,7 @@ describe('applyActivationCustomizations specific tests', () => {
         });
         vi.mocked(fileExists).mockImplementation(async (p) => {
             // Assume relevant assets/targets exist unless overridden
-            return (
-                p === bannerSource ||
-                p === caseModelSource ||
-                p === bannerTarget.fullPath ||
-                p === logoSource
-            );
+            return p === bannerSource || p === caseModelSource || p === bannerTarget.fullPath;
         });
     });
 
@@ -1554,12 +1507,7 @@ describe('applyActivationCustomizations specific tests', () => {
         });
 
         vi.mocked(fileExists).mockImplementation(async (p) => {
-            return (
-                p === bannerSource ||
-                p === caseModelSource ||
-                p === bannerTarget.fullPath ||
-                p === logoSource
-            );
+            return p === bannerSource || p === caseModelSource || p === bannerTarget.fullPath;
         });
         vi.mocked(fs.copyFile).mockImplementation(async (source, dest) => {
             if (

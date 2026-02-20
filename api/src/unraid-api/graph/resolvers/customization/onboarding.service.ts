@@ -37,10 +37,9 @@ export class OnboardingService implements OnModuleInit {
     private caseModelCfg!: string;
     private identCfg!: string;
     private activationJsonPath: string | null = null;
-    private materializedPartnerMedia: Record<'banner' | 'caseModel' | 'logo', boolean> = {
+    private materializedPartnerMedia: Record<'banner' | 'caseModel', boolean> = {
         banner: false,
         caseModel: false,
-        logo: false,
     };
 
     private activationData: ActivationCode | null = null;
@@ -376,7 +375,6 @@ export class OnboardingService implements OnModuleInit {
         this.materializedPartnerMedia = {
             banner: false,
             caseModel: false,
-            logo: false,
         };
     }
 
@@ -406,7 +404,6 @@ export class OnboardingService implements OnModuleInit {
             await this.setupPartnerBanner();
             await this.applyDisplaySettings();
             await this.applyCaseModelConfig();
-            await this.setupPartnerLogo();
 
             this.logger.log('Activation setup complete.');
         } catch (error: unknown) {
@@ -420,7 +417,6 @@ export class OnboardingService implements OnModuleInit {
         this.materializedPartnerMedia = {
             banner: false,
             caseModel: false,
-            logo: false,
         };
         if (!this.activationData?.branding) {
             return;
@@ -428,7 +424,7 @@ export class OnboardingService implements OnModuleInit {
 
         const paths = getters.paths();
         const mediaSources: Array<{
-            key: 'banner' | 'caseModel' | 'logo';
+            key: 'banner' | 'caseModel';
             label: string;
             source?: string | null;
             targetPath: string;
@@ -444,12 +440,6 @@ export class OnboardingService implements OnModuleInit {
                 label: 'case-model',
                 source: this.activationData.branding.caseModelImage,
                 targetPath: paths.activation.caseModel,
-            },
-            {
-                key: 'logo',
-                label: 'main-logo',
-                source: this.activationData.branding.logoUrl,
-                targetPath: paths.activation.logo,
             },
         ];
 
@@ -801,30 +791,6 @@ export class OnboardingService implements OnModuleInit {
             }
         } catch (error) {
             this.logger.error('Error applying case model:', error);
-        }
-    }
-
-    private async setupPartnerLogo() {
-        this.logger.log('Setting up partner logo...');
-        if (!this.materializedPartnerMedia.logo) {
-            this.logger.log(
-                'No partner main-logo image configured in activation code, skipping logo setup.'
-            );
-            return;
-        }
-        const paths = getters.paths();
-        const logoSource = paths.activation.logo;
-        const logoTarget = paths.webgui.logo.fullPath;
-
-        try {
-            if (await fileExists(logoSource)) {
-                await this.replaceTargetWithSource(logoSource, logoTarget);
-                this.logger.log(`Partner logo symlinked to ${logoTarget}`);
-            } else {
-                this.logger.log('Partner logo file not found, skipping logo setup.');
-            }
-        } catch (error) {
-            this.logger.error('Error setting up partner logo:', error);
         }
     }
 

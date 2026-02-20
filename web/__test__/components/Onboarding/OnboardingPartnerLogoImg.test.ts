@@ -49,7 +49,8 @@ describe('OnboardingPartnerLogoImg', () => {
     const wrapper = mountComponent({
       partnerInfo: {
         branding: {
-          logoUrl: null,
+          partnerLogoLightUrl: null,
+          partnerLogoDarkUrl: null,
           hasPartnerLogo: false,
         },
       },
