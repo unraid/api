@@ -391,15 +391,17 @@ export class Onboarding {
         description: 'The activation code from the .activationcode file, if present',
     })
     activationCode?: string;
+
+    @Field(() => OnboardingState, {
+        description: 'Runtime onboarding state values used by the onboarding flow',
+    })
+    onboardingState!: OnboardingState;
 }
 
 @ObjectType()
 export class Customization {
     @Field(() => ActivationCode, { nullable: true })
     activationCode?: ActivationCode;
-
-    @Field(() => OnboardingState, { nullable: true })
-    onboardingState?: OnboardingState;
 
     @Field(() => Onboarding, { nullable: true })
     onboarding?: Onboarding;

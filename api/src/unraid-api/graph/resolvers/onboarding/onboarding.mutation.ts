@@ -30,6 +30,7 @@ export class OnboardingMutationsResolver {
         const state = this.onboardingTracker.getState();
         const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
         const partnerInfo = await this.onboardingService.getPublicPartnerInfo();
+        const onboardingState = await this.onboardingService.getOnboardingState();
         const versionDirection = getOnboardingVersionDirection(state.completedAtVersion, currentVersion);
 
         // Compute the status based on completion state and version
@@ -49,6 +50,7 @@ export class OnboardingMutationsResolver {
             isPartnerBuild: partnerInfo !== null,
             completed: state.completed,
             completedAtVersion: state.completedAtVersion,
+            onboardingState,
         };
     }
 

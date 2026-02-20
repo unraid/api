@@ -41,12 +41,14 @@ export const ACTIVATION_CODE_QUERY = parse(/* GraphQL */ `
           model
         }
       }
-      onboardingState {
-        registrationState
-        isRegistered
-        isFreshInstall
-        hasActivationCode
-        activationRequired
+      onboarding {
+        onboardingState {
+          registrationState
+          isRegistered
+          isFreshInstall
+          hasActivationCode
+          activationRequired
+        }
       }
     }
   }

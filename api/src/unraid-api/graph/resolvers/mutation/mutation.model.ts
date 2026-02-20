@@ -1,6 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
 import { Onboarding } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import { Theme } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 import { RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { PluginInstallOperation } from '@app/unraid-api/graph/resolvers/unraid-plugins/unraid-plugins.model.js';
 
@@ -29,7 +30,13 @@ export class ApiKeyMutations {}
 @ObjectType({
     description: 'Customization related mutations',
 })
-export class CustomizationMutations {}
+export class CustomizationMutations {
+    @Field(() => Theme, { description: 'Update the UI theme (writes dynamix.cfg)' })
+    setTheme!: Theme;
+
+    @Field(() => String, { description: 'Update the display locale (language)' })
+    setLocale!: string;
+}
 
 @ObjectType({
     description: 'Parity check related mutations, WIP, response types and functionaliy will change',

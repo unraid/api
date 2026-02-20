@@ -28,6 +28,13 @@ describe('CustomizationResolver', () => {
         vi.clearAllMocks();
         (onboardingTracker.getCurrentVersion as any).mockReturnValue('7.2.0');
         (onboardingService.getPublicPartnerInfo as any).mockResolvedValue(null);
+        (onboardingService.getOnboardingState as any).mockResolvedValue({
+            registrationState: null,
+            isRegistered: false,
+            isFreshInstall: false,
+            hasActivationCode: false,
+            activationRequired: false,
+        });
     });
 
     it('returns INCOMPLETE status when not completed', async () => {
@@ -43,6 +50,13 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: false,
             completedAtVersion: undefined,
+            onboardingState: {
+                registrationState: null,
+                isRegistered: false,
+                isFreshInstall: false,
+                hasActivationCode: false,
+                activationRequired: false,
+            },
         });
     });
 
@@ -59,6 +73,13 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: true,
             completedAtVersion: '7.2.0',
+            onboardingState: {
+                registrationState: null,
+                isRegistered: false,
+                isFreshInstall: false,
+                hasActivationCode: false,
+                activationRequired: false,
+            },
         });
     });
 
@@ -75,6 +96,13 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: true,
             completedAtVersion: '7.1.0',
+            onboardingState: {
+                registrationState: null,
+                isRegistered: false,
+                isFreshInstall: false,
+                hasActivationCode: false,
+                activationRequired: false,
+            },
         });
     });
 
@@ -91,6 +119,13 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: true,
             completedAtVersion: '7.3.0',
+            onboardingState: {
+                registrationState: null,
+                isRegistered: false,
+                isFreshInstall: false,
+                hasActivationCode: false,
+                activationRequired: false,
+            },
         });
     });
 

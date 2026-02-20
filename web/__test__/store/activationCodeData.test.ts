@@ -94,9 +94,11 @@ describe('ActivationCodeData Store', () => {
           return createCompleteQueryMock(
             {
               customization: {
-                onboardingState: {
-                  registrationState: RegistrationState.ENOKEYFILE,
-                  isFreshInstall: true, // Backend determines this value
+                onboarding: {
+                  onboardingState: {
+                    registrationState: RegistrationState.ENOKEYFILE,
+                    isFreshInstall: true, // Backend determines this value
+                  },
                 },
               },
             },
@@ -118,9 +120,11 @@ describe('ActivationCodeData Store', () => {
           return createCompleteQueryMock(
             {
               customization: {
-                onboardingState: {
-                  registrationState: RegistrationState.ENOKEYFILE1,
-                  isFreshInstall: false, // Backend determines this value
+                onboarding: {
+                  onboardingState: {
+                    registrationState: RegistrationState.ENOKEYFILE1,
+                    isFreshInstall: false, // Backend determines this value
+                  },
                 },
               },
             },
@@ -142,9 +146,11 @@ describe('ActivationCodeData Store', () => {
           return createCompleteQueryMock(
             {
               customization: {
-                onboardingState: {
-                  registrationState: RegistrationState.ENOKEYFILE2,
-                  isFreshInstall: false, // Backend determines this value
+                onboarding: {
+                  onboardingState: {
+                    registrationState: RegistrationState.ENOKEYFILE2,
+                    isFreshInstall: false, // Backend determines this value
+                  },
                 },
               },
             },
@@ -166,9 +172,11 @@ describe('ActivationCodeData Store', () => {
           return createCompleteQueryMock(
             {
               customization: {
-                onboardingState: {
-                  registrationState: 'REGISTERED' as RegistrationState,
-                  isFreshInstall: false, // Backend determines this value
+                onboarding: {
+                  onboardingState: {
+                    registrationState: 'REGISTERED' as RegistrationState,
+                    isFreshInstall: false, // Backend determines this value
+                  },
                 },
               },
             },

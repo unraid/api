@@ -11,7 +11,9 @@ export const useActivationCodeDataStore = defineStore('activationCodeData', () =
     { errorPolicy: 'all' }
   );
 
-  const onboardingState = computed(() => activationCodeResult.value?.customization?.onboardingState);
+  const onboardingState = computed(
+    () => activationCodeResult.value?.customization?.onboarding?.onboardingState
+  );
 
   const activationCode = computed(() => activationCodeResult.value?.customization?.activationCode);
 

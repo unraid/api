@@ -18,6 +18,7 @@ describe('OnboardingMutationsResolver', () => {
 
     const onboardingService = {
         getPublicPartnerInfo: vi.fn(),
+        getOnboardingState: vi.fn(),
         clearActivationDataCache: vi.fn(),
     };
 
@@ -31,6 +32,13 @@ describe('OnboardingMutationsResolver', () => {
         });
         onboardingTracker.getCurrentVersion.mockReturnValue('7.2.0');
         onboardingService.getPublicPartnerInfo.mockResolvedValue(null);
+        onboardingService.getOnboardingState.mockResolvedValue({
+            registrationState: null,
+            isRegistered: false,
+            isFreshInstall: false,
+            hasActivationCode: false,
+            activationRequired: false,
+        });
 
         resolver = new OnboardingMutationsResolver(
             onboardingTracker as any,
@@ -65,6 +73,13 @@ describe('OnboardingMutationsResolver', () => {
         expect(result.completedAtVersion).toBe('7.2.0');
         expect(result.status).toBe(OnboardingStatus.COMPLETED);
         expect(result.isPartnerBuild).toBe(false);
+        expect(result.onboardingState).toEqual({
+            registrationState: null,
+            isRegistered: false,
+            isFreshInstall: false,
+            hasActivationCode: false,
+            activationRequired: false,
+        });
     });
 
     it('returns incomplete status after resetOnboarding', async () => {

@@ -11,19 +11,19 @@ export const UPDATE_SERVER_IDENTITY_MUTATION = gql`
 `;
 
 export const SET_THEME_MUTATION = gql`
-  mutation SetLegacyTheme($theme: String!) {
-    setTheme(theme: $theme) {
-      id
-      theme
+  mutation SetTheme($theme: ThemeName!) {
+    customization {
+      setTheme(theme: $theme) {
+        name
+      }
     }
   }
 `;
 
 export const SET_LOCALE_MUTATION = gql`
   mutation SetLocale($locale: String!) {
-    setLocale(locale: $locale) {
-      id
-      locale
+    customization {
+      setLocale(locale: $locale)
     }
   }
 `;

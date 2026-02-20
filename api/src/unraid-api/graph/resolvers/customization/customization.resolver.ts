@@ -9,7 +9,6 @@ import {
     ActivationCode,
     Customization,
     Onboarding,
-    OnboardingState,
     OnboardingStatus,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
@@ -64,6 +63,7 @@ export class CustomizationResolver {
         const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
         const partnerInfo = await this.onboardingService.getPublicPartnerInfo();
         const activationData = await this.onboardingService.getActivationData();
+        const onboardingState = await this.onboardingService.getOnboardingState();
         const versionDirection = getOnboardingVersionDirection(state.completedAtVersion, currentVersion);
 
         // Compute the status based on completion state and version
@@ -87,6 +87,7 @@ export class CustomizationResolver {
             completed: state.completed,
             completedAtVersion: state.completedAtVersion,
             activationCode,
+            onboardingState,
         };
     }
 
@@ -106,10 +107,5 @@ export class CustomizationResolver {
     })
     async activationCode(): Promise<ActivationCode | null> {
         return this.onboardingService.getActivationData();
-    }
-
-    @ResolveField(() => OnboardingState, { name: 'onboardingState' })
-    async resolveOnboardingState(): Promise<OnboardingState> {
-        return this.onboardingService.getOnboardingState();
     }
 }
