@@ -2,6 +2,14 @@ import gql from 'graphql-tag';
 
 export const GET_CORE_SETTINGS_QUERY = gql`
   query GetCoreSettings {
+    customization {
+      activationCode {
+        system {
+          serverName
+          comment
+        }
+      }
+    }
     vars {
       name
       sysModel

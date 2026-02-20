@@ -2,138 +2,127 @@
 
 ## Overview
 
-This system shows contextual onboarding steps to users when they upgrade their Unraid OS to a new version. It tracks the last seen OS version using the onboarding tracker state and allows you to define which steps should be shown for specific version upgrades.
+This system shows onboarding for fresh installs and version drift scenarios (upgrade/downgrade), using a shared modal flow. The API tracks onboarding completion state (`completed`, `completedAtVersion`) and the web client decides whether the modal should appear and which local steps to render.
 
 ## How It Works
 
 ### Backend (API)
 
-1. **Version Tracking** - `api/src/unraid-api/config/onboarding-tracker.module.ts`
-   - On boot, compares current OS version with `lastTrackedVersion` in the onboarding tracker
-   - Automatically updates `lastTrackedVersion` when version changes
-   - Persists to `/boot/config/modules/onboarding-tracker.json`
+1. **Onboarding Tracker** - `api/src/unraid-api/config/onboarding-tracker.service.ts`
+   - Reads current OS version from `/etc/unraid-version` (or `PATHS_UNRAID_DATA/unraid-version`)
+   - Persists onboarding state to `PATHS_CONFIG_MODULES/onboarding-tracker.json`
+   - Stores:
+     - `completed` (boolean)
+     - `completedAtVersion` (string | undefined)
 
 2. **GraphQL API** - `api/src/unraid-api/graph/resolvers/customization/`
-   - Exposes `activationOnboarding` query which returns:
-     - `isUpgrade`, `previousVersion`, `currentVersion`
-     - Ordered step definitions (id, required, introducedIn)
-     - `completed` flag per step and `hasPendingSteps`
+   - Exposes `customization { onboarding { ... } }`
+   - `onboarding` includes:
+     - `status` (`INCOMPLETE`, `UPGRADE`, `DOWNGRADE`, `COMPLETED`)
+     - `isPartnerBuild`, `completed`, `completedAtVersion`
+     - `activationCode`
+     - `onboardingState` (`registrationState`, `isRegistered`, `isFreshInstall`, `hasActivationCode`, `activationRequired`)
+   - Status is computed server-side from tracker state + semver direction.
 
 ### Frontend (Web)
 
-1. **Release Configuration** - `@unraid/shared/release-configs.ts`
-   - Define which steps to show for specific version upgrades
-   - Support conditional steps with async functions
-   - Example:
+1. **Onboarding Store** - `web/src/components/Onboarding/store/upgradeOnboarding.ts`
+   - Queries `ONBOARDING_QUERY` (`customization.onboarding`)
+   - Enforces visibility guards:
+     - minimum supported version (`7.3.0+`)
+     - authenticated access (no unauthenticated GraphQL errors)
+   - Exposes `shouldShowOnboarding` when status is `INCOMPLETE`, `UPGRADE`, or `DOWNGRADE`
+   - `useUpgradeOnboardingStore` is now an alias of `useOnboardingStore`.
 
-   ```typescript
-   {
-     version: '7.0.0',
-     steps: [
-       { id: 'timezone', required: true },
-       { 
-         id: 'plugins', 
-         required: false,
-         condition: async () => {
-           return checkSomeCondition();
-         }
-       },
-     ],
-   }
-   ```
-
-2. **Upgrade Onboarding Store** - `store/upgradeOnboarding.ts`
-   - Queries `activationOnboarding`
-   - Uses returned step metadata to decide which components to render
-   - Provides `shouldShowUpgradeOnboarding` computed property
-
-3. **Unified Activation Modal** - `ActivationModal.vue`
-   - Handles both fresh install and upgrade onboarding modes
-   - Automatically detects which mode based on system state
-   - Displays relevant steps for each mode
-   - Reuses existing step components (timezone, plugins)
-   - Relies on recorded completion status from the onboarding tracker
+2. **Unified Modal** - `web/src/components/Onboarding/OnboardingModal.vue`
+   - Handles both fresh-install and version-drift onboarding
+   - Uses a client-side hardcoded step list (`HARDCODED_STEPS`)
+   - Conditionally includes/removes `ACTIVATE_LICENSE` based on activation state
+   - Resolves components from `stepRegistry`
+   - Does not use server-provided per-step metadata.
 
 ## Adding New Steps
 
 ### 1. Create the Step Component
 
-Create a new component like `ActivationTimezoneStep.vue` with:
+Create a new step under `web/src/components/Onboarding/steps/`, following the same prop contract used by existing steps.
+
+Example:
 ```vue
-<script setup>
+<script setup lang="ts">
 export interface Props {
-  t: ComposerTranslation;
   onComplete: () => void;
+  onBack?: () => void;
+  showBack?: boolean;
   onSkip?: () => void;
   showSkip?: boolean;
+  isSavingStep?: boolean;
 }
 </script>
 ```
 
-### 2. Add Step ID Type
+### 2. Register The Component And Step Metadata
 
-In `@unraid/shared/release-configs.ts`, update the step ID type:
-```typescript
-export interface ReleaseStepConfig {
-  id: 'timezone' | 'plugins' | 'your-new-step';
-  // ...
-}
-```
+- Add the component mapping in `web/src/components/Onboarding/stepRegistry.ts` (`stepComponents`)
+- Add stepper metadata in `stepRegistry.ts` (`stepMetadata`) so the timeline has title/description/icon.
 
-### 3. Add Step to Modal
+### 3. Add Step ID To The Modal And Stepper Types
 
-In `ActivationModal.vue`, add a section:
+- Update `StepId` unions in:
+  - `web/src/components/Onboarding/OnboardingModal.vue`
+  - `web/src/components/Onboarding/OnboardingSteps.vue`
 
-```vue
-<div v-else-if="currentStep === 'your-new-step'" class="flex w-full flex-col items-center">
-  <YourNewStepComponent
-    :t="t"
-    :on-complete="goToNextStep"
-    :on-skip="goToNextStep"
-    :show-skip="isUpgradeMode ? !currentStepConfig?.required : false"
-  />
-</div>
-```
+### 4. Add The Step To The Client-Side Flow
 
-### 4. Configure for Release
+- Update `HARDCODED_STEPS` in `web/src/components/Onboarding/OnboardingModal.vue`.
+- Choose whether it is required via the step's `required` flag.
+- If conditional, update the `availableSteps` / `filteredSteps` computed logic.
 
-In `@unraid/shared/release-configs.ts`, add to `releaseConfigs` array:
+### 5. Wire Per-Step Props In `currentStepProps`
 
-```typescript
-{
-  version: '7.1.0',
-  steps: [
-    { 
-      id: 'your-new-step', 
-      required: true,
-      condition: async () => {
-        return true;
-      }
-    },
-  ],
-}
-```
+Add a `switch` case in `OnboardingModal.vue` so the step receives the right callbacks/flags (`onComplete`, `onBack`, `onSkip`, `showSkip`, etc.).
+
+### 6. Add/Update Tests
+
+At minimum, update:
+- `web/__test__/components/Onboarding/OnboardingModal.test.ts`
+- Any step-specific test file if the new step introduces custom behavior.
 
 ## Integration
 
-The `ActivationModal` is already integrated into the app and automatically handles both fresh install and upgrade modes. No additional setup needed!
+`OnboardingModal.vue` is already integrated and handles both onboarding modes. No additional app wiring is usually required once the step is added to `stepRegistry` + `HARDCODED_STEPS`.
 
 ## Testing
 
-To test the upgrade flow:
+To test upgrade/downgrade visibility:
 
-1. Edit `/boot/config/modules/onboarding-tracker.json` and set `lastTrackedVersion` to an older version
-2. Ensure an activation code exists (or remove it to test conditional logic)
+1. Edit `PATHS_CONFIG_MODULES/onboarding-tracker.json` (default: `/boot/config/plugins/dynamix.my.servers/configs/onboarding-tracker.json`)
+2. For upgrade flow, set:
+   - `completed: true`
+   - `completedAtVersion` to an older version than current OS version
+3. For incomplete flow, set:
+   - `completed: false`
+   - `completedAtVersion: null` (or omit)
+4. Restart the API
+5. Reload web UI and verify `customization.onboarding.status` and modal visibility
+
+For rapid local testing, the onboarding admin panel (`OnboardingAdminPanel.standalone.vue`) can also apply temporary GraphQL override state.
+
+To test activation-step gating:
+
+1. Ensure activation code exists (or remove it to test conditional logic)
+2. Verify `registrationState` is one of `ENOKEYFILE`, `ENOKEYFILE1`, `ENOKEYFILE2` for the license step to appear
 3. Restart the API
-4. The modal should appear on next page load with relevant steps from `activationOnboarding`
+4. Reload web UI and verify whether `ACTIVATE_LICENSE` is present in the step list
 
 ## Notes
 
-- Fresh installs (no `lastTrackedVersion`) won't trigger upgrade onboarding until steps exist
-- The modal automatically switches between fresh install and upgrade modes
-- Dismissal is tracked through the onboarding mutations so all browsers stay in sync
+- Onboarding visibility is status-driven (`INCOMPLETE`, `UPGRADE`, `DOWNGRADE`) with client-side guards (min version + auth)
+- The modal automatically switches between fresh-install and version-drift copy
+- There is no server-side per-step completion tracking in this flow
+- Exiting onboarding can call `completeOnboarding`; temporary bypass does not
 - Version comparison uses semver for reliable ordering
-- The same modal component handles both modes for consistency
+- The same modal component handles all modes for consistency
 - During apply in the summary step, if baseline core-settings query data is unavailable, onboarding runs in best-effort mode using trusted defaults plus draft values and still proceeds. This behavior is intentional to avoid hard-blocking onboarding when baseline reads are unavailable.
 - Core-settings timezone precedence is mode-aware: for initial setup (`onboarding.completed=false`), the step prefers non-empty draft timezone, then browser timezone, then API baseline; for completed onboarding (upgrade/downgrade paths), API baseline timezone remains authoritative.
 - Temporary onboarding bypass is available for support/partner workflows without marking onboarding complete (`Ctrl/Cmd + Alt + Shift + O`, `?onboarding=bypass`, `?onboarding=resume`). It is session-scoped and boot-aware.

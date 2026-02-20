@@ -102,6 +102,60 @@ const { result: coreSettingsResult, onResult: onCoreSettingsResult } = useQuery(
   }
 );
 
+type CoreSettingsIdentityData = {
+  server?: {
+    name?: string | null;
+    comment?: string | null;
+  } | null;
+  vars?: {
+    name?: string | null;
+  } | null;
+  customization?: {
+    activationCode?: {
+      system?: {
+        serverName?: string | null;
+        comment?: string | null;
+      } | null;
+    } | null;
+  } | null;
+};
+
+const applyPreferredIdentity = (data?: CoreSettingsIdentityData | null) => {
+  if (draftStore.coreSettingsInitialized) {
+    serverName.value = draftStore.serverName;
+    serverDescription.value = draftStore.serverDescription;
+    return;
+  }
+
+  const activationSystem = data?.customization?.activationCode?.system;
+  const hasActivationSystem = activationSystem !== undefined && activationSystem !== null;
+  const activationServerName = activationSystem?.serverName?.trim();
+  const hasActivationComment =
+    activationSystem?.comment !== undefined && activationSystem?.comment !== null;
+  const activationComment = activationSystem?.comment ?? '';
+
+  const apiServerName = data?.server?.name?.trim() || data?.vars?.name?.trim() || '';
+  const apiServerComment = data?.server?.comment ?? '';
+
+  // Wait for onboarding tracker state before deciding activation-vs-API precedence.
+  if (onboardingLoading.value) {
+    serverName.value = apiServerName || activationServerName || '';
+    serverDescription.value = apiServerComment || (hasActivationComment ? activationComment : '');
+    return;
+  }
+
+  const isInitialSetup = onboardingCompleted.value === false;
+  if (isInitialSetup && hasActivationSystem) {
+    serverName.value = activationServerName || apiServerName || '';
+    // On first setup with activation metadata, keep description empty unless partner provided one.
+    serverDescription.value = hasActivationComment ? activationComment : '';
+    return;
+  }
+
+  serverName.value = apiServerName || activationServerName || '';
+  serverDescription.value = apiServerComment || (hasActivationComment ? activationComment : '');
+};
+
 const applyPreferredTimeZone = (apiTimeZone?: string | null) => {
   if (draftStore.coreSettingsInitialized) {
     selectedTimeZone.value = draftStore.selectedTimeZone;
@@ -159,12 +213,7 @@ onCoreSettingsResult((res) => {
     selectedLanguage.value = d.selectedLanguage;
     hasAutoSelected.value = true;
   } else {
-    if (res.data?.server || res.data?.vars) {
-      serverName.value = res.data?.server?.name || res.data?.vars?.name || '';
-    }
-    if (res.data?.server) {
-      serverDescription.value = res.data.server.comment || '';
-    }
+    applyPreferredIdentity(res.data);
     applyPreferredTimeZone(res.data?.systemTime?.timeZone);
     if (res.data?.vars) {
       useSsh.value = res.data.vars.useSsh || false;
@@ -186,6 +235,7 @@ onCoreSettingsResult((res) => {
 
 watch([onboardingLoading, onboardingCompleted], () => {
   if (!draftStore.coreSettingsInitialized) {
+    applyPreferredIdentity(coreSettingsResult.value);
     applyPreferredTimeZone(coreSettingsResult.value?.systemTime?.timeZone);
   }
 });
