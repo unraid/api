@@ -2,19 +2,11 @@ import { computed } from 'vue';
 import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
-import {
-  ACTIVATION_CODE_QUERY,
-  PARTNER_INFO_QUERY,
-} from '~/components/Onboarding/graphql/activationCode.query';
+import { ACTIVATION_CODE_QUERY } from '~/components/Onboarding/graphql/activationCode.query';
 
 export const useActivationCodeDataStore = defineStore('activationCodeData', () => {
   const { result: activationCodeResult, loading: activationCodeLoading } = useQuery(
     ACTIVATION_CODE_QUERY,
-    {},
-    { errorPolicy: 'all' }
-  );
-  const { result: partnerInfoResult, loading: partnerInfoLoading } = useQuery(
-    PARTNER_INFO_QUERY,
     {},
     { errorPolicy: 'all' }
   );
@@ -27,14 +19,15 @@ export const useActivationCodeDataStore = defineStore('activationCodeData', () =
 
   const isFreshInstall = computed(() => onboardingState.value?.isFreshInstall ?? false);
 
-  /**
-   * Public Partner Info becomes null when the user has set a password, so we fall back to the partnerInfo from the activation code
-   */
   const partnerInfo = computed(() => {
-    return (
-      partnerInfoResult.value?.publicPartnerInfo ??
-      activationCodeResult.value?.customization?.partnerInfo
-    );
+    const activationCode = activationCodeResult.value?.customization?.activationCode;
+    if (!activationCode?.partner && !activationCode?.branding) {
+      return null;
+    }
+    return {
+      partner: activationCode?.partner ?? null,
+      branding: activationCode?.branding ?? null,
+    };
   });
 
   const activationRequired = computed(() => onboardingState.value?.activationRequired ?? false);
@@ -44,7 +37,7 @@ export const useActivationCodeDataStore = defineStore('activationCodeData', () =
   const isRegistered = computed(() => onboardingState.value?.isRegistered ?? false);
 
   return {
-    loading: computed(() => activationCodeLoading.value || partnerInfoLoading.value),
+    loading: computed(() => activationCodeLoading.value),
     activationCode,
     registrationState,
     isFreshInstall,

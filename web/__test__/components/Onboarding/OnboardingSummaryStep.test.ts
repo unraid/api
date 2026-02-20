@@ -20,6 +20,8 @@ import { createTestI18n } from '../../utils/i18n';
 const {
   draftStore,
   registrationStateRef,
+  isFreshInstallRef,
+  activationCodeRef,
   coreSettingsResult,
   coreSettingsError,
   installedPluginsResult,
@@ -48,6 +50,8 @@ const {
     selectedPlugins: new Set<string>(),
   },
   registrationStateRef: { value: 'ENOKEYFILE' },
+  isFreshInstallRef: { value: true },
+  activationCodeRef: { value: null as unknown },
   coreSettingsResult: {
     value: null as unknown,
   },
@@ -55,10 +59,12 @@ const {
   installedPluginsResult: { value: { installedUnraidPlugins: [] as string[] } },
   availableLanguagesResult: {
     value: {
-      availableLanguages: [
-        { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
-        { code: 'fr_FR', name: 'French', url: 'https://example.com/fr_FR.txz' },
-      ],
+      customization: {
+        availableLanguages: [
+          { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
+          { code: 'fr_FR', name: 'French', url: 'https://example.com/fr_FR.txz' },
+        ],
+      },
     },
   },
   refetchInstalledPluginsMock: vi.fn().mockResolvedValue(undefined),
@@ -124,6 +130,8 @@ vi.mock('~/components/Onboarding/store/onboardingDraft', () => ({
 vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: () => ({
     registrationState: registrationStateRef,
+    isFreshInstall: isFreshInstallRef,
+    activationCode: activationCodeRef,
   }),
 }));
 
@@ -237,6 +245,8 @@ describe('OnboardingSummaryStep', () => {
     draftStore.selectedPlugins = new Set();
 
     registrationStateRef.value = 'ENOKEYFILE';
+    isFreshInstallRef.value = true;
+    activationCodeRef.value = null;
     coreSettingsError.value = null;
     coreSettingsResult.value = {
       vars: { name: 'Tower', useSsh: false, localTld: 'local' },
@@ -247,10 +257,12 @@ describe('OnboardingSummaryStep', () => {
     };
     installedPluginsResult.value = { installedUnraidPlugins: [] };
     availableLanguagesResult.value = {
-      availableLanguages: [
-        { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
-        { code: 'fr_FR', name: 'French', url: 'https://example.com/fr_FR.txz' },
-      ],
+      customization: {
+        availableLanguages: [
+          { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
+          { code: 'fr_FR', name: 'French', url: 'https://example.com/fr_FR.txz' },
+        ],
+      },
     };
 
     updateSystemTimeMock.mockResolvedValue({});
@@ -403,7 +415,11 @@ describe('OnboardingSummaryStep', () => {
       apply: () => {
         draftStore.selectedLanguage = 'fr_FR';
         availableLanguagesResult.value = {
-          availableLanguages: [{ code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' }],
+          customization: {
+            availableLanguages: [
+              { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
+            ],
+          },
         };
       },
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {

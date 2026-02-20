@@ -6,9 +6,10 @@ import { OnboardingTrackerModule } from '@app/unraid-api/config/onboarding-track
 import { CustomizationMutationsResolver } from '@app/unraid-api/graph/resolvers/customization/customization.mutations.resolver.js';
 import { CustomizationResolver } from '@app/unraid-api/graph/resolvers/customization/customization.resolver.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
+import { InfoModule } from '@app/unraid-api/graph/resolvers/info/info.module.js';
 
 @Module({
-    imports: [OnboardingOverrideModule, OnboardingStateModule, OnboardingTrackerModule],
+    imports: [OnboardingOverrideModule, OnboardingStateModule, OnboardingTrackerModule, InfoModule],
     providers: [OnboardingService, CustomizationResolver, CustomizationMutationsResolver],
     exports: [OnboardingService],
 })

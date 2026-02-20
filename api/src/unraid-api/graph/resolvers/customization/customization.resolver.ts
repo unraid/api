@@ -11,17 +11,19 @@ import {
     Onboarding,
     OnboardingState,
     OnboardingStatus,
-    PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 import { Theme } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
+import { Language } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
+import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
 import { getOnboardingVersionDirection } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-status.util.js';
 
 @Resolver(() => Customization)
 export class CustomizationResolver {
     constructor(
         private readonly onboardingService: OnboardingService,
-        private readonly onboardingTracker: OnboardingTrackerService
+        private readonly onboardingTracker: OnboardingTrackerService,
+        private readonly displayService: DisplayService
     ) {}
 
     // Authenticated query
@@ -33,13 +35,6 @@ export class CustomizationResolver {
     async customization(): Promise<Customization | null> {
         // We return an empty object because the fields are resolved by @ResolveField
         return {};
-    }
-
-    // Dedicated public query - calls the internal helper
-    @Query(() => PublicPartnerInfo, { nullable: true })
-    @Public()
-    async publicPartnerInfo(): Promise<PublicPartnerInfo | null> {
-        return this.onboardingService.getPublicPartnerInfo();
     }
 
     @Query(() => Boolean, {
@@ -56,14 +51,15 @@ export class CustomizationResolver {
         return this.onboardingService.getTheme();
     }
 
-    @Query(() => Onboarding, {
+    @ResolveField(() => Onboarding, {
+        name: 'onboarding',
         description: 'Onboarding completion state and context',
     })
     @UsePermissions({
         action: AuthAction.READ_ANY,
         resource: Resource.CUSTOMIZATIONS,
     })
-    async onboarding(): Promise<Onboarding> {
+    async resolveOnboarding(): Promise<Onboarding> {
         const state = this.onboardingTracker.getState();
         const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
         const partnerInfo = await this.onboardingService.getPublicPartnerInfo();
@@ -94,9 +90,13 @@ export class CustomizationResolver {
         };
     }
 
-    @ResolveField(() => PublicPartnerInfo, { nullable: true, name: 'partnerInfo' })
-    async resolvePartnerInfo(): Promise<PublicPartnerInfo | null> {
-        return this.onboardingService.getPublicPartnerInfo();
+    @ResolveField(() => [Language], { nullable: true, name: 'availableLanguages' })
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DISPLAY,
+    })
+    async resolveAvailableLanguages(): Promise<Language[]> {
+        return this.displayService.getAvailableLanguages();
     }
 
     @ResolveField(() => ActivationCode, { nullable: true, name: 'activationCode' })

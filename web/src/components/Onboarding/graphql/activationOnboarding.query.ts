@@ -1,12 +1,14 @@
-import { graphql } from '~/composables/gql';
+import { parse } from 'graphql';
 
-export const ONBOARDING_QUERY = graphql(/* GraphQL */ `
+export const ONBOARDING_QUERY = parse(/* GraphQL */ `
   query Onboarding {
-    onboarding {
-      status
-      isPartnerBuild
-      completed
-      completedAtVersion
+    customization {
+      onboarding {
+        status
+        isPartnerBuild
+        completed
+        completedAtVersion
+      }
     }
   }
 `);

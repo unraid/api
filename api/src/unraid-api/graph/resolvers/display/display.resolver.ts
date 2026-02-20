@@ -4,7 +4,7 @@ import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { Display, Language } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
+import { Display } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
 import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
 
 @Resolver(() => Display)
@@ -45,14 +45,5 @@ export class DisplayResolver {
     @Mutation(() => Display, { description: 'Set the display theme' })
     public async setTheme(@Args('theme') theme: string): Promise<Display> {
         return this.displayService.setTheme(theme);
-    }
-
-    @UsePermissions({
-        action: AuthAction.READ_ANY,
-        resource: Resource.DISPLAY,
-    })
-    @Query(() => [Language], { description: 'Get available languages for installation' })
-    public async availableLanguages(): Promise<Language[]> {
-        return this.displayService.getAvailableLanguages();
     }
 }

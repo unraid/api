@@ -118,7 +118,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     refetch,
   } = useQuery(ONBOARDING_QUERY, {}, { errorPolicy: 'all' });
 
-  const onboardingData = computed(() => onboardingResult.value?.onboarding);
+  const onboardingData = computed(() => onboardingResult.value?.customization?.onboarding);
   const mockUnauthenticated = ref(readMockUnauthenticatedFromStorage());
   const mockOsVersion = ref<string | null>(readMockOsVersionFromStorage());
 

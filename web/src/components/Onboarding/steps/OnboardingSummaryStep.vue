@@ -499,7 +499,8 @@ const handleComplete = async () => {
             addLog(`Language request returned an error, continuing: ${e.message}`, 'info');
           });
       } else {
-        const availableLanguages = availableLanguagesResult.value?.availableLanguages ?? [];
+        const availableLanguages =
+          availableLanguagesResult.value?.customization?.availableLanguages ?? [];
         const language = availableLanguages.find(
           (item: { code: string; name: string; url?: string | null }) => item.code === targetLocale
         );

@@ -3,6 +3,7 @@ import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsIn, IsOptional, IsString, IsUrl, ValidateNested } from 'class-validator';
 
+import { Language } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
 // Helper function to check if a string is a valid hex color
@@ -340,18 +341,6 @@ export class OnboardingState {
     activationRequired!: boolean;
 }
 
-@ObjectType()
-export class Customization {
-    @Field(() => ActivationCode, { nullable: true })
-    activationCode?: ActivationCode;
-
-    @Field(() => PublicPartnerInfo, { nullable: true })
-    partnerInfo?: PublicPartnerInfo;
-
-    @Field(() => OnboardingState, { nullable: true })
-    onboardingState?: OnboardingState;
-}
-
 /**
  * Enum representing the current onboarding status.
  * Used to determine which onboarding flow/UI to show.
@@ -402,4 +391,19 @@ export class Onboarding {
         description: 'The activation code from the .activationcode file, if present',
     })
     activationCode?: string;
+}
+
+@ObjectType()
+export class Customization {
+    @Field(() => ActivationCode, { nullable: true })
+    activationCode?: ActivationCode;
+
+    @Field(() => OnboardingState, { nullable: true })
+    onboardingState?: OnboardingState;
+
+    @Field(() => Onboarding, { nullable: true })
+    onboarding?: Onboarding;
+
+    @Field(() => [Language], { nullable: true })
+    availableLanguages?: Language[];
 }

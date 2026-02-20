@@ -21,7 +21,7 @@ type Documents = {
     "\n    query GetPlugins {\n        plugins {\n            name\n            version\n            hasApiModule\n            hasCliModule\n        }\n    }\n": typeof types.GetPluginsDocument,
     "\n    query GetSSOUsers {\n        settings {\n            api {\n                ssoSubIds\n            }\n        }\n    }\n": typeof types.GetSsoUsersDocument,
     "\n    query SystemReport {\n        info {\n            id\n            machineId\n            system {\n                manufacturer\n                model\n                version\n                sku\n                serial\n                uuid\n            }\n            versions {\n                core {\n                    unraid\n                    kernel\n                }\n                packages {\n                    openssl\n                }\n            }\n        }\n        config {\n            id\n            valid\n            error\n        }\n        server {\n            id\n            name\n        }\n    }\n": typeof types.SystemReportDocument,
-    "\n    query ConnectStatus {\n        connect {\n            id\n            dynamicRemoteAccess {\n                enabledType\n                runningType\n                error\n            }\n        }\n    }\n": typeof types.ConnectStatusDocument,
+    "\n    query ConnectStatus {\n        isSSOEnabled\n    }\n": typeof types.ConnectStatusDocument,
     "\n    query Services {\n        services {\n            id\n            name\n            online\n            uptime {\n                timestamp\n            }\n            version\n        }\n    }\n": typeof types.ServicesDocument,
     "\n    query ValidateOidcSession($token: String!) {\n        validateOidcSession(token: $token) {\n            valid\n            username\n        }\n    }\n": typeof types.ValidateOidcSessionDocument,
 };
@@ -33,7 +33,7 @@ const documents: Documents = {
     "\n    query GetPlugins {\n        plugins {\n            name\n            version\n            hasApiModule\n            hasCliModule\n        }\n    }\n": types.GetPluginsDocument,
     "\n    query GetSSOUsers {\n        settings {\n            api {\n                ssoSubIds\n            }\n        }\n    }\n": types.GetSsoUsersDocument,
     "\n    query SystemReport {\n        info {\n            id\n            machineId\n            system {\n                manufacturer\n                model\n                version\n                sku\n                serial\n                uuid\n            }\n            versions {\n                core {\n                    unraid\n                    kernel\n                }\n                packages {\n                    openssl\n                }\n            }\n        }\n        config {\n            id\n            valid\n            error\n        }\n        server {\n            id\n            name\n        }\n    }\n": types.SystemReportDocument,
-    "\n    query ConnectStatus {\n        connect {\n            id\n            dynamicRemoteAccess {\n                enabledType\n                runningType\n                error\n            }\n        }\n    }\n": types.ConnectStatusDocument,
+    "\n    query ConnectStatus {\n        isSSOEnabled\n    }\n": types.ConnectStatusDocument,
     "\n    query Services {\n        services {\n            id\n            name\n            online\n            uptime {\n                timestamp\n            }\n            version\n        }\n    }\n": types.ServicesDocument,
     "\n    query ValidateOidcSession($token: String!) {\n        validateOidcSession(token: $token) {\n            valid\n            username\n        }\n    }\n": types.ValidateOidcSessionDocument,
 };
@@ -83,7 +83,7 @@ export function gql(source: "\n    query SystemReport {\n        info {\n       
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n    query ConnectStatus {\n        connect {\n            id\n            dynamicRemoteAccess {\n                enabledType\n                runningType\n                error\n            }\n        }\n    }\n"): (typeof documents)["\n    query ConnectStatus {\n        connect {\n            id\n            dynamicRemoteAccess {\n                enabledType\n                runningType\n                error\n            }\n        }\n    }\n"];
+export function gql(source: "\n    query ConnectStatus {\n        isSSOEnabled\n    }\n"): (typeof documents)["\n    query ConnectStatus {\n        isSSOEnabled\n    }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -4,6 +4,7 @@ import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-trac
 import { OnboardingStatus } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { CustomizationResolver } from '@app/unraid-api/graph/resolvers/customization/customization.resolver.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
+import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
 
 describe('CustomizationResolver', () => {
     const onboardingService = {
@@ -17,8 +18,11 @@ describe('CustomizationResolver', () => {
         getState: vi.fn(),
         getCurrentVersion: vi.fn(),
     } as unknown as OnboardingTrackerService;
+    const displayService = {
+        getAvailableLanguages: vi.fn(),
+    } as unknown as DisplayService;
 
-    const resolver = new CustomizationResolver(onboardingService, onboardingTracker);
+    const resolver = new CustomizationResolver(onboardingService, onboardingTracker, displayService);
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -32,7 +36,7 @@ describe('CustomizationResolver', () => {
             completedAtVersion: undefined,
         });
 
-        const result = await resolver.onboarding();
+        const result = await resolver.resolveOnboarding();
 
         expect(result).toEqual({
             status: OnboardingStatus.INCOMPLETE,
@@ -48,7 +52,7 @@ describe('CustomizationResolver', () => {
             completedAtVersion: '7.2.0',
         });
 
-        const result = await resolver.onboarding();
+        const result = await resolver.resolveOnboarding();
 
         expect(result).toEqual({
             status: OnboardingStatus.COMPLETED,
@@ -64,7 +68,7 @@ describe('CustomizationResolver', () => {
             completedAtVersion: '7.1.0',
         });
 
-        const result = await resolver.onboarding();
+        const result = await resolver.resolveOnboarding();
 
         expect(result).toEqual({
             status: OnboardingStatus.UPGRADE,
@@ -80,7 +84,7 @@ describe('CustomizationResolver', () => {
             completedAtVersion: '7.3.0',
         });
 
-        const result = await resolver.onboarding();
+        const result = await resolver.resolveOnboarding();
 
         expect(result).toEqual({
             status: OnboardingStatus.DOWNGRADE,
@@ -99,9 +103,22 @@ describe('CustomizationResolver', () => {
             partnerName: 'Test Partner',
         });
 
-        const result = await resolver.onboarding();
+        const result = await resolver.resolveOnboarding();
 
         expect(result.isPartnerBuild).toBe(true);
         expect(result.status).toBe(OnboardingStatus.INCOMPLETE);
+    });
+
+    it('resolves available languages via display service', async () => {
+        (displayService.getAvailableLanguages as any).mockResolvedValue([
+            { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
+        ]);
+
+        const result = await resolver.resolveAvailableLanguages();
+
+        expect(displayService.getAvailableLanguages).toHaveBeenCalledOnce();
+        expect(result).toEqual([
+            { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
+        ]);
     });
 });

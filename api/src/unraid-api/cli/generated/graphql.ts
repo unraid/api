@@ -70,38 +70,6 @@ export type Scalars = {
    *
    */
   PrefixedID: { input: any; output: any; }
-  /** A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt. */
-  URL: { input: URL; output: URL; }
-};
-
-export type AccessUrl = {
-  __typename?: 'AccessUrl';
-  ipv4?: Maybe<Scalars['URL']['output']>;
-  ipv6?: Maybe<Scalars['URL']['output']>;
-  name?: Maybe<Scalars['String']['output']>;
-  type: UrlType;
-};
-
-export type AccessUrlInput = {
-  ipv4?: InputMaybe<Scalars['URL']['input']>;
-  ipv6?: InputMaybe<Scalars['URL']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  type: UrlType;
-};
-
-export type AccessUrlObject = {
-  __typename?: 'AccessUrlObject';
-  ipv4?: Maybe<Scalars['String']['output']>;
-  ipv6?: Maybe<Scalars['String']['output']>;
-  name?: Maybe<Scalars['String']['output']>;
-  type: UrlType;
-};
-
-export type AccessUrlObjectInput = {
-  ipv4?: InputMaybe<Scalars['String']['input']>;
-  ipv6?: InputMaybe<Scalars['String']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  type: UrlType;
 };
 
 export type ActivationCode = {
@@ -204,12 +172,6 @@ export type ApiKeyMutationsRemoveRoleArgs = {
 /** API Key related mutations */
 export type ApiKeyMutationsUpdateArgs = {
   input: UpdateApiKeyInput;
-};
-
-export type ApiKeyResponse = {
-  __typename?: 'ApiKeyResponse';
-  error?: Maybe<Scalars['String']['output']>;
-  valid: Scalars['Boolean']['output'];
 };
 
 export type ArrayCapacity = {
@@ -411,6 +373,10 @@ export enum AuthorizationRuleMode {
 export type BrandingConfig = {
   __typename?: 'BrandingConfig';
   background?: Maybe<Scalars['String']['output']>;
+  /** Banner image source. Supports local path, remote URL, or data URI/base64. */
+  bannerImage?: Maybe<Scalars['String']['output']>;
+  /** Case model image source. Supports local path, remote URL, or data URI/base64. */
+  caseModelImage?: Maybe<Scalars['String']['output']>;
   /** Indicates if a partner logo exists */
   hasPartnerLogo: Scalars['Boolean']['output'];
   header?: Maybe<Scalars['String']['output']>;
@@ -435,9 +401,9 @@ export type BrandingConfig = {
   onboardingTitleIncomplete?: Maybe<Scalars['String']['output']>;
   /** Custom title for upgrade onboarding */
   onboardingTitleUpgrade?: Maybe<Scalars['String']['output']>;
-  /** Partner logo URL to use on dark themes (black/gray) */
+  /** Partner logo source for dark themes (black/gray). Supports local path, remote URL, or data URI/base64. */
   partnerLogoDarkUrl?: Maybe<Scalars['String']['output']>;
-  /** Partner logo URL to use on light themes (azure/white) */
+  /** Partner logo source for light themes (azure/white). Supports local path, remote URL, or data URI/base64. */
   partnerLogoLightUrl?: Maybe<Scalars['String']['output']>;
   showBannerGradient?: Maybe<Scalars['Boolean']['output']>;
   theme?: Maybe<Scalars['String']['output']>;
@@ -445,6 +411,8 @@ export type BrandingConfig = {
 
 export type BrandingConfigInput = {
   background?: InputMaybe<Scalars['String']['input']>;
+  bannerImage?: InputMaybe<Scalars['String']['input']>;
+  caseModelImage?: InputMaybe<Scalars['String']['input']>;
   hasPartnerLogo?: InputMaybe<Scalars['Boolean']['input']>;
   header?: InputMaybe<Scalars['String']['input']>;
   headermetacolor?: InputMaybe<Scalars['String']['input']>;
@@ -474,23 +442,6 @@ export type Capacity = {
   used: Scalars['String']['output'];
 };
 
-export type Cloud = {
-  __typename?: 'Cloud';
-  allowedOrigins: Array<Scalars['String']['output']>;
-  apiKey: ApiKeyResponse;
-  cloud: CloudResponse;
-  error?: Maybe<Scalars['String']['output']>;
-  minigraphql: MinigraphqlResponse;
-  relay?: Maybe<RelayResponse>;
-};
-
-export type CloudResponse = {
-  __typename?: 'CloudResponse';
-  error?: Maybe<Scalars['String']['output']>;
-  ip?: Maybe<Scalars['String']['output']>;
-  status: Scalars['String']['output'];
-};
-
 export type Config = Node & {
   __typename?: 'Config';
   error?: Maybe<Scalars['String']['output']>;
@@ -506,61 +457,6 @@ export enum ConfigErrorState {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   WITHDRAWN = 'WITHDRAWN'
 }
-
-export type Connect = Node & {
-  __typename?: 'Connect';
-  /** The status of dynamic remote access */
-  dynamicRemoteAccess: DynamicRemoteAccessStatus;
-  id: Scalars['PrefixedID']['output'];
-  /** The settings for the Connect instance */
-  settings: ConnectSettings;
-};
-
-export type ConnectSettings = Node & {
-  __typename?: 'ConnectSettings';
-  /** The data schema for the Connect settings */
-  dataSchema: Scalars['JSON']['output'];
-  id: Scalars['PrefixedID']['output'];
-  /** The UI schema for the Connect settings */
-  uiSchema: Scalars['JSON']['output'];
-  /** The values for the Connect settings */
-  values: ConnectSettingsValues;
-};
-
-export type ConnectSettingsInput = {
-  /** The type of WAN access to use for Remote Access */
-  accessType?: InputMaybe<WanAccessType>;
-  /** The type of port forwarding to use for Remote Access */
-  forwardType?: InputMaybe<WanForwardType>;
-  /** The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP. */
-  port?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type ConnectSettingsValues = {
-  __typename?: 'ConnectSettingsValues';
-  /** The type of WAN access used for Remote Access */
-  accessType: WanAccessType;
-  /** The type of port forwarding used for Remote Access */
-  forwardType?: Maybe<WanForwardType>;
-  /** The port used for Remote Access */
-  port?: Maybe<Scalars['Int']['output']>;
-};
-
-export type ConnectSignInInput = {
-  /** The API key for authentication */
-  apiKey: Scalars['String']['input'];
-  /** User information for the sign-in */
-  userInfo?: InputMaybe<ConnectUserInfoInput>;
-};
-
-export type ConnectUserInfoInput = {
-  /** The avatar URL of the user */
-  avatar?: InputMaybe<Scalars['String']['input']>;
-  /** The email address of the user */
-  email: Scalars['String']['input'];
-  /** The preferred username of the user */
-  preferred_username: Scalars['String']['input'];
-};
 
 export type ContainerHostConfig = {
   __typename?: 'ContainerHostConfig';
@@ -655,9 +551,10 @@ export type CreateRCloneRemoteInput = {
 export type Customization = {
   __typename?: 'Customization';
   activationCode?: Maybe<ActivationCode>;
+  availableLanguages?: Maybe<Array<Language>>;
+  /** Onboarding completion state and context */
+  onboarding: Onboarding;
   onboardingState: OnboardingState;
-  partnerInfo?: Maybe<PublicPartnerInfo>;
-  theme: Theme;
 };
 
 /** Customization related mutations */
@@ -1016,29 +913,6 @@ export type DockerTemplateSyncResult = {
   matched: Scalars['Int']['output'];
   scanned: Scalars['Int']['output'];
   skipped: Scalars['Int']['output'];
-};
-
-export type DynamicRemoteAccessStatus = {
-  __typename?: 'DynamicRemoteAccessStatus';
-  /** The type of dynamic remote access that is enabled */
-  enabledType: DynamicRemoteAccessType;
-  /** Any error message associated with the dynamic remote access */
-  error?: Maybe<Scalars['String']['output']>;
-  /** The type of dynamic remote access that is currently running */
-  runningType: DynamicRemoteAccessType;
-};
-
-export enum DynamicRemoteAccessType {
-  DISABLED = 'DISABLED',
-  STATIC = 'STATIC',
-  UPNP = 'UPNP'
-}
-
-export type EnableDynamicRemoteAccessInput = {
-  /** Whether to enable or disable dynamic remote access */
-  enabled: Scalars['Boolean']['input'];
-  /** The AccessURL Input for dynamic remote access */
-  url: AccessUrlInput;
 };
 
 export type ExplicitStatusItem = {
@@ -1529,22 +1403,6 @@ export type Metrics = Node & {
   memory?: Maybe<MemoryUtilization>;
 };
 
-/** The status of the minigraph */
-export enum MinigraphStatus {
-  CONNECTED = 'CONNECTED',
-  CONNECTING = 'CONNECTING',
-  ERROR_RETRYING = 'ERROR_RETRYING',
-  PING_FAILURE = 'PING_FAILURE',
-  PRE_INIT = 'PRE_INIT'
-}
-
-export type MinigraphqlResponse = {
-  __typename?: 'MinigraphqlResponse';
-  error?: Maybe<Scalars['String']['output']>;
-  status: MinigraphStatus;
-  timeout?: Maybe<Scalars['Int']['output']>;
-};
-
 export type Mutation = {
   __typename?: 'Mutation';
   /** Add one or more plugins to the API. Returns false if restart was triggered automatically, true if manual restart is required. */
@@ -1556,8 +1414,6 @@ export type Mutation = {
   archiveNotifications: NotificationOverview;
   array: ArrayMutations;
   configureUps: Scalars['Boolean']['output'];
-  connectSignIn: Scalars['Boolean']['output'];
-  connectSignOut: Scalars['Boolean']['output'];
   createDockerFolder: ResolvedOrganizerV1;
   createDockerFolderWithItems: ResolvedOrganizerV1;
   /** Creates a new notification record */
@@ -1568,7 +1424,6 @@ export type Mutation = {
   deleteDockerEntries: ResolvedOrganizerV1;
   deleteNotification: NotificationOverview;
   docker: DockerMutations;
-  enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   /** Initiates a flash drive backup using a configured remote. */
   initiateFlashBackup: FlashBackupStatus;
   moveDockerEntriesToFolder: ResolvedOrganizerV1;
@@ -1591,16 +1446,14 @@ export type Mutation = {
   setLocale: InfoDisplay;
   /** Set the display theme */
   setTheme: InfoDisplay;
-  setupRemoteAccess: Scalars['Boolean']['output'];
   syncDockerTemplatePaths: DockerTemplateSyncResult;
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
   unraidPlugins: UnraidPluginsMutations;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
-  updateApiSettings: ConnectSettingsValues;
   updateDockerViewPreferences: ResolvedOrganizerV1;
-  /** Update server name and comment */
+  /** Update server name, comment, and model */
   updateServerIdentity: Server;
   updateSettings: UpdateSettingsResponse;
   updateSshSettings: Vars;
@@ -1635,11 +1488,6 @@ export type MutationConfigureUpsArgs = {
 };
 
 
-export type MutationConnectSignInArgs = {
-  input: ConnectSignInInput;
-};
-
-
 export type MutationCreateDockerFolderArgs = {
   childrenIds?: InputMaybe<Array<Scalars['String']['input']>>;
   name: Scalars['String']['input'];
@@ -1668,11 +1516,6 @@ export type MutationDeleteDockerEntriesArgs = {
 export type MutationDeleteNotificationArgs = {
   id: Scalars['PrefixedID']['input'];
   type: NotificationType;
-};
-
-
-export type MutationEnableDynamicRemoteAccessArgs = {
-  input: EnableDynamicRemoteAccessInput;
 };
 
 
@@ -1726,11 +1569,6 @@ export type MutationSetThemeArgs = {
 };
 
 
-export type MutationSetupRemoteAccessArgs = {
-  input: SetupRemoteAccessInput;
-};
-
-
 export type MutationUnarchiveAllArgs = {
   importance?: InputMaybe<NotificationImportance>;
 };
@@ -1746,11 +1584,6 @@ export type MutationUnreadNotificationArgs = {
 };
 
 
-export type MutationUpdateApiSettingsArgs = {
-  input: ConnectSettingsInput;
-};
-
-
 export type MutationUpdateDockerViewPreferencesArgs = {
   prefs: Scalars['JSON']['input'];
   viewId?: InputMaybe<Scalars['String']['input']>;
@@ -1760,6 +1593,7 @@ export type MutationUpdateDockerViewPreferencesArgs = {
 export type MutationUpdateServerIdentityArgs = {
   comment?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
+  sysModel?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1775,12 +1609,6 @@ export type MutationUpdateSshSettingsArgs = {
 
 export type MutationUpdateSystemTimeArgs = {
   input: UpdateSystemTimeInput;
-};
-
-export type Network = Node & {
-  __typename?: 'Network';
-  accessUrls?: Maybe<Array<AccessUrl>>;
-  id: Scalars['PrefixedID']['output'];
 };
 
 export type Node = {
@@ -2192,12 +2020,6 @@ export type PublicOidcProvider = {
   name: Scalars['String']['output'];
 };
 
-export type PublicPartnerInfo = {
-  __typename?: 'PublicPartnerInfo';
-  branding?: Maybe<BrandingConfig>;
-  partner?: Maybe<PartnerConfig>;
-};
-
 export type Query = {
   __typename?: 'Query';
   apiKey?: Maybe<ApiKey>;
@@ -2207,11 +2029,7 @@ export type Query = {
   apiKeyPossibleRoles: Array<Role>;
   apiKeys: Array<ApiKey>;
   array: UnraidArray;
-  /** Get available languages for installation */
-  availableLanguages: Array<Language>;
-  cloud: Cloud;
   config: Config;
-  connect: Connect;
   customization?: Maybe<Customization>;
   disk: Disk;
   disks: Array<Disk>;
@@ -2234,7 +2052,6 @@ export type Query = {
   logFiles: Array<LogFile>;
   me: UserAccount;
   metrics: Metrics;
-  network: Network;
   /** Get all notifications */
   notifications: Notifications;
   /** Get the full OIDC configuration (admin only) */
@@ -2243,8 +2060,6 @@ export type Query = {
   oidcProvider?: Maybe<OidcProvider>;
   /** Get all configured OIDC providers (admin only) */
   oidcProviders: Array<OidcProvider>;
-  /** Onboarding completion state and context */
-  onboarding: Onboarding;
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
@@ -2258,11 +2073,9 @@ export type Query = {
   previewEffectivePermissions: Array<Permission>;
   /** Get public OIDC provider information for login buttons */
   publicOidcProviders: Array<PublicOidcProvider>;
-  publicPartnerInfo?: Maybe<PublicPartnerInfo>;
   publicTheme: Theme;
   rclone: RCloneBackupSettings;
   registration?: Maybe<Registration>;
-  remoteAccess: RemoteAccess;
   server?: Maybe<Server>;
   servers: Array<Server>;
   services: Array<Service>;
@@ -2432,23 +2245,6 @@ export enum RegistrationState {
   UNLEASHED = 'UNLEASHED'
 }
 
-export type RelayResponse = {
-  __typename?: 'RelayResponse';
-  error?: Maybe<Scalars['String']['output']>;
-  status: Scalars['String']['output'];
-  timeout?: Maybe<Scalars['String']['output']>;
-};
-
-export type RemoteAccess = {
-  __typename?: 'RemoteAccess';
-  /** The type of WAN access used for Remote Access */
-  accessType: WanAccessType;
-  /** The type of port forwarding used for Remote Access */
-  forwardType?: Maybe<WanForwardType>;
-  /** The port used for Remote Access */
-  port?: Maybe<Scalars['Int']['output']>;
-};
-
 export type RemoveRoleFromApiKeyInput = {
   apiKeyId: Scalars['PrefixedID']['input'];
   role: Role;
@@ -2557,15 +2353,6 @@ export type Settings = Node & {
   unified: UnifiedSettings;
 };
 
-export type SetupRemoteAccessInput = {
-  /** The type of WAN access to use for Remote Access */
-  accessType: WanAccessType;
-  /** The type of port forwarding to use for Remote Access */
-  forwardType?: InputMaybe<WanForwardType>;
-  /** The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP. */
-  port?: InputMaybe<Scalars['Int']['input']>;
-};
-
 export type Share = Node & {
   __typename?: 'Share';
   /** Allocator */
@@ -2639,6 +2426,7 @@ export type SubscriptionPluginInstallUpdatesArgs = {
 
 export type SystemConfig = {
   __typename?: 'SystemConfig';
+  comment?: Maybe<Scalars['String']['output']>;
   model?: Maybe<Scalars['String']['output']>;
   serverName?: Maybe<Scalars['String']['output']>;
 };
@@ -2874,15 +2662,6 @@ export enum UpsType {
   PCNET = 'PCNET',
   SNMP = 'SNMP',
   USB = 'USB'
-}
-
-export enum UrlType {
-  DEFAULT = 'DEFAULT',
-  LAN = 'LAN',
-  MDNS = 'MDNS',
-  OTHER = 'OTHER',
-  WAN = 'WAN',
-  WIREGUARD = 'WIREGUARD'
 }
 
 export type UnifiedSettings = FormSchema & Node & {
@@ -3248,17 +3027,6 @@ export type Vms = Node & {
   id: Scalars['PrefixedID']['output'];
 };
 
-export enum WanAccessType {
-  ALWAYS = 'ALWAYS',
-  DISABLED = 'DISABLED',
-  DYNAMIC = 'DYNAMIC'
-}
-
-export enum WanForwardType {
-  STATIC = 'STATIC',
-  UPNP = 'UPNP'
-}
-
 export enum RegistrationType {
   BASIC = 'BASIC',
   INVALID = 'INVALID',
@@ -3316,7 +3084,7 @@ export type SystemReportQuery = { __typename?: 'Query', info: { __typename?: 'In
 export type ConnectStatusQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ConnectStatusQuery = { __typename?: 'Query', connect: { __typename?: 'Connect', id: any, dynamicRemoteAccess: { __typename?: 'DynamicRemoteAccessStatus', enabledType: DynamicRemoteAccessType, runningType: DynamicRemoteAccessType, error?: string | null } } };
+export type ConnectStatusQuery = { __typename?: 'Query', isSSOEnabled: boolean };
 
 export type ServicesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -3338,6 +3106,6 @@ export const UpdateSandboxSettingsDocument = {"kind":"Document","definitions":[{
 export const GetPluginsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"plugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"hasApiModule"}},{"kind":"Field","name":{"kind":"Name","value":"hasCliModule"}}]}}]}}]} as unknown as DocumentNode<GetPluginsQuery, GetPluginsQueryVariables>;
 export const GetSsoUsersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSSOUsers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"api"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ssoSubIds"}}]}}]}}]}}]} as unknown as DocumentNode<GetSsoUsersQuery, GetSsoUsersQueryVariables>;
 export const SystemReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SystemReport"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"machineId"}},{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"manufacturer"}},{"kind":"Field","name":{"kind":"Name","value":"model"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"serial"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"versions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"core"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraid"}},{"kind":"Field","name":{"kind":"Name","value":"kernel"}}]}},{"kind":"Field","name":{"kind":"Name","value":"packages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"openssl"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"server"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<SystemReportQuery, SystemReportQueryVariables>;
-export const ConnectStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ConnectStatus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connect"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dynamicRemoteAccess"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"enabledType"}},{"kind":"Field","name":{"kind":"Name","value":"runningType"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]}}]} as unknown as DocumentNode<ConnectStatusQuery, ConnectStatusQueryVariables>;
+export const ConnectStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ConnectStatus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"isSSOEnabled"}}]}}]} as unknown as DocumentNode<ConnectStatusQuery, ConnectStatusQueryVariables>;
 export const ServicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Services"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"services"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"online"}},{"kind":"Field","name":{"kind":"Name","value":"uptime"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"timestamp"}}]}},{"kind":"Field","name":{"kind":"Name","value":"version"}}]}}]}}]} as unknown as DocumentNode<ServicesQuery, ServicesQueryVariables>;
 export const ValidateOidcSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ValidateOidcSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"token"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"validateOidcSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"token"},"value":{"kind":"Variable","name":{"kind":"Name","value":"token"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}}]}}]} as unknown as DocumentNode<ValidateOidcSessionQuery, ValidateOidcSessionQueryVariables>;

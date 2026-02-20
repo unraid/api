@@ -37,14 +37,7 @@ export const SYSTEM_REPORT_QUERY = gql(`
 
 export const CONNECT_STATUS_QUERY = gql(`
     query ConnectStatus {
-        connect {
-            id
-            dynamicRemoteAccess {
-                enabledType
-                runningType
-                error
-            }
-        }
+        isSSOEnabled
     }
 `);
 

@@ -291,7 +291,8 @@ interface AvailableLanguage {
 }
 
 const languageItems = computed(() => {
-  const languages = (languagesResult.value?.availableLanguages || []) as AvailableLanguage[];
+  const languages = (languagesResult.value?.customization?.availableLanguages ||
+    []) as AvailableLanguage[];
 
   const items: { value: string; label: string; url?: string }[] = languages.map((lang) => ({
     value: lang.code,

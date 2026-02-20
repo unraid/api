@@ -45,10 +45,12 @@ const {
   },
   languagesResult: {
     value: {
-      availableLanguages: [
-        { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
-        { code: 'fr_FR', name: 'French', url: 'https://example.com/fr_FR.txz' },
-      ],
+      customization: {
+        availableLanguages: [
+          { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
+          { code: 'fr_FR', name: 'French', url: 'https://example.com/fr_FR.txz' },
+        ],
+      },
     },
   },
   languagesLoading: { value: false },

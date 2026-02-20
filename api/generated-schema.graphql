@@ -781,6 +781,119 @@ type Settings implements Node {
   api: ApiConfig!
 }
 
+type Theme {
+  """The theme name"""
+  name: ThemeName!
+
+  """Whether to show the header banner image"""
+  showBannerImage: Boolean!
+
+  """Whether to show the banner gradient"""
+  showBannerGradient: Boolean!
+
+  """Whether to show the description in the header"""
+  showHeaderDescription: Boolean!
+
+  """The background color of the header"""
+  headerBackgroundColor: String
+
+  """The text color of the header"""
+  headerPrimaryTextColor: String
+
+  """The secondary text color of the header"""
+  headerSecondaryTextColor: String
+}
+
+"""The theme name"""
+enum ThemeName {
+  azure
+  black
+  gray
+  white
+}
+
+type InfoDisplayCase implements Node {
+  id: PrefixedID!
+
+  """Case image URL"""
+  url: String!
+
+  """Case icon identifier"""
+  icon: String!
+
+  """Error message if any"""
+  error: String!
+
+  """Base64 encoded case image"""
+  base64: String!
+}
+
+type InfoDisplay implements Node {
+  id: PrefixedID!
+
+  """Case display configuration"""
+  case: InfoDisplayCase!
+
+  """UI theme name"""
+  theme: ThemeName!
+
+  """Temperature unit (C or F)"""
+  unit: Temperature!
+
+  """Enable UI scaling"""
+  scale: Boolean!
+
+  """Show tabs in UI"""
+  tabs: Boolean!
+
+  """Enable UI resize"""
+  resize: Boolean!
+
+  """Show WWN identifiers"""
+  wwn: Boolean!
+
+  """Show totals"""
+  total: Boolean!
+
+  """Show usage statistics"""
+  usage: Boolean!
+
+  """Show text labels"""
+  text: Boolean!
+
+  """Warning temperature threshold"""
+  warning: Int!
+
+  """Critical temperature threshold"""
+  critical: Int!
+
+  """Hot temperature threshold"""
+  hot: Int!
+
+  """Maximum temperature threshold"""
+  max: Int
+
+  """Locale setting"""
+  locale: String
+}
+
+"""Temperature unit"""
+enum Temperature {
+  CELSIUS
+  FAHRENHEIT
+}
+
+type Language {
+  """Language code (e.g. en_US)"""
+  code: String!
+
+  """Language description/name"""
+  name: String!
+
+  """URL to the language pack XML"""
+  url: String
+}
+
 type PartnerLink {
   """Display title for the link"""
   title: String!
@@ -813,10 +926,24 @@ type BrandingConfig {
   showBannerGradient: Boolean
   theme: String
 
-  """Partner logo URL to use on light themes (azure/white)"""
+  """
+  Banner image source. Supports local path, remote URL, or data URI/base64.
+  """
+  bannerImage: String
+
+  """
+  Case model image source. Supports local path, remote URL, or data URI/base64.
+  """
+  caseModelImage: String
+
+  """
+  Partner logo source for light themes (azure/white). Supports local path, remote URL, or data URI/base64.
+  """
   partnerLogoLightUrl: String
 
-  """Partner logo URL to use on dark themes (black/gray)"""
+  """
+  Partner logo source for dark themes (black/gray). Supports local path, remote URL, or data URI/base64.
+  """
   partnerLogoDarkUrl: String
 
   """Indicates if a partner logo exists"""
@@ -856,11 +983,7 @@ type BrandingConfig {
 type SystemConfig {
   serverName: String
   model: String
-}
-
-type PublicPartnerInfo {
-  partner: PartnerConfig
-  branding: BrandingConfig
+  comment: String
 }
 
 type ActivationCode {
@@ -884,13 +1007,6 @@ type OnboardingState {
 
   """Indicates whether activation is required based on current state"""
   activationRequired: Boolean!
-}
-
-type Customization {
-  activationCode: ActivationCode
-  partnerInfo: PublicPartnerInfo
-  onboardingState: OnboardingState!
-  theme: Theme!
 }
 
 """Onboarding completion state and context"""
@@ -921,6 +1037,15 @@ enum OnboardingStatus {
   UPGRADE
   DOWNGRADE
   COMPLETED
+}
+
+type Customization {
+  activationCode: ActivationCode
+  onboardingState: OnboardingState!
+
+  """Onboarding completion state and context"""
+  onboarding: Onboarding!
+  availableLanguages: [Language!]
 }
 
 type RCloneDrive {
@@ -1179,14 +1304,6 @@ type CustomizationMutations {
   ): Theme!
 }
 
-"""The theme name"""
-enum ThemeName {
-  azure
-  black
-  gray
-  white
-}
-
 """
 Parity check related mutations, WIP, response types and functionaliy will change
 """
@@ -1281,6 +1398,8 @@ input BrandingConfigInput {
   background: String
   showBannerGradient: Boolean
   theme: String
+  bannerImage: String
+  caseModelImage: String
   partnerLogoLightUrl: String
   partnerLogoDarkUrl: String
   hasPartnerLogo: Boolean
@@ -1335,482 +1454,6 @@ type Config implements Node {
   id: PrefixedID!
   valid: Boolean
   error: String
-}
-
-type Theme {
-  """The theme name"""
-  name: ThemeName!
-
-  """Whether to show the header banner image"""
-  showBannerImage: Boolean!
-
-  """Whether to show the banner gradient"""
-  showBannerGradient: Boolean!
-
-  """Whether to show the description in the header"""
-  showHeaderDescription: Boolean!
-
-  """The background color of the header"""
-  headerBackgroundColor: String
-
-  """The text color of the header"""
-  headerPrimaryTextColor: String
-
-  """The secondary text color of the header"""
-  headerSecondaryTextColor: String
-}
-
-type InfoDisplayCase implements Node {
-  id: PrefixedID!
-
-  """Case image URL"""
-  url: String!
-
-  """Case icon identifier"""
-  icon: String!
-
-  """Error message if any"""
-  error: String!
-
-  """Base64 encoded case image"""
-  base64: String!
-}
-
-type InfoDisplay implements Node {
-  id: PrefixedID!
-
-  """Case display configuration"""
-  case: InfoDisplayCase!
-
-  """UI theme name"""
-  theme: ThemeName!
-
-  """Temperature unit (C or F)"""
-  unit: Temperature!
-
-  """Enable UI scaling"""
-  scale: Boolean!
-
-  """Show tabs in UI"""
-  tabs: Boolean!
-
-  """Enable UI resize"""
-  resize: Boolean!
-
-  """Show WWN identifiers"""
-  wwn: Boolean!
-
-  """Show totals"""
-  total: Boolean!
-
-  """Show usage statistics"""
-  usage: Boolean!
-
-  """Show text labels"""
-  text: Boolean!
-
-  """Warning temperature threshold"""
-  warning: Int!
-
-  """Critical temperature threshold"""
-  critical: Int!
-
-  """Hot temperature threshold"""
-  hot: Int!
-
-  """Maximum temperature threshold"""
-  max: Int
-
-  """Locale setting"""
-  locale: String
-}
-
-"""Temperature unit"""
-enum Temperature {
-  CELSIUS
-  FAHRENHEIT
-}
-
-type Language {
-  """Language code (e.g. en_US)"""
-  code: String!
-
-  """Language description/name"""
-  name: String!
-
-  """URL to the language pack XML"""
-  url: String
-}
-
-type ExplicitStatusItem {
-  name: String!
-  updateStatus: UpdateStatus!
-}
-
-"""Update status of a container."""
-enum UpdateStatus {
-  UP_TO_DATE
-  UPDATE_AVAILABLE
-  REBUILD_READY
-  UNKNOWN
-}
-
-type ContainerPort {
-  ip: String
-  privatePort: Port
-  publicPort: Port
-  type: ContainerPortType!
-}
-
-"""
-A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports
-"""
-scalar Port
-
-enum ContainerPortType {
-  TCP
-  UDP
-}
-
-type DockerPortConflictContainer {
-  id: PrefixedID!
-  name: String!
-}
-
-type DockerContainerPortConflict {
-  privatePort: Port!
-  type: ContainerPortType!
-  containers: [DockerPortConflictContainer!]!
-}
-
-type DockerLanPortConflict {
-  lanIpPort: String!
-  publicPort: Port
-  type: ContainerPortType!
-  containers: [DockerPortConflictContainer!]!
-}
-
-type DockerPortConflicts {
-  containerPorts: [DockerContainerPortConflict!]!
-  lanPorts: [DockerLanPortConflict!]!
-}
-
-type ContainerHostConfig {
-  networkMode: String!
-}
-
-type DockerContainer implements Node {
-  id: PrefixedID!
-  names: [String!]!
-  image: String!
-  imageId: String!
-  command: String!
-  created: Int!
-  ports: [ContainerPort!]!
-
-  """List of LAN-accessible host:port values"""
-  lanIpPorts: [String!]
-
-  """Total size of all files in the container (in bytes)"""
-  sizeRootFs: BigInt
-
-  """Size of writable layer (in bytes)"""
-  sizeRw: BigInt
-
-  """Size of container logs (in bytes)"""
-  sizeLog: BigInt
-  labels: JSON
-  state: ContainerState!
-  status: String!
-  hostConfig: ContainerHostConfig
-  networkSettings: JSON
-  mounts: [JSON!]
-  autoStart: Boolean!
-
-  """Zero-based order in the auto-start list"""
-  autoStartOrder: Int
-
-  """Wait time in seconds applied after start"""
-  autoStartWait: Int
-  templatePath: String
-
-  """Project/Product homepage URL"""
-  projectUrl: String
-
-  """Registry/Docker Hub URL"""
-  registryUrl: String
-
-  """Support page/thread URL"""
-  supportUrl: String
-
-  """Icon URL"""
-  iconUrl: String
-
-  """Resolved WebUI URL from template"""
-  webUiUrl: String
-
-  """Shell to use for console access (from template)"""
-  shell: String
-
-  """Port mappings from template (used when container is not running)"""
-  templatePorts: [ContainerPort!]
-
-  """Whether the container is orphaned (no template found)"""
-  isOrphaned: Boolean!
-  isUpdateAvailable: Boolean
-  isRebuildReady: Boolean
-
-  """Whether Tailscale is enabled for this container"""
-  tailscaleEnabled: Boolean!
-
-  """Tailscale status for this container (fetched via docker exec)"""
-  tailscaleStatus(forceRefresh: Boolean = false): TailscaleStatus
-}
-
-enum ContainerState {
-  RUNNING
-  PAUSED
-  EXITED
-}
-
-type DockerNetwork implements Node {
-  id: PrefixedID!
-  name: String!
-  created: String!
-  scope: String!
-  driver: String!
-  enableIPv6: Boolean!
-  ipam: JSON!
-  internal: Boolean!
-  attachable: Boolean!
-  ingress: Boolean!
-  configFrom: JSON!
-  configOnly: Boolean!
-  containers: JSON!
-  options: JSON!
-  labels: JSON!
-}
-
-type DockerContainerLogLine {
-  timestamp: DateTime!
-  message: String!
-}
-
-type DockerContainerLogs {
-  containerId: PrefixedID!
-  lines: [DockerContainerLogLine!]!
-
-  """
-  Cursor that can be passed back through the since argument to continue streaming logs.
-  """
-  cursor: DateTime
-}
-
-type DockerContainerStats {
-  id: PrefixedID!
-
-  """CPU Usage Percentage"""
-  cpuPercent: Float!
-
-  """Memory Usage String (e.g. 100MB / 1GB)"""
-  memUsage: String!
-
-  """Memory Usage Percentage"""
-  memPercent: Float!
-
-  """Network I/O String (e.g. 100MB / 1GB)"""
-  netIO: String!
-
-  """Block I/O String (e.g. 100MB / 1GB)"""
-  blockIO: String!
-}
-
-"""Tailscale exit node connection status"""
-type TailscaleExitNodeStatus {
-  """Whether the exit node is online"""
-  online: Boolean!
-
-  """Tailscale IPs of the exit node"""
-  tailscaleIps: [String!]
-}
-
-"""Tailscale status for a Docker container"""
-type TailscaleStatus {
-  """Whether Tailscale is online in the container"""
-  online: Boolean!
-
-  """Current Tailscale version"""
-  version: String
-
-  """Latest available Tailscale version"""
-  latestVersion: String
-
-  """Whether a Tailscale update is available"""
-  updateAvailable: Boolean!
-
-  """Configured Tailscale hostname"""
-  hostname: String
-
-  """Actual Tailscale DNS name"""
-  dnsName: String
-
-  """DERP relay code"""
-  relay: String
-
-  """DERP relay region name"""
-  relayName: String
-
-  """Tailscale IPv4 and IPv6 addresses"""
-  tailscaleIps: [String!]
-
-  """Advertised subnet routes"""
-  primaryRoutes: [String!]
-
-  """Whether this container is an exit node"""
-  isExitNode: Boolean!
-
-  """Status of the connected exit node (if using one)"""
-  exitNodeStatus: TailscaleExitNodeStatus
-
-  """Tailscale Serve/Funnel WebUI URL"""
-  webUiUrl: String
-
-  """Tailscale key expiry date"""
-  keyExpiry: DateTime
-
-  """Days until key expires"""
-  keyExpiryDays: Int
-
-  """Whether the Tailscale key has expired"""
-  keyExpired: Boolean!
-
-  """Tailscale backend state (Running, NeedsLogin, Stopped, etc.)"""
-  backendState: String
-
-  """Authentication URL if Tailscale needs login"""
-  authUrl: String
-}
-
-type Docker implements Node {
-  id: PrefixedID!
-  containers(skipCache: Boolean! = false): [DockerContainer!]!
-  networks(skipCache: Boolean! = false): [DockerNetwork!]!
-  portConflicts(skipCache: Boolean! = false): DockerPortConflicts!
-
-  """
-  Access container logs. Requires specifying a target container id through resolver arguments.
-  """
-  logs(id: PrefixedID!, since: DateTime, tail: Int): DockerContainerLogs!
-  container(id: PrefixedID!): DockerContainer
-  organizer(skipCache: Boolean! = false): ResolvedOrganizerV1!
-  containerUpdateStatuses: [ExplicitStatusItem!]!
-}
-
-type DockerTemplateSyncResult {
-  scanned: Int!
-  matched: Int!
-  skipped: Int!
-  errors: [String!]!
-}
-
-type ResolvedOrganizerView {
-  id: String!
-  name: String!
-  rootId: String!
-  flatEntries: [FlatOrganizerEntry!]!
-  prefs: JSON
-}
-
-type ResolvedOrganizerV1 {
-  version: Float!
-  views: [ResolvedOrganizerView!]!
-}
-
-type FlatOrganizerEntry {
-  id: String!
-  type: String!
-  name: String!
-  parentId: String
-  depth: Float!
-  position: Float!
-  path: [String!]!
-  hasChildren: Boolean!
-  childrenIds: [String!]!
-  meta: DockerContainer
-}
-
-type NotificationCounts {
-  info: Int!
-  warning: Int!
-  alert: Int!
-  total: Int!
-}
-
-type NotificationOverview {
-  unread: NotificationCounts!
-  archive: NotificationCounts!
-}
-
-type Notification implements Node {
-  id: PrefixedID!
-
-  """Also known as 'event'"""
-  title: String!
-  subject: String!
-  description: String!
-  importance: NotificationImportance!
-  link: String
-  type: NotificationType!
-
-  """ISO Timestamp for when the notification occurred"""
-  timestamp: String
-  formattedTimestamp: String
-}
-
-enum NotificationImportance {
-  ALERT
-  INFO
-  WARNING
-}
-
-enum NotificationType {
-  UNREAD
-  ARCHIVE
-}
-
-type Notifications implements Node {
-  id: PrefixedID!
-
-  """A cached overview of the notifications in the system & their severity."""
-  overview: NotificationOverview!
-  list(filter: NotificationFilter!): [Notification!]!
-
-  """
-  Deduplicated list of unread warning and alert notifications, sorted latest first.
-  """
-  warningsAndAlerts: [Notification!]!
-}
-
-input NotificationFilter {
-  importance: NotificationImportance
-  type: NotificationType!
-  offset: Int!
-  limit: Int!
-}
-
-type FlashBackupStatus {
-  """Status message indicating the outcome of the backup initiation."""
-  status: String!
-
-  """Job ID if available, can be used to check job status."""
-  jobId: String
-}
-
-type Flash implements Node {
-  id: PrefixedID!
-  guid: String!
-  vendor: String!
-  product: String!
 }
 
 type InfoGpu implements Node {
@@ -2337,6 +1980,377 @@ type Info implements Node {
   primaryNetwork: InfoNetworkInterface
 }
 
+type ExplicitStatusItem {
+  name: String!
+  updateStatus: UpdateStatus!
+}
+
+"""Update status of a container."""
+enum UpdateStatus {
+  UP_TO_DATE
+  UPDATE_AVAILABLE
+  REBUILD_READY
+  UNKNOWN
+}
+
+type ContainerPort {
+  ip: String
+  privatePort: Port
+  publicPort: Port
+  type: ContainerPortType!
+}
+
+"""
+A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports
+"""
+scalar Port
+
+enum ContainerPortType {
+  TCP
+  UDP
+}
+
+type DockerPortConflictContainer {
+  id: PrefixedID!
+  name: String!
+}
+
+type DockerContainerPortConflict {
+  privatePort: Port!
+  type: ContainerPortType!
+  containers: [DockerPortConflictContainer!]!
+}
+
+type DockerLanPortConflict {
+  lanIpPort: String!
+  publicPort: Port
+  type: ContainerPortType!
+  containers: [DockerPortConflictContainer!]!
+}
+
+type DockerPortConflicts {
+  containerPorts: [DockerContainerPortConflict!]!
+  lanPorts: [DockerLanPortConflict!]!
+}
+
+type ContainerHostConfig {
+  networkMode: String!
+}
+
+type DockerContainer implements Node {
+  id: PrefixedID!
+  names: [String!]!
+  image: String!
+  imageId: String!
+  command: String!
+  created: Int!
+  ports: [ContainerPort!]!
+
+  """List of LAN-accessible host:port values"""
+  lanIpPorts: [String!]
+
+  """Total size of all files in the container (in bytes)"""
+  sizeRootFs: BigInt
+
+  """Size of writable layer (in bytes)"""
+  sizeRw: BigInt
+
+  """Size of container logs (in bytes)"""
+  sizeLog: BigInt
+  labels: JSON
+  state: ContainerState!
+  status: String!
+  hostConfig: ContainerHostConfig
+  networkSettings: JSON
+  mounts: [JSON!]
+  autoStart: Boolean!
+
+  """Zero-based order in the auto-start list"""
+  autoStartOrder: Int
+
+  """Wait time in seconds applied after start"""
+  autoStartWait: Int
+  templatePath: String
+
+  """Project/Product homepage URL"""
+  projectUrl: String
+
+  """Registry/Docker Hub URL"""
+  registryUrl: String
+
+  """Support page/thread URL"""
+  supportUrl: String
+
+  """Icon URL"""
+  iconUrl: String
+
+  """Resolved WebUI URL from template"""
+  webUiUrl: String
+
+  """Shell to use for console access (from template)"""
+  shell: String
+
+  """Port mappings from template (used when container is not running)"""
+  templatePorts: [ContainerPort!]
+
+  """Whether the container is orphaned (no template found)"""
+  isOrphaned: Boolean!
+  isUpdateAvailable: Boolean
+  isRebuildReady: Boolean
+
+  """Whether Tailscale is enabled for this container"""
+  tailscaleEnabled: Boolean!
+
+  """Tailscale status for this container (fetched via docker exec)"""
+  tailscaleStatus(forceRefresh: Boolean = false): TailscaleStatus
+}
+
+enum ContainerState {
+  RUNNING
+  PAUSED
+  EXITED
+}
+
+type DockerNetwork implements Node {
+  id: PrefixedID!
+  name: String!
+  created: String!
+  scope: String!
+  driver: String!
+  enableIPv6: Boolean!
+  ipam: JSON!
+  internal: Boolean!
+  attachable: Boolean!
+  ingress: Boolean!
+  configFrom: JSON!
+  configOnly: Boolean!
+  containers: JSON!
+  options: JSON!
+  labels: JSON!
+}
+
+type DockerContainerLogLine {
+  timestamp: DateTime!
+  message: String!
+}
+
+type DockerContainerLogs {
+  containerId: PrefixedID!
+  lines: [DockerContainerLogLine!]!
+
+  """
+  Cursor that can be passed back through the since argument to continue streaming logs.
+  """
+  cursor: DateTime
+}
+
+type DockerContainerStats {
+  id: PrefixedID!
+
+  """CPU Usage Percentage"""
+  cpuPercent: Float!
+
+  """Memory Usage String (e.g. 100MB / 1GB)"""
+  memUsage: String!
+
+  """Memory Usage Percentage"""
+  memPercent: Float!
+
+  """Network I/O String (e.g. 100MB / 1GB)"""
+  netIO: String!
+
+  """Block I/O String (e.g. 100MB / 1GB)"""
+  blockIO: String!
+}
+
+"""Tailscale exit node connection status"""
+type TailscaleExitNodeStatus {
+  """Whether the exit node is online"""
+  online: Boolean!
+
+  """Tailscale IPs of the exit node"""
+  tailscaleIps: [String!]
+}
+
+"""Tailscale status for a Docker container"""
+type TailscaleStatus {
+  """Whether Tailscale is online in the container"""
+  online: Boolean!
+
+  """Current Tailscale version"""
+  version: String
+
+  """Latest available Tailscale version"""
+  latestVersion: String
+
+  """Whether a Tailscale update is available"""
+  updateAvailable: Boolean!
+
+  """Configured Tailscale hostname"""
+  hostname: String
+
+  """Actual Tailscale DNS name"""
+  dnsName: String
+
+  """DERP relay code"""
+  relay: String
+
+  """DERP relay region name"""
+  relayName: String
+
+  """Tailscale IPv4 and IPv6 addresses"""
+  tailscaleIps: [String!]
+
+  """Advertised subnet routes"""
+  primaryRoutes: [String!]
+
+  """Whether this container is an exit node"""
+  isExitNode: Boolean!
+
+  """Status of the connected exit node (if using one)"""
+  exitNodeStatus: TailscaleExitNodeStatus
+
+  """Tailscale Serve/Funnel WebUI URL"""
+  webUiUrl: String
+
+  """Tailscale key expiry date"""
+  keyExpiry: DateTime
+
+  """Days until key expires"""
+  keyExpiryDays: Int
+
+  """Whether the Tailscale key has expired"""
+  keyExpired: Boolean!
+
+  """Tailscale backend state (Running, NeedsLogin, Stopped, etc.)"""
+  backendState: String
+
+  """Authentication URL if Tailscale needs login"""
+  authUrl: String
+}
+
+type Docker implements Node {
+  id: PrefixedID!
+  containers(skipCache: Boolean! = false): [DockerContainer!]!
+  networks(skipCache: Boolean! = false): [DockerNetwork!]!
+  portConflicts(skipCache: Boolean! = false): DockerPortConflicts!
+
+  """
+  Access container logs. Requires specifying a target container id through resolver arguments.
+  """
+  logs(id: PrefixedID!, since: DateTime, tail: Int): DockerContainerLogs!
+  container(id: PrefixedID!): DockerContainer
+  organizer(skipCache: Boolean! = false): ResolvedOrganizerV1!
+  containerUpdateStatuses: [ExplicitStatusItem!]!
+}
+
+type DockerTemplateSyncResult {
+  scanned: Int!
+  matched: Int!
+  skipped: Int!
+  errors: [String!]!
+}
+
+type ResolvedOrganizerView {
+  id: String!
+  name: String!
+  rootId: String!
+  flatEntries: [FlatOrganizerEntry!]!
+  prefs: JSON
+}
+
+type ResolvedOrganizerV1 {
+  version: Float!
+  views: [ResolvedOrganizerView!]!
+}
+
+type FlatOrganizerEntry {
+  id: String!
+  type: String!
+  name: String!
+  parentId: String
+  depth: Float!
+  position: Float!
+  path: [String!]!
+  hasChildren: Boolean!
+  childrenIds: [String!]!
+  meta: DockerContainer
+}
+
+type NotificationCounts {
+  info: Int!
+  warning: Int!
+  alert: Int!
+  total: Int!
+}
+
+type NotificationOverview {
+  unread: NotificationCounts!
+  archive: NotificationCounts!
+}
+
+type Notification implements Node {
+  id: PrefixedID!
+
+  """Also known as 'event'"""
+  title: String!
+  subject: String!
+  description: String!
+  importance: NotificationImportance!
+  link: String
+  type: NotificationType!
+
+  """ISO Timestamp for when the notification occurred"""
+  timestamp: String
+  formattedTimestamp: String
+}
+
+enum NotificationImportance {
+  ALERT
+  INFO
+  WARNING
+}
+
+enum NotificationType {
+  UNREAD
+  ARCHIVE
+}
+
+type Notifications implements Node {
+  id: PrefixedID!
+
+  """A cached overview of the notifications in the system & their severity."""
+  overview: NotificationOverview!
+  list(filter: NotificationFilter!): [Notification!]!
+
+  """
+  Deduplicated list of unread warning and alert notifications, sorted latest first.
+  """
+  warningsAndAlerts: [Notification!]!
+}
+
+input NotificationFilter {
+  importance: NotificationImportance
+  type: NotificationType!
+  offset: Int!
+  limit: Int!
+}
+
+type FlashBackupStatus {
+  """Status message indicating the outcome of the backup initiation."""
+  status: String!
+
+  """Job ID if available, can be used to check job status."""
+  jobId: String
+}
+
+type Flash implements Node {
+  id: PrefixedID!
+  guid: String!
+  vendor: String!
+  product: String!
+}
+
 type LogFile {
   """Name of the log file"""
   name: String!
@@ -2761,160 +2775,6 @@ type Plugin {
   hasCliModule: Boolean
 }
 
-type AccessUrl {
-  type: URL_TYPE!
-  name: String
-  ipv4: URL
-  ipv6: URL
-}
-
-enum URL_TYPE {
-  LAN
-  WIREGUARD
-  WAN
-  MDNS
-  OTHER
-  DEFAULT
-}
-
-"""
-A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
-"""
-scalar URL
-
-type AccessUrlObject {
-  ipv4: String
-  ipv6: String
-  type: URL_TYPE!
-  name: String
-}
-
-type ApiKeyResponse {
-  valid: Boolean!
-  error: String
-}
-
-type MinigraphqlResponse {
-  status: MinigraphStatus!
-  timeout: Int
-  error: String
-}
-
-"""The status of the minigraph"""
-enum MinigraphStatus {
-  PRE_INIT
-  CONNECTING
-  CONNECTED
-  PING_FAILURE
-  ERROR_RETRYING
-}
-
-type CloudResponse {
-  status: String!
-  ip: String
-  error: String
-}
-
-type RelayResponse {
-  status: String!
-  timeout: String
-  error: String
-}
-
-type Cloud {
-  error: String
-  apiKey: ApiKeyResponse!
-  relay: RelayResponse
-  minigraphql: MinigraphqlResponse!
-  cloud: CloudResponse!
-  allowedOrigins: [String!]!
-}
-
-type RemoteAccess {
-  """The type of WAN access used for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
-
-  """The type of port forwarding used for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """The port used for Remote Access"""
-  port: Int
-}
-
-enum WAN_ACCESS_TYPE {
-  DYNAMIC
-  ALWAYS
-  DISABLED
-}
-
-enum WAN_FORWARD_TYPE {
-  UPNP
-  STATIC
-}
-
-type DynamicRemoteAccessStatus {
-  """The type of dynamic remote access that is enabled"""
-  enabledType: DynamicRemoteAccessType!
-
-  """The type of dynamic remote access that is currently running"""
-  runningType: DynamicRemoteAccessType!
-
-  """Any error message associated with the dynamic remote access"""
-  error: String
-}
-
-enum DynamicRemoteAccessType {
-  STATIC
-  UPNP
-  DISABLED
-}
-
-type ConnectSettingsValues {
-  """The type of WAN access used for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
-
-  """The type of port forwarding used for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """The port used for Remote Access"""
-  port: Int
-}
-
-type ConnectSettings implements Node {
-  id: PrefixedID!
-
-  """The data schema for the Connect settings"""
-  dataSchema: JSON!
-
-  """The UI schema for the Connect settings"""
-  uiSchema: JSON!
-
-  """The values for the Connect settings"""
-  values: ConnectSettingsValues!
-}
-
-type Connect implements Node {
-  id: PrefixedID!
-
-  """The status of dynamic remote access"""
-  dynamicRemoteAccess: DynamicRemoteAccessStatus!
-
-  """The settings for the Connect instance"""
-  settings: ConnectSettings!
-}
-
-type Network implements Node {
-  id: PrefixedID!
-  accessUrls: [AccessUrl!]
-}
-
-input AccessUrlObjectInput {
-  ipv4: String
-  ipv6: String
-  type: URL_TYPE!
-  name: String
-}
-
 "\n### Description:\n\nID scalar type that prefixes the underlying ID with the server identifier on output and strips it on input.\n\nWe use this scalar type to ensure that the ID is unique across all servers, allowing the same underlying resource ID to be used across different server instances.\n\n#### Input Behavior:\n\nWhen providing an ID as input (e.g., in arguments or input objects), the server identifier prefix ('<serverId>:') is optional.\n\n- If the prefix is present (e.g., '123:456'), it will be automatically stripped, and only the underlying ID ('456') will be used internally.\n- If the prefix is absent (e.g., '456'), the ID will be used as-is.\n\nThis makes it flexible for clients, as they don't strictly need to know or provide the server ID.\n\n#### Output Behavior:\n\nWhen an ID is returned in the response (output), it will *always* be prefixed with the current server's unique identifier (e.g., '123:456').\n\n#### Example:\n\nNote: The server identifier is '123' in this example.\n\n##### Input (Prefix Optional):\n```graphql\n# Both of these are valid inputs resolving to internal ID '456'\n{\n  someQuery(id: \"123:456\") { ... }\n  anotherQuery(id: \"456\") { ... }\n}\n```\n\n##### Output (Prefix Always Added):\n```graphql\n# Assuming internal ID is '456'\n{\n  \"data\": {\n    \"someResource\": {\n      \"id\": \"123:456\" \n    }\n  }\n}\n```\n        "
 scalar PrefixedID
 
@@ -2943,9 +2803,6 @@ type Query {
   getApiKeyCreationFormSchema: ApiKeyFormSettings!
   config: Config!
   display: InfoDisplay!
-
-  """Get available languages for installation"""
-  availableLanguages: [Language!]!
   flash: Flash!
   me: UserAccount!
 
@@ -2965,19 +2822,15 @@ type Query {
   parityHistory: [ParityCheck!]!
   array: UnraidArray!
   customization: Customization
-  publicPartnerInfo: PublicPartnerInfo
 
   """Whether the system is a fresh install (no license key)"""
   isFreshInstall: Boolean!
   publicTheme: Theme!
-
-  """Onboarding completion state and context"""
-  onboarding: Onboarding!
+  info: Info!
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
   rclone: RCloneBackupSettings!
-  info: Info!
   logFiles: [LogFile!]!
   logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
   settings: Settings!
@@ -3019,10 +2872,6 @@ type Query {
 
   """List all installed plugins with their metadata"""
   plugins: [Plugin!]!
-  remoteAccess: RemoteAccess!
-  connect: Connect!
-  network: Network!
-  cloud: Cloud!
 }
 
 type Mutation {
@@ -3066,8 +2915,8 @@ type Mutation {
   onboarding: OnboardingMutations!
   unraidPlugins: UnraidPluginsMutations!
 
-  """Update server name and comment"""
-  updateServerIdentity(name: String!, comment: String): Server!
+  """Update server name, comment, and model"""
+  updateServerIdentity(name: String!, comment: String, sysModel: String): Server!
   updateSshSettings(input: UpdateSshInput!): Vars!
   createDockerFolder(name: String!, parentId: String, childrenIds: [String!]): ResolvedOrganizerV1!
   setDockerFolderChildren(folderId: String, childrenIds: [String!]!): ResolvedOrganizerV1!
@@ -3102,11 +2951,6 @@ type Mutation {
   Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required.
   """
   removePlugin(input: PluginManagementInput!): Boolean!
-  updateApiSettings(input: ConnectSettingsInput!): ConnectSettingsValues!
-  connectSignIn(input: ConnectSignInInput!): Boolean!
-  connectSignOut: Boolean!
-  setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
-  enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
 }
 
 input NotificationData {
@@ -3247,66 +3091,6 @@ input PluginManagementInput {
   Whether to restart the API after the operation. When false, a restart has already been queued.
   """
   restart: Boolean! = true
-}
-
-input ConnectSettingsInput {
-  """The type of WAN access to use for Remote Access"""
-  accessType: WAN_ACCESS_TYPE
-
-  """The type of port forwarding to use for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """
-  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
-  """
-  port: Int
-}
-
-input ConnectSignInInput {
-  """The API key for authentication"""
-  apiKey: String!
-
-  """User information for the sign-in"""
-  userInfo: ConnectUserInfoInput
-}
-
-input ConnectUserInfoInput {
-  """The preferred username of the user"""
-  preferred_username: String!
-
-  """The email address of the user"""
-  email: String!
-
-  """The avatar URL of the user"""
-  avatar: String
-}
-
-input SetupRemoteAccessInput {
-  """The type of WAN access to use for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
-
-  """The type of port forwarding to use for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """
-  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
-  """
-  port: Int
-}
-
-input EnableDynamicRemoteAccessInput {
-  """The AccessURL Input for dynamic remote access"""
-  url: AccessUrlInput!
-
-  """Whether to enable or disable dynamic remote access"""
-  enabled: Boolean!
-}
-
-input AccessUrlInput {
-  type: URL_TYPE!
-  name: String
-  ipv4: URL
-  ipv6: URL
 }
 
 type Subscription {
