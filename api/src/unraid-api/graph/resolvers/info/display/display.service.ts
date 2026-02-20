@@ -78,6 +78,7 @@ const states = {
 @Injectable()
 export class DisplayService {
     private readonly logger = new Logger(DisplayService.name);
+    private readonly localePattern = /^[a-z]{2}_[A-Z]{2}$/;
 
     async generateDisplay(): Promise<Display> {
         // Get case information
@@ -109,7 +110,8 @@ export class DisplayService {
     }
 
     async setLocale(locale: string): Promise<Display> {
-        this.logger.log(`Updating locale to ${locale}`);
+        const normalizedLocale = this.validateLocale(locale);
+        this.logger.log(`Updating locale to ${normalizedLocale}`);
         const paths = getters.paths();
         const configFile = paths['dynamix-config']?.[1];
 
@@ -117,7 +119,7 @@ export class DisplayService {
             throw new Error('Dynamix config path not found');
         }
 
-        await this.updateCfgFile(configFile, 'display', { locale });
+        await this.updateCfgFile(configFile, 'display', { locale: normalizedLocale });
 
         // Refresh in-memory store
         const updatedConfig = loadDynamixConfigFromDiskSync(paths['dynamix-config']);
@@ -127,7 +129,8 @@ export class DisplayService {
     }
 
     async setTheme(theme: string): Promise<Display> {
-        this.logger.log(`Updating theme to ${theme}`);
+        const normalizedTheme = this.validateTheme(theme);
+        this.logger.log(`Updating theme to ${normalizedTheme}`);
         const paths = getters.paths();
         const configFile = paths['dynamix-config']?.[1];
 
@@ -135,7 +138,7 @@ export class DisplayService {
             throw new Error('Dynamix config path not found');
         }
 
-        await this.updateCfgFile(configFile, 'display', { theme });
+        await this.updateCfgFile(configFile, 'display', { theme: normalizedTheme });
 
         // Refresh in-memory store
         const updatedConfig = loadDynamixConfigFromDiskSync(paths['dynamix-config']);
@@ -190,6 +193,22 @@ export class DisplayService {
             this.logger.error(`Error writing config file ${filePath}:`, error);
             throw error;
         }
+    }
+
+    private validateLocale(locale: string): string {
+        const normalizedLocale = locale.trim();
+        if (!this.localePattern.test(normalizedLocale)) {
+            throw new Error(`Invalid locale "${locale}". Expected format ll_CC (example: en_US).`);
+        }
+        return normalizedLocale;
+    }
+
+    private validateTheme(theme: string): ThemeName {
+        const normalizedTheme = theme.trim() as ThemeName;
+        if (!Object.values(ThemeName).includes(normalizedTheme)) {
+            throw new Error(`Invalid theme "${theme}".`);
+        }
+        return normalizedTheme;
     }
 
     private async getCaseInfo() {

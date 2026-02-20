@@ -22,15 +22,7 @@ export class SystemTimeService {
     constructor(private readonly configService: ConfigService) {}
 
     public async getSystemTime(): Promise<SystemTime> {
-        const varState = this.configService.get<Partial<Var>>('store.emhttp.var', {});
-        const ntpServers = this.extractNtpServers(varState);
-
-        return {
-            currentTime: new Date().toISOString(),
-            timeZone: varState.timeZone ?? 'UTC',
-            useNtp: Boolean(varState.useNtp),
-            ntpServers,
-        };
+        return this.buildSystemTime(this.readVarState());
     }
 
     public async updateSystemTime(input: UpdateSystemTimeInput): Promise<SystemTime> {
@@ -114,7 +106,14 @@ export class SystemTimeService {
             await this.resetTimezoneWatcher();
         }
 
-        return this.getSystemTime();
+        const refreshed = this.readVarState();
+        if (timezoneChanged && refreshed.timeZone !== desiredTimeZone) {
+            this.logger.warn(
+                `System time state still reports ${refreshed.timeZone ?? 'unknown'} after update to ${desiredTimeZone}.`
+            );
+        }
+
+        return this.buildSystemTime(refreshed);
     }
 
     public async getTimeZoneOptions(): Promise<TimeZoneOption[]> {
@@ -142,6 +141,21 @@ export class SystemTimeService {
         }
 
         return servers;
+    }
+
+    private readVarState(): Partial<Var> {
+        return this.configService.get<Partial<Var>>('store.emhttp.var', {});
+    }
+
+    private buildSystemTime(varState: Partial<Var>): SystemTime {
+        const ntpServers = this.extractNtpServers(varState);
+
+        return {
+            currentTime: new Date().toISOString(),
+            timeZone: varState.timeZone ?? 'UTC',
+            useNtp: Boolean(varState.useNtp),
+            ntpServers,
+        };
     }
 
     private normalizeNtpServers(override: string[] | undefined, current: Partial<Var>): string[] {

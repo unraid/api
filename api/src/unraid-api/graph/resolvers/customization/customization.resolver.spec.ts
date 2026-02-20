@@ -26,10 +26,10 @@ describe('CustomizationResolver', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
-        (onboardingTracker.getCurrentVersion as any).mockReturnValue('7.2.0');
-        (onboardingService.getPublicPartnerInfo as any).mockResolvedValue(null);
-        (onboardingService.getOnboardingState as any).mockResolvedValue({
-            registrationState: null,
+        vi.mocked(onboardingTracker.getCurrentVersion).mockReturnValue('7.2.0');
+        vi.mocked(onboardingService.getPublicPartnerInfo).mockResolvedValue(null);
+        vi.mocked(onboardingService.getOnboardingState).mockResolvedValue({
+            registrationState: undefined,
             isRegistered: false,
             isFreshInstall: false,
             hasActivationCode: false,
@@ -38,7 +38,7 @@ describe('CustomizationResolver', () => {
     });
 
     it('returns INCOMPLETE status when not completed', async () => {
-        (onboardingTracker.getState as any).mockReturnValue({
+        vi.mocked(onboardingTracker.getState).mockReturnValue({
             completed: false,
             completedAtVersion: undefined,
         });
@@ -51,7 +51,7 @@ describe('CustomizationResolver', () => {
             completed: false,
             completedAtVersion: undefined,
             onboardingState: {
-                registrationState: null,
+                registrationState: undefined,
                 isRegistered: false,
                 isFreshInstall: false,
                 hasActivationCode: false,
@@ -61,7 +61,7 @@ describe('CustomizationResolver', () => {
     });
 
     it('returns COMPLETED status when completed on current version', async () => {
-        (onboardingTracker.getState as any).mockReturnValue({
+        vi.mocked(onboardingTracker.getState).mockReturnValue({
             completed: true,
             completedAtVersion: '7.2.0',
         });
@@ -74,7 +74,7 @@ describe('CustomizationResolver', () => {
             completed: true,
             completedAtVersion: '7.2.0',
             onboardingState: {
-                registrationState: null,
+                registrationState: undefined,
                 isRegistered: false,
                 isFreshInstall: false,
                 hasActivationCode: false,
@@ -84,7 +84,7 @@ describe('CustomizationResolver', () => {
     });
 
     it('returns UPGRADE status when completed on older version', async () => {
-        (onboardingTracker.getState as any).mockReturnValue({
+        vi.mocked(onboardingTracker.getState).mockReturnValue({
             completed: true,
             completedAtVersion: '7.1.0',
         });
@@ -97,7 +97,7 @@ describe('CustomizationResolver', () => {
             completed: true,
             completedAtVersion: '7.1.0',
             onboardingState: {
-                registrationState: null,
+                registrationState: undefined,
                 isRegistered: false,
                 isFreshInstall: false,
                 hasActivationCode: false,
@@ -107,7 +107,7 @@ describe('CustomizationResolver', () => {
     });
 
     it('returns DOWNGRADE status when completed on newer version', async () => {
-        (onboardingTracker.getState as any).mockReturnValue({
+        vi.mocked(onboardingTracker.getState).mockReturnValue({
             completed: true,
             completedAtVersion: '7.3.0',
         });
@@ -120,7 +120,7 @@ describe('CustomizationResolver', () => {
             completed: true,
             completedAtVersion: '7.3.0',
             onboardingState: {
-                registrationState: null,
+                registrationState: undefined,
                 isRegistered: false,
                 isFreshInstall: false,
                 hasActivationCode: false,
@@ -130,12 +130,14 @@ describe('CustomizationResolver', () => {
     });
 
     it('returns isPartnerBuild true when partner info exists', async () => {
-        (onboardingTracker.getState as any).mockReturnValue({
+        vi.mocked(onboardingTracker.getState).mockReturnValue({
             completed: false,
             completedAtVersion: undefined,
         });
-        (onboardingService.getPublicPartnerInfo as any).mockResolvedValue({
-            partnerName: 'Test Partner',
+        vi.mocked(onboardingService.getPublicPartnerInfo).mockResolvedValue({
+            partner: {
+                name: 'Test Partner',
+            },
         });
 
         const result = await resolver.resolveOnboarding();
@@ -145,7 +147,7 @@ describe('CustomizationResolver', () => {
     });
 
     it('resolves available languages via display service', async () => {
-        (displayService.getAvailableLanguages as any).mockResolvedValue([
+        vi.mocked(displayService.getAvailableLanguages).mockResolvedValue([
             { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
         ]);
 

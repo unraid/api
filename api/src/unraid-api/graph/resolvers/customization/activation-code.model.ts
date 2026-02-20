@@ -174,7 +174,7 @@ export class BrandingConfig {
     @Transform(({ value }) => sanitizeString(value))
     partnerLogoDarkUrl?: string | null;
 
-    @Field(() => Boolean, { description: 'Indicates if a partner logo exists' })
+    @Field(() => Boolean, { nullable: true, description: 'Indicates if a partner logo exists' })
     @IsOptional()
     @IsBoolean()
     hasPartnerLogo?: boolean | null;

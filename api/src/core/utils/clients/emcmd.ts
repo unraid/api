@@ -13,13 +13,28 @@ import { StateFileKey } from '@app/store/types.js';
 
 const VAR_INI_PATH = '/var/local/emhttp/var.ini';
 
+const getErrorMessage = (error: unknown): string => {
+    if (error instanceof Error) {
+        return error.message;
+    }
+    return String(error);
+};
+
+const hasErrorCode = (error: unknown): error is { code: string } => {
+    return Boolean(error && typeof error === 'object' && 'code' in error);
+};
+
 const readCsrfTokenFromVarIni = async (): Promise<string | undefined> => {
     try {
         const iniContents = await readFile(VAR_INI_PATH, 'utf-8');
-        const parsed = ini.parse(iniContents) as { csrf_token?: string };
-        return parsed?.csrf_token;
+        const parsed = ini.parse(iniContents);
+        const token = parsed?.csrf_token;
+        return typeof token === 'string' ? token : undefined;
     } catch (error) {
-        appLogger.debug({ error }, `Unable to read CSRF token from ${VAR_INI_PATH}`);
+        appLogger.debug(
+            { error: getErrorMessage(error) },
+            `Unable to read CSRF token from ${VAR_INI_PATH}`
+        );
         return undefined;
     }
 };
@@ -60,7 +75,11 @@ const ensureCsrfToken = async (
             retries: 10,
         }
     ).catch((error) => {
-        appLogger.error('Failed to load CSRF token after multiple retries', error);
+        if (error instanceof Error) {
+            appLogger.error({ error }, 'Failed to load CSRF token after multiple retries');
+        } else {
+            appLogger.error('Failed to load CSRF token after multiple retries');
+        }
         throw new AppError('Failed to load CSRF token after multiple retries');
     });
 };
@@ -113,12 +132,21 @@ export const emcmd = async (
 
         appLogger.debug('emcmd executed successfully');
         return response;
-    } catch (error: any) {
-        if (error.code === 'ENOENT') {
-            appLogger.error('emhttpd socket unavailable.', error);
+    } catch (error: unknown) {
+        if (hasErrorCode(error) && error.code === 'ENOENT') {
+            if (error instanceof Error) {
+                appLogger.error({ error }, 'emhttpd socket unavailable.');
+            } else {
+                appLogger.error('emhttpd socket unavailable.');
+            }
             throw new Error('emhttpd socket unavailable.');
         }
-        appLogger.error(`emcmd execution failed: ${error.message}`, error);
-        throw error;
+        const message = getErrorMessage(error);
+        if (error instanceof Error) {
+            appLogger.error({ error }, `emcmd execution failed: ${message}`);
+        } else {
+            appLogger.error(`emcmd execution failed: ${message}`);
+        }
+        throw error instanceof Error ? error : new Error(message);
     }
 };

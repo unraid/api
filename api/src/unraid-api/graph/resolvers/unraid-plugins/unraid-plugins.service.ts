@@ -84,13 +84,14 @@ export class UnraidPluginsService {
         type: OperationType,
         input: InstallPluginInput
     ): Promise<PluginInstallOperation> {
+        const validatedUrl = this.validateInstallUrl(type, input.url);
         const id = randomUUID();
         const createdAt = new Date();
 
         const operation: OperationState = {
             id,
             type,
-            url: input.url,
+            url: validatedUrl,
             name: input.name,
             status: PluginInstallStatus.RUNNING,
             createdAt,
@@ -147,6 +148,26 @@ export class UnraidPluginsService {
         });
 
         return this.toGraphqlOperation(operation);
+    }
+
+    private validateInstallUrl(type: OperationType, candidateUrl: string): string {
+        const normalized = candidateUrl.trim();
+        let parsedUrl: URL;
+        try {
+            parsedUrl = new URL(normalized);
+        } catch {
+            throw new Error(`Invalid ${type} URL: "${candidateUrl}".`);
+        }
+
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+            throw new Error(`Unsupported URL protocol for ${type} install: ${parsedUrl.protocol}`);
+        }
+
+        if (type === 'plugin' && !parsedUrl.pathname.toLowerCase().endsWith('.plg')) {
+            throw new Error(`Plugin URL must point to a .plg file: "${candidateUrl}".`);
+        }
+
+        return parsedUrl.toString();
     }
 
     async listInstalledPlugins(): Promise<string[]> {

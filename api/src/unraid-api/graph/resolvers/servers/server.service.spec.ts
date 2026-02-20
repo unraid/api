@@ -26,9 +26,13 @@ describe('ServerService', () => {
             var: {
                 name: 'Tower',
                 fsState: 'Stopped',
+                regGuid: 'GUID-123',
+                port: '80',
+                comment: 'Tower comment',
             },
-        } as any);
-        vi.mocked(emcmd).mockResolvedValue({ ok: true } as any);
+            networks: [{ ipaddr: ['192.168.1.10'] }],
+        } as unknown as ReturnType<typeof getters.emhttp>);
+        vi.mocked(emcmd).mockResolvedValue({ ok: true } as Awaited<ReturnType<typeof emcmd>>);
     });
 
     it('throws for invalid server name characters', async () => {
@@ -109,8 +113,21 @@ describe('ServerService', () => {
 
         expect(result).toEqual({
             id: 'local',
+            owner: {
+                id: 'local',
+                username: 'root',
+                url: '',
+                avatar: '',
+            },
+            guid: 'GUID-123',
+            apikey: '',
             name: 'Tower',
             comment: 'Primary host',
+            status: 'ONLINE',
+            wanip: '',
+            lanip: '192.168.1.10',
+            localurl: 'http://192.168.1.10:80',
+            remoteurl: '',
         });
     });
 

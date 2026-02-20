@@ -4,7 +4,11 @@ import { GraphQLError } from 'graphql';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { getters } from '@app/store/index.js';
-import { Server } from '@app/unraid-api/graph/resolvers/servers/server.model.js';
+import {
+    ProfileModel,
+    Server,
+    ServerStatus,
+} from '@app/unraid-api/graph/resolvers/servers/server.model.js';
 
 @Injectable()
 export class ServerService {
@@ -78,25 +82,31 @@ export class ServerService {
         try {
             await emcmd(params, { waitForToken: true });
             this.logger.log('Server identity updated successfully via emcmd.');
+            const latestEmhttp = getters.emhttp();
+            const guid = latestEmhttp.var?.regGuid ?? '';
+            const lanip = latestEmhttp.networks?.[0]?.ipaddr?.[0] ?? '';
+            const port = latestEmhttp.var?.port ?? '';
+            const nextComment = comment ?? latestEmhttp.var?.comment;
+            const owner: ProfileModel = {
+                id: 'local',
+                username: 'root',
+                url: '',
+                avatar: '',
+            };
 
-            // We might want to wait for the state to update or just return the optimistic result.
-            // Since emcmd triggers a reload, the store update happens via SSE/polling eventually.
-            // For now, let's return a constructed Server object with new values (optimistic)
-            // or fetch the local server again (which might still have old values if store isn't updated).
-            // Let's assume the resolver will re-fetch.
-
-            // Note: ServerResolver.getLocalServer() uses getters.emhttp().
-            // Ideally we'd wait for store update, but that's complex.
-            // Returning the call to resolver's method or just null might be okay if mutation returns nullable.
-            // But mutation usually returns the object.
-
-            // Let's rely on the caller/resolver to format the return.
-            // This service method can just return void or the new values.
             return {
-                id: 'local', // Matches ServerResolver.getLocalServer
-                name: name,
-                comment: comment,
-            } as any;
+                id: 'local',
+                owner,
+                guid,
+                apikey: '',
+                name,
+                comment: nextComment,
+                status: ServerStatus.ONLINE,
+                wanip: '',
+                lanip,
+                localurl: lanip ? `http://${lanip}:${port}` : '',
+                remoteurl: '',
+            };
         } catch (error) {
             this.logger.error('Failed to update server identity', error);
             throw new GraphQLError('Failed to update server identity');

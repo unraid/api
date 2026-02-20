@@ -15,7 +15,7 @@ class MockExecaProcess extends EventEmitter {
     public readonly all = new PassThrough();
 }
 
-const mockExeca = vi.fn();
+const mockExeca = vi.fn<(...args: unknown[]) => MockExecaProcess>();
 
 vi.mock('execa', () => ({
     execa: (...args: unknown[]) => mockExeca(...args),
@@ -30,12 +30,12 @@ describe('UnraidPluginsService', () => {
     let currentProcess: MockExecaProcess;
 
     beforeEach(() => {
+        vi.restoreAllMocks();
         service = new UnraidPluginsService(new ConfigService());
         currentProcess = new MockExecaProcess();
         currentProcess.all.setEncoding('utf-8');
         mockExeca.mockReset();
-        mockExeca.mockImplementation(() => currentProcess as unknown as any);
-        vi.spyOn(pubsub, 'publish').mockClear();
+        mockExeca.mockImplementation(() => currentProcess);
     });
 
     const emitSuccess = (process: MockExecaProcess, lines: string[]) => {

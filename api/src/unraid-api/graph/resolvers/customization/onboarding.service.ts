@@ -18,6 +18,7 @@ import { OnboardingStateService } from '@app/unraid-api/config/onboarding-state.
 import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import {
     ActivationCode,
+    BrandingConfig,
     OnboardingState,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
@@ -294,7 +295,7 @@ export class OnboardingService implements OnModuleInit {
 
         return {
             partner,
-            branding: branding as any,
+            branding: plainToClass(BrandingConfig, branding),
         };
     }
 

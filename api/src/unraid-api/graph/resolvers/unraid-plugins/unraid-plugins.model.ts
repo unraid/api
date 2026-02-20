@@ -3,10 +3,10 @@ import { Field, GraphQLISODateTime, ID, InputType, ObjectType, registerEnumType 
 import { IsBoolean, IsOptional, IsString, IsUrl } from 'class-validator';
 
 export enum PluginInstallStatus {
+    FAILED = 'FAILED',
     QUEUED = 'QUEUED',
     RUNNING = 'RUNNING',
     SUCCEEDED = 'SUCCEEDED',
-    FAILED = 'FAILED',
 }
 
 registerEnumType(PluginInstallStatus, {

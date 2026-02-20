@@ -1,6 +1,15 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
-import { ArrayMaxSize, IsArray, IsBoolean, IsOptional, IsString, Matches } from 'class-validator';
+import {
+    ArrayMaxSize,
+    IsArray,
+    IsBoolean,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    Matches,
+    ValidateIf,
+} from 'class-validator';
 
 const MANUAL_TIME_PATTERN = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
 
@@ -56,7 +65,8 @@ export class UpdateSystemTimeInput {
         nullable: true,
         description: 'Manual date/time to apply when disabling NTP, expected format YYYY-MM-DD HH:mm:ss',
     })
-    @IsOptional()
+    @ValidateIf((input: UpdateSystemTimeInput) => input.useNtp === false)
+    @IsNotEmpty({ message: 'manualDateTime is required when useNtp is false' })
     @IsString()
     @Matches(MANUAL_TIME_PATTERN, {
         message: 'manualDateTime must be formatted as YYYY-MM-DD HH:mm:ss',
