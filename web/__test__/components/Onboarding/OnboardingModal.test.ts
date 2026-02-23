@@ -15,6 +15,7 @@ const {
   purchaseStore,
   serverStore,
   themeStore,
+  cleanupOnboardingStorageMock,
 } = vi.hoisted(() => ({
   mutateMock: vi.fn().mockResolvedValue(undefined),
   activationCodeModalStore: {
@@ -54,6 +55,7 @@ const {
   themeStore: {
     fetchTheme: vi.fn().mockResolvedValue(undefined),
   },
+  cleanupOnboardingStorageMock: vi.fn(),
 }));
 
 vi.mock('pinia', async (importOriginal) => {
@@ -128,6 +130,10 @@ vi.mock('~/store/server', () => ({
 
 vi.mock('~/store/theme', () => ({
   useThemeStore: () => themeStore,
+}));
+
+vi.mock('~/components/Onboarding/store/onboardingStorageCleanup', () => ({
+  cleanupOnboardingStorage: cleanupOnboardingStorageMock,
 }));
 
 describe('OnboardingModal.vue', () => {
@@ -274,6 +280,9 @@ describe('OnboardingModal.vue', () => {
 
     expect(mutateMock).toHaveBeenCalledTimes(1);
     expect(upgradeOnboardingStore.refetchOnboarding).toHaveBeenCalledTimes(1);
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
+      clearTemporaryBypassSessionState: true,
+    });
     expect(activationCodeModalStore.setIsHidden).toHaveBeenCalledWith(true);
   });
 
@@ -293,6 +302,9 @@ describe('OnboardingModal.vue', () => {
 
     expect(mutateMock).not.toHaveBeenCalled();
     expect(upgradeOnboardingStore.refetchOnboarding).not.toHaveBeenCalled();
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
+      clearTemporaryBypassSessionState: true,
+    });
     expect(activationCodeModalStore.setIsHidden).toHaveBeenCalledWith(true);
   });
 });

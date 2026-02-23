@@ -5,6 +5,7 @@ import { useSessionStorage } from '@vueuse/core';
 import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, ONBOARDING_TEMP_BYPASS_STORAGE_KEY } from '~/consts';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
+import { clearOnboardingDraftStorage } from '~/components/Onboarding/store/onboardingStorageCleanup';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
@@ -78,6 +79,9 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
       clearTemporaryBypass();
       return;
     }
+
+    // Clear any persisted draft so bypassing does not carry stale onboarding selections.
+    clearOnboardingDraftStorage();
 
     temporaryBypassState.value = {
       active: true,

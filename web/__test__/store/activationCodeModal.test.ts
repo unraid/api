@@ -159,6 +159,8 @@ describe('ActivationCodeModal Store', () => {
   });
 
   it('applies keyboard shortcut bypass without completing onboarding', () => {
+    window.localStorage.setItem('onboardingDraft', '{"currentStepIndex":2}');
+
     window.dispatchEvent(
       new KeyboardEvent('keydown', {
         key: 'o',
@@ -172,6 +174,7 @@ describe('ActivationCodeModal Store', () => {
     expect(store.isTemporarilyBypassed).toBe(true);
     expect(mockIsHidden.value).toBe(true);
     expect(mockTemporaryBypassState.value).toMatchObject({ active: true });
+    expect(window.localStorage.getItem('onboardingDraft')).toBeNull();
   });
 
   it('does not bypass when using 0 key with modifiers', () => {

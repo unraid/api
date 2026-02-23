@@ -39,6 +39,7 @@ import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCore
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
 import { useActivationCodeModalStore } from '@/components/Onboarding/store/activationCodeModal';
+import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
 import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgradeOnboarding';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 
@@ -646,6 +647,7 @@ const handleComplete = async () => {
     try {
       await completeOnboarding();
       completionMarked = true;
+      cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
       addLog('Setup complete!', 'success');
     } catch (e: unknown) {
       hadWarnings = true;

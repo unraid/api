@@ -9,6 +9,7 @@ import { BrandButton } from '@unraid/ui';
 import limitlessImage from '@/assets/limitless_possibilities.jpg';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
+import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
 import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgradeOnboarding';
 import { useThemeStore } from '@/store/theme';
 
@@ -183,6 +184,7 @@ const handleSkipOnboarding = async () => {
     await completeOnboarding();
     await new Promise((r) => setTimeout(r, 500));
     await refetchOnboarding();
+    cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
     window.location.reload();
   } catch (e) {
     console.error(e);

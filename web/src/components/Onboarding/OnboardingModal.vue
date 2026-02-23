@@ -17,6 +17,7 @@ import { stepComponents } from '~/components/Onboarding/stepRegistry';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
 import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
+import { cleanupOnboardingStorage } from '~/components/Onboarding/store/onboardingStorageCleanup';
 import { useUpgradeOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
@@ -187,6 +188,8 @@ const closeModal = async (options?: { reload?: boolean }) => {
   if (shouldShowOnboarding.value) {
     await completePendingOnboarding();
   }
+
+  cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
   modalStore.setIsHidden(true);
 
   if (options?.reload) {
