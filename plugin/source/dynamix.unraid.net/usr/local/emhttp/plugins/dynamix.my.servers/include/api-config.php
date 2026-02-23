@@ -103,6 +103,7 @@ class ApiConfig
 class ApiUserConfig
 {
     public const CONFIG_PATH = ApiConfig::CONFIG_DIR . '/api.json';
+    private const LEGACY_CONFIG_PATH = '/boot/config/plugins/dynamix.my.servers/myservers.cfg';
 
     public static function getConfig()
     {
@@ -117,5 +118,16 @@ class ApiUserConfig
     {
         $config = self::getConfig();
         return !empty($config['ssoSubIds'] ?? '');
+    }
+
+    public static function isSandboxEnabled()
+    {
+        $config = self::getConfig();
+        if (array_key_exists('sandbox', $config)) {
+            return $config['sandbox'] === true;
+        }
+
+        $legacyConfig = @parse_ini_file(self::LEGACY_CONFIG_PATH, true) ?: [];
+        return ($legacyConfig['local']['sandbox'] ?? 'no') === 'yes';
     }
 }
