@@ -130,7 +130,3 @@ web/public/test-pages/*.html
 # local scripts for testing and development
 .dev-scripts/
 
-webgui
-
-account
-
