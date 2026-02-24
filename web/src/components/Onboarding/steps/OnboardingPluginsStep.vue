@@ -58,13 +58,13 @@ const availablePlugins: Plugin[] = [
   },
 ];
 
-// Default to selecting all plugins initially (optional, but good for UX)
-// But if draft store has values (even empty set if user deselected all), respect that?
-// We need to differentiate "first visit" vs "returning visit".
-// Checking if draft store is populated is a good hint.
+const defaultSelectedPluginIds = new Set<string>(['community-apps', 'fix-common-problems']);
+
+// Respect persisted draft selections after first interaction with this step.
+// On first visit, default only essential plugins on and keep tailscale optional.
 const initialSelection = draftStore.pluginSelectionInitialized
   ? new Set(draftStore.selectedPlugins)
-  : new Set(availablePlugins.map((plugin) => plugin.id)); // Default all on first visit only
+  : defaultSelectedPluginIds;
 
 const selectedPlugins = ref<Set<string>>(initialSelection);
 const installedPluginIds = ref<Set<string>>(new Set());
