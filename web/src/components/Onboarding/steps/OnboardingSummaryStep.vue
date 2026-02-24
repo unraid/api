@@ -127,10 +127,15 @@ const showConsole = computed(() => isProcessing.value || logs.value.length > 0);
 const showApplyResultDialog = ref(false);
 const applyResultTitle = ref('');
 const applyResultMessage = ref('');
+const applyResultSeverity = ref<'success' | 'warning' | 'error'>('success');
 
 const addLog = (message: string, type: LogEntry['type'] = 'info') => {
   logs.value.push({ message, type, timestamp: Date.now() });
 };
+
+const showDiagnosticLogsInResultDialog = computed(
+  () => applyResultSeverity.value !== 'success' && logs.value.length > 0
+);
 
 const isInstallTimeoutError = (error: unknown): boolean => {
   if (!error || typeof error !== 'object') {
@@ -681,26 +686,32 @@ const handleComplete = async () => {
     }
 
     if (!completionMarked) {
+      applyResultSeverity.value = 'warning';
       applyResultTitle.value = 'Setup Saved in Best-Effort Mode';
       applyResultMessage.value =
         'We applied what we could, but some results could not be verified because the API is offline. You can review and update settings anytime from the Unraid Dashboard.';
     } else if (hadInstallTimeout) {
+      applyResultSeverity.value = 'warning';
       applyResultTitle.value = 'Setup Continued After Timeout';
       applyResultMessage.value =
         'One or more install operations timed out. Some settings may have been applied. You can verify and adjust settings later from the Unraid Dashboard.';
     } else if (hadNonOptimisticFailures) {
+      applyResultSeverity.value = 'warning';
       applyResultTitle.value = 'Setup Applied with Warnings';
       applyResultMessage.value =
         'Some settings could not be fully applied or verified. You can review and change any setting later from the Unraid Dashboard.';
     } else if (hadSshVerificationUncertainty) {
+      applyResultSeverity.value = 'warning';
       applyResultTitle.value = 'Setup Saved in Best-Effort Mode';
       applyResultMessage.value =
         'Your SSH setting update was submitted, but final state could not be verified yet. You can verify and adjust it later from the Unraid Dashboard.';
     } else if (hadWarnings) {
+      applyResultSeverity.value = 'warning';
       applyResultTitle.value = 'Setup Saved in Best-Effort Mode';
       applyResultMessage.value =
         'Your onboarding settings were applied. Some operations are best-effort and may take a moment to reflect. You can adjust settings later from the Unraid Dashboard.';
     } else {
+      applyResultSeverity.value = 'success';
       applyResultTitle.value = 'Setup Applied';
       applyResultMessage.value = 'Your onboarding settings were applied successfully.';
     }
@@ -712,6 +723,11 @@ const handleComplete = async () => {
     error.value = 'An error occurred during setup. Please check the logs.';
     isProcessing.value = false;
     addLog('Setup failed.', 'error');
+    applyResultSeverity.value = 'error';
+    applyResultTitle.value = 'Setup Failed';
+    applyResultMessage.value =
+      'An unexpected error interrupted onboarding. Review the logs below and share them with support.';
+    showApplyResultDialog.value = true;
   }
 };
 
@@ -950,6 +966,11 @@ const handleBack = () => {
             <p class="text-muted-foreground text-sm">
               {{ applyResultMessage }}
             </p>
+          </div>
+
+          <div v-if="showDiagnosticLogsInResultDialog" class="space-y-3">
+            <h4 class="text-sm font-semibold tracking-wide uppercase">Diagnostic Logs</h4>
+            <OnboardingConsole :logs="logs" title="Onboarding Diagnostics" />
           </div>
 
           <div class="flex justify-end gap-3">
