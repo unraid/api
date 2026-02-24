@@ -115,31 +115,94 @@ describe('DisplayService mutations', () => {
         await expect(service.setLocale('fr_FR')).rejects.toThrow('Dynamix config path not found');
     });
 
-    it('maps language feed response into graphql language objects', async () => {
-        const fetchMock = vi.fn().mockResolvedValue({
-            ok: true,
-            json: async () => ({
-                en_US: { Desc: 'English', URL: 'https://example.com/en_US.txz' },
-                fr_FR: { Desc: 'French', URL: 'https://example.com/fr_FR.txz' },
-            }),
+    it('uses language XML names and returns alphabetical results', async () => {
+        const feedUrl = 'https://assets.ca.unraid.net/feed/languageSelection.json';
+        const norwegianXmlUrl = 'https://example.com/no_NO.xml';
+        const frenchXmlUrl = 'https://example.com/fr_FR.xml';
+
+        const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+            if (url === feedUrl) {
+                return {
+                    ok: true,
+                    json: async () => ({
+                        no_NO: { Desc: 'Norsk (no_NO)', URL: norwegianXmlUrl },
+                        fr_FR: { Desc: 'Français (fr_FR)', URL: frenchXmlUrl },
+                    }),
+                };
+            }
+
+            if (url === norwegianXmlUrl) {
+                return {
+                    ok: true,
+                    text: async () =>
+                        '<?xml version="1.0" encoding="utf-8"?><Language><Language>Norwegian</Language></Language>',
+                };
+            }
+
+            if (url === frenchXmlUrl) {
+                return {
+                    ok: true,
+                    text: async () =>
+                        '<?xml version="1.0" encoding="utf-8"?><Language><Language>French</Language></Language>',
+                };
+            }
+
+            throw new Error(`Unexpected URL: ${url}`);
         });
         vi.stubGlobal('fetch', fetchMock);
 
         const result = await service.getAvailableLanguages();
 
-        expect(fetchMock).toHaveBeenCalledWith(
-            'https://assets.ca.unraid.net/feed/languageSelection.json'
-        );
+        expect(fetchMock).toHaveBeenCalledWith(feedUrl);
+        expect(fetchMock).toHaveBeenCalledWith(norwegianXmlUrl);
+        expect(fetchMock).toHaveBeenCalledWith(frenchXmlUrl);
         expect(result).toEqual([
-            {
-                code: 'en_US',
-                name: 'English',
-                url: 'https://example.com/en_US.txz',
-            },
             {
                 code: 'fr_FR',
                 name: 'French',
-                url: 'https://example.com/fr_FR.txz',
+                url: frenchXmlUrl,
+            },
+            {
+                code: 'no_NO',
+                name: 'Norwegian',
+                url: norwegianXmlUrl,
+            },
+        ]);
+    });
+
+    it('falls back to feed description when language xml cannot be fetched', async () => {
+        const feedUrl = 'https://assets.ca.unraid.net/feed/languageSelection.json';
+        const spanishXmlUrl = 'https://example.com/es_ES.xml';
+
+        const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+            if (url === feedUrl) {
+                return {
+                    ok: true,
+                    json: async () => ({
+                        es_ES: { Desc: 'Español (es_ES)', URL: spanishXmlUrl },
+                    }),
+                };
+            }
+
+            if (url === spanishXmlUrl) {
+                return {
+                    ok: false,
+                    status: 404,
+                    statusText: 'Not Found',
+                };
+            }
+
+            throw new Error(`Unexpected URL: ${url}`);
+        });
+        vi.stubGlobal('fetch', fetchMock);
+
+        const result = await service.getAvailableLanguages();
+
+        expect(result).toEqual([
+            {
+                code: 'es_ES',
+                name: 'Español (es_ES)',
+                url: spanishXmlUrl,
             },
         ]);
     });

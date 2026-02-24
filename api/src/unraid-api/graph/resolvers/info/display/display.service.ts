@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
+import { XMLParser } from 'fast-xml-parser';
 import * as ini from 'ini';
 
 import { type DynamixConfig } from '@app/core/types/ini.js';
@@ -79,6 +80,10 @@ const states = {
 export class DisplayService {
     private readonly logger = new Logger(DisplayService.name);
     private readonly localePattern = /^[a-z]{2}_[A-Z]{2}$/;
+    private readonly xmlParser = new XMLParser({
+        ignoreAttributes: false,
+        trimValues: true,
+    });
 
     async generateDisplay(): Promise<Display> {
         // Get case information
@@ -286,21 +291,51 @@ export class DisplayService {
             if (!response.ok) {
                 throw new Error(`Failed to fetch languages: ${response.statusText}`);
             }
-            const data = (await response.json()) as Record<string, { Desc: string; URL: string }>;
+            const data = (await response.json()) as Record<string, { Desc?: string; URL?: string }>;
 
-            const languages: Language[] = Object.entries(data).map(([code, info]) => ({
-                code,
-                name: info.Desc,
-                url: info.URL,
-            }));
+            const languages = await Promise.all(
+                Object.entries(data).map(async ([code, info]) => {
+                    const nameFromXml = info.URL
+                        ? await this.getLanguageNameFromXml(info.URL)
+                        : undefined;
 
-            // Ensure English is present/first if desired, though usually client handles sort.
-            // But let's just return what the feed has.
-            return languages;
+                    return {
+                        code,
+                        name: nameFromXml ?? info.Desc?.trim() ?? code,
+                        url: info.URL,
+                    };
+                })
+            );
+
+            return languages.sort((left, right) =>
+                left.name.localeCompare(right.name, undefined, { sensitivity: 'base' })
+            );
         } catch (error) {
             this.logger.error('Failed to fetch available languages', error);
             // Return empty list or basic English fallback on error
             return [{ code: 'en_US', name: 'English' }];
+        }
+    }
+
+    private async getLanguageNameFromXml(url: string): Promise<string | undefined> {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(
+                    `Failed to fetch language XML: ${response.status} ${response.statusText}`
+                );
+            }
+
+            const xml = await response.text();
+            const parsed = this.xmlParser.parse(xml) as { Language?: { Language?: string } };
+            const xmlLanguageName = parsed.Language?.Language?.trim();
+
+            return xmlLanguageName || undefined;
+        } catch (error) {
+            this.logger.debug(
+                `Failed to parse language XML (${url}); falling back to feed description: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
+            return undefined;
         }
     }
 }
