@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useMutation } from '@vue/apollo-composable';
@@ -37,6 +37,7 @@ const { isUpgrade, isDowngrade, isIncomplete } = storeToRefs(useUpgradeOnboardin
 const { theme } = storeToRefs(useThemeStore());
 
 const isSkipping = ref(false);
+const partnerGraphicLoadFailed = ref(false);
 
 const isBusy = computed(() => props.isSavingStep || isSkipping.value);
 
@@ -59,12 +60,26 @@ const partnerGraphicSrc = computed(() => {
   return branding.partnerLogoLightUrl || branding.partnerLogoDarkUrl || null;
 });
 
+watch(partnerGraphicSrc, () => {
+  partnerGraphicLoadFailed.value = false;
+});
+
+const handlePartnerGraphicError = () => {
+  if (isPartnerLogo.value) {
+    partnerGraphicLoadFailed.value = true;
+  }
+};
+
 const graphicSrc = computed(() =>
-  isPartnerLogo.value ? partnerGraphicSrc.value || limitlessImage : limitlessImage
+  isPartnerLogo.value && !partnerGraphicLoadFailed.value
+    ? partnerGraphicSrc.value || limitlessImage
+    : limitlessImage
 );
 
 const graphicAlt = computed(() =>
-  isPartnerLogo.value ? (partnerInfo.value?.partner?.name ?? 'Partner Logo') : 'Limitless Possibilities'
+  isPartnerLogo.value && !partnerGraphicLoadFailed.value
+    ? (partnerInfo.value?.partner?.name ?? 'Partner Logo')
+    : 'Limitless Possibilities'
 );
 
 const defaultWelcomeTitle = computed(() => {
@@ -242,6 +257,7 @@ const openDocs = () => {
               :src="graphicSrc"
               :alt="graphicAlt"
               class="h-full w-full object-cover transition-all duration-300"
+              @error="handlePartnerGraphicError"
             />
           </div>
         </div>
