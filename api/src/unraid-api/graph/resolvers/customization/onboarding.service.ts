@@ -177,6 +177,24 @@ export class OnboardingService implements OnModuleInit {
         return this.buildPublicPartnerInfo(activationData.partner, activationData.branding);
     }
 
+    public async getActivationDataForPublic(): Promise<ActivationCode | null> {
+        const activationData = await this.getActivationData();
+        if (!activationData) {
+            return null;
+        }
+
+        const publicPartnerInfo = await this.buildPublicPartnerInfo(
+            activationData.partner,
+            activationData.branding
+        );
+
+        return plainToClass(ActivationCode, {
+            ...activationData,
+            partner: publicPartnerInfo.partner,
+            branding: publicPartnerInfo.branding,
+        });
+    }
+
     private detectImageMime(buffer: Buffer): string {
         if (buffer.length >= 8) {
             if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {

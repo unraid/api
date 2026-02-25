@@ -9,6 +9,7 @@ import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/dis
 describe('CustomizationResolver', () => {
     const onboardingService = {
         getActivationData: vi.fn(),
+        getActivationDataForPublic: vi.fn(),
         getPublicPartnerInfo: vi.fn(),
         getTheme: vi.fn(),
         isFreshInstall: vi.fn(),
@@ -28,6 +29,7 @@ describe('CustomizationResolver', () => {
         vi.clearAllMocks();
         vi.mocked(onboardingTracker.getCurrentVersion).mockReturnValue('7.2.0');
         vi.mocked(onboardingService.getPublicPartnerInfo).mockResolvedValue(null);
+        vi.mocked(onboardingService.getActivationDataForPublic).mockResolvedValue(null);
         vi.mocked(onboardingService.getOnboardingState).mockResolvedValue({
             registrationState: undefined,
             isRegistered: false,
@@ -157,5 +159,26 @@ describe('CustomizationResolver', () => {
         expect(result).toEqual([
             { code: 'en_US', name: 'English', url: 'https://example.com/en_US.txz' },
         ]);
+    });
+
+    it('resolves activation code via public-normalized activation data', async () => {
+        vi.mocked(onboardingService.getActivationDataForPublic).mockResolvedValue({
+            code: 'CODE-123',
+            branding: {
+                partnerLogoLightUrl: 'data:image/svg+xml;base64,AAA=',
+                partnerLogoDarkUrl: 'data:image/svg+xml;base64,BBB=',
+            },
+        } as any);
+
+        const result = await resolver.activationCode();
+
+        expect(onboardingService.getActivationDataForPublic).toHaveBeenCalledOnce();
+        expect(result).toEqual({
+            code: 'CODE-123',
+            branding: {
+                partnerLogoLightUrl: 'data:image/svg+xml;base64,AAA=',
+                partnerLogoDarkUrl: 'data:image/svg+xml;base64,BBB=',
+            },
+        });
     });
 });

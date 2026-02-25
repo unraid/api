@@ -106,6 +106,6 @@ export class CustomizationResolver {
         resource: Resource.ACTIVATION_CODE,
     })
     async activationCode(): Promise<ActivationCode | null> {
-        return this.onboardingService.getActivationData();
+        return this.onboardingService.getActivationDataForPublic();
     }
 }
