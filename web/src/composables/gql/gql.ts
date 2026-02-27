@@ -72,6 +72,7 @@ type Documents = {
     "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n    }\n  }\n": typeof types.UpdateServerIdentityDocument,
     "\n  mutation SetLocale($locale: String!) {\n    customization {\n      setLocale(locale: $locale)\n    }\n  }\n": typeof types.SetLocaleDocument,
     "\n  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {\n    updateSshSettings(input: { enabled: $enabled, port: $port }) {\n      id\n      useSsh\n      portssh\n    }\n  }\n": typeof types.UpdateSshSettingsDocument,
+    "\n  query GetArrayState {\n    array {\n      state\n    }\n  }\n": typeof types.GetArrayStateDocument,
     "\n  query GetCoreSettings {\n    customization {\n      activationCode {\n        system {\n          serverName\n          comment\n        }\n      }\n    }\n    vars {\n      name\n      sysModel\n      useSsh\n      localTld\n    }\n    server {\n      name\n      comment\n    }\n    display {\n      theme\n      locale\n    }\n    systemTime {\n      timeZone\n    }\n    info {\n      primaryNetwork {\n        ipAddress\n      }\n    }\n  }\n": typeof types.GetCoreSettingsDocument,
     "\n  mutation InstallLanguage($input: InstallPluginInput!) {\n    unraidPlugins {\n      installLanguage(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n": typeof types.InstallLanguageDocument,
     "\n  mutation InstallPlugin($input: InstallPluginInput!) {\n    unraidPlugins {\n      installPlugin(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n": typeof types.InstallPluginDocument,
@@ -154,6 +155,7 @@ const documents: Documents = {
     "\n  mutation UpdateServerIdentity($name: String!, $comment: String, $sysModel: String) {\n    updateServerIdentity(name: $name, comment: $comment, sysModel: $sysModel) {\n      id\n      name\n      comment\n    }\n  }\n": types.UpdateServerIdentityDocument,
     "\n  mutation SetLocale($locale: String!) {\n    customization {\n      setLocale(locale: $locale)\n    }\n  }\n": types.SetLocaleDocument,
     "\n  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {\n    updateSshSettings(input: { enabled: $enabled, port: $port }) {\n      id\n      useSsh\n      portssh\n    }\n  }\n": types.UpdateSshSettingsDocument,
+    "\n  query GetArrayState {\n    array {\n      state\n    }\n  }\n": types.GetArrayStateDocument,
     "\n  query GetCoreSettings {\n    customization {\n      activationCode {\n        system {\n          serverName\n          comment\n        }\n      }\n    }\n    vars {\n      name\n      sysModel\n      useSsh\n      localTld\n    }\n    server {\n      name\n      comment\n    }\n    display {\n      theme\n      locale\n    }\n    systemTime {\n      timeZone\n    }\n    info {\n      primaryNetwork {\n        ipAddress\n      }\n    }\n  }\n": types.GetCoreSettingsDocument,
     "\n  mutation InstallLanguage($input: InstallPluginInput!) {\n    unraidPlugins {\n      installLanguage(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n": types.InstallLanguageDocument,
     "\n  mutation InstallPlugin($input: InstallPluginInput!) {\n    unraidPlugins {\n      installPlugin(input: $input) {\n        id\n        url\n        name\n        status\n        createdAt\n        updatedAt\n        finishedAt\n        output\n      }\n    }\n  }\n": types.InstallPluginDocument,
@@ -424,6 +426,10 @@ export function graphql(source: "\n  mutation SetLocale($locale: String!) {\n   
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {\n    updateSshSettings(input: { enabled: $enabled, port: $port }) {\n      id\n      useSsh\n      portssh\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateSshSettings($enabled: Boolean!, $port: Int = 22) {\n    updateSshSettings(input: { enabled: $enabled, port: $port }) {\n      id\n      useSsh\n      portssh\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query GetArrayState {\n    array {\n      state\n    }\n  }\n"): (typeof documents)["\n  query GetArrayState {\n    array {\n      state\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

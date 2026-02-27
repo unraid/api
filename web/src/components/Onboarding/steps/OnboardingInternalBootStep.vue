@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useQuery } from '@vue/apollo-composable';
 
 import { ChevronLeftIcon, CircleStackIcon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import { fetchInternalBootTemplateData } from '@/components/Onboarding/composables/internalBoot';
+import { GET_ARRAY_STATE_QUERY } from '@/components/Onboarding/graphql/getArrayState.query';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 
 import type { InternalBootTemplateData } from '@/components/Onboarding/composables/internalBoot';
@@ -23,8 +25,15 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
+const {
+  result: arrayStateResult,
+  loading: arrayStateLoading,
+  error: arrayStateError,
+} = useQuery(GET_ARRAY_STATE_QUERY, null, {
+  fetchPolicy: 'cache-first',
+});
 
-const isLoading = ref(true);
+const isTemplateLoading = ref(true);
 const loadError = ref<string | null>(null);
 const formError = ref<string | null>(null);
 const templateData = ref<InternalBootTemplateData | null>(null);
@@ -36,22 +45,34 @@ const bootSizePreset = ref<string>('');
 const customBootSizeGb = ref('');
 const updateBios = ref(true);
 
+const isLoading = computed(() => Boolean(arrayStateLoading.value) || isTemplateLoading.value);
 const isBusy = computed(() => Boolean(props.isSavingStep) || isLoading.value);
+const isArrayStopped = computed(() => arrayStateResult.value?.array?.state === 'STOPPED');
 const isBootPoolUiAvailable = computed(() => Boolean(templateData.value?.isBootPoolUiAvailable));
 const isBootPoolEligible = computed(() => Boolean(templateData.value?.isBootPoolEligible));
 const deviceOptions = computed(() => templateData.value?.deviceOptions ?? []);
 const slotOptions = computed(() => templateData.value?.slotOptions ?? [1, 2]);
 
 const canConfigure = computed(
-  () => isBootPoolUiAvailable.value && isBootPoolEligible.value && deviceOptions.value.length > 0
+  () =>
+    isArrayStopped.value &&
+    isBootPoolUiAvailable.value &&
+    isBootPoolEligible.value &&
+    deviceOptions.value.length > 0
 );
 
 const loadStatusMessage = computed(() => {
   if (loadError.value) {
     return loadError.value;
   }
-  if (!isBootPoolUiAvailable.value) {
+  if (arrayStateError.value) {
+    return 'Unable to determine current array state.';
+  }
+  if (!isArrayStopped.value) {
     return 'Internal boot setup is only available while the array is stopped.';
+  }
+  if (!isBootPoolUiAvailable.value) {
+    return 'Unable to load internal boot options from the webgui pool page.';
   }
   if (!isBootPoolEligible.value) {
     return 'This server is not currently eligible for internal boot setup.';
@@ -289,7 +310,7 @@ const initializeForm = (data: InternalBootTemplateData) => {
 };
 
 onMounted(async () => {
-  isLoading.value = true;
+  isTemplateLoading.value = true;
   loadError.value = null;
 
   try {
@@ -299,7 +320,7 @@ onMounted(async () => {
   } catch (error) {
     loadError.value = error instanceof Error ? error.message : 'Unable to load internal boot options.';
   } finally {
-    isLoading.value = false;
+    isTemplateLoading.value = false;
   }
 });
 
