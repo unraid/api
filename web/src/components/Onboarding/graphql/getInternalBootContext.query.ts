@@ -28,14 +28,11 @@ export const GET_INTERNAL_BOOT_CONTEXT_QUERY = gql`
       name
     }
     disks {
-      id
       device
-      serialNum
       size
-      interfaceType
       emhttpDeviceId
-      sectors
-      sectorSize
+      emhttpSectors: sectors
+      emhttpSectorSize: sectorSize
     }
   }
 `;

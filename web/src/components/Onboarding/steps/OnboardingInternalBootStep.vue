@@ -59,14 +59,11 @@ interface InternalBootContext {
   } | null;
   shares: { name?: string | null }[];
   disks: {
-    id: string;
     device: string;
-    serialNum: string;
     size: number;
-    interfaceType: string;
     emhttpDeviceId?: string | null;
-    sectors?: number | null;
-    sectorSize?: number | null;
+    emhttpSectors?: number | null;
+    emhttpSectorSize?: number | null;
   }[];
 }
 
@@ -182,7 +179,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
       const device = normalizeDeviceName(disk.device);
       const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
       const optionValue = emhttpDeviceId || device;
-      const sizeBytes = deriveDeviceSizeBytes(disk.sectors, disk.sectorSize, disk.size);
+      const sizeBytes = deriveDeviceSizeBytes(disk.emhttpSectors, disk.emhttpSectorSize, disk.size);
       const sizeMiB = toSizeMiB(sizeBytes);
       const sizeLabel = formatBytes(sizeBytes);
       return {
