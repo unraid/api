@@ -15,6 +15,12 @@ export interface InternalBootSubmitResult {
   output: string;
 }
 
+interface MkbootpoolResponsePayload {
+  ok?: boolean;
+  code?: number;
+  output?: string;
+}
+
 const buildInternalBootArgs = (
   selection: InternalBootSelection,
   options: SubmitInternalBootOptions
@@ -28,6 +34,46 @@ const buildInternalBootArgs = (
   }
   args.push('update');
   return args;
+};
+
+const parseMkbootpoolPayload = (raw: string): MkbootpoolResponsePayload | null => {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(trimmed) as MkbootpoolResponsePayload;
+  } catch {
+    const firstBrace = trimmed.indexOf('{');
+    const lastBrace = trimmed.lastIndexOf('}');
+    if (firstBrace === -1 || lastBrace <= firstBrace) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(trimmed.slice(firstBrace, lastBrace + 1)) as MkbootpoolResponsePayload;
+    } catch {
+      return null;
+    }
+  }
+};
+
+const readInternalBootOutputLog = async (): Promise<string | null> => {
+  try {
+    const logResponse = await fetch('/boot/config/internal_boot/output.log', {
+      method: 'GET',
+      credentials: 'same-origin',
+      cache: 'no-store',
+    });
+    if (!logResponse.ok) {
+      return null;
+    }
+    const logBody = (await logResponse.text()).trim();
+    return logBody.length > 0 ? logBody : null;
+  } catch {
+    return null;
+  }
 };
 
 export const submitInternalBootCreation = async (
@@ -45,29 +91,42 @@ export const submitInternalBootCreation = async (
     credentials: 'same-origin',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      'X-Requested-With': 'XMLHttpRequest',
     },
     body: payload.toString(),
   });
 
   const raw = await response.text();
+  const trimmedRaw = raw.trim();
+  const parsed = parseMkbootpoolPayload(raw);
 
-  try {
-    const parsed = JSON.parse(raw) as {
-      ok?: boolean;
-      code?: number;
-      output?: string;
-    };
+  if (parsed) {
+    const parsedOutput = parsed.output?.trim() ?? '';
     return {
       ok: Boolean(parsed.ok),
       code: parsed.code,
-      output: parsed.output ?? raw,
-    };
-  } catch {
-    return {
-      ok: false,
-      output: raw || `mkbootpool request failed (${response.status})`,
+      output: parsedOutput.length > 0 ? parsedOutput : trimmedRaw || 'No output',
     };
   }
+  if (trimmedRaw.length > 0) {
+    return {
+      ok: false,
+      output: trimmedRaw,
+    };
+  }
+
+  const logOutput = await readInternalBootOutputLog();
+  if (logOutput) {
+    return {
+      ok: false,
+      output: `mkbootpool returned an empty response (HTTP ${response.status}). Latest output.log:\n${logOutput}`,
+    };
+  }
+
+  return {
+    ok: false,
+    output: `mkbootpool returned an empty response (HTTP ${response.status}, redirected=${String(response.redirected)}, url=${response.url}, content-type=${response.headers.get('content-type') ?? 'unknown'})`,
+  };
 };
 
 export const submitInternalBootReboot = () => {
