@@ -27,12 +27,15 @@ const draftStore = useOnboardingDraftStore();
 interface InternalBootDeviceOption {
   value: string;
   label: string;
-  sizeMiB: number | null;
+  sizeMiB: number;
 }
 
 interface InternalBootTemplateData {
-  isBootPoolUiAvailable: boolean;
+  fsState: string | null;
   isBootPoolEligible: boolean;
+  reservedNames: string[];
+  shareNames: string[];
+  poolNames: string[];
   poolNameDefault: string;
   slotOptions: number[];
   deviceOptions: InternalBootDeviceOption[];
@@ -42,81 +45,25 @@ interface InternalBootTemplateData {
 }
 
 interface InternalBootContext {
-  array: {
-    state: string;
-    boot?: { device?: string | null } | null;
-    parities: { device?: string | null }[];
-    disks: { device?: string | null }[];
-    caches: { device?: string | null }[];
-  };
-  vars?: { fsState?: string | null; bootEligible?: boolean | null } | null;
-  disks: {
-    id: string;
-    device: string;
-    serialNum: string;
-    size: number;
-    interfaceType: string;
-    emhttpDeviceId?: string | null;
-    sectors?: number | null;
-    sectorSize?: number | null;
-  }[];
+  onboardingInternalBoot?: {
+    fsState?: string | null;
+    bootEligible?: boolean | null;
+    reservedNames?: string[] | null;
+    shareNames?: string[] | null;
+    poolNames?: string[] | null;
+    defaultPoolName?: string | null;
+    maxSlots?: number | null;
+    bootSizePresetsMiB?: number[] | null;
+    defaultBootSizeMiB?: number | null;
+    deviceOptions?:
+      | {
+          value?: string | null;
+          label?: string | null;
+          sizeMiB?: number | null;
+        }[]
+      | null;
+  } | null;
 }
-
-const DEFAULT_BOOT_SIZE_MIB = 16384;
-const BOOT_SIZE_PRESETS_MIB = [16384, 32768, 65536, 131072];
-
-const formatBytes = (bytes: number) => {
-  if (!Number.isFinite(bytes) || bytes <= 0) {
-    return 'Unknown';
-  }
-
-  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-  let value = bytes;
-  let unitIndex = 0;
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-
-  const precision = value >= 100 || unitIndex === 0 ? 0 : 1;
-  return `${value.toFixed(precision)} ${units[unitIndex]}`;
-};
-
-const toSizeMiB = (bytes: number): number | null => {
-  if (!Number.isFinite(bytes) || bytes <= 0) {
-    return null;
-  }
-  return Math.floor(bytes / 1024 / 1024);
-};
-
-const normalizeDeviceName = (value: string | null | undefined): string => {
-  if (!value) {
-    return '';
-  }
-  const trimmed = value.trim();
-  if (trimmed.startsWith('/dev/')) {
-    return trimmed.slice('/dev/'.length);
-  }
-  return trimmed;
-};
-
-const deriveDeviceSizeBytes = (
-  sectors: number | null | undefined,
-  sectorSize: number | null | undefined,
-  fallbackSize: number
-) => {
-  if (
-    typeof sectors === 'number' &&
-    Number.isFinite(sectors) &&
-    sectors > 0 &&
-    typeof sectorSize === 'number' &&
-    Number.isFinite(sectorSize) &&
-    sectorSize > 0
-  ) {
-    return sectors * sectorSize;
-  }
-  return fallbackSize;
-};
 
 const {
   result: contextResult,
@@ -138,96 +85,78 @@ const updateBios = ref(true);
 
 const templateData = computed<InternalBootTemplateData | null>(() => {
   const data = contextResult.value as InternalBootContext | null;
-  if (!data) {
+  const context = data?.onboardingInternalBoot;
+  if (!context) {
     return null;
   }
 
-  const assignedDevices = new Set<string>();
-  const assignedDiskGroups = [
-    data.array.boot ? [data.array.boot] : [],
-    data.array.parities,
-    data.array.disks,
-    data.array.caches,
-  ];
+  const maxSlots =
+    typeof context.maxSlots === 'number' && Number.isFinite(context.maxSlots) && context.maxSlots > 0
+      ? Math.floor(context.maxSlots)
+      : 2;
+  const slotOptions = Array.from({ length: maxSlots }, (_, index) => index + 1);
 
-  for (const group of assignedDiskGroups) {
-    for (const disk of group) {
-      const device = normalizeDeviceName(disk.device);
-      if (device) {
-        assignedDevices.add(device);
-      }
+  const deviceOptions: InternalBootDeviceOption[] = [];
+  const seenValues = new Set<string>();
+  for (const option of context.deviceOptions ?? []) {
+    const value = option.value?.trim() || '';
+    const label = option.label?.trim() || '';
+    if (!value || !label || seenValues.has(value)) {
+      continue;
     }
+    seenValues.add(value);
+    const sizeMiB =
+      typeof option.sizeMiB === 'number' && Number.isFinite(option.sizeMiB) && option.sizeMiB > 0
+        ? Math.floor(option.sizeMiB)
+        : 0;
+    deviceOptions.push({ value, label, sizeMiB });
   }
 
-  const deviceOptions = data.disks
-    .filter((disk) => {
-      const device = normalizeDeviceName(disk.device);
-      const emhttpDeviceId = disk.emhttpDeviceId?.trim();
-      if (!device || !emhttpDeviceId) {
-        return false;
-      }
-      if (assignedDevices.has(device)) {
-        return false;
-      }
-      return true;
-    })
-    .map<InternalBootDeviceOption>((disk) => {
-      const device = normalizeDeviceName(disk.device);
-      const emhttpDeviceId = disk.emhttpDeviceId?.trim() || disk.id.trim() || device;
-      const sizeBytes = deriveDeviceSizeBytes(disk.sectors, disk.sectorSize, disk.size);
-      const sizeMiB = toSizeMiB(sizeBytes);
-      const sizeLabel = formatBytes(sizeBytes);
-      return {
-        value: emhttpDeviceId,
-        label: `${emhttpDeviceId} - ${sizeLabel} (${device})`,
-        sizeMiB,
-      };
-    });
-
-  const hasExistingCachePool = data.array.caches.length > 0;
-
   return {
-    isBootPoolUiAvailable: true,
-    isBootPoolEligible: Boolean(data.vars?.bootEligible),
-    poolNameDefault: hasExistingCachePool ? '' : 'cache',
-    slotOptions: [1, 2],
+    fsState: context.fsState ?? null,
+    isBootPoolEligible: Boolean(context.bootEligible),
+    reservedNames: context.reservedNames?.filter((name) => typeof name === 'string') ?? [],
+    shareNames: context.shareNames?.filter((name) => typeof name === 'string') ?? [],
+    poolNames: context.poolNames?.filter((name) => typeof name === 'string') ?? [],
+    poolNameDefault: context.defaultPoolName ?? '',
+    slotOptions,
     deviceOptions,
-    bootSizePresetsMiB: BOOT_SIZE_PRESETS_MIB,
-    defaultBootSizeMiB: DEFAULT_BOOT_SIZE_MIB,
+    bootSizePresetsMiB:
+      context.bootSizePresetsMiB?.filter((size) => Number.isFinite(size) && size > 0) ?? [],
+    defaultBootSizeMiB:
+      typeof context.defaultBootSizeMiB === 'number' &&
+      Number.isFinite(context.defaultBootSizeMiB) &&
+      context.defaultBootSizeMiB > 0
+        ? Math.floor(context.defaultBootSizeMiB)
+        : 16384,
     defaultUpdateBios: true,
   };
 });
 
 const isLoading = computed(() => Boolean(contextLoading.value));
 const isBusy = computed(() => Boolean(props.isSavingStep) || isLoading.value);
-const isArrayStopped = computed(() => {
-  if (contextResult.value?.array.state) {
-    return contextResult.value.array.state === 'STOPPED';
-  }
-  return contextResult.value?.vars?.fsState === 'Stopped';
-});
-const isBootPoolUiAvailable = computed(() => Boolean(templateData.value?.isBootPoolUiAvailable));
+const isArrayStopped = computed(() => templateData.value?.fsState === 'Stopped');
 const isBootPoolEligible = computed(() => Boolean(templateData.value?.isBootPoolEligible));
 const deviceOptions = computed(() => templateData.value?.deviceOptions ?? []);
 const slotOptions = computed(() => templateData.value?.slotOptions ?? [1, 2]);
+const maxSlots = computed(() => slotOptions.value[slotOptions.value.length - 1] ?? 2);
+const reservedPoolNames = computed(() => new Set(templateData.value?.reservedNames ?? []));
+const shareNames = computed(() => new Set(templateData.value?.shareNames ?? []));
+const existingPoolNames = computed(() => new Set(templateData.value?.poolNames ?? []));
 
 const canConfigure = computed(
-  () =>
-    isArrayStopped.value &&
-    isBootPoolUiAvailable.value &&
-    isBootPoolEligible.value &&
-    deviceOptions.value.length > 0
+  () => isArrayStopped.value && isBootPoolEligible.value && deviceOptions.value.length > 0
 );
 
 const loadStatusMessage = computed(() => {
   if (contextError.value) {
     return 'Unable to load internal boot options from API.';
   }
+  if (!templateData.value) {
+    return 'Unable to load internal boot options.';
+  }
   if (!isArrayStopped.value) {
     return 'Internal boot setup is only available while the array is stopped.';
-  }
-  if (!isBootPoolUiAvailable.value) {
-    return 'Unable to load internal boot options.';
   }
   if (!isBootPoolEligible.value) {
     return 'This server is not currently eligible for internal boot setup.';
@@ -241,7 +170,7 @@ const loadStatusMessage = computed(() => {
 const deviceSizeById = computed(() => {
   const entries = new Map<string, number>();
   for (const option of deviceOptions.value) {
-    if (option.sizeMiB !== null) {
+    if (option.sizeMiB > 0) {
       entries.set(option.value, option.sizeMiB);
     }
   }
@@ -344,6 +273,18 @@ const applyBootSizeSelection = (valueMiB: number) => {
 };
 
 watch(
+  [slotOptions],
+  () => {
+    const minSlot = slotOptions.value[0] ?? 1;
+    const nextValue = Math.max(minSlot, Math.min(maxSlots.value, slotCount.value));
+    if (nextValue !== slotCount.value) {
+      slotCount.value = nextValue;
+    }
+  },
+  { immediate: true }
+);
+
+watch(
   slotCount,
   (value) => {
     normalizeSelectedDevices(value);
@@ -408,8 +349,23 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
     return null;
   }
 
-  if (slotCount.value < 1 || slotCount.value > 2) {
-    formError.value = 'Select 1 or 2 slots.';
+  if (reservedPoolNames.value.has(normalizedPoolName)) {
+    formError.value = 'Do not use reserved names.';
+    return null;
+  }
+
+  if (shareNames.value.has(normalizedPoolName)) {
+    formError.value = 'Do not use user share names.';
+    return null;
+  }
+
+  if (existingPoolNames.value.has(normalizedPoolName)) {
+    formError.value = 'Pool name already exists.';
+    return null;
+  }
+
+  if (slotCount.value < 1 || slotCount.value > maxSlots.value) {
+    formError.value = `Select between 1 and ${maxSlots.value} slots.`;
     return null;
   }
 
@@ -451,7 +407,7 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
 const initializeForm = (data: InternalBootTemplateData) => {
   const draftSelection = draftStore.internalBootSelection;
   const firstSlot = data.slotOptions[0] ?? 1;
-  const defaultSlot = Math.max(1, Math.min(2, firstSlot));
+  const defaultSlot = Math.max(1, Math.min(maxSlots.value, firstSlot));
 
   poolName.value = draftSelection?.poolName || data.poolNameDefault || 'cache';
   slotCount.value = draftSelection?.slotCount ?? defaultSlot;
@@ -484,7 +440,7 @@ watch(
     }
 
     poolName.value = selection.poolName;
-    slotCount.value = selection.slotCount;
+    slotCount.value = Math.max(1, Math.min(maxSlots.value, selection.slotCount));
     selectedDevices.value = [...selection.devices];
     normalizeSelectedDevices(slotCount.value);
     updateBios.value = selection.updateBios;
