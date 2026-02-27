@@ -19,6 +19,7 @@ import { createTestI18n } from '../../utils/i18n';
 
 const {
   draftStore,
+  setInternalBootApplySucceededMock,
   registrationStateRef,
   isFreshInstallRef,
   activationCodeRef,
@@ -37,6 +38,7 @@ const {
   completeOnboardingMock,
   installLanguageMock,
   installPluginMock,
+  submitInternalBootCreationMock,
   useMutationMock,
   useQueryMock,
 } = vi.hoisted(() => ({
@@ -48,7 +50,19 @@ const {
     selectedLanguage: 'en_US',
     useSsh: false,
     selectedPlugins: new Set<string>(),
+    internalBootSelection: null as {
+      poolName: string;
+      slotCount: number;
+      devices: string[];
+      bootSizeMiB: number;
+      updateBios: boolean;
+    } | null,
+    internalBootSkipped: false,
+    internalBootApplySucceeded: false,
   },
+  setInternalBootApplySucceededMock: vi.fn((value: boolean) => {
+    draftStore.internalBootApplySucceeded = value;
+  }),
   registrationStateRef: { value: 'ENOKEYFILE' },
   isFreshInstallRef: { value: true },
   activationCodeRef: { value: null as unknown },
@@ -78,6 +92,7 @@ const {
   completeOnboardingMock: vi.fn().mockResolvedValue({}),
   installLanguageMock: vi.fn(),
   installPluginMock: vi.fn(),
+  submitInternalBootCreationMock: vi.fn(),
   useMutationMock: vi.fn(),
   useQueryMock: vi.fn(),
 }));
@@ -124,7 +139,10 @@ vi.mock('@/components/Onboarding/components/OnboardingConsole.vue', () => ({
 }));
 
 vi.mock('~/components/Onboarding/store/onboardingDraft', () => ({
-  useOnboardingDraftStore: () => draftStore,
+  useOnboardingDraftStore: () => ({
+    ...draftStore,
+    setInternalBootApplySucceeded: setInternalBootApplySucceededMock,
+  }),
 }));
 
 vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
@@ -153,6 +171,10 @@ vi.mock('@/components/Onboarding/composables/usePluginInstaller', () => ({
     installLanguage: installLanguageMock,
     installPlugin: installPluginMock,
   }),
+}));
+
+vi.mock('@/components/Onboarding/composables/internalBoot', () => ({
+  submitInternalBootCreation: submitInternalBootCreationMock,
 }));
 
 vi.mock('@vue/apollo-composable', async () => {
@@ -243,6 +265,9 @@ describe('OnboardingSummaryStep', () => {
     draftStore.selectedLanguage = 'en_US';
     draftStore.useSsh = false;
     draftStore.selectedPlugins = new Set();
+    draftStore.internalBootSelection = null;
+    draftStore.internalBootSkipped = false;
+    draftStore.internalBootApplySucceeded = false;
 
     registrationStateRef.value = 'ENOKEYFILE';
     isFreshInstallRef.value = true;
@@ -280,6 +305,10 @@ describe('OnboardingSummaryStep', () => {
       operationId: 'plugin-op',
       status: PluginInstallStatus.SUCCEEDED,
       output: [],
+    });
+    submitInternalBootCreationMock.mockResolvedValue({
+      ok: true,
+      output: 'ok',
     });
     refetchInstalledPluginsMock.mockResolvedValue(undefined);
     refetchOnboardingMock.mockResolvedValue(undefined);
@@ -916,5 +945,52 @@ describe('OnboardingSummaryStep', () => {
       'SSH update submitted, but final SSH state could not be verified yet.'
     );
     expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
+  });
+
+  it('applies internal boot configuration without reboot and records success', async () => {
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 2,
+      devices: ['diskA', 'diskB'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+    draftStore.internalBootSkipped = false;
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(submitInternalBootCreationMock).toHaveBeenCalledWith(
+      {
+        poolName: 'cache',
+        devices: ['diskA', 'diskB'],
+        bootSizeMiB: 16384,
+        updateBios: true,
+      },
+      { reboot: false }
+    );
+    expect(setInternalBootApplySucceededMock).toHaveBeenCalledWith(true);
+    expect(wrapper.text()).toContain('Internal boot pool configured.');
+  });
+
+  it('continues with warnings when internal boot setup returns an error', async () => {
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['diskA'],
+      bootSizeMiB: 16384,
+      updateBios: false,
+    };
+    submitInternalBootCreationMock.mockResolvedValue({
+      ok: false,
+      output: 'mkbootpool failed',
+    });
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(setInternalBootApplySucceededMock).not.toHaveBeenCalledWith(true);
+    expect(wrapper.text()).toContain('Internal boot setup returned an error: mkbootpool failed');
+    expect(wrapper.text()).toContain('Setup Applied with Warnings');
   });
 });

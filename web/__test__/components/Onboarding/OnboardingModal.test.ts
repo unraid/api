@@ -40,6 +40,7 @@ const {
     isVersionDrift: { value: false },
     completedAtVersion: { value: null },
     canDisplayOnboardingModal: { value: true },
+    isPartnerBuild: { value: false },
     refetchOnboarding: vi.fn().mockResolvedValue(undefined),
   },
   onboardingDraftStore: {
@@ -97,6 +98,7 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
   stepComponents: {
     OVERVIEW: { template: '<div data-testid="overview-step" />' },
     CONFIGURE_SETTINGS: { template: '<div data-testid="settings-step" />' },
+    INTERNAL_BOOT: { template: '<div data-testid="internal-boot-step" />' },
     ADD_PLUGINS: { template: '<div data-testid="plugins-step" />' },
     ACTIVATE_LICENSE: { template: '<div data-testid="license-step" />' },
     SUMMARY: { template: '<div data-testid="summary-step" />' },
@@ -149,6 +151,7 @@ describe('OnboardingModal.vue', () => {
     upgradeOnboardingStore.isVersionDrift.value = false;
     upgradeOnboardingStore.completedAtVersion.value = null;
     upgradeOnboardingStore.canDisplayOnboardingModal.value = true;
+    upgradeOnboardingStore.isPartnerBuild.value = false;
     onboardingDraftStore.currentStepIndex.value = 0;
 
     Object.defineProperty(window, 'location', {
@@ -235,7 +238,7 @@ describe('OnboardingModal.vue', () => {
 
   it('shows activation step for ENOKEYFILE2', () => {
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE2';
-    onboardingDraftStore.currentStepIndex.value = 3;
+    onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();
 
@@ -244,12 +247,30 @@ describe('OnboardingModal.vue', () => {
 
   it('omits activation step for non-activation registration states', () => {
     activationCodeDataStore.registrationState.value = 'BASIC';
-    onboardingDraftStore.currentStepIndex.value = 3;
+    onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();
 
     expect(wrapper.find('[data-testid="license-step"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="summary-step"]').exists()).toBe(true);
+  });
+
+  it('shows internal boot step for regular builds', () => {
+    onboardingDraftStore.currentStepIndex.value = 2;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(true);
+  });
+
+  it('hides internal boot step for partner builds', () => {
+    upgradeOnboardingStore.isPartnerBuild.value = true;
+    onboardingDraftStore.currentStepIndex.value = 2;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(true);
   });
 
   it('opens exit confirmation when close button is clicked', async () => {
