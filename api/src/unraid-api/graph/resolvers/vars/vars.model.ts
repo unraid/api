@@ -428,6 +428,9 @@ export class Vars extends Node {
     @Field({ nullable: true })
     fsState?: string;
 
+    @Field({ nullable: true })
+    bootEligible?: boolean;
+
     @Field({ nullable: true, description: 'Human friendly string of array events happening' })
     fsProgress?: string;
 

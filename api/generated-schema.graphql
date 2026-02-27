@@ -338,6 +338,15 @@ type Disk implements Node {
   """The serial number of the disk"""
   serialNum: String!
 
+  """Device identifier from emhttp devs.ini used by disk assignment commands"""
+  emhttpDeviceId: String
+
+  """Sector count from emhttp devs.ini for this device"""
+  sectors: Float
+
+  """Sector size in bytes from emhttp devs.ini for this device"""
+  sectorSize: Float
+
   """The interface type of the disk"""
   interfaceType: DiskInterfaceType!
 
@@ -580,6 +589,7 @@ type Vars implements Node {
   cacheNumDevices: Int
   cacheSbNumDisks: Int
   fsState: String
+  bootEligible: Boolean
 
   """Human friendly string of array events happening"""
   fsProgress: String

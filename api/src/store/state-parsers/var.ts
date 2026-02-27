@@ -44,6 +44,7 @@ export type VarIni = {
     fsNumUnmountable: string;
     fsProgress: string;
     fsState: string;
+    bootEligible: string;
     fsUnmountableMask: string;
     fuseDirectio: string;
     fuseDirectioDefault: string;
@@ -195,6 +196,7 @@ export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
         fsCopyPrcnt: toNumber(iniFile.fsCopyPrcnt),
         fsNumMounted: toNumber(iniFile.fsNumMounted),
         fsNumUnmountable: toNumber(iniFile.fsNumUnmountable),
+        bootEligible: iniBooleanToJsBoolean(iniFile.bootEligible, false),
         hideDotFiles: iniBooleanToJsBoolean(iniFile.hideDotFiles, false),
         localMaster: iniBooleanToJsBoolean(iniFile.localMaster, false),
         maxArraysz: toNumber(iniFile.maxArraysz),

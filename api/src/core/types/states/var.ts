@@ -39,6 +39,8 @@ export type Var = {
     fsProgress: string;
     /** Current state of the array. */
     fsState: string;
+    /** Whether this system is eligible to create a bootable pool. */
+    bootEligible: boolean;
     fsUnmountableMask: string;
     fuseDirectio: string;
     fuseDirectioDefault: string;
