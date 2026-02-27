@@ -3082,6 +3082,25 @@ type Connect implements Node {
   settings: ConnectSettings!
 }
 
+type OnboardingInternalBootDeviceOption {
+  value: String!
+  label: String!
+  sizeMiB: Int!
+}
+
+type OnboardingInternalBootContext {
+  fsState: String
+  bootEligible: Boolean!
+  reservedNames: [String!]!
+  shareNames: [String!]!
+  poolNames: [String!]!
+  defaultPoolName: String!
+  maxSlots: Int!
+  bootSizePresetsMiB: [Int!]!
+  defaultBootSizeMiB: Int!
+  deviceOptions: [OnboardingInternalBootDeviceOption!]!
+}
+
 type Network implements Node {
   id: PrefixedID!
   accessUrls: [AccessUrl!]
@@ -3135,6 +3154,7 @@ type Query {
   services: [Service!]!
   shares: [Share!]!
   vars: Vars!
+  onboardingInternalBoot: OnboardingInternalBootContext!
 
   """Get information about all VMs on the system"""
   vms: Vms!

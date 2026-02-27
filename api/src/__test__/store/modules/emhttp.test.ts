@@ -1001,6 +1001,7 @@ test('After init returns values from cfg file for all fields', { timeout: 30000 
     expect(varState).toMatchInlineSnapshot(`
       {
         "bindMgt": false,
+        "bootEligible": false,
         "cacheNumDevices": NaN,
         "cacheSbNumDisks": NaN,
         "comment": "Dev Server",

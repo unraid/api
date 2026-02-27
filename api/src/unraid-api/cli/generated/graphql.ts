@@ -701,6 +701,8 @@ export type Disk = Node & {
   bytesPerSector: Scalars['Float']['output'];
   /** The device path of the disk (e.g. /dev/sdb) */
   device: Scalars['String']['output'];
+  /** Device identifier from emhttp devs.ini used by disk assignment commands */
+  emhttpDeviceId?: Maybe<Scalars['String']['output']>;
   /** The firmware revision of the disk */
   firmwareRevision: Scalars['String']['output'];
   id: Scalars['PrefixedID']['output'];
@@ -712,6 +714,10 @@ export type Disk = Node & {
   name: Scalars['String']['output'];
   /** The partitions on the disk */
   partitions: Array<DiskPartition>;
+  /** Sector size in bytes from emhttp devs.ini for this device */
+  sectorSize?: Maybe<Scalars['Float']['output']>;
+  /** Sector count from emhttp devs.ini for this device */
+  sectors?: Maybe<Scalars['Float']['output']>;
   /** The number of sectors per track */
   sectorsPerTrack: Scalars['Float']['output'];
   /** The serial number of the disk */
@@ -1963,6 +1969,27 @@ export type Onboarding = {
   status: OnboardingStatus;
 };
 
+export type OnboardingInternalBootContext = {
+  __typename?: 'OnboardingInternalBootContext';
+  bootEligible: Scalars['Boolean']['output'];
+  bootSizePresetsMiB: Array<Scalars['Int']['output']>;
+  defaultBootSizeMiB: Scalars['Int']['output'];
+  defaultPoolName: Scalars['String']['output'];
+  deviceOptions: Array<OnboardingInternalBootDeviceOption>;
+  fsState?: Maybe<Scalars['String']['output']>;
+  maxSlots: Scalars['Int']['output'];
+  poolNames: Array<Scalars['String']['output']>;
+  reservedNames: Array<Scalars['String']['output']>;
+  shareNames: Array<Scalars['String']['output']>;
+};
+
+export type OnboardingInternalBootDeviceOption = {
+  __typename?: 'OnboardingInternalBootDeviceOption';
+  label: Scalars['String']['output'];
+  sizeMiB: Scalars['Int']['output'];
+  value: Scalars['String']['output'];
+};
+
 /** Onboarding related mutations */
 export type OnboardingMutations = {
   __typename?: 'OnboardingMutations';
@@ -2268,6 +2295,7 @@ export type Query = {
   oidcProvider?: Maybe<OidcProvider>;
   /** Get all configured OIDC providers (admin only) */
   oidcProviders: Array<OidcProvider>;
+  onboardingInternalBoot: OnboardingInternalBootContext;
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
@@ -3175,6 +3203,7 @@ export type UserAccount = Node & {
 export type Vars = Node & {
   __typename?: 'Vars';
   bindMgt?: Maybe<Scalars['Boolean']['output']>;
+  bootEligible?: Maybe<Scalars['Boolean']['output']>;
   cacheNumDevices?: Maybe<Scalars['Int']['output']>;
   cacheSbNumDisks?: Maybe<Scalars['Int']['output']>;
   comment?: Maybe<Scalars['String']['output']>;
