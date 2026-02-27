@@ -49,13 +49,16 @@ interface InternalBootContext {
     disks: { device?: string | null }[];
     caches: { device?: string | null }[];
   };
-  vars?: { fsState?: string | null } | null;
+  vars?: { fsState?: string | null; bootEligible?: boolean | null } | null;
   disks: {
     id: string;
     device: string;
     serialNum: string;
     size: number;
     interfaceType: string;
+    emhttpDeviceId?: string | null;
+    sectors?: number | null;
+    sectorSize?: number | null;
   }[];
 }
 
@@ -84,6 +87,35 @@ const toSizeMiB = (bytes: number): number | null => {
     return null;
   }
   return Math.floor(bytes / 1024 / 1024);
+};
+
+const normalizeDeviceName = (value: string | null | undefined): string => {
+  if (!value) {
+    return '';
+  }
+  const trimmed = value.trim();
+  if (trimmed.startsWith('/dev/')) {
+    return trimmed.slice('/dev/'.length);
+  }
+  return trimmed;
+};
+
+const deriveDeviceSizeBytes = (
+  sectors: number | null | undefined,
+  sectorSize: number | null | undefined,
+  fallbackSize: number
+) => {
+  if (
+    typeof sectors === 'number' &&
+    Number.isFinite(sectors) &&
+    sectors > 0 &&
+    typeof sectorSize === 'number' &&
+    Number.isFinite(sectorSize) &&
+    sectorSize > 0
+  ) {
+    return sectors * sectorSize;
+  }
+  return fallbackSize;
 };
 
 const {
@@ -120,7 +152,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
 
   for (const group of assignedDiskGroups) {
     for (const disk of group) {
-      const device = disk.device?.trim();
+      const device = normalizeDeviceName(disk.device);
       if (device) {
         assignedDevices.add(device);
       }
@@ -129,23 +161,25 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
 
   const deviceOptions = data.disks
     .filter((disk) => {
-      const device = disk.device?.trim();
-      if (!device) {
+      const device = normalizeDeviceName(disk.device);
+      const emhttpDeviceId = disk.emhttpDeviceId?.trim();
+      if (!device || !emhttpDeviceId) {
         return false;
       }
       if (assignedDevices.has(device)) {
         return false;
       }
-      return disk.interfaceType !== 'USB';
+      return true;
     })
     .map<InternalBootDeviceOption>((disk) => {
-      const device = disk.device.trim();
-      const serial = disk.serialNum?.trim() || disk.id.trim() || device;
-      const sizeMiB = toSizeMiB(disk.size);
-      const sizeLabel = formatBytes(disk.size);
+      const device = normalizeDeviceName(disk.device);
+      const emhttpDeviceId = disk.emhttpDeviceId?.trim() || disk.id.trim() || device;
+      const sizeBytes = deriveDeviceSizeBytes(disk.sectors, disk.sectorSize, disk.size);
+      const sizeMiB = toSizeMiB(sizeBytes);
+      const sizeLabel = formatBytes(sizeBytes);
       return {
-        value: serial,
-        label: `${serial} - ${sizeLabel} (${device})`,
+        value: emhttpDeviceId,
+        label: `${emhttpDeviceId} - ${sizeLabel} (${device})`,
         sizeMiB,
       };
     });
@@ -154,7 +188,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
 
   return {
     isBootPoolUiAvailable: true,
-    isBootPoolEligible: deviceOptions.length > 0,
+    isBootPoolEligible: Boolean(data.vars?.bootEligible),
     poolNameDefault: hasExistingCachePool ? '' : 'cache',
     slotOptions: [1, 2],
     deviceOptions,
