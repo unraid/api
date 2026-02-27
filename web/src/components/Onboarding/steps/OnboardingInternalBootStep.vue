@@ -1,16 +1,14 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useQuery } from '@vue/apollo-composable';
 
 import { ChevronLeftIcon, CircleStackIcon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
-import { fetchInternalBootTemplateData } from '@/components/Onboarding/composables/internalBoot';
-import { GET_ARRAY_STATE_QUERY } from '@/components/Onboarding/graphql/getArrayState.query';
+import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 
-import type { InternalBootTemplateData } from '@/components/Onboarding/composables/internalBoot';
 import type { OnboardingInternalBootSelection } from '@/components/Onboarding/store/onboardingDraft';
 
 export interface Props {
@@ -25,18 +23,79 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
+
+interface InternalBootDeviceOption {
+  value: string;
+  label: string;
+  sizeMiB: number | null;
+}
+
+interface InternalBootTemplateData {
+  isBootPoolUiAvailable: boolean;
+  isBootPoolEligible: boolean;
+  poolNameDefault: string;
+  slotOptions: number[];
+  deviceOptions: InternalBootDeviceOption[];
+  bootSizePresetsMiB: number[];
+  defaultBootSizeMiB: number;
+  defaultUpdateBios: boolean;
+}
+
+interface InternalBootContext {
+  array: {
+    state: string;
+    boot?: { device?: string | null } | null;
+    parities: { device?: string | null }[];
+    disks: { device?: string | null }[];
+    caches: { device?: string | null }[];
+  };
+  vars?: { fsState?: string | null } | null;
+  disks: {
+    id: string;
+    device: string;
+    serialNum: string;
+    size: number;
+    interfaceType: string;
+  }[];
+}
+
+const DEFAULT_BOOT_SIZE_MIB = 16384;
+const BOOT_SIZE_PRESETS_MIB = [16384, 32768, 65536, 131072];
+
+const formatBytes = (bytes: number) => {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return 'Unknown';
+  }
+
+  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+  let value = bytes;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+
+  const precision = value >= 100 || unitIndex === 0 ? 0 : 1;
+  return `${value.toFixed(precision)} ${units[unitIndex]}`;
+};
+
+const toSizeMiB = (bytes: number): number | null => {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return null;
+  }
+  return Math.floor(bytes / 1024 / 1024);
+};
+
 const {
-  result: arrayStateResult,
-  loading: arrayStateLoading,
-  error: arrayStateError,
-} = useQuery(GET_ARRAY_STATE_QUERY, null, {
+  result: contextResult,
+  loading: contextLoading,
+  error: contextError,
+} = useQuery(GET_INTERNAL_BOOT_CONTEXT_QUERY, null, {
   fetchPolicy: 'cache-first',
 });
 
-const isTemplateLoading = ref(true);
-const loadError = ref<string | null>(null);
 const formError = ref<string | null>(null);
-const templateData = ref<InternalBootTemplateData | null>(null);
+const hasInitializedForm = ref(false);
 
 const poolName = ref('cache');
 const slotCount = ref(1);
@@ -45,9 +104,74 @@ const bootSizePreset = ref<string>('');
 const customBootSizeGb = ref('');
 const updateBios = ref(true);
 
-const isLoading = computed(() => Boolean(arrayStateLoading.value) || isTemplateLoading.value);
+const templateData = computed<InternalBootTemplateData | null>(() => {
+  const data = contextResult.value as InternalBootContext | null;
+  if (!data) {
+    return null;
+  }
+
+  const assignedDevices = new Set<string>();
+  const assignedDiskGroups = [
+    data.array.boot ? [data.array.boot] : [],
+    data.array.parities,
+    data.array.disks,
+    data.array.caches,
+  ];
+
+  for (const group of assignedDiskGroups) {
+    for (const disk of group) {
+      const device = disk.device?.trim();
+      if (device) {
+        assignedDevices.add(device);
+      }
+    }
+  }
+
+  const deviceOptions = data.disks
+    .filter((disk) => {
+      const device = disk.device?.trim();
+      if (!device) {
+        return false;
+      }
+      if (assignedDevices.has(device)) {
+        return false;
+      }
+      return disk.interfaceType !== 'USB';
+    })
+    .map<InternalBootDeviceOption>((disk) => {
+      const device = disk.device.trim();
+      const serial = disk.serialNum?.trim() || disk.id.trim() || device;
+      const sizeMiB = toSizeMiB(disk.size);
+      const sizeLabel = formatBytes(disk.size);
+      return {
+        value: serial,
+        label: `${serial} - ${sizeLabel} (${device})`,
+        sizeMiB,
+      };
+    });
+
+  const hasExistingCachePool = data.array.caches.length > 0;
+
+  return {
+    isBootPoolUiAvailable: true,
+    isBootPoolEligible: deviceOptions.length > 0,
+    poolNameDefault: hasExistingCachePool ? '' : 'cache',
+    slotOptions: [1, 2],
+    deviceOptions,
+    bootSizePresetsMiB: BOOT_SIZE_PRESETS_MIB,
+    defaultBootSizeMiB: DEFAULT_BOOT_SIZE_MIB,
+    defaultUpdateBios: true,
+  };
+});
+
+const isLoading = computed(() => Boolean(contextLoading.value));
 const isBusy = computed(() => Boolean(props.isSavingStep) || isLoading.value);
-const isArrayStopped = computed(() => arrayStateResult.value?.array?.state === 'STOPPED');
+const isArrayStopped = computed(() => {
+  if (contextResult.value?.array.state) {
+    return contextResult.value.array.state === 'STOPPED';
+  }
+  return contextResult.value?.vars?.fsState === 'Stopped';
+});
 const isBootPoolUiAvailable = computed(() => Boolean(templateData.value?.isBootPoolUiAvailable));
 const isBootPoolEligible = computed(() => Boolean(templateData.value?.isBootPoolEligible));
 const deviceOptions = computed(() => templateData.value?.deviceOptions ?? []);
@@ -62,17 +186,14 @@ const canConfigure = computed(
 );
 
 const loadStatusMessage = computed(() => {
-  if (loadError.value) {
-    return loadError.value;
-  }
-  if (arrayStateError.value) {
-    return 'Unable to determine current array state.';
+  if (contextError.value) {
+    return 'Unable to load internal boot options from API.';
   }
   if (!isArrayStopped.value) {
     return 'Internal boot setup is only available while the array is stopped.';
   }
   if (!isBootPoolUiAvailable.value) {
-    return 'Unable to load internal boot options from the webgui pool page.';
+    return 'Unable to load internal boot options.';
   }
   if (!isBootPoolEligible.value) {
     return 'This server is not currently eligible for internal boot setup.';
@@ -309,20 +430,33 @@ const initializeForm = (data: InternalBootTemplateData) => {
   applyBootSizeSelection(draftSelection?.bootSizeMiB ?? data.defaultBootSizeMiB);
 };
 
-onMounted(async () => {
-  isTemplateLoading.value = true;
-  loadError.value = null;
-
-  try {
-    const data = await fetchInternalBootTemplateData();
-    templateData.value = data;
+watch(
+  templateData,
+  (data) => {
+    if (!data || hasInitializedForm.value) {
+      return;
+    }
     initializeForm(data);
-  } catch (error) {
-    loadError.value = error instanceof Error ? error.message : 'Unable to load internal boot options.';
-  } finally {
-    isTemplateLoading.value = false;
+    hasInitializedForm.value = true;
+  },
+  { immediate: true }
+);
+
+watch(
+  () => draftStore.internalBootSelection,
+  (selection) => {
+    if (!selection || isLoading.value) {
+      return;
+    }
+
+    poolName.value = selection.poolName;
+    slotCount.value = selection.slotCount;
+    selectedDevices.value = [...selection.devices];
+    normalizeSelectedDevices(slotCount.value);
+    updateBios.value = selection.updateBios;
+    applyBootSizeSelection(selection.bootSizeMiB);
   }
-});
+);
 
 const handleBack = () => {
   props.onBack?.();
