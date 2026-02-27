@@ -180,8 +180,8 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
     })
     .map<InternalBootDeviceOption>((disk) => {
       const device = normalizeDeviceName(disk.device);
-      const optionValue =
-        disk.id.trim() || disk.emhttpDeviceId?.trim() || disk.serialNum.trim() || device;
+      const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
+      const optionValue = emhttpDeviceId || device;
       const sizeBytes = deriveDeviceSizeBytes(disk.sectors, disk.sectorSize, disk.size);
       const sizeMiB = toSizeMiB(sizeBytes);
       const sizeLabel = formatBytes(sizeBytes);
