@@ -8,6 +8,7 @@ import { createTestI18n } from '../../utils/i18n';
 
 const {
   mutateMock,
+  internalBootVisibilityResult,
   activationCodeModalStore,
   activationCodeDataStore,
   upgradeOnboardingStore,
@@ -18,6 +19,13 @@ const {
   cleanupOnboardingStorageMock,
 } = vi.hoisted(() => ({
   mutateMock: vi.fn().mockResolvedValue(undefined),
+  internalBootVisibilityResult: {
+    value: {
+      vars: {
+        enableBootTransfer: 'yes',
+      },
+    },
+  },
   activationCodeModalStore: {
     isVisible: { value: true },
     isTemporarilyBypassed: { value: false },
@@ -82,6 +90,11 @@ vi.mock('@heroicons/vue/24/solid', () => ({
 }));
 
 vi.mock('@vue/apollo-composable', () => ({
+  useQuery: () => ({
+    result: internalBootVisibilityResult,
+    loading: { value: false },
+    error: { value: null },
+  }),
   useMutation: () => ({
     mutate: mutateMock,
   }),
@@ -153,6 +166,11 @@ describe('OnboardingModal.vue', () => {
     upgradeOnboardingStore.canDisplayOnboardingModal.value = true;
     upgradeOnboardingStore.isPartnerBuild.value = false;
     onboardingDraftStore.currentStepIndex.value = 0;
+    internalBootVisibilityResult.value = {
+      vars: {
+        enableBootTransfer: 'yes',
+      },
+    };
 
     Object.defineProperty(window, 'location', {
       writable: true,
@@ -265,6 +283,20 @@ describe('OnboardingModal.vue', () => {
 
   it('hides internal boot step for partner builds', () => {
     upgradeOnboardingStore.isPartnerBuild.value = true;
+    onboardingDraftStore.currentStepIndex.value = 2;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(true);
+  });
+
+  it('hides internal boot step when already booting internally', () => {
+    internalBootVisibilityResult.value = {
+      vars: {
+        enableBootTransfer: 'no',
+      },
+    };
     onboardingDraftStore.currentStepIndex.value = 2;
 
     const wrapper = mountComponent();

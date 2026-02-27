@@ -21,6 +21,8 @@ export const GET_INTERNAL_BOOT_CONTEXT_QUERY = gql`
     vars {
       fsState
       bootEligible
+      enableBootTransfer
+      reservedNames
     }
     shares {
       name

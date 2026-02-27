@@ -12,10 +12,6 @@ This list tracks behavior that is intentionally or currently different from the 
   - Webgui formats labels via PHP helpers.
   - Onboarding formats labels in Vue (`<id> - <size> (<device>)`).
 
-- Pool/share name validation parity is close but not exact:
-  - Onboarding enforces regex, share-name collision, and existing cache pool-name collision.
-  - Full webgui reserved-name and collision checks are not fully mirrored yet.
-
 - Dialog auto-open via URL flag:
   - Webgui supports `?createbootpool`.
   - Onboarding step does not support URL-triggered auto-open.
@@ -24,6 +20,6 @@ This list tracks behavior that is intentionally or currently different from the 
   - Webgui dialog path is "Activate and Reboot" in one flow.
   - Onboarding applies `mkbootpool` without reboot in summary, then exposes reboot as a separate next-step action.
 
-- Existing internal-boot detection for step visibility:
-  - Webgui has direct page-level context for its own surfaces.
-  - Onboarding currently gates by user type and setup context, but does not yet hide the step based on "already on internal boot" detection.
+- Internal-boot visibility source:
+  - Onboarding hides the step using `vars.enableBootTransfer` (`no` means already internal boot).
+  - This matches `var.ini` semantics, but is still API-driven rather than websocket-rendered page context.

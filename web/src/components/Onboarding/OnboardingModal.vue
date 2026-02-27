@@ -2,11 +2,12 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { useMutation } from '@vue/apollo-composable';
+import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
+import { GET_INTERNAL_BOOT_STEP_VISIBILITY_QUERY } from '@/components/Onboarding/graphql/getInternalBootStepVisibility.query';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 
 import type { BrandButtonProps } from '@unraid/ui';
@@ -89,10 +90,28 @@ const showActivationStep = computed(() => {
   return hasCode && ACTIVATION_STEP_REGISTRATION_STATES.has(regState);
 });
 
+const { result: internalBootVisibilityResult } = useQuery(
+  GET_INTERNAL_BOOT_STEP_VISIBILITY_QUERY,
+  null,
+  {
+    fetchPolicy: 'cache-first',
+  }
+);
+
+const hideInternalBootStep = computed(() => {
+  const setting = internalBootVisibilityResult.value?.vars?.enableBootTransfer?.trim().toLowerCase();
+  return setting === 'no';
+});
+
 // Determine which steps to show based on user state
 const visibleHardcodedSteps = computed(() =>
   HARDCODED_STEPS.filter((step) => showActivationStep.value || step.id !== 'ACTIVATE_LICENSE').filter(
-    (step) => !isPartnerBuild.value || step.id !== 'INTERNAL_BOOT'
+    (step) => {
+      if (step.id !== 'INTERNAL_BOOT') {
+        return true;
+      }
+      return !isPartnerBuild.value && !hideInternalBootStep.value;
+    }
   )
 );
 const availableSteps = computed<StepId[]>(() => visibleHardcodedSteps.value.map((step) => step.id));

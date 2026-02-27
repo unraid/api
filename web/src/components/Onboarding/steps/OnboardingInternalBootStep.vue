@@ -38,6 +38,7 @@ interface InternalBootTemplateData {
   bootSizePresetsMiB: number[];
   defaultBootSizeMiB: number;
   defaultUpdateBios: boolean;
+  reservedNames: string[];
   shareNames: string[];
   poolNames: string[];
 }
@@ -50,7 +51,12 @@ interface InternalBootContext {
     disks: { device?: string | null }[];
     caches: { name?: string | null; device?: string | null }[];
   };
-  vars?: { fsState?: string | null; bootEligible?: boolean | null } | null;
+  vars?: {
+    fsState?: string | null;
+    bootEligible?: boolean | null;
+    enableBootTransfer?: string | null;
+    reservedNames?: string | null;
+  } | null;
   shares: { name?: string | null }[];
   disks: {
     id: string;
@@ -101,15 +107,6 @@ const normalizeDeviceName = (value: string | null | undefined): string => {
   }
   return trimmed;
 };
-
-const normalizePoolName = (value: string | null | undefined): string => {
-  if (!value) {
-    return '';
-  }
-  return value.replace(/~.*$/, '').replace(/\d+$/, '').trim();
-};
-
-const isDiskShareName = (name: string) => /^disk\d+$/i.test(name) || name.toLowerCase() === 'disk';
 
 const deriveDeviceSizeBytes = (
   sectors: number | null | undefined,
@@ -197,19 +194,26 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
 
   const poolNameSet = new Set<string>();
   for (const cacheDisk of data.array.caches) {
-    const normalized = normalizePoolName(cacheDisk.name);
-    if (normalized) {
-      poolNameSet.add(normalized);
+    const poolName = cacheDisk.name?.trim() || '';
+    if (poolName) {
+      poolNameSet.add(poolName);
+    }
+  }
+
+  const reservedNameSet = new Set<string>();
+  for (const reservedName of (data.vars?.reservedNames ?? '').split(',')) {
+    const name = reservedName.trim();
+    if (name) {
+      reservedNameSet.add(name);
     }
   }
 
   const shareNameSet = new Set<string>();
   for (const share of data.shares) {
     const name = share.name?.trim() || '';
-    if (!name || isDiskShareName(name)) {
-      continue;
+    if (name) {
+      shareNameSet.add(name);
     }
-    shareNameSet.add(name);
   }
 
   return {
@@ -220,6 +224,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
     bootSizePresetsMiB: BOOT_SIZE_PRESETS_MIB,
     defaultBootSizeMiB: DEFAULT_BOOT_SIZE_MIB,
     defaultUpdateBios: true,
+    reservedNames: Array.from(reservedNameSet),
     shareNames: Array.from(shareNameSet),
     poolNames: Array.from(poolNameSet),
   };
@@ -233,19 +238,31 @@ const isArrayStopped = computed(() => {
   }
   return contextResult.value?.vars?.fsState === 'Stopped';
 });
+const isAlreadyOnInternalBoot = computed(() => {
+  const setting = contextResult.value?.vars?.enableBootTransfer?.trim().toLowerCase();
+  return setting === 'no';
+});
 const isBootPoolEligible = computed(() => Boolean(templateData.value?.isBootPoolEligible));
 const deviceOptions = computed(() => templateData.value?.deviceOptions ?? []);
 const slotOptions = computed(() => templateData.value?.slotOptions ?? [1, 2]);
+const reservedNames = computed(() => new Set(templateData.value?.reservedNames ?? []));
 const shareNames = computed(() => new Set(templateData.value?.shareNames ?? []));
 const existingPoolNames = computed(() => new Set(templateData.value?.poolNames ?? []));
 
 const canConfigure = computed(
-  () => isArrayStopped.value && isBootPoolEligible.value && deviceOptions.value.length > 0
+  () =>
+    !isAlreadyOnInternalBoot.value &&
+    isArrayStopped.value &&
+    isBootPoolEligible.value &&
+    deviceOptions.value.length > 0
 );
 
 const loadStatusMessage = computed(() => {
   if (contextError.value) {
     return 'Unable to load internal boot options from API.';
+  }
+  if (isAlreadyOnInternalBoot.value) {
+    return 'Internal boot is already configured on this server.';
   }
   if (!isArrayStopped.value) {
     return 'Internal boot setup is only available while the array is stopped.';
@@ -422,10 +439,8 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
     return null;
   }
 
-  const poolNamePattern = /^[a-z]([a-z0-9~._-]*[a-z_-])*$/;
-  if (!poolNamePattern.test(normalizedPoolName)) {
-    formError.value =
-      'Pool name must start with a lowercase letter and contain only lowercase letters, numbers, and ~ . _ -.';
+  if (reservedNames.value.has(normalizedPoolName)) {
+    formError.value = 'Do not use reserved names.';
     return null;
   }
 
@@ -436,6 +451,12 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
 
   if (existingPoolNames.value.has(normalizedPoolName)) {
     formError.value = 'Pool name already exists.';
+    return null;
+  }
+
+  const poolNamePattern = /^[a-z]([a-z0-9~._-]*[a-z_-])*$/;
+  if (!poolNamePattern.test(normalizedPoolName)) {
+    formError.value = 'Use only lowercase with no special characters or leading/trailing digits.';
     return null;
   }
 
