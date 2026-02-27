@@ -45,6 +45,8 @@ export type VarIni = {
     fsProgress: string;
     fsState: string;
     bootEligible: string;
+    enableBootTransfer?: string;
+    reservedNames?: string;
     fsUnmountableMask: string;
     fuseDirectio: string;
     fuseDirectioDefault: string;

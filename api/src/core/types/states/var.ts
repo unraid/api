@@ -41,6 +41,10 @@ export type Var = {
     fsState: string;
     /** Whether this system is eligible to create a bootable pool. */
     bootEligible: boolean;
+    /** Whether boot transfer from flash to internal is enabled ("yes" means currently booted from flash). */
+    enableBootTransfer?: string;
+    /** Comma-separated list of reserved names from var.ini. */
+    reservedNames?: string;
     fsUnmountableMask: string;
     fuseDirectio: string;
     fuseDirectioDefault: string;

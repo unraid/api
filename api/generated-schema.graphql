@@ -590,6 +590,8 @@ type Vars implements Node {
   cacheSbNumDisks: Int
   fsState: String
   bootEligible: Boolean
+  enableBootTransfer: String
+  reservedNames: String
 
   """Human friendly string of array events happening"""
   fsProgress: String

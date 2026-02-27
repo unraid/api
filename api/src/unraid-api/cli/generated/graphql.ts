@@ -3194,6 +3194,7 @@ export type Vars = Node & {
   domain?: Maybe<Scalars['String']['output']>;
   domainLogin?: Maybe<Scalars['String']['output']>;
   domainShort?: Maybe<Scalars['String']['output']>;
+  enableBootTransfer?: Maybe<Scalars['String']['output']>;
   enableFruit?: Maybe<Scalars['String']['output']>;
   flashGuid?: Maybe<Scalars['String']['output']>;
   flashProduct?: Maybe<Scalars['String']['output']>;
@@ -3281,6 +3282,7 @@ export type Vars = Node & {
   /** Registration owner */
   regTo?: Maybe<Scalars['String']['output']>;
   regTy?: Maybe<RegistrationType>;
+  reservedNames?: Maybe<Scalars['String']['output']>;
   safeMode?: Maybe<Scalars['Boolean']['output']>;
   sbClean?: Maybe<Scalars['Boolean']['output']>;
   sbEvents?: Maybe<Scalars['Int']['output']>;
