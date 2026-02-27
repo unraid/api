@@ -1969,27 +1969,6 @@ export type Onboarding = {
   status: OnboardingStatus;
 };
 
-export type OnboardingInternalBootContext = {
-  __typename?: 'OnboardingInternalBootContext';
-  bootEligible: Scalars['Boolean']['output'];
-  bootSizePresetsMiB: Array<Scalars['Int']['output']>;
-  defaultBootSizeMiB: Scalars['Int']['output'];
-  defaultPoolName: Scalars['String']['output'];
-  deviceOptions: Array<OnboardingInternalBootDeviceOption>;
-  fsState?: Maybe<Scalars['String']['output']>;
-  maxSlots: Scalars['Int']['output'];
-  poolNames: Array<Scalars['String']['output']>;
-  reservedNames: Array<Scalars['String']['output']>;
-  shareNames: Array<Scalars['String']['output']>;
-};
-
-export type OnboardingInternalBootDeviceOption = {
-  __typename?: 'OnboardingInternalBootDeviceOption';
-  label: Scalars['String']['output'];
-  sizeMiB: Scalars['Int']['output'];
-  value: Scalars['String']['output'];
-};
-
 /** Onboarding related mutations */
 export type OnboardingMutations = {
   __typename?: 'OnboardingMutations';
@@ -2295,7 +2274,6 @@ export type Query = {
   oidcProvider?: Maybe<OidcProvider>;
   /** Get all configured OIDC providers (admin only) */
   oidcProviders: Array<OidcProvider>;
-  onboardingInternalBoot: OnboardingInternalBootContext;
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
