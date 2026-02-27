@@ -16,7 +16,9 @@ import { CheckCircleIcon, EnvelopeIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 // Use ?raw to import SVG content string
 import UnraidIconSvg from '@/assets/partners/simple-icons-unraid.svg?raw';
+import { submitInternalBootReboot } from '@/components/Onboarding/composables/internalBoot';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
+import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 
 export interface Props {
   onComplete: () => void;
@@ -27,6 +29,7 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 const store = useActivationCodeDataStore();
+const draftStore = useOnboardingDraftStore();
 
 const partnerInfo = computed(() => store.partnerInfo);
 const activationCode = computed(() => store.activationCode);
@@ -45,6 +48,10 @@ const hasExtraLinks = computed(() => (partnerInfo.value?.partner?.extraLinks?.le
 // Check if we have any content to show in the "Learn about your server" section
 // Only show if there are LINKS (docs or extra links) - system specs alone isn't enough
 const hasAnyPartnerContent = computed(() => hasCoreDocsLinks.value || hasExtraLinks.value);
+const showRebootButton = computed(() => draftStore.internalBootApplySucceeded);
+const primaryButtonText = computed(() =>
+  showRebootButton.value ? 'Reboot' : t('onboarding.nextSteps.continueToDashboard')
+);
 
 const basicsItems = [
   { label: t('onboarding.nextSteps.basics.shares'), url: 'https://docs.unraid.net/go/shares/' },
@@ -71,6 +78,15 @@ const handleMouseMove = (e: MouseEvent) => {
   const y = e.clientY - rect.top;
   el.style.setProperty('--x', `${x}px`);
   el.style.setProperty('--y', `${y}px`);
+};
+
+const handlePrimaryAction = () => {
+  if (showRebootButton.value) {
+    submitInternalBootReboot();
+    return;
+  }
+
+  props.onComplete();
 };
 </script>
 
@@ -339,9 +355,9 @@ const handleMouseMove = (e: MouseEvent) => {
         <div v-else class="hidden w-1 sm:block" />
 
         <BrandButton
-          :text="t('onboarding.nextSteps.continueToDashboard')"
+          :text="primaryButtonText"
           class="!bg-primary hover:!bg-primary/90 w-full min-w-[200px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
-          @click="props.onComplete"
+          @click="handlePrimaryAction"
           :icon-right="CheckCircleIcon"
         />
       </div>

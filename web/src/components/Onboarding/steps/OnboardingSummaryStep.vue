@@ -7,6 +7,7 @@ import { useMutation, useQuery } from '@vue/apollo-composable';
 import {
   ChevronLeftIcon,
   ClipboardDocumentCheckIcon,
+  CircleStackIcon,
   CubeIcon,
   GlobeAltIcon,
   LanguageIcon,
@@ -24,6 +25,7 @@ import {
 } from '@heroicons/vue/24/solid';
 import { BrandButton, Dialog } from '@unraid/ui';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
+import { submitInternalBootCreation } from '@/components/Onboarding/composables/internalBoot';
 import usePluginInstaller, {
   INSTALL_OPERATION_TIMEOUT_CODE,
 } from '@/components/Onboarding/composables/usePluginInstaller';
@@ -117,6 +119,37 @@ const displayTheme = computed(() => {
 
 const displayLanguage = computed(() => {
   return draftStore.selectedLanguage || coreSettingsResult.value?.display?.locale || 'en_US';
+});
+
+const internalBootSelection = computed(() => {
+  if (draftStore.internalBootSkipped) {
+    return null;
+  }
+  return draftStore.internalBootSelection;
+});
+
+const hasInternalBootSelection = computed(() => Boolean(internalBootSelection.value));
+
+const formatBootSize = (bootSizeMiB: number) => {
+  if (bootSizeMiB === 0) {
+    return 'Whole drive';
+  }
+  return `${Math.round(bootSizeMiB / 1024)} GB`;
+};
+
+const internalBootSummary = computed(() => {
+  const selection = internalBootSelection.value;
+  if (!selection) {
+    return null;
+  }
+
+  return {
+    poolName: selection.poolName,
+    slotCount: selection.slotCount,
+    devices: selection.devices,
+    bootReservedSize: formatBootSize(selection.bootSizeMiB),
+    updateBios: selection.updateBios,
+  };
 });
 
 // Processing State
@@ -288,7 +321,7 @@ const hasCoreSettingChanges = computed(() => {
 });
 
 const hasAnyChangesToApply = computed(
-  () => hasCoreSettingChanges.value || pluginIdsToInstall.value.length > 0
+  () => hasCoreSettingChanges.value || pluginIdsToInstall.value.length > 0 || hasInternalBootSelection.value
 );
 const isApplyDataReady = computed(() =>
   Boolean(coreSettingsResult.value?.server && coreSettingsResult.value?.vars)
@@ -387,6 +420,7 @@ const handleComplete = async () => {
   logs.value = []; // Clear logs
 
   addLog('Starting configuration...', 'info');
+  draftStore.setInternalBootApplySucceeded(false);
   if (showApplyReadinessWarning.value) {
     addLog('Baseline settings unavailable. Continuing in best-effort mode.', 'info');
   }
@@ -619,7 +653,41 @@ const handleComplete = async () => {
       }
     }
 
-    // 3. SSH (Run separately and optimistically)
+    // 3. Internal boot setup
+    if (internalBootSelection.value) {
+      const selection = internalBootSelection.value;
+      addLog('Configuring internal boot pool...', 'info');
+      try {
+        const result = await submitInternalBootCreation(
+          {
+            poolName: selection.poolName,
+            devices: selection.devices,
+            bootSizeMiB: selection.bootSizeMiB,
+            updateBios: selection.updateBios,
+          },
+          { reboot: false }
+        );
+
+        if (result.ok) {
+          draftStore.setInternalBootApplySucceeded(true);
+          addLog('Internal boot pool configured.', 'success');
+          if (result.output.trim().length > 0) {
+            addLog(`Internal boot output:\n${result.output}`, 'info');
+          }
+        } else {
+          hadNonOptimisticFailures = true;
+          hadWarnings = true;
+          addLog(`Internal boot setup returned an error: ${result.output}`, 'error');
+        }
+      } catch (e: unknown) {
+        hadNonOptimisticFailures = true;
+        hadWarnings = true;
+        const errorMessage = e instanceof Error ? e.message : 'Unknown error';
+        addLog(`Internal boot setup failed: ${errorMessage}`, 'error');
+      }
+    }
+
+    // 4. SSH (Run separately and optimistically)
     if (shouldApplySsh) {
       addLog(`Updating SSH Settings...`, 'info');
       try {
@@ -646,7 +714,7 @@ const handleComplete = async () => {
       }
     }
 
-    // 4. Mark Complete
+    // 5. Mark Complete
     addLog('Finalizing setup...', 'info');
 
     try {
@@ -841,6 +909,47 @@ const handleBack = () => {
                 <LanguageIcon class="text-muted h-4 w-4" />
                 <span class="text-highlighted font-medium">{{ displayLanguage }}</span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="internalBootSummary" class="border-muted bg-bg/50 rounded-lg border p-5">
+          <div class="mb-4 flex items-center gap-2">
+            <CircleStackIcon class="text-primary h-5 w-5" />
+            <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">Internal Boot</h3>
+          </div>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-muted">Pool</span>
+              <span class="text-highlighted font-medium">{{ internalBootSummary.poolName }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-muted">Slots</span>
+              <span class="text-highlighted font-medium">{{ internalBootSummary.slotCount }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-muted">Boot Reserved</span>
+              <span class="text-highlighted font-medium">{{
+                internalBootSummary.bootReservedSize
+              }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-muted">Update BIOS</span>
+              <span class="text-highlighted font-medium">{{
+                internalBootSummary.updateBios ? 'Yes' : 'No'
+              }}</span>
+            </div>
+            <div>
+              <p class="text-muted mb-1 text-sm">Devices</p>
+              <ul class="space-y-1">
+                <li
+                  v-for="device in internalBootSummary.devices"
+                  :key="device"
+                  class="text-highlighted text-sm font-medium"
+                >
+                  {{ device }}
+                </li>
+              </ul>
             </div>
           </div>
         </div>
