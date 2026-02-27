@@ -31,8 +31,13 @@ const { activationRequired, hasActivationCode, registrationState } = storeToRefs
   useActivationCodeDataStore()
 );
 const onboardingStore = useUpgradeOnboardingStore();
-const { shouldShowOnboarding, isVersionDrift, completedAtVersion, canDisplayOnboardingModal, isPartnerBuild } =
-  storeToRefs(onboardingStore);
+const {
+  shouldShowOnboarding,
+  isVersionDrift,
+  completedAtVersion,
+  canDisplayOnboardingModal,
+  isPartnerBuild,
+} = storeToRefs(onboardingStore);
 const { refetchOnboarding } = onboardingStore;
 const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());

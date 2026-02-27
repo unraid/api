@@ -5,14 +5,11 @@ import { useI18n } from 'vue-i18n';
 import { ChevronLeftIcon, CircleStackIcon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
-import {
-  fetchInternalBootTemplateData,
-  type InternalBootTemplateData,
-} from '@/components/Onboarding/composables/internalBoot';
-import {
-  type OnboardingInternalBootSelection,
-  useOnboardingDraftStore,
-} from '@/components/Onboarding/store/onboardingDraft';
+import { fetchInternalBootTemplateData } from '@/components/Onboarding/composables/internalBoot';
+import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
+
+import type { InternalBootTemplateData } from '@/components/Onboarding/composables/internalBoot';
+import type { OnboardingInternalBootSelection } from '@/components/Onboarding/store/onboardingDraft';
 
 export interface Props {
   onComplete: () => void;
@@ -156,7 +153,9 @@ const normalizeSelectedDevices = (count: number) => {
 };
 
 const applyBootSizeSelection = (valueMiB: number) => {
-  const presetMatch = visiblePresetOptions.value.find((option) => Number.parseInt(option.value, 10) === valueMiB);
+  const presetMatch = visiblePresetOptions.value.find(
+    (option) => Number.parseInt(option.value, 10) === valueMiB
+  );
   if (presetMatch) {
     bootSizePreset.value = presetMatch.value;
     customBootSizeGb.value = '';
@@ -214,7 +213,9 @@ watch([poolName, slotCount, selectedDevices, bootSizePreset, customBootSizeGb, u
 });
 
 const isDeviceDisabled = (deviceId: string, index: number) => {
-  return selectedDevices.value.some((selected, selectedIndex) => selectedIndex !== index && selected === deviceId);
+  return selectedDevices.value.some(
+    (selected, selectedIndex) => selectedIndex !== index && selected === deviceId
+  );
 };
 
 const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
@@ -279,7 +280,8 @@ const initializeForm = (data: InternalBootTemplateData) => {
   poolName.value = draftSelection?.poolName || data.poolNameDefault || 'cache';
   slotCount.value = draftSelection?.slotCount ?? defaultSlot;
   selectedDevices.value =
-    draftSelection?.devices.slice(0, slotCount.value) ?? Array.from({ length: slotCount.value }, () => '');
+    draftSelection?.devices.slice(0, slotCount.value) ??
+    Array.from({ length: slotCount.value }, () => '');
   normalizeSelectedDevices(slotCount.value);
 
   updateBios.value = draftSelection?.updateBios ?? data.defaultUpdateBios;
@@ -340,7 +342,9 @@ const primaryButtonText = computed(() => (canConfigure.value ? 'Next Step' : 'Co
         <div class="space-y-2">
           <div class="flex items-center gap-3">
             <CircleStackIcon class="text-primary h-8 w-8" />
-            <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">Internal Boot</h2>
+            <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
+              Internal Boot
+            </h2>
           </div>
           <p class="text-muted text-lg">
             Configure an internal bootable pool now, or skip and set it up later from the webgui.
@@ -351,9 +355,7 @@ const primaryButtonText = computed(() => (canConfigure.value ? 'Next Step' : 'Co
       <blockquote class="my-8 border-s-4 border-yellow-500 bg-yellow-100 p-4">
         <div class="flex items-start gap-2">
           <ExclamationTriangleIcon class="mt-0.5 h-6 w-6 flex-shrink-0 text-yellow-700" />
-          <p class="text-sm leading-relaxed text-yellow-900">
-            All selected devices will be formatted.
-          </p>
+          <p class="text-sm leading-relaxed text-yellow-900">All selected devices will be formatted.</p>
         </div>
       </blockquote>
 
@@ -395,10 +397,10 @@ const primaryButtonText = computed(() => (canConfigure.value ? 'Next Step' : 'Co
 
         <div class="space-y-3">
           <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">Devices</h3>
-          <div v-for="(selectedDevice, index) in selectedDevices" :key="index" class="space-y-2">
-            <label class="text-muted text-sm font-medium">Device {{ index + 1 }}</label>
+          <div v-for="index in slotCount" :key="index" class="space-y-2">
+            <label class="text-muted text-sm font-medium">Device {{ index }}</label>
             <select
-              v-model="selectedDevices[index]"
+              v-model="selectedDevices[index - 1]"
               class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
               :disabled="isBusy"
             >
@@ -407,7 +409,7 @@ const primaryButtonText = computed(() => (canConfigure.value ? 'Next Step' : 'Co
                 v-for="option in deviceOptions"
                 :key="option.value"
                 :value="option.value"
-                :disabled="isDeviceDisabled(option.value, index)"
+                :disabled="isDeviceDisabled(option.value, index - 1)"
               >
                 {{ option.label }}
               </option>

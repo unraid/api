@@ -6,8 +6,8 @@ import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import {
   ChevronLeftIcon,
-  ClipboardDocumentCheckIcon,
   CircleStackIcon,
+  ClipboardDocumentCheckIcon,
   CubeIcon,
   GlobeAltIcon,
   LanguageIcon,
@@ -321,7 +321,8 @@ const hasCoreSettingChanges = computed(() => {
 });
 
 const hasAnyChangesToApply = computed(
-  () => hasCoreSettingChanges.value || pluginIdsToInstall.value.length > 0 || hasInternalBootSelection.value
+  () =>
+    hasCoreSettingChanges.value || pluginIdsToInstall.value.length > 0 || hasInternalBootSelection.value
 );
 const isApplyDataReady = computed(() =>
   Boolean(coreSettingsResult.value?.server && coreSettingsResult.value?.vars)

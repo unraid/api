@@ -72,9 +72,7 @@ const parseTemplateData = (html: string): InternalBootTemplateData => {
     .map((option) => parsePositiveInteger(option.getAttribute('value')))
     .filter((value): value is number => value !== null);
 
-  const deviceOptions = Array.from(
-    templateRoot.querySelectorAll('#bootPoolDevicesSource select option')
-  )
+  const deviceOptions = Array.from(templateRoot.querySelectorAll('#bootPoolDevicesSource select option'))
     .map((option) => {
       const value = option.getAttribute('value')?.trim() ?? '';
       if (!value) {
@@ -97,16 +95,16 @@ const parseTemplateData = (html: string): InternalBootTemplateData => {
   const defaultBootSizeMiB =
     parsePositiveInteger(
       templateRoot.querySelector('input[name="poolBootSize"]')?.getAttribute('value')
-    ) ?? bootSizePresetsMiB[0] ?? DEFAULT_BOOT_SIZE_MIB;
+    ) ??
+    bootSizePresetsMiB[0] ??
+    DEFAULT_BOOT_SIZE_MIB;
 
   const poolNameDefault =
     templateRoot.querySelector<HTMLInputElement>('input[name="poolName"]')?.value?.trim() || 'cache';
   const defaultUpdateBios = Boolean(
     templateRoot.querySelector<HTMLInputElement>('input[name="poolUpdateBios"]')?.checked
   );
-  const isBootPoolEligible = Boolean(
-    documentNode.querySelector('input[onclick="addBootPoolPopup()"]')
-  );
+  const isBootPoolEligible = Boolean(documentNode.querySelector('input[onclick="addBootPoolPopup()"]'));
 
   return {
     isBootPoolUiAvailable: true,

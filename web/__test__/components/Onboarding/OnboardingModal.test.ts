@@ -229,7 +229,7 @@ describe('OnboardingModal.vue', () => {
 
   it('shows activation step for ENOKEYFILE1', () => {
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE1';
-    onboardingDraftStore.currentStepIndex.value = 3;
+    onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();
 
