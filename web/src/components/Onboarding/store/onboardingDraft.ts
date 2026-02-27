@@ -1,6 +1,14 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 
+export interface OnboardingInternalBootSelection {
+  poolName: string;
+  slotCount: number;
+  devices: string[];
+  bootSizeMiB: number;
+  updateBios: boolean;
+}
+
 const normalizePersistedPlugins = (value: unknown): string[] => {
   if (Array.isArray(value)) {
     return value.filter((item): item is string => typeof item === 'string');
@@ -11,6 +19,39 @@ const normalizePersistedPlugins = (value: unknown): string[] => {
   }
 
   return [];
+};
+
+const normalizePersistedInternalBootSelection = (
+  value: unknown
+): OnboardingInternalBootSelection | null => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const candidate = value as {
+    poolName?: unknown;
+    slotCount?: unknown;
+    devices?: unknown;
+    bootSizeMiB?: unknown;
+    updateBios?: unknown;
+  };
+
+  const poolName = typeof candidate.poolName === 'string' ? candidate.poolName : '';
+  const parsedSlotCount = Number(candidate.slotCount);
+  const slotCount = Number.isFinite(parsedSlotCount) ? Math.max(1, Math.min(2, parsedSlotCount)) : 1;
+  const devices = Array.isArray(candidate.devices)
+    ? candidate.devices.filter((item): item is string => typeof item === 'string')
+    : [];
+  const parsedBootSize = Number(candidate.bootSizeMiB);
+  const bootSizeMiB = Number.isFinite(parsedBootSize) && parsedBootSize > 0 ? parsedBootSize : 16384;
+
+  return {
+    poolName,
+    slotCount,
+    devices,
+    bootSizeMiB,
+    updateBios: Boolean(candidate.updateBios),
+  };
 };
 
 export const useOnboardingDraftStore = defineStore(
@@ -28,6 +69,12 @@ export const useOnboardingDraftStore = defineStore(
     // Plugins
     const selectedPlugins = ref<Set<string>>(new Set());
     const pluginSelectionInitialized = ref(false);
+
+    // Internal boot
+    const internalBootSelection = ref<OnboardingInternalBootSelection | null>(null);
+    const internalBootInitialized = ref(false);
+    const internalBootSkipped = ref(false);
+    const internalBootApplySucceeded = ref(false);
 
     // Navigation
     const currentStepIndex = ref(0);
@@ -55,6 +102,30 @@ export const useOnboardingDraftStore = defineStore(
       pluginSelectionInitialized.value = true;
     }
 
+    function setInternalBootSelection(selection: OnboardingInternalBootSelection) {
+      internalBootSelection.value = {
+        poolName: selection.poolName,
+        slotCount: selection.slotCount,
+        devices: [...selection.devices],
+        bootSizeMiB: selection.bootSizeMiB,
+        updateBios: selection.updateBios,
+      };
+      internalBootInitialized.value = true;
+      internalBootSkipped.value = false;
+      internalBootApplySucceeded.value = false;
+    }
+
+    function skipInternalBoot() {
+      internalBootSelection.value = null;
+      internalBootInitialized.value = true;
+      internalBootSkipped.value = true;
+      internalBootApplySucceeded.value = false;
+    }
+
+    function setInternalBootApplySucceeded(value: boolean) {
+      internalBootApplySucceeded.value = value;
+    }
+
     function setStepIndex(index: number) {
       currentStepIndex.value = index;
     }
@@ -69,9 +140,16 @@ export const useOnboardingDraftStore = defineStore(
       coreSettingsInitialized,
       selectedPlugins,
       pluginSelectionInitialized,
+      internalBootSelection,
+      internalBootInitialized,
+      internalBootSkipped,
+      internalBootApplySucceeded,
       currentStepIndex,
       setCoreSettings,
       setPlugins,
+      setInternalBootSelection,
+      skipInternalBoot,
+      setInternalBootApplySucceeded,
       setStepIndex,
     };
   },
@@ -85,6 +163,9 @@ export const useOnboardingDraftStore = defineStore(
         },
         deserialize: (value) => {
           const parsed = JSON.parse(value) as Record<string, unknown>;
+          const normalizedInternalBootSelection = normalizePersistedInternalBootSelection(
+            parsed.internalBootSelection
+          );
           const hasLegacyCoreDraft =
             (typeof parsed.serverName === 'string' && parsed.serverName.length > 0) ||
             (typeof parsed.serverDescription === 'string' && parsed.serverDescription.length > 0) ||
@@ -99,6 +180,10 @@ export const useOnboardingDraftStore = defineStore(
           return {
             ...parsed,
             selectedPlugins: new Set(normalizePersistedPlugins(parsed.selectedPlugins)),
+            internalBootSelection: normalizedInternalBootSelection,
+            internalBootInitialized: Boolean(parsed.internalBootInitialized),
+            internalBootSkipped: Boolean(parsed.internalBootSkipped),
+            internalBootApplySucceeded: Boolean(parsed.internalBootApplySucceeded),
             coreSettingsInitialized: Boolean(parsed.coreSettingsInitialized || hasLegacyCoreDraft),
             pluginSelectionInitialized: hadLegacyPluginShape
               ? false

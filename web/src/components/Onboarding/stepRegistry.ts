@@ -1,6 +1,7 @@
 import type { Component } from 'vue';
 
 import OnboardingCoreSettingsStep from '~/components/Onboarding/steps/OnboardingCoreSettingsStep.vue';
+import OnboardingInternalBootStep from '~/components/Onboarding/steps/OnboardingInternalBootStep.vue';
 import OnboardingLicenseStep from '~/components/Onboarding/steps/OnboardingLicenseStep.vue';
 import OnboardingNextStepsStep from '~/components/Onboarding/steps/OnboardingNextStepsStep.vue';
 import OnboardingOverviewStep from '~/components/Onboarding/steps/OnboardingOverviewStep.vue';
@@ -10,6 +11,7 @@ import OnboardingSummaryStep from '~/components/Onboarding/steps/OnboardingSumma
 export const stepComponents: Record<string, Component> = {
   OVERVIEW: OnboardingOverviewStep,
   CONFIGURE_SETTINGS: OnboardingCoreSettingsStep,
+  INTERNAL_BOOT: OnboardingInternalBootStep,
   ADD_PLUGINS: OnboardingPluginsStep,
   ACTIVATE_LICENSE: OnboardingLicenseStep,
   SUMMARY: OnboardingSummaryStep,
@@ -32,6 +34,11 @@ export const stepMetadata: Record<string, StepMetadataEntry> = {
     titleKey: 'onboarding.coreSettings.title',
     descriptionKey: 'onboarding.coreSettings.description',
     icon: 'i-heroicons-cog-6-tooth',
+  },
+  INTERNAL_BOOT: {
+    titleKey: 'Internal Boot',
+    descriptionKey: 'Configure bootable pool',
+    icon: 'i-heroicons-circle-stack',
   },
   ADD_PLUGINS: {
     titleKey: 'onboarding.pluginsStep.installEssentialPlugins',

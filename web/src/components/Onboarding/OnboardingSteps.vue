@@ -10,6 +10,7 @@ import { stepMetadata } from '~/components/Onboarding/stepRegistry';
 type StepId =
   | 'OVERVIEW'
   | 'CONFIGURE_SETTINGS'
+  | 'INTERNAL_BOOT'
   | 'ADD_PLUGINS'
   | 'ACTIVATE_LICENSE'
   | 'SUMMARY'
@@ -54,6 +55,7 @@ const dynamicSteps = computed(() => {
     const defaultSteps = [
       metadataLookup.OVERVIEW,
       metadataLookup.CONFIGURE_SETTINGS,
+      metadataLookup.INTERNAL_BOOT,
       metadataLookup.ADD_PLUGINS,
       metadataLookup.ACTIVATE_LICENSE,
     ];

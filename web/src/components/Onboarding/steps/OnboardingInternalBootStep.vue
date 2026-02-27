@@ -1,0 +1,499 @@
+<script lang="ts" setup>
+import { computed, onMounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+import { ChevronLeftIcon, CircleStackIcon } from '@heroicons/vue/24/outline';
+import { ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
+import { BrandButton } from '@unraid/ui';
+import {
+  fetchInternalBootTemplateData,
+  type InternalBootTemplateData,
+} from '@/components/Onboarding/composables/internalBoot';
+import {
+  type OnboardingInternalBootSelection,
+  useOnboardingDraftStore,
+} from '@/components/Onboarding/store/onboardingDraft';
+
+export interface Props {
+  onComplete: () => void;
+  onSkip?: () => void;
+  onBack?: () => void;
+  showSkip?: boolean;
+  showBack?: boolean;
+  isSavingStep?: boolean;
+}
+
+const props = defineProps<Props>();
+const { t } = useI18n();
+const draftStore = useOnboardingDraftStore();
+
+const isLoading = ref(true);
+const loadError = ref<string | null>(null);
+const formError = ref<string | null>(null);
+const templateData = ref<InternalBootTemplateData | null>(null);
+
+const poolName = ref('cache');
+const slotCount = ref(1);
+const selectedDevices = ref<string[]>(['']);
+const bootSizePreset = ref<string>('');
+const customBootSizeGb = ref('');
+const updateBios = ref(true);
+
+const isBusy = computed(() => Boolean(props.isSavingStep) || isLoading.value);
+const isBootPoolUiAvailable = computed(() => Boolean(templateData.value?.isBootPoolUiAvailable));
+const isBootPoolEligible = computed(() => Boolean(templateData.value?.isBootPoolEligible));
+const deviceOptions = computed(() => templateData.value?.deviceOptions ?? []);
+const slotOptions = computed(() => templateData.value?.slotOptions ?? [1, 2]);
+
+const canConfigure = computed(
+  () => isBootPoolUiAvailable.value && isBootPoolEligible.value && deviceOptions.value.length > 0
+);
+
+const loadStatusMessage = computed(() => {
+  if (loadError.value) {
+    return loadError.value;
+  }
+  if (!isBootPoolUiAvailable.value) {
+    return 'Internal boot setup is only available while the array is stopped.';
+  }
+  if (!isBootPoolEligible.value) {
+    return 'This server is not currently eligible for internal boot setup.';
+  }
+  if (deviceOptions.value.length === 0) {
+    return 'No eligible devices were detected for internal boot setup.';
+  }
+  return '';
+});
+
+const deviceSizeById = computed(() => {
+  const entries = new Map<string, number>();
+  for (const option of deviceOptions.value) {
+    if (option.sizeMiB !== null) {
+      entries.set(option.value, option.sizeMiB);
+    }
+  }
+  return entries;
+});
+
+const selectedSlotDevices = computed(() =>
+  selectedDevices.value.slice(0, slotCount.value).filter((value) => value.length > 0)
+);
+
+const smallestSelectedDeviceMiB = computed(() => {
+  let minValue: number | null = null;
+  for (const device of selectedSlotDevices.value) {
+    const size = deviceSizeById.value.get(device);
+    if (!size || size <= 0) {
+      continue;
+    }
+    minValue = minValue === null ? size : Math.min(minValue, size);
+  }
+  return minValue;
+});
+
+const maxBootSizeMiB = computed(() => {
+  if (smallestSelectedDeviceMiB.value === null) {
+    return null;
+  }
+  return Math.floor(smallestSelectedDeviceMiB.value / 2);
+});
+
+const maxCustomBootSizeGb = computed(() => {
+  if (maxBootSizeMiB.value === null) {
+    return null;
+  }
+  return Math.max(1, Math.floor(maxBootSizeMiB.value / 1024));
+});
+
+const visiblePresetOptions = computed(() => {
+  const presets = templateData.value?.bootSizePresetsMiB ?? [];
+  const maxSizeMiB = maxBootSizeMiB.value;
+  const filtered = presets.filter((value) => {
+    if (value === 0) {
+      return true;
+    }
+    if (maxSizeMiB === null) {
+      return true;
+    }
+    return value <= maxSizeMiB;
+  });
+
+  return filtered.map((value) => ({
+    value: String(value),
+    label: value === 0 ? 'Whole drive' : `${Math.round(value / 1024)} GB`,
+  }));
+});
+
+const bootSizeMiB = computed(() => {
+  if (bootSizePreset.value === 'custom') {
+    const sizeGb = Number.parseInt(customBootSizeGb.value, 10);
+    if (!Number.isFinite(sizeGb)) {
+      return null;
+    }
+    return sizeGb * 1024;
+  }
+
+  const presetValue = Number.parseInt(bootSizePreset.value, 10);
+  if (!Number.isFinite(presetValue)) {
+    return null;
+  }
+  return presetValue;
+});
+
+const bootSizeHelpText = computed(() => {
+  if (maxCustomBootSizeGb.value === null) {
+    return 'Minimum is 4 GB.';
+  }
+  return `Minimum is 4 GB; maximum is ${maxCustomBootSizeGb.value} GB (50% of the smallest selected drive).`;
+});
+
+const normalizeSelectedDevices = (count: number) => {
+  const nextDevices = selectedDevices.value.slice(0, count);
+  while (nextDevices.length < count) {
+    nextDevices.push('');
+  }
+  selectedDevices.value = nextDevices;
+};
+
+const applyBootSizeSelection = (valueMiB: number) => {
+  const presetMatch = visiblePresetOptions.value.find((option) => Number.parseInt(option.value, 10) === valueMiB);
+  if (presetMatch) {
+    bootSizePreset.value = presetMatch.value;
+    customBootSizeGb.value = '';
+    return;
+  }
+
+  bootSizePreset.value = 'custom';
+  const sizeGb = Math.max(4, Math.round(valueMiB / 1024));
+  customBootSizeGb.value = String(sizeGb);
+};
+
+watch(
+  slotCount,
+  (value) => {
+    normalizeSelectedDevices(value);
+  },
+  { immediate: true }
+);
+
+watch(
+  [visiblePresetOptions, maxCustomBootSizeGb],
+  () => {
+    if (bootSizePreset.value !== 'custom') {
+      const exists = visiblePresetOptions.value.some((option) => option.value === bootSizePreset.value);
+      if (!exists) {
+        const firstVisible = visiblePresetOptions.value[0];
+        if (firstVisible) {
+          bootSizePreset.value = firstVisible.value;
+        } else {
+          bootSizePreset.value = 'custom';
+        }
+      }
+    }
+
+    if (bootSizePreset.value === 'custom') {
+      const parsed = Number.parseInt(customBootSizeGb.value, 10);
+      if (!Number.isFinite(parsed)) {
+        return;
+      }
+      if (parsed < 4) {
+        customBootSizeGb.value = '4';
+      }
+      if (maxCustomBootSizeGb.value !== null && parsed > maxCustomBootSizeGb.value) {
+        customBootSizeGb.value = String(maxCustomBootSizeGb.value);
+      }
+    }
+  },
+  { immediate: true }
+);
+
+watch([poolName, slotCount, selectedDevices, bootSizePreset, customBootSizeGb, updateBios], () => {
+  if (formError.value) {
+    formError.value = null;
+  }
+});
+
+const isDeviceDisabled = (deviceId: string, index: number) => {
+  return selectedDevices.value.some((selected, selectedIndex) => selectedIndex !== index && selected === deviceId);
+};
+
+const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
+  const normalizedPoolName = poolName.value.trim();
+  if (!normalizedPoolName) {
+    formError.value = 'Pool name is required.';
+    return null;
+  }
+
+  const poolNamePattern = /^[a-z]([a-z0-9~._-]*[a-z_-])*$/;
+  if (!poolNamePattern.test(normalizedPoolName)) {
+    formError.value =
+      'Pool name must start with a lowercase letter and contain only lowercase letters, numbers, and ~ . _ -.';
+    return null;
+  }
+
+  if (slotCount.value < 1 || slotCount.value > 2) {
+    formError.value = 'Select 1 or 2 slots.';
+    return null;
+  }
+
+  const devices = selectedDevices.value.slice(0, slotCount.value);
+  if (devices.length !== slotCount.value || devices.some((device) => !device)) {
+    formError.value = 'Select a device for each slot.';
+    return null;
+  }
+
+  const uniqueDevices = new Set(devices);
+  if (uniqueDevices.size !== devices.length) {
+    formError.value = 'Each selected device must be unique.';
+    return null;
+  }
+
+  const selectedBootSizeMiB = bootSizeMiB.value;
+  if (selectedBootSizeMiB === null || !Number.isFinite(selectedBootSizeMiB)) {
+    formError.value = 'Select a valid boot reserved size.';
+    return null;
+  }
+  if (selectedBootSizeMiB < 4096) {
+    formError.value = 'Boot reserved size must be at least 4 GB.';
+    return null;
+  }
+  if (maxBootSizeMiB.value !== null && selectedBootSizeMiB > maxBootSizeMiB.value) {
+    formError.value = 'Boot reserved size cannot exceed 50% of the smallest selected drive.';
+    return null;
+  }
+
+  return {
+    poolName: normalizedPoolName,
+    slotCount: slotCount.value,
+    devices,
+    bootSizeMiB: selectedBootSizeMiB,
+    updateBios: updateBios.value,
+  };
+};
+
+const initializeForm = (data: InternalBootTemplateData) => {
+  const draftSelection = draftStore.internalBootSelection;
+  const firstSlot = data.slotOptions[0] ?? 1;
+  const defaultSlot = Math.max(1, Math.min(2, firstSlot));
+
+  poolName.value = draftSelection?.poolName || data.poolNameDefault || 'cache';
+  slotCount.value = draftSelection?.slotCount ?? defaultSlot;
+  selectedDevices.value =
+    draftSelection?.devices.slice(0, slotCount.value) ?? Array.from({ length: slotCount.value }, () => '');
+  normalizeSelectedDevices(slotCount.value);
+
+  updateBios.value = draftSelection?.updateBios ?? data.defaultUpdateBios;
+  applyBootSizeSelection(draftSelection?.bootSizeMiB ?? data.defaultBootSizeMiB);
+};
+
+onMounted(async () => {
+  isLoading.value = true;
+  loadError.value = null;
+
+  try {
+    const data = await fetchInternalBootTemplateData();
+    templateData.value = data;
+    initializeForm(data);
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : 'Unable to load internal boot options.';
+  } finally {
+    isLoading.value = false;
+  }
+});
+
+const handleBack = () => {
+  props.onBack?.();
+};
+
+const handleSkip = () => {
+  draftStore.skipInternalBoot();
+  if (props.onSkip) {
+    props.onSkip();
+  } else {
+    props.onComplete();
+  }
+};
+
+const handlePrimaryAction = () => {
+  if (!canConfigure.value) {
+    draftStore.skipInternalBoot();
+    props.onComplete();
+    return;
+  }
+
+  const selection = buildValidatedSelection();
+  if (!selection) {
+    return;
+  }
+
+  draftStore.setInternalBootSelection(selection);
+  props.onComplete();
+};
+
+const primaryButtonText = computed(() => (canConfigure.value ? 'Next Step' : 'Continue'));
+</script>
+
+<template>
+  <div class="mx-auto w-full max-w-4xl px-4 pb-4 md:px-8">
+    <div class="bg-elevated border-muted rounded-xl border p-6 text-left shadow-sm md:p-10">
+      <div class="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-start">
+        <div class="space-y-2">
+          <div class="flex items-center gap-3">
+            <CircleStackIcon class="text-primary h-8 w-8" />
+            <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">Internal Boot</h2>
+          </div>
+          <p class="text-muted text-lg">
+            Configure an internal bootable pool now, or skip and set it up later from the webgui.
+          </p>
+        </div>
+      </div>
+
+      <blockquote class="my-8 border-s-4 border-yellow-500 bg-yellow-100 p-4">
+        <div class="flex items-start gap-2">
+          <ExclamationTriangleIcon class="mt-0.5 h-6 w-6 flex-shrink-0 text-yellow-700" />
+          <p class="text-sm leading-relaxed text-yellow-900">
+            All selected devices will be formatted.
+          </p>
+        </div>
+      </blockquote>
+
+      <div v-if="isLoading" class="text-muted rounded-lg border border-dashed p-4 text-sm">
+        Loading internal boot options...
+      </div>
+
+      <div
+        v-else-if="!canConfigure"
+        class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 dark:border-yellow-800 dark:bg-yellow-900/10 dark:text-yellow-200"
+      >
+        {{ loadStatusMessage }}
+      </div>
+
+      <div v-else class="space-y-5">
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <label class="space-y-2">
+            <span class="text-muted text-sm font-medium">Pool name</span>
+            <input
+              v-model="poolName"
+              type="text"
+              maxlength="40"
+              class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              :disabled="isBusy"
+            />
+          </label>
+
+          <label class="space-y-2">
+            <span class="text-muted text-sm font-medium">Slots</span>
+            <select
+              v-model.number="slotCount"
+              class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              :disabled="isBusy"
+            >
+              <option v-for="option in slotOptions" :key="option" :value="option">{{ option }}</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="space-y-3">
+          <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">Devices</h3>
+          <div v-for="(selectedDevice, index) in selectedDevices" :key="index" class="space-y-2">
+            <label class="text-muted text-sm font-medium">Device {{ index + 1 }}</label>
+            <select
+              v-model="selectedDevices[index]"
+              class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              :disabled="isBusy"
+            >
+              <option value="">Select device</option>
+              <option
+                v-for="option in deviceOptions"
+                :key="option.value"
+                :value="option.value"
+                :disabled="isDeviceDisabled(option.value, index)"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <label class="space-y-2">
+            <span class="text-muted text-sm font-medium">Boot reserved size</span>
+            <select
+              v-model="bootSizePreset"
+              class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              :disabled="isBusy"
+            >
+              <option v-for="option in visiblePresetOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+              <option value="custom">User defined</option>
+            </select>
+          </label>
+
+          <label class="space-y-2">
+            <span class="text-muted text-sm font-medium">Custom size (GB)</span>
+            <input
+              v-model="customBootSizeGb"
+              type="number"
+              min="4"
+              :max="maxCustomBootSizeGb ?? undefined"
+              class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+              :disabled="isBusy || bootSizePreset !== 'custom'"
+            />
+          </label>
+        </div>
+
+        <p class="text-muted text-xs">{{ bootSizeHelpText }}</p>
+
+        <label class="flex items-center gap-3 text-sm">
+          <input v-model="updateBios" type="checkbox" class="h-4 w-4" :disabled="isBusy" />
+          <span class="text-highlighted font-medium">Update BIOS boot order</span>
+        </label>
+        <p class="text-muted text-xs">
+          Some systems may need manual intervention to change boot order in the BIOS.
+        </p>
+      </div>
+
+      <div
+        v-if="formError"
+        class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-900/10 dark:text-red-300"
+      >
+        {{ formError }}
+      </div>
+
+      <div
+        class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
+      >
+        <button
+          v-if="showBack"
+          @click="handleBack"
+          class="text-muted hover:text-toned group flex w-full items-center justify-center gap-2 font-medium transition-colors sm:w-auto sm:justify-start"
+          :disabled="isBusy"
+        >
+          <ChevronLeftIcon class="h-5 w-5 transition-transform group-hover:-translate-x-0.5" />
+          {{ t('common.back') }}
+        </button>
+        <div v-else class="hidden w-1 sm:block" />
+
+        <div class="flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row">
+          <button
+            v-if="showSkip"
+            @click="handleSkip"
+            class="text-muted hover:text-highlighted text-sm font-medium transition-colors sm:mr-2"
+            :disabled="isBusy"
+          >
+            {{ t('common.skipForNow', 'Skip for now') }}
+          </button>
+          <BrandButton
+            :text="primaryButtonText"
+            class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
+            :disabled="isBusy"
+            :loading="isBusy"
+            @click="handlePrimaryAction"
+            :icon-right="ChevronRightIcon"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>

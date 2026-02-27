@@ -31,7 +31,7 @@ const { activationRequired, hasActivationCode, registrationState } = storeToRefs
   useActivationCodeDataStore()
 );
 const onboardingStore = useUpgradeOnboardingStore();
-const { shouldShowOnboarding, isVersionDrift, completedAtVersion, canDisplayOnboardingModal } =
+const { shouldShowOnboarding, isVersionDrift, completedAtVersion, canDisplayOnboardingModal, isPartnerBuild } =
   storeToRefs(onboardingStore);
 const { refetchOnboarding } = onboardingStore;
 const purchaseStore = usePurchaseStore();
@@ -61,6 +61,7 @@ const activateExternal = computed(() => purchaseStore.openInNewTab);
 type StepId =
   | 'OVERVIEW'
   | 'CONFIGURE_SETTINGS'
+  | 'INTERNAL_BOOT'
   | 'ADD_PLUGINS'
   | 'ACTIVATE_LICENSE'
   | 'SUMMARY'
@@ -70,6 +71,7 @@ type StepId =
 const HARDCODED_STEPS: Array<{ id: StepId; required: boolean }> = [
   { id: 'OVERVIEW', required: false },
   { id: 'CONFIGURE_SETTINGS', required: false },
+  { id: 'INTERNAL_BOOT', required: false },
   { id: 'ADD_PLUGINS', required: false },
   { id: 'ACTIVATE_LICENSE', required: true },
   { id: 'SUMMARY', required: false },
@@ -83,20 +85,15 @@ const showActivationStep = computed(() => {
 });
 
 // Determine which steps to show based on user state
-const availableSteps = computed<StepId[]>(() => {
-  if (showActivationStep.value) {
-    return HARDCODED_STEPS.map((s) => s.id);
-  }
-  return HARDCODED_STEPS.filter((s) => s.id !== 'ACTIVATE_LICENSE').map((s) => s.id);
-});
+const visibleHardcodedSteps = computed(() =>
+  HARDCODED_STEPS.filter((step) => showActivationStep.value || step.id !== 'ACTIVATE_LICENSE').filter(
+    (step) => !isPartnerBuild.value || step.id !== 'INTERNAL_BOOT'
+  )
+);
+const availableSteps = computed<StepId[]>(() => visibleHardcodedSteps.value.map((step) => step.id));
 
 // Filtered steps as full objects for OnboardingSteps component
-const filteredSteps = computed(() => {
-  if (showActivationStep.value) {
-    return HARDCODED_STEPS;
-  }
-  return HARDCODED_STEPS.filter((s) => s.id !== 'ACTIVATE_LICENSE');
-});
+const filteredSteps = computed(() => visibleHardcodedSteps.value);
 
 const isLoginPage = computed(() => {
   const hasLoginRoute = window.location.pathname.includes('login');
@@ -243,6 +240,14 @@ const handlePluginsSkip = async () => {
   await goToNextStep();
 };
 
+const handleInternalBootComplete = async () => {
+  await goToNextStep();
+};
+
+const handleInternalBootSkip = async () => {
+  await goToNextStep();
+};
+
 const handleExitIntent = () => {
   showExitConfirmDialog.value = true;
 };
@@ -308,6 +313,16 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         onSkip: hardcodedStep?.required ? undefined : handlePluginsSkip,
         showSkip: !hardcodedStep?.required,
         isRequired: hardcodedStep?.required ?? false,
+      };
+    }
+
+    case 'INTERNAL_BOOT': {
+      const hardcodedStep = HARDCODED_STEPS.find((s) => s.id === 'INTERNAL_BOOT');
+      return {
+        ...baseProps,
+        onComplete: handleInternalBootComplete,
+        onSkip: hardcodedStep?.required ? undefined : handleInternalBootSkip,
+        showSkip: !hardcodedStep?.required,
       };
     }
 
