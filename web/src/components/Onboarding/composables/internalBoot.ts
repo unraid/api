@@ -59,21 +59,13 @@ const parseMkbootpoolPayload = (raw: string): MkbootpoolResponsePayload | null =
   }
 };
 
-const readInternalBootOutputLog = async (): Promise<string | null> => {
-  try {
-    const logResponse = await fetch('/boot/config/internal_boot/output.log', {
-      method: 'GET',
-      credentials: 'same-origin',
-      cache: 'no-store',
-    });
-    if (!logResponse.ok) {
-      return null;
-    }
-    const logBody = (await logResponse.text()).trim();
-    return logBody.length > 0 ? logBody : null;
-  } catch {
+const readCsrfToken = (): string | null => {
+  const token = globalThis.csrf_token;
+  if (typeof token !== 'string') {
     return null;
   }
+  const trimmedToken = token.trim();
+  return trimmedToken.length > 0 ? trimmedToken : null;
 };
 
 export const submitInternalBootCreation = async (
@@ -85,6 +77,10 @@ export const submitInternalBootCreation = async (
   for (const arg of args) {
     payload.append('args[]', arg);
   }
+  const csrfToken = readCsrfToken();
+  if (csrfToken) {
+    payload.append('csrf_token', csrfToken);
+  }
 
   const response = await fetch('/plugins/dynamix/include/mkbootpool.php', {
     method: 'POST',
@@ -92,6 +88,7 @@ export const submitInternalBootCreation = async (
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       'X-Requested-With': 'XMLHttpRequest',
+      ...(csrfToken ? { 'x-csrf-token': csrfToken } : {}),
     },
     body: payload.toString(),
   });
@@ -115,17 +112,9 @@ export const submitInternalBootCreation = async (
     };
   }
 
-  const logOutput = await readInternalBootOutputLog();
-  if (logOutput) {
-    return {
-      ok: false,
-      output: `mkbootpool returned an empty response (HTTP ${response.status}). Latest output.log:\n${logOutput}`,
-    };
-  }
-
   return {
     ok: false,
-    output: `mkbootpool returned an empty response (HTTP ${response.status}, redirected=${String(response.redirected)}, url=${response.url}, content-type=${response.headers.get('content-type') ?? 'unknown'})`,
+    output: `mkbootpool returned an empty response (HTTP ${response.status}, redirected=${String(response.redirected)}, url=${response.url}, content-type=${response.headers.get('content-type') ?? 'unknown'}). Check /boot/config/internal_boot/output.log via server shell for script output.`,
   };
 };
 
