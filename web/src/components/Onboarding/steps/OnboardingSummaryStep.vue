@@ -672,9 +672,6 @@ const handleComplete = async () => {
         if (result.ok) {
           draftStore.setInternalBootApplySucceeded(true);
           addLog('Internal boot pool configured.', 'success');
-          if (result.output.trim().length > 0) {
-            addLog(`Internal boot output:\n${result.output}`, 'info');
-          }
         } else {
           hadNonOptimisticFailures = true;
           hadWarnings = true;

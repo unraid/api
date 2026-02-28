@@ -114,21 +114,31 @@ export const submitInternalBootCreation = async (
 
   return {
     ok: false,
-    output: `mkbootpool returned an empty response (HTTP ${response.status}, redirected=${String(response.redirected)}, url=${response.url}, content-type=${response.headers.get('content-type') ?? 'unknown'}). Check /boot/config/internal_boot/output.log via server shell for script output.`,
+    output: `mkbootpool returned an empty response (HTTP ${response.status}). Check /boot/config/internal_boot/output.log via server shell for script output.`,
   };
 };
 
 export const submitInternalBootReboot = () => {
   const form = document.createElement('form');
   form.method = 'POST';
-  form.action = '/webGui/include/Boot.php';
-  form.className = 'hidden';
+  form.action = '/plugins/dynamix/include/Boot.php';
+  form.target = '_top';
+  form.style.display = 'none';
 
   const cmd = document.createElement('input');
   cmd.type = 'hidden';
   cmd.name = 'cmd';
   cmd.value = 'reboot';
   form.appendChild(cmd);
+
+  const csrfToken = readCsrfToken();
+  if (csrfToken) {
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden';
+    csrf.name = 'csrf_token';
+    csrf.value = csrfToken;
+    form.appendChild(csrf);
+  }
 
   document.body.appendChild(form);
   form.submit();
