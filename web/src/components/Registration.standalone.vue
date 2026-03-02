@@ -47,6 +47,8 @@ const {
   bootDeviceType,
   dateTimeFormat,
   deviceCount,
+  flashProduct,
+  flashVendor,
   guid,
   keyActions,
   keyfile,
@@ -147,6 +149,22 @@ const bootDeviceItems = computed((): RegistrationItemProps[] => {
           {
             label: t('registration.bootDeviceType'),
             text: t(`registration.bootDeviceType.${bootDeviceType.value}`),
+          },
+        ]
+      : []),
+    ...(bootDeviceType.value === 'flash' && flashVendor.value
+      ? [
+          {
+            label: t('registration.flashVendor'),
+            text: flashVendor.value,
+          },
+        ]
+      : []),
+    ...(bootDeviceType.value === 'flash' && flashProduct.value
+      ? [
+          {
+            label: t('registration.flashProduct'),
+            text: flashProduct.value,
           },
         ]
       : []),

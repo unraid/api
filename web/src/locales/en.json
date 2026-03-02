@@ -426,6 +426,8 @@
   "registration.bootDeviceType.internalBoot": "Internal Boot",
   "registration.bootDeviceType.tpm": "TPM",
   "registration.deviceGuid": "Device GUID",
+  "registration.flashProduct": "Flash Product",
+  "registration.flashVendor": "Flash Vendor",
   "registration.general.goToToolsRegistrationToLearn": "Go to Tools > Registration to Learn More",
   "registration.keyLinkedStatus.learnMore": "Learn More",
   "registration.keyLinkedStatus.learnMoreAndLinkYourKey": "Learn more and link your key to your account",
