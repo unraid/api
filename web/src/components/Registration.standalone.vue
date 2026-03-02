@@ -43,14 +43,13 @@ const serverStore = useServerStore();
 const { activationCode } = storeToRefs(useActivationCodeDataStore());
 
 const {
-  computedArray,
-  arrayWarning,
   authAction,
+  bootDeviceType,
   dateTimeFormat,
   deviceCount,
-  guid,
-  flashVendor,
   flashProduct,
+  flashVendor,
+  guid,
   keyActions,
   keyfile,
   computedRegDevs,
@@ -135,17 +134,25 @@ const showPartnerActivationCode = computed(() => {
 });
 
 // Organize items into three sections
-const flashDriveItems = computed((): RegistrationItemProps[] => {
+const bootDeviceItems = computed((): RegistrationItemProps[] => {
   return [
     ...(guid.value
       ? [
           {
-            label: t('registration.flashGuid'),
+            label: t('registration.deviceGuid'),
             text: guid.value,
           },
         ]
       : []),
-    ...(flashVendor.value
+    ...(bootDeviceType.value
+      ? [
+          {
+            label: t('registration.bootDeviceType'),
+            text: t(`registration.bootDeviceType.${bootDeviceType.value}`),
+          },
+        ]
+      : []),
+    ...(bootDeviceType.value === 'flash' && flashVendor.value
       ? [
           {
             label: t('registration.flashVendor'),
@@ -153,7 +160,7 @@ const flashDriveItems = computed((): RegistrationItemProps[] => {
           },
         ]
       : []),
-    ...(flashProduct.value
+    ...(bootDeviceType.value === 'flash' && flashProduct.value
       ? [
           {
             label: t('registration.flashProduct'),
@@ -174,15 +181,6 @@ const flashDriveItems = computed((): RegistrationItemProps[] => {
 
 const licenseItems = computed((): RegistrationItemProps[] => {
   return [
-    ...(computedArray.value
-      ? [
-          {
-            label: t('registration.arrayStatus'),
-            text: computedArray.value,
-            warning: arrayWarning.value,
-          },
-        ]
-      : []),
     ...(regTy.value
       ? [
           {
@@ -268,7 +266,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
     ...(showLinkedAndTransferStatus.value
       ? [
           {
-            label: t('registration.transferLicenseToNewFlash'),
+            label: t('registration.transferLicenseToNewDevice'),
             component: RegistrationReplaceCheck,
             componentProps: { t },
           },
@@ -329,14 +327,14 @@ const actionItems = computed((): RegistrationItemProps[] => {
             </span>
           </header>
 
-          <!-- Flash Drive Section -->
+          <!-- Boot Device Section -->
           <div
-            v-if="flashDriveItems.length > 0"
+            v-if="bootDeviceItems.length > 0"
             class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
           >
-            <h4 class="mb-3 text-lg font-semibold">{{ t('registration.flashDrive') }}</h4>
+            <h4 class="mb-3 text-lg font-semibold">{{ t('registration.bootDevice') }}</h4>
             <SettingsGrid>
-              <template v-for="item in flashDriveItems" :key="item.label">
+              <template v-for="item in bootDeviceItems" :key="item.label">
                 <div class="flex items-center gap-x-2 font-semibold">
                   <ShieldExclamationIcon v-if="item.error" class="text-unraid-red h-4 w-4" />
                   <span v-html="item.label" />
