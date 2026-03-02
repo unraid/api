@@ -1,6 +1,5 @@
 import { readFile } from 'node:fs/promises';
 
-import { ENABLE_NEXT_DOCKER_RELEASE } from '@app/environment.js';
 import {
     FileModification,
     ShouldApplyWithReason,
@@ -12,28 +11,9 @@ export default class DockerContainersPageModification extends FileModification {
         '/usr/local/emhttp/plugins/dynamix.docker.manager/DockerContainers.page';
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
-        const baseCheck = await super.shouldApply({ checkOsVersion: false });
-        if (!baseCheck.shouldApply) {
-            return baseCheck;
-        }
-
-        if (!ENABLE_NEXT_DOCKER_RELEASE) {
-            return {
-                shouldApply: false,
-                reason: 'ENABLE_NEXT_DOCKER_RELEASE is not enabled, so Docker overview table modification is not applied',
-            };
-        }
-
-        if (await this.isUnraidVersionGreaterThanOrEqualTo('7.3.0')) {
-            return {
-                shouldApply: true,
-                reason: 'Docker overview table WILL BE integrated in Unraid 7.3 or later. This modification is a temporary measure for testing.',
-            };
-        }
-
         return {
             shouldApply: false,
-            reason: 'Docker overview table modification is disabled for Unraid < 7.3',
+            reason: '',
         };
     }
 
