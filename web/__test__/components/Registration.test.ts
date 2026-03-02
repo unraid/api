@@ -122,8 +122,6 @@ const initialServerState = {
   dateTimeFormat: { date: 'MMM D, YYYY', time: 'h:mm A' },
   deviceCount: 0,
   guid: '',
-  flashVendor: '',
-  flashProduct: '',
   keyfile: '',
   regGuid: '',
   regTm: '',
@@ -219,7 +217,7 @@ describe('Registration.standalone.vue', () => {
     expect(heading.text()).toContain("Let's Unleash Your Hardware");
     expect(subheading.text()).toContain('Choose an option below');
     expect(findItemByLabel(t('License key type'))).toBeUndefined();
-    expect(findItemByLabel(t('Flash GUID'))).toBeUndefined();
+    expect(findItemByLabel(t('Device GUID'))).toBeUndefined();
     expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="replace-check"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="key-linked-status"]').exists()).toBe(false);
@@ -269,7 +267,7 @@ describe('Registration.standalone.vue', () => {
 
     expect(registeredToItem).toBeDefined();
     expect(registeredToItem?.props('text')).toBe('Test User');
-    expect(findItemByLabel(t('Flash GUID'))).toBeDefined();
+    expect(findItemByLabel(t('Device GUID'))).toBeDefined();
     expect(findItemByLabel(t('Attached Storage Devices'))).toBeDefined();
     expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(false);
   });

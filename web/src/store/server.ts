@@ -90,6 +90,13 @@ export const useServerStore = defineStore('server', () => {
   const flashProduct = ref<string>('');
   const flashVendor = ref<string>('');
   const guid = ref<string>('');
+  const bootDeviceType = computed((): 'flash' | 'internalBoot' | 'tpm' | undefined => {
+    if (!guid.value) return undefined;
+    if (guid.value.startsWith('01-')) return 'internalBoot';
+    if (guid.value.startsWith('02-')) return 'internalBoot';
+    if (guid.value.startsWith('03-')) return 'tpm';
+    return 'flash';
+  });
   const guidBlacklisted = ref<boolean>();
   const guidRegistered = ref<boolean>();
   const guidReplaceable = ref<boolean | undefined>();
@@ -1373,6 +1380,7 @@ export const useServerStore = defineStore('server', () => {
     flashProduct,
     flashVendor,
     guid,
+    bootDeviceType,
     keyfile,
     inIframe,
     locale,
