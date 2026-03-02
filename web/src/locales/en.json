@@ -424,6 +424,7 @@
   "registration.bootDeviceType": "Boot device type",
   "registration.bootDeviceType.flash": "USB Flash",
   "registration.bootDeviceType.internalBoot": "Internal Boot",
+  "registration.bootDeviceType.internalBootMulti": "Internal Boot (Multi-device)",
   "registration.bootDeviceType.tpm": "TPM",
   "registration.deviceGuid": "Device GUID",
   "registration.flashProduct": "Flash Product",
