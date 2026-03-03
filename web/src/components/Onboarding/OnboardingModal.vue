@@ -67,7 +67,7 @@ const activateExternal = computed(() => purchaseStore.openInNewTab);
 type StepId =
   | 'OVERVIEW'
   | 'CONFIGURE_SETTINGS'
-  | 'INTERNAL_BOOT'
+  | 'CONFIGURE_BOOT'
   | 'ADD_PLUGINS'
   | 'ACTIVATE_LICENSE'
   | 'SUMMARY'
@@ -77,7 +77,7 @@ type StepId =
 const HARDCODED_STEPS: Array<{ id: StepId; required: boolean }> = [
   { id: 'OVERVIEW', required: false },
   { id: 'CONFIGURE_SETTINGS', required: false },
-  { id: 'INTERNAL_BOOT', required: false },
+  { id: 'CONFIGURE_BOOT', required: false },
   { id: 'ADD_PLUGINS', required: false },
   { id: 'ACTIVATE_LICENSE', required: true },
   { id: 'SUMMARY', required: false },
@@ -107,7 +107,7 @@ const hideInternalBootStep = computed(() => {
 const visibleHardcodedSteps = computed(() =>
   HARDCODED_STEPS.filter((step) => showActivationStep.value || step.id !== 'ACTIVATE_LICENSE').filter(
     (step) => {
-      if (step.id !== 'INTERNAL_BOOT') {
+      if (step.id !== 'CONFIGURE_BOOT') {
         return true;
       }
       return !isPartnerBuild.value && !hideInternalBootStep.value;
@@ -340,8 +340,8 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
       };
     }
 
-    case 'INTERNAL_BOOT': {
-      const hardcodedStep = HARDCODED_STEPS.find((s) => s.id === 'INTERNAL_BOOT');
+    case 'CONFIGURE_BOOT': {
+      const hardcodedStep = HARDCODED_STEPS.find((s) => s.id === 'CONFIGURE_BOOT');
       return {
         ...baseProps,
         onComplete: handleInternalBootComplete,

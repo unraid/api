@@ -11,7 +11,7 @@ import OnboardingSummaryStep from '~/components/Onboarding/steps/OnboardingSumma
 export const stepComponents: Record<string, Component> = {
   OVERVIEW: OnboardingOverviewStep,
   CONFIGURE_SETTINGS: OnboardingCoreSettingsStep,
-  INTERNAL_BOOT: OnboardingInternalBootStep,
+  CONFIGURE_BOOT: OnboardingInternalBootStep,
   ADD_PLUGINS: OnboardingPluginsStep,
   ACTIVATE_LICENSE: OnboardingLicenseStep,
   SUMMARY: OnboardingSummaryStep,
@@ -35,7 +35,7 @@ export const stepMetadata: Record<string, StepMetadataEntry> = {
     descriptionKey: 'onboarding.coreSettings.description',
     icon: 'i-heroicons-cog-6-tooth',
   },
-  INTERNAL_BOOT: {
+  CONFIGURE_BOOT: {
     titleKey: 'Configure Boot',
     descriptionKey: 'Choose USB or storage drive boot',
     icon: 'i-heroicons-circle-stack',

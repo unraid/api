@@ -111,7 +111,7 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
   stepComponents: {
     OVERVIEW: { template: '<div data-testid="overview-step" />' },
     CONFIGURE_SETTINGS: { template: '<div data-testid="settings-step" />' },
-    INTERNAL_BOOT: { template: '<div data-testid="internal-boot-step" />' },
+    CONFIGURE_BOOT: { template: '<div data-testid="internal-boot-step" />' },
     ADD_PLUGINS: { template: '<div data-testid="plugins-step" />' },
     ACTIVATE_LICENSE: { template: '<div data-testid="license-step" />' },
     SUMMARY: { template: '<div data-testid="summary-step" />' },
