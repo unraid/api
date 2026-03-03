@@ -335,7 +335,7 @@ describe("ConfigFilePersister Integration Tests", () => {
     const initialFileContent = await readFile(configPath, "utf8");
 
     // Emit a non-matching config change
-    changesSubject.next({ path: "otherConfig.setting" });
+    changesSubject.next([{ path: "otherConfig.setting" }]);
 
     // Wait briefly to ensure no processing occurs
     await new Promise((resolve) => setTimeout(resolve, 30));
@@ -364,7 +364,7 @@ describe("ConfigFilePersister Integration Tests", () => {
     await new Promise((resolve) => setTimeout(resolve, 10));
 
     // Emit change for different config key
-    changesSubject.next({ path: "otherConfig.setting" });
+    changesSubject.next([{ path: "otherConfig.setting" }]);
 
     // Wait for buffer time
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -471,7 +471,7 @@ describe("ConfigFilePersister Integration Tests", () => {
     };
 
     // Trigger change notification
-    changesSubject.next({ path: "testConfig.enabled" });
+    changesSubject.next([{ path: "testConfig.enabled" }]);
 
     // Wait for persistence
     await new Promise((resolve) => setTimeout(resolve, 50));
