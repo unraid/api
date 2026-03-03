@@ -9,7 +9,10 @@ import { BrandButton } from '@unraid/ui';
 import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 
-import type { OnboardingInternalBootSelection } from '@/components/Onboarding/store/onboardingDraft';
+import type {
+  OnboardingBootMode,
+  OnboardingInternalBootSelection,
+} from '@/components/Onboarding/store/onboardingDraft';
 
 export interface Props {
   onComplete: () => void;
@@ -133,6 +136,9 @@ const {
 
 const formError = ref<string | null>(null);
 const hasInitializedForm = ref(false);
+const bootMode = ref<OnboardingBootMode>(
+  draftStore.bootMode === 'storage' || Boolean(draftStore.internalBootSelection) ? 'storage' : 'usb'
+);
 
 const poolName = ref('cache');
 const slotCount = ref(1);
@@ -253,6 +259,7 @@ const canConfigure = computed(
     isBootPoolEligible.value &&
     deviceOptions.value.length > 0
 );
+const isStorageBootSelected = computed(() => bootMode.value === 'storage');
 
 const loadStatusMessage = computed(() => {
   if (contextError.value) {
@@ -417,11 +424,14 @@ watch(
   { immediate: true }
 );
 
-watch([poolName, slotCount, selectedDevices, bootSizePreset, customBootSizeGb, updateBios], () => {
-  if (formError.value) {
-    formError.value = null;
+watch(
+  [poolName, slotCount, selectedDevices, bootSizePreset, customBootSizeGb, updateBios, bootMode],
+  () => {
+    if (formError.value) {
+      formError.value = null;
+    }
   }
-});
+);
 
 const isDeviceDisabled = (deviceId: string, index: number) => {
   return selectedDevices.value.some(
@@ -541,6 +551,15 @@ watch(
   }
 );
 
+watch(
+  () => draftStore.bootMode,
+  (mode) => {
+    if (mode === 'usb' || mode === 'storage') {
+      bootMode.value = mode;
+    }
+  }
+);
+
 const handleBack = () => {
   props.onBack?.();
 };
@@ -555,9 +574,14 @@ const handleSkip = () => {
 };
 
 const handlePrimaryAction = () => {
-  if (!canConfigure.value) {
+  if (bootMode.value === 'usb') {
     draftStore.skipInternalBoot();
     props.onComplete();
+    return;
+  }
+
+  if (!canConfigure.value) {
+    formError.value = loadStatusMessage.value || 'Internal boot setup is not available right now.';
     return;
   }
 
@@ -570,7 +594,7 @@ const handlePrimaryAction = () => {
   props.onComplete();
 };
 
-const primaryButtonText = computed(() => (canConfigure.value ? 'Next Step' : 'Continue'));
+const primaryButtonText = computed(() => 'Continue');
 </script>
 
 <template>
@@ -581,34 +605,66 @@ const primaryButtonText = computed(() => (canConfigure.value ? 'Next Step' : 'Co
           <div class="flex items-center gap-3">
             <CircleStackIcon class="text-primary h-8 w-8" />
             <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
-              Internal Boot
+              Configure Boot
             </h2>
           </div>
           <p class="text-muted text-lg">
-            Configure an internal bootable pool now, or skip and set it up later from the webgui.
+            You can setup Unraid to boot via a USB or using a boot drive. The default is to boot via a
+            USB. You can always switch to use a storage drive instead of a USB in the Unraid Dashboard.
           </p>
         </div>
       </div>
 
-      <blockquote class="my-8 border-s-4 border-yellow-500 bg-yellow-100 p-4">
+      <div class="space-y-3">
+        <label
+          class="border-muted bg-bg/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
+        >
+          <input v-model="bootMode" type="radio" value="usb" class="mt-0.5 h-4 w-4" :disabled="isBusy" />
+          <div class="space-y-1">
+            <p class="text-highlighted text-sm font-semibold">Use USB to Boot Unraid</p>
+          </div>
+        </label>
+        <label
+          class="border-muted bg-bg/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
+        >
+          <input
+            v-model="bootMode"
+            type="radio"
+            value="storage"
+            class="mt-0.5 h-4 w-4"
+            :disabled="isBusy"
+          />
+          <div class="space-y-1">
+            <p class="text-highlighted text-sm font-semibold">Use Storage Drive(s) to Boot Unraid</p>
+          </div>
+        </label>
+      </div>
+
+      <blockquote
+        v-if="isStorageBootSelected"
+        class="my-8 border-s-4 border-yellow-500 bg-yellow-100 p-4"
+      >
         <div class="flex items-start gap-2">
           <ExclamationTriangleIcon class="mt-0.5 h-6 w-6 flex-shrink-0 text-yellow-700" />
           <p class="text-sm leading-relaxed text-yellow-900">All selected devices will be formatted.</p>
         </div>
       </blockquote>
 
-      <div v-if="isLoading" class="text-muted rounded-lg border border-dashed p-4 text-sm">
+      <div
+        v-if="isStorageBootSelected && isLoading"
+        class="text-muted rounded-lg border border-dashed p-4 text-sm"
+      >
         Loading internal boot options...
       </div>
 
       <div
-        v-else-if="!canConfigure"
+        v-else-if="isStorageBootSelected && !canConfigure"
         class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 dark:border-yellow-800 dark:bg-yellow-900/10 dark:text-yellow-200"
       >
         {{ loadStatusMessage }}
       </div>
 
-      <div v-else class="space-y-5">
+      <div v-else-if="isStorageBootSelected" class="space-y-5">
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
           <label class="space-y-2">
             <span class="text-muted text-sm font-medium">Pool name</span>
@@ -695,7 +751,7 @@ const primaryButtonText = computed(() => (canConfigure.value ? 'Next Step' : 'Co
       </div>
 
       <div
-        v-if="formError"
+        v-if="isStorageBootSelected && formError"
         class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-900/10 dark:text-red-300"
       >
         {{ formError }}

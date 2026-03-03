@@ -9,6 +9,8 @@ export interface OnboardingInternalBootSelection {
   updateBios: boolean;
 }
 
+export type OnboardingBootMode = 'usb' | 'storage';
+
 const normalizePersistedPlugins = (value: unknown): string[] => {
   if (Array.isArray(value)) {
     return value.filter((item): item is string => typeof item === 'string');
@@ -54,6 +56,16 @@ const normalizePersistedInternalBootSelection = (
   };
 };
 
+const normalizePersistedBootMode = (
+  value: unknown,
+  internalBootSelection: OnboardingInternalBootSelection | null
+): OnboardingBootMode => {
+  if (value === 'usb' || value === 'storage') {
+    return value;
+  }
+  return internalBootSelection ? 'storage' : 'usb';
+};
+
 export const useOnboardingDraftStore = defineStore(
   'onboardingDraft',
   () => {
@@ -72,6 +84,7 @@ export const useOnboardingDraftStore = defineStore(
 
     // Internal boot
     const internalBootSelection = ref<OnboardingInternalBootSelection | null>(null);
+    const bootMode = ref<OnboardingBootMode>('usb');
     const internalBootInitialized = ref(false);
     const internalBootSkipped = ref(false);
     const internalBootApplySucceeded = ref(false);
@@ -110,6 +123,7 @@ export const useOnboardingDraftStore = defineStore(
         bootSizeMiB: selection.bootSizeMiB,
         updateBios: selection.updateBios,
       };
+      bootMode.value = 'storage';
       internalBootInitialized.value = true;
       internalBootSkipped.value = false;
       internalBootApplySucceeded.value = false;
@@ -117,9 +131,19 @@ export const useOnboardingDraftStore = defineStore(
 
     function skipInternalBoot() {
       internalBootSelection.value = null;
+      bootMode.value = 'usb';
       internalBootInitialized.value = true;
       internalBootSkipped.value = true;
       internalBootApplySucceeded.value = false;
+    }
+
+    function setBootMode(mode: OnboardingBootMode) {
+      bootMode.value = mode;
+      internalBootInitialized.value = true;
+      internalBootSkipped.value = mode === 'usb';
+      if (mode === 'usb') {
+        internalBootApplySucceeded.value = false;
+      }
     }
 
     function setInternalBootApplySucceeded(value: boolean) {
@@ -141,6 +165,7 @@ export const useOnboardingDraftStore = defineStore(
       selectedPlugins,
       pluginSelectionInitialized,
       internalBootSelection,
+      bootMode,
       internalBootInitialized,
       internalBootSkipped,
       internalBootApplySucceeded,
@@ -149,6 +174,7 @@ export const useOnboardingDraftStore = defineStore(
       setPlugins,
       setInternalBootSelection,
       skipInternalBoot,
+      setBootMode,
       setInternalBootApplySucceeded,
       setStepIndex,
     };
@@ -166,6 +192,10 @@ export const useOnboardingDraftStore = defineStore(
           const normalizedInternalBootSelection = normalizePersistedInternalBootSelection(
             parsed.internalBootSelection
           );
+          const normalizedBootMode = normalizePersistedBootMode(
+            parsed.bootMode,
+            normalizedInternalBootSelection
+          );
           const hasLegacyCoreDraft =
             (typeof parsed.serverName === 'string' && parsed.serverName.length > 0) ||
             (typeof parsed.serverDescription === 'string' && parsed.serverDescription.length > 0) ||
@@ -181,8 +211,12 @@ export const useOnboardingDraftStore = defineStore(
             ...parsed,
             selectedPlugins: new Set(normalizePersistedPlugins(parsed.selectedPlugins)),
             internalBootSelection: normalizedInternalBootSelection,
+            bootMode: normalizedBootMode,
             internalBootInitialized: Boolean(parsed.internalBootInitialized),
-            internalBootSkipped: Boolean(parsed.internalBootSkipped),
+            internalBootSkipped:
+              parsed.internalBootSkipped !== undefined
+                ? Boolean(parsed.internalBootSkipped)
+                : normalizedBootMode === 'usb',
             internalBootApplySucceeded: Boolean(parsed.internalBootApplySucceeded),
             coreSettingsInitialized: Boolean(parsed.coreSettingsInitialized || hasLegacyCoreDraft),
             pluginSelectionInitialized: hadLegacyPluginShape
