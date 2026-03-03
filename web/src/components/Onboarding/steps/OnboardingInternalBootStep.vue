@@ -628,7 +628,7 @@ const primaryButtonText = computed(() => 'Continue');
             v-model="bootMode"
             type="radio"
             value="usb"
-            class="mt-0.5 h-4 w-4"
+            class="accent-primary mt-0.5 h-4 w-4"
             :disabled="isStepLocked"
           />
           <div class="space-y-1">
@@ -642,7 +642,7 @@ const primaryButtonText = computed(() => 'Continue');
             v-model="bootMode"
             type="radio"
             value="storage"
-            class="mt-0.5 h-4 w-4"
+            class="accent-primary mt-0.5 h-4 w-4"
             :disabled="isStepLocked"
           />
           <div class="space-y-1">
@@ -753,7 +753,12 @@ const primaryButtonText = computed(() => 'Continue');
         <p class="text-muted text-xs">{{ bootSizeHelpText }}</p>
 
         <label class="flex items-center gap-3 text-sm">
-          <input v-model="updateBios" type="checkbox" class="h-4 w-4" :disabled="isBusy" />
+          <input
+            v-model="updateBios"
+            type="checkbox"
+            class="accent-primary h-4 w-4"
+            :disabled="isBusy"
+          />
           <span class="text-highlighted font-medium">Update BIOS boot order</span>
         </label>
         <p class="text-muted text-xs">
