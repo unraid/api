@@ -121,11 +121,18 @@ const displayLanguage = computed(() => {
   return draftStore.selectedLanguage || coreSettingsResult.value?.display?.locale || 'en_US';
 });
 
+const selectedBootMode = computed(() =>
+  draftStore.bootMode === 'storage' || Boolean(draftStore.internalBootSelection) ? 'storage' : 'usb'
+);
+const bootModeLabel = computed(() =>
+  selectedBootMode.value === 'storage' ? 'Use Storage Drive(s) to Boot Unraid' : 'Use USB to Boot Unraid'
+);
+
 const internalBootSelection = computed(() => {
-  if (draftStore.internalBootSkipped) {
+  if (selectedBootMode.value !== 'storage') {
     return null;
   }
-  return draftStore.internalBootSelection;
+  return draftStore.internalBootSelection ?? null;
 });
 
 const hasInternalBootSelection = computed(() => Boolean(internalBootSelection.value));
@@ -158,6 +165,7 @@ const error = ref<string | null>(null);
 const logs = ref<LogEntry[]>([]);
 const showConsole = computed(() => isProcessing.value || logs.value.length > 0);
 const showApplyResultDialog = ref(false);
+const showBootDriveWarningDialog = ref(false);
 const applyResultTitle = ref('');
 const applyResultMessage = ref('');
 const applyResultSeverity = ref<'success' | 'warning' | 'error'>('success');
@@ -169,6 +177,8 @@ const addLog = (message: string, type: LogEntry['type'] = 'info') => {
 const showDiagnosticLogsInResultDialog = computed(
   () => applyResultSeverity.value !== 'success' && logs.value.length > 0
 );
+const selectedBootDeviceNames = computed(() => internalBootSummary.value?.devices ?? []);
+const selectedBootDeviceNamesText = computed(() => selectedBootDeviceNames.value.join(', '));
 
 const isInstallTimeoutError = (error: unknown): boolean => {
   if (!error || typeof error !== 'object') {
@@ -408,6 +418,7 @@ const handleComplete = async () => {
   if (isProcessing.value) {
     return;
   }
+  showBootDriveWarningDialog.value = false;
   if (!canApply.value) {
     error.value = 'Settings are still loading. Please wait a moment and try again.';
     return;
@@ -657,7 +668,11 @@ const handleComplete = async () => {
     // 3. Internal boot setup
     if (internalBootSelection.value) {
       const selection = internalBootSelection.value;
+      addLog('Starting internal boot setup. This might take a while...', 'info');
       addLog('Configuring internal boot pool...', 'info');
+      const internalBootProgressTimer = setInterval(() => {
+        addLog('Still setting up internal boot...', 'info');
+      }, 10000);
       try {
         const result = await submitInternalBootCreation(
           {
@@ -682,6 +697,8 @@ const handleComplete = async () => {
         hadWarnings = true;
         const errorMessage = e instanceof Error ? e.message : 'Unknown error';
         addLog(`Internal boot setup failed: ${errorMessage}`, 'error');
+      } finally {
+        clearInterval(internalBootProgressTimer);
       }
     }
 
@@ -802,6 +819,25 @@ const handleApplyResultConfirm = () => {
   props.onComplete();
 };
 
+const handleApplyClick = async () => {
+  if (isProcessing.value) {
+    return;
+  }
+  if (hasInternalBootSelection.value) {
+    showBootDriveWarningDialog.value = true;
+    return;
+  }
+  await handleComplete();
+};
+
+const handleBootDriveWarningConfirm = async () => {
+  await handleComplete();
+};
+
+const handleBootDriveWarningCancel = () => {
+  showBootDriveWarningDialog.value = false;
+};
+
 const handleBack = () => {
   props.onBack?.();
 };
@@ -846,21 +882,21 @@ const handleBack = () => {
             </h3>
           </div>
           <div class="space-y-3">
-            <div class="flex items-center justify-between text-sm">
+            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
               <span class="text-muted">{{ t('onboarding.coreSettings.serverName') }}</span>
-              <span class="text-highlighted font-medium">{{ serverName }}</span>
+              <span class="text-highlighted font-medium break-all sm:text-right">{{ serverName }}</span>
             </div>
             <div class="bg-elevated flex flex-col rounded text-sm" v-if="draftStore.serverDescription">
               <span class="text-muted">Server Description</span>
-              <span class="text-highlighted truncate font-medium">{{
+              <span class="text-highlighted font-medium break-all">{{
                 draftStore.serverDescription
               }}</span>
             </div>
-            <div class="flex items-center justify-between text-sm">
+            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
               <span class="text-muted">Activation</span>
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 sm:justify-end">
                 <component :is="activationStatus.icon" :class="['h-4 w-4', activationStatus.color]" />
-                <span class="text-highlighted font-medium">{{ activationStatus.label }}</span>
+                <span class="text-highlighted font-medium break-all">{{ activationStatus.label }}</span>
               </div>
             </div>
           </div>
@@ -873,18 +909,18 @@ const handleBack = () => {
             <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">Configuration</h3>
           </div>
           <div class="space-y-3">
-            <div class="flex items-center justify-between text-sm">
+            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
               <span class="text-muted">{{ t('onboarding.coreSettings.timezone') }}</span>
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 sm:justify-end">
                 <ClockIcon class="text-muted h-4 w-4" />
-                <span class="text-highlighted font-medium">{{ currentTimeZone }}</span>
+                <span class="text-highlighted font-medium break-all">{{ currentTimeZone }}</span>
               </div>
             </div>
-            <div class="flex items-center justify-between text-sm">
+            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
               <span class="text-muted">{{ t('onboarding.coreSettings.ssh') }}</span>
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 sm:justify-end">
                 <div :class="[sshEnabled ? 'bg-green-500' : 'bg-gray-400', 'h-2 w-2 rounded-full']" />
-                <span class="text-highlighted font-medium">
+                <span class="text-highlighted font-medium break-all">
                   {{
                     sshEnabled
                       ? t('onboarding.summaryStep.sshActive')
@@ -894,60 +930,19 @@ const handleBack = () => {
               </div>
             </div>
             <!-- Theme & Language -->
-            <div class="flex items-center justify-between text-sm">
+            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
               <span class="text-muted">Theme</span>
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 sm:justify-end">
                 <SwatchIcon class="text-muted h-4 w-4" />
-                <span class="text-highlighted font-medium capitalize">{{ displayTheme }}</span>
+                <span class="text-highlighted font-medium break-all capitalize">{{ displayTheme }}</span>
               </div>
             </div>
-            <div class="flex items-center justify-between text-sm">
+            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
               <span class="text-muted">Language</span>
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 sm:justify-end">
                 <LanguageIcon class="text-muted h-4 w-4" />
-                <span class="text-highlighted font-medium">{{ displayLanguage }}</span>
+                <span class="text-highlighted font-medium break-all">{{ displayLanguage }}</span>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="internalBootSummary" class="border-muted bg-bg/50 rounded-lg border p-5">
-          <div class="mb-4 flex items-center gap-2">
-            <CircleStackIcon class="text-primary h-5 w-5" />
-            <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">Internal Boot</h3>
-          </div>
-          <div class="space-y-3">
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-muted">Pool</span>
-              <span class="text-highlighted font-medium">{{ internalBootSummary.poolName }}</span>
-            </div>
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-muted">Slots</span>
-              <span class="text-highlighted font-medium">{{ internalBootSummary.slotCount }}</span>
-            </div>
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-muted">Boot Reserved</span>
-              <span class="text-highlighted font-medium">{{
-                internalBootSummary.bootReservedSize
-              }}</span>
-            </div>
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-muted">Update BIOS</span>
-              <span class="text-highlighted font-medium">{{
-                internalBootSummary.updateBios ? 'Yes' : 'No'
-              }}</span>
-            </div>
-            <div>
-              <p class="text-muted mb-1 text-sm">Devices</p>
-              <ul class="space-y-1">
-                <li
-                  v-for="device in internalBootSummary.devices"
-                  :key="device"
-                  class="text-highlighted text-sm font-medium"
-                >
-                  {{ device }}
-                </li>
-              </ul>
             </div>
           </div>
         </div>
@@ -1036,6 +1031,58 @@ const handleBack = () => {
         </Disclosure>
       </div>
 
+      <div class="border-muted bg-bg/50 mt-6 rounded-lg border p-5">
+        <div class="mb-4 flex items-center gap-2">
+          <CircleStackIcon class="text-primary h-5 w-5" />
+          <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">Boot Configuration</h3>
+        </div>
+        <div class="space-y-3">
+          <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+            <span class="text-muted">Boot Method</span>
+            <span class="text-highlighted font-medium break-all sm:text-right">{{ bootModeLabel }}</span>
+          </div>
+
+          <template v-if="internalBootSummary">
+            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+              <span class="text-muted">Pool</span>
+              <span class="text-highlighted font-medium break-all sm:text-right">{{
+                internalBootSummary.poolName
+              }}</span>
+            </div>
+            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+              <span class="text-muted">Slots</span>
+              <span class="text-highlighted font-medium break-all sm:text-right">{{
+                internalBootSummary.slotCount
+              }}</span>
+            </div>
+            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+              <span class="text-muted">Boot Reserved</span>
+              <span class="text-highlighted font-medium break-all sm:text-right">{{
+                internalBootSummary.bootReservedSize
+              }}</span>
+            </div>
+            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+              <span class="text-muted">Update BIOS</span>
+              <span class="text-highlighted font-medium break-all sm:text-right">{{
+                internalBootSummary.updateBios ? 'Yes' : 'No'
+              }}</span>
+            </div>
+            <div class="space-y-1 text-sm">
+              <p class="text-muted">Devices</p>
+              <ul class="space-y-1">
+                <li
+                  v-for="device in internalBootSummary.devices"
+                  :key="device"
+                  class="text-highlighted font-medium break-all"
+                >
+                  {{ device }}
+                </li>
+              </ul>
+            </div>
+          </template>
+        </div>
+      </div>
+
       <!-- Processing / Error Status -->
       <div v-if="showConsole" class="mt-6">
         <OnboardingConsole :logs="logs" title="System Setup Log" />
@@ -1058,6 +1105,42 @@ const handleBack = () => {
           apply changes in best-effort mode.
         </p>
       </div>
+
+      <Dialog
+        v-if="showBootDriveWarningDialog"
+        :model-value="showBootDriveWarningDialog"
+        :show-footer="false"
+        :show-close-button="false"
+        size="md"
+        class="max-w-lg"
+      >
+        <div class="space-y-6 p-2">
+          <div class="space-y-3">
+            <h3 class="text-lg font-semibold">Confirm Boot Drive Wipe</h3>
+            <p class="text-muted-foreground text-sm">
+              You've selected drives: {{ selectedBootDeviceNamesText }} to boot Unraid. Please make sure
+              to backup any existing data on your drive(s). Continuing will permanently destroy all
+              existing data on the drive(s). Are you sure you want to continue?
+            </p>
+          </div>
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              class="border-muted hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium"
+              @click="handleBootDriveWarningCancel"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
+              @click="handleBootDriveWarningConfirm"
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      </Dialog>
 
       <Dialog
         v-if="showApplyResultDialog"
@@ -1114,7 +1197,7 @@ const handleBack = () => {
               ? '!bg-gray-400 !text-white hover:!bg-gray-400'
               : '!bg-primary hover:!bg-primary/90 !text-white hover:shadow-lg'
           }`"
-          @click="handleComplete"
+          @click="handleApplyClick"
           :disabled="isProcessing || !canApply"
           :icon-right="isProcessing ? undefined : ChevronRightIcon"
         >

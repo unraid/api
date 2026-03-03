@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
@@ -13,7 +13,7 @@ import {
   WrenchScrewdriverIcon,
 } from '@heroicons/vue/24/outline';
 import { CheckCircleIcon, EnvelopeIcon } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { BrandButton, Dialog } from '@unraid/ui';
 // Use ?raw to import SVG content string
 import UnraidIconSvg from '@/assets/partners/simple-icons-unraid.svg?raw';
 import { submitInternalBootReboot } from '@/components/Onboarding/composables/internalBoot';
@@ -52,6 +52,7 @@ const showRebootButton = computed(() => draftStore.internalBootApplySucceeded);
 const primaryButtonText = computed(() =>
   showRebootButton.value ? 'Reboot' : t('onboarding.nextSteps.continueToDashboard')
 );
+const showRebootWarningDialog = ref(false);
 
 const basicsItems = [
   { label: t('onboarding.nextSteps.basics.shares'), url: 'https://docs.unraid.net/go/shares/' },
@@ -82,11 +83,20 @@ const handleMouseMove = (e: MouseEvent) => {
 
 const handlePrimaryAction = () => {
   if (showRebootButton.value) {
-    submitInternalBootReboot();
+    showRebootWarningDialog.value = true;
     return;
   }
 
   props.onComplete();
+};
+
+const handleConfirmReboot = () => {
+  showRebootWarningDialog.value = false;
+  submitInternalBootReboot();
+};
+
+const handleCancelReboot = () => {
+  showRebootWarningDialog.value = false;
 };
 </script>
 
@@ -339,6 +349,41 @@ const handlePrimaryAction = () => {
           </div>
         </div>
       </div>
+
+      <Dialog
+        v-if="showRebootWarningDialog"
+        :model-value="showRebootWarningDialog"
+        :show-footer="false"
+        :show-close-button="false"
+        size="md"
+        class="max-w-md"
+      >
+        <div class="space-y-6 p-2">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold">Confirm Reboot</h3>
+            <p class="text-muted-foreground text-sm">
+              Please do NOT remove your Unraid flash drive until your server has finished rebooting into
+              Unraid again.
+            </p>
+          </div>
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              class="border-muted hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium"
+              @click="handleCancelReboot"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
+              @click="handleConfirmReboot"
+            >
+              I understand
+            </button>
+          </div>
+        </div>
+      </Dialog>
 
       <!-- Footer -->
       <div
