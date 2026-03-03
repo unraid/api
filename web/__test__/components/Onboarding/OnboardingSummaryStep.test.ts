@@ -49,6 +49,7 @@ const {
     selectedTheme: 'white',
     selectedLanguage: 'en_US',
     useSsh: false,
+    bootMode: 'usb' as 'usb' | 'storage',
     selectedPlugins: new Set<string>(),
     internalBootSelection: null as {
       poolName: string;
@@ -248,6 +249,16 @@ const clickApply = async (wrapper: ReturnType<typeof mountComponent>['wrapper'])
   const applyButton = buttons[buttons.length - 1];
   await applyButton.trigger('click');
   await flushPromises();
+
+  if (wrapper.text().includes('Confirm Boot Drive Wipe')) {
+    const continueButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().trim() === 'Continue');
+    expect(continueButton).toBeTruthy();
+    await continueButton!.trigger('click');
+    await flushPromises();
+  }
+
   await vi.runAllTimersAsync();
   await flushPromises();
 };
@@ -264,6 +275,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.selectedTheme = 'white';
     draftStore.selectedLanguage = 'en_US';
     draftStore.useSsh = false;
+    draftStore.bootMode = 'usb';
     draftStore.selectedPlugins = new Set();
     draftStore.internalBootSelection = null;
     draftStore.internalBootSkipped = false;
@@ -947,7 +959,46 @@ describe('OnboardingSummaryStep', () => {
     expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
   });
 
+  it('always shows boot configuration section for USB boot mode', () => {
+    draftStore.bootMode = 'usb';
+    draftStore.internalBootSelection = null;
+
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).toContain('Boot Configuration');
+    expect(wrapper.text()).toContain('Use USB to Boot Unraid');
+  });
+
+  it('requires confirmation before applying storage boot drive changes', async () => {
+    draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['diskA'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+
+    const { wrapper } = mountComponent();
+    const buttons = wrapper.findAll('[data-testid="brand-button"]');
+    const applyButton = buttons[buttons.length - 1];
+    await applyButton.trigger('click');
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Confirm Boot Drive Wipe');
+    expect(submitInternalBootCreationMock).not.toHaveBeenCalled();
+
+    const cancelButton = wrapper.findAll('button').find((button) => button.text().trim() === 'Cancel');
+    expect(cancelButton).toBeTruthy();
+    await cancelButton!.trigger('click');
+    await flushPromises();
+
+    expect(wrapper.text()).not.toContain('Confirm Boot Drive Wipe');
+    expect(submitInternalBootCreationMock).not.toHaveBeenCalled();
+  });
+
   it('applies internal boot configuration without reboot and records success', async () => {
+    draftStore.bootMode = 'storage';
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 2,
@@ -974,6 +1025,7 @@ describe('OnboardingSummaryStep', () => {
   });
 
   it('continues with warnings when internal boot setup returns an error', async () => {
+    draftStore.bootMode = 'storage';
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
