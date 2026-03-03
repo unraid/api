@@ -26,6 +26,7 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
+const toBootMode = (value: unknown): OnboardingBootMode => (value === 'storage' ? 'storage' : 'usb');
 
 interface InternalBootDeviceOption {
   value: string;
@@ -137,7 +138,7 @@ const {
 const formError = ref<string | null>(null);
 const hasInitializedForm = ref(false);
 const bootMode = ref<OnboardingBootMode>(
-  draftStore.bootMode === 'storage' || Boolean(draftStore.internalBootSelection) ? 'storage' : 'usb'
+  toBootMode(draftStore.bootMode ?? (draftStore.internalBootSelection ? 'storage' : 'usb'))
 );
 
 const poolName = ref('cache');
@@ -235,6 +236,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
 
 const isLoading = computed(() => Boolean(contextLoading.value));
 const isBusy = computed(() => Boolean(props.isSavingStep) || isLoading.value);
+const isStepLocked = computed(() => Boolean(props.isSavingStep));
 const isArrayStopped = computed(() => {
   if (contextResult.value?.array.state) {
     return contextResult.value.array.state === 'STOPPED';
@@ -260,6 +262,12 @@ const canConfigure = computed(
     deviceOptions.value.length > 0
 );
 const isStorageBootSelected = computed(() => bootMode.value === 'storage');
+const isPrimaryActionDisabled = computed(
+  () => isStepLocked.value || (isStorageBootSelected.value && isLoading.value)
+);
+const isPrimaryActionLoading = computed(
+  () => isStepLocked.value || (isStorageBootSelected.value && isLoading.value)
+);
 
 const loadStatusMessage = computed(() => {
   if (contextError.value) {
@@ -554,10 +562,9 @@ watch(
 watch(
   () => draftStore.bootMode,
   (mode) => {
-    if (mode === 'usb' || mode === 'storage') {
-      bootMode.value = mode;
-    }
-  }
+    bootMode.value = toBootMode(mode);
+  },
+  { immediate: true }
 );
 
 const handleBack = () => {
@@ -604,9 +611,7 @@ const primaryButtonText = computed(() => 'Continue');
         <div class="space-y-2">
           <div class="flex items-center gap-3">
             <CircleStackIcon class="text-primary h-8 w-8" />
-            <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
-              Configure Boot
-            </h2>
+            <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">Setup Boot</h2>
           </div>
           <p class="text-muted text-lg">
             You can setup Unraid to boot via a USB or using a boot drive. The default is to boot via a
@@ -619,7 +624,13 @@ const primaryButtonText = computed(() => 'Continue');
         <label
           class="border-muted bg-bg/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors"
         >
-          <input v-model="bootMode" type="radio" value="usb" class="mt-0.5 h-4 w-4" :disabled="isBusy" />
+          <input
+            v-model="bootMode"
+            type="radio"
+            value="usb"
+            class="mt-0.5 h-4 w-4"
+            :disabled="isStepLocked"
+          />
           <div class="space-y-1">
             <p class="text-highlighted text-sm font-semibold">Use USB to Boot Unraid</p>
           </div>
@@ -632,7 +643,7 @@ const primaryButtonText = computed(() => 'Continue');
             type="radio"
             value="storage"
             class="mt-0.5 h-4 w-4"
-            :disabled="isBusy"
+            :disabled="isStepLocked"
           />
           <div class="space-y-1">
             <p class="text-highlighted text-sm font-semibold">Use Storage Drive(s) to Boot Unraid</p>
@@ -783,8 +794,8 @@ const primaryButtonText = computed(() => 'Continue');
           <BrandButton
             :text="primaryButtonText"
             class="!bg-primary hover:!bg-primary/90 w-full min-w-[160px] font-bold tracking-wide !text-white uppercase shadow-md transition-all hover:shadow-lg sm:w-auto"
-            :disabled="isBusy"
-            :loading="isBusy"
+            :disabled="isPrimaryActionDisabled"
+            :loading="isPrimaryActionLoading"
             @click="handlePrimaryAction"
             :icon-right="ChevronRightIcon"
           />

@@ -36,7 +36,7 @@ export const stepMetadata: Record<string, StepMetadataEntry> = {
     icon: 'i-heroicons-cog-6-tooth',
   },
   CONFIGURE_BOOT: {
-    titleKey: 'Configure Boot',
+    titleKey: 'Setup Boot',
     descriptionKey: 'Choose USB or storage drive boot',
     icon: 'i-heroicons-circle-stack',
   },
