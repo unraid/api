@@ -291,7 +291,7 @@ describe("ConfigFilePersister Integration Tests", () => {
     );
   });
 
-  test("unsubscribes from config changes", async () => {
+  test("unsubscribes from config changes and persists final state", async () => {
     await persister.onModuleInit();
 
     // Setup final config state
@@ -307,10 +307,10 @@ describe("ConfigFilePersister Integration Tests", () => {
 
     await persister.onModuleDestroy();
 
-    // Should not persist final state automatically on destroy
+    // Should persist final state
     const fileContent = await readFile(configPath, "utf8");
     const parsedConfig = JSON.parse(fileContent);
-    expect(parsedConfig.name).not.toBe("final");
+    expect(parsedConfig.name).toBe("final");
   });
 
   test("handles destroy when not initialized", async () => {
