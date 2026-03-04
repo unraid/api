@@ -141,7 +141,7 @@ const bootMode = ref<OnboardingBootMode>(
   toBootMode(draftStore.bootMode ?? (draftStore.internalBootSelection ? 'storage' : 'usb'))
 );
 
-const poolName = ref('cache');
+const poolName = ref('boot');
 const slotCount = ref(1);
 const selectedDevices = ref<string[]>(['']);
 const bootSizePreset = ref<string>('');
@@ -222,7 +222,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
 
   return {
     isBootPoolEligible: Boolean(data.vars?.bootEligible),
-    poolNameDefault: poolNameSet.size === 0 ? 'cache' : '',
+    poolNameDefault: poolNameSet.size === 0 ? 'boot' : '',
     slotOptions: [1, 2],
     deviceOptions,
     bootSizePresetsMiB: BOOT_SIZE_PRESETS_MIB,
@@ -520,7 +520,7 @@ const initializeForm = (data: InternalBootTemplateData) => {
   const firstSlot = data.slotOptions[0] ?? 1;
   const defaultSlot = Math.max(1, Math.min(2, firstSlot));
 
-  poolName.value = draftSelection?.poolName || data.poolNameDefault || 'cache';
+  poolName.value = draftSelection?.poolName || data.poolNameDefault || 'boot';
   slotCount.value = draftSelection?.slotCount ?? defaultSlot;
   selectedDevices.value =
     draftSelection?.devices.slice(0, slotCount.value) ??
@@ -614,8 +614,8 @@ const primaryButtonText = computed(() => 'Continue');
             <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">Setup Boot</h2>
           </div>
           <p class="text-muted text-lg">
-            You can setup Unraid to boot via a USB or using a boot drive. The default is to boot via a
-            USB. You can always switch to use a storage drive instead of a USB in the Unraid Dashboard.
+            Choose how Unraid boots: USB/Flash Drive (default) or Storage Drive(s). You can switch to
+            Storage Drive boot later in the Unraid Dashboard.
           </p>
         </div>
       </div>
@@ -632,7 +632,7 @@ const primaryButtonText = computed(() => 'Continue');
             :disabled="isStepLocked"
           />
           <div class="space-y-1">
-            <p class="text-highlighted text-sm font-semibold">Use USB to Boot Unraid</p>
+            <p class="text-highlighted text-sm font-semibold">Use USB/Flash Drive to boot Unraid</p>
           </div>
         </label>
         <label
@@ -646,7 +646,7 @@ const primaryButtonText = computed(() => 'Continue');
             :disabled="isStepLocked"
           />
           <div class="space-y-1">
-            <p class="text-highlighted text-sm font-semibold">Use Storage Drive(s) to Boot Unraid</p>
+            <p class="text-highlighted text-sm font-semibold">Use Storage Drive(s) to boot Unraid</p>
           </div>
         </label>
       </div>

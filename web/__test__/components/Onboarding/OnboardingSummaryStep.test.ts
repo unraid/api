@@ -250,7 +250,7 @@ const clickApply = async (wrapper: ReturnType<typeof mountComponent>['wrapper'])
   await applyButton.trigger('click');
   await flushPromises();
 
-  if (wrapper.text().includes('Confirm Boot Drive Wipe')) {
+  if (wrapper.text().includes('Confirm Drive Wipe')) {
     const continueButton = wrapper
       .findAll('button')
       .find((button) => button.text().trim() === 'Continue');
@@ -966,7 +966,7 @@ describe('OnboardingSummaryStep', () => {
     const { wrapper } = mountComponent();
 
     expect(wrapper.text()).toContain('Boot Configuration');
-    expect(wrapper.text()).toContain('Use USB to Boot Unraid');
+    expect(wrapper.text()).toContain('USB/Flash Drive');
   });
 
   it('requires confirmation before applying storage boot drive changes', async () => {
@@ -985,7 +985,7 @@ describe('OnboardingSummaryStep', () => {
     await applyButton.trigger('click');
     await flushPromises();
 
-    expect(wrapper.text()).toContain('Confirm Boot Drive Wipe');
+    expect(wrapper.text()).toContain('Confirm Drive Wipe');
     expect(submitInternalBootCreationMock).not.toHaveBeenCalled();
 
     const cancelButton = wrapper.findAll('button').find((button) => button.text().trim() === 'Cancel');
@@ -993,7 +993,7 @@ describe('OnboardingSummaryStep', () => {
     await cancelButton!.trigger('click');
     await flushPromises();
 
-    expect(wrapper.text()).not.toContain('Confirm Boot Drive Wipe');
+    expect(wrapper.text()).not.toContain('Confirm Drive Wipe');
     expect(submitInternalBootCreationMock).not.toHaveBeenCalled();
   });
 

@@ -125,7 +125,7 @@ const selectedBootMode = computed(() =>
   draftStore.bootMode === 'storage' || Boolean(draftStore.internalBootSelection) ? 'storage' : 'usb'
 );
 const bootModeLabel = computed(() =>
-  selectedBootMode.value === 'storage' ? 'Use Storage Drive(s) to Boot Unraid' : 'Use USB to Boot Unraid'
+  selectedBootMode.value === 'storage' ? 'Storage Drive(s)' : 'USB/Flash Drive'
 );
 
 const internalBootSelection = computed(() => {
@@ -178,7 +178,6 @@ const showDiagnosticLogsInResultDialog = computed(
   () => applyResultSeverity.value !== 'success' && logs.value.length > 0
 );
 const selectedBootDeviceNames = computed(() => internalBootSummary.value?.devices ?? []);
-const selectedBootDeviceNamesText = computed(() => selectedBootDeviceNames.value.join(', '));
 
 const isInstallTimeoutError = (error: unknown): boolean => {
   if (!error || typeof error !== 'object') {
@@ -1067,17 +1066,17 @@ const handleBack = () => {
                 internalBootSummary.updateBios ? 'Yes' : 'No'
               }}</span>
             </div>
-            <div class="space-y-1 text-sm">
-              <p class="text-muted">Devices</p>
-              <ul class="space-y-1">
-                <li
+            <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
+              <span class="text-muted">Devices</span>
+              <div class="flex flex-wrap gap-2 sm:justify-end">
+                <span
                   v-for="device in internalBootSummary.devices"
                   :key="device"
-                  class="text-highlighted font-medium break-all"
+                  class="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-semibold break-all"
                 >
                   {{ device }}
-                </li>
-              </ul>
+                </span>
+              </div>
             </div>
           </template>
         </div>
@@ -1116,12 +1115,18 @@ const handleBack = () => {
       >
         <div class="space-y-6 p-2">
           <div class="space-y-3">
-            <h3 class="text-lg font-semibold">Confirm Boot Drive Wipe</h3>
-            <p class="text-muted-foreground text-sm">
-              You've selected drives: {{ selectedBootDeviceNamesText }} to boot Unraid. Please make sure
-              to backup any existing data on your drive(s). Continuing will permanently destroy all
-              existing data on the drive(s). Are you sure you want to continue?
-            </p>
+            <h3 class="text-lg font-semibold">Confirm Drive Wipe</h3>
+            <p class="text-muted-foreground text-sm">You've selected drives:</p>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="device in selectedBootDeviceNames"
+                :key="`dialog-${device}`"
+                class="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-semibold"
+              >
+                {{ device }}
+              </span>
+            </div>
+            <p class="text-muted-foreground text-sm">Are you sure you want to continue?</p>
           </div>
           <div class="flex justify-end gap-3">
             <button
