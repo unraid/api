@@ -25,9 +25,10 @@ Enable or disable specific sensor providers.
 | Key | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `lm_sensors.enabled` | `boolean` | `true` | Enable `lm-sensors` provider (requires `sensors` binary). |
-| `lm_sensors.config_path` | `string` | `null` | Optional path to a specific sensors config file (passed as `-c` to `sensors`). |
+| `lm_sensors.config_path` | `string` | `""` | Optional path to a specific sensors config file (passed as `-c` to `sensors`). |
 | `smartctl.enabled` | `boolean` | `true` | Enable disk temperature monitoring via `smartctl` (via DiskService). |
 | `ipmi.enabled` | `boolean` | `true` | Enable IPMI sensor provider (requires `ipmitool`). |
+| `ipmi.args` | `string[]` | `[]` | Optional array of arguments to pass to the `ipmitool` command. |
 
 ### `api.temperature.thresholds` Object
 
@@ -35,6 +36,8 @@ Customize warning and critical thresholds.
 
 | Key | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
+| `warning` | `number` | `80` | Global warning threshold for other sensors. |
+| `critical` | `number` | `90` | Global critical threshold for other sensors. |
 | `cpu_warning` | `number` | `70` | Warning threshold for CPU. |
 | `cpu_critical` | `number` | `85` | Critical threshold for CPU. |
 | `disk_warning` | `number` | `50` | Warning threshold for Disks. |

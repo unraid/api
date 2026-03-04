@@ -31,7 +31,7 @@ export class TemperatureConfigService extends ConfigFilePersister<TemperatureCon
             polling_interval: 5000,
             default_unit: TemperatureUnit.CELSIUS,
             history: {
-                max_readings: 100,
+                max_readings: 1000,
                 retention_ms: 86400000,
             },
             sensors: {
