@@ -3244,6 +3244,7 @@ type Mutation {
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
   updateSettings(input: JSON!): UpdateSettingsResponse!
+  updateTemperatureConfig(input: TemperatureConfigInput!): Boolean!
 
   """Update system time configuration"""
   updateSystemTime(input: UpdateSystemTimeInput!): SystemTime!
@@ -3294,6 +3295,49 @@ input InitiateFlashBackupInput {
   Additional options for the backup operation, such as --dry-run or --transfers.
   """
   options: JSON
+}
+
+input TemperatureConfigInput {
+  enabled: Boolean
+  polling_interval: Int
+  default_unit: TemperatureUnit
+  sensors: TemperatureSensorsConfigInput
+  thresholds: TemperatureThresholdsConfigInput
+  history: TemperatureHistoryConfigInput
+}
+
+input TemperatureSensorsConfigInput {
+  lm_sensors: LmSensorsConfigInput
+  smartctl: SensorConfigInput
+  ipmi: IpmiConfigInput
+}
+
+input LmSensorsConfigInput {
+  enabled: Boolean
+  config_path: String
+}
+
+input SensorConfigInput {
+  enabled: Boolean
+}
+
+input IpmiConfigInput {
+  enabled: Boolean
+  args: [String!]
+}
+
+input TemperatureThresholdsConfigInput {
+  cpu_warning: Int
+  cpu_critical: Int
+  disk_warning: Int
+  disk_critical: Int
+  warning: Int
+  critical: Int
+}
+
+input TemperatureHistoryConfigInput {
+  max_readings: Int
+  retention_ms: Int
 }
 
 input UpdateSystemTimeInput {
