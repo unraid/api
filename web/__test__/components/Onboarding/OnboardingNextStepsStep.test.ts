@@ -94,12 +94,15 @@ describe('OnboardingNextStepsStep', () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain('Confirm Reboot');
+    expect(wrapper.text()).toContain(
+      'On some systems, you may need to manually change the BIOS boot order from the USB device to the storage drive.'
+    );
     expect(submitInternalBootRebootMock).not.toHaveBeenCalled();
     expect(onComplete).not.toHaveBeenCalled();
 
     const confirmButton = wrapper
       .findAll('button')
-      .find((candidate) => candidate.text().trim() === 'I understand');
+      .find((candidate) => candidate.text().trim() === 'I Understand');
     expect(confirmButton).toBeTruthy();
     await confirmButton!.trigger('click');
     await flushPromises();

@@ -38,6 +38,7 @@ import {
   UPDATE_SSH_SETTINGS_MUTATION,
 } from '@/components/Onboarding/graphql/coreSettings.mutations';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
+import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
 import { useActivationCodeModalStore } from '@/components/Onboarding/store/activationCodeModal';
@@ -92,6 +93,9 @@ const { result: installedPluginsResult, refetch: refetchInstalledPlugins } = use
 const { result: availableLanguagesResult } = useQuery(GET_AVAILABLE_LANGUAGES_QUERY, null, {
   fetchPolicy: 'cache-first',
 });
+const { result: internalBootContextResult } = useQuery(GET_INTERNAL_BOOT_CONTEXT_QUERY, null, {
+  fetchPolicy: 'cache-first',
+});
 
 const draftPluginsCount = computed(() => draftStore.selectedPlugins?.size ?? 0);
 
@@ -144,6 +148,84 @@ const formatBootSize = (bootSizeMiB: number) => {
   return `${Math.round(bootSizeMiB / 1024)} GB`;
 };
 
+const formatBytes = (bytes: number) => {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return 'Unknown';
+  }
+
+  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+  let value = bytes;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+
+  const precision = value >= 100 || unitIndex === 0 ? 0 : 1;
+  return `${value.toFixed(precision)} ${units[unitIndex]}`;
+};
+
+const normalizeDeviceName = (value: string | null | undefined): string => {
+  if (!value) {
+    return '';
+  }
+  const trimmed = value.trim();
+  if (trimmed.startsWith('/dev/')) {
+    return trimmed.slice('/dev/'.length);
+  }
+  return trimmed;
+};
+
+const deriveDeviceSizeBytes = (
+  sectors: number | null | undefined,
+  sectorSize: number | null | undefined,
+  fallbackSize: number
+) => {
+  if (
+    typeof sectors === 'number' &&
+    Number.isFinite(sectors) &&
+    sectors > 0 &&
+    typeof sectorSize === 'number' &&
+    Number.isFinite(sectorSize) &&
+    sectorSize > 0
+  ) {
+    return sectors * sectorSize;
+  }
+  return fallbackSize;
+};
+
+interface InternalBootContextDisk {
+  device: string;
+  size: number;
+  emhttpDeviceId?: string | null;
+  emhttpSectors?: number | null;
+  emhttpSectorSize?: number | null;
+}
+
+const internalBootDeviceLabelById = computed(() => {
+  const data = internalBootContextResult.value as { disks?: InternalBootContextDisk[] } | null;
+  const disks = data?.disks ?? [];
+  const labels = new Map<string, string>();
+
+  for (const disk of disks) {
+    const device = normalizeDeviceName(disk.device);
+    if (!device) {
+      continue;
+    }
+
+    const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
+    const optionValue = emhttpDeviceId || device;
+    const sizeBytes = deriveDeviceSizeBytes(disk.emhttpSectors, disk.emhttpSectorSize, disk.size);
+    const sizeLabel = formatBytes(sizeBytes);
+    const label = `${optionValue} - ${sizeLabel} (${device})`;
+
+    labels.set(optionValue, label);
+    labels.set(device, label);
+  }
+
+  return labels;
+});
+
 const internalBootSummary = computed(() => {
   const selection = internalBootSelection.value;
   if (!selection) {
@@ -178,6 +260,12 @@ const showDiagnosticLogsInResultDialog = computed(
   () => applyResultSeverity.value !== 'success' && logs.value.length > 0
 );
 const selectedBootDeviceNames = computed(() => internalBootSummary.value?.devices ?? []);
+const selectedBootDevices = computed(() =>
+  selectedBootDeviceNames.value.map((deviceId) => ({
+    id: deviceId,
+    label: internalBootDeviceLabelById.value.get(deviceId) ?? deviceId,
+  }))
+);
 
 const isInstallTimeoutError = (error: unknown): boolean => {
   if (!error || typeof error !== 'object') {
@@ -1070,11 +1158,11 @@ const handleBack = () => {
               <span class="text-muted">Devices</span>
               <div class="flex flex-wrap gap-2 sm:justify-end">
                 <span
-                  v-for="device in internalBootSummary.devices"
-                  :key="device"
+                  v-for="device in selectedBootDevices"
+                  :key="device.id"
                   class="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-semibold break-all"
                 >
-                  {{ device }}
+                  {{ device.label }}
                 </span>
               </div>
             </div>
@@ -1119,11 +1207,11 @@ const handleBack = () => {
             <p class="text-muted-foreground text-sm">You've selected drives:</p>
             <div class="flex flex-wrap gap-2">
               <span
-                v-for="device in selectedBootDeviceNames"
-                :key="`dialog-${device}`"
+                v-for="device in selectedBootDevices"
+                :key="`dialog-${device.id}`"
                 class="bg-primary/10 text-primary rounded-full px-2.5 py-1 text-xs font-semibold"
               >
-                {{ device }}
+                {{ device.label }}
               </span>
             </div>
             <p class="text-muted-foreground text-sm">Are you sure you want to continue?</p>

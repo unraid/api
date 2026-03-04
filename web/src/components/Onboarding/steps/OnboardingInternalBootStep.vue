@@ -761,9 +761,15 @@ const primaryButtonText = computed(() => 'Continue');
           />
           <span class="text-highlighted font-medium">Update BIOS boot order</span>
         </label>
-        <p class="text-muted text-xs">
-          Some systems may need manual intervention to change boot order in the BIOS.
-        </p>
+        <blockquote v-if="updateBios" class="border-s-4 border-yellow-500 bg-yellow-100 p-4">
+          <div class="flex items-start gap-2">
+            <ExclamationTriangleIcon class="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-700" />
+            <p class="text-sm leading-relaxed text-yellow-900">
+              On some systems, you may need to manually change the BIOS boot order from the USB device to
+              the storage drive.
+            </p>
+          </div>
+        </blockquote>
       </div>
 
       <div

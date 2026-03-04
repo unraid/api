@@ -9,6 +9,7 @@ import {
   UPDATE_SSH_SETTINGS_MUTATION,
 } from '@/components/Onboarding/graphql/coreSettings.mutations';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
+import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -25,6 +26,7 @@ const {
   activationCodeRef,
   coreSettingsResult,
   coreSettingsError,
+  internalBootContextResult,
   installedPluginsResult,
   availableLanguagesResult,
   refetchInstalledPluginsMock,
@@ -71,6 +73,7 @@ const {
     value: null as unknown,
   },
   coreSettingsError: { value: null as unknown },
+  internalBootContextResult: { value: null as unknown },
   installedPluginsResult: { value: { installedUnraidPlugins: [] as string[] } },
   availableLanguagesResult: {
     value: {
@@ -215,6 +218,9 @@ const setupApolloMocks = () => {
     if (doc === GET_CORE_SETTINGS_QUERY) {
       return { result: coreSettingsResult, error: coreSettingsError };
     }
+    if (doc === GET_INTERNAL_BOOT_CONTEXT_QUERY) {
+      return { result: internalBootContextResult };
+    }
     if (doc === INSTALLED_UNRAID_PLUGINS_QUERY) {
       return {
         result: installedPluginsResult,
@@ -291,6 +297,24 @@ describe('OnboardingSummaryStep', () => {
       display: { theme: 'white', locale: 'en_US' },
       systemTime: { timeZone: 'UTC' },
       info: { primaryNetwork: { ipAddress: '192.168.1.2' } },
+    };
+    internalBootContextResult.value = {
+      disks: [
+        {
+          device: '/dev/sda',
+          size: 500 * 1024 * 1024 * 1024,
+          emhttpDeviceId: 'diskA',
+          emhttpSectors: null,
+          emhttpSectorSize: null,
+        },
+        {
+          device: '/dev/sdb',
+          size: 250 * 1024 * 1024 * 1024,
+          emhttpDeviceId: 'diskB',
+          emhttpSectors: null,
+          emhttpSectorSize: null,
+        },
+      ],
     };
     installedPluginsResult.value = { installedUnraidPlugins: [] };
     availableLanguagesResult.value = {
@@ -967,6 +991,22 @@ describe('OnboardingSummaryStep', () => {
 
     expect(wrapper.text()).toContain('Boot Configuration');
     expect(wrapper.text()).toContain('USB/Flash Drive');
+  });
+
+  it('shows selected boot devices with device name and size details', () => {
+    draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = {
+      poolName: 'boot',
+      slotCount: 2,
+      devices: ['diskA', 'diskB'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).toContain('diskA - 500 GB (sda)');
+    expect(wrapper.text()).toContain('diskB - 250 GB (sdb)');
   });
 
   it('requires confirmation before applying storage boot drive changes', async () => {
