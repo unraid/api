@@ -1,6 +1,6 @@
 import { Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
+import { Args, Int, Mutation, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
@@ -12,6 +12,7 @@ import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service
 import { MemoryUtilization } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { Metrics } from '@app/unraid-api/graph/resolvers/metrics/metrics.model.js';
+import { TemperatureConfigInput } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.input.js';
 import { TemperatureConfigService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.service.js';
 import { TemperatureMetrics } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.model.js';
 import { TemperatureService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.service.js';
@@ -175,5 +176,104 @@ export class MetricsResolver implements OnModuleInit {
     })
     public async systemMetricsTemperatureSubscription() {
         return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.TEMPERATURE_METRICS);
+    }
+
+    @Mutation(() => Boolean)
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.INFO,
+    })
+    public async updateTemperatureConfig(
+        @Args('input', { type: () => TemperatureConfigInput }) input: TemperatureConfigInput
+    ): Promise<boolean> {
+        if (input.enabled !== undefined) {
+            this.configService.set('temperature.enabled', input.enabled);
+        }
+        if (input.polling_interval !== undefined) {
+            this.configService.set('temperature.polling_interval', input.polling_interval);
+        }
+        if (input.default_unit !== undefined) {
+            this.configService.set('temperature.default_unit', input.default_unit);
+        }
+
+        if (input.sensors) {
+            if (input.sensors.lm_sensors) {
+                if (input.sensors.lm_sensors.enabled !== undefined) {
+                    this.configService.set(
+                        'temperature.sensors.lm_sensors.enabled',
+                        input.sensors.lm_sensors.enabled
+                    );
+                }
+                if (input.sensors.lm_sensors.config_path !== undefined) {
+                    this.configService.set(
+                        'temperature.sensors.lm_sensors.config_path',
+                        input.sensors.lm_sensors.config_path
+                    );
+                }
+            }
+            if (input.sensors.smartctl) {
+                if (input.sensors.smartctl.enabled !== undefined) {
+                    this.configService.set(
+                        'temperature.sensors.smartctl.enabled',
+                        input.sensors.smartctl.enabled
+                    );
+                }
+            }
+            if (input.sensors.ipmi) {
+                if (input.sensors.ipmi.enabled !== undefined) {
+                    this.configService.set(
+                        'temperature.sensors.ipmi.enabled',
+                        input.sensors.ipmi.enabled
+                    );
+                }
+                if (input.sensors.ipmi.args !== undefined) {
+                    this.configService.set('temperature.sensors.ipmi.args', input.sensors.ipmi.args);
+                }
+            }
+        }
+
+        if (input.thresholds) {
+            if (input.thresholds.cpu_warning !== undefined) {
+                this.configService.set(
+                    'temperature.thresholds.cpu_warning',
+                    input.thresholds.cpu_warning
+                );
+            }
+            if (input.thresholds.cpu_critical !== undefined) {
+                this.configService.set(
+                    'temperature.thresholds.cpu_critical',
+                    input.thresholds.cpu_critical
+                );
+            }
+            if (input.thresholds.disk_warning !== undefined) {
+                this.configService.set(
+                    'temperature.thresholds.disk_warning',
+                    input.thresholds.disk_warning
+                );
+            }
+            if (input.thresholds.disk_critical !== undefined) {
+                this.configService.set(
+                    'temperature.thresholds.disk_critical',
+                    input.thresholds.disk_critical
+                );
+            }
+            if (input.thresholds.warning !== undefined) {
+                this.configService.set('temperature.thresholds.warning', input.thresholds.warning);
+            }
+            if (input.thresholds.critical !== undefined) {
+                this.configService.set('temperature.thresholds.critical', input.thresholds.critical);
+            }
+        }
+
+        if (input.history) {
+            if (input.history.max_readings !== undefined) {
+                this.configService.set('temperature.history.max_readings', input.history.max_readings);
+            }
+            if (input.history.retention_ms !== undefined) {
+                this.configService.set('temperature.history.retention_ms', input.history.retention_ms);
+            }
+        }
+
+        return true;
     }
 }
