@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { OnboardingStatus } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import { CreateInternalBootPoolInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 import { OnboardingMutationsResolver } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.mutation.js';
 
 describe('OnboardingMutationsResolver', () => {
@@ -20,6 +21,10 @@ describe('OnboardingMutationsResolver', () => {
         getPublicPartnerInfo: vi.fn(),
         getOnboardingState: vi.fn(),
         clearActivationDataCache: vi.fn(),
+    };
+
+    const onboardingInternalBootService = {
+        createInternalBootPool: vi.fn(),
     };
 
     let resolver: OnboardingMutationsResolver;
@@ -43,7 +48,8 @@ describe('OnboardingMutationsResolver', () => {
         resolver = new OnboardingMutationsResolver(
             onboardingTracker as any,
             onboardingOverrides as any,
-            onboardingService as any
+            onboardingService as any,
+            onboardingInternalBootService as any
         );
     });
 
@@ -178,5 +184,28 @@ describe('OnboardingMutationsResolver', () => {
         expect(onboardingOverrides.clearState).toHaveBeenCalledTimes(1);
         expect(onboardingService.clearActivationDataCache).toHaveBeenCalledTimes(1);
         expect(result.status).toBe(OnboardingStatus.INCOMPLETE);
+    });
+
+    it('delegates createInternalBootPool to onboarding internal boot service', async () => {
+        onboardingInternalBootService.createInternalBootPool.mockResolvedValue({
+            ok: true,
+            code: 0,
+            output: 'done',
+        });
+
+        const input: CreateInternalBootPoolInput = {
+            poolName: 'cache',
+            devices: ['disk-1'],
+            bootSizeMiB: 16384,
+            updateBios: true,
+        };
+        const result = await resolver.createInternalBootPool(input);
+
+        expect(onboardingInternalBootService.createInternalBootPool).toHaveBeenCalledWith(input);
+        expect(result).toEqual({
+            ok: true,
+            code: 0,
+            output: 'done',
+        });
     });
 });

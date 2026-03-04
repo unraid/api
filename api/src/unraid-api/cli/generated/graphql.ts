@@ -652,6 +652,15 @@ export type CreateApiKeyInput = {
   roles?: InputMaybe<Array<Role>>;
 };
 
+/** Input for creating an internal boot pool during onboarding */
+export type CreateInternalBootPoolInput = {
+  bootSizeMiB: Scalars['Int']['input'];
+  devices: Array<Scalars['String']['input']>;
+  poolName: Scalars['String']['input'];
+  reboot?: InputMaybe<Scalars['Boolean']['input']>;
+  updateBios: Scalars['Boolean']['input'];
+};
+
 export type CreateRCloneRemoteInput = {
   name: Scalars['String']['input'];
   parameters: Scalars['JSON']['input'];
@@ -1969,6 +1978,14 @@ export type Onboarding = {
   status: OnboardingStatus;
 };
 
+/** Result of attempting internal boot pool setup */
+export type OnboardingInternalBootResult = {
+  __typename?: 'OnboardingInternalBootResult';
+  code?: Maybe<Scalars['Int']['output']>;
+  ok: Scalars['Boolean']['output'];
+  output: Scalars['String']['output'];
+};
+
 /** Onboarding related mutations */
 export type OnboardingMutations = {
   __typename?: 'OnboardingMutations';
@@ -1976,10 +1993,18 @@ export type OnboardingMutations = {
   clearOnboardingOverride: Onboarding;
   /** Mark onboarding as completed */
   completeOnboarding: Onboarding;
+  /** Create and configure internal boot pool via emcmd operations */
+  createInternalBootPool: OnboardingInternalBootResult;
   /** Reset onboarding progress (for testing) */
   resetOnboarding: Onboarding;
   /** Override onboarding state for testing (in-memory only) */
   setOnboardingOverride: Onboarding;
+};
+
+
+/** Onboarding related mutations */
+export type OnboardingMutationsCreateInternalBootPoolArgs = {
+  input: CreateInternalBootPoolInput;
 };
 
 

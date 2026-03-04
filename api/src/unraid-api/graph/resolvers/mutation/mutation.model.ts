@@ -2,6 +2,7 @@ import { Field, ObjectType } from '@nestjs/graphql';
 
 import { Onboarding } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { Theme } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
+import { OnboardingInternalBootResult } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 import { RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { PluginInstallOperation } from '@app/unraid-api/graph/resolvers/unraid-plugins/unraid-plugins.model.js';
 
@@ -77,6 +78,11 @@ export class OnboardingMutations {
         description: 'Clear onboarding override state and reload from disk',
     })
     clearOnboardingOverride!: Onboarding;
+
+    @Field(() => OnboardingInternalBootResult, {
+        description: 'Create and configure internal boot pool via emcmd operations',
+    })
+    createInternalBootPool!: OnboardingInternalBootResult;
 }
 
 @ObjectType({
