@@ -5,25 +5,36 @@ import {
   submitInternalBootReboot,
 } from '~/components/Onboarding/composables/internalBoot';
 
+const mutateMock = vi.fn();
+
+vi.mock('@vue/apollo-composable', () => ({
+  useApolloClient: () => ({
+    client: {
+      mutate: mutateMock,
+    },
+  }),
+}));
+
 describe('internalBoot composable', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    mutateMock.mockReset();
     document.body.innerHTML = '';
     globalThis.csrf_token = 'csrf-token-value';
   });
 
-  it('includes csrf token and args when creating internal boot pool', async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      text: vi.fn().mockResolvedValue(
-        JSON.stringify({
-          ok: true,
-          code: 0,
-          output: 'done',
-        })
-      ),
-      status: 200,
+  it('submits create internal boot pool via onboarding mutation', async () => {
+    mutateMock.mockResolvedValue({
+      data: {
+        onboarding: {
+          createInternalBootPool: {
+            ok: true,
+            code: 0,
+            output: 'done',
+          },
+        },
+      },
     });
-    vi.stubGlobal('fetch', fetchMock);
 
     const result = await submitInternalBootCreation({
       poolName: 'cache',
@@ -37,30 +48,93 @@ describe('internalBoot composable', () => {
       code: 0,
       output: 'done',
     });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/plugins/dynamix/include/mkbootpool.php',
-      expect.objectContaining({
-        method: 'POST',
-        headers: expect.objectContaining({
-          'x-csrf-token': 'csrf-token-value',
-        }),
-      })
-    );
-
-    const options = fetchMock.mock.calls[0]?.[1];
-    expect(options).toBeDefined();
-    if (!options || typeof options !== 'object') {
+    expect(mutateMock).toHaveBeenCalledTimes(1);
+    const call = mutateMock.mock.calls[0]?.[0];
+    expect(call).toBeDefined();
+    if (!call || typeof call !== 'object') {
       return;
     }
 
-    const body = (options as { body?: string }).body ?? '';
-    expect(body).toContain('args%5B%5D=cache');
-    expect(body).toContain('args%5B%5D=16384');
-    expect(body).toContain('args%5B%5D=disk-1');
-    expect(body).toContain('args%5B%5D=updatebios');
-    expect(body).toContain('args%5B%5D=update');
-    expect(body).toContain('csrf_token=csrf-token-value');
+    const payload = call as {
+      variables?: {
+        input?: {
+          poolName?: string;
+          devices?: string[];
+          bootSizeMiB?: number;
+          updateBios?: boolean;
+          reboot?: boolean;
+        };
+      };
+    };
+
+    expect(payload.variables?.input).toEqual({
+      poolName: 'cache',
+      devices: ['disk-1'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+      reboot: false,
+    });
+  });
+
+  it('returns fallback error when mutation response is empty', async () => {
+    mutateMock.mockResolvedValue({
+      data: {
+        onboarding: {
+          createInternalBootPool: null,
+        },
+      },
+    });
+
+    const result = await submitInternalBootCreation({
+      poolName: 'cache',
+      devices: ['disk-1'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      output: 'Internal boot setup request failed: empty API response.',
+    });
+  });
+
+  it('passes reboot flag when requested', async () => {
+    mutateMock.mockResolvedValue({
+      data: {
+        onboarding: {
+          createInternalBootPool: {
+            ok: true,
+            code: 0,
+            output: 'done',
+          },
+        },
+      },
+    });
+
+    await submitInternalBootCreation(
+      {
+        poolName: 'cache',
+        devices: ['disk-1'],
+        bootSizeMiB: 16384,
+        updateBios: false,
+      },
+      { reboot: true }
+    );
+
+    const call = mutateMock.mock.calls[0]?.[0];
+    expect(call).toBeDefined();
+    if (!call || typeof call !== 'object') {
+      return;
+    }
+
+    const payload = call as {
+      variables?: {
+        input?: {
+          reboot?: boolean;
+        };
+      };
+    };
+    expect(payload.variables?.input?.reboot).toBe(true);
   });
 
   it('submits reboot form with cmd and csrf token', () => {

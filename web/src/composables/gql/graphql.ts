@@ -652,6 +652,15 @@ export type CreateApiKeyInput = {
   roles?: InputMaybe<Array<Role>>;
 };
 
+/** Input for creating an internal boot pool during onboarding */
+export type CreateInternalBootPoolInput = {
+  bootSizeMiB: Scalars['Int']['input'];
+  devices: Array<Scalars['String']['input']>;
+  poolName: Scalars['String']['input'];
+  reboot?: InputMaybe<Scalars['Boolean']['input']>;
+  updateBios: Scalars['Boolean']['input'];
+};
+
 export type CreateRCloneRemoteInput = {
   name: Scalars['String']['input'];
   parameters: Scalars['JSON']['input'];
@@ -1969,6 +1978,14 @@ export type Onboarding = {
   status: OnboardingStatus;
 };
 
+/** Result of attempting internal boot pool setup */
+export type OnboardingInternalBootResult = {
+  __typename?: 'OnboardingInternalBootResult';
+  code?: Maybe<Scalars['Int']['output']>;
+  ok: Scalars['Boolean']['output'];
+  output: Scalars['String']['output'];
+};
+
 /** Onboarding related mutations */
 export type OnboardingMutations = {
   __typename?: 'OnboardingMutations';
@@ -1976,10 +1993,18 @@ export type OnboardingMutations = {
   clearOnboardingOverride: Onboarding;
   /** Mark onboarding as completed */
   completeOnboarding: Onboarding;
+  /** Create and configure internal boot pool via emcmd operations */
+  createInternalBootPool: OnboardingInternalBootResult;
   /** Reset onboarding progress (for testing) */
   resetOnboarding: Onboarding;
   /** Override onboarding state for testing (in-memory only) */
   setOnboardingOverride: Onboarding;
+};
+
+
+/** Onboarding related mutations */
+export type OnboardingMutationsCreateInternalBootPoolArgs = {
+  input: CreateInternalBootPoolInput;
 };
 
 
@@ -3861,6 +3886,13 @@ export type UpdateSshSettingsMutationVariables = Exact<{
 
 export type UpdateSshSettingsMutation = { __typename?: 'Mutation', updateSshSettings: { __typename?: 'Vars', id: string, useSsh?: boolean | null, portssh?: number | null } };
 
+export type CreateInternalBootPoolMutationVariables = Exact<{
+  input: CreateInternalBootPoolInput;
+}>;
+
+
+export type CreateInternalBootPoolMutation = { __typename?: 'Mutation', onboarding: { __typename?: 'OnboardingMutations', createInternalBootPool: { __typename?: 'OnboardingInternalBootResult', ok: boolean, code?: number | null, output: string } } };
+
 export type GetCoreSettingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -4058,6 +4090,7 @@ export const CompleteOnboardingDocument = {"kind":"Document","definitions":[{"ki
 export const UpdateServerIdentityDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateServerIdentity"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"comment"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sysModel"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateServerIdentity"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"comment"},"value":{"kind":"Variable","name":{"kind":"Name","value":"comment"}}},{"kind":"Argument","name":{"kind":"Name","value":"sysModel"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sysModel"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}}]}}]} as unknown as DocumentNode<UpdateServerIdentityMutation, UpdateServerIdentityMutationVariables>;
 export const SetLocaleDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SetLocale"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"locale"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setLocale"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"locale"},"value":{"kind":"Variable","name":{"kind":"Name","value":"locale"}}}]}]}}]}}]} as unknown as DocumentNode<SetLocaleMutation, SetLocaleMutationVariables>;
 export const UpdateSshSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSshSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"enabled"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"port"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"22"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSshSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"enabled"},"value":{"kind":"Variable","name":{"kind":"Name","value":"enabled"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"port"},"value":{"kind":"Variable","name":{"kind":"Name","value":"port"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"useSsh"}},{"kind":"Field","name":{"kind":"Name","value":"portssh"}}]}}]}}]} as unknown as DocumentNode<UpdateSshSettingsMutation, UpdateSshSettingsMutationVariables>;
+export const CreateInternalBootPoolDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateInternalBootPool"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateInternalBootPoolInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createInternalBootPool"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ok"}},{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]}}]} as unknown as DocumentNode<CreateInternalBootPoolMutation, CreateInternalBootPoolMutationVariables>;
 export const GetCoreSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCoreSettings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sysModel"}},{"kind":"Field","name":{"kind":"Name","value":"useSsh"}},{"kind":"Field","name":{"kind":"Name","value":"localTld"}}]}},{"kind":"Field","name":{"kind":"Name","value":"server"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"display"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"theme"}},{"kind":"Field","name":{"kind":"Name","value":"locale"}}]}},{"kind":"Field","name":{"kind":"Name","value":"systemTime"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"timeZone"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"primaryNetwork"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ipAddress"}}]}}]}}]}}]} as unknown as DocumentNode<GetCoreSettingsQuery, GetCoreSettingsQueryVariables>;
 export const GetInternalBootContextDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetInternalBootContext"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"array"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"boot"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"device"}}]}},{"kind":"Field","name":{"kind":"Name","value":"parities"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"device"}}]}},{"kind":"Field","name":{"kind":"Name","value":"disks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"device"}}]}},{"kind":"Field","name":{"kind":"Name","value":"caches"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"device"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fsState"}},{"kind":"Field","name":{"kind":"Name","value":"bootEligible"}},{"kind":"Field","name":{"kind":"Name","value":"enableBootTransfer"}},{"kind":"Field","name":{"kind":"Name","value":"reservedNames"}}]}},{"kind":"Field","name":{"kind":"Name","value":"shares"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}}]}},{"kind":"Field","name":{"kind":"Name","value":"disks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"device"}},{"kind":"Field","name":{"kind":"Name","value":"size"}},{"kind":"Field","name":{"kind":"Name","value":"emhttpDeviceId"}},{"kind":"Field","alias":{"kind":"Name","value":"emhttpSectors"},"name":{"kind":"Name","value":"sectors"}},{"kind":"Field","alias":{"kind":"Name","value":"emhttpSectorSize"},"name":{"kind":"Name","value":"sectorSize"}}]}}]}}]} as unknown as DocumentNode<GetInternalBootContextQuery, GetInternalBootContextQueryVariables>;
 export const GetInternalBootStepVisibilityDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetInternalBootStepVisibility"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"enableBootTransfer"}}]}}]}}]} as unknown as DocumentNode<GetInternalBootStepVisibilityQuery, GetInternalBootStepVisibilityQueryVariables>;
