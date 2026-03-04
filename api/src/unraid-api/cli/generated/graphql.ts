@@ -1445,6 +1445,11 @@ export type IpmiConfig = {
   enabled?: Maybe<Scalars['Boolean']['output']>;
 };
 
+export type IpmiConfigInput = {
+  args?: InputMaybe<Array<Scalars['String']['input']>>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 export type KeyFile = {
   __typename?: 'KeyFile';
   contents?: Maybe<Scalars['String']['output']>;
@@ -1465,6 +1470,11 @@ export type LmSensorsConfig = {
   __typename?: 'LmSensorsConfig';
   config_path?: Maybe<Scalars['String']['output']>;
   enabled?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type LmSensorsConfigInput = {
+  config_path?: InputMaybe<Scalars['String']['input']>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type LogFile = {
@@ -1630,6 +1640,7 @@ export type Mutation = {
   updateSshSettings: Vars;
   /** Update system time configuration */
   updateSystemTime: SystemTime;
+  updateTemperatureConfig: Scalars['Boolean']['output'];
   vm: VmMutations;
 };
 
@@ -1790,6 +1801,11 @@ export type MutationUpdateSshSettingsArgs = {
 
 export type MutationUpdateSystemTimeArgs = {
   input: UpdateSystemTimeInput;
+};
+
+
+export type MutationUpdateTemperatureConfigArgs = {
+  input: TemperatureConfigInput;
 };
 
 export type Network = Node & {
@@ -2525,6 +2541,10 @@ export type SensorConfig = {
   enabled?: Maybe<Scalars['Boolean']['output']>;
 };
 
+export type SensorConfigInput = {
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 /** Type of temperature sensor */
 export enum SensorType {
   AMBIENT = 'AMBIENT',
@@ -2745,10 +2765,24 @@ export enum Temperature {
   FAHRENHEIT = 'FAHRENHEIT'
 }
 
+export type TemperatureConfigInput = {
+  default_unit?: InputMaybe<TemperatureUnit>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  history?: InputMaybe<TemperatureHistoryConfigInput>;
+  polling_interval?: InputMaybe<Scalars['Int']['input']>;
+  sensors?: InputMaybe<TemperatureSensorsConfigInput>;
+  thresholds?: InputMaybe<TemperatureThresholdsConfigInput>;
+};
+
 export type TemperatureHistoryConfig = {
   __typename?: 'TemperatureHistoryConfig';
   max_readings?: Maybe<Scalars['Int']['output']>;
   retention_ms?: Maybe<Scalars['Int']['output']>;
+};
+
+export type TemperatureHistoryConfigInput = {
+  max_readings?: InputMaybe<Scalars['Int']['input']>;
+  retention_ms?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type TemperatureMetrics = Node & {
@@ -2802,6 +2836,12 @@ export type TemperatureSensorsConfig = {
   smartctl?: Maybe<SensorConfig>;
 };
 
+export type TemperatureSensorsConfigInput = {
+  ipmi?: InputMaybe<IpmiConfigInput>;
+  lm_sensors?: InputMaybe<LmSensorsConfigInput>;
+  smartctl?: InputMaybe<SensorConfigInput>;
+};
+
 export enum TemperatureStatus {
   CRITICAL = 'CRITICAL',
   NORMAL = 'NORMAL',
@@ -2831,6 +2871,15 @@ export type TemperatureThresholdsConfig = {
   disk_critical?: Maybe<Scalars['Int']['output']>;
   disk_warning?: Maybe<Scalars['Int']['output']>;
   warning?: Maybe<Scalars['Int']['output']>;
+};
+
+export type TemperatureThresholdsConfigInput = {
+  cpu_critical?: InputMaybe<Scalars['Int']['input']>;
+  cpu_warning?: InputMaybe<Scalars['Int']['input']>;
+  critical?: InputMaybe<Scalars['Int']['input']>;
+  disk_critical?: InputMaybe<Scalars['Int']['input']>;
+  disk_warning?: InputMaybe<Scalars['Int']['input']>;
+  warning?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export enum TemperatureUnit {
