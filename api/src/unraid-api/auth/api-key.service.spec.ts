@@ -536,6 +536,62 @@ describe('ApiKeyService', () => {
             });
         });
 
+        it('should load only valid keys from provided Connect key fixtures', async () => {
+            const files = [
+                '2d4eee10-9517-4184-9783-5ee850f937fc.json',
+                '69b306b9-ec78-4eac-9b6a-d250d500ca42.json',
+                '7d657485-467e-40b8-a3c6-3fa8383f4908.json',
+            ];
+
+            const missingPermissionsKey = {
+                createdAt: '2025-01-14T19:54:41.083Z',
+                description: 'API key for Connect user',
+                id: '2d4eee10-9517-4184-9783-5ee850f937fc',
+                key: 'redacted-connect-key-1',
+                name: 'Connect',
+                roles: ['connect'],
+            };
+
+            const validConnectKeyOne = {
+                createdAt: '2025-01-27T20:16:05.852Z',
+                description: 'API key for Connect user',
+                id: '69b306b9-ec78-4eac-9b6a-d250d500ca42',
+                key: 'redacted-connect-key-2',
+                name: 'Connect',
+                permissions: [],
+                roles: ['connect'],
+            };
+
+            const validConnectKeyTwo = {
+                createdAt: '2025-03-13T00:01:04.632Z',
+                description: 'API key for Connect user',
+                id: '7d657485-467e-40b8-a3c6-3fa8383f4908',
+                key: 'redacted-connect-key-3',
+                name: 'Connect',
+                permissions: [],
+                roles: ['connect'],
+            };
+
+            vi.mocked(readdir).mockResolvedValue(files as any);
+            vi.mocked(readFile)
+                .mockResolvedValueOnce(JSON.stringify(missingPermissionsKey))
+                .mockResolvedValueOnce(JSON.stringify(validConnectKeyOne))
+                .mockResolvedValueOnce(JSON.stringify(validConnectKeyTwo));
+
+            const result = await apiKeyService.loadAllFromDisk();
+
+            expect(result).toHaveLength(2);
+            expect(result[0].id).toBe(validConnectKeyOne.id);
+            expect(result[0].roles).toEqual([Role.CONNECT]);
+            expect(result[1].id).toBe(validConnectKeyTwo.id);
+            expect(result[1].roles).toEqual([Role.CONNECT]);
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    `Error validating API key file ${files[0]}: An instance of ApiKey has failed the validation`
+                )
+            );
+        });
+
         it('should normalize permission actions to lowercase when loading from disk', async () => {
             const apiKeyWithMixedCaseActions = {
                 ...loadMockApiKey,
@@ -605,21 +661,21 @@ describe('ApiKeyService', () => {
             );
         });
 
-        it('should throw error on corrupted JSON', async () => {
+        it('should return null on corrupted JSON', async () => {
             vi.mocked(readFile).mockResolvedValue('invalid json');
 
-            await expect(apiKeyService['loadApiKeyFile']('test.json')).rejects.toThrow(
-                'Authentication system error: Corrupted key file'
-            );
+            const result = await apiKeyService['loadApiKeyFile']('test.json');
+
+            expect(result).toBeNull();
+            expect(mockLogger.error).toHaveBeenCalledWith('Corrupted key file: test.json');
         });
 
-        it('should throw error on invalid API key structure', async () => {
+        it('should return null on invalid API key structure', async () => {
             vi.mocked(readFile).mockResolvedValue(JSON.stringify({ invalid: 'structure' }));
 
-            await expect(apiKeyService['loadApiKeyFile']('test.json')).rejects.toThrow(
-                'Invalid API key structure'
-            );
+            const result = await apiKeyService['loadApiKeyFile']('test.json');
 
+            expect(result).toBeNull();
             expect(mockLogger.error).toHaveBeenCalledWith(
                 expect.stringContaining('Error validating API key file test.json')
             );
