@@ -48,7 +48,7 @@ export const loadDynamixConfig = () => {
 };
 
 export const getters = {
-    dynamix: () => loadDynamixConfig(),
+    dynamix: () => store.getState().dynamix,
     emhttp: () => store.getState().emhttp,
     paths: () => store.getState().paths,
     registration: () => store.getState().registration,

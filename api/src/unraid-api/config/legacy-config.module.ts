@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { apiConfig } from '@app/unraid-api/config/api-config.module.js';
 import { loadAppEnvironment, loadLegacyStore } from '@app/unraid-api/config/config.loader.js';
+import { DynamixConfigRefreshService } from '@app/unraid-api/config/dynamix-config-refresh.service.js';
 import { StoreSyncService } from '@app/unraid-api/config/store-sync.service.js';
 
 @Module({
@@ -14,7 +15,7 @@ import { StoreSyncService } from '@app/unraid-api/config/store-sync.service.js';
             load: [loadAppEnvironment, loadLegacyStore, apiConfig],
         }),
     ],
-    providers: [StoreSyncService],
-    exports: [StoreSyncService],
+    providers: [StoreSyncService, DynamixConfigRefreshService],
+    exports: [StoreSyncService, DynamixConfigRefreshService],
 })
 export class LegacyConfigModule {}
