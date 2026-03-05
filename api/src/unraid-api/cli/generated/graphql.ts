@@ -416,7 +416,7 @@ export type BrandingConfig = {
   /** Case model image source. Supports local path, remote URL, or data URI/base64. */
   caseModelImage?: Maybe<Scalars['String']['output']>;
   /** Indicates if a partner logo exists */
-  hasPartnerLogo: Scalars['Boolean']['output'];
+  hasPartnerLogo?: Maybe<Scalars['Boolean']['output']>;
   header?: Maybe<Scalars['String']['output']>;
   headermetacolor?: Maybe<Scalars['String']['output']>;
   /** Custom subtitle for onboarding welcome step */
@@ -1439,6 +1439,17 @@ export type InstallPluginInput = {
   url: Scalars['String']['input'];
 };
 
+export type IpmiConfig = {
+  __typename?: 'IpmiConfig';
+  args?: Maybe<Array<Scalars['String']['output']>>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type IpmiConfigInput = {
+  args?: InputMaybe<Array<Scalars['String']['input']>>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 export type KeyFile = {
   __typename?: 'KeyFile';
   contents?: Maybe<Scalars['String']['output']>;
@@ -1453,6 +1464,17 @@ export type Language = {
   name: Scalars['String']['output'];
   /** URL to the language pack XML */
   url?: Maybe<Scalars['String']['output']>;
+};
+
+export type LmSensorsConfig = {
+  __typename?: 'LmSensorsConfig';
+  config_path?: Maybe<Scalars['String']['output']>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type LmSensorsConfigInput = {
+  config_path?: InputMaybe<Scalars['String']['input']>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type LogFile = {
@@ -1541,6 +1563,8 @@ export type Metrics = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Current memory utilization metrics */
   memory?: Maybe<MemoryUtilization>;
+  /** Temperature metrics */
+  temperature?: Maybe<TemperatureMetrics>;
 };
 
 /** The status of the minigraph */
@@ -1616,6 +1640,7 @@ export type Mutation = {
   updateSshSettings: Vars;
   /** Update system time configuration */
   updateSystemTime: SystemTime;
+  updateTemperatureConfig: Scalars['Boolean']['output'];
   vm: VmMutations;
 };
 
@@ -1776,6 +1801,11 @@ export type MutationUpdateSshSettingsArgs = {
 
 export type MutationUpdateSystemTimeArgs = {
   input: UpdateSystemTimeInput;
+};
+
+
+export type MutationUpdateTemperatureConfigArgs = {
+  input: TemperatureConfigInput;
 };
 
 export type Network = Node & {
@@ -2506,6 +2536,29 @@ export enum Role {
   VIEWER = 'VIEWER'
 }
 
+export type SensorConfig = {
+  __typename?: 'SensorConfig';
+  enabled?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type SensorConfigInput = {
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** Type of temperature sensor */
+export enum SensorType {
+  AMBIENT = 'AMBIENT',
+  CHIPSET = 'CHIPSET',
+  CPU_CORE = 'CPU_CORE',
+  CPU_PACKAGE = 'CPU_PACKAGE',
+  CUSTOM = 'CUSTOM',
+  DISK = 'DISK',
+  GPU = 'GPU',
+  MOTHERBOARD = 'MOTHERBOARD',
+  NVME = 'NVME',
+  VRM = 'VRM'
+}
+
 export type Server = Node & {
   __typename?: 'Server';
   apikey: Scalars['String']['output'];
@@ -2616,6 +2669,7 @@ export type Subscription = {
   systemMetricsCpu: CpuUtilization;
   systemMetricsCpuTelemetry: CpuPackages;
   systemMetricsMemory: MemoryUtilization;
+  systemMetricsTemperature?: Maybe<TemperatureMetrics>;
   upsUpdates: UpsDevice;
 };
 
@@ -2709,6 +2763,130 @@ export type TailscaleStatus = {
 export enum Temperature {
   CELSIUS = 'CELSIUS',
   FAHRENHEIT = 'FAHRENHEIT'
+}
+
+export type TemperatureConfigInput = {
+  default_unit?: InputMaybe<TemperatureUnit>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  history?: InputMaybe<TemperatureHistoryConfigInput>;
+  polling_interval?: InputMaybe<Scalars['Int']['input']>;
+  sensors?: InputMaybe<TemperatureSensorsConfigInput>;
+  thresholds?: InputMaybe<TemperatureThresholdsConfigInput>;
+};
+
+export type TemperatureHistoryConfig = {
+  __typename?: 'TemperatureHistoryConfig';
+  max_readings?: Maybe<Scalars['Int']['output']>;
+  retention_ms?: Maybe<Scalars['Int']['output']>;
+};
+
+export type TemperatureHistoryConfigInput = {
+  max_readings?: InputMaybe<Scalars['Int']['input']>;
+  retention_ms?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type TemperatureMetrics = Node & {
+  __typename?: 'TemperatureMetrics';
+  id: Scalars['PrefixedID']['output'];
+  /** All temperature sensors */
+  sensors: Array<TemperatureSensor>;
+  /** Temperature summary */
+  summary: TemperatureSummary;
+};
+
+export type TemperatureReading = {
+  __typename?: 'TemperatureReading';
+  /** Temperature status */
+  status: TemperatureStatus;
+  /** Timestamp of reading */
+  timestamp: Scalars['DateTime']['output'];
+  /** Temperature unit */
+  unit: TemperatureUnit;
+  /** Temperature value */
+  value: Scalars['Float']['output'];
+};
+
+export type TemperatureSensor = Node & {
+  __typename?: 'TemperatureSensor';
+  /** Critical threshold */
+  critical?: Maybe<Scalars['Float']['output']>;
+  /** Current temperature */
+  current: TemperatureReading;
+  /** Historical readings for this sensor */
+  history?: Maybe<Array<TemperatureReading>>;
+  id: Scalars['PrefixedID']['output'];
+  /** Physical location */
+  location?: Maybe<Scalars['String']['output']>;
+  /** Maximum recorded */
+  max?: Maybe<TemperatureReading>;
+  /** Minimum recorded */
+  min?: Maybe<TemperatureReading>;
+  /** Sensor name */
+  name: Scalars['String']['output'];
+  /** Type of sensor */
+  type: SensorType;
+  /** Warning threshold */
+  warning?: Maybe<Scalars['Float']['output']>;
+};
+
+export type TemperatureSensorsConfig = {
+  __typename?: 'TemperatureSensorsConfig';
+  ipmi?: Maybe<IpmiConfig>;
+  lm_sensors?: Maybe<LmSensorsConfig>;
+  smartctl?: Maybe<SensorConfig>;
+};
+
+export type TemperatureSensorsConfigInput = {
+  ipmi?: InputMaybe<IpmiConfigInput>;
+  lm_sensors?: InputMaybe<LmSensorsConfigInput>;
+  smartctl?: InputMaybe<SensorConfigInput>;
+};
+
+export enum TemperatureStatus {
+  CRITICAL = 'CRITICAL',
+  NORMAL = 'NORMAL',
+  UNKNOWN = 'UNKNOWN',
+  WARNING = 'WARNING'
+}
+
+export type TemperatureSummary = {
+  __typename?: 'TemperatureSummary';
+  /** Average temperature across all sensors */
+  average: Scalars['Float']['output'];
+  /** Coolest sensor */
+  coolest: TemperatureSensor;
+  /** Count of sensors at critical level */
+  criticalCount: Scalars['Int']['output'];
+  /** Hottest sensor */
+  hottest: TemperatureSensor;
+  /** Count of sensors at warning level */
+  warningCount: Scalars['Int']['output'];
+};
+
+export type TemperatureThresholdsConfig = {
+  __typename?: 'TemperatureThresholdsConfig';
+  cpu_critical?: Maybe<Scalars['Int']['output']>;
+  cpu_warning?: Maybe<Scalars['Int']['output']>;
+  critical?: Maybe<Scalars['Int']['output']>;
+  disk_critical?: Maybe<Scalars['Int']['output']>;
+  disk_warning?: Maybe<Scalars['Int']['output']>;
+  warning?: Maybe<Scalars['Int']['output']>;
+};
+
+export type TemperatureThresholdsConfigInput = {
+  cpu_critical?: InputMaybe<Scalars['Int']['input']>;
+  cpu_warning?: InputMaybe<Scalars['Int']['input']>;
+  critical?: InputMaybe<Scalars['Int']['input']>;
+  disk_critical?: InputMaybe<Scalars['Int']['input']>;
+  disk_warning?: InputMaybe<Scalars['Int']['input']>;
+  warning?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum TemperatureUnit {
+  CELSIUS = 'CELSIUS',
+  FAHRENHEIT = 'FAHRENHEIT',
+  KELVIN = 'KELVIN',
+  RANKINE = 'RANKINE'
 }
 
 export type Theme = {
@@ -2844,10 +3022,14 @@ export enum UpsKillPower {
 
 export type UpsPower = {
   __typename?: 'UPSPower';
+  /** Current power consumption calculated from load percentage and nominal power. Unit: watts (W). Example: 350 means 350 watts currently being used. Calculated as: nominalPower * (loadPercentage / 100) */
+  currentPower?: Maybe<Scalars['Float']['output']>;
   /** Input voltage from the wall outlet/mains power. Unit: volts (V). Example: 120.5 for typical US household voltage */
   inputVoltage: Scalars['Float']['output'];
   /** Current load on the UPS as a percentage of its capacity. Unit: percent (%). Example: 25 means UPS is loaded at 25% of its maximum capacity */
   loadPercentage: Scalars['Int']['output'];
+  /** Nominal power capacity of the UPS. Unit: watts (W). Example: 1000 means the UPS is rated for 1000 watts. This is the maximum power the UPS can deliver */
+  nominalPower?: Maybe<Scalars['Int']['output']>;
   /** Output voltage being delivered to connected devices. Unit: volts (V). Example: 120.5 - should match input voltage when on mains power */
   outputVoltage: Scalars['Float']['output'];
 };

@@ -2,9 +2,9 @@ import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import type { Systeminformation } from 'systeminformation';
+import type { MockedFunction } from 'vitest';
 import { execa } from 'execa';
 import { blockDevices, diskLayout } from 'systeminformation';
-// Vitest imports
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -21,6 +21,8 @@ import {
 import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
 import { batchProcess } from '@app/utils.js';
 
+// Vitest imports
+
 // Mock the external dependencies using vi
 vi.mock('execa');
 vi.mock('systeminformation');
@@ -32,10 +34,10 @@ vi.mock('@app/utils.js', () => ({
 }));
 
 // Remove explicit type assertions for mocks
-const mockExeca = execa as any; // Using 'any' for simplicity with complex mock setups
-const mockBlockDevices = blockDevices as any;
-const mockDiskLayout = diskLayout as any;
-const mockBatchProcess = batchProcess as any;
+const mockExeca = execa as unknown as MockedFunction<typeof execa>;
+const mockBlockDevices = blockDevices as unknown as MockedFunction<typeof blockDevices>;
+const mockDiskLayout = diskLayout as unknown as MockedFunction<typeof diskLayout>;
+const mockBatchProcess = batchProcess as unknown as MockedFunction<typeof batchProcess>;
 
 describe('DisksService', () => {
     let service: DisksService;
@@ -303,7 +305,7 @@ describe('DisksService', () => {
 
         // Create mock ConfigService
         const mockConfigService = {
-            get: vi.fn().mockImplementation((key: string, defaultValue?: any) => {
+            get: vi.fn().mockImplementation((key: string, defaultValue?: unknown) => {
                 if (key === 'store.emhttp.disks') {
                     return mockArrayDisks;
                 }
@@ -335,7 +337,7 @@ describe('DisksService', () => {
             command: '',
             cwd: '',
             isCanceled: false,
-        }); // Default successful execa
+        } as unknown as Awaited<ReturnType<typeof execa>>); // Default successful execa
     });
 
     it('should be defined', () => {
@@ -383,7 +385,7 @@ describe('DisksService', () => {
         });
 
         it('should handle empty state gracefully', async () => {
-            vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: any) => {
+            vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: unknown) => {
                 if (key === 'store.emhttp.disks') {
                     return [];
                 }
@@ -500,64 +502,124 @@ describe('DisksService', () => {
     describe('getTemperature', () => {
         it('should return temperature for a disk', async () => {
             mockExeca.mockResolvedValue({
-                stdout: `ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE
-194 Temperature_Celsius     0x0022   114   091   000    Old_age   Always       -       42`,
+                stdout: JSON.stringify({
+                    temperature: { current: 42 },
+                    ata_smart_attributes: {
+                        table: [
+                            {
+                                id: 194,
+                                name: 'Temperature_Celsius',
+                                flags: { string: '0x0022', value: 34 },
+                                value: 114,
+                                worst: 91,
+                                thresh: 0,
+                                when_failed: '',
+                                raw: { value: 42, string: '42' },
+                            },
+                        ],
+                    },
+                }),
                 stderr: '',
                 exitCode: 0,
                 failed: false,
                 command: '',
                 cwd: '',
                 isCanceled: false,
-            });
-
+            } as unknown as Awaited<ReturnType<typeof execa>>);
             const temperature = await service.getTemperature('/dev/sda');
             expect(temperature).toBe(42);
-            expect(mockExeca).toHaveBeenCalledWith('smartctl', ['-A', '/dev/sda']);
+            expect(mockExeca).toHaveBeenCalledWith('smartctl', [
+                '-n',
+                'standby',
+                '-A',
+                '-j',
+                '/dev/sda',
+            ]);
         });
 
         it('should handle case where smartctl output has no temperature field', async () => {
             mockExeca.mockResolvedValue({
-                stdout: 'ID# ATTRIBUTE_NAME\n1 Some_Attribute 100 100 000 Old_age Always - 0',
+                stdout: JSON.stringify({
+                    ata_smart_attributes: {
+                        table: [
+                            {
+                                id: 1,
+                                name: 'Raw_Read_Error_Rate',
+                                flags: { string: '0x002f', value: 47 },
+                                value: 200,
+                                worst: 200,
+                                thresh: 51,
+                                when_failed: '',
+                                raw: { value: 0, string: '0' },
+                            },
+                        ],
+                    },
+                }),
                 stderr: '',
                 exitCode: 0,
                 failed: false,
                 command: '',
                 cwd: '',
                 isCanceled: false,
-            }); // No temp line
-
+            } as unknown as Awaited<ReturnType<typeof execa>>);
             const temperature = await service.getTemperature('/dev/sda');
             expect(temperature).toBeNull();
         });
 
         it('should handle case where smartctl output has Temperature_Celsius with Min/Max format', async () => {
             mockExeca.mockResolvedValue({
-                stdout: `ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE
-194 Temperature_Celsius     0x0022   070   060   000    Old_age   Always       -       30 (Min/Max 25/45)`,
+                stdout: JSON.stringify({
+                    ata_smart_attributes: {
+                        table: [
+                            {
+                                id: 194,
+                                name: 'Temperature_Celsius',
+                                flags: { string: '0x0022', value: 34 },
+                                value: 70,
+                                worst: 60,
+                                thresh: 0,
+                                when_failed: '',
+                                raw: { value: 30, string: '30 (Min/Max 25/45)' },
+                            },
+                        ],
+                    },
+                }),
                 stderr: '',
                 exitCode: 0,
                 failed: false,
                 command: '',
                 cwd: '',
                 isCanceled: false,
-            });
-
+            } as unknown as Awaited<ReturnType<typeof execa>>);
             const temperature = await service.getTemperature('/dev/sda');
             expect(temperature).toBe(30);
         });
 
         it('should handle case where smartctl output has Airflow_Temperature_Cel', async () => {
             mockExeca.mockResolvedValue({
-                stdout: `ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE
-190 Airflow_Temperature_Cel 0x0022   065   058   045    Old_age   Always       -       35  (Min/Max 30/42 #123)`,
+                stdout: JSON.stringify({
+                    ata_smart_attributes: {
+                        table: [
+                            {
+                                id: 190,
+                                name: 'Airflow_Temperature_Cel',
+                                flags: { string: '0x0022', value: 34 },
+                                value: 65,
+                                worst: 58,
+                                thresh: 45,
+                                when_failed: '',
+                                raw: { value: 35, string: '35 (Min/Max 30/42 #123)' },
+                            },
+                        ],
+                    },
+                }),
                 stderr: '',
                 exitCode: 0,
                 failed: false,
                 command: '',
                 cwd: '',
                 isCanceled: false,
-            });
-
+            } as unknown as Awaited<ReturnType<typeof execa>>);
             const temperature = await service.getTemperature('/dev/sda');
             expect(temperature).toBe(35);
         });
@@ -567,6 +629,52 @@ describe('DisksService', () => {
 
             const temperature = await service.getTemperature('/dev/sda');
             expect(temperature).toBeNull();
+        });
+
+        it('should return 0 when temperature is 0 degrees', async () => {
+            mockExeca.mockResolvedValue({
+                stdout: JSON.stringify({
+                    temperature: { current: 0 },
+                }),
+                stderr: '',
+                exitCode: 0,
+                failed: false,
+                command: '',
+                cwd: '',
+                isCanceled: false,
+            } as unknown as Awaited<ReturnType<typeof execa>>);
+            const temperature = await service.getTemperature('/dev/sda');
+            expect(temperature).toBe(0);
+        });
+
+        it('should return null when temperature is null or undefined', async () => {
+            mockExeca.mockResolvedValue({
+                stdout: JSON.stringify({
+                    temperature: { current: null },
+                }),
+                stderr: '',
+                exitCode: 0,
+                failed: false,
+                command: '',
+                cwd: '',
+                isCanceled: false,
+            } as unknown as Awaited<ReturnType<typeof execa>>);
+            const temperature = await service.getTemperature('/dev/sda');
+            expect(temperature).toBeNull();
+
+            mockExeca.mockResolvedValue({
+                stdout: JSON.stringify({
+                    temperature: {},
+                }),
+                stderr: '',
+                exitCode: 0,
+                failed: false,
+                command: '',
+                cwd: '',
+                isCanceled: false,
+            } as unknown as Awaited<ReturnType<typeof execa>>);
+            const temperature2 = await service.getTemperature('/dev/sda');
+            expect(temperature2).toBeNull();
         });
     });
 });

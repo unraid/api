@@ -1,4 +1,5 @@
 import type { TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { Test } from '@nestjs/testing';
 
@@ -7,8 +8,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
+import { MemoryUtilization } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
+import { TemperatureConfigService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.service.js';
+import { TemperatureService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.service.js';
 import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
 import { SubscriptionManagerService } from '@app/unraid-api/graph/services/subscription-manager.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
@@ -25,9 +29,27 @@ describe('MetricsResolver Integration Tests', () => {
                 CpuService,
                 CpuTopologyService,
                 MemoryService,
+                {
+                    provide: TemperatureService,
+                    useValue: {
+                        getMetrics: vi.fn().mockResolvedValue(null),
+                    },
+                },
                 SubscriptionTrackerService,
                 SubscriptionHelperService,
                 SubscriptionManagerService,
+                {
+                    provide: ConfigService,
+                    useValue: {
+                        get: vi.fn((key: string, defaultValue?: unknown) => defaultValue),
+                    },
+                },
+                {
+                    provide: TemperatureConfigService,
+                    useValue: {
+                        getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 5000 }),
+                    },
+                },
             ],
         }).compile();
 
@@ -141,7 +163,7 @@ describe('MetricsResolver Integration Tests', () => {
                     swapUsed: 0,
                     swapFree: 0,
                     percentSwapTotal: 0,
-                } as any;
+                } as MemoryUtilization;
             });
 
             // Trigger polling by simulating subscription

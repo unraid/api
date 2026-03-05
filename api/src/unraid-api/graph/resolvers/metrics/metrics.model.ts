@@ -4,6 +4,7 @@ import { Node } from '@unraid/shared/graphql.model.js';
 
 import { CpuUtilization } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
 import { MemoryUtilization } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
+import { TemperatureMetrics } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.model.js';
 
 @ObjectType({
     implements: () => Node,
@@ -18,4 +19,10 @@ export class Metrics extends Node {
         nullable: true,
     })
     memory?: MemoryUtilization;
+
+    @Field(() => TemperatureMetrics, {
+        nullable: true,
+        description: 'Temperature metrics',
+    })
+    temperature?: TemperatureMetrics;
 }

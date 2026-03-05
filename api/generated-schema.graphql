@@ -947,7 +947,7 @@ type BrandingConfig {
   partnerLogoDarkUrl: String
 
   """Indicates if a partner logo exists"""
-  hasPartnerLogo: Boolean!
+  hasPartnerLogo: Boolean
 
   """Custom title for onboarding welcome step"""
   onboardingTitle: String
@@ -1116,10 +1116,10 @@ type PluginInstallOperation {
 
 """Status of a plugin installation operation"""
 enum PluginInstallStatus {
+  FAILED
   QUEUED
   RUNNING
   SUCCEEDED
-  FAILED
 }
 
 """Emitted event representing progress for a plugin installation"""
@@ -2387,6 +2387,106 @@ type LogFileContent {
   startLine: Int
 }
 
+type TemperatureReading {
+  """Temperature value"""
+  value: Float!
+
+  """Temperature unit"""
+  unit: TemperatureUnit!
+
+  """Timestamp of reading"""
+  timestamp: DateTime!
+
+  """Temperature status"""
+  status: TemperatureStatus!
+}
+
+enum TemperatureUnit {
+  CELSIUS
+  FAHRENHEIT
+  KELVIN
+  RANKINE
+}
+
+enum TemperatureStatus {
+  NORMAL
+  WARNING
+  CRITICAL
+  UNKNOWN
+}
+
+type TemperatureSensor implements Node {
+  id: PrefixedID!
+
+  """Sensor name"""
+  name: String!
+
+  """Type of sensor"""
+  type: SensorType!
+
+  """Physical location"""
+  location: String
+
+  """Current temperature"""
+  current: TemperatureReading!
+
+  """Minimum recorded"""
+  min: TemperatureReading
+
+  """Maximum recorded"""
+  max: TemperatureReading
+
+  """Warning threshold"""
+  warning: Float
+
+  """Critical threshold"""
+  critical: Float
+
+  """Historical readings for this sensor"""
+  history: [TemperatureReading!]
+}
+
+"""Type of temperature sensor"""
+enum SensorType {
+  CPU_PACKAGE
+  CPU_CORE
+  MOTHERBOARD
+  CHIPSET
+  GPU
+  DISK
+  NVME
+  AMBIENT
+  VRM
+  CUSTOM
+}
+
+type TemperatureSummary {
+  """Average temperature across all sensors"""
+  average: Float!
+
+  """Hottest sensor"""
+  hottest: TemperatureSensor!
+
+  """Coolest sensor"""
+  coolest: TemperatureSensor!
+
+  """Count of sensors at warning level"""
+  warningCount: Int!
+
+  """Count of sensors at critical level"""
+  criticalCount: Int!
+}
+
+type TemperatureMetrics implements Node {
+  id: PrefixedID!
+
+  """All temperature sensors"""
+  sensors: [TemperatureSensor!]!
+
+  """Temperature summary"""
+  summary: TemperatureSummary!
+}
+
 """System metrics including CPU and memory utilization"""
 type Metrics implements Node {
   id: PrefixedID!
@@ -2396,6 +2496,43 @@ type Metrics implements Node {
 
   """Current memory utilization metrics"""
   memory: MemoryUtilization
+
+  """Temperature metrics"""
+  temperature: TemperatureMetrics
+}
+
+type SensorConfig {
+  enabled: Boolean
+}
+
+type LmSensorsConfig {
+  enabled: Boolean
+  config_path: String
+}
+
+type IpmiConfig {
+  enabled: Boolean
+  args: [String!]
+}
+
+type TemperatureSensorsConfig {
+  lm_sensors: LmSensorsConfig
+  smartctl: SensorConfig
+  ipmi: IpmiConfig
+}
+
+type TemperatureThresholdsConfig {
+  cpu_warning: Int
+  cpu_critical: Int
+  disk_warning: Int
+  disk_critical: Int
+  warning: Int
+  critical: Int
+}
+
+type TemperatureHistoryConfig {
+  max_readings: Int
+  retention_ms: Int
 }
 
 type Owner {
@@ -2611,6 +2748,16 @@ type UPSPower {
   Current load on the UPS as a percentage of its capacity. Unit: percent (%). Example: 25 means UPS is loaded at 25% of its maximum capacity
   """
   loadPercentage: Int!
+
+  """
+  Nominal power capacity of the UPS. Unit: watts (W). Example: 1000 means the UPS is rated for 1000 watts. This is the maximum power the UPS can deliver
+  """
+  nominalPower: Int
+
+  """
+  Current power consumption calculated from load percentage and nominal power. Unit: watts (W). Example: 350 means 350 watts currently being used. Calculated as: nominalPower * (loadPercentage / 100)
+  """
+  currentPower: Float
 }
 
 type UPSDevice {
@@ -3097,6 +3244,7 @@ type Mutation {
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
   updateSettings(input: JSON!): UpdateSettingsResponse!
+  updateTemperatureConfig(input: TemperatureConfigInput!): Boolean!
 
   """Update system time configuration"""
   updateSystemTime(input: UpdateSystemTimeInput!): SystemTime!
@@ -3147,6 +3295,49 @@ input InitiateFlashBackupInput {
   Additional options for the backup operation, such as --dry-run or --transfers.
   """
   options: JSON
+}
+
+input TemperatureConfigInput {
+  enabled: Boolean
+  polling_interval: Int
+  default_unit: TemperatureUnit
+  sensors: TemperatureSensorsConfigInput
+  thresholds: TemperatureThresholdsConfigInput
+  history: TemperatureHistoryConfigInput
+}
+
+input TemperatureSensorsConfigInput {
+  lm_sensors: LmSensorsConfigInput
+  smartctl: SensorConfigInput
+  ipmi: IpmiConfigInput
+}
+
+input LmSensorsConfigInput {
+  enabled: Boolean
+  config_path: String
+}
+
+input SensorConfigInput {
+  enabled: Boolean
+}
+
+input IpmiConfigInput {
+  enabled: Boolean
+  args: [String!]
+}
+
+input TemperatureThresholdsConfigInput {
+  cpu_warning: Int
+  cpu_critical: Int
+  disk_warning: Int
+  disk_critical: Int
+  warning: Int
+  critical: Int
+}
+
+input TemperatureHistoryConfigInput {
+  max_readings: Int
+  retention_ms: Int
 }
 
 input UpdateSystemTimeInput {
@@ -3332,6 +3523,7 @@ type Subscription {
   systemMetricsCpu: CpuUtilization!
   systemMetricsCpuTelemetry: CpuPackages!
   systemMetricsMemory: MemoryUtilization!
+  systemMetricsTemperature: TemperatureMetrics
   upsUpdates: UPSDevice!
   pluginInstallUpdates(operationId: ID!): PluginInstallEvent!
 }
