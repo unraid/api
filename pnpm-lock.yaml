@@ -41,8 +41,8 @@ importers:
         specifier: 4.12.2
         version: 4.12.2(graphql@16.11.0)
       '@as-integrations/fastify':
-        specifier: 2.1.1
-        version: 2.1.1(@apollo/server@4.12.2(graphql@16.11.0))(fastify@5.5.0)
+        specifier: 3.1.0
+        version: 3.1.0(@apollo/server@4.12.2(graphql@16.11.0))(fastify@5.5.0)
       '@fastify/cookie':
         specifier: 11.0.2
         version: 11.0.2
@@ -69,7 +69,7 @@ importers:
         version: 3.6.0
       '@nestjs/apollo':
         specifier: 13.1.0
-        version: 13.1.0(@apollo/server@4.12.2(graphql@16.11.0))(@as-integrations/fastify@2.1.1(@apollo/server@4.12.2(graphql@16.11.0))(fastify@5.5.0))(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/graphql@13.1.0(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.2)(graphql@16.11.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0))(graphql@16.11.0)
+        version: 13.1.0(@apollo/server@4.12.2(graphql@16.11.0))(@as-integrations/fastify@3.1.0(@apollo/server@4.12.2(graphql@16.11.0))(fastify@5.5.0))(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/graphql@13.1.0(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.2)(graphql@16.11.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0))(graphql@16.11.0)
       '@nestjs/cache-manager':
         specifier: 3.0.1
         version: 3.0.1(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(cache-manager@7.2.0)(keyv@5.5.0)(rxjs@7.8.2)
@@ -1533,6 +1533,13 @@ packages:
     peerDependencies:
       '@apollo/server': ^4.0.0
       fastify: ^4.4.0
+
+  '@as-integrations/fastify@3.1.0':
+    resolution: {integrity: sha512-hfK5adsybNj0qRc+5BiCOy50SqqOhPIctvaaGsjqq7ui8lO/TZkLtz6IvDhWC70vOcMXJuMJCTTEb4hex8RVgw==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@apollo/server': ^4.0.0 || ^5.0.0
+      fastify: ^5.3.0
 
   '@asamuzakjp/css-color@3.2.0':
     resolution: {integrity: sha512-K1A6z8tS3XsmCMM86xoWdn7Fkdn9m6RSVtocUrJYIwZnFVkng/PvkEoWtOWmP+Scc6saYWHWZYbndEEXxl24jw==}
@@ -13133,6 +13140,13 @@ snapshots:
       '@apollo/server': 4.12.2(graphql@16.11.0)
       fastify: 5.5.0
       fastify-plugin: 4.5.1
+    optional: true
+
+  '@as-integrations/fastify@3.1.0(@apollo/server@4.12.2(graphql@16.11.0))(fastify@5.5.0)':
+    dependencies:
+      '@apollo/server': 4.12.2(graphql@16.11.0)
+      fastify: 5.5.0
+      fastify-plugin: 5.0.1
 
   '@asamuzakjp/css-color@3.2.0':
     dependencies:
@@ -15233,6 +15247,20 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@as-integrations/fastify': 2.1.1(@apollo/server@4.12.2(graphql@16.11.0))(fastify@5.5.0)
+
+  '@nestjs/apollo@13.1.0(@apollo/server@4.12.2(graphql@16.11.0))(@as-integrations/fastify@3.1.0(@apollo/server@4.12.2(graphql@16.11.0))(fastify@5.5.0))(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/graphql@13.1.0(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.2)(graphql@16.11.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0))(graphql@16.11.0)':
+    dependencies:
+      '@apollo/server': 4.12.2(graphql@16.11.0)
+      '@apollo/server-plugin-landing-page-graphql-playground': 4.0.1(@apollo/server@4.12.2(graphql@16.11.0))
+      '@nestjs/common': 11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/core': 11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/graphql': 13.1.0(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.2)(graphql@16.11.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0)
+      graphql: 16.11.0
+      iterall: 1.3.0
+      lodash.omit: 4.5.0
+      tslib: 2.8.1
+    optionalDependencies:
+      '@as-integrations/fastify': 3.1.0(@apollo/server@4.12.2(graphql@16.11.0))(fastify@5.5.0)
 
   '@nestjs/cache-manager@3.0.1(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(cache-manager@7.2.0)(keyv@5.5.0)(rxjs@7.8.2)':
     dependencies:
@@ -20130,7 +20158,8 @@ snapshots:
     dependencies:
       strnum: 2.1.1
 
-  fastify-plugin@4.5.1: {}
+  fastify-plugin@4.5.1:
+    optional: true
 
   fastify-plugin@5.0.1: {}
 
