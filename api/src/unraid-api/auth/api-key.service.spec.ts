@@ -572,7 +572,7 @@ describe('ApiKeyService', () => {
                 roles: ['connect'],
             };
 
-            vi.mocked(readdir).mockResolvedValue(files as Awaited<ReturnType<typeof readdir>>);
+            vi.mocked(readdir).mockResolvedValue(files as any);
             vi.mocked(readFile)
                 .mockResolvedValueOnce(JSON.stringify(missingPermissionsKey))
                 .mockResolvedValueOnce(JSON.stringify(validConnectKeyOne))
