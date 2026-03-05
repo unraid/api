@@ -80,7 +80,7 @@
         "@reduxjs/toolkit": "2.8.2",
         "@runonflux/nat-upnp": "1.0.2",
         "@types/diff": "8.0.0",
-        "@unraid/libvirt": "2.1.0",
+        "@unraid/libvirt": "2.2.1",
         "@unraid/shared": "workspace:*",
         "accesscontrol": "2.2.1",
         "atomically": "2.0.3",

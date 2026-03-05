@@ -110,8 +110,8 @@ importers:
         specifier: 8.0.0
         version: 8.0.0
       '@unraid/libvirt':
-        specifier: 2.1.0
-        version: 2.1.0
+        specifier: 2.2.1
+        version: 2.2.1
       '@unraid/shared':
         specifier: workspace:*
         version: link:../packages/unraid-shared
@@ -5108,8 +5108,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@unraid/libvirt@2.1.0':
-    resolution: {integrity: sha512-yF/sAzYukM+VpDdAebf0z0O2mE5mGOEAW5lIafFkYoMiu60zNkNmr5IoA9hWCMmQkBOUCam8RZGs9YNwRjMtMQ==}
+  '@unraid/libvirt@2.2.1':
+    resolution: {integrity: sha512-2xmKqLVSDQFgwhAPDbuyJRd2SI5dLncxS82tSdd4wYm6qjXlsL8hqBi6PBeoo2dz9Aqpd/kIO9TIyFSWfx22vA==}
     engines: {node: '>=14'}
     cpu: [x64, arm64]
     os: [linux, darwin]
@@ -6979,10 +6979,6 @@ packages:
     resolution: {integrity: sha512-pGjwhsmsp4kL2RTz08wcOlGN83otlqHeD/Z5T8GXZB+/YcpQ/dgo+lbU8ZsGxV0HIvqqxo9l7mqYwyYMD9bKDg==}
     engines: {node: '>=0.10'}
     hasBin: true
-
-  detect-libc@2.0.3:
-    resolution: {integrity: sha512-bwy0MGW55bG41VqxxypOsdSdGqLwXPI/focwgTYCFMbdUiBAxLg9CFzG08sz2aqzknwiX7Hkl0bQENjg8iLByw==}
-    engines: {node: '>=8'}
 
   detect-libc@2.0.4:
     resolution: {integrity: sha512-3UDv+G9CsCKO1WKMGw9fwq/SWJYbI0c5Y7LU1AXYoDdbhE2AHQ6N6Nb34sG8Fj7T5APy8qXDCKuuIHd1BR0tVA==}
@@ -15155,7 +15151,7 @@ snapshots:
   '@mapbox/node-pre-gyp@2.0.0':
     dependencies:
       consola: 3.4.2
-      detect-libc: 2.0.3
+      detect-libc: 2.0.4
       https-proxy-agent: 7.0.6
       node-fetch: 2.7.0
       nopt: 8.1.0
@@ -17166,7 +17162,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@unraid/libvirt@2.1.0':
+  '@unraid/libvirt@2.2.1':
     dependencies:
       '@mapbox/node-pre-gyp': 2.0.0
       bindings: 1.5.0
@@ -19181,8 +19177,6 @@ snapshots:
   detect-indent@7.0.1: {}
 
   detect-libc@1.0.3: {}
-
-  detect-libc@2.0.3: {}
 
   detect-libc@2.0.4: {}
 
