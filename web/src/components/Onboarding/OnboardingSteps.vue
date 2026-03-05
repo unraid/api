@@ -41,9 +41,11 @@ const { t } = useI18n();
 t('onboarding.activationSteps.activateLicense');
 t('onboarding.activationSteps.createAnUnraidNetAccountAnd');
 t('onboarding.pluginsStep.addHelpfulPlugins');
+t('onboarding.internalBootStep.stepTitle');
+t('onboarding.internalBootStep.stepDescription');
 
 const formatStep = (title: string, index: number, icon?: string): StepItem => ({
-  title: `Step ${index + 1}`,
+  title: t('onboarding.stepper.stepLabel', { number: index + 1 }),
   description: title,
   icon,
 });

@@ -36,8 +36,8 @@ export const stepMetadata: Record<string, StepMetadataEntry> = {
     icon: 'i-heroicons-cog-6-tooth',
   },
   CONFIGURE_BOOT: {
-    titleKey: 'Setup Boot',
-    descriptionKey: 'Choose USB or storage drive boot',
+    titleKey: 'onboarding.internalBootStep.stepTitle',
+    descriptionKey: 'onboarding.internalBootStep.stepDescription',
     icon: 'i-heroicons-circle-stack',
   },
   ADD_PLUGINS: {

@@ -50,7 +50,9 @@ const hasExtraLinks = computed(() => (partnerInfo.value?.partner?.extraLinks?.le
 const hasAnyPartnerContent = computed(() => hasCoreDocsLinks.value || hasExtraLinks.value);
 const showRebootButton = computed(() => draftStore.internalBootApplySucceeded);
 const primaryButtonText = computed(() =>
-  showRebootButton.value ? 'Reboot' : t('onboarding.nextSteps.continueToDashboard')
+  showRebootButton.value
+    ? t('onboarding.nextSteps.reboot')
+    : t('onboarding.nextSteps.continueToDashboard')
 );
 const showRebootWarningDialog = ref(false);
 
@@ -331,7 +333,7 @@ const handleCancelReboot = () => {
           <!-- Additional Links -->
           <div v-if="hasExtraLinks" class="border-primary/10 border-t pt-4">
             <p class="text-muted mb-2 text-xs font-bold tracking-wide uppercase opacity-70">
-              Additional Links
+              {{ t('onboarding.nextSteps.additionalLinks') }}
             </p>
             <ul class="space-y-1.5">
               <li v-for="link in partnerInfo?.partner?.extraLinks" :key="link.title">
@@ -360,15 +362,13 @@ const handleCancelReboot = () => {
       >
         <div class="space-y-6 p-2">
           <div class="space-y-2">
-            <h3 class="text-lg font-semibold">Confirm Reboot</h3>
+            <h3 class="text-lg font-semibold">{{ t('onboarding.nextSteps.confirmReboot.title') }}</h3>
             <p class="text-muted-foreground text-sm">
-              On some systems, you may need to manually change the BIOS boot order from the USB device to
-              the storage drive.
+              {{ t('onboarding.nextSteps.confirmReboot.description') }}
             </p>
             <blockquote class="border-s-4 border-yellow-500 bg-yellow-100 p-3">
               <p class="text-sm leading-relaxed text-yellow-900">
-                Please do NOT remove your Unraid flash drive until your server has finished rebooting
-                into Unraid again.
+                {{ t('onboarding.nextSteps.confirmReboot.warning') }}
               </p>
             </blockquote>
           </div>
@@ -378,14 +378,14 @@ const handleCancelReboot = () => {
               class="border-muted hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium"
               @click="handleCancelReboot"
             >
-              Cancel
+              {{ t('common.cancel') }}
             </button>
             <button
               type="button"
               class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
               @click="handleConfirmReboot"
             >
-              I Understand
+              {{ t('onboarding.nextSteps.confirmReboot.confirm') }}
             </button>
           </div>
         </div>

@@ -397,7 +397,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
       <button
         type="button"
         class="bg-background/90 text-foreground hover:bg-muted fixed top-5 right-8 z-20 rounded-md p-1.5 shadow-sm transition-colors"
-        aria-label="Close onboarding"
+        :aria-label="t('onboarding.modal.closeAriaLabel')"
         @click="handleExitIntent"
       >
         <XMarkIcon class="h-5 w-5" />
@@ -433,9 +433,9 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
   >
     <div class="space-y-6 p-2">
       <div class="space-y-2">
-        <h3 class="text-lg font-semibold">Exit onboarding?</h3>
+        <h3 class="text-lg font-semibold">{{ t('onboarding.modal.exit.title') }}</h3>
         <p class="text-muted-foreground text-sm">
-          You can skip setup now and continue from the dashboard later.
+          {{ t('onboarding.modal.exit.description') }}
         </p>
       </div>
 
@@ -445,14 +445,14 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
           class="border-muted text-foreground hover:bg-muted rounded-md border px-4 py-2 text-sm"
           @click="handleExitCancel"
         >
-          Keep onboarding
+          {{ t('onboarding.modal.exit.keepOnboarding') }}
         </button>
         <button
           type="button"
           class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
           @click="handleExitConfirm"
         >
-          Exit setup
+          {{ t('onboarding.modal.exit.confirm') }}
         </button>
       </div>
     </div>

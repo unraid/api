@@ -76,7 +76,7 @@ const BOOT_SIZE_PRESETS_MIB = [16384, 32768, 65536, 131072];
 
 const formatBytes = (bytes: number) => {
   if (!Number.isFinite(bytes) || bytes <= 0) {
-    return 'Unknown';
+    return t('onboarding.internalBootStep.unknownSize');
   }
 
   const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
@@ -271,19 +271,19 @@ const isPrimaryActionLoading = computed(
 
 const loadStatusMessage = computed(() => {
   if (contextError.value) {
-    return 'Unable to load internal boot options from API.';
+    return t('onboarding.internalBootStep.status.apiError');
   }
   if (isAlreadyOnInternalBoot.value) {
-    return 'Internal boot is already configured on this server.';
+    return t('onboarding.internalBootStep.status.alreadyConfigured');
   }
   if (!isArrayStopped.value) {
-    return 'Internal boot setup is only available while the array is stopped.';
+    return t('onboarding.internalBootStep.status.arrayNotStopped');
   }
   if (!isBootPoolEligible.value) {
-    return 'This server is not currently eligible for internal boot setup.';
+    return t('onboarding.internalBootStep.status.notEligible');
   }
   if (deviceOptions.value.length === 0) {
-    return 'No eligible devices were detected for internal boot setup.';
+    return t('onboarding.internalBootStep.status.noDevices');
   }
   return '';
 });
@@ -343,7 +343,10 @@ const visiblePresetOptions = computed(() => {
 
   return filtered.map((value) => ({
     value: String(value),
-    label: value === 0 ? 'Whole drive' : `${Math.round(value / 1024)} GB`,
+    label:
+      value === 0
+        ? t('onboarding.internalBootStep.bootSize.wholeDrive')
+        : t('onboarding.internalBootStep.bootSize.gbLabel', { size: Math.round(value / 1024) }),
   }));
 });
 
@@ -365,9 +368,9 @@ const bootSizeMiB = computed(() => {
 
 const bootSizeHelpText = computed(() => {
   if (maxCustomBootSizeGb.value === null) {
-    return 'Minimum is 4 GB.';
+    return t('onboarding.internalBootStep.bootSize.helpMinOnly');
   }
-  return `Minimum is 4 GB; maximum is ${maxCustomBootSizeGb.value} GB (50% of the smallest selected drive).`;
+  return t('onboarding.internalBootStep.bootSize.helpRange', { max: maxCustomBootSizeGb.value });
 });
 
 const normalizeSelectedDevices = (count: number) => {
@@ -450,59 +453,59 @@ const isDeviceDisabled = (deviceId: string, index: number) => {
 const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
   const normalizedPoolName = poolName.value.trim();
   if (!normalizedPoolName) {
-    formError.value = 'Pool name is required.';
+    formError.value = t('onboarding.internalBootStep.validation.poolRequired');
     return null;
   }
 
   if (reservedNames.value.has(normalizedPoolName)) {
-    formError.value = 'Do not use reserved names.';
+    formError.value = t('onboarding.internalBootStep.validation.poolReserved');
     return null;
   }
 
   if (shareNames.value.has(normalizedPoolName)) {
-    formError.value = 'Do not use user share names.';
+    formError.value = t('onboarding.internalBootStep.validation.poolShareName');
     return null;
   }
 
   if (existingPoolNames.value.has(normalizedPoolName)) {
-    formError.value = 'Pool name already exists.';
+    formError.value = t('onboarding.internalBootStep.validation.poolExists');
     return null;
   }
 
   const poolNamePattern = /^[a-z]([a-z0-9~._-]*[a-z_-])*$/;
   if (!poolNamePattern.test(normalizedPoolName)) {
-    formError.value = 'Use only lowercase with no special characters or leading/trailing digits.';
+    formError.value = t('onboarding.internalBootStep.validation.poolFormat');
     return null;
   }
 
   if (slotCount.value < 1 || slotCount.value > 2) {
-    formError.value = 'Select 1 or 2 slots.';
+    formError.value = t('onboarding.internalBootStep.validation.slotCount');
     return null;
   }
 
   const devices = selectedDevices.value.slice(0, slotCount.value);
   if (devices.length !== slotCount.value || devices.some((device) => !device)) {
-    formError.value = 'Select a device for each slot.';
+    formError.value = t('onboarding.internalBootStep.validation.devicePerSlot');
     return null;
   }
 
   const uniqueDevices = new Set(devices);
   if (uniqueDevices.size !== devices.length) {
-    formError.value = 'Each selected device must be unique.';
+    formError.value = t('onboarding.internalBootStep.validation.uniqueDevices');
     return null;
   }
 
   const selectedBootSizeMiB = bootSizeMiB.value;
   if (selectedBootSizeMiB === null || !Number.isFinite(selectedBootSizeMiB)) {
-    formError.value = 'Select a valid boot reserved size.';
+    formError.value = t('onboarding.internalBootStep.validation.bootSizeRequired');
     return null;
   }
   if (selectedBootSizeMiB < 4096) {
-    formError.value = 'Boot reserved size must be at least 4 GB.';
+    formError.value = t('onboarding.internalBootStep.validation.bootSizeMin');
     return null;
   }
   if (maxBootSizeMiB.value !== null && selectedBootSizeMiB > maxBootSizeMiB.value) {
-    formError.value = 'Boot reserved size cannot exceed 50% of the smallest selected drive.';
+    formError.value = t('onboarding.internalBootStep.validation.bootSizeMax');
     return null;
   }
 
@@ -588,7 +591,7 @@ const handlePrimaryAction = () => {
   }
 
   if (!canConfigure.value) {
-    formError.value = loadStatusMessage.value || 'Internal boot setup is not available right now.';
+    formError.value = loadStatusMessage.value || t('onboarding.internalBootStep.status.unavailable');
     return;
   }
 
@@ -601,7 +604,7 @@ const handlePrimaryAction = () => {
   props.onComplete();
 };
 
-const primaryButtonText = computed(() => 'Continue');
+const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.continue'));
 </script>
 
 <template>
@@ -611,11 +614,12 @@ const primaryButtonText = computed(() => 'Continue');
         <div class="space-y-2">
           <div class="flex items-center gap-3">
             <CircleStackIcon class="text-primary h-8 w-8" />
-            <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">Setup Boot</h2>
+            <h2 class="text-highlighted text-3xl font-extrabold tracking-tight uppercase">
+              {{ t('onboarding.internalBootStep.title') }}
+            </h2>
           </div>
           <p class="text-muted text-lg">
-            Choose how Unraid boots: USB/Flash Drive (default) or Storage Drive(s). You can switch to
-            Storage Drive boot later in the Unraid Dashboard.
+            {{ t('onboarding.internalBootStep.description') }}
           </p>
         </div>
       </div>
@@ -632,7 +636,9 @@ const primaryButtonText = computed(() => 'Continue');
             :disabled="isStepLocked"
           />
           <div class="space-y-1">
-            <p class="text-highlighted text-sm font-semibold">Use USB/Flash Drive to boot Unraid</p>
+            <p class="text-highlighted text-sm font-semibold">
+              {{ t('onboarding.internalBootStep.options.usb') }}
+            </p>
           </div>
         </label>
         <label
@@ -646,7 +652,9 @@ const primaryButtonText = computed(() => 'Continue');
             :disabled="isStepLocked"
           />
           <div class="space-y-1">
-            <p class="text-highlighted text-sm font-semibold">Use Storage Drive(s) to boot Unraid</p>
+            <p class="text-highlighted text-sm font-semibold">
+              {{ t('onboarding.internalBootStep.options.storage') }}
+            </p>
           </div>
         </label>
       </div>
@@ -657,7 +665,9 @@ const primaryButtonText = computed(() => 'Continue');
       >
         <div class="flex items-start gap-2">
           <ExclamationTriangleIcon class="mt-0.5 h-6 w-6 flex-shrink-0 text-yellow-700" />
-          <p class="text-sm leading-relaxed text-yellow-900">All selected devices will be formatted.</p>
+          <p class="text-sm leading-relaxed text-yellow-900">
+            {{ t('onboarding.internalBootStep.warning.selectedDevicesFormatted') }}
+          </p>
         </div>
       </blockquote>
 
@@ -665,7 +675,7 @@ const primaryButtonText = computed(() => 'Continue');
         v-if="isStorageBootSelected && isLoading"
         class="text-muted rounded-lg border border-dashed p-4 text-sm"
       >
-        Loading internal boot options...
+        {{ t('onboarding.internalBootStep.loadingOptions') }}
       </div>
 
       <div
@@ -678,7 +688,9 @@ const primaryButtonText = computed(() => 'Continue');
       <div v-else-if="isStorageBootSelected" class="space-y-5">
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
           <label class="space-y-2">
-            <span class="text-muted text-sm font-medium">Pool name</span>
+            <span class="text-muted text-sm font-medium">
+              {{ t('onboarding.internalBootStep.fields.poolName') }}
+            </span>
             <input
               v-model="poolName"
               type="text"
@@ -689,7 +701,9 @@ const primaryButtonText = computed(() => 'Continue');
           </label>
 
           <label class="space-y-2">
-            <span class="text-muted text-sm font-medium">Slots</span>
+            <span class="text-muted text-sm font-medium">
+              {{ t('onboarding.internalBootStep.fields.slots') }}
+            </span>
             <select
               v-model.number="slotCount"
               class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
@@ -701,15 +715,19 @@ const primaryButtonText = computed(() => 'Continue');
         </div>
 
         <div class="space-y-3">
-          <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">Devices</h3>
+          <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
+            {{ t('onboarding.internalBootStep.fields.devices') }}
+          </h3>
           <div v-for="index in slotCount" :key="index" class="space-y-2">
-            <label class="text-muted text-sm font-medium">Device {{ index }}</label>
+            <label class="text-muted text-sm font-medium">{{
+              t('onboarding.internalBootStep.fields.deviceSlot', { index })
+            }}</label>
             <select
               v-model="selectedDevices[index - 1]"
               class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
               :disabled="isBusy"
             >
-              <option value="">Select device</option>
+              <option value="">{{ t('onboarding.internalBootStep.fields.selectDevice') }}</option>
               <option
                 v-for="option in deviceOptions"
                 :key="option.value"
@@ -724,7 +742,9 @@ const primaryButtonText = computed(() => 'Continue');
 
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
           <label class="space-y-2">
-            <span class="text-muted text-sm font-medium">Boot reserved size</span>
+            <span class="text-muted text-sm font-medium">
+              {{ t('onboarding.internalBootStep.fields.bootReservedSize') }}
+            </span>
             <select
               v-model="bootSizePreset"
               class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
@@ -733,12 +753,14 @@ const primaryButtonText = computed(() => 'Continue');
               <option v-for="option in visiblePresetOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
               </option>
-              <option value="custom">User defined</option>
+              <option value="custom">{{ t('onboarding.internalBootStep.bootSize.custom') }}</option>
             </select>
           </label>
 
           <label class="space-y-2">
-            <span class="text-muted text-sm font-medium">Custom size (GB)</span>
+            <span class="text-muted text-sm font-medium">
+              {{ t('onboarding.internalBootStep.fields.customSizeGb') }}
+            </span>
             <input
               v-model="customBootSizeGb"
               type="number"
@@ -759,14 +781,15 @@ const primaryButtonText = computed(() => 'Continue');
             class="accent-primary h-4 w-4"
             :disabled="isBusy"
           />
-          <span class="text-highlighted font-medium">Update BIOS boot order</span>
+          <span class="text-highlighted font-medium">{{
+            t('onboarding.internalBootStep.fields.updateBios')
+          }}</span>
         </label>
         <blockquote v-if="updateBios" class="border-s-4 border-yellow-500 bg-yellow-100 p-4">
           <div class="flex items-start gap-2">
             <ExclamationTriangleIcon class="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-700" />
             <p class="text-sm leading-relaxed text-yellow-900">
-              On some systems, you may need to manually change the BIOS boot order from the USB device to
-              the storage drive.
+              {{ t('onboarding.internalBootStep.warning.updateBios') }}
             </p>
           </div>
         </blockquote>

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { useI18n } from 'vue-i18n';
+
 import type { OnboardingErrorDiagnostics } from '@/components/Onboarding/composables/onboardingErrorDiagnostics';
 
 export interface LogEntry {
@@ -12,6 +14,7 @@ defineProps<{
   logs: LogEntry[];
   title?: string;
 }>();
+const { t } = useI18n();
 
 const formatTime = (ts?: number) => {
   if (!ts) return '';
@@ -33,7 +36,7 @@ const formatDetails = (details: OnboardingErrorDiagnostics) => JSON.stringify(de
     <!-- Header / Title -->
     <div class="flex items-center justify-between border-b border-gray-800 bg-gray-950 px-4 py-2">
       <span class="text-xs font-bold tracking-wider text-gray-400 uppercase">{{
-        title || 'Setup Console'
+        title || t('onboarding.console.title')
       }}</span>
       <div class="flex gap-1.5">
         <div class="h-2.5 w-2.5 rounded-full bg-red-500/20" />
@@ -46,7 +49,9 @@ const formatDetails = (details: OnboardingErrorDiagnostics) => JSON.stringify(de
     <div
       class="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent flex-1 space-y-1 overflow-y-auto p-4"
     >
-      <div v-if="logs.length === 0" class="text-gray-600 italic">Waiting...</div>
+      <div v-if="logs.length === 0" class="text-gray-600 italic">
+        {{ t('onboarding.console.waiting') }}
+      </div>
       <div v-for="(log, idx) in logs" :key="idx" class="flex gap-3">
         <span v-if="log.timestamp" class="shrink-0 text-gray-500 select-none"
           >[{{ formatTime(log.timestamp) }}]</span
@@ -68,7 +73,9 @@ const formatDetails = (details: OnboardingErrorDiagnostics) => JSON.stringify(de
             v-if="log.type === 'error' && log.details"
             class="mt-1 rounded border border-red-900/40 bg-red-950/30 px-2 py-1"
           >
-            <summary class="cursor-pointer text-xs text-red-300">Technical details</summary>
+            <summary class="cursor-pointer text-xs text-red-300">
+              {{ t('onboarding.console.technicalDetails') }}
+            </summary>
             <pre class="mt-1 overflow-x-auto text-xs break-words whitespace-pre-wrap text-red-200">{{
               formatDetails(log.details)
             }}</pre>

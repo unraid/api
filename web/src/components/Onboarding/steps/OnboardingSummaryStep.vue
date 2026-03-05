@@ -110,7 +110,11 @@ const currentTimeZone = computed(() => {
 });
 
 const serverName = computed(() => {
-  return draftStore.serverName || coreSettingsResult.value?.vars?.name || 'Tower';
+  return (
+    draftStore.serverName ||
+    coreSettingsResult.value?.vars?.name ||
+    t('onboarding.coreSettings.defaultServerName')
+  );
 });
 
 const activationSystemModel = computed(() => activationCode.value?.system?.model?.trim() || undefined);
@@ -131,7 +135,9 @@ const selectedBootMode = computed(() =>
   draftStore.bootMode === 'storage' || Boolean(draftStore.internalBootSelection) ? 'storage' : 'usb'
 );
 const bootModeLabel = computed(() =>
-  selectedBootMode.value === 'storage' ? 'Storage Drive(s)' : 'USB/Flash Drive'
+  selectedBootMode.value === 'storage'
+    ? t('onboarding.summaryStep.bootConfig.bootMethodStorage')
+    : t('onboarding.summaryStep.bootConfig.bootMethodUsb')
 );
 
 const internalBootSelection = computed(() => {
@@ -145,14 +151,14 @@ const hasInternalBootSelection = computed(() => Boolean(internalBootSelection.va
 
 const formatBootSize = (bootSizeMiB: number) => {
   if (bootSizeMiB === 0) {
-    return 'Whole drive';
+    return t('onboarding.internalBootStep.bootSize.wholeDrive');
   }
-  return `${Math.round(bootSizeMiB / 1024)} GB`;
+  return t('onboarding.internalBootStep.bootSize.gbLabel', { size: Math.round(bootSizeMiB / 1024) });
 };
 
 const formatBytes = (bytes: number) => {
   if (!Number.isFinite(bytes) || bytes <= 0) {
-    return 'Unknown';
+    return t('onboarding.internalBootStep.unknownSize');
   }
 
   const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
@@ -253,6 +259,8 @@ const showBootDriveWarningDialog = ref(false);
 const applyResultTitle = ref('');
 const applyResultMessage = ref('');
 const applyResultSeverity = ref<'success' | 'warning' | 'error'>('success');
+const summaryT = (key: string, values?: Record<string, unknown>) =>
+  t(`onboarding.summaryStep.${key}`, values ?? {});
 
 const addLog = (
   message: string,
@@ -277,7 +285,7 @@ const getErrorMessage = (caughtError: unknown) => {
     }
   }
 
-  return 'Unknown error';
+  return summaryT('errors.unknownError');
 };
 
 interface OnboardingErrorLogContext {
@@ -359,7 +367,7 @@ const normalizeThemeName = (value?: string | null): ThemeName => {
 };
 
 const TRUSTED_DEFAULT_PROFILE = Object.freeze({
-  serverName: 'Tower',
+  serverName: t('onboarding.coreSettings.defaultServerName'),
   serverDescription: '',
   timeZone: 'UTC',
   theme: ThemeName.WHITE,
@@ -400,15 +408,15 @@ type OnboardingPluginDetails = {
 const pluginMap: Record<string, OnboardingPluginDetails> = {
   'community-apps': {
     url: 'https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
-    name: 'Community Apps',
+    name: t('onboarding.pluginsStep.plugins.communityApps.name'),
   },
   'fix-common-problems': {
     url: 'https://raw.githubusercontent.com/unraid/fix.common.problems/master/plugins/fix.common.problems.plg',
-    name: 'Fix Common Problems',
+    name: t('onboarding.pluginsStep.plugins.fixCommonProblems.name'),
   },
   tailscale: {
     url: 'https://raw.githubusercontent.com/unraid/unraid-tailscale/main/plugin/tailscale.plg',
-    name: 'Tailscale',
+    name: t('onboarding.pluginsStep.plugins.tailscale.name'),
     installedFileAliases: ['tailscale-preview.plg'],
   },
 };
@@ -526,7 +534,7 @@ const activationStatus = computed(() => {
 
   if (state === 'ENOKEYFILE') {
     return {
-      label: 'Unregistered',
+      label: summaryT('activation.unregistered'),
       valid: false,
       icon: ExclamationTriangleIcon,
       color: 'text-yellow-500',
@@ -535,15 +543,15 @@ const activationStatus = computed(() => {
 
   // Error Mappings
   const errorMap: Record<string, string> = {
-    ENOKEYFILE1: 'Key Missing',
-    ENOKEYFILE2: 'Validation Error',
-    EGUID: 'GUID Mismatch',
-    EEXPIRED: 'Trial Expired',
-    EBLACKLISTED: 'Blacklisted',
+    ENOKEYFILE1: summaryT('activation.errors.keyMissing'),
+    ENOKEYFILE2: summaryT('activation.errors.validationError'),
+    EGUID: summaryT('activation.errors.guidMismatch'),
+    EEXPIRED: summaryT('activation.errors.trialExpired'),
+    EBLACKLISTED: summaryT('activation.errors.blacklisted'),
   };
 
   if (typeof state === 'string' && state.startsWith('E')) {
-    const label = errorMap[state] || `Error: ${state}`;
+    const label = errorMap[state] || summaryT('activation.errors.generic', { state });
     return {
       label,
       valid: false,
@@ -553,7 +561,7 @@ const activationStatus = computed(() => {
   }
 
   return {
-    label: state || 'Unknown',
+    label: state || summaryT('activation.unknown'),
     valid: false,
     icon: ExclamationCircleIcon,
     color: 'text-gray-400',
@@ -566,7 +574,7 @@ const handleComplete = async () => {
   }
   showBootDriveWarningDialog.value = false;
   if (!canApply.value) {
-    error.value = 'Settings are still loading. Please wait a moment and try again.';
+    error.value = summaryT('status.settingsStillLoading');
     return;
   }
 
@@ -577,10 +585,10 @@ const handleComplete = async () => {
   error.value = null;
   logs.value = []; // Clear logs
 
-  addLog('Starting configuration...', 'info');
+  addLog(summaryT('logs.startingConfiguration'), 'info');
   draftStore.setInternalBootApplySucceeded(false);
   if (showApplyReadinessWarning.value) {
-    addLog('Baseline settings unavailable. Continuing in best-effort mode.', 'info');
+    addLog(summaryT('logs.baselineUnavailable'), 'info');
   }
 
   try {
@@ -623,13 +631,10 @@ const handleComplete = async () => {
 
     if (!baselineLoaded) {
       hadWarnings = true;
-      addLog(
-        'Baseline settings unavailable. Applying trusted defaults + draft values without diff checks.',
-        'info'
-      );
+      addLog(summaryT('logs.baselineFallback'), 'info');
     }
     if (shouldApplyPartnerSysModel) {
-      addLog('Applying partner customizations...', 'info');
+      addLog(summaryT('logs.applyingPartnerCustomizations'), 'info');
     }
 
     const shouldApplyTimeZone = baselineLoaded ? targetCoreSettings.timeZone !== currentTimezone : true;
@@ -643,18 +648,18 @@ const handleComplete = async () => {
     const shouldApplySsh = baselineLoaded ? targetCoreSettings.useSsh !== currentSsh : true;
 
     if (!hasAnyChangesToApply.value) {
-      addLog('No settings changed. Skipping configuration mutations.', 'info');
+      addLog(summaryT('logs.noChanges'), 'info');
     }
 
     if (shouldApplyTimeZone) {
-      addLog(`Setting TimeZone to ${targetCoreSettings.timeZone}...`, 'info');
+      addLog(summaryT('logs.settingTimezone', { timeZone: targetCoreSettings.timeZone }), 'info');
       promises.push(
         updateSystemTime({ input: { timeZone: targetCoreSettings.timeZone } })
-          .then(() => addLog('TimeZone updated.', 'success'))
+          .then(() => addLog(summaryT('logs.timezoneUpdated'), 'success'))
           .catch((caughtError: unknown) => {
             hadNonOptimisticFailures = true;
             hadWarnings = true;
-            addErrorLog('TimeZone request returned an error, continuing', caughtError, {
+            addErrorLog(summaryT('logs.timezoneErrorContinue'), caughtError, {
               operation: 'UpdateSystemTime',
               variables: {
                 input: {
@@ -667,18 +672,18 @@ const handleComplete = async () => {
     }
 
     if (shouldApplyServerIdentity) {
-      addLog(`Updating Server Identity to ${targetCoreSettings.serverName}...`, 'info');
+      addLog(summaryT('logs.updatingServerIdentity', { name: targetCoreSettings.serverName }), 'info');
       promises.push(
         updateServerIdentity({
           name: targetCoreSettings.serverName,
           comment: targetCoreSettings.serverDescription,
           sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
         })
-          .then(() => addLog('Server Identity updated.', 'success'))
+          .then(() => addLog(summaryT('logs.serverIdentityUpdated'), 'success'))
           .catch((caughtError: unknown) => {
             hadNonOptimisticFailures = true;
             hadWarnings = true;
-            addErrorLog('Server identity request returned an error, continuing', caughtError, {
+            addErrorLog(summaryT('logs.serverIdentityErrorContinue'), caughtError, {
               operation: 'UpdateServerIdentity',
               variables: {
                 name: targetCoreSettings.serverName,
@@ -691,14 +696,14 @@ const handleComplete = async () => {
     }
 
     if (shouldApplyTheme) {
-      addLog(`Setting Theme to ${targetCoreSettings.theme}...`, 'info');
+      addLog(summaryT('logs.settingTheme', { theme: targetCoreSettings.theme }), 'info');
       promises.push(
         setTheme({ theme: targetCoreSettings.theme })
-          .then(() => addLog('Theme updated.', 'success'))
+          .then(() => addLog(summaryT('logs.themeUpdated'), 'success'))
           .catch((caughtError: unknown) => {
             hadNonOptimisticFailures = true;
             hadWarnings = true;
-            addErrorLog('Theme request returned an error, continuing', caughtError, {
+            addErrorLog(summaryT('logs.themeErrorContinue'), caughtError, {
               operation: 'SetTheme',
               variables: {
                 theme: targetCoreSettings.theme,
@@ -714,13 +719,13 @@ const handleComplete = async () => {
     if (shouldApplyLocale) {
       const targetLocale = targetCoreSettings.locale;
       if (targetLocale === 'en_US') {
-        addLog(`Setting Language to ${targetLocale}...`, 'info');
+        addLog(summaryT('logs.settingLanguage', { locale: targetLocale }), 'info');
         await setLocale({ locale: targetLocale })
-          .then(() => addLog('Language updated.', 'success'))
+          .then(() => addLog(summaryT('logs.languageUpdated'), 'success'))
           .catch((caughtError: unknown) => {
             hadNonOptimisticFailures = true;
             hadWarnings = true;
-            addErrorLog('Language request returned an error, continuing', caughtError, {
+            addErrorLog(summaryT('logs.languageErrorContinue'), caughtError, {
               operation: 'SetLocale',
               variables: {
                 locale: targetLocale,
@@ -738,10 +743,10 @@ const handleComplete = async () => {
           hadNonOptimisticFailures = true;
           hadWarnings = true;
           addLog(
-            `Language pack metadata for ${targetLocale} is unavailable. Skipping locale change.`,
+            summaryT('logs.languageMetadataUnavailable', { locale: targetLocale }),
             'error',
             buildOnboardingErrorDiagnostics(
-              new Error(`Language pack metadata for ${targetLocale} is unavailable`),
+              new Error(summaryT('logs.languageMetadataUnavailable', { locale: targetLocale })),
               {
                 operation: 'AvailableLanguages',
                 variables: {
@@ -751,7 +756,7 @@ const handleComplete = async () => {
             )
           );
         } else {
-          addLog(`Installing language pack for ${language.name}...`, 'info');
+          addLog(summaryT('logs.installingLanguagePack', { name: language.name }), 'info');
           try {
             const installResult = await installLanguage({
               forced: false,
@@ -763,7 +768,7 @@ const handleComplete = async () => {
               hadNonOptimisticFailures = true;
               hadWarnings = true;
               addLog(
-                `Language pack installation did not succeed for ${language.name}. Keeping current locale.`,
+                summaryT('logs.languageInstallDidNotSucceed', { name: language.name }),
                 'error',
                 buildOnboardingErrorDiagnostics(
                   {
@@ -784,14 +789,14 @@ const handleComplete = async () => {
                 )
               );
             } else {
-              addLog(`Language pack installed for ${language.name}.`, 'success');
-              addLog(`Setting Language to ${targetLocale}...`, 'info');
+              addLog(summaryT('logs.languagePackInstalled', { name: language.name }), 'success');
+              addLog(summaryT('logs.settingLanguage', { locale: targetLocale }), 'info');
               await setLocale({ locale: targetLocale })
-                .then(() => addLog('Language updated.', 'success'))
+                .then(() => addLog(summaryT('logs.languageUpdated'), 'success'))
                 .catch((caughtError: unknown) => {
                   hadNonOptimisticFailures = true;
                   hadWarnings = true;
-                  addErrorLog('Language request returned an error, continuing', caughtError, {
+                  addErrorLog(summaryT('logs.languageErrorContinue'), caughtError, {
                     operation: 'SetLocale',
                     variables: {
                       locale: targetLocale,
@@ -804,7 +809,7 @@ const handleComplete = async () => {
             hadWarnings = true;
             hadInstallTimeout = hadInstallTimeout || isInstallTimeoutError(caughtError);
             addErrorLog(
-              `Language pack installation failed for ${language.name}. Keeping current locale`,
+              summaryT('logs.languageInstallFailedKeepLocale', { name: language.name }),
               caughtError,
               {
                 operation: 'InstallLanguage',
@@ -825,18 +830,14 @@ const handleComplete = async () => {
       await refetchInstalledPlugins();
     } catch (caughtError: unknown) {
       hadWarnings = true;
-      addErrorLog(
-        'Could not refresh installed plugins list. Continuing with current plugin state.',
-        caughtError,
-        {
-          operation: 'InstalledUnraidPlugins',
-        }
-      );
+      addErrorLog(summaryT('logs.refreshPluginsFailedContinue'), caughtError, {
+        operation: 'InstalledUnraidPlugins',
+      });
     }
 
     const pluginsToInstall = pluginIdsToInstall.value;
     if (pluginsToInstall.length > 0) {
-      addLog(`Installing ${pluginsToInstall.length} plugins...`, 'info');
+      addLog(summaryT('logs.installingPlugins', { count: pluginsToInstall.length }), 'info');
 
       for (const pluginId of pluginsToInstall) {
         const details = pluginMap[pluginId];
@@ -846,11 +847,11 @@ const handleComplete = async () => {
             installedPluginFileNames.value.has(fileName)
           );
           if (isInstalled) {
-            addLog(`${details.name} is already installed. Skipping.`, 'info');
+            addLog(summaryT('logs.pluginAlreadyInstalled', { name: details.name }), 'info');
             continue;
           }
 
-          addLog(`Installing ${details.name}...`, 'info');
+          addLog(summaryT('logs.installingPlugin', { name: details.name }), 'info');
           try {
             const installResult = await installPlugin({
               url: details.url,
@@ -861,12 +862,12 @@ const handleComplete = async () => {
               },
             });
             if (installResult.status === PluginInstallStatus.SUCCEEDED) {
-              addLog(`${details.name} installed.`, 'success');
+              addLog(summaryT('logs.pluginInstalled', { name: details.name }), 'success');
             } else {
               hadNonOptimisticFailures = true;
               hadWarnings = true;
               addLog(
-                `${details.name} installation failed. Continuing.`,
+                summaryT('logs.pluginInstallFailedContinue', { name: details.name }),
                 'error',
                 buildOnboardingErrorDiagnostics(
                   {
@@ -892,7 +893,7 @@ const handleComplete = async () => {
             hadWarnings = true;
             hadInstallTimeout = hadInstallTimeout || isInstallTimeoutError(caughtError);
             addErrorLog(
-              `Plugin install reported an error for ${details.name}, continuing`,
+              summaryT('logs.pluginInstallErrorContinue', { name: details.name }),
               caughtError,
               {
                 operation: 'InstallPlugin',
@@ -912,10 +913,10 @@ const handleComplete = async () => {
     // 3. Internal boot setup
     if (internalBootSelection.value) {
       const selection = internalBootSelection.value;
-      addLog('Starting internal boot setup. This might take a while...', 'info');
-      addLog('Configuring internal boot pool...', 'info');
+      addLog(summaryT('logs.internalBootStart'), 'info');
+      addLog(summaryT('logs.internalBootConfiguring'), 'info');
       const internalBootProgressTimer = setInterval(() => {
-        addLog('Still setting up internal boot...', 'info');
+        addLog(summaryT('logs.internalBootStillRunning'), 'info');
       }, 10000);
       try {
         const result = await submitInternalBootCreation(
@@ -930,12 +931,12 @@ const handleComplete = async () => {
 
         if (result.ok) {
           draftStore.setInternalBootApplySucceeded(true);
-          addLog('Internal boot pool configured.', 'success');
+          addLog(summaryT('logs.internalBootConfigured'), 'success');
         } else {
           hadNonOptimisticFailures = true;
           hadWarnings = true;
           addLog(
-            `Internal boot setup returned an error: ${result.output}`,
+            summaryT('logs.internalBootReturnedError', { output: result.output }),
             'error',
             buildOnboardingErrorDiagnostics(
               {
@@ -962,7 +963,7 @@ const handleComplete = async () => {
       } catch (caughtError: unknown) {
         hadNonOptimisticFailures = true;
         hadWarnings = true;
-        addErrorLog('Internal boot setup failed', caughtError, {
+        addErrorLog(summaryT('logs.internalBootFailed'), caughtError, {
           operation: 'CreateInternalBootPool',
           variables: {
             poolName: selection.poolName,
@@ -979,7 +980,7 @@ const handleComplete = async () => {
 
     // 4. SSH (Run separately and optimistically)
     if (shouldApplySsh) {
-      addLog(`Updating SSH Settings...`, 'info');
+      addLog(summaryT('logs.updatingSshSettings'), 'info');
       try {
         const sshUpdateResult = await updateSshSettings({
           enabled: targetCoreSettings.useSsh,
@@ -988,43 +989,36 @@ const handleComplete = async () => {
         const sshVars = getSshVarsFromMutationResult(sshUpdateResult);
 
         if (isSshStateVerified(sshVars, targetCoreSettings.useSsh, 22)) {
-          addLog('SSH settings verified.', 'success');
+          addLog(summaryT('logs.sshVerified'), 'success');
         } else {
           hadWarnings = true;
           hadSshVerificationUncertainty = true;
-          addLog(
-            'SSH update submitted, but final SSH state could not be verified yet. Continuing.',
-            'info'
-          );
+          addLog(summaryT('logs.sshVerificationPendingContinue'), 'info');
         }
       } catch (caughtError: unknown) {
         hadWarnings = true;
         hadSshVerificationUncertainty = true;
-        addErrorLog(
-          'SSH update request returned an error, continuing (service may have restarted).',
-          caughtError,
-          {
-            operation: 'UpdateSshSettings',
-            variables: {
-              enabled: targetCoreSettings.useSsh,
-              port: 22,
-            },
-          }
-        );
+        addErrorLog(summaryT('logs.sshErrorContinue'), caughtError, {
+          operation: 'UpdateSshSettings',
+          variables: {
+            enabled: targetCoreSettings.useSsh,
+            port: 22,
+          },
+        });
       }
     }
 
     // 5. Mark Complete
-    addLog('Finalizing setup...', 'info');
+    addLog(summaryT('logs.finalizingSetup'), 'info');
 
     try {
       await completeOnboarding();
       completionMarked = true;
       cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
-      addLog('Setup complete!', 'success');
+      addLog(summaryT('logs.setupComplete'), 'success');
     } catch (caughtError: unknown) {
       hadWarnings = true;
-      addErrorLog('Could not mark onboarding complete right now (API may be offline)', caughtError, {
+      addErrorLog(summaryT('logs.completeOnboardingFailed'), caughtError, {
         operation: 'CompleteOnboarding',
       });
     }
@@ -1044,63 +1038,57 @@ const handleComplete = async () => {
         ]);
       } catch (caughtError: unknown) {
         hadWarnings = true;
-        addErrorLog('Could not refresh onboarding state right now. Continuing.', caughtError, {
+        addErrorLog(summaryT('logs.refreshOnboardingFailedContinue'), caughtError, {
           operation: 'OnboardingQuery',
         });
       }
     } else {
       hadWarnings = true;
-      addLog('Skipping onboarding state refresh while API is unavailable.', 'info');
+      addLog(summaryT('logs.skipRefreshApiUnavailable'), 'info');
     }
 
     if (!completionMarked) {
       applyResultSeverity.value = 'warning';
-      applyResultTitle.value = 'Setup Saved in Best-Effort Mode';
-      applyResultMessage.value =
-        'We applied what we could, but some results could not be verified because the API is offline. You can review and update settings anytime from the Unraid Dashboard.';
+      applyResultTitle.value = summaryT('result.bestEffortTitle');
+      applyResultMessage.value = summaryT('result.bestEffortApiOffline');
     } else if (hadInstallTimeout) {
       applyResultSeverity.value = 'warning';
-      applyResultTitle.value = 'Setup Continued After Timeout';
-      applyResultMessage.value =
-        'One or more install operations timed out. Some settings may have been applied. You can verify and adjust settings later from the Unraid Dashboard.';
+      applyResultTitle.value = summaryT('result.timeoutTitle');
+      applyResultMessage.value = summaryT('result.timeoutMessage');
     } else if (hadNonOptimisticFailures) {
       applyResultSeverity.value = 'warning';
-      applyResultTitle.value = 'Setup Applied with Warnings';
-      applyResultMessage.value =
-        'Some settings could not be fully applied or verified. You can review and change any setting later from the Unraid Dashboard.';
+      applyResultTitle.value = summaryT('result.warningsTitle');
+      applyResultMessage.value = summaryT('result.warningsMessage');
     } else if (hadSshVerificationUncertainty) {
       applyResultSeverity.value = 'warning';
-      applyResultTitle.value = 'Setup Saved in Best-Effort Mode';
-      applyResultMessage.value =
-        'Your SSH setting update was submitted, but final state could not be verified yet. You can verify and adjust it later from the Unraid Dashboard.';
+      applyResultTitle.value = summaryT('result.bestEffortTitle');
+      applyResultMessage.value = summaryT('result.sshUnverifiedMessage');
     } else if (hadWarnings) {
       applyResultSeverity.value = 'warning';
-      applyResultTitle.value = 'Setup Saved in Best-Effort Mode';
-      applyResultMessage.value =
-        'Your onboarding settings were applied. Some operations are best-effort and may take a moment to reflect. You can adjust settings later from the Unraid Dashboard.';
+      applyResultTitle.value = summaryT('result.bestEffortTitle');
+      applyResultMessage.value = summaryT('result.bestEffortMessage');
     } else {
       applyResultSeverity.value = 'success';
-      applyResultTitle.value = 'Setup Applied';
-      applyResultMessage.value = 'Your onboarding settings were applied successfully.';
+      applyResultTitle.value = summaryT('result.successTitle');
+      applyResultMessage.value = summaryT('result.successMessage');
     }
 
     isProcessing.value = false;
     showApplyResultDialog.value = true;
   } catch (err: unknown) {
     console.error('Failed to complete onboarding:', err);
-    error.value = 'An error occurred during setup. Please check the logs.';
+    error.value = summaryT('status.setupErrorCheckLogs');
     isProcessing.value = false;
     addLog(
-      'Setup failed.',
+      summaryT('logs.setupFailed'),
       'error',
       buildOnboardingErrorDiagnostics(err, {
         operation: 'ConfirmAndApply',
       })
     );
     applyResultSeverity.value = 'error';
-    applyResultTitle.value = 'Setup Failed';
-    applyResultMessage.value =
-      'An unexpected error interrupted onboarding. Review the logs below and share them with support.';
+    applyResultTitle.value = summaryT('result.failedTitle');
+    applyResultMessage.value = summaryT('result.failedMessage');
     showApplyResultDialog.value = true;
   }
 };
@@ -1178,13 +1166,13 @@ const handleBack = () => {
               <span class="text-highlighted font-medium break-all sm:text-right">{{ serverName }}</span>
             </div>
             <div class="bg-elevated flex flex-col rounded text-sm" v-if="draftStore.serverDescription">
-              <span class="text-muted">Server Description</span>
+              <span class="text-muted">{{ t('onboarding.coreSettings.serverDescription') }}</span>
               <span class="text-highlighted font-medium break-all">{{
                 draftStore.serverDescription
               }}</span>
             </div>
             <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">Activation</span>
+              <span class="text-muted">{{ t('onboarding.summaryStep.activationLabel') }}</span>
               <div class="flex items-center gap-1.5 sm:justify-end">
                 <component :is="activationStatus.icon" :class="['h-4 w-4', activationStatus.color]" />
                 <span class="text-highlighted font-medium break-all">{{ activationStatus.label }}</span>
@@ -1197,7 +1185,9 @@ const handleBack = () => {
         <div class="border-muted bg-bg/50 rounded-lg border p-5">
           <div class="mb-4 flex items-center gap-2">
             <GlobeAltIcon class="text-primary h-5 w-5" />
-            <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">Configuration</h3>
+            <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
+              {{ t('onboarding.summaryStep.configuration') }}
+            </h3>
           </div>
           <div class="space-y-3">
             <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
@@ -1222,14 +1212,14 @@ const handleBack = () => {
             </div>
             <!-- Theme & Language -->
             <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">Theme</span>
+              <span class="text-muted">{{ t('onboarding.coreSettings.theme') }}</span>
               <div class="flex items-center gap-1.5 sm:justify-end">
                 <SwatchIcon class="text-muted h-4 w-4" />
                 <span class="text-highlighted font-medium break-all capitalize">{{ displayTheme }}</span>
               </div>
             </div>
             <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">Language</span>
+              <span class="text-muted">{{ t('onboarding.coreSettings.language') }}</span>
               <div class="flex items-center gap-1.5 sm:justify-end">
                 <LanguageIcon class="text-muted h-4 w-4" />
                 <span class="text-highlighted font-medium break-all">{{ displayLanguage }}</span>
@@ -1257,15 +1247,17 @@ const handleBack = () => {
                 <h3 class="text-highlighted mb-0.5 text-sm font-bold uppercase">
                   {{ t('onboarding.pluginsStep.title') }}
                 </h3>
-                <p class="text-muted text-xs">{{ draftPluginsCount }} plugins selected</p>
+                <p class="text-muted text-xs">
+                  {{ t('onboarding.summaryStep.pluginsSelected', { count: draftPluginsCount }) }}
+                </p>
               </div>
             </div>
             <div
               v-if="draftPluginsCount > 0"
               class="text-primary hover:text-primary/80 flex items-center gap-2 text-sm font-medium transition-colors"
             >
-              <span v-if="!open">View Selected</span>
-              <span v-else>Hide Selected</span>
+              <span v-if="!open">{{ t('onboarding.summaryStep.viewSelected') }}</span>
+              <span v-else>{{ t('onboarding.summaryStep.hideSelected') }}</span>
               <ChevronDownIcon
                 :class="[
                   open ? 'rotate-180 transform' : '',
@@ -1285,7 +1277,7 @@ const handleBack = () => {
             <DisclosurePanel class="px-5 pt-0 pb-5">
               <div class="border-muted space-y-2 border-t pt-4">
                 <div v-if="draftPluginsCount === 0" class="text-muted text-sm italic">
-                  No plugins selected.
+                  {{ t('onboarding.summaryStep.noPluginsSelected') }}
                 </div>
                 <div
                   v-else
@@ -1325,41 +1317,45 @@ const handleBack = () => {
       <div class="border-muted bg-bg/50 mt-6 rounded-lg border p-5">
         <div class="mb-4 flex items-center gap-2">
           <CircleStackIcon class="text-primary h-5 w-5" />
-          <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">Boot Configuration</h3>
+          <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
+            {{ t('onboarding.summaryStep.bootConfig.title') }}
+          </h3>
         </div>
         <div class="space-y-3">
           <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-            <span class="text-muted">Boot Method</span>
+            <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.bootMethod') }}</span>
             <span class="text-highlighted font-medium break-all sm:text-right">{{ bootModeLabel }}</span>
           </div>
 
           <template v-if="internalBootSummary">
             <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">Pool</span>
+              <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.pool') }}</span>
               <span class="text-highlighted font-medium break-all sm:text-right">{{
                 internalBootSummary.poolName
               }}</span>
             </div>
             <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">Slots</span>
+              <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.slots') }}</span>
               <span class="text-highlighted font-medium break-all sm:text-right">{{
                 internalBootSummary.slotCount
               }}</span>
             </div>
             <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">Boot Reserved</span>
+              <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.bootReserved') }}</span>
               <span class="text-highlighted font-medium break-all sm:text-right">{{
                 internalBootSummary.bootReservedSize
               }}</span>
             </div>
             <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">Update BIOS</span>
+              <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.updateBios') }}</span>
               <span class="text-highlighted font-medium break-all sm:text-right">{{
-                internalBootSummary.updateBios ? 'Yes' : 'No'
+                internalBootSummary.updateBios
+                  ? t('onboarding.summaryStep.yes')
+                  : t('onboarding.summaryStep.no')
               }}</span>
             </div>
             <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
-              <span class="text-muted">Devices</span>
+              <span class="text-muted">{{ t('onboarding.summaryStep.bootConfig.devices') }}</span>
               <div class="flex flex-wrap gap-2 sm:justify-end">
                 <span
                   v-for="device in selectedBootDevices"
@@ -1376,7 +1372,7 @@ const handleBack = () => {
 
       <!-- Processing / Error Status -->
       <div v-if="showConsole" class="mt-6">
-        <OnboardingConsole :logs="logs" title="System Setup Log" />
+        <OnboardingConsole :logs="logs" :title="t('onboarding.summaryStep.systemSetupLog')" />
       </div>
 
       <div
@@ -1392,8 +1388,7 @@ const handleBack = () => {
         class="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/10"
       >
         <p class="text-center text-sm font-medium text-yellow-700 dark:text-yellow-300">
-          We couldn't verify current settings from the server. You can still continue, but setup will
-          apply changes in best-effort mode.
+          {{ t('onboarding.summaryStep.readinessWarning') }}
         </p>
       </div>
 
@@ -1407,8 +1402,10 @@ const handleBack = () => {
       >
         <div class="space-y-6 p-2">
           <div class="space-y-3">
-            <h3 class="text-lg font-semibold">Confirm Drive Wipe</h3>
-            <p class="text-muted-foreground text-sm">You've selected drives:</p>
+            <h3 class="text-lg font-semibold">{{ t('onboarding.summaryStep.driveWipe.title') }}</h3>
+            <p class="text-muted-foreground text-sm">
+              {{ t('onboarding.summaryStep.driveWipe.selectedDrives') }}
+            </p>
             <div class="flex flex-wrap gap-2">
               <span
                 v-for="device in selectedBootDevices"
@@ -1418,7 +1415,9 @@ const handleBack = () => {
                 {{ device.label }}
               </span>
             </div>
-            <p class="text-muted-foreground text-sm">Are you sure you want to continue?</p>
+            <p class="text-muted-foreground text-sm">
+              {{ t('onboarding.summaryStep.driveWipe.confirmPrompt') }}
+            </p>
           </div>
           <div class="flex justify-end gap-3">
             <button
@@ -1426,14 +1425,14 @@ const handleBack = () => {
               class="border-muted hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium"
               @click="handleBootDriveWarningCancel"
             >
-              Cancel
+              {{ t('common.cancel') }}
             </button>
             <button
               type="button"
               class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
               @click="handleBootDriveWarningConfirm"
             >
-              Continue
+              {{ t('onboarding.summaryStep.driveWipe.continue') }}
             </button>
           </div>
         </div>
@@ -1456,8 +1455,10 @@ const handleBack = () => {
           </div>
 
           <div v-if="showDiagnosticLogsInResultDialog" class="space-y-3">
-            <h4 class="text-sm font-semibold tracking-wide uppercase">Diagnostic Logs</h4>
-            <OnboardingConsole :logs="logs" title="Onboarding Diagnostics" />
+            <h4 class="text-sm font-semibold tracking-wide uppercase">
+              {{ t('onboarding.summaryStep.diagnosticLogs') }}
+            </h4>
+            <OnboardingConsole :logs="logs" :title="t('onboarding.summaryStep.onboardingDiagnostics')" />
           </div>
 
           <div class="flex justify-end gap-3">
@@ -1466,7 +1467,7 @@ const handleBack = () => {
               class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
               @click="handleApplyResultConfirm"
             >
-              OK
+              {{ t('onboarding.summaryStep.ok') }}
             </button>
           </div>
         </div>
