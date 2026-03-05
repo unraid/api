@@ -14,6 +14,36 @@ import {
 export class ServerService {
     private readonly logger = new Logger(ServerService.name);
 
+    private buildServerResponse(
+        emhttpState: ReturnType<typeof getters.emhttp>,
+        name: string,
+        comment: string
+    ): Server {
+        const guid = emhttpState.var?.regGuid ?? '';
+        const lanip = emhttpState.networks?.[0]?.ipaddr?.[0] ?? '';
+        const port = emhttpState.var?.port ?? '';
+        const owner: ProfileModel = {
+            id: 'local',
+            username: 'root',
+            url: '',
+            avatar: '',
+        };
+
+        return {
+            id: 'local',
+            owner,
+            guid,
+            apikey: '',
+            name,
+            comment,
+            status: ServerStatus.ONLINE,
+            wanip: '',
+            lanip,
+            localurl: lanip ? `http://${lanip}:${port}` : '',
+            remoteurl: '',
+        };
+    }
+
     /**
      * Updates the server identity (name and comment/description).
      * The array must be stopped to change the server name.
@@ -58,7 +88,16 @@ export class ServerService {
         // Actually, UI only disables it if array is not stopped.
         // Let's check current name.
         const currentEmhttp = getters.emhttp();
-        const currentName = currentEmhttp.var?.name;
+        const currentName = currentEmhttp.var?.name ?? '';
+        const currentComment = currentEmhttp.var?.comment ?? '';
+        const currentSysModel = currentEmhttp.var?.sysModel ?? '';
+        const nextComment = comment ?? currentComment;
+        const nextSysModel = sysModel ?? currentSysModel;
+
+        if (name === currentName && nextComment === currentComment && nextSysModel === currentSysModel) {
+            this.logger.log('Server identity unchanged; skipping emcmd update.');
+            return this.buildServerResponse(currentEmhttp, currentName, currentComment);
+        }
 
         if (name !== currentName) {
             const fsState = currentEmhttp.var?.fsState;
@@ -83,30 +122,8 @@ export class ServerService {
             await emcmd(params, { waitForToken: true });
             this.logger.log('Server identity updated successfully via emcmd.');
             const latestEmhttp = getters.emhttp();
-            const guid = latestEmhttp.var?.regGuid ?? '';
-            const lanip = latestEmhttp.networks?.[0]?.ipaddr?.[0] ?? '';
-            const port = latestEmhttp.var?.port ?? '';
-            const nextComment = comment ?? latestEmhttp.var?.comment;
-            const owner: ProfileModel = {
-                id: 'local',
-                username: 'root',
-                url: '',
-                avatar: '',
-            };
-
-            return {
-                id: 'local',
-                owner,
-                guid,
-                apikey: '',
-                name,
-                comment: nextComment,
-                status: ServerStatus.ONLINE,
-                wanip: '',
-                lanip,
-                localurl: lanip ? `http://${lanip}:${port}` : '',
-                remoteurl: '',
-            };
+            const responseComment = comment ?? latestEmhttp.var?.comment ?? currentComment;
+            return this.buildServerResponse(latestEmhttp, name, responseComment);
         } catch (error) {
             this.logger.error('Failed to update server identity', error);
             throw new GraphQLError('Failed to update server identity');

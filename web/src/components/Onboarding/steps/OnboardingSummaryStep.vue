@@ -646,6 +646,32 @@ const handleComplete = async () => {
     const shouldApplyTheme = baselineLoaded ? targetCoreSettings.theme !== currentTheme : true;
     const shouldApplyLocale = baselineLoaded ? targetCoreSettings.locale !== currentLocale : true;
     const shouldApplySsh = baselineLoaded ? targetCoreSettings.useSsh !== currentSsh : true;
+    const applyServerIdentityAtEnd = async () => {
+      if (!shouldApplyServerIdentity) {
+        return;
+      }
+
+      addLog(summaryT('logs.updatingServerIdentity', { name: targetCoreSettings.serverName }), 'info');
+      try {
+        await updateServerIdentity({
+          name: targetCoreSettings.serverName,
+          comment: targetCoreSettings.serverDescription,
+          sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
+        });
+        addLog(summaryT('logs.serverIdentityUpdated'), 'success');
+      } catch (caughtError: unknown) {
+        hadNonOptimisticFailures = true;
+        hadWarnings = true;
+        addErrorLog(summaryT('logs.serverIdentityErrorContinue'), caughtError, {
+          operation: 'UpdateServerIdentity',
+          variables: {
+            name: targetCoreSettings.serverName,
+            comment: targetCoreSettings.serverDescription,
+            sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
+          },
+        });
+      }
+    };
 
     if (!hasAnyChangesToApply.value) {
       addLog(summaryT('logs.noChanges'), 'info');
@@ -665,30 +691,6 @@ const handleComplete = async () => {
                 input: {
                   timeZone: targetCoreSettings.timeZone,
                 },
-              },
-            });
-          })
-      );
-    }
-
-    if (shouldApplyServerIdentity) {
-      addLog(summaryT('logs.updatingServerIdentity', { name: targetCoreSettings.serverName }), 'info');
-      promises.push(
-        updateServerIdentity({
-          name: targetCoreSettings.serverName,
-          comment: targetCoreSettings.serverDescription,
-          sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
-        })
-          .then(() => addLog(summaryT('logs.serverIdentityUpdated'), 'success'))
-          .catch((caughtError: unknown) => {
-            hadNonOptimisticFailures = true;
-            hadWarnings = true;
-            addErrorLog(summaryT('logs.serverIdentityErrorContinue'), caughtError, {
-              operation: 'UpdateServerIdentity',
-              variables: {
-                name: targetCoreSettings.serverName,
-                comment: targetCoreSettings.serverDescription,
-                sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
               },
             });
           })
@@ -1046,6 +1048,8 @@ const handleComplete = async () => {
       hadWarnings = true;
       addLog(summaryT('logs.skipRefreshApiUnavailable'), 'info');
     }
+
+    await applyServerIdentityAtEnd();
 
     if (!completionMarked) {
       applyResultSeverity.value = 'warning';

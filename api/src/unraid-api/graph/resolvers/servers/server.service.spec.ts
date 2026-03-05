@@ -131,6 +131,35 @@ describe('ServerService', () => {
         });
     });
 
+    it('skips emcmd when identity values are unchanged', async () => {
+        const result = await service.updateServerIdentity('Tower', 'Tower comment');
+
+        expect(emcmd).not.toHaveBeenCalled();
+        expect(result).toMatchObject({
+            name: 'Tower',
+            comment: 'Tower comment',
+            lanip: '192.168.1.10',
+        });
+    });
+
+    it('skips emcmd when sysModel is unchanged', async () => {
+        vi.mocked(getters.emhttp).mockReturnValue({
+            var: {
+                name: 'Tower',
+                fsState: 'Stopped',
+                regGuid: 'GUID-123',
+                port: '80',
+                comment: 'Tower comment',
+                sysModel: 'Model X200',
+            },
+            networks: [{ ipaddr: ['192.168.1.10'] }],
+        } as unknown as ReturnType<typeof getters.emhttp>);
+
+        await service.updateServerIdentity('Tower', 'Tower comment', 'Model X200');
+
+        expect(emcmd).not.toHaveBeenCalled();
+    });
+
     it('includes SYS_MODEL when provided', async () => {
         await service.updateServerIdentity('Tower', 'Primary host', 'Model X200');
 
