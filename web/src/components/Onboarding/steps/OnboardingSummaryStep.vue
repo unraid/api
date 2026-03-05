@@ -26,6 +26,7 @@ import {
 import { BrandButton, Dialog } from '@unraid/ui';
 import OnboardingConsole from '@/components/Onboarding/components/OnboardingConsole.vue';
 import { submitInternalBootCreation } from '@/components/Onboarding/composables/internalBoot';
+import { buildOnboardingErrorDiagnostics } from '@/components/Onboarding/composables/onboardingErrorDiagnostics';
 import usePluginInstaller, {
   INSTALL_OPERATION_TIMEOUT_CODE,
 } from '@/components/Onboarding/composables/usePluginInstaller';
@@ -47,6 +48,7 @@ import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgrade
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
+import type { OnboardingErrorDiagnostics } from '@/components/Onboarding/composables/onboardingErrorDiagnostics';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
@@ -252,8 +254,43 @@ const applyResultTitle = ref('');
 const applyResultMessage = ref('');
 const applyResultSeverity = ref<'success' | 'warning' | 'error'>('success');
 
-const addLog = (message: string, type: LogEntry['type'] = 'info') => {
-  logs.value.push({ message, type, timestamp: Date.now() });
+const addLog = (
+  message: string,
+  type: LogEntry['type'] = 'info',
+  details?: OnboardingErrorDiagnostics
+) => {
+  logs.value.push({ message, type, timestamp: Date.now(), details });
+};
+
+const getErrorMessage = (caughtError: unknown) => {
+  if (caughtError instanceof Error) {
+    const trimmedMessage = caughtError.message.trim();
+    if (trimmedMessage) {
+      return trimmedMessage;
+    }
+  }
+
+  if (typeof caughtError === 'string') {
+    const trimmedMessage = caughtError.trim();
+    if (trimmedMessage) {
+      return trimmedMessage;
+    }
+  }
+
+  return 'Unknown error';
+};
+
+interface OnboardingErrorLogContext {
+  operation: string;
+  variables?: unknown;
+}
+
+const addErrorLog = (message: string, caughtError: unknown, context: OnboardingErrorLogContext) => {
+  addLog(
+    `${message}: ${getErrorMessage(caughtError)}`,
+    'error',
+    buildOnboardingErrorDiagnostics(caughtError, context)
+  );
 };
 
 const showDiagnosticLogsInResultDialog = computed(
@@ -592,10 +629,17 @@ const handleComplete = async () => {
       promises.push(
         updateSystemTime({ input: { timeZone: targetCoreSettings.timeZone } })
           .then(() => addLog('TimeZone updated.', 'success'))
-          .catch((e) => {
+          .catch((caughtError: unknown) => {
             hadNonOptimisticFailures = true;
             hadWarnings = true;
-            addLog(`TimeZone request returned an error, continuing: ${e.message}`, 'info');
+            addErrorLog('TimeZone request returned an error, continuing', caughtError, {
+              operation: 'UpdateSystemTime',
+              variables: {
+                input: {
+                  timeZone: targetCoreSettings.timeZone,
+                },
+              },
+            });
           })
       );
     }
@@ -609,10 +653,17 @@ const handleComplete = async () => {
           sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
         })
           .then(() => addLog('Server Identity updated.', 'success'))
-          .catch((e) => {
+          .catch((caughtError: unknown) => {
             hadNonOptimisticFailures = true;
             hadWarnings = true;
-            addLog(`Server identity request returned an error, continuing: ${e.message}`, 'info');
+            addErrorLog('Server identity request returned an error, continuing', caughtError, {
+              operation: 'UpdateServerIdentity',
+              variables: {
+                name: targetCoreSettings.serverName,
+                comment: targetCoreSettings.serverDescription,
+                sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
+              },
+            });
           })
       );
     }
@@ -622,10 +673,15 @@ const handleComplete = async () => {
       promises.push(
         setTheme({ theme: targetCoreSettings.theme })
           .then(() => addLog('Theme updated.', 'success'))
-          .catch((e) => {
+          .catch((caughtError: unknown) => {
             hadNonOptimisticFailures = true;
             hadWarnings = true;
-            addLog(`Theme request returned an error, continuing: ${e.message}`, 'info');
+            addErrorLog('Theme request returned an error, continuing', caughtError, {
+              operation: 'SetTheme',
+              variables: {
+                theme: targetCoreSettings.theme,
+              },
+            });
           })
       );
     }
@@ -639,10 +695,15 @@ const handleComplete = async () => {
         addLog(`Setting Language to ${targetLocale}...`, 'info');
         await setLocale({ locale: targetLocale })
           .then(() => addLog('Language updated.', 'success'))
-          .catch((e) => {
+          .catch((caughtError: unknown) => {
             hadNonOptimisticFailures = true;
             hadWarnings = true;
-            addLog(`Language request returned an error, continuing: ${e.message}`, 'info');
+            addErrorLog('Language request returned an error, continuing', caughtError, {
+              operation: 'SetLocale',
+              variables: {
+                locale: targetLocale,
+              },
+            });
           });
       } else {
         const availableLanguages =
@@ -656,7 +717,16 @@ const handleComplete = async () => {
           hadWarnings = true;
           addLog(
             `Language pack metadata for ${targetLocale} is unavailable. Skipping locale change.`,
-            'error'
+            'error',
+            buildOnboardingErrorDiagnostics(
+              new Error(`Language pack metadata for ${targetLocale} is unavailable`),
+              {
+                operation: 'AvailableLanguages',
+                variables: {
+                  locale: targetLocale,
+                },
+              }
+            )
           );
         } else {
           addLog(`Installing language pack for ${language.name}...`, 'info');
@@ -672,27 +742,56 @@ const handleComplete = async () => {
               hadWarnings = true;
               addLog(
                 `Language pack installation did not succeed for ${language.name}. Keeping current locale.`,
-                'error'
+                'error',
+                buildOnboardingErrorDiagnostics(
+                  {
+                    message: `Language install operation ended with status ${installResult.status}`,
+                    code: installResult.status,
+                    networkError: {
+                      result: installResult,
+                    },
+                  },
+                  {
+                    operation: 'InstallLanguage',
+                    variables: {
+                      forced: false,
+                      name: language.name,
+                      url: language.url,
+                    },
+                  }
+                )
               );
             } else {
               addLog(`Language pack installed for ${language.name}.`, 'success');
               addLog(`Setting Language to ${targetLocale}...`, 'info');
               await setLocale({ locale: targetLocale })
                 .then(() => addLog('Language updated.', 'success'))
-                .catch((e) => {
+                .catch((caughtError: unknown) => {
                   hadNonOptimisticFailures = true;
                   hadWarnings = true;
-                  addLog(`Language request returned an error, continuing: ${e.message}`, 'info');
+                  addErrorLog('Language request returned an error, continuing', caughtError, {
+                    operation: 'SetLocale',
+                    variables: {
+                      locale: targetLocale,
+                    },
+                  });
                 });
             }
-          } catch (e: unknown) {
+          } catch (caughtError: unknown) {
             hadNonOptimisticFailures = true;
             hadWarnings = true;
-            hadInstallTimeout = hadInstallTimeout || isInstallTimeoutError(e);
-            const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-            addLog(
-              `Language pack installation failed for ${language.name}. Keeping current locale: ${errorMessage}`,
-              'error'
+            hadInstallTimeout = hadInstallTimeout || isInstallTimeoutError(caughtError);
+            addErrorLog(
+              `Language pack installation failed for ${language.name}. Keeping current locale`,
+              caughtError,
+              {
+                operation: 'InstallLanguage',
+                variables: {
+                  forced: false,
+                  name: language.name,
+                  url: language.url,
+                },
+              }
             );
           }
         }
@@ -702,9 +801,15 @@ const handleComplete = async () => {
     // 2. Install Plugins
     try {
       await refetchInstalledPlugins();
-    } catch {
+    } catch (caughtError: unknown) {
       hadWarnings = true;
-      addLog('Could not refresh installed plugins list. Continuing with current plugin state.', 'info');
+      addErrorLog(
+        'Could not refresh installed plugins list. Continuing with current plugin state.',
+        caughtError,
+        {
+          operation: 'InstalledUnraidPlugins',
+        }
+      );
     }
 
     const pluginsToInstall = pluginIdsToInstall.value;
@@ -735,16 +840,43 @@ const handleComplete = async () => {
             } else {
               hadNonOptimisticFailures = true;
               hadWarnings = true;
-              addLog(`${details.name} installation failed. Continuing.`, 'error');
+              addLog(
+                `${details.name} installation failed. Continuing.`,
+                'error',
+                buildOnboardingErrorDiagnostics(
+                  {
+                    message: `Plugin install operation ended with status ${installResult.status}`,
+                    code: installResult.status,
+                    networkError: {
+                      result: installResult,
+                    },
+                  },
+                  {
+                    operation: 'InstallPlugin',
+                    variables: {
+                      url: details.url,
+                      name: details.name,
+                      forced: false,
+                    },
+                  }
+                )
+              );
             }
-          } catch (e: unknown) {
+          } catch (caughtError: unknown) {
             hadNonOptimisticFailures = true;
             hadWarnings = true;
-            hadInstallTimeout = hadInstallTimeout || isInstallTimeoutError(e);
-            const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-            addLog(
-              `Plugin install reported an error for ${details.name}, continuing: ${errorMessage}`,
-              'info'
+            hadInstallTimeout = hadInstallTimeout || isInstallTimeoutError(caughtError);
+            addErrorLog(
+              `Plugin install reported an error for ${details.name}, continuing`,
+              caughtError,
+              {
+                operation: 'InstallPlugin',
+                variables: {
+                  url: details.url,
+                  name: details.name,
+                  forced: false,
+                },
+              }
             );
             // Continue installing others
           }
@@ -777,13 +909,44 @@ const handleComplete = async () => {
         } else {
           hadNonOptimisticFailures = true;
           hadWarnings = true;
-          addLog(`Internal boot setup returned an error: ${result.output}`, 'error');
+          addLog(
+            `Internal boot setup returned an error: ${result.output}`,
+            'error',
+            buildOnboardingErrorDiagnostics(
+              {
+                message: 'Internal boot setup returned ok=false',
+                code: result.code ?? null,
+                networkError: {
+                  status: result.code ?? null,
+                  result,
+                },
+              },
+              {
+                operation: 'CreateInternalBootPool',
+                variables: {
+                  poolName: selection.poolName,
+                  devices: selection.devices,
+                  bootSizeMiB: selection.bootSizeMiB,
+                  updateBios: selection.updateBios,
+                  reboot: false,
+                },
+              }
+            )
+          );
         }
-      } catch (e: unknown) {
+      } catch (caughtError: unknown) {
         hadNonOptimisticFailures = true;
         hadWarnings = true;
-        const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-        addLog(`Internal boot setup failed: ${errorMessage}`, 'error');
+        addErrorLog('Internal boot setup failed', caughtError, {
+          operation: 'CreateInternalBootPool',
+          variables: {
+            poolName: selection.poolName,
+            devices: selection.devices,
+            bootSizeMiB: selection.bootSizeMiB,
+            updateBios: selection.updateBios,
+            reboot: false,
+          },
+        });
       } finally {
         clearInterval(internalBootProgressTimer);
       }
@@ -809,10 +972,20 @@ const handleComplete = async () => {
             'info'
           );
         }
-      } catch {
+      } catch (caughtError: unknown) {
         hadWarnings = true;
         hadSshVerificationUncertainty = true;
-        addLog('SSH update request returned an error, continuing (service may have restarted).', 'info');
+        addErrorLog(
+          'SSH update request returned an error, continuing (service may have restarted).',
+          caughtError,
+          {
+            operation: 'UpdateSshSettings',
+            variables: {
+              enabled: targetCoreSettings.useSsh,
+              port: 22,
+            },
+          }
+        );
       }
     }
 
@@ -824,13 +997,11 @@ const handleComplete = async () => {
       completionMarked = true;
       cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
       addLog('Setup complete!', 'success');
-    } catch (e: unknown) {
+    } catch (caughtError: unknown) {
       hadWarnings = true;
-      const errorMessage = e instanceof Error ? e.message : 'Unknown error';
-      addLog(
-        `Could not mark onboarding complete right now (API may be offline): ${errorMessage}`,
-        'info'
-      );
+      addErrorLog('Could not mark onboarding complete right now (API may be offline)', caughtError, {
+        operation: 'CompleteOnboarding',
+      });
     }
 
     if (completionMarked) {
@@ -846,9 +1017,11 @@ const handleComplete = async () => {
             setTimeout(() => reject(new Error('Onboarding refresh timed out')), 1500)
           ),
         ]);
-      } catch {
+      } catch (caughtError: unknown) {
         hadWarnings = true;
-        addLog('Could not refresh onboarding state right now. Continuing.', 'info');
+        addErrorLog('Could not refresh onboarding state right now. Continuing.', caughtError, {
+          operation: 'OnboardingQuery',
+        });
       }
     } else {
       hadWarnings = true;
@@ -892,7 +1065,13 @@ const handleComplete = async () => {
     console.error('Failed to complete onboarding:', err);
     error.value = 'An error occurred during setup. Please check the logs.';
     isProcessing.value = false;
-    addLog('Setup failed.', 'error');
+    addLog(
+      'Setup failed.',
+      'error',
+      buildOnboardingErrorDiagnostics(err, {
+        operation: 'ConfirmAndApply',
+      })
+    );
     applyResultSeverity.value = 'error';
     applyResultTitle.value = 'Setup Failed';
     applyResultMessage.value =
