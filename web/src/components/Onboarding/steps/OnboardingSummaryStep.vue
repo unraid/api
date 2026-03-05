@@ -130,6 +130,9 @@ const displayTheme = computed(() => {
 const displayLanguage = computed(() => {
   return draftStore.selectedLanguage || coreSettingsResult.value?.display?.locale || 'en_US';
 });
+const summaryServerDescription = computed(
+  () => draftStore.serverDescription || coreSettingsResult.value?.server?.comment || ''
+);
 
 const selectedBootMode = computed(() =>
   draftStore.bootMode === 'storage' || Boolean(draftStore.internalBootSelection) ? 'storage' : 'usb'
@@ -1011,13 +1014,10 @@ const handleComplete = async () => {
     }
 
     // 5. Mark Complete
-    addLog(summaryT('logs.finalizingSetup'), 'info');
-
     try {
       await completeOnboarding();
       completionMarked = true;
       cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
-      addLog(summaryT('logs.setupComplete'), 'success');
     } catch (caughtError: unknown) {
       hadWarnings = true;
       addErrorLog(summaryT('logs.completeOnboardingFailed'), caughtError, {
@@ -1049,7 +1049,11 @@ const handleComplete = async () => {
       addLog(summaryT('logs.skipRefreshApiUnavailable'), 'info');
     }
 
+    addLog(summaryT('logs.finalizingSetup'), 'info');
     await applyServerIdentityAtEnd();
+    if (completionMarked) {
+      addLog(summaryT('logs.setupComplete'), 'success');
+    }
 
     if (!completionMarked) {
       applyResultSeverity.value = 'warning';
@@ -1169,11 +1173,14 @@ const handleBack = () => {
               <span class="text-muted">{{ t('onboarding.coreSettings.serverName') }}</span>
               <span class="text-highlighted font-medium break-all sm:text-right">{{ serverName }}</span>
             </div>
-            <div class="bg-elevated flex flex-col rounded text-sm" v-if="draftStore.serverDescription">
+            <div v-if="summaryServerDescription" class="space-y-1">
               <span class="text-muted">{{ t('onboarding.coreSettings.serverDescription') }}</span>
-              <span class="text-highlighted font-medium break-all">{{
-                draftStore.serverDescription
-              }}</span>
+              <div
+                class="border-muted bg-default text-highlighted min-h-10 w-full rounded-md border px-3 py-2 text-sm font-medium break-all"
+                aria-readonly="true"
+              >
+                {{ summaryServerDescription }}
+              </div>
             </div>
             <div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-start sm:justify-between">
               <span class="text-muted">{{ t('onboarding.summaryStep.activationLabel') }}</span>
