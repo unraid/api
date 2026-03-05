@@ -362,13 +362,13 @@ const handleCancelReboot = () => {
           <div class="space-y-2">
             <h3 class="text-lg font-semibold">Confirm Reboot</h3>
             <p class="text-muted-foreground text-sm">
-              Please do NOT remove your Unraid flash drive until your server has finished rebooting into
-              Unraid again.
+              On some systems, you may need to manually change the BIOS boot order from the USB device to
+              the storage drive.
             </p>
             <blockquote class="border-s-4 border-yellow-500 bg-yellow-100 p-3">
               <p class="text-sm leading-relaxed text-yellow-900">
-                On some systems, you may need to manually change the BIOS boot order from the USB device
-                to the storage drive.
+                Please do NOT remove your Unraid flash drive until your server has finished rebooting
+                into Unraid again.
               </p>
             </blockquote>
           </div>
