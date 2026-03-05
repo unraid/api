@@ -96,6 +96,19 @@ describe('OnboardingMutationsResolver', () => {
         expect(result.completed).toBe(false);
     });
 
+    it('returns completed status when completed version is on a prior patch of current minor', async () => {
+        onboardingTracker.markCompleted.mockResolvedValue(undefined);
+        onboardingTracker.getState.mockReturnValue({
+            completed: true,
+            completedAtVersion: '7.2.1',
+        });
+        onboardingTracker.getCurrentVersion.mockReturnValue('7.2.4');
+
+        const result = await resolver.completeOnboarding();
+
+        expect(result.status).toBe(OnboardingStatus.COMPLETED);
+    });
+
     it('returns upgrade status when completed version is behind current', async () => {
         onboardingTracker.markCompleted.mockResolvedValue(undefined);
         onboardingTracker.getState.mockReturnValue({

@@ -1,4 +1,4 @@
-import { coerce, eq, gt, lt } from 'semver';
+import { coerce, eq, gt, lt, major, minor } from 'semver';
 
 import { compareVersions } from '@app/common/compare-semver-version.js';
 
@@ -14,6 +14,10 @@ export const hasOnboardingVersionDrift = (
     const completed = coerce(completedAtVersion, { includePrerelease: true });
 
     if (current && completed) {
+        if (major(current) === major(completed) && minor(current) === minor(completed)) {
+            return false;
+        }
+
         return !compareVersions(current, completed, eq, { includePrerelease: true });
     }
 
@@ -33,6 +37,10 @@ export const getOnboardingVersionDirection = (
     const completed = coerce(completedAtVersion, { includePrerelease: true });
 
     if (current && completed) {
+        if (major(current) === major(completed) && minor(current) === minor(completed)) {
+            return undefined;
+        }
+
         if (compareVersions(current, completed, gt, { includePrerelease: true })) {
             return 'UPGRADE';
         }

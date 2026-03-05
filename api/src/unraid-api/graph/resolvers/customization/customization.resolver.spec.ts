@@ -85,6 +85,30 @@ describe('CustomizationResolver', () => {
         });
     });
 
+    it('returns COMPLETED status when completed on a prior patch of current minor', async () => {
+        vi.mocked(onboardingTracker.getState).mockReturnValue({
+            completed: true,
+            completedAtVersion: '7.2.1',
+        });
+        vi.mocked(onboardingTracker.getCurrentVersion).mockReturnValue('7.2.3');
+
+        const result = await resolver.resolveOnboarding();
+
+        expect(result).toEqual({
+            status: OnboardingStatus.COMPLETED,
+            isPartnerBuild: false,
+            completed: true,
+            completedAtVersion: '7.2.1',
+            onboardingState: {
+                registrationState: undefined,
+                isRegistered: false,
+                isFreshInstall: false,
+                hasActivationCode: false,
+                activationRequired: false,
+            },
+        });
+    });
+
     it('returns UPGRADE status when completed on older version', async () => {
         vi.mocked(onboardingTracker.getState).mockReturnValue({
             completed: true,
