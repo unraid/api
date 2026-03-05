@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import type { ApiNestPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
 import { pluginLogger } from '@app/core/log.js';
@@ -50,7 +51,7 @@ export class PluginService {
                 };
             } catch (error) {
                 PluginService.logger.error(`Plugin from ${pkgName} is invalid: %o`, error as object);
-                const notificationService = new NotificationsService();
+                const notificationService = new NotificationsService(new ConfigService());
                 const errorMessage = error?.toString?.() ?? (error as Error)?.message ?? '';
                 await notificationService.createNotification({
                     title: `Plugin from ${pkgName} is invalid`,
