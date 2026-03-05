@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { readdir, readFile, rename, stat, unlink, writeFile } from 'fs/promises';
 import { basename, join } from 'path';
 
@@ -55,9 +56,13 @@ export class NotificationsService {
         },
     };
 
-    constructor() {
-        this.path = getters.dynamix().notify!.path;
+    constructor(private readonly configService: ConfigService) {
+        this.path = this.getConfiguredPath();
         void this.getNotificationsWatcher(this.path);
+    }
+
+    private getConfiguredPath() {
+        return this.configService.get<string>('store.dynamix.notify.path', '/tmp/notifications');
     }
 
     /**
@@ -69,7 +74,7 @@ export class NotificationsService {
      *          - path to the archived notifications
      */
     public paths(): Record<'basePath' | NotificationType, string> {
-        const basePath = getters.dynamix().notify!.path;
+        const basePath = this.getConfiguredPath();
 
         if (this.path !== basePath) {
             // Recreate the watcher with force = true
