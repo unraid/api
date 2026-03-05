@@ -9,6 +9,7 @@ import type { App } from 'vue';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
+import { useOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
@@ -28,11 +29,16 @@ vi.mock('~/store/server', () => ({
   useServerStore: vi.fn(),
 }));
 
+vi.mock('~/components/Onboarding/store/upgradeOnboarding', () => ({
+  useOnboardingStore: vi.fn(),
+}));
+
 describe('ActivationCodeModal Store', () => {
   let store: ReturnType<typeof useActivationCodeModalStore>;
   let mockIsHidden: ReturnType<typeof ref>;
   let mockTemporaryBypassState: ReturnType<typeof ref>;
   let mockIsFreshInstall: ReturnType<typeof ref>;
+  let mockCompleted: ReturnType<typeof ref>;
   let mockCallbackData: ReturnType<typeof ref>;
   let mockUptime: ReturnType<typeof ref>;
   let app: App<Element> | null = null;
@@ -63,6 +69,7 @@ describe('ActivationCodeModal Store', () => {
     mockIsHidden = ref(null);
     mockTemporaryBypassState = ref(null);
     mockIsFreshInstall = ref(false);
+    mockCompleted = ref(false);
     mockCallbackData = ref(null);
     mockUptime = ref(3600);
 
@@ -80,6 +87,10 @@ describe('ActivationCodeModal Store', () => {
     vi.mocked(useActivationCodeDataStore).mockReturnValue({
       isFreshInstall: mockIsFreshInstall,
     } as unknown as ReturnType<typeof useActivationCodeDataStore>);
+
+    vi.mocked(useOnboardingStore).mockReturnValue({
+      completed: mockCompleted,
+    } as unknown as ReturnType<typeof useOnboardingStore>);
 
     vi.mocked(useCallbackActionsStore).mockReturnValue({
       callbackData: mockCallbackData,

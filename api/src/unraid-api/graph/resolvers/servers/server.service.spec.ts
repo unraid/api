@@ -132,14 +132,14 @@ describe('ServerService', () => {
     });
 
     it('includes SYS_MODEL when provided', async () => {
-        await service.updateServerIdentity('Tower', 'Primary host', 'Storinator');
+        await service.updateServerIdentity('Tower', 'Primary host', 'Model X200');
 
         expect(emcmd).toHaveBeenCalledWith(
             {
                 changeNames: 'Apply',
                 NAME: 'Tower',
                 COMMENT: 'Primary host',
-                SYS_MODEL: 'Storinator',
+                SYS_MODEL: 'Model X200',
             },
             { waitForToken: true }
         );
