@@ -391,7 +391,13 @@ const getPluginFileName = (url: string) => {
   return parts[parts.length - 1] ?? url;
 };
 
-const pluginMap: Record<string, { url: string; name: string }> = {
+type OnboardingPluginDetails = {
+  url: string;
+  name: string;
+  installedFileAliases?: string[];
+};
+
+const pluginMap: Record<string, OnboardingPluginDetails> = {
   'community-apps': {
     url: 'https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
     name: 'Community Apps',
@@ -403,7 +409,16 @@ const pluginMap: Record<string, { url: string; name: string }> = {
   tailscale: {
     url: 'https://raw.githubusercontent.com/unraid/unraid-tailscale/main/plugin/tailscale.plg',
     name: 'Tailscale',
+    installedFileAliases: ['tailscale-preview.plg'],
   },
+};
+
+const getPluginInstallDetectionFileNames = (details: OnboardingPluginDetails): Set<string> => {
+  const fileNames = new Set<string>([normalizePluginFileName(getPluginFileName(details.url))]);
+  for (const alias of details.installedFileAliases ?? []) {
+    fileNames.add(normalizePluginFileName(alias));
+  }
+  return fileNames;
 };
 
 const installedPluginFileNames = computed(() => {
@@ -415,8 +430,11 @@ const pluginIdsToInstall = computed(() => {
   return Array.from(draftStore.selectedPlugins).filter((pluginId) => {
     const details = pluginMap[pluginId];
     if (!details) return false;
-    const fileName = normalizePluginFileName(getPluginFileName(details.url));
-    return !installedPluginFileNames.value.has(fileName);
+    const detectionFileNames = getPluginInstallDetectionFileNames(details);
+    const isInstalled = Array.from(detectionFileNames).some((fileName) =>
+      installedPluginFileNames.value.has(fileName)
+    );
+    return !isInstalled;
   });
 });
 
@@ -424,8 +442,12 @@ const selectedPluginSummaries = computed(() => {
   return Array.from(draftStore.selectedPlugins).map((pluginId) => {
     const details = pluginMap[pluginId];
     const pluginName = details?.name ?? pluginId;
-    const pluginFileName = details ? normalizePluginFileName(getPluginFileName(details.url)) : null;
-    const installed = pluginFileName ? installedPluginFileNames.value.has(pluginFileName) : false;
+    const pluginDetectionFileNames = details ? getPluginInstallDetectionFileNames(details) : null;
+    const installed = pluginDetectionFileNames
+      ? Array.from(pluginDetectionFileNames).some((fileName) =>
+          installedPluginFileNames.value.has(fileName)
+        )
+      : false;
 
     return {
       id: pluginId,
@@ -819,8 +841,11 @@ const handleComplete = async () => {
       for (const pluginId of pluginsToInstall) {
         const details = pluginMap[pluginId];
         if (details) {
-          const fileName = normalizePluginFileName(getPluginFileName(details.url));
-          if (installedPluginFileNames.value.has(fileName)) {
+          const detectionFileNames = getPluginInstallDetectionFileNames(details);
+          const isInstalled = Array.from(detectionFileNames).some((fileName) =>
+            installedPluginFileNames.value.has(fileName)
+          );
+          if (isInstalled) {
             addLog(`${details.name} is already installed. Skipping.`, 'info');
             continue;
           }

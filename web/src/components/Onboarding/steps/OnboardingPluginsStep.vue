@@ -58,6 +58,19 @@ const availablePlugins: Plugin[] = [
   },
 ];
 
+const pluginInstalledFileAliases: Partial<Record<Plugin['id'], string[]>> = {
+  tailscale: ['tailscale-preview.plg'],
+};
+
+const getPluginInstallDetectionFileNames = (plugin: Plugin): Set<string> => {
+  const fileNames = new Set<string>([normalizePluginFileName(getPluginFileName(plugin.url))]);
+  const aliases = pluginInstalledFileAliases[plugin.id] ?? [];
+  for (const alias of aliases) {
+    fileNames.add(normalizePluginFileName(alias));
+  }
+  return fileNames;
+};
+
 const defaultSelectedPluginIds = new Set<string>(['community-apps', 'fix-common-problems']);
 
 // Respect persisted draft selections after first interaction with this step.
@@ -87,8 +100,9 @@ const applyInstalledPlugins = (installedPlugins: string[] | null | undefined) =>
   const nextInstalledIds = new Set<string>();
 
   for (const plugin of availablePlugins) {
-    const fileName = normalizePluginFileName(getPluginFileName(plugin.url));
-    if (installedFiles.has(fileName)) {
+    const fileNames = getPluginInstallDetectionFileNames(plugin);
+    const hasMatch = Array.from(fileNames).some((fileName) => installedFiles.has(fileName));
+    if (hasMatch) {
       nextInstalledIds.add(plugin.id);
     }
   }
