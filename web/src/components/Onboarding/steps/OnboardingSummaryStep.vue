@@ -134,14 +134,64 @@ const summaryServerDescription = computed(
   () => draftStore.serverDescription || coreSettingsResult.value?.server?.comment || ''
 );
 
-const selectedBootMode = computed(() => {
-  if (draftStore.bootMode === 'storage' || Boolean(draftStore.internalBootSelection)) {
-    return 'storage';
+interface InternalBootContextArrayDisk {
+  device?: string | null;
+}
+
+interface InternalBootContextDisk {
+  device: string;
+  size: number;
+  emhttpDeviceId?: string | null;
+}
+
+interface InternalBootContextData {
+  array?: {
+    boot?: InternalBootContextArrayDisk | null;
+    parities?: InternalBootContextArrayDisk[];
+    disks?: InternalBootContextArrayDisk[];
+    caches?: InternalBootContextArrayDisk[];
+  } | null;
+  vars?: {
+    bootEligible?: boolean | null;
+  } | null;
+  disks?: InternalBootContextDisk[];
+}
+
+const hasEligibleStorageBootTarget = computed(() => {
+  const data = internalBootContextResult.value as InternalBootContextData | null;
+  if (!data || !data.vars?.bootEligible) {
+    return false;
   }
 
-  const context = internalBootContextResult.value as {
-    array?: { boot?: { device?: string | null } | null } | null;
-  } | null;
+  const assignedDevices = new Set<string>();
+  const assignedDiskGroups = [
+    data.array?.boot ? [data.array.boot] : [],
+    data.array?.parities ?? [],
+    data.array?.disks ?? [],
+    data.array?.caches ?? [],
+  ];
+
+  for (const group of assignedDiskGroups) {
+    for (const disk of group) {
+      const device = normalizeDeviceName(disk.device);
+      if (device) {
+        assignedDevices.add(device);
+      }
+    }
+  }
+
+  return (data.disks ?? []).some((disk) => {
+    const device = normalizeDeviceName(disk.device);
+    return Boolean(device) && !assignedDevices.has(device);
+  });
+});
+
+const selectedBootMode = computed(() => {
+  if (draftStore.bootMode === 'storage' || Boolean(draftStore.internalBootSelection)) {
+    return hasEligibleStorageBootTarget.value ? 'storage' : 'usb';
+  }
+
+  const context = internalBootContextResult.value as InternalBootContextData | null;
   const bootDevice = context?.array?.boot?.device;
   return typeof bootDevice === 'string' && bootDevice.trim().length > 0 ? 'storage' : 'usb';
 });
@@ -195,14 +245,8 @@ const normalizeDeviceName = (value: string | null | undefined): string => {
   return trimmed;
 };
 
-interface InternalBootContextDisk {
-  device: string;
-  size: number;
-  emhttpDeviceId?: string | null;
-}
-
 const internalBootDeviceLabelById = computed(() => {
-  const data = internalBootContextResult.value as { disks?: InternalBootContextDisk[] } | null;
+  const data = internalBootContextResult.value as InternalBootContextData | null;
   const disks = data?.disks ?? [];
   const labels = new Map<string, string>();
 

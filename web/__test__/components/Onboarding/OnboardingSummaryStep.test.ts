@@ -299,6 +299,15 @@ describe('OnboardingSummaryStep', () => {
       info: { primaryNetwork: { ipAddress: '192.168.1.2' } },
     };
     internalBootContextResult.value = {
+      array: {
+        boot: null,
+        parities: [],
+        disks: [],
+        caches: [],
+      },
+      vars: {
+        bootEligible: true,
+      },
       disks: [
         {
           device: '/dev/sda',
@@ -1026,6 +1035,34 @@ describe('OnboardingSummaryStep', () => {
   it('always shows boot configuration section for USB boot mode', () => {
     draftStore.bootMode = 'usb';
     draftStore.internalBootSelection = null;
+
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).toContain('Boot Configuration');
+    expect(wrapper.text()).toContain('USB/Flash Drive');
+  });
+
+  it('falls back to USB boot mode when storage boot is selected but ineligible', () => {
+    draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = null;
+    internalBootContextResult.value = {
+      array: {
+        boot: null,
+        parities: [],
+        disks: [],
+        caches: [],
+      },
+      vars: {
+        bootEligible: false,
+      },
+      disks: [
+        {
+          device: '/dev/sda',
+          size: 500 * 1024 * 1024 * 1024,
+          emhttpDeviceId: 'diskA',
+        },
+      ],
+    };
 
     const { wrapper } = mountComponent();
 
