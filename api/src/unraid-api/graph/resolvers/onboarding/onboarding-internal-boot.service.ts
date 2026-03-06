@@ -154,7 +154,11 @@ export class OnboardingInternalBootService {
         return null;
     }
 
-    private async updateBiosBootEntries(devices: string[], output: string[]): Promise<void> {
+    private async updateBiosBootEntries(
+        devices: string[],
+        output: string[]
+    ): Promise<{ hadFailures: boolean }> {
+        let hadFailures = false;
         this.ensureEmhttpBootContext();
         const devsById = this.getDeviceMapFromEmhttpState();
 
@@ -167,6 +171,7 @@ export class OnboardingInternalBootService {
         for (const bootNumber of bootLabelMap.values()) {
             const deleteResult = await this.runEfiBootMgr(['-b', bootNumber, '-B'], output);
             if (deleteResult.exitCode !== 0) {
+                hadFailures = true;
                 output.push(
                     `efibootmgr failed to delete boot entry ${bootNumber} (rc=${deleteResult.exitCode})`
                 );
@@ -201,6 +206,7 @@ export class OnboardingInternalBootService {
                 output
             );
             if (createResult.exitCode !== 0) {
+                hadFailures = true;
                 output.push(
                     `efibootmgr failed for ${this.shellQuote(devicePath)} (rc=${createResult.exitCode})`
                 );
@@ -216,13 +222,15 @@ export class OnboardingInternalBootService {
                 output
             );
             if (flashResult.exitCode !== 0) {
+                hadFailures = true;
                 output.push(`efibootmgr failed for flash (rc=${flashResult.exitCode})`);
             }
         }
 
         const currentEntries = await this.runEfiBootMgr([], output);
         if (currentEntries.exitCode !== 0) {
-            return;
+            hadFailures = true;
+            return { hadFailures };
         }
 
         const labelMap = this.parseBootLabelMap(currentEntries.lines);
@@ -247,7 +255,7 @@ export class OnboardingInternalBootService {
 
         const uniqueOrder = [...new Set(desiredOrder.filter((entry) => entry.length > 0))];
         if (uniqueOrder.length === 0) {
-            return;
+            return { hadFailures };
         }
 
         const nextBoot = uniqueOrder[0];
@@ -258,8 +266,11 @@ export class OnboardingInternalBootService {
 
         const orderResult = await this.runEfiBootMgr(orderArgs, output);
         if (orderResult.exitCode !== 0) {
+            hadFailures = true;
             output.push(`efibootmgr failed to set boot order (rc=${orderResult.exitCode})`);
         }
+
+        return { hadFailures };
     }
 
     async createInternalBootPool(
@@ -324,7 +335,12 @@ export class OnboardingInternalBootService {
 
             if (input.updateBios) {
                 output.push('Applying BIOS boot entry updates...');
-                await this.updateBiosBootEntries(input.devices, output);
+                const biosUpdateResult = await this.updateBiosBootEntries(input.devices, output);
+                output.push(
+                    biosUpdateResult.hadFailures
+                        ? 'BIOS boot entry updates completed with warnings; manual BIOS boot order changes may still be required.'
+                        : 'BIOS boot entry updates completed successfully.'
+                );
             }
 
             return {

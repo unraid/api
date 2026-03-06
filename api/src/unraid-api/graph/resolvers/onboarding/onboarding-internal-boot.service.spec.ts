@@ -127,6 +127,7 @@ describe('OnboardingInternalBootService', () => {
 
         expect(result.ok).toBe(true);
         expect(result.code).toBe(0);
+        expect(result.output).toContain('BIOS boot entry updates completed successfully.');
         expect(vi.mocked(emcmd)).toHaveBeenCalledTimes(4);
         expect(vi.mocked(loadStateFileSync)).not.toHaveBeenCalled();
         expect(vi.mocked(execa)).toHaveBeenNthCalledWith(1, 'efibootmgr', [], { reject: false });
@@ -161,6 +162,41 @@ describe('OnboardingInternalBootService', () => {
             'efibootmgr',
             ['-o', '0003,0004', '-n', '0003'],
             { reject: false }
+        );
+    });
+
+    it('returns success and warning output when efibootmgr updates fail', async () => {
+        vi.mocked(emcmd).mockResolvedValue({ ok: true } as Awaited<ReturnType<typeof emcmd>>);
+        vi.mocked(execa)
+            .mockResolvedValueOnce({
+                stdout: '',
+                stderr: 'Permission denied',
+                exitCode: 1,
+            } as Awaited<ReturnType<typeof execa>>)
+            .mockResolvedValueOnce({
+                stdout: '',
+                stderr: 'No such file or directory',
+                exitCode: 1,
+            } as Awaited<ReturnType<typeof execa>>)
+            .mockResolvedValueOnce({
+                stdout: '',
+                stderr: '',
+                exitCode: 1,
+            } as Awaited<ReturnType<typeof execa>>);
+        const service = new OnboardingInternalBootService();
+
+        const result = await service.createInternalBootPool({
+            poolName: 'cache',
+            devices: ['disk-1'],
+            bootSizeMiB: 16384,
+            updateBios: true,
+        });
+
+        expect(result.ok).toBe(true);
+        expect(result.code).toBe(0);
+        expect(result.output).toContain('efibootmgr failed for');
+        expect(result.output).toContain(
+            'BIOS boot entry updates completed with warnings; manual BIOS boot order changes may still be required.'
         );
     });
 

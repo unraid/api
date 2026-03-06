@@ -1047,6 +1047,13 @@ describe('OnboardingSummaryStep', () => {
       updateBios: true,
     };
     draftStore.internalBootSkipped = false;
+    submitInternalBootCreationMock.mockResolvedValue({
+      ok: true,
+      output: [
+        'Applying BIOS boot entry updates...',
+        'BIOS boot entry updates completed successfully.',
+      ].join('\n'),
+    });
 
     const { wrapper } = mountComponent();
     await clickApply(wrapper);
@@ -1062,6 +1069,9 @@ describe('OnboardingSummaryStep', () => {
     );
     expect(setInternalBootApplySucceededMock).toHaveBeenCalledWith(true);
     expect(wrapper.text()).toContain('Internal boot pool configured.');
+    expect(wrapper.text()).toContain('BIOS boot entry updates completed successfully.');
+    expect(wrapper.text()).toContain('Setup Applied');
+    expect(wrapper.text()).not.toContain('Setup Applied with Warnings');
   });
 
   it('continues with warnings when internal boot setup returns an error', async () => {
@@ -1083,6 +1093,35 @@ describe('OnboardingSummaryStep', () => {
 
     expect(setInternalBootApplySucceededMock).not.toHaveBeenCalledWith(true);
     expect(wrapper.text()).toContain('Internal boot setup returned an error: mkbootpool failed');
+    expect(wrapper.text()).toContain('Setup Applied with Warnings');
+  });
+
+  it('surfaces BIOS update warnings in visible logs while keeping internal boot successful', async () => {
+    draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['diskA'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+    submitInternalBootCreationMock.mockResolvedValue({
+      ok: true,
+      output: [
+        'Applying BIOS boot entry updates...',
+        "efibootmgr failed for '/dev/sda' (rc=1)",
+        'BIOS boot entry updates completed with warnings; manual BIOS boot order changes may still be required.',
+      ].join('\n'),
+    });
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(setInternalBootApplySucceededMock).toHaveBeenCalledWith(true);
+    expect(wrapper.text()).toContain(
+      'BIOS boot entry updates completed with warnings; manual BIOS boot order changes may still be required.'
+    );
+    expect(wrapper.text()).toContain("efibootmgr failed for '/dev/sda' (rc=1)");
     expect(wrapper.text()).toContain('Setup Applied with Warnings');
   });
 });

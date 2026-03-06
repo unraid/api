@@ -312,6 +312,23 @@ const addErrorLog = (message: string, caughtError: unknown, context: OnboardingE
   );
 };
 
+interface InternalBootBiosLogSummary {
+  summaryLine: string | null;
+  failureLines: string[];
+}
+
+const summarizeInternalBootBiosLogs = (output: string): InternalBootBiosLogSummary => {
+  const lines = output
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  const summaryLine = lines.find((line) => line.startsWith('BIOS boot entry updates completed')) ?? null;
+  const failureLines = Array.from(
+    new Set(lines.filter((line) => line.toLowerCase().includes('efibootmgr failed')))
+  );
+  return { summaryLine, failureLines };
+};
+
 const showDiagnosticLogsInResultDialog = computed(
   () => applyResultSeverity.value !== 'success' && logs.value.length > 0
 );
@@ -945,6 +962,22 @@ const handleComplete = async () => {
         if (result.ok) {
           draftStore.setInternalBootApplySucceeded(true);
           addLog(summaryT('logs.internalBootConfigured'), 'success');
+          if (selection.updateBios) {
+            const biosLogSummary = summarizeInternalBootBiosLogs(result.output);
+            const hadBiosWarnings =
+              biosLogSummary.failureLines.length > 0 ||
+              Boolean(biosLogSummary.summaryLine?.toLowerCase().includes('with warnings'));
+            if (hadBiosWarnings) {
+              hadWarnings = true;
+              hadNonOptimisticFailures = true;
+            }
+            if (biosLogSummary.summaryLine) {
+              addLog(biosLogSummary.summaryLine, hadBiosWarnings ? 'error' : 'success');
+            }
+            for (const failureLine of biosLogSummary.failureLines) {
+              addLog(failureLine, 'error');
+            }
+          }
         } else {
           hadNonOptimisticFailures = true;
           hadWarnings = true;
