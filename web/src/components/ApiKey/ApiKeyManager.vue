@@ -261,40 +261,42 @@ async function copyKeyTemplate(key: ApiKeyFragment) {
                     role
                   }}</Badge>
                 </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-sm font-medium text-green-700"><b>API Key:</b></span>
-                  <div class="relative max-w-[300px] flex-1">
-                    <Input
-                      :model-value="showKey[key.id] ? key.key : '••••••••••••••••••••••••••••••••'"
-                      class="w-full rounded px-2 py-1 pr-10 font-mono text-xs"
-                      readonly
-                    />
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-green-700"><b>API Key:</b></span>
+                    <TooltipProvider>
+                      <Tooltip :delay-duration="0">
+                        <TooltipTrigger>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            class="h-8 w-8"
+                            @click="copyKeyValue(key.key)"
+                          >
+                            <ClipboardDocumentIcon class="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{{ copied ? 'Copied!' : 'Copy to clipboard...' }}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <div class="relative min-w-0">
+                    <code
+                      class="bg-background block w-full rounded border px-3 py-2 pr-10 font-mono text-xs leading-5 break-all whitespace-pre-wrap"
+                    >
+                      {{ showKey[key.id] ? key.key : '••••••••••••••••••••••••••••••••' }}
+                    </code>
                     <Button
                       variant="ghost"
                       size="icon"
-                      class="absolute inset-y-0 right-2 h-auto w-auto px-1 text-gray-500 hover:text-gray-700"
+                      class="absolute top-2 right-2 h-auto w-auto px-1 text-gray-500 hover:text-gray-700"
                       @click="toggleShowKey(key.id)"
                     >
                       <component :is="showKey[key.id] ? EyeSlashIcon : EyeIcon" class="h-5 w-5" />
                     </Button>
                   </div>
-                  <TooltipProvider>
-                    <Tooltip :delay-duration="0">
-                      <TooltipTrigger>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          class="h-8 w-8"
-                          @click="copyKeyValue(key.key)"
-                        >
-                          <ClipboardDocumentIcon class="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{{ copied ? 'Copied!' : 'Copy to clipboard...' }}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
                 </div>
               </div>
               <div

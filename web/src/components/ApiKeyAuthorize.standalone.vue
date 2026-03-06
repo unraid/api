@@ -3,7 +3,7 @@ import { ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { ClipboardDocumentIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/outline';
-import { Button, Input } from '@unraid/ui';
+import { Button } from '@unraid/ui';
 
 import ApiKeyCreate from '~/components/ApiKey/ApiKeyCreate.vue';
 import { useAuthorizationLink } from '~/composables/useAuthorizationLink.js';
@@ -152,16 +152,16 @@ const returnToApp = () => {
         <div>
           <label class="text-muted-foreground mb-2 block text-sm font-medium">Generated API Key</label>
           <div class="bg-secondary rounded-lg p-3">
-            <div class="mb-2 flex gap-2">
-              <div class="relative flex-1">
-                <Input
-                  :model-value="showKey ? createdApiKey : '••••••••••••••••••••••••••••••••'"
-                  class="bg-background pr-10 font-mono text-sm"
-                  readonly
-                />
+            <div class="mb-2 flex items-start gap-2">
+              <div class="relative min-w-0 flex-1">
+                <code
+                  class="bg-background block w-full rounded border px-3 py-2 pr-10 font-mono text-sm leading-6 break-all whitespace-pre-wrap"
+                >
+                  {{ showKey ? createdApiKey : '••••••••••••••••••••••••••••••••' }}
+                </code>
                 <button
                   type="button"
-                  class="text-muted-foreground hover:text-foreground absolute inset-y-0 right-2 flex items-center px-1"
+                  class="text-muted-foreground hover:text-foreground absolute top-2 right-2 flex items-center px-1"
                   @click="toggleShowKey"
                 >
                   <component :is="showKey ? EyeSlashIcon : EyeIcon" class="h-4 w-4" />
