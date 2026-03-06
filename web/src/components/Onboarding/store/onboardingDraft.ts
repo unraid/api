@@ -167,8 +167,9 @@ export const useOnboardingDraftStore = defineStore(
     function setBootMode(mode: OnboardingBootMode) {
       bootMode.value = mode;
       internalBootInitialized.value = true;
-      internalBootSkipped.value = mode === 'usb';
+      internalBootSkipped.value = false;
       if (mode === 'usb') {
+        internalBootSelection.value = null;
         internalBootApplySucceeded.value = false;
       }
     }

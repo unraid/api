@@ -566,7 +566,7 @@ const handleSkip = () => {
 
 const handlePrimaryAction = () => {
   if (bootMode.value === 'usb') {
-    draftStore.skipInternalBoot();
+    draftStore.setBootMode('usb');
     props.onComplete();
     return;
   }

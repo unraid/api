@@ -15,7 +15,7 @@ import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/upd
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import OnboardingSummaryStep from '~/components/Onboarding/steps/OnboardingSummaryStep.vue';
-import { ArrayDiskType, PluginInstallStatus } from '~/composables/gql/graphql';
+import { PluginInstallStatus } from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 
 const {
@@ -60,6 +60,7 @@ const {
       bootSizeMiB: number;
       updateBios: boolean;
     } | null,
+    internalBootInitialized: true,
     internalBootSkipped: false,
     internalBootApplySucceeded: false,
   },
@@ -284,6 +285,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.bootMode = 'usb';
     draftStore.selectedPlugins = new Set();
     draftStore.internalBootSelection = null;
+    draftStore.internalBootInitialized = true;
     draftStore.internalBootSkipped = false;
     draftStore.internalBootApplySucceeded = false;
 
@@ -1035,6 +1037,8 @@ describe('OnboardingSummaryStep', () => {
   it('always shows boot configuration section for USB boot mode', () => {
     draftStore.bootMode = 'usb';
     draftStore.internalBootSelection = null;
+    draftStore.internalBootInitialized = true;
+    draftStore.internalBootSkipped = false;
 
     const { wrapper } = mountComponent();
 
@@ -1042,76 +1046,26 @@ describe('OnboardingSummaryStep', () => {
     expect(wrapper.text()).toContain('USB/Flash Drive');
   });
 
-  it('shows USB/Flash Drive when backend boot device type is FLASH', () => {
+  it('hides boot configuration section when internal boot step was skipped', () => {
     draftStore.bootMode = 'usb';
     draftStore.internalBootSelection = null;
-    internalBootContextResult.value = {
-      array: {
-        boot: { device: 'sda', type: ArrayDiskType.FLASH },
-        parities: [],
-        disks: [],
-        caches: [],
-      },
-      vars: {
-        bootEligible: true,
-      },
-      disks: [],
-    };
+    draftStore.internalBootInitialized = true;
+    draftStore.internalBootSkipped = true;
 
     const { wrapper } = mountComponent();
 
-    expect(wrapper.text()).toContain('Boot Configuration');
-    expect(wrapper.text()).toContain('USB/Flash Drive');
+    expect(wrapper.text()).not.toContain('Boot Configuration');
   });
 
-  it('shows Storage Drive(s) when backend boot device type is non-FLASH', () => {
-    draftStore.bootMode = 'usb';
-    draftStore.internalBootSelection = null;
-    internalBootContextResult.value = {
-      array: {
-        boot: { device: 'sdb', type: ArrayDiskType.CACHE },
-        parities: [],
-        disks: [],
-        caches: [],
-      },
-      vars: {
-        bootEligible: true,
-      },
-      disks: [],
-    };
-
-    const { wrapper } = mountComponent();
-
-    expect(wrapper.text()).toContain('Boot Configuration');
-    expect(wrapper.text()).toContain('Storage Drive(s)');
-  });
-
-  it('falls back to USB boot mode when storage boot is selected but ineligible', () => {
+  it('hides boot configuration section when internal boot step is not initialized', () => {
     draftStore.bootMode = 'storage';
     draftStore.internalBootSelection = null;
-    internalBootContextResult.value = {
-      array: {
-        boot: null,
-        parities: [],
-        disks: [],
-        caches: [],
-      },
-      vars: {
-        bootEligible: false,
-      },
-      disks: [
-        {
-          device: '/dev/sda',
-          size: 500 * 1024 * 1024 * 1024,
-          emhttpDeviceId: 'diskA',
-        },
-      ],
-    };
+    draftStore.internalBootInitialized = false;
+    draftStore.internalBootSkipped = false;
 
     const { wrapper } = mountComponent();
 
-    expect(wrapper.text()).toContain('Boot Configuration');
-    expect(wrapper.text()).toContain('USB/Flash Drive');
+    expect(wrapper.text()).not.toContain('Boot Configuration');
   });
 
   it('shows selected boot devices with device name and size details', () => {

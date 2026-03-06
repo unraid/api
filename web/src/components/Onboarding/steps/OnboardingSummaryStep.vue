@@ -52,7 +52,7 @@ import type { OnboardingErrorDiagnostics } from '@/components/Onboarding/composa
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
-import { ArrayDiskType, PluginInstallStatus, ThemeName } from '~/composables/gql/graphql';
+import { PluginInstallStatus, ThemeName } from '~/composables/gql/graphql';
 
 export interface Props {
   onComplete: () => void;
@@ -134,11 +134,6 @@ const summaryServerDescription = computed(
   () => draftStore.serverDescription || coreSettingsResult.value?.server?.comment || ''
 );
 
-interface InternalBootContextArrayDisk {
-  device?: string | null;
-  type?: ArrayDiskType | null;
-}
-
 interface InternalBootContextDisk {
   device: string;
   size: number;
@@ -146,72 +141,20 @@ interface InternalBootContextDisk {
 }
 
 interface InternalBootContextData {
-  array?: {
-    boot?: InternalBootContextArrayDisk | null;
-    parities?: InternalBootContextArrayDisk[];
-    disks?: InternalBootContextArrayDisk[];
-    caches?: InternalBootContextArrayDisk[];
-  } | null;
-  vars?: {
-    bootEligible?: boolean | null;
-  } | null;
   disks?: InternalBootContextDisk[];
 }
 
-const hasEligibleStorageBootTarget = computed(() => {
-  const data = internalBootContextResult.value as InternalBootContextData | null;
-  if (!data || !data.vars?.bootEligible) {
-    return false;
-  }
-
-  const assignedDevices = new Set<string>();
-  const assignedDiskGroups = [
-    data.array?.boot ? [data.array.boot] : [],
-    data.array?.parities ?? [],
-    data.array?.disks ?? [],
-    data.array?.caches ?? [],
-  ];
-
-  for (const group of assignedDiskGroups) {
-    for (const disk of group) {
-      const device = normalizeDeviceName(disk.device);
-      if (device) {
-        assignedDevices.add(device);
-      }
-    }
-  }
-
-  return (data.disks ?? []).some((disk) => {
-    const device = normalizeDeviceName(disk.device);
-    return Boolean(device) && !assignedDevices.has(device);
-  });
-});
-
-const selectedBootMode = computed(() => {
-  if (draftStore.bootMode === 'storage' || Boolean(draftStore.internalBootSelection)) {
-    return hasEligibleStorageBootTarget.value ? 'storage' : 'usb';
-  }
-
-  const context = internalBootContextResult.value as InternalBootContextData | null;
-  const bootType = context?.array?.boot?.type;
-  if (bootType === ArrayDiskType.FLASH) {
-    return 'usb';
-  }
-  const bootDevice = context?.array?.boot?.device;
-  return typeof bootDevice === 'string' && bootDevice.trim().length > 0 ? 'storage' : 'usb';
-});
+const showBootConfiguration = computed(
+  () => draftStore.internalBootInitialized && !draftStore.internalBootSkipped
+);
+const selectedBootMode = computed(() => (draftStore.internalBootSelection ? 'storage' : 'usb'));
 const bootModeLabel = computed(() =>
   selectedBootMode.value === 'storage'
     ? t('onboarding.summaryStep.bootConfig.bootMethodStorage')
     : t('onboarding.summaryStep.bootConfig.bootMethodUsb')
 );
 
-const internalBootSelection = computed(() => {
-  if (selectedBootMode.value !== 'storage') {
-    return null;
-  }
-  return draftStore.internalBootSelection ?? null;
-});
+const internalBootSelection = computed(() => draftStore.internalBootSelection ?? null);
 
 const hasInternalBootSelection = computed(() => Boolean(internalBootSelection.value));
 
@@ -1471,7 +1414,7 @@ const handleBack = () => {
         </Disclosure>
       </div>
 
-      <div class="border-muted bg-bg/50 mt-6 rounded-lg border p-5">
+      <div v-if="showBootConfiguration" class="border-muted bg-bg/50 mt-6 rounded-lg border p-5">
         <div class="mb-4 flex items-center gap-2">
           <CircleStackIcon class="text-primary h-5 w-5" />
           <h3 class="text-highlighted text-sm font-bold tracking-wider uppercase">
