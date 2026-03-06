@@ -9,7 +9,7 @@ import type { App } from 'vue';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
-import { useOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding';
+import { useOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding.js';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
