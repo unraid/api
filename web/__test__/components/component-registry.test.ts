@@ -37,9 +37,6 @@ vi.mock('~/components/Registration.standalone.vue', () => ({
 vi.mock('~/components/WanIpCheck.standalone.vue', () => ({
   default: { name: 'MockWanIpCheck', template: '<div>WanIpCheck</div>' },
 }));
-vi.mock('~/components/Activation/WelcomeModal.standalone.vue', () => ({
-  default: { name: 'MockWelcomeModal', template: '<div>WelcomeModal</div>' },
-}));
 vi.mock('~/components/SsoButton.standalone.vue', () => ({
   default: { name: 'MockSsoButton', template: '<div>SsoButton</div>' },
 }));

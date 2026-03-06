@@ -49,7 +49,7 @@ vi.mock('@unraid/shared-callbacks', () => {
 });
 
 // Mock activation code data store
-vi.mock('~/components/Activation/store/activationCodeData', () => ({
+vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: () => ({
     activationCode: ref(null),
   }),
@@ -94,7 +94,6 @@ describe('Purchase Store', () => {
             server: {
               guid: 'test-guid',
               name: 'test-server',
-              activationCodeData: null,
             },
             type: 'activate',
           },

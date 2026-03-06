@@ -36,7 +36,7 @@ const stream = SUPPRESS_LOGS
             levelFirst: false,
             ignore: 'hostname,pid',
             destination: logDestination,
-            translateTime: 'HH:mm:ss',
+            translateTime: 'SYS:HH:mm:ss',
             customPrettifiers: {
                 time: (timestamp: string | object) => `[${timestamp}`,
                 level: (_logLevel: string | object, _key: string, log: any, extras: any) => {

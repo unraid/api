@@ -1,0 +1,25 @@
+{% extends "layouts/base.njk" %}
+
+{% block title %}Onboarding Flows - Unraid Component Test{% endblock %}
+
+{% block pageStyles %}{% endblock %}
+
+{% block content %}
+<unraid-modals></unraid-modals>
+
+<div class="container padded">
+  <div class="breadcrumb">
+    <a href="/test-pages/">Test Pages</a> / Onboarding Flows
+  </div>
+
+  <div class="card">
+    <h2>Onboarding Flow Test Page</h2>
+    <p class="card-description">
+      Use the test harness below to simulate activation, upgrade, and welcome flows without relying on boot/update
+      state. Overrides are client-side and only apply on test pages.
+    </p>
+  </div>
+
+  <unraid-onboarding-test-harness></unraid-onboarding-test-harness>
+</div>
+{% endblock %}

@@ -1,15 +1,16 @@
-import { Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { getters } from '@app/store/index.js';
-import { Public } from '@app/unraid-api/auth/public.decorator.js';
-import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
-import { Vars } from '@app/unraid-api/graph/resolvers/vars/vars.model.js';
+import { UpdateSshInput, Vars } from '@app/unraid-api/graph/resolvers/vars/vars.model.js';
+import { VarsService } from '@app/unraid-api/graph/resolvers/vars/vars.service.js';
 
 @Resolver(() => Vars)
 export class VarsResolver {
+    constructor(private readonly varsService: VarsService) {}
+
     @Query(() => Vars)
     @UsePermissions({
         action: AuthAction.READ_ANY,
@@ -22,9 +23,12 @@ export class VarsResolver {
         };
     }
 
-    @Query(() => Boolean)
-    @Public()
-    public async isInitialSetup() {
-        return getters.emhttp().var?.regState === RegistrationState.ENOKEYFILE;
+    @Mutation(() => Vars)
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.VARS,
+    })
+    public async updateSshSettings(@Args('input') input: UpdateSshInput) {
+        return this.varsService.updateSshSettings(input.enabled, input.port);
     }
 }

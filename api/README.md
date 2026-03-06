@@ -84,6 +84,7 @@ For detailed information about specific features:
 - [Feature Flags](docs/developer/feature-flags.md) - Conditionally enabling functionality
 - [Repository Organization](docs/developer/repo-organization.md) - Codebase structure
 - [Development Workflows](docs/developer/workflows.md) - Development processes
+- [Temperature Monitoring](docs/developer/temperature.md) - Configuration and API details for temperature sensors
 
 ## License
 

@@ -106,17 +106,18 @@ export type AccessUrlObjectInput = {
 
 export type ActivationCode = {
   __typename?: 'ActivationCode';
-  background?: Maybe<Scalars['String']['output']>;
+  branding?: Maybe<BrandingConfig>;
   code?: Maybe<Scalars['String']['output']>;
-  comment?: Maybe<Scalars['String']['output']>;
-  header?: Maybe<Scalars['String']['output']>;
-  headermetacolor?: Maybe<Scalars['String']['output']>;
-  partnerName?: Maybe<Scalars['String']['output']>;
-  partnerUrl?: Maybe<Scalars['String']['output']>;
-  serverName?: Maybe<Scalars['String']['output']>;
-  showBannerGradient?: Maybe<Scalars['Boolean']['output']>;
-  sysModel?: Maybe<Scalars['String']['output']>;
-  theme?: Maybe<Scalars['String']['output']>;
+  partner?: Maybe<PartnerConfig>;
+  system?: Maybe<SystemConfig>;
+};
+
+/** Activation code override input */
+export type ActivationCodeOverrideInput = {
+  branding?: InputMaybe<BrandingConfigInput>;
+  code?: InputMaybe<Scalars['String']['input']>;
+  partner?: InputMaybe<PartnerConfigInput>;
+  system?: InputMaybe<SystemConfigInput>;
 };
 
 export type AddPermissionInput = {
@@ -407,6 +408,68 @@ export enum AuthorizationRuleMode {
   OR = 'OR'
 }
 
+export type BrandingConfig = {
+  __typename?: 'BrandingConfig';
+  background?: Maybe<Scalars['String']['output']>;
+  /** Banner image source. Supports local path, remote URL, or data URI/base64. */
+  bannerImage?: Maybe<Scalars['String']['output']>;
+  /** Case model image source. Supports local path, remote URL, or data URI/base64. */
+  caseModelImage?: Maybe<Scalars['String']['output']>;
+  /** Indicates if a partner logo exists */
+  hasPartnerLogo?: Maybe<Scalars['Boolean']['output']>;
+  header?: Maybe<Scalars['String']['output']>;
+  headermetacolor?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for onboarding welcome step */
+  onboardingSubtitle?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for downgrade onboarding */
+  onboardingSubtitleDowngrade?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for fresh install onboarding */
+  onboardingSubtitleFreshInstall?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for incomplete onboarding */
+  onboardingSubtitleIncomplete?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for upgrade onboarding */
+  onboardingSubtitleUpgrade?: Maybe<Scalars['String']['output']>;
+  /** Custom title for onboarding welcome step */
+  onboardingTitle?: Maybe<Scalars['String']['output']>;
+  /** Custom title for downgrade onboarding */
+  onboardingTitleDowngrade?: Maybe<Scalars['String']['output']>;
+  /** Custom title for fresh install onboarding */
+  onboardingTitleFreshInstall?: Maybe<Scalars['String']['output']>;
+  /** Custom title for incomplete onboarding */
+  onboardingTitleIncomplete?: Maybe<Scalars['String']['output']>;
+  /** Custom title for upgrade onboarding */
+  onboardingTitleUpgrade?: Maybe<Scalars['String']['output']>;
+  /** Partner logo source for dark themes (black/gray). Supports local path, remote URL, or data URI/base64. */
+  partnerLogoDarkUrl?: Maybe<Scalars['String']['output']>;
+  /** Partner logo source for light themes (azure/white). Supports local path, remote URL, or data URI/base64. */
+  partnerLogoLightUrl?: Maybe<Scalars['String']['output']>;
+  showBannerGradient?: Maybe<Scalars['Boolean']['output']>;
+  theme?: Maybe<Scalars['String']['output']>;
+};
+
+export type BrandingConfigInput = {
+  background?: InputMaybe<Scalars['String']['input']>;
+  bannerImage?: InputMaybe<Scalars['String']['input']>;
+  caseModelImage?: InputMaybe<Scalars['String']['input']>;
+  hasPartnerLogo?: InputMaybe<Scalars['Boolean']['input']>;
+  header?: InputMaybe<Scalars['String']['input']>;
+  headermetacolor?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitle?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitleDowngrade?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitleFreshInstall?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitleIncomplete?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitleUpgrade?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitle?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitleDowngrade?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitleFreshInstall?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitleIncomplete?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitleUpgrade?: InputMaybe<Scalars['String']['input']>;
+  partnerLogoDarkUrl?: InputMaybe<Scalars['String']['input']>;
+  partnerLogoLightUrl?: InputMaybe<Scalars['String']['input']>;
+  showBannerGradient?: InputMaybe<Scalars['Boolean']['input']>;
+  theme?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type Capacity = {
   __typename?: 'Capacity';
   /** Free capacity */
@@ -598,15 +661,24 @@ export type CreateRCloneRemoteInput = {
 export type Customization = {
   __typename?: 'Customization';
   activationCode?: Maybe<ActivationCode>;
-  partnerInfo?: Maybe<PublicPartnerInfo>;
-  theme: Theme;
+  availableLanguages?: Maybe<Array<Language>>;
+  /** Onboarding completion state and context */
+  onboarding: Onboarding;
 };
 
 /** Customization related mutations */
 export type CustomizationMutations = {
   __typename?: 'CustomizationMutations';
+  /** Update the display locale (language) */
+  setLocale: Scalars['String']['output'];
   /** Update the UI theme (writes dynamix.cfg) */
   setTheme: Theme;
+};
+
+
+/** Customization related mutations */
+export type CustomizationMutationsSetLocaleArgs = {
+  locale: Scalars['String']['input'];
 };
 
 
@@ -1043,8 +1115,12 @@ export type Info = Node & {
   machineId?: Maybe<Scalars['ID']['output']>;
   /** Memory information */
   memory: InfoMemory;
+  /** Network interfaces */
+  networkInterfaces: Array<InfoNetworkInterface>;
   /** Operating system information */
   os: InfoOs;
+  /** Primary management interface */
+  primaryNetwork?: Maybe<InfoNetworkInterface>;
   /** System information */
   system: InfoSystem;
   /** Current server time */
@@ -1218,6 +1294,37 @@ export type InfoNetwork = Node & {
   virtual?: Maybe<Scalars['Boolean']['output']>;
 };
 
+export type InfoNetworkInterface = Node & {
+  __typename?: 'InfoNetworkInterface';
+  /** Interface description/label */
+  description?: Maybe<Scalars['String']['output']>;
+  /** IPv4 Gateway */
+  gateway?: Maybe<Scalars['String']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** IPv4 Address */
+  ipAddress?: Maybe<Scalars['String']['output']>;
+  /** IPv6 Address */
+  ipv6Address?: Maybe<Scalars['String']['output']>;
+  /** IPv6 Gateway */
+  ipv6Gateway?: Maybe<Scalars['String']['output']>;
+  /** IPv6 Netmask */
+  ipv6Netmask?: Maybe<Scalars['String']['output']>;
+  /** MAC Address */
+  macAddress?: Maybe<Scalars['String']['output']>;
+  /** Interface name (e.g. eth0) */
+  name: Scalars['String']['output'];
+  /** IPv4 Netmask */
+  netmask?: Maybe<Scalars['String']['output']>;
+  /** IPv4 Protocol mode */
+  protocol?: Maybe<Scalars['String']['output']>;
+  /** Connection status */
+  status?: Maybe<Scalars['String']['output']>;
+  /** Using DHCP for IPv4 */
+  useDhcp?: Maybe<Scalars['Boolean']['output']>;
+  /** Using DHCP for IPv6 */
+  useDhcp6?: Maybe<Scalars['Boolean']['output']>;
+};
+
 export type InfoOs = Node & {
   __typename?: 'InfoOs';
   /** OS architecture */
@@ -1322,10 +1429,52 @@ export type InitiateFlashBackupInput = {
   sourcePath: Scalars['String']['input'];
 };
 
+/** Input payload for installing a plugin */
+export type InstallPluginInput = {
+  /** Force installation even when plugin is already present. Defaults to true to mirror the existing UI behaviour. */
+  forced?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Optional human-readable plugin name used for logging */
+  name?: InputMaybe<Scalars['String']['input']>;
+  /** Plugin installation URL (.plg) */
+  url: Scalars['String']['input'];
+};
+
+export type IpmiConfig = {
+  __typename?: 'IpmiConfig';
+  args?: Maybe<Array<Scalars['String']['output']>>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type IpmiConfigInput = {
+  args?: InputMaybe<Array<Scalars['String']['input']>>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 export type KeyFile = {
   __typename?: 'KeyFile';
   contents?: Maybe<Scalars['String']['output']>;
   location?: Maybe<Scalars['String']['output']>;
+};
+
+export type Language = {
+  __typename?: 'Language';
+  /** Language code (e.g. en_US) */
+  code: Scalars['String']['output'];
+  /** Language description/name */
+  name: Scalars['String']['output'];
+  /** URL to the language pack XML */
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export type LmSensorsConfig = {
+  __typename?: 'LmSensorsConfig';
+  config_path?: Maybe<Scalars['String']['output']>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type LmSensorsConfigInput = {
+  config_path?: InputMaybe<Scalars['String']['input']>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type LogFile = {
@@ -1414,6 +1563,8 @@ export type Metrics = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Current memory utilization metrics */
   memory?: Maybe<MemoryUtilization>;
+  /** Temperature metrics */
+  temperature?: Maybe<TemperatureMetrics>;
 };
 
 /** The status of the minigraph */
@@ -1462,6 +1613,7 @@ export type Mutation = {
   moveDockerItemsToPosition: ResolvedOrganizerV1;
   /** Creates a notification if an equivalent unread notification does not already exist. */
   notifyIfUnique?: Maybe<Notification>;
+  onboarding: OnboardingMutations;
   parityCheck: ParityCheckMutations;
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
@@ -1477,11 +1629,18 @@ export type Mutation = {
   syncDockerTemplatePaths: DockerTemplateSyncResult;
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
+  unraidPlugins: UnraidPluginsMutations;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
   updateDockerViewPreferences: ResolvedOrganizerV1;
+  /** Update server name, comment, and model */
+  updateServerIdentity: Server;
   updateSettings: UpdateSettingsResponse;
+  updateSshSettings: Vars;
+  /** Update system time configuration */
+  updateSystemTime: SystemTime;
+  updateTemperatureConfig: Scalars['Boolean']['output'];
   vm: VmMutations;
 };
 
@@ -1623,8 +1782,30 @@ export type MutationUpdateDockerViewPreferencesArgs = {
 };
 
 
+export type MutationUpdateServerIdentityArgs = {
+  comment?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  sysModel?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationUpdateSettingsArgs = {
   input: Scalars['JSON']['input'];
+};
+
+
+export type MutationUpdateSshSettingsArgs = {
+  input: UpdateSshInput;
+};
+
+
+export type MutationUpdateSystemTimeArgs = {
+  input: UpdateSystemTimeInput;
+};
+
+
+export type MutationUpdateTemperatureConfigArgs = {
+  input: TemperatureConfigInput;
 };
 
 export type Network = Node & {
@@ -1765,6 +1946,77 @@ export type OidcSessionValidation = {
   valid: Scalars['Boolean']['output'];
 };
 
+/** Onboarding completion state and context */
+export type Onboarding = {
+  __typename?: 'Onboarding';
+  /** The activation code from the .activationcode file, if present */
+  activationCode?: Maybe<Scalars['String']['output']>;
+  /** Whether the onboarding flow has been completed */
+  completed: Scalars['Boolean']['output'];
+  /** The OS version when onboarding was completed */
+  completedAtVersion?: Maybe<Scalars['String']['output']>;
+  /** Whether this is a partner/OEM build with activation code */
+  isPartnerBuild: Scalars['Boolean']['output'];
+  /** Runtime onboarding state values used by the onboarding flow */
+  onboardingState: OnboardingState;
+  /** The current onboarding status (INCOMPLETE, UPGRADE, DOWNGRADE, or COMPLETED) */
+  status: OnboardingStatus;
+};
+
+/** Onboarding related mutations */
+export type OnboardingMutations = {
+  __typename?: 'OnboardingMutations';
+  /** Clear onboarding override state and reload from disk */
+  clearOnboardingOverride: Onboarding;
+  /** Mark onboarding as completed */
+  completeOnboarding: Onboarding;
+  /** Reset onboarding progress (for testing) */
+  resetOnboarding: Onboarding;
+  /** Override onboarding state for testing (in-memory only) */
+  setOnboardingOverride: Onboarding;
+};
+
+
+/** Onboarding related mutations */
+export type OnboardingMutationsSetOnboardingOverrideArgs = {
+  input: OnboardingOverrideInput;
+};
+
+/** Onboarding completion override input */
+export type OnboardingOverrideCompletionInput = {
+  completed?: InputMaybe<Scalars['Boolean']['input']>;
+  completedAtVersion?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Onboarding override input for testing */
+export type OnboardingOverrideInput = {
+  activationCode?: InputMaybe<ActivationCodeOverrideInput>;
+  onboarding?: InputMaybe<OnboardingOverrideCompletionInput>;
+  partnerInfo?: InputMaybe<PartnerInfoOverrideInput>;
+  registrationState?: InputMaybe<RegistrationState>;
+};
+
+export type OnboardingState = {
+  __typename?: 'OnboardingState';
+  /** Indicates whether activation is required based on current state */
+  activationRequired: Scalars['Boolean']['output'];
+  /** Indicates whether an activation code is present */
+  hasActivationCode: Scalars['Boolean']['output'];
+  /** Indicates whether the system is a fresh install */
+  isFreshInstall: Scalars['Boolean']['output'];
+  /** Indicates whether the system is registered */
+  isRegistered: Scalars['Boolean']['output'];
+  registrationState?: Maybe<RegistrationState>;
+};
+
+/** The current onboarding status based on completion state and version relationship */
+export enum OnboardingStatus {
+  COMPLETED = 'COMPLETED',
+  DOWNGRADE = 'DOWNGRADE',
+  INCOMPLETE = 'INCOMPLETE',
+  UPGRADE = 'UPGRADE'
+}
+
 export type Owner = {
   __typename?: 'Owner';
   avatar: Scalars['String']['output'];
@@ -1842,6 +2094,49 @@ export enum ParityCheckStatus {
   RUNNING = 'RUNNING'
 }
 
+export type PartnerConfig = {
+  __typename?: 'PartnerConfig';
+  /** Additional custom links provided by the partner */
+  extraLinks?: Maybe<Array<PartnerLink>>;
+  /** Link to hardware specifications for this system */
+  hardwareSpecsUrl?: Maybe<Scalars['String']['output']>;
+  /** Link to the system manual/documentation */
+  manualUrl?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  /** Link to manufacturer support page */
+  supportUrl?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export type PartnerConfigInput = {
+  extraLinks?: InputMaybe<Array<PartnerLinkInput>>;
+  hardwareSpecsUrl?: InputMaybe<Scalars['String']['input']>;
+  manualUrl?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  supportUrl?: InputMaybe<Scalars['String']['input']>;
+  url?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Partner info override input */
+export type PartnerInfoOverrideInput = {
+  branding?: InputMaybe<BrandingConfigInput>;
+  partner?: InputMaybe<PartnerConfigInput>;
+};
+
+export type PartnerLink = {
+  __typename?: 'PartnerLink';
+  /** Display title for the link */
+  title: Scalars['String']['output'];
+  /** The URL */
+  url: Scalars['String']['output'];
+};
+
+/** Partner link input for custom links */
+export type PartnerLinkInput = {
+  title: Scalars['String']['input'];
+  url: Scalars['String']['input'];
+};
+
 export type Permission = {
   __typename?: 'Permission';
   /** Actions allowed on this resource */
@@ -1860,6 +2155,48 @@ export type Plugin = {
   /** The version of the plugin package */
   version: Scalars['String']['output'];
 };
+
+/** Emitted event representing progress for a plugin installation */
+export type PluginInstallEvent = {
+  __typename?: 'PluginInstallEvent';
+  /** Identifier of the related plugin installation operation */
+  operationId: Scalars['ID']['output'];
+  /** Output lines newly emitted since the previous event */
+  output?: Maybe<Array<Scalars['String']['output']>>;
+  /** Status reported with this event */
+  status: PluginInstallStatus;
+  /** Timestamp when the event was emitted */
+  timestamp: Scalars['DateTime']['output'];
+};
+
+/** Represents a tracked plugin installation operation */
+export type PluginInstallOperation = {
+  __typename?: 'PluginInstallOperation';
+  /** Timestamp when the operation was created */
+  createdAt: Scalars['DateTime']['output'];
+  /** Timestamp when the operation finished, if applicable */
+  finishedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Unique identifier of the operation */
+  id: Scalars['ID']['output'];
+  /** Optional plugin name for display purposes */
+  name?: Maybe<Scalars['String']['output']>;
+  /** Collected output lines generated by the installer (capped at recent lines) */
+  output: Array<Scalars['String']['output']>;
+  /** Current status of the operation */
+  status: PluginInstallStatus;
+  /** Timestamp for the last update to this operation */
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Plugin URL passed to the installer */
+  url: Scalars['String']['output'];
+};
+
+/** Status of a plugin installation operation */
+export enum PluginInstallStatus {
+  FAILED = 'FAILED',
+  QUEUED = 'QUEUED',
+  RUNNING = 'RUNNING',
+  SUCCEEDED = 'SUCCEEDED'
+}
 
 export type PluginManagementInput = {
   /** Whether to treat plugins as bundled plugins. Bundled plugins are installed to node_modules at build time and controlled via config only. */
@@ -1888,16 +2225,6 @@ export type PublicOidcProvider = {
   name: Scalars['String']['output'];
 };
 
-export type PublicPartnerInfo = {
-  __typename?: 'PublicPartnerInfo';
-  /** Indicates if a partner logo exists */
-  hasPartnerLogo: Scalars['Boolean']['output'];
-  /** The path to the partner logo image on the flash drive, relative to the activation code file */
-  partnerLogoUrl?: Maybe<Scalars['String']['output']>;
-  partnerName?: Maybe<Scalars['String']['output']>;
-  partnerUrl?: Maybe<Scalars['String']['output']>;
-};
-
 export type Query = {
   __typename?: 'Query';
   apiKey?: Maybe<ApiKey>;
@@ -1913,6 +2240,7 @@ export type Query = {
   customization?: Maybe<Customization>;
   disk: Disk;
   disks: Array<Disk>;
+  display: InfoDisplay;
   docker: Docker;
   flash: Flash;
   /** Get JSON Schema for API key creation form */
@@ -1922,7 +2250,10 @@ export type Query = {
   /** Get the actual permissions that would be granted by a set of roles */
   getPermissionsForRoles: Array<Permission>;
   info: Info;
-  isInitialSetup: Scalars['Boolean']['output'];
+  /** List installed Unraid OS plugins by .plg filename */
+  installedUnraidPlugins: Array<Scalars['String']['output']>;
+  /** Whether the system is a fresh install (no license key) */
+  isFreshInstall: Scalars['Boolean']['output'];
   isSSOEnabled: Scalars['Boolean']['output'];
   logFile: LogFileContent;
   logFiles: Array<LogFile>;
@@ -1940,13 +2271,16 @@ export type Query = {
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
+  /** Retrieve a plugin installation operation by identifier */
+  pluginInstallOperation?: Maybe<PluginInstallOperation>;
+  /** List all tracked plugin installation operations */
+  pluginInstallOperations: Array<PluginInstallOperation>;
   /** List all installed plugins with their metadata */
   plugins: Array<Plugin>;
   /** Preview the effective permissions for a combination of roles and explicit permissions */
   previewEffectivePermissions: Array<Permission>;
   /** Get public OIDC provider information for login buttons */
   publicOidcProviders: Array<PublicOidcProvider>;
-  publicPartnerInfo?: Maybe<PublicPartnerInfo>;
   publicTheme: Theme;
   rclone: RCloneBackupSettings;
   registration?: Maybe<Registration>;
@@ -1956,6 +2290,10 @@ export type Query = {
   services: Array<Service>;
   settings: Settings;
   shares: Array<Share>;
+  /** Retrieve current system time configuration */
+  systemTime: SystemTime;
+  /** Retrieve available time zone options */
+  timeZoneOptions: Array<TimeZoneOption>;
   upsConfiguration: UpsConfiguration;
   upsDeviceById?: Maybe<UpsDevice>;
   upsDevices: Array<UpsDevice>;
@@ -1991,6 +2329,11 @@ export type QueryLogFileArgs = {
 
 export type QueryOidcProviderArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryPluginInstallOperationArgs = {
+  operationId: Scalars['ID']['input'];
 };
 
 
@@ -2193,9 +2536,34 @@ export enum Role {
   VIEWER = 'VIEWER'
 }
 
+export type SensorConfig = {
+  __typename?: 'SensorConfig';
+  enabled?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type SensorConfigInput = {
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** Type of temperature sensor */
+export enum SensorType {
+  AMBIENT = 'AMBIENT',
+  CHIPSET = 'CHIPSET',
+  CPU_CORE = 'CPU_CORE',
+  CPU_PACKAGE = 'CPU_PACKAGE',
+  CUSTOM = 'CUSTOM',
+  DISK = 'DISK',
+  GPU = 'GPU',
+  MOTHERBOARD = 'MOTHERBOARD',
+  NVME = 'NVME',
+  VRM = 'VRM'
+}
+
 export type Server = Node & {
   __typename?: 'Server';
   apikey: Scalars['String']['output'];
+  /** Server description/comment */
+  comment?: Maybe<Scalars['String']['output']>;
   guid: Scalars['String']['output'];
   id: Scalars['PrefixedID']['output'];
   lanip: Scalars['String']['output'];
@@ -2288,6 +2656,7 @@ export type SsoSettings = Node & {
 export type Subscription = {
   __typename?: 'Subscription';
   arraySubscription: UnraidArray;
+  displaySubscription: InfoDisplay;
   dockerContainerStats: DockerContainerStats;
   logFile: LogFileContent;
   notificationAdded: Notification;
@@ -2295,16 +2664,49 @@ export type Subscription = {
   notificationsWarningsAndAlerts: Array<Notification>;
   ownerSubscription: Owner;
   parityHistorySubscription: ParityCheck;
+  pluginInstallUpdates: PluginInstallEvent;
   serversSubscription: Server;
   systemMetricsCpu: CpuUtilization;
   systemMetricsCpuTelemetry: CpuPackages;
   systemMetricsMemory: MemoryUtilization;
+  systemMetricsTemperature?: Maybe<TemperatureMetrics>;
   upsUpdates: UpsDevice;
 };
 
 
 export type SubscriptionLogFileArgs = {
   path: Scalars['String']['input'];
+};
+
+
+export type SubscriptionPluginInstallUpdatesArgs = {
+  operationId: Scalars['ID']['input'];
+};
+
+export type SystemConfig = {
+  __typename?: 'SystemConfig';
+  comment?: Maybe<Scalars['String']['output']>;
+  model?: Maybe<Scalars['String']['output']>;
+  serverName?: Maybe<Scalars['String']['output']>;
+};
+
+export type SystemConfigInput = {
+  comment?: InputMaybe<Scalars['String']['input']>;
+  model?: InputMaybe<Scalars['String']['input']>;
+  serverName?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** System time configuration and current status */
+export type SystemTime = {
+  __typename?: 'SystemTime';
+  /** Current server time in ISO-8601 format (UTC) */
+  currentTime: Scalars['String']['output'];
+  /** Configured NTP servers (empty strings indicate unused slots) */
+  ntpServers: Array<Scalars['String']['output']>;
+  /** IANA timezone identifier currently in use */
+  timeZone: Scalars['String']['output'];
+  /** Whether NTP/PTP time synchronization is enabled */
+  useNtp: Scalars['Boolean']['output'];
 };
 
 /** Tailscale exit node connection status */
@@ -2363,6 +2765,130 @@ export enum Temperature {
   FAHRENHEIT = 'FAHRENHEIT'
 }
 
+export type TemperatureConfigInput = {
+  default_unit?: InputMaybe<TemperatureUnit>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  history?: InputMaybe<TemperatureHistoryConfigInput>;
+  polling_interval?: InputMaybe<Scalars['Int']['input']>;
+  sensors?: InputMaybe<TemperatureSensorsConfigInput>;
+  thresholds?: InputMaybe<TemperatureThresholdsConfigInput>;
+};
+
+export type TemperatureHistoryConfig = {
+  __typename?: 'TemperatureHistoryConfig';
+  max_readings?: Maybe<Scalars['Int']['output']>;
+  retention_ms?: Maybe<Scalars['Int']['output']>;
+};
+
+export type TemperatureHistoryConfigInput = {
+  max_readings?: InputMaybe<Scalars['Int']['input']>;
+  retention_ms?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type TemperatureMetrics = Node & {
+  __typename?: 'TemperatureMetrics';
+  id: Scalars['PrefixedID']['output'];
+  /** All temperature sensors */
+  sensors: Array<TemperatureSensor>;
+  /** Temperature summary */
+  summary: TemperatureSummary;
+};
+
+export type TemperatureReading = {
+  __typename?: 'TemperatureReading';
+  /** Temperature status */
+  status: TemperatureStatus;
+  /** Timestamp of reading */
+  timestamp: Scalars['DateTime']['output'];
+  /** Temperature unit */
+  unit: TemperatureUnit;
+  /** Temperature value */
+  value: Scalars['Float']['output'];
+};
+
+export type TemperatureSensor = Node & {
+  __typename?: 'TemperatureSensor';
+  /** Critical threshold */
+  critical?: Maybe<Scalars['Float']['output']>;
+  /** Current temperature */
+  current: TemperatureReading;
+  /** Historical readings for this sensor */
+  history?: Maybe<Array<TemperatureReading>>;
+  id: Scalars['PrefixedID']['output'];
+  /** Physical location */
+  location?: Maybe<Scalars['String']['output']>;
+  /** Maximum recorded */
+  max?: Maybe<TemperatureReading>;
+  /** Minimum recorded */
+  min?: Maybe<TemperatureReading>;
+  /** Sensor name */
+  name: Scalars['String']['output'];
+  /** Type of sensor */
+  type: SensorType;
+  /** Warning threshold */
+  warning?: Maybe<Scalars['Float']['output']>;
+};
+
+export type TemperatureSensorsConfig = {
+  __typename?: 'TemperatureSensorsConfig';
+  ipmi?: Maybe<IpmiConfig>;
+  lm_sensors?: Maybe<LmSensorsConfig>;
+  smartctl?: Maybe<SensorConfig>;
+};
+
+export type TemperatureSensorsConfigInput = {
+  ipmi?: InputMaybe<IpmiConfigInput>;
+  lm_sensors?: InputMaybe<LmSensorsConfigInput>;
+  smartctl?: InputMaybe<SensorConfigInput>;
+};
+
+export enum TemperatureStatus {
+  CRITICAL = 'CRITICAL',
+  NORMAL = 'NORMAL',
+  UNKNOWN = 'UNKNOWN',
+  WARNING = 'WARNING'
+}
+
+export type TemperatureSummary = {
+  __typename?: 'TemperatureSummary';
+  /** Average temperature across all sensors */
+  average: Scalars['Float']['output'];
+  /** Coolest sensor */
+  coolest: TemperatureSensor;
+  /** Count of sensors at critical level */
+  criticalCount: Scalars['Int']['output'];
+  /** Hottest sensor */
+  hottest: TemperatureSensor;
+  /** Count of sensors at warning level */
+  warningCount: Scalars['Int']['output'];
+};
+
+export type TemperatureThresholdsConfig = {
+  __typename?: 'TemperatureThresholdsConfig';
+  cpu_critical?: Maybe<Scalars['Int']['output']>;
+  cpu_warning?: Maybe<Scalars['Int']['output']>;
+  critical?: Maybe<Scalars['Int']['output']>;
+  disk_critical?: Maybe<Scalars['Int']['output']>;
+  disk_warning?: Maybe<Scalars['Int']['output']>;
+  warning?: Maybe<Scalars['Int']['output']>;
+};
+
+export type TemperatureThresholdsConfigInput = {
+  cpu_critical?: InputMaybe<Scalars['Int']['input']>;
+  cpu_warning?: InputMaybe<Scalars['Int']['input']>;
+  critical?: InputMaybe<Scalars['Int']['input']>;
+  disk_critical?: InputMaybe<Scalars['Int']['input']>;
+  disk_warning?: InputMaybe<Scalars['Int']['input']>;
+  warning?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum TemperatureUnit {
+  CELSIUS = 'CELSIUS',
+  FAHRENHEIT = 'FAHRENHEIT',
+  KELVIN = 'KELVIN',
+  RANKINE = 'RANKINE'
+}
+
 export type Theme = {
   __typename?: 'Theme';
   /** The background color of the header */
@@ -2388,6 +2914,15 @@ export enum ThemeName {
   GRAY = 'gray',
   WHITE = 'white'
 }
+
+/** Selectable timezone option from the system list */
+export type TimeZoneOption = {
+  __typename?: 'TimeZoneOption';
+  /** Display label for the timezone */
+  label: Scalars['String']['output'];
+  /** IANA timezone identifier */
+  value: Scalars['String']['output'];
+};
 
 export type UpsBattery = {
   __typename?: 'UPSBattery';
@@ -2487,10 +3022,14 @@ export enum UpsKillPower {
 
 export type UpsPower = {
   __typename?: 'UPSPower';
+  /** Current power consumption calculated from load percentage and nominal power. Unit: watts (W). Example: 350 means 350 watts currently being used. Calculated as: nominalPower * (loadPercentage / 100) */
+  currentPower?: Maybe<Scalars['Float']['output']>;
   /** Input voltage from the wall outlet/mains power. Unit: volts (V). Example: 120.5 for typical US household voltage */
   inputVoltage: Scalars['Float']['output'];
   /** Current load on the UPS as a percentage of its capacity. Unit: percent (%). Example: 25 means UPS is loaded at 25% of its maximum capacity */
   loadPercentage: Scalars['Int']['output'];
+  /** Nominal power capacity of the UPS. Unit: watts (W). Example: 1000 means the UPS is rated for 1000 watts. This is the maximum power the UPS can deliver */
+  nominalPower?: Maybe<Scalars['Int']['output']>;
   /** Output voltage being delivered to connected devices. Unit: volts (V). Example: 120.5 - should match input voltage when on mains power */
   outputVoltage: Scalars['Float']['output'];
 };
@@ -2551,6 +3090,27 @@ export type UnraidArray = Node & {
   state: ArrayState;
 };
 
+/** Unraid plugin management mutations */
+export type UnraidPluginsMutations = {
+  __typename?: 'UnraidPluginsMutations';
+  /** Install an Unraid language pack and track installation progress */
+  installLanguage: PluginInstallOperation;
+  /** Install an Unraid plugin and track installation progress */
+  installPlugin: PluginInstallOperation;
+};
+
+
+/** Unraid plugin management mutations */
+export type UnraidPluginsMutationsInstallLanguageArgs = {
+  input: InstallPluginInput;
+};
+
+
+/** Unraid plugin management mutations */
+export type UnraidPluginsMutationsInstallPluginArgs = {
+  input: InstallPluginInput;
+};
+
 export type UpdateApiKeyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['PrefixedID']['input'];
@@ -2569,6 +3129,12 @@ export type UpdateSettingsResponse = {
   warnings?: Maybe<Array<Scalars['String']['output']>>;
 };
 
+export type UpdateSshInput = {
+  enabled: Scalars['Boolean']['input'];
+  /** SSH Port (default 22) */
+  port: Scalars['Int']['input'];
+};
+
 /** Update status of a container. */
 export enum UpdateStatus {
   REBUILD_READY = 'REBUILD_READY',
@@ -2576,6 +3142,17 @@ export enum UpdateStatus {
   UPDATE_AVAILABLE = 'UPDATE_AVAILABLE',
   UP_TO_DATE = 'UP_TO_DATE'
 }
+
+export type UpdateSystemTimeInput = {
+  /** Manual date/time to apply when disabling NTP, expected format YYYY-MM-DD HH:mm:ss */
+  manualDateTime?: InputMaybe<Scalars['String']['input']>;
+  /** Ordered list of up to four NTP servers. Supply empty strings to clear positions. */
+  ntpServers?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** New IANA timezone identifier to apply */
+  timeZone?: InputMaybe<Scalars['String']['input']>;
+  /** Enable or disable NTP-based synchronization */
+  useNtp?: InputMaybe<Scalars['Boolean']['input']>;
+};
 
 export type Uptime = {
   __typename?: 'Uptime';
@@ -2867,21 +3444,6 @@ export enum RegistrationType {
   TRIAL = 'TRIAL',
   UNLEASHED = 'UNLEASHED'
 }
-
-export type PartnerInfoQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type PartnerInfoQuery = { __typename?: 'Query', publicPartnerInfo?: { __typename?: 'PublicPartnerInfo', hasPartnerLogo: boolean, partnerName?: string | null, partnerUrl?: string | null, partnerLogoUrl?: string | null } | null };
-
-export type PublicWelcomeDataQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type PublicWelcomeDataQuery = { __typename?: 'Query', isInitialSetup: boolean, publicPartnerInfo?: { __typename?: 'PublicPartnerInfo', hasPartnerLogo: boolean, partnerName?: string | null, partnerUrl?: string | null, partnerLogoUrl?: string | null } | null };
-
-export type ActivationCodeQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type ActivationCodeQuery = { __typename?: 'Query', vars: { __typename?: 'Vars', regState?: RegistrationState | null }, customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', code?: string | null, partnerName?: string | null, serverName?: string | null, sysModel?: string | null, comment?: string | null, header?: string | null, headermetacolor?: string | null, background?: string | null, showBannerGradient?: boolean | null, theme?: string | null } | null, partnerInfo?: { __typename?: 'PublicPartnerInfo', hasPartnerLogo: boolean, partnerName?: string | null, partnerUrl?: string | null, partnerLogoUrl?: string | null } | null } | null };
 
 export type GetApiKeyCreationFormSchemaQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -3246,6 +3808,100 @@ export type NotificationsWarningsAndAlertsSubSubscription = { __typename?: 'Subs
     & { ' $fragmentRefs'?: { 'NotificationFragmentFragment': NotificationFragmentFragment } }
   )> };
 
+export type ActivationCodeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ActivationCodeQuery = { __typename?: 'Query', customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', code?: string | null, partner?: { __typename?: 'PartnerConfig', name?: string | null, url?: string | null, hardwareSpecsUrl?: string | null, manualUrl?: string | null, supportUrl?: string | null, extraLinks?: Array<{ __typename?: 'PartnerLink', title: string, url: string }> | null } | null, branding?: { __typename?: 'BrandingConfig', header?: string | null, headermetacolor?: string | null, background?: string | null, showBannerGradient?: boolean | null, theme?: string | null, partnerLogoLightUrl?: string | null, partnerLogoDarkUrl?: string | null, hasPartnerLogo?: boolean | null, onboardingTitle?: string | null, onboardingSubtitle?: string | null, onboardingTitleFreshInstall?: string | null, onboardingSubtitleFreshInstall?: string | null, onboardingTitleUpgrade?: string | null, onboardingSubtitleUpgrade?: string | null, onboardingTitleDowngrade?: string | null, onboardingSubtitleDowngrade?: string | null, onboardingTitleIncomplete?: string | null, onboardingSubtitleIncomplete?: string | null } | null, system?: { __typename?: 'SystemConfig', serverName?: string | null, model?: string | null } | null } | null, onboarding: { __typename?: 'Onboarding', onboardingState: { __typename?: 'OnboardingState', registrationState?: RegistrationState | null, isRegistered: boolean, isFreshInstall: boolean, hasActivationCode: boolean, activationRequired: boolean } } } | null };
+
+export type OnboardingQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OnboardingQuery = { __typename?: 'Query', customization?: { __typename?: 'Customization', onboarding: { __typename?: 'Onboarding', status: OnboardingStatus, isPartnerBuild: boolean, completed: boolean, completedAtVersion?: string | null } } | null };
+
+export type GetAvailableLanguagesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAvailableLanguagesQuery = { __typename?: 'Query', customization?: { __typename?: 'Customization', availableLanguages?: Array<{ __typename?: 'Language', code: string, name: string, url?: string | null }> | null } | null };
+
+export type CompleteOnboardingMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CompleteOnboardingMutation = { __typename?: 'Mutation', onboarding: { __typename?: 'OnboardingMutations', completeOnboarding: { __typename?: 'Onboarding', status: OnboardingStatus, isPartnerBuild: boolean, completed: boolean, completedAtVersion?: string | null } } };
+
+export type UpdateServerIdentityMutationVariables = Exact<{
+  name: Scalars['String']['input'];
+  comment?: InputMaybe<Scalars['String']['input']>;
+  sysModel?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type UpdateServerIdentityMutation = { __typename?: 'Mutation', updateServerIdentity: { __typename?: 'Server', id: string, name: string, comment?: string | null } };
+
+export type SetLocaleMutationVariables = Exact<{
+  locale: Scalars['String']['input'];
+}>;
+
+
+export type SetLocaleMutation = { __typename?: 'Mutation', customization: { __typename?: 'CustomizationMutations', setLocale: string } };
+
+export type UpdateSshSettingsMutationVariables = Exact<{
+  enabled: Scalars['Boolean']['input'];
+  port?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type UpdateSshSettingsMutation = { __typename?: 'Mutation', updateSshSettings: { __typename?: 'Vars', id: string, useSsh?: boolean | null, portssh?: number | null } };
+
+export type GetCoreSettingsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetCoreSettingsQuery = { __typename?: 'Query', customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', system?: { __typename?: 'SystemConfig', serverName?: string | null, comment?: string | null } | null } | null } | null, vars: { __typename?: 'Vars', name?: string | null, sysModel?: string | null, useSsh?: boolean | null, localTld?: string | null }, server?: { __typename?: 'Server', name: string, comment?: string | null } | null, display: { __typename?: 'InfoDisplay', theme: ThemeName, locale?: string | null }, systemTime: { __typename?: 'SystemTime', timeZone: string }, info: { __typename?: 'Info', primaryNetwork?: { __typename?: 'InfoNetworkInterface', ipAddress?: string | null } | null } };
+
+export type InstallLanguageMutationVariables = Exact<{
+  input: InstallPluginInput;
+}>;
+
+
+export type InstallLanguageMutation = { __typename?: 'Mutation', unraidPlugins: { __typename?: 'UnraidPluginsMutations', installLanguage: { __typename?: 'PluginInstallOperation', id: string, url: string, name?: string | null, status: PluginInstallStatus, createdAt: string, updatedAt?: string | null, finishedAt?: string | null, output: Array<string> } } };
+
+export type InstallPluginMutationVariables = Exact<{
+  input: InstallPluginInput;
+}>;
+
+
+export type InstallPluginMutation = { __typename?: 'Mutation', unraidPlugins: { __typename?: 'UnraidPluginsMutations', installPlugin: { __typename?: 'PluginInstallOperation', id: string, url: string, name?: string | null, status: PluginInstallStatus, createdAt: string, updatedAt?: string | null, finishedAt?: string | null, output: Array<string> } } };
+
+export type InstalledUnraidPluginsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type InstalledUnraidPluginsQuery = { __typename?: 'Query', installedUnraidPlugins: Array<string> };
+
+export type PluginInstallOperationQueryVariables = Exact<{
+  operationId: Scalars['ID']['input'];
+}>;
+
+
+export type PluginInstallOperationQuery = { __typename?: 'Query', pluginInstallOperation?: { __typename?: 'PluginInstallOperation', id: string, url: string, name?: string | null, status: PluginInstallStatus, createdAt: string, updatedAt?: string | null, finishedAt?: string | null, output: Array<string> } | null };
+
+export type PluginInstallUpdatesSubscriptionVariables = Exact<{
+  operationId: Scalars['ID']['input'];
+}>;
+
+
+export type PluginInstallUpdatesSubscription = { __typename?: 'Subscription', pluginInstallUpdates: { __typename?: 'PluginInstallEvent', operationId: string, status: PluginInstallStatus, output?: Array<string> | null, timestamp: string } };
+
+export type TimeZoneOptionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type TimeZoneOptionsQuery = { __typename?: 'Query', timeZoneOptions: Array<{ __typename?: 'TimeZoneOption', value: string, label: string }> };
+
+export type UpdateSystemTimeMutationVariables = Exact<{
+  input: UpdateSystemTimeInput;
+}>;
+
+
+export type UpdateSystemTimeMutation = { __typename?: 'Mutation', updateSystemTime: { __typename?: 'SystemTime', currentTime: string, timeZone: string, useNtp: boolean, ntpServers: Array<string> } };
+
 export type CreateRCloneRemoteMutationVariables = Exact<{
   input: CreateRCloneRemoteInput;
 }>;
@@ -3328,9 +3984,6 @@ export const ApiKeyFragmentDoc = {"kind":"Document","definitions":[{"kind":"Frag
 export const NotificationFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationFragmentFragment, unknown>;
 export const NotificationCountFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationCountFragmentFragment, unknown>;
 export const PartialCloudFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<PartialCloudFragment, unknown>;
-export const PartnerInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}}]}}]} as unknown as DocumentNode<PartnerInfoQuery, PartnerInfoQueryVariables>;
-export const PublicWelcomeDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PublicWelcomeData"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"isInitialSetup"}}]}}]} as unknown as DocumentNode<PublicWelcomeDataQuery, PublicWelcomeDataQueryVariables>;
-export const ActivationCodeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regState"}}]}},{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"sysModel"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}},{"kind":"Field","name":{"kind":"Name","value":"header"}},{"kind":"Field","name":{"kind":"Name","value":"headermetacolor"}},{"kind":"Field","name":{"kind":"Name","value":"background"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}}]}},{"kind":"Field","name":{"kind":"Name","value":"partnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}}]}}]}}]} as unknown as DocumentNode<ActivationCodeQuery, ActivationCodeQueryVariables>;
 export const GetApiKeyCreationFormSchemaDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetApiKeyCreationFormSchema"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getApiKeyCreationFormSchema"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<GetApiKeyCreationFormSchemaQuery, GetApiKeyCreationFormSchemaQueryVariables>;
 export const CreateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"create"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<CreateApiKeyMutation, CreateApiKeyMutationVariables>;
 export const UpdateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<UpdateApiKeyMutation, UpdateApiKeyMutationVariables>;
@@ -3379,6 +4032,21 @@ export const NotifyIfUniqueDocument = {"kind":"Document","definitions":[{"kind":
 export const NotificationAddedSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationAddedSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationAdded"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationAddedSubSubscription, NotificationAddedSubSubscriptionVariables>;
 export const NotificationOverviewSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationOverviewSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationsOverview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationOverviewSubSubscription, NotificationOverviewSubSubscriptionVariables>;
 export const NotificationsWarningsAndAlertsSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationsWarningsAndAlertsSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationsWarningsAndAlerts"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationsWarningsAndAlertsSubSubscription, NotificationsWarningsAndAlertsSubSubscriptionVariables>;
+export const ActivationCodeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"partner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"hardwareSpecsUrl"}},{"kind":"Field","name":{"kind":"Name","value":"manualUrl"}},{"kind":"Field","name":{"kind":"Name","value":"supportUrl"}},{"kind":"Field","name":{"kind":"Name","value":"extraLinks"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"branding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"header"}},{"kind":"Field","name":{"kind":"Name","value":"headermetacolor"}},{"kind":"Field","name":{"kind":"Name","value":"background"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoLightUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoDarkUrl"}},{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitle"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleUpgrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleDowngrade"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingTitleIncomplete"}},{"kind":"Field","name":{"kind":"Name","value":"onboardingSubtitleIncomplete"}}]}},{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"model"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboardingState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"registrationState"}},{"kind":"Field","name":{"kind":"Name","value":"isRegistered"}},{"kind":"Field","name":{"kind":"Name","value":"isFreshInstall"}},{"kind":"Field","name":{"kind":"Name","value":"hasActivationCode"}},{"kind":"Field","name":{"kind":"Name","value":"activationRequired"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ActivationCodeQuery, ActivationCodeQueryVariables>;
+export const OnboardingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"isPartnerBuild"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedAtVersion"}}]}}]}}]}}]} as unknown as DocumentNode<OnboardingQuery, OnboardingQueryVariables>;
+export const GetAvailableLanguagesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAvailableLanguages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"availableLanguages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"url"}}]}}]}}]}}]} as unknown as DocumentNode<GetAvailableLanguagesQuery, GetAvailableLanguagesQueryVariables>;
+export const CompleteOnboardingDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CompleteOnboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"onboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"completeOnboarding"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"isPartnerBuild"}},{"kind":"Field","name":{"kind":"Name","value":"completed"}},{"kind":"Field","name":{"kind":"Name","value":"completedAtVersion"}}]}}]}}]}}]} as unknown as DocumentNode<CompleteOnboardingMutation, CompleteOnboardingMutationVariables>;
+export const UpdateServerIdentityDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateServerIdentity"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"name"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"comment"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"sysModel"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateServerIdentity"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"name"}}},{"kind":"Argument","name":{"kind":"Name","value":"comment"},"value":{"kind":"Variable","name":{"kind":"Name","value":"comment"}}},{"kind":"Argument","name":{"kind":"Name","value":"sysModel"},"value":{"kind":"Variable","name":{"kind":"Name","value":"sysModel"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}}]}}]} as unknown as DocumentNode<UpdateServerIdentityMutation, UpdateServerIdentityMutationVariables>;
+export const SetLocaleDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SetLocale"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"locale"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setLocale"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"locale"},"value":{"kind":"Variable","name":{"kind":"Name","value":"locale"}}}]}]}}]}}]} as unknown as DocumentNode<SetLocaleMutation, SetLocaleMutationVariables>;
+export const UpdateSshSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSshSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"enabled"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"port"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}},"defaultValue":{"kind":"IntValue","value":"22"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSshSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"ObjectValue","fields":[{"kind":"ObjectField","name":{"kind":"Name","value":"enabled"},"value":{"kind":"Variable","name":{"kind":"Name","value":"enabled"}}},{"kind":"ObjectField","name":{"kind":"Name","value":"port"},"value":{"kind":"Variable","name":{"kind":"Name","value":"port"}}}]}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"useSsh"}},{"kind":"Field","name":{"kind":"Name","value":"portssh"}}]}}]}}]} as unknown as DocumentNode<UpdateSshSettingsMutation, UpdateSshSettingsMutationVariables>;
+export const GetCoreSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetCoreSettings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sysModel"}},{"kind":"Field","name":{"kind":"Name","value":"useSsh"}},{"kind":"Field","name":{"kind":"Name","value":"localTld"}}]}},{"kind":"Field","name":{"kind":"Name","value":"server"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"display"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"theme"}},{"kind":"Field","name":{"kind":"Name","value":"locale"}}]}},{"kind":"Field","name":{"kind":"Name","value":"systemTime"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"timeZone"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"primaryNetwork"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ipAddress"}}]}}]}}]}}]} as unknown as DocumentNode<GetCoreSettingsQuery, GetCoreSettingsQueryVariables>;
+export const InstallLanguageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InstallLanguage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InstallPluginInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraidPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installLanguage"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"finishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]}}]} as unknown as DocumentNode<InstallLanguageMutation, InstallLanguageMutationVariables>;
+export const InstallPluginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InstallPlugin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InstallPluginInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraidPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installPlugin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"finishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]}}]} as unknown as DocumentNode<InstallPluginMutation, InstallPluginMutationVariables>;
+export const InstalledUnraidPluginsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"InstalledUnraidPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installedUnraidPlugins"}}]}}]} as unknown as DocumentNode<InstalledUnraidPluginsQuery, InstalledUnraidPluginsQueryVariables>;
+export const PluginInstallOperationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PluginInstallOperation"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pluginInstallOperation"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"operationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"finishedAt"}},{"kind":"Field","name":{"kind":"Name","value":"output"}}]}}]}}]} as unknown as DocumentNode<PluginInstallOperationQuery, PluginInstallOperationQueryVariables>;
+export const PluginInstallUpdatesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"PluginInstallUpdates"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pluginInstallUpdates"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"operationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"operationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"operationId"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"output"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}}]}}]}}]} as unknown as DocumentNode<PluginInstallUpdatesSubscription, PluginInstallUpdatesSubscriptionVariables>;
+export const TimeZoneOptionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"TimeZoneOptions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"timeZoneOptions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"value"}},{"kind":"Field","name":{"kind":"Name","value":"label"}}]}}]}}]} as unknown as DocumentNode<TimeZoneOptionsQuery, TimeZoneOptionsQueryVariables>;
+export const UpdateSystemTimeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSystemTime"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateSystemTimeInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSystemTime"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentTime"}},{"kind":"Field","name":{"kind":"Name","value":"timeZone"}},{"kind":"Field","name":{"kind":"Name","value":"useNtp"}},{"kind":"Field","name":{"kind":"Name","value":"ntpServers"}}]}}]}}]} as unknown as DocumentNode<UpdateSystemTimeMutation, UpdateSystemTimeMutationVariables>;
 export const CreateRCloneRemoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateRCloneRemote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateRCloneRemoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createRCloneRemote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"parameters"}}]}}]}}]}}]} as unknown as DocumentNode<CreateRCloneRemoteMutation, CreateRCloneRemoteMutationVariables>;
 export const DeleteRCloneRemoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteRCloneRemote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteRCloneRemoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteRCloneRemote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]}}]} as unknown as DocumentNode<DeleteRCloneRemoteMutation, DeleteRCloneRemoteMutationVariables>;
 export const GetRCloneConfigFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetRCloneConfigForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"formOptions"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"RCloneConfigFormInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"configForm"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"formOptions"},"value":{"kind":"Variable","name":{"kind":"Name","value":"formOptions"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}}]}}]}}]}}]} as unknown as DocumentNode<GetRCloneConfigFormQuery, GetRCloneConfigFormQueryVariables>;

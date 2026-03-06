@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import ActivationModal from '~/components/Activation/ActivationModal.vue';
+import OnboardingModal from '~/components/Onboarding/OnboardingModal.vue';
 import UpdateOsChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
 import UpdateOsCheckUpdateResponseModal from '~/components/UpdateOs/CheckUpdateResponseModal.vue';
 import UpcCallbackFeedback from '~/components/UserProfile/CallbackFeedback.vue';
@@ -28,6 +28,6 @@ const changelogModalVisible = computed(() => updateOsStore.changelogModalVisible
     <UpcTrial :open="trialModalVisible" />
     <UpdateOsCheckUpdateResponseModal :open="updateOsModalVisible" />
     <UpdateOsChangelogModal :open="changelogModalVisible" />
-    <ActivationModal />
+    <OnboardingModal />
   </div>
 </template>

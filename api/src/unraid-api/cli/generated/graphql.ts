@@ -106,17 +106,18 @@ export type AccessUrlObjectInput = {
 
 export type ActivationCode = {
   __typename?: 'ActivationCode';
-  background?: Maybe<Scalars['String']['output']>;
+  branding?: Maybe<BrandingConfig>;
   code?: Maybe<Scalars['String']['output']>;
-  comment?: Maybe<Scalars['String']['output']>;
-  header?: Maybe<Scalars['String']['output']>;
-  headermetacolor?: Maybe<Scalars['String']['output']>;
-  partnerName?: Maybe<Scalars['String']['output']>;
-  partnerUrl?: Maybe<Scalars['String']['output']>;
-  serverName?: Maybe<Scalars['String']['output']>;
-  showBannerGradient?: Maybe<Scalars['Boolean']['output']>;
-  sysModel?: Maybe<Scalars['String']['output']>;
-  theme?: Maybe<Scalars['String']['output']>;
+  partner?: Maybe<PartnerConfig>;
+  system?: Maybe<SystemConfig>;
+};
+
+/** Activation code override input */
+export type ActivationCodeOverrideInput = {
+  branding?: InputMaybe<BrandingConfigInput>;
+  code?: InputMaybe<Scalars['String']['input']>;
+  partner?: InputMaybe<PartnerConfigInput>;
+  system?: InputMaybe<SystemConfigInput>;
 };
 
 export type AddPermissionInput = {
@@ -407,6 +408,68 @@ export enum AuthorizationRuleMode {
   OR = 'OR'
 }
 
+export type BrandingConfig = {
+  __typename?: 'BrandingConfig';
+  background?: Maybe<Scalars['String']['output']>;
+  /** Banner image source. Supports local path, remote URL, or data URI/base64. */
+  bannerImage?: Maybe<Scalars['String']['output']>;
+  /** Case model image source. Supports local path, remote URL, or data URI/base64. */
+  caseModelImage?: Maybe<Scalars['String']['output']>;
+  /** Indicates if a partner logo exists */
+  hasPartnerLogo?: Maybe<Scalars['Boolean']['output']>;
+  header?: Maybe<Scalars['String']['output']>;
+  headermetacolor?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for onboarding welcome step */
+  onboardingSubtitle?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for downgrade onboarding */
+  onboardingSubtitleDowngrade?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for fresh install onboarding */
+  onboardingSubtitleFreshInstall?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for incomplete onboarding */
+  onboardingSubtitleIncomplete?: Maybe<Scalars['String']['output']>;
+  /** Custom subtitle for upgrade onboarding */
+  onboardingSubtitleUpgrade?: Maybe<Scalars['String']['output']>;
+  /** Custom title for onboarding welcome step */
+  onboardingTitle?: Maybe<Scalars['String']['output']>;
+  /** Custom title for downgrade onboarding */
+  onboardingTitleDowngrade?: Maybe<Scalars['String']['output']>;
+  /** Custom title for fresh install onboarding */
+  onboardingTitleFreshInstall?: Maybe<Scalars['String']['output']>;
+  /** Custom title for incomplete onboarding */
+  onboardingTitleIncomplete?: Maybe<Scalars['String']['output']>;
+  /** Custom title for upgrade onboarding */
+  onboardingTitleUpgrade?: Maybe<Scalars['String']['output']>;
+  /** Partner logo source for dark themes (black/gray). Supports local path, remote URL, or data URI/base64. */
+  partnerLogoDarkUrl?: Maybe<Scalars['String']['output']>;
+  /** Partner logo source for light themes (azure/white). Supports local path, remote URL, or data URI/base64. */
+  partnerLogoLightUrl?: Maybe<Scalars['String']['output']>;
+  showBannerGradient?: Maybe<Scalars['Boolean']['output']>;
+  theme?: Maybe<Scalars['String']['output']>;
+};
+
+export type BrandingConfigInput = {
+  background?: InputMaybe<Scalars['String']['input']>;
+  bannerImage?: InputMaybe<Scalars['String']['input']>;
+  caseModelImage?: InputMaybe<Scalars['String']['input']>;
+  hasPartnerLogo?: InputMaybe<Scalars['Boolean']['input']>;
+  header?: InputMaybe<Scalars['String']['input']>;
+  headermetacolor?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitle?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitleDowngrade?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitleFreshInstall?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitleIncomplete?: InputMaybe<Scalars['String']['input']>;
+  onboardingSubtitleUpgrade?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitle?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitleDowngrade?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitleFreshInstall?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitleIncomplete?: InputMaybe<Scalars['String']['input']>;
+  onboardingTitleUpgrade?: InputMaybe<Scalars['String']['input']>;
+  partnerLogoDarkUrl?: InputMaybe<Scalars['String']['input']>;
+  partnerLogoLightUrl?: InputMaybe<Scalars['String']['input']>;
+  showBannerGradient?: InputMaybe<Scalars['Boolean']['input']>;
+  theme?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type Capacity = {
   __typename?: 'Capacity';
   /** Free capacity */
@@ -560,6 +623,17 @@ export type CpuLoad = {
   percentUser: Scalars['Float']['output'];
 };
 
+export type CpuPackages = Node & {
+  __typename?: 'CpuPackages';
+  id: Scalars['PrefixedID']['output'];
+  /** Power draw per package (W) */
+  power: Array<Scalars['Float']['output']>;
+  /** Temperature per package (°C) */
+  temp: Array<Scalars['Float']['output']>;
+  /** Total CPU package power draw (W) */
+  totalPower: Scalars['Float']['output'];
+};
+
 export type CpuUtilization = Node & {
   __typename?: 'CpuUtilization';
   /** CPU load for each core */
@@ -587,8 +661,30 @@ export type CreateRCloneRemoteInput = {
 export type Customization = {
   __typename?: 'Customization';
   activationCode?: Maybe<ActivationCode>;
-  partnerInfo?: Maybe<PublicPartnerInfo>;
-  theme: Theme;
+  availableLanguages?: Maybe<Array<Language>>;
+  /** Onboarding completion state and context */
+  onboarding: Onboarding;
+};
+
+/** Customization related mutations */
+export type CustomizationMutations = {
+  __typename?: 'CustomizationMutations';
+  /** Update the display locale (language) */
+  setLocale: Scalars['String']['output'];
+  /** Update the UI theme (writes dynamix.cfg) */
+  setTheme: Theme;
+};
+
+
+/** Customization related mutations */
+export type CustomizationMutationsSetLocaleArgs = {
+  locale: Scalars['String']['input'];
+};
+
+
+/** Customization related mutations */
+export type CustomizationMutationsSetThemeArgs = {
+  theme: ThemeName;
 };
 
 export type DeleteApiKeyInput = {
@@ -1019,8 +1115,12 @@ export type Info = Node & {
   machineId?: Maybe<Scalars['ID']['output']>;
   /** Memory information */
   memory: InfoMemory;
+  /** Network interfaces */
+  networkInterfaces: Array<InfoNetworkInterface>;
   /** Operating system information */
   os: InfoOs;
+  /** Primary management interface */
+  primaryNetwork?: Maybe<InfoNetworkInterface>;
   /** System information */
   system: InfoSystem;
   /** Current server time */
@@ -1065,6 +1165,7 @@ export type InfoCpu = Node & {
   manufacturer?: Maybe<Scalars['String']['output']>;
   /** CPU model */
   model?: Maybe<Scalars['String']['output']>;
+  packages: CpuPackages;
   /** Number of physical processors */
   processors?: Maybe<Scalars['Int']['output']>;
   /** CPU revision */
@@ -1081,6 +1182,8 @@ export type InfoCpu = Node & {
   stepping?: Maybe<Scalars['Int']['output']>;
   /** Number of CPU threads */
   threads?: Maybe<Scalars['Int']['output']>;
+  /** Per-package array of core/thread pairs, e.g. [[[0,1],[2,3]], [[4,5],[6,7]]] */
+  topology: Array<Array<Array<Scalars['Int']['output']>>>;
   /** CPU vendor */
   vendor?: Maybe<Scalars['String']['output']>;
   /** CPU voltage */
@@ -1191,6 +1294,37 @@ export type InfoNetwork = Node & {
   virtual?: Maybe<Scalars['Boolean']['output']>;
 };
 
+export type InfoNetworkInterface = Node & {
+  __typename?: 'InfoNetworkInterface';
+  /** Interface description/label */
+  description?: Maybe<Scalars['String']['output']>;
+  /** IPv4 Gateway */
+  gateway?: Maybe<Scalars['String']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** IPv4 Address */
+  ipAddress?: Maybe<Scalars['String']['output']>;
+  /** IPv6 Address */
+  ipv6Address?: Maybe<Scalars['String']['output']>;
+  /** IPv6 Gateway */
+  ipv6Gateway?: Maybe<Scalars['String']['output']>;
+  /** IPv6 Netmask */
+  ipv6Netmask?: Maybe<Scalars['String']['output']>;
+  /** MAC Address */
+  macAddress?: Maybe<Scalars['String']['output']>;
+  /** Interface name (e.g. eth0) */
+  name: Scalars['String']['output'];
+  /** IPv4 Netmask */
+  netmask?: Maybe<Scalars['String']['output']>;
+  /** IPv4 Protocol mode */
+  protocol?: Maybe<Scalars['String']['output']>;
+  /** Connection status */
+  status?: Maybe<Scalars['String']['output']>;
+  /** Using DHCP for IPv4 */
+  useDhcp?: Maybe<Scalars['Boolean']['output']>;
+  /** Using DHCP for IPv6 */
+  useDhcp6?: Maybe<Scalars['Boolean']['output']>;
+};
+
 export type InfoOs = Node & {
   __typename?: 'InfoOs';
   /** OS architecture */
@@ -1295,10 +1429,52 @@ export type InitiateFlashBackupInput = {
   sourcePath: Scalars['String']['input'];
 };
 
+/** Input payload for installing a plugin */
+export type InstallPluginInput = {
+  /** Force installation even when plugin is already present. Defaults to true to mirror the existing UI behaviour. */
+  forced?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Optional human-readable plugin name used for logging */
+  name?: InputMaybe<Scalars['String']['input']>;
+  /** Plugin installation URL (.plg) */
+  url: Scalars['String']['input'];
+};
+
+export type IpmiConfig = {
+  __typename?: 'IpmiConfig';
+  args?: Maybe<Array<Scalars['String']['output']>>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type IpmiConfigInput = {
+  args?: InputMaybe<Array<Scalars['String']['input']>>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 export type KeyFile = {
   __typename?: 'KeyFile';
   contents?: Maybe<Scalars['String']['output']>;
   location?: Maybe<Scalars['String']['output']>;
+};
+
+export type Language = {
+  __typename?: 'Language';
+  /** Language code (e.g. en_US) */
+  code: Scalars['String']['output'];
+  /** Language description/name */
+  name: Scalars['String']['output'];
+  /** URL to the language pack XML */
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export type LmSensorsConfig = {
+  __typename?: 'LmSensorsConfig';
+  config_path?: Maybe<Scalars['String']['output']>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type LmSensorsConfigInput = {
+  config_path?: InputMaybe<Scalars['String']['input']>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type LogFile = {
@@ -1387,6 +1563,8 @@ export type Metrics = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Current memory utilization metrics */
   memory?: Maybe<MemoryUtilization>;
+  /** Temperature metrics */
+  temperature?: Maybe<TemperatureMetrics>;
 };
 
 /** The status of the minigraph */
@@ -1422,6 +1600,7 @@ export type Mutation = {
   createDockerFolderWithItems: ResolvedOrganizerV1;
   /** Creates a new notification record */
   createNotification: Notification;
+  customization: CustomizationMutations;
   /** Deletes all archived notifications on server. */
   deleteArchivedNotifications: NotificationOverview;
   deleteDockerEntries: ResolvedOrganizerV1;
@@ -1434,6 +1613,7 @@ export type Mutation = {
   moveDockerItemsToPosition: ResolvedOrganizerV1;
   /** Creates a notification if an equivalent unread notification does not already exist. */
   notifyIfUnique?: Maybe<Notification>;
+  onboarding: OnboardingMutations;
   parityCheck: ParityCheckMutations;
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
@@ -1449,11 +1629,18 @@ export type Mutation = {
   syncDockerTemplatePaths: DockerTemplateSyncResult;
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
+  unraidPlugins: UnraidPluginsMutations;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
   updateDockerViewPreferences: ResolvedOrganizerV1;
+  /** Update server name, comment, and model */
+  updateServerIdentity: Server;
   updateSettings: UpdateSettingsResponse;
+  updateSshSettings: Vars;
+  /** Update system time configuration */
+  updateSystemTime: SystemTime;
+  updateTemperatureConfig: Scalars['Boolean']['output'];
   vm: VmMutations;
 };
 
@@ -1595,8 +1782,30 @@ export type MutationUpdateDockerViewPreferencesArgs = {
 };
 
 
+export type MutationUpdateServerIdentityArgs = {
+  comment?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  sysModel?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationUpdateSettingsArgs = {
   input: Scalars['JSON']['input'];
+};
+
+
+export type MutationUpdateSshSettingsArgs = {
+  input: UpdateSshInput;
+};
+
+
+export type MutationUpdateSystemTimeArgs = {
+  input: UpdateSystemTimeInput;
+};
+
+
+export type MutationUpdateTemperatureConfigArgs = {
+  input: TemperatureConfigInput;
 };
 
 export type Network = Node & {
@@ -1737,6 +1946,77 @@ export type OidcSessionValidation = {
   valid: Scalars['Boolean']['output'];
 };
 
+/** Onboarding completion state and context */
+export type Onboarding = {
+  __typename?: 'Onboarding';
+  /** The activation code from the .activationcode file, if present */
+  activationCode?: Maybe<Scalars['String']['output']>;
+  /** Whether the onboarding flow has been completed */
+  completed: Scalars['Boolean']['output'];
+  /** The OS version when onboarding was completed */
+  completedAtVersion?: Maybe<Scalars['String']['output']>;
+  /** Whether this is a partner/OEM build with activation code */
+  isPartnerBuild: Scalars['Boolean']['output'];
+  /** Runtime onboarding state values used by the onboarding flow */
+  onboardingState: OnboardingState;
+  /** The current onboarding status (INCOMPLETE, UPGRADE, DOWNGRADE, or COMPLETED) */
+  status: OnboardingStatus;
+};
+
+/** Onboarding related mutations */
+export type OnboardingMutations = {
+  __typename?: 'OnboardingMutations';
+  /** Clear onboarding override state and reload from disk */
+  clearOnboardingOverride: Onboarding;
+  /** Mark onboarding as completed */
+  completeOnboarding: Onboarding;
+  /** Reset onboarding progress (for testing) */
+  resetOnboarding: Onboarding;
+  /** Override onboarding state for testing (in-memory only) */
+  setOnboardingOverride: Onboarding;
+};
+
+
+/** Onboarding related mutations */
+export type OnboardingMutationsSetOnboardingOverrideArgs = {
+  input: OnboardingOverrideInput;
+};
+
+/** Onboarding completion override input */
+export type OnboardingOverrideCompletionInput = {
+  completed?: InputMaybe<Scalars['Boolean']['input']>;
+  completedAtVersion?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Onboarding override input for testing */
+export type OnboardingOverrideInput = {
+  activationCode?: InputMaybe<ActivationCodeOverrideInput>;
+  onboarding?: InputMaybe<OnboardingOverrideCompletionInput>;
+  partnerInfo?: InputMaybe<PartnerInfoOverrideInput>;
+  registrationState?: InputMaybe<RegistrationState>;
+};
+
+export type OnboardingState = {
+  __typename?: 'OnboardingState';
+  /** Indicates whether activation is required based on current state */
+  activationRequired: Scalars['Boolean']['output'];
+  /** Indicates whether an activation code is present */
+  hasActivationCode: Scalars['Boolean']['output'];
+  /** Indicates whether the system is a fresh install */
+  isFreshInstall: Scalars['Boolean']['output'];
+  /** Indicates whether the system is registered */
+  isRegistered: Scalars['Boolean']['output'];
+  registrationState?: Maybe<RegistrationState>;
+};
+
+/** The current onboarding status based on completion state and version relationship */
+export enum OnboardingStatus {
+  COMPLETED = 'COMPLETED',
+  DOWNGRADE = 'DOWNGRADE',
+  INCOMPLETE = 'INCOMPLETE',
+  UPGRADE = 'UPGRADE'
+}
+
 export type Owner = {
   __typename?: 'Owner';
   avatar: Scalars['String']['output'];
@@ -1814,6 +2094,49 @@ export enum ParityCheckStatus {
   RUNNING = 'RUNNING'
 }
 
+export type PartnerConfig = {
+  __typename?: 'PartnerConfig';
+  /** Additional custom links provided by the partner */
+  extraLinks?: Maybe<Array<PartnerLink>>;
+  /** Link to hardware specifications for this system */
+  hardwareSpecsUrl?: Maybe<Scalars['String']['output']>;
+  /** Link to the system manual/documentation */
+  manualUrl?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  /** Link to manufacturer support page */
+  supportUrl?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+};
+
+export type PartnerConfigInput = {
+  extraLinks?: InputMaybe<Array<PartnerLinkInput>>;
+  hardwareSpecsUrl?: InputMaybe<Scalars['String']['input']>;
+  manualUrl?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  supportUrl?: InputMaybe<Scalars['String']['input']>;
+  url?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Partner info override input */
+export type PartnerInfoOverrideInput = {
+  branding?: InputMaybe<BrandingConfigInput>;
+  partner?: InputMaybe<PartnerConfigInput>;
+};
+
+export type PartnerLink = {
+  __typename?: 'PartnerLink';
+  /** Display title for the link */
+  title: Scalars['String']['output'];
+  /** The URL */
+  url: Scalars['String']['output'];
+};
+
+/** Partner link input for custom links */
+export type PartnerLinkInput = {
+  title: Scalars['String']['input'];
+  url: Scalars['String']['input'];
+};
+
 export type Permission = {
   __typename?: 'Permission';
   /** Actions allowed on this resource */
@@ -1832,6 +2155,48 @@ export type Plugin = {
   /** The version of the plugin package */
   version: Scalars['String']['output'];
 };
+
+/** Emitted event representing progress for a plugin installation */
+export type PluginInstallEvent = {
+  __typename?: 'PluginInstallEvent';
+  /** Identifier of the related plugin installation operation */
+  operationId: Scalars['ID']['output'];
+  /** Output lines newly emitted since the previous event */
+  output?: Maybe<Array<Scalars['String']['output']>>;
+  /** Status reported with this event */
+  status: PluginInstallStatus;
+  /** Timestamp when the event was emitted */
+  timestamp: Scalars['DateTime']['output'];
+};
+
+/** Represents a tracked plugin installation operation */
+export type PluginInstallOperation = {
+  __typename?: 'PluginInstallOperation';
+  /** Timestamp when the operation was created */
+  createdAt: Scalars['DateTime']['output'];
+  /** Timestamp when the operation finished, if applicable */
+  finishedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Unique identifier of the operation */
+  id: Scalars['ID']['output'];
+  /** Optional plugin name for display purposes */
+  name?: Maybe<Scalars['String']['output']>;
+  /** Collected output lines generated by the installer (capped at recent lines) */
+  output: Array<Scalars['String']['output']>;
+  /** Current status of the operation */
+  status: PluginInstallStatus;
+  /** Timestamp for the last update to this operation */
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Plugin URL passed to the installer */
+  url: Scalars['String']['output'];
+};
+
+/** Status of a plugin installation operation */
+export enum PluginInstallStatus {
+  FAILED = 'FAILED',
+  QUEUED = 'QUEUED',
+  RUNNING = 'RUNNING',
+  SUCCEEDED = 'SUCCEEDED'
+}
 
 export type PluginManagementInput = {
   /** Whether to treat plugins as bundled plugins. Bundled plugins are installed to node_modules at build time and controlled via config only. */
@@ -1860,16 +2225,6 @@ export type PublicOidcProvider = {
   name: Scalars['String']['output'];
 };
 
-export type PublicPartnerInfo = {
-  __typename?: 'PublicPartnerInfo';
-  /** Indicates if a partner logo exists */
-  hasPartnerLogo: Scalars['Boolean']['output'];
-  /** The path to the partner logo image on the flash drive, relative to the activation code file */
-  partnerLogoUrl?: Maybe<Scalars['String']['output']>;
-  partnerName?: Maybe<Scalars['String']['output']>;
-  partnerUrl?: Maybe<Scalars['String']['output']>;
-};
-
 export type Query = {
   __typename?: 'Query';
   apiKey?: Maybe<ApiKey>;
@@ -1885,6 +2240,7 @@ export type Query = {
   customization?: Maybe<Customization>;
   disk: Disk;
   disks: Array<Disk>;
+  display: InfoDisplay;
   docker: Docker;
   flash: Flash;
   /** Get JSON Schema for API key creation form */
@@ -1894,7 +2250,10 @@ export type Query = {
   /** Get the actual permissions that would be granted by a set of roles */
   getPermissionsForRoles: Array<Permission>;
   info: Info;
-  isInitialSetup: Scalars['Boolean']['output'];
+  /** List installed Unraid OS plugins by .plg filename */
+  installedUnraidPlugins: Array<Scalars['String']['output']>;
+  /** Whether the system is a fresh install (no license key) */
+  isFreshInstall: Scalars['Boolean']['output'];
   isSSOEnabled: Scalars['Boolean']['output'];
   logFile: LogFileContent;
   logFiles: Array<LogFile>;
@@ -1912,13 +2271,16 @@ export type Query = {
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
+  /** Retrieve a plugin installation operation by identifier */
+  pluginInstallOperation?: Maybe<PluginInstallOperation>;
+  /** List all tracked plugin installation operations */
+  pluginInstallOperations: Array<PluginInstallOperation>;
   /** List all installed plugins with their metadata */
   plugins: Array<Plugin>;
   /** Preview the effective permissions for a combination of roles and explicit permissions */
   previewEffectivePermissions: Array<Permission>;
   /** Get public OIDC provider information for login buttons */
   publicOidcProviders: Array<PublicOidcProvider>;
-  publicPartnerInfo?: Maybe<PublicPartnerInfo>;
   publicTheme: Theme;
   rclone: RCloneBackupSettings;
   registration?: Maybe<Registration>;
@@ -1928,6 +2290,10 @@ export type Query = {
   services: Array<Service>;
   settings: Settings;
   shares: Array<Share>;
+  /** Retrieve current system time configuration */
+  systemTime: SystemTime;
+  /** Retrieve available time zone options */
+  timeZoneOptions: Array<TimeZoneOption>;
   upsConfiguration: UpsConfiguration;
   upsDeviceById?: Maybe<UpsDevice>;
   upsDevices: Array<UpsDevice>;
@@ -1963,6 +2329,11 @@ export type QueryLogFileArgs = {
 
 export type QueryOidcProviderArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryPluginInstallOperationArgs = {
+  operationId: Scalars['ID']['input'];
 };
 
 
@@ -2165,9 +2536,34 @@ export enum Role {
   VIEWER = 'VIEWER'
 }
 
+export type SensorConfig = {
+  __typename?: 'SensorConfig';
+  enabled?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type SensorConfigInput = {
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** Type of temperature sensor */
+export enum SensorType {
+  AMBIENT = 'AMBIENT',
+  CHIPSET = 'CHIPSET',
+  CPU_CORE = 'CPU_CORE',
+  CPU_PACKAGE = 'CPU_PACKAGE',
+  CUSTOM = 'CUSTOM',
+  DISK = 'DISK',
+  GPU = 'GPU',
+  MOTHERBOARD = 'MOTHERBOARD',
+  NVME = 'NVME',
+  VRM = 'VRM'
+}
+
 export type Server = Node & {
   __typename?: 'Server';
   apikey: Scalars['String']['output'];
+  /** Server description/comment */
+  comment?: Maybe<Scalars['String']['output']>;
   guid: Scalars['String']['output'];
   id: Scalars['PrefixedID']['output'];
   lanip: Scalars['String']['output'];
@@ -2260,6 +2656,7 @@ export type SsoSettings = Node & {
 export type Subscription = {
   __typename?: 'Subscription';
   arraySubscription: UnraidArray;
+  displaySubscription: InfoDisplay;
   dockerContainerStats: DockerContainerStats;
   logFile: LogFileContent;
   notificationAdded: Notification;
@@ -2267,15 +2664,49 @@ export type Subscription = {
   notificationsWarningsAndAlerts: Array<Notification>;
   ownerSubscription: Owner;
   parityHistorySubscription: ParityCheck;
+  pluginInstallUpdates: PluginInstallEvent;
   serversSubscription: Server;
   systemMetricsCpu: CpuUtilization;
+  systemMetricsCpuTelemetry: CpuPackages;
   systemMetricsMemory: MemoryUtilization;
+  systemMetricsTemperature?: Maybe<TemperatureMetrics>;
   upsUpdates: UpsDevice;
 };
 
 
 export type SubscriptionLogFileArgs = {
   path: Scalars['String']['input'];
+};
+
+
+export type SubscriptionPluginInstallUpdatesArgs = {
+  operationId: Scalars['ID']['input'];
+};
+
+export type SystemConfig = {
+  __typename?: 'SystemConfig';
+  comment?: Maybe<Scalars['String']['output']>;
+  model?: Maybe<Scalars['String']['output']>;
+  serverName?: Maybe<Scalars['String']['output']>;
+};
+
+export type SystemConfigInput = {
+  comment?: InputMaybe<Scalars['String']['input']>;
+  model?: InputMaybe<Scalars['String']['input']>;
+  serverName?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** System time configuration and current status */
+export type SystemTime = {
+  __typename?: 'SystemTime';
+  /** Current server time in ISO-8601 format (UTC) */
+  currentTime: Scalars['String']['output'];
+  /** Configured NTP servers (empty strings indicate unused slots) */
+  ntpServers: Array<Scalars['String']['output']>;
+  /** IANA timezone identifier currently in use */
+  timeZone: Scalars['String']['output'];
+  /** Whether NTP/PTP time synchronization is enabled */
+  useNtp: Scalars['Boolean']['output'];
 };
 
 /** Tailscale exit node connection status */
@@ -2334,6 +2765,130 @@ export enum Temperature {
   FAHRENHEIT = 'FAHRENHEIT'
 }
 
+export type TemperatureConfigInput = {
+  default_unit?: InputMaybe<TemperatureUnit>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  history?: InputMaybe<TemperatureHistoryConfigInput>;
+  polling_interval?: InputMaybe<Scalars['Int']['input']>;
+  sensors?: InputMaybe<TemperatureSensorsConfigInput>;
+  thresholds?: InputMaybe<TemperatureThresholdsConfigInput>;
+};
+
+export type TemperatureHistoryConfig = {
+  __typename?: 'TemperatureHistoryConfig';
+  max_readings?: Maybe<Scalars['Int']['output']>;
+  retention_ms?: Maybe<Scalars['Int']['output']>;
+};
+
+export type TemperatureHistoryConfigInput = {
+  max_readings?: InputMaybe<Scalars['Int']['input']>;
+  retention_ms?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type TemperatureMetrics = Node & {
+  __typename?: 'TemperatureMetrics';
+  id: Scalars['PrefixedID']['output'];
+  /** All temperature sensors */
+  sensors: Array<TemperatureSensor>;
+  /** Temperature summary */
+  summary: TemperatureSummary;
+};
+
+export type TemperatureReading = {
+  __typename?: 'TemperatureReading';
+  /** Temperature status */
+  status: TemperatureStatus;
+  /** Timestamp of reading */
+  timestamp: Scalars['DateTime']['output'];
+  /** Temperature unit */
+  unit: TemperatureUnit;
+  /** Temperature value */
+  value: Scalars['Float']['output'];
+};
+
+export type TemperatureSensor = Node & {
+  __typename?: 'TemperatureSensor';
+  /** Critical threshold */
+  critical?: Maybe<Scalars['Float']['output']>;
+  /** Current temperature */
+  current: TemperatureReading;
+  /** Historical readings for this sensor */
+  history?: Maybe<Array<TemperatureReading>>;
+  id: Scalars['PrefixedID']['output'];
+  /** Physical location */
+  location?: Maybe<Scalars['String']['output']>;
+  /** Maximum recorded */
+  max?: Maybe<TemperatureReading>;
+  /** Minimum recorded */
+  min?: Maybe<TemperatureReading>;
+  /** Sensor name */
+  name: Scalars['String']['output'];
+  /** Type of sensor */
+  type: SensorType;
+  /** Warning threshold */
+  warning?: Maybe<Scalars['Float']['output']>;
+};
+
+export type TemperatureSensorsConfig = {
+  __typename?: 'TemperatureSensorsConfig';
+  ipmi?: Maybe<IpmiConfig>;
+  lm_sensors?: Maybe<LmSensorsConfig>;
+  smartctl?: Maybe<SensorConfig>;
+};
+
+export type TemperatureSensorsConfigInput = {
+  ipmi?: InputMaybe<IpmiConfigInput>;
+  lm_sensors?: InputMaybe<LmSensorsConfigInput>;
+  smartctl?: InputMaybe<SensorConfigInput>;
+};
+
+export enum TemperatureStatus {
+  CRITICAL = 'CRITICAL',
+  NORMAL = 'NORMAL',
+  UNKNOWN = 'UNKNOWN',
+  WARNING = 'WARNING'
+}
+
+export type TemperatureSummary = {
+  __typename?: 'TemperatureSummary';
+  /** Average temperature across all sensors */
+  average: Scalars['Float']['output'];
+  /** Coolest sensor */
+  coolest: TemperatureSensor;
+  /** Count of sensors at critical level */
+  criticalCount: Scalars['Int']['output'];
+  /** Hottest sensor */
+  hottest: TemperatureSensor;
+  /** Count of sensors at warning level */
+  warningCount: Scalars['Int']['output'];
+};
+
+export type TemperatureThresholdsConfig = {
+  __typename?: 'TemperatureThresholdsConfig';
+  cpu_critical?: Maybe<Scalars['Int']['output']>;
+  cpu_warning?: Maybe<Scalars['Int']['output']>;
+  critical?: Maybe<Scalars['Int']['output']>;
+  disk_critical?: Maybe<Scalars['Int']['output']>;
+  disk_warning?: Maybe<Scalars['Int']['output']>;
+  warning?: Maybe<Scalars['Int']['output']>;
+};
+
+export type TemperatureThresholdsConfigInput = {
+  cpu_critical?: InputMaybe<Scalars['Int']['input']>;
+  cpu_warning?: InputMaybe<Scalars['Int']['input']>;
+  critical?: InputMaybe<Scalars['Int']['input']>;
+  disk_critical?: InputMaybe<Scalars['Int']['input']>;
+  disk_warning?: InputMaybe<Scalars['Int']['input']>;
+  warning?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum TemperatureUnit {
+  CELSIUS = 'CELSIUS',
+  FAHRENHEIT = 'FAHRENHEIT',
+  KELVIN = 'KELVIN',
+  RANKINE = 'RANKINE'
+}
+
 export type Theme = {
   __typename?: 'Theme';
   /** The background color of the header */
@@ -2359,6 +2914,15 @@ export enum ThemeName {
   GRAY = 'gray',
   WHITE = 'white'
 }
+
+/** Selectable timezone option from the system list */
+export type TimeZoneOption = {
+  __typename?: 'TimeZoneOption';
+  /** Display label for the timezone */
+  label: Scalars['String']['output'];
+  /** IANA timezone identifier */
+  value: Scalars['String']['output'];
+};
 
 export type UpsBattery = {
   __typename?: 'UPSBattery';
@@ -2458,10 +3022,14 @@ export enum UpsKillPower {
 
 export type UpsPower = {
   __typename?: 'UPSPower';
+  /** Current power consumption calculated from load percentage and nominal power. Unit: watts (W). Example: 350 means 350 watts currently being used. Calculated as: nominalPower * (loadPercentage / 100) */
+  currentPower?: Maybe<Scalars['Float']['output']>;
   /** Input voltage from the wall outlet/mains power. Unit: volts (V). Example: 120.5 for typical US household voltage */
   inputVoltage: Scalars['Float']['output'];
   /** Current load on the UPS as a percentage of its capacity. Unit: percent (%). Example: 25 means UPS is loaded at 25% of its maximum capacity */
   loadPercentage: Scalars['Int']['output'];
+  /** Nominal power capacity of the UPS. Unit: watts (W). Example: 1000 means the UPS is rated for 1000 watts. This is the maximum power the UPS can deliver */
+  nominalPower?: Maybe<Scalars['Int']['output']>;
   /** Output voltage being delivered to connected devices. Unit: volts (V). Example: 120.5 - should match input voltage when on mains power */
   outputVoltage: Scalars['Float']['output'];
 };
@@ -2522,6 +3090,27 @@ export type UnraidArray = Node & {
   state: ArrayState;
 };
 
+/** Unraid plugin management mutations */
+export type UnraidPluginsMutations = {
+  __typename?: 'UnraidPluginsMutations';
+  /** Install an Unraid language pack and track installation progress */
+  installLanguage: PluginInstallOperation;
+  /** Install an Unraid plugin and track installation progress */
+  installPlugin: PluginInstallOperation;
+};
+
+
+/** Unraid plugin management mutations */
+export type UnraidPluginsMutationsInstallLanguageArgs = {
+  input: InstallPluginInput;
+};
+
+
+/** Unraid plugin management mutations */
+export type UnraidPluginsMutationsInstallPluginArgs = {
+  input: InstallPluginInput;
+};
+
 export type UpdateApiKeyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['PrefixedID']['input'];
@@ -2540,6 +3129,12 @@ export type UpdateSettingsResponse = {
   warnings?: Maybe<Array<Scalars['String']['output']>>;
 };
 
+export type UpdateSshInput = {
+  enabled: Scalars['Boolean']['input'];
+  /** SSH Port (default 22) */
+  port: Scalars['Int']['input'];
+};
+
 /** Update status of a container. */
 export enum UpdateStatus {
   REBUILD_READY = 'REBUILD_READY',
@@ -2547,6 +3142,17 @@ export enum UpdateStatus {
   UPDATE_AVAILABLE = 'UPDATE_AVAILABLE',
   UP_TO_DATE = 'UP_TO_DATE'
 }
+
+export type UpdateSystemTimeInput = {
+  /** Manual date/time to apply when disabling NTP, expected format YYYY-MM-DD HH:mm:ss */
+  manualDateTime?: InputMaybe<Scalars['String']['input']>;
+  /** Ordered list of up to four NTP servers. Supply empty strings to clear positions. */
+  ntpServers?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** New IANA timezone identifier to apply */
+  timeZone?: InputMaybe<Scalars['String']['input']>;
+  /** Enable or disable NTP-based synchronization */
+  useNtp?: InputMaybe<Scalars['Boolean']['input']>;
+};
 
 export type Uptime = {
   __typename?: 'Uptime';

@@ -1,6 +1,9 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
+import { Onboarding } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import { Theme } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 import { RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { PluginInstallOperation } from '@app/unraid-api/graph/resolvers/unraid-plugins/unraid-plugins.model.js';
 
 /**
  * Important:
@@ -27,7 +30,13 @@ export class ApiKeyMutations {}
 @ObjectType({
     description: 'Customization related mutations',
 })
-export class CustomizationMutations {}
+export class CustomizationMutations {
+    @Field(() => Theme, { description: 'Update the UI theme (writes dynamix.cfg)' })
+    setTheme!: Theme;
+
+    @Field(() => String, { description: 'Update the display locale (language)' })
+    setLocale!: string;
+}
 
 @ObjectType({
     description: 'Parity check related mutations, WIP, response types and functionaliy will change',
@@ -43,6 +52,46 @@ export class RCloneMutations {
 
     @Field(() => Boolean, { description: 'Delete an existing RClone remote' })
     deleteRCloneRemote!: boolean;
+}
+
+@ObjectType({
+    description: 'Onboarding related mutations',
+})
+export class OnboardingMutations {
+    @Field(() => Onboarding, {
+        description: 'Mark onboarding as completed',
+    })
+    completeOnboarding!: Onboarding;
+
+    @Field(() => Onboarding, {
+        description: 'Reset onboarding progress (for testing)',
+    })
+    resetOnboarding!: Onboarding;
+
+    @Field(() => Onboarding, {
+        description: 'Override onboarding state for testing (in-memory only)',
+    })
+    setOnboardingOverride!: Onboarding;
+
+    @Field(() => Onboarding, {
+        description: 'Clear onboarding override state and reload from disk',
+    })
+    clearOnboardingOverride!: Onboarding;
+}
+
+@ObjectType({
+    description: 'Unraid plugin management mutations',
+})
+export class UnraidPluginsMutations {
+    @Field(() => PluginInstallOperation, {
+        description: 'Install an Unraid plugin and track installation progress',
+    })
+    installPlugin!: PluginInstallOperation;
+
+    @Field(() => PluginInstallOperation, {
+        description: 'Install an Unraid language pack and track installation progress',
+    })
+    installLanguage!: PluginInstallOperation;
 }
 
 @ObjectType()
@@ -67,4 +116,10 @@ export class RootMutations {
 
     @Field(() => RCloneMutations, { description: 'RClone related mutations' })
     rclone: RCloneMutations = new RCloneMutations();
+
+    @Field(() => OnboardingMutations, { description: 'Onboarding related mutations' })
+    onboarding: OnboardingMutations = new OnboardingMutations();
+
+    @Field(() => UnraidPluginsMutations, { description: 'Unraid plugin related mutations' })
+    unraidPlugins: UnraidPluginsMutations = new UnraidPluginsMutations();
 }

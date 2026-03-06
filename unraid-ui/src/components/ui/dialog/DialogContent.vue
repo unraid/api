@@ -53,7 +53,7 @@ const { teleportTarget } = useTeleport();
     >
       <slot />
 
-      <DialogClose v-if="showCloseButton !== false" as-child class="absolute top-4 right-4">
+      <DialogClose v-if="showCloseButton !== false" as-child class="absolute top-4 right-6 z-10">
         <Button
           variant="ghost"
           size="icon"

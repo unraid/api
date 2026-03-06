@@ -13,11 +13,11 @@ import { useTrialStore } from '~/store/trial';
 import { useUpdateOsStore } from '~/store/updateOs';
 
 // Mock child components
-vi.mock('~/components/Activation/ActivationModal.vue', () => ({
+vi.mock('~/components/Onboarding/OnboardingModal.vue', () => ({
   default: {
-    name: 'ActivationModal',
+    name: 'OnboardingModal',
     props: [],
-    template: '<div>ActivationModal</div>',
+    template: '<div>OnboardingModal</div>',
   },
 }));
 
@@ -91,7 +91,7 @@ describe('Modals.standalone.vue', () => {
     expect(wrapper.findComponent({ name: 'UpcTrial' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'UpdateOsCheckUpdateResponseModal' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'UpdateOsChangelogModal' }).exists()).toBe(true);
-    expect(wrapper.findComponent({ name: 'ActivationModal' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'OnboardingModal' }).exists()).toBe(true);
   });
 
   it('should pass correct props to CallbackFeedback based on store state', async () => {
@@ -227,6 +227,6 @@ describe('Modals.standalone.vue', () => {
     const modalsDiv = wrapper.find('#modals');
     expect(modalsDiv.exists()).toBe(true);
     // Container should still exist
-    expect(wrapper.findComponent({ name: 'ActivationModal' }).exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'OnboardingModal' }).exists()).toBe(true);
   });
 });

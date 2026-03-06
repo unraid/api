@@ -6,6 +6,7 @@ import { InfoCpu } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
 import { InfoDevices } from '@app/unraid-api/graph/resolvers/info/devices/devices.model.js';
 import { InfoDisplay } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
 import { InfoMemory } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
+import { InfoNetworkInterface } from '@app/unraid-api/graph/resolvers/info/network/network.model.js';
 import { InfoOs } from '@app/unraid-api/graph/resolvers/info/os/os.model.js';
 import { InfoBaseboard, InfoSystem } from '@app/unraid-api/graph/resolvers/info/system/system.model.js';
 import { InfoVersions } from '@app/unraid-api/graph/resolvers/info/versions/versions.model.js';
@@ -41,4 +42,10 @@ export class Info extends Node {
 
     @Field(() => InfoVersions, { description: 'Software versions' })
     versions!: InfoVersions;
+
+    @Field(() => [InfoNetworkInterface], { description: 'Network interfaces' })
+    networkInterfaces!: InfoNetworkInterface[];
+
+    @Field(() => InfoNetworkInterface, { nullable: true, description: 'Primary management interface' })
+    primaryNetwork?: InfoNetworkInterface;
 }

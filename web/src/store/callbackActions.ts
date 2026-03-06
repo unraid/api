@@ -21,7 +21,11 @@ import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
-  const { send, watcher: providedWatcher } = useCallback({
+  const {
+    send,
+    watcher: providedWatcher,
+    generateUrl,
+  } = useCallback({
     encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
   });
 
@@ -34,6 +38,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const callbackStatus = ref<CallbackStatus>('ready');
   const callbackData = ref<QueryPayloads>();
   const callbackError = ref();
+  const sendType = 'fromUpc';
 
   const watcher = () => {
     const result = providedWatcher();
@@ -179,8 +184,9 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     setCallbackStatus,
     send,
     watcher,
+    generateUrl,
     // helpers
-    sendType: 'fromUpc',
+    sendType,
     encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
     callbackError,
   };

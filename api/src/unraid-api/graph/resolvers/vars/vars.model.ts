@@ -1,6 +1,7 @@
-import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Node } from '@unraid/shared/graphql.model.js';
+import { IsBoolean, IsInt, Max, Min } from 'class-validator';
 
 import {
     RegistrationState,
@@ -462,4 +463,17 @@ export class Vars extends Node {
 
     @Field({ nullable: true })
     csrfToken?: string;
+}
+
+@InputType()
+export class UpdateSshInput {
+    @Field()
+    @IsBoolean()
+    enabled!: boolean;
+
+    @Field(() => Int, { description: 'SSH Port (default 22)' })
+    @IsInt()
+    @Min(1)
+    @Max(65535)
+    port!: number;
 }

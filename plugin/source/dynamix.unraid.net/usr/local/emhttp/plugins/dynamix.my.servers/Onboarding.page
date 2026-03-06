@@ -1,0 +1,15 @@
+Menu="ManagementAccess:151"
+Title="Onboarding Tester"
+Icon="icon-registration"
+Tag="pencil"
+Cond="(((@json_decode(@file_get_contents('/boot/config/plugins/dynamix.my.servers/configs/api.json'), true) ?: [])['sandbox'] ?? false) === true || (((@parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg', true) ?: [])['local']['sandbox'] ?? 'no') === 'yes'))"
+---
+<?php
+require_once "$docroot/plugins/dynamix.my.servers/include/api-config.php";
+
+if (!ApiUserConfig::isSandboxEnabled()) {
+  return;
+}
+?>
+
+<unraid-onboarding-admin-panel></unraid-onboarding-admin-panel>

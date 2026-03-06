@@ -1,14 +1,33 @@
 import type { TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { pubsub } from '@app/core/pubsub.js';
 import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
+import { TemperatureConfigService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.service.js';
+import {
+    TemperatureMetrics,
+    TemperatureSummary,
+} from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.model.js';
+import { TemperatureService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.service.js';
 import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
+
+vi.mock('@app/core/pubsub.js', async (importOriginal) => {
+    const mod = await importOriginal<typeof import('@app/core/pubsub.js')>();
+    return {
+        ...mod,
+        pubsub: {
+            publish: vi.fn(),
+            asyncIterableIterator: vi.fn(),
+        },
+    };
+});
 
 describe('MetricsResolver', () => {
     let resolver: MetricsResolver;
@@ -80,6 +99,24 @@ describe('MetricsResolver', () => {
                     provide: SubscriptionHelperService,
                     useValue: {
                         createTrackedSubscription: vi.fn(),
+                    },
+                },
+                {
+                    provide: TemperatureService,
+                    useValue: {
+                        getMetrics: vi.fn().mockResolvedValue(null),
+                    },
+                },
+                {
+                    provide: ConfigService,
+                    useValue: {
+                        get: vi.fn((key: string, defaultValue?: unknown) => defaultValue),
+                    },
+                },
+                {
+                    provide: TemperatureConfigService,
+                    useValue: {
+                        getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 5000 }),
                     },
                 },
             ],
@@ -168,17 +205,32 @@ describe('MetricsResolver', () => {
                 generateTelemetry: vi.fn().mockResolvedValue([{ id: 0, power: 42.5, temp: 68.3 }]),
             } satisfies Pick<CpuTopologyService, 'generateTopology' | 'generateTelemetry'>;
 
+            const temperatureServiceMock = {
+                getMetrics: vi.fn().mockResolvedValue(null),
+            } satisfies Pick<TemperatureService, 'getMetrics'>;
+
+            const configServiceMock = {
+                get: vi.fn((key: string, defaultValue?: unknown) => defaultValue),
+            };
+
+            const temperatureConfigServiceMock = {
+                getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 5000 }),
+            };
+
             const testModule = new MetricsResolver(
                 cpuService,
                 cpuTopologyServiceMock as unknown as CpuTopologyService,
                 memoryService,
-                subscriptionTracker as any,
-                {} as any
+                temperatureServiceMock as unknown as TemperatureService,
+                subscriptionTracker as unknown as SubscriptionTrackerService,
+                {} as unknown as SubscriptionHelperService,
+                configServiceMock as unknown as ConfigService,
+                temperatureConfigServiceMock as unknown as TemperatureConfigService
             );
 
             testModule.onModuleInit();
 
-            expect(subscriptionTracker.registerTopic).toHaveBeenCalledTimes(3);
+            expect(subscriptionTracker.registerTopic).toHaveBeenCalledTimes(4);
             expect(subscriptionTracker.registerTopic).toHaveBeenCalledWith(
                 'CPU_UTILIZATION',
                 expect.any(Function),
@@ -189,6 +241,89 @@ describe('MetricsResolver', () => {
                 expect.any(Function),
                 2000
             );
+        });
+
+        it('should skip publishing temperature metrics when payload is null', async () => {
+            const registerTopicMock = vi.fn();
+            const subscriptionTracker = {
+                registerTopic: registerTopicMock,
+            } as unknown as SubscriptionTrackerService;
+
+            const temperatureServiceMock = {
+                getMetrics: vi.fn().mockResolvedValue(null),
+            } as unknown as TemperatureService;
+
+            const temperatureConfigServiceMock = {
+                getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 5000 }),
+            } as unknown as TemperatureConfigService;
+
+            const testModule = new MetricsResolver(
+                {} as CpuService,
+                {} as CpuTopologyService,
+                {} as MemoryService,
+                temperatureServiceMock,
+                subscriptionTracker,
+                {} as SubscriptionHelperService,
+                {} as ConfigService,
+                temperatureConfigServiceMock
+            );
+
+            testModule.onModuleInit();
+
+            // Find the temperature callback
+            const call = registerTopicMock.mock.calls.find((c) => c[0] === 'TEMPERATURE_METRICS');
+            expect(call).toBeDefined();
+            const callback = call![1];
+
+            // Execute callback
+            await callback();
+
+            expect(pubsub.publish).not.toHaveBeenCalledWith('TEMPERATURE_METRICS', expect.anything());
+        });
+
+        it('should publish temperature metrics when payload is present', async () => {
+            const registerTopicMock = vi.fn();
+            const subscriptionTracker = {
+                registerTopic: registerTopicMock,
+            } as unknown as SubscriptionTrackerService;
+
+            const payload = {
+                id: 'temp-metrics',
+                sensors: [],
+                summary: {} as unknown as TemperatureSummary,
+            } as TemperatureMetrics;
+            const temperatureServiceMock = {
+                getMetrics: vi.fn().mockResolvedValue(payload),
+            } as unknown as TemperatureService;
+
+            const temperatureConfigServiceMock = {
+                getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 5000 }),
+            } as unknown as TemperatureConfigService;
+
+            const testModule = new MetricsResolver(
+                {} as CpuService,
+                {} as CpuTopologyService,
+                {} as MemoryService,
+                temperatureServiceMock,
+                subscriptionTracker,
+                {} as SubscriptionHelperService,
+                {} as ConfigService,
+                temperatureConfigServiceMock
+            );
+
+            testModule.onModuleInit();
+
+            // Find the temperature callback
+            const call = registerTopicMock.mock.calls.find((c) => c[0] === 'TEMPERATURE_METRICS');
+            expect(call).toBeDefined();
+            const callback = call![1];
+
+            // Execute callback
+            await callback();
+
+            expect(pubsub.publish).toHaveBeenCalledWith('TEMPERATURE_METRICS', {
+                systemMetricsTemperature: payload,
+            });
         });
     });
 });

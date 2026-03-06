@@ -122,7 +122,11 @@ api/dev/Unraid.net/myservers.cfg
 
 # local Mise settings
 .mise.toml
+mise.toml
 
 # Compiled test pages (generated from Nunjucks templates)
 web/public/test-pages/*.html
+
+# local scripts for testing and development
+.dev-scripts/
 

@@ -23,7 +23,6 @@ import {
 } from '@unraid/ui';
 import { getReleaseNotesUrl, WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import ChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
 import { INFO_VERSIONS_QUERY } from '~/components/UserProfile/versions.query';
 import { useClipboardWithToast } from '~/composables/useClipboardWithToast';
@@ -47,7 +46,6 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
 const { osVersion, rebootType, stateDataError } = storeToRefs(serverStore);
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootTypeText } = storeToRefs(updateOsActionsStore);
@@ -106,19 +104,10 @@ const copyApiVersion = () => {
   }
 };
 
-const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => {
-  if (partnerInfo.value?.partnerUrl) {
-    return {
-      href: partnerInfo.value.partnerUrl,
-      title: t('headerOsVersion.visitPartnerWebsite'),
-    };
-  }
-
-  return {
-    href: 'https://unraid.net',
-    title: t('headerOsVersion.visitUnraidWebsite'),
-  };
-});
+const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => ({
+  href: 'https://unraid.net',
+  title: t('headerOsVersion.visitUnraidWebsite'),
+}));
 
 const handleUpdateStatusClick = () => {
   if (!updateOsStatus.value) return;

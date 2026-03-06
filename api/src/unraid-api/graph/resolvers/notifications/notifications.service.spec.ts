@@ -7,6 +7,7 @@
 // archiving, unarchiving, deletion, and legacy CLI compatibility.
 
 import type { TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { existsSync } from 'fs';
 import { mkdir } from 'fs/promises';
@@ -48,22 +49,16 @@ describe.sequential('NotificationsService', () => {
 
     beforeAll(async () => {
         await mkdir(basePath, { recursive: true });
-        // need to mock the dynamix import bc the file watcher is init'ed in the service constructor
-        // i.e. before we can mock service.paths()
-        vi.mock(import('../../../../store/index.js'), async (importOriginal) => {
-            const mod = await importOriginal();
-            return {
-                ...mod,
-                getters: {
-                    dynamix: () => ({
-                        notify: { path: basePath },
-                    }),
-                },
-            } as typeof mod;
-        });
-
         const module: TestingModule = await Test.createTestingModule({
-            providers: [NotificationsService],
+            providers: [
+                NotificationsService,
+                {
+                    provide: ConfigService,
+                    useValue: {
+                        get: vi.fn().mockReturnValue(basePath),
+                    },
+                },
+            ],
         }).compile();
 
         service = module.get<NotificationsService>(NotificationsService); // this might need to be a module.resolve instead of get
@@ -496,7 +491,15 @@ describe.concurrent('NotificationsService legacy script compatibility', () => {
 
     beforeAll(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            providers: [NotificationsService],
+            providers: [
+                NotificationsService,
+                {
+                    provide: ConfigService,
+                    useValue: {
+                        get: vi.fn().mockReturnValue(basePath),
+                    },
+                },
+            ],
         }).compile();
 
         service = module.get<NotificationsService>(NotificationsService);

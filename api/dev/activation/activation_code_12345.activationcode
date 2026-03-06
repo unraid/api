@@ -1,13 +1,37 @@
 {
   "code": "EXAMPLE_CODE_123",
-  "partnerName": "MyPartner Inc.",
-  "partnerUrl": "https://partner.example.com",
-  "serverName": "MyAwesomeServer",
-  "sysModel": "CustomBuild v1.0",
-  "comment": "This is a test activation code for development.",
-  "header": "#336699",
-  "headermetacolor": "#FFFFFF",
-  "background": "#F0F0F0",
-  "showBannerGradient": "yes",
-  "theme": "black"
+  "partner": {
+    "name": "MyPartner Inc.",
+    "url": "https://partner.example.com",
+    "hardwareSpecsUrl": "https://partner.example.com/specs/customBuild-v1",
+    "manualUrl": "https://partner.example.com/docs/customBuild-manual",
+    "supportUrl": "https://partner.example.com/support",
+    "extraLinks": [
+      {
+        "title": "Community Forums",
+        "url": "https://partner.example.com/forums"
+      },
+      {
+        "title": "Video Tutorials",
+        "url": "https://partner.example.com/tutorials"
+      }
+    ]
+  },
+  "branding": {
+    "theme": "black",
+    "bannerImage": "./assets/banner.png",
+    "caseModelImage": "./assets/case-model.png",
+    "partnerLogoLightUrl": "./assets/partner-logo-light.svg",
+    "partnerLogoDarkUrl": "./assets/partner-logo-dark.svg",
+    "onboardingTitle": "Welcome to MyPartner",
+    "onboardingSubtitle": "Setting up your CustomBuild v1.0",
+    "header": "#336699",
+    "headermetacolor": "#FFFFFF",
+    "background": "#F0F0F0",
+    "showBannerGradient": true
+  },
+  "system": {
+    "serverName": "MyAwesomeServer",
+    "model": "CustomBuild v1.0"
+  }
 }

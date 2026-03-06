@@ -5,6 +5,6 @@ import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.servic
 
 @Module({
     providers: [DisksResolver, DisksService],
-    exports: [DisksResolver],
+    exports: [DisksResolver, DisksService],
 })
 export class DisksModule {}

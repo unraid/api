@@ -196,6 +196,8 @@ describe('UpdateOsActions Store', () => {
           sha256: 'test-sha256',
         })
       ).rejects.toThrow('No payload.keyfile provided');
+
+      expect(mockGetOsReleaseBySha256).not.toHaveBeenCalled();
     });
 
     it('should throw error when getting release without sha256', async () => {
@@ -544,6 +546,16 @@ describe('UpdateOsActions Store', () => {
       mockServerStore.osVersion = '6.12.4';
       mockServerStore.regUpdatesExpired = false;
       store = useUpdateOsActionsStore();
+      expect(store.ineligibleText).toBe('');
+    });
+
+    it('should stay eligible without a keyfile', () => {
+      mockServerStore.guid = 'test-guid';
+      mockServerStore.keyfile = '';
+      mockServerStore.osVersion = '6.12.4';
+      mockServerStore.regUpdatesExpired = false;
+      store = useUpdateOsActionsStore();
+      expect(store.ineligible).toBe(false);
       expect(store.ineligibleText).toBe('');
     });
   });

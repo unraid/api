@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Systeminformation } from 'systeminformation';
 import { execa } from 'execa';
 import { blockDevices, diskLayout } from 'systeminformation';
+import { z } from 'zod';
 
 import { ArrayDisk } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import {
@@ -14,30 +15,67 @@ import {
 } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { batchProcess } from '@app/utils.js';
 
+const SmartAttributeSchema = z.object({
+    id: z.number(),
+    raw: z
+        .object({
+            value: z.number(),
+        })
+        .optional()
+        .nullable(),
+});
+
+type SmartAttribute = z.infer<typeof SmartAttributeSchema>;
+
+const SmartDataSchema = z.object({
+    temperature: z
+        .object({
+            current: z.number().optional().nullable(),
+        })
+        .optional()
+        .nullable(),
+    ata_smart_attributes: z
+        .object({
+            table: z.array(SmartAttributeSchema).optional().nullable(),
+        })
+        .optional()
+        .nullable(),
+});
+
 @Injectable()
 export class DisksService {
     constructor(private readonly configService: ConfigService) {}
     public async getTemperature(device: string): Promise<number | null> {
         try {
-            const { stdout } = await execa('smartctl', ['-A', device]);
-            const lines = stdout.split('\n');
-            const header = lines.find((line) => line.startsWith('ID#')) ?? '';
-            const fields = lines.splice(lines.indexOf(header) + 1, lines.length);
-            const field = fields.find(
-                (line) =>
-                    line.includes('Temperature_Celsius') || line.includes('Airflow_Temperature_Cel')
-            );
+            const { stdout } = await execa('smartctl', ['-n', 'standby', '-A', '-j', device]);
+            const parsedData = SmartDataSchema.safeParse(JSON.parse(stdout));
 
-            if (!field) {
+            if (!parsedData.success) {
                 return null;
             }
+            const data = parsedData.data;
 
-            if (field.includes('Min/Max')) {
-                return Number.parseInt(field.split('  -  ')[1].trim().split(' ')[0], 10);
+            if (data.temperature?.current !== undefined && data.temperature?.current !== null) {
+                return data.temperature.current;
             }
 
-            const line = field.split(' ');
-            return Number.parseInt(line[line.length - 1], 10);
+            if (data.ata_smart_attributes?.table) {
+                const tempAttr = data.ata_smart_attributes.table.find(
+                    // Attribute 194: This is the standard SMART attribute ID
+                    // for "Temperature_Celsius" on most hard drives and SSDs
+                    //
+                    // Attribute 190: This is an alternative temperature
+                    // attribute ID used by some drive manufacturers (often
+                    // called "Airflow_Temperature_Celsius" or just another
+                    // temperature reading)
+                    (a: SmartAttribute) => a.id === 194 || a.id === 190
+                );
+                if (tempAttr?.raw?.value !== undefined && tempAttr?.raw?.value !== null) {
+                    return tempAttr.raw.value;
+                }
+            }
+
+            return null;
         } catch (error: unknown) {
             return null;
         }

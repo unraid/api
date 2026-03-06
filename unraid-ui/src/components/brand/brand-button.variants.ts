@@ -25,6 +25,8 @@ export const brandButtonVariants = cva(
         'underline-hover-red':
           'opacity-75 underline border-transparent transition hover:text-white hover:bg-unraid-red hover:border-unraid-red focus:text-white focus:bg-unraid-red focus:border-unraid-red hover:opacity-100 focus:opacity-100',
         white: 'text-black bg-white transition hover:bg-grey focus:bg-grey',
+        muted:
+          'bg-muted border-muted text-muted-foreground font-medium transition hover:text-foreground hover:bg-muted/80 focus:text-foreground focus:bg-muted/80',
         none: 'border-transparent hover:shadow-none focus:shadow-none',
       },
       size: {

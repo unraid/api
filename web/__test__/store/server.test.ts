@@ -300,16 +300,30 @@ vi.mock('~/composables/services/webgui', () => ({
   WebguiUpdateIgnore: vi.fn().mockReturnValue({}),
 }));
 
-vi.mock('@vue/apollo-composable', () => ({
-  useLazyQuery: vi.fn(() => ({
-    load: vi.fn(),
-    refetch: vi.fn(),
-    onResult: vi.fn((callback) => {
-      callback({ data: {} });
-    }),
-    onError: vi.fn(),
-  })),
-}));
+vi.mock('@vue/apollo-composable', async () => {
+  const actual =
+    await vi.importActual<typeof import('@vue/apollo-composable')>('@vue/apollo-composable');
+
+  return {
+    ...actual,
+    useLazyQuery: vi.fn(() => ({
+      load: vi.fn(),
+      refetch: vi.fn(),
+      onResult: vi.fn((callback) => {
+        callback({ data: {} });
+      }),
+      onError: vi.fn(),
+    })),
+    useQuery: vi.fn(() => ({
+      result: { value: null },
+      loading: { value: false },
+      error: { value: null },
+      onResult: vi.fn(),
+      onError: vi.fn(),
+      refetch: vi.fn(),
+    })),
+  };
+});
 
 // Mock the dependencies of the server store
 vi.mock('~/composables/locale', async () => {

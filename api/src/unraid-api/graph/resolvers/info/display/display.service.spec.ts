@@ -1,6 +1,10 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
+import * as ini from 'ini';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
@@ -30,6 +34,29 @@ describe('DisplayService', () => {
 
     it('should be defined', () => {
         expect(service).toBeDefined();
+    });
+
+    describe('updateCfgFile', () => {
+        it('should preserve quoted yes/no-style display values', async () => {
+            const tempDir = await mkdtemp(join(tmpdir(), 'display-service-'));
+            const configPath = join(tempDir, 'dynamix.cfg');
+
+            try {
+                await writeFile(configPath, '[display]\nterminalButton="yes"\n');
+                await (service as any).updateCfgFile(configPath, 'display', { theme: 'white' });
+
+                const written = await readFile(configPath, 'utf-8');
+                expect(written).toContain('terminalButton="yes"');
+
+                const parsed = ini.parse(written) as {
+                    display?: { terminalButton?: string; theme?: string };
+                };
+                expect(parsed.display?.terminalButton).toBe('yes');
+                expect(parsed.display?.theme).toBe('white');
+            } finally {
+                await rm(tempDir, { recursive: true, force: true });
+            }
+        });
     });
 
     describe('generateDisplay', () => {

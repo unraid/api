@@ -26,6 +26,8 @@ import type { RegistrationItemProps } from '~/types/registration';
 import type { ServerStateDataAction } from '~/types/server';
 
 import KeyActions from '~/components/KeyActions.vue';
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
+import RegistrationActivationCode from '~/components/Registration/ActivationCode.vue';
 import RegistrationKeyLinkedStatus from '~/components/Registration/KeyLinkedStatus.vue';
 import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue';
 import RegistrationUpdateExpirationAction from '~/components/Registration/UpdateExpirationAction.vue';
@@ -38,16 +40,16 @@ const { t } = useI18n();
 
 const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
+const { activationCode } = storeToRefs(useActivationCodeDataStore());
 
 const {
-  computedArray,
-  arrayWarning,
   authAction,
+  bootDeviceType,
   dateTimeFormat,
   deviceCount,
-  guid,
-  flashVendor,
   flashProduct,
+  flashVendor,
+  guid,
   keyActions,
   keyfile,
   computedRegDevs,
@@ -123,19 +125,34 @@ const showFilteredKeyActions = computed(
         .length > 0
     )
 );
+const showPartnerActivationCode = computed(() => {
+  const currentState = state.value;
+  return (
+    Boolean(activationCode.value?.code) &&
+    (currentState === 'ENOKEYFILE' || currentState === 'TRIAL' || currentState === 'EEXPIRED')
+  );
+});
 
 // Organize items into three sections
-const flashDriveItems = computed((): RegistrationItemProps[] => {
+const bootDeviceItems = computed((): RegistrationItemProps[] => {
   return [
     ...(guid.value
       ? [
           {
-            label: t('registration.flashGuid'),
+            label: t('registration.deviceGuid'),
             text: guid.value,
           },
         ]
       : []),
-    ...(flashVendor.value
+    ...(bootDeviceType.value
+      ? [
+          {
+            label: t('registration.bootDeviceType'),
+            text: t(`registration.bootDeviceType.${bootDeviceType.value}`),
+          },
+        ]
+      : []),
+    ...(bootDeviceType.value === 'flash' && flashVendor.value
       ? [
           {
             label: t('registration.flashVendor'),
@@ -143,7 +160,7 @@ const flashDriveItems = computed((): RegistrationItemProps[] => {
           },
         ]
       : []),
-    ...(flashProduct.value
+    ...(bootDeviceType.value === 'flash' && flashProduct.value
       ? [
           {
             label: t('registration.flashProduct'),
@@ -164,15 +181,6 @@ const flashDriveItems = computed((): RegistrationItemProps[] => {
 
 const licenseItems = computed((): RegistrationItemProps[] => {
   return [
-    ...(computedArray.value
-      ? [
-          {
-            label: t('registration.arrayStatus'),
-            text: computedArray.value,
-            warning: arrayWarning.value,
-          },
-        ]
-      : []),
     ...(regTy.value
       ? [
           {
@@ -244,10 +252,21 @@ const licenseItems = computed((): RegistrationItemProps[] => {
 
 const actionItems = computed((): RegistrationItemProps[] => {
   return [
+    ...(showPartnerActivationCode.value && activationCode.value?.code
+      ? [
+          {
+            label: t('registration.activationCode'),
+            component: RegistrationActivationCode,
+            componentProps: {
+              code: activationCode.value.code,
+            },
+          },
+        ]
+      : []),
     ...(showLinkedAndTransferStatus.value
       ? [
           {
-            label: t('registration.transferLicenseToNewFlash'),
+            label: t('registration.transferLicenseToNewDevice'),
             component: RegistrationReplaceCheck,
             componentProps: { t },
           },
@@ -308,14 +327,14 @@ const actionItems = computed((): RegistrationItemProps[] => {
             </span>
           </header>
 
-          <!-- Flash Drive Section -->
+          <!-- Boot Device Section -->
           <div
-            v-if="flashDriveItems.length > 0"
+            v-if="bootDeviceItems.length > 0"
             class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
           >
-            <h4 class="mb-3 text-lg font-semibold">{{ t('registration.flashDrive') }}</h4>
+            <h4 class="mb-3 text-lg font-semibold">{{ t('registration.bootDevice') }}</h4>
             <SettingsGrid>
-              <template v-for="item in flashDriveItems" :key="item.label">
+              <template v-for="item in bootDeviceItems" :key="item.label">
                 <div class="flex items-center gap-x-2 font-semibold">
                   <ShieldExclamationIcon v-if="item.error" class="text-unraid-red h-4 w-4" />
                   <span v-html="item.label" />
@@ -365,27 +384,56 @@ const actionItems = computed((): RegistrationItemProps[] => {
             class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
           >
             <h4 class="mb-3 text-lg font-semibold">{{ t('registration.actions') }}</h4>
+            <blockquote
+              v-if="showPartnerActivationCode"
+              class="border-primary bg-primary/10 mb-4 border-l-4 p-4"
+            >
+              <p class="text-highlighted text-sm leading-relaxed font-medium">
+                {{ t('registration.partnerActivationDetected') }}
+              </p>
+            </blockquote>
             <SettingsGrid>
               <template
                 v-for="item in actionItems"
                 :key="item.label || 'action-' + actionItems.indexOf(item)"
               >
                 <template v-if="item.label">
-                  <div class="flex items-center gap-x-2 font-semibold">
-                    <ShieldExclamationIcon v-if="item.error" class="text-unraid-red h-4 w-4" />
-                    <span v-html="item.label" />
-                  </div>
-                  <div :class="[item.error ? 'text-unraid-red' : '']">
-                    <span v-if="item.text" class="opacity-75 select-all">
-                      {{ item.text }}
-                    </span>
-                    <component
-                      :is="item.component"
-                      v-if="item.component"
-                      v-bind="item.componentProps"
-                      :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']"
-                    />
-                  </div>
+                  <template v-if="item.component === RegistrationActivationCode">
+                    <div class="md:col-span-2">
+                      <div class="flex min-w-0 flex-wrap items-center gap-2">
+                        <div class="flex items-center gap-x-2 font-semibold">
+                          <ShieldExclamationIcon v-if="item.error" class="text-unraid-red h-4 w-4" />
+                          <span v-html="item.label" />
+                          <span>:</span>
+                        </div>
+                        <div :class="[item.error ? 'text-unraid-red' : '']">
+                          <component
+                            :is="item.component"
+                            v-if="item.component"
+                            v-bind="item.componentProps"
+                            :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <div class="flex items-center gap-x-2 font-semibold">
+                      <ShieldExclamationIcon v-if="item.error" class="text-unraid-red h-4 w-4" />
+                      <span v-html="item.label" />
+                    </div>
+                    <div :class="[item.error ? 'text-unraid-red' : '']">
+                      <span v-if="item.text" class="opacity-75 select-all">
+                        {{ item.text }}
+                      </span>
+                      <component
+                        :is="item.component"
+                        v-if="item.component"
+                        v-bind="item.componentProps"
+                        :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']"
+                      />
+                    </div>
+                  </template>
                 </template>
                 <template v-else>
                   <div class="md:col-span-2">

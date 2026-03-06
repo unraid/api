@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import type { HTMLAttributes } from 'vue';
 
 export interface DialogProps {
   description?: string;
@@ -28,7 +29,12 @@ export interface DialogProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   showCloseButton?: boolean;
   to?: string | HTMLElement;
+  class?: HTMLAttributes['class'];
 }
+
+const props = defineProps<DialogProps>();
+
+// ... (rest of props destructuring or use `props` directly)
 
 const {
   description,
@@ -45,7 +51,8 @@ const {
   size = 'md',
   showCloseButton = true,
   to,
-} = defineProps<DialogProps>();
+  // class is not destructured to avoid conflict/ensure usage via props.class
+} = props;
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean];
@@ -84,7 +91,8 @@ const sizeClasses = {
           sizeClasses[size],
           size === 'full'
             ? 'fixed inset-0 max-w-none translate-x-0 translate-y-0 rounded-none border-0'
-            : ''
+            : '',
+          props.class
         )
       "
       :show-close-button="showCloseButton"

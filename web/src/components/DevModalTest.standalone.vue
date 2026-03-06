@@ -3,7 +3,7 @@ import { nextTick } from 'vue';
 
 import { Button } from '@unraid/ui';
 
-import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
+import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
 
 const activationModalStore = useActivationCodeModalStore();
 
@@ -25,6 +25,8 @@ const showActivationModal = async () => {
 
 <template>
   <div class="p-8">
-    <Button variant="primary" @click="showActivationModal"> Show Activation Modal </Button>
+    <div class="flex gap-2">
+      <Button variant="primary" @click="showActivationModal"> Show Activation Modal </Button>
+    </div>
   </div>
 </template>

@@ -20,7 +20,6 @@ vi.mock('../WanIpCheck.standalone.vue', () => ({ default: 'WanIpCheck' }));
 vi.mock('../CallbackHandler.standalone.vue', () => ({ default: 'CallbackHandler' }));
 vi.mock('../Logs/LogViewer.standalone.vue', () => ({ default: 'LogViewer' }));
 vi.mock('../SsoButton.standalone.vue', () => ({ default: 'SsoButton' }));
-vi.mock('../Activation/WelcomeModal.standalone.vue', () => ({ default: 'WelcomeModal' }));
 vi.mock('../UpdateOs.standalone.vue', () => ({ default: 'UpdateOs' }));
 vi.mock('../DowngradeOs.standalone.vue', () => ({ default: 'DowngradeOs' }));
 vi.mock('../DevSettings.vue', () => ({ default: 'DevSettings' }));
@@ -140,7 +139,6 @@ describe('component-registry', () => {
       'callback-handler',
       'log-viewer',
       'sso-button',
-      'welcome-modal',
       'update-os',
       'downgrade-os',
       'dev-settings',

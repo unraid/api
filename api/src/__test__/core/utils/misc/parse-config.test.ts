@@ -61,6 +61,12 @@ test('it loads a config from disk properly', () => {
     expect(res.shareCount).toEqual('0');
 });
 
+test('it infers the config type from file extension when type not provided', () => {
+    const path = './dev/states/var.ini';
+    const res = parseConfig<any>({ filePath: path });
+    expect(res.shareCount).toEqual('0');
+});
+
 test('Confirm Multi-Ini Parser Still Broken', () => {
     const parser = new MultiIniParser();
     const res = parser.parse(iniTestData);

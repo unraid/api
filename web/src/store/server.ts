@@ -40,7 +40,7 @@ import type {
   ServerUpdateOsResponse,
 } from '~/types/server';
 
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { WebguiState, WebguiUpdateIgnore } from '~/composables/services/webgui';
 import { useAccountStore } from '~/store/account';
@@ -57,6 +57,7 @@ export const useServerStore = defineStore('server', () => {
   const purchaseStore = usePurchaseStore();
   const themeStore = useThemeStore();
   const unraidApiStore = useUnraidApiStore();
+  const { activationCode } = storeToRefs(useActivationCodeDataStore());
   /**
    * State
    */
@@ -89,6 +90,15 @@ export const useServerStore = defineStore('server', () => {
   const flashProduct = ref<string>('');
   const flashVendor = ref<string>('');
   const guid = ref<string>('');
+  const bootDeviceType = computed(
+    (): 'flash' | 'internalBoot' | 'internalBootMulti' | 'tpm' | undefined => {
+      if (!guid.value) return undefined;
+      if (guid.value.startsWith('01-')) return 'internalBoot';
+      if (guid.value.startsWith('02-')) return 'internalBootMulti';
+      if (guid.value.startsWith('03-')) return 'tpm';
+      return 'flash';
+    }
+  );
   const guidBlacklisted = ref<boolean>();
   const guidRegistered = ref<boolean>();
   const guidReplaceable = ref<boolean | undefined>();
@@ -357,10 +367,13 @@ export const useServerStore = defineStore('server', () => {
     };
   });
   const redeemAction = computed((): ServerStateDataAction => {
-    const { activationCode } = storeToRefs(useActivationCodeDataStore());
+    const isPartnerActivationState =
+      state.value === 'ENOKEYFILE' || state.value === 'TRIAL' || state.value === 'EEXPIRED';
+    const shouldUsePartnerActivate = Boolean(activationCode.value?.code) && isPartnerActivationState;
+
     return {
       click: () => {
-        if (activationCode.value?.code) {
+        if (shouldUsePartnerActivate) {
           purchaseStore.activate();
         } else {
           purchaseStore.redeem();
@@ -369,9 +382,9 @@ export const useServerStore = defineStore('server', () => {
       disabled: serverActionsDisable.value.disable,
       external: true,
       icon: KeyIcon,
-      name: activationCode.value?.code ? 'activate' : 'redeem',
-      text: activationCode.value?.code
-        ? t('server.actions.activateNow')
+      name: shouldUsePartnerActivate ? 'activate' : 'redeem',
+      text: shouldUsePartnerActivate
+        ? t('registration.actions.activateLicense')
         : t('server.actions.redeemActivationCode'),
       title: serverActionsDisable.value.title,
     };
@@ -466,13 +479,20 @@ export const useServerStore = defineStore('server', () => {
 
   let messageEGUID = '';
   let trialMessage = '';
+  const shouldUsePartnerActivationOnly = computed(() => {
+    const isPartnerActivationState =
+      state.value === 'ENOKEYFILE' || state.value === 'TRIAL' || state.value === 'EEXPIRED';
+    return Boolean(activationCode.value?.code) && isPartnerActivationState;
+  });
   const stateData = computed((): ServerStateData => {
     switch (state.value) {
       case 'ENOKEYFILE':
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...[trialStartAction.value, purchaseAction.value, redeemAction.value, recoverAction.value],
+            ...(shouldUsePartnerActivationOnly.value
+              ? [redeemAction.value, recoverAction.value, trialStartAction.value]
+              : [redeemAction.value, trialStartAction.value, purchaseAction.value, recoverAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: t('server.state.enokeyfile.humanReadable'),
@@ -494,8 +514,12 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...[purchaseAction.value, redeemAction.value],
-            ...(trialExtensionEligibleInsideRenewalWindow.value ? [trialExtendAction.value] : []),
+            ...(shouldUsePartnerActivationOnly.value
+              ? [redeemAction.value]
+              : [redeemAction.value, purchaseAction.value]),
+            ...(!shouldUsePartnerActivationOnly.value && trialExtensionEligibleInsideRenewalWindow.value
+              ? [trialExtendAction.value]
+              : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: t('server.state.trial.humanReadable'),
@@ -506,7 +530,9 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...[purchaseAction.value, redeemAction.value],
+            ...(shouldUsePartnerActivationOnly.value
+              ? [redeemAction.value]
+              : [redeemAction.value, purchaseAction.value]),
             ...(trialExtensionEligible.value ? [trialExtendAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -1209,18 +1235,26 @@ export const useServerStore = defineStore('server', () => {
     }
   };
 
-  let refreshCount = 0;
-  const refreshLimit = 20;
-  const refreshTimeout = 250;
+  const refreshLimit = 120;
+  const refreshTimeout = 500;
   const refreshServerStateStatus = ref<'done' | 'ready' | 'refreshing' | 'timeout'>('ready');
-  const refreshServerState = async () => {
+  const refreshServerState = async (options?: {
+    poll?: boolean;
+    attempt?: number;
+    maxAttempts?: number;
+    intervalMs?: number;
+  }): Promise<boolean> => {
+    const poll = options?.poll ?? true;
+    const attempt = options?.attempt ?? 0;
+    const maxAttempts = options?.maxAttempts ?? refreshLimit;
+    const intervalMs = options?.intervalMs ?? refreshTimeout;
+
     // If we've reached the refresh limit, stop refreshing
-    if (refreshCount >= refreshLimit) {
+    if (attempt >= maxAttempts) {
       refreshServerStateStatus.value = 'timeout';
       return false;
     }
 
-    refreshCount++;
     refreshServerStateStatus.value = 'refreshing';
 
     // Values to compare to response values should be set before the response is set
@@ -1232,9 +1266,13 @@ export const useServerStore = defineStore('server', () => {
     // Fetch the server state from the API or PHP
     const response = fromApi ? await refetchServerState() : await phpServerStateRefresh();
     if (!response) {
-      return setTimeout(() => {
-        refreshServerState();
-      }, refreshTimeout);
+      if (poll) {
+        setTimeout(() => {
+          void refreshServerState({ poll, attempt: attempt + 1, maxAttempts, intervalMs });
+        }, intervalMs);
+        return false;
+      }
+      return false;
     }
 
     // Extract the new values from the response
@@ -1266,10 +1304,16 @@ export const useServerStore = defineStore('server', () => {
       refreshServerStateStatus.value = 'done';
       return true;
     }
+
+    // If we're not polling, we're done
+    if (!poll) {
+      refreshServerStateStatus.value = 'done';
+      return true;
+    }
+
     // If we haven't reached the refresh limit, try again
-    setTimeout(() => {
-      return refreshServerState();
-    }, refreshTimeout);
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    return refreshServerState({ poll, attempt: attempt + 1, maxAttempts, intervalMs });
   };
 
   const filteredKeyActions = (
@@ -1338,6 +1382,7 @@ export const useServerStore = defineStore('server', () => {
     flashProduct,
     flashVendor,
     guid,
+    bootDeviceType,
     keyfile,
     inIframe,
     locale,

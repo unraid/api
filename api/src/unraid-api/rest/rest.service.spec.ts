@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import type { ReadStream } from 'node:fs';
 import { createReadStream } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { Readable } from 'node:stream';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -12,6 +13,9 @@ import {
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
 
 vi.mock('node:fs');
+vi.mock('node:fs/promises', () => ({
+    readFile: vi.fn(),
+}));
 vi.mock('@app/core/utils/images/image-file-helpers.js', () => ({
     getBannerPathIfPresent: vi.fn(),
     getCasePathIfPresent: vi.fn(),
@@ -22,6 +26,7 @@ describe('RestService', () => {
 
     beforeEach(async () => {
         vi.clearAllMocks();
+        vi.mocked(readFile).mockResolvedValue(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [RestService],
@@ -61,8 +66,13 @@ describe('RestService', () => {
 
             vi.mocked(getBannerPathIfPresent).mockResolvedValue(mockPath);
             vi.mocked(createReadStream).mockReturnValue(mockStream);
+            vi.mocked(readFile).mockResolvedValue(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
 
-            await expect(service.getCustomizationStream('banner')).resolves.toBe(mockStream);
+            const result = await service.getCustomizationStream('banner');
+            expect(result).toEqual({
+                stream: mockStream,
+                contentType: 'image/png',
+            });
             expect(createReadStream).toHaveBeenCalledWith(mockPath);
         });
 
@@ -72,8 +82,13 @@ describe('RestService', () => {
 
             vi.mocked(getCasePathIfPresent).mockResolvedValue(mockPath);
             vi.mocked(createReadStream).mockReturnValue(mockStream);
+            vi.mocked(readFile).mockResolvedValue(Buffer.from('GIF89a'));
 
-            await expect(service.getCustomizationStream('case')).resolves.toBe(mockStream);
+            const result = await service.getCustomizationStream('case');
+            expect(result).toEqual({
+                stream: mockStream,
+                contentType: 'image/gif',
+            });
             expect(createReadStream).toHaveBeenCalledWith(mockPath);
         });
 
@@ -83,6 +98,24 @@ describe('RestService', () => {
 
             await expect(service.getCustomizationStream('banner')).rejects.toThrow('No banner found');
             await expect(service.getCustomizationStream('case')).rejects.toThrow('No case found');
+        });
+
+        it('detects svg content by payload when extension is missing', async () => {
+            const mockPath = '/path/to/case';
+            const mockStream: ReadStream = Readable.from([]) as ReadStream;
+
+            vi.mocked(getCasePathIfPresent).mockResolvedValue(mockPath);
+            vi.mocked(createReadStream).mockReturnValue(mockStream);
+            vi.mocked(readFile).mockResolvedValue(
+                Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>')
+            );
+
+            const result = await service.getCustomizationStream('case');
+
+            expect(result).toEqual({
+                stream: mockStream,
+                contentType: 'image/svg+xml',
+            });
         });
     });
 });

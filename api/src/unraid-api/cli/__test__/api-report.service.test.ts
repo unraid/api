@@ -372,14 +372,14 @@ describe('ApiReportService', () => {
             expect(result.system.machineId).toBe('REDACTED');
         });
 
-        it('should handle connect with error gracefully', async () => {
-            const mockConnectDataWithError = {
+        it('should handle connect when dynamic remote access is disabled', async () => {
+            const mockConnectDataWithDynamicRemoteAccessDisabled = {
                 connect: {
                     id: 'connect',
                     dynamicRemoteAccess: {
-                        enabledType: 'STATIC',
+                        enabledType: 'DISABLED',
                         runningType: 'DISABLED',
-                        error: 'Port forwarding failed',
+                        error: null,
                     },
                 },
             };
@@ -388,7 +388,7 @@ describe('ApiReportService', () => {
                 if (query === SYSTEM_REPORT_QUERY) {
                     return Promise.resolve({ data: mockSystemData });
                 } else if (query === CONNECT_STATUS_QUERY) {
-                    return Promise.resolve({ data: mockConnectDataWithError });
+                    return Promise.resolve({ data: mockConnectDataWithDynamicRemoteAccessDisabled });
                 } else if (query === SERVICES_QUERY) {
                     return Promise.resolve({ data: mockServicesData });
                 }
@@ -400,9 +400,9 @@ describe('ApiReportService', () => {
             expect(result.connect).toMatchObject({
                 installed: true,
                 dynamicRemoteAccess: {
-                    enabledType: 'STATIC',
+                    enabledType: 'DISABLED',
                     runningType: 'DISABLED',
-                    error: 'Port forwarding failed',
+                    error: null,
                 },
             });
         });

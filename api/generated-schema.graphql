@@ -781,6 +781,275 @@ type Settings implements Node {
   api: ApiConfig!
 }
 
+type Theme {
+  """The theme name"""
+  name: ThemeName!
+
+  """Whether to show the header banner image"""
+  showBannerImage: Boolean!
+
+  """Whether to show the banner gradient"""
+  showBannerGradient: Boolean!
+
+  """Whether to show the description in the header"""
+  showHeaderDescription: Boolean!
+
+  """The background color of the header"""
+  headerBackgroundColor: String
+
+  """The text color of the header"""
+  headerPrimaryTextColor: String
+
+  """The secondary text color of the header"""
+  headerSecondaryTextColor: String
+}
+
+"""The theme name"""
+enum ThemeName {
+  azure
+  black
+  gray
+  white
+}
+
+type InfoDisplayCase implements Node {
+  id: PrefixedID!
+
+  """Case image URL"""
+  url: String!
+
+  """Case icon identifier"""
+  icon: String!
+
+  """Error message if any"""
+  error: String!
+
+  """Base64 encoded case image"""
+  base64: String!
+}
+
+type InfoDisplay implements Node {
+  id: PrefixedID!
+
+  """Case display configuration"""
+  case: InfoDisplayCase!
+
+  """UI theme name"""
+  theme: ThemeName!
+
+  """Temperature unit (C or F)"""
+  unit: Temperature!
+
+  """Enable UI scaling"""
+  scale: Boolean!
+
+  """Show tabs in UI"""
+  tabs: Boolean!
+
+  """Enable UI resize"""
+  resize: Boolean!
+
+  """Show WWN identifiers"""
+  wwn: Boolean!
+
+  """Show totals"""
+  total: Boolean!
+
+  """Show usage statistics"""
+  usage: Boolean!
+
+  """Show text labels"""
+  text: Boolean!
+
+  """Warning temperature threshold"""
+  warning: Int!
+
+  """Critical temperature threshold"""
+  critical: Int!
+
+  """Hot temperature threshold"""
+  hot: Int!
+
+  """Maximum temperature threshold"""
+  max: Int
+
+  """Locale setting"""
+  locale: String
+}
+
+"""Temperature unit"""
+enum Temperature {
+  CELSIUS
+  FAHRENHEIT
+}
+
+type Language {
+  """Language code (e.g. en_US)"""
+  code: String!
+
+  """Language description/name"""
+  name: String!
+
+  """URL to the language pack XML"""
+  url: String
+}
+
+type PartnerLink {
+  """Display title for the link"""
+  title: String!
+
+  """The URL"""
+  url: String!
+}
+
+type PartnerConfig {
+  name: String
+  url: String
+
+  """Link to hardware specifications for this system"""
+  hardwareSpecsUrl: String
+
+  """Link to the system manual/documentation"""
+  manualUrl: String
+
+  """Link to manufacturer support page"""
+  supportUrl: String
+
+  """Additional custom links provided by the partner"""
+  extraLinks: [PartnerLink!]
+}
+
+type BrandingConfig {
+  header: String
+  headermetacolor: String
+  background: String
+  showBannerGradient: Boolean
+  theme: String
+
+  """
+  Banner image source. Supports local path, remote URL, or data URI/base64.
+  """
+  bannerImage: String
+
+  """
+  Case model image source. Supports local path, remote URL, or data URI/base64.
+  """
+  caseModelImage: String
+
+  """
+  Partner logo source for light themes (azure/white). Supports local path, remote URL, or data URI/base64.
+  """
+  partnerLogoLightUrl: String
+
+  """
+  Partner logo source for dark themes (black/gray). Supports local path, remote URL, or data URI/base64.
+  """
+  partnerLogoDarkUrl: String
+
+  """Indicates if a partner logo exists"""
+  hasPartnerLogo: Boolean
+
+  """Custom title for onboarding welcome step"""
+  onboardingTitle: String
+
+  """Custom subtitle for onboarding welcome step"""
+  onboardingSubtitle: String
+
+  """Custom title for fresh install onboarding"""
+  onboardingTitleFreshInstall: String
+
+  """Custom subtitle for fresh install onboarding"""
+  onboardingSubtitleFreshInstall: String
+
+  """Custom title for upgrade onboarding"""
+  onboardingTitleUpgrade: String
+
+  """Custom subtitle for upgrade onboarding"""
+  onboardingSubtitleUpgrade: String
+
+  """Custom title for downgrade onboarding"""
+  onboardingTitleDowngrade: String
+
+  """Custom subtitle for downgrade onboarding"""
+  onboardingSubtitleDowngrade: String
+
+  """Custom title for incomplete onboarding"""
+  onboardingTitleIncomplete: String
+
+  """Custom subtitle for incomplete onboarding"""
+  onboardingSubtitleIncomplete: String
+}
+
+type SystemConfig {
+  serverName: String
+  model: String
+  comment: String
+}
+
+type ActivationCode {
+  code: String
+  partner: PartnerConfig
+  branding: BrandingConfig
+  system: SystemConfig
+}
+
+type OnboardingState {
+  registrationState: RegistrationState
+
+  """Indicates whether the system is registered"""
+  isRegistered: Boolean!
+
+  """Indicates whether the system is a fresh install"""
+  isFreshInstall: Boolean!
+
+  """Indicates whether an activation code is present"""
+  hasActivationCode: Boolean!
+
+  """Indicates whether activation is required based on current state"""
+  activationRequired: Boolean!
+}
+
+"""Onboarding completion state and context"""
+type Onboarding {
+  """
+  The current onboarding status (INCOMPLETE, UPGRADE, DOWNGRADE, or COMPLETED)
+  """
+  status: OnboardingStatus!
+
+  """Whether this is a partner/OEM build with activation code"""
+  isPartnerBuild: Boolean!
+
+  """Whether the onboarding flow has been completed"""
+  completed: Boolean!
+
+  """The OS version when onboarding was completed"""
+  completedAtVersion: String
+
+  """The activation code from the .activationcode file, if present"""
+  activationCode: String
+
+  """Runtime onboarding state values used by the onboarding flow"""
+  onboardingState: OnboardingState!
+}
+
+"""
+The current onboarding status based on completion state and version relationship
+"""
+enum OnboardingStatus {
+  INCOMPLETE
+  UPGRADE
+  DOWNGRADE
+  COMPLETED
+}
+
+type Customization {
+  activationCode: ActivationCode
+
+  """Onboarding completion state and context"""
+  onboarding: Onboarding!
+  availableLanguages: [Language!]
+}
+
 type RCloneDrive {
   """Provider name"""
   name: String!
@@ -814,6 +1083,58 @@ type RCloneRemote {
 
   """Complete remote configuration"""
   config: JSON!
+}
+
+"""Represents a tracked plugin installation operation"""
+type PluginInstallOperation {
+  """Unique identifier of the operation"""
+  id: ID!
+
+  """Plugin URL passed to the installer"""
+  url: String!
+
+  """Optional plugin name for display purposes"""
+  name: String
+
+  """Current status of the operation"""
+  status: PluginInstallStatus!
+
+  """Timestamp when the operation was created"""
+  createdAt: DateTime!
+
+  """Timestamp for the last update to this operation"""
+  updatedAt: DateTime
+
+  """Timestamp when the operation finished, if applicable"""
+  finishedAt: DateTime
+
+  """
+  Collected output lines generated by the installer (capped at recent lines)
+  """
+  output: [String!]!
+}
+
+"""Status of a plugin installation operation"""
+enum PluginInstallStatus {
+  FAILED
+  QUEUED
+  RUNNING
+  SUCCEEDED
+}
+
+"""Emitted event representing progress for a plugin installation"""
+type PluginInstallEvent {
+  """Identifier of the related plugin installation operation"""
+  operationId: ID!
+
+  """Status reported with this event"""
+  status: PluginInstallStatus!
+
+  """Output lines newly emitted since the previous event"""
+  output: [String!]
+
+  """Timestamp when the event was emitted"""
+  timestamp: DateTime!
 }
 
 type ArrayMutations {
@@ -983,14 +1304,12 @@ type CustomizationMutations {
     """Theme to apply"""
     theme: ThemeName!
   ): Theme!
-}
 
-"""The theme name"""
-enum ThemeName {
-  azure
-  black
-  gray
-  white
+  """Update the display locale (language)"""
+  setLocale(
+    """Locale code to apply (e.g. en_US)"""
+    locale: String!
+  ): String!
 }
 
 """
@@ -1029,66 +1348,644 @@ input DeleteRCloneRemoteInput {
   name: String!
 }
 
+"""Onboarding related mutations"""
+type OnboardingMutations {
+  """Mark onboarding as completed"""
+  completeOnboarding: Onboarding!
+
+  """Reset onboarding progress (for testing)"""
+  resetOnboarding: Onboarding!
+
+  """Override onboarding state for testing (in-memory only)"""
+  setOnboardingOverride(input: OnboardingOverrideInput!): Onboarding!
+
+  """Clear onboarding override state and reload from disk"""
+  clearOnboardingOverride: Onboarding!
+}
+
+"""Onboarding override input for testing"""
+input OnboardingOverrideInput {
+  onboarding: OnboardingOverrideCompletionInput
+  activationCode: ActivationCodeOverrideInput
+  partnerInfo: PartnerInfoOverrideInput
+  registrationState: RegistrationState
+}
+
+"""Onboarding completion override input"""
+input OnboardingOverrideCompletionInput {
+  completed: Boolean
+  completedAtVersion: String
+}
+
+"""Activation code override input"""
+input ActivationCodeOverrideInput {
+  code: String
+  partner: PartnerConfigInput
+  branding: BrandingConfigInput
+  system: SystemConfigInput
+}
+
+input PartnerConfigInput {
+  name: String
+  url: String
+  hardwareSpecsUrl: String
+  manualUrl: String
+  supportUrl: String
+  extraLinks: [PartnerLinkInput!]
+}
+
+"""Partner link input for custom links"""
+input PartnerLinkInput {
+  title: String!
+  url: String!
+}
+
+input BrandingConfigInput {
+  header: String
+  headermetacolor: String
+  background: String
+  showBannerGradient: Boolean
+  theme: String
+  bannerImage: String
+  caseModelImage: String
+  partnerLogoLightUrl: String
+  partnerLogoDarkUrl: String
+  hasPartnerLogo: Boolean
+  onboardingTitle: String
+  onboardingSubtitle: String
+  onboardingTitleFreshInstall: String
+  onboardingSubtitleFreshInstall: String
+  onboardingTitleUpgrade: String
+  onboardingSubtitleUpgrade: String
+  onboardingTitleDowngrade: String
+  onboardingSubtitleDowngrade: String
+  onboardingTitleIncomplete: String
+  onboardingSubtitleIncomplete: String
+}
+
+input SystemConfigInput {
+  serverName: String
+  model: String
+  comment: String
+}
+
+"""Partner info override input"""
+input PartnerInfoOverrideInput {
+  partner: PartnerConfigInput
+  branding: BrandingConfigInput
+}
+
+"""Unraid plugin management mutations"""
+type UnraidPluginsMutations {
+  """Install an Unraid plugin and track installation progress"""
+  installPlugin(input: InstallPluginInput!): PluginInstallOperation!
+
+  """Install an Unraid language pack and track installation progress"""
+  installLanguage(input: InstallPluginInput!): PluginInstallOperation!
+}
+
+"""Input payload for installing a plugin"""
+input InstallPluginInput {
+  """Plugin installation URL (.plg)"""
+  url: String!
+
+  """Optional human-readable plugin name used for logging"""
+  name: String
+
+  """
+  Force installation even when plugin is already present. Defaults to true to mirror the existing UI behaviour.
+  """
+  forced: Boolean
+}
+
 type Config implements Node {
   id: PrefixedID!
   valid: Boolean
   error: String
 }
 
-type PublicPartnerInfo {
-  partnerName: String
+type InfoGpu implements Node {
+  id: PrefixedID!
 
-  """Indicates if a partner logo exists"""
-  hasPartnerLogo: Boolean!
-  partnerUrl: String
+  """GPU type/manufacturer"""
+  type: String!
+
+  """GPU type identifier"""
+  typeid: String!
+
+  """Whether GPU is blacklisted"""
+  blacklisted: Boolean!
+
+  """Device class"""
+  class: String!
+
+  """Product ID"""
+  productid: String!
+
+  """Vendor name"""
+  vendorname: String
+}
+
+type InfoNetwork implements Node {
+  id: PrefixedID!
+
+  """Network interface name"""
+  iface: String!
+
+  """Network interface model"""
+  model: String
+
+  """Network vendor"""
+  vendor: String
+
+  """MAC address"""
+  mac: String
+
+  """Virtual interface flag"""
+  virtual: Boolean
+
+  """Network speed"""
+  speed: String
+
+  """DHCP enabled flag"""
+  dhcp: Boolean
+}
+
+type InfoPci implements Node {
+  id: PrefixedID!
+
+  """Device type/manufacturer"""
+  type: String!
+
+  """Type identifier"""
+  typeid: String!
+
+  """Vendor name"""
+  vendorname: String
+
+  """Vendor ID"""
+  vendorid: String!
+
+  """Product name"""
+  productname: String
+
+  """Product ID"""
+  productid: String!
+
+  """Blacklisted status"""
+  blacklisted: String!
+
+  """Device class"""
+  class: String!
+}
+
+type InfoUsb implements Node {
+  id: PrefixedID!
+
+  """USB device name"""
+  name: String!
+
+  """USB bus number"""
+  bus: String
+
+  """USB device number"""
+  device: String
+}
+
+type InfoDevices implements Node {
+  id: PrefixedID!
+
+  """List of GPU devices"""
+  gpu: [InfoGpu!]
+
+  """List of network interfaces"""
+  network: [InfoNetwork!]
+
+  """List of PCI devices"""
+  pci: [InfoPci!]
+
+  """List of USB devices"""
+  usb: [InfoUsb!]
+}
+
+"""CPU load for a single core"""
+type CpuLoad {
+  """The total CPU load on a single core, in percent."""
+  percentTotal: Float!
+
+  """The percentage of time the CPU spent in user space."""
+  percentUser: Float!
+
+  """The percentage of time the CPU spent in kernel space."""
+  percentSystem: Float!
 
   """
-  The path to the partner logo image on the flash drive, relative to the activation code file
+  The percentage of time the CPU spent on low-priority (niced) user space processes.
   """
-  partnerLogoUrl: String
+  percentNice: Float!
+
+  """The percentage of time the CPU was idle."""
+  percentIdle: Float!
+
+  """The percentage of time the CPU spent servicing hardware interrupts."""
+  percentIrq: Float!
+
+  """The percentage of time the CPU spent running virtual machines (guest)."""
+  percentGuest: Float!
+
+  """The percentage of CPU time stolen by the hypervisor."""
+  percentSteal: Float!
 }
 
-type ActivationCode {
-  code: String
-  partnerName: String
-  partnerUrl: String
-  serverName: String
-  sysModel: String
-  comment: String
-  header: String
-  headermetacolor: String
-  background: String
-  showBannerGradient: Boolean
-  theme: String
+type CpuPackages implements Node {
+  id: PrefixedID!
+
+  """Total CPU package power draw (W)"""
+  totalPower: Float!
+
+  """Power draw per package (W)"""
+  power: [Float!]!
+
+  """Temperature per package (°C)"""
+  temp: [Float!]!
 }
 
-type Customization {
-  activationCode: ActivationCode
-  partnerInfo: PublicPartnerInfo
-  theme: Theme!
+type CpuUtilization implements Node {
+  id: PrefixedID!
+
+  """Total CPU load in percent"""
+  percentTotal: Float!
+
+  """CPU load for each core"""
+  cpus: [CpuLoad!]!
 }
 
-type Theme {
-  """The theme name"""
-  name: ThemeName!
+type InfoCpu implements Node {
+  id: PrefixedID!
 
-  """Whether to show the header banner image"""
-  showBannerImage: Boolean!
+  """CPU manufacturer"""
+  manufacturer: String
 
-  """Whether to show the banner gradient"""
-  showBannerGradient: Boolean!
+  """CPU brand name"""
+  brand: String
 
-  """Whether to show the description in the header"""
-  showHeaderDescription: Boolean!
+  """CPU vendor"""
+  vendor: String
 
-  """The background color of the header"""
-  headerBackgroundColor: String
+  """CPU family"""
+  family: String
 
-  """The text color of the header"""
-  headerPrimaryTextColor: String
+  """CPU model"""
+  model: String
 
-  """The secondary text color of the header"""
-  headerSecondaryTextColor: String
+  """CPU stepping"""
+  stepping: Int
+
+  """CPU revision"""
+  revision: String
+
+  """CPU voltage"""
+  voltage: String
+
+  """Current CPU speed in GHz"""
+  speed: Float
+
+  """Minimum CPU speed in GHz"""
+  speedmin: Float
+
+  """Maximum CPU speed in GHz"""
+  speedmax: Float
+
+  """Number of CPU threads"""
+  threads: Int
+
+  """Number of CPU cores"""
+  cores: Int
+
+  """Number of physical processors"""
+  processors: Int
+
+  """CPU socket type"""
+  socket: String
+
+  """CPU cache information"""
+  cache: JSON
+
+  """CPU feature flags"""
+  flags: [String!]
+
+  """
+  Per-package array of core/thread pairs, e.g. [[[0,1],[2,3]], [[4,5],[6,7]]]
+  """
+  topology: [[[Int!]!]!]!
+  packages: CpuPackages!
+}
+
+type MemoryLayout implements Node {
+  id: PrefixedID!
+
+  """Memory module size in bytes"""
+  size: BigInt!
+
+  """Memory bank location (e.g., BANK 0)"""
+  bank: String
+
+  """Memory type (e.g., DDR4, DDR5)"""
+  type: String
+
+  """Memory clock speed in MHz"""
+  clockSpeed: Int
+
+  """Part number of the memory module"""
+  partNum: String
+
+  """Serial number of the memory module"""
+  serialNum: String
+
+  """Memory manufacturer"""
+  manufacturer: String
+
+  """Form factor (e.g., DIMM, SODIMM)"""
+  formFactor: String
+
+  """Configured voltage in millivolts"""
+  voltageConfigured: Int
+
+  """Minimum voltage in millivolts"""
+  voltageMin: Int
+
+  """Maximum voltage in millivolts"""
+  voltageMax: Int
+}
+
+type MemoryUtilization implements Node {
+  id: PrefixedID!
+
+  """Total system memory in bytes"""
+  total: BigInt!
+
+  """Used memory in bytes"""
+  used: BigInt!
+
+  """Free memory in bytes"""
+  free: BigInt!
+
+  """Available memory in bytes"""
+  available: BigInt!
+
+  """Active memory in bytes"""
+  active: BigInt!
+
+  """Buffer/cache memory in bytes"""
+  buffcache: BigInt!
+
+  """Memory usage percentage"""
+  percentTotal: Float!
+
+  """Total swap memory in bytes"""
+  swapTotal: BigInt!
+
+  """Used swap memory in bytes"""
+  swapUsed: BigInt!
+
+  """Free swap memory in bytes"""
+  swapFree: BigInt!
+
+  """Swap usage percentage"""
+  percentSwapTotal: Float!
+}
+
+type InfoMemory implements Node {
+  id: PrefixedID!
+
+  """Physical memory layout"""
+  layout: [MemoryLayout!]!
+}
+
+type InfoNetworkInterface implements Node {
+  id: PrefixedID!
+
+  """Interface name (e.g. eth0)"""
+  name: String!
+
+  """Interface description/label"""
+  description: String
+
+  """MAC Address"""
+  macAddress: String
+
+  """Connection status"""
+  status: String
+
+  """IPv4 Protocol mode"""
+  protocol: String
+
+  """IPv4 Address"""
+  ipAddress: String
+
+  """IPv4 Netmask"""
+  netmask: String
+
+  """IPv4 Gateway"""
+  gateway: String
+
+  """Using DHCP for IPv4"""
+  useDhcp: Boolean
+
+  """IPv6 Address"""
+  ipv6Address: String
+
+  """IPv6 Netmask"""
+  ipv6Netmask: String
+
+  """IPv6 Gateway"""
+  ipv6Gateway: String
+
+  """Using DHCP for IPv6"""
+  useDhcp6: Boolean
+}
+
+type InfoOs implements Node {
+  id: PrefixedID!
+
+  """Operating system platform"""
+  platform: String
+
+  """Linux distribution name"""
+  distro: String
+
+  """OS release version"""
+  release: String
+
+  """OS codename"""
+  codename: String
+
+  """Kernel version"""
+  kernel: String
+
+  """OS architecture"""
+  arch: String
+
+  """Hostname"""
+  hostname: String
+
+  """Fully qualified domain name"""
+  fqdn: String
+
+  """OS build identifier"""
+  build: String
+
+  """Service pack version"""
+  servicepack: String
+
+  """Boot time ISO string"""
+  uptime: String
+
+  """OS logo name"""
+  logofile: String
+
+  """OS serial number"""
+  serial: String
+
+  """OS started via UEFI"""
+  uefi: Boolean
+}
+
+type InfoSystem implements Node {
+  id: PrefixedID!
+
+  """System manufacturer"""
+  manufacturer: String
+
+  """System model"""
+  model: String
+
+  """System version"""
+  version: String
+
+  """System serial number"""
+  serial: String
+
+  """System UUID"""
+  uuid: String
+
+  """System SKU"""
+  sku: String
+
+  """Virtual machine flag"""
+  virtual: Boolean
+}
+
+type InfoBaseboard implements Node {
+  id: PrefixedID!
+
+  """Motherboard manufacturer"""
+  manufacturer: String
+
+  """Motherboard model"""
+  model: String
+
+  """Motherboard version"""
+  version: String
+
+  """Motherboard serial number"""
+  serial: String
+
+  """Motherboard asset tag"""
+  assetTag: String
+
+  """Maximum memory capacity in bytes"""
+  memMax: Float
+
+  """Number of memory slots"""
+  memSlots: Float
+}
+
+type CoreVersions {
+  """Unraid version"""
+  unraid: String
+
+  """Unraid API version"""
+  api: String
+
+  """Kernel version"""
+  kernel: String
+}
+
+type PackageVersions {
+  """OpenSSL version"""
+  openssl: String
+
+  """Node.js version"""
+  node: String
+
+  """npm version"""
+  npm: String
+
+  """pm2 version"""
+  pm2: String
+
+  """Git version"""
+  git: String
+
+  """nginx version"""
+  nginx: String
+
+  """PHP version"""
+  php: String
+
+  """Docker version"""
+  docker: String
+}
+
+type InfoVersions implements Node {
+  id: PrefixedID!
+
+  """Core system versions"""
+  core: CoreVersions!
+
+  """Software package versions"""
+  packages: PackageVersions
+}
+
+type Info implements Node {
+  id: PrefixedID!
+
+  """Current server time"""
+  time: DateTime!
+
+  """Motherboard information"""
+  baseboard: InfoBaseboard!
+
+  """CPU information"""
+  cpu: InfoCpu!
+
+  """Device information"""
+  devices: InfoDevices!
+
+  """Display configuration"""
+  display: InfoDisplay!
+
+  """Machine ID"""
+  machineId: ID
+
+  """Memory information"""
+  memory: InfoMemory!
+
+  """Operating system information"""
+  os: InfoOs!
+
+  """System information"""
+  system: InfoSystem!
+
+  """Software versions"""
+  versions: InfoVersions!
+
+  """Network interfaces"""
+  networkInterfaces: [InfoNetworkInterface!]!
+
+  """Primary management interface"""
+  primaryNetwork: InfoNetworkInterface
 }
 
 type ExplicitStatusItem {
@@ -1462,552 +2359,6 @@ type Flash implements Node {
   product: String!
 }
 
-type InfoGpu implements Node {
-  id: PrefixedID!
-
-  """GPU type/manufacturer"""
-  type: String!
-
-  """GPU type identifier"""
-  typeid: String!
-
-  """Whether GPU is blacklisted"""
-  blacklisted: Boolean!
-
-  """Device class"""
-  class: String!
-
-  """Product ID"""
-  productid: String!
-
-  """Vendor name"""
-  vendorname: String
-}
-
-type InfoNetwork implements Node {
-  id: PrefixedID!
-
-  """Network interface name"""
-  iface: String!
-
-  """Network interface model"""
-  model: String
-
-  """Network vendor"""
-  vendor: String
-
-  """MAC address"""
-  mac: String
-
-  """Virtual interface flag"""
-  virtual: Boolean
-
-  """Network speed"""
-  speed: String
-
-  """DHCP enabled flag"""
-  dhcp: Boolean
-}
-
-type InfoPci implements Node {
-  id: PrefixedID!
-
-  """Device type/manufacturer"""
-  type: String!
-
-  """Type identifier"""
-  typeid: String!
-
-  """Vendor name"""
-  vendorname: String
-
-  """Vendor ID"""
-  vendorid: String!
-
-  """Product name"""
-  productname: String
-
-  """Product ID"""
-  productid: String!
-
-  """Blacklisted status"""
-  blacklisted: String!
-
-  """Device class"""
-  class: String!
-}
-
-type InfoUsb implements Node {
-  id: PrefixedID!
-
-  """USB device name"""
-  name: String!
-
-  """USB bus number"""
-  bus: String
-
-  """USB device number"""
-  device: String
-}
-
-type InfoDevices implements Node {
-  id: PrefixedID!
-
-  """List of GPU devices"""
-  gpu: [InfoGpu!]
-
-  """List of network interfaces"""
-  network: [InfoNetwork!]
-
-  """List of PCI devices"""
-  pci: [InfoPci!]
-
-  """List of USB devices"""
-  usb: [InfoUsb!]
-}
-
-type InfoDisplayCase implements Node {
-  id: PrefixedID!
-
-  """Case image URL"""
-  url: String!
-
-  """Case icon identifier"""
-  icon: String!
-
-  """Error message if any"""
-  error: String!
-
-  """Base64 encoded case image"""
-  base64: String!
-}
-
-type InfoDisplay implements Node {
-  id: PrefixedID!
-
-  """Case display configuration"""
-  case: InfoDisplayCase!
-
-  """UI theme name"""
-  theme: ThemeName!
-
-  """Temperature unit (C or F)"""
-  unit: Temperature!
-
-  """Enable UI scaling"""
-  scale: Boolean!
-
-  """Show tabs in UI"""
-  tabs: Boolean!
-
-  """Enable UI resize"""
-  resize: Boolean!
-
-  """Show WWN identifiers"""
-  wwn: Boolean!
-
-  """Show totals"""
-  total: Boolean!
-
-  """Show usage statistics"""
-  usage: Boolean!
-
-  """Show text labels"""
-  text: Boolean!
-
-  """Warning temperature threshold"""
-  warning: Int!
-
-  """Critical temperature threshold"""
-  critical: Int!
-
-  """Hot temperature threshold"""
-  hot: Int!
-
-  """Maximum temperature threshold"""
-  max: Int
-
-  """Locale setting"""
-  locale: String
-}
-
-"""Temperature unit"""
-enum Temperature {
-  CELSIUS
-  FAHRENHEIT
-}
-
-"""CPU load for a single core"""
-type CpuLoad {
-  """The total CPU load on a single core, in percent."""
-  percentTotal: Float!
-
-  """The percentage of time the CPU spent in user space."""
-  percentUser: Float!
-
-  """The percentage of time the CPU spent in kernel space."""
-  percentSystem: Float!
-
-  """
-  The percentage of time the CPU spent on low-priority (niced) user space processes.
-  """
-  percentNice: Float!
-
-  """The percentage of time the CPU was idle."""
-  percentIdle: Float!
-
-  """The percentage of time the CPU spent servicing hardware interrupts."""
-  percentIrq: Float!
-
-  """The percentage of time the CPU spent running virtual machines (guest)."""
-  percentGuest: Float!
-
-  """The percentage of CPU time stolen by the hypervisor."""
-  percentSteal: Float!
-}
-
-type CpuPackages implements Node {
-  id: PrefixedID!
-
-  """Total CPU package power draw (W)"""
-  totalPower: Float!
-
-  """Power draw per package (W)"""
-  power: [Float!]!
-
-  """Temperature per package (°C)"""
-  temp: [Float!]!
-}
-
-type CpuUtilization implements Node {
-  id: PrefixedID!
-
-  """Total CPU load in percent"""
-  percentTotal: Float!
-
-  """CPU load for each core"""
-  cpus: [CpuLoad!]!
-}
-
-type InfoCpu implements Node {
-  id: PrefixedID!
-
-  """CPU manufacturer"""
-  manufacturer: String
-
-  """CPU brand name"""
-  brand: String
-
-  """CPU vendor"""
-  vendor: String
-
-  """CPU family"""
-  family: String
-
-  """CPU model"""
-  model: String
-
-  """CPU stepping"""
-  stepping: Int
-
-  """CPU revision"""
-  revision: String
-
-  """CPU voltage"""
-  voltage: String
-
-  """Current CPU speed in GHz"""
-  speed: Float
-
-  """Minimum CPU speed in GHz"""
-  speedmin: Float
-
-  """Maximum CPU speed in GHz"""
-  speedmax: Float
-
-  """Number of CPU threads"""
-  threads: Int
-
-  """Number of CPU cores"""
-  cores: Int
-
-  """Number of physical processors"""
-  processors: Int
-
-  """CPU socket type"""
-  socket: String
-
-  """CPU cache information"""
-  cache: JSON
-
-  """CPU feature flags"""
-  flags: [String!]
-
-  """
-  Per-package array of core/thread pairs, e.g. [[[0,1],[2,3]], [[4,5],[6,7]]]
-  """
-  topology: [[[Int!]!]!]!
-  packages: CpuPackages!
-}
-
-type MemoryLayout implements Node {
-  id: PrefixedID!
-
-  """Memory module size in bytes"""
-  size: BigInt!
-
-  """Memory bank location (e.g., BANK 0)"""
-  bank: String
-
-  """Memory type (e.g., DDR4, DDR5)"""
-  type: String
-
-  """Memory clock speed in MHz"""
-  clockSpeed: Int
-
-  """Part number of the memory module"""
-  partNum: String
-
-  """Serial number of the memory module"""
-  serialNum: String
-
-  """Memory manufacturer"""
-  manufacturer: String
-
-  """Form factor (e.g., DIMM, SODIMM)"""
-  formFactor: String
-
-  """Configured voltage in millivolts"""
-  voltageConfigured: Int
-
-  """Minimum voltage in millivolts"""
-  voltageMin: Int
-
-  """Maximum voltage in millivolts"""
-  voltageMax: Int
-}
-
-type MemoryUtilization implements Node {
-  id: PrefixedID!
-
-  """Total system memory in bytes"""
-  total: BigInt!
-
-  """Used memory in bytes"""
-  used: BigInt!
-
-  """Free memory in bytes"""
-  free: BigInt!
-
-  """Available memory in bytes"""
-  available: BigInt!
-
-  """Active memory in bytes"""
-  active: BigInt!
-
-  """Buffer/cache memory in bytes"""
-  buffcache: BigInt!
-
-  """Memory usage percentage"""
-  percentTotal: Float!
-
-  """Total swap memory in bytes"""
-  swapTotal: BigInt!
-
-  """Used swap memory in bytes"""
-  swapUsed: BigInt!
-
-  """Free swap memory in bytes"""
-  swapFree: BigInt!
-
-  """Swap usage percentage"""
-  percentSwapTotal: Float!
-}
-
-type InfoMemory implements Node {
-  id: PrefixedID!
-
-  """Physical memory layout"""
-  layout: [MemoryLayout!]!
-}
-
-type InfoOs implements Node {
-  id: PrefixedID!
-
-  """Operating system platform"""
-  platform: String
-
-  """Linux distribution name"""
-  distro: String
-
-  """OS release version"""
-  release: String
-
-  """OS codename"""
-  codename: String
-
-  """Kernel version"""
-  kernel: String
-
-  """OS architecture"""
-  arch: String
-
-  """Hostname"""
-  hostname: String
-
-  """Fully qualified domain name"""
-  fqdn: String
-
-  """OS build identifier"""
-  build: String
-
-  """Service pack version"""
-  servicepack: String
-
-  """Boot time ISO string"""
-  uptime: String
-
-  """OS logo name"""
-  logofile: String
-
-  """OS serial number"""
-  serial: String
-
-  """OS started via UEFI"""
-  uefi: Boolean
-}
-
-type InfoSystem implements Node {
-  id: PrefixedID!
-
-  """System manufacturer"""
-  manufacturer: String
-
-  """System model"""
-  model: String
-
-  """System version"""
-  version: String
-
-  """System serial number"""
-  serial: String
-
-  """System UUID"""
-  uuid: String
-
-  """System SKU"""
-  sku: String
-
-  """Virtual machine flag"""
-  virtual: Boolean
-}
-
-type InfoBaseboard implements Node {
-  id: PrefixedID!
-
-  """Motherboard manufacturer"""
-  manufacturer: String
-
-  """Motherboard model"""
-  model: String
-
-  """Motherboard version"""
-  version: String
-
-  """Motherboard serial number"""
-  serial: String
-
-  """Motherboard asset tag"""
-  assetTag: String
-
-  """Maximum memory capacity in bytes"""
-  memMax: Float
-
-  """Number of memory slots"""
-  memSlots: Float
-}
-
-type CoreVersions {
-  """Unraid version"""
-  unraid: String
-
-  """Unraid API version"""
-  api: String
-
-  """Kernel version"""
-  kernel: String
-}
-
-type PackageVersions {
-  """OpenSSL version"""
-  openssl: String
-
-  """Node.js version"""
-  node: String
-
-  """npm version"""
-  npm: String
-
-  """pm2 version"""
-  pm2: String
-
-  """Git version"""
-  git: String
-
-  """nginx version"""
-  nginx: String
-
-  """PHP version"""
-  php: String
-
-  """Docker version"""
-  docker: String
-}
-
-type InfoVersions implements Node {
-  id: PrefixedID!
-
-  """Core system versions"""
-  core: CoreVersions!
-
-  """Software package versions"""
-  packages: PackageVersions
-}
-
-type Info implements Node {
-  id: PrefixedID!
-
-  """Current server time"""
-  time: DateTime!
-
-  """Motherboard information"""
-  baseboard: InfoBaseboard!
-
-  """CPU information"""
-  cpu: InfoCpu!
-
-  """Device information"""
-  devices: InfoDevices!
-
-  """Display configuration"""
-  display: InfoDisplay!
-
-  """Machine ID"""
-  machineId: ID
-
-  """Memory information"""
-  memory: InfoMemory!
-
-  """Operating system information"""
-  os: InfoOs!
-
-  """System information"""
-  system: InfoSystem!
-
-  """Software versions"""
-  versions: InfoVersions!
-}
-
 type LogFile {
   """Name of the log file"""
   name: String!
@@ -2036,6 +2387,106 @@ type LogFileContent {
   startLine: Int
 }
 
+type TemperatureReading {
+  """Temperature value"""
+  value: Float!
+
+  """Temperature unit"""
+  unit: TemperatureUnit!
+
+  """Timestamp of reading"""
+  timestamp: DateTime!
+
+  """Temperature status"""
+  status: TemperatureStatus!
+}
+
+enum TemperatureUnit {
+  CELSIUS
+  FAHRENHEIT
+  KELVIN
+  RANKINE
+}
+
+enum TemperatureStatus {
+  NORMAL
+  WARNING
+  CRITICAL
+  UNKNOWN
+}
+
+type TemperatureSensor implements Node {
+  id: PrefixedID!
+
+  """Sensor name"""
+  name: String!
+
+  """Type of sensor"""
+  type: SensorType!
+
+  """Physical location"""
+  location: String
+
+  """Current temperature"""
+  current: TemperatureReading!
+
+  """Minimum recorded"""
+  min: TemperatureReading
+
+  """Maximum recorded"""
+  max: TemperatureReading
+
+  """Warning threshold"""
+  warning: Float
+
+  """Critical threshold"""
+  critical: Float
+
+  """Historical readings for this sensor"""
+  history: [TemperatureReading!]
+}
+
+"""Type of temperature sensor"""
+enum SensorType {
+  CPU_PACKAGE
+  CPU_CORE
+  MOTHERBOARD
+  CHIPSET
+  GPU
+  DISK
+  NVME
+  AMBIENT
+  VRM
+  CUSTOM
+}
+
+type TemperatureSummary {
+  """Average temperature across all sensors"""
+  average: Float!
+
+  """Hottest sensor"""
+  hottest: TemperatureSensor!
+
+  """Coolest sensor"""
+  coolest: TemperatureSensor!
+
+  """Count of sensors at warning level"""
+  warningCount: Int!
+
+  """Count of sensors at critical level"""
+  criticalCount: Int!
+}
+
+type TemperatureMetrics implements Node {
+  id: PrefixedID!
+
+  """All temperature sensors"""
+  sensors: [TemperatureSensor!]!
+
+  """Temperature summary"""
+  summary: TemperatureSummary!
+}
+
 """System metrics including CPU and memory utilization"""
 type Metrics implements Node {
   id: PrefixedID!
@@ -2045,6 +2496,43 @@ type Metrics implements Node {
 
   """Current memory utilization metrics"""
   memory: MemoryUtilization
+
+  """Temperature metrics"""
+  temperature: TemperatureMetrics
+}
+
+type SensorConfig {
+  enabled: Boolean
+}
+
+type LmSensorsConfig {
+  enabled: Boolean
+  config_path: String
+}
+
+type IpmiConfig {
+  enabled: Boolean
+  args: [String!]
+}
+
+type TemperatureSensorsConfig {
+  lm_sensors: LmSensorsConfig
+  smartctl: SensorConfig
+  ipmi: IpmiConfig
+}
+
+type TemperatureThresholdsConfig {
+  cpu_warning: Int
+  cpu_critical: Int
+  disk_warning: Int
+  disk_critical: Int
+  warning: Int
+  critical: Int
+}
+
+type TemperatureHistoryConfig {
+  max_readings: Int
+  retention_ms: Int
 }
 
 type Owner {
@@ -2066,6 +2554,9 @@ type Server implements Node {
   guid: String!
   apikey: String!
   name: String!
+
+  """Server description/comment"""
+  comment: String
 
   """Whether this server is online or offline"""
   status: ServerStatus!
@@ -2201,6 +2692,30 @@ type PublicOidcProvider {
   buttonStyle: String
 }
 
+"""System time configuration and current status"""
+type SystemTime {
+  """Current server time in ISO-8601 format (UTC)"""
+  currentTime: String!
+
+  """IANA timezone identifier currently in use"""
+  timeZone: String!
+
+  """Whether NTP/PTP time synchronization is enabled"""
+  useNtp: Boolean!
+
+  """Configured NTP servers (empty strings indicate unused slots)"""
+  ntpServers: [String!]!
+}
+
+"""Selectable timezone option from the system list"""
+type TimeZoneOption {
+  """IANA timezone identifier"""
+  value: String!
+
+  """Display label for the timezone"""
+  label: String!
+}
+
 type UPSBattery {
   """
   Battery charge level as a percentage (0-100). Unit: percent (%). Example: 100 means battery is fully charged
@@ -2233,6 +2748,16 @@ type UPSPower {
   Current load on the UPS as a percentage of its capacity. Unit: percent (%). Example: 25 means UPS is loaded at 25% of its maximum capacity
   """
   loadPercentage: Int!
+
+  """
+  Nominal power capacity of the UPS. Unit: watts (W). Example: 1000 means the UPS is rated for 1000 watts. This is the maximum power the UPS can deliver
+  """
+  nominalPower: Int
+
+  """
+  Current power consumption calculated from load percentage and nominal power. Unit: watts (W). Example: 350 means 350 watts currently being used. Calculated as: nominalPower * (loadPercentage / 100)
+  """
+  currentPower: Float
 }
 
 type UPSDevice {
@@ -2586,6 +3111,7 @@ type Query {
   """Get JSON Schema for API key creation form"""
   getApiKeyCreationFormSchema: ApiKeyFormSettings!
   config: Config!
+  display: InfoDisplay!
   flash: Flash!
   me: UserAccount!
 
@@ -2599,20 +3125,21 @@ type Query {
   services: [Service!]!
   shares: [Share!]!
   vars: Vars!
-  isInitialSetup: Boolean!
 
   """Get information about all VMs on the system"""
   vms: Vms!
   parityHistory: [ParityCheck!]!
   array: UnraidArray!
   customization: Customization
-  publicPartnerInfo: PublicPartnerInfo
+
+  """Whether the system is a fresh install (no license key)"""
+  isFreshInstall: Boolean!
   publicTheme: Theme!
+  info: Info!
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
   rclone: RCloneBackupSettings!
-  info: Info!
   logFiles: [LogFile!]!
   logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
   settings: Settings!
@@ -2633,9 +3160,24 @@ type Query {
   """Validate an OIDC session token (internal use for CLI validation)"""
   validateOidcSession(token: String!): OidcSessionValidation!
   metrics: Metrics!
+
+  """Retrieve current system time configuration"""
+  systemTime: SystemTime!
+
+  """Retrieve available time zone options"""
+  timeZoneOptions: [TimeZoneOption!]!
   upsDevices: [UPSDevice!]!
   upsDeviceById(id: String!): UPSDevice
   upsConfiguration: UPSConfiguration!
+
+  """Retrieve a plugin installation operation by identifier"""
+  pluginInstallOperation(operationId: ID!): PluginInstallOperation
+
+  """List all tracked plugin installation operations"""
+  pluginInstallOperations: [PluginInstallOperation!]!
+
+  """List installed Unraid OS plugins by .plg filename"""
+  installedUnraidPlugins: [String!]!
 
   """List all installed plugins with their metadata"""
   plugins: [Plugin!]!
@@ -2677,6 +3219,12 @@ type Mutation {
   apiKey: ApiKeyMutations!
   customization: CustomizationMutations!
   rclone: RCloneMutations!
+  onboarding: OnboardingMutations!
+  unraidPlugins: UnraidPluginsMutations!
+
+  """Update server name, comment, and model"""
+  updateServerIdentity(name: String!, comment: String, sysModel: String): Server!
+  updateSshSettings(input: UpdateSshInput!): Vars!
   createDockerFolder(name: String!, parentId: String, childrenIds: [String!]): ResolvedOrganizerV1!
   setDockerFolderChildren(folderId: String, childrenIds: [String!]!): ResolvedOrganizerV1!
   deleteDockerEntries(entryIds: [String!]!): ResolvedOrganizerV1!
@@ -2696,6 +3244,10 @@ type Mutation {
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
   updateSettings(input: JSON!): UpdateSettingsResponse!
+  updateTemperatureConfig(input: TemperatureConfigInput!): Boolean!
+
+  """Update system time configuration"""
+  updateSystemTime(input: UpdateSystemTimeInput!): SystemTime!
   configureUps(config: UPSConfigInput!): Boolean!
 
   """
@@ -2722,6 +3274,13 @@ input NotificationData {
   link: String
 }
 
+input UpdateSshInput {
+  enabled: Boolean!
+
+  """SSH Port (default 22)"""
+  port: Int!
+}
+
 input InitiateFlashBackupInput {
   """The name of the remote configuration to use for the backup."""
   remoteName: String!
@@ -2736,6 +3295,67 @@ input InitiateFlashBackupInput {
   Additional options for the backup operation, such as --dry-run or --transfers.
   """
   options: JSON
+}
+
+input TemperatureConfigInput {
+  enabled: Boolean
+  polling_interval: Int
+  default_unit: TemperatureUnit
+  sensors: TemperatureSensorsConfigInput
+  thresholds: TemperatureThresholdsConfigInput
+  history: TemperatureHistoryConfigInput
+}
+
+input TemperatureSensorsConfigInput {
+  lm_sensors: LmSensorsConfigInput
+  smartctl: SensorConfigInput
+  ipmi: IpmiConfigInput
+}
+
+input LmSensorsConfigInput {
+  enabled: Boolean
+  config_path: String
+}
+
+input SensorConfigInput {
+  enabled: Boolean
+}
+
+input IpmiConfigInput {
+  enabled: Boolean
+  args: [String!]
+}
+
+input TemperatureThresholdsConfigInput {
+  cpu_warning: Int
+  cpu_critical: Int
+  disk_warning: Int
+  disk_critical: Int
+  warning: Int
+  critical: Int
+}
+
+input TemperatureHistoryConfigInput {
+  max_readings: Int
+  retention_ms: Int
+}
+
+input UpdateSystemTimeInput {
+  """New IANA timezone identifier to apply"""
+  timeZone: String
+
+  """Enable or disable NTP-based synchronization"""
+  useNtp: Boolean
+
+  """
+  Ordered list of up to four NTP servers. Supply empty strings to clear positions.
+  """
+  ntpServers: [String!]
+
+  """
+  Manual date/time to apply when disabling NTP, expected format YYYY-MM-DD HH:mm:ss
+  """
+  manualDateTime: String
 }
 
 input UPSConfigInput {
@@ -2890,6 +3510,7 @@ input AccessUrlInput {
 }
 
 type Subscription {
+  displaySubscription: InfoDisplay!
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
   notificationsWarningsAndAlerts: [Notification!]!
@@ -2902,5 +3523,7 @@ type Subscription {
   systemMetricsCpu: CpuUtilization!
   systemMetricsCpuTelemetry: CpuPackages!
   systemMetricsMemory: MemoryUtilization!
+  systemMetricsTemperature: TemperatureMetrics
   upsUpdates: UPSDevice!
+  pluginInstallUpdates(operationId: ID!): PluginInstallEvent!
 }

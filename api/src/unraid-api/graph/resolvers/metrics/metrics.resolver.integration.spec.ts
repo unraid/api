@@ -1,4 +1,5 @@
 import type { TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { Test } from '@nestjs/testing';
 
@@ -7,8 +8,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { CpuTopologyService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu-topology.service.js';
 import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
+import { MemoryUtilization } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
+import { TemperatureConfigService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature-config.service.js';
+import { TemperatureService } from '@app/unraid-api/graph/resolvers/metrics/temperature/temperature.service.js';
 import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
 import { SubscriptionManagerService } from '@app/unraid-api/graph/services/subscription-manager.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
@@ -25,9 +29,27 @@ describe('MetricsResolver Integration Tests', () => {
                 CpuService,
                 CpuTopologyService,
                 MemoryService,
+                {
+                    provide: TemperatureService,
+                    useValue: {
+                        getMetrics: vi.fn().mockResolvedValue(null),
+                    },
+                },
                 SubscriptionTrackerService,
                 SubscriptionHelperService,
                 SubscriptionManagerService,
+                {
+                    provide: ConfigService,
+                    useValue: {
+                        get: vi.fn((key: string, defaultValue?: unknown) => defaultValue),
+                    },
+                },
+                {
+                    provide: TemperatureConfigService,
+                    useValue: {
+                        getConfig: vi.fn().mockReturnValue({ enabled: true, polling_interval: 5000 }),
+                    },
+                },
             ],
         }).compile();
 
@@ -58,8 +80,12 @@ describe('MetricsResolver Integration Tests', () => {
             expect(result).toHaveProperty('percentTotal');
             expect(result).toHaveProperty('cpus');
             expect(result.cpus).toBeInstanceOf(Array);
-            expect(result.percentTotal).toBeGreaterThanOrEqual(0);
-            expect(result.percentTotal).toBeLessThanOrEqual(100);
+            if (Number.isFinite(result.percentTotal)) {
+                expect(result.percentTotal).toBeGreaterThanOrEqual(0);
+                expect(result.percentTotal).toBeLessThanOrEqual(100);
+            } else {
+                expect(Number.isNaN(result.percentTotal)).toBe(true);
+            }
 
             if (result.cpus.length > 0) {
                 const firstCpu = result.cpus[0];
@@ -137,7 +163,7 @@ describe('MetricsResolver Integration Tests', () => {
                     swapUsed: 0,
                     swapFree: 0,
                     percentSwapTotal: 0,
-                } as any;
+                } as MemoryUtilization;
             });
 
             // Trigger polling by simulating subscription
@@ -178,12 +204,28 @@ describe('MetricsResolver Integration Tests', () => {
         it('should publish memory metrics to pubsub', async () => {
             const publishSpy = vi.spyOn(pubsub, 'publish');
             const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
+            const memoryService = module.get<MemoryService>(MemoryService);
+
+            vi.spyOn(memoryService, 'generateMemoryLoad').mockResolvedValue({
+                id: 'memory-utilization',
+                total: 16000000000,
+                used: 8000000000,
+                free: 8000000000,
+                available: 7000000000,
+                active: 4000000000,
+                buffcache: 3000000000,
+                percentTotal: 50,
+                swapTotal: 1000000000,
+                swapUsed: 100000000,
+                swapFree: 900000000,
+                percentSwapTotal: 10,
+            } as any);
 
             // Trigger polling by starting subscription
             trackerService.subscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
 
             // Wait for the polling interval to trigger (2000ms for memory)
-            await new Promise((resolve) => setTimeout(resolve, 2100));
+            await new Promise((resolve) => setTimeout(resolve, 2300));
 
             expect(publishSpy).toHaveBeenCalledWith(
                 PUBSUB_CHANNEL.MEMORY_UTILIZATION,

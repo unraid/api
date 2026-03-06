@@ -10,6 +10,34 @@ fi
 # Set server name from command-line argument
 server_name="$1"
 
+# Common SSH options for reliability
+SSH_OPTS='-o ConnectTimeout=5 -o ConnectionAttempts=3 -o ServerAliveInterval=5 -o ServerAliveCountMax=2'
+
+# Simple retry helper: retry <attempts> <delay_seconds> <command...>
+retry() {
+  local attempts="$1"; shift
+  local delay_seconds="$1"; shift
+  local try=1
+  while true; do
+    "$@"
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
+      return 0
+    fi
+    if [ $try -ge $attempts ]; then
+      return $exit_code
+    fi
+    sleep "$delay_seconds"
+    try=$((try + 1))
+  done
+}
+
+# Clean and Build
+echo "Building project..."
+pnpm codegen || exit 1
+pnpm run clean || exit 1
+pnpm run build || exit 1
+
 # Source directory paths
 standalone_directory="dist/"
 
@@ -33,11 +61,11 @@ exit_code=0
 if [ "$has_standalone" = true ]; then
   echo "Deploying standalone apps..."
   # Ensure remote directory exists
-  ssh root@"${server_name}" "mkdir -p /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
+  retry 3 2 ssh $SSH_OPTS root@"${server_name}" "mkdir -p /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
   # Clear the remote standalone directory before rsyncing
-  ssh root@"${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/*"
+  retry 3 2 ssh $SSH_OPTS root@"${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/*"
   # Run rsync with proper quoting
-  rsync -avz --delete -e "ssh" "$standalone_directory" "root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
+  retry 3 2 rsync -avz --delete --timeout=20 -e "ssh $SSH_OPTS" "$standalone_directory" "root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone/"
   standalone_exit_code=$?
   # If standalone rsync failed, update exit_code
   if [ "$standalone_exit_code" -ne 0 ]; then
@@ -49,7 +77,7 @@ fi
 update_auth_request() {
   local server_name="$1"
   # SSH into server and update auth-request.php
-  ssh "root@${server_name}" /bin/bash -s << 'EOF'
+  retry 3 2 ssh $SSH_OPTS "root@${server_name}" /bin/bash -s << 'EOF'
     set -euo pipefail
     set -o errtrace
     AUTH_REQUEST_FILE='/usr/local/emhttp/auth-request.php'

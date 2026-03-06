@@ -18,6 +18,12 @@ import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 import { createTestI18n, testTranslate } from '../utils/i18n';
 
+const { activationCodeStateHolder } = vi.hoisted(() => ({
+  activationCodeStateHolder: {
+    current: null as { value: { code: string } | null } | null,
+  },
+}));
+
 vi.mock('crypto-js/aes.js', () => ({ default: {} }));
 
 vi.mock('@unraid/shared-callbacks', () => ({
@@ -26,6 +32,21 @@ vi.mock('@unraid/shared-callbacks', () => ({
     watcher: vi.fn(),
   })),
 }));
+
+vi.mock('~/components/Onboarding/store/activationCodeData', async () => {
+  const { computed, ref } = await import('vue');
+  const { defineStore } = await import('pinia');
+
+  activationCodeStateHolder.current = ref<{ code: string } | null>(null);
+
+  const useActivationCodeDataStore = defineStore('activationCodeDataMockForRegistration', () => {
+    return {
+      activationCode: computed(() => activationCodeStateHolder.current?.value ?? null),
+    };
+  });
+
+  return { useActivationCodeDataStore };
+});
 
 // Mock vue-i18n for store tests
 vi.mock('vue-i18n', async (importOriginal) => {
@@ -101,8 +122,6 @@ const initialServerState = {
   dateTimeFormat: { date: 'MMM D, YYYY', time: 'h:mm A' },
   deviceCount: 0,
   guid: '',
-  flashVendor: '',
-  flashProduct: '',
   keyfile: '',
   regGuid: '',
   regTm: '',
@@ -172,6 +191,8 @@ describe('Registration.standalone.vue', () => {
 
     vi.clearAllMocks();
 
+    activationCodeStateHolder.current!.value = null;
+
     // Mount after store setup
     wrapper = mount(Registration, {
       global: {
@@ -196,7 +217,7 @@ describe('Registration.standalone.vue', () => {
     expect(heading.text()).toContain("Let's Unleash Your Hardware");
     expect(subheading.text()).toContain('Choose an option below');
     expect(findItemByLabel(t('License key type'))).toBeUndefined();
-    expect(findItemByLabel(t('Flash GUID'))).toBeUndefined();
+    expect(findItemByLabel(t('Device GUID'))).toBeUndefined();
     expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="replace-check"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="key-linked-status"]').exists()).toBe(false);
@@ -246,8 +267,23 @@ describe('Registration.standalone.vue', () => {
 
     expect(registeredToItem).toBeDefined();
     expect(registeredToItem?.props('text')).toBe('Test User');
-    expect(findItemByLabel(t('Flash GUID'))).toBeDefined();
+    expect(findItemByLabel(t('Device GUID'))).toBeDefined();
     expect(findItemByLabel(t('Attached Storage Devices'))).toBeDefined();
     expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(false);
+  });
+
+  it('adds Activate Trial fallback for ENOKEYFILE partner activation', async () => {
+    activationCodeStateHolder.current!.value = {
+      code: 'PARTNER-CODE-123',
+    };
+
+    serverStore.state = 'ENOKEYFILE';
+    serverStore.registered = false;
+    serverStore.connectPluginInstalled = '' as ServerconnectPluginInstalled;
+
+    await wrapper.vm.$nextTick();
+
+    const actionNames = serverStore.keyActions?.map((action) => action.name);
+    expect(actionNames).toEqual(['activate', 'recover', 'trialStart']);
   });
 });

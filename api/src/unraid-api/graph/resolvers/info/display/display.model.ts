@@ -77,6 +77,18 @@ export class InfoDisplay extends Node {
     locale?: string;
 }
 
+@ObjectType()
+export class Language {
+    @Field(() => String, { description: 'Language code (e.g. en_US)' })
+    code!: string;
+
+    @Field(() => String, { description: 'Language description/name' })
+    name!: string;
+
+    @Field(() => String, { nullable: true, description: 'URL to the language pack XML' })
+    url?: string;
+}
+
 // Export aliases for backward compatibility with the main DisplayResolver
 export { InfoDisplay as Display };
 export { InfoDisplayCase as DisplayCase };

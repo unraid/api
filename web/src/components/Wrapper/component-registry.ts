@@ -73,11 +73,6 @@ export const componentMappings: ComponentMapping[] = [
     appId: 'sso-button',
   },
   {
-    component: defineAsyncComponent(() => import('../Activation/WelcomeModal.standalone.vue')),
-    selector: 'unraid-welcome-modal',
-    appId: 'welcome-modal',
-  },
-  {
     component: defineAsyncComponent(() => import('../UpdateOs.standalone.vue')),
     selector: 'unraid-update-os',
     appId: 'update-os',
@@ -113,6 +108,13 @@ export const componentMappings: ComponentMapping[] = [
     component: defineAsyncComponent(() => import('../DevModalTest.standalone.vue')),
     selector: 'unraid-dev-modal-test',
     appId: 'dev-modal-test',
+  },
+  {
+    component: defineAsyncComponent(
+      () => import('../Onboarding/standalone/OnboardingAdminPanel.standalone.vue')
+    ),
+    selector: ['unraid-onboarding-test-harness', 'unraid-onboarding-admin-panel'], // Handle both selectors
+    appId: 'onboarding-admin-panel',
   },
   {
     component: defineAsyncComponent(() => import('../LayoutViews/Detail/DetailTest.standalone.vue')),

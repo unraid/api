@@ -11,7 +11,8 @@ import removeConsole from 'vite-plugin-remove-console';
 import scopeTailwindToUnapi from './postcss/scopeTailwindToUnapi';
 import { serveStaticHtml } from './vite-plugin-serve-static';
 
-const dropConsole = process.env.VITE_ALLOW_CONSOLE_LOGS !== 'true';
+const dropConsole = false;
+const enableProdDevtools = true; // Temporary for internal debugging; set false for production release.
 console.log(dropConsole ? 'WARN: Console logs are disabled' : 'INFO: Console logs are enabled');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -55,7 +56,7 @@ const sharedTerserOptions = {
  */
 const sharedDefine = {
   'globalThis.__DEV__': JSON.stringify(process.env.NODE_ENV === 'development'),
-  __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
+  __VUE_PROD_DEVTOOLS__: JSON.stringify(enableProdDevtools),
   'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
   'process.env': JSON.stringify({}),
 };

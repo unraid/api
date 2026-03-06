@@ -1,5 +1,6 @@
 // Unit Test File for NotificationsService: loadNotificationFile
 
+import { ConfigService } from '@nestjs/config';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
@@ -26,7 +27,6 @@ vi.mock('fs/promises', async () => {
 
 // Mock getters.dynamix, Logger, and pubsub
 vi.mock('@app/store/index.js', () => {
-    // Create test directory path inside factory function
     const testNotificationsDir = join(tmpdir(), 'unraid-api-test-notifications');
 
     return {
@@ -69,6 +69,19 @@ vi.mock('@nestjs/common', async (importOriginal) => {
 // Create a temporary test directory path for use in integration tests
 const testNotificationsDir = join(tmpdir(), 'unraid-api-test-notifications');
 
+const createNotificationsService = (notificationPath = testNotificationsDir) => {
+    const configService = new ConfigService({
+        store: {
+            dynamix: {
+                notify: {
+                    path: notificationPath,
+                },
+            },
+        },
+    });
+    return new NotificationsService(configService);
+};
+
 describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     let service: NotificationsService;
     let mockReadFile: any;
@@ -77,7 +90,7 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
         const fsPromises = await import('fs/promises');
         mockReadFile = fsPromises.readFile as any;
         vi.mocked(mockReadFile).mockClear();
-        service = new NotificationsService();
+        service = createNotificationsService();
     });
 
     it('should load and validate a valid notification file', async () => {
@@ -247,7 +260,7 @@ describe('NotificationsService - deleteNotification (integration test)', () => {
         mkdirSync(join(testNotificationsDir, 'unread'), { recursive: true });
         mkdirSync(join(testNotificationsDir, 'archive'), { recursive: true });
 
-        service = new NotificationsService();
+        service = createNotificationsService();
     });
 
     afterEach(() => {

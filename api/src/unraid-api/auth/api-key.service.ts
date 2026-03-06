@@ -239,12 +239,12 @@ export class ApiKeyService implements OnModuleInit {
         } catch (error) {
             if (error instanceof SyntaxError) {
                 this.logger.error(`Corrupted key file: ${file}`);
-                throw new Error('Authentication system error: Corrupted key file');
+                return null;
             }
 
             if (error instanceof ValidationError) {
                 this.logger.error(`Error validating API key file ${file}: ${error}`);
-                throw new Error('Invalid API key structure');
+                return null;
             }
 
             this.logger.warn(`Error reading API key file ${file}: ${error}`);
