@@ -162,20 +162,11 @@ export class OnboardingInternalBootService {
         return null;
     }
 
-    private async updateBiosBootEntries(
-        devices: string[],
+    private async deleteExistingBootEntries(
+        bootLabelMap: Map<string, string>,
         output: string[]
-    ): Promise<{ hadFailures: boolean }> {
+    ): Promise<boolean> {
         let hadFailures = false;
-        this.ensureEmhttpBootContext();
-        const devsById = this.getDeviceMapFromEmhttpState();
-
-        const existingEntries = await this.runEfiBootMgr([], output);
-        const bootLabelMap =
-            existingEntries.exitCode === 0
-                ? this.parseBootLabelMap(existingEntries.lines)
-                : new Map<string, string>();
-
         for (const bootNumber of bootLabelMap.values()) {
             const deleteResult = await this.runEfiBootMgr(['-b', bootNumber, '-B'], output);
             if (deleteResult.exitCode !== 0) {
@@ -185,29 +176,48 @@ export class OnboardingInternalBootService {
                 );
             }
         }
+        return hadFailures;
+    }
 
-        for (const bootDevice of devices) {
-            const bootId = bootDevice;
-            let device = bootDevice;
-            if (device === '' || devsById.has(device)) {
-                const mapped = devsById.get(device);
-                if (mapped) {
-                    device = mapped;
-                }
+    private resolveBootDevicePath(
+        bootDevice: string,
+        devsById: Map<string, string>
+    ): { bootId: string; devicePath: string } | null {
+        const bootId = bootDevice;
+        let device = bootDevice;
+        if (device === '' || devsById.has(device)) {
+            const mapped = devsById.get(device);
+            if (mapped) {
+                device = mapped;
             }
-            if (device === '') {
+        }
+        if (device === '') {
+            return null;
+        }
+        return { bootId, devicePath: `/dev/${device}` };
+    }
+
+    private async createInternalBootEntries(
+        devices: string[],
+        devsById: Map<string, string>,
+        output: string[]
+    ): Promise<boolean> {
+        let hadFailures = false;
+        for (const bootDevice of devices) {
+            const resolved = this.resolveBootDevicePath(bootDevice, devsById);
+            if (!resolved) {
                 continue;
             }
-            const devicePath = `/dev/${device}`;
+
             const createResult = await this.runEfiBootMgr(
                 [
                     '-c',
                     '-d',
-                    devicePath,
+                    resolved.devicePath,
                     '-p',
                     '2',
                     '-L',
-                    `Unraid Internal Boot - ${bootId}`,
+                    `Unraid Internal Boot - ${resolved.bootId}`,
                     '-l',
                     EFI_BOOT_PATH,
                 ],
@@ -216,32 +226,33 @@ export class OnboardingInternalBootService {
             if (createResult.exitCode !== 0) {
                 hadFailures = true;
                 output.push(
-                    `efibootmgr failed for ${this.shellQuote(devicePath)} (rc=${createResult.exitCode})`
+                    `efibootmgr failed for ${this.shellQuote(resolved.devicePath)} (rc=${createResult.exitCode})`
                 );
             }
         }
+        return hadFailures;
+    }
 
+    private async createFlashBootEntry(output: string[]): Promise<boolean> {
         const flashDevice = this.getFlashDeviceFromEmhttpState();
-        if (flashDevice) {
-            const device = flashDevice.trim();
-            const devicePath = `/dev/${device}`;
-            const flashResult = await this.runEfiBootMgr(
-                ['-c', '-d', devicePath, '-p', '1', '-L', 'Unraid Flash'],
-                output
-            );
-            if (flashResult.exitCode !== 0) {
-                hadFailures = true;
-                output.push(`efibootmgr failed for flash (rc=${flashResult.exitCode})`);
-            }
+        if (!flashDevice) {
+            return false;
         }
 
-        const currentEntries = await this.runEfiBootMgr([], output);
-        if (currentEntries.exitCode !== 0) {
-            hadFailures = true;
-            return { hadFailures };
+        const device = flashDevice.trim();
+        const devicePath = `/dev/${device}`;
+        const flashResult = await this.runEfiBootMgr(
+            ['-c', '-d', devicePath, '-p', '1', '-L', 'Unraid Flash'],
+            output
+        );
+        if (flashResult.exitCode !== 0) {
+            output.push(`efibootmgr failed for flash (rc=${flashResult.exitCode})`);
+            return true;
         }
+        return false;
+    }
 
-        const labelMap = this.parseBootLabelMap(currentEntries.lines);
+    private buildDesiredBootOrder(devices: string[], labelMap: Map<string, string>): string[] {
         const desiredOrder: string[] = [];
 
         for (const bootId of devices) {
@@ -261,9 +272,19 @@ export class OnboardingInternalBootService {
             }
         }
 
-        const uniqueOrder = [...new Set(desiredOrder.filter((entry) => entry.length > 0))];
+        return [...new Set(desiredOrder.filter((entry) => entry.length > 0))];
+    }
+
+    private async updateBootOrder(devices: string[], output: string[]): Promise<boolean> {
+        const currentEntries = await this.runEfiBootMgr([], output);
+        if (currentEntries.exitCode !== 0) {
+            return true;
+        }
+
+        const labelMap = this.parseBootLabelMap(currentEntries.lines);
+        const uniqueOrder = this.buildDesiredBootOrder(devices, labelMap);
         if (uniqueOrder.length === 0) {
-            return { hadFailures };
+            return false;
         }
 
         const nextBoot = uniqueOrder[0];
@@ -274,9 +295,29 @@ export class OnboardingInternalBootService {
 
         const orderResult = await this.runEfiBootMgr(orderArgs, output);
         if (orderResult.exitCode !== 0) {
-            hadFailures = true;
             output.push(`efibootmgr failed to set boot order (rc=${orderResult.exitCode})`);
+            return true;
         }
+        return false;
+    }
+
+    private async updateBiosBootEntries(
+        devices: string[],
+        output: string[]
+    ): Promise<{ hadFailures: boolean }> {
+        let hadFailures = false;
+        this.ensureEmhttpBootContext();
+        const devsById = this.getDeviceMapFromEmhttpState();
+
+        const existingEntries = await this.runEfiBootMgr([], output);
+        if (existingEntries.exitCode === 0) {
+            const bootLabelMap = this.parseBootLabelMap(existingEntries.lines);
+            hadFailures = (await this.deleteExistingBootEntries(bootLabelMap, output)) || hadFailures;
+        }
+
+        hadFailures = (await this.createInternalBootEntries(devices, devsById, output)) || hadFailures;
+        hadFailures = (await this.createFlashBootEntry(output)) || hadFailures;
+        hadFailures = (await this.updateBootOrder(devices, output)) || hadFailures;
 
         return { hadFailures };
     }
