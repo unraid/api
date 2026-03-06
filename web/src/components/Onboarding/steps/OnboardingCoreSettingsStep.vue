@@ -37,7 +37,7 @@ const { completed: onboardingCompleted, loading: onboardingLoading } = storeToRe
 );
 
 const TRUSTED_DEFAULT_PROFILE = Object.freeze({
-  serverName: 'Tower',
+  serverName: t('onboarding.coreSettings.defaultServerName'),
   serverDescription: '',
   timeZone: 'UTC',
   theme: 'white',
@@ -85,7 +85,7 @@ const currentIp = ref<string>('');
 const localTld = ref<string>('local'); // Store localTld for hostname computation
 
 const currentHostname = computed(() => {
-  const name = serverName.value || 'Tower';
+  const name = serverName.value || t('onboarding.coreSettings.defaultServerName');
   const tld = localTld.value || 'local';
   return `${name.toLowerCase()}.${tld}`;
 });
@@ -320,12 +320,12 @@ watch(
 );
 
 // --- Theme Logic ---
-const themeItems = [
-  { value: 'white', label: 'White' },
-  { value: 'black', label: 'Black' },
-  { value: 'gray', label: 'Gray' },
-  { value: 'azure', label: 'Azure' },
-];
+const themeItems = computed(() => [
+  { value: 'white', label: t('onboarding.coreSettings.themeOptions.white') },
+  { value: 'black', label: t('onboarding.coreSettings.themeOptions.black') },
+  { value: 'gray', label: t('onboarding.coreSettings.themeOptions.gray') },
+  { value: 'azure', label: t('onboarding.coreSettings.themeOptions.azure') },
+]);
 
 const {
   result: languagesResult,
@@ -352,7 +352,7 @@ const languageItems = computed(() => {
 
   // Ensure en_US is there if fetch failed or weird input
   if (!items.find((i) => i.value === 'en_US')) {
-    items.unshift({ value: 'en_US', label: 'English' });
+    items.unshift({ value: 'en_US', label: t('onboarding.coreSettings.englishLanguageLabel') });
   }
   return items;
 });
@@ -466,7 +466,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
           <div class="space-y-1">
             <UInput
               v-model="serverName"
-              placeholder="Tower"
+              :placeholder="t('onboarding.coreSettings.serverNamePlaceholder')"
               maxlength="15"
               :disabled="isBusy"
               size="lg"
@@ -597,7 +597,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
         >
           <img
             :src="themeImages[selectedTheme] || themeImages['white']"
-            :alt="selectedTheme + ' theme preview'"
+            :alt="t('onboarding.coreSettings.themePreviewAlt', { theme: selectedTheme })"
             class="h-auto w-full object-cover"
           />
         </div>

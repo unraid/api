@@ -6,6 +6,7 @@ import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, ONBOARDING_TEMP_BYPASS_STORAG
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { clearOnboardingDraftStorage } from '~/components/Onboarding/store/onboardingStorageCleanup';
+import { useOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
@@ -53,6 +54,7 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
   );
 
   const { isFreshInstall } = storeToRefs(useActivationCodeDataStore());
+  const { completed } = storeToRefs(useOnboardingStore());
   const { callbackData } = storeToRefs(useCallbackActionsStore());
   const { uptime } = storeToRefs(useServerStore());
 
@@ -132,6 +134,7 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
    * 1. It's explicitly set to show (isHidden === false)
    * OR
    * 2. It's a fresh server install where no keyfile has been present before
+   *    and onboarding has not already been completed
    * 3. there's not callback data
    * 4. it's not been explicitly hidden (isHidden === null)
    *
@@ -148,7 +151,7 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
     if (isHidden.value === false) {
       return true;
     }
-    return isHidden.value === null && isFreshInstall.value && !callbackData.value;
+    return isHidden.value === null && isFreshInstall.value && !completed.value && !callbackData.value;
   });
 
   watch(isTemporarilyBypassed, (active) => {

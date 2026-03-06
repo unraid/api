@@ -18,6 +18,7 @@ test('Returns parsed state file', async () => {
     expect(parse(stateFile)).toMatchInlineSnapshot(`
       {
         "bindMgt": false,
+        "bootEligible": false,
         "cacheNumDevices": NaN,
         "cacheSbNumDisks": NaN,
         "comment": "Dev Server",

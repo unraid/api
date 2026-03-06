@@ -8,6 +8,7 @@ import { createTestI18n } from '../../utils/i18n';
 
 const {
   mutateMock,
+  internalBootVisibilityResult,
   activationCodeModalStore,
   activationCodeDataStore,
   upgradeOnboardingStore,
@@ -18,6 +19,13 @@ const {
   cleanupOnboardingStorageMock,
 } = vi.hoisted(() => ({
   mutateMock: vi.fn().mockResolvedValue(undefined),
+  internalBootVisibilityResult: {
+    value: {
+      vars: {
+        enableBootTransfer: 'yes',
+      },
+    },
+  },
   activationCodeModalStore: {
     isVisible: { value: true },
     isTemporarilyBypassed: { value: false },
@@ -40,6 +48,7 @@ const {
     isVersionDrift: { value: false },
     completedAtVersion: { value: null },
     canDisplayOnboardingModal: { value: true },
+    isPartnerBuild: { value: false },
     refetchOnboarding: vi.fn().mockResolvedValue(undefined),
   },
   onboardingDraftStore: {
@@ -81,6 +90,11 @@ vi.mock('@heroicons/vue/24/solid', () => ({
 }));
 
 vi.mock('@vue/apollo-composable', () => ({
+  useQuery: () => ({
+    result: internalBootVisibilityResult,
+    loading: { value: false },
+    error: { value: null },
+  }),
   useMutation: () => ({
     mutate: mutateMock,
   }),
@@ -97,6 +111,7 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
   stepComponents: {
     OVERVIEW: { template: '<div data-testid="overview-step" />' },
     CONFIGURE_SETTINGS: { template: '<div data-testid="settings-step" />' },
+    CONFIGURE_BOOT: { template: '<div data-testid="internal-boot-step" />' },
     ADD_PLUGINS: { template: '<div data-testid="plugins-step" />' },
     ACTIVATE_LICENSE: { template: '<div data-testid="license-step" />' },
     SUMMARY: { template: '<div data-testid="summary-step" />' },
@@ -144,12 +159,19 @@ describe('OnboardingModal.vue', () => {
     activationCodeModalStore.isTemporarilyBypassed.value = false;
     activationCodeDataStore.activationRequired.value = false;
     activationCodeDataStore.hasActivationCode.value = true;
+    activationCodeDataStore.isFreshInstall.value = true;
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE';
     upgradeOnboardingStore.shouldShowOnboarding.value = false;
     upgradeOnboardingStore.isVersionDrift.value = false;
     upgradeOnboardingStore.completedAtVersion.value = null;
     upgradeOnboardingStore.canDisplayOnboardingModal.value = true;
+    upgradeOnboardingStore.isPartnerBuild.value = false;
     onboardingDraftStore.currentStepIndex.value = 0;
+    internalBootVisibilityResult.value = {
+      vars: {
+        enableBootTransfer: 'yes',
+      },
+    };
 
     Object.defineProperty(window, 'location', {
       writable: true,
@@ -196,6 +218,17 @@ describe('OnboardingModal.vue', () => {
     expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(false);
   });
 
+  it('does not render when system is not a fresh install', () => {
+    activationCodeDataStore.isFreshInstall.value = false;
+    activationCodeModalStore.isVisible.value = false;
+    upgradeOnboardingStore.shouldShowOnboarding.value = true;
+    upgradeOnboardingStore.canDisplayOnboardingModal.value = true;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(false);
+  });
+
   it('does not render when temporary bypass is active', () => {
     activationCodeModalStore.isVisible.value = true;
     activationCodeModalStore.isTemporarilyBypassed.value = true;
@@ -226,7 +259,7 @@ describe('OnboardingModal.vue', () => {
 
   it('shows activation step for ENOKEYFILE1', () => {
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE1';
-    onboardingDraftStore.currentStepIndex.value = 3;
+    onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();
 
@@ -235,7 +268,7 @@ describe('OnboardingModal.vue', () => {
 
   it('shows activation step for ENOKEYFILE2', () => {
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE2';
-    onboardingDraftStore.currentStepIndex.value = 3;
+    onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();
 
@@ -244,12 +277,44 @@ describe('OnboardingModal.vue', () => {
 
   it('omits activation step for non-activation registration states', () => {
     activationCodeDataStore.registrationState.value = 'BASIC';
-    onboardingDraftStore.currentStepIndex.value = 3;
+    onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();
 
     expect(wrapper.find('[data-testid="license-step"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="summary-step"]').exists()).toBe(true);
+  });
+
+  it('shows internal boot step for regular builds', () => {
+    onboardingDraftStore.currentStepIndex.value = 2;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(true);
+  });
+
+  it('hides internal boot step for partner builds', () => {
+    upgradeOnboardingStore.isPartnerBuild.value = true;
+    onboardingDraftStore.currentStepIndex.value = 2;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(true);
+  });
+
+  it('hides internal boot step when already booting internally', () => {
+    internalBootVisibilityResult.value = {
+      vars: {
+        enableBootTransfer: 'no',
+      },
+    };
+    onboardingDraftStore.currentStepIndex.value = 2;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(true);
   });
 
   it('opens exit confirmation when close button is clicked', async () => {

@@ -1,7 +1,20 @@
-import { Field, InputType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType } from '@nestjs/graphql';
 
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsIn, IsOptional, IsString, ValidateNested } from 'class-validator';
+import {
+    ArrayMaxSize,
+    ArrayMinSize,
+    IsBoolean,
+    IsEnum,
+    IsIn,
+    IsInt,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    Matches,
+    Min,
+    ValidateNested,
+} from 'class-validator';
 
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
@@ -260,4 +273,51 @@ export class OnboardingOverrideInput {
     @IsOptional()
     @IsEnum(RegistrationState)
     registrationState?: RegistrationState;
+}
+
+@InputType({
+    description: 'Input for creating an internal boot pool during onboarding',
+})
+export class CreateInternalBootPoolInput {
+    @Field(() => String)
+    @IsString()
+    @Matches(/^[a-z](?:[a-z0-9~._-]*[a-z_-])?$/, {
+        message: 'Pool name must match Unraid naming requirements',
+    })
+    poolName!: string;
+
+    @Field(() => [String])
+    @ArrayMinSize(1)
+    @ArrayMaxSize(4)
+    @IsString({ each: true })
+    @IsNotEmpty({ each: true })
+    devices!: string[];
+
+    @Field(() => Int)
+    @IsInt()
+    @Min(0)
+    bootSizeMiB!: number;
+
+    @Field(() => Boolean)
+    @IsBoolean()
+    updateBios!: boolean;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    reboot?: boolean;
+}
+
+@ObjectType({
+    description: 'Result of attempting internal boot pool setup',
+})
+export class OnboardingInternalBootResult {
+    @Field(() => Boolean)
+    ok!: boolean;
+
+    @Field(() => Int, { nullable: true })
+    code?: number;
+
+    @Field(() => String)
+    output!: string;
 }

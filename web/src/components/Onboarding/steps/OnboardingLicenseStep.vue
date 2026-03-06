@@ -191,7 +191,11 @@ const doSkip = () => {
             }}</span>
             <div class="flex w-full items-center gap-2">
               <span class="text-highlighted truncate font-mono text-sm font-bold tracking-wide">
-                {{ isCodeRevealed ? activationCode?.code || 'None' : '••••••••••••••••' }}
+                {{
+                  isCodeRevealed
+                    ? activationCode?.code || lt('onboarding.licenseStep.labels.none', 'None')
+                    : '••••••••••••••••'
+                }}
               </span>
               <button
                 @click.stop="toggleCodeReveal"
@@ -279,7 +283,9 @@ const doSkip = () => {
 
       <!-- Panel -->
       <div class="bg-elevated border-muted relative w-full max-w-md rounded-xl border p-6 shadow-xl">
-        <h3 class="text-highlighted mb-2 text-lg font-bold">Contact Support</h3>
+        <h3 class="text-highlighted mb-2 text-lg font-bold">
+          {{ lt('onboarding.licenseStep.help.title', 'Contact Support') }}
+        </h3>
         <div class="text-muted space-y-4 text-sm">
           <p>
             {{
@@ -296,7 +302,7 @@ const doSkip = () => {
               target="_blank"
               rel="noopener noreferrer"
               class="text-primary hover:underline"
-              >unraid.net/support</a
+              >{{ lt('onboarding.licenseStep.help.supportUrlLabel', 'unraid.net/support') }}</a
             >
           </p>
           <div v-if="hasActivationCode">
@@ -351,8 +357,12 @@ const doSkip = () => {
           <!-- Message if user HAS a code -->
           <blockquote v-if="hasActivationCode" class="border-primary bg-primary/10 mb-4 border-l-4 p-4">
             <p class="text-highlighted text-sm leading-relaxed font-medium">
-              It appears you already have a license associated with this server. You can activate it now
-              for free to unlock all features.
+              {{
+                lt(
+                  'onboarding.licenseStep.skipDialog.licenseDetected',
+                  'It appears you already have a license associated with this server. You can activate it now for free to unlock all features.'
+                )
+              }}
             </p>
           </blockquote>
 

@@ -9,6 +9,7 @@ import {
   UPDATE_SSH_SETTINGS_MUTATION,
 } from '@/components/Onboarding/graphql/coreSettings.mutations';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
+import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -19,11 +20,13 @@ import { createTestI18n } from '../../utils/i18n';
 
 const {
   draftStore,
+  setInternalBootApplySucceededMock,
   registrationStateRef,
   isFreshInstallRef,
   activationCodeRef,
   coreSettingsResult,
   coreSettingsError,
+  internalBootContextResult,
   installedPluginsResult,
   availableLanguagesResult,
   refetchInstalledPluginsMock,
@@ -37,6 +40,7 @@ const {
   completeOnboardingMock,
   installLanguageMock,
   installPluginMock,
+  submitInternalBootCreationMock,
   useMutationMock,
   useQueryMock,
 } = vi.hoisted(() => ({
@@ -47,8 +51,22 @@ const {
     selectedTheme: 'white',
     selectedLanguage: 'en_US',
     useSsh: false,
+    bootMode: 'usb' as 'usb' | 'storage',
     selectedPlugins: new Set<string>(),
+    internalBootSelection: null as {
+      poolName: string;
+      slotCount: number;
+      devices: string[];
+      bootSizeMiB: number;
+      updateBios: boolean;
+    } | null,
+    internalBootInitialized: true,
+    internalBootSkipped: false,
+    internalBootApplySucceeded: false,
   },
+  setInternalBootApplySucceededMock: vi.fn((value: boolean) => {
+    draftStore.internalBootApplySucceeded = value;
+  }),
   registrationStateRef: { value: 'ENOKEYFILE' },
   isFreshInstallRef: { value: true },
   activationCodeRef: { value: null as unknown },
@@ -56,6 +74,7 @@ const {
     value: null as unknown,
   },
   coreSettingsError: { value: null as unknown },
+  internalBootContextResult: { value: null as unknown },
   installedPluginsResult: { value: { installedUnraidPlugins: [] as string[] } },
   availableLanguagesResult: {
     value: {
@@ -78,6 +97,7 @@ const {
   completeOnboardingMock: vi.fn().mockResolvedValue({}),
   installLanguageMock: vi.fn(),
   installPluginMock: vi.fn(),
+  submitInternalBootCreationMock: vi.fn(),
   useMutationMock: vi.fn(),
   useQueryMock: vi.fn(),
 }));
@@ -124,7 +144,10 @@ vi.mock('@/components/Onboarding/components/OnboardingConsole.vue', () => ({
 }));
 
 vi.mock('~/components/Onboarding/store/onboardingDraft', () => ({
-  useOnboardingDraftStore: () => draftStore,
+  useOnboardingDraftStore: () => ({
+    ...draftStore,
+    setInternalBootApplySucceeded: setInternalBootApplySucceededMock,
+  }),
 }));
 
 vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
@@ -153,6 +176,10 @@ vi.mock('@/components/Onboarding/composables/usePluginInstaller', () => ({
     installLanguage: installLanguageMock,
     installPlugin: installPluginMock,
   }),
+}));
+
+vi.mock('@/components/Onboarding/composables/internalBoot', () => ({
+  submitInternalBootCreation: submitInternalBootCreationMock,
 }));
 
 vi.mock('@vue/apollo-composable', async () => {
@@ -192,6 +219,9 @@ const setupApolloMocks = () => {
     if (doc === GET_CORE_SETTINGS_QUERY) {
       return { result: coreSettingsResult, error: coreSettingsError };
     }
+    if (doc === GET_INTERNAL_BOOT_CONTEXT_QUERY) {
+      return { result: internalBootContextResult };
+    }
     if (doc === INSTALLED_UNRAID_PLUGINS_QUERY) {
       return {
         result: installedPluginsResult,
@@ -226,6 +256,16 @@ const clickApply = async (wrapper: ReturnType<typeof mountComponent>['wrapper'])
   const applyButton = buttons[buttons.length - 1];
   await applyButton.trigger('click');
   await flushPromises();
+
+  if (wrapper.text().includes('Confirm Drive Wipe')) {
+    const continueButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().trim() === 'Continue');
+    expect(continueButton).toBeTruthy();
+    await continueButton!.trigger('click');
+    await flushPromises();
+  }
+
   await vi.runAllTimersAsync();
   await flushPromises();
 };
@@ -242,7 +282,12 @@ describe('OnboardingSummaryStep', () => {
     draftStore.selectedTheme = 'white';
     draftStore.selectedLanguage = 'en_US';
     draftStore.useSsh = false;
+    draftStore.bootMode = 'usb';
     draftStore.selectedPlugins = new Set();
+    draftStore.internalBootSelection = null;
+    draftStore.internalBootInitialized = true;
+    draftStore.internalBootSkipped = false;
+    draftStore.internalBootApplySucceeded = false;
 
     registrationStateRef.value = 'ENOKEYFILE';
     isFreshInstallRef.value = true;
@@ -254,6 +299,33 @@ describe('OnboardingSummaryStep', () => {
       display: { theme: 'white', locale: 'en_US' },
       systemTime: { timeZone: 'UTC' },
       info: { primaryNetwork: { ipAddress: '192.168.1.2' } },
+    };
+    internalBootContextResult.value = {
+      array: {
+        boot: null,
+        parities: [],
+        disks: [],
+        caches: [],
+      },
+      vars: {
+        bootEligible: true,
+      },
+      disks: [
+        {
+          device: '/dev/sda',
+          size: 500 * 1024 * 1024 * 1024,
+          emhttpDeviceId: 'diskA',
+          emhttpSectors: null,
+          emhttpSectorSize: null,
+        },
+        {
+          device: '/dev/sdb',
+          size: 250 * 1024 * 1024 * 1024,
+          emhttpDeviceId: 'diskB',
+          emhttpSectors: null,
+          emhttpSectorSize: null,
+        },
+      ],
     };
     installedPluginsResult.value = { installedUnraidPlugins: [] };
     availableLanguagesResult.value = {
@@ -280,6 +352,10 @@ describe('OnboardingSummaryStep', () => {
       operationId: 'plugin-op',
       status: PluginInstallStatus.SUCCEEDED,
       output: [],
+    });
+    submitInternalBootCreationMock.mockResolvedValue({
+      ok: true,
+      output: 'ok',
     });
     refetchInstalledPluginsMock.mockResolvedValue(undefined);
     refetchOnboardingMock.mockResolvedValue(undefined);
@@ -814,6 +890,46 @@ describe('OnboardingSummaryStep', () => {
     scenario.assertExpected(wrapper);
   });
 
+  it('retries completeOnboarding after transient network errors when SSH changed', async () => {
+    draftStore.useSsh = true;
+    updateSshSettingsMock.mockResolvedValue({
+      data: {
+        updateSshSettings: { id: 'vars', useSsh: true, portssh: 22 },
+      },
+    });
+    completeOnboardingMock
+      .mockRejectedValueOnce(new Error('NetworkError when attempting to fetch resource.'))
+      .mockResolvedValueOnce({});
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(completeOnboardingMock).toHaveBeenCalledTimes(2);
+    expect(wrapper.text()).toContain('Setup Applied');
+    expect(wrapper.text()).not.toContain('Could not mark onboarding complete right now');
+  });
+
+  it('retries final identity update after transient network errors when SSH changed', async () => {
+    draftStore.useSsh = true;
+    draftStore.serverDescription = 'Primary host';
+    updateSshSettingsMock.mockResolvedValue({
+      data: {
+        updateSshSettings: { id: 'vars', useSsh: true, portssh: 22 },
+      },
+    });
+    updateServerIdentityMock
+      .mockRejectedValueOnce(new Error('NetworkError when attempting to fetch resource.'))
+      .mockResolvedValueOnce({});
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(updateServerIdentityMock).toHaveBeenCalledTimes(2);
+    expect(wrapper.text()).toContain('Server Identity updated.');
+    expect(wrapper.text()).toContain('Setup Applied');
+    expect(wrapper.text()).not.toContain('Server identity request returned an error, continuing');
+  });
+
   it('prefers best-effort result over timeout classification when completion fails', async () => {
     draftStore.selectedPlugins = new Set(['community-apps']);
     const timeoutError = new Error(
@@ -916,5 +1032,172 @@ describe('OnboardingSummaryStep', () => {
       'SSH update submitted, but final SSH state could not be verified yet.'
     );
     expect(wrapper.text()).toContain('Setup Saved in Best-Effort Mode');
+  });
+
+  it('always shows boot configuration section for USB boot mode', () => {
+    draftStore.bootMode = 'usb';
+    draftStore.internalBootSelection = null;
+    draftStore.internalBootInitialized = true;
+    draftStore.internalBootSkipped = false;
+
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).toContain('Boot Configuration');
+    expect(wrapper.text()).toContain('USB/Flash Drive');
+  });
+
+  it('hides boot configuration section when internal boot step was skipped', () => {
+    draftStore.bootMode = 'usb';
+    draftStore.internalBootSelection = null;
+    draftStore.internalBootInitialized = true;
+    draftStore.internalBootSkipped = true;
+
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).not.toContain('Boot Configuration');
+  });
+
+  it('hides boot configuration section when internal boot step is not initialized', () => {
+    draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = null;
+    draftStore.internalBootInitialized = false;
+    draftStore.internalBootSkipped = false;
+
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).not.toContain('Boot Configuration');
+  });
+
+  it('shows selected boot devices with device name and size details', () => {
+    draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = {
+      poolName: 'boot',
+      slotCount: 2,
+      devices: ['diskA', 'diskB'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).toContain('diskA - 500 GB (sda)');
+    expect(wrapper.text()).toContain('diskB - 250 GB (sdb)');
+  });
+
+  it('requires confirmation before applying storage boot drive changes', async () => {
+    draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['diskA'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+
+    const { wrapper } = mountComponent();
+    const buttons = wrapper.findAll('[data-testid="brand-button"]');
+    const applyButton = buttons[buttons.length - 1];
+    await applyButton.trigger('click');
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('Confirm Drive Wipe');
+    expect(submitInternalBootCreationMock).not.toHaveBeenCalled();
+
+    const cancelButton = wrapper.findAll('button').find((button) => button.text().trim() === 'Cancel');
+    expect(cancelButton).toBeTruthy();
+    await cancelButton!.trigger('click');
+    await flushPromises();
+
+    expect(wrapper.text()).not.toContain('Confirm Drive Wipe');
+    expect(submitInternalBootCreationMock).not.toHaveBeenCalled();
+  });
+
+  it('applies internal boot configuration without reboot and records success', async () => {
+    draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 2,
+      devices: ['diskA', 'diskB'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+    draftStore.internalBootSkipped = false;
+    submitInternalBootCreationMock.mockResolvedValue({
+      ok: true,
+      output: [
+        'Applying BIOS boot entry updates...',
+        'BIOS boot entry updates completed successfully.',
+      ].join('\n'),
+    });
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(submitInternalBootCreationMock).toHaveBeenCalledWith(
+      {
+        poolName: 'cache',
+        devices: ['diskA', 'diskB'],
+        bootSizeMiB: 16384,
+        updateBios: true,
+      },
+      { reboot: false }
+    );
+    expect(setInternalBootApplySucceededMock).toHaveBeenCalledWith(true);
+    expect(wrapper.text()).toContain('Internal boot pool configured.');
+    expect(wrapper.text()).toContain('BIOS boot entry updates completed successfully.');
+    expect(wrapper.text()).toContain('Setup Applied');
+    expect(wrapper.text()).not.toContain('Setup Applied with Warnings');
+  });
+
+  it('continues with warnings when internal boot setup returns an error', async () => {
+    draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['diskA'],
+      bootSizeMiB: 16384,
+      updateBios: false,
+    };
+    submitInternalBootCreationMock.mockResolvedValue({
+      ok: false,
+      output: 'mkbootpool failed',
+    });
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(setInternalBootApplySucceededMock).not.toHaveBeenCalledWith(true);
+    expect(wrapper.text()).toContain('Internal boot setup returned an error');
+    expect(wrapper.text()).toContain('mkbootpool failed');
+    expect(wrapper.text()).toContain('Setup Applied with Warnings');
+  });
+
+  it('surfaces BIOS update warnings in visible logs while keeping internal boot successful', async () => {
+    draftStore.bootMode = 'storage';
+    draftStore.internalBootSelection = {
+      poolName: 'cache',
+      slotCount: 1,
+      devices: ['diskA'],
+      bootSizeMiB: 16384,
+      updateBios: true,
+    };
+    submitInternalBootCreationMock.mockResolvedValue({
+      ok: true,
+      output: [
+        'Applying BIOS boot entry updates...',
+        "efibootmgr failed for '/dev/sda' (rc=1)",
+        'BIOS boot entry updates completed with warnings; manual BIOS boot order changes may still be required.',
+      ].join('\n'),
+    });
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(setInternalBootApplySucceededMock).toHaveBeenCalledWith(true);
+    expect(wrapper.text()).toContain(
+      'BIOS boot entry updates completed with warnings; manual BIOS boot order changes may still be required.'
+    );
+    expect(wrapper.text()).toContain("efibootmgr failed for '/dev/sda' (rc=1)");
+    expect(wrapper.text()).toContain('Setup Applied with Warnings');
   });
 });

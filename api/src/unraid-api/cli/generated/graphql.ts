@@ -652,6 +652,15 @@ export type CreateApiKeyInput = {
   roles?: InputMaybe<Array<Role>>;
 };
 
+/** Input for creating an internal boot pool during onboarding */
+export type CreateInternalBootPoolInput = {
+  bootSizeMiB: Scalars['Int']['input'];
+  devices: Array<Scalars['String']['input']>;
+  poolName: Scalars['String']['input'];
+  reboot?: InputMaybe<Scalars['Boolean']['input']>;
+  updateBios: Scalars['Boolean']['input'];
+};
+
 export type CreateRCloneRemoteInput = {
   name: Scalars['String']['input'];
   parameters: Scalars['JSON']['input'];
@@ -701,6 +710,8 @@ export type Disk = Node & {
   bytesPerSector: Scalars['Float']['output'];
   /** The device path of the disk (e.g. /dev/sdb) */
   device: Scalars['String']['output'];
+  /** Device identifier from emhttp devs.ini used by disk assignment commands */
+  emhttpDeviceId?: Maybe<Scalars['String']['output']>;
   /** The firmware revision of the disk */
   firmwareRevision: Scalars['String']['output'];
   id: Scalars['PrefixedID']['output'];
@@ -1963,6 +1974,14 @@ export type Onboarding = {
   status: OnboardingStatus;
 };
 
+/** Result of attempting internal boot pool setup */
+export type OnboardingInternalBootResult = {
+  __typename?: 'OnboardingInternalBootResult';
+  code?: Maybe<Scalars['Int']['output']>;
+  ok: Scalars['Boolean']['output'];
+  output: Scalars['String']['output'];
+};
+
 /** Onboarding related mutations */
 export type OnboardingMutations = {
   __typename?: 'OnboardingMutations';
@@ -1970,10 +1989,18 @@ export type OnboardingMutations = {
   clearOnboardingOverride: Onboarding;
   /** Mark onboarding as completed */
   completeOnboarding: Onboarding;
+  /** Create and configure internal boot pool via emcmd operations */
+  createInternalBootPool: OnboardingInternalBootResult;
   /** Reset onboarding progress (for testing) */
   resetOnboarding: Onboarding;
   /** Override onboarding state for testing (in-memory only) */
   setOnboardingOverride: Onboarding;
+};
+
+
+/** Onboarding related mutations */
+export type OnboardingMutationsCreateInternalBootPoolArgs = {
+  input: CreateInternalBootPoolInput;
 };
 
 
@@ -3175,6 +3202,7 @@ export type UserAccount = Node & {
 export type Vars = Node & {
   __typename?: 'Vars';
   bindMgt?: Maybe<Scalars['Boolean']['output']>;
+  bootEligible?: Maybe<Scalars['Boolean']['output']>;
   cacheNumDevices?: Maybe<Scalars['Int']['output']>;
   cacheSbNumDisks?: Maybe<Scalars['Int']['output']>;
   comment?: Maybe<Scalars['String']['output']>;
@@ -3187,6 +3215,7 @@ export type Vars = Node & {
   domain?: Maybe<Scalars['String']['output']>;
   domainLogin?: Maybe<Scalars['String']['output']>;
   domainShort?: Maybe<Scalars['String']['output']>;
+  enableBootTransfer?: Maybe<Scalars['String']['output']>;
   enableFruit?: Maybe<Scalars['String']['output']>;
   flashGuid?: Maybe<Scalars['String']['output']>;
   flashProduct?: Maybe<Scalars['String']['output']>;
@@ -3274,6 +3303,7 @@ export type Vars = Node & {
   /** Registration owner */
   regTo?: Maybe<Scalars['String']['output']>;
   regTy?: Maybe<RegistrationType>;
+  reservedNames?: Maybe<Scalars['String']['output']>;
   safeMode?: Maybe<Scalars['Boolean']['output']>;
   sbClean?: Maybe<Scalars['Boolean']['output']>;
   sbEvents?: Maybe<Scalars['Int']['output']>;

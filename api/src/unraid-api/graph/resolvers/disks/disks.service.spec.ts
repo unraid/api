@@ -122,6 +122,27 @@ describe('DisksService', () => {
         },
     ];
 
+    const mockEmhttpDevices = [
+        {
+            id: 'S4ENNF0N123456',
+            device: 'sda',
+            sectors: 1000215216,
+            sector_size: 512,
+        },
+        {
+            id: 'WD-WCC7K7YL9876',
+            device: 'sdb',
+            sectors: 7814037168,
+            sector_size: 512,
+        },
+        {
+            id: 'WD-SPUNDOWN123',
+            device: 'sdd',
+            sectors: 7814037168,
+            sector_size: 512,
+        },
+    ];
+
     const mockDiskLayoutData: Systeminformation.DiskLayoutData[] = [
         {
             device: '/dev/sda',
@@ -309,6 +330,9 @@ describe('DisksService', () => {
                 if (key === 'store.emhttp.disks') {
                     return mockArrayDisks;
                 }
+                if (key === 'store.emhttp.devices') {
+                    return mockEmhttpDevices;
+                }
                 return defaultValue;
             }),
         };
@@ -353,6 +377,7 @@ describe('DisksService', () => {
             expect(mockDiskLayout).toHaveBeenCalledTimes(1);
             expect(mockBlockDevices).toHaveBeenCalledTimes(1);
             expect(configService.get).toHaveBeenCalledWith('store.emhttp.disks', []);
+            expect(configService.get).toHaveBeenCalledWith('store.emhttp.devices', []);
             expect(mockBatchProcess).toHaveBeenCalledTimes(1);
 
             expect(disks).toHaveLength(mockDiskLayoutData.length);
@@ -370,6 +395,7 @@ describe('DisksService', () => {
             expect(spinningDisk).toBeDefined();
             expect(spinningDisk?.isSpinning).toBe(true); // From state
             expect(spinningDisk?.interfaceType).toBe(DiskInterfaceType.SATA);
+            expect(spinningDisk?.emhttpDeviceId).toBe('WD-WCC7K7YL9876');
 
             // Check spun down disk
             const spunDownDisk = disks.find((d) => d.id === 'WD-SPUNDOWN123');
@@ -387,6 +413,9 @@ describe('DisksService', () => {
         it('should handle empty state gracefully', async () => {
             vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: unknown) => {
                 if (key === 'store.emhttp.disks') {
+                    return [];
+                }
+                if (key === 'store.emhttp.devices') {
                     return [];
                 }
                 return defaultValue;
@@ -412,6 +441,9 @@ describe('DisksService', () => {
             vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: any) => {
                 if (key === 'store.emhttp.disks') {
                     return disksWithSpaces;
+                }
+                if (key === 'store.emhttp.devices') {
+                    return mockEmhttpDevices;
                 }
                 return defaultValue;
             });
@@ -453,6 +485,7 @@ describe('DisksService', () => {
 
             // Verify we're accessing the state through ConfigService
             expect(configService.get).toHaveBeenCalledWith('store.emhttp.disks', []);
+            expect(configService.get).toHaveBeenCalledWith('store.emhttp.devices', []);
         });
 
         it('should handle empty disk layout or block devices', async () => {

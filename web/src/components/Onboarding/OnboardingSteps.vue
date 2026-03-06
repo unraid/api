@@ -2,18 +2,9 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import type { StepMetadataEntry } from '~/components/Onboarding/stepRegistry';
+import type { StepId, StepMetadataEntry } from '~/components/Onboarding/stepRegistry';
 
 import { stepMetadata } from '~/components/Onboarding/stepRegistry';
-
-// Hardcoded step type matching OnboardingModal
-type StepId =
-  | 'OVERVIEW'
-  | 'CONFIGURE_SETTINGS'
-  | 'ADD_PLUGINS'
-  | 'ACTIVATE_LICENSE'
-  | 'SUMMARY'
-  | 'NEXT_STEPS';
 
 type HardcodedStep = { id: StepId; required: boolean };
 
@@ -40,9 +31,11 @@ const { t } = useI18n();
 t('onboarding.activationSteps.activateLicense');
 t('onboarding.activationSteps.createAnUnraidNetAccountAnd');
 t('onboarding.pluginsStep.addHelpfulPlugins');
+t('onboarding.internalBootStep.stepTitle');
+t('onboarding.internalBootStep.stepDescription');
 
 const formatStep = (title: string, index: number, icon?: string): StepItem => ({
-  title: `Step ${index + 1}`,
+  title: t('onboarding.stepper.stepLabel', { number: index + 1 }),
   description: title,
   icon,
 });
@@ -54,6 +47,7 @@ const dynamicSteps = computed(() => {
     const defaultSteps = [
       metadataLookup.OVERVIEW,
       metadataLookup.CONFIGURE_SETTINGS,
+      metadataLookup.CONFIGURE_BOOT,
       metadataLookup.ADD_PLUGINS,
       metadataLookup.ACTIVATE_LICENSE,
     ];

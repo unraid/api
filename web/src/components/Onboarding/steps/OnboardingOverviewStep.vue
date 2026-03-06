@@ -78,8 +78,8 @@ const graphicSrc = computed(() =>
 
 const graphicAlt = computed(() =>
   isPartnerLogo.value && !partnerGraphicLoadFailed.value
-    ? (partnerInfo.value?.partner?.name ?? 'Partner Logo')
-    : 'Limitless Possibilities'
+    ? (partnerInfo.value?.partner?.name ?? t('onboarding.overviewStep.partnerLogoAlt'))
+    : t('onboarding.overviewStep.defaultGraphicAlt')
 );
 
 const defaultWelcomeTitle = computed(() => {
@@ -317,7 +317,7 @@ const openDocs = () => {
             class="text-muted hover:text-toned text-sm font-medium transition-colors"
             :disabled="isBusy"
           >
-            Skip Setup
+            {{ t('onboarding.overviewStep.skipSetup') }}
           </button>
 
           <BrandButton

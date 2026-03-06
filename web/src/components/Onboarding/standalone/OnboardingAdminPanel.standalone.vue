@@ -76,14 +76,10 @@ type PartnerConfigPayload = {
 };
 
 type BrandingConfigPayload = {
-  header?: string;
-  headermetacolor?: string;
-  background?: string;
-  showBannerGradient?: boolean;
-  theme?: 'azure' | 'black' | 'gray' | 'white';
+  bannerImage?: string;
+  caseModelImage?: string;
   partnerLogoLightUrl?: string;
   partnerLogoDarkUrl?: string;
-  hasPartnerLogo?: boolean;
   onboardingTitle?: string;
   onboardingSubtitle?: string;
   onboardingTitleFreshInstall?: string;
@@ -126,6 +122,41 @@ type Preset = {
   label: string;
   description: string;
   overrides: OnboardingOverridePayload;
+};
+
+const genericPartnerConfig: PartnerConfigPayload = {
+  name: 'Partner',
+  url: 'https://example.com/partner',
+  hardwareSpecsUrl: 'https://example.com/partner/specs/model-x200',
+  manualUrl: 'https://example.com/partner/docs/model-x200-manual',
+  supportUrl: 'https://example.com/partner/support',
+  extraLinks: [
+    { title: 'Warranty', url: 'https://example.com/partner/warranty' },
+    { title: 'Knowledge Base', url: 'https://example.com/partner/kb' },
+  ],
+};
+
+const genericBrandingConfig: BrandingConfigPayload = {
+  bannerImage: './assets/banner.png',
+  caseModelImage: './assets/case-model.png',
+  partnerLogoLightUrl: './assets/partner-logo-light.svg',
+  partnerLogoDarkUrl: './assets/partner-logo-dark.svg',
+  onboardingTitle: 'Welcome',
+  onboardingSubtitle: "Let's get your system configured.",
+  onboardingTitleFreshInstall: 'Welcome to your new server',
+  onboardingSubtitleFreshInstall: "We'll walk through first-time setup.",
+  onboardingTitleUpgrade: 'Thanks for upgrading',
+  onboardingSubtitleUpgrade: 'Review changes and continue setup.',
+  onboardingTitleDowngrade: 'Welcome back',
+  onboardingSubtitleDowngrade: "We'll re-check a few settings.",
+  onboardingTitleIncomplete: 'Finish setup',
+  onboardingSubtitleIncomplete: 'Pick up where you left off.',
+};
+
+const genericSystemConfig: SystemConfigPayload = {
+  serverName: 'Server01',
+  model: 'Model X200',
+  comment: 'Preconfigured by partner',
 };
 
 // Made reactive to allow adding new presets in session
@@ -192,7 +223,7 @@ const presets = ref<Preset[]>([
     },
   },
 
-  // ============ PARTNER USER STATES (e.g., 45Drives) ============
+  // ============ PARTNER USER STATES (generic example) ============
   // Note: partnerInfo is automatically derived from activationCode by the API
   // So we only need to set activationCode - no duplication needed!
   {
@@ -207,34 +238,10 @@ const presets = ref<Preset[]>([
         completedAtVersion: null,
       },
       activationCode: {
-        code: 'DEMO-PARTNER-CODE-123',
-        partner: {
-          name: '45Drives',
-          url: 'https://45drives.com',
-          hardwareSpecsUrl: 'https://45drives.com/specs/storinator-s45',
-          manualUrl: 'https://45drives.com/docs/storinator-manual',
-          supportUrl: 'https://45drives.com/support',
-          extraLinks: [
-            { title: 'Community Forums', url: 'https://45drives.com/forums' },
-            { title: 'Knowledge Base', url: 'https://45drives.com/kb' },
-          ],
-        },
-        branding: {
-          theme: 'azure',
-          hasPartnerLogo: true,
-          partnerLogoLightUrl: '/config/activate/45drives-logo-light.png',
-          partnerLogoDarkUrl: '/config/activate/45drives-logo-dark.png',
-          onboardingTitle: 'Welcome to Storinator',
-          onboardingSubtitle: 'Unleash your massive storage',
-          onboardingTitleFreshInstall: 'Welcome to your new Storinator',
-          onboardingSubtitleFreshInstall: 'Let us get your storage stack configured.',
-          onboardingTitleIncomplete: 'Finish Storinator setup',
-          onboardingSubtitleIncomplete: 'Pick up right where you left off.',
-        },
-        system: {
-          serverName: 'Storinator S45',
-          model: 'Storinator',
-        },
+        code: 'UNRAID-PARTNER-2026-ABC123',
+        partner: { ...genericPartnerConfig },
+        branding: { ...genericBrandingConfig },
+        system: { ...genericSystemConfig },
       },
     },
   },
@@ -250,34 +257,10 @@ const presets = ref<Preset[]>([
         completedAtVersion: '7.1.0',
       },
       activationCode: {
-        code: 'DEMO-PARTNER-CODE-456',
-        partner: {
-          name: '45Drives',
-          url: 'https://45drives.com',
-          hardwareSpecsUrl: 'https://45drives.com/specs/storinator-av15',
-          manualUrl: 'https://45drives.com/docs/storinator-manual',
-          supportUrl: 'https://45drives.com/support',
-        },
-        branding: {
-          theme: 'azure',
-          hasPartnerLogo: true,
-          partnerLogoLightUrl: '/config/activate/45drives-logo-light.png',
-          partnerLogoDarkUrl: '/config/activate/45drives-logo-dark.png',
-          onboardingTitle: 'Welcome to Storinator',
-          onboardingSubtitle: 'Your powerful storage solution',
-          onboardingTitleFreshInstall: 'Welcome to your Storinator',
-          onboardingSubtitleFreshInstall: 'We will walk through first-time setup.',
-          onboardingTitleUpgrade: 'Thanks for upgrading Storinator',
-          onboardingSubtitleUpgrade: 'Review the latest updates and continue.',
-          onboardingTitleDowngrade: 'Welcome back to Storinator',
-          onboardingSubtitleDowngrade: 'You are on an earlier release. Let us re-check setup.',
-          onboardingTitleIncomplete: 'Finish Storinator setup',
-          onboardingSubtitleIncomplete: 'Pick up right where you left off.',
-        },
-        system: {
-          serverName: 'Storinator AV15',
-          model: 'Storinator',
-        },
+        code: 'UNRAID-PARTNER-2026-ABC456',
+        partner: { ...genericPartnerConfig },
+        branding: { ...genericBrandingConfig },
+        system: { ...genericSystemConfig },
       },
     },
   },
@@ -293,31 +276,10 @@ const presets = ref<Preset[]>([
         completedAtVersion: '9.0.0',
       },
       activationCode: {
-        code: 'DEMO-PARTNER-CODE-654',
-        partner: {
-          name: '45Drives',
-          url: 'https://45drives.com',
-        },
-        branding: {
-          theme: 'azure',
-          hasPartnerLogo: true,
-          partnerLogoLightUrl: '/config/activate/45drives-logo-light.png',
-          partnerLogoDarkUrl: '/config/activate/45drives-logo-dark.png',
-          onboardingTitle: 'Welcome to Storinator',
-          onboardingSubtitle: 'High-performance storage',
-          onboardingTitleFreshInstall: 'Welcome to your Storinator',
-          onboardingSubtitleFreshInstall: 'Let us configure the essentials.',
-          onboardingTitleUpgrade: 'Thanks for upgrading Storinator',
-          onboardingSubtitleUpgrade: 'Review updates before continuing.',
-          onboardingTitleDowngrade: 'Welcome back to Storinator',
-          onboardingSubtitleDowngrade: 'You are on an earlier release. Let us re-check setup.',
-          onboardingTitleIncomplete: 'Finish Storinator setup',
-          onboardingSubtitleIncomplete: 'Complete the remaining steps.',
-        },
-        system: {
-          serverName: 'Storinator X',
-          model: 'Storinator',
-        },
+        code: 'UNRAID-PARTNER-2026-ABC654',
+        partner: { ...genericPartnerConfig },
+        branding: { ...genericBrandingConfig },
+        system: { ...genericSystemConfig },
       },
     },
   },
@@ -333,31 +295,10 @@ const presets = ref<Preset[]>([
         completedAtVersion: null,
       },
       activationCode: {
-        code: 'DEMO-PARTNER-CODE-789',
-        partner: {
-          name: '45Drives',
-          url: 'https://45drives.com',
-        },
-        branding: {
-          theme: 'azure',
-          hasPartnerLogo: true,
-          partnerLogoLightUrl: '/config/activate/45drives-logo-light.png',
-          partnerLogoDarkUrl: '/config/activate/45drives-logo-dark.png',
-          onboardingTitle: 'Welcome to Storinator',
-          onboardingSubtitle: 'High-performance storage',
-          onboardingTitleFreshInstall: 'Welcome to your Storinator',
-          onboardingSubtitleFreshInstall: 'Get your system configured in minutes.',
-          onboardingTitleUpgrade: 'Thanks for upgrading Storinator',
-          onboardingSubtitleUpgrade: 'Let us review what changed.',
-          onboardingTitleDowngrade: 'Welcome back to Storinator',
-          onboardingSubtitleDowngrade: 'You are on an earlier release. Let us re-check setup.',
-          onboardingTitleIncomplete: 'Finish Storinator setup',
-          onboardingSubtitleIncomplete: 'Complete the final setup items.',
-        },
-        system: {
-          serverName: 'Storinator Q30',
-          model: 'Storinator',
-        },
+        code: 'UNRAID-PARTNER-2026-ABC789',
+        partner: { ...genericPartnerConfig },
+        branding: { ...genericBrandingConfig },
+        system: { ...genericSystemConfig },
       },
     },
   },
@@ -1031,13 +972,31 @@ const currentRegistrationState = computed({
               </td>
             </tr>
             <tr>
+              <td class="py-2 pr-4 font-mono text-cyan-500">activationCode.branding.bannerImage</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">*.activationcode</code>
+              </td>
+              <td class="text-muted-foreground py-2">
+                Banner image source (optional): relative path, URL, data URI, or base64
+              </td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-mono text-cyan-500">activationCode.branding.caseModelImage</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">*.activationcode</code>
+              </td>
+              <td class="text-muted-foreground py-2">
+                Case/model image source (optional): relative path, URL, data URI, or base64
+              </td>
+            </tr>
+            <tr>
               <td class="py-2 pr-4 font-mono text-cyan-500">
                 activationCode.branding.partnerLogoLightUrl
               </td>
               <td class="py-2 pr-4">
                 <code class="bg-muted rounded px-1">*.activationcode</code>
               </td>
-              <td class="text-muted-foreground py-2">Partner logo URL used for azure/white themes</td>
+              <td class="text-muted-foreground py-2">Light theme logo source (optional)</td>
             </tr>
             <tr>
               <td class="py-2 pr-4 font-mono text-cyan-500">
@@ -1046,7 +1005,7 @@ const currentRegistrationState = computed({
               <td class="py-2 pr-4">
                 <code class="bg-muted rounded px-1">*.activationcode</code>
               </td>
-              <td class="text-muted-foreground py-2">Partner logo URL used for black/gray themes</td>
+              <td class="text-muted-foreground py-2">Dark theme logo source (optional)</td>
             </tr>
             <tr>
               <td class="py-2 pr-4 font-mono text-purple-500">
@@ -1099,6 +1058,12 @@ const currentRegistrationState = computed({
           <strong class="text-green-500">Simplified:</strong> You only need to edit
           <code class="bg-muted rounded px-1">activationCode.*</code> fields. The API automatically
           derives <code class="bg-muted rounded px-1">partnerInfo</code> from it!
+        </p>
+        <p>
+          <strong class="text-foreground">Image paths:</strong> local paths such as
+          <code class="bg-muted rounded px-1">./assets/partner-logo-light.svg</code> are resolved
+          relative to the activate folder where the
+          <code class="bg-muted rounded px-1">.activationcode</code> file lives.
         </p>
       </div>
     </div>

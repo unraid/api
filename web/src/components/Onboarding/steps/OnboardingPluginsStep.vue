@@ -23,13 +23,6 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
 
-interface Plugin {
-  id: string;
-  name: string;
-  description: string;
-  url: string;
-}
-
 const normalizePluginFileName = (value: string) => value.trim().toLowerCase();
 
 const getPluginFileName = (url: string) => {
@@ -37,26 +30,42 @@ const getPluginFileName = (url: string) => {
   return parts[parts.length - 1] ?? url;
 };
 
-const availablePlugins: Plugin[] = [
-  {
-    id: 'community-apps',
-    name: 'Community Apps',
-    description: 'The essential app store for Unraid. Access thousands of applications.',
-    url: 'https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
-  },
-  {
-    id: 'fix-common-problems',
-    name: 'Fix Common Problems',
-    description: 'Diagnostic tool to help you identify and resolve configuration issues.',
-    url: 'https://raw.githubusercontent.com/unraid/fix.common.problems/master/plugins/fix.common.problems.plg',
-  },
-  {
-    id: 'tailscale',
-    name: 'Tailscale',
-    description: 'Zero-config VPN. Securely access your server from anywhere.',
-    url: 'https://raw.githubusercontent.com/unraid/unraid-tailscale/main/plugin/tailscale.plg',
-  },
-];
+const availablePlugins = computed(
+  () =>
+    [
+      {
+        id: 'community-apps',
+        name: t('onboarding.pluginsStep.plugins.communityApps.name'),
+        description: t('onboarding.pluginsStep.plugins.communityApps.description'),
+        url: 'https://raw.githubusercontent.com/unraid/community.applications/master/plugins/community.applications.plg',
+      },
+      {
+        id: 'fix-common-problems',
+        name: t('onboarding.pluginsStep.plugins.fixCommonProblems.name'),
+        description: t('onboarding.pluginsStep.plugins.fixCommonProblems.description'),
+        url: 'https://raw.githubusercontent.com/unraid/fix.common.problems/master/plugins/fix.common.problems.plg',
+      },
+      {
+        id: 'tailscale',
+        name: t('onboarding.pluginsStep.plugins.tailscale.name'),
+        description: t('onboarding.pluginsStep.plugins.tailscale.description'),
+        url: 'https://raw.githubusercontent.com/unraid/unraid-tailscale/main/plugin/tailscale.plg',
+      },
+    ] as const
+);
+
+const pluginInstalledFileAliases: Partial<Record<string, string[]>> = {
+  tailscale: ['tailscale-preview.plg'],
+};
+
+const getPluginInstallDetectionFileNames = (plugin: { id: string; url: string }): Set<string> => {
+  const fileNames = new Set<string>([normalizePluginFileName(getPluginFileName(plugin.url))]);
+  const aliases = pluginInstalledFileAliases[plugin.id] ?? [];
+  for (const alias of aliases) {
+    fileNames.add(normalizePluginFileName(alias));
+  }
+  return fileNames;
+};
 
 const defaultSelectedPluginIds = new Set<string>(['community-apps', 'fix-common-problems']);
 
@@ -86,9 +95,10 @@ const applyInstalledPlugins = (installedPlugins: string[] | null | undefined) =>
   const installedFiles = new Set(installedPlugins.map((name) => normalizePluginFileName(name)));
   const nextInstalledIds = new Set<string>();
 
-  for (const plugin of availablePlugins) {
-    const fileName = normalizePluginFileName(getPluginFileName(plugin.url));
-    if (installedFiles.has(fileName)) {
+  for (const plugin of availablePlugins.value) {
+    const fileNames = getPluginInstallDetectionFileNames(plugin);
+    const hasMatch = Array.from(fileNames).some((fileName) => installedFiles.has(fileName));
+    if (hasMatch) {
       nextInstalledIds.add(plugin.id);
     }
   }
@@ -143,7 +153,7 @@ const handlePrimaryAction = async () => {
   props.onComplete();
 };
 
-const primaryButtonText = computed(() => 'Next Step');
+const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
 </script>
 
 <template>
@@ -204,7 +214,9 @@ const primaryButtonText = computed(() => 'Next Step');
               'focus:ring-primary relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
             ]"
           >
-            <span class="sr-only">Enable {{ plugin.name }}</span>
+            <span class="sr-only">{{
+              t('onboarding.pluginsStep.enablePluginAria', { name: plugin.name })
+            }}</span>
             <span
               aria-hidden="true"
               :class="[

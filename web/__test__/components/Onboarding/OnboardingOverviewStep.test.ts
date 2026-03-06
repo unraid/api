@@ -20,7 +20,7 @@ const {
   refetchOnboardingMock: vi.fn().mockResolvedValue({}),
   partnerInfoRef: {
     value: {
-      partner: { name: '45Drives' },
+      partner: { name: 'Partner' },
       branding: {
         hasPartnerLogo: true,
         partnerLogoLightUrl: 'data:image/png;base64,AAA=',
@@ -97,7 +97,7 @@ describe('OnboardingOverviewStep', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     partnerInfoRef.value = {
-      partner: { name: '45Drives' },
+      partner: { name: 'Partner' },
       branding: {
         hasPartnerLogo: true,
         partnerLogoLightUrl: 'data:image/png;base64,AAA=',
@@ -127,7 +127,7 @@ describe('OnboardingOverviewStep', () => {
 
     expect(img.exists()).toBe(true);
     expect(img.attributes('src')).toBe('data:image/png;base64,AAA=');
-    expect(img.attributes('alt')).toBe('45Drives');
+    expect(img.attributes('alt')).toBe('Partner');
   });
 
   it('falls back to default overview image when partner logo fails to load', async () => {

@@ -2,14 +2,16 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { useMutation } from '@vue/apollo-composable';
+import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
+import { GET_INTERNAL_BOOT_STEP_VISIBILITY_QUERY } from '@/components/Onboarding/graphql/getInternalBootStepVisibility.query';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 
 import type { BrandButtonProps } from '@unraid/ui';
+import type { StepId } from '~/components/Onboarding/stepRegistry';
 import type { Component } from 'vue';
 
 import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
@@ -27,12 +29,17 @@ const { t } = useI18n();
 
 const modalStore = useActivationCodeModalStore();
 const { isVisible, isTemporarilyBypassed } = storeToRefs(modalStore);
-const { activationRequired, hasActivationCode, registrationState } = storeToRefs(
+const { activationRequired, hasActivationCode, isFreshInstall, registrationState } = storeToRefs(
   useActivationCodeDataStore()
 );
 const onboardingStore = useUpgradeOnboardingStore();
-const { shouldShowOnboarding, isVersionDrift, completedAtVersion, canDisplayOnboardingModal } =
-  storeToRefs(onboardingStore);
+const {
+  shouldShowOnboarding,
+  isVersionDrift,
+  completedAtVersion,
+  canDisplayOnboardingModal,
+  isPartnerBuild,
+} = storeToRefs(onboardingStore);
 const { refetchOnboarding } = onboardingStore;
 const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
@@ -57,19 +64,11 @@ const showKeyfileHint = computed(() => activationRequired.value && hasKeyfile.va
 const activateHref = computed(() => purchaseStore.generateUrl('activate'));
 const activateExternal = computed(() => purchaseStore.openInNewTab);
 
-// Hardcoded step IDs matching the actual step flow
-type StepId =
-  | 'OVERVIEW'
-  | 'CONFIGURE_SETTINGS'
-  | 'ADD_PLUGINS'
-  | 'ACTIVATE_LICENSE'
-  | 'SUMMARY'
-  | 'NEXT_STEPS';
-
 // Hardcoded step definitions - order matters for UI flow
 const HARDCODED_STEPS: Array<{ id: StepId; required: boolean }> = [
   { id: 'OVERVIEW', required: false },
   { id: 'CONFIGURE_SETTINGS', required: false },
+  { id: 'CONFIGURE_BOOT', required: false },
   { id: 'ADD_PLUGINS', required: false },
   { id: 'ACTIVATE_LICENSE', required: true },
   { id: 'SUMMARY', required: false },
@@ -82,21 +81,34 @@ const showActivationStep = computed(() => {
   return hasCode && ACTIVATION_STEP_REGISTRATION_STATES.has(regState);
 });
 
-// Determine which steps to show based on user state
-const availableSteps = computed<StepId[]>(() => {
-  if (showActivationStep.value) {
-    return HARDCODED_STEPS.map((s) => s.id);
+const { result: internalBootVisibilityResult } = useQuery(
+  GET_INTERNAL_BOOT_STEP_VISIBILITY_QUERY,
+  null,
+  {
+    fetchPolicy: 'cache-first',
   }
-  return HARDCODED_STEPS.filter((s) => s.id !== 'ACTIVATE_LICENSE').map((s) => s.id);
+);
+
+const showInternalBootStep = computed(() => {
+  const setting = internalBootVisibilityResult.value?.vars?.enableBootTransfer;
+  return typeof setting === 'string' && setting.trim().toLowerCase() === 'yes';
 });
 
+// Determine which steps to show based on user state
+const visibleHardcodedSteps = computed(() =>
+  HARDCODED_STEPS.filter((step) => showActivationStep.value || step.id !== 'ACTIVATE_LICENSE').filter(
+    (step) => {
+      if (step.id !== 'CONFIGURE_BOOT') {
+        return true;
+      }
+      return !isPartnerBuild.value && showInternalBootStep.value;
+    }
+  )
+);
+const availableSteps = computed<StepId[]>(() => visibleHardcodedSteps.value.map((step) => step.id));
+
 // Filtered steps as full objects for OnboardingSteps component
-const filteredSteps = computed(() => {
-  if (showActivationStep.value) {
-    return HARDCODED_STEPS;
-  }
-  return HARDCODED_STEPS.filter((s) => s.id !== 'ACTIVATE_LICENSE');
-});
+const filteredSteps = computed(() => visibleHardcodedSteps.value);
 
 const isLoginPage = computed(() => {
   const hasLoginRoute = window.location.pathname.includes('login');
@@ -106,6 +118,7 @@ const isLoginPage = computed(() => {
 const showModal = computed(
   () =>
     !isLoginPage.value &&
+    isFreshInstall.value &&
     canDisplayOnboardingModal.value &&
     !isTemporarilyBypassed.value &&
     (isVisible.value || shouldShowOnboarding.value)
@@ -243,6 +256,14 @@ const handlePluginsSkip = async () => {
   await goToNextStep();
 };
 
+const handleInternalBootComplete = async () => {
+  await goToNextStep();
+};
+
+const handleInternalBootSkip = async () => {
+  await goToNextStep();
+};
+
 const handleExitIntent = () => {
   showExitConfirmDialog.value = true;
 };
@@ -311,6 +332,16 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
       };
     }
 
+    case 'CONFIGURE_BOOT': {
+      const hardcodedStep = HARDCODED_STEPS.find((s) => s.id === 'CONFIGURE_BOOT');
+      return {
+        ...baseProps,
+        onComplete: handleInternalBootComplete,
+        onSkip: hardcodedStep?.required ? undefined : handleInternalBootSkip,
+        showSkip: !hardcodedStep?.required,
+      };
+    }
+
     case 'ACTIVATE_LICENSE':
       return {
         ...baseProps,
@@ -358,7 +389,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
       <button
         type="button"
         class="bg-background/90 text-foreground hover:bg-muted fixed top-5 right-8 z-20 rounded-md p-1.5 shadow-sm transition-colors"
-        aria-label="Close onboarding"
+        :aria-label="t('onboarding.modal.closeAriaLabel')"
         @click="handleExitIntent"
       >
         <XMarkIcon class="h-5 w-5" />
@@ -394,9 +425,9 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
   >
     <div class="space-y-6 p-2">
       <div class="space-y-2">
-        <h3 class="text-lg font-semibold">Exit onboarding?</h3>
+        <h3 class="text-lg font-semibold">{{ t('onboarding.modal.exit.title') }}</h3>
         <p class="text-muted-foreground text-sm">
-          You can skip setup now and continue from the dashboard later.
+          {{ t('onboarding.modal.exit.description') }}
         </p>
       </div>
 
@@ -406,14 +437,14 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
           class="border-muted text-foreground hover:bg-muted rounded-md border px-4 py-2 text-sm"
           @click="handleExitCancel"
         >
-          Keep onboarding
+          {{ t('onboarding.modal.exit.keepOnboarding') }}
         </button>
         <button
           type="button"
           class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
           @click="handleExitConfirm"
         >
-          Exit setup
+          {{ t('onboarding.modal.exit.confirm') }}
         </button>
       </div>
     </div>

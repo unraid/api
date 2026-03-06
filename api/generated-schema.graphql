@@ -338,6 +338,11 @@ type Disk implements Node {
   """The serial number of the disk"""
   serialNum: String!
 
+  """
+  Device identifier from emhttp devs.ini used by disk assignment commands
+  """
+  emhttpDeviceId: String
+
   """The interface type of the disk"""
   interfaceType: DiskInterfaceType!
 
@@ -580,6 +585,9 @@ type Vars implements Node {
   cacheNumDevices: Int
   cacheSbNumDisks: Int
   fsState: String
+  bootEligible: Boolean
+  enableBootTransfer: String
+  reservedNames: String
 
   """Human friendly string of array events happening"""
   fsProgress: String
@@ -1050,6 +1058,13 @@ type Customization {
   availableLanguages: [Language!]
 }
 
+"""Result of attempting internal boot pool setup"""
+type OnboardingInternalBootResult {
+  ok: Boolean!
+  code: Int
+  output: String!
+}
+
 type RCloneDrive {
   """Provider name"""
   name: String!
@@ -1361,6 +1376,9 @@ type OnboardingMutations {
 
   """Clear onboarding override state and reload from disk"""
   clearOnboardingOverride: Onboarding!
+
+  """Create and configure internal boot pool via emcmd operations"""
+  createInternalBootPool(input: CreateInternalBootPoolInput!): OnboardingInternalBootResult!
 }
 
 """Onboarding override input for testing"""
@@ -1433,6 +1451,15 @@ input SystemConfigInput {
 input PartnerInfoOverrideInput {
   partner: PartnerConfigInput
   branding: BrandingConfigInput
+}
+
+"""Input for creating an internal boot pool during onboarding"""
+input CreateInternalBootPoolInput {
+  poolName: String!
+  devices: [String!]!
+  bootSizeMiB: Int!
+  updateBios: Boolean!
+  reboot: Boolean
 }
 
 """Unraid plugin management mutations"""

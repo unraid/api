@@ -12,15 +12,21 @@ import {
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 import { OnboardingMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
+import { OnboardingInternalBootService } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-internal-boot.service.js';
 import { getOnboardingVersionDirection } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-status.util.js';
-import { OnboardingOverrideInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
+import {
+    CreateInternalBootPoolInput,
+    OnboardingInternalBootResult,
+    OnboardingOverrideInput,
+} from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 
 @Resolver(() => OnboardingMutations)
 export class OnboardingMutationsResolver {
     constructor(
         private readonly onboardingTracker: OnboardingTrackerService,
         private readonly onboardingOverrides: OnboardingOverrideService,
-        private readonly onboardingService: OnboardingService
+        private readonly onboardingService: OnboardingService,
+        private readonly onboardingInternalBootService: OnboardingInternalBootService
     ) {}
 
     /**
@@ -108,5 +114,18 @@ export class OnboardingMutationsResolver {
         this.onboardingOverrides.clearState();
         this.onboardingService.clearActivationDataCache();
         return this.buildOnboardingResponse();
+    }
+
+    @ResolveField(() => OnboardingInternalBootResult, {
+        description: 'Create and configure internal boot pool via emcmd operations',
+    })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.WELCOME,
+    })
+    async createInternalBootPool(
+        @Args('input') input: CreateInternalBootPoolInput
+    ): Promise<OnboardingInternalBootResult> {
+        return this.onboardingInternalBootService.createInternalBootPool(input);
     }
 }

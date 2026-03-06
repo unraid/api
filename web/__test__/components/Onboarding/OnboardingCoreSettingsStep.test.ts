@@ -349,7 +349,7 @@ describe('OnboardingCoreSettingsStep', () => {
       data: {
         customization: {
           activationCode: {
-            system: { serverName: 'Storinator45', comment: 'Primary storage node' },
+            system: { serverName: 'Server01', comment: 'Primary storage node' },
           },
         },
         server: { name: 'Tower', comment: 'Media server' },
@@ -366,7 +366,7 @@ describe('OnboardingCoreSettingsStep', () => {
 
     expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
     expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
-      serverName: 'Storinator45',
+      serverName: 'Server01',
       serverDescription: 'Primary storage node',
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
@@ -383,7 +383,7 @@ describe('OnboardingCoreSettingsStep', () => {
       data: {
         customization: {
           activationCode: {
-            system: { serverName: 'Storinator45' },
+            system: { serverName: 'Server01' },
           },
         },
         server: { name: 'Tower', comment: 'Media server' },
@@ -400,7 +400,7 @@ describe('OnboardingCoreSettingsStep', () => {
 
     expect(setCoreSettingsMock).toHaveBeenCalledTimes(1);
     expect(setCoreSettingsMock.mock.calls[0][0]).toMatchObject({
-      serverName: 'Storinator45',
+      serverName: 'Server01',
       serverDescription: '',
     });
     expect(onComplete).toHaveBeenCalledTimes(1);
@@ -417,7 +417,7 @@ describe('OnboardingCoreSettingsStep', () => {
       data: {
         customization: {
           activationCode: {
-            system: { serverName: 'Storinator45', comment: 'Primary storage node' },
+            system: { serverName: 'Server01', comment: 'Primary storage node' },
           },
         },
         server: { name: '', comment: '' },
@@ -452,7 +452,7 @@ describe('OnboardingCoreSettingsStep', () => {
       data: {
         customization: {
           activationCode: {
-            system: { serverName: 'Storinator45', comment: 'Partner-provided comment' },
+            system: { serverName: 'Server01', comment: 'Partner-provided comment' },
           },
         },
         server: { name: 'TowerFromServer', comment: 'Comment from API' },
@@ -486,7 +486,7 @@ describe('OnboardingCoreSettingsStep', () => {
       data: {
         customization: {
           activationCode: {
-            system: { serverName: 'Storinator45', comment: 'Partner-provided comment' },
+            system: { serverName: 'Server01', comment: 'Partner-provided comment' },
           },
         },
         server: { name: 'TowerFromServer', comment: '' },
@@ -520,7 +520,7 @@ describe('OnboardingCoreSettingsStep', () => {
       data: {
         customization: {
           activationCode: {
-            system: { serverName: 'Storinator45', comment: 'Partner-provided comment' },
+            system: { serverName: 'Server01', comment: 'Partner-provided comment' },
           },
         },
         server: { name: 'TowerFromServer', comment: 'Comment from API' },

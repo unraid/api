@@ -1,15 +1,29 @@
 import type { Component } from 'vue';
 
 import OnboardingCoreSettingsStep from '~/components/Onboarding/steps/OnboardingCoreSettingsStep.vue';
+import OnboardingInternalBootStep from '~/components/Onboarding/steps/OnboardingInternalBootStep.vue';
 import OnboardingLicenseStep from '~/components/Onboarding/steps/OnboardingLicenseStep.vue';
 import OnboardingNextStepsStep from '~/components/Onboarding/steps/OnboardingNextStepsStep.vue';
 import OnboardingOverviewStep from '~/components/Onboarding/steps/OnboardingOverviewStep.vue';
 import OnboardingPluginsStep from '~/components/Onboarding/steps/OnboardingPluginsStep.vue';
 import OnboardingSummaryStep from '~/components/Onboarding/steps/OnboardingSummaryStep.vue';
 
-export const stepComponents: Record<string, Component> = {
+export const STEP_IDS = [
+  'OVERVIEW',
+  'CONFIGURE_SETTINGS',
+  'CONFIGURE_BOOT',
+  'ADD_PLUGINS',
+  'ACTIVATE_LICENSE',
+  'SUMMARY',
+  'NEXT_STEPS',
+] as const;
+
+export type StepId = (typeof STEP_IDS)[number];
+
+export const stepComponents: Record<StepId, Component> = {
   OVERVIEW: OnboardingOverviewStep,
   CONFIGURE_SETTINGS: OnboardingCoreSettingsStep,
+  CONFIGURE_BOOT: OnboardingInternalBootStep,
   ADD_PLUGINS: OnboardingPluginsStep,
   ACTIVATE_LICENSE: OnboardingLicenseStep,
   SUMMARY: OnboardingSummaryStep,
@@ -22,7 +36,7 @@ export type StepMetadataEntry = {
   icon: string;
 };
 
-export const stepMetadata: Record<string, StepMetadataEntry> = {
+export const stepMetadata: Record<StepId, StepMetadataEntry> = {
   OVERVIEW: {
     titleKey: 'onboarding.overviewStep.welcomeToUnraid',
     descriptionKey: 'onboarding.overviewStep.getStartedWithYourNewSystem',
@@ -32,6 +46,11 @@ export const stepMetadata: Record<string, StepMetadataEntry> = {
     titleKey: 'onboarding.coreSettings.title',
     descriptionKey: 'onboarding.coreSettings.description',
     icon: 'i-heroicons-cog-6-tooth',
+  },
+  CONFIGURE_BOOT: {
+    titleKey: 'onboarding.internalBootStep.stepTitle',
+    descriptionKey: 'onboarding.internalBootStep.stepDescription',
+    icon: 'i-heroicons-circle-stack',
   },
   ADD_PLUGINS: {
     titleKey: 'onboarding.pluginsStep.installEssentialPlugins',

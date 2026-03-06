@@ -22,6 +22,8 @@ export const ACTIVATION_CODE_QUERY = parse(/* GraphQL */ `
           background
           showBannerGradient
           theme
+          bannerImage
+          caseModelImage
           partnerLogoLightUrl
           partnerLogoDarkUrl
           hasPartnerLogo

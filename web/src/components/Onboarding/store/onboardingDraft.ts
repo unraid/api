@@ -1,6 +1,43 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 
+export interface OnboardingInternalBootSelection {
+  poolName: string;
+  slotCount: number;
+  devices: string[];
+  bootSizeMiB: number;
+  updateBios: boolean;
+}
+
+export type OnboardingBootMode = 'usb' | 'storage';
+
+const normalizePersistedBoolean = (value: unknown, fallback = false): boolean => {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true') {
+      return true;
+    }
+    if (normalized === 'false') {
+      return false;
+    }
+  }
+
+  if (typeof value === 'number') {
+    if (value === 1) {
+      return true;
+    }
+    if (value === 0) {
+      return false;
+    }
+  }
+
+  return fallback;
+};
+
 const normalizePersistedPlugins = (value: unknown): string[] => {
   if (Array.isArray(value)) {
     return value.filter((item): item is string => typeof item === 'string');
@@ -11,6 +48,49 @@ const normalizePersistedPlugins = (value: unknown): string[] => {
   }
 
   return [];
+};
+
+const normalizePersistedInternalBootSelection = (
+  value: unknown
+): OnboardingInternalBootSelection | null => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const candidate = value as {
+    poolName?: unknown;
+    slotCount?: unknown;
+    devices?: unknown;
+    bootSizeMiB?: unknown;
+    updateBios?: unknown;
+  };
+
+  const poolName = typeof candidate.poolName === 'string' ? candidate.poolName : '';
+  const parsedSlotCount = Number(candidate.slotCount);
+  const slotCount = Number.isFinite(parsedSlotCount) ? Math.max(1, Math.min(2, parsedSlotCount)) : 1;
+  const devices = Array.isArray(candidate.devices)
+    ? candidate.devices.filter((item): item is string => typeof item === 'string')
+    : [];
+  const parsedBootSize = Number(candidate.bootSizeMiB);
+  const bootSizeMiB = Number.isFinite(parsedBootSize) && parsedBootSize > 0 ? parsedBootSize : 16384;
+
+  return {
+    poolName,
+    slotCount,
+    devices,
+    bootSizeMiB,
+    updateBios: normalizePersistedBoolean(candidate.updateBios, false),
+  };
+};
+
+const normalizePersistedBootMode = (
+  value: unknown,
+  internalBootSelection: OnboardingInternalBootSelection | null
+): OnboardingBootMode => {
+  if (value === 'usb' || value === 'storage') {
+    return value;
+  }
+  return internalBootSelection ? 'storage' : 'usb';
 };
 
 export const useOnboardingDraftStore = defineStore(
@@ -28,6 +108,13 @@ export const useOnboardingDraftStore = defineStore(
     // Plugins
     const selectedPlugins = ref<Set<string>>(new Set());
     const pluginSelectionInitialized = ref(false);
+
+    // Internal boot
+    const internalBootSelection = ref<OnboardingInternalBootSelection | null>(null);
+    const bootMode = ref<OnboardingBootMode>('usb');
+    const internalBootInitialized = ref(false);
+    const internalBootSkipped = ref(false);
+    const internalBootApplySucceeded = ref(false);
 
     // Navigation
     const currentStepIndex = ref(0);
@@ -55,6 +142,42 @@ export const useOnboardingDraftStore = defineStore(
       pluginSelectionInitialized.value = true;
     }
 
+    function setInternalBootSelection(selection: OnboardingInternalBootSelection) {
+      internalBootSelection.value = {
+        poolName: selection.poolName,
+        slotCount: selection.slotCount,
+        devices: [...selection.devices],
+        bootSizeMiB: selection.bootSizeMiB,
+        updateBios: selection.updateBios,
+      };
+      bootMode.value = 'storage';
+      internalBootInitialized.value = true;
+      internalBootSkipped.value = false;
+      internalBootApplySucceeded.value = false;
+    }
+
+    function skipInternalBoot() {
+      internalBootSelection.value = null;
+      bootMode.value = 'usb';
+      internalBootInitialized.value = true;
+      internalBootSkipped.value = true;
+      internalBootApplySucceeded.value = false;
+    }
+
+    function setBootMode(mode: OnboardingBootMode) {
+      bootMode.value = mode;
+      internalBootInitialized.value = true;
+      internalBootSkipped.value = false;
+      if (mode === 'usb') {
+        internalBootSelection.value = null;
+        internalBootApplySucceeded.value = false;
+      }
+    }
+
+    function setInternalBootApplySucceeded(value: boolean) {
+      internalBootApplySucceeded.value = value;
+    }
+
     function setStepIndex(index: number) {
       currentStepIndex.value = index;
     }
@@ -69,9 +192,18 @@ export const useOnboardingDraftStore = defineStore(
       coreSettingsInitialized,
       selectedPlugins,
       pluginSelectionInitialized,
+      internalBootSelection,
+      bootMode,
+      internalBootInitialized,
+      internalBootSkipped,
+      internalBootApplySucceeded,
       currentStepIndex,
       setCoreSettings,
       setPlugins,
+      setInternalBootSelection,
+      skipInternalBoot,
+      setBootMode,
+      setInternalBootApplySucceeded,
       setStepIndex,
     };
   },
@@ -85,6 +217,13 @@ export const useOnboardingDraftStore = defineStore(
         },
         deserialize: (value) => {
           const parsed = JSON.parse(value) as Record<string, unknown>;
+          const normalizedInternalBootSelection = normalizePersistedInternalBootSelection(
+            parsed.internalBootSelection
+          );
+          const normalizedBootMode = normalizePersistedBootMode(
+            parsed.bootMode,
+            normalizedInternalBootSelection
+          );
           const hasLegacyCoreDraft =
             (typeof parsed.serverName === 'string' && parsed.serverName.length > 0) ||
             (typeof parsed.serverDescription === 'string' && parsed.serverDescription.length > 0) ||
@@ -99,10 +238,22 @@ export const useOnboardingDraftStore = defineStore(
           return {
             ...parsed,
             selectedPlugins: new Set(normalizePersistedPlugins(parsed.selectedPlugins)),
-            coreSettingsInitialized: Boolean(parsed.coreSettingsInitialized || hasLegacyCoreDraft),
+            internalBootSelection: normalizedInternalBootSelection,
+            bootMode: normalizedBootMode,
+            internalBootInitialized: normalizePersistedBoolean(parsed.internalBootInitialized, false),
+            internalBootSkipped:
+              parsed.internalBootSkipped !== undefined
+                ? normalizePersistedBoolean(parsed.internalBootSkipped, normalizedBootMode === 'usb')
+                : normalizedBootMode === 'usb',
+            internalBootApplySucceeded: normalizePersistedBoolean(
+              parsed.internalBootApplySucceeded,
+              false
+            ),
+            coreSettingsInitialized:
+              hasLegacyCoreDraft || normalizePersistedBoolean(parsed.coreSettingsInitialized, false),
             pluginSelectionInitialized: hadLegacyPluginShape
               ? false
-              : Boolean(parsed.pluginSelectionInitialized),
+              : normalizePersistedBoolean(parsed.pluginSelectionInitialized, false),
           };
         },
       },

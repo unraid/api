@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
@@ -13,10 +13,12 @@ import {
   WrenchScrewdriverIcon,
 } from '@heroicons/vue/24/outline';
 import { CheckCircleIcon, EnvelopeIcon } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { BrandButton, Dialog } from '@unraid/ui';
 // Use ?raw to import SVG content string
 import UnraidIconSvg from '@/assets/partners/simple-icons-unraid.svg?raw';
+import { submitInternalBootReboot } from '@/components/Onboarding/composables/internalBoot';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
+import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 
 export interface Props {
   onComplete: () => void;
@@ -27,6 +29,7 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 const store = useActivationCodeDataStore();
+const draftStore = useOnboardingDraftStore();
 
 const partnerInfo = computed(() => store.partnerInfo);
 const activationCode = computed(() => store.activationCode);
@@ -45,6 +48,13 @@ const hasExtraLinks = computed(() => (partnerInfo.value?.partner?.extraLinks?.le
 // Check if we have any content to show in the "Learn about your server" section
 // Only show if there are LINKS (docs or extra links) - system specs alone isn't enough
 const hasAnyPartnerContent = computed(() => hasCoreDocsLinks.value || hasExtraLinks.value);
+const showRebootButton = computed(() => draftStore.internalBootApplySucceeded);
+const primaryButtonText = computed(() =>
+  showRebootButton.value
+    ? t('onboarding.nextSteps.reboot')
+    : t('onboarding.nextSteps.continueToDashboard')
+);
+const showRebootWarningDialog = ref(false);
 
 const basicsItems = [
   { label: t('onboarding.nextSteps.basics.shares'), url: 'https://docs.unraid.net/go/shares/' },
@@ -71,6 +81,24 @@ const handleMouseMove = (e: MouseEvent) => {
   const y = e.clientY - rect.top;
   el.style.setProperty('--x', `${x}px`);
   el.style.setProperty('--y', `${y}px`);
+};
+
+const handlePrimaryAction = () => {
+  if (showRebootButton.value) {
+    showRebootWarningDialog.value = true;
+    return;
+  }
+
+  props.onComplete();
+};
+
+const handleConfirmReboot = () => {
+  showRebootWarningDialog.value = false;
+  submitInternalBootReboot();
+};
+
+const handleCancelReboot = () => {
+  showRebootWarningDialog.value = false;
 };
 </script>
 
@@ -305,7 +333,7 @@ const handleMouseMove = (e: MouseEvent) => {
           <!-- Additional Links -->
           <div v-if="hasExtraLinks" class="border-primary/10 border-t pt-4">
             <p class="text-muted mb-2 text-xs font-bold tracking-wide uppercase opacity-70">
-              Additional Links
+              {{ t('onboarding.nextSteps.additionalLinks') }}
             </p>
             <ul class="space-y-1.5">
               <li v-for="link in partnerInfo?.partner?.extraLinks" :key="link.title">
@@ -324,6 +352,45 @@ const handleMouseMove = (e: MouseEvent) => {
         </div>
       </div>
 
+      <Dialog
+        v-if="showRebootWarningDialog"
+        :model-value="showRebootWarningDialog"
+        :show-footer="false"
+        :show-close-button="false"
+        size="md"
+        class="max-w-md"
+      >
+        <div class="space-y-6 p-2">
+          <div class="space-y-2">
+            <h3 class="text-lg font-semibold">{{ t('onboarding.nextSteps.confirmReboot.title') }}</h3>
+            <p class="text-muted-foreground text-sm">
+              {{ t('onboarding.nextSteps.confirmReboot.description') }}
+            </p>
+            <blockquote class="border-s-4 border-yellow-500 bg-yellow-100 p-3">
+              <p class="text-sm leading-relaxed text-yellow-900">
+                {{ t('onboarding.nextSteps.confirmReboot.warning') }}
+              </p>
+            </blockquote>
+          </div>
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              class="border-muted hover:bg-muted rounded-md border px-4 py-2 text-sm font-medium"
+              @click="handleCancelReboot"
+            >
+              {{ t('common.cancel') }}
+            </button>
+            <button
+              type="button"
+              class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
+              @click="handleConfirmReboot"
+            >
+              {{ t('onboarding.nextSteps.confirmReboot.confirm') }}
+            </button>
+          </div>
+        </div>
+      </Dialog>
+
       <!-- Footer -->
       <div
         class="border-muted mt-8 flex flex-col-reverse items-center justify-between gap-6 border-t pt-8 sm:flex-row"
@@ -339,9 +406,9 @@ const handleMouseMove = (e: MouseEvent) => {
         <div v-else class="hidden w-1 sm:block" />
 
         <BrandButton
-          :text="t('onboarding.nextSteps.continueToDashboard')"
+          :text="primaryButtonText"
           class="!bg-primary hover:!bg-primary/90 w-full min-w-[200px] !text-white shadow-md transition-all hover:shadow-lg sm:w-auto"
-          @click="props.onComplete"
+          @click="handlePrimaryAction"
           :icon-right="CheckCircleIcon"
         />
       </div>
