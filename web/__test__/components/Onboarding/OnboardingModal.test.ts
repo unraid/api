@@ -159,6 +159,7 @@ describe('OnboardingModal.vue', () => {
     activationCodeModalStore.isTemporarilyBypassed.value = false;
     activationCodeDataStore.activationRequired.value = false;
     activationCodeDataStore.hasActivationCode.value = true;
+    activationCodeDataStore.isFreshInstall.value = true;
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE';
     upgradeOnboardingStore.shouldShowOnboarding.value = false;
     upgradeOnboardingStore.isVersionDrift.value = false;
@@ -211,6 +212,17 @@ describe('OnboardingModal.vue', () => {
     activationCodeModalStore.isVisible.value = true;
     upgradeOnboardingStore.shouldShowOnboarding.value = true;
     upgradeOnboardingStore.canDisplayOnboardingModal.value = false;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(false);
+  });
+
+  it('does not render when system is not a fresh install', () => {
+    activationCodeDataStore.isFreshInstall.value = false;
+    activationCodeModalStore.isVisible.value = false;
+    upgradeOnboardingStore.shouldShowOnboarding.value = true;
+    upgradeOnboardingStore.canDisplayOnboardingModal.value = true;
 
     const wrapper = mountComponent();
 

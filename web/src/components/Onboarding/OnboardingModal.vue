@@ -29,7 +29,7 @@ const { t } = useI18n();
 
 const modalStore = useActivationCodeModalStore();
 const { isVisible, isTemporarilyBypassed } = storeToRefs(modalStore);
-const { activationRequired, hasActivationCode, registrationState } = storeToRefs(
+const { activationRequired, hasActivationCode, isFreshInstall, registrationState } = storeToRefs(
   useActivationCodeDataStore()
 );
 const onboardingStore = useUpgradeOnboardingStore();
@@ -118,6 +118,7 @@ const isLoginPage = computed(() => {
 const showModal = computed(
   () =>
     !isLoginPage.value &&
+    isFreshInstall.value &&
     canDisplayOnboardingModal.value &&
     !isTemporarilyBypassed.value &&
     (isVisible.value || shouldShowOnboarding.value)
