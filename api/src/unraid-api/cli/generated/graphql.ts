@@ -723,10 +723,6 @@ export type Disk = Node & {
   name: Scalars['String']['output'];
   /** The partitions on the disk */
   partitions: Array<DiskPartition>;
-  /** Sector size in bytes from emhttp devs.ini for this device */
-  sectorSize?: Maybe<Scalars['Float']['output']>;
-  /** Sector count from emhttp devs.ini for this device */
-  sectors?: Maybe<Scalars['Float']['output']>;
   /** The number of sectors per track */
   sectorsPerTrack: Scalars['Float']['output'];
   /** The serial number of the disk */

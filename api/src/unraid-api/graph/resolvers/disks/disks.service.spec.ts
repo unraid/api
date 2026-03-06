@@ -396,8 +396,6 @@ describe('DisksService', () => {
             expect(spinningDisk?.isSpinning).toBe(true); // From state
             expect(spinningDisk?.interfaceType).toBe(DiskInterfaceType.SATA);
             expect(spinningDisk?.emhttpDeviceId).toBe('WD-WCC7K7YL9876');
-            expect(spinningDisk?.sectors).toBe(7814037168);
-            expect(spinningDisk?.sectorSize).toBe(512);
 
             // Check spun down disk
             const spunDownDisk = disks.find((d) => d.id === 'WD-SPUNDOWN123');

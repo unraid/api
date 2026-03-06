@@ -343,12 +343,6 @@ type Disk implements Node {
   """
   emhttpDeviceId: String
 
-  """Sector count from emhttp devs.ini for this device"""
-  sectors: Float
-
-  """Sector size in bytes from emhttp devs.ini for this device"""
-  sectorSize: Float
-
   """The interface type of the disk"""
   interfaceType: DiskInterfaceType!
 

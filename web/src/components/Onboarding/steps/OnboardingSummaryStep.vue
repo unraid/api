@@ -195,30 +195,10 @@ const normalizeDeviceName = (value: string | null | undefined): string => {
   return trimmed;
 };
 
-const deriveDeviceSizeBytes = (
-  sectors: number | null | undefined,
-  sectorSize: number | null | undefined,
-  fallbackSize: number
-) => {
-  if (
-    typeof sectors === 'number' &&
-    Number.isFinite(sectors) &&
-    sectors > 0 &&
-    typeof sectorSize === 'number' &&
-    Number.isFinite(sectorSize) &&
-    sectorSize > 0
-  ) {
-    return sectors * sectorSize;
-  }
-  return fallbackSize;
-};
-
 interface InternalBootContextDisk {
   device: string;
   size: number;
   emhttpDeviceId?: string | null;
-  emhttpSectors?: number | null;
-  emhttpSectorSize?: number | null;
 }
 
 const internalBootDeviceLabelById = computed(() => {
@@ -234,7 +214,7 @@ const internalBootDeviceLabelById = computed(() => {
 
     const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
     const optionValue = emhttpDeviceId || device;
-    const sizeBytes = deriveDeviceSizeBytes(disk.emhttpSectors, disk.emhttpSectorSize, disk.size);
+    const sizeBytes = disk.size;
     const sizeLabel = formatBytes(sizeBytes);
     const label = `${optionValue} - ${sizeLabel} (${device})`;
 

@@ -131,22 +131,6 @@ export class Disk extends Node {
     @IsString()
     emhttpDeviceId?: string;
 
-    @Field(() => Number, {
-        nullable: true,
-        description: 'Sector count from emhttp devs.ini for this device',
-    })
-    @IsOptional()
-    @IsNumber()
-    sectors?: number;
-
-    @Field(() => Number, {
-        nullable: true,
-        description: 'Sector size in bytes from emhttp devs.ini for this device',
-    })
-    @IsOptional()
-    @IsNumber()
-    sectorSize?: number;
-
     @Field(() => DiskInterfaceType, { description: 'The interface type of the disk' })
     @IsEnum(DiskInterfaceType)
     interfaceType!: DiskInterfaceType;

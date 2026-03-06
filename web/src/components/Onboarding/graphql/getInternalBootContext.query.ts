@@ -31,8 +31,6 @@ export const GET_INTERNAL_BOOT_CONTEXT_QUERY = gql`
       device
       size
       emhttpDeviceId
-      emhttpSectors: sectors
-      emhttpSectorSize: sectorSize
     }
   }
 `;

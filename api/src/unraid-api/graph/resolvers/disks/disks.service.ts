@@ -44,31 +44,12 @@ const SmartDataSchema = z.object({
 interface EmhttpDevice {
     id?: string;
     device?: string;
-    sectors?: number;
-    sectorSize?: number;
 }
 
 interface EmhttpDeviceRecord {
     id?: unknown;
     device?: unknown;
-    sectors?: unknown;
-    sector_size?: unknown;
 }
-
-const parseNumeric = (value: unknown): number | undefined => {
-    if (typeof value === 'number' && Number.isFinite(value)) {
-        return value;
-    }
-
-    if (typeof value === 'string' && value.trim().length > 0) {
-        const parsed = Number(value);
-        if (Number.isFinite(parsed)) {
-            return parsed;
-        }
-    }
-
-    return undefined;
-};
 
 const normalizeDeviceName = (value: string | undefined): string => {
     if (!value) {
@@ -93,8 +74,6 @@ export class DisksService {
             const record = raw as EmhttpDeviceRecord;
             const id = typeof record.id === 'string' ? record.id.trim() : '';
             const device = typeof record.device === 'string' ? record.device.trim() : '';
-            const sectors = parseNumeric(record.sectors);
-            const sectorSize = parseNumeric(record.sector_size);
 
             if (!id || !device) {
                 continue;
@@ -103,8 +82,6 @@ export class DisksService {
             emhttpDevices.push({
                 id,
                 device: normalizeDeviceName(device),
-                sectors,
-                sectorSize,
             });
         }
 
@@ -238,15 +215,11 @@ export class DisksService {
 
         const arrayDisk = arrayDisks.find((d) => d.id.trim() === disk.serialNum.trim());
         const emhttpDevice = this.findEmhttpDevice(disk, emhttpDevices);
-        const sectors = emhttpDevice?.sectors;
-        const sectorSize = emhttpDevice?.sectorSize;
 
         return {
             ...disk,
             id: disk.serialNum, // Ensure id is set
             emhttpDeviceId: emhttpDevice?.id,
-            sectors,
-            sectorSize,
             smartStatus:
                 DiskSmartStatus[disk.smartStatus?.toUpperCase() as keyof typeof DiskSmartStatus] ??
                 DiskSmartStatus.UNKNOWN,
