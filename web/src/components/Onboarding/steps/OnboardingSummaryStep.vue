@@ -52,7 +52,7 @@ import type { OnboardingErrorDiagnostics } from '@/components/Onboarding/composa
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
-import { PluginInstallStatus, ThemeName } from '~/composables/gql/graphql';
+import { ArrayDiskType, PluginInstallStatus, ThemeName } from '~/composables/gql/graphql';
 
 export interface Props {
   onComplete: () => void;
@@ -136,6 +136,7 @@ const summaryServerDescription = computed(
 
 interface InternalBootContextArrayDisk {
   device?: string | null;
+  type?: ArrayDiskType | null;
 }
 
 interface InternalBootContextDisk {
@@ -192,6 +193,10 @@ const selectedBootMode = computed(() => {
   }
 
   const context = internalBootContextResult.value as InternalBootContextData | null;
+  const bootType = context?.array?.boot?.type;
+  if (bootType === ArrayDiskType.FLASH) {
+    return 'usb';
+  }
   const bootDevice = context?.array?.boot?.device;
   return typeof bootDevice === 'string' && bootDevice.trim().length > 0 ? 'storage' : 'usb';
 });

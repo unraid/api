@@ -15,7 +15,7 @@ import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/upd
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import OnboardingSummaryStep from '~/components/Onboarding/steps/OnboardingSummaryStep.vue';
-import { PluginInstallStatus } from '~/composables/gql/graphql';
+import { ArrayDiskType, PluginInstallStatus } from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 
 const {
@@ -1040,6 +1040,50 @@ describe('OnboardingSummaryStep', () => {
 
     expect(wrapper.text()).toContain('Boot Configuration');
     expect(wrapper.text()).toContain('USB/Flash Drive');
+  });
+
+  it('shows USB/Flash Drive when backend boot device type is FLASH', () => {
+    draftStore.bootMode = 'usb';
+    draftStore.internalBootSelection = null;
+    internalBootContextResult.value = {
+      array: {
+        boot: { device: 'sda', type: ArrayDiskType.FLASH },
+        parities: [],
+        disks: [],
+        caches: [],
+      },
+      vars: {
+        bootEligible: true,
+      },
+      disks: [],
+    };
+
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).toContain('Boot Configuration');
+    expect(wrapper.text()).toContain('USB/Flash Drive');
+  });
+
+  it('shows Storage Drive(s) when backend boot device type is non-FLASH', () => {
+    draftStore.bootMode = 'usb';
+    draftStore.internalBootSelection = null;
+    internalBootContextResult.value = {
+      array: {
+        boot: { device: 'sdb', type: ArrayDiskType.CACHE },
+        parities: [],
+        disks: [],
+        caches: [],
+      },
+      vars: {
+        bootEligible: true,
+      },
+      disks: [],
+    };
+
+    const { wrapper } = mountComponent();
+
+    expect(wrapper.text()).toContain('Boot Configuration');
+    expect(wrapper.text()).toContain('Storage Drive(s)');
   });
 
   it('falls back to USB boot mode when storage boot is selected but ineligible', () => {
