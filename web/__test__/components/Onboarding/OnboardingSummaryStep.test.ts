@@ -879,6 +879,46 @@ describe('OnboardingSummaryStep', () => {
     scenario.assertExpected(wrapper);
   });
 
+  it('retries completeOnboarding after transient network errors when SSH changed', async () => {
+    draftStore.useSsh = true;
+    updateSshSettingsMock.mockResolvedValue({
+      data: {
+        updateSshSettings: { id: 'vars', useSsh: true, portssh: 22 },
+      },
+    });
+    completeOnboardingMock
+      .mockRejectedValueOnce(new Error('NetworkError when attempting to fetch resource.'))
+      .mockResolvedValueOnce({});
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(completeOnboardingMock).toHaveBeenCalledTimes(2);
+    expect(wrapper.text()).toContain('Setup Applied');
+    expect(wrapper.text()).not.toContain('Could not mark onboarding complete right now');
+  });
+
+  it('retries final identity update after transient network errors when SSH changed', async () => {
+    draftStore.useSsh = true;
+    draftStore.serverDescription = 'Primary host';
+    updateSshSettingsMock.mockResolvedValue({
+      data: {
+        updateSshSettings: { id: 'vars', useSsh: true, portssh: 22 },
+      },
+    });
+    updateServerIdentityMock
+      .mockRejectedValueOnce(new Error('NetworkError when attempting to fetch resource.'))
+      .mockResolvedValueOnce({});
+
+    const { wrapper } = mountComponent();
+    await clickApply(wrapper);
+
+    expect(updateServerIdentityMock).toHaveBeenCalledTimes(2);
+    expect(wrapper.text()).toContain('Server Identity updated.');
+    expect(wrapper.text()).toContain('Setup Applied');
+    expect(wrapper.text()).not.toContain('Server identity request returned an error, continuing');
+  });
+
   it('prefers best-effort result over timeout classification when completion fails', async () => {
     draftStore.selectedPlugins = new Set(['community-apps']);
     const timeoutError = new Error(

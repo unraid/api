@@ -332,6 +332,77 @@ const isInstallTimeoutError = (error: unknown): boolean => {
   );
 };
 
+const NETWORK_RECOVERY_MAX_ATTEMPTS = 4;
+const NETWORK_RECOVERY_RETRY_MS = 1000;
+const NETWORK_ERROR_PATTERNS = [
+  'networkerror when attempting to fetch resource',
+  'failed to fetch',
+  'network error',
+  'ns_error_connection_refused',
+  'connection refused',
+];
+
+const hasNetworkLikeMessage = (message: string) => {
+  const normalized = message.toLowerCase();
+  return NETWORK_ERROR_PATTERNS.some((pattern) => normalized.includes(pattern));
+};
+
+const isTransientNetworkError = (error: unknown): boolean => {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const candidate = error as {
+    message?: unknown;
+    networkError?: unknown;
+    cause?: unknown;
+  };
+
+  if (candidate.networkError) {
+    return true;
+  }
+
+  if (typeof candidate.message === 'string' && hasNetworkLikeMessage(candidate.message)) {
+    return true;
+  }
+
+  if (candidate.cause instanceof Error && hasNetworkLikeMessage(candidate.cause.message)) {
+    return true;
+  }
+
+  return false;
+};
+
+const sleepMs = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+const runWithTransientNetworkRetry = async <T,>(
+  operation: () => Promise<T>,
+  enabled: boolean
+): Promise<T> => {
+  if (!enabled) {
+    return operation();
+  }
+
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= NETWORK_RECOVERY_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      return await operation();
+    } catch (caughtError: unknown) {
+      lastError = caughtError;
+      const shouldRetry =
+        isTransientNetworkError(caughtError) && attempt < NETWORK_RECOVERY_MAX_ATTEMPTS;
+      if (!shouldRetry) {
+        throw caughtError;
+      }
+
+      await sleepMs(NETWORK_RECOVERY_RETRY_MS);
+    }
+  }
+
+  throw lastError;
+};
+
 const isSshStateVerified = (
   vars: { useSsh?: boolean | null; portssh?: number | string | null } | undefined,
   targetEnabled: boolean,
@@ -654,6 +725,7 @@ const handleComplete = async () => {
     const shouldApplyTheme = baselineLoaded ? targetCoreSettings.theme !== currentTheme : true;
     const shouldApplyLocale = baselineLoaded ? targetCoreSettings.locale !== currentLocale : true;
     const shouldApplySsh = baselineLoaded ? targetCoreSettings.useSsh !== currentSsh : true;
+    const shouldRetryNetworkMutations = shouldApplySsh;
     const applyServerIdentityAtEnd = async () => {
       if (!shouldApplyServerIdentity) {
         return;
@@ -661,11 +733,15 @@ const handleComplete = async () => {
 
       addLog(summaryT('logs.updatingServerIdentity', { name: targetCoreSettings.serverName }), 'info');
       try {
-        await updateServerIdentity({
-          name: targetCoreSettings.serverName,
-          comment: targetCoreSettings.serverDescription,
-          sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
-        });
+        await runWithTransientNetworkRetry(
+          () =>
+            updateServerIdentity({
+              name: targetCoreSettings.serverName,
+              comment: targetCoreSettings.serverDescription,
+              sysModel: shouldApplyPartnerSysModel ? activationSystemModel.value : undefined,
+            }),
+          shouldRetryNetworkMutations
+        );
         addLog(summaryT('logs.serverIdentityUpdated'), 'success');
       } catch (caughtError: unknown) {
         hadNonOptimisticFailures = true;
@@ -1036,7 +1112,7 @@ const handleComplete = async () => {
 
     // 5. Mark Complete
     try {
-      await completeOnboarding();
+      await runWithTransientNetworkRetry(() => completeOnboarding(), shouldRetryNetworkMutations);
       completionMarked = true;
       cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
     } catch (caughtError: unknown) {

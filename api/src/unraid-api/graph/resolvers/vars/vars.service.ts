@@ -74,7 +74,31 @@ export class VarsService {
 
         // Helper to formatting values for emcmd (converting booleans to yes/no)
         const formatBool = (val: boolean | undefined | null) => (val ? 'yes' : 'no');
-        const formatVal = (val: any) => (val !== undefined && val !== null ? String(val) : '');
+        const formatVal = (val: unknown) => (val !== undefined && val !== null ? String(val) : '');
+        const formatSslMode = (val: unknown): string => {
+            if (typeof val === 'string') {
+                const normalized = val.trim().toLowerCase();
+                if (normalized === 'yes' || normalized === 'no' || normalized === 'auto') {
+                    return normalized;
+                }
+                if (normalized === 'true') {
+                    return 'yes';
+                }
+                if (normalized === 'false') {
+                    return 'no';
+                }
+            }
+
+            if (typeof val === 'boolean') {
+                return val ? 'yes' : 'no';
+            }
+
+            if (val === null) {
+                return 'auto';
+            }
+
+            return 'no';
+        };
 
         // Construct parameters based on ManagementAccess.page form fields
         // We preserve existing values for other fields to avoid overwriting them with defaults/empty
@@ -89,7 +113,7 @@ export class VarsService {
             USE_SSH: formatBool(enabled), // New Value
             PORTSSH: formatVal(port), // New Value
             USE_UPNP: formatBool(currentVars.useUpnp), // defaults to 'no'
-            USE_SSL: formatVal(currentVars.useSsl || 'no'),
+            USE_SSL: formatSslMode(currentVars.useSsl),
             PORT: formatVal(currentVars.port || '80'),
             PORTSSL: formatVal(currentVars.portssl || '443'),
             LOCAL_TLD: formatVal(currentVars.localTld || 'local'),

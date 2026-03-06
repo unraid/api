@@ -40,7 +40,7 @@ describe('VarsService', () => {
             useTelnet: false,
             porttelnet: 23,
             useUpnp: false,
-            useSsl: 'no',
+            useSsl: true,
             port: 80,
             portssl: 443,
             localTld: 'local',
@@ -97,7 +97,7 @@ describe('VarsService', () => {
                 USE_SSH: 'yes',
                 PORTSSH: '2222',
                 USE_UPNP: 'no',
-                USE_SSL: 'no',
+                USE_SSL: 'yes',
                 PORT: '80',
                 PORTSSL: '443',
                 LOCAL_TLD: 'local',
@@ -137,6 +137,24 @@ describe('VarsService', () => {
             useSsh: false,
             portssh: 22,
         });
+    });
+
+    it('preserves auto SSL mode when updating SSH settings', async () => {
+        currentVarState = {
+            ...currentVarState,
+            useSsl: null,
+        };
+
+        await service.updateSshSettings(true, 22);
+
+        expect(emcmd).toHaveBeenCalledWith(
+            expect.objectContaining({
+                USE_SSL: 'auto',
+                USE_SSH: 'yes',
+                PORTSSH: '22',
+            }),
+            { waitForToken: false }
+        );
     });
 
     it('swallows emcmd errors and returns last observed vars when unverifiable', async () => {
