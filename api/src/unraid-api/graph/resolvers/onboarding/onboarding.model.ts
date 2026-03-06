@@ -281,7 +281,7 @@ export class OnboardingOverrideInput {
 export class CreateInternalBootPoolInput {
     @Field(() => String)
     @IsString()
-    @Matches(/^[a-z]([a-z0-9~._-]*[a-z_-])*$/, {
+    @Matches(/^[a-z](?:[a-z0-9~._-]*[a-z_-])?$/, {
         message: 'Pool name must match Unraid naming requirements',
     })
     poolName!: string;
