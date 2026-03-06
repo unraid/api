@@ -63,7 +63,8 @@ export class DisksService {
     constructor(private readonly configService: ConfigService) {}
 
     private getEmhttpDevices(): EmhttpDevice[] {
-        const rawDevices = this.configService.get<unknown[]>('store.emhttp.devices', []);
+        const rawDevicesValue = this.configService.get<unknown>('store.emhttp.devices', []);
+        const rawDevices = Array.isArray(rawDevicesValue) ? rawDevicesValue : [];
         const emhttpDevices: EmhttpDevice[] = [];
 
         for (const raw of rawDevices) {

@@ -15,10 +15,21 @@ import { ArrayDiskType } from '@app/unraid-api/graph/resolvers/array/array.model
 
 const INTERNAL_BOOT_COMMAND_TIMEOUT_MS = 180000;
 const EFI_BOOT_PATH = '\\EFI\\BOOT\\BOOTX64.EFI';
+const UNRAID_INTERNAL_BOOT_LABEL_PREFIX = 'unraid internal boot -';
+const UNRAID_FLASH_LABEL = 'unraid flash';
 
 type EmhttpDeviceRecord = {
-    id?: unknown;
-    device?: unknown;
+    id: string;
+    device: string;
+};
+
+const isEmhttpDeviceRecord = (value: unknown): value is EmhttpDeviceRecord => {
+    if (!value || typeof value !== 'object') {
+        return false;
+    }
+
+    const record = value as { id?: unknown; device?: unknown };
+    return typeof record.id === 'string' && typeof record.device === 'string';
 };
 
 @Injectable()
@@ -75,6 +86,14 @@ export class OnboardingInternalBootService {
         return labels;
     }
 
+    private isUnraidManagedBootLabel(label: string): boolean {
+        const normalized = label.trim().toLowerCase();
+        return (
+            normalized.startsWith(UNRAID_INTERNAL_BOOT_LABEL_PREFIX) ||
+            normalized.includes(UNRAID_FLASH_LABEL)
+        );
+    }
+
     private async runEfiBootMgr(
         args: string[],
         output: string[]
@@ -122,12 +141,11 @@ export class OnboardingInternalBootService {
         const devicesById = new Map<string, string>();
 
         for (const rawDevice of rawDevices) {
-            if (!rawDevice || typeof rawDevice !== 'object') {
+            if (!isEmhttpDeviceRecord(rawDevice)) {
                 continue;
             }
-            const record = rawDevice as EmhttpDeviceRecord;
-            const id = typeof record.id === 'string' ? record.id.trim() : '';
-            const device = typeof record.device === 'string' ? record.device.trim() : '';
+            const id = rawDevice.id.trim();
+            const device = rawDevice.device.trim();
             if (id.length > 0 && device.length > 0) {
                 devicesById.set(id, device);
             }
@@ -168,7 +186,10 @@ export class OnboardingInternalBootService {
                 ? this.parseBootLabelMap(existingEntries.lines)
                 : new Map<string, string>();
 
-        for (const bootNumber of bootLabelMap.values()) {
+        for (const [label, bootNumber] of bootLabelMap.entries()) {
+            if (!this.isUnraidManagedBootLabel(label)) {
+                continue;
+            }
             const deleteResult = await this.runEfiBootMgr(['-b', bootNumber, '-B'], output);
             if (deleteResult.exitCode !== 0) {
                 hadFailures = true;

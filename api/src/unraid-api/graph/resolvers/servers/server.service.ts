@@ -39,7 +39,7 @@ export class ServerService {
             status: ServerStatus.ONLINE,
             wanip: '',
             lanip,
-            localurl: lanip ? `http://${lanip}:${port}` : '',
+            localurl: lanip ? `http://${lanip}${port ? `:${port}` : ''}` : '',
             remoteurl: '',
         };
     }

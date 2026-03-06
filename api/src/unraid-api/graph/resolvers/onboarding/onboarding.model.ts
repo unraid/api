@@ -8,6 +8,7 @@ import {
     IsEnum,
     IsIn,
     IsInt,
+    IsNotEmpty,
     IsOptional,
     IsString,
     Matches,
@@ -289,6 +290,7 @@ export class CreateInternalBootPoolInput {
     @ArrayMinSize(1)
     @ArrayMaxSize(4)
     @IsString({ each: true })
+    @IsNotEmpty({ each: true })
     devices!: string[];
 
     @Field(() => Int)

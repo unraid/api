@@ -87,7 +87,7 @@ describe('OnboardingInternalBootService', () => {
         } as unknown as ReturnType<typeof getters.emhttp>);
         vi.mocked(execa)
             .mockResolvedValueOnce({
-                stdout: 'Boot0001* Old Entry',
+                stdout: 'Boot0001* Unraid Internal Boot - stale',
                 stderr: '',
                 exitCode: 0,
             } as Awaited<ReturnType<typeof execa>>)
@@ -163,6 +163,45 @@ describe('OnboardingInternalBootService', () => {
             ['-o', '0003,0004', '-n', '0003'],
             { reject: false }
         );
+    });
+
+    it('deletes only Unraid-managed EFI entries during BIOS update', async () => {
+        vi.mocked(emcmd).mockResolvedValue({ ok: true } as Awaited<ReturnType<typeof emcmd>>);
+        vi.mocked(getters.emhttp).mockReturnValue({
+            devices: [{ id: 'disk-1', device: 'sdb' }],
+            disks: [{ type: 'FLASH', device: 'sda' }],
+        } as unknown as ReturnType<typeof getters.emhttp>);
+        vi.mocked(execa)
+            .mockResolvedValueOnce({
+                stdout: 'Boot0001* Windows Boot Manager\nBoot0002* Unraid Internal Boot - stale',
+                stderr: '',
+                exitCode: 0,
+            } as Awaited<ReturnType<typeof execa>>)
+            .mockResolvedValueOnce({
+                stdout: '',
+                stderr: '',
+                exitCode: 0,
+            } as Awaited<ReturnType<typeof execa>>)
+            .mockResolvedValue({
+                stdout: '',
+                stderr: '',
+                exitCode: 0,
+            } as Awaited<ReturnType<typeof execa>>);
+        const service = new OnboardingInternalBootService();
+
+        await service.createInternalBootPool({
+            poolName: 'cache',
+            devices: ['disk-1'],
+            bootSizeMiB: 16384,
+            updateBios: true,
+        });
+
+        expect(vi.mocked(execa)).toHaveBeenCalledWith('efibootmgr', ['-b', '0002', '-B'], {
+            reject: false,
+        });
+        expect(vi.mocked(execa)).not.toHaveBeenCalledWith('efibootmgr', ['-b', '0001', '-B'], {
+            reject: false,
+        });
     });
 
     it('returns success and warning output when efibootmgr updates fail', async () => {
