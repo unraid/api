@@ -17,8 +17,17 @@ const INTERNAL_BOOT_COMMAND_TIMEOUT_MS = 180000;
 const EFI_BOOT_PATH = '\\EFI\\BOOT\\BOOTX64.EFI';
 
 type EmhttpDeviceRecord = {
-    id?: unknown;
-    device?: unknown;
+    id: string;
+    device: string;
+};
+
+const isEmhttpDeviceRecord = (value: unknown): value is EmhttpDeviceRecord => {
+    if (!value || typeof value !== 'object') {
+        return false;
+    }
+
+    const record = value as { id?: unknown; device?: unknown };
+    return typeof record.id === 'string' && typeof record.device === 'string';
 };
 
 @Injectable()
@@ -122,12 +131,11 @@ export class OnboardingInternalBootService {
         const devicesById = new Map<string, string>();
 
         for (const rawDevice of rawDevices) {
-            if (!rawDevice || typeof rawDevice !== 'object') {
+            if (!isEmhttpDeviceRecord(rawDevice)) {
                 continue;
             }
-            const record = rawDevice as EmhttpDeviceRecord;
-            const id = typeof record.id === 'string' ? record.id.trim() : '';
-            const device = typeof record.device === 'string' ? record.device.trim() : '';
+            const id = rawDevice.id.trim();
+            const device = rawDevice.device.trim();
             if (id.length > 0 && device.length > 0) {
                 devicesById.set(id, device);
             }
