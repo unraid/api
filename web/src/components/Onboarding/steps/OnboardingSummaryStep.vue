@@ -134,9 +134,17 @@ const summaryServerDescription = computed(
   () => draftStore.serverDescription || coreSettingsResult.value?.server?.comment || ''
 );
 
-const selectedBootMode = computed(() =>
-  draftStore.bootMode === 'storage' || Boolean(draftStore.internalBootSelection) ? 'storage' : 'usb'
-);
+const selectedBootMode = computed(() => {
+  if (draftStore.bootMode === 'storage' || Boolean(draftStore.internalBootSelection)) {
+    return 'storage';
+  }
+
+  const context = internalBootContextResult.value as {
+    array?: { boot?: { device?: string | null } | null } | null;
+  } | null;
+  const bootDevice = context?.array?.boot?.device;
+  return typeof bootDevice === 'string' && bootDevice.trim().length > 0 ? 'storage' : 'usb';
+});
 const bootModeLabel = computed(() =>
   selectedBootMode.value === 'storage'
     ? t('onboarding.summaryStep.bootConfig.bootMethodStorage')
@@ -1176,7 +1184,7 @@ const handleBack = () => {
             <div v-if="summaryServerDescription" class="space-y-1">
               <span class="text-muted">{{ t('onboarding.coreSettings.serverDescription') }}</span>
               <div
-                class="border-muted bg-default text-highlighted min-h-10 w-full rounded-md border px-3 py-2 text-sm font-medium break-all"
+                class="border-muted bg-accented text-toned mt-1 min-h-10 w-full rounded-md border px-3 py-2 text-sm font-medium break-all"
                 aria-readonly="true"
               >
                 {{ summaryServerDescription }}
