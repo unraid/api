@@ -452,8 +452,9 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
     return null;
   }
 
-  const poolNamePattern = /^[a-z]([a-z0-9~._-]*[a-z_-])*$/;
-  if (!poolNamePattern.test(normalizedPoolName)) {
+  const poolNameHasValidChars = /^[a-z][a-z0-9~._-]*$/.test(normalizedPoolName);
+  const poolNameHasValidEnding = /[a-z_-]$/.test(normalizedPoolName);
+  if (!poolNameHasValidChars || !poolNameHasValidEnding) {
     formError.value = t('onboarding.internalBootStep.validation.poolFormat');
     return null;
   }

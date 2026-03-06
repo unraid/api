@@ -92,10 +92,23 @@ describe('internalBoot composable', () => {
       updateBios: true,
     });
 
-    expect(result).toEqual({
-      ok: false,
-      output: 'Internal boot setup request failed: empty API response.',
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain('Internal boot setup request failed');
+  });
+
+  it('returns structured failure when mutation throws', async () => {
+    mutateMock.mockRejectedValue(new Error('network down'));
+
+    const result = await submitInternalBootCreation({
+      poolName: 'cache',
+      devices: ['disk-1'],
+      bootSizeMiB: 16384,
+      updateBios: true,
     });
+
+    expect(result.ok).toBe(false);
+    expect(result.output).toContain('Internal boot setup request failed');
+    expect(result.output).toContain('network down');
   });
 
   it('passes reboot flag when requested', async () => {

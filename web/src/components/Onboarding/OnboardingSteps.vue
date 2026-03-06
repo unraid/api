@@ -2,19 +2,9 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import type { StepMetadataEntry } from '~/components/Onboarding/stepRegistry';
+import type { StepId, StepMetadataEntry } from '~/components/Onboarding/stepRegistry';
 
 import { stepMetadata } from '~/components/Onboarding/stepRegistry';
-
-// Hardcoded step type matching OnboardingModal
-type StepId =
-  | 'OVERVIEW'
-  | 'CONFIGURE_SETTINGS'
-  | 'CONFIGURE_BOOT'
-  | 'ADD_PLUGINS'
-  | 'ACTIVATE_LICENSE'
-  | 'SUMMARY'
-  | 'NEXT_STEPS';
 
 type HardcodedStep = { id: StepId; required: boolean };
 

@@ -8,7 +8,19 @@ import OnboardingOverviewStep from '~/components/Onboarding/steps/OnboardingOver
 import OnboardingPluginsStep from '~/components/Onboarding/steps/OnboardingPluginsStep.vue';
 import OnboardingSummaryStep from '~/components/Onboarding/steps/OnboardingSummaryStep.vue';
 
-export const stepComponents: Record<string, Component> = {
+export const STEP_IDS = [
+  'OVERVIEW',
+  'CONFIGURE_SETTINGS',
+  'CONFIGURE_BOOT',
+  'ADD_PLUGINS',
+  'ACTIVATE_LICENSE',
+  'SUMMARY',
+  'NEXT_STEPS',
+] as const;
+
+export type StepId = (typeof STEP_IDS)[number];
+
+export const stepComponents: Record<StepId, Component> = {
   OVERVIEW: OnboardingOverviewStep,
   CONFIGURE_SETTINGS: OnboardingCoreSettingsStep,
   CONFIGURE_BOOT: OnboardingInternalBootStep,
@@ -24,7 +36,7 @@ export type StepMetadataEntry = {
   icon: string;
 };
 
-export const stepMetadata: Record<string, StepMetadataEntry> = {
+export const stepMetadata: Record<StepId, StepMetadataEntry> = {
   OVERVIEW: {
     titleKey: 'onboarding.overviewStep.welcomeToUnraid',
     descriptionKey: 'onboarding.overviewStep.getStartedWithYourNewSystem',

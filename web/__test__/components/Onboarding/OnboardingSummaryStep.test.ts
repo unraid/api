@@ -1092,7 +1092,8 @@ describe('OnboardingSummaryStep', () => {
     await clickApply(wrapper);
 
     expect(setInternalBootApplySucceededMock).not.toHaveBeenCalledWith(true);
-    expect(wrapper.text()).toContain('Internal boot setup returned an error: mkbootpool failed');
+    expect(wrapper.text()).toContain('Internal boot setup returned an error');
+    expect(wrapper.text()).toContain('mkbootpool failed');
     expect(wrapper.text()).toContain('Setup Applied with Warnings');
   });
 

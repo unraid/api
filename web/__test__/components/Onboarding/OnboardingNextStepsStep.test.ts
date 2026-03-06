@@ -94,9 +94,7 @@ describe('OnboardingNextStepsStep', () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain('Confirm Reboot');
-    expect(wrapper.text()).toContain(
-      'On some systems, you may need to manually change the BIOS boot order from the USB device to the storage drive.'
-    );
+    expect(wrapper.text()).toContain('Please do NOT remove your Unraid flash drive');
     expect(submitInternalBootRebootMock).not.toHaveBeenCalled();
     expect(onComplete).not.toHaveBeenCalled();
 

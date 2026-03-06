@@ -33,33 +33,43 @@ export const submitInternalBootCreation = async (
   options: SubmitInternalBootOptions = {}
 ): Promise<InternalBootSubmitResult> => {
   const apolloClient = useApolloClient().client;
-  const { data } = await apolloClient.mutate({
-    mutation: CREATE_INTERNAL_BOOT_POOL_MUTATION,
-    variables: {
-      input: {
-        poolName: selection.poolName,
-        devices: selection.devices,
-        bootSizeMiB: selection.bootSizeMiB,
-        updateBios: selection.updateBios,
-        reboot: Boolean(options.reboot),
+  try {
+    const { data } = await apolloClient.mutate({
+      mutation: CREATE_INTERNAL_BOOT_POOL_MUTATION,
+      variables: {
+        input: {
+          poolName: selection.poolName,
+          devices: selection.devices,
+          bootSizeMiB: selection.bootSizeMiB,
+          updateBios: selection.updateBios,
+          reboot: Boolean(options.reboot),
+        },
       },
-    },
-    fetchPolicy: 'no-cache',
-  });
+      fetchPolicy: 'no-cache',
+    });
 
-  const result = data?.onboarding?.createInternalBootPool;
-  if (!result) {
+    const result = data?.onboarding?.createInternalBootPool;
+    if (!result) {
+      return {
+        ok: false,
+        output: 'Internal boot setup request failed: empty API response.',
+      };
+    }
+
+    return {
+      ok: result.ok,
+      code: result.code ?? undefined,
+      output: result.output?.trim() || 'No output',
+    };
+  } catch (error) {
     return {
       ok: false,
-      output: 'Internal boot setup request failed: empty API response.',
+      output:
+        error instanceof Error
+          ? `Internal boot setup request failed: ${error.message}`
+          : 'Internal boot setup request failed.',
     };
   }
-
-  return {
-    ok: result.ok,
-    code: result.code ?? undefined,
-    output: result.output?.trim() || 'No output',
-  };
 };
 
 export const submitInternalBootReboot = () => {

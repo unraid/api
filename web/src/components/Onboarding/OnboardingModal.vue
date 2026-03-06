@@ -11,6 +11,7 @@ import { GET_INTERNAL_BOOT_STEP_VISIBILITY_QUERY } from '@/components/Onboarding
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 
 import type { BrandButtonProps } from '@unraid/ui';
+import type { StepId } from '~/components/Onboarding/stepRegistry';
 import type { Component } from 'vue';
 
 import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
@@ -63,16 +64,6 @@ const showKeyfileHint = computed(() => activationRequired.value && hasKeyfile.va
 const activateHref = computed(() => purchaseStore.generateUrl('activate'));
 const activateExternal = computed(() => purchaseStore.openInNewTab);
 
-// Hardcoded step IDs matching the actual step flow
-type StepId =
-  | 'OVERVIEW'
-  | 'CONFIGURE_SETTINGS'
-  | 'CONFIGURE_BOOT'
-  | 'ADD_PLUGINS'
-  | 'ACTIVATE_LICENSE'
-  | 'SUMMARY'
-  | 'NEXT_STEPS';
-
 // Hardcoded step definitions - order matters for UI flow
 const HARDCODED_STEPS: Array<{ id: StepId; required: boolean }> = [
   { id: 'OVERVIEW', required: false },
@@ -98,9 +89,9 @@ const { result: internalBootVisibilityResult } = useQuery(
   }
 );
 
-const hideInternalBootStep = computed(() => {
-  const setting = internalBootVisibilityResult.value?.vars?.enableBootTransfer?.trim().toLowerCase();
-  return setting === 'no';
+const showInternalBootStep = computed(() => {
+  const setting = internalBootVisibilityResult.value?.vars?.enableBootTransfer;
+  return typeof setting === 'string' && setting.trim().toLowerCase() === 'yes';
 });
 
 // Determine which steps to show based on user state
@@ -110,7 +101,7 @@ const visibleHardcodedSteps = computed(() =>
       if (step.id !== 'CONFIGURE_BOOT') {
         return true;
       }
-      return !isPartnerBuild.value && !hideInternalBootStep.value;
+      return !isPartnerBuild.value && showInternalBootStep.value;
     }
   )
 );

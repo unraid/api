@@ -11,6 +11,33 @@ export interface OnboardingInternalBootSelection {
 
 export type OnboardingBootMode = 'usb' | 'storage';
 
+const normalizePersistedBoolean = (value: unknown, fallback = false): boolean => {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true') {
+      return true;
+    }
+    if (normalized === 'false') {
+      return false;
+    }
+  }
+
+  if (typeof value === 'number') {
+    if (value === 1) {
+      return true;
+    }
+    if (value === 0) {
+      return false;
+    }
+  }
+
+  return fallback;
+};
+
 const normalizePersistedPlugins = (value: unknown): string[] => {
   if (Array.isArray(value)) {
     return value.filter((item): item is string => typeof item === 'string');
@@ -52,7 +79,7 @@ const normalizePersistedInternalBootSelection = (
     slotCount,
     devices,
     bootSizeMiB,
-    updateBios: Boolean(candidate.updateBios),
+    updateBios: normalizePersistedBoolean(candidate.updateBios, false),
   };
 };
 
@@ -212,16 +239,20 @@ export const useOnboardingDraftStore = defineStore(
             selectedPlugins: new Set(normalizePersistedPlugins(parsed.selectedPlugins)),
             internalBootSelection: normalizedInternalBootSelection,
             bootMode: normalizedBootMode,
-            internalBootInitialized: Boolean(parsed.internalBootInitialized),
+            internalBootInitialized: normalizePersistedBoolean(parsed.internalBootInitialized, false),
             internalBootSkipped:
               parsed.internalBootSkipped !== undefined
-                ? Boolean(parsed.internalBootSkipped)
+                ? normalizePersistedBoolean(parsed.internalBootSkipped, normalizedBootMode === 'usb')
                 : normalizedBootMode === 'usb',
-            internalBootApplySucceeded: Boolean(parsed.internalBootApplySucceeded),
-            coreSettingsInitialized: Boolean(parsed.coreSettingsInitialized || hasLegacyCoreDraft),
+            internalBootApplySucceeded: normalizePersistedBoolean(
+              parsed.internalBootApplySucceeded,
+              false
+            ),
+            coreSettingsInitialized:
+              hasLegacyCoreDraft || normalizePersistedBoolean(parsed.coreSettingsInitialized, false),
             pluginSelectionInitialized: hadLegacyPluginShape
               ? false
-              : Boolean(parsed.pluginSelectionInitialized),
+              : normalizePersistedBoolean(parsed.pluginSelectionInitialized, false),
           };
         },
       },
