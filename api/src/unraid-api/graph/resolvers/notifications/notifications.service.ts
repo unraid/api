@@ -762,9 +762,9 @@ export class NotificationsService {
             const stats = await stat(path);
             return { path, stats };
         });
-        const statFailure = contentStats.find(
-            (result) => isRejected(result) && !this.isMissingFileError(result.reason)
-        );
+        const statFailure = contentStats
+            .filter(isRejected)
+            .find((result) => !this.isMissingFileError(result.reason));
 
         if (statFailure) {
             throw statFailure.reason;
