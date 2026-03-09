@@ -42,6 +42,8 @@ export class NotificationsService {
      */
     private path: string | null = null;
     private initialization: Promise<void> | null = null;
+    private isHydratingOverview = false;
+    private pendingNotificationAdds = new Set<string>();
 
     private static overview: NotificationOverview = {
         unread: {
@@ -94,8 +96,33 @@ export class NotificationsService {
     private initializeNotificationsState(basePath: string, recreate = false) {
         const initialize = async () => {
             await this.ensureNotificationDirectories(basePath);
-            await this.getNotificationsWatcher(basePath, recreate);
-            await this.recalculateOverview();
+            this.pendingNotificationAdds.clear();
+            this.isHydratingOverview = true;
+
+            try {
+                await this.getNotificationsWatcher(basePath, recreate);
+                const { errorOccurred, overview, seenPaths } = await this.buildOverviewSnapshot();
+                NotificationsService.overview = overview;
+                await this.publishOverview();
+
+                const pendingAdds = [...this.pendingNotificationAdds].filter(
+                    (path) => !seenPaths.has(path)
+                );
+                this.pendingNotificationAdds.clear();
+
+                for (const path of pendingAdds) {
+                    await this.processNotificationAdd(path);
+                }
+
+                if (errorOccurred) {
+                    this.logger.error(
+                        '[initializeNotificationsState] Failed to fully hydrate notification overview'
+                    );
+                }
+            } finally {
+                this.isHydratingOverview = false;
+                this.pendingNotificationAdds.clear();
+            }
         };
 
         const previousInitialization = this.initialization ?? Promise.resolve();
@@ -142,6 +169,15 @@ export class NotificationsService {
     }
 
     private async handleNotificationAdd(path: string) {
+        if (this.isHydratingOverview) {
+            this.pendingNotificationAdds.add(path);
+            return;
+        }
+
+        await this.processNotificationAdd(path);
+    }
+
+    private async processNotificationAdd(path: string) {
         // The path looks like /{notification base path}/{type}/{notification id}
         const type = path.includes('/unread/') ? NotificationType.UNREAD : NotificationType.ARCHIVE;
         // this.logger.debug(`Adding ${type} Notification: ${path}`);
@@ -213,6 +249,13 @@ export class NotificationsService {
     }
 
     public async recalculateOverview() {
+        const { errorOccurred, overview } = await this.buildOverviewSnapshot();
+        NotificationsService.overview = overview;
+        await this.publishOverview();
+        return { error: errorOccurred, overview: this.getOverview() };
+    }
+
+    private async buildOverviewSnapshot() {
         const overview: NotificationOverview = {
             unread: {
                 alert: 0,
@@ -227,6 +270,7 @@ export class NotificationsService {
                 total: 0,
             },
         };
+        const seenPaths = new Set<string>();
 
         // todo - refactor this to be more memory efficient
         // i.e. by using a lazy generator vs the current eager implementation
@@ -234,6 +278,7 @@ export class NotificationsService {
         // recalculates stats for a particular notification type
         const recalculate = async (type: NotificationType) => {
             const ids = await this.listFilesInFolder(this.paths()[type]);
+            ids.forEach((id) => seenPaths.add(id));
             const [notifications] = await this.loadNotificationsFromPaths(ids, {});
             notifications.forEach((n) => this.increment(n.importance, overview[type.toLowerCase()]));
         };
@@ -247,9 +292,7 @@ export class NotificationsService {
             results.errors.forEach((e) => this.logger.error('[recalculateOverview] ' + e));
         }
 
-        NotificationsService.overview = overview;
-        void this.publishOverview();
-        return { error: results.errorOccurred, overview: this.getOverview() };
+        return { errorOccurred: results.errorOccurred, overview, seenPaths };
     }
 
     /**------------------------------------------------------------------------
@@ -714,16 +757,24 @@ export class NotificationsService {
         sortFn: SortFn<Stats> = (fileA, fileB) => fileB.birthtimeMs - fileA.birthtimeMs // latest first
     ): Promise<string[]> {
         const contents = narrowContent(await readdir(folderPath));
-        const contentStats = (
-            await this.settleInBatches(contents, async (content) => {
-                const path = join(folderPath, content);
-                const stats = await stat(path);
-                return { path, stats };
-            })
-        )
-            .filter(isFulfilled)
-            .map((result) => result.value);
+        const contentStats = await this.settleInBatches(contents, async (content) => {
+            const path = join(folderPath, content);
+            const stats = await stat(path);
+            return { path, stats };
+        });
+        const statFailure = contentStats.find(
+            (result) => isRejected(result) && !this.isMissingFileError(result.reason)
+        );
+
+        if (statFailure) {
+            throw statFailure.reason;
+        }
+
         return contentStats
+            .filter((result): result is PromiseFulfilledResult<{ path: string; stats: Stats }> =>
+                isFulfilled(result)
+            )
+            .map((result) => result.value)
             .sort((fileA, fileB) => sortFn(fileA.stats, fileB.stats))
             .map(({ path }) => path);
     }

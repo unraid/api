@@ -30,9 +30,11 @@ const { mockWatch } = vi.hoisted(() => {
 vi.mock('fs/promises', async () => {
     const actual = await vi.importActual<typeof import('fs/promises')>('fs/promises');
     const mockReadFile = vi.fn();
+    const mockStat = vi.fn(actual.stat);
     return {
         ...actual,
         readFile: mockReadFile,
+        stat: mockStat,
     };
 });
 
@@ -100,11 +102,14 @@ const createNotificationsService = (notificationPath = testNotificationsDir) => 
 describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     let service: NotificationsService;
     let mockReadFile: typeof import('fs/promises').readFile;
+    let mockStat: typeof import('fs/promises').stat;
 
     beforeEach(async () => {
         const fsPromises = await import('fs/promises');
         mockReadFile = fsPromises.readFile;
+        mockStat = fsPromises.stat;
         vi.mocked(mockReadFile).mockClear();
+        vi.mocked(mockStat).mockClear();
         mockWatch.mockClear();
         Reflect.set(NotificationsService, 'watcher', null);
         service = createNotificationsService();
@@ -122,6 +127,54 @@ describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
                 ignoreInitial: true,
             })
         );
+    });
+
+    it('replays buffered add events after overview hydration', async () => {
+        const bufferedPath = `${testNotificationsDir}/unread/buffered.notify`;
+        const hydratedService = createNotificationsService();
+        const processNotificationAdd = vi.fn().mockResolvedValue(undefined);
+        const handleNotificationAdd = (
+            Reflect.get(hydratedService, 'handleNotificationAdd') as (path: string) => Promise<void>
+        ).bind(hydratedService);
+
+        Reflect.set(
+            hydratedService,
+            'ensureNotificationDirectories',
+            vi.fn().mockResolvedValue(undefined)
+        );
+        Reflect.set(hydratedService, 'publishOverview', vi.fn().mockResolvedValue(undefined));
+        Reflect.set(hydratedService, 'processNotificationAdd', processNotificationAdd);
+        Reflect.set(
+            hydratedService,
+            'getNotificationsWatcher',
+            vi.fn().mockImplementation(async () => {
+                await handleNotificationAdd(bufferedPath);
+                return {
+                    close: vi.fn().mockResolvedValue(undefined),
+                    on: vi.fn().mockReturnThis(),
+                };
+            })
+        );
+        Reflect.set(
+            hydratedService,
+            'buildOverviewSnapshot',
+            vi.fn().mockResolvedValue({
+                errorOccurred: false,
+                overview: {
+                    unread: { alert: 0, info: 0, warning: 0, total: 0 },
+                    archive: { alert: 0, info: 0, warning: 0, total: 0 },
+                },
+                seenPaths: new Set<string>(),
+            })
+        );
+
+        await Reflect.get(hydratedService, 'initializeNotificationsState').call(
+            hydratedService,
+            testNotificationsDir,
+            true
+        );
+
+        expect(processNotificationAdd).toHaveBeenCalledWith(bufferedPath);
     });
 
     it('should load and validate a valid notification file', async () => {
@@ -302,6 +355,17 @@ importance=alert`;
 
         expect(notifications).toHaveLength(fileCount);
         expect(maxConcurrentReads).toBeLessThanOrEqual(32);
+    });
+
+    it('surfaces stat failures when listing notification files', async () => {
+        const unreadPath = join(testNotificationsDir, 'unread');
+        const filePath = join(unreadPath, 'stat-failure.notify');
+        writeFileSync(filePath, 'timestamp=1609459200');
+        vi.mocked(mockStat).mockRejectedValueOnce(new Error('stat failed'));
+
+        await expect(
+            Reflect.get(service, 'listFilesInFolder').call(service, unreadPath)
+        ).rejects.toThrow();
     });
 });
 
