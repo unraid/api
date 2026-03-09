@@ -12,6 +12,7 @@ import type { Mock } from 'vitest';
 
 import { useAccountStore } from '~/store/account';
 import { useCallbackActionsStore } from '~/store/callbackActions';
+import { keyActionRefreshDelayMs } from '~/store/callbackActions.helpers';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 // Mock console methods to suppress output
@@ -293,7 +294,10 @@ describe('Callback Actions Store', () => {
       await savePromise;
 
       expect(mockRefreshServerState).toHaveBeenCalledTimes(1);
-      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({
+        poll: false,
+        delayMs: keyActionRefreshDelayMs,
+      });
     });
 
     it('should handle sign in action', async () => {
@@ -495,7 +499,10 @@ describe('Callback Actions Store', () => {
       expect(mockInstall).toHaveBeenCalledWith(mockData.actions[0]);
       expect(vi.mocked(useAccountStore)().setAccountAction).not.toHaveBeenCalled();
       expect(vi.mocked(useUpdateOsActionsStore)().setUpdateOsAction).not.toHaveBeenCalled();
-      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({
+        poll: false,
+        delayMs: keyActionRefreshDelayMs,
+      });
       expect(store.callbackStatus).toBe('success');
     });
 
@@ -514,7 +521,10 @@ describe('Callback Actions Store', () => {
       await store.saveCallbackData(mockData);
 
       expect(mockInstall).toHaveBeenCalledWith(mockData.actions[0]);
-      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({
+        poll: false,
+        delayMs: keyActionRefreshDelayMs,
+      });
       expect(store.callbackStatus).toBe('success');
     });
 
@@ -534,7 +544,10 @@ describe('Callback Actions Store', () => {
 
       await store.saveCallbackData(mockData);
 
-      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({
+        poll: false,
+        delayMs: keyActionRefreshDelayMs,
+      });
       expect(store.callbackStatus).toBe('success');
     });
 
@@ -616,7 +629,10 @@ describe('Callback Actions Store', () => {
 
       await store.saveCallbackData(mockData);
 
-      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({
+        poll: false,
+        delayMs: keyActionRefreshDelayMs,
+      });
       expect(store.callbackStatus).toBe('success');
     });
 
@@ -661,9 +677,12 @@ describe('Callback Actions Store', () => {
         sender: 'test',
       };
 
-      store.saveCallbackData(mockData);
-      await nextTick();
+      await store.saveCallbackData(mockData);
 
+      expect(mockRefreshServerState).toHaveBeenCalledWith({
+        poll: false,
+        delayMs: keyActionRefreshDelayMs,
+      });
       expect(store.callbackStatus).toBe('loading');
 
       mockAccountActionStatus.value = 'success';

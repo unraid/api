@@ -300,6 +300,7 @@ const showUpdateEligibility = computed(() => {
           v-if="
             stateDataError &&
             callbackStatus !== 'loading' &&
+            refreshServerStateStatus === 'done' &&
             (keyInstallStatus === 'success' || keyInstallStatus === 'failed')
           "
           :error="true"

@@ -14,6 +14,7 @@ import {
   isKeyAction,
   isSingleUpdateOsActionCallback,
   isUpdateOsAction,
+  keyActionRefreshDelayMs,
   resolveCallbackStatus,
   shouldRefreshServerState,
 } from '~/store/callbackActions.helpers';
@@ -129,14 +130,28 @@ describe('callbackActions.helpers', () => {
   });
 
   describe('getRefreshServerStateOptions', () => {
-    it('does a one-shot refresh for key-only callbacks', () => {
-      expect(getRefreshServerStateOptions([keyAction()])).toEqual({ poll: false });
-      expect(getRefreshServerStateOptions([keyAction('replace')])).toEqual({ poll: false });
+    it('does a delayed one-shot refresh for key callbacks', () => {
+      expect(getRefreshServerStateOptions([keyAction()])).toEqual({
+        poll: false,
+        delayMs: keyActionRefreshDelayMs,
+      });
+      expect(getRefreshServerStateOptions([keyAction('replace')])).toEqual({
+        poll: false,
+        delayMs: keyActionRefreshDelayMs,
+      });
+      expect(getRefreshServerStateOptions([keyAction(), signInAction()])).toEqual({
+        poll: false,
+        delayMs: keyActionRefreshDelayMs,
+      });
     });
 
-    it('does a one-shot refresh for account and mixed update callbacks', () => {
+    it('does an immediate one-shot refresh for account and non-key mixed update callbacks', () => {
       expect(getRefreshServerStateOptions([signInAction()])).toEqual({ poll: false });
-      expect(getRefreshServerStateOptions([keyAction(), updateOsAction()])).toEqual({ poll: false });
+      expect(getRefreshServerStateOptions([signInAction(), updateOsAction()])).toEqual({ poll: false });
+      expect(getRefreshServerStateOptions([keyAction(), updateOsAction()])).toEqual({
+        poll: false,
+        delayMs: keyActionRefreshDelayMs,
+      });
     });
 
     it('skips refresh for single update callbacks', () => {

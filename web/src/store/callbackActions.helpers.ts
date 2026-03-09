@@ -12,8 +12,11 @@ export type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'succes
 export type CallbackAccountStatus = 'failed' | 'ready' | 'success' | 'updating' | 'waiting';
 export type CallbackKeyInstallStatus = 'failed' | 'installing' | 'ready' | 'success';
 export interface CallbackRefreshServerStateOptions {
+  delayMs?: number;
   poll: boolean;
 }
+
+export const keyActionRefreshDelayMs = 5000;
 
 export const keyActionTypes = [
   'activate',
@@ -74,7 +77,7 @@ export const getRefreshServerStateOptions = (
   actions: ExternalActions[]
 ): CallbackRefreshServerStateOptions | undefined => {
   if (shouldRefreshServerState(actions)) {
-    return { poll: false };
+    return hasKeyAction(actions) ? { poll: false, delayMs: keyActionRefreshDelayMs } : { poll: false };
   }
 
   return undefined;

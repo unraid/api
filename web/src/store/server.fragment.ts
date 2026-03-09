@@ -79,6 +79,7 @@ export const SERVER_STATE_QUERY = graphql(/* GraphQL */ `
       username
     }
     registration {
+      type
       state
       expiration
       keyFile {

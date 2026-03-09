@@ -252,6 +252,34 @@ describe('CallbackFeedback.vue', () => {
     expect(wrapper.find('.modal').attributes('data-error')).toBe('false');
   });
 
+  it('hides the post-install key error until reconciliation finishes', () => {
+    callbackStatus.value = 'success';
+    keyActionType.value = 'purchase';
+    keyInstallStatus.value = 'success';
+    keyType.value = 'Pro';
+    stateDataError.value = true;
+    refreshServerStateStatus.value = 'ready';
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.text()).not.toContain('Post Install License Key Error');
+    expect(wrapper.text()).not.toContain('Something went wrong');
+  });
+
+  it('renders the post-install key error after reconciliation still reports a problem', () => {
+    callbackStatus.value = 'success';
+    keyActionType.value = 'purchase';
+    keyInstallStatus.value = 'success';
+    keyType.value = 'Pro';
+    stateDataError.value = true;
+    refreshServerStateStatus.value = 'done';
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.text()).toContain('Post Install License Key Error');
+    expect(wrapper.text()).toContain('Something went wrong');
+  });
+
   it('renders the generic error state for failed key installs', () => {
     callbackStatus.value = 'error';
     keyActionType.value = 'purchase';
