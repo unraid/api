@@ -20,6 +20,20 @@ import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
 
+const keyActionTypes = [
+  'recover',
+  'replace',
+  'trialExtend',
+  'trialStart',
+  'purchase',
+  'redeem',
+  'renew',
+  'upgrade',
+] as const;
+
+const accountActionTypes = ['signIn', 'signOut', 'oemSignOut'] as const;
+const updateOsActionTypes = ['updateOs', 'downgradeOs'] as const;
+
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const {
     send,
@@ -59,17 +73,6 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     redirectToCallbackType?.();
   };
 
-  const actionTypesWithKey = [
-    'recover',
-    'replace',
-    'trialExtend',
-    'trialStart',
-    'purchase',
-    'redeem',
-    'renew',
-    'upgrade',
-  ];
-
   const redirectToCallbackType = () => {
     console.debug('[redirectToCallbackType]');
     if (
@@ -86,76 +89,104 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     callbackStatus.value = 'loading';
 
     // Parse the data and perform actions
-    callbackData.value.actions.forEach(
-      async (action: ExternalActions, index: number, array: ExternalActions[]) => {
-        console.debug('[redirectToCallbackType]', { action, index, array });
+    callbackData.value.actions.forEach(async (action: ExternalActions, index: number, array) => {
+      console.debug('[redirectToCallbackType]', { action, index, array });
 
-        if (actionTypesWithKey.includes(action.type)) {
-          await getInstallKeyStore().install(action as ExternalKeyActions);
+      if (keyActionTypes.includes(action.type)) {
+        await getInstallKeyStore().install(action as ExternalKeyActions);
+      }
+
+      if (action.type === 'signIn' && action?.user) {
+        const accountStore = getAccountStore();
+        accountStore.setAccountAction(action as ExternalSignIn);
+        await accountStore.setConnectSignInPayload({
+          apiKey: action?.apiKey ?? '',
+          email: action.user?.email ?? '',
+          preferred_username: action.user?.preferred_username ?? '',
+        });
+      }
+
+      if (action.type === 'signOut' || action.type === 'oemSignOut') {
+        const accountStore = getAccountStore();
+        accountStore.setAccountAction(action as ExternalSignOut);
+        await accountStore.setQueueConnectSignOut(true);
+      }
+
+      if (action.type === 'updateOs' || action.type === 'downgradeOs') {
+        const updateOsActionsStore = getUpdateOsActionsStore();
+        updateOsActionsStore.setUpdateOsAction(action as ExternalUpdateOsAction);
+        await updateOsActionsStore.actOnUpdateOsAction(action.type === 'downgradeOs');
+
+        if (array.length === 1) {
+          // only 1 action, skip refresh server state
+          console.debug('[redirectToCallbackType] updateOs done');
+          // removing query string relase is set so users can't refresh the page and go through the same actions
+          window.history.replaceState(null, '', window.location.pathname);
+          return;
         }
+      }
 
-        if (action.type === 'signIn' && action?.user) {
-          const accountStore = getAccountStore();
-          accountStore.setAccountAction(action as ExternalSignIn);
-          await accountStore.setConnectSignInPayload({
-            apiKey: action?.apiKey ?? '',
-            email: action.user?.email ?? '',
-            preferred_username: action.user?.preferred_username ?? '',
-          });
-        }
+      if (array.length === index + 1) {
+        const shouldRefreshServerState = array.some(
+          (callbackAction) =>
+            accountActionTypes.includes(callbackAction.type) ||
+            updateOsActionTypes.includes(callbackAction.type)
+        );
 
-        if (action.type === 'signOut' || action.type === 'oemSignOut') {
-          const accountStore = getAccountStore();
-          accountStore.setAccountAction(action as ExternalSignOut);
-          await accountStore.setQueueConnectSignOut(true);
-        }
-
-        if (action.type === 'updateOs' || action.type === 'downgradeOs') {
-          const updateOsActionsStore = getUpdateOsActionsStore();
-          updateOsActionsStore.setUpdateOsAction(action as ExternalUpdateOsAction);
-          await updateOsActionsStore.actOnUpdateOsAction(action.type === 'downgradeOs');
-
-          if (array.length === 1) {
-            // only 1 action, skip refresh server state
-            console.debug('[redirectToCallbackType] updateOs done');
-            // removing query string relase is set so users can't refresh the page and go through the same actions
-            window.history.replaceState(null, '', window.location.pathname);
-            return;
-          }
-        }
-
-        if (array.length === index + 1) {
-          // all actions have run
+        if (shouldRefreshServerState) {
           await getServerStore().refreshServerState();
         }
       }
-    );
+    });
   };
 
-  // Wait until we have a refreshServerStateStatus value to determine callbackStatus
+  const hasKeyAction = computed(() =>
+    Boolean(callbackData.value?.actions?.some((action) => keyActionTypes.includes(action.type)))
+  );
+  const hasAccountAction = computed(() =>
+    Boolean(callbackData.value?.actions?.some((action) => accountActionTypes.includes(action.type)))
+  );
+  const hasUpdateOsAction = computed(() =>
+    Boolean(callbackData.value?.actions?.some((action) => updateOsActionTypes.includes(action.type)))
+  );
+
   const refreshServerStateStatus = computed(() => getServerStore().refreshServerStateStatus);
   watchEffect(() => {
-    if (callbackData.value?.actions && refreshServerStateStatus.value === 'done') {
-      const accountStore = getAccountStore();
-      const installKeyStore = getInstallKeyStore();
-
-      if (callbackData.value.actions.length > 1) {
-        // if we have more than 1 action it means there was a key install and an account action so both need to be successful
-        const allSuccess =
-          accountStore.accountActionStatus === 'success' &&
-          installKeyStore.keyInstallStatus === 'success';
-        callbackStatus.value = allSuccess ? 'success' : 'error';
-      } else {
-        // only 1 action needs to be successful
-        const oneSuccess =
-          accountStore.accountActionStatus === 'success' ||
-          installKeyStore.keyInstallStatus === 'success';
-        callbackStatus.value = oneSuccess ? 'success' : 'error';
-      }
+    if (!callbackData.value?.actions?.length) {
+      return;
     }
-    /** @todo ensure timeout messaging is correct */
-    if (callbackData.value?.actions && refreshServerStateStatus.value === 'timeout') {
+
+    const accountStore = getAccountStore();
+    const installKeyStore = getInstallKeyStore();
+    const accountStatus = accountStore.accountActionStatus;
+    const keyStatus = installKeyStore.keyInstallStatus;
+
+    if (
+      (hasKeyAction.value && keyStatus === 'failed') ||
+      (hasAccountAction.value && accountStatus === 'failed')
+    ) {
       callbackStatus.value = 'error';
+      return;
+    }
+
+    if (hasUpdateOsAction.value) {
+      if (refreshServerStateStatus.value === 'done') {
+        callbackStatus.value = 'success';
+        return;
+      }
+
+      if (refreshServerStateStatus.value === 'timeout') {
+        callbackStatus.value = 'error';
+      }
+
+      return;
+    }
+
+    const keyActionSucceeded = !hasKeyAction.value || keyStatus === 'success';
+    const accountActionSucceeded = !hasAccountAction.value || accountStatus === 'success';
+
+    if (keyActionSucceeded && accountActionSucceeded) {
+      callbackStatus.value = 'success';
     }
   });
 

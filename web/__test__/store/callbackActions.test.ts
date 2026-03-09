@@ -31,6 +31,10 @@ afterAll(() => {
 });
 
 // Mock modules using factory functions to avoid hoisting issues
+const mockAccountActionStatus = ref('success');
+const mockKeyInstallStatus = ref('success');
+const mockRefreshServerStateStatus = ref<'done' | 'ready' | 'refreshing' | 'timeout'>('done');
+
 vi.mock('@unraid/shared-callbacks', () => {
   const mockWatcher = vi.fn();
   const mockSend = vi.fn();
@@ -69,7 +73,9 @@ vi.mock('~/store/account', () => {
       setAccountAction,
       setConnectSignInPayload,
       setQueueConnectSignOut,
-      accountActionStatus: ref('success'),
+      get accountActionStatus() {
+        return mockAccountActionStatus.value;
+      },
     })),
   };
 });
@@ -85,7 +91,9 @@ vi.mock('~/store/installKey', () => {
       $subscribe: vi.fn(),
       $dispose: vi.fn(),
       install,
-      keyInstallStatus: ref('success'),
+      get keyInstallStatus() {
+        return mockKeyInstallStatus.value;
+      },
     })),
   };
 });
@@ -101,7 +109,9 @@ vi.mock('~/store/server', () => {
       $subscribe: vi.fn(),
       $dispose: vi.fn(),
       refreshServerState,
-      refreshServerStateStatus: ref('done'),
+      get refreshServerStateStatus() {
+        return mockRefreshServerStateStatus.value;
+      },
     })),
   };
 });
@@ -142,6 +152,9 @@ describe('Callback Actions Store', () => {
 
   beforeEach(async () => {
     setActivePinia(createPinia());
+    mockAccountActionStatus.value = 'success';
+    mockKeyInstallStatus.value = 'success';
+    mockRefreshServerStateStatus.value = 'done';
     store = useCallbackActionsStore();
 
     const preventCloseModule = await import('~/composables/preventClose');
@@ -415,7 +428,28 @@ describe('Callback Actions Store', () => {
       expect(mockInstallKeyStore.install).toHaveBeenCalledWith(mockData.actions[0]);
       expect(vi.mocked(useAccountStore)().setAccountAction).not.toHaveBeenCalled();
       expect(vi.mocked(useUpdateOsActionsStore)().setUpdateOsAction).not.toHaveBeenCalled();
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalled();
+      expect(vi.mocked(useServerStore)().refreshServerState).not.toHaveBeenCalled();
+      expect(store.callbackStatus).toBe('success');
+    });
+
+    it('should keep key install callbacks successful even when server refresh status times out', async () => {
+      mockRefreshServerStateStatus.value = 'timeout';
+
+      const mockData: QueryPayloads = {
+        type: 'forUpc',
+        actions: [
+          {
+            type: 'purchase',
+            keyUrl: 'mock-key-url',
+          },
+        ],
+        sender: 'test',
+      };
+
+      store.saveCallbackData(mockData);
+      await nextTick();
+
+      expect(store.callbackStatus).toBe('success');
     });
   });
 

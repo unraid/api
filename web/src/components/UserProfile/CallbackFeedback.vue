@@ -101,20 +101,8 @@ const subheading = computed(() => {
     if (accountActionType.value === 'signIn') {
       return t('userProfile.callbackFeedback.youReOneStepCloserTo');
     }
-    if (keyActionType.value === 'purchase') {
-      return t('userProfile.callbackFeedback.thankYouForPurchasingAnUnraid', [keyType.value]);
-    }
-    if (keyActionType.value === 'replace') {
-      return t('userProfile.callbackFeedback.yourKeyHasBeenReplaced', [keyType.value]);
-    }
-    if (keyActionType.value === 'trialExtend') {
-      return t('userProfile.callbackFeedback.yourTrialKeyHasBeenExtended');
-    }
-    if (keyActionType.value === 'trialStart') {
-      return t('userProfile.callbackFeedback.yourFreeTrialKeyProvidesAll');
-    }
-    if (keyActionType.value === 'upgrade') {
-      return t('userProfile.callbackFeedback.thankYouForUpgradingToAn', [keyType.value]);
+    if (keyActionType.value) {
+      return t('userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired');
     }
     return '';
   }
