@@ -31,6 +31,29 @@ import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils
 // defined outside `describe` so it's defined inside the `beforeAll`
 // needed to mock the dynamix import
 const basePath = '/tmp/test/notifications';
+const zeroOverview = (): NotificationOverview => ({
+    unread: {
+        alert: 0,
+        info: 0,
+        warning: 0,
+        total: 0,
+    },
+    archive: {
+        alert: 0,
+        info: 0,
+        warning: 0,
+        total: 0,
+    },
+});
+
+async function disableNotificationsWatcher() {
+    const watcher = Reflect.get(NotificationsService, 'watcher') as {
+        close?: () => Promise<void>;
+    } | null;
+    await watcher?.close?.();
+    Reflect.set(NotificationsService, 'watcher', null);
+    Reflect.set(NotificationsService, 'overview', zeroOverview());
+}
 
 // we run sequentially here because this module's state depends on external, shared systems
 // rn, it's complicated to make the tests atomic & isolated
@@ -62,6 +85,7 @@ describe.sequential('NotificationsService', () => {
         }).compile();
 
         service = module.get<NotificationsService>(NotificationsService); // this might need to be a module.resolve instead of get
+        await disableNotificationsWatcher();
         vi.spyOn(service, 'paths').mockImplementation(() => testPaths);
 
         await service.deleteAllNotifications();
@@ -69,6 +93,7 @@ describe.sequential('NotificationsService', () => {
 
     // make sure each test is isolated (as much as possible)
     afterEach(async () => {
+        Reflect.set(NotificationsService, 'overview', zeroOverview());
         await service.deleteAllNotifications();
     });
 
@@ -503,6 +528,7 @@ describe.concurrent('NotificationsService legacy script compatibility', () => {
         }).compile();
 
         service = module.get<NotificationsService>(NotificationsService);
+        await disableNotificationsWatcher();
     });
 
     it.for([['normal'], ['warning'], ['alert']] as const)(
