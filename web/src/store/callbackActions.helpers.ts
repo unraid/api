@@ -92,6 +92,11 @@ interface ResolveCallbackStatusInput {
   keyInstallStatus: CallbackKeyInstallStatus;
 }
 
+interface ResolveCallbackCallsCompletedInput {
+  callbackActionsExecuting: boolean;
+  callbackReconciliationPending: boolean;
+}
+
 export const resolveCallbackStatus = ({
   actions,
   accountActionStatus,
@@ -124,3 +129,9 @@ export const resolveCallbackStatus = ({
 
   return hasKeyAction(actions) || hasAccountAction(actions) ? 'success' : undefined;
 };
+
+export const resolveCallbackCallsCompleted = ({
+  callbackActionsExecuting,
+  callbackReconciliationPending,
+}: ResolveCallbackCallsCompletedInput): boolean =>
+  !callbackActionsExecuting && !callbackReconciliationPending;

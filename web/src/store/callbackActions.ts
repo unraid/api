@@ -17,6 +17,7 @@ import {
   isKeyAction,
   isSingleUpdateOsActionCallback,
   isUpdateOsAction,
+  resolveCallbackCallsCompleted,
   resolveCallbackStatus,
 } from '~/store/callbackActions.helpers';
 import { useInstallKeyStore } from '~/store/installKey';
@@ -167,8 +168,11 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
   const accountActionStatus = computed(() => getAccountStore().accountActionStatus);
   const keyInstallStatus = computed(() => getInstallKeyStore().keyInstallStatus);
-  const callbackCallsCompleted = computed(
-    () => !callbackActionsExecuting.value && !callbackReconciliationPending.value
+  const callbackCallsCompleted = computed(() =>
+    resolveCallbackCallsCompleted({
+      callbackActionsExecuting: callbackActionsExecuting.value,
+      callbackReconciliationPending: callbackReconciliationPending.value,
+    })
   );
   watch([callbackData, accountActionStatus, keyInstallStatus], updateResolvedCallbackStatus);
 

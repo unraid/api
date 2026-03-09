@@ -15,6 +15,7 @@ import {
   isSingleUpdateOsActionCallback,
   isUpdateOsAction,
   keyActionRefreshDelayMs,
+  resolveCallbackCallsCompleted,
   resolveCallbackStatus,
   shouldRefreshServerState,
 } from '~/store/callbackActions.helpers';
@@ -290,6 +291,44 @@ describe('callbackActions.helpers', () => {
           keyInstallStatus: 'ready',
         })
       ).toBeUndefined();
+    });
+  });
+
+  describe('resolveCallbackCallsCompleted', () => {
+    it('returns false while callback actions are still executing', () => {
+      expect(
+        resolveCallbackCallsCompleted({
+          callbackActionsExecuting: true,
+          callbackReconciliationPending: false,
+        })
+      ).toBe(false);
+    });
+
+    it('returns false while reconciliation is still pending', () => {
+      expect(
+        resolveCallbackCallsCompleted({
+          callbackActionsExecuting: false,
+          callbackReconciliationPending: true,
+        })
+      ).toBe(false);
+    });
+
+    it('returns false while both execution and reconciliation are pending', () => {
+      expect(
+        resolveCallbackCallsCompleted({
+          callbackActionsExecuting: true,
+          callbackReconciliationPending: true,
+        })
+      ).toBe(false);
+    });
+
+    it('returns true once callback actions and reconciliation are both settled', () => {
+      expect(
+        resolveCallbackCallsCompleted({
+          callbackActionsExecuting: false,
+          callbackReconciliationPending: false,
+        })
+      ).toBe(true);
     });
   });
 });
