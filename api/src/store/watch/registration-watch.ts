@@ -6,6 +6,17 @@ import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
 import { loadRegistrationKey } from '@app/store/modules/registration.js';
 import { StateFileKey } from '@app/store/types.js';
 
+const getRegistrationFingerprint = (): string => {
+    const registration = getters.emhttp().var;
+
+    return JSON.stringify({
+        regCheck: registration?.regCheck,
+        regFile: registration?.regFile,
+        regState: registration?.regState,
+        regTy: registration?.regTy,
+    });
+};
+
 /**
  * Reloads var.ini with retry logic to handle timing issues with emhttpd.
  * When a key file changes, emhttpd needs time to process it and update var.ini.
@@ -13,7 +24,7 @@ import { StateFileKey } from '@app/store/types.js';
  * or max retries are exhausted.
  */
 export const reloadVarIniWithRetry = async (maxRetries = 3): Promise<void> => {
-    const beforeState = getters.emhttp().var?.regTy;
+    const beforeFingerprint = getRegistrationFingerprint();
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         const delay = 500 * Math.pow(2, attempt); // 500ms, 1s, 2s
@@ -21,14 +32,20 @@ export const reloadVarIniWithRetry = async (maxRetries = 3): Promise<void> => {
 
         await store.dispatch(loadSingleStateFile(StateFileKey.var));
 
-        const afterState = getters.emhttp().var?.regTy;
-        if (beforeState !== afterState) {
-            keyServerLogger.info('Registration state updated: %s -> %s', beforeState, afterState);
+        const afterFingerprint = getRegistrationFingerprint();
+        if (beforeFingerprint !== afterFingerprint) {
+            keyServerLogger.info('Registration metadata updated after key file change');
             return;
         }
-        keyServerLogger.debug('Retry %d: var.ini regTy still %s', attempt + 1, afterState);
+        keyServerLogger.debug(
+            'Retry %d: registration metadata unchanged after key file change',
+            attempt + 1
+        );
     }
-    keyServerLogger.debug('var.ini regTy unchanged after %d retries (may be expected)', maxRetries);
+    keyServerLogger.debug(
+        'Registration metadata unchanged after %d retries (may be expected)',
+        maxRetries
+    );
 };
 
 export const setupRegistrationKeyWatch = () => {
@@ -43,9 +60,9 @@ export const setupRegistrationKeyWatch = () => {
     }).on('all', async (event, path) => {
         keyServerLogger.info('Key file %s: %s', event, path);
 
-        await store.dispatch(loadRegistrationKey());
-
-        // Reload var.ini to get updated registration metadata from emhttpd
+        // Reload var.ini first so regFile/regState reflect the latest key install/removal.
         await reloadVarIniWithRetry();
+
+        await store.dispatch(loadRegistrationKey());
     });
 };
