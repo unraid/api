@@ -15,6 +15,17 @@ import {
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
+const { mockWatch } = vi.hoisted(() => {
+    const watcher = {
+        on: vi.fn().mockReturnThis(),
+        close: vi.fn().mockResolvedValue(undefined),
+    };
+
+    return {
+        mockWatch: vi.fn(() => watcher),
+    };
+});
+
 // Mock fs/promises for unit tests
 vi.mock('fs/promises', async () => {
     const actual = await vi.importActual<typeof import('fs/promises')>('fs/promises');
@@ -24,6 +35,10 @@ vi.mock('fs/promises', async () => {
         readFile: mockReadFile,
     };
 });
+
+vi.mock('chokidar', () => ({
+    watch: mockWatch,
+}));
 
 // Mock getters.dynamix, Logger, and pubsub
 vi.mock('@app/store/index.js', () => {
@@ -84,13 +99,29 @@ const createNotificationsService = (notificationPath = testNotificationsDir) => 
 
 describe('NotificationsService - loadNotificationFile (minimal mocks)', () => {
     let service: NotificationsService;
-    let mockReadFile: any;
+    let mockReadFile: typeof import('fs/promises').readFile;
 
     beforeEach(async () => {
         const fsPromises = await import('fs/promises');
-        mockReadFile = fsPromises.readFile as any;
+        mockReadFile = fsPromises.readFile;
         vi.mocked(mockReadFile).mockClear();
+        mockWatch.mockClear();
+        Reflect.set(NotificationsService, 'watcher', null);
         service = createNotificationsService();
+        await Reflect.get(service, 'initialization');
+    });
+
+    afterEach(() => {
+        Reflect.set(NotificationsService, 'watcher', null);
+    });
+
+    it('creates the notifications watcher without replaying existing files', () => {
+        expect(mockWatch).toHaveBeenCalledWith(
+            testNotificationsDir,
+            expect.objectContaining({
+                ignoreInitial: true,
+            })
+        );
     });
 
     it('should load and validate a valid notification file', async () => {
@@ -244,12 +275,40 @@ importance=alert`;
         expect(result.timestamp).toBeUndefined(); // Malformed timestamp results in undefined
         expect(result.formattedTimestamp).toBe('not-a-timestamp'); // Returns original string when parsing fails
     });
+
+    it('limits concurrent notification file reads', async () => {
+        const fileCount = 96;
+        const files = Array.from({ length: fileCount }, (_, index) => `/test/path/${index}.notify`);
+        let activeReads = 0;
+        let maxConcurrentReads = 0;
+
+        vi.mocked(mockReadFile).mockImplementation(async () => {
+            activeReads += 1;
+            maxConcurrentReads = Math.max(maxConcurrentReads, activeReads);
+            await new Promise((resolve) => setTimeout(resolve, 5));
+            activeReads -= 1;
+            return `timestamp=1609459200
+event=Test Event
+subject=Test Subject
+description=Test Description
+importance=alert`;
+        });
+
+        const [notifications] = await Reflect.get(service, 'loadNotificationsFromPaths').call(
+            service,
+            files,
+            {}
+        );
+
+        expect(notifications).toHaveLength(fileCount);
+        expect(maxConcurrentReads).toBeLessThanOrEqual(32);
+    });
 });
 
 describe('NotificationsService - deleteNotification (integration test)', () => {
     let service: NotificationsService;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         // Clean up any existing test directory
         if (existsSync(testNotificationsDir)) {
             rmSync(testNotificationsDir, { recursive: true, force: true });
@@ -261,6 +320,7 @@ describe('NotificationsService - deleteNotification (integration test)', () => {
         mkdirSync(join(testNotificationsDir, 'archive'), { recursive: true });
 
         service = createNotificationsService();
+        await Reflect.get(service, 'initialization');
     });
 
     afterEach(() => {

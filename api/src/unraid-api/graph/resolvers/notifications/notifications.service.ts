@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { readdir, readFile, rename, stat, unlink, writeFile } from 'fs/promises';
+import { mkdir, readdir, readFile, rename, stat, unlink, writeFile } from 'fs/promises';
 import { basename, join } from 'path';
 
 import type { Stats } from 'fs';
@@ -34,12 +34,14 @@ import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp 
 
 @Injectable()
 export class NotificationsService {
+    private static readonly FILE_IO_BATCH_SIZE = 32;
     private logger = new Logger(NotificationsService.name);
     private static watcher: FSWatcher | null = null;
     /**
      * The path to the notification directory - will be updated if the user changes the notifier path
      */
     private path: string | null = null;
+    private initialization: Promise<void> | null = null;
 
     private static overview: NotificationOverview = {
         unread: {
@@ -58,7 +60,7 @@ export class NotificationsService {
 
     constructor(private readonly configService: ConfigService) {
         this.path = this.getConfiguredPath();
-        void this.getNotificationsWatcher(this.path);
+        this.initialization = this.initializeNotificationsState(this.path);
     }
 
     private getConfiguredPath() {
@@ -77,9 +79,8 @@ export class NotificationsService {
         const basePath = this.getConfiguredPath();
 
         if (this.path !== basePath) {
-            // Recreate the watcher with force = true
-            void this.getNotificationsWatcher(basePath, true);
             this.path = basePath;
+            this.initialization = this.initializeNotificationsState(basePath, true);
         }
 
         const makePath = (type: NotificationType) => join(basePath, type.toLowerCase());
@@ -88,6 +89,29 @@ export class NotificationsService {
             [NotificationType.UNREAD]: makePath(NotificationType.UNREAD),
             [NotificationType.ARCHIVE]: makePath(NotificationType.ARCHIVE),
         };
+    }
+
+    private initializeNotificationsState(basePath: string, recreate = false) {
+        const initialize = async () => {
+            await this.ensureNotificationDirectories(basePath);
+            await this.getNotificationsWatcher(basePath, recreate);
+            await this.recalculateOverview();
+        };
+
+        const previousInitialization = this.initialization ?? Promise.resolve();
+        return previousInitialization.catch(() => undefined).then(initialize);
+    }
+
+    private async ensureNotificationDirectories(basePath: string) {
+        await Promise.all([
+            mkdir(basePath, { recursive: true }),
+            mkdir(join(basePath, NotificationType.UNREAD.toLowerCase()), {
+                recursive: true,
+            }),
+            mkdir(join(basePath, NotificationType.ARCHIVE.toLowerCase()), {
+                recursive: true,
+            }),
+        ]);
     }
 
     /**------------------------------------------------------------------------
@@ -103,14 +127,18 @@ export class NotificationsService {
         }
         await NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
 
-        NotificationsService.watcher = watch(basePath, { usePolling: CHOKIDAR_USEPOLLING }).on(
-            'add',
-            (path) => {
-                void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
-            }
-        );
+        NotificationsService.watcher = watch(basePath, {
+            usePolling: CHOKIDAR_USEPOLLING,
+            ignoreInitial: true,
+        }).on('add', (path) => {
+            void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
+        });
 
         return NotificationsService.watcher;
+    }
+
+    private isMissingFileError(error: unknown): error is NodeJS.ErrnoException {
+        return error instanceof Error && 'code' in error && error.code === 'ENOENT';
     }
 
     private async handleNotificationAdd(path: string) {
@@ -118,7 +146,19 @@ export class NotificationsService {
         const type = path.includes('/unread/') ? NotificationType.UNREAD : NotificationType.ARCHIVE;
         // this.logger.debug(`Adding ${type} Notification: ${path}`);
 
-        const notification = await this.loadNotificationFile(path, NotificationType[type]);
+        let notification: Notification;
+        try {
+            notification = await this.loadNotificationFile(path, NotificationType[type]);
+        } catch (error) {
+            if (this.isMissingFileError(error)) {
+                this.logger.debug(
+                    `[handleNotificationAdd] Notification disappeared before load: ${path}`
+                );
+                return;
+            }
+            throw error;
+        }
+
         this.increment(notification.importance, NotificationsService.overview[type.toLowerCase()]);
 
         if (type === NotificationType.UNREAD) {
@@ -674,14 +714,15 @@ export class NotificationsService {
         sortFn: SortFn<Stats> = (fileA, fileB) => fileB.birthtimeMs - fileA.birthtimeMs // latest first
     ): Promise<string[]> {
         const contents = narrowContent(await readdir(folderPath));
-        const contentStats = await Promise.all(
-            contents.map(async (content) => {
-                // pre-map each file's stats to avoid excess calls during sorting
+        const contentStats = (
+            await this.settleInBatches(contents, async (content) => {
                 const path = join(folderPath, content);
                 const stats = await stat(path);
                 return { path, stats };
             })
-        );
+        )
+            .filter(isFulfilled)
+            .map((result) => result.value);
         return contentStats
             .sort((fileA, fileB) => sortFn(fileA.stats, fileB.stats))
             .map(({ path }) => path);
@@ -705,10 +746,9 @@ export class NotificationsService {
     ): Promise<[Notification[], unknown[]]> {
         const { importance, type, offset = 0, limit = files.length } = filters;
 
-        const fileReads = files
-            .slice(offset, limit + offset)
-            .map((file) => this.loadNotificationFile(file, type ?? NotificationType.UNREAD));
-        const results = await Promise.allSettled(fileReads);
+        const results = await this.settleInBatches(files.slice(offset, limit + offset), (file) =>
+            this.loadNotificationFile(file, type ?? NotificationType.UNREAD)
+        );
 
         // if the filter is defined & truthy, tests if the actual value matches the filter
         const passesFilter = <T>(actual: T, filter?: unknown) => !filter || actual === filter;
@@ -725,6 +765,21 @@ export class NotificationsService {
                 .sort(this.sortLatestFirst),
             results.filter(isRejected).map((result) => result.reason),
         ];
+    }
+
+    private async settleInBatches<Input, Output>(
+        items: Input[],
+        action: (item: Input) => Promise<Output>,
+        batchSize = NotificationsService.FILE_IO_BATCH_SIZE
+    ): Promise<PromiseSettledResult<Output>[]> {
+        const results: PromiseSettledResult<Output>[] = [];
+
+        for (let index = 0; index < items.length; index += batchSize) {
+            const batch = items.slice(index, index + batchSize);
+            results.push(...(await Promise.allSettled(batch.map(action))));
+        }
+
+        return results;
     }
 
     /**
