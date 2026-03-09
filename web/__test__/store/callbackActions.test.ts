@@ -325,6 +325,30 @@ describe('Callback Actions Store', () => {
       expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalled();
     });
 
+    it('should handle sign in action with missing optional callback fields', async () => {
+      const mockData: QueryPayloads = {
+        type: 'forUpc',
+        actions: [
+          {
+            type: 'signIn',
+            apiKey: undefined,
+            user: { email: undefined, preferred_username: undefined },
+          } as unknown as ExternalSignIn,
+        ],
+        sender: 'test',
+      };
+
+      await store.saveCallbackData(mockData);
+
+      expect(vi.mocked(useAccountStore)().setAccountAction).toHaveBeenCalled();
+      expect(vi.mocked(useAccountStore)().setConnectSignInPayload).toHaveBeenCalledWith({
+        apiKey: '',
+        email: '',
+        preferred_username: '',
+      });
+      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalled();
+    });
+
     it('should handle sign out action', async () => {
       const mockData: QueryPayloads = {
         type: 'forUpc',
