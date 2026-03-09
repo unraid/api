@@ -174,6 +174,7 @@ describe('Callback Actions Store', () => {
   describe('Initial State', () => {
     it('should initialize with default values', () => {
       expect(store.callbackStatus).toBe('ready');
+      expect(store.callbackCallsCompleted).toBe(true);
       expect(store.callbackData).toBeUndefined();
       expect(store.sendType).toBe('fromUpc');
       expect(store.encryptionKey).toBe(import.meta.env.VITE_CALLBACK_KEY);
@@ -549,6 +550,7 @@ describe('Callback Actions Store', () => {
         delayMs: keyActionRefreshDelayMs,
       });
       expect(store.callbackStatus).toBe('success');
+      expect(store.callbackCallsCompleted).toBe(true);
     });
 
     it('captures callback action failures as store error state', async () => {
@@ -613,6 +615,7 @@ describe('Callback Actions Store', () => {
     });
 
     it('does not wait for key callback refresh reconciliation before succeeding', async () => {
+      mockRefreshServerStateStatus.value = 'refreshing';
       const pendingRefresh = new Promise<boolean>(() => {});
       mockRefreshServerState.mockReturnValueOnce(pendingRefresh);
 
@@ -634,9 +637,16 @@ describe('Callback Actions Store', () => {
         delayMs: keyActionRefreshDelayMs,
       });
       expect(store.callbackStatus).toBe('success');
+      expect(store.callbackCallsCompleted).toBe(false);
+
+      mockRefreshServerStateStatus.value = 'done';
+      await nextTick();
+
+      expect(store.callbackCallsCompleted).toBe(true);
     });
 
     it('does not wait for account callback refresh reconciliation before succeeding', async () => {
+      mockRefreshServerStateStatus.value = 'refreshing';
       const pendingRefresh = new Promise<boolean>(() => {});
       mockRefreshServerState.mockReturnValueOnce(pendingRefresh);
 
@@ -656,6 +666,12 @@ describe('Callback Actions Store', () => {
 
       expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
       expect(store.callbackStatus).toBe('success');
+      expect(store.callbackCallsCompleted).toBe(false);
+
+      mockRefreshServerStateStatus.value = 'timeout';
+      await nextTick();
+
+      expect(store.callbackCallsCompleted).toBe(true);
     });
 
     it('resolves mixed key and account callbacks only after both statuses succeed', async () => {

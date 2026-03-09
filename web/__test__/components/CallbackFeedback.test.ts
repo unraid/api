@@ -118,6 +118,7 @@ const accountActionStatus = ref<'failed' | 'ready' | 'success' | 'updating' | 'w
 const accountActionType = ref<string | undefined>(undefined);
 
 const callbackStatus = ref<'closing' | 'error' | 'loading' | 'ready' | 'success'>('ready');
+const callbackCallsCompleted = ref(true);
 const mockSetCallbackStatus = vi.fn();
 
 const keyActionType = ref<string | undefined>(undefined);
@@ -152,6 +153,7 @@ vi.mock('~/store/account', () => ({
 
 vi.mock('~/store/callbackActions', () => ({
   useCallbackActionsStore: () => ({
+    callbackCallsCompleted,
     callbackStatus,
     setCallbackStatus: mockSetCallbackStatus,
   }),
@@ -195,6 +197,7 @@ describe('CallbackFeedback.vue', () => {
     accountActionType.value = undefined;
 
     callbackStatus.value = 'ready';
+    callbackCallsCompleted.value = true;
     keyActionType.value = undefined;
     keyUrl.value = undefined;
     keyInstallStatus.value = 'ready';
@@ -259,6 +262,7 @@ describe('CallbackFeedback.vue', () => {
     keyType.value = 'Pro';
     stateDataError.value = true;
     refreshServerStateStatus.value = 'ready';
+    callbackCallsCompleted.value = false;
 
     const wrapper = mountComponent();
 
@@ -274,6 +278,7 @@ describe('CallbackFeedback.vue', () => {
     keyType.value = 'Pro';
     stateDataError.value = true;
     refreshServerStateStatus.value = 'done';
+    callbackCallsCompleted.value = true;
 
     const wrapper = mountComponent();
 

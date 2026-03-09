@@ -157,6 +157,22 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
   const accountActionStatus = computed(() => getAccountStore().accountActionStatus);
   const keyInstallStatus = computed(() => getInstallKeyStore().keyInstallStatus);
+  const refreshServerStateStatus = computed(() => getServerStore().refreshServerStateStatus);
+  const callbackCallsCompleted = computed(() => {
+    if (callbackStatus.value === 'loading') {
+      return false;
+    }
+
+    if (!isExternalCallbackPayload(callbackData.value)) {
+      return true;
+    }
+
+    if (!getRefreshServerStateOptions(callbackData.value.actions)) {
+      return true;
+    }
+
+    return refreshServerStateStatus.value === 'done' || refreshServerStateStatus.value === 'timeout';
+  });
   watch([callbackData, accountActionStatus, keyInstallStatus], updateResolvedCallbackStatus);
 
   const setCallbackStatus = (status: CallbackStatus) => {
@@ -178,6 +194,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     // state
     callbackData,
     callbackStatus,
+    callbackCallsCompleted,
     // actions
     redirectToCallbackType,
     saveCallbackData,

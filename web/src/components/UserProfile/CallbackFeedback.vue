@@ -44,7 +44,7 @@ const updateOsActionStore = useUpdateOsActionsStore();
 
 const { accountAction, accountActionHide, accountActionStatus, accountActionType } =
   storeToRefs(accountStore);
-const { callbackStatus } = storeToRefs(callbackActionsStore);
+const { callbackCallsCompleted, callbackStatus } = storeToRefs(callbackActionsStore);
 const { keyActionType, keyUrl, keyInstallStatus, keyType } = storeToRefs(installKeyStore);
 const {
   connectPluginInstalled,
@@ -239,8 +239,7 @@ const showUpdateEligibility = computed(() => {
 const showPostInstallKeyError = computed(() =>
   Boolean(
     stateDataError.value &&
-      callbackStatus.value !== 'loading' &&
-      refreshServerStateStatus.value === 'done' &&
+      callbackCallsCompleted.value &&
       (keyInstallStatus.value === 'success' || keyInstallStatus.value === 'failed')
   )
 );
