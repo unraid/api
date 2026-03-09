@@ -40,8 +40,18 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
   const callbackStatus = ref<CallbackStatus>('ready');
   const callbackData = ref<QueryPayloads>();
-  const callbackError = ref();
+  const callbackError = ref<string>();
   const sendType = 'fromUpc';
+
+  const getCallbackActionErrorMessage = (error: unknown): string => {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    if (typeof error === 'string') {
+      return error;
+    }
+    return 'Unknown callback action error';
+  };
 
   const watcher = () => {
     const result = providedWatcher();
@@ -111,7 +121,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
   const runCallbackActions = async (actions: ExternalActions[]) => {
     for (const action of actions) {
-      console.debug('[redirectToCallbackType]', { action });
+      console.debug('[redirectToCallbackType] actionType', action.type);
       await executeCallbackAction(action);
     }
 
@@ -136,7 +146,13 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
       return console.error('[redirectToCallbackType]', callbackError.value);
     }
     callbackStatus.value = 'loading';
-    await runCallbackActions(callbackData.value.actions);
+    try {
+      await runCallbackActions(callbackData.value.actions);
+    } catch (error) {
+      callbackError.value = getCallbackActionErrorMessage(error);
+      callbackStatus.value = 'error';
+      console.error('[redirectToCallbackType] action failure', error);
+    }
   };
 
   const accountActionStatus = computed(() => getAccountStore().accountActionStatus);

@@ -12,8 +12,6 @@ import type { Mock } from 'vitest';
 
 import { useAccountStore } from '~/store/account';
 import { useCallbackActionsStore } from '~/store/callbackActions';
-import { useInstallKeyStore } from '~/store/installKey';
-import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 // Mock console methods to suppress output
@@ -34,6 +32,8 @@ afterAll(() => {
 const mockAccountActionStatus = ref('success');
 const mockKeyInstallStatus = ref('success');
 const mockRefreshServerStateStatus = ref<'done' | 'ready' | 'refreshing' | 'timeout'>('done');
+const mockInstall = vi.fn();
+const mockRefreshServerState = vi.fn();
 
 vi.mock('@unraid/shared-callbacks', () => {
   const mockWatcher = vi.fn();
@@ -81,8 +81,6 @@ vi.mock('~/store/account', () => {
 });
 
 vi.mock('~/store/installKey', () => {
-  const install = vi.fn();
-
   return {
     useInstallKeyStore: vi.fn(() => ({
       $state: {},
@@ -90,7 +88,7 @@ vi.mock('~/store/installKey', () => {
       $reset: vi.fn(),
       $subscribe: vi.fn(),
       $dispose: vi.fn(),
-      install,
+      install: mockInstall,
       get keyInstallStatus() {
         return mockKeyInstallStatus.value;
       },
@@ -99,8 +97,6 @@ vi.mock('~/store/installKey', () => {
 });
 
 vi.mock('~/store/server', () => {
-  const refreshServerState = vi.fn();
-
   return {
     useServerStore: vi.fn(() => ({
       $state: {},
@@ -108,7 +104,7 @@ vi.mock('~/store/server', () => {
       $reset: vi.fn(),
       $subscribe: vi.fn(),
       $dispose: vi.fn(),
-      refreshServerState,
+      refreshServerState: mockRefreshServerState,
       get refreshServerStateStatus() {
         return mockRefreshServerStateStatus.value;
       },
@@ -270,9 +266,7 @@ describe('Callback Actions Store', () => {
       const installPromise = new Promise<void>((resolve) => {
         resolveInstall = resolve;
       });
-      const mockInstallKeyStore = useInstallKeyStore();
-
-      vi.mocked(mockInstallKeyStore.install).mockReturnValueOnce(installPromise);
+      mockInstall.mockReturnValueOnce(installPromise);
 
       const mockData: QueryPayloads = {
         type: 'forUpc',
@@ -293,13 +287,13 @@ describe('Callback Actions Store', () => {
       const savePromise = store.saveCallbackData(mockData);
       await nextTick();
 
-      expect(vi.mocked(useServerStore)().refreshServerState).not.toHaveBeenCalled();
+      expect(mockRefreshServerState).not.toHaveBeenCalled();
 
       resolveInstall?.();
       await savePromise;
 
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledTimes(1);
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledTimes(1);
+      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
     });
 
     it('should handle sign in action', async () => {
@@ -326,7 +320,7 @@ describe('Callback Actions Store', () => {
         email: 'test@example.com',
         preferred_username: 'test',
       });
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
       expect(store.callbackStatus).toBe('loading');
 
       mockAccountActionStatus.value = 'success';
@@ -359,7 +353,7 @@ describe('Callback Actions Store', () => {
         email: '',
         preferred_username: '',
       });
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
       expect(store.callbackStatus).toBe('loading');
     });
 
@@ -381,7 +375,7 @@ describe('Callback Actions Store', () => {
 
       expect(vi.mocked(useAccountStore)().setAccountAction).toHaveBeenCalled();
       expect(vi.mocked(useAccountStore)().setQueueConnectSignOut).toHaveBeenCalledWith(true);
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
       expect(store.callbackStatus).toBe('loading');
     });
 
@@ -403,7 +397,7 @@ describe('Callback Actions Store', () => {
 
       expect(vi.mocked(useAccountStore)().setAccountAction).toHaveBeenCalled();
       expect(vi.mocked(useAccountStore)().setQueueConnectSignOut).toHaveBeenCalledWith(true);
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
       expect(store.callbackStatus).toBe('loading');
     });
 
@@ -428,7 +422,7 @@ describe('Callback Actions Store', () => {
 
       expect(vi.mocked(useUpdateOsActionsStore)().setUpdateOsAction).toHaveBeenCalled();
       expect(vi.mocked(useUpdateOsActionsStore)().actOnUpdateOsAction).toHaveBeenCalled();
-      expect(vi.mocked(useServerStore)().refreshServerState).not.toHaveBeenCalled(); // Single action, no refresh needed
+      expect(mockRefreshServerState).not.toHaveBeenCalled(); // Single action, no refresh needed
     });
 
     it('should handle downgradeOs action', async () => {
@@ -453,7 +447,7 @@ describe('Callback Actions Store', () => {
 
       expect(mockUpdateOsActionsStore.setUpdateOsAction).toHaveBeenCalled();
       expect(mockUpdateOsActionsStore.actOnUpdateOsAction).toHaveBeenCalledWith(true);
-      expect(vi.mocked(useServerStore)().refreshServerState).not.toHaveBeenCalled(); // Single action, no refresh needed
+      expect(mockRefreshServerState).not.toHaveBeenCalled(); // Single action, no refresh needed
     });
 
     it('should handle multiple actions', async () => {
@@ -482,7 +476,7 @@ describe('Callback Actions Store', () => {
 
       expect(vi.mocked(useAccountStore)().setAccountAction).toHaveBeenCalled();
       expect(vi.mocked(useUpdateOsActionsStore)().setUpdateOsAction).toHaveBeenCalled();
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
     });
 
     it('should handle key install action (e.g., purchase)', async () => {
@@ -496,14 +490,12 @@ describe('Callback Actions Store', () => {
         ],
         sender: 'test',
       };
-      const mockInstallKeyStore = useInstallKeyStore();
-
       await store.saveCallbackData(mockData);
 
-      expect(mockInstallKeyStore.install).toHaveBeenCalledWith(mockData.actions[0]);
+      expect(mockInstall).toHaveBeenCalledWith(mockData.actions[0]);
       expect(vi.mocked(useAccountStore)().setAccountAction).not.toHaveBeenCalled();
       expect(vi.mocked(useUpdateOsActionsStore)().setUpdateOsAction).not.toHaveBeenCalled();
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
       expect(store.callbackStatus).toBe('success');
     });
 
@@ -521,8 +513,8 @@ describe('Callback Actions Store', () => {
 
       await store.saveCallbackData(mockData);
 
-      expect(vi.mocked(useInstallKeyStore)().install).toHaveBeenCalledWith(mockData.actions[0]);
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockInstall).toHaveBeenCalledWith(mockData.actions[0]);
+      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
       expect(store.callbackStatus).toBe('success');
     });
 
@@ -542,13 +534,74 @@ describe('Callback Actions Store', () => {
 
       await store.saveCallbackData(mockData);
 
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
       expect(store.callbackStatus).toBe('success');
+    });
+
+    it('captures callback action failures as store error state', async () => {
+      mockInstall.mockRejectedValueOnce(new Error('install exploded'));
+
+      const mockData: QueryPayloads = {
+        type: 'forUpc',
+        actions: [
+          {
+            type: 'purchase',
+            keyUrl: 'mock-key-url',
+          },
+        ],
+        sender: 'test',
+      };
+
+      await expect(store.saveCallbackData(mockData)).resolves.toBeUndefined();
+
+      expect(store.callbackStatus).toBe('error');
+      expect(store.callbackError).toBe('install exploded');
+      expect(mockRefreshServerState).not.toHaveBeenCalled();
+    });
+
+    it('normalizes string callback action failures', async () => {
+      mockInstall.mockRejectedValueOnce('install string failure');
+
+      const mockData: QueryPayloads = {
+        type: 'forUpc',
+        actions: [
+          {
+            type: 'purchase',
+            keyUrl: 'mock-key-url',
+          },
+        ],
+        sender: 'test',
+      };
+
+      await expect(store.saveCallbackData(mockData)).resolves.toBeUndefined();
+
+      expect(store.callbackStatus).toBe('error');
+      expect(store.callbackError).toBe('install string failure');
+    });
+
+    it('normalizes unknown callback action failures', async () => {
+      mockInstall.mockRejectedValueOnce({ boom: true });
+
+      const mockData: QueryPayloads = {
+        type: 'forUpc',
+        actions: [
+          {
+            type: 'purchase',
+            keyUrl: 'mock-key-url',
+          },
+        ],
+        sender: 'test',
+      };
+
+      await expect(store.saveCallbackData(mockData)).resolves.toBeUndefined();
+
+      expect(store.callbackStatus).toBe('error');
+      expect(store.callbackError).toBe('Unknown callback action error');
     });
 
     it('does not wait for key callback refresh reconciliation before succeeding', async () => {
       const pendingRefresh = new Promise<boolean>(() => {});
-      vi.mocked(useServerStore)().refreshServerState.mockReturnValueOnce(pendingRefresh);
+      mockRefreshServerState.mockReturnValueOnce(pendingRefresh);
 
       const mockData: QueryPayloads = {
         type: 'forUpc',
@@ -563,13 +616,13 @@ describe('Callback Actions Store', () => {
 
       await store.saveCallbackData(mockData);
 
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
       expect(store.callbackStatus).toBe('success');
     });
 
     it('does not wait for account callback refresh reconciliation before succeeding', async () => {
       const pendingRefresh = new Promise<boolean>(() => {});
-      vi.mocked(useServerStore)().refreshServerState.mockReturnValueOnce(pendingRefresh);
+      mockRefreshServerState.mockReturnValueOnce(pendingRefresh);
 
       const mockData: QueryPayloads = {
         type: 'forUpc',
@@ -585,7 +638,7 @@ describe('Callback Actions Store', () => {
 
       await store.saveCallbackData(mockData);
 
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
       expect(store.callbackStatus).toBe('success');
     });
 
@@ -645,7 +698,7 @@ describe('Callback Actions Store', () => {
 
       await store.saveCallbackData(mockData);
 
-      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledWith({ poll: false });
+      expect(mockRefreshServerState).toHaveBeenCalledWith({ poll: false });
       expect(store.callbackStatus).toBe('loading');
     });
   });
