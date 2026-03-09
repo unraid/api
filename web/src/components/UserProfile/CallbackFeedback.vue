@@ -114,9 +114,7 @@ const close = () => {
   if (callbackStatus.value === 'loading') {
     return;
   }
-  return refreshServerStateStatus.value === 'done'
-    ? callbackActionsStore.setCallbackStatus('ready')
-    : window.location.reload();
+  return callbackActionsStore.setCallbackStatus('ready');
 };
 
 const confirmUpdateOs = () => {
@@ -246,7 +244,7 @@ const showUpdateEligibility = computed(() => {
     :open="open"
     max-width="max-w-[640px]"
     :error="callbackStatus === 'error'"
-    :success="callbackStatus === 'success'"
+    :success="callbackStatus === 'success' && updateOsStatus !== 'confirming'"
     :show-close-x="callbackStatus !== 'loading'"
     @close="close"
   >
@@ -351,7 +349,7 @@ const showUpdateEligibility = computed(() => {
 
     <template v-if="callbackStatus === 'success' || updateOsStatus === 'confirming'" #footer>
       <div class="flex flex-row justify-center gap-4">
-        <template v-if="callbackStatus === 'success'">
+        <template v-if="callbackStatus === 'success' && updateOsStatus !== 'confirming'">
           <BrandButton variant="underline" :icon="XMarkIcon" :text="closeText" @click="close" />
 
           <template v-if="connectPluginInstalled && accountActionType === 'signIn'">

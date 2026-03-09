@@ -4,6 +4,7 @@ import type { ExternalActions, QueryPayloads } from '@unraid/shared-callbacks';
 
 import {
   getCallbackPayloadError,
+  getRefreshServerStateOptions,
   hasAccountAction,
   hasKeyAction,
   hasUpdateOsAction,
@@ -30,7 +31,9 @@ const signOutAction = (): ExternalActions => ({
   type: 'signOut',
 });
 
-const keyAction = (type: 'purchase' | 'recover' | 'replace' = 'purchase'): ExternalActions => ({
+const keyAction = (
+  type: 'activate' | 'purchase' | 'recover' | 'replace' = 'purchase'
+): ExternalActions => ({
   type,
   keyUrl: 'https://example.com/test.key',
 });
@@ -80,6 +83,7 @@ describe('callbackActions.helpers', () => {
   describe('action classification', () => {
     it('classifies key actions', () => {
       expect(isKeyAction(keyAction())).toBe(true);
+      expect(isKeyAction(keyAction('activate'))).toBe(true);
       expect(isKeyAction(signInAction())).toBe(false);
     });
 
@@ -104,8 +108,8 @@ describe('callbackActions.helpers', () => {
   });
 
   describe('shouldRefreshServerState', () => {
-    it('does not refresh for key-only callbacks', () => {
-      expect(shouldRefreshServerState([keyAction()])).toBe(false);
+    it('refreshes once for key-only callbacks', () => {
+      expect(shouldRefreshServerState([keyAction()])).toBe(true);
     });
 
     it('refreshes for account callbacks', () => {
@@ -124,6 +128,22 @@ describe('callbackActions.helpers', () => {
     });
   });
 
+  describe('getRefreshServerStateOptions', () => {
+    it('does a one-shot refresh for key-only callbacks', () => {
+      expect(getRefreshServerStateOptions([keyAction()])).toEqual({ poll: false });
+      expect(getRefreshServerStateOptions([keyAction('replace')])).toEqual({ poll: false });
+    });
+
+    it('does a one-shot refresh for account and mixed update callbacks', () => {
+      expect(getRefreshServerStateOptions([signInAction()])).toEqual({ poll: false });
+      expect(getRefreshServerStateOptions([keyAction(), updateOsAction()])).toEqual({ poll: false });
+    });
+
+    it('skips refresh for single update callbacks', () => {
+      expect(getRefreshServerStateOptions([updateOsAction()])).toBeUndefined();
+    });
+  });
+
   describe('resolveCallbackStatus', () => {
     it('returns undefined when no actions are present', () => {
       expect(
@@ -131,7 +151,6 @@ describe('callbackActions.helpers', () => {
           actions: [],
           accountActionStatus: 'ready',
           keyInstallStatus: 'ready',
-          refreshServerStateStatus: 'ready',
         })
       ).toBeUndefined();
     });
@@ -142,7 +161,6 @@ describe('callbackActions.helpers', () => {
           actions: [keyAction()],
           accountActionStatus: 'ready',
           keyInstallStatus: 'success',
-          refreshServerStateStatus: 'ready',
         })
       ).toBe('success');
     });
@@ -153,7 +171,6 @@ describe('callbackActions.helpers', () => {
           actions: [keyAction()],
           accountActionStatus: 'ready',
           keyInstallStatus: 'installing',
-          refreshServerStateStatus: 'ready',
         })
       ).toBeUndefined();
     });
@@ -164,7 +181,6 @@ describe('callbackActions.helpers', () => {
           actions: [keyAction()],
           accountActionStatus: 'ready',
           keyInstallStatus: 'failed',
-          refreshServerStateStatus: 'ready',
         })
       ).toBe('error');
     });
@@ -175,7 +191,6 @@ describe('callbackActions.helpers', () => {
           actions: [signInAction()],
           accountActionStatus: 'success',
           keyInstallStatus: 'ready',
-          refreshServerStateStatus: 'done',
         })
       ).toBe('success');
     });
@@ -186,7 +201,6 @@ describe('callbackActions.helpers', () => {
           actions: [signInAction()],
           accountActionStatus: 'waiting',
           keyInstallStatus: 'ready',
-          refreshServerStateStatus: 'ready',
         })
       ).toBeUndefined();
     });
@@ -197,7 +211,6 @@ describe('callbackActions.helpers', () => {
           actions: [signOutAction()],
           accountActionStatus: 'failed',
           keyInstallStatus: 'ready',
-          refreshServerStateStatus: 'ready',
         })
       ).toBe('error');
     });
@@ -210,7 +223,6 @@ describe('callbackActions.helpers', () => {
           actions,
           accountActionStatus: 'waiting',
           keyInstallStatus: 'success',
-          refreshServerStateStatus: 'refreshing',
         })
       ).toBeUndefined();
 
@@ -219,12 +231,11 @@ describe('callbackActions.helpers', () => {
           actions,
           accountActionStatus: 'success',
           keyInstallStatus: 'success',
-          refreshServerStateStatus: 'done',
         })
       ).toBe('success');
     });
 
-    it('waits for refresh completion when update os actions are present', () => {
+    it('keeps update os callbacks pending after direct actions succeed', () => {
       const actions = [keyAction(), updateOsAction()];
 
       expect(
@@ -232,40 +243,38 @@ describe('callbackActions.helpers', () => {
           actions,
           accountActionStatus: 'ready',
           keyInstallStatus: 'success',
-          refreshServerStateStatus: 'refreshing',
         })
       ).toBeUndefined();
-
-      expect(
-        resolveCallbackStatus({
-          actions,
-          accountActionStatus: 'ready',
-          keyInstallStatus: 'success',
-          refreshServerStateStatus: 'done',
-        })
-      ).toBe('success');
     });
 
-    it('returns error when update os polling times out', () => {
-      expect(
-        resolveCallbackStatus({
-          actions: [updateOsAction()],
-          accountActionStatus: 'ready',
-          keyInstallStatus: 'ready',
-          refreshServerStateStatus: 'timeout',
-        })
-      ).toBe('error');
-    });
-
-    it('prioritizes action failures over refresh state', () => {
+    it('prioritizes direct action failures', () => {
       expect(
         resolveCallbackStatus({
           actions: [keyAction(), updateOsAction()],
           accountActionStatus: 'ready',
           keyInstallStatus: 'failed',
-          refreshServerStateStatus: 'done',
         })
       ).toBe('error');
+    });
+
+    it('keeps single update callbacks pending for confirmation', () => {
+      expect(
+        resolveCallbackStatus({
+          actions: [updateOsAction()],
+          accountActionStatus: 'ready',
+          keyInstallStatus: 'ready',
+        })
+      ).toBeUndefined();
+    });
+
+    it('returns undefined for unrecognized callback actions', () => {
+      expect(
+        resolveCallbackStatus({
+          actions: [{ type: 'unknown' } as unknown as ExternalActions],
+          accountActionStatus: 'ready',
+          keyInstallStatus: 'ready',
+        })
+      ).toBeUndefined();
     });
   });
 });

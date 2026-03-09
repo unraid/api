@@ -11,9 +11,12 @@ import type {
 export type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
 export type CallbackAccountStatus = 'failed' | 'ready' | 'success' | 'updating' | 'waiting';
 export type CallbackKeyInstallStatus = 'failed' | 'installing' | 'ready' | 'success';
-export type CallbackRefreshStatus = 'done' | 'ready' | 'refreshing' | 'timeout';
+export interface CallbackRefreshServerStateOptions {
+  poll: boolean;
+}
 
 export const keyActionTypes = [
+  'activate',
   'recover',
   'replace',
   'trialExtend',
@@ -63,7 +66,19 @@ export const hasAccountAction = (actions: ExternalActions[]): boolean =>
 export const hasUpdateOsAction = (actions: ExternalActions[]): boolean => actions.some(isUpdateOsAction);
 
 export const shouldRefreshServerState = (actions: ExternalActions[]): boolean =>
-  hasAccountAction(actions) || (hasUpdateOsAction(actions) && actions.length > 1);
+  hasKeyAction(actions) ||
+  hasAccountAction(actions) ||
+  (hasUpdateOsAction(actions) && actions.length > 1);
+
+export const getRefreshServerStateOptions = (
+  actions: ExternalActions[]
+): CallbackRefreshServerStateOptions | undefined => {
+  if (shouldRefreshServerState(actions)) {
+    return { poll: false };
+  }
+
+  return undefined;
+};
 
 export const isSingleUpdateOsActionCallback = (actions: ExternalActions[]): boolean =>
   actions.length === 1 && isUpdateOsAction(actions[0]);
@@ -72,14 +87,12 @@ interface ResolveCallbackStatusInput {
   actions: ExternalActions[];
   accountActionStatus: CallbackAccountStatus;
   keyInstallStatus: CallbackKeyInstallStatus;
-  refreshServerStateStatus: CallbackRefreshStatus;
 }
 
 export const resolveCallbackStatus = ({
   actions,
   accountActionStatus,
   keyInstallStatus,
-  refreshServerStateStatus,
 }: ResolveCallbackStatusInput): CallbackStatus | undefined => {
   if (!actions.length) {
     return undefined;
@@ -92,24 +105,19 @@ export const resolveCallbackStatus = ({
     return 'error';
   }
 
-  if (hasUpdateOsAction(actions)) {
-    if (refreshServerStateStatus === 'done') {
-      return 'success';
-    }
-
-    if (refreshServerStateStatus === 'timeout') {
-      return 'error';
-    }
-
+  const accountActionPending = hasAccountAction(actions) && accountActionStatus !== 'success';
+  if (accountActionPending) {
     return undefined;
   }
 
-  const keyActionSucceeded = !hasKeyAction(actions) || keyInstallStatus === 'success';
-  const accountActionSucceeded = !hasAccountAction(actions) || accountActionStatus === 'success';
-
-  if (keyActionSucceeded && accountActionSucceeded) {
-    return 'success';
+  const keyActionPending = hasKeyAction(actions) && keyInstallStatus !== 'success';
+  if (keyActionPending) {
+    return undefined;
   }
 
-  return undefined;
+  if (hasUpdateOsAction(actions)) {
+    return undefined;
+  }
+
+  return hasKeyAction(actions) || hasAccountAction(actions) ? 'success' : undefined;
 };

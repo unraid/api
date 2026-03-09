@@ -10,6 +10,7 @@ import { addPreventClose, removePreventClose } from '~/composables/preventClose'
 import { useAccountStore } from '~/store/account';
 import {
   getCallbackPayloadError,
+  getRefreshServerStateOptions,
   isAccountSignInAction,
   isAccountSignOutAction,
   isExternalCallbackPayload,
@@ -17,7 +18,6 @@ import {
   isSingleUpdateOsActionCallback,
   isUpdateOsAction,
   resolveCallbackStatus,
-  shouldRefreshServerState,
 } from '~/store/callbackActions.helpers';
 import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
@@ -102,7 +102,6 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
       actions: callbackData.value.actions,
       accountActionStatus: getAccountStore().accountActionStatus,
       keyInstallStatus: getInstallKeyStore().keyInstallStatus,
-      refreshServerStateStatus: getServerStore().refreshServerStateStatus,
     });
 
     if (nextStatus) {
@@ -116,8 +115,9 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
       await executeCallbackAction(action);
     }
 
-    if (shouldRefreshServerState(actions)) {
-      await getServerStore().refreshServerState();
+    const refreshServerStateOptions = getRefreshServerStateOptions(actions);
+    if (refreshServerStateOptions) {
+      void getServerStore().refreshServerState(refreshServerStateOptions);
     }
 
     if (isSingleUpdateOsActionCallback(actions)) {
@@ -141,12 +141,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
   const accountActionStatus = computed(() => getAccountStore().accountActionStatus);
   const keyInstallStatus = computed(() => getInstallKeyStore().keyInstallStatus);
-  const refreshServerStateStatus = computed(() => getServerStore().refreshServerStateStatus);
-
-  watch(
-    [callbackData, accountActionStatus, keyInstallStatus, refreshServerStateStatus],
-    updateResolvedCallbackStatus
-  );
+  watch([callbackData, accountActionStatus, keyInstallStatus], updateResolvedCallbackStatus);
 
   const setCallbackStatus = (status: CallbackStatus) => {
     callbackStatus.value = status;
