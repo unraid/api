@@ -1,4 +1,4 @@
-import { ONBOARDING_TEMP_BYPASS_STORAGE_KEY } from '~/consts';
+import { ONBOARDING_TEMP_BYPASS_STORAGE_KEY } from '~/components/Onboarding/constants';
 
 const ONBOARDING_DRAFT_STORAGE_KEY = 'onboardingDraft';
 

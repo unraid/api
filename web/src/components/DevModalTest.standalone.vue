@@ -3,30 +3,26 @@ import { nextTick } from 'vue';
 
 import { Button } from '@unraid/ui';
 
-import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
+import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
 
-const activationModalStore = useActivationCodeModalStore();
+const onboardingModalStore = useOnboardingModalStore();
 
-const showActivationModal = async () => {
-  // First set the value in sessionStorage to persist the state
-  sessionStorage.setItem('activationCodeModalHidden', 'false');
-
-  // Then update the store
-  activationModalStore.setIsHidden(false);
+const showOnboardingModal = async () => {
+  onboardingModalStore.forceOpenModal();
 
   // Wait for next tick to ensure the reactive system has updated
   await nextTick();
 
   // Log the current state for debugging
-  console.log('Modal visibility after setting:', activationModalStore.isVisible);
-  console.log('isHidden value:', activationModalStore.isHidden);
+  console.log('Modal visibility after setting:', onboardingModalStore.isAutoVisible);
+  console.log('isHidden value:', onboardingModalStore.isHidden);
 };
 </script>
 
 <template>
   <div class="p-8">
     <div class="flex gap-2">
-      <Button variant="primary" @click="showActivationModal"> Show Activation Modal </Button>
+      <Button variant="primary" @click="showOnboardingModal"> Show Onboarding Modal </Button>
     </div>
   </div>
 </template>

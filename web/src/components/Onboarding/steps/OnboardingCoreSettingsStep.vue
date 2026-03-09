@@ -18,7 +18,7 @@ import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCore
 import { TIME_ZONE_OPTIONS_QUERY } from '@/components/Onboarding/graphql/timeZoneOptions.query';
 // --- Submit Logic ---
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
-import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgradeOnboarding';
+import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
 import { Switch } from '@headlessui/vue';
 import { getTimeZones } from '@vvo/tzdb';
 
@@ -32,9 +32,7 @@ export interface Props {
 const props = defineProps<Props>();
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
-const { completed: onboardingCompleted, loading: onboardingLoading } = storeToRefs(
-  useUpgradeOnboardingStore()
-);
+const { completed: onboardingCompleted, loading: onboardingLoading } = storeToRefs(useOnboardingStore());
 
 const TRUSTED_DEFAULT_PROFILE = Object.freeze({
   serverName: t('onboarding.coreSettings.defaultServerName'),

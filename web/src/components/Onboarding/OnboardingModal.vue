@@ -8,31 +8,31 @@ import { ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { GET_INTERNAL_BOOT_STEP_VISIBILITY_QUERY } from '@/components/Onboarding/graphql/getInternalBootStepVisibility.query';
-import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 
 import type { BrandButtonProps } from '@unraid/ui';
 import type { StepId } from '~/components/Onboarding/stepRegistry';
 import type { Component } from 'vue';
 
+import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/components/Onboarding/constants';
 import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
 import { stepComponents } from '~/components/Onboarding/stepRegistry';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
-import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
 import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
+import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
+import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
 import { cleanupOnboardingStorage } from '~/components/Onboarding/store/onboardingStorageCleanup';
-import { useUpgradeOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
 const { t } = useI18n();
 
-const modalStore = useActivationCodeModalStore();
-const { isVisible, isTemporarilyBypassed } = storeToRefs(modalStore);
+const onboardingModalStore = useOnboardingModalStore();
+const { isAutoVisible, isForceOpened, isBypassActive } = storeToRefs(onboardingModalStore);
 const { activationRequired, hasActivationCode, isFreshInstall, registrationState } = storeToRefs(
   useActivationCodeDataStore()
 );
-const onboardingStore = useUpgradeOnboardingStore();
+const onboardingStore = useOnboardingStore();
 const {
   shouldShowOnboarding,
   isVersionDrift,
@@ -115,14 +115,17 @@ const isLoginPage = computed(() => {
   const hasLoginMarkup = Boolean(document.querySelector('#login, form[action="/login"]'));
   return hasLoginRoute || hasLoginMarkup;
 });
-const showModal = computed(
-  () =>
-    !isLoginPage.value &&
-    isFreshInstall.value &&
-    canDisplayOnboardingModal.value &&
-    !isTemporarilyBypassed.value &&
-    (isVisible.value || shouldShowOnboarding.value)
-);
+const showModal = computed(() => {
+  if (isLoginPage.value || !canDisplayOnboardingModal.value) {
+    return false;
+  }
+
+  if (isForceOpened.value) {
+    return true;
+  }
+
+  return isFreshInstall.value && !isBypassActive.value && isAutoVisible.value;
+});
 const showExitConfirmDialog = ref(false);
 
 const currentStep = computed<StepId | null>(() => {
@@ -198,12 +201,19 @@ const completePendingOnboarding = async () => {
 };
 
 const closeModal = async (options?: { reload?: boolean }) => {
-  if (shouldShowOnboarding.value) {
+  const wasForceOpened = isForceOpened.value;
+
+  if (shouldShowOnboarding.value && !wasForceOpened) {
     await completePendingOnboarding();
   }
 
-  cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
-  modalStore.setIsHidden(true);
+  if (wasForceOpened) {
+    cleanupOnboardingStorage();
+  } else {
+    cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
+  }
+  onboardingModalStore.clearForceOpened();
+  onboardingModalStore.setIsHidden(true);
 
   if (options?.reload) {
     window.location.reload();

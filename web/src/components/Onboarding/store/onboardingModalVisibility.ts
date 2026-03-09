@@ -1,17 +1,23 @@
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { defineStore, storeToRefs } from 'pinia';
 import { useSessionStorage } from '@vueuse/core';
 
-import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, ONBOARDING_TEMP_BYPASS_STORAGE_KEY } from '~/consts';
-
+import {
+  ONBOARDING_MODAL_HIDDEN_STORAGE_KEY,
+  ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
+} from '~/components/Onboarding/constants';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
+import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
 import { clearOnboardingDraftStorage } from '~/components/Onboarding/store/onboardingStorageCleanup';
-import { useOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
-const ONBOARDING_QUERY_PARAM = 'onboarding';
+const ONBOARDING_QUERY_ACTION_PARAM = 'onboarding';
+const ONBOARDING_URL_ACTION_BYPASS = 'bypass';
+const ONBOARDING_URL_ACTION_RESUME = 'resume';
+const ONBOARDING_URL_ACTION_OPEN = 'open';
 const ONBOARDING_BYPASS_SHORTCUT_CODE = 'KeyO';
+const ONBOARDING_FORCE_OPEN_EVENT = 'unraid:onboarding:open';
 const SECONDS_PER_MINUTE = 60;
 
 type TemporaryBypassState = {
@@ -19,8 +25,9 @@ type TemporaryBypassState = {
   bootMarker: number | null;
 };
 
-export const useActivationCodeModalStore = defineStore('activationCodeModal', () => {
-  const isHidden = useSessionStorage<boolean | null>(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, null);
+export const useOnboardingModalStore = defineStore('onboardingModalVisibility', () => {
+  const isHidden = useSessionStorage<boolean | null>(ONBOARDING_MODAL_HIDDEN_STORAGE_KEY, null);
+  const isForceOpened = ref(false);
   const temporaryBypassState = useSessionStorage<TemporaryBypassState | null>(
     ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
     null,
@@ -60,6 +67,18 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
 
   const setIsHidden = (value: boolean | null) => {
     isHidden.value = value;
+    if (value === true) {
+      isForceOpened.value = false;
+    }
+  };
+
+  const forceOpenModal = () => {
+    isForceOpened.value = true;
+    setIsHidden(false);
+  };
+
+  const clearForceOpened = () => {
+    isForceOpened.value = false;
   };
 
   const getCurrentBootMarker = () => {
@@ -92,7 +111,7 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
     setIsHidden(true);
   };
 
-  const isTemporarilyBypassed = computed(() => {
+  const isBypassActive = computed(() => {
     const state = temporaryBypassState.value;
     if (!state?.active) {
       return false;
@@ -107,45 +126,38 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
     return state.bootMarker === currentBootMarker;
   });
 
-  const applyBypassFromUrlParam = () => {
+  const applyOnboardingUrlAction = () => {
     if (typeof window === 'undefined') {
       return;
     }
 
     const url = new URL(window.location.href);
-    const action = url.searchParams.get(ONBOARDING_QUERY_PARAM);
+    const action = url.searchParams.get(ONBOARDING_QUERY_ACTION_PARAM);
 
-    if (action === 'bypass') {
+    if (action === ONBOARDING_URL_ACTION_BYPASS) {
       setTemporaryBypass(true);
-    } else if (action === 'resume') {
+    } else if (action === ONBOARDING_URL_ACTION_RESUME) {
       clearTemporaryBypass();
       setIsHidden(false);
+    } else if (action === ONBOARDING_URL_ACTION_OPEN) {
+      forceOpenModal();
     } else {
       return;
     }
 
-    url.searchParams.delete(ONBOARDING_QUERY_PARAM);
+    url.searchParams.delete(ONBOARDING_QUERY_ACTION_PARAM);
     const nextPath = `${url.pathname}${url.search}${url.hash}`;
     window.history.replaceState({}, '', nextPath || '/');
   };
 
   /**
-   * Should only see this if
-   * 1. It's explicitly set to show (isHidden === false)
-   * OR
-   * 2. It's a fresh server install where no keyfile has been present before
-   *    and onboarding has not already been completed
-   * 3. there's not callback data
-   * 4. it's not been explicitly hidden (isHidden === null)
-   *
-   * Shows for:
-   * - Fresh installs with activation code (timezone → plugins → activation flow)
-   * - Fresh installs without activation code (timezone → plugins)
-   *
-   * Note: Upgrade onboarding visibility is checked separately in the modal via upgradeOnboardingStore
+   * Automatic visibility gate for onboarding:
+   * - show if explicitly unhidden (`isHidden === false`)
+   * - otherwise show only for fresh installs that are not completed, have no callback data, and are not hidden
+   * - manual force-open is handled separately via `isForceOpened`
    */
-  const isVisible = computed<boolean>(() => {
-    if (isTemporarilyBypassed.value) {
+  const isAutoVisible = computed<boolean>(() => {
+    if (isBypassActive.value) {
       return false;
     }
     if (isHidden.value === false) {
@@ -154,7 +166,7 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
     return isHidden.value === null && isFreshInstall.value && !completed.value && !callbackData.value;
   });
 
-  watch(isTemporarilyBypassed, (active) => {
+  watch(isBypassActive, (active) => {
     if (!active && temporaryBypassState.value?.active) {
       clearTemporaryBypass();
     }
@@ -180,22 +192,31 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
     }
   };
 
+  const handleForceOpen = () => {
+    forceOpenModal();
+  };
+
   onMounted(() => {
-    applyBypassFromUrlParam();
+    applyOnboardingUrlAction();
     window?.addEventListener('keydown', handleKeydown);
+    window?.addEventListener(ONBOARDING_FORCE_OPEN_EVENT, handleForceOpen);
   });
 
   onUnmounted(() => {
     window?.removeEventListener('keydown', handleKeydown);
+    window?.removeEventListener(ONBOARDING_FORCE_OPEN_EVENT, handleForceOpen);
   });
 
   return {
-    isVisible,
-    isTemporarilyBypassed,
+    isAutoVisible,
+    isForceOpened,
+    isBypassActive,
     isHidden,
     setIsHidden,
+    forceOpenModal,
+    clearForceOpened,
     setTemporaryBypass,
     clearTemporaryBypass,
-    applyBypassFromUrlParam,
+    applyOnboardingUrlAction,
   };
 });

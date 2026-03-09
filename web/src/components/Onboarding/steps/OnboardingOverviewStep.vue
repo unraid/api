@@ -9,8 +9,8 @@ import { BrandButton } from '@unraid/ui';
 import limitlessImage from '@/assets/limitless_possibilities.jpg';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
+import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
 import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
-import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgradeOnboarding';
 import { useThemeStore } from '@/store/theme';
 
 // Mock icons (assuming these exist or similar ones do)
@@ -31,9 +31,9 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 
 const { mutate: completeOnboarding } = useMutation(COMPLETE_ONBOARDING_MUTATION);
-const { refetchOnboarding } = useUpgradeOnboardingStore();
+const { refetchOnboarding } = useOnboardingStore();
 const { partnerInfo, isFreshInstall } = storeToRefs(useActivationCodeDataStore());
-const { isUpgrade, isDowngrade, isIncomplete } = storeToRefs(useUpgradeOnboardingStore());
+const { isUpgrade, isDowngrade, isIncomplete } = storeToRefs(useOnboardingStore());
 const { theme } = storeToRefs(useThemeStore());
 
 const isSkipping = ref(false);

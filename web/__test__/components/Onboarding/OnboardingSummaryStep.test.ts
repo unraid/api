@@ -158,14 +158,14 @@ vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   }),
 }));
 
-vi.mock('@/components/Onboarding/store/activationCodeModal', () => ({
-  useActivationCodeModalStore: () => ({
+vi.mock('@/components/Onboarding/store/onboardingModalVisibility', () => ({
+  useOnboardingModalStore: () => ({
     setIsHidden: setModalHiddenMock,
   }),
 }));
 
-vi.mock('@/components/Onboarding/store/upgradeOnboarding', () => ({
-  useUpgradeOnboardingStore: () => ({
+vi.mock('@/components/Onboarding/store/onboardingStatus', () => ({
+  useOnboardingStore: () => ({
     refetchOnboarding: refetchOnboardingMock,
   }),
 }));
