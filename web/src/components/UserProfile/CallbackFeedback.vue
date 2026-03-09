@@ -235,6 +235,15 @@ const showUpdateEligibility = computed(() => {
   }
   return !['Basic', 'Plus', 'Pro', 'Lifetime', 'Trial'].includes(keyType.value);
 });
+
+const showPostInstallKeyError = computed(() =>
+  Boolean(
+    stateDataError.value &&
+      callbackStatus.value !== 'loading' &&
+      refreshServerStateStatus.value === 'done' &&
+      (keyInstallStatus.value === 'success' || keyInstallStatus.value === 'failed')
+  )
+);
 </script>
 
 <template>
@@ -297,12 +306,7 @@ const showUpdateEligibility = computed(() => {
         </UpcCallbackFeedbackStatus>
 
         <UpcCallbackFeedbackStatus
-          v-if="
-            stateDataError &&
-            callbackStatus !== 'loading' &&
-            refreshServerStateStatus === 'done' &&
-            (keyInstallStatus === 'success' || keyInstallStatus === 'failed')
-          "
+          v-if="showPostInstallKeyError"
           :error="true"
           :text="t('userProfile.callbackFeedback.postInstallLicenseKeyError')"
         >
@@ -389,7 +393,7 @@ const showUpdateEligibility = computed(() => {
           />
         </template>
 
-        <template v-if="stateDataError">
+        <template v-if="showPostInstallKeyError">
           <BrandButton
             :href="WEBGUI_TOOLS_REGISTRATION"
             :icon="WrenchScrewdriverIcon"

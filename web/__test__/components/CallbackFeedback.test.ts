@@ -264,6 +264,7 @@ describe('CallbackFeedback.vue', () => {
 
     expect(wrapper.text()).not.toContain('Post Install License Key Error');
     expect(wrapper.text()).not.toContain('Something went wrong');
+    expect(wrapper.text()).not.toContain('Fix Error');
   });
 
   it('renders the post-install key error after reconciliation still reports a problem', () => {
@@ -278,6 +279,7 @@ describe('CallbackFeedback.vue', () => {
 
     expect(wrapper.text()).toContain('Post Install License Key Error');
     expect(wrapper.text()).toContain('Something went wrong');
+    expect(wrapper.text()).toContain('Fix Error');
   });
 
   it('renders the generic error state for failed key installs', () => {
