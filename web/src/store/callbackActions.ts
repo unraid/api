@@ -1,38 +1,27 @@
-import { computed, ref, watch, watchEffect } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { defineStore } from 'pinia';
 
 import { useCallback } from '@unraid/shared-callbacks';
 
-import type {
-  ExternalActions,
-  ExternalKeyActions,
-  ExternalSignIn,
-  ExternalSignOut,
-  ExternalUpdateOsAction,
-  QueryPayloads,
-} from '@unraid/shared-callbacks';
+import type { ExternalActions, QueryPayloads } from '@unraid/shared-callbacks';
+import type { CallbackStatus } from '~/store/callbackActions.helpers';
 
 import { addPreventClose, removePreventClose } from '~/composables/preventClose';
 import { useAccountStore } from '~/store/account';
+import {
+  getCallbackPayloadError,
+  isAccountSignInAction,
+  isAccountSignOutAction,
+  isExternalCallbackPayload,
+  isKeyAction,
+  isSingleUpdateOsActionCallback,
+  isUpdateOsAction,
+  resolveCallbackStatus,
+  shouldRefreshServerState,
+} from '~/store/callbackActions.helpers';
 import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
-
-type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
-
-const keyActionTypes = [
-  'recover',
-  'replace',
-  'trialExtend',
-  'trialStart',
-  'purchase',
-  'redeem',
-  'renew',
-  'upgrade',
-] as const;
-
-const accountActionTypes = ['signIn', 'signOut', 'oemSignOut'] as const;
-const updateOsActionTypes = ['updateOs', 'downgradeOs'] as const;
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const {
@@ -57,11 +46,11 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const watcher = () => {
     const result = providedWatcher();
     if (result) {
-      saveCallbackData(result);
+      void saveCallbackData(result);
     }
   };
 
-  const saveCallbackData = (decryptedData?: QueryPayloads) => {
+  const saveCallbackData = async (decryptedData?: QueryPayloads) => {
     if (decryptedData) {
       callbackData.value = decryptedData;
     }
@@ -70,125 +59,94 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
       return console.error('Saved callback data not found');
     }
 
-    redirectToCallbackType?.();
+    return redirectToCallbackType();
   };
 
-  const redirectToCallbackType = () => {
+  const executeCallbackAction = async (action: ExternalActions) => {
+    if (isKeyAction(action)) {
+      await getInstallKeyStore().install(action);
+      return;
+    }
+
+    if (isAccountSignInAction(action)) {
+      const accountStore = getAccountStore();
+      accountStore.setAccountAction(action);
+      await accountStore.setConnectSignInPayload({
+        apiKey: action.apiKey ?? '',
+        email: action.user.email ?? '',
+        preferred_username: action.user.preferred_username ?? '',
+      });
+      return;
+    }
+
+    if (isAccountSignOutAction(action)) {
+      const accountStore = getAccountStore();
+      accountStore.setAccountAction(action);
+      await accountStore.setQueueConnectSignOut(true);
+      return;
+    }
+
+    if (isUpdateOsAction(action)) {
+      const updateOsActionsStore = getUpdateOsActionsStore();
+      updateOsActionsStore.setUpdateOsAction(action);
+      await updateOsActionsStore.actOnUpdateOsAction(action.type === 'downgradeOs');
+    }
+  };
+
+  const updateResolvedCallbackStatus = () => {
+    if (!isExternalCallbackPayload(callbackData.value)) {
+      return;
+    }
+
+    const nextStatus = resolveCallbackStatus({
+      actions: callbackData.value.actions,
+      accountActionStatus: getAccountStore().accountActionStatus,
+      keyInstallStatus: getInstallKeyStore().keyInstallStatus,
+      refreshServerStateStatus: getServerStore().refreshServerStateStatus,
+    });
+
+    if (nextStatus) {
+      callbackStatus.value = nextStatus;
+    }
+  };
+
+  const runCallbackActions = async (actions: ExternalActions[]) => {
+    for (const action of actions) {
+      console.debug('[redirectToCallbackType]', { action });
+      await executeCallbackAction(action);
+    }
+
+    if (shouldRefreshServerState(actions)) {
+      await getServerStore().refreshServerState();
+    }
+
+    if (isSingleUpdateOsActionCallback(actions)) {
+      console.debug('[redirectToCallbackType] updateOs done');
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+
+    updateResolvedCallbackStatus();
+  };
+
+  const redirectToCallbackType = async () => {
     console.debug('[redirectToCallbackType]');
-    if (
-      !callbackData.value ||
-      !callbackData.value.type ||
-      callbackData.value.type !== 'forUpc' ||
-      !callbackData.value.actions?.length
-    ) {
-      callbackError.value = 'Callback redirect type not present or incorrect';
-      callbackStatus.value = 'ready'; // default status
+    callbackError.value = getCallbackPayloadError(callbackData.value);
+    if (!isExternalCallbackPayload(callbackData.value)) {
+      callbackStatus.value = 'ready';
       return console.error('[redirectToCallbackType]', callbackError.value);
     }
-    // Display the feedback modal
     callbackStatus.value = 'loading';
-
-    // Parse the data and perform actions
-    callbackData.value.actions.forEach(async (action: ExternalActions, index: number, array) => {
-      console.debug('[redirectToCallbackType]', { action, index, array });
-
-      if (keyActionTypes.includes(action.type)) {
-        await getInstallKeyStore().install(action as ExternalKeyActions);
-      }
-
-      if (action.type === 'signIn' && action?.user) {
-        const accountStore = getAccountStore();
-        accountStore.setAccountAction(action as ExternalSignIn);
-        await accountStore.setConnectSignInPayload({
-          apiKey: action?.apiKey ?? '',
-          email: action.user?.email ?? '',
-          preferred_username: action.user?.preferred_username ?? '',
-        });
-      }
-
-      if (action.type === 'signOut' || action.type === 'oemSignOut') {
-        const accountStore = getAccountStore();
-        accountStore.setAccountAction(action as ExternalSignOut);
-        await accountStore.setQueueConnectSignOut(true);
-      }
-
-      if (action.type === 'updateOs' || action.type === 'downgradeOs') {
-        const updateOsActionsStore = getUpdateOsActionsStore();
-        updateOsActionsStore.setUpdateOsAction(action as ExternalUpdateOsAction);
-        await updateOsActionsStore.actOnUpdateOsAction(action.type === 'downgradeOs');
-
-        if (array.length === 1) {
-          // only 1 action, skip refresh server state
-          console.debug('[redirectToCallbackType] updateOs done');
-          // removing query string relase is set so users can't refresh the page and go through the same actions
-          window.history.replaceState(null, '', window.location.pathname);
-          return;
-        }
-      }
-
-      if (array.length === index + 1) {
-        const shouldRefreshServerState = array.some(
-          (callbackAction) =>
-            accountActionTypes.includes(callbackAction.type) ||
-            updateOsActionTypes.includes(callbackAction.type)
-        );
-
-        if (shouldRefreshServerState) {
-          await getServerStore().refreshServerState();
-        }
-      }
-    });
+    await runCallbackActions(callbackData.value.actions);
   };
 
-  const hasKeyAction = computed(() =>
-    Boolean(callbackData.value?.actions?.some((action) => keyActionTypes.includes(action.type)))
-  );
-  const hasAccountAction = computed(() =>
-    Boolean(callbackData.value?.actions?.some((action) => accountActionTypes.includes(action.type)))
-  );
-  const hasUpdateOsAction = computed(() =>
-    Boolean(callbackData.value?.actions?.some((action) => updateOsActionTypes.includes(action.type)))
-  );
-
+  const accountActionStatus = computed(() => getAccountStore().accountActionStatus);
+  const keyInstallStatus = computed(() => getInstallKeyStore().keyInstallStatus);
   const refreshServerStateStatus = computed(() => getServerStore().refreshServerStateStatus);
-  watchEffect(() => {
-    if (!callbackData.value?.actions?.length) {
-      return;
-    }
 
-    const accountStore = getAccountStore();
-    const installKeyStore = getInstallKeyStore();
-    const accountStatus = accountStore.accountActionStatus;
-    const keyStatus = installKeyStore.keyInstallStatus;
-
-    if (
-      (hasKeyAction.value && keyStatus === 'failed') ||
-      (hasAccountAction.value && accountStatus === 'failed')
-    ) {
-      callbackStatus.value = 'error';
-      return;
-    }
-
-    if (hasUpdateOsAction.value) {
-      if (refreshServerStateStatus.value === 'done') {
-        callbackStatus.value = 'success';
-        return;
-      }
-
-      if (refreshServerStateStatus.value === 'timeout') {
-        callbackStatus.value = 'error';
-      }
-
-      return;
-    }
-
-    const keyActionSucceeded = !hasKeyAction.value || keyStatus === 'success';
-    const accountActionSucceeded = !hasAccountAction.value || accountStatus === 'success';
-
-    if (keyActionSucceeded && accountActionSucceeded) {
-      callbackStatus.value = 'success';
-    }
-  });
+  watch(
+    [callbackData, accountActionStatus, keyInstallStatus, refreshServerStateStatus],
+    updateResolvedCallbackStatus
+  );
 
   const setCallbackStatus = (status: CallbackStatus) => {
     callbackStatus.value = status;

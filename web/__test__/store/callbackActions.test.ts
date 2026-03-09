@@ -265,6 +265,42 @@ describe('Callback Actions Store', () => {
   });
 
   describe('Callback Actions Handling', () => {
+    it('waits for earlier async actions to finish before refreshing mixed callbacks', async () => {
+      let resolveInstall: (() => void) | undefined;
+      const installPromise = new Promise<void>((resolve) => {
+        resolveInstall = resolve;
+      });
+      const mockInstallKeyStore = useInstallKeyStore();
+
+      vi.mocked(mockInstallKeyStore.install).mockReturnValueOnce(installPromise);
+
+      const mockData: QueryPayloads = {
+        type: 'forUpc',
+        actions: [
+          {
+            type: 'purchase',
+            keyUrl: 'mock-key-url',
+          },
+          {
+            type: 'signIn',
+            user: { email: 'test@example.com', preferred_username: 'test' },
+            apiKey: 'test-key',
+          } as ExternalSignIn,
+        ],
+        sender: 'test',
+      };
+
+      const savePromise = store.saveCallbackData(mockData);
+      await nextTick();
+
+      expect(vi.mocked(useServerStore)().refreshServerState).not.toHaveBeenCalled();
+
+      resolveInstall?.();
+      await savePromise;
+
+      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalledTimes(1);
+    });
+
     it('should handle sign in action', async () => {
       const mockData: QueryPayloads = {
         type: 'forUpc',
@@ -278,8 +314,7 @@ describe('Callback Actions Store', () => {
         sender: 'test',
       };
 
-      store.saveCallbackData(mockData);
-      await nextTick();
+      await store.saveCallbackData(mockData);
 
       expect(vi.mocked(useAccountStore)().setAccountAction).toHaveBeenCalled();
       expect(vi.mocked(useAccountStore)().setConnectSignInPayload).toHaveBeenCalledWith({
@@ -301,8 +336,7 @@ describe('Callback Actions Store', () => {
         sender: 'test',
       };
 
-      store.saveCallbackData(mockData);
-      await nextTick();
+      await store.saveCallbackData(mockData);
 
       expect(vi.mocked(useAccountStore)().setAccountAction).toHaveBeenCalled();
       expect(vi.mocked(useAccountStore)().setQueueConnectSignOut).toHaveBeenCalledWith(true);
@@ -320,8 +354,7 @@ describe('Callback Actions Store', () => {
         sender: 'test',
       };
 
-      store.saveCallbackData(mockData);
-      await nextTick();
+      await store.saveCallbackData(mockData);
 
       expect(vi.mocked(useAccountStore)().setAccountAction).toHaveBeenCalled();
       expect(vi.mocked(useAccountStore)().setQueueConnectSignOut).toHaveBeenCalledWith(true);
@@ -345,8 +378,7 @@ describe('Callback Actions Store', () => {
         sender: 'test',
       };
 
-      store.saveCallbackData(mockData);
-      await nextTick();
+      await store.saveCallbackData(mockData);
 
       expect(vi.mocked(useUpdateOsActionsStore)().setUpdateOsAction).toHaveBeenCalled();
       expect(vi.mocked(useUpdateOsActionsStore)().actOnUpdateOsAction).toHaveBeenCalled();
@@ -371,8 +403,7 @@ describe('Callback Actions Store', () => {
       };
       const mockUpdateOsActionsStore = useUpdateOsActionsStore();
 
-      store.saveCallbackData(mockData);
-      await nextTick();
+      await store.saveCallbackData(mockData);
 
       expect(mockUpdateOsActionsStore.setUpdateOsAction).toHaveBeenCalled();
       expect(mockUpdateOsActionsStore.actOnUpdateOsAction).toHaveBeenCalledWith(true);
@@ -401,8 +432,7 @@ describe('Callback Actions Store', () => {
         sender: 'test',
       };
 
-      store.saveCallbackData(mockData);
-      await nextTick();
+      await store.saveCallbackData(mockData);
 
       expect(vi.mocked(useAccountStore)().setAccountAction).toHaveBeenCalled();
       expect(vi.mocked(useUpdateOsActionsStore)().setUpdateOsAction).toHaveBeenCalled();
@@ -422,8 +452,7 @@ describe('Callback Actions Store', () => {
       };
       const mockInstallKeyStore = useInstallKeyStore();
 
-      store.saveCallbackData(mockData);
-      await nextTick();
+      await store.saveCallbackData(mockData);
 
       expect(mockInstallKeyStore.install).toHaveBeenCalledWith(mockData.actions[0]);
       expect(vi.mocked(useAccountStore)().setAccountAction).not.toHaveBeenCalled();
@@ -446,7 +475,36 @@ describe('Callback Actions Store', () => {
         sender: 'test',
       };
 
+      await store.saveCallbackData(mockData);
+
+      expect(store.callbackStatus).toBe('success');
+    });
+
+    it('resolves mixed key and account callbacks only after both statuses succeed', async () => {
+      mockAccountActionStatus.value = 'waiting';
+
+      const mockData: QueryPayloads = {
+        type: 'forUpc',
+        actions: [
+          {
+            type: 'purchase',
+            keyUrl: 'mock-key-url',
+          },
+          {
+            type: 'signIn',
+            user: { email: 'test@example.com', preferred_username: 'test' },
+            apiKey: 'test-key',
+          } as ExternalSignIn,
+        ],
+        sender: 'test',
+      };
+
       store.saveCallbackData(mockData);
+      await nextTick();
+
+      expect(store.callbackStatus).toBe('loading');
+
+      mockAccountActionStatus.value = 'success';
       await nextTick();
 
       expect(store.callbackStatus).toBe('success');
