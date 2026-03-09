@@ -166,6 +166,7 @@ enum ArrayDiskStatus {
 }
 
 enum ArrayDiskType {
+  BOOT
   DATA
   PARITY
   FLASH

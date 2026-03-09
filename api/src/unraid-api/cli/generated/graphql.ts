@@ -298,6 +298,7 @@ export enum ArrayDiskStatus {
 }
 
 export enum ArrayDiskType {
+  BOOT = 'BOOT',
   CACHE = 'CACHE',
   DATA = 'DATA',
   FLASH = 'FLASH',

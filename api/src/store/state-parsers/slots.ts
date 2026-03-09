@@ -7,10 +7,10 @@ import {
     ArrayDiskType,
 } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 
-type SlotStatus = 'DISK_OK';
-type SlotFsStatus = 'Mounted';
+type SlotStatus = keyof typeof ArrayDiskStatus;
+type SlotFsStatus = string;
 type SlotFsType = 'vfat' | 'ntfs';
-type SlotType = 'Flash' | 'Cache' | 'Array' | 'Parity';
+type SlotType = 'Flash' | 'Cache' | 'Array' | 'Parity' | 'Boot';
 type SlotColor = 'green-on';
 
 export type IniSlot = {
@@ -47,12 +47,24 @@ export type IniSlot = {
 
 export type SlotsIni = IniSlot[];
 
+const resolveSlotId = (slot: IniSlot): string => {
+    if (slot.id) {
+        return slot.id;
+    }
+
+    if (slot.device) {
+        return slot.device;
+    }
+
+    return `slot-${slot.idx}-${slot.name}`;
+};
+
 export const parse: StateFileToIniParserMap['disks'] = (disksIni) =>
     Object.values(disksIni)
-        .filter((slot) => slot.id)
+        .filter((slot) => Boolean(slot.id || slot.device || slot.type === 'Boot'))
         .map((slot) => {
             const result: ArrayDisk = {
-                id: slot.id,
+                id: resolveSlotId(slot),
                 device: slot.device,
                 comment: slot.comment ?? null,
                 exportable: toBoolean(slot.exportable),
@@ -85,6 +97,13 @@ export const parse: StateFileToIniParserMap['disks'] = (disksIni) =>
                 transport: slot.transport ?? null,
                 isSpinning: slot.spundown ? slot.spundown === '0' : null,
             };
+            Object.defineProperties(result, {
+                fsStatus: {
+                    value: slot.fsStatus ?? null,
+                    enumerable: false,
+                    writable: true,
+                },
+            });
             // @TODO Zod Parse This
             return result;
         });

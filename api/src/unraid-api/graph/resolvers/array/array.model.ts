@@ -102,7 +102,7 @@ export class ArrayDisk extends Node {
     exportable?: boolean;
 
     @Field(() => ArrayDiskType, {
-        description: 'Type of Disk - used to differentiate Cache / Flash / Array / Parity',
+        description: 'Type of Disk - used to differentiate Boot / Cache / Flash / Array / Parity',
     })
     type!: ArrayDiskType;
 
@@ -129,6 +129,8 @@ export class ArrayDisk extends Node {
 
     @Field(() => Boolean, { nullable: true, description: 'Whether the disk is currently spinning' })
     isSpinning?: boolean | null;
+
+    fsStatus?: string | null;
 }
 
 @ObjectType({
@@ -222,6 +224,7 @@ registerEnumType(ArrayDiskStatus, {
 export enum ArrayDiskType {
     DATA = 'DATA',
     PARITY = 'PARITY',
+    BOOT = 'BOOT',
     FLASH = 'FLASH',
     CACHE = 'CACHE',
 }

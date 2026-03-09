@@ -2,8 +2,9 @@ import { join } from 'path';
 
 import { expect, test } from 'vitest';
 
-import type { SlotsIni } from '@app/store/state-parsers/slots.js';
+import type { IniSlot, SlotsIni } from '@app/store/state-parsers/slots.js';
 import { store } from '@app/store/index.js';
+import { ArrayDiskType } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 
 test('Returns parsed state file', async () => {
     const { parse } = await import('@app/store/state-parsers/slots.js');
@@ -194,3 +195,45 @@ test('Returns parsed state file', async () => {
       ]
     `);
 }, 15000);
+
+test('preserves Boot slots from disks.ini for internal boot selection', async () => {
+    const { parse } = await import('@app/store/state-parsers/slots.js');
+
+    const slot: IniSlot = {
+        color: 'green-on',
+        comment: '',
+        critical: '',
+        device: '',
+        exportable: '',
+        format: '-',
+        fsColor: 'green-on',
+        fsFree: '0',
+        fsSize: '0',
+        fsStatus: 'Mounted',
+        fsType: 'vfat',
+        fsUsed: '0',
+        id: '',
+        idx: '54',
+        luksState: '0',
+        name: 'boot',
+        numErrors: '0',
+        numReads: '0',
+        numWrites: '0',
+        rotational: '0',
+        size: '0',
+        sizeSb: '0',
+        slots: '1',
+        spundown: '0',
+        status: 'DISK_NP',
+        temp: '*',
+        transport: '',
+        type: 'Boot',
+        warning: '',
+    };
+
+    const [parsed] = parse({ boot: slot } as unknown as SlotsIni);
+
+    expect(parsed?.id).toBe('slot-54-boot');
+    expect(parsed?.type).toBe(ArrayDiskType.BOOT);
+    expect(parsed?.fsStatus).toBe('Mounted');
+});
