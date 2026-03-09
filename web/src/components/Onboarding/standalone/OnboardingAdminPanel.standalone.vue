@@ -7,11 +7,11 @@ import { InformationCircleIcon } from '@heroicons/vue/24/outline';
 import { parse } from 'graphql';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
-import { useActivationCodeModalStore } from '~/components/Onboarding/store/activationCodeModal';
-import { useOnboardingStore } from '~/components/Onboarding/store/upgradeOnboarding';
+import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
+import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
 import { RegistrationState } from '~/composables/gql/graphql';
 
-const activationModalStore = useActivationCodeModalStore();
+const onboardingModalStore = useOnboardingModalStore();
 const onboardingStore = useOnboardingStore();
 const activationCodeStore = useActivationCodeDataStore();
 
@@ -36,6 +36,8 @@ const lastApplied = ref('');
 const activePresetId = ref<string | null>(null);
 const resetDraftAndHardRefreshOnOpen = ref(false);
 const RESET_DRAFT_AND_REFRESH_KEY = 'onboardingAdminPanel.resetDraftAndHardRefreshOnOpen';
+const simulateNormalRenderGatingOnOpen = ref(false);
+const SIMULATE_NORMAL_RENDER_GATING_KEY = 'onboardingAdminPanel.simulateNormalRenderGatingOnOpen';
 
 // Cache for storing edited JSON per preset - survives switching between presets
 const presetEditCache = ref<Map<string, string>>(new Map());
@@ -335,6 +337,8 @@ const hardRefreshPageBestEffort = async () => {
 onMounted(() => {
   if (typeof window === 'undefined') return;
   resetDraftAndHardRefreshOnOpen.value = localStorage.getItem(RESET_DRAFT_AND_REFRESH_KEY) === 'true';
+  simulateNormalRenderGatingOnOpen.value =
+    localStorage.getItem(SIMULATE_NORMAL_RENDER_GATING_KEY) === 'true';
 });
 
 const setResetDraftAndHardRefreshOnOpen = (value: boolean) => {
@@ -347,6 +351,27 @@ const setResetDraftAndHardRefreshOnOpen = (value: boolean) => {
 const onResetDraftAndHardRefreshChange = (event: Event) => {
   const target = event.target as HTMLInputElement | null;
   setResetDraftAndHardRefreshOnOpen(Boolean(target?.checked));
+};
+
+const setSimulateNormalRenderGatingOnOpen = (value: boolean) => {
+  simulateNormalRenderGatingOnOpen.value = value;
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(SIMULATE_NORMAL_RENDER_GATING_KEY, value ? 'true' : 'false');
+  }
+};
+
+const onSimulateNormalRenderGatingChange = (event: Event) => {
+  const target = event.target as HTMLInputElement | null;
+  setSimulateNormalRenderGatingOnOpen(Boolean(target?.checked));
+};
+
+const openOnboardingModalFromPanel = () => {
+  if (simulateNormalRenderGatingOnOpen.value) {
+    onboardingModalStore.setIsHidden(false);
+    return;
+  }
+
+  onboardingModalStore.forceOpenModal();
 };
 
 const onMockUnauthenticatedChange = (event: Event) => {
@@ -408,9 +433,7 @@ const applyAndOpenPreset = async (preset: Preset) => {
 
   await applyOverrides();
   await nextTick();
-  const shouldOpen =
-    status.value === 'INCOMPLETE' || status.value === 'UPGRADE' || status.value === 'DOWNGRADE';
-  activationModalStore.setIsHidden(!shouldOpen);
+  openOnboardingModalFromPanel();
 
   if (resetDraftAndHardRefreshOnOpen.value) {
     await hardRefreshPageBestEffort();
@@ -699,7 +722,7 @@ const currentRegistrationState = computed({
         <h2 class="text-muted-foreground text-xs font-bold tracking-wider uppercase">Extra Settings</h2>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div class="border-border bg-background rounded-lg border p-3 shadow-sm">
           <label class="text-muted-foreground mb-2 block text-xs font-semibold uppercase"
             >Force License State</label
@@ -761,6 +784,29 @@ const currentRegistrationState = computed({
             </div>
           </label>
         </div>
+
+        <div class="border-border bg-background rounded-lg border p-3 shadow-sm">
+          <label class="flex cursor-pointer items-start gap-2">
+            <input
+              type="checkbox"
+              class="mt-0.5"
+              :checked="simulateNormalRenderGatingOnOpen"
+              @change="onSimulateNormalRenderGatingChange"
+            />
+            <div>
+              <div class="text-foreground text-xs font-semibold uppercase">
+                Simulate Normal Render Gating
+              </div>
+              <div class="text-muted-foreground text-xs">
+                When enabled, <strong>Open</strong> uses normal onboarding gating (<code
+                  class="bg-muted rounded px-1"
+                  >setIsHidden(false)</code
+                >) instead of force-open. Non-fresh-install states (for example, upgrade/downgrade) will
+                stay hidden.
+              </div>
+            </div>
+          </label>
+        </div>
       </div>
     </div>
 
@@ -776,7 +822,7 @@ const currentRegistrationState = computed({
             <h3 class="text-sm font-semibold">Quick Presets</h3>
             <div class="flex items-center gap-2">
               <button
-                @click="activationModalStore.setIsHidden(false)"
+                @click="openOnboardingModalFromPanel()"
                 class="border-primary bg-primary/10 text-primary hover:bg-primary/20 rounded border px-2 py-0.5 text-xs font-medium"
               >
                 Open Onboarding Modal

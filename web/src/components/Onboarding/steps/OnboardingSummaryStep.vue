@@ -42,9 +42,9 @@ import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCore
 import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
-import { useActivationCodeModalStore } from '@/components/Onboarding/store/activationCodeModal';
+import { useOnboardingModalStore } from '@/components/Onboarding/store/onboardingModalVisibility';
+import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
 import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
-import { useUpgradeOnboardingStore } from '@/components/Onboarding/store/upgradeOnboarding';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
@@ -64,8 +64,8 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 const draftStore = useOnboardingDraftStore();
 const { activationCode, isFreshInstall, registrationState } = storeToRefs(useActivationCodeDataStore());
-const { refetchOnboarding } = useUpgradeOnboardingStore();
-const modalStore = useActivationCodeModalStore();
+const { refetchOnboarding } = useOnboardingStore();
+const onboardingModalStore = useOnboardingModalStore();
 
 // Setup Mutations
 const { mutate: updateSystemTime } = useMutation(UPDATE_SYSTEM_TIME_MUTATION);
@@ -650,7 +650,7 @@ const handleComplete = async () => {
   }
 
   // Lock modal open
-  modalStore.setIsHidden(false);
+  onboardingModalStore.setIsHidden(false);
 
   isProcessing.value = true;
   error.value = null;

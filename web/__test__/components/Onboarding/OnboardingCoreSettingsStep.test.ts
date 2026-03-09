@@ -122,8 +122,8 @@ vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
   useOnboardingDraftStore: () => draftStore,
 }));
 
-vi.mock('@/components/Onboarding/store/upgradeOnboarding', () => ({
-  useUpgradeOnboardingStore: () => onboardingStore,
+vi.mock('@/components/Onboarding/store/onboardingStatus', () => ({
+  useOnboardingStore: () => onboardingStore,
 }));
 
 vi.mock('@vue/apollo-composable', async () => {
