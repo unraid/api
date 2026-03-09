@@ -41,6 +41,8 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const callbackStatus = ref<CallbackStatus>('ready');
   const callbackData = ref<QueryPayloads>();
   const callbackError = ref<string>();
+  const callbackActionsExecuting = ref(false);
+  const callbackReconciliationPending = ref(false);
   const sendType = 'fromUpc';
 
   const getCallbackActionErrorMessage = (error: unknown): string => {
@@ -127,7 +129,12 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
     const refreshServerStateOptions = getRefreshServerStateOptions(actions);
     if (refreshServerStateOptions) {
-      void getServerStore().refreshServerState(refreshServerStateOptions);
+      callbackReconciliationPending.value = true;
+      void Promise.resolve(getServerStore().refreshServerState(refreshServerStateOptions)).finally(
+        () => {
+          callbackReconciliationPending.value = false;
+        }
+      );
     }
 
     if (isSingleUpdateOsActionCallback(actions)) {
@@ -146,33 +153,23 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
       return console.error('[redirectToCallbackType]', callbackError.value);
     }
     callbackStatus.value = 'loading';
+    callbackActionsExecuting.value = true;
     try {
       await runCallbackActions(callbackData.value.actions);
     } catch (error) {
       callbackError.value = getCallbackActionErrorMessage(error);
       callbackStatus.value = 'error';
       console.error('[redirectToCallbackType] action failure', error);
+    } finally {
+      callbackActionsExecuting.value = false;
     }
   };
 
   const accountActionStatus = computed(() => getAccountStore().accountActionStatus);
   const keyInstallStatus = computed(() => getInstallKeyStore().keyInstallStatus);
-  const refreshServerStateStatus = computed(() => getServerStore().refreshServerStateStatus);
-  const callbackCallsCompleted = computed(() => {
-    if (callbackStatus.value === 'loading') {
-      return false;
-    }
-
-    if (!isExternalCallbackPayload(callbackData.value)) {
-      return true;
-    }
-
-    if (!getRefreshServerStateOptions(callbackData.value.actions)) {
-      return true;
-    }
-
-    return refreshServerStateStatus.value === 'done' || refreshServerStateStatus.value === 'timeout';
-  });
+  const callbackCallsCompleted = computed(
+    () => !callbackActionsExecuting.value && !callbackReconciliationPending.value
+  );
   watch([callbackData, accountActionStatus, keyInstallStatus], updateResolvedCallbackStatus);
 
   const setCallbackStatus = (status: CallbackStatus) => {

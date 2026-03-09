@@ -290,6 +290,7 @@ describe('Callback Actions Store', () => {
       await nextTick();
 
       expect(mockRefreshServerState).not.toHaveBeenCalled();
+      expect(store.callbackCallsCompleted).toBe(false);
 
       resolveInstall?.();
       await savePromise;
@@ -428,6 +429,7 @@ describe('Callback Actions Store', () => {
       expect(vi.mocked(useUpdateOsActionsStore)().setUpdateOsAction).toHaveBeenCalled();
       expect(vi.mocked(useUpdateOsActionsStore)().actOnUpdateOsAction).toHaveBeenCalled();
       expect(mockRefreshServerState).not.toHaveBeenCalled(); // Single action, no refresh needed
+      expect(store.callbackCallsCompleted).toBe(true);
     });
 
     it('should handle downgradeOs action', async () => {
@@ -453,6 +455,7 @@ describe('Callback Actions Store', () => {
       expect(mockUpdateOsActionsStore.setUpdateOsAction).toHaveBeenCalled();
       expect(mockUpdateOsActionsStore.actOnUpdateOsAction).toHaveBeenCalledWith(true);
       expect(mockRefreshServerState).not.toHaveBeenCalled(); // Single action, no refresh needed
+      expect(store.callbackCallsCompleted).toBe(true);
     });
 
     it('should handle multiple actions', async () => {
@@ -570,6 +573,7 @@ describe('Callback Actions Store', () => {
       await expect(store.saveCallbackData(mockData)).resolves.toBeUndefined();
 
       expect(store.callbackStatus).toBe('error');
+      expect(store.callbackCallsCompleted).toBe(true);
       expect(store.callbackError).toBe('install exploded');
       expect(mockRefreshServerState).not.toHaveBeenCalled();
     });
@@ -591,6 +595,7 @@ describe('Callback Actions Store', () => {
       await expect(store.saveCallbackData(mockData)).resolves.toBeUndefined();
 
       expect(store.callbackStatus).toBe('error');
+      expect(store.callbackCallsCompleted).toBe(true);
       expect(store.callbackError).toBe('install string failure');
     });
 
@@ -611,12 +616,15 @@ describe('Callback Actions Store', () => {
       await expect(store.saveCallbackData(mockData)).resolves.toBeUndefined();
 
       expect(store.callbackStatus).toBe('error');
+      expect(store.callbackCallsCompleted).toBe(true);
       expect(store.callbackError).toBe('Unknown callback action error');
     });
 
     it('does not wait for key callback refresh reconciliation before succeeding', async () => {
-      mockRefreshServerStateStatus.value = 'refreshing';
-      const pendingRefresh = new Promise<boolean>(() => {});
+      let resolveRefresh: ((value: boolean) => void) | undefined;
+      const pendingRefresh = new Promise<boolean>((resolve) => {
+        resolveRefresh = resolve;
+      });
       mockRefreshServerState.mockReturnValueOnce(pendingRefresh);
 
       const mockData: QueryPayloads = {
@@ -639,15 +647,19 @@ describe('Callback Actions Store', () => {
       expect(store.callbackStatus).toBe('success');
       expect(store.callbackCallsCompleted).toBe(false);
 
-      mockRefreshServerStateStatus.value = 'done';
+      resolveRefresh?.(true);
+      await nextTick();
+      await pendingRefresh;
       await nextTick();
 
       expect(store.callbackCallsCompleted).toBe(true);
     });
 
     it('does not wait for account callback refresh reconciliation before succeeding', async () => {
-      mockRefreshServerStateStatus.value = 'refreshing';
-      const pendingRefresh = new Promise<boolean>(() => {});
+      let resolveRefresh: ((value: boolean) => void) | undefined;
+      const pendingRefresh = new Promise<boolean>((resolve) => {
+        resolveRefresh = resolve;
+      });
       mockRefreshServerState.mockReturnValueOnce(pendingRefresh);
 
       const mockData: QueryPayloads = {
@@ -668,7 +680,9 @@ describe('Callback Actions Store', () => {
       expect(store.callbackStatus).toBe('success');
       expect(store.callbackCallsCompleted).toBe(false);
 
-      mockRefreshServerStateStatus.value = 'timeout';
+      resolveRefresh?.(false);
+      await nextTick();
+      await pendingRefresh;
       await nextTick();
 
       expect(store.callbackCallsCompleted).toBe(true);
