@@ -44,7 +44,7 @@ const updateOsActionStore = useUpdateOsActionsStore();
 
 const { accountAction, accountActionHide, accountActionStatus, accountActionType } =
   storeToRefs(accountStore);
-const { callbackStatus } = storeToRefs(callbackActionsStore);
+const { callbackCallsCompleted, callbackStatus } = storeToRefs(callbackActionsStore);
 const { keyActionType, keyUrl, keyInstallStatus, keyType } = storeToRefs(installKeyStore);
 const {
   connectPluginInstalled,
@@ -101,20 +101,8 @@ const subheading = computed(() => {
     if (accountActionType.value === 'signIn') {
       return t('userProfile.callbackFeedback.youReOneStepCloserTo');
     }
-    if (keyActionType.value === 'purchase') {
-      return t('userProfile.callbackFeedback.thankYouForPurchasingAnUnraid', [keyType.value]);
-    }
-    if (keyActionType.value === 'replace') {
-      return t('userProfile.callbackFeedback.yourKeyHasBeenReplaced', [keyType.value]);
-    }
-    if (keyActionType.value === 'trialExtend') {
-      return t('userProfile.callbackFeedback.yourTrialKeyHasBeenExtended');
-    }
-    if (keyActionType.value === 'trialStart') {
-      return t('userProfile.callbackFeedback.yourFreeTrialKeyProvidesAll');
-    }
-    if (keyActionType.value === 'upgrade') {
-      return t('userProfile.callbackFeedback.thankYouForUpgradingToAn', [keyType.value]);
+    if (keyActionType.value) {
+      return t('userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired');
     }
     return '';
   }
@@ -126,9 +114,7 @@ const close = () => {
   if (callbackStatus.value === 'loading') {
     return;
   }
-  return refreshServerStateStatus.value === 'done'
-    ? callbackActionsStore.setCallbackStatus('ready')
-    : window.location.reload();
+  return callbackActionsStore.setCallbackStatus('ready');
 };
 
 const confirmUpdateOs = () => {
@@ -249,6 +235,14 @@ const showUpdateEligibility = computed(() => {
   }
   return !['Basic', 'Plus', 'Pro', 'Lifetime', 'Trial'].includes(keyType.value);
 });
+
+const showPostInstallKeyError = computed(() =>
+  Boolean(
+    stateDataError.value &&
+      callbackCallsCompleted.value &&
+      (keyInstallStatus.value === 'success' || keyInstallStatus.value === 'failed')
+  )
+);
 </script>
 
 <template>
@@ -258,7 +252,7 @@ const showUpdateEligibility = computed(() => {
     :open="open"
     max-width="max-w-[640px]"
     :error="callbackStatus === 'error'"
-    :success="callbackStatus === 'success'"
+    :success="callbackStatus === 'success' && updateOsStatus !== 'confirming'"
     :show-close-x="callbackStatus !== 'loading'"
     @close="close"
   >
@@ -311,11 +305,7 @@ const showUpdateEligibility = computed(() => {
         </UpcCallbackFeedbackStatus>
 
         <UpcCallbackFeedbackStatus
-          v-if="
-            stateDataError &&
-            callbackStatus !== 'loading' &&
-            (keyInstallStatus === 'success' || keyInstallStatus === 'failed')
-          "
+          v-if="showPostInstallKeyError"
           :error="true"
           :text="t('userProfile.callbackFeedback.postInstallLicenseKeyError')"
         >
@@ -363,7 +353,7 @@ const showUpdateEligibility = computed(() => {
 
     <template v-if="callbackStatus === 'success' || updateOsStatus === 'confirming'" #footer>
       <div class="flex flex-row justify-center gap-4">
-        <template v-if="callbackStatus === 'success'">
+        <template v-if="callbackStatus === 'success' && updateOsStatus !== 'confirming'">
           <BrandButton variant="underline" :icon="XMarkIcon" :text="closeText" @click="close" />
 
           <template v-if="connectPluginInstalled && accountActionType === 'signIn'">
@@ -402,7 +392,7 @@ const showUpdateEligibility = computed(() => {
           />
         </template>
 
-        <template v-if="stateDataError">
+        <template v-if="showPostInstallKeyError">
           <BrandButton
             :href="WEBGUI_TOOLS_REGISTRATION"
             :icon="WrenchScrewdriverIcon"

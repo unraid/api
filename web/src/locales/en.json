@@ -841,6 +841,7 @@
   "userProfile.callbackFeedback.installRecovered": "Install Recovered",
   "userProfile.callbackFeedback.installReplaced": "Install Replaced",
   "userProfile.callbackFeedback.key": "{0} {1} Key…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Key installed successfully. A reboot may be required to apply this change.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} Key {0} Successfully",
   "userProfile.callbackFeedback.newVersion": "New Version: {0}",
   "userProfile.callbackFeedback.noThanks": "No thanks",

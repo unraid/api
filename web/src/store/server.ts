@@ -1160,7 +1160,8 @@ export const useServerStore = defineStore('server', () => {
           ? data.registration.keyFile.contents
           : undefined,
       regGen: data.vars && data.vars.regGen ? parseInt(data.vars.regGen) : undefined,
-      state: data.vars && data.vars.regState ? data.vars.regState : undefined,
+      regTy: data.registration?.type ?? undefined,
+      state: data.registration?.state ?? data.vars?.regState ?? undefined,
       config: data.config
         ? { id: 'config', ...data.config }
         : {
@@ -1240,11 +1241,13 @@ export const useServerStore = defineStore('server', () => {
   const refreshServerStateStatus = ref<'done' | 'ready' | 'refreshing' | 'timeout'>('ready');
   const refreshServerState = async (options?: {
     poll?: boolean;
+    delayMs?: number;
     attempt?: number;
     maxAttempts?: number;
     intervalMs?: number;
   }): Promise<boolean> => {
     const poll = options?.poll ?? true;
+    const delayMs = options?.delayMs ?? 0;
     const attempt = options?.attempt ?? 0;
     const maxAttempts = options?.maxAttempts ?? refreshLimit;
     const intervalMs = options?.intervalMs ?? refreshTimeout;
@@ -1253,6 +1256,10 @@ export const useServerStore = defineStore('server', () => {
     if (attempt >= maxAttempts) {
       refreshServerStateStatus.value = 'timeout';
       return false;
+    }
+
+    if (attempt === 0 && delayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
 
     refreshServerStateStatus.value = 'refreshing';

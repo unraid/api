@@ -3,6 +3,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StateFileKey } from '@app/store/types.js';
 import { RegistrationType } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
+let registrationKeyWatchHandler: ((event: string, path: string) => Promise<void>) | undefined;
+
+const chokidarWatcher = {
+    on: vi.fn(),
+};
+
+const chokidarWatch = vi.fn(() => chokidarWatcher);
+
+vi.mock('chokidar', () => ({
+    watch: chokidarWatch,
+}));
+
 // Mock the store module
 vi.mock('@app/store/index.js', () => ({
     store: {
@@ -35,18 +47,29 @@ describe('reloadVarIniWithRetry', () => {
     let store: { dispatch: ReturnType<typeof vi.fn> };
     let getters: { emhttp: ReturnType<typeof vi.fn> };
     let loadSingleStateFile: ReturnType<typeof vi.fn>;
+    let loadRegistrationKey: ReturnType<typeof vi.fn>;
 
     beforeEach(async () => {
         vi.useFakeTimers();
 
         const storeModule = await import('@app/store/index.js');
         const emhttpModule = await import('@app/store/modules/emhttp.js');
+        const registrationModule = await import('@app/store/modules/registration.js');
 
         store = storeModule.store as unknown as typeof store;
         getters = storeModule.getters as unknown as typeof getters;
         loadSingleStateFile = emhttpModule.loadSingleStateFile as unknown as typeof loadSingleStateFile;
+        loadRegistrationKey =
+            registrationModule.loadRegistrationKey as unknown as typeof loadRegistrationKey;
 
         vi.clearAllMocks();
+        registrationKeyWatchHandler = undefined;
+        chokidarWatcher.on.mockImplementation((event, handler) => {
+            if (event === 'all') {
+                registrationKeyWatchHandler = handler;
+            }
+            return chokidarWatcher;
+        });
     });
 
     afterEach(() => {
@@ -110,6 +133,35 @@ describe('reloadVarIniWithRetry', () => {
         expect(store.dispatch).toHaveBeenCalledTimes(2);
     });
 
+    it('stops retrying when regFile changes even if regTy does not', async () => {
+        getters.emhttp
+            .mockReturnValueOnce({
+                var: {
+                    regCheck: '',
+                    regFile: '',
+                    regState: 'ENOKEYFILE',
+                    regTy: RegistrationType.PRO,
+                },
+            })
+            .mockReturnValueOnce({
+                var: {
+                    regCheck: '',
+                    regFile: '/boot/config/Pro.key',
+                    regState: 'PRO',
+                    regTy: RegistrationType.PRO,
+                },
+            });
+
+        const { reloadVarIniWithRetry } = await import('@app/store/watch/registration-watch.js');
+
+        const promise = reloadVarIniWithRetry(3);
+
+        await vi.advanceTimersByTimeAsync(500);
+        await promise;
+
+        expect(store.dispatch).toHaveBeenCalledTimes(1);
+    });
+
     it('handles undefined regTy gracefully', async () => {
         getters.emhttp.mockReturnValue({ var: {} });
 
@@ -147,5 +199,47 @@ describe('reloadVarIniWithRetry', () => {
         expect(store.dispatch).toHaveBeenCalledTimes(3);
 
         await promise;
+    });
+
+    it('reloads var.ini before reloading the registration key on key file events', async () => {
+        getters.emhttp
+            .mockReturnValueOnce({
+                var: {
+                    regCheck: '',
+                    regFile: '',
+                    regState: 'ENOKEYFILE',
+                    regTy: RegistrationType.PRO,
+                },
+            })
+            .mockReturnValueOnce({
+                var: {
+                    regCheck: '',
+                    regFile: '/boot/config/Pro.key',
+                    regState: 'PRO',
+                    regTy: RegistrationType.PRO,
+                },
+            });
+
+        const { setupRegistrationKeyWatch } = await import('@app/store/watch/registration-watch.js');
+
+        setupRegistrationKeyWatch();
+
+        expect(chokidarWatch).toHaveBeenCalledWith('/boot/config', {
+            persistent: true,
+            ignoreInitial: true,
+            ignored: expect.any(Function),
+            usePolling: true,
+            interval: 5000,
+        });
+
+        expect(registrationKeyWatchHandler).toBeDefined();
+
+        const promise = registrationKeyWatchHandler?.('add', '/boot/config/Pro.key');
+
+        await vi.advanceTimersByTimeAsync(500);
+        await promise;
+
+        expect(store.dispatch).toHaveBeenNthCalledWith(1, loadSingleStateFile(StateFileKey.var));
+        expect(store.dispatch).toHaveBeenNthCalledWith(2, loadRegistrationKey());
     });
 });

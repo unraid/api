@@ -265,7 +265,7 @@ const doSkip = () => {
             <BrandButton
               :text="nextButtonText"
               class="w-full shadow-md transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[140px]"
-              :variant="hasValidLicense ? 'fill' : 'muted'"
+              :variant="hasValidLicense ? 'fill' : 'gray'"
               :class="hasValidLicense ? '!bg-primary hover:!bg-primary/90 !text-white' : '!shadow-none'"
               @click="handleNext"
               :disabled="!hasValidLicense && !allowSkip"
