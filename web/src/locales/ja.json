@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "回復をインストール",
   "userProfile.callbackFeedback.installReplaced": "交換をインストール",
   "userProfile.callbackFeedback.key": "{0} {1} キー…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "キーが正常にインストールされました。この変更を適用するには、再起動が必要な場合があります。",
   "userProfile.callbackFeedback.keySuccessfully": "{1}キー{0}成功しました",
   "userProfile.callbackFeedback.newVersion": "新しいバージョン: {0}",
   "userProfile.callbackFeedback.noThanks": "いいえ、結構です",
