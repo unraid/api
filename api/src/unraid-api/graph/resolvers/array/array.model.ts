@@ -102,7 +102,7 @@ export class ArrayDisk extends Node {
     exportable?: boolean;
 
     @Field(() => ArrayDiskType, {
-        description: 'Type of Disk - used to differentiate Cache / Flash / Array / Parity',
+        description: 'Type of Disk - used to differentiate Boot / Cache / Flash / Data (DATA) / Parity',
     })
     type!: ArrayDiskType;
 
@@ -129,6 +129,11 @@ export class ArrayDisk extends Node {
 
     @Field(() => Boolean, { nullable: true, description: 'Whether the disk is currently spinning' })
     isSpinning?: boolean | null;
+
+    // Internal runtime-only metadata used for boot selection; these stay undecorated so they are not exposed in GraphQL.
+    fsStatus?: string | null;
+
+    fsMountpoint?: string | null;
 }
 
 @ObjectType({
@@ -141,8 +146,17 @@ export class UnraidArray extends Node {
     @Field(() => ArrayCapacity, { description: 'Current array capacity' })
     capacity!: ArrayCapacity;
 
-    @Field(() => ArrayDisk, { nullable: true, description: 'Current boot disk' })
+    @Field(() => ArrayDisk, {
+        nullable: true,
+        description: 'Returns the active boot disk',
+    })
     boot?: ArrayDisk;
+
+    @Field(() => [ArrayDisk], {
+        description:
+            'All detected boot devices: every Boot entry for internal boot, including mirrored members when configured, or the mounted /boot Flash entry for legacy USB boot',
+    })
+    bootDevices!: ArrayDisk[];
 
     @Field(() => [ArrayDisk], { description: 'Parity disks in the current array' })
     parities!: ArrayDisk[];
@@ -222,6 +236,7 @@ registerEnumType(ArrayDiskStatus, {
 export enum ArrayDiskType {
     DATA = 'DATA',
     PARITY = 'PARITY',
+    BOOT = 'BOOT',
     FLASH = 'FLASH',
     CACHE = 'CACHE',
 }

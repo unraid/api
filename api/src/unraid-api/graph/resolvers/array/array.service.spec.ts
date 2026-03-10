@@ -80,6 +80,7 @@ describe('ArrayService', () => {
                 },
             },
             boot: undefined,
+            bootDevices: [],
             parities: [],
             disks: [],
             caches: [],
