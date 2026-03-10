@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "Installer genoprettet",
   "userProfile.callbackFeedback.installReplaced": "Installer udskiftet",
   "userProfile.callbackFeedback.key": "{0} {1} nøgle...",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Nøglen blev installeret med succes. En genstart kan være nødvendig for at anvende denne ændring.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} nøgle {0} med succes",
   "userProfile.callbackFeedback.newVersion": "Ny version: {0}",
   "userProfile.callbackFeedback.noThanks": "Nej tak",
