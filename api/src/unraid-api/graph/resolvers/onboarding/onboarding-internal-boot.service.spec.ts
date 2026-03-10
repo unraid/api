@@ -218,6 +218,34 @@ describe('OnboardingInternalBootService', () => {
         expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
     });
 
+    it('returns validation error when a selected device uses USB transport', async () => {
+        vi.mocked(getters.emhttp).mockReturnValue({
+            devices: [{ id: 'disk-usb', device: 'sdc' }],
+            disks: [
+                {
+                    id: 'USB-SERIAL',
+                    device: 'sdc',
+                    transport: 'USB',
+                },
+            ],
+        } as unknown as ReturnType<typeof getters.emhttp>);
+        const service = new OnboardingInternalBootService();
+
+        const result = await service.createInternalBootPool({
+            poolName: 'cache',
+            devices: ['disk-usb'],
+            bootSizeMiB: 16384,
+            updateBios: false,
+        });
+
+        expect(result).toEqual({
+            ok: false,
+            code: 2,
+            output: 'mkbootpool: USB devices are not eligible for internal boot: disk-usb',
+        });
+        expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
+    });
+
     it('returns failure output when emcmd command throws', async () => {
         vi.mocked(emcmd).mockRejectedValue(new Error('socket failure'));
         const service = new OnboardingInternalBootService();

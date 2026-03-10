@@ -32,6 +32,19 @@ const isEmhttpDeviceRecord = (value: unknown): value is EmhttpDeviceRecord => {
 
 @Injectable()
 export class OnboardingInternalBootService {
+    private normalizeDeviceName(value: string | null | undefined): string {
+        if (!value) {
+            return '';
+        }
+
+        const trimmed = value.trim();
+        return trimmed.startsWith('/dev/') ? trimmed.slice('/dev/'.length) : trimmed;
+    }
+
+    private isUsbTransport(value: string | null | undefined): boolean {
+        return value?.trim().toLowerCase() === 'usb';
+    }
+
     private async runStep(
         commandText: string,
         command: Record<string, string>,
@@ -54,6 +67,54 @@ export class OnboardingInternalBootService {
             seen.add(device);
         }
         return null;
+    }
+
+    private findUsbDevices(devices: string[]): string[] {
+        this.ensureEmhttpBootContext();
+
+        const emhttpState = getters.emhttp();
+        const usbDeviceNames = new Set<string>();
+        const usbIdentifiers = new Set<string>();
+
+        for (const disk of emhttpState.disks) {
+            if (!this.isUsbTransport(disk.transport)) {
+                continue;
+            }
+
+            const diskId = disk.id.trim();
+            if (diskId.length > 0) {
+                usbIdentifiers.add(diskId);
+            }
+
+            const deviceName = this.normalizeDeviceName(disk.device);
+            if (deviceName.length > 0) {
+                usbDeviceNames.add(deviceName);
+                usbIdentifiers.add(deviceName);
+            }
+        }
+
+        if (usbDeviceNames.size === 0) {
+            return [];
+        }
+
+        const rawDevices = Array.isArray(emhttpState.devices) ? emhttpState.devices : [];
+        for (const rawDevice of rawDevices) {
+            if (!isEmhttpDeviceRecord(rawDevice)) {
+                continue;
+            }
+
+            const deviceId = rawDevice.id.trim();
+            const deviceName = this.normalizeDeviceName(rawDevice.device);
+            if (deviceId.length === 0 || deviceName.length === 0 || !usbDeviceNames.has(deviceName)) {
+                continue;
+            }
+
+            usbIdentifiers.add(deviceId);
+        }
+
+        return [
+            ...new Set(devices.filter((device) => usbIdentifiers.has(this.normalizeDeviceName(device)))),
+        ];
     }
 
     private shellQuote(value: string): string {
@@ -330,6 +391,15 @@ export class OnboardingInternalBootService {
             output.push(
                 'Note: reboot was requested; onboarding handles reboot separately after internal boot setup.'
             );
+        }
+
+        const usbDevices = this.findUsbDevices(input.devices);
+        if (usbDevices.length > 0) {
+            return {
+                ok: false,
+                code: 2,
+                output: `mkbootpool: USB devices are not eligible for internal boot: ${usbDevices.join(', ')}`,
+            };
         }
 
         const duplicateDevice = this.hasDuplicateDevices(input.devices);
