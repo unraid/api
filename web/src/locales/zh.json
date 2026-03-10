@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "恢复安装",
   "userProfile.callbackFeedback.installReplaced": "替换安装",
   "userProfile.callbackFeedback.key": "{0} {1} 密钥…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "密钥安装成功。可能需要重启以应用此更改。",
   "userProfile.callbackFeedback.keySuccessfully": "{1} 密钥 {0} 成功",
   "userProfile.callbackFeedback.newVersion": "新版本：{0}",
   "userProfile.callbackFeedback.noThanks": "不用，谢谢",
