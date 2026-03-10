@@ -35,7 +35,6 @@
         "// Code Quality": "",
         "lint": "eslint --config .eslintrc.ts src/",
         "lint:fix": "eslint --fix --config .eslintrc.ts src/",
-        "pretype-check": "pnpm --filter @unraid/shared build",
         "type-check": "tsc --noEmit",
         "// Testing": "",
         "test": "NODE_ENV=test vitest run",
