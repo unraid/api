@@ -147,7 +147,8 @@ export class BrandingConfig {
 
     @Field(() => String, {
         nullable: true,
-        description: 'Built-in case model value written to case-model.cfg when no custom override is supplied.',
+        description:
+            'Built-in case model value written to case-model.cfg when no custom override is supplied.',
     })
     @IsOptional()
     @IsString()

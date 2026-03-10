@@ -966,9 +966,7 @@ describe('OnboardingService', () => {
             await (service as any).applyCaseModelConfig();
 
             expect(fs.writeFile).toHaveBeenCalledWith(caseModelCfg, 'mid-tower');
-            expect(loggerLogSpy).toHaveBeenCalledWith(
-                `Case model set to mid-tower in ${caseModelCfg}`
-            );
+            expect(loggerLogSpy).toHaveBeenCalledWith(`Case model set to mid-tower in ${caseModelCfg}`);
         });
 
         it('applyServerIdentity should call emcmd directly', async () => {
