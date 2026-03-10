@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "Installer gjenopprettet",
   "userProfile.callbackFeedback.installReplaced": "Installer erstattet",
   "userProfile.callbackFeedback.key": "{0} {1} nøkkel…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Nøkkel installert. En omstart kan være nødvendig for å bruke denne endringen.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} Nøkkel {0} Vellykket",
   "userProfile.callbackFeedback.newVersion": "Ny versjon: {0}",
   "userProfile.callbackFeedback.noThanks": "Nei takk",
