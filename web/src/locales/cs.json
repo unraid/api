@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "Nainstalovat obnovenou verzi",
   "userProfile.callbackFeedback.installReplaced": "Nainstalovat nahrazenou verzi",
   "userProfile.callbackFeedback.key": "{0} {1} klíč…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Klíč byl úspěšně nainstalován. Může být vyžadován restart, aby se změna projevila.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} klíč {0} úspěšně",
   "userProfile.callbackFeedback.newVersion": "Nová verze: {0}",
   "userProfile.callbackFeedback.noThanks": "Ne, děkuji",
