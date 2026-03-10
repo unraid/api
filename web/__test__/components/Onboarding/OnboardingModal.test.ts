@@ -1,4 +1,3 @@
-import { reactive } from 'vue';
 import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -6,12 +5,20 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OnboardingModal from '~/components/Onboarding/OnboardingModal.vue';
 import { createTestI18n } from '../../utils/i18n';
 
+type InternalBootVisibilityResult = {
+  value: {
+    vars: {
+      enableBootTransfer: string | null;
+    };
+  };
+};
+
 const {
   mutateMock,
   internalBootVisibilityResult,
-  activationCodeModalStore,
+  onboardingModalStoreState,
   activationCodeDataStore,
-  upgradeOnboardingStore,
+  onboardingStatusStore,
   onboardingDraftStore,
   purchaseStore,
   serverStore,
@@ -25,11 +32,13 @@ const {
         enableBootTransfer: 'yes',
       },
     },
-  },
-  activationCodeModalStore: {
-    isVisible: { value: true },
-    isTemporarilyBypassed: { value: false },
+  } as InternalBootVisibilityResult,
+  onboardingModalStoreState: {
+    isAutoVisible: { value: true },
+    isForceOpened: { value: false },
+    isBypassActive: { value: false },
     setIsHidden: vi.fn(),
+    clearForceOpened: vi.fn(),
   },
   activationCodeDataStore: {
     activationRequired: { value: false },
@@ -43,7 +52,7 @@ const {
     },
     isFreshInstall: { value: true },
   },
-  upgradeOnboardingStore: {
+  onboardingStatusStore: {
     shouldShowOnboarding: { value: false },
     isVersionDrift: { value: false },
     completedAtVersion: { value: null },
@@ -119,20 +128,20 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
   },
 }));
 
-vi.mock('~/components/Onboarding/store/activationCodeModal', () => ({
-  useActivationCodeModalStore: () => reactive(activationCodeModalStore),
+vi.mock('~/components/Onboarding/store/onboardingModalVisibility', () => ({
+  useOnboardingModalStore: () => onboardingModalStoreState,
 }));
 
 vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
-  useActivationCodeDataStore: () => reactive(activationCodeDataStore),
+  useActivationCodeDataStore: () => activationCodeDataStore,
 }));
 
-vi.mock('~/components/Onboarding/store/upgradeOnboarding', () => ({
-  useUpgradeOnboardingStore: () => reactive(upgradeOnboardingStore),
+vi.mock('~/components/Onboarding/store/onboardingStatus', () => ({
+  useOnboardingStore: () => onboardingStatusStore,
 }));
 
 vi.mock('~/components/Onboarding/store/onboardingDraft', () => ({
-  useOnboardingDraftStore: () => reactive(onboardingDraftStore),
+  useOnboardingDraftStore: () => onboardingDraftStore,
 }));
 
 vi.mock('~/store/purchase', () => ({
@@ -140,7 +149,7 @@ vi.mock('~/store/purchase', () => ({
 }));
 
 vi.mock('~/store/server', () => ({
-  useServerStore: () => reactive(serverStore),
+  useServerStore: () => serverStore,
 }));
 
 vi.mock('~/store/theme', () => ({
@@ -155,17 +164,25 @@ describe('OnboardingModal.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    activationCodeModalStore.isVisible.value = true;
-    activationCodeModalStore.isTemporarilyBypassed.value = false;
+    onboardingModalStoreState.setIsHidden.mockImplementation((value: boolean | null) => {
+      onboardingModalStoreState.isAutoVisible.value = value === false;
+    });
+    onboardingModalStoreState.clearForceOpened.mockImplementation(() => {
+      onboardingModalStoreState.isForceOpened.value = false;
+    });
+
+    onboardingModalStoreState.isAutoVisible.value = true;
+    onboardingModalStoreState.isForceOpened.value = false;
+    onboardingModalStoreState.isBypassActive.value = false;
     activationCodeDataStore.activationRequired.value = false;
     activationCodeDataStore.hasActivationCode.value = true;
     activationCodeDataStore.isFreshInstall.value = true;
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE';
-    upgradeOnboardingStore.shouldShowOnboarding.value = false;
-    upgradeOnboardingStore.isVersionDrift.value = false;
-    upgradeOnboardingStore.completedAtVersion.value = null;
-    upgradeOnboardingStore.canDisplayOnboardingModal.value = true;
-    upgradeOnboardingStore.isPartnerBuild.value = false;
+    onboardingStatusStore.shouldShowOnboarding.value = false;
+    onboardingStatusStore.isVersionDrift.value = false;
+    onboardingStatusStore.completedAtVersion.value = null;
+    onboardingStatusStore.canDisplayOnboardingModal.value = true;
+    onboardingStatusStore.isPartnerBuild.value = false;
     onboardingDraftStore.currentStepIndex.value = 0;
     internalBootVisibilityResult.value = {
       vars: {
@@ -200,8 +217,8 @@ describe('OnboardingModal.vue', () => {
   });
 
   it('does not render when modal is hidden and onboarding flag is false', () => {
-    activationCodeModalStore.isVisible.value = false;
-    upgradeOnboardingStore.shouldShowOnboarding.value = false;
+    onboardingModalStoreState.isAutoVisible.value = false;
+    onboardingStatusStore.shouldShowOnboarding.value = false;
 
     const wrapper = mountComponent();
 
@@ -209,9 +226,9 @@ describe('OnboardingModal.vue', () => {
   });
 
   it('does not render when modal display is blocked', () => {
-    activationCodeModalStore.isVisible.value = true;
-    upgradeOnboardingStore.shouldShowOnboarding.value = true;
-    upgradeOnboardingStore.canDisplayOnboardingModal.value = false;
+    onboardingModalStoreState.isAutoVisible.value = true;
+    onboardingStatusStore.shouldShowOnboarding.value = true;
+    onboardingStatusStore.canDisplayOnboardingModal.value = false;
 
     const wrapper = mountComponent();
 
@@ -220,9 +237,9 @@ describe('OnboardingModal.vue', () => {
 
   it('does not render when system is not a fresh install', () => {
     activationCodeDataStore.isFreshInstall.value = false;
-    activationCodeModalStore.isVisible.value = false;
-    upgradeOnboardingStore.shouldShowOnboarding.value = true;
-    upgradeOnboardingStore.canDisplayOnboardingModal.value = true;
+    onboardingModalStoreState.isAutoVisible.value = false;
+    onboardingStatusStore.shouldShowOnboarding.value = true;
+    onboardingStatusStore.canDisplayOnboardingModal.value = true;
 
     const wrapper = mountComponent();
 
@@ -230,9 +247,53 @@ describe('OnboardingModal.vue', () => {
   });
 
   it('does not render when temporary bypass is active', () => {
-    activationCodeModalStore.isVisible.value = true;
-    activationCodeModalStore.isTemporarilyBypassed.value = true;
-    upgradeOnboardingStore.shouldShowOnboarding.value = true;
+    onboardingModalStoreState.isAutoVisible.value = true;
+    onboardingModalStoreState.isBypassActive.value = true;
+    onboardingStatusStore.shouldShowOnboarding.value = true;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(false);
+  });
+
+  it('renders when force-opened even when not a fresh install', () => {
+    activationCodeDataStore.isFreshInstall.value = false;
+    onboardingModalStoreState.isAutoVisible.value = false;
+    onboardingModalStoreState.isForceOpened.value = true;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(true);
+  });
+
+  it('does not render when force-opened if modal display is blocked', () => {
+    activationCodeDataStore.isFreshInstall.value = false;
+    onboardingModalStoreState.isAutoVisible.value = false;
+    onboardingModalStoreState.isForceOpened.value = true;
+    onboardingStatusStore.canDisplayOnboardingModal.value = false;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(false);
+  });
+
+  it('renders when force-opened even while temporary bypass is active', () => {
+    activationCodeDataStore.isFreshInstall.value = false;
+    onboardingModalStoreState.isAutoVisible.value = false;
+    onboardingModalStoreState.isForceOpened.value = true;
+    onboardingModalStoreState.isBypassActive.value = true;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(true);
+  });
+
+  it('does not render when force-opened during temporary bypass if modal display is blocked', () => {
+    activationCodeDataStore.isFreshInstall.value = false;
+    onboardingModalStoreState.isAutoVisible.value = false;
+    onboardingModalStoreState.isForceOpened.value = true;
+    onboardingModalStoreState.isBypassActive.value = true;
+    onboardingStatusStore.canDisplayOnboardingModal.value = false;
 
     const wrapper = mountComponent();
 
@@ -249,8 +310,8 @@ describe('OnboardingModal.vue', () => {
       },
     });
 
-    activationCodeModalStore.isVisible.value = true;
-    upgradeOnboardingStore.canDisplayOnboardingModal.value = true;
+    onboardingModalStoreState.isAutoVisible.value = true;
+    onboardingStatusStore.canDisplayOnboardingModal.value = true;
 
     const wrapper = mountComponent();
 
@@ -293,14 +354,26 @@ describe('OnboardingModal.vue', () => {
     expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(true);
   });
 
-  it('hides internal boot step for partner builds', () => {
-    upgradeOnboardingStore.isPartnerBuild.value = true;
+  it('hides internal boot step when boot transfer state is unknown', () => {
+    internalBootVisibilityResult.value = {
+      vars: {
+        enableBootTransfer: null,
+      },
+    };
     onboardingDraftStore.currentStepIndex.value = 2;
 
     const wrapper = mountComponent();
 
     expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(true);
+  });
+
+  it('shows internal boot step for partner builds when boot transfer is available', () => {
+    onboardingStatusStore.isPartnerBuild.value = true;
+    onboardingDraftStore.currentStepIndex.value = 2;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(true);
   });
 
   it('hides internal boot step when already booting internally', () => {
@@ -330,7 +403,7 @@ describe('OnboardingModal.vue', () => {
   });
 
   it('confirms exit and completes onboarding flow when onboarding flag is enabled', async () => {
-    upgradeOnboardingStore.shouldShowOnboarding.value = true;
+    onboardingStatusStore.shouldShowOnboarding.value = true;
 
     const wrapper = mountComponent();
 
@@ -342,17 +415,21 @@ describe('OnboardingModal.vue', () => {
     expect(exitButton).toBeTruthy();
     await exitButton!.trigger('click');
     await flushPromises();
+    await wrapper.vm.$nextTick();
 
     expect(mutateMock).toHaveBeenCalledTimes(1);
-    expect(upgradeOnboardingStore.refetchOnboarding).toHaveBeenCalledTimes(1);
+    expect(onboardingStatusStore.refetchOnboarding).toHaveBeenCalledTimes(1);
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
       clearTemporaryBypassSessionState: true,
     });
-    expect(activationCodeModalStore.setIsHidden).toHaveBeenCalledWith(true);
+    wrapper.unmount();
+
+    const remountedWrapper = mountComponent();
+    expect(remountedWrapper.find('[data-testid="onboarding-steps"]').exists()).toBe(false);
   });
 
   it('confirms exit without completion mutation when onboarding flag is disabled', async () => {
-    upgradeOnboardingStore.shouldShowOnboarding.value = false;
+    onboardingStatusStore.shouldShowOnboarding.value = false;
 
     const wrapper = mountComponent();
 
@@ -361,15 +438,65 @@ describe('OnboardingModal.vue', () => {
 
     const exitButton = wrapper.findAll('button').find((button) => button.text().includes('Exit setup'));
 
+    expect(exitButton).toBeTruthy();
+    await exitButton!.trigger('click');
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+
+    expect(mutateMock).not.toHaveBeenCalled();
+    expect(onboardingStatusStore.refetchOnboarding).not.toHaveBeenCalled();
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
+      clearTemporaryBypassSessionState: true,
+    });
+    wrapper.unmount();
+
+    const remountedWrapper = mountComponent();
+    expect(remountedWrapper.find('[data-testid="onboarding-steps"]').exists()).toBe(false);
+  });
+
+  it('preserves bypass cleanup behavior when exiting a force-opened modal', async () => {
+    activationCodeDataStore.isFreshInstall.value = false;
+    onboardingModalStoreState.isAutoVisible.value = false;
+    onboardingModalStoreState.isForceOpened.value = true;
+    onboardingModalStoreState.isBypassActive.value = true;
+    onboardingStatusStore.shouldShowOnboarding.value = false;
+
+    const wrapper = mountComponent();
+
+    await wrapper.find('button[aria-label="Close onboarding"]').trigger('click');
+    await flushPromises();
+
+    const exitButton = wrapper.findAll('button').find((button) => button.text().includes('Exit setup'));
+    expect(exitButton).toBeTruthy();
+    await exitButton!.trigger('click');
+    await flushPromises();
+    await wrapper.vm.$nextTick();
+
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
+    expect(mutateMock).not.toHaveBeenCalled();
+    wrapper.unmount();
+
+    const remountedWrapper = mountComponent();
+    expect(remountedWrapper.find('[data-testid="onboarding-steps"]').exists()).toBe(false);
+  });
+
+  it('does not complete onboarding when exiting a force-opened modal', async () => {
+    activationCodeDataStore.isFreshInstall.value = true;
+    onboardingModalStoreState.isAutoVisible.value = false;
+    onboardingModalStoreState.isForceOpened.value = true;
+    onboardingStatusStore.shouldShowOnboarding.value = true;
+
+    const wrapper = mountComponent();
+
+    await wrapper.find('button[aria-label="Close onboarding"]').trigger('click');
+    await flushPromises();
+
+    const exitButton = wrapper.findAll('button').find((button) => button.text().includes('Exit setup'));
     expect(exitButton).toBeTruthy();
     await exitButton!.trigger('click');
     await flushPromises();
 
     expect(mutateMock).not.toHaveBeenCalled();
-    expect(upgradeOnboardingStore.refetchOnboarding).not.toHaveBeenCalled();
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
-      clearTemporaryBypassSessionState: true,
-    });
-    expect(activationCodeModalStore.setIsHidden).toHaveBeenCalledWith(true);
+    expect(onboardingStatusStore.refetchOnboarding).not.toHaveBeenCalled();
   });
 });

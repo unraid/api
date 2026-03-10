@@ -116,6 +116,11 @@ export class BrandingConfigInput {
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
+    caseModel?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
     caseModelImage?: string;
 
     @Field(() => String, { nullable: true })

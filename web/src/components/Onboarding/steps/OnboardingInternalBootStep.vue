@@ -31,11 +31,12 @@ const toBootMode = (value: unknown): OnboardingBootMode => (value === 'storage' 
 interface InternalBootDeviceOption {
   value: string;
   label: string;
+  device: string;
   sizeMiB: number | null;
+  ineligibilityCodes: InternalBootDiskEligibilityCode[];
 }
 
 interface InternalBootTemplateData {
-  isBootPoolEligible: boolean;
   poolNameDefault: string;
   slotOptions: number[];
   deviceOptions: InternalBootDeviceOption[];
@@ -66,11 +67,57 @@ interface InternalBootContext {
     device: string;
     size: number;
     emhttpDeviceId?: string | null;
+    interfaceType?: string | null;
   }[];
 }
 
+type InternalBootTransferState = 'enabled' | 'disabled' | 'unknown';
+type InternalBootEligibilityState = 'eligible' | 'ineligible' | 'unknown';
+type InternalBootSystemEligibilityCode =
+  | 'ARRAY_NOT_STOPPED'
+  | 'ALREADY_INTERNAL_BOOT'
+  | 'NO_UNASSIGNED_DISKS'
+  | 'ENABLE_BOOT_TRANSFER_DISABLED'
+  | 'ENABLE_BOOT_TRANSFER_UNKNOWN'
+  | 'BOOT_ELIGIBLE_FALSE'
+  | 'BOOT_ELIGIBLE_UNKNOWN';
+type InternalBootDiskEligibilityCode =
+  | 'ASSIGNED_TO_BOOT'
+  | 'ASSIGNED_TO_ARRAY'
+  | 'ASSIGNED_TO_PARITY'
+  | 'ASSIGNED_TO_CACHE'
+  | 'USB_TRANSPORT'
+  | 'TOO_SMALL';
+
+const MIN_BOOT_SIZE_MIB = 4096;
+const MIN_ELIGIBLE_DEVICE_SIZE_MIB = MIN_BOOT_SIZE_MIB * 2;
 const DEFAULT_BOOT_SIZE_MIB = 16384;
 const BOOT_SIZE_PRESETS_MIB = [16384, 32768, 65536, 131072];
+const ASSIGNMENT_ELIGIBILITY_CODES = new Set<InternalBootDiskEligibilityCode>([
+  'ASSIGNED_TO_BOOT',
+  'ASSIGNED_TO_ARRAY',
+  'ASSIGNED_TO_PARITY',
+  'ASSIGNED_TO_CACHE',
+]);
+const SYSTEM_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootSystemEligibilityCode, string> = {
+  ARRAY_NOT_STOPPED: 'onboarding.internalBootStep.eligibility.codes.ARRAY_NOT_STOPPED',
+  ALREADY_INTERNAL_BOOT: 'onboarding.internalBootStep.eligibility.codes.ALREADY_INTERNAL_BOOT',
+  NO_UNASSIGNED_DISKS: 'onboarding.internalBootStep.eligibility.codes.NO_UNASSIGNED_DISKS',
+  ENABLE_BOOT_TRANSFER_DISABLED:
+    'onboarding.internalBootStep.eligibility.codes.ENABLE_BOOT_TRANSFER_DISABLED',
+  ENABLE_BOOT_TRANSFER_UNKNOWN:
+    'onboarding.internalBootStep.eligibility.codes.ENABLE_BOOT_TRANSFER_UNKNOWN',
+  BOOT_ELIGIBLE_FALSE: 'onboarding.internalBootStep.eligibility.codes.BOOT_ELIGIBLE_FALSE',
+  BOOT_ELIGIBLE_UNKNOWN: 'onboarding.internalBootStep.eligibility.codes.BOOT_ELIGIBLE_UNKNOWN',
+};
+const DISK_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootDiskEligibilityCode, string> = {
+  ASSIGNED_TO_BOOT: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_BOOT',
+  ASSIGNED_TO_ARRAY: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_ARRAY',
+  ASSIGNED_TO_PARITY: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_PARITY',
+  ASSIGNED_TO_CACHE: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_CACHE',
+  USB_TRANSPORT: 'onboarding.internalBootStep.eligibility.codes.USB_TRANSPORT',
+  TOO_SMALL: 'onboarding.internalBootStep.eligibility.codes.TOO_SMALL',
+};
 
 const formatBytes = (bytes: number) => {
   if (!Number.isFinite(bytes) || bytes <= 0) {
@@ -107,6 +154,14 @@ const normalizeDeviceName = (value: string | null | undefined): string => {
   return trimmed;
 };
 
+const buildDeviceLabel = (optionValue: string, sizeLabel: string, device: string): string => {
+  if (optionValue === device) {
+    return `${optionValue} - ${sizeLabel}`;
+  }
+
+  return `${optionValue} - ${sizeLabel} (${device})`;
+};
+
 const {
   result: contextResult,
   loading: contextLoading,
@@ -128,53 +183,80 @@ const bootSizePreset = ref<string>('');
 const customBootSizeGb = ref('');
 const updateBios = ref(true);
 
+const addDiskEligibilityCode = (
+  diskCodesByDevice: Map<string, Set<InternalBootDiskEligibilityCode>>,
+  deviceName: string | null | undefined,
+  code: InternalBootDiskEligibilityCode
+) => {
+  const normalizedDeviceName = normalizeDeviceName(deviceName);
+  if (!normalizedDeviceName) {
+    return;
+  }
+
+  const existingCodes = diskCodesByDevice.get(normalizedDeviceName);
+  if (existingCodes) {
+    existingCodes.add(code);
+    return;
+  }
+
+  diskCodesByDevice.set(normalizedDeviceName, new Set([code]));
+};
+
+const diskEligibilityCodesByDevice = computed(() => {
+  const data = contextResult.value as InternalBootContext | null;
+  const codesByDevice = new Map<string, Set<InternalBootDiskEligibilityCode>>();
+  if (!data) {
+    return codesByDevice;
+  }
+
+  addDiskEligibilityCode(codesByDevice, data.array.boot?.device, 'ASSIGNED_TO_BOOT');
+  for (const parityDisk of data.array.parities) {
+    addDiskEligibilityCode(codesByDevice, parityDisk.device, 'ASSIGNED_TO_PARITY');
+  }
+  for (const arrayDisk of data.array.disks) {
+    addDiskEligibilityCode(codesByDevice, arrayDisk.device, 'ASSIGNED_TO_ARRAY');
+  }
+  for (const cacheDisk of data.array.caches) {
+    addDiskEligibilityCode(codesByDevice, cacheDisk.device, 'ASSIGNED_TO_CACHE');
+  }
+
+  return codesByDevice;
+});
+
 const templateData = computed<InternalBootTemplateData | null>(() => {
   const data = contextResult.value as InternalBootContext | null;
   if (!data) {
     return null;
   }
 
-  const assignedDevices = new Set<string>();
-  const assignedDiskGroups = [
-    data.array.boot ? [data.array.boot] : [],
-    data.array.parities,
-    data.array.disks,
-    data.array.caches,
-  ];
-
-  for (const group of assignedDiskGroups) {
-    for (const disk of group) {
-      const device = normalizeDeviceName(disk.device);
-      if (device) {
-        assignedDevices.add(device);
-      }
-    }
-  }
-
   const deviceOptions = data.disks
-    .filter((disk) => {
-      const device = normalizeDeviceName(disk.device);
-      if (!device) {
-        return false;
-      }
-      if (assignedDevices.has(device)) {
-        return false;
-      }
-      return true;
-    })
     .map<InternalBootDeviceOption>((disk) => {
       const device = normalizeDeviceName(disk.device);
-      const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
-      const optionValue = emhttpDeviceId || device;
       const sizeBytes = disk.size;
       const sizeMiB = toSizeMiB(sizeBytes);
+      const ineligibilityCodes = Array.from(diskEligibilityCodesByDevice.value.get(device) ?? []);
+      const interfaceType = disk.interfaceType?.trim().toUpperCase();
+
+      if (interfaceType === 'USB') {
+        ineligibilityCodes.push('USB_TRANSPORT');
+      }
+
+      if (sizeMiB !== null && sizeMiB < MIN_ELIGIBLE_DEVICE_SIZE_MIB) {
+        ineligibilityCodes.push('TOO_SMALL');
+      }
+
+      const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
+      const optionValue = emhttpDeviceId || device;
       const sizeLabel = formatBytes(sizeBytes);
       return {
         value: optionValue,
-        label: `${optionValue} - ${sizeLabel} (${device})`,
+        label: buildDeviceLabel(optionValue, sizeLabel, device),
+        device,
         sizeMiB,
+        ineligibilityCodes,
       };
-    });
+    })
+    .filter((disk) => disk.device.length > 0);
 
   const poolNameSet = new Set<string>();
   for (const cacheDisk of data.array.caches) {
@@ -201,7 +283,6 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
   }
 
   return {
-    isBootPoolEligible: Boolean(data.vars?.bootEligible),
     poolNameDefault: poolNameSet.size === 0 ? 'boot' : '',
     slotOptions: [1, 2],
     deviceOptions,
@@ -217,53 +298,116 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
 const isLoading = computed(() => Boolean(contextLoading.value));
 const isBusy = computed(() => Boolean(props.isSavingStep) || isLoading.value);
 const isStepLocked = computed(() => Boolean(props.isSavingStep));
+const internalBootTransferState = computed<InternalBootTransferState>(() => {
+  const setting = contextResult.value?.vars?.enableBootTransfer;
+  if (typeof setting !== 'string') {
+    return 'unknown';
+  }
+
+  const normalizedSetting = setting.trim().toLowerCase();
+  if (normalizedSetting === 'yes') {
+    return 'enabled';
+  }
+  if (normalizedSetting === 'no') {
+    return 'disabled';
+  }
+  return 'unknown';
+});
+const bootEligibilityState = computed<InternalBootEligibilityState>(() => {
+  const eligibility = contextResult.value?.vars?.bootEligible;
+  if (eligibility === true) {
+    return 'eligible';
+  }
+  if (eligibility === false) {
+    return 'ineligible';
+  }
+  return 'unknown';
+});
 const isArrayStopped = computed(() => {
   if (contextResult.value?.array.state) {
     return contextResult.value.array.state === 'STOPPED';
   }
   return contextResult.value?.vars?.fsState === 'Stopped';
 });
-const isAlreadyOnInternalBoot = computed(() => {
-  const setting = contextResult.value?.vars?.enableBootTransfer?.trim().toLowerCase();
-  return setting === 'no';
-});
-const isBootPoolEligible = computed(() => Boolean(templateData.value?.isBootPoolEligible));
-const deviceOptions = computed(() => templateData.value?.deviceOptions ?? []);
+const allDeviceOptions = computed(() => templateData.value?.deviceOptions ?? []);
+const deviceOptions = computed(() =>
+  allDeviceOptions.value.filter((option) => option.ineligibilityCodes.length === 0)
+);
+const unassignedDeviceOptions = computed(() =>
+  allDeviceOptions.value.filter(
+    (option) => !option.ineligibilityCodes.some((code) => ASSIGNMENT_ELIGIBILITY_CODES.has(code))
+  )
+);
 const slotOptions = computed(() => templateData.value?.slotOptions ?? [1, 2]);
 const reservedNames = computed(() => new Set(templateData.value?.reservedNames ?? []));
 const shareNames = computed(() => new Set(templateData.value?.shareNames ?? []));
 const existingPoolNames = computed(() => new Set(templateData.value?.poolNames ?? []));
+const systemEligibilityCodes = computed<InternalBootSystemEligibilityCode[]>(() => {
+  const codes: InternalBootSystemEligibilityCode[] = [];
+
+  if (!isArrayStopped.value) {
+    codes.push('ARRAY_NOT_STOPPED');
+  }
+  if (internalBootTransferState.value === 'disabled') {
+    codes.push('ENABLE_BOOT_TRANSFER_DISABLED', 'ALREADY_INTERNAL_BOOT');
+  }
+  if (internalBootTransferState.value === 'unknown') {
+    codes.push('ENABLE_BOOT_TRANSFER_UNKNOWN');
+  }
+  if (bootEligibilityState.value === 'ineligible') {
+    codes.push('BOOT_ELIGIBLE_FALSE');
+  }
+  if (bootEligibilityState.value === 'unknown') {
+    codes.push('BOOT_ELIGIBLE_UNKNOWN');
+  }
+  if (unassignedDeviceOptions.value.length === 0) {
+    codes.push('NO_UNASSIGNED_DISKS');
+  }
+
+  return codes;
+});
+const diskEligibilityIssues = computed(() =>
+  allDeviceOptions.value
+    .filter((option) => option.ineligibilityCodes.length > 0)
+    .map((option) => ({
+      label: option.label,
+      codes: option.ineligibilityCodes,
+    }))
+);
 
 const canConfigure = computed(
   () =>
-    !isAlreadyOnInternalBoot.value &&
+    internalBootTransferState.value === 'enabled' &&
     isArrayStopped.value &&
-    isBootPoolEligible.value &&
+    bootEligibilityState.value === 'eligible' &&
     deviceOptions.value.length > 0
 );
 const isStorageBootSelected = computed(() => bootMode.value === 'storage');
 const isPrimaryActionDisabled = computed(
-  () => isStepLocked.value || (isStorageBootSelected.value && isLoading.value)
+  () => isStepLocked.value || (isStorageBootSelected.value && (isLoading.value || !canConfigure.value))
 );
 const isPrimaryActionLoading = computed(
   () => isStepLocked.value || (isStorageBootSelected.value && isLoading.value)
+);
+const shouldShowEligibilityDetails = computed(
+  () =>
+    !contextError.value &&
+    (systemEligibilityCodes.value.length > 0 || diskEligibilityIssues.value.length > 0)
+);
+const eligibilityPanelTitle = computed(() =>
+  canConfigure.value
+    ? t('onboarding.internalBootStep.eligibility.availableTitle')
+    : t('onboarding.internalBootStep.eligibility.blockedTitle')
+);
+const eligibilityPanelDescription = computed(() =>
+  canConfigure.value
+    ? t('onboarding.internalBootStep.eligibility.availableDescription')
+    : t('onboarding.internalBootStep.eligibility.blockedDescription')
 );
 
 const loadStatusMessage = computed(() => {
   if (contextError.value) {
     return t('onboarding.internalBootStep.status.apiError');
-  }
-  if (isAlreadyOnInternalBoot.value) {
-    return t('onboarding.internalBootStep.status.alreadyConfigured');
-  }
-  if (!isArrayStopped.value) {
-    return t('onboarding.internalBootStep.status.arrayNotStopped');
-  }
-  if (!isBootPoolEligible.value) {
-    return t('onboarding.internalBootStep.status.notEligible');
-  }
-  if (deviceOptions.value.length === 0) {
-    return t('onboarding.internalBootStep.status.noDevices');
   }
   return '';
 });
@@ -481,7 +625,7 @@ const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
     formError.value = t('onboarding.internalBootStep.validation.bootSizeRequired');
     return null;
   }
-  if (selectedBootSizeMiB < 4096) {
+  if (selectedBootSizeMiB < MIN_BOOT_SIZE_MIB) {
     formError.value = t('onboarding.internalBootStep.validation.bootSizeMin');
     return null;
   }
@@ -572,7 +716,7 @@ const handlePrimaryAction = () => {
   }
 
   if (!canConfigure.value) {
-    formError.value = loadStatusMessage.value || t('onboarding.internalBootStep.status.unavailable');
+    formError.value = null;
     return;
   }
 
@@ -660,13 +804,51 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
       </div>
 
       <div
-        v-else-if="isStorageBootSelected && !canConfigure"
+        v-else-if="isStorageBootSelected && contextError"
         class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 dark:border-yellow-800 dark:bg-yellow-900/10 dark:text-yellow-200"
       >
         {{ loadStatusMessage }}
       </div>
 
-      <div v-else-if="isStorageBootSelected" class="space-y-5">
+      <div
+        v-if="isStorageBootSelected && !isLoading && shouldShowEligibilityDetails"
+        data-testid="internal-boot-eligibility-panel"
+        class="my-8 space-y-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 dark:border-yellow-800 dark:bg-yellow-900/10 dark:text-yellow-200"
+      >
+        <div class="space-y-1">
+          <p class="font-semibold">{{ eligibilityPanelTitle }}</p>
+          <p>{{ eligibilityPanelDescription }}</p>
+        </div>
+
+        <div v-if="systemEligibilityCodes.length > 0" class="space-y-2">
+          <p class="font-semibold">{{ t('onboarding.internalBootStep.eligibility.systemTitle') }}</p>
+          <ul class="list-disc space-y-2 pl-5">
+            <li v-for="code in systemEligibilityCodes" :key="code">
+              <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">{{ code }}</code>
+              {{ t(SYSTEM_ELIGIBILITY_MESSAGE_KEYS[code]) }}
+            </li>
+          </ul>
+        </div>
+
+        <div v-if="diskEligibilityIssues.length > 0" class="space-y-2">
+          <p class="font-semibold">{{ t('onboarding.internalBootStep.eligibility.diskTitle') }}</p>
+          <ul class="list-disc space-y-3 pl-5">
+            <li v-for="disk in diskEligibilityIssues" :key="disk.label">
+              <p class="font-medium">{{ disk.label }}</p>
+              <ul class="list-disc space-y-1 pl-5">
+                <li v-for="code in disk.codes" :key="`${disk.label}-${code}`">
+                  <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">
+                    {{ code }}
+                  </code>
+                  {{ t(DISK_ELIGIBILITY_MESSAGE_KEYS[code]) }}
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div v-if="isStorageBootSelected && !isLoading && !contextError && canConfigure" class="space-y-5">
         <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
           <label class="space-y-2">
             <span class="text-muted text-sm font-medium">

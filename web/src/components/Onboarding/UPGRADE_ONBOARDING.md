@@ -2,7 +2,7 @@
 
 ## Overview
 
-This system shows onboarding for fresh installs and version drift scenarios (upgrade/downgrade), using a shared modal flow. The API tracks onboarding completion state (`completed`, `completedAtVersion`) and the web client decides whether the modal should appear and which local steps to render.
+This system uses a shared onboarding modal flow. Automatic modal display is limited to fresh installs (`ENOKEYFILE`). Upgrade/downgrade status is still tracked and can affect copy/behavior when the modal is opened manually. The API tracks onboarding completion state (`completed`, `completedAtVersion`) and the web client decides whether the modal should appear and which local steps to render.
 
 ## How It Works
 
@@ -26,16 +26,16 @@ This system shows onboarding for fresh installs and version drift scenarios (upg
 
 ### Frontend (Web)
 
-1. **Onboarding Store** - `web/src/components/Onboarding/store/upgradeOnboarding.ts`
+1. **Onboarding Store** - `web/src/components/Onboarding/store/onboardingStatus.ts`
    - Queries `ONBOARDING_QUERY` (`customization.onboarding`)
    - Enforces visibility guards:
      - minimum supported version (`7.3.0+`)
      - authenticated access (no unauthenticated GraphQL errors)
-   - Exposes `shouldShowOnboarding` when status is `INCOMPLETE`, `UPGRADE`, or `DOWNGRADE`
-   - `useUpgradeOnboardingStore` is now an alias of `useOnboardingStore`.
+   - Exposes `shouldShowOnboarding` when status is `INCOMPLETE`
 
 2. **Unified Modal** - `web/src/components/Onboarding/OnboardingModal.vue`
-   - Handles both fresh-install and version-drift onboarding
+   - Automatically shows for fresh-install onboarding
+   - Can be force-opened for any user via URL action/event triggers
    - Uses a client-side hardcoded step list (`HARDCODED_STEPS`)
    - Conditionally includes/removes `ACTIVATE_LICENSE` based on activation state
    - Resolves components from `stepRegistry`
@@ -117,7 +117,8 @@ To test activation-step gating:
 
 ## Notes
 
-- Onboarding visibility is status-driven (`INCOMPLETE`, `UPGRADE`, `DOWNGRADE`) with client-side guards (min version + auth)
+- Automatic onboarding visibility is fresh-install driven (`ENOKEYFILE`) with client-side guards (min version + auth)
+- Status is still available for mode-aware copy; automatic visibility is fresh-install-only
 - The modal automatically switches between fresh-install and version-drift copy
 - There is no server-side per-step completion tracking in this flow
 - Exiting onboarding can call `completeOnboarding`; temporary bypass does not
@@ -224,20 +225,22 @@ On mount, summary step starts:
 
 ### Temporary Bypass Controls
 
-Store: `web/src/components/Onboarding/store/activationCodeModal.ts`  
+Store: `web/src/components/Onboarding/store/onboardingModalVisibility.ts`  
 Modal gate: `web/src/components/Onboarding/OnboardingModal.vue`
 
 Bypass is intentionally separate from onboarding completion state:
 
 1. Temporary bypass does not call `CompleteOnboarding`.
 2. Normal exit behavior still follows existing completion flow.
-3. Bypass applies to fresh and upgrade/downgrade onboarding.
+3. Bypass suppresses automatic onboarding display; force-open remains user-initiated.
 
 Supported controls:
 
 - Keyboard shortcut: `Ctrl/Cmd + Alt + Shift + O`
 - URL query param: `?onboarding=bypass`
 - URL query param to resume: `?onboarding=resume`
+- URL query param to force open: `?onboarding=open`
+- Window event to force open: `window.dispatchEvent(new Event('unraid:onboarding:open'))`
 
 Persistence model:
 
@@ -377,7 +380,7 @@ Test file: `api/src/unraid-api/graph/resolvers/customization/onboarding.service.
 #### H) Modal Bypass Matrix
 
 Test files:
-- `web/__test__/store/activationCodeModal.test.ts`
+- `web/__test__/store/onboardingModalVisibility.test.ts`
 - `web/__test__/components/Onboarding/OnboardingModal.test.ts`
 
 | Case | Input | Expected behavior |

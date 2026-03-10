@@ -1,6 +1,6 @@
-import { ONBOARDING_TEMP_BYPASS_STORAGE_KEY } from '~/consts';
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { ONBOARDING_TEMP_BYPASS_STORAGE_KEY } from '~/components/Onboarding/constants';
 import {
   cleanupOnboardingStorage,
   clearOnboardingDraftStorage,

@@ -948,6 +948,11 @@ type BrandingConfig {
   bannerImage: String
 
   """
+  Built-in case model value written to case-model.cfg when no custom override is supplied.
+  """
+  caseModel: String
+
+  """
   Case model image source. Supports local path, remote URL, or data URI/base64.
   """
   caseModelImage: String
@@ -1433,6 +1438,7 @@ input BrandingConfigInput {
   showBannerGradient: Boolean
   theme: String
   bannerImage: String
+  caseModel: String
   caseModelImage: String
   partnerLogoLightUrl: String
   partnerLogoDarkUrl: String

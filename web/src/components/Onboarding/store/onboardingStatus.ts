@@ -161,14 +161,13 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   );
   const canDisplayOnboardingModal = computed(() => isVersionSupported.value && !isUnauthenticated.value);
 
-  // Decision: should we show the onboarding modal?
+  // Automatic onboarding should only run for initial setup.
   const shouldShowOnboarding = computed(() => {
     if (!canDisplayOnboardingModal.value) {
       return false;
     }
 
-    // Show onboarding if status is INCOMPLETE or UPGRADE
-    return status.value === 'INCOMPLETE' || status.value === 'UPGRADE' || status.value === 'DOWNGRADE';
+    return status.value === 'INCOMPLETE';
   });
 
   return {
@@ -198,6 +197,3 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     setMockOsVersion,
   };
 });
-
-// Keep the old name as an alias for backward compatibility during migration
-export const useUpgradeOnboardingStore = useOnboardingStore;

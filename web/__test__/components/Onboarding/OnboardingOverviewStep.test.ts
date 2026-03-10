@@ -74,8 +74,8 @@ vi.mock('@/components/Onboarding/store/activationCodeData', () => ({
   }),
 }));
 
-vi.mock('@/components/Onboarding/store/upgradeOnboarding', () => ({
-  useUpgradeOnboardingStore: () => ({
+vi.mock('@/components/Onboarding/store/onboardingStatus', () => ({
+  useOnboardingStore: () => ({
     isUpgrade: isUpgradeRef,
     isDowngrade: isDowngradeRef,
     isIncomplete: isIncompleteRef,
