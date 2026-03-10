@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "Instalați recuperat",
   "userProfile.callbackFeedback.installReplaced": "Instalați înlocuit",
   "userProfile.callbackFeedback.key": "{0} {1} Cheie…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Cheia a fost instalată cu succes. Este posibil să fie necesară o repornire pentru a aplica această modificare.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} Cheie {0} cu succes",
   "userProfile.callbackFeedback.newVersion": "Noua versiune: {0}",
   "userProfile.callbackFeedback.noThanks": "Nu, mulțumesc",
