@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "Visszaállítva telepítése",
   "userProfile.callbackFeedback.installReplaced": "Kicserélt telepítése",
   "userProfile.callbackFeedback.key": "{0} {1} kulcs…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Kulcs sikeresen telepítve. Lehet, hogy újraindításra van szükség a változás érvényesítéséhez.",
   "userProfile.callbackFeedback.keySuccessfully": "Kulcs {0} sikeresen {1}",
   "userProfile.callbackFeedback.newVersion": "Új verzió: {0}",
   "userProfile.callbackFeedback.noThanks": "Nem, köszönöm",
