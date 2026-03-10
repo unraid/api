@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "Installera Återställd",
   "userProfile.callbackFeedback.installReplaced": "Installera Ersatt",
   "userProfile.callbackFeedback.key": "{0} {1} Nyckel…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Nyckeln installerades framgångsrikt. En omstart kan behövas för att tillämpa denna ändring.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} Nyckel {0} Framgångsrikt",
   "userProfile.callbackFeedback.newVersion": "Ny version: {0}",
   "userProfile.callbackFeedback.noThanks": "Nej tack",
