@@ -79,6 +79,7 @@ type PartnerConfigPayload = {
 
 type BrandingConfigPayload = {
   bannerImage?: string;
+  caseModel?: string;
   caseModelImage?: string;
   partnerLogoLightUrl?: string;
   partnerLogoDarkUrl?: string;
@@ -140,6 +141,7 @@ const genericPartnerConfig: PartnerConfigPayload = {
 
 const genericBrandingConfig: BrandingConfigPayload = {
   bannerImage: './assets/banner.png',
+  caseModel: 'mid-tower',
   caseModelImage: './assets/case-model.png',
   partnerLogoLightUrl: './assets/partner-logo-light.svg',
   partnerLogoDarkUrl: './assets/partner-logo-dark.svg',
@@ -1024,6 +1026,16 @@ const currentRegistrationState = computed({
               </td>
               <td class="text-muted-foreground py-2">
                 Banner image source (optional): relative path, URL, data URI, or base64
+              </td>
+            </tr>
+            <tr>
+              <td class="py-2 pr-4 font-mono text-cyan-500">activationCode.branding.caseModel</td>
+              <td class="py-2 pr-4">
+                <code class="bg-muted rounded px-1">*.activationcode</code>
+              </td>
+              <td class="text-muted-foreground py-2">
+                Built-in case model value for <code class="bg-muted rounded px-1">case-model.cfg</code>
+                when no custom image override is provided
               </td>
             </tr>
             <tr>

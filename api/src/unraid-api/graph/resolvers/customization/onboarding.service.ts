@@ -782,9 +782,10 @@ export class OnboardingService implements OnModuleInit {
             this.logger.warn('No activation data available for case model setup.');
             return;
         }
-        if (!this.materializedPartnerMedia.caseModel) {
+        const configuredCaseModel = this.activationData.branding?.caseModel?.trim() ?? '';
+        if (!this.materializedPartnerMedia.caseModel && !configuredCaseModel) {
             this.logger.log(
-                'No partner case-model image configured in activation code, skipping case model setup.'
+                'No partner case-model configured in activation code, skipping case model setup.'
             );
             return;
         }
@@ -805,6 +806,10 @@ export class OnboardingService implements OnModuleInit {
                 await fs.mkdir(path.dirname(this.caseModelCfg), { recursive: true });
                 await fs.writeFile(this.caseModelCfg, modelToSet);
                 this.logger.log(`Case model set to ${modelToSet} in ${this.caseModelCfg}`);
+            } else if (configuredCaseModel) {
+                await fs.mkdir(path.dirname(this.caseModelCfg), { recursive: true });
+                await fs.writeFile(this.caseModelCfg, configuredCaseModel);
+                this.logger.log(`Case model set to ${configuredCaseModel} in ${this.caseModelCfg}`);
             } else {
                 this.logger.log('No custom case model file found in activation assets.');
             }

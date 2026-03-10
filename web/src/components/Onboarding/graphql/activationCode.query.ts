@@ -23,6 +23,7 @@ export const ACTIVATION_CODE_QUERY = parse(/* GraphQL */ `
           showBannerGradient
           theme
           bannerImage
+          caseModel
           caseModelImage
           partnerLogoLightUrl
           partnerLogoDarkUrl
