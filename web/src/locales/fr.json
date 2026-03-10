@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "Installer récupérée",
   "userProfile.callbackFeedback.installReplaced": "Installer remplacée",
   "userProfile.callbackFeedback.key": "{0} {1} clé…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Clé installée avec succès. Un redémarrage peut être nécessaire pour appliquer ce changement.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} clé {0} avec succès",
   "userProfile.callbackFeedback.newVersion": "Nouvelle version : {0}",
   "userProfile.callbackFeedback.noThanks": "Non merci",
