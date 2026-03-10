@@ -147,9 +147,7 @@ export class UnraidArray extends Node {
 
     @Field(() => ArrayDisk, {
         nullable: true,
-        description: 'Current selected boot disk',
-        deprecationReason:
-            'Use bootDevices for all detected boot devices; boot remains the selected active entry.',
+        description: 'Returns the active boot disk',
     })
     boot?: ArrayDisk;
 

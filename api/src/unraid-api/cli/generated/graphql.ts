@@ -3101,10 +3101,7 @@ export type UnifiedSettings = FormSchema & Node & {
 
 export type UnraidArray = Node & {
   __typename?: 'UnraidArray';
-  /**
-   * Current selected boot disk
-   * @deprecated Use bootDevices for all detected boot devices; boot remains the selected active entry.
-   */
+  /** Returns the active boot disk */
   boot?: Maybe<ArrayDisk>;
   /** All detected boot devices: every Boot entry for internal boot, including mirrored members when configured, or the mounted /boot Flash entry for legacy USB boot */
   bootDevices: Array<ArrayDisk>;

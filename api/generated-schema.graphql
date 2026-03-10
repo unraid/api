@@ -196,8 +196,8 @@ type UnraidArray implements Node {
   """Current array capacity"""
   capacity: ArrayCapacity!
 
-  """Current selected boot disk"""
-  boot: ArrayDisk @deprecated(reason: "Use bootDevices for all detected boot devices; boot remains the selected active entry.")
+  """Returns the active boot disk"""
+  boot: ArrayDisk
 
   """
   All detected boot devices: every Boot entry for internal boot, including mirrored members when configured, or the mounted /boot Flash entry for legacy USB boot
