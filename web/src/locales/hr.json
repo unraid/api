@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "Instaliraj Oporavljeno",
   "userProfile.callbackFeedback.installReplaced": "Instaliraj Zamijenjeno",
   "userProfile.callbackFeedback.key": "{0} {1} Ključ…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Ključ je uspješno instaliran. Možda će biti potrebno ponovno pokretanje da bi se primijenila ova promjena.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} Ključ {0} Uspješno",
   "userProfile.callbackFeedback.newVersion": "Nova verzija: {0}",
   "userProfile.callbackFeedback.noThanks": "Ne, hvala",
