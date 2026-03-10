@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "복구 설치",
   "userProfile.callbackFeedback.installReplaced": "교체 설치",
   "userProfile.callbackFeedback.key": "{0} {1} 키…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "키가 성공적으로 설치되었습니다. 변경사항을 적용하려면 재부팅이 필요할 수 있습니다.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} 키 {0} 성공적으로 완료",
   "userProfile.callbackFeedback.newVersion": "새 버전: {0}",
   "userProfile.callbackFeedback.noThanks": "감사합니다만, 사양합니다.",
