@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "تثبيت مستعاد",
   "userProfile.callbackFeedback.installReplaced": "تثبيت مستبدل",
   "userProfile.callbackFeedback.key": "{0} {1} مفتاح…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "تم تثبيت المفتاح بنجاح. قد يُطلب إعادة التشغيل لتطبيق هذا التغيير.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} مفتاح {0} بنجاح",
   "userProfile.callbackFeedback.newVersion": "النسخة الجديدة: {0}",
   "userProfile.callbackFeedback.noThanks": "لا شكرًا",
