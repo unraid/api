@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "Instal·lar recuperat",
   "userProfile.callbackFeedback.installReplaced": "Instal·lar reemplaçat",
   "userProfile.callbackFeedback.key": "{0} {1} clau...",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Clau instal·lada amb èxit. Pot ser necessari reiniciar per aplicar aquest canvi.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} clau {0} amb èxit",
   "userProfile.callbackFeedback.newVersion": "Nova versió: {0}",
   "userProfile.callbackFeedback.noThanks": "No, gràcies",
