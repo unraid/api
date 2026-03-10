@@ -948,6 +948,29 @@ describe('OnboardingService', () => {
             );
         });
 
+        it('applyCaseModelConfig should write the built-in case model when no custom asset exists', async () => {
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                ...mockActivationData,
+                branding: {
+                    ...mockActivationData.branding,
+                    caseModel: 'mid-tower',
+                    caseModelImage: null,
+                },
+            });
+            (service as any).materializedPartnerMedia = {
+                banner: true,
+                caseModel: false,
+            };
+            vi.mocked(fileExists).mockResolvedValue(false);
+
+            await (service as any).applyCaseModelConfig();
+
+            expect(fs.writeFile).toHaveBeenCalledWith(caseModelCfg, 'mid-tower');
+            expect(loggerLogSpy).toHaveBeenCalledWith(
+                `Case model set to mid-tower in ${caseModelCfg}`
+            );
+        });
+
         it('applyServerIdentity should call emcmd directly', async () => {
             const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
 
@@ -1478,7 +1501,7 @@ describe('applyActivationCustomizations specific tests', () => {
             )
         );
         expect(loggerLogSpy).toHaveBeenCalledWith(
-            'No partner case-model image configured in activation code, skipping case model setup.'
+            'No partner case-model configured in activation code, skipping case model setup.'
         );
 
         // Other steps should still run

@@ -147,6 +147,15 @@ export class BrandingConfig {
 
     @Field(() => String, {
         nullable: true,
+        description: 'Built-in case model value written to case-model.cfg when no custom override is supplied.',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    caseModel?: string | null;
+
+    @Field(() => String, {
+        nullable: true,
         description: 'Case model image source. Supports local path, remote URL, or data URI/base64.',
     })
     @IsOptional()
