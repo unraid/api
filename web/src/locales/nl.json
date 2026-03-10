@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "Hersteld installeren",
   "userProfile.callbackFeedback.installReplaced": "Vervangen installeren",
   "userProfile.callbackFeedback.key": "{0} {1} Sleutel…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Sleutel succesvol geïnstalleerd. Een herstart kan nodig zijn om deze wijziging toe te passen.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} Sleutel {0} succesvol",
   "userProfile.callbackFeedback.newVersion": "Nieuwe versie: {0}",
   "userProfile.callbackFeedback.noThanks": "Nee, bedankt",
