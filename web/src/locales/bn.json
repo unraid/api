@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "পুনরুদ্ধার ইনস্টল করুন",
   "userProfile.callbackFeedback.installReplaced": "প্রতিস্থাপিত ইনস্টল করুন",
   "userProfile.callbackFeedback.key": "{0} {1} কী…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "কী সফলভাবে ইনস্টল করা হয়েছে। এই পরিবর্তনটি প্রয়োগ করতে একটি পুনরায় চালু করা প্রয়োজন হতে পারে।",
   "userProfile.callbackFeedback.keySuccessfully": "{1} কী {0} সফল",
   "userProfile.callbackFeedback.newVersion": "নতুন সংস্করণ: {0}",
   "userProfile.callbackFeedback.noThanks": "না ধন্যবাদ",
