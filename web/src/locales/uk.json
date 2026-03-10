@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "Встановити відновлене",
   "userProfile.callbackFeedback.installReplaced": "Встановити замінене",
   "userProfile.callbackFeedback.key": "{0} {1} Ключ…",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Ключ успішно встановлено. Може знадобитися перезавантаження, щоб застосувати цю зміну.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} Ключ {0} Успішно",
   "userProfile.callbackFeedback.newVersion": "Нова версія: {0}",
   "userProfile.callbackFeedback.noThanks": "Ні, дякую",
