@@ -260,7 +260,7 @@ export type ArrayDisk = Node & {
   temp?: Maybe<Scalars['Int']['output']>;
   /** ata | nvme | usb | (others) */
   transport?: Maybe<Scalars['String']['output']>;
-  /** Type of Disk - used to differentiate Boot / Cache / Flash / Array / Parity */
+  /** Type of Disk - used to differentiate Boot / Cache / Flash / Data (DATA) / Parity */
   type: ArrayDiskType;
   /** (%) Disk space left to warn */
   warning?: Maybe<Scalars['Int']['output']>;

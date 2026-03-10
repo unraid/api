@@ -98,6 +98,8 @@ export const parse: StateFileToIniParserMap['disks'] = (disksIni) =>
                 transport: slot.transport ?? null,
                 isSpinning: slot.spundown ? slot.spundown === '0' : null,
             };
+            // Keep fsStatus/fsMountpoint internal for selectBootDisk on result; spread/Object.keys/JSON serialization
+            // intentionally omit them so they do not leak into the public GraphQL disk shape.
             Object.defineProperties(result, {
                 fsStatus: {
                     value: slot.fsStatus ?? null,

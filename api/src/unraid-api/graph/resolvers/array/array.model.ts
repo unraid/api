@@ -102,7 +102,7 @@ export class ArrayDisk extends Node {
     exportable?: boolean;
 
     @Field(() => ArrayDiskType, {
-        description: 'Type of Disk - used to differentiate Boot / Cache / Flash / Array / Parity',
+        description: 'Type of Disk - used to differentiate Boot / Cache / Flash / Data (DATA) / Parity',
     })
     type!: ArrayDiskType;
 
@@ -130,6 +130,7 @@ export class ArrayDisk extends Node {
     @Field(() => Boolean, { nullable: true, description: 'Whether the disk is currently spinning' })
     isSpinning?: boolean | null;
 
+    // Internal runtime-only metadata used for boot selection; these stay undecorated so they are not exposed in GraphQL.
     fsStatus?: string | null;
 
     fsMountpoint?: string | null;

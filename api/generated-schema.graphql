@@ -119,7 +119,7 @@ type ArrayDisk implements Node {
   exportable: Boolean
 
   """
-  Type of Disk - used to differentiate Boot / Cache / Flash / Array / Parity
+  Type of Disk - used to differentiate Boot / Cache / Flash / Data (DATA) / Parity
   """
   type: ArrayDiskType!
 
