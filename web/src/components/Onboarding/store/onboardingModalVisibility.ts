@@ -72,6 +72,10 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
     }
   };
 
+  const resetToAutomaticVisibility = () => {
+    setIsHidden(null);
+  };
+
   const forceOpenModal = () => {
     isForceOpened.value = true;
     setIsHidden(false);
@@ -147,7 +151,7 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
 
     url.searchParams.delete(ONBOARDING_QUERY_ACTION_PARAM);
     const nextPath = `${url.pathname}${url.search}${url.hash}`;
-    window.history.replaceState({}, '', nextPath || '/');
+    window.history.replaceState(window.history.state ?? null, '', nextPath || '/');
   };
 
   /**
@@ -213,6 +217,7 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
     isBypassActive,
     isHidden,
     setIsHidden,
+    resetToAutomaticVisibility,
     forceOpenModal,
     clearForceOpened,
     setTemporaryBypass,

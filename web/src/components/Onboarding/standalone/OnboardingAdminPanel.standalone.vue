@@ -369,7 +369,7 @@ const onSimulateNormalRenderGatingChange = (event: Event) => {
 
 const openOnboardingModalFromPanel = () => {
   if (simulateNormalRenderGatingOnOpen.value) {
-    onboardingModalStore.setIsHidden(false);
+    onboardingModalStore.resetToAutomaticVisibility();
     return;
   }
 
@@ -800,9 +800,9 @@ const currentRegistrationState = computed({
                 Simulate Normal Render Gating
               </div>
               <div class="text-muted-foreground text-xs">
-                When enabled, <strong>Open</strong> uses normal onboarding gating (<code
+                When enabled, <strong>Open</strong> restores normal onboarding gating (<code
                   class="bg-muted rounded px-1"
-                  >setIsHidden(false)</code
+                  >resetToAutomaticVisibility()</code
                 >) instead of force-open. Non-fresh-install states (for example, upgrade/downgrade) will
                 stay hidden.
               </div>

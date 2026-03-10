@@ -143,6 +143,14 @@ describe('OnboardingModalVisibility Store', () => {
     expect(mockIsHidden.value).toBe(null);
   });
 
+  it('restores automatic visibility without forcing the modal visible', () => {
+    store.setIsHidden(false);
+    expect(mockIsHidden.value).toBe(false);
+
+    store.resetToAutomaticVisibility();
+    expect(mockIsHidden.value).toBe(null);
+  });
+
   it('clears force-open state when hidden is set to true', () => {
     store.forceOpenModal();
     expect(store.isForceOpened).toBe(true);
@@ -265,14 +273,15 @@ describe('OnboardingModalVisibility Store', () => {
 
   it('supports onboarding=bypass URL param and removes it from URL', () => {
     const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
-    window.history.replaceState({}, '', '/Dashboard?onboarding=bypass');
+    const historyState = { source: 'existing-state' };
+    window.history.replaceState(historyState, '', '/Dashboard?onboarding=bypass');
 
     store.applyOnboardingUrlAction();
 
     expect(store.isBypassActive).toBe(true);
     expect(mockIsHidden.value).toBe(true);
     expect(window.location.search).not.toContain('onboarding=');
-    expect(replaceStateSpy).toHaveBeenCalled();
+    expect(replaceStateSpy).toHaveBeenLastCalledWith(historyState, '', '/Dashboard');
   });
 
   it('applies onboarding=bypass automatically on mount', () => {
