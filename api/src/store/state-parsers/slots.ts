@@ -24,6 +24,7 @@ export type IniSlot = {
     fsUsed: string;
     fsSize: string;
     fsStatus: SlotFsStatus;
+    fsMountpoint?: string;
     fsType: SlotFsType;
     id: string;
     idx: string;
@@ -100,6 +101,11 @@ export const parse: StateFileToIniParserMap['disks'] = (disksIni) =>
             Object.defineProperties(result, {
                 fsStatus: {
                     value: slot.fsStatus ?? null,
+                    enumerable: false,
+                    writable: true,
+                },
+                fsMountpoint: {
+                    value: slot.fsMountpoint ?? null,
                     enumerable: false,
                     writable: true,
                 },

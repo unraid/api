@@ -13,12 +13,32 @@ import {
     UnraidArray,
 } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 
-const selectBootDisk = (bootDisks: ArrayDisk[]): ArrayDisk | undefined => {
-    if (bootDisks.length === 0) {
+const getInternalBootDevices = (disks: ArrayDisk[]): ArrayDisk[] =>
+    disks.filter((disk) => disk.type === ArrayDiskType.BOOT);
+
+const getUsbBootDevices = (disks: ArrayDisk[]): ArrayDisk[] =>
+    disks.filter((disk) => disk.type === ArrayDiskType.FLASH && disk.fsMountpoint === '/boot');
+
+const getBootDevices = (disks: ArrayDisk[]): ArrayDisk[] => {
+    const internalBootDevices = getInternalBootDevices(disks);
+    if (internalBootDevices.length > 0) {
+        return internalBootDevices;
+    }
+
+    return getUsbBootDevices(disks);
+};
+
+const selectBootDisk = (bootDevices: ArrayDisk[]): ArrayDisk | undefined => {
+    if (bootDevices.length === 0) {
         return undefined;
     }
 
-    for (const disk of bootDisks) {
+    const mountedBootDisk = bootDevices.find((disk) => disk.fsMountpoint === '/boot');
+    if (mountedBootDisk) {
+        return mountedBootDisk;
+    }
+
+    for (const disk of bootDevices) {
         if (disk.status === ArrayDiskStatus.DISK_NP_DSBL || disk.status === ArrayDiskStatus.DISK_NP) {
             continue;
         }
@@ -28,13 +48,13 @@ const selectBootDisk = (bootDisks: ArrayDisk[]): ArrayDisk | undefined => {
         return disk;
     }
 
-    for (const disk of bootDisks) {
+    for (const disk of bootDevices) {
         if (disk.fsStatus === 'Mounted') {
             return disk;
         }
     }
 
-    return bootDisks[0];
+    return bootDevices[0];
 };
 
 export const getArrayData = (getState = store.getState): UnraidArray => {
@@ -53,11 +73,10 @@ export const getArrayData = (getState = store.getState): UnraidArray => {
     // All known disks
     const allDisks = emhttp.disks;
     const disksWithDevice = allDisks.filter((disk) => disk.device);
-    const bootDisks = allDisks.filter((disk) => disk.type === ArrayDiskType.BOOT);
+    const bootDevices = getBootDevices(allDisks);
 
     // Array boot/parities/disks/caches
-    const boot =
-        selectBootDisk(bootDisks) ?? disksWithDevice.find((disk) => disk.type === ArrayDiskType.FLASH);
+    const boot = selectBootDisk(bootDevices);
     const parities = disksWithDevice.filter((disk) => disk.type === ArrayDiskType.PARITY);
     const disks = disksWithDevice.filter((disk) => disk.type === ArrayDiskType.DATA);
     const caches = disksWithDevice.filter((disk) => disk.type === ArrayDiskType.CACHE);
@@ -88,6 +107,7 @@ export const getArrayData = (getState = store.getState): UnraidArray => {
         state: emhttp.var.mdState as ArrayState,
         capacity,
         boot,
+        bootDevices,
         parities,
         disks,
         caches,

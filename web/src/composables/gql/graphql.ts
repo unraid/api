@@ -260,7 +260,7 @@ export type ArrayDisk = Node & {
   temp?: Maybe<Scalars['Int']['output']>;
   /** ata | nvme | usb | (others) */
   transport?: Maybe<Scalars['String']['output']>;
-  /** Type of Disk - used to differentiate Cache / Flash / Array / Parity */
+  /** Type of Disk - used to differentiate Boot / Cache / Flash / Array / Parity */
   type: ArrayDiskType;
   /** (%) Disk space left to warn */
   warning?: Maybe<Scalars['Int']['output']>;
@@ -3101,8 +3101,13 @@ export type UnifiedSettings = FormSchema & Node & {
 
 export type UnraidArray = Node & {
   __typename?: 'UnraidArray';
-  /** Current boot disk */
+  /**
+   * Current selected boot disk
+   * @deprecated Use bootDevices for all detected boot devices; boot remains the selected active entry.
+   */
   boot?: Maybe<ArrayDisk>;
+  /** All detected boot devices: every Boot entry for internal boot, including mirrored members when configured, or the mounted /boot Flash entry for legacy USB boot */
+  bootDevices: Array<ArrayDisk>;
   /** Caches in the current array */
   caches: Array<ArrayDisk>;
   /** Current array capacity */

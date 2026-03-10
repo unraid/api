@@ -131,6 +131,8 @@ export class ArrayDisk extends Node {
     isSpinning?: boolean | null;
 
     fsStatus?: string | null;
+
+    fsMountpoint?: string | null;
 }
 
 @ObjectType({
@@ -143,8 +145,19 @@ export class UnraidArray extends Node {
     @Field(() => ArrayCapacity, { description: 'Current array capacity' })
     capacity!: ArrayCapacity;
 
-    @Field(() => ArrayDisk, { nullable: true, description: 'Current boot disk' })
+    @Field(() => ArrayDisk, {
+        nullable: true,
+        description: 'Current selected boot disk',
+        deprecationReason:
+            'Use bootDevices for all detected boot devices; boot remains the selected active entry.',
+    })
     boot?: ArrayDisk;
+
+    @Field(() => [ArrayDisk], {
+        description:
+            'All detected boot devices: every Boot entry for internal boot, including mirrored members when configured, or the mounted /boot Flash entry for legacy USB boot',
+    })
+    bootDevices!: ArrayDisk[];
 
     @Field(() => [ArrayDisk], { description: 'Parity disks in the current array' })
     parities!: ArrayDisk[];

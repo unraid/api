@@ -118,7 +118,9 @@ type ArrayDisk implements Node {
   fsUsed: BigInt
   exportable: Boolean
 
-  """Type of Disk - used to differentiate Cache / Flash / Array / Parity"""
+  """
+  Type of Disk - used to differentiate Boot / Cache / Flash / Array / Parity
+  """
   type: ArrayDiskType!
 
   """(%) Disk space left to warn"""
@@ -166,9 +168,9 @@ enum ArrayDiskStatus {
 }
 
 enum ArrayDiskType {
-  BOOT
   DATA
   PARITY
+  BOOT
   FLASH
   CACHE
 }
@@ -194,8 +196,13 @@ type UnraidArray implements Node {
   """Current array capacity"""
   capacity: ArrayCapacity!
 
-  """Current boot disk"""
-  boot: ArrayDisk
+  """Current selected boot disk"""
+  boot: ArrayDisk @deprecated(reason: "Use bootDevices for all detected boot devices; boot remains the selected active entry.")
+
+  """
+  All detected boot devices: every Boot entry for internal boot, including mirrored members when configured, or the mounted /boot Flash entry for legacy USB boot
+  """
+  bootDevices: [ArrayDisk!]!
 
   """Parity disks in the current array"""
   parities: [ArrayDisk!]!

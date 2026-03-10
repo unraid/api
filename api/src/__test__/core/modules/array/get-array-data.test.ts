@@ -73,6 +73,36 @@ describe('getArrayData', () => {
         );
 
         expect(result.boot?.id).toBe('boot-disk');
+        expect(result.bootDevices.map((disk) => disk.id)).toEqual(['boot-disk']);
+    });
+
+    it('prefers the /boot-mounted Boot disk when multiple Boot disks exist', () => {
+        const result = getArrayData(
+            buildGetState([
+                buildDisk({
+                    id: 'boot-disk-secondary',
+                    idx: 54,
+                    device: 'nvme0n1',
+                    type: ArrayDiskType.BOOT,
+                    status: ArrayDiskStatus.DISK_OK,
+                    fsMountpoint: null,
+                }),
+                buildDisk({
+                    id: 'boot-disk-primary',
+                    idx: 55,
+                    device: 'nvme1n1',
+                    type: ArrayDiskType.BOOT,
+                    status: ArrayDiskStatus.DISK_OK,
+                    fsMountpoint: '/boot',
+                }),
+            ])
+        );
+
+        expect(result.boot?.id).toBe('boot-disk-primary');
+        expect(result.bootDevices.map((disk) => disk.id)).toEqual([
+            'boot-disk-secondary',
+            'boot-disk-primary',
+        ]);
     });
 
     it('matches webgui and picks the first present Boot disk with a device', () => {
@@ -108,6 +138,7 @@ describe('getArrayData', () => {
                     type: ArrayDiskType.BOOT,
                     status: ArrayDiskStatus.DISK_NP,
                     fsStatus: 'Mounted',
+                    fsMountpoint: null,
                 }),
                 buildDisk({
                     id: 'boot-disk-unmounted',
@@ -131,10 +162,36 @@ describe('getArrayData', () => {
                     idx: 32,
                     device: 'sdb',
                     type: ArrayDiskType.FLASH,
+                    fsMountpoint: '/boot',
                 }),
             ])
         );
 
         expect(result.boot?.id).toBe('flash-disk');
+        expect(result.bootDevices.map((disk) => disk.id)).toEqual(['flash-disk']);
+    });
+
+    it('ignores non-mounted Flash rows when determining legacy USB boot devices', () => {
+        const result = getArrayData(
+            buildGetState([
+                buildDisk({
+                    id: 'flash-not-mounted',
+                    idx: 32,
+                    device: 'sdb',
+                    type: ArrayDiskType.FLASH,
+                    fsMountpoint: null,
+                }),
+                buildDisk({
+                    id: 'flash-mounted',
+                    idx: 33,
+                    device: 'sdc',
+                    type: ArrayDiskType.FLASH,
+                    fsMountpoint: '/boot',
+                }),
+            ])
+        );
+
+        expect(result.boot?.id).toBe('flash-mounted');
+        expect(result.bootDevices.map((disk) => disk.id)).toEqual(['flash-mounted']);
     });
 });
