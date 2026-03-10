@@ -33,13 +33,8 @@ const { activationRequired, hasActivationCode, isFreshInstall, registrationState
   useActivationCodeDataStore()
 );
 const onboardingStore = useOnboardingStore();
-const {
-  shouldShowOnboarding,
-  isVersionDrift,
-  completedAtVersion,
-  canDisplayOnboardingModal,
-  isPartnerBuild,
-} = storeToRefs(onboardingStore);
+const { shouldShowOnboarding, isVersionDrift, completedAtVersion, canDisplayOnboardingModal } =
+  storeToRefs(onboardingStore);
 const { refetchOnboarding } = onboardingStore;
 const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
@@ -101,7 +96,7 @@ const visibleHardcodedSteps = computed(() =>
       if (step.id !== 'CONFIGURE_BOOT') {
         return true;
       }
-      return !isPartnerBuild.value && showInternalBootStep.value;
+      return showInternalBootStep.value;
     }
   )
 );
