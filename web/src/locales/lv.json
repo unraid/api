@@ -840,6 +840,7 @@
   "userProfile.callbackFeedback.installRecovered": "Instalēt Atjaunotu",
   "userProfile.callbackFeedback.installReplaced": "Instalēt Aizvietotu",
   "userProfile.callbackFeedback.key": "{0} {1} Atslēga...",
+  "userProfile.callbackFeedback.keyInstalledSuccessfullyRebootMayBeRequired": "Atslēga veiksmīgi instalēta. Lai ieviestu šīs izmaiņas, iespējams, būs nepieciešams restartēt datoru.",
   "userProfile.callbackFeedback.keySuccessfully": "{1} Atslēga {0} Veiksmīgi",
   "userProfile.callbackFeedback.newVersion": "Jaunā Versija: {0}",
   "userProfile.callbackFeedback.noThanks": "Nē pateikties",
