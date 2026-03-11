@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { Systeminformation } from 'systeminformation';
@@ -24,6 +24,10 @@ const SmartAttributeSchema = z.object({
         .optional()
         .nullable(),
 });
+
+const GPT_BIOS_BOOT = '21686148-6449-6e6f-744e-656564454649';
+const GPT_EFI = 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b';
+const GPT_LINUX = '0fc63daf-8483-4772-8e79-3d69d8477de4';
 
 type SmartAttribute = z.infer<typeof SmartAttributeSchema>;
 
@@ -51,6 +55,15 @@ interface EmhttpDeviceRecord {
     device?: unknown;
 }
 
+interface LsblkDeviceRecord {
+    name: string;
+    path: string;
+    type: string;
+    partlabel: string;
+    parttype: string;
+    children: LsblkDeviceRecord[];
+}
+
 const normalizeDeviceName = (value: string | undefined): string => {
     if (!value) {
         return '';
@@ -58,8 +71,13 @@ const normalizeDeviceName = (value: string | undefined): string => {
     return value.startsWith('/dev/') ? value.slice('/dev/'.length) : value;
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null;
+
 @Injectable()
 export class DisksService {
+    private readonly logger = new Logger(DisksService.name);
+
     constructor(private readonly configService: ConfigService) {}
 
     private getEmhttpDevices(): EmhttpDevice[] {
@@ -144,6 +162,126 @@ export class DisksService {
             throw new NotFoundException(`Disk with id ${id} not found`);
         }
         return disk;
+    }
+
+    public async getInternalBootDevices(): Promise<Disk[]> {
+        const [disks, deviceNames] = await Promise.all([
+            this.getDisks(),
+            this.getInternalBootDeviceNames(),
+        ]);
+
+        return disks.filter((disk) => deviceNames.has(normalizeDeviceName(disk.device)));
+    }
+
+    private async getInternalBootDeviceNames(): Promise<Set<string>> {
+        try {
+            const { stdout } = await execa('lsblk', ['-J', '-o', 'NAME,PATH,TYPE,PARTLABEL,PARTTYPE']);
+
+            const devices = this.parseLsblkDevices(stdout);
+            return new Set(
+                devices
+                    .filter((device) => this.matchesInternalBootLayout(device))
+                    .map((device) => normalizeDeviceName(device.path))
+                    .filter((device) => device.length > 0)
+            );
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.warn(`Failed to inspect internal boot devices via lsblk: ${message}`);
+            return new Set();
+        }
+    }
+
+    private parseLsblkDevices(stdout: string): LsblkDeviceRecord[] {
+        try {
+            const parsed = JSON.parse(stdout) as unknown;
+            if (!isRecord(parsed)) {
+                return [];
+            }
+
+            const blockDevices = parsed.blockdevices;
+            if (!Array.isArray(blockDevices)) {
+                return [];
+            }
+
+            return blockDevices
+                .map((device) => this.toLsblkDeviceRecord(device))
+                .filter((device): device is LsblkDeviceRecord => device !== null);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.warn(`Failed to parse lsblk output: ${message}`);
+            return [];
+        }
+    }
+
+    private toLsblkDeviceRecord(value: unknown): LsblkDeviceRecord | null {
+        if (!isRecord(value)) {
+            return null;
+        }
+
+        const children = Array.isArray(value.children)
+            ? value.children
+                  .map((child) => this.toLsblkDeviceRecord(child))
+                  .filter((child): child is LsblkDeviceRecord => child !== null)
+            : [];
+
+        return {
+            name: typeof value.name === 'string' ? value.name : '',
+            path: typeof value.path === 'string' ? value.path : '',
+            type: typeof value.type === 'string' ? value.type : '',
+            partlabel: typeof value.partlabel === 'string' ? value.partlabel : '',
+            parttype: typeof value.parttype === 'string' ? value.parttype : '',
+            children,
+        };
+    }
+
+    private matchesInternalBootLayout(device: LsblkDeviceRecord): boolean {
+        if (device.type !== 'disk') {
+            return false;
+        }
+
+        const partitions = [...device.children]
+            .filter((child) => child.type === 'part')
+            .sort((left, right) => this.comparePartitions(left.name, right.name));
+
+        if (partitions.length < 4) {
+            return false;
+        }
+
+        const [biosPartition, efiPartition, unraidPartition, dataPartition] = partitions;
+
+        return (
+            biosPartition.partlabel === 'BIOS Boot Partition' &&
+            this.normalizePartitionType(biosPartition.parttype) === GPT_BIOS_BOOT &&
+            efiPartition.partlabel === 'EFI System Partition' &&
+            this.normalizePartitionType(efiPartition.parttype) === GPT_EFI &&
+            unraidPartition.partlabel === 'Unraid Boot Partition' &&
+            this.normalizePartitionType(unraidPartition.parttype) === GPT_LINUX &&
+            this.normalizePartitionType(dataPartition.parttype) === GPT_LINUX
+        );
+    }
+
+    private comparePartitions(left: string, right: string): number {
+        const leftNumber = this.getPartitionNumber(left);
+        const rightNumber = this.getPartitionNumber(right);
+
+        if (leftNumber !== null && rightNumber !== null && leftNumber !== rightNumber) {
+            return leftNumber - rightNumber;
+        }
+
+        return left.localeCompare(right);
+    }
+
+    private getPartitionNumber(name: string): number | null {
+        const match = name.match(/(?:p)?(\d+)$/);
+        if (!match?.[1]) {
+            return null;
+        }
+
+        return Number.parseInt(match[1], 10);
+    }
+
+    private normalizePartitionType(value: string): string {
+        return value.trim().toLowerCase();
     }
 
     private async parseDisk(
