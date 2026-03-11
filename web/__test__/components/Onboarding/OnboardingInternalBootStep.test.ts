@@ -135,7 +135,8 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(true);
-    expect(wrapper.text()).toContain('Storage boot is currently unavailable');
+    expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(false);
+    expect(wrapper.text()).toContain('No eligible devices were detected for internal boot setup.');
     expect(wrapper.text()).not.toContain('ARRAY_NOT_STOPPED');
     await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
     await flushPromises();
@@ -177,6 +178,7 @@ describe('OnboardingInternalBootStep', () => {
     const wrapper = mountComponent();
     await flushPromises();
 
+    expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(true);
     expect(wrapper.get('input[type="text"]').element).toHaveProperty('value', 'cache');
     expect(wrapper.text()).toContain(
       'The name you choose below applies to the storage pool, not the boot volume.'

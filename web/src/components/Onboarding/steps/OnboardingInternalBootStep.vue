@@ -3,7 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useQuery } from '@vue/apollo-composable';
 
-import { ChevronLeftIcon, CircleStackIcon } from '@heroicons/vue/24/outline';
+import { ChevronLeftIcon, CircleStackIcon, InformationCircleIcon } from '@heroicons/vue/24/outline';
 import { ChevronDownIcon, ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
@@ -383,6 +383,7 @@ const canConfigure = computed(
     bootEligibilityState.value === 'eligible' &&
     deviceOptions.value.length > 0
 );
+const hasEligibleDevices = computed(() => deviceOptions.value.length > 0);
 const isStorageBootSelected = computed(() => bootMode.value === 'storage');
 const isPrimaryActionDisabled = computed(
   () => isStepLocked.value || (isStorageBootSelected.value && (isLoading.value || !canConfigure.value))
@@ -786,13 +787,13 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
       </div>
 
       <blockquote
-        v-if="isStorageBootSelected"
+        v-if="isStorageBootSelected && hasEligibleDevices"
         data-testid="internal-boot-intro-panel"
-        class="my-8 rounded-xl border border-yellow-200 bg-yellow-50 p-5"
+        class="my-8 rounded-xl border border-sky-200 bg-sky-50 p-5"
       >
         <div class="flex items-start gap-3">
-          <ExclamationTriangleIcon class="mt-0.5 h-6 w-6 flex-shrink-0 text-yellow-700" />
-          <div class="space-y-3 text-sm leading-relaxed text-yellow-950">
+          <InformationCircleIcon class="mt-0.5 h-6 w-6 flex-shrink-0 text-sky-700" />
+          <div class="space-y-3 text-sm leading-relaxed text-sky-950">
             <p>{{ t('onboarding.internalBootStep.warning.bootablePoolDescription') }}</p>
             <p>{{ t('onboarding.internalBootStep.warning.bootablePoolVolumes') }}</p>
             <ul class="list-disc space-y-1 pl-5">
@@ -950,7 +951,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
           >
             <div class="space-y-1">
               <p class="font-semibold">{{ eligibilityPanelTitle }}</p>
-              <p>{{ eligibilityPanelDescription }}</p>
+              <p v-if="eligibilityPanelDescription">{{ eligibilityPanelDescription }}</p>
             </div>
             <div class="flex items-center gap-2 text-sm font-medium whitespace-nowrap">
               <span>
