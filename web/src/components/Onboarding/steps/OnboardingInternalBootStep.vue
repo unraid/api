@@ -384,6 +384,7 @@ const canConfigure = computed(
     deviceOptions.value.length > 0
 );
 const hasEligibleDevices = computed(() => deviceOptions.value.length > 0);
+const hasNoEligibleDevices = computed(() => !hasEligibleDevices.value);
 const isStorageBootSelected = computed(() => bootMode.value === 'storage');
 const isPrimaryActionDisabled = computed(
   () => isStepLocked.value || (isStorageBootSelected.value && (isLoading.value || !canConfigure.value))
@@ -399,12 +400,16 @@ const shouldShowEligibilityDetails = computed(
 const eligibilityPanelTitle = computed(() =>
   canConfigure.value
     ? t('onboarding.internalBootStep.eligibility.availableTitle')
-    : t('onboarding.internalBootStep.eligibility.blockedTitle')
+    : hasNoEligibleDevices.value
+      ? t('onboarding.internalBootStep.eligibility.noDevicesTitle')
+      : t('onboarding.internalBootStep.eligibility.blockedTitle')
 );
 const eligibilityPanelDescription = computed(() =>
   canConfigure.value
     ? t('onboarding.internalBootStep.eligibility.availableDescription')
-    : t('onboarding.internalBootStep.eligibility.blockedDescription')
+    : hasNoEligibleDevices.value
+      ? t('onboarding.internalBootStep.eligibility.noDevicesDescription')
+      : t('onboarding.internalBootStep.eligibility.blockedDescription')
 );
 
 const loadStatusMessage = computed(() => {
@@ -650,7 +655,7 @@ const initializeForm = (data: InternalBootTemplateData) => {
   const firstSlot = data.slotOptions[0] ?? 1;
   const defaultSlot = Math.max(1, Math.min(2, firstSlot));
 
-  poolName.value = draftSelection?.poolName || data.poolNameDefault || 'cache';
+  poolName.value = draftSelection?.poolName ?? data.poolNameDefault ?? 'cache';
   slotCount.value = draftSelection?.slotCount ?? defaultSlot;
   selectedDevices.value =
     draftSelection?.devices.slice(0, slotCount.value) ??

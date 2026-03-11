@@ -185,6 +185,34 @@ describe('OnboardingInternalBootStep', () => {
     );
   });
 
+  it('leaves the pool name blank when cache already exists', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = {
+      array: {
+        state: 'STOPPED',
+        boot: null,
+        parities: [],
+        disks: [],
+        caches: [{ name: 'cache', device: '/dev/sdz' }],
+      },
+      vars: {
+        fsState: 'Stopped',
+        bootEligible: true,
+        enableBootTransfer: 'yes',
+        reservedNames: '',
+      },
+      shares: [],
+      disks: [
+        { device: '/dev/sda', size: gib(32), emhttpDeviceId: 'eligible-disk', interfaceType: 'SATA' },
+      ],
+    };
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.get('input[type="text"]').element).toHaveProperty('value', '');
+  });
+
   it('shows explicit disabled and empty-disk codes when the system reports them', async () => {
     draftStore.bootMode = 'storage';
     contextResult.value = {
@@ -217,6 +245,36 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.text()).toContain('ALREADY_INTERNAL_BOOT');
     expect(wrapper.text()).toContain('BOOT_ELIGIBLE_FALSE');
     expect(wrapper.text()).toContain('NO_UNASSIGNED_DISKS');
+  });
+
+  it('keeps the blocked headline focused on server state when eligible disks exist', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = {
+      array: {
+        state: 'STARTED',
+        boot: null,
+        parities: [],
+        disks: [],
+        caches: [],
+      },
+      vars: {
+        fsState: 'Started',
+        bootEligible: true,
+        enableBootTransfer: 'yes',
+        reservedNames: '',
+      },
+      shares: [],
+      disks: [
+        { device: '/dev/sda', size: gib(32), emhttpDeviceId: 'eligible-disk', interfaceType: 'SATA' },
+      ],
+    };
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Storage boot is currently unavailable');
+    expect(wrapper.text()).not.toContain('No eligible devices were detected for internal boot setup.');
   });
 
   it('shows disk-level ineligibility while keeping the form available for eligible disks', async () => {
