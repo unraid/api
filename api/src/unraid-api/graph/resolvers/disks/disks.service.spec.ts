@@ -612,6 +612,142 @@ describe('DisksService', () => {
 
             await expect(service.getInternalBootDevices()).resolves.toEqual([]);
         });
+
+        it('should exclude usb disks even when the partition layout matches', async () => {
+            vi.spyOn(service, 'getDisks').mockResolvedValue([
+                {
+                    id: 'internal',
+                    device: '/dev/sda',
+                    type: 'HD',
+                    name: 'Internal Boot',
+                    vendor: 'Samsung',
+                    size: 512110190592,
+                    bytesPerSector: 512,
+                    totalCylinders: 1,
+                    totalHeads: 1,
+                    totalSectors: 1,
+                    totalTracks: 1,
+                    tracksPerCylinder: 1,
+                    sectorsPerTrack: 1,
+                    firmwareRevision: '1',
+                    serialNum: 'internal',
+                    emhttpDeviceId: 'internal',
+                    interfaceType: DiskInterfaceType.PCIE,
+                    smartStatus: DiskSmartStatus.OK,
+                    partitions: [],
+                    isSpinning: false,
+                },
+                {
+                    id: 'usb',
+                    device: '/dev/sdb',
+                    type: 'HD',
+                    name: 'USB Clone',
+                    vendor: 'SanDisk',
+                    size: 128000000000,
+                    bytesPerSector: 512,
+                    totalCylinders: 1,
+                    totalHeads: 1,
+                    totalSectors: 1,
+                    totalTracks: 1,
+                    tracksPerCylinder: 1,
+                    sectorsPerTrack: 1,
+                    firmwareRevision: '1',
+                    serialNum: 'usb',
+                    emhttpDeviceId: 'usb',
+                    interfaceType: DiskInterfaceType.USB,
+                    smartStatus: DiskSmartStatus.OK,
+                    partitions: [],
+                    isSpinning: false,
+                },
+            ]);
+            mockExeca.mockResolvedValue({
+                stdout: JSON.stringify({
+                    blockdevices: [
+                        {
+                            name: 'sda',
+                            path: '/dev/sda',
+                            type: 'disk',
+                            children: [
+                                {
+                                    name: 'sda1',
+                                    path: '/dev/sda1',
+                                    type: 'part',
+                                    partlabel: 'BIOS Boot Partition',
+                                    parttype: '21686148-6449-6e6f-744e-656564454649',
+                                },
+                                {
+                                    name: 'sda2',
+                                    path: '/dev/sda2',
+                                    type: 'part',
+                                    partlabel: 'EFI System Partition',
+                                    parttype: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
+                                },
+                                {
+                                    name: 'sda3',
+                                    path: '/dev/sda3',
+                                    type: 'part',
+                                    partlabel: 'Unraid Boot Partition',
+                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
+                                },
+                                {
+                                    name: 'sda4',
+                                    path: '/dev/sda4',
+                                    type: 'part',
+                                    partlabel: '',
+                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
+                                },
+                            ],
+                        },
+                        {
+                            name: 'sdb',
+                            path: '/dev/sdb',
+                            type: 'disk',
+                            children: [
+                                {
+                                    name: 'sdb1',
+                                    path: '/dev/sdb1',
+                                    type: 'part',
+                                    partlabel: 'BIOS Boot Partition',
+                                    parttype: '21686148-6449-6e6f-744e-656564454649',
+                                },
+                                {
+                                    name: 'sdb2',
+                                    path: '/dev/sdb2',
+                                    type: 'part',
+                                    partlabel: 'EFI System Partition',
+                                    parttype: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
+                                },
+                                {
+                                    name: 'sdb3',
+                                    path: '/dev/sdb3',
+                                    type: 'part',
+                                    partlabel: 'Unraid Boot Partition',
+                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
+                                },
+                                {
+                                    name: 'sdb4',
+                                    path: '/dev/sdb4',
+                                    type: 'part',
+                                    partlabel: '',
+                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
+                                },
+                            ],
+                        },
+                    ],
+                }),
+                stderr: '',
+                exitCode: 0,
+                failed: false,
+                command: '',
+                cwd: '',
+                isCanceled: false,
+            } as unknown as Awaited<ReturnType<typeof execa>>);
+
+            const disks = await service.getInternalBootDevices();
+
+            expect(disks).toHaveLength(1);
+            expect(disks[0]?.device).toBe('/dev/sda');
+        });
     });
 
     // --- Test getTemperature ---

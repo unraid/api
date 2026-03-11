@@ -38,18 +38,28 @@ export class InternalBootNotificationService implements OnApplicationBootstrap {
             return;
         }
 
-        const internalBootDevices = await this.disksService.getInternalBootDevices();
-        if (internalBootDevices.length === 0) {
-            this.logger.debug(
-                `Skipping internal boot notification: no internal boot candidates found for ${bootDisk.device ?? bootDisk.id}`
-            );
-            return;
-        }
+        try {
+            const internalBootDevices = await this.disksService.getInternalBootDevices();
+            if (internalBootDevices.length === 0) {
+                this.logger.debug(
+                    `Skipping internal boot notification: no internal boot candidates found for ${bootDisk.device ?? bootDisk.id}`
+                );
+                return;
+            }
 
-        const notification = await this.notificationsService.notifyIfUnique(this.getNotificationData());
-        if (notification) {
-            this.logger.log(
-                `Created internal boot notification for USB boot device ${bootDisk.device ?? bootDisk.id}`
+            const notification = await this.notificationsService.notifyIfUnique(
+                this.getNotificationData()
+            );
+            if (notification) {
+                this.logger.log(
+                    `Created internal boot notification for USB boot device ${bootDisk.device ?? bootDisk.id}`
+                );
+                return;
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.warn(
+                `Failed to evaluate internal boot notification for ${bootDisk.device ?? bootDisk.id}: ${message}`
             );
             return;
         }
@@ -61,16 +71,24 @@ export class InternalBootNotificationService implements OnApplicationBootstrap {
         for (let attempt = 1; attempt <= BOOT_CHECK_RETRY_COUNT; attempt += 1) {
             try {
                 const array = await this.arrayService.getArrayData();
-                return array.boot;
+                if (array.boot) {
+                    return array.boot;
+                }
             } catch (error) {
                 if (attempt === BOOT_CHECK_RETRY_COUNT) {
                     const message = error instanceof Error ? error.message : String(error);
                     this.logger.warn(`Failed to inspect boot disk during bootstrap: ${message}`);
                     return undefined;
                 }
-
-                await this.delay(BOOT_CHECK_RETRY_DELAY_MS);
             }
+
+            if (attempt < BOOT_CHECK_RETRY_COUNT) {
+                await this.delay(BOOT_CHECK_RETRY_DELAY_MS);
+                continue;
+            }
+
+            this.logger.warn('Failed to inspect boot disk during bootstrap: no boot disk found');
+            return undefined;
         }
 
         return undefined;

@@ -170,7 +170,11 @@ export class DisksService {
             this.getInternalBootDeviceNames(),
         ]);
 
-        return disks.filter((disk) => deviceNames.has(normalizeDeviceName(disk.device)));
+        return disks.filter(
+            (disk) =>
+                deviceNames.has(normalizeDeviceName(disk.device)) &&
+                disk.interfaceType !== DiskInterfaceType.USB
+        );
     }
 
     private async getInternalBootDeviceNames(): Promise<Set<string>> {

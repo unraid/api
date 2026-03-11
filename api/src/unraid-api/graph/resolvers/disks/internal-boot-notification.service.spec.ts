@@ -1,7 +1,8 @@
 import type { TestingModule } from '@nestjs/testing';
+import { Logger } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ArrayDiskType } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
@@ -47,6 +48,10 @@ describe('InternalBootNotificationService', () => {
         }).compile();
 
         service = module.get<InternalBootNotificationService>(InternalBootNotificationService);
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
     it('creates an alert notification when booted from flash and internal boot devices are available', async () => {
@@ -101,14 +106,90 @@ describe('InternalBootNotificationService', () => {
         expect(mockNotificationsService.notifyIfUnique).not.toHaveBeenCalled();
     });
 
-    it('does not create a notification when no boot disk is available', async () => {
+    it('retries until a boot disk becomes available', async () => {
+        vi.useFakeTimers();
+
+        mockArrayService.getArrayData
+            .mockResolvedValueOnce({
+                boot: undefined,
+            })
+            .mockResolvedValueOnce({
+                boot: {
+                    id: 'flash',
+                    type: ArrayDiskType.FLASH,
+                    device: 'sda',
+                },
+            });
+        mockDisksService.getInternalBootDevices.mockResolvedValue([{ device: '/dev/nvme0n1' }]);
+        mockNotificationsService.notifyIfUnique.mockResolvedValue(null);
+
+        const bootstrapPromise = service.onApplicationBootstrap();
+
+        await vi.runAllTimersAsync();
+        await bootstrapPromise;
+
+        expect(mockArrayService.getArrayData).toHaveBeenCalledTimes(2);
+        expect(mockNotificationsService.notifyIfUnique).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not create a notification when no boot disk is available after retries', async () => {
+        vi.useFakeTimers();
+        const warnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+
         mockArrayService.getArrayData.mockResolvedValue({
             boot: undefined,
         });
         mockDisksService.getInternalBootDevices.mockResolvedValue([{ device: '/dev/nvme0n1' }]);
 
-        await service.onApplicationBootstrap();
+        const bootstrapPromise = service.onApplicationBootstrap();
+
+        await vi.runAllTimersAsync();
+        await bootstrapPromise;
+
+        expect(mockArrayService.getArrayData).toHaveBeenCalledTimes(5);
+        expect(mockNotificationsService.notifyIfUnique).not.toHaveBeenCalled();
+        expect(warnSpy).toHaveBeenCalledWith(
+            'Failed to inspect boot disk during bootstrap: no boot disk found'
+        );
+    });
+
+    it('does not throw when internal boot detection fails during bootstrap', async () => {
+        const warnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+
+        mockArrayService.getArrayData.mockResolvedValue({
+            boot: {
+                id: 'flash',
+                type: ArrayDiskType.FLASH,
+                device: 'sda',
+            },
+        });
+        mockDisksService.getInternalBootDevices.mockRejectedValue(new Error('lsblk failed'));
+
+        await expect(service.onApplicationBootstrap()).resolves.toBeUndefined();
 
         expect(mockNotificationsService.notifyIfUnique).not.toHaveBeenCalled();
+        expect(warnSpy).toHaveBeenCalledWith(
+            'Failed to evaluate internal boot notification for sda: lsblk failed'
+        );
+    });
+
+    it('does not throw when notification creation fails during bootstrap', async () => {
+        const warnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+
+        mockArrayService.getArrayData.mockResolvedValue({
+            boot: {
+                id: 'flash',
+                type: ArrayDiskType.FLASH,
+                device: 'sda',
+            },
+        });
+        mockDisksService.getInternalBootDevices.mockResolvedValue([{ device: '/dev/nvme0n1' }]);
+        mockNotificationsService.notifyIfUnique.mockRejectedValue(new Error('notify failed'));
+
+        await expect(service.onApplicationBootstrap()).resolves.toBeUndefined();
+
+        expect(warnSpy).toHaveBeenCalledWith(
+            'Failed to evaluate internal boot notification for sda: notify failed'
+        );
     });
 });
