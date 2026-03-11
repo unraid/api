@@ -11,8 +11,8 @@ services:
       - ../.rclone-version:/app/.rclone-version
       - ./source:/app/source
       - ./scripts:/app/scripts
-      - ../unraid-ui/dist-wc:/app/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/uui
-      - ../web/dist:/app/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/standalone
+      - ../unraid-ui/dist-wc:/app/.mounted-assets/uui
+      - ../web/dist:/app/.mounted-assets/standalone
       - ../api/deploy/release/:/app/source/dynamix.unraid.net/usr/local/unraid-api # Use the release dir instead of pack to allow watcher to not try to build with node_modules
     stdin_open: true # equivalent to -i
     tty: true        # equivalent to -t

@@ -1,5 +1,12 @@
 #!/bin/bash
 
+REPO_ROOT=$(cd .. && pwd)
+REPO_GIT_DIR=${GIT_DIR:-../.git}
+
+git_repo() {
+    git --git-dir="$REPO_GIT_DIR" --work-tree="$REPO_ROOT" "$@"
+}
+
 # Get host IP based on platform
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS
@@ -17,10 +24,11 @@ fi
 
 CI=${CI:-false}
 TAG="LOCAL_PLUGIN_BUILD"
-IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
+IS_TAGGED=$(git_repo describe --tags --abbrev=0 --exact-match 2>/dev/null || echo '')
 PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
-GIT_SHA=$(git rev-parse --short HEAD)
+GIT_SHA=$(git_repo rev-parse --short HEAD)
 API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
+export HOST_LAN_IP CI TAG API_VERSION
 
 # Define container name for easier management
 CONTAINER_NAME="plugin-builder"

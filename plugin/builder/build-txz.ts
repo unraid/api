@@ -1,17 +1,73 @@
-import { join } from "path";
+import { dirname, join } from "path";
+import { tmpdir } from "os";
 import { $, cd } from "zx";
 import { existsSync } from "node:fs";
-import { readdir, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { getTxzName, pluginName, startingDir } from "./utils/consts";
 import { ensureNodeJs } from "./utils/nodejs-helper";
 
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
 import { cleanupTxzFiles } from "./utils/cleanup";
-import { apiDir } from "./utils/paths";
 import { getVendorBundleName, getVendorFullPath } from "./build-vendor-store";
 import { getAssetUrl } from "./utils/bucket-urls";
 import { validateStandaloneManifest, getStandaloneManifestPath } from "./utils/manifest-validator";
 
+const mountedAssetsDir = join(startingDir, ".mounted-assets");
+const mountedUuiDir = join(mountedAssetsDir, "uui");
+const mountedStandaloneDir = join(mountedAssetsDir, "standalone");
+const hostSourceDir = join(startingDir, "source");
+const buildRootDir = join(tmpdir(), "connect-plugin-build");
+const buildSourceDir = join(buildRootDir, "source");
+const buildPluginDir = join(buildSourceDir, pluginName);
+const buildWebcomponentsDir = join(
+  buildSourceDir,
+  "dynamix.unraid.net",
+  "usr",
+  "local",
+  "emhttp",
+  "plugins",
+  "dynamix.my.servers",
+  "unraid-components"
+);
+const buildApiDir = join(buildPluginDir, "usr", "local", "unraid-api");
+
+const prepareBuildSourceDir = async () => {
+  await rm(buildRootDir, { force: true, recursive: true });
+  await mkdir(buildRootDir, { recursive: true });
+  await cp(hostSourceDir, buildSourceDir, { force: true, recursive: true });
+};
+
+const syncMountedAssetDir = async ({
+  sourceDir,
+  targetDir,
+  label,
+}: {
+  sourceDir: string;
+  targetDir: string;
+  label: string;
+}) => {
+  if (!existsSync(sourceDir)) {
+    return;
+  }
+
+  await rm(targetDir, { force: true, recursive: true });
+  await mkdir(dirname(targetDir), { recursive: true });
+  await cp(sourceDir, targetDir, { force: true, recursive: true });
+  console.log(`Synced ${label}: ${sourceDir} -> ${targetDir}`);
+};
+
+const syncMountedAssets = async () => {
+  await syncMountedAssetDir({
+    sourceDir: mountedUuiDir,
+    targetDir: join(buildWebcomponentsDir, "uui"),
+    label: "web components",
+  });
+  await syncMountedAssetDir({
+    sourceDir: mountedStandaloneDir,
+    targetDir: join(buildWebcomponentsDir, "standalone"),
+    label: "standalone assets",
+  });
+};
 
 // Check for manifest files in expected locations
 const findManifestFiles = async (dir: string): Promise<string[]> => {
@@ -58,8 +114,7 @@ const storeVendorArchiveInfo = async (version: string, vendorUrl: string, vendor
     
     // Create a config directory in the source tree
     const configDir = join(
-      startingDir,
-      "source",
+      buildSourceDir,
       "dynamix.unraid.net",
       "usr",
       "local",
@@ -106,27 +161,19 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
   if (!validatedEnv.ci) {
     console.log("Validating TXZ source directory");
   }
-  const sourceDir = join(startingDir, "source");
-  if (!existsSync(sourceDir)) {
-    throw new Error(`Source directory ${sourceDir} does not exist`);
+  if (!existsSync(hostSourceDir)) {
+    throw new Error(`Source directory ${hostSourceDir} does not exist`);
   }
-  // Validate existence of webcomponent files:
-  // source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
-  const webcomponentDir = join(
-    sourceDir,
-    "dynamix.unraid.net",
-    "usr",
-    "local",
-    "emhttp",
-    "plugins",
-    "dynamix.my.servers",
-    "unraid-components"
-  );
-  if (!existsSync(webcomponentDir)) {
-    throw new Error(`Webcomponent directory ${webcomponentDir} does not exist`);
+  await prepareBuildSourceDir();
+  await syncMountedAssets();
+
+  if (!existsSync(buildWebcomponentsDir)) {
+    throw new Error(
+      `Webcomponent directory ${buildWebcomponentsDir} does not exist`
+    );
   }
 
-  const manifestFiles = await findManifestFiles(webcomponentDir);
+  const manifestFiles = await findManifestFiles(buildWebcomponentsDir);
   const hasStandaloneManifest = manifestFiles.some(file => 
     file === "standalone.manifest.json" || file === "standalone/standalone.manifest.json"
   );
@@ -141,7 +188,7 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
   }
   
   // Validate the manifest contents
-  const manifestPath = getStandaloneManifestPath(webcomponentDir);
+  const manifestPath = getStandaloneManifestPath(buildWebcomponentsDir);
   if (manifestPath) {
     const validation = await validateStandaloneManifest(manifestPath);
     
@@ -163,15 +210,15 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
     console.log("✅ Standalone manifest validation passed");
   }
 
-  if (!existsSync(apiDir)) {
-    throw new Error(`API directory ${apiDir} does not exist`);
+  if (!existsSync(buildApiDir)) {
+    throw new Error(`API directory ${buildApiDir} does not exist`);
   }
-  const packageJson = join(apiDir, "package.json");
+  const packageJson = join(buildApiDir, "package.json");
   if (!existsSync(packageJson)) {
     throw new Error(`API package.json file ${packageJson} does not exist`);
   }
   // Now CHMOD the api/dist directory files to allow execution
-  await $`chmod +x ${apiDir}/dist/*.js`;
+  await $`chmod +x ${buildApiDir}/dist/*.js`;
 };
 
 const buildTxz = async (validatedEnv: TxzEnv) => {
@@ -202,7 +249,7 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
 
   // Create package - must be run from within the pre-pack directory
   // Use cd option to run command from prePackDir
-  await cd(join(startingDir, "source", pluginName));
+  await cd(buildPluginDir);
   $.verbose = true;
 
   // Create the package using the default package name
