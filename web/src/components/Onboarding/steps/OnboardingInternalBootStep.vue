@@ -4,10 +4,11 @@ import { useI18n } from 'vue-i18n';
 import { useQuery } from '@vue/apollo-composable';
 
 import { ChevronLeftIcon, CircleStackIcon } from '@heroicons/vue/24/outline';
-import { ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
+import { ChevronDownIcon, ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
+import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 
 import type {
   OnboardingBootMode,
@@ -283,7 +284,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
   }
 
   return {
-    poolNameDefault: poolNameSet.size === 0 ? 'boot' : '',
+    poolNameDefault: poolNameSet.size === 0 ? 'cache' : '',
     slotOptions: [1, 2],
     deviceOptions,
     bootSizePresetsMiB: BOOT_SIZE_PRESETS_MIB,
@@ -648,7 +649,7 @@ const initializeForm = (data: InternalBootTemplateData) => {
   const firstSlot = data.slotOptions[0] ?? 1;
   const defaultSlot = Math.max(1, Math.min(2, firstSlot));
 
-  poolName.value = draftSelection?.poolName || data.poolNameDefault || 'boot';
+  poolName.value = draftSelection?.poolName || data.poolNameDefault || 'cache';
   slotCount.value = draftSelection?.slotCount ?? defaultSlot;
   selectedDevices.value =
     draftSelection?.devices.slice(0, slotCount.value) ??
@@ -786,13 +787,26 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
 
       <blockquote
         v-if="isStorageBootSelected"
-        class="my-8 border-s-4 border-yellow-500 bg-yellow-100 p-4"
+        data-testid="internal-boot-intro-panel"
+        class="my-8 rounded-xl border border-yellow-200 bg-yellow-50 p-5"
       >
-        <div class="flex items-start gap-2">
+        <div class="flex items-start gap-3">
           <ExclamationTriangleIcon class="mt-0.5 h-6 w-6 flex-shrink-0 text-yellow-700" />
-          <p class="text-sm leading-relaxed text-yellow-900">
-            {{ t('onboarding.internalBootStep.warning.selectedDevicesFormatted') }}
-          </p>
+          <div class="space-y-3 text-sm leading-relaxed text-yellow-950">
+            <p>{{ t('onboarding.internalBootStep.warning.bootablePoolDescription') }}</p>
+            <p>{{ t('onboarding.internalBootStep.warning.bootablePoolVolumes') }}</p>
+            <ul class="list-disc space-y-1 pl-5">
+              <li>{{ t('onboarding.internalBootStep.warning.systemBootVolume') }}</li>
+              <li>{{ t('onboarding.internalBootStep.warning.storagePoolVolume') }}</li>
+            </ul>
+            <p class="font-semibold">
+              {{ t('onboarding.internalBootStep.warning.storagePoolNaming') }}
+            </p>
+            <p>{{ t('onboarding.internalBootStep.warning.bootMirrorDescription') }}</p>
+            <p class="font-semibold">
+              {{ t('onboarding.internalBootStep.warning.selectedDevicesFormatted') }}
+            </p>
+          </div>
         </div>
       </blockquote>
 
@@ -808,44 +822,6 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 dark:border-yellow-800 dark:bg-yellow-900/10 dark:text-yellow-200"
       >
         {{ loadStatusMessage }}
-      </div>
-
-      <div
-        v-if="isStorageBootSelected && !isLoading && shouldShowEligibilityDetails"
-        data-testid="internal-boot-eligibility-panel"
-        class="my-8 space-y-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 dark:border-yellow-800 dark:bg-yellow-900/10 dark:text-yellow-200"
-      >
-        <div class="space-y-1">
-          <p class="font-semibold">{{ eligibilityPanelTitle }}</p>
-          <p>{{ eligibilityPanelDescription }}</p>
-        </div>
-
-        <div v-if="systemEligibilityCodes.length > 0" class="space-y-2">
-          <p class="font-semibold">{{ t('onboarding.internalBootStep.eligibility.systemTitle') }}</p>
-          <ul class="list-disc space-y-2 pl-5">
-            <li v-for="code in systemEligibilityCodes" :key="code">
-              <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">{{ code }}</code>
-              {{ t(SYSTEM_ELIGIBILITY_MESSAGE_KEYS[code]) }}
-            </li>
-          </ul>
-        </div>
-
-        <div v-if="diskEligibilityIssues.length > 0" class="space-y-2">
-          <p class="font-semibold">{{ t('onboarding.internalBootStep.eligibility.diskTitle') }}</p>
-          <ul class="list-disc space-y-3 pl-5">
-            <li v-for="disk in diskEligibilityIssues" :key="disk.label">
-              <p class="font-medium">{{ disk.label }}</p>
-              <ul class="list-disc space-y-1 pl-5">
-                <li v-for="code in disk.codes" :key="`${disk.label}-${code}`">
-                  <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">
-                    {{ code }}
-                  </code>
-                  {{ t(DISK_ELIGIBILITY_MESSAGE_KEYS[code]) }}
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
       </div>
 
       <div v-if="isStorageBootSelected && !isLoading && !contextError && canConfigure" class="space-y-5">
@@ -948,7 +924,11 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             t('onboarding.internalBootStep.fields.updateBios')
           }}</span>
         </label>
-        <blockquote v-if="updateBios" class="border-s-4 border-yellow-500 bg-yellow-100 p-4">
+        <blockquote
+          v-if="updateBios"
+          data-testid="internal-boot-update-bios-warning"
+          class="border-s-4 border-yellow-500 bg-yellow-100 p-4"
+        >
           <div class="flex items-start gap-2">
             <ExclamationTriangleIcon class="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-700" />
             <p class="text-sm leading-relaxed text-yellow-900">
@@ -956,6 +936,80 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             </p>
           </div>
         </blockquote>
+      </div>
+
+      <div
+        v-if="isStorageBootSelected && !isLoading && shouldShowEligibilityDetails"
+        data-testid="internal-boot-eligibility-panel"
+        class="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 text-sm text-yellow-900 dark:border-yellow-800 dark:bg-yellow-900/10 dark:text-yellow-200"
+      >
+        <Disclosure v-slot="{ open }">
+          <DisclosureButton
+            data-testid="internal-boot-eligibility-toggle"
+            class="flex w-full items-start justify-between gap-4 p-4 text-left"
+          >
+            <div class="space-y-1">
+              <p class="font-semibold">{{ eligibilityPanelTitle }}</p>
+              <p>{{ eligibilityPanelDescription }}</p>
+            </div>
+            <div class="flex items-center gap-2 text-sm font-medium whitespace-nowrap">
+              <span>
+                {{
+                  open
+                    ? t('onboarding.internalBootStep.eligibility.hideDetails')
+                    : t('onboarding.internalBootStep.eligibility.showDetails')
+                }}
+              </span>
+              <ChevronDownIcon
+                :class="[
+                  open ? 'rotate-180 transform' : '',
+                  'h-5 w-5 transition-transform duration-200',
+                ]"
+              />
+            </div>
+          </DisclosureButton>
+          <transition
+            enter-active-class="transition duration-100 ease-out"
+            enter-from-class="transform scale-95 opacity-0"
+            enter-to-class="transform scale-100 opacity-100"
+            leave-active-class="transition duration-75 ease-out"
+            leave-from-class="transform scale-100 opacity-100"
+            leave-to-class="transform scale-95 opacity-0"
+          >
+            <DisclosurePanel class="space-y-4 border-t border-yellow-200 px-4 pt-4 pb-4">
+              <div v-if="systemEligibilityCodes.length > 0" class="space-y-2">
+                <p class="font-semibold">
+                  {{ t('onboarding.internalBootStep.eligibility.systemTitle') }}
+                </p>
+                <ul class="list-disc space-y-2 pl-5">
+                  <li v-for="code in systemEligibilityCodes" :key="code">
+                    <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">
+                      {{ code }}
+                    </code>
+                    {{ t(SYSTEM_ELIGIBILITY_MESSAGE_KEYS[code]) }}
+                  </li>
+                </ul>
+              </div>
+
+              <div v-if="diskEligibilityIssues.length > 0" class="space-y-2">
+                <p class="font-semibold">{{ t('onboarding.internalBootStep.eligibility.diskTitle') }}</p>
+                <ul class="list-disc space-y-3 pl-5">
+                  <li v-for="disk in diskEligibilityIssues" :key="disk.label">
+                    <p class="font-medium">{{ disk.label }}</p>
+                    <ul class="list-disc space-y-1 pl-5">
+                      <li v-for="code in disk.codes" :key="`${disk.label}-${code}`">
+                        <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">
+                          {{ code }}
+                        </code>
+                        {{ t(DISK_ELIGIBILITY_MESSAGE_KEYS[code]) }}
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </DisclosurePanel>
+          </transition>
+        </Disclosure>
       </div>
 
       <div
