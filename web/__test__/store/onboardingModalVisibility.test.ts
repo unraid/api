@@ -38,7 +38,6 @@ vi.mock('~/components/Onboarding/store/onboardingStatus', () => ({
 
 describe('OnboardingModalVisibility Store', () => {
   let store: ReturnType<typeof useOnboardingModalStore>;
-  let mockIsHidden: ReturnType<typeof ref>;
   let mockTemporaryBypassState: ReturnType<typeof ref>;
   let mockIsFreshInstall: ReturnType<typeof ref>;
   let mockCompleted: ReturnType<typeof ref>;
@@ -69,7 +68,6 @@ describe('OnboardingModalVisibility Store', () => {
     vi.setSystemTime(new Date('2026-02-19T12:00:00.000Z'));
     vi.clearAllMocks();
 
-    mockIsHidden = ref(null);
     mockTemporaryBypassState = ref(null);
     mockIsFreshInstall = ref(false);
     mockCompleted = ref(false);
@@ -78,9 +76,6 @@ describe('OnboardingModalVisibility Store', () => {
 
     vi.mocked(useSessionStorage).mockImplementation(((key: unknown, initialValue: unknown) => {
       const storageKey = typeof key === 'string' ? key : '';
-      if (storageKey === ONBOARDING_MODAL_HIDDEN_STORAGE_KEY) {
-        return mockIsHidden as unknown as ReturnType<typeof useSessionStorage>;
-      }
       if (storageKey === ONBOARDING_TEMP_BYPASS_STORAGE_KEY) {
         return mockTemporaryBypassState as unknown as ReturnType<typeof useSessionStorage>;
       }
@@ -117,10 +112,10 @@ describe('OnboardingModalVisibility Store', () => {
     vi.resetAllMocks();
   });
 
-  it('initializes hidden and temporary bypass session-storage keys', () => {
-    expect(useSessionStorage).toHaveBeenNthCalledWith(1, ONBOARDING_MODAL_HIDDEN_STORAGE_KEY, null);
+  it('initializes temporary bypass session-storage state', () => {
+    expect(useSessionStorage).toHaveBeenCalledOnce();
     expect(useSessionStorage).toHaveBeenNthCalledWith(
-      2,
+      1,
       ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
       null,
       expect.objectContaining({
@@ -134,21 +129,21 @@ describe('OnboardingModalVisibility Store', () => {
 
   it('sets hidden state directly', () => {
     store.setIsHidden(true);
-    expect(mockIsHidden.value).toBe(true);
+    expect(store.isHidden).toBe(true);
 
     store.setIsHidden(false);
-    expect(mockIsHidden.value).toBe(false);
+    expect(store.isHidden).toBe(false);
 
     store.setIsHidden(null);
-    expect(mockIsHidden.value).toBe(null);
+    expect(store.isHidden).toBe(null);
   });
 
   it('restores automatic visibility without forcing the modal visible', () => {
     store.setIsHidden(false);
-    expect(mockIsHidden.value).toBe(false);
+    expect(store.isHidden).toBe(false);
 
     store.resetToAutomaticVisibility();
-    expect(mockIsHidden.value).toBe(null);
+    expect(store.isHidden).toBe(null);
   });
 
   it('clears force-open state when hidden is set to true', () => {
@@ -159,8 +154,22 @@ describe('OnboardingModalVisibility Store', () => {
     expect(store.isForceOpened).toBe(false);
   });
 
+  it('clears legacy hidden sessionStorage state on mount', () => {
+    window.sessionStorage.setItem(ONBOARDING_MODAL_HIDDEN_STORAGE_KEY, 'true');
+
+    if (app) {
+      app.unmount();
+      app = null;
+    }
+
+    mountStoreHost();
+
+    expect(window.sessionStorage.getItem(ONBOARDING_MODAL_HIDDEN_STORAGE_KEY)).toBeNull();
+    expect(store.isHidden).toBe(null);
+  });
+
   it('uses robust serializer for temporary bypass state', () => {
-    const call = vi.mocked(useSessionStorage).mock.calls[1];
+    const call = vi.mocked(useSessionStorage).mock.calls[0];
     const options = call?.[2] as
       | {
           serializer?: {
@@ -202,7 +211,7 @@ describe('OnboardingModalVisibility Store', () => {
     );
 
     expect(store.isBypassActive).toBe(true);
-    expect(mockIsHidden.value).toBe(true);
+    expect(store.isHidden).toBe(true);
     expect(mockTemporaryBypassState.value).toMatchObject({ active: true });
     expect(window.localStorage.getItem('onboardingDraft')).toBeNull();
   });
@@ -219,7 +228,7 @@ describe('OnboardingModalVisibility Store', () => {
     );
 
     expect(store.isBypassActive).toBe(false);
-    expect(mockIsHidden.value).toBe(null);
+    expect(store.isHidden).toBe(null);
     expect(mockTemporaryBypassState.value).toBe(null);
   });
 
@@ -234,7 +243,7 @@ describe('OnboardingModalVisibility Store', () => {
     );
 
     expect(store.isBypassActive).toBe(false);
-    expect(mockIsHidden.value).toBe(null);
+    expect(store.isHidden).toBe(null);
     expect(mockTemporaryBypassState.value).toBe(null);
   });
 
@@ -251,13 +260,13 @@ describe('OnboardingModalVisibility Store', () => {
     );
 
     expect(store.isBypassActive).toBe(false);
-    expect(mockIsHidden.value).toBe(null);
+    expect(store.isHidden).toBe(null);
     expect(mockTemporaryBypassState.value).toBe(null);
   });
 
   it('is visible on fresh install when not hidden or bypassed', () => {
     mockIsFreshInstall.value = true;
-    mockIsHidden.value = null;
+    store.setIsHidden(null);
     mockCallbackData.value = null;
 
     expect(store.isAutoVisible).toBe(true);
@@ -279,7 +288,7 @@ describe('OnboardingModalVisibility Store', () => {
     store.applyOnboardingUrlAction();
 
     expect(store.isBypassActive).toBe(true);
-    expect(mockIsHidden.value).toBe(true);
+    expect(store.isHidden).toBe(true);
     expect(window.location.search).not.toContain('onboarding=');
     expect(replaceStateSpy).toHaveBeenLastCalledWith(historyState, '', '/Dashboard');
   });
@@ -294,20 +303,20 @@ describe('OnboardingModalVisibility Store', () => {
     mountStoreHost();
 
     expect(store.isBypassActive).toBe(true);
-    expect(mockIsHidden.value).toBe(true);
+    expect(store.isHidden).toBe(true);
     expect(window.location.search).not.toContain('onboarding=');
   });
 
   it('supports onboarding=resume URL param and removes bypass', () => {
     store.setTemporaryBypass(true);
-    mockIsHidden.value = true;
+    store.setIsHidden(true);
     window.history.replaceState({}, '', '/Dashboard?onboarding=resume');
 
     store.applyOnboardingUrlAction();
 
     expect(store.isBypassActive).toBe(false);
     expect(mockTemporaryBypassState.value).toBe(null);
-    expect(mockIsHidden.value).toBe(false);
+    expect(store.isHidden).toBe(false);
     expect(window.location.search).not.toContain('onboarding=');
   });
 
@@ -318,7 +327,7 @@ describe('OnboardingModalVisibility Store', () => {
     store.applyOnboardingUrlAction();
 
     expect(store.isForceOpened).toBe(true);
-    expect(mockIsHidden.value).toBe(false);
+    expect(store.isHidden).toBe(false);
     expect(window.location.search).not.toContain('onboarding=');
     expect(replaceStateSpy).toHaveBeenCalled();
   });
@@ -327,7 +336,7 @@ describe('OnboardingModalVisibility Store', () => {
     window.dispatchEvent(new Event('unraid:onboarding:open'));
 
     expect(store.isForceOpened).toBe(true);
-    expect(mockIsHidden.value).toBe(false);
+    expect(store.isHidden).toBe(false);
   });
 
   it('applies onboarding=resume automatically on mount', () => {
@@ -337,13 +346,13 @@ describe('OnboardingModalVisibility Store', () => {
     }
 
     mockTemporaryBypassState.value = { active: true, bootMarker: 0 };
-    mockIsHidden.value = true;
+    store.setIsHidden(true);
     window.history.replaceState({}, '', '/Dashboard?onboarding=resume');
     mountStoreHost();
 
     expect(store.isBypassActive).toBe(false);
     expect(mockTemporaryBypassState.value).toBe(null);
-    expect(mockIsHidden.value).toBe(false);
+    expect(store.isHidden).toBe(false);
     expect(window.location.search).not.toContain('onboarding=');
   });
 
@@ -354,7 +363,7 @@ describe('OnboardingModalVisibility Store', () => {
 
     expect(store.isBypassActive).toBe(false);
     expect(mockTemporaryBypassState.value).toBe(null);
-    expect(mockIsHidden.value).toBe(null);
+    expect(store.isHidden).toBe(null);
     expect(window.location.search).toContain('onboarding=unknown');
   });
 
