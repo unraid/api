@@ -135,6 +135,11 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(false);
+    expect(wrapper.text()).toContain('No eligible devices were detected for internal boot setup.');
+    expect(wrapper.text()).not.toContain('ARRAY_NOT_STOPPED');
+    await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
+    await flushPromises();
     expect(wrapper.text()).toContain('ARRAY_NOT_STOPPED');
     expect(wrapper.text()).toContain('ENABLE_BOOT_TRANSFER_UNKNOWN');
     expect(wrapper.text()).toContain('BOOT_ELIGIBLE_UNKNOWN');
@@ -146,6 +151,66 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.text()).toContain('TOO_SMALL');
     expect(wrapper.text()).not.toContain('NO_UNASSIGNED_DISKS');
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeDefined();
+  });
+
+  it('defaults the storage pool name to cache', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = {
+      array: {
+        state: 'STOPPED',
+        boot: null,
+        parities: [],
+        disks: [],
+        caches: [],
+      },
+      vars: {
+        fsState: 'Stopped',
+        bootEligible: true,
+        enableBootTransfer: 'yes',
+        reservedNames: '',
+      },
+      shares: [],
+      disks: [
+        { device: '/dev/sda', size: gib(32), emhttpDeviceId: 'eligible-disk', interfaceType: 'SATA' },
+      ],
+    };
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(true);
+    expect(wrapper.get('input[type="text"]').element).toHaveProperty('value', 'cache');
+    expect(wrapper.text()).toContain(
+      'The name you choose below applies to the storage pool, not the boot volume.'
+    );
+  });
+
+  it('leaves the pool name blank when cache already exists', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = {
+      array: {
+        state: 'STOPPED',
+        boot: null,
+        parities: [],
+        disks: [],
+        caches: [{ name: 'cache', device: '/dev/sdz' }],
+      },
+      vars: {
+        fsState: 'Stopped',
+        bootEligible: true,
+        enableBootTransfer: 'yes',
+        reservedNames: '',
+      },
+      shares: [],
+      disks: [
+        { device: '/dev/sda', size: gib(32), emhttpDeviceId: 'eligible-disk', interfaceType: 'SATA' },
+      ],
+    };
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.get('input[type="text"]').element).toHaveProperty('value', '');
   });
 
   it('shows explicit disabled and empty-disk codes when the system reports them', async () => {
@@ -174,10 +239,42 @@ describe('OnboardingInternalBootStep', () => {
     const wrapper = mountComponent();
     await flushPromises();
 
+    await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
+    await flushPromises();
     expect(wrapper.text()).toContain('ENABLE_BOOT_TRANSFER_DISABLED');
     expect(wrapper.text()).toContain('ALREADY_INTERNAL_BOOT');
     expect(wrapper.text()).toContain('BOOT_ELIGIBLE_FALSE');
     expect(wrapper.text()).toContain('NO_UNASSIGNED_DISKS');
+  });
+
+  it('keeps the blocked headline focused on server state when eligible disks exist', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = {
+      array: {
+        state: 'STARTED',
+        boot: null,
+        parities: [],
+        disks: [],
+        caches: [],
+      },
+      vars: {
+        fsState: 'Started',
+        bootEligible: true,
+        enableBootTransfer: 'yes',
+        reservedNames: '',
+      },
+      shares: [],
+      disks: [
+        { device: '/dev/sda', size: gib(32), emhttpDeviceId: 'eligible-disk', interfaceType: 'SATA' },
+      ],
+    };
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Storage boot is currently unavailable');
+    expect(wrapper.text()).not.toContain('No eligible devices were detected for internal boot setup.');
   });
 
   it('shows disk-level ineligibility while keeping the form available for eligible disks', async () => {
@@ -209,9 +306,6 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(true);
-    expect(wrapper.text()).toContain('ASSIGNED_TO_CACHE');
-    expect(wrapper.text()).toContain('USB_TRANSPORT');
-    expect(wrapper.text()).toContain('TOO_SMALL');
     const selects = wrapper.findAll('select');
     expect(selects).toHaveLength(3);
     const deviceSelect = selects[1];
@@ -219,6 +313,18 @@ describe('OnboardingInternalBootStep', () => {
     expect(deviceSelect.text()).not.toContain('cache-disk');
     expect(deviceSelect.text()).not.toContain('small-disk');
     expect(deviceSelect.text()).not.toContain('usb-disk');
+    expect(wrapper.text()).not.toContain('ASSIGNED_TO_CACHE');
+    const biosWarning = wrapper.get('[data-testid="internal-boot-update-bios-warning"]');
+    const eligibilityPanel = wrapper.get('[data-testid="internal-boot-eligibility-panel"]');
+    expect(
+      biosWarning.element.compareDocumentPosition(eligibilityPanel.element) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
+    await flushPromises();
+    expect(wrapper.text()).toContain('ASSIGNED_TO_CACHE');
+    expect(wrapper.text()).toContain('USB_TRANSPORT');
+    expect(wrapper.text()).toContain('TOO_SMALL');
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
   });
 });
