@@ -49,6 +49,7 @@ import { usePurchaseStore } from '~/store/purchase';
 import { CLOUD_STATE_QUERY, SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from '~/store/server.fragment';
 import { useThemeStore } from '~/store/theme';
 import { useUnraidApiStore } from '~/store/unraidApi';
+import { getRegistrationDeviceLimit, normalizeRegistrationType } from '~/utils/registration';
 
 export const useServerStore = defineStore('server', () => {
   const { t } = useI18n();
@@ -114,26 +115,7 @@ export const useServerStore = defineStore('server', () => {
   const rebootVersion = ref<string | undefined>();
   const registered = ref<boolean>();
   const regDevs = ref<number>(0); // use computedRegDevs to ensure it includes Basic, Plus, and Pro
-  const computedRegDevs = computed(() => {
-    if (regDevs.value > 0) {
-      return regDevs.value;
-    }
-
-    switch (regTy.value) {
-      case 'Starter':
-      case 'Basic':
-        return 6;
-      case 'Plus':
-        return 12;
-      case 'Unleashed':
-      case 'Lifetime':
-      case 'Pro':
-      case 'Trial':
-        return -1; // unlimited
-      default:
-        return 0;
-    }
-  });
+  const computedRegDevs = computed(() => getRegistrationDeviceLimit(regTy.value, regDevs.value));
   const regGen = ref<number>(0);
   const regGuid = ref<string>('');
   const regTm = ref<number>(0);
@@ -1091,7 +1073,7 @@ export const useServerStore = defineStore('server', () => {
       regGuid.value = data.regGuid;
     }
     if (typeof data?.regTy !== 'undefined') {
-      regTy.value = data.regTy;
+      regTy.value = normalizeRegistrationType(data.regTy);
     }
     if (typeof data?.regExp !== 'undefined') {
       regExp.value = data.regExp;

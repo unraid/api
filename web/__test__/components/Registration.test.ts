@@ -272,6 +272,22 @@ describe('Registration.standalone.vue', () => {
     expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(false);
   });
 
+  it('renders unlimited text for attached storage devices when the license has no device cap', async () => {
+    serverStore.state = 'UNLEASHED';
+    serverStore.regTy = 'Unleashed';
+    serverStore.regTo = 'Test User';
+    serverStore.guid = 'FLASH-GUID-123';
+    serverStore.keyfile = 'keyfile-present';
+    serverStore.deviceCount = 8;
+
+    await wrapper.vm.$nextTick();
+
+    const attachedStorageDevicesItem = findItemByLabel(t('Attached Storage Devices'));
+
+    expect(attachedStorageDevicesItem).toBeDefined();
+    expect(attachedStorageDevicesItem?.props('text')).toBe('8 out of unlimited devices');
+  });
+
   it('adds Activate Trial fallback for ENOKEYFILE partner activation', async () => {
     activationCodeStateHolder.current!.value = {
       code: 'PARTNER-CODE-123',
