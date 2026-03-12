@@ -40,7 +40,7 @@ const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
 const themeStore = useThemeStore();
 const draftStore = useOnboardingDraftStore();
-const { currentStepIndex } = storeToRefs(draftStore);
+const { currentStepIndex, internalBootApplySucceeded } = storeToRefs(draftStore);
 
 onMounted(async () => {
   try {
@@ -244,6 +244,11 @@ const goToStep = (stepIndex: number) => {
 };
 
 const canGoBack = computed(() => currentStepIndex.value > 0);
+const exitDialogDescription = computed(() =>
+  internalBootApplySucceeded.value
+    ? t('onboarding.modal.exit.internalBootDescription')
+    : t('onboarding.modal.exit.description')
+);
 
 const handleTimezoneComplete = async () => {
   await goToNextStep();
@@ -432,7 +437,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
       <div class="space-y-2">
         <h3 class="text-lg font-semibold">{{ t('onboarding.modal.exit.title') }}</h3>
         <p class="text-muted-foreground text-sm">
-          {{ t('onboarding.modal.exit.description') }}
+          {{ exitDialogDescription }}
         </p>
       </div>
 
