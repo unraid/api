@@ -87,7 +87,6 @@ type InternalBootDiskEligibilityCode =
   | 'ASSIGNED_TO_ARRAY'
   | 'ASSIGNED_TO_PARITY'
   | 'ASSIGNED_TO_CACHE'
-  | 'USB_TRANSPORT'
   | 'TOO_SMALL';
 
 const MIN_BOOT_SIZE_MIB = 4096;
@@ -116,7 +115,6 @@ const DISK_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootDiskEligibilityCode, str
   ASSIGNED_TO_ARRAY: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_ARRAY',
   ASSIGNED_TO_PARITY: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_PARITY',
   ASSIGNED_TO_CACHE: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_CACHE',
-  USB_TRANSPORT: 'onboarding.internalBootStep.eligibility.codes.USB_TRANSPORT',
   TOO_SMALL: 'onboarding.internalBootStep.eligibility.codes.TOO_SMALL',
 };
 
@@ -236,11 +234,6 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
       const sizeBytes = disk.size;
       const sizeMiB = toSizeMiB(sizeBytes);
       const ineligibilityCodes = Array.from(diskEligibilityCodesByDevice.value.get(device) ?? []);
-      const interfaceType = disk.interfaceType?.trim().toUpperCase();
-
-      if (interfaceType === 'USB') {
-        ineligibilityCodes.push('USB_TRANSPORT');
-      }
 
       if (sizeMiB !== null && sizeMiB < MIN_ELIGIBLE_DEVICE_SIZE_MIB) {
         ineligibilityCodes.push('TOO_SMALL');
