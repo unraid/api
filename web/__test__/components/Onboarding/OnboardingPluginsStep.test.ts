@@ -98,7 +98,7 @@ describe('OnboardingPluginsStep', () => {
     };
   };
 
-  it('defaults only essential plugins on first visit and persists selection on next', async () => {
+  it('defaults Community Apps only on first visit and persists selection on next', async () => {
     const { wrapper, props } = mountComponent();
 
     await flushPromises();
@@ -106,7 +106,7 @@ describe('OnboardingPluginsStep', () => {
     const switches = wrapper.findAll('[data-testid="plugin-switch"]');
     expect(switches.length).toBe(3);
     expect((switches[0].element as HTMLInputElement).checked).toBe(true);
-    expect((switches[1].element as HTMLInputElement).checked).toBe(true);
+    expect((switches[1].element as HTMLInputElement).checked).toBe(false);
     expect((switches[2].element as HTMLInputElement).checked).toBe(false);
     for (const pluginSwitch of switches) {
       expect((pluginSwitch.element as HTMLInputElement).disabled).toBe(false);
@@ -122,7 +122,7 @@ describe('OnboardingPluginsStep', () => {
     expect(draftStore.setPlugins).toHaveBeenCalled();
     const lastCallIndex = draftStore.setPlugins.mock.calls.length - 1;
     const selected = draftStore.setPlugins.mock.calls[lastCallIndex][0] as Set<string>;
-    expect(Array.from(selected).sort()).toEqual(['community-apps', 'fix-common-problems'].sort());
+    expect(Array.from(selected)).toEqual(['community-apps']);
     expect(props.onComplete).toHaveBeenCalledTimes(1);
   });
 

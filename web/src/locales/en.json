@@ -125,6 +125,7 @@
   "onboarding.modal.closeAriaLabel": "Close onboarding",
   "onboarding.modal.exit.title": "Exit onboarding?",
   "onboarding.modal.exit.description": "You can skip setup now and continue from the dashboard later.",
+  "onboarding.modal.exit.internalBootDescription": "Internal boot has been configured. You'll now see a data partition on the selected boot drive, but Unraid will not switch to that boot device until you restart with both your current USB boot device and the selected internal boot drive connected. Please restart manually when convenient to finish applying this change.",
   "onboarding.modal.exit.keepOnboarding": "Keep onboarding",
   "onboarding.modal.exit.confirm": "Exit setup",
   "onboarding.overviewStep.partnerLogoAlt": "Partner Logo",

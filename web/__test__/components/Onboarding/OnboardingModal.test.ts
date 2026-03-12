@@ -62,6 +62,7 @@ const {
   },
   onboardingDraftStore: {
     currentStepIndex: { value: 0 },
+    internalBootApplySucceeded: { value: false },
   },
   purchaseStore: {
     generateUrl: vi.fn(() => 'https://example.com/activate'),
@@ -184,6 +185,7 @@ describe('OnboardingModal.vue', () => {
     onboardingStatusStore.canDisplayOnboardingModal.value = true;
     onboardingStatusStore.isPartnerBuild.value = false;
     onboardingDraftStore.currentStepIndex.value = 0;
+    onboardingDraftStore.internalBootApplySucceeded.value = false;
     internalBootVisibilityResult.value = {
       vars: {
         enableBootTransfer: 'yes',
@@ -400,6 +402,17 @@ describe('OnboardingModal.vue', () => {
 
     expect(wrapper.text()).toContain('Exit onboarding?');
     expect(wrapper.text()).toContain('Exit setup');
+  });
+
+  it('shows the internal boot restart guidance when exiting after internal boot was applied', async () => {
+    onboardingDraftStore.internalBootApplySucceeded.value = true;
+
+    const wrapper = mountComponent();
+
+    await wrapper.find('button[aria-label="Close onboarding"]').trigger('click');
+
+    expect(wrapper.text()).toContain('Internal boot has been configured.');
+    expect(wrapper.text()).toContain('Please restart manually when convenient');
   });
 
   it('confirms exit and completes onboarding flow when onboarding flag is enabled', async () => {
