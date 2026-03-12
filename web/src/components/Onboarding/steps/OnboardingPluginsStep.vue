@@ -67,10 +67,10 @@ const getPluginInstallDetectionFileNames = (plugin: { id: string; url: string })
   return fileNames;
 };
 
-const defaultSelectedPluginIds = new Set<string>(['community-apps', 'fix-common-problems']);
+const defaultSelectedPluginIds = new Set<string>(['community-apps']);
 
 // Respect persisted draft selections after first interaction with this step.
-// On first visit, default only essential plugins on and keep tailscale optional.
+// On first visit, keep Community Apps selected and leave the rest optional.
 const initialSelection = draftStore.pluginSelectionInitialized
   ? new Set(draftStore.selectedPlugins)
   : defaultSelectedPluginIds;
