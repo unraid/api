@@ -135,8 +135,8 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(false);
-    expect(wrapper.text()).toContain('No eligible devices were detected for internal boot setup.');
+    expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(true);
+    expect(wrapper.text()).not.toContain('No eligible devices were detected for internal boot setup.');
     expect(wrapper.text()).not.toContain('ARRAY_NOT_STOPPED');
     await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
     await flushPromises();
@@ -147,7 +147,6 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.text()).toContain('ASSIGNED_TO_PARITY');
     expect(wrapper.text()).toContain('ASSIGNED_TO_ARRAY');
     expect(wrapper.text()).toContain('ASSIGNED_TO_CACHE');
-    expect(wrapper.text()).toContain('USB_TRANSPORT');
     expect(wrapper.text()).toContain('TOO_SMALL');
     expect(wrapper.text()).not.toContain('NO_UNASSIGNED_DISKS');
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeDefined();
@@ -310,9 +309,9 @@ describe('OnboardingInternalBootStep', () => {
     expect(selects).toHaveLength(3);
     const deviceSelect = selects[1];
     expect(deviceSelect.text()).toContain('eligible-disk');
+    expect(deviceSelect.text()).toContain('usb-disk');
     expect(deviceSelect.text()).not.toContain('cache-disk');
     expect(deviceSelect.text()).not.toContain('small-disk');
-    expect(deviceSelect.text()).not.toContain('usb-disk');
     expect(wrapper.text()).not.toContain('ASSIGNED_TO_CACHE');
     const biosWarning = wrapper.get('[data-testid="internal-boot-update-bios-warning"]');
     const eligibilityPanel = wrapper.get('[data-testid="internal-boot-eligibility-panel"]');
@@ -323,7 +322,6 @@ describe('OnboardingInternalBootStep', () => {
     await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
     await flushPromises();
     expect(wrapper.text()).toContain('ASSIGNED_TO_CACHE');
-    expect(wrapper.text()).toContain('USB_TRANSPORT');
     expect(wrapper.text()).toContain('TOO_SMALL');
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
   });
