@@ -16,6 +16,7 @@ describe('CustomizationResolver', () => {
         getOnboardingState: vi.fn(),
     } as unknown as OnboardingService;
     const onboardingTracker = {
+        didTrackerStateReadFail: vi.fn(),
         getState: vi.fn(),
         getCurrentVersion: vi.fn(),
     } as unknown as OnboardingTrackerService;
@@ -27,6 +28,7 @@ describe('CustomizationResolver', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(onboardingTracker.didTrackerStateReadFail).mockReturnValue(false);
         vi.mocked(onboardingTracker.getCurrentVersion).mockReturnValue('7.2.0');
         vi.mocked(onboardingService.getPublicPartnerInfo).mockResolvedValue(null);
         vi.mocked(onboardingService.getActivationDataForPublic).mockResolvedValue(null);
@@ -60,6 +62,15 @@ describe('CustomizationResolver', () => {
                 activationRequired: false,
             },
         });
+    });
+
+    it('throws when tracker state could not be read', async () => {
+        vi.mocked(onboardingTracker.didTrackerStateReadFail).mockReturnValue(true);
+
+        await expect(resolver.resolveOnboarding()).rejects.toThrow(
+            'Onboarding tracker state is unavailable.'
+        );
+        expect(onboardingTracker.getState).not.toHaveBeenCalled();
     });
 
     it('returns COMPLETED status when completed on current version', async () => {

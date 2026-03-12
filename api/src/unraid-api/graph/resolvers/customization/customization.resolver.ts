@@ -1,4 +1,5 @@
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { GraphQLError } from 'graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
@@ -59,6 +60,10 @@ export class CustomizationResolver {
         resource: Resource.CUSTOMIZATIONS,
     })
     async resolveOnboarding(): Promise<Onboarding> {
+        if (this.onboardingTracker.didTrackerStateReadFail()) {
+            throw new GraphQLError('Onboarding tracker state is unavailable.');
+        }
+
         const state = this.onboardingTracker.getState();
         const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
         const partnerInfo = await this.onboardingService.getPublicPartnerInfo();

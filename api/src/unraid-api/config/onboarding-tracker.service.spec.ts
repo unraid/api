@@ -87,3 +87,44 @@ describe('OnboardingTrackerService write retries', () => {
         expect(mockAtomicWriteFile).toHaveBeenCalledTimes(3);
     });
 });
+
+describe('OnboardingTrackerService tracker state availability', () => {
+    beforeEach(() => {
+        mockReadFile.mockReset();
+        mockAtomicWriteFile.mockReset();
+    });
+
+    it('keeps tracker state available when the tracker file does not exist yet', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        expect(tracker.didTrackerStateReadFail()).toBe(false);
+    });
+
+    it('marks tracker state unavailable when reading the tracker file fails', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw new Error('permission denied');
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        expect(tracker.didTrackerStateReadFail()).toBe(true);
+    });
+});

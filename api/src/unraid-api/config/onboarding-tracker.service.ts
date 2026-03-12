@@ -26,6 +26,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
     private state: TrackerState = {};
     private currentVersion?: string;
     private readonly versionFilePath: string;
+    private trackerStateReadFailed = false;
 
     constructor(
         private readonly configService: ConfigService,
@@ -82,6 +83,10 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
      */
     getCurrentVersion(): string | undefined {
         return this.currentVersion;
+    }
+
+    didTrackerStateReadFail(): boolean {
+        return this.trackerStateReadFailed;
     }
 
     /**
@@ -167,8 +172,22 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
     private async readTrackerState(): Promise<TrackerState | undefined> {
         try {
             const content = await readFile(this.trackerPath, 'utf8');
+            this.trackerStateReadFailed = false;
             return JSON.parse(content) as TrackerState;
         } catch (error) {
+            if (
+                error instanceof Error &&
+                'code' in error &&
+                error.code === 'ENOENT'
+            ) {
+                this.trackerStateReadFailed = false;
+                this.logger.debug(
+                    `Onboarding tracker state does not exist yet at ${this.trackerPath}.`
+                );
+                return undefined;
+            }
+
+            this.trackerStateReadFailed = true;
             this.logger.debug(
                 `Unable to read onboarding tracker state at ${this.trackerPath}: ${error}`
             );
