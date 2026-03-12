@@ -17,5 +17,6 @@ import { ParityService } from '@app/unraid-api/graph/resolvers/array/parity.serv
         ArrayResolver,
         ParityCheckMutationsResolver,
     ],
+    exports: [ArrayService],
 })
 export class ArrayModule {}
