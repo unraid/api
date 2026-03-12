@@ -1543,8 +1543,8 @@ const handleBack = () => {
         :model-value="showApplyResultDialog"
         :show-footer="false"
         :show-close-button="false"
-        size="md"
-        class="max-w-md"
+        size="lg"
+        class="w-[calc(100vw-2rem)] max-w-3xl"
       >
         <div class="space-y-6 p-2">
           <div class="space-y-2">

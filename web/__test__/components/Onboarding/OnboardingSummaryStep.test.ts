@@ -454,6 +454,18 @@ describe('OnboardingSummaryStep', () => {
     scenario.assertExpected(wrapper);
   });
 
+  it('uses a wider responsive result dialog for apply outcomes', async () => {
+    const { wrapper } = mountComponent();
+
+    await clickApply(wrapper);
+
+    const dialogs = wrapper.findAll('[data-testid="dialog"]');
+    const resultDialog = dialogs[dialogs.length - 1];
+
+    expect(resultDialog.classes()).toContain('w-[calc(100vw-2rem)]');
+    expect(resultDialog.classes()).toContain('max-w-3xl');
+  });
+
   it.each([
     {
       caseName: 'switches to en_US directly without language pack install',
