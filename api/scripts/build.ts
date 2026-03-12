@@ -7,7 +7,7 @@ import { exit } from 'process';
 import type { PackageJson } from 'type-fest';
 import { $, cd } from 'zx';
 
-import { getDeploymentVersion } from './get-deployment-version.js';
+import { getDeploymentVersion } from '@app/../scripts/get-deployment-version.js';
 
 type ApiPackageJson = PackageJson & {
     version: string;
@@ -23,8 +23,6 @@ const WORKSPACE_PACKAGES_TO_VENDOR = {
     '@unraid/shared': 'packages/unraid-shared',
     'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect',
 } as const;
-
-const NPM_INSTALL_FLAGS = ['--legacy-peer-deps'] as const;
 
 /**
  * Packs a workspace package and installs it as a tarball dependency.
@@ -43,7 +41,7 @@ const packAndInstallWorkspacePackage = async (pkgName: string, pkgPath: string, 
 
     // Install the tarball
     const tarballPattern = join(fullTempDir, tarballName);
-    await $`npm install ${NPM_INSTALL_FLAGS} ${tarballPattern}`;
+    await $`npm install ${tarballPattern}`;
 };
 
 /**------------------------------------------------------------------------
@@ -107,7 +105,7 @@ try {
 
     console.log('Building production node_modules...');
     $.verbose = true;
-    await $`npm install --omit=dev ${NPM_INSTALL_FLAGS}`;
+    await $`npm install --omit=dev`;
 
     await writeFile('package.json', JSON.stringify(parsedPackageJson, null, 4));
 
