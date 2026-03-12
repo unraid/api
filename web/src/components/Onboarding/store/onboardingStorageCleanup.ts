@@ -1,4 +1,7 @@
-import { ONBOARDING_TEMP_BYPASS_STORAGE_KEY } from '~/components/Onboarding/constants';
+import {
+  ONBOARDING_MODAL_HIDDEN_STORAGE_KEY,
+  ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
+} from '~/components/Onboarding/constants';
 
 const ONBOARDING_DRAFT_STORAGE_KEY = 'onboardingDraft';
 
@@ -43,8 +46,21 @@ export const clearTemporaryBypassSessionState = () => {
   }
 };
 
+export const clearLegacyOnboardingModalHiddenSessionState = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.sessionStorage.removeItem(ONBOARDING_MODAL_HIDDEN_STORAGE_KEY);
+  } catch {
+    // Best effort only.
+  }
+};
+
 export const cleanupOnboardingStorage = (options?: { clearTemporaryBypassSessionState?: boolean }) => {
   clearOnboardingDraftStorage();
+  clearLegacyOnboardingModalHiddenSessionState();
 
   if (options?.clearTemporaryBypassSessionState) {
     clearTemporaryBypassSessionState();

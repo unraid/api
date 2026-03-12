@@ -2,13 +2,13 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { defineStore, storeToRefs } from 'pinia';
 import { useSessionStorage } from '@vueuse/core';
 
-import {
-  ONBOARDING_MODAL_HIDDEN_STORAGE_KEY,
-  ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
-} from '~/components/Onboarding/constants';
+import { ONBOARDING_TEMP_BYPASS_STORAGE_KEY } from '~/components/Onboarding/constants';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
-import { clearOnboardingDraftStorage } from '~/components/Onboarding/store/onboardingStorageCleanup';
+import {
+  clearLegacyOnboardingModalHiddenSessionState,
+  clearOnboardingDraftStorage,
+} from '~/components/Onboarding/store/onboardingStorageCleanup';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
@@ -26,7 +26,7 @@ type TemporaryBypassState = {
 };
 
 export const useOnboardingModalStore = defineStore('onboardingModalVisibility', () => {
-  const isHidden = useSessionStorage<boolean | null>(ONBOARDING_MODAL_HIDDEN_STORAGE_KEY, null);
+  const isHidden = ref<boolean | null>(null);
   const isForceOpened = ref(false);
   const temporaryBypassState = useSessionStorage<TemporaryBypassState | null>(
     ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
@@ -201,6 +201,7 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
   };
 
   onMounted(() => {
+    clearLegacyOnboardingModalHiddenSessionState();
     applyOnboardingUrlAction();
     window?.addEventListener('keydown', handleKeydown);
     window?.addEventListener(ONBOARDING_FORCE_OPEN_EVENT, handleForceOpen);
