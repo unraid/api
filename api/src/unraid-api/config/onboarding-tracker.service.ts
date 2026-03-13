@@ -175,15 +175,9 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
             this.trackerStateReadFailed = false;
             return JSON.parse(content) as TrackerState;
         } catch (error) {
-            if (
-                error instanceof Error &&
-                'code' in error &&
-                error.code === 'ENOENT'
-            ) {
+            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
                 this.trackerStateReadFailed = false;
-                this.logger.debug(
-                    `Onboarding tracker state does not exist yet at ${this.trackerPath}.`
-                );
+                this.logger.debug(`Onboarding tracker state does not exist yet at ${this.trackerPath}.`);
                 return undefined;
             }
 

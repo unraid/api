@@ -1,8 +1,8 @@
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { GraphQLError } from 'graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
+import { GraphQLError } from 'graphql';
 
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';

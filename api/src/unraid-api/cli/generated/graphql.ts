@@ -414,6 +414,8 @@ export type BrandingConfig = {
   background?: Maybe<Scalars['String']['output']>;
   /** Banner image source. Supports local path, remote URL, or data URI/base64. */
   bannerImage?: Maybe<Scalars['String']['output']>;
+  /** Built-in case model value written to case-model.cfg when no custom override is supplied. */
+  caseModel?: Maybe<Scalars['String']['output']>;
   /** Case model image source. Supports local path, remote URL, or data URI/base64. */
   caseModelImage?: Maybe<Scalars['String']['output']>;
   /** Indicates if a partner logo exists */
@@ -451,6 +453,7 @@ export type BrandingConfig = {
 export type BrandingConfigInput = {
   background?: InputMaybe<Scalars['String']['input']>;
   bannerImage?: InputMaybe<Scalars['String']['input']>;
+  caseModel?: InputMaybe<Scalars['String']['input']>;
   caseModelImage?: InputMaybe<Scalars['String']['input']>;
   hasPartnerLogo?: InputMaybe<Scalars['Boolean']['input']>;
   header?: InputMaybe<Scalars['String']['input']>;
