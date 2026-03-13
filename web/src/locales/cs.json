@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Ukončit úvod",
   "onboarding.modal.exit.title": "Ukončit úvodní instrukci?",
   "onboarding.modal.exit.description": "Nyní můžete přeskočit nastavení a pokračovat z ovládacího panelu později.",
+  "onboarding.modal.exit.internalBootDescription": "Interní boot byl nakonfigurován. Nyní uvidíte datový oddíl na vybrané bootovací jednotce, ale Unraid nepřepne na toto bootovací zařízení, dokud nerestartujete se současným USB bootovacím zařízením a vybranou interní bootovací jednotkou připojenými. Prosím, restartujte ručně, až to bude výhodné pro dokončení této změny.",
   "onboarding.modal.exit.keepOnboarding": "Pokračovat v úvodu",
   "onboarding.modal.exit.confirm": "Ukončit nastavení",
   "onboarding.overviewStep.partnerLogoAlt": "Logo partnera",
