@@ -308,6 +308,18 @@ describe('Registration.standalone.vue', () => {
     expect(transferNotice.text()).toContain('Start the array.');
   });
 
+  it('does not show TPM transfer guidance for trial states', async () => {
+    serverStore.state = 'TRIAL';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find('[data-testid="tpm-transfer-available"]').exists()).toBe(false);
+  });
+
   it('adds Activate Trial fallback for ENOKEYFILE partner activation', async () => {
     activationCodeStateHolder.current!.value = {
       code: 'PARTNER-CODE-123',

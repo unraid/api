@@ -137,7 +137,10 @@ const showPartnerActivationCode = computed(() => {
 const showTpmTransferInfo = computed((): boolean =>
   Boolean(
     keyInstalled.value &&
+      !showTrialExpiration.value &&
       bootDeviceType.value === 'flash' &&
+      // On TPM systems, flashGuid may fall back to the TPM GUID, so only show
+      // this while we're still booted from flash and the GUIDs differ.
       flashGuid.value &&
       tpmGuid.value &&
       flashGuid.value !== tpmGuid.value
