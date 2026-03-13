@@ -333,7 +333,7 @@ describe('Registration.standalone.vue', () => {
     expect(transferNotice.text()).toMatch(/\[\s\]Stop the array\./);
   });
 
-  it('does not show TPM transfer guidance for trial states', async () => {
+  it('shows TPM purchase guidance instead of TPM transfer steps for trial states', async () => {
     serverStore.state = 'TRIAL';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
@@ -342,6 +342,15 @@ describe('Registration.standalone.vue', () => {
 
     await wrapper.vm.$nextTick();
 
+    const trialNotice = wrapper.find('[data-testid="tpm-transfer-trial"]');
+
+    expect(trialNotice.exists()).toBe(true);
+    expect(trialNotice.text()).toContain(
+      'TPM licensing will be available after you purchase a license.'
+    );
+    expect(trialNotice.text()).toContain(
+      'Trial licenses cannot be moved to TPM. Once you purchase a license for this server, you will be able to transfer it from your USB flash device to TPM.'
+    );
     expect(wrapper.find('[data-testid="tpm-transfer-available"]').exists()).toBe(false);
   });
 

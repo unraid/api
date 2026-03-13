@@ -147,6 +147,15 @@ const showTpmTransferInfo = computed((): boolean =>
       flashGuid.value !== tpmGuid.value
   )
 );
+const showTpmTransferTrialInfo = computed((): boolean =>
+  Boolean(
+    showTrialExpiration.value &&
+      bootDeviceType.value === 'flash' &&
+      flashGuid.value &&
+      tpmGuid.value &&
+      flashGuid.value !== tpmGuid.value
+  )
+);
 const showTpmTransferReadyInfo = computed((): boolean =>
   Boolean(
     !showTrialExpiration.value &&
@@ -455,6 +464,18 @@ const actionItems = computed((): RegistrationItemProps[] => {
             class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
           >
             <h4 class="mb-3 text-lg font-semibold">{{ t('registration.actions') }}</h4>
+            <blockquote
+              v-if="showTpmTransferTrialInfo"
+              data-testid="tpm-transfer-trial"
+              class="border-primary bg-primary/10 mb-4 border-l-4 p-4"
+            >
+              <p class="text-highlighted text-sm leading-relaxed font-medium">
+                {{ t('registration.tpmTransferTrial') }}
+              </p>
+              <p class="text-highlighted mt-2 text-sm leading-relaxed">
+                {{ t('registration.tpmTransferTrialDescription') }}
+              </p>
+            </blockquote>
             <blockquote
               v-if="showTpmTransferInfo"
               data-testid="tpm-transfer-available"
