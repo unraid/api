@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Zatvori vođenje korak po korak",
   "onboarding.modal.exit.title": "Izaći iz vođenja korak po korak?",
   "onboarding.modal.exit.description": "Možete preskočiti podešavanje sad i nastaviti kasnije s kontrolne ploče.",
+  "onboarding.modal.exit.internalBootDescription": "Interno pokretanje je konfigurirano. Sada ćete vidjeti particiju podataka na odabranom pokretnom disku, ali Unraid se neće prebaciti na taj pokretni uređaj dok ga ne ponovno pokrenete s oba vaša trenutna USB pokretna uređaja i odabranog unutarnjeg pokretnog diska povezana. Molimo vas da ručno ponovno pokrenete kada vam to odgovara kako biste dovršili primjenu ove promjene.",
   "onboarding.modal.exit.keepOnboarding": "Nastavi sa vođenjem",
   "onboarding.modal.exit.confirm": "Izađi iz podešavanja",
   "onboarding.overviewStep.partnerLogoAlt": "Logo partnera",
