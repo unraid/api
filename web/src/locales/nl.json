@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Onboarding sluiten",
   "onboarding.modal.exit.title": "Onboarding afsluiten?",
   "onboarding.modal.exit.description": "U kunt de installatie nu overslaan en later vanaf het dashboard doorgaan.",
+  "onboarding.modal.exit.internalBootDescription": "Interne opstart is geconfigureerd. U ziet nu een gegevenspartitie op het geselecteerde opstartschijf, maar Unraid zal niet overschakelen naar dat opstartapparaat totdat u opnieuw opstart met zowel uw huidige USB-opstartapparaat als de geselecteerde interne opstartschijf aangesloten. Start handmatig opnieuw op wanneer het u uitkomt om deze wijziging te voltooien.",
   "onboarding.modal.exit.keepOnboarding": "Onboarding voortzetten",
   "onboarding.modal.exit.confirm": "Installatie afsluiten",
   "onboarding.overviewStep.partnerLogoAlt": "Partnerlogo",
