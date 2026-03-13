@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "关闭入门",
   "onboarding.modal.exit.title": "退出入门？",
   "onboarding.modal.exit.description": "您可以现在跳过设置，稍后从仪表板继续。",
+  "onboarding.modal.exit.internalBootDescription": "内部启动已配置完成。您现在将在所选的启动驱动器上看到一个数据分区，但 Unraid 在您重新启动且同时连接当前的 USB 启动设备和所选的内部启动驱动器之前不会切换到该启动设备。 请在方便时手动重新启动以完成应用此更改。",
   "onboarding.modal.exit.keepOnboarding": "继续入门",
   "onboarding.modal.exit.confirm": "退出设置",
   "onboarding.overviewStep.partnerLogoAlt": "合作伙伴徽标",
