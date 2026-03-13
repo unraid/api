@@ -190,6 +190,8 @@ vi.mock('~/store/updateOsActions', () => ({
 }));
 
 describe('CallbackFeedback.vue', () => {
+  const originalLocation = window.location;
+
   beforeEach(() => {
     accountAction.value = undefined;
     accountActionHide.value = false;
@@ -220,6 +222,11 @@ describe('CallbackFeedback.vue', () => {
     mockSetCallbackStatus.mockClear();
     mockInstallOsUpdate.mockClear();
     mockSetUpdateOsStatus.mockClear();
+
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: originalLocation,
+    });
   });
 
   afterEach(() => {
@@ -301,5 +308,30 @@ describe('CallbackFeedback.vue', () => {
     expect(wrapper.text()).toContain('Failed to Install Pro Key');
     expect(wrapper.find('.modal').attributes('data-error')).toBe('true');
     expect(wrapper.find('.modal').attributes('data-success')).toBe('false');
+  });
+
+  it('reloads the page when the modal is dismissed after a callback action', async () => {
+    const mockReload = vi.fn();
+
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: {
+        ...originalLocation,
+        reload: mockReload,
+      },
+    });
+
+    callbackStatus.value = 'success';
+    keyActionType.value = 'purchase';
+    keyInstallStatus.value = 'success';
+    keyType.value = 'Pro';
+
+    const wrapper = mountComponent();
+
+    wrapper.findComponent({ name: 'Modal' }).vm.$emit('close');
+    await wrapper.vm.$nextTick();
+
+    expect(mockSetCallbackStatus).toHaveBeenCalledWith('ready');
+    expect(mockReload).toHaveBeenCalledTimes(1);
   });
 });
