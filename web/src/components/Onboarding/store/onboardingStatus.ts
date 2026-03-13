@@ -159,7 +159,14 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   const isUnauthenticated = computed(
     () => mockUnauthenticated.value || isUnauthenticatedApolloError(onboardingError.value)
   );
-  const canDisplayOnboardingModal = computed(() => isVersionSupported.value && !isUnauthenticated.value);
+  const hasOnboardingQueryError = computed(() => Boolean(onboardingError.value));
+  const hasOnboardingState = computed(() => onboardingData.value !== undefined);
+  const canDisplayOnboardingModal = computed(
+    () =>
+      isVersionSupported.value &&
+      !isUnauthenticated.value &&
+      (hasOnboardingState.value || (!onboardingLoading.value && !hasOnboardingQueryError.value))
+  );
 
   // Automatic onboarding should only run for initial setup.
   const shouldShowOnboarding = computed(() => {
@@ -189,6 +196,8 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     mockUnauthenticated,
     mockOsVersion,
     isUnauthenticated,
+    hasOnboardingQueryError,
+    hasOnboardingState,
     canDisplayOnboardingModal,
     shouldShowOnboarding,
     // Actions
