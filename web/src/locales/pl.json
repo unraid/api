@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Zamknij wprowadzenie",
   "onboarding.modal.exit.title": "Zakończyć wprowadzenie?",
   "onboarding.modal.exit.description": "Teraz możesz pominąć konfigurację i kontynuować z pulpitu nawigacyjnego.",
+  "onboarding.modal.exit.internalBootDescription": "Skonfigurowano wewnętrzne uruchamianie. Teraz zobaczysz partycję danych na wybranym dysku rozruchowym, ale Unraid nie przełączy się na to urządzenie do rozruchu do momentu ponownego uruchomienia z połączonym aktualnym urządzeniem rozruchowym USB i wybranym wewnętrznym dyskiem rozruchowym. Proszę uruchomić ponownie ręcznie, gdy będzie to wygodne, aby dokończyć stosowanie tej zmiany.",
   "onboarding.modal.exit.keepOnboarding": "Kontynuuj wprowadzanie",
   "onboarding.modal.exit.confirm": "Zakończ konfigurację",
   "onboarding.overviewStep.partnerLogoAlt": "Logo partnera",
