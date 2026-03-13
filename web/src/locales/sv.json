@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Stäng onboarding",
   "onboarding.modal.exit.title": "Avsluta onboarding?",
   "onboarding.modal.exit.description": "Du kan hoppa över inställningen nu och fortsätta från instrumentpanelen senare.",
+  "onboarding.modal.exit.internalBootDescription": "Intern start har konfigurerats. Du kommer nu att se en datapartition på den valda startdisken, men Unraid kommer inte att byta till den starta enheten tills du startar om med både din nuvarande USB-startenhet och den valda interna startdisken ansluten. Vänligen starta om manuellt när det är lämpligt för att avsluta tillämpningen av denna ändring.",
   "onboarding.modal.exit.keepOnboarding": "Fortsätt onboarding",
   "onboarding.modal.exit.confirm": "Avsluta installationen",
   "onboarding.overviewStep.partnerLogoAlt": "Partnerlogo",

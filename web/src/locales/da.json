@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Luk onboarding",
   "onboarding.modal.exit.title": "Afslut onboarding?",
   "onboarding.modal.exit.description": "Du kan nu springe opsætning over og fortsætte fra dashboardet senere.",
+  "onboarding.modal.exit.internalBootDescription": "Intern start er blevet konfigureret. Du vil nu se en data partition på det valgte boot-drev, men Unraid vil ikke skifte til det boot-drev, før du genstarter med både din nuværende USB-boot-enhed og det valgte interne boot-drev tilsluttet. Genstart venligst manuelt, når det er bekvemt, for at afslutte anvendelsen af denne ændring.",
   "onboarding.modal.exit.keepOnboarding": "Fortsæt onboarding",
   "onboarding.modal.exit.confirm": "Afslut opsætning",
   "onboarding.overviewStep.partnerLogoAlt": "Partnerlogo",

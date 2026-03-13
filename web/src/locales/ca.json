@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Tancar el guia d'introducció",
   "onboarding.modal.exit.title": "Surt de la guia d'introducció?",
   "onboarding.modal.exit.description": "Pots saltar la configuració ara i continuar des del tauler més tard.",
+  "onboarding.modal.exit.internalBootDescription": "S'ha configurat l'arrencada interna. Ara veureu una partició de dades al disc d'arrencada seleccionat, però Unraid no canviarà a aquest dispositiu d'arrencada fins que no reinicieu amb el dispositiu d'arrencada USB actual i el disc d'arrencada intern seleccionat connectats. Reinicieu manualment quan us sigui convenient per acabar d'aplicar aquest canvi.",
   "onboarding.modal.exit.keepOnboarding": "Mantenir la guia d'introducció",
   "onboarding.modal.exit.confirm": "Sortir de la configuració",
   "onboarding.overviewStep.partnerLogoAlt": "Logotip del Soci",

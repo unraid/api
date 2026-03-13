@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Fechar integração",
   "onboarding.modal.exit.title": "Sair da integração?",
   "onboarding.modal.exit.description": "Você pode pular a configuração agora e continuar a partir do painel mais tarde.",
+  "onboarding.modal.exit.internalBootDescription": "A inicialização interna foi configurada. Agora, você verá uma partição de dados na unidade de inicialização selecionada, mas o Unraid não mudará para esse dispositivo de inicialização até que você reinicie com o seu atual dispositivo de inicialização USB e a unidade de inicialização interna selecionada conectados. Por favor, reinicie manualmente quando conveniente para concluir a aplicação desta mudança.",
   "onboarding.modal.exit.keepOnboarding": "Manter integração",
   "onboarding.modal.exit.confirm": "Sair da configuração",
   "onboarding.overviewStep.partnerLogoAlt": "Logo do parceiro",

@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Bevezetés bezárása",
   "onboarding.modal.exit.title": "Kilépés a bevezetésből?",
   "onboarding.modal.exit.description": "Kihagyhatja most a beállítást, és később a műszerfalról folytathatja.",
+  "onboarding.modal.exit.internalBootDescription": "A belső bootolás beállításra került. Most már látni fog egy adatrészt az általad választott boot meghajtón, de az Unraid nem vált át erre a boot eszközre, amíg újra nem indítja mind az aktuális USB boot eszközzel, mind a kiválasztott belső boot meghajtóval csatlakozva. Kérjük, indítsa újra manuálisan, amikor kényelmes, hogy befejezze a módosítás alkalmazását.",
   "onboarding.modal.exit.keepOnboarding": "Bevezetés folytatása",
   "onboarding.modal.exit.confirm": "Kilépés a beállításból",
   "onboarding.overviewStep.partnerLogoAlt": "Partner logó",

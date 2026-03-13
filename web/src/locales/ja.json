@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "オンボーディングを閉じる",
   "onboarding.modal.exit.title": "オンボーディングを終了しますか？",
   "onboarding.modal.exit.description": "今設定をスキップして、後でダッシュボードから続行できます。",
+  "onboarding.modal.exit.internalBootDescription": "内部ブートが構成されました。選択したブートドライブにデータパーティションが表示されますが、現在のUSBブートデバイスと選択した内部ブートドライブの両方を接続して再起動するまで、Unraidはそのブートデバイスに切り替わりません。この変更を適用するには、都合の良い時に手動で再起動してください。",
   "onboarding.modal.exit.keepOnboarding": "オンボーディングを続ける",
   "onboarding.modal.exit.confirm": "セットアップを終了",
   "onboarding.overviewStep.partnerLogoAlt": "パートナーロゴ",
