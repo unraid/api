@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "إغلاق المقدمة",
   "onboarding.modal.exit.title": "الخروج من المقدمة؟",
   "onboarding.modal.exit.description": "يمكنك تجاوز الإعداد الآن ومتابعة من لوحة التحكم لاحقًا.",
+  "onboarding.modal.exit.internalBootDescription": "تم تكوين التمهيد الداخلي. سترى الآن قسم البيانات على القرص المحدد للتمهيد، ولكن لن تقوم Unraid بالتبديل إلى جهاز التمهيد هذا حتى تقوم بإعادة التشغيل مع توصيل جهاز التمهيد USB الحالي وجهاز التمهيد الداخلي المحدد. يرجى إعادة التشغيل يدويًا عند الضرورة لإنهاء تطبيق هذا التغيير.",
   "onboarding.modal.exit.keepOnboarding": "الاحتفاظ بالعرض التوجيهي",
   "onboarding.modal.exit.confirm": "الخروج من الإعداد",
   "onboarding.overviewStep.partnerLogoAlt": "شعار الشريك",
