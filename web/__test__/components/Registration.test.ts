@@ -260,6 +260,9 @@ describe('Registration.standalone.vue', () => {
 
     await wrapper.vm.$nextTick();
 
+    expect(wrapper.text()).toContain('License Device');
+    expect(wrapper.text()).toContain('License device type');
+
     const keyTypeItem = findItemByLabel(t('License key type'));
 
     expect(keyTypeItem).toBeDefined();
