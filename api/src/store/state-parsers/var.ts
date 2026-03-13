@@ -39,6 +39,7 @@ export type VarIni = {
     flashGuid: string;
     flashProduct: string;
     flashVendor: string;
+    tpmGuid?: string;
     fsCopyPrcnt: string;
     fsNumMounted: string;
     fsNumUnmountable: string;

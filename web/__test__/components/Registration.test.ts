@@ -121,8 +121,10 @@ vi.mock('~/components/UserProfile/UptimeExpire.vue', () => ({
 const initialServerState = {
   dateTimeFormat: { date: 'MMM D, YYYY', time: 'h:mm A' },
   deviceCount: 0,
+  flashGuid: '',
   guid: '',
   keyfile: '',
+  mdState: '',
   regGuid: '',
   regTm: '',
   regTo: '',
@@ -133,6 +135,7 @@ const initialServerState = {
   state: 'ENOKEYFILE',
   stateData: { heading: 'Default Heading', message: 'Default Message' },
   stateDataError: false,
+  tpmGuid: '',
   tooManyDevices: false,
 };
 
@@ -223,6 +226,18 @@ describe('Registration.standalone.vue', () => {
     expect(wrapper.find('[data-testid="key-linked-status"]').exists()).toBe(false);
   });
 
+  it('does not show a connect sign-in action on the registration page', async () => {
+    serverStore.state = 'ENOKEYFILE';
+    serverStore.registered = false;
+    serverStore.connectPluginInstalled = 'INSTALLED' as ServerconnectPluginInstalled;
+
+    await wrapper.vm.$nextTick();
+
+    expect(serverStore.authAction?.name).toBe('signIn');
+    expect(wrapper.text()).not.toContain('Sign In');
+    expect(serverStore.stateData.actions?.some((action) => action.name === 'signIn')).toBe(true);
+  });
+
   it('triggers expected action when key action is clicked', async () => {
     serverStore.state = 'TRIAL';
 
@@ -258,6 +273,9 @@ describe('Registration.standalone.vue', () => {
 
     await wrapper.vm.$nextTick();
 
+    expect(wrapper.text()).toContain('License Device');
+    expect(wrapper.text()).toContain('License device type');
+
     const keyTypeItem = findItemByLabel(t('License key type'));
 
     expect(keyTypeItem).toBeDefined();
@@ -286,6 +304,106 @@ describe('Registration.standalone.vue', () => {
 
     expect(attachedStorageDevicesItem).toBeDefined();
     expect(attachedStorageDevicesItem?.props('text')).toBe('8 out of unlimited devices');
+  });
+
+  it('shows TPM transfer guidance when TPM licensing is available', async () => {
+    serverStore.state = 'PRO';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.mdState = 'STOPPED';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    const transferNotice = wrapper.find('[data-testid="tpm-transfer-available"]');
+
+    expect(transferNotice.exists()).toBe(true);
+    expect(transferNotice.text()).toContain('TPM licensing is available on this server.');
+    expect(transferNotice.text()).toContain('Stop the array.');
+    expect(transferNotice.text()).toContain('Remove the USB flash boot device.');
+    expect(transferNotice.text()).toContain('Refresh this page.');
+    expect(transferNotice.text()).toContain('Press Replace Key.');
+    expect(transferNotice.text()).toContain('Start the array.');
+    expect(transferNotice.text()).not.toContain('Tools > Registration');
+  });
+
+  it('only checks the stop-array step when the array is stopped', async () => {
+    serverStore.state = 'PRO';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.mdState = 'STARTED';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    const transferNotice = wrapper.find('[data-testid="tpm-transfer-available"]');
+
+    expect(transferNotice.exists()).toBe(true);
+    expect(transferNotice.text()).not.toContain('[x] Stop the array.');
+    expect(transferNotice.text()).toMatch(/\[\s\]Stop the array\./);
+  });
+
+  it('shows TPM purchase guidance instead of TPM transfer steps for trial states', async () => {
+    serverStore.state = 'TRIAL';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    const trialNotice = wrapper.find('[data-testid="tpm-transfer-trial"]');
+
+    expect(trialNotice.exists()).toBe(true);
+    expect(trialNotice.text()).toContain(
+      'TPM licensing will be available after you purchase a license.'
+    );
+    expect(trialNotice.text()).toContain(
+      'Trial licenses cannot be moved to TPM. Once you purchase a license for this server, you will be able to transfer it from your USB flash device to TPM.'
+    );
+    expect(wrapper.find('[data-testid="tpm-transfer-available"]').exists()).toBe(false);
+  });
+
+  it('shows checked TPM transfer steps after switching to TPM boot', async () => {
+    serverStore.state = 'EGUID';
+    serverStore.guid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.mdState = 'STOPPED';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.regGuid = '058F-6387-0000-0000F1F1E1C6';
+
+    await wrapper.vm.$nextTick();
+
+    const transferNotice = wrapper.find('[data-testid="tpm-transfer-ready"]');
+
+    expect(transferNotice.exists()).toBe(true);
+    expect(transferNotice.text()).toContain('Continue your TPM license transfer.');
+    expect(transferNotice.text()).toContain('The first two steps are already complete.');
+    expect(transferNotice.text()).toContain('[x]');
+    expect(transferNotice.text()).toContain('Stop the array.');
+    expect(transferNotice.text()).toContain('Remove the USB flash boot device.');
+    expect(transferNotice.text()).toContain('Press Replace Key.');
+    expect(transferNotice.text()).toContain('Start the array.');
+  });
+
+  it('shows the stop-array step as incomplete in TPM-ready state while the array is running', async () => {
+    serverStore.state = 'EGUID';
+    serverStore.guid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.mdState = 'STARTED';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.regGuid = '058F-6387-0000-0000F1F1E1C6';
+
+    await wrapper.vm.$nextTick();
+
+    const transferNotice = wrapper.find('[data-testid="tpm-transfer-ready"]');
+
+    expect(transferNotice.exists()).toBe(true);
+    expect(transferNotice.text()).toContain(
+      'The USB flash boot device is already removed. Stop the array, then press Replace Key to transfer this license to TPM.'
+    );
+    expect(transferNotice.text()).toMatch(/\[\s\]Stop the array\./);
+    expect(transferNotice.text()).toMatch(/\[x\]Remove the USB flash boot device\./);
   });
 
   it('adds Activate Trial fallback for ENOKEYFILE partner activation', async () => {

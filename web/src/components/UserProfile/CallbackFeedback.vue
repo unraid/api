@@ -110,11 +110,15 @@ const subheading = computed(() => {
 });
 
 const closeText = computed(() => t('common.close')); // !connectPluginInstalled.value ? t('userProfile.callbackFeedback.noThanks') :
-const close = () => {
+const close = (options?: { reload?: boolean }) => {
   if (callbackStatus.value === 'loading') {
     return;
   }
-  return callbackActionsStore.setCallbackStatus('ready');
+  callbackActionsStore.setCallbackStatus('ready');
+
+  if (options?.reload) {
+    window.location.reload();
+  }
 };
 
 const confirmUpdateOs = () => {
@@ -254,7 +258,7 @@ const showPostInstallKeyError = computed(() =>
     :error="callbackStatus === 'error'"
     :success="callbackStatus === 'success' && updateOsStatus !== 'confirming'"
     :show-close-x="callbackStatus !== 'loading'"
-    @close="close"
+    @close="close({ reload: true })"
   >
     <template #main>
       <div
@@ -354,7 +358,12 @@ const showPostInstallKeyError = computed(() =>
     <template v-if="callbackStatus === 'success' || updateOsStatus === 'confirming'" #footer>
       <div class="flex flex-row justify-center gap-4">
         <template v-if="callbackStatus === 'success' && updateOsStatus !== 'confirming'">
-          <BrandButton variant="underline" :icon="XMarkIcon" :text="closeText" @click="close" />
+          <BrandButton
+            variant="underline"
+            :icon="XMarkIcon"
+            :text="closeText"
+            @click="close({ reload: true })"
+          />
 
           <template v-if="connectPluginInstalled && accountActionType === 'signIn'">
             <BrandButton

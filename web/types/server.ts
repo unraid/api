@@ -91,6 +91,7 @@ export interface Server {
   email?: string;
   expireTime?: number;
   flashBackupActivated?: boolean;
+  flashGuid?: string;
   flashProduct?: string;
   flashVendor?: string;
   guid?: string;
@@ -99,6 +100,7 @@ export interface Server {
   lanIp?: string;
   license?: string;
   locale?: string;
+  mdState?: string;
   name?: string;
   osVersion?: string;
   osVersionBranch?: ServerOsVersionBranch;
@@ -117,6 +119,7 @@ export interface Server {
   ssoEnabled?: boolean;
   state?: ServerState;
   theme?: Theme | undefined;
+  tpmGuid?: string;
   updateOsIgnoredReleases?: string[];
   updateOsNotificationsEnabled?: boolean;
   updateOsResponse?: ServerUpdateOsResponse;

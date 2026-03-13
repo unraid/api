@@ -88,6 +88,7 @@ export const useServerStore = defineStore('server', () => {
   const email = ref<string>('');
   const expireTime = ref<number>(0);
   const flashBackupActivated = ref<boolean>(false);
+  const flashGuid = ref<string>('');
   const flashProduct = ref<string>('');
   const flashVendor = ref<string>('');
   const guid = ref<string>('');
@@ -108,6 +109,7 @@ export const useServerStore = defineStore('server', () => {
   const lanIp = ref<string>('');
   const license = ref<string>('');
   const locale = ref<string>('');
+  const mdState = ref<string>('');
   const name = ref<string>('');
   const osVersion = ref<string>('');
   const osVersionBranch = ref<ServerOsVersionBranch>('stable');
@@ -136,6 +138,7 @@ export const useServerStore = defineStore('server', () => {
   const ssoEnabled = ref<boolean>(false);
   const state = ref<ServerState>();
   const theme = ref<Theme>();
+  const tpmGuid = ref<string>('');
   watch(theme, (newVal) => {
     if (newVal) {
       themeStore.setTheme(newVal);
@@ -185,6 +188,7 @@ export const useServerStore = defineStore('server', () => {
       deviceCount: deviceCount.value,
       email: email.value,
       expireTime: expireTime.value,
+      flashGuid: flashGuid.value,
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
       guid: guid.value,
@@ -193,6 +197,7 @@ export const useServerStore = defineStore('server', () => {
       lanIp: lanIp.value,
       license: license.value,
       locale: locale.value,
+      mdState: mdState.value,
       name: name.value,
       osVersion: osVersion.value,
       osVersionBranch: osVersionBranch.value,
@@ -207,6 +212,7 @@ export const useServerStore = defineStore('server', () => {
       site: site.value,
       state: state.value,
       theme: theme.value,
+      tpmGuid: tpmGuid.value,
       uptime: uptime.value,
       username: username.value,
       wanFQDN: wanFQDN.value,
@@ -288,6 +294,7 @@ export const useServerStore = defineStore('server', () => {
       regTy: regTy.value,
       site: site.value,
       state: state.value,
+      tpmGuid: tpmGuid.value,
       uptime: uptime.value,
       username: username.value,
       wanFQDN: wanFQDN.value,
@@ -1027,6 +1034,9 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.flashBackupActivated !== 'undefined') {
       flashBackupActivated.value = data.flashBackupActivated;
     }
+    if (typeof data?.flashGuid !== 'undefined') {
+      flashGuid.value = data.flashGuid;
+    }
     if (typeof data?.flashProduct !== 'undefined') {
       flashProduct.value = data.flashProduct;
     }
@@ -1047,6 +1057,9 @@ export const useServerStore = defineStore('server', () => {
     }
     if (typeof data?.locale !== 'undefined') {
       locale.value = data.locale;
+    }
+    if (typeof data?.mdState !== 'undefined') {
+      mdState.value = data.mdState;
     }
     if (typeof data?.name !== 'undefined') {
       name.value = data.name;
@@ -1086,6 +1099,9 @@ export const useServerStore = defineStore('server', () => {
     }
     if (typeof data?.theme !== 'undefined') {
       theme.value = data.theme;
+    }
+    if (typeof data?.tpmGuid !== 'undefined') {
+      tpmGuid.value = data.tpmGuid;
     }
     if (typeof data?.updateOsIgnoredReleases !== 'undefined') {
       updateOsIgnoredReleases.value = data.updateOsIgnoredReleases;
@@ -1141,9 +1157,12 @@ export const useServerStore = defineStore('server', () => {
         data.registration && data.registration.keyFile && data.registration.keyFile.contents
           ? data.registration.keyFile.contents
           : undefined,
+      flashGuid: data.vars?.flashGuid ?? undefined,
+      mdState: data.vars?.mdState ?? undefined,
       regGen: data.vars && data.vars.regGen ? parseInt(data.vars.regGen) : undefined,
       regTy: data.registration?.type ?? undefined,
       state: data.registration?.state ?? data.vars?.regState ?? undefined,
+      tpmGuid: data.vars?.tpmGuid ?? undefined,
       config: data.config
         ? { id: 'config', ...data.config }
         : {
@@ -1368,6 +1387,7 @@ export const useServerStore = defineStore('server', () => {
     deviceCount,
     expireTime,
     flashBackupActivated,
+    flashGuid,
     flashProduct,
     flashVendor,
     guid,
@@ -1375,6 +1395,7 @@ export const useServerStore = defineStore('server', () => {
     keyfile,
     inIframe,
     locale,
+    mdState,
     lanIp,
     name,
     osVersion,
@@ -1395,6 +1416,7 @@ export const useServerStore = defineStore('server', () => {
     ssoEnabled,
     state,
     theme,
+    tpmGuid,
     updateOsIgnoredReleases,
     updateOsNotificationsEnabled,
     updateOsResponse,
