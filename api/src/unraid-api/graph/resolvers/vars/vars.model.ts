@@ -312,6 +312,9 @@ export class Vars extends Node {
     flashVendor?: string;
 
     @Field({ nullable: true })
+    tpmGuid?: string;
+
+    @Field({ nullable: true })
     regCheck?: string;
 
     @Field({ nullable: true })

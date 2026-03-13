@@ -49,6 +49,7 @@ import type {
 
 const state: ServerState = 'BASIC' as ServerState;
 const currentFlashGuid = '1111-1111-YIJD-ZACK1234TEST'; // this is the flash drive that's been booted from
+const currentTpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
 const regGuid = '1111-1111-YIJD-ZACK1234TEST'; // this guid is registered in key server
 const keyfileBase64 = '';
 
@@ -147,6 +148,7 @@ const baseServerState: Server = {
   deviceCount: 3,
   expireTime,
   flashBackupActivated: !!connectPluginInstalled,
+  flashGuid: currentFlashGuid,
   flashProduct: 'SanDisk_3.2Gen1',
   flashVendor: 'USB',
   guid: currentFlashGuid,
@@ -181,6 +183,7 @@ const baseServerState: Server = {
     name: 'white',
     textColor: '',
   },
+  tpmGuid: currentTpmGuid,
   // updateOsResponse: {
   //   version: '6.12.6',
   //   name: 'Unraid 6.12.6',

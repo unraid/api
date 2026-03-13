@@ -47,6 +47,7 @@ const {
   bootDeviceType,
   dateTimeFormat,
   deviceCount,
+  flashGuid,
   flashProduct,
   flashVendor,
   guid,
@@ -63,6 +64,7 @@ const {
   state,
   stateData,
   stateDataError,
+  tpmGuid,
   tooManyDevices,
 } = storeToRefs(serverStore);
 
@@ -132,6 +134,15 @@ const showPartnerActivationCode = computed(() => {
     (currentState === 'ENOKEYFILE' || currentState === 'TRIAL' || currentState === 'EEXPIRED')
   );
 });
+const showTpmTransferInfo = computed((): boolean =>
+  Boolean(
+    keyInstalled.value &&
+      bootDeviceType.value === 'flash' &&
+      flashGuid.value &&
+      tpmGuid.value &&
+      flashGuid.value !== tpmGuid.value
+  )
+);
 
 // Organize items into three sections
 const bootDeviceItems = computed((): RegistrationItemProps[] => {
@@ -384,6 +395,24 @@ const actionItems = computed((): RegistrationItemProps[] => {
             class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
           >
             <h4 class="mb-3 text-lg font-semibold">{{ t('registration.actions') }}</h4>
+            <blockquote
+              v-if="showTpmTransferInfo"
+              data-testid="tpm-transfer-available"
+              class="border-primary bg-primary/10 mb-4 border-l-4 p-4"
+            >
+              <p class="text-highlighted text-sm leading-relaxed font-medium">
+                {{ t('registration.tpmTransferAvailable') }}
+              </p>
+              <p class="text-highlighted mt-2 text-sm leading-relaxed">
+                {{ t('registration.tpmTransferAvailableDescription') }}
+              </p>
+              <ol class="text-highlighted mt-3 list-decimal space-y-1 pl-5 text-sm leading-relaxed">
+                <li>{{ t('registration.tpmTransferAvailableSteps.stopArray') }}</li>
+                <li>{{ t('registration.tpmTransferAvailableSteps.removeFlash') }}</li>
+                <li>{{ t('registration.tpmTransferAvailableSteps.transferOnRegistrationPage') }}</li>
+                <li>{{ t('registration.tpmTransferAvailableSteps.startArray') }}</li>
+              </ol>
+            </blockquote>
             <blockquote
               v-if="showPartnerActivationCode"
               class="border-primary bg-primary/10 mb-4 border-l-4 p-4"

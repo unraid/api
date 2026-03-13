@@ -11,7 +11,10 @@ import { StateFileKey } from '@app/store/types.js';
 const VAR_FIXTURE = readFileSync(new URL('../../../../dev/states/var.ini', import.meta.url), 'utf-8');
 
 const writeVarFixture = (dir: string, safeMode: 'yes' | 'no') => {
-    const content = VAR_FIXTURE.replace(/safeMode="(yes|no)"/, `safeMode="${safeMode}"`);
+    const content = VAR_FIXTURE.replace(/safeMode="(yes|no)"/, `safeMode="${safeMode}"`).replace(
+        /flashGUID="([^"]+)"/,
+        'flashGUID="$1"\ntpmGUID="03-V35H8S0L1QHK1SBG1XHXJNH7"'
+    );
     writeFileSync(join(dir, `${StateFileKey.var}.ini`), content);
 };
 
@@ -43,12 +46,16 @@ describe('loadStateFileSync', () => {
         const result = loadStateFileSync(StateFileKey.var);
 
         expect(result?.safeMode).toBe(true);
+        expect(result?.tpmGuid).toBe('03-V35H8S0L1QHK1SBG1XHXJNH7');
         expect(dispatchSpy).toHaveBeenCalledWith(
             expect.objectContaining({
                 type: 'emhttp/updateEmhttpState',
                 payload: {
                     field: StateFileKey.var,
-                    state: expect.objectContaining({ safeMode: true }),
+                    state: expect.objectContaining({
+                        safeMode: true,
+                        tpmGuid: '03-V35H8S0L1QHK1SBG1XHXJNH7',
+                    }),
                 },
             })
         );

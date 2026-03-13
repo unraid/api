@@ -552,6 +552,7 @@ type Vars implements Node {
   flashGuid: String
   flashProduct: String
   flashVendor: String
+  tpmGuid: String
   regCheck: String
   regFile: String
   regGuid: String

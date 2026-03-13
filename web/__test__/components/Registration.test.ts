@@ -121,6 +121,7 @@ vi.mock('~/components/UserProfile/UptimeExpire.vue', () => ({
 const initialServerState = {
   dateTimeFormat: { date: 'MMM D, YYYY', time: 'h:mm A' },
   deviceCount: 0,
+  flashGuid: '',
   guid: '',
   keyfile: '',
   regGuid: '',
@@ -133,6 +134,7 @@ const initialServerState = {
   state: 'ENOKEYFILE',
   stateData: { heading: 'Default Heading', message: 'Default Message' },
   stateDataError: false,
+  tpmGuid: '',
   tooManyDevices: false,
 };
 
@@ -286,6 +288,24 @@ describe('Registration.standalone.vue', () => {
 
     expect(attachedStorageDevicesItem).toBeDefined();
     expect(attachedStorageDevicesItem?.props('text')).toBe('8 out of unlimited devices');
+  });
+
+  it('shows TPM transfer guidance when TPM licensing is available', async () => {
+    serverStore.state = 'PRO';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    const transferNotice = wrapper.find('[data-testid="tpm-transfer-available"]');
+
+    expect(transferNotice.exists()).toBe(true);
+    expect(transferNotice.text()).toContain('TPM licensing is available on this server.');
+    expect(transferNotice.text()).toContain('Stop the array.');
+    expect(transferNotice.text()).toContain('Remove the USB flash boot device.');
+    expect(transferNotice.text()).toContain('Start the array.');
   });
 
   it('adds Activate Trial fallback for ENOKEYFILE partner activation', async () => {

@@ -1144,6 +1144,7 @@ test('After init returns values from cfg file for all fields', { timeout: 30000 
         "sysFlashSlots": 1,
         "sysModel": "Dell R710",
         "timeZone": "Australia/Adelaide",
+        "tpmGuid": "03-V35H8S0L1QHK1SBG1XHXJNH7",
         "useNetbios": "yes",
         "useNtp": true,
         "useSsh": true,
