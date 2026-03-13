@@ -233,8 +233,9 @@ describe('Registration.standalone.vue', () => {
 
     await wrapper.vm.$nextTick();
 
+    expect(serverStore.authAction?.name).toBe('signIn');
     expect(wrapper.text()).not.toContain('Sign In');
-    expect(serverStore.stateData.actions?.some((action) => action.name === 'signIn')).toBe(false);
+    expect(serverStore.stateData.actions?.some((action) => action.name === 'signIn')).toBe(true);
   });
 
   it('triggers expected action when key action is clicked', async () => {
