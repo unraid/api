@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Cerrar incorporación",
   "onboarding.modal.exit.title": "¿Salir de la incorporación?",
   "onboarding.modal.exit.description": "Puedes omitir la configuración ahora y continuar desde el panel más tarde.",
+  "onboarding.modal.exit.internalBootDescription": "El arranque interno ha sido configurado. Ahora verá una partición de datos en el dispositivo de arranque seleccionado, pero Unraid no cambiará a ese dispositivo de arranque hasta que reinicie con ambos, su dispositivo de arranque USB actual y el dispositivo de arranque interno seleccionado conectados. Por favor, reinicie manualmente cuando le sea conveniente para terminar de aplicar este cambio.",
   "onboarding.modal.exit.keepOnboarding": "Mantener incorporación",
   "onboarding.modal.exit.confirm": "Salir de la configuración",
   "onboarding.overviewStep.partnerLogoAlt": "Logo del Partner",
