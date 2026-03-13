@@ -54,6 +54,7 @@ const {
   keyActions,
   keyfile,
   computedRegDevs,
+  mdState,
   regGuid,
   regTm,
   regTo,
@@ -156,9 +157,15 @@ const showTpmTransferReadyInfo = computed((): boolean =>
       guid.value === tpmGuid.value
   )
 );
+const isArrayStopped = computed((): boolean => mdState.value === 'STOPPED');
+const tpmTransferReadyDescription = computed(() =>
+  isArrayStopped.value
+    ? t('registration.tpmTransferReadyDescription')
+    : t('registration.tpmTransferReadyDescriptionArrayRunning')
+);
 const tpmTransferPreparationSteps = computed(() => [
   {
-    completed: false,
+    completed: isArrayStopped.value,
     label: t('registration.tpmTransferAvailableSteps.stopArray'),
   },
   {
@@ -180,7 +187,7 @@ const tpmTransferPreparationSteps = computed(() => [
 ]);
 const tpmTransferReadySteps = computed(() => [
   {
-    completed: true,
+    completed: isArrayStopped.value,
     label: t('registration.tpmTransferAvailableSteps.stopArray'),
   },
   {
@@ -479,7 +486,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
                 {{ t('registration.tpmTransferReady') }}
               </p>
               <p class="text-highlighted mt-2 text-sm leading-relaxed">
-                {{ t('registration.tpmTransferReadyDescription') }}
+                {{ tpmTransferReadyDescription }}
               </p>
               <ul class="text-highlighted mt-3 space-y-1 text-sm leading-relaxed">
                 <li

@@ -109,6 +109,7 @@ export const useServerStore = defineStore('server', () => {
   const lanIp = ref<string>('');
   const license = ref<string>('');
   const locale = ref<string>('');
+  const mdState = ref<string>('');
   const name = ref<string>('');
   const osVersion = ref<string>('');
   const osVersionBranch = ref<ServerOsVersionBranch>('stable');
@@ -196,6 +197,7 @@ export const useServerStore = defineStore('server', () => {
       lanIp: lanIp.value,
       license: license.value,
       locale: locale.value,
+      mdState: mdState.value,
       name: name.value,
       osVersion: osVersion.value,
       osVersionBranch: osVersionBranch.value,
@@ -1056,6 +1058,9 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.locale !== 'undefined') {
       locale.value = data.locale;
     }
+    if (typeof data?.mdState !== 'undefined') {
+      mdState.value = data.mdState;
+    }
     if (typeof data?.name !== 'undefined') {
       name.value = data.name;
     }
@@ -1153,6 +1158,7 @@ export const useServerStore = defineStore('server', () => {
           ? data.registration.keyFile.contents
           : undefined,
       flashGuid: data.vars?.flashGuid ?? undefined,
+      mdState: data.vars?.mdState ?? undefined,
       regGen: data.vars && data.vars.regGen ? parseInt(data.vars.regGen) : undefined,
       regTy: data.registration?.type ?? undefined,
       state: data.registration?.state ?? data.vars?.regState ?? undefined,
@@ -1389,6 +1395,7 @@ export const useServerStore = defineStore('server', () => {
     keyfile,
     inIframe,
     locale,
+    mdState,
     lanIp,
     name,
     osVersion,

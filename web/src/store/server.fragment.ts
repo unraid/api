@@ -90,6 +90,7 @@ export const SERVER_STATE_QUERY = graphql(/* GraphQL */ `
     vars {
       flashGuid
       tpmGuid
+      mdState
       regGen
       regState
       configError

@@ -100,6 +100,7 @@ export interface Server {
   lanIp?: string;
   license?: string;
   locale?: string;
+  mdState?: string;
   name?: string;
   osVersion?: string;
   osVersionBranch?: ServerOsVersionBranch;
