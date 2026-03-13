@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Chiudi onboarding",
   "onboarding.modal.exit.title": "Uscire dall'onboarding?",
   "onboarding.modal.exit.description": "Puoi saltare la configurazione ora e continuare dal dashboard più tardi.",
+  "onboarding.modal.exit.internalBootDescription": "L'avvio interno è stato configurato. Ora vedrai una partizione dati sul disco di avvio selezionato, ma Unraid non passerà a quel dispositivo di avvio fino a quando non riavvierai con entrambi il tuo attuale dispositivo di avvio USB e il disco di avvio interno selezionato collegati. Riavvia manualmente quando conveniente per completare l'applicazione di questa modifica.",
   "onboarding.modal.exit.keepOnboarding": "Mantieni onboarding",
   "onboarding.modal.exit.confirm": "Esci configurazione",
   "onboarding.overviewStep.partnerLogoAlt": "Logo del Partner",
