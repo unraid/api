@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "অনবোর্ডিং বন্ধ করুন",
   "onboarding.modal.exit.title": "অনবোর্ডিং থেকে বের হতে চান?",
   "onboarding.modal.exit.description": "এখন সেটআপ বাদ দিতে পারেন এবং পরবর্তীতে ড্যাশবোর্ড থেকে চালিয়ে যেতে পারেন।",
+  "onboarding.modal.exit.internalBootDescription": "অভ্যন্তরীণ বুট কনফিগার করা হয়েছে। এখন আপনি নির্বাচিত বুট ড্রাইভে একটি ডেটা পার্টিশন দেখতে পাবেন, কিন্তু আপনার বর্তমান USB বুট ডিভাইস এবং নির্বাচিত অভ্যন্তরীণ বুট ড্রাইভ উভয়ই সংযুক্ত করে পুনরায় চালু না করা পর্যন্ত Unraid সেই বুট ডিভাইসে পরিবর্তন করবে না। দয়া করে এই পরিবর্তন প্রয়োগ শেষ করার জন্য সুবিধাজনক সময়ে নিজে থেকে পুনঃসূচনা করুন।",
   "onboarding.modal.exit.keepOnboarding": "অনবোর্ডিং চালিয়ে যান",
   "onboarding.modal.exit.confirm": "সেটআপ থেকে বের হোন",
   "onboarding.overviewStep.partnerLogoAlt": "পার্টনার লোগো",
