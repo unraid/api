@@ -20,7 +20,7 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ShieldCheckIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
-import { BrandButton, CardWrapper, PageContainer, SettingsGrid } from '@unraid/ui';
+import { CardWrapper, PageContainer, SettingsGrid } from '@unraid/ui';
 
 import type { RegistrationItemProps } from '~/types/registration';
 import type { ServerStateDataAction } from '~/types/server';
@@ -43,7 +43,6 @@ const serverStore = useServerStore();
 const { activationCode } = storeToRefs(useActivationCodeDataStore());
 
 const {
-  authAction,
   bootDeviceType,
   dateTimeFormat,
   deviceCount,
@@ -396,15 +395,6 @@ const actionItems = computed((): RegistrationItemProps[] => {
               class="prose text-base leading-relaxed whitespace-normal opacity-75"
               v-html="subheading"
             />
-            <span v-if="authAction" class="grow-0">
-              <BrandButton
-                :disabled="authAction?.disabled"
-                :icon="authAction.icon"
-                :text="t(authAction.text)"
-                :title="authAction.title ? t(authAction.title) : undefined"
-                @click="authAction.click?.()"
-              />
-            </span>
           </header>
 
           <!-- Boot Device Section -->

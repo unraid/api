@@ -226,6 +226,17 @@ describe('Registration.standalone.vue', () => {
     expect(wrapper.find('[data-testid="key-linked-status"]').exists()).toBe(false);
   });
 
+  it('does not show a connect sign-in action on the registration page', async () => {
+    serverStore.state = 'ENOKEYFILE';
+    serverStore.registered = false;
+    serverStore.connectPluginInstalled = 'INSTALLED' as ServerconnectPluginInstalled;
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.text()).not.toContain('Sign In');
+    expect(serverStore.stateData.actions?.some((action) => action.name === 'signIn')).toBe(false);
+  });
+
   it('triggers expected action when key action is clicked', async () => {
     serverStore.state = 'TRIAL';
 

@@ -5,7 +5,7 @@
 import { nextTick, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
-import { GlobeAltIcon } from '@heroicons/vue/24/solid';
+import { ArrowRightOnRectangleIcon } from '@heroicons/vue/24/solid';
 import { createTestingPinia } from '@pinia/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -38,6 +38,7 @@ vi.mock('@unraid/shared-callbacks', () => ({
 
 const mockAccountStore = {
   signIn: vi.fn(),
+  signOut: vi.fn(),
 };
 
 vi.mock('~/store/account', () => ({
@@ -77,9 +78,10 @@ describe('Auth Component', () => {
     // Patch the underlying state that `authAction` depends on
     serverStore = useServerStore();
     serverStore.$patch({
-      state: 'ENOKEYFILE',
-      registered: false,
+      state: 'PRO',
+      registered: true,
       connectPluginInstalled: 'INSTALLED' as ServerconnectPluginInstalled,
+      keyfile: 'keyfile-present',
     });
 
     await nextTick();
@@ -87,8 +89,8 @@ describe('Auth Component', () => {
     const button = wrapper.findComponent({ name: 'BrandButton' });
 
     expect(button.exists()).toBe(true);
-    expect(button.props('text')).toBe('Sign In with Unraid.net Account');
-    expect(button.props('icon')).toBe(GlobeAltIcon);
+    expect(button.props('text')).toBe('Sign Out of Unraid.net');
+    expect(button.props('icon')).toBe(ArrowRightOnRectangleIcon);
   });
 
   it('displays error messages when stateData.error is true', () => {
@@ -124,16 +126,17 @@ describe('Auth Component', () => {
 
     serverStore = useServerStore();
     serverStore.$patch({
-      state: 'ENOKEYFILE',
-      registered: false,
+      state: 'PRO',
+      registered: true,
       connectPluginInstalled: 'INSTALLED' as ServerconnectPluginInstalled,
+      keyfile: 'keyfile-present',
     });
 
     await nextTick();
 
     await wrapper.findComponent({ name: 'BrandButton' }).vm.$emit('click');
 
-    expect(mockAccountStore.signIn).toHaveBeenCalledTimes(1);
+    expect(mockAccountStore.signOut).toHaveBeenCalledTimes(1);
   });
 
   it('does not render button when authAction is undefined', () => {
@@ -145,8 +148,8 @@ describe('Auth Component', () => {
 
     serverStore = useServerStore();
     serverStore.$patch({
-      state: 'PRO',
-      registered: true,
+      state: 'ENOKEYFILE',
+      registered: false,
     });
 
     const button = wrapper.findComponent({ name: 'BrandButton' });

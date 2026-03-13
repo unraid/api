@@ -10,7 +10,6 @@ import {
   ArrowPathIcon,
   ArrowRightOnRectangleIcon,
   CogIcon,
-  GlobeAltIcon,
   InformationCircleIcon,
   KeyIcon,
   QuestionMarkCircleIcon,
@@ -402,19 +401,6 @@ export const useServerStore = defineStore('server', () => {
       text: t('server.actions.replaceKey'),
     };
   });
-  const signInAction = computed((): ServerStateDataAction => {
-    return {
-      click: () => {
-        accountStore.signIn();
-      },
-      disabled: serverActionsDisable.value.disable,
-      external: true,
-      icon: GlobeAltIcon,
-      name: 'signIn',
-      text: t('server.actions.signIn'),
-      title: serverActionsDisable.value.title,
-    };
-  });
   /**
    * The Sign Out action is a computed property because it depends on the state of the keyfile & unraid-api being online
    */
@@ -478,7 +464,6 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOKEYFILE':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...(shouldUsePartnerActivationOnly.value
               ? [redeemAction.value, recoverAction.value, trialStartAction.value]
               : [redeemAction.value, trialStartAction.value, purchaseAction.value, recoverAction.value]),
@@ -502,7 +487,6 @@ export const useServerStore = defineStore('server', () => {
 
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...(shouldUsePartnerActivationOnly.value
               ? [redeemAction.value]
               : [redeemAction.value, purchaseAction.value]),
@@ -518,7 +502,6 @@ export const useServerStore = defineStore('server', () => {
       case 'EEXPIRED':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...(shouldUsePartnerActivationOnly.value
               ? [redeemAction.value]
               : [redeemAction.value, purchaseAction.value]),
@@ -536,7 +519,6 @@ export const useServerStore = defineStore('server', () => {
       case 'STARTER':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...(regUpdatesExpired.value ? [renewAction.value] : []),
             ...[upgradeAction.value],
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
@@ -556,7 +538,6 @@ export const useServerStore = defineStore('server', () => {
       case 'PLUS':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...[upgradeAction.value],
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -574,7 +555,6 @@ export const useServerStore = defineStore('server', () => {
       case 'UNLEASHED':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...(regUpdatesExpired.value ? [renewAction.value] : []),
             ...(state.value === 'UNLEASHED' ? [upgradeAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
@@ -604,7 +584,6 @@ export const useServerStore = defineStore('server', () => {
         }
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...[replaceAction.value, purchaseAction.value, redeemAction.value],
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -616,7 +595,6 @@ export const useServerStore = defineStore('server', () => {
       case 'EGUID1':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...[purchaseAction.value, redeemAction.value],
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -629,7 +607,6 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOKEYFILE2':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...[recoverAction.value, purchaseAction.value, redeemAction.value],
             ...(registered.value ? [signOutAction.value] : []),
           ],
@@ -643,7 +620,6 @@ export const useServerStore = defineStore('server', () => {
       case 'ETRIAL':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...[purchaseAction.value, redeemAction.value],
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -655,7 +631,6 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOKEYFILE1':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...[purchaseAction.value, redeemAction.value],
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
