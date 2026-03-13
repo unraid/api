@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "अनबोर्डिंग बंद करें",
   "onboarding.modal.exit.title": "अनबोर्डिंग से बाहर निकलें?",
   "onboarding.modal.exit.description": "आप सेटअप को अभी छोड़ सकते हैं और बाद में डैशबोर्ड से जारी रख सकते हैं।",
+  "onboarding.modal.exit.internalBootDescription": "आंतरिक बूट को कॉन्फ़िगर कर दिया गया है। अब आप चयनित बूट ड्राइव पर एक डेटा पार्टिशन देखेंगे, लेकिन Unraid उस बूट डिवाइस पर नहीं स्विच करेगा जब तक आप अपने वर्तमान यूएसबी बूट डिवाइस और चयनित आंतरिक बूट ड्राइव दोनों को जोड़कर पुनः प्रारंभ नहीं करेंगे। कृपया इस परिवर्तन को लागू करने के लिए सुविधाजनक समय पर मैन्युअल रूप से पुनः प्रारंभ करें।",
   "onboarding.modal.exit.keepOnboarding": "अनबोर्डिंग जारी रखें",
   "onboarding.modal.exit.confirm": "सेटअप छोड़ें",
   "onboarding.overviewStep.partnerLogoAlt": "पार्टनर लोगो",
