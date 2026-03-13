@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Lukk onboarding",
   "onboarding.modal.exit.title": "Avslutte onboarding?",
   "onboarding.modal.exit.description": "Du kan hoppe over oppsettet nå og fortsette fra dashbordet senere.",
+  "onboarding.modal.exit.internalBootDescription": "Intern oppstart er konfigurert. Du vil nå se en datapartisjon på den valgte oppstartsdisken, men Unraid vil ikke bytte til denne oppstartsenheten før du starter på nytt med både din nåværende USB-oppstarts enhet og den valgte interne oppstartsdisken tilkoblet. Start på nytt manuelt når det passer deg for å fullføre denne endringen.",
   "onboarding.modal.exit.keepOnboarding": "Fortsett onboarding",
   "onboarding.modal.exit.confirm": "Avslutt oppsett",
   "onboarding.overviewStep.partnerLogoAlt": "Partnerlogo",
