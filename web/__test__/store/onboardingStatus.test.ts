@@ -63,19 +63,23 @@ describe('onboardingStatus store', () => {
   });
 
   it('blocks onboarding modal while the onboarding query is still loading', () => {
+    state.onboardingResult.value = null;
     state.onboardingLoading.value = true;
 
     const store = useOnboardingStore();
 
+    expect(store.hasOnboardingState).toBe(false);
     expect(store.canDisplayOnboardingModal).toBe(false);
     expect(store.shouldShowOnboarding).toBe(false);
   });
 
   it('blocks onboarding modal when the onboarding query errors', () => {
+    state.onboardingResult.value = null;
     state.onboardingError.value = new Error('Network error');
 
     const store = useOnboardingStore();
 
+    expect(store.hasOnboardingState).toBe(false);
     expect(store.hasOnboardingQueryError).toBe(true);
     expect(store.canDisplayOnboardingModal).toBe(false);
     expect(store.shouldShowOnboarding).toBe(false);
@@ -85,6 +89,17 @@ describe('onboardingStatus store', () => {
     const store = useOnboardingStore();
 
     expect(store.hasOnboardingQueryError).toBe(false);
+    expect(store.hasOnboardingState).toBe(true);
+    expect(store.canDisplayOnboardingModal).toBe(true);
+    expect(store.shouldShowOnboarding).toBe(true);
+  });
+
+  it('keeps onboarding modal display enabled during refetch when onboarding data already exists', () => {
+    state.onboardingLoading.value = true;
+
+    const store = useOnboardingStore();
+
+    expect(store.hasOnboardingState).toBe(true);
     expect(store.canDisplayOnboardingModal).toBe(true);
     expect(store.shouldShowOnboarding).toBe(true);
   });
