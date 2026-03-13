@@ -305,7 +305,10 @@ describe('Registration.standalone.vue', () => {
     expect(transferNotice.text()).toContain('TPM licensing is available on this server.');
     expect(transferNotice.text()).toContain('Stop the array.');
     expect(transferNotice.text()).toContain('Remove the USB flash boot device.');
+    expect(transferNotice.text()).toContain('Refresh this page.');
+    expect(transferNotice.text()).toContain('Press Replace Key.');
     expect(transferNotice.text()).toContain('Start the array.');
+    expect(transferNotice.text()).not.toContain('Tools > Registration');
   });
 
   it('does not show TPM transfer guidance for trial states', async () => {
@@ -318,6 +321,26 @@ describe('Registration.standalone.vue', () => {
     await wrapper.vm.$nextTick();
 
     expect(wrapper.find('[data-testid="tpm-transfer-available"]').exists()).toBe(false);
+  });
+
+  it('shows checked TPM transfer steps after switching to TPM boot', async () => {
+    serverStore.state = 'EGUID';
+    serverStore.guid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.regGuid = '058F-6387-0000-0000F1F1E1C6';
+
+    await wrapper.vm.$nextTick();
+
+    const transferNotice = wrapper.find('[data-testid="tpm-transfer-ready"]');
+
+    expect(transferNotice.exists()).toBe(true);
+    expect(transferNotice.text()).toContain('Continue your TPM license transfer.');
+    expect(transferNotice.text()).toContain('The first two steps are already complete.');
+    expect(transferNotice.text()).toContain('[x]');
+    expect(transferNotice.text()).toContain('Stop the array.');
+    expect(transferNotice.text()).toContain('Remove the USB flash boot device.');
+    expect(transferNotice.text()).toContain('Press Replace Key.');
+    expect(transferNotice.text()).toContain('Start the array.');
   });
 
   it('adds Activate Trial fallback for ENOKEYFILE partner activation', async () => {

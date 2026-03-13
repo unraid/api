@@ -146,6 +146,56 @@ const showTpmTransferInfo = computed((): boolean =>
       flashGuid.value !== tpmGuid.value
   )
 );
+const showTpmTransferReadyInfo = computed((): boolean =>
+  Boolean(
+    !showTrialExpiration.value &&
+      state.value === 'EGUID' &&
+      bootDeviceType.value === 'tpm' &&
+      guid.value &&
+      tpmGuid.value &&
+      guid.value === tpmGuid.value
+  )
+);
+const tpmTransferPreparationSteps = computed(() => [
+  {
+    completed: false,
+    label: t('registration.tpmTransferAvailableSteps.stopArray'),
+  },
+  {
+    completed: false,
+    label: t('registration.tpmTransferAvailableSteps.removeFlash'),
+  },
+  {
+    completed: false,
+    label: t('registration.tpmTransferAvailableSteps.refreshPage'),
+  },
+  {
+    completed: false,
+    label: t('registration.tpmTransferAvailableSteps.replaceKey'),
+  },
+  {
+    completed: false,
+    label: t('registration.tpmTransferAvailableSteps.startArray'),
+  },
+]);
+const tpmTransferReadySteps = computed(() => [
+  {
+    completed: true,
+    label: t('registration.tpmTransferAvailableSteps.stopArray'),
+  },
+  {
+    completed: true,
+    label: t('registration.tpmTransferAvailableSteps.removeFlash'),
+  },
+  {
+    completed: false,
+    label: t('registration.tpmTransferAvailableSteps.replaceKey'),
+  },
+  {
+    completed: false,
+    label: t('registration.tpmTransferAvailableSteps.startArray'),
+  },
+]);
 
 // Organize items into three sections
 const bootDeviceItems = computed((): RegistrationItemProps[] => {
@@ -409,12 +459,40 @@ const actionItems = computed((): RegistrationItemProps[] => {
               <p class="text-highlighted mt-2 text-sm leading-relaxed">
                 {{ t('registration.tpmTransferAvailableDescription') }}
               </p>
-              <ol class="text-highlighted mt-3 list-decimal space-y-1 pl-5 text-sm leading-relaxed">
-                <li>{{ t('registration.tpmTransferAvailableSteps.stopArray') }}</li>
-                <li>{{ t('registration.tpmTransferAvailableSteps.removeFlash') }}</li>
-                <li>{{ t('registration.tpmTransferAvailableSteps.transferOnRegistrationPage') }}</li>
-                <li>{{ t('registration.tpmTransferAvailableSteps.startArray') }}</li>
-              </ol>
+              <ul class="text-highlighted mt-3 space-y-1 text-sm leading-relaxed">
+                <li
+                  v-for="step in tpmTransferPreparationSteps"
+                  :key="step.label"
+                  class="flex items-start gap-2"
+                >
+                  <span class="font-mono opacity-70">{{ step.completed ? '[x]' : '[ ]' }}</span>
+                  <span>{{ step.label }}</span>
+                </li>
+              </ul>
+            </blockquote>
+            <blockquote
+              v-if="showTpmTransferReadyInfo"
+              data-testid="tpm-transfer-ready"
+              class="border-primary bg-primary/10 mb-4 border-l-4 p-4"
+            >
+              <p class="text-highlighted text-sm leading-relaxed font-medium">
+                {{ t('registration.tpmTransferReady') }}
+              </p>
+              <p class="text-highlighted mt-2 text-sm leading-relaxed">
+                {{ t('registration.tpmTransferReadyDescription') }}
+              </p>
+              <ul class="text-highlighted mt-3 space-y-1 text-sm leading-relaxed">
+                <li
+                  v-for="step in tpmTransferReadySteps"
+                  :key="step.label"
+                  class="flex items-start gap-2"
+                >
+                  <span class="font-mono" :class="step.completed ? 'text-green-600' : 'opacity-70'">
+                    {{ step.completed ? '[x]' : '[ ]' }}
+                  </span>
+                  <span>{{ step.label }}</span>
+                </li>
+              </ul>
             </blockquote>
             <blockquote
               v-if="showPartnerActivationCode"
