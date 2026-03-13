@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Aizvērt onboarding",
   "onboarding.modal.exit.title": "Iziet no onboarding?",
   "onboarding.modal.exit.description": "Jūs varat izlaist uzstādīšanu tagad un vēlāk turpināt no informācijas paneļa.",
+  "onboarding.modal.exit.internalBootDescription": "Iekšējā sāknēšana ir konfigurēta. Tagad jūs redzēsiet datu starpsienu uz izvēlētās sāknēšanas diska, bet Unraid neslēgsies uz šo sāknēšanas ierīci, līdz jūs pārstartēsiet ar abiem jūsu pašreizējo USB sāknēšanas ierīci un izvēlēto iekšējo sāknēšanas disku savienotiem. Lūdzu, restartējiet manuāli, kad tas ir ērti, lai pabeigtu šīs izmaiņas piemērošanu.",
   "onboarding.modal.exit.keepOnboarding": "Turpināt onboarding",
   "onboarding.modal.exit.confirm": "Iziet no uzstādīšanas",
   "onboarding.overviewStep.partnerLogoAlt": "Partnera logotips",
