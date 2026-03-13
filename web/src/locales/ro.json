@@ -124,6 +124,7 @@
   "onboarding.modal.closeAriaLabel": "Închide onboarding-ul",
   "onboarding.modal.exit.title": "Ieșiți din onboarding?",
   "onboarding.modal.exit.description": "Puteți să săriți configurarea acum și să continuați ulterior din tabloul de bord.",
+  "onboarding.modal.exit.internalBootDescription": "Pornirea internă a fost configurată. Acum vei vedea o partiție de date pe unitatea de boot selectată, dar Unraid nu va comuta la acel dispozitiv de boot până când nu repornești cu ambele, dispozitivul USB de boot curent și unitatea internă de boot selectată, conectate. Te rugăm să repornești manual când este convenabil pentru a termina aplicarea acestei modificări.",
   "onboarding.modal.exit.keepOnboarding": "Păstrează onboarding-ul",
   "onboarding.modal.exit.confirm": "Ieșiți din configurare",
   "onboarding.overviewStep.partnerLogoAlt": "Sigla Partener",
