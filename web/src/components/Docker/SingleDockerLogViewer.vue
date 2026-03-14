@@ -16,9 +16,11 @@ const props = withDefaults(
     containerName: string;
     autoScroll: boolean;
     clientFilter?: string;
+    isRunning?: boolean;
   }>(),
   {
     clientFilter: '',
+    isRunning: true,
   }
 );
 
@@ -201,6 +203,8 @@ defineExpose({ refreshLogContent });
     :auto-scroll="autoScroll"
     :show-refresh="true"
     :show-download="false"
+    :dimmed="!isRunning"
+    :additional-info="!isRunning ? 'Container stopped - showing historical logs' : ''"
     @refresh="refreshLogContent"
   />
 </template>
