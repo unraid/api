@@ -48,7 +48,6 @@ const {
   bootDeviceType,
   dateTimeFormat,
   deviceCount,
-  flashGuid,
   flashProduct,
   flashVendor,
   guid,
