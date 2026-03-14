@@ -674,6 +674,7 @@
   "registration.moveLicenseToTpm": "Move License to TPM",
   "registration.moveLicenseToTpmTrialDisabled": "Trials are locked to the registered GUID. You can move to TPM by purchasing a license.",
   "registration.replaceCheck.checkEligibility": "Check Eligibility",
+  "registration.tpmGuid": "TPM GUID",
   "registration.transferLicenseToNewDevice": "Transfer License to New Device",
   "registration.trialExpiration": "Trial expiration",
   "registration.unlimited": "unlimited",

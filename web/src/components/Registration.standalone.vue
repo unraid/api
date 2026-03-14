@@ -158,6 +158,14 @@ const bootDeviceItems = computed((): RegistrationItemProps[] => {
           },
         ]
       : []),
+    ...(showTpmTransferButton.value && tpmGuid.value
+      ? [
+          {
+            label: t('registration.tpmGuid'),
+            text: tpmGuid.value,
+          },
+        ]
+      : []),
     ...(bootDeviceType.value
       ? [
           {

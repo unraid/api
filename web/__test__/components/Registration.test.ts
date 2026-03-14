@@ -326,6 +326,7 @@ describe('Registration.standalone.vue', () => {
 
     expect(moveButton.exists()).toBe(true);
     expect(moveButton.attributes('disabled')).toBeUndefined();
+    expect(findItemByLabel(t('TPM GUID'))?.props('text')).toBe('03-V35H8S0L1QHK1SBG1XHXJNH7');
   });
 
   it('shows Move License to TPM when flashGuid is missing but the active GUID is still a flash GUID', async () => {
@@ -367,6 +368,7 @@ describe('Registration.standalone.vue', () => {
 
     expect(moveButton.exists()).toBe(true);
     expect(moveButton.attributes('disabled')).toBeDefined();
+    expect(findItemByLabel(t('TPM GUID'))?.props('text')).toBe('03-V35H8S0L1QHK1SBG1XHXJNH7');
     expect(wrapper.text()).toContain(
       'Trials are locked to the registered GUID. You can move to TPM by purchasing a license.'
     );
