@@ -674,6 +674,7 @@
   "registration.partnerActivationDetected": "It appears you already have a license associated with this server. You can activate it now for free to unlock all features.",
   "registration.tpmTransferAvailable": "TPM licensing is available on this server.",
   "registration.tpmTransferAvailableDescription": "To move this license from your USB flash device to TPM, complete these steps on this page.",
+  "registration.moveLicenseToTpm": "Move License to TPM",
   "registration.tpmTransferTrial": "TPM licensing will be available after you purchase a license.",
   "registration.tpmTransferTrialDescription": "Trial licenses cannot be moved to TPM. Once you purchase a license for this server, you will be able to transfer it from your USB flash device to TPM.",
   "registration.tpmTransferAvailableSteps.stopArray": "Stop the array.",

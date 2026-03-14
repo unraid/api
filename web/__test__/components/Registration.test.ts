@@ -13,6 +13,7 @@ import type { ServerconnectPluginInstalled } from '~/types/server';
 import type { Pinia } from 'pinia';
 
 import Registration from '~/components/Registration.standalone.vue';
+import { useAccountStore } from '~/store/account';
 import { usePurchaseStore } from '~/store/purchase';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
@@ -151,6 +152,7 @@ const t = testTranslate;
 describe('Registration.standalone.vue', () => {
   let wrapper: VueWrapper<unknown>;
   let pinia: Pinia;
+  let accountStore: ReturnType<typeof useAccountStore>;
   let serverStore: ReturnType<typeof useServerStore>;
   let replaceRenewStore: ReturnType<typeof useReplaceRenewStore>;
   let purchaseStore: ReturnType<typeof usePurchaseStore>;
@@ -184,6 +186,7 @@ describe('Registration.standalone.vue', () => {
     });
     setActivePinia(pinia);
 
+    accountStore = useAccountStore();
     serverStore = useServerStore();
     replaceRenewStore = useReplaceRenewStore();
     purchaseStore = usePurchaseStore();
@@ -326,6 +329,22 @@ describe('Registration.standalone.vue', () => {
     expect(transferNotice.text()).toContain('Press Replace Key.');
     expect(transferNotice.text()).toContain('Start the array.');
     expect(transferNotice.text()).not.toContain('Tools > Registration');
+    expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(true);
+  });
+
+  it('triggers the TPM replacement action when Move License to TPM is clicked', async () => {
+    serverStore.state = 'PRO';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.mdState = 'STOPPED';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    await wrapper.find('[data-testid="move-license-to-tpm"]').trigger('click');
+
+    expect(accountStore.replaceTpm).toHaveBeenCalled();
   });
 
   it('only checks the stop-array step when the array is stopped', async () => {

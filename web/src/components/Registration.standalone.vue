@@ -20,7 +20,7 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ShieldCheckIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
-import { CardWrapper, PageContainer, SettingsGrid } from '@unraid/ui';
+import { BrandButton, CardWrapper, PageContainer, SettingsGrid } from '@unraid/ui';
 
 import type { RegistrationItemProps } from '~/types/registration';
 import type { ServerStateDataAction } from '~/types/server';
@@ -33,11 +33,13 @@ import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue
 import RegistrationUpdateExpirationAction from '~/components/Registration/UpdateExpirationAction.vue';
 import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
 import useDateTimeHelper from '~/composables/dateTime';
+import { useAccountStore } from '~/store/account';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 
 const { t } = useI18n();
 
+const accountStore = useAccountStore();
 const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
 const { activationCode } = storeToRefs(useActivationCodeDataStore());
@@ -487,6 +489,12 @@ const actionItems = computed((): RegistrationItemProps[] => {
                   <span>{{ step.label }}</span>
                 </li>
               </ul>
+              <BrandButton
+                data-testid="move-license-to-tpm"
+                :text="t('registration.moveLicenseToTpm')"
+                class="mt-4 w-full sm:max-w-[300px]"
+                @click="accountStore.replaceTpm()"
+              />
             </blockquote>
             <blockquote
               v-if="showTpmTransferReadyInfo"

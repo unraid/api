@@ -28,6 +28,7 @@ export const useAccountStore = defineStore('account', () => {
   const unraidApiStore = useUnraidApiStore();
 
   const serverAccountPayload = computed(() => serverStore.serverAccountPayload);
+  const serverReplacePayload = computed(() => serverStore.serverReplacePayload);
   const inIframe = computed(() => serverStore.inIframe);
   const sendType = computed(() => callbackStore.sendType);
 
@@ -235,6 +236,21 @@ export const useAccountStore = defineStore('account', () => {
       sendType.value
     );
   };
+  const replaceTpm = () => {
+    callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [
+        {
+          server: {
+            ...serverReplacePayload.value,
+          },
+          type: 'replace',
+        },
+      ],
+      inIframe.value ? 'newTab' : undefined,
+      sendType.value
+    );
+  };
   const signIn = () => {
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
@@ -361,6 +377,7 @@ export const useAccountStore = defineStore('account', () => {
     linkKey,
     recover,
     replace,
+    replaceTpm,
     signIn,
     signOut,
     trialExtend,

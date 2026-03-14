@@ -134,6 +134,15 @@ export const useServerStore = defineStore('server', () => {
 
     return today.isAfter(parsedUpdateExpirationDate, 'day');
   });
+  const hasDistinctTpmGuid = computed(() =>
+    Boolean(flashGuid.value && tpmGuid.value && flashGuid.value !== tpmGuid.value)
+  );
+  const replaceFlashGuid = computed(() => {
+    if (bootDeviceType.value === 'flash' && hasDistinctTpmGuid.value) {
+      return tpmGuid.value;
+    }
+    return flashGuid.value || undefined;
+  });
   const site = ref<string>('');
   const ssoEnabled = ref<boolean>(false);
   const state = ref<ServerState>();
@@ -248,6 +257,7 @@ export const useServerStore = defineStore('server', () => {
       deviceCount: deviceCount.value,
       description: description.value,
       expireTime: expireTime.value,
+      flashGuid: flashGuid.value || undefined,
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
       guid: guid.value,
@@ -266,6 +276,13 @@ export const useServerStore = defineStore('server', () => {
       wanFQDN: wanFQDN.value,
     };
   });
+
+  const serverReplacePayload = computed(
+    (): ServerData => ({
+      ...serverAccountPayload.value,
+      flashGuid: replaceFlashGuid.value,
+    })
+  );
 
   const serverDebugPayload = computed((): Server => {
     const payload = {
@@ -1434,6 +1451,7 @@ export const useServerStore = defineStore('server', () => {
     pluginOutdated,
     server,
     serverAccountPayload,
+    serverReplacePayload,
     serverPurchasePayload,
     stateData,
     stateDataError,
