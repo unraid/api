@@ -39,7 +39,7 @@ jobs:
           fi
 
       - name: Download artifact
-        uses: dawidd6/action-download-artifact@v11
+        uses: dawidd6/action-download-artifact@v16
         with:
           name_is_regexp: true
           name: unraid-plugin-.*
