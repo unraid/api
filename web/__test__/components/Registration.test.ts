@@ -88,7 +88,11 @@ vi.mock('@unraid/ui', async (importOriginal) => {
 
   return {
     ...actual,
-    BrandButton: { template: '<button><slot /></button>', props: ['text', 'title', 'icon', 'disabled'] },
+    BrandButton: {
+      template:
+        '<button :disabled="disabled" @click="!disabled && $emit(\'click\')">{{ text }}<slot /></button>',
+      props: ['text', 'title', 'icon', 'disabled'],
+    },
     CardWrapper: { template: '<div><slot /></div>' },
     PageContainer: { template: '<div><slot /></div>' },
     SettingsGrid: { template: '<div class="settings-grid"><slot /></div>' },
@@ -321,6 +325,8 @@ describe('Registration.standalone.vue', () => {
     const moveButton = wrapper.find('[data-testid="move-license-to-tpm"]');
 
     expect(moveButton.exists()).toBe(true);
+    expect(moveButton.attributes('disabled')).toBeUndefined();
+    expect(findItemByLabel(t('TPM GUID'))?.props('text')).toBe('03-V35H8S0L1QHK1SBG1XHXJNH7');
   });
 
   it('shows Move License to TPM when flashGuid is missing but the active GUID is still a flash GUID', async () => {
@@ -349,7 +355,7 @@ describe('Registration.standalone.vue', () => {
     expect(accountStore.replaceTpm).toHaveBeenCalled();
   });
 
-  it('does not show Move License to TPM for trial states', async () => {
+  it('shows a disabled Move License to TPM button for trial states', async () => {
     serverStore.state = 'TRIAL';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
@@ -358,7 +364,43 @@ describe('Registration.standalone.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(false);
+    const moveButton = wrapper.find('[data-testid="move-license-to-tpm"]');
+
+    expect(moveButton.exists()).toBe(true);
+    expect(moveButton.attributes('disabled')).toBeDefined();
+    expect(findItemByLabel(t('TPM GUID'))?.props('text')).toBe('03-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(wrapper.text()).toContain(
+      'Trials are locked to the registered GUID. You can move to TPM by purchasing a license.'
+    );
+  });
+
+  it('shows a disabled Move License to TPM button for expired trial states', async () => {
+    serverStore.state = 'EEXPIRED';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    const moveButton = wrapper.find('[data-testid="move-license-to-tpm"]');
+
+    expect(moveButton.exists()).toBe(true);
+    expect(moveButton.attributes('disabled')).toBeDefined();
+  });
+
+  it('does not trigger the TPM replacement action when the trial TPM button is clicked', async () => {
+    serverStore.state = 'TRIAL';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    await wrapper.find('[data-testid="move-license-to-tpm"]').trigger('click');
+
+    expect(accountStore.replaceTpm).not.toHaveBeenCalled();
   });
 
   it('does not show Move License to TPM after switching to TPM boot', async () => {
