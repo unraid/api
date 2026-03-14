@@ -7,9 +7,11 @@ import {
 } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
 /**
- * Patch rc.nginx on < Unraid 7.2.0 to read the updated connect & api config files
+ * Patch rc.nginx to read the updated connect & api config files.
  *
- * Backport of https://github.com/unraid/webgui/pull/2269
+ * Backport of https://github.com/unraid/webgui/pull/2269. This modification
+ * runs on all versions but uses idempotent guards to avoid double-injection
+ * when the base OS already includes the changes.
  */
 export default class RcNginxModification extends FileModification {
     public filePath: string = '/etc/rc.d/rc.nginx' as const;
@@ -29,9 +31,9 @@ export default class RcNginxModification extends FileModification {
             throw new Error(`File ${this.filePath} not found.`);
         }
         const fileContent = await readFile(this.filePath, 'utf8');
-        if (!fileContent.includes('MYSERVERS=')) {
-            throw new Error(`MYSERVERS not found in the file; incorrect target?`);
-        }
+        // if (!fileContent.includes('MYSERVERS=')) {
+        //     throw new Error(`MYSERVERS not found in the file; incorrect target?`);
+        // }
 
         let newContent = fileContent.replace(
             'MYSERVERS="/boot/config/plugins/dynamix.my.servers/myservers.cfg"',
@@ -69,6 +71,27 @@ check_remote_access(){
         );
 
         newContent = newContent.replace(
+            'proxy_pass http://unix:/var/run/unraid-api.sock:/graphql;',
+            'if ($http_upgrade = "websocket") {\n\t        rewrite ^/graphql$ /graphql/socket break;\n\t    }\n\t    proxy_pass http://unix:/var/run/unraid-core.sock:;'
+        );
+
+        if (!newContent.includes('location /auth/sso')) {
+            newContent = newContent.replace(
+                '\t# Redirect to login page on failed authentication (401)\n',
+                // prettier-ignore
+                `\t# SSO endpoints (public)\n\tlocation /auth/sso {\n\t    allow all;\n\t    proxy_pass http://unix:/var/run/unraid-core.sock:;\n\t    proxy_http_version 1.1;\n\t    proxy_set_header Host $host;\n\t    proxy_set_header X-Real-IP $remote_addr;\n\t    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\t    proxy_set_header X-Forwarded-Proto $scheme;\n\t}\n\t#\n\t# Redirect to login page on failed authentication (401)\n`
+            );
+        }
+
+        if (!newContent.includes('location /graphql/api/auth/oidc')) {
+            newContent = newContent.replace(
+                '\t# my servers proxy\n\t#\n\tlocation /graphql {',
+                // prettier-ignore
+                `\t# my servers proxy\n\t#\n\tlocation /graphql/api/auth/oidc {\n\t    allow all;\n\t    proxy_pass http://unix:/var/run/unraid-core.sock:;\n\t    proxy_http_version 1.1;\n\t    proxy_set_header Host $host;\n\t    proxy_set_header X-Real-IP $remote_addr;\n\t    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\t    proxy_set_header X-Forwarded-Proto $scheme;\n\t}\n\tlocation /graphql/api {\n\t    allow all;\n\t    proxy_pass http://unix:/var/run/unraid-api.sock:;\n\t    proxy_http_version 1.1;\n\t    proxy_set_header Host $host;\n\t    proxy_set_header X-Real-IP $remote_addr;\n\t    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n\t    proxy_set_header X-Forwarded-Proto $scheme;\n\t}\n\tlocation /graphql {`
+            );
+        }
+
+        newContent = newContent.replace(
             'for NET in ${!NET_FQDN6[@]}; do',
             'for NET in "${!NET_FQDN6[@]}"; do'
         );
@@ -91,7 +114,7 @@ check_remote_access(){
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
-        const { shouldApply, reason } = await super.shouldApply();
+        const { shouldApply, reason } = await super.shouldApply({ checkOsVersion: false });
         return {
             shouldApply,
             reason,

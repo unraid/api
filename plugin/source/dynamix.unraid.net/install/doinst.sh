@@ -6,7 +6,7 @@ backup_file_if_exists() {
   fi
 }
 
-for f in etc/rc.d/rc6.d/K*unraid-api etc/rc.d/rc6.d/K*flash-backup; do
+for f in etc/rc.d/rc6.d/K*unraid-api etc/rc.d/rc6.d/K*unraid-core etc/rc.d/rc6.d/K*flash-backup; do
   [ -e "$f" ] && chmod 755 "$f"
 done
 

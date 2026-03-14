@@ -55,8 +55,11 @@ const isOfflineLikeMessage = (value: string) => {
   );
 };
 
+const csrfToken = globalThis.csrf_token ?? '0000000000000000';
+wsEndpoint.searchParams.set('_csrf_token', csrfToken);
+
 const headers = {
-  'x-csrf-token': globalThis.csrf_token ?? '0000000000000000',
+  'x-csrf-token': csrfToken,
 };
 
 const httpLink = createHttpLink({

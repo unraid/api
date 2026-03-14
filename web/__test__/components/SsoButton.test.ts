@@ -386,6 +386,88 @@ describe('SsoButtons', () => {
     expect(mockLocation.href).toBe(expectedUrl);
   });
 
+  it('shows an error when code/state do not match stored state', async () => {
+    const mockProviders = [
+      {
+        id: 'unraid-net',
+        name: 'Unraid.net',
+        buttonText: 'Log In With Unraid.net',
+      },
+    ];
+
+    mockUseQuery.mockReturnValue({
+      result: { value: { publicOidcProviders: mockProviders } },
+      refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
+    });
+
+    (sessionStorage.getItem as Mock).mockReturnValue('expected-state');
+
+    mockLocation.search = '?code=mock_code&state=unexpected_state';
+    mockLocation.pathname = '/not-login';
+
+    const wrapper = mount(SsoButtons, {
+      global: {
+        plugins: [createTestI18n()],
+        stubs: {
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' },
+        },
+      },
+    });
+
+    await flushPromises();
+
+    const errorElement = wrapper.find('p.text-red-500');
+    expect(errorElement.exists()).toBe(true);
+    expect(errorElement.text()).toBe('Invalid callback parameters');
+  });
+
+  it('handles unexpected callback errors', async () => {
+    const mockProviders = [
+      {
+        id: 'unraid-net',
+        name: 'Unraid.net',
+        buttonText: 'Log In With Unraid.net',
+      },
+    ];
+
+    mockUseQuery.mockReturnValue({
+      result: { value: { publicOidcProviders: mockProviders } },
+      refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
+    });
+
+    const originalURLSearchParams = globalThis.URLSearchParams;
+    vi.stubGlobal(
+      'URLSearchParams',
+      vi.fn(() => {
+        throw new Error('boom');
+      })
+    );
+
+    mockLocation.search = '';
+    mockLocation.hash = '';
+    mockLocation.pathname = '/login';
+
+    const wrapper = mount(SsoButtons, {
+      global: {
+        plugins: [createTestI18n()],
+        stubs: {
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' },
+        },
+      },
+    });
+
+    await flushPromises();
+
+    const errorElement = wrapper.find('p.text-red-500');
+    expect(errorElement.exists()).toBe(true);
+    expect(errorElement.text()).toBe('Error fetching token');
+    expect(mockForm.style.display).toBe('block');
+
+    vi.stubGlobal('URLSearchParams', originalURLSearchParams);
+  });
+
   it('handles HTTPS with non-standard port correctly', async () => {
     const mockProviders = [
       {
