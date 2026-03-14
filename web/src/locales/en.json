@@ -672,6 +672,7 @@
   "registration.activationCode": "Activation Code",
   "registration.partnerActivationDetected": "It appears you already have a license associated with this server. You can activate it now for free to unlock all features.",
   "registration.moveLicenseToTpm": "Move License to TPM",
+  "registration.moveLicenseToTpmTrialDisabled": "Trials are locked to the registered GUID. You can move to TPM by purchasing a license.",
   "registration.replaceCheck.checkEligibility": "Check Eligibility",
   "registration.transferLicenseToNewDevice": "Transfer License to New Device",
   "registration.trialExpiration": "Trial expiration",

@@ -134,10 +134,9 @@ const showPartnerActivationCode = computed(() => {
     (currentState === 'ENOKEYFILE' || currentState === 'TRIAL' || currentState === 'EEXPIRED')
   );
 });
-const showTpmTransferInfo = computed((): boolean =>
+const showTpmTransferButton = computed((): boolean =>
   Boolean(
-    keyInstalled.value &&
-      !showTrialExpiration.value &&
+    (keyInstalled.value || showTrialExpiration.value) &&
       bootDeviceType.value === 'flash' &&
       // The active GUID tells us whether we're still booted from flash, even if
       // flashGuid is missing or has already fallen back to the TPM value.
@@ -146,6 +145,7 @@ const showTpmTransferInfo = computed((): boolean =>
       guid.value !== tpmGuid.value
   )
 );
+const disableTpmTransferButton = computed((): boolean => showTrialExpiration.value);
 
 // Organize items into three sections
 const bootDeviceItems = computed((): RegistrationItemProps[] => {
@@ -390,12 +390,19 @@ const actionItems = computed((): RegistrationItemProps[] => {
           >
             <h4 class="mb-3 text-lg font-semibold">{{ t('registration.actions') }}</h4>
             <BrandButton
-              v-if="showTpmTransferInfo"
+              v-if="showTpmTransferButton"
               data-testid="move-license-to-tpm"
+              :disabled="disableTpmTransferButton"
               :text="t('registration.moveLicenseToTpm')"
               class="mb-4 w-full sm:max-w-[300px]"
               @click="accountStore.replaceTpm()"
             />
+            <p
+              v-if="showTpmTransferButton && disableTpmTransferButton"
+              class="mb-4 text-sm leading-relaxed opacity-75"
+            >
+              {{ t('registration.moveLicenseToTpmTrialDisabled') }}
+            </p>
             <blockquote
               v-if="showPartnerActivationCode"
               class="border-primary bg-primary/10 mb-4 border-l-4 p-4"
