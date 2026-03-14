@@ -257,7 +257,6 @@ export const useServerStore = defineStore('server', () => {
       deviceCount: deviceCount.value,
       description: description.value,
       expireTime: expireTime.value,
-      flashGuid: flashGuid.value || undefined,
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
       guid: guid.value,
@@ -280,7 +279,7 @@ export const useServerStore = defineStore('server', () => {
   const serverReplacePayload = computed(
     (): ServerData => ({
       ...serverAccountPayload.value,
-      flashGuid: replaceFlashGuid.value,
+      guid: replaceFlashGuid.value,
     })
   );
 

@@ -186,7 +186,6 @@ const getStore = () => {
         deviceCount: store.deviceCount,
         description: store.description,
         expireTime: store.expireTime,
-        flashGuid: store.flashGuid,
         flashProduct: store.flashProduct,
         flashVendor: store.flashVendor,
         guid: store.guid,
@@ -208,7 +207,7 @@ const getStore = () => {
     serverReplacePayload: {
       get: () => ({
         ...store.serverAccountPayload,
-        flashGuid:
+        guid:
           store.guid?.startsWith('03-') || !store.tpmGuid || store.flashGuid === store.tpmGuid
             ? store.flashGuid
             : store.tpmGuid,
@@ -651,7 +650,6 @@ describe('useServerStore', () => {
     expect(payload.deviceCount).toBe(6);
     expect(payload.description).toBe('Test Server');
     expect(payload.expireTime).toBe(123);
-    expect(payload.flashGuid).toBe('flash-guid-1');
     expect(payload.flashProduct).toBe('TestFlash');
     expect(payload.flashVendor).toBe('TestVendor');
     expect(payload.guid).toBe('123456');
@@ -681,7 +679,7 @@ describe('useServerStore', () => {
       tpmGuid: '03-V35H8S0L1QHK1SBG1XHXJNH7',
     });
 
-    expect(store.serverReplacePayload.flashGuid).toBe('03-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(store.serverReplacePayload.guid).toBe('03-V35H8S0L1QHK1SBG1XHXJNH7');
   });
 
   it('should create serverReplacePayload with flash guid when TPM replacement is not available', () => {
@@ -694,7 +692,7 @@ describe('useServerStore', () => {
       tpmGuid: '058F-6387-0000-0000F1F1E1C6',
     });
 
-    expect(store.serverReplacePayload.flashGuid).toBe('058F-6387-0000-0000F1F1E1C6');
+    expect(store.serverReplacePayload.guid).toBe('058F-6387-0000-0000F1F1E1C6');
   });
 
   it('should handle OS version ignore functionality', () => {

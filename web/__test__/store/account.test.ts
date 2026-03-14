@@ -68,8 +68,7 @@ vi.mock('~/store/server', () => ({
       name: 'test-server',
     },
     serverReplacePayload: {
-      flashGuid: 'test-tpm-guid',
-      guid: 'test-guid',
+      guid: 'test-tpm-guid',
       name: 'test-server',
     },
     inIframe: false,
@@ -231,7 +230,7 @@ describe('Account Store', () => {
         ACCOUNT_CALLBACK.toString(),
         [
           {
-            server: { flashGuid: 'test-tpm-guid', guid: 'test-guid', name: 'test-server' },
+            server: { guid: 'test-tpm-guid', name: 'test-server' },
             type: 'replace',
           },
         ],
