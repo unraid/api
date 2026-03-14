@@ -11,7 +11,6 @@ import type { OnboardingStatus } from '~/composables/gql/graphql';
 import { useServerStore } from '~/store/server';
 
 const MIN_ONBOARDING_VERSION = '7.3.0';
-const ONBOARDING_TEST_UNAUTHENTICATED_STORAGE_KEY = 'onboardingAdminPanel.mockUnauthenticated';
 const ONBOARDING_TEST_OS_VERSION_STORAGE_KEY = 'onboardingAdminPanel.mockOsVersion';
 
 const isOnboardingAdminPanelContext = () => {
@@ -21,17 +20,6 @@ const isOnboardingAdminPanelContext = () => {
   return Boolean(
     document.querySelector('unraid-onboarding-admin-panel, unraid-onboarding-test-harness')
   );
-};
-
-const readMockUnauthenticatedFromStorage = () => {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-  if (!isOnboardingAdminPanelContext()) {
-    localStorage.removeItem(ONBOARDING_TEST_UNAUTHENTICATED_STORAGE_KEY);
-    return false;
-  }
-  return localStorage.getItem(ONBOARDING_TEST_UNAUTHENTICATED_STORAGE_KEY) === 'true';
 };
 
 const readMockOsVersionFromStorage = () => {
@@ -57,69 +45,15 @@ const isVersionAtLeast = (version: string | null | undefined, minVersion: string
   return gte(normalizedVersion, normalizedMinVersion);
 };
 
-const isUnauthenticatedApolloError = (error: unknown): boolean => {
-  if (!error || typeof error !== 'object') {
-    return false;
-  }
-
-  const apolloError = error as {
-    message?: string;
-    graphQLErrors?: Array<{
-      message?: string;
-      extensions?: {
-        code?: string;
-        originalError?: { statusCode?: number; message?: string };
-      };
-    }>;
-    networkError?: {
-      statusCode?: number;
-      message?: string;
-    };
-  };
-
-  if (apolloError.networkError?.statusCode === 401) {
-    return true;
-  }
-
-  const graphQLErrors = apolloError.graphQLErrors ?? [];
-  if (
-    graphQLErrors.some(
-      (gqlError) =>
-        gqlError?.extensions?.code === 'UNAUTHENTICATED' ||
-        gqlError?.extensions?.originalError?.statusCode === 401
-    )
-  ) {
-    return true;
-  }
-
-  const messageBlob = [
-    apolloError.message,
-    apolloError.networkError?.message,
-    ...graphQLErrors.map((gqlError) => gqlError?.message),
-    ...graphQLErrors.map((gqlError) => gqlError?.extensions?.originalError?.message),
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-
-  return (
-    messageBlob.includes('unauthenticated') ||
-    messageBlob.includes('unauthorized') ||
-    messageBlob.includes('invalid csrf token')
-  );
-};
-
 export const useOnboardingStore = defineStore('onboarding', () => {
   const { osVersion } = storeToRefs(useServerStore());
   const {
     result: onboardingResult,
     loading: onboardingLoading,
-    error: onboardingError,
     refetch,
   } = useQuery(ONBOARDING_QUERY, {}, { errorPolicy: 'all' });
 
   const onboardingData = computed(() => onboardingResult.value?.customization?.onboarding);
-  const mockUnauthenticated = ref(readMockUnauthenticatedFromStorage());
   const mockOsVersion = ref<string | null>(readMockOsVersionFromStorage());
 
   // Core state from API
@@ -138,12 +72,6 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   const isVersionSupported = computed(() =>
     isVersionAtLeast(effectiveOsVersion.value, MIN_ONBOARDING_VERSION)
   );
-  const setMockUnauthenticated = (value: boolean) => {
-    mockUnauthenticated.value = value;
-    if (typeof window !== 'undefined' && isOnboardingAdminPanelContext()) {
-      localStorage.setItem(ONBOARDING_TEST_UNAUTHENTICATED_STORAGE_KEY, value ? 'true' : 'false');
-    }
-  };
   const setMockOsVersion = (value: string | null) => {
     const normalizedValue = value?.trim() || null;
     mockOsVersion.value = normalizedValue;
@@ -156,10 +84,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     }
   };
 
-  const isUnauthenticated = computed(
-    () => mockUnauthenticated.value || isUnauthenticatedApolloError(onboardingError.value)
-  );
-  const canDisplayOnboardingModal = computed(() => isVersionSupported.value && !isUnauthenticated.value);
+  const canDisplayOnboardingModal = computed(() => isVersionSupported.value);
 
   // Automatic onboarding should only run for initial setup.
   const shouldShowOnboarding = computed(() => {
@@ -186,14 +111,11 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     osVersion,
     effectiveOsVersion,
     isVersionSupported,
-    mockUnauthenticated,
     mockOsVersion,
-    isUnauthenticated,
     canDisplayOnboardingModal,
     shouldShowOnboarding,
     // Actions
     refetchOnboarding: refetch,
-    setMockUnauthenticated,
     setMockOsVersion,
   };
 });

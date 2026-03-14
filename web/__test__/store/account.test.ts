@@ -67,6 +67,10 @@ vi.mock('~/store/server', () => ({
       guid: 'test-guid',
       name: 'test-server',
     },
+    serverReplacePayload: {
+      guid: 'test-tpm-guid',
+      name: 'test-server',
+    },
     inIframe: false,
   }),
 }));
@@ -213,6 +217,23 @@ describe('Account Store', () => {
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
         [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'replace' }],
+        undefined,
+        'post'
+      );
+    });
+
+    it('should call replaceTpm action correctly', () => {
+      store.replaceTpm();
+
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [
+          {
+            server: { guid: 'test-tpm-guid', name: 'test-server' },
+            type: 'replace',
+          },
+        ],
         undefined,
         'post'
       );

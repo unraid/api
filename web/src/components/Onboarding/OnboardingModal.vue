@@ -105,13 +105,8 @@ const availableSteps = computed<StepId[]>(() => visibleHardcodedSteps.value.map(
 // Filtered steps as full objects for OnboardingSteps component
 const filteredSteps = computed(() => visibleHardcodedSteps.value);
 
-const isLoginPage = computed(() => {
-  const hasLoginRoute = window.location.pathname.includes('login');
-  const hasLoginMarkup = Boolean(document.querySelector('#login, form[action="/login"]'));
-  return hasLoginRoute || hasLoginMarkup;
-});
 const showModal = computed(() => {
-  if (isLoginPage.value || !canDisplayOnboardingModal.value) {
+  if (!canDisplayOnboardingModal.value) {
     return false;
   }
 

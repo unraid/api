@@ -13,6 +13,7 @@ import type { ServerconnectPluginInstalled } from '~/types/server';
 import type { Pinia } from 'pinia';
 
 import Registration from '~/components/Registration.standalone.vue';
+import { useAccountStore } from '~/store/account';
 import { usePurchaseStore } from '~/store/purchase';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
@@ -151,6 +152,7 @@ const t = testTranslate;
 describe('Registration.standalone.vue', () => {
   let wrapper: VueWrapper<unknown>;
   let pinia: Pinia;
+  let accountStore: ReturnType<typeof useAccountStore>;
   let serverStore: ReturnType<typeof useServerStore>;
   let replaceRenewStore: ReturnType<typeof useReplaceRenewStore>;
   let purchaseStore: ReturnType<typeof usePurchaseStore>;
@@ -184,6 +186,7 @@ describe('Registration.standalone.vue', () => {
     });
     setActivePinia(pinia);
 
+    accountStore = useAccountStore();
     serverStore = useServerStore();
     replaceRenewStore = useReplaceRenewStore();
     purchaseStore = usePurchaseStore();
@@ -306,46 +309,47 @@ describe('Registration.standalone.vue', () => {
     expect(attachedStorageDevicesItem?.props('text')).toBe('8 out of unlimited devices');
   });
 
-  it('shows TPM transfer guidance when TPM licensing is available', async () => {
+  it('shows Move License to TPM when TPM licensing is available', async () => {
     serverStore.state = 'PRO';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
-    serverStore.mdState = 'STOPPED';
     serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
     serverStore.keyfile = 'keyfile-present';
 
     await wrapper.vm.$nextTick();
 
-    const transferNotice = wrapper.find('[data-testid="tpm-transfer-available"]');
+    const moveButton = wrapper.find('[data-testid="move-license-to-tpm"]');
 
-    expect(transferNotice.exists()).toBe(true);
-    expect(transferNotice.text()).toContain('TPM licensing is available on this server.');
-    expect(transferNotice.text()).toContain('Stop the array.');
-    expect(transferNotice.text()).toContain('Remove the USB flash boot device.');
-    expect(transferNotice.text()).toContain('Refresh this page.');
-    expect(transferNotice.text()).toContain('Press Replace Key.');
-    expect(transferNotice.text()).toContain('Start the array.');
-    expect(transferNotice.text()).not.toContain('Tools > Registration');
+    expect(moveButton.exists()).toBe(true);
   });
 
-  it('only checks the stop-array step when the array is stopped', async () => {
+  it('shows Move License to TPM when flashGuid is missing but the active GUID is still a flash GUID', async () => {
     serverStore.state = 'PRO';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
-    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
-    serverStore.mdState = 'STARTED';
+    serverStore.flashGuid = '';
     serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
     serverStore.keyfile = 'keyfile-present';
 
     await wrapper.vm.$nextTick();
 
-    const transferNotice = wrapper.find('[data-testid="tpm-transfer-available"]');
-
-    expect(transferNotice.exists()).toBe(true);
-    expect(transferNotice.text()).not.toContain('[x] Stop the array.');
-    expect(transferNotice.text()).toMatch(/\[\s\]Stop the array\./);
+    expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(true);
   });
 
-  it('shows TPM purchase guidance instead of TPM transfer steps for trial states', async () => {
+  it('triggers the TPM replacement action when Move License to TPM is clicked', async () => {
+    serverStore.state = 'PRO';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    await wrapper.find('[data-testid="move-license-to-tpm"]').trigger('click');
+
+    expect(accountStore.replaceTpm).toHaveBeenCalled();
+  });
+
+  it('does not show Move License to TPM for trial states', async () => {
     serverStore.state = 'TRIAL';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
@@ -354,56 +358,18 @@ describe('Registration.standalone.vue', () => {
 
     await wrapper.vm.$nextTick();
 
-    const trialNotice = wrapper.find('[data-testid="tpm-transfer-trial"]');
-
-    expect(trialNotice.exists()).toBe(true);
-    expect(trialNotice.text()).toContain(
-      'TPM licensing will be available after you purchase a license.'
-    );
-    expect(trialNotice.text()).toContain(
-      'Trial licenses cannot be moved to TPM. Once you purchase a license for this server, you will be able to transfer it from your USB flash device to TPM.'
-    );
-    expect(wrapper.find('[data-testid="tpm-transfer-available"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(false);
   });
 
-  it('shows checked TPM transfer steps after switching to TPM boot', async () => {
+  it('does not show Move License to TPM after switching to TPM boot', async () => {
     serverStore.state = 'EGUID';
     serverStore.guid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
-    serverStore.mdState = 'STOPPED';
     serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
     serverStore.regGuid = '058F-6387-0000-0000F1F1E1C6';
 
     await wrapper.vm.$nextTick();
 
-    const transferNotice = wrapper.find('[data-testid="tpm-transfer-ready"]');
-
-    expect(transferNotice.exists()).toBe(true);
-    expect(transferNotice.text()).toContain('Continue your TPM license transfer.');
-    expect(transferNotice.text()).toContain('The first two steps are already complete.');
-    expect(transferNotice.text()).toContain('[x]');
-    expect(transferNotice.text()).toContain('Stop the array.');
-    expect(transferNotice.text()).toContain('Remove the USB flash boot device.');
-    expect(transferNotice.text()).toContain('Press Replace Key.');
-    expect(transferNotice.text()).toContain('Start the array.');
-  });
-
-  it('shows the stop-array step as incomplete in TPM-ready state while the array is running', async () => {
-    serverStore.state = 'EGUID';
-    serverStore.guid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
-    serverStore.mdState = 'STARTED';
-    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
-    serverStore.regGuid = '058F-6387-0000-0000F1F1E1C6';
-
-    await wrapper.vm.$nextTick();
-
-    const transferNotice = wrapper.find('[data-testid="tpm-transfer-ready"]');
-
-    expect(transferNotice.exists()).toBe(true);
-    expect(transferNotice.text()).toContain(
-      'The USB flash boot device is already removed. Stop the array, then press Replace Key to transfer this license to TPM.'
-    );
-    expect(transferNotice.text()).toMatch(/\[\s\]Stop the array\./);
-    expect(transferNotice.text()).toMatch(/\[x\]Remove the USB flash boot device\./);
+    expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(false);
   });
 
   it('adds Activate Trial fallback for ENOKEYFILE partner activation', async () => {

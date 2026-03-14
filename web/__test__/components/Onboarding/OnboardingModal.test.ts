@@ -191,15 +191,6 @@ describe('OnboardingModal.vue', () => {
         enableBootTransfer: 'yes',
       },
     };
-
-    Object.defineProperty(window, 'location', {
-      writable: true,
-      configurable: true,
-      value: {
-        href: '',
-        pathname: '/Dashboard',
-      },
-    });
   });
 
   const mountComponent = () => {
@@ -296,24 +287,6 @@ describe('OnboardingModal.vue', () => {
     onboardingModalStoreState.isForceOpened.value = true;
     onboardingModalStoreState.isBypassActive.value = true;
     onboardingStatusStore.canDisplayOnboardingModal.value = false;
-
-    const wrapper = mountComponent();
-
-    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(false);
-  });
-
-  it('does not render on login route', () => {
-    Object.defineProperty(window, 'location', {
-      writable: true,
-      configurable: true,
-      value: {
-        href: '',
-        pathname: '/login',
-      },
-    });
-
-    onboardingModalStoreState.isAutoVisible.value = true;
-    onboardingStatusStore.canDisplayOnboardingModal.value = true;
 
     const wrapper = mountComponent();
 

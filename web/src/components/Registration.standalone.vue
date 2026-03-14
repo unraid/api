@@ -20,7 +20,7 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ShieldCheckIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
-import { CardWrapper, PageContainer, SettingsGrid } from '@unraid/ui';
+import { BrandButton, CardWrapper, PageContainer, SettingsGrid } from '@unraid/ui';
 
 import type { RegistrationItemProps } from '~/types/registration';
 import type { ServerStateDataAction } from '~/types/server';
@@ -33,11 +33,13 @@ import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue
 import RegistrationUpdateExpirationAction from '~/components/Registration/UpdateExpirationAction.vue';
 import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
 import useDateTimeHelper from '~/composables/dateTime';
+import { useAccountStore } from '~/store/account';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 
 const { t } = useI18n();
 
+const accountStore = useAccountStore();
 const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
 const { activationCode } = storeToRefs(useActivationCodeDataStore());
@@ -46,14 +48,12 @@ const {
   bootDeviceType,
   dateTimeFormat,
   deviceCount,
-  flashGuid,
   flashProduct,
   flashVendor,
   guid,
   keyActions,
   keyfile,
   computedRegDevs,
-  mdState,
   regGuid,
   regTm,
   regTo,
@@ -139,78 +139,13 @@ const showTpmTransferInfo = computed((): boolean =>
     keyInstalled.value &&
       !showTrialExpiration.value &&
       bootDeviceType.value === 'flash' &&
-      // On TPM systems, flashGuid may fall back to the TPM GUID, so only show
-      // this while we're still booted from flash and the GUIDs differ.
-      flashGuid.value &&
-      tpmGuid.value &&
-      flashGuid.value !== tpmGuid.value
-  )
-);
-const showTpmTransferTrialInfo = computed((): boolean =>
-  Boolean(
-    showTrialExpiration.value &&
-      bootDeviceType.value === 'flash' &&
-      flashGuid.value &&
-      tpmGuid.value &&
-      flashGuid.value !== tpmGuid.value
-  )
-);
-const showTpmTransferReadyInfo = computed((): boolean =>
-  Boolean(
-    !showTrialExpiration.value &&
-      state.value === 'EGUID' &&
-      bootDeviceType.value === 'tpm' &&
+      // The active GUID tells us whether we're still booted from flash, even if
+      // flashGuid is missing or has already fallen back to the TPM value.
       guid.value &&
       tpmGuid.value &&
-      guid.value === tpmGuid.value
+      guid.value !== tpmGuid.value
   )
 );
-const isArrayStopped = computed((): boolean => mdState.value === 'STOPPED');
-const tpmTransferReadyDescription = computed(() =>
-  isArrayStopped.value
-    ? t('registration.tpmTransferReadyDescription')
-    : t('registration.tpmTransferReadyDescriptionArrayRunning')
-);
-const tpmTransferPreparationSteps = computed(() => [
-  {
-    completed: isArrayStopped.value,
-    label: t('registration.tpmTransferAvailableSteps.stopArray'),
-  },
-  {
-    completed: false,
-    label: t('registration.tpmTransferAvailableSteps.removeFlash'),
-  },
-  {
-    completed: false,
-    label: t('registration.tpmTransferAvailableSteps.refreshPage'),
-  },
-  {
-    completed: false,
-    label: t('registration.tpmTransferAvailableSteps.replaceKey'),
-  },
-  {
-    completed: false,
-    label: t('registration.tpmTransferAvailableSteps.startArray'),
-  },
-]);
-const tpmTransferReadySteps = computed(() => [
-  {
-    completed: isArrayStopped.value,
-    label: t('registration.tpmTransferAvailableSteps.stopArray'),
-  },
-  {
-    completed: true,
-    label: t('registration.tpmTransferAvailableSteps.removeFlash'),
-  },
-  {
-    completed: false,
-    label: t('registration.tpmTransferAvailableSteps.replaceKey'),
-  },
-  {
-    completed: false,
-    label: t('registration.tpmTransferAvailableSteps.startArray'),
-  },
-]);
 
 // Organize items into three sections
 const bootDeviceItems = computed((): RegistrationItemProps[] => {
@@ -454,64 +389,13 @@ const actionItems = computed((): RegistrationItemProps[] => {
             class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
           >
             <h4 class="mb-3 text-lg font-semibold">{{ t('registration.actions') }}</h4>
-            <blockquote
-              v-if="showTpmTransferTrialInfo"
-              data-testid="tpm-transfer-trial"
-              class="border-primary bg-primary/10 mb-4 border-l-4 p-4"
-            >
-              <p class="text-highlighted text-sm leading-relaxed font-medium">
-                {{ t('registration.tpmTransferTrial') }}
-              </p>
-              <p class="text-highlighted mt-2 text-sm leading-relaxed">
-                {{ t('registration.tpmTransferTrialDescription') }}
-              </p>
-            </blockquote>
-            <blockquote
+            <BrandButton
               v-if="showTpmTransferInfo"
-              data-testid="tpm-transfer-available"
-              class="border-primary bg-primary/10 mb-4 border-l-4 p-4"
-            >
-              <p class="text-highlighted text-sm leading-relaxed font-medium">
-                {{ t('registration.tpmTransferAvailable') }}
-              </p>
-              <p class="text-highlighted mt-2 text-sm leading-relaxed">
-                {{ t('registration.tpmTransferAvailableDescription') }}
-              </p>
-              <ul class="text-highlighted mt-3 space-y-1 text-sm leading-relaxed">
-                <li
-                  v-for="step in tpmTransferPreparationSteps"
-                  :key="step.label"
-                  class="flex items-start gap-2"
-                >
-                  <span class="font-mono opacity-70">{{ step.completed ? '[x]' : '[ ]' }}</span>
-                  <span>{{ step.label }}</span>
-                </li>
-              </ul>
-            </blockquote>
-            <blockquote
-              v-if="showTpmTransferReadyInfo"
-              data-testid="tpm-transfer-ready"
-              class="border-primary bg-primary/10 mb-4 border-l-4 p-4"
-            >
-              <p class="text-highlighted text-sm leading-relaxed font-medium">
-                {{ t('registration.tpmTransferReady') }}
-              </p>
-              <p class="text-highlighted mt-2 text-sm leading-relaxed">
-                {{ tpmTransferReadyDescription }}
-              </p>
-              <ul class="text-highlighted mt-3 space-y-1 text-sm leading-relaxed">
-                <li
-                  v-for="step in tpmTransferReadySteps"
-                  :key="step.label"
-                  class="flex items-start gap-2"
-                >
-                  <span class="font-mono" :class="step.completed ? 'text-green-600' : 'opacity-70'">
-                    {{ step.completed ? '[x]' : '[ ]' }}
-                  </span>
-                  <span>{{ step.label }}</span>
-                </li>
-              </ul>
-            </blockquote>
+              data-testid="move-license-to-tpm"
+              :text="t('registration.moveLicenseToTpm')"
+              class="mb-4 w-full sm:max-w-[300px]"
+              @click="accountStore.replaceTpm()"
+            />
             <blockquote
               v-if="showPartnerActivationCode"
               class="border-primary bg-primary/10 mb-4 border-l-4 p-4"

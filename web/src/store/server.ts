@@ -134,6 +134,17 @@ export const useServerStore = defineStore('server', () => {
 
     return today.isAfter(parsedUpdateExpirationDate, 'day');
   });
+  const hasDistinctTpmGuid = computed(
+    () =>
+      bootDeviceType.value === 'flash' &&
+      Boolean(guid.value && tpmGuid.value && guid.value !== tpmGuid.value)
+  );
+  const replaceFlashGuid = computed(() => {
+    if (hasDistinctTpmGuid.value) {
+      return tpmGuid.value;
+    }
+    return guid.value || undefined;
+  });
   const site = ref<string>('');
   const ssoEnabled = ref<boolean>(false);
   const state = ref<ServerState>();
@@ -266,6 +277,13 @@ export const useServerStore = defineStore('server', () => {
       wanFQDN: wanFQDN.value,
     };
   });
+
+  const serverReplacePayload = computed(
+    (): ServerData => ({
+      ...serverAccountPayload.value,
+      guid: replaceFlashGuid.value,
+    })
+  );
 
   const serverDebugPayload = computed((): Server => {
     const payload = {
@@ -1434,6 +1452,7 @@ export const useServerStore = defineStore('server', () => {
     pluginOutdated,
     server,
     serverAccountPayload,
+    serverReplacePayload,
     serverPurchasePayload,
     stateData,
     stateDataError,

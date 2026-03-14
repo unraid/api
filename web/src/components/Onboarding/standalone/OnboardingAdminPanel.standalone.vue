@@ -24,7 +24,6 @@ const {
   isPartnerBuild,
   completed,
   completedAtVersion,
-  mockUnauthenticated,
   osVersion,
   effectiveOsVersion,
   isVersionSupported,
@@ -374,11 +373,6 @@ const openOnboardingModalFromPanel = () => {
   }
 
   onboardingModalStore.forceOpenModal();
-};
-
-const onMockUnauthenticatedChange = (event: Event) => {
-  const target = event.target as HTMLInputElement | null;
-  onboardingStore.setMockUnauthenticated(Boolean(target?.checked));
 };
 
 const getMutationInput = (payload: OnboardingOverridePayload) => {
@@ -762,26 +756,6 @@ const currentRegistrationState = computed({
                 When enabled, pressing <strong>Open</strong> clears
                 <code class="bg-muted rounded px-1">onboardingDraft</code> from localStorage, then
                 reloads the page after applying overrides.
-              </div>
-            </div>
-          </label>
-        </div>
-
-        <div class="border-border bg-background rounded-lg border p-3 shadow-sm">
-          <label class="flex cursor-pointer items-start gap-2">
-            <input
-              type="checkbox"
-              class="mt-0.5"
-              :checked="mockUnauthenticated"
-              @change="onMockUnauthenticatedChange"
-            />
-            <div>
-              <div class="text-foreground text-xs font-semibold uppercase">
-                Mock Unauthenticated User
-              </div>
-              <div class="text-muted-foreground text-xs">
-                Simulates unauthenticated onboarding requests (401/CSRF) to verify onboarding modals
-                remain hidden. This setting persists in localStorage.
               </div>
             </div>
           </label>
