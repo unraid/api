@@ -140,11 +140,11 @@ const showTpmTransferInfo = computed((): boolean =>
     keyInstalled.value &&
       !showTrialExpiration.value &&
       bootDeviceType.value === 'flash' &&
-      // On TPM systems, flashGuid may fall back to the TPM GUID, so only show
-      // this while we're still booted from flash and the GUIDs differ.
-      flashGuid.value &&
+      // The active GUID tells us whether we're still booted from flash, even if
+      // flashGuid is missing or has already fallen back to the TPM value.
+      guid.value &&
       tpmGuid.value &&
-      flashGuid.value !== tpmGuid.value
+      guid.value !== tpmGuid.value
   )
 );
 

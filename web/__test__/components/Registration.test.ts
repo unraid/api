@@ -323,6 +323,18 @@ describe('Registration.standalone.vue', () => {
     expect(moveButton.exists()).toBe(true);
   });
 
+  it('shows Move License to TPM when flashGuid is missing but the active GUID is still a flash GUID', async () => {
+    serverStore.state = 'PRO';
+    serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
+    serverStore.flashGuid = '';
+    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.keyfile = 'keyfile-present';
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find('[data-testid="move-license-to-tpm"]').exists()).toBe(true);
+  });
+
   it('triggers the TPM replacement action when Move License to TPM is clicked', async () => {
     serverStore.state = 'PRO';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';

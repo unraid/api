@@ -134,14 +134,16 @@ export const useServerStore = defineStore('server', () => {
 
     return today.isAfter(parsedUpdateExpirationDate, 'day');
   });
-  const hasDistinctTpmGuid = computed(() =>
-    Boolean(flashGuid.value && tpmGuid.value && flashGuid.value !== tpmGuid.value)
+  const hasDistinctTpmGuid = computed(
+    () =>
+      bootDeviceType.value === 'flash' &&
+      Boolean(guid.value && tpmGuid.value && guid.value !== tpmGuid.value)
   );
   const replaceFlashGuid = computed(() => {
-    if (bootDeviceType.value === 'flash' && hasDistinctTpmGuid.value) {
+    if (hasDistinctTpmGuid.value) {
       return tpmGuid.value;
     }
-    return flashGuid.value || undefined;
+    return guid.value || undefined;
   });
   const site = ref<string>('');
   const ssoEnabled = ref<boolean>(false);

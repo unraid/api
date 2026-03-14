@@ -208,9 +208,9 @@ const getStore = () => {
       get: () => ({
         ...store.serverAccountPayload,
         guid:
-          store.guid?.startsWith('03-') || !store.tpmGuid || store.flashGuid === store.tpmGuid
-            ? store.flashGuid
-            : store.tpmGuid,
+          store.guid && !store.guid.startsWith('03-') && store.tpmGuid && store.guid !== store.tpmGuid
+            ? store.tpmGuid
+            : store.guid || undefined,
       }),
     },
   });
@@ -690,6 +690,32 @@ describe('useServerStore', () => {
       guid: '058F-6387-0000-0000F1F1E1C6',
       state: 'PRO' as ServerState,
       tpmGuid: '058F-6387-0000-0000F1F1E1C6',
+    });
+
+    expect(store.serverReplacePayload.guid).toBe('058F-6387-0000-0000F1F1E1C6');
+  });
+
+  it('should create serverReplacePayload with the active TPM guid when booted from TPM', () => {
+    const store = getStore();
+
+    store.setServer({
+      flashGuid: '058F-6387-0000-0000F1F1E1C6',
+      guid: '03-V35H8S0L1QHK1SBG1XHXJNH7',
+      state: 'PRO' as ServerState,
+      tpmGuid: undefined,
+    });
+
+    expect(store.serverReplacePayload.guid).toBe('03-V35H8S0L1QHK1SBG1XHXJNH7');
+  });
+
+  it('should create serverReplacePayload with the active flash guid when TPM guid is missing', () => {
+    const store = getStore();
+
+    store.setServer({
+      flashGuid: '058F-6387-0000-0000F1F1E1C6',
+      guid: '058F-6387-0000-0000F1F1E1C6',
+      state: 'PRO' as ServerState,
+      tpmGuid: undefined,
     });
 
     expect(store.serverReplacePayload.guid).toBe('058F-6387-0000-0000F1F1E1C6');
