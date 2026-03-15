@@ -315,6 +315,7 @@ const openDocs = () => {
         <div class="flex items-center gap-6">
           <button
             @click="handleSkipOnboarding"
+            data-testid="skip-setup-button"
             class="text-muted hover:text-toned text-sm font-medium transition-colors"
             :disabled="isBusy"
           >

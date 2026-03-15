@@ -146,7 +146,7 @@ describe('OnboardingOverviewStep', () => {
   it('clears onboarding draft immediately when skipping setup', async () => {
     const wrapper = mountComponent();
 
-    await wrapper.findAll('button')[1]?.trigger('click');
+    await wrapper.find('[data-testid="skip-setup-button"]').trigger('click');
 
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
       clearTemporaryBypassSessionState: true,
@@ -157,7 +157,7 @@ describe('OnboardingOverviewStep', () => {
     completeOnboardingMock.mockRejectedValueOnce(new Error('offline'));
     const wrapper = mountComponent();
 
-    await wrapper.findAll('button')[1]?.trigger('click');
+    await wrapper.find('[data-testid="skip-setup-button"]').trigger('click');
 
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
       clearTemporaryBypassSessionState: true,

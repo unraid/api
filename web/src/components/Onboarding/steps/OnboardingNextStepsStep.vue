@@ -93,7 +93,7 @@ const handlePrimaryAction = () => {
   props.onComplete();
 };
 
-const handleConfirmReboot = async () => {
+const handleConfirmReboot = () => {
   showRebootWarningDialog.value = false;
   cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
   submitInternalBootReboot();
