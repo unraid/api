@@ -9,13 +9,14 @@ import {
   UPDATE_SSH_SETTINGS_MUTATION,
 } from '@/components/Onboarding/graphql/coreSettings.mutations';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
-import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
+
 import OnboardingSummaryStep from '~/components/Onboarding/steps/OnboardingSummaryStep.vue';
-import { PluginInstallStatus } from '~/composables/gql/graphql';
+import { GetInternalBootContextDocument, PluginInstallStatus } from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 
 const {
@@ -74,7 +75,7 @@ const {
     value: null as unknown,
   },
   coreSettingsError: { value: null as unknown },
-  internalBootContextResult: { value: null as unknown },
+  internalBootContextResult: { value: null as GetInternalBootContextQuery | null },
   installedPluginsResult: { value: { installedUnraidPlugins: [] as string[] } },
   availableLanguagesResult: {
     value: {
@@ -219,7 +220,7 @@ const setupApolloMocks = () => {
     if (doc === GET_CORE_SETTINGS_QUERY) {
       return { result: coreSettingsResult, error: coreSettingsError };
     }
-    if (doc === GET_INTERNAL_BOOT_CONTEXT_QUERY) {
+    if (doc === GetInternalBootContextDocument) {
       return { result: internalBootContextResult };
     }
     if (doc === INSTALLED_UNRAID_PLUGINS_QUERY) {

@@ -7,7 +7,6 @@ import { useMutation, useQuery } from '@vue/apollo-composable';
 import { ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
-import { GET_INTERNAL_BOOT_STEP_VISIBILITY_QUERY } from '@/components/Onboarding/graphql/getInternalBootStepVisibility.query';
 
 import type { BrandButtonProps } from '@unraid/ui';
 import type { StepId } from '~/components/Onboarding/stepRegistry';
@@ -21,6 +20,7 @@ import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardin
 import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
 import { cleanupOnboardingStorage } from '~/components/Onboarding/store/onboardingStorageCleanup';
+import { GetInternalBootStepVisibilityDocument } from '~/composables/gql/graphql';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
@@ -76,13 +76,9 @@ const showActivationStep = computed(() => {
   return hasCode && ACTIVATION_STEP_REGISTRATION_STATES.has(regState);
 });
 
-const { result: internalBootVisibilityResult } = useQuery(
-  GET_INTERNAL_BOOT_STEP_VISIBILITY_QUERY,
-  null,
-  {
-    fetchPolicy: 'network-only',
-  }
-);
+const { result: internalBootVisibilityResult } = useQuery(GetInternalBootStepVisibilityDocument, null, {
+  fetchPolicy: 'network-only',
+});
 
 const showInternalBootStep = computed(() => {
   const setting = internalBootVisibilityResult.value?.vars?.enableBootTransfer;

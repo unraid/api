@@ -6,7 +6,6 @@ import { useQuery } from '@vue/apollo-composable';
 import { ChevronLeftIcon, CircleStackIcon, InformationCircleIcon } from '@heroicons/vue/24/outline';
 import { ChevronDownIcon, ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
-import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 
@@ -14,6 +13,9 @@ import type {
   OnboardingBootMode,
   OnboardingInternalBootSelection,
 } from '@/components/Onboarding/store/onboardingDraft';
+import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
+
+import { GetInternalBootContextDocument } from '~/composables/gql/graphql';
 
 export interface Props {
   onComplete: () => void;
@@ -47,30 +49,6 @@ interface InternalBootTemplateData {
   reservedNames: string[];
   shareNames: string[];
   poolNames: string[];
-}
-
-interface InternalBootContext {
-  array: {
-    state?: string | null;
-    boot?: { device?: string | null } | null;
-    parities: { device?: string | null }[];
-    disks: { device?: string | null }[];
-    caches: { name?: string | null; device?: string | null }[];
-  };
-  vars?: {
-    fsState?: string | null;
-    bootEligible?: boolean | null;
-    enableBootTransfer?: string | null;
-    reservedNames?: string | null;
-  } | null;
-  shares: { name?: string | null }[];
-  disks: {
-    device: string;
-    size: number;
-    serialNum?: string | null;
-    emhttpDeviceId?: string | null;
-    interfaceType?: string | null;
-  }[];
 }
 
 type InternalBootTransferState = 'enabled' | 'disabled' | 'unknown';
@@ -166,7 +144,7 @@ const {
   result: contextResult,
   loading: contextLoading,
   error: contextError,
-} = useQuery(GET_INTERNAL_BOOT_CONTEXT_QUERY, null, {
+} = useQuery(GetInternalBootContextDocument, null, {
   fetchPolicy: 'network-only',
 });
 
@@ -203,7 +181,7 @@ const addDiskEligibilityCode = (
 };
 
 const diskEligibilityCodesByDevice = computed(() => {
-  const data = contextResult.value as InternalBootContext | null;
+  const data: GetInternalBootContextQuery | null | undefined = contextResult.value;
   const codesByDevice = new Map<string, Set<InternalBootDiskEligibilityCode>>();
   if (!data) {
     return codesByDevice;
@@ -224,7 +202,7 @@ const diskEligibilityCodesByDevice = computed(() => {
 });
 
 const templateData = computed<InternalBootTemplateData | null>(() => {
-  const data = contextResult.value as InternalBootContext | null;
+  const data: GetInternalBootContextQuery | null | undefined = contextResult.value;
   if (!data) {
     return null;
   }

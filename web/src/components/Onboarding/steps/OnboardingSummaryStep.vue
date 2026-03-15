@@ -39,7 +39,6 @@ import {
   UPDATE_SSH_SETTINGS_MUTATION,
 } from '@/components/Onboarding/graphql/coreSettings.mutations';
 import { GET_CORE_SETTINGS_QUERY } from '@/components/Onboarding/graphql/getCoreSettings.query';
-import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
 import { useOnboardingModalStore } from '@/components/Onboarding/store/onboardingModalVisibility';
@@ -49,10 +48,15 @@ import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
 import type { OnboardingErrorDiagnostics } from '@/components/Onboarding/composables/onboardingErrorDiagnostics';
+import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
-import { PluginInstallStatus, ThemeName } from '~/composables/gql/graphql';
+import {
+  GetInternalBootContextDocument,
+  PluginInstallStatus,
+  ThemeName,
+} from '~/composables/gql/graphql';
 
 export interface Props {
   onComplete: () => void;
@@ -95,7 +99,7 @@ const { result: installedPluginsResult, refetch: refetchInstalledPlugins } = use
 const { result: availableLanguagesResult } = useQuery(GET_AVAILABLE_LANGUAGES_QUERY, null, {
   fetchPolicy: 'cache-first',
 });
-const { result: internalBootContextResult } = useQuery(GET_INTERNAL_BOOT_CONTEXT_QUERY, null, {
+const { result: internalBootContextResult } = useQuery(GetInternalBootContextDocument, null, {
   fetchPolicy: 'network-only',
 });
 
@@ -133,17 +137,6 @@ const displayLanguage = computed(() => {
 const summaryServerDescription = computed(
   () => draftStore.serverDescription || coreSettingsResult.value?.server?.comment || ''
 );
-
-interface InternalBootContextDisk {
-  device: string;
-  size: number;
-  serialNum?: string | null;
-  emhttpDeviceId?: string | null;
-}
-
-interface InternalBootContextData {
-  disks?: InternalBootContextDisk[];
-}
 
 const showBootConfiguration = computed(
   () => draftStore.internalBootInitialized && !draftStore.internalBootSkipped
@@ -195,7 +188,7 @@ const normalizeDeviceName = (value: string | null | undefined): string => {
 };
 
 const internalBootDeviceLabelById = computed(() => {
-  const data = internalBootContextResult.value as InternalBootContextData | null;
+  const data: GetInternalBootContextQuery | null | undefined = internalBootContextResult.value;
   const disks = data?.disks ?? [];
   const labels = new Map<string, string>();
 

@@ -1,9 +1,11 @@
 import { flushPromises, mount } from '@vue/test-utils';
 
-import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
+
 import OnboardingInternalBootStep from '~/components/Onboarding/steps/OnboardingInternalBootStep.vue';
+import { GetInternalBootContextDocument } from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 
 type MockInternalBootSelection = {
@@ -12,30 +14,6 @@ type MockInternalBootSelection = {
   devices: string[];
   bootSizeMiB: number;
   updateBios: boolean;
-};
-
-type MockContext = {
-  array: {
-    state?: string | null;
-    boot?: { device?: string | null } | null;
-    parities: Array<{ device?: string | null }>;
-    disks: Array<{ device?: string | null }>;
-    caches: Array<{ name?: string | null; device?: string | null }>;
-  };
-  vars?: {
-    fsState?: string | null;
-    bootEligible?: boolean | null;
-    enableBootTransfer?: string | null;
-    reservedNames?: string | null;
-  } | null;
-  shares: Array<{ name?: string | null }>;
-  disks: Array<{
-    device: string;
-    size: number;
-    serialNum?: string | null;
-    emhttpDeviceId?: string | null;
-    interfaceType?: string | null;
-  }>;
 };
 
 const { draftStore, contextResult, contextLoading, contextError, useQueryMock } = vi.hoisted(() => {
@@ -56,7 +34,7 @@ const { draftStore, contextResult, contextLoading, contextError, useQueryMock } 
 
   return {
     draftStore: store,
-    contextResult: { value: null as MockContext | null, __v_isRef: true },
+    contextResult: { value: null as GetInternalBootContextQuery | null, __v_isRef: true },
     contextLoading: { value: false, __v_isRef: true },
     contextError: { value: null as unknown, __v_isRef: true },
     useQueryMock: vi.fn(),
@@ -162,7 +140,7 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
 
     expect(useQueryMock).toHaveBeenCalledWith(
-      GET_INTERNAL_BOOT_CONTEXT_QUERY,
+      GetInternalBootContextDocument,
       null,
       expect.objectContaining({
         fetchPolicy: 'network-only',
