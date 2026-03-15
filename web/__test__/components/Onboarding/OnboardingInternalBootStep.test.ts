@@ -433,10 +433,10 @@ describe('OnboardingInternalBootStep', () => {
     const selects = wrapper.findAll('select');
     expect(selects).toHaveLength(3);
     const deviceSelect = selects[1];
-    expect(deviceSelect.text()).toContain('eligible-disk');
-    expect(deviceSelect.text()).toContain('usb-disk');
-    expect(deviceSelect.text()).not.toContain('cache-disk');
-    expect(deviceSelect.text()).not.toContain('small-disk');
+    expect(deviceSelect.text()).toContain('ELIGIBLE-1');
+    expect(deviceSelect.text()).toContain('USB-1');
+    expect(deviceSelect.text()).not.toContain('CACHE-1');
+    expect(deviceSelect.text()).not.toContain('SMALL-1');
     expect(wrapper.text()).not.toContain('ASSIGNED_TO_CACHE');
     const biosWarning = wrapper.get('[data-testid="internal-boot-update-bios-warning"]');
     const eligibilityPanel = wrapper.get('[data-testid="internal-boot-eligibility-panel"]');
