@@ -1,6 +1,7 @@
 import pino from 'pino';
 import pretty from 'pino-pretty';
 
+import { PRETTY_LOG_TIME_FORMAT } from '@app/core/log.constants.js';
 import { API_VERSION, LOG_LEVEL, LOG_TYPE, PATHS_LOGS_FILE, SUPPRESS_LOGS } from '@app/environment.js';
 
 export const levels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const;
@@ -36,7 +37,7 @@ const stream = SUPPRESS_LOGS
             levelFirst: false,
             ignore: 'hostname,pid',
             destination: logDestination,
-            translateTime: 'SYS:HH:mm:ss',
+            translateTime: PRETTY_LOG_TIME_FORMAT,
             customPrettifiers: {
                 time: (timestamp: string | object) => `[${timestamp}`,
                 level: (_logLevel: string | object, _key: string, log: any, extras: any) => {
