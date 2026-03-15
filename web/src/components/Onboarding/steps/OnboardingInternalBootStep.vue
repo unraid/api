@@ -6,7 +6,6 @@ import { useQuery } from '@vue/apollo-composable';
 import { ChevronLeftIcon, CircleStackIcon, InformationCircleIcon } from '@heroicons/vue/24/outline';
 import { ChevronDownIcon, ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
-import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 
@@ -14,6 +13,9 @@ import type {
   OnboardingBootMode,
   OnboardingInternalBootSelection,
 } from '@/components/Onboarding/store/onboardingDraft';
+import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
+
+import { GetInternalBootContextDocument } from '~/composables/gql/graphql';
 
 export interface Props {
   onComplete: () => void;
@@ -47,29 +49,6 @@ interface InternalBootTemplateData {
   reservedNames: string[];
   shareNames: string[];
   poolNames: string[];
-}
-
-interface InternalBootContext {
-  array: {
-    state?: string | null;
-    boot?: { device?: string | null } | null;
-    parities: { device?: string | null }[];
-    disks: { device?: string | null }[];
-    caches: { name?: string | null; device?: string | null }[];
-  };
-  vars?: {
-    fsState?: string | null;
-    bootEligible?: boolean | null;
-    enableBootTransfer?: string | null;
-    reservedNames?: string | null;
-  } | null;
-  shares: { name?: string | null }[];
-  disks: {
-    device: string;
-    size: number;
-    emhttpDeviceId?: string | null;
-    interfaceType?: string | null;
-  }[];
 }
 
 type InternalBootTransferState = 'enabled' | 'disabled' | 'unknown';
@@ -153,20 +132,20 @@ const normalizeDeviceName = (value: string | null | undefined): string => {
   return trimmed;
 };
 
-const buildDeviceLabel = (optionValue: string, sizeLabel: string, device: string): string => {
-  if (optionValue === device) {
-    return `${optionValue} - ${sizeLabel}`;
+const buildDeviceLabel = (displayId: string, sizeLabel: string, device: string): string => {
+  if (displayId === device) {
+    return `${displayId} - ${sizeLabel}`;
   }
 
-  return `${optionValue} - ${sizeLabel} (${device})`;
+  return `${displayId} - ${sizeLabel} (${device})`;
 };
 
 const {
   result: contextResult,
   loading: contextLoading,
   error: contextError,
-} = useQuery(GET_INTERNAL_BOOT_CONTEXT_QUERY, null, {
-  fetchPolicy: 'cache-first',
+} = useQuery(GetInternalBootContextDocument, null, {
+  fetchPolicy: 'network-only',
 });
 
 const formError = ref<string | null>(null);
@@ -202,7 +181,7 @@ const addDiskEligibilityCode = (
 };
 
 const diskEligibilityCodesByDevice = computed(() => {
-  const data = contextResult.value as InternalBootContext | null;
+  const data: GetInternalBootContextQuery | null | undefined = contextResult.value;
   const codesByDevice = new Map<string, Set<InternalBootDiskEligibilityCode>>();
   if (!data) {
     return codesByDevice;
@@ -223,7 +202,7 @@ const diskEligibilityCodesByDevice = computed(() => {
 });
 
 const templateData = computed<InternalBootTemplateData | null>(() => {
-  const data = contextResult.value as InternalBootContext | null;
+  const data: GetInternalBootContextQuery | null | undefined = contextResult.value;
   if (!data) {
     return null;
   }
@@ -239,12 +218,14 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
         ineligibilityCodes.push('TOO_SMALL');
       }
 
+      const serialNum = disk.serialNum?.trim() || '';
       const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
       const optionValue = emhttpDeviceId || device;
+      const displayId = serialNum || emhttpDeviceId || device;
       const sizeLabel = formatBytes(sizeBytes);
       return {
         value: optionValue,
-        label: buildDeviceLabel(optionValue, sizeLabel, device),
+        label: buildDeviceLabel(displayId, sizeLabel, device),
         device,
         sizeMiB,
         ineligibilityCodes,
