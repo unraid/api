@@ -195,11 +195,12 @@ const handleSkipOnboarding = async () => {
   }
 
   isSkipping.value = true;
+  cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
+
   try {
     await completeOnboarding();
     await new Promise((r) => setTimeout(r, 500));
     await refetchOnboarding();
-    cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
     window.location.reload();
   } catch (e) {
     console.error(e);

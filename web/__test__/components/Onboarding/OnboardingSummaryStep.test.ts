@@ -41,6 +41,7 @@ const {
   installLanguageMock,
   installPluginMock,
   submitInternalBootCreationMock,
+  cleanupOnboardingStorageMock,
   useMutationMock,
   useQueryMock,
 } = vi.hoisted(() => ({
@@ -98,6 +99,7 @@ const {
   installLanguageMock: vi.fn(),
   installPluginMock: vi.fn(),
   submitInternalBootCreationMock: vi.fn(),
+  cleanupOnboardingStorageMock: vi.fn(),
   useMutationMock: vi.fn(),
   useQueryMock: vi.fn(),
 }));
@@ -168,6 +170,10 @@ vi.mock('@/components/Onboarding/store/onboardingStatus', () => ({
   useOnboardingStore: () => ({
     refetchOnboarding: refetchOnboardingMock,
   }),
+}));
+
+vi.mock('@/components/Onboarding/store/onboardingStorageCleanup', () => ({
+  cleanupOnboardingStorage: cleanupOnboardingStorageMock,
 }));
 
 vi.mock('@/components/Onboarding/composables/usePluginInstaller', () => ({
@@ -887,6 +893,7 @@ describe('OnboardingSummaryStep', () => {
       assertExpected: (wrapper: ReturnType<typeof mountComponent>['wrapper']) => {
         expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
         expect(refetchOnboardingMock).not.toHaveBeenCalled();
+        expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
         expect(wrapper.text()).toContain(
           'Could not mark onboarding complete right now (API may be offline): offline'
         );
@@ -900,6 +907,15 @@ describe('OnboardingSummaryStep', () => {
     await clickApply(wrapper);
 
     scenario.assertExpected(wrapper);
+  });
+
+  it('does not clear onboarding draft after a successful apply while still in the flow', async () => {
+    const { wrapper } = mountComponent();
+
+    await clickApply(wrapper);
+
+    expect(completeOnboardingMock).toHaveBeenCalledTimes(1);
+    expect(cleanupOnboardingStorageMock).not.toHaveBeenCalled();
   });
 
   it('retries completeOnboarding after transient network errors when SSH changed', async () => {

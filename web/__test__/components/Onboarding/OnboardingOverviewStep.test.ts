@@ -8,6 +8,7 @@ import { createTestI18n } from '../../utils/i18n';
 
 const {
   completeOnboardingMock,
+  cleanupOnboardingStorageMock,
   refetchOnboardingMock,
   partnerInfoRef,
   isFreshInstallRef,
@@ -17,6 +18,7 @@ const {
   themeRef,
 } = vi.hoisted(() => ({
   completeOnboardingMock: vi.fn().mockResolvedValue({}),
+  cleanupOnboardingStorageMock: vi.fn(),
   refetchOnboardingMock: vi.fn().mockResolvedValue({}),
   partnerInfoRef: {
     value: {
@@ -90,7 +92,7 @@ vi.mock('@/store/theme', () => ({
 }));
 
 vi.mock('@/components/Onboarding/store/onboardingStorageCleanup', () => ({
-  cleanupOnboardingStorage: vi.fn(),
+  cleanupOnboardingStorage: cleanupOnboardingStorageMock,
 }));
 
 describe('OnboardingOverviewStep', () => {
@@ -139,5 +141,26 @@ describe('OnboardingOverviewStep', () => {
     const updatedImg = wrapper.find('img');
     expect(updatedImg.attributes('src')).toBe(limitlessImage);
     expect(updatedImg.attributes('alt')).toBe('Limitless Possibilities');
+  });
+
+  it('clears onboarding draft immediately when skipping setup', async () => {
+    const wrapper = mountComponent();
+
+    await wrapper.findAll('button')[1]?.trigger('click');
+
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
+      clearTemporaryBypassSessionState: true,
+    });
+  });
+
+  it('still clears onboarding draft when skip completion fails', async () => {
+    completeOnboardingMock.mockRejectedValueOnce(new Error('offline'));
+    const wrapper = mountComponent();
+
+    await wrapper.findAll('button')[1]?.trigger('click');
+
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
+      clearTemporaryBypassSessionState: true,
+    });
   });
 });
