@@ -5,7 +5,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
 
 import OnboardingInternalBootStep from '~/components/Onboarding/steps/OnboardingInternalBootStep.vue';
-import { GetInternalBootContextDocument } from '~/composables/gql/graphql';
+import {
+  ArrayState,
+  DiskInterfaceType,
+  GetInternalBootContextDocument,
+} from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 
 type MockInternalBootSelection = {
@@ -91,7 +95,7 @@ describe('OnboardingInternalBootStep', () => {
     draftStore.bootMode = 'storage';
     contextResult.value = {
       array: {
-        state: 'STARTED',
+        state: ArrayState.STARTED,
         boot: { device: '/dev/sda' },
         parities: [{ device: '/dev/sdb' }],
         disks: [{ device: '/dev/sdc' }],
@@ -105,12 +109,48 @@ describe('OnboardingInternalBootStep', () => {
       },
       shares: [],
       disks: [
-        { device: '/dev/sda', size: gib(32), emhttpDeviceId: 'boot-disk', interfaceType: 'SATA' },
-        { device: '/dev/sdb', size: gib(32), emhttpDeviceId: 'parity-disk', interfaceType: 'SATA' },
-        { device: '/dev/sdc', size: gib(32), emhttpDeviceId: 'array-disk', interfaceType: 'SATA' },
-        { device: '/dev/sdd', size: gib(32), emhttpDeviceId: 'cache-disk', interfaceType: 'SATA' },
-        { device: '/dev/sde', size: gib(6), emhttpDeviceId: 'small-disk', interfaceType: 'SATA' },
-        { device: '/dev/sdf', size: gib(32), emhttpDeviceId: 'usb-disk', interfaceType: 'USB' },
+        {
+          device: '/dev/sda',
+          size: gib(32),
+          serialNum: 'BOOT-1',
+          emhttpDeviceId: 'boot-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+        {
+          device: '/dev/sdb',
+          size: gib(32),
+          serialNum: 'PARITY-1',
+          emhttpDeviceId: 'parity-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+        {
+          device: '/dev/sdc',
+          size: gib(32),
+          serialNum: 'ARRAY-1',
+          emhttpDeviceId: 'array-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+        {
+          device: '/dev/sdd',
+          size: gib(32),
+          serialNum: 'CACHE-1',
+          emhttpDeviceId: 'cache-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+        {
+          device: '/dev/sde',
+          size: gib(6),
+          serialNum: 'SMALL-1',
+          emhttpDeviceId: 'small-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+        {
+          device: '/dev/sdf',
+          size: gib(32),
+          serialNum: 'USB-1',
+          emhttpDeviceId: 'usb-disk',
+          interfaceType: DiskInterfaceType.USB,
+        },
       ],
     };
 
@@ -152,7 +192,7 @@ describe('OnboardingInternalBootStep', () => {
     draftStore.bootMode = 'storage';
     contextResult.value = {
       array: {
-        state: 'STOPPED',
+        state: ArrayState.STOPPED,
         boot: null,
         parities: [],
         disks: [],
@@ -171,7 +211,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'WD-TEST-1234',
           emhttpDeviceId: 'eligible-disk',
-          interfaceType: 'SATA',
+          interfaceType: DiskInterfaceType.SATA,
         },
       ],
     };
@@ -187,7 +227,7 @@ describe('OnboardingInternalBootStep', () => {
     draftStore.bootMode = 'storage';
     contextResult.value = {
       array: {
-        state: 'STOPPED',
+        state: ArrayState.STOPPED,
         boot: null,
         parities: [],
         disks: [],
@@ -201,7 +241,13 @@ describe('OnboardingInternalBootStep', () => {
       },
       shares: [],
       disks: [
-        { device: '/dev/sda', size: gib(32), emhttpDeviceId: 'eligible-disk', interfaceType: 'SATA' },
+        {
+          device: '/dev/sda',
+          size: gib(32),
+          serialNum: 'ELIGIBLE-1',
+          emhttpDeviceId: 'eligible-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
       ],
     };
 
@@ -219,7 +265,7 @@ describe('OnboardingInternalBootStep', () => {
     draftStore.bootMode = 'storage';
     contextResult.value = {
       array: {
-        state: 'STOPPED',
+        state: ArrayState.STOPPED,
         boot: null,
         parities: [],
         disks: [],
@@ -233,7 +279,13 @@ describe('OnboardingInternalBootStep', () => {
       },
       shares: [],
       disks: [
-        { device: '/dev/sda', size: gib(32), emhttpDeviceId: 'eligible-disk', interfaceType: 'SATA' },
+        {
+          device: '/dev/sda',
+          size: gib(32),
+          serialNum: 'ELIGIBLE-1',
+          emhttpDeviceId: 'eligible-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
       ],
     };
 
@@ -247,7 +299,7 @@ describe('OnboardingInternalBootStep', () => {
     draftStore.bootMode = 'storage';
     contextResult.value = {
       array: {
-        state: 'STOPPED',
+        state: ArrayState.STOPPED,
         boot: { device: '/dev/sda' },
         parities: [{ device: '/dev/sdb' }],
         disks: [],
@@ -261,8 +313,20 @@ describe('OnboardingInternalBootStep', () => {
       },
       shares: [],
       disks: [
-        { device: '/dev/sda', size: gib(32), emhttpDeviceId: 'boot-disk', interfaceType: 'SATA' },
-        { device: '/dev/sdb', size: gib(32), emhttpDeviceId: 'parity-disk', interfaceType: 'SATA' },
+        {
+          device: '/dev/sda',
+          size: gib(32),
+          serialNum: 'BOOT-1',
+          emhttpDeviceId: 'boot-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+        {
+          device: '/dev/sdb',
+          size: gib(32),
+          serialNum: 'PARITY-1',
+          emhttpDeviceId: 'parity-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
       ],
     };
 
@@ -281,7 +345,7 @@ describe('OnboardingInternalBootStep', () => {
     draftStore.bootMode = 'storage';
     contextResult.value = {
       array: {
-        state: 'STARTED',
+        state: ArrayState.STARTED,
         boot: null,
         parities: [],
         disks: [],
@@ -295,7 +359,13 @@ describe('OnboardingInternalBootStep', () => {
       },
       shares: [],
       disks: [
-        { device: '/dev/sda', size: gib(32), emhttpDeviceId: 'eligible-disk', interfaceType: 'SATA' },
+        {
+          device: '/dev/sda',
+          size: gib(32),
+          serialNum: 'ELIGIBLE-1',
+          emhttpDeviceId: 'eligible-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
       ],
     };
 
@@ -311,7 +381,7 @@ describe('OnboardingInternalBootStep', () => {
     draftStore.bootMode = 'storage';
     contextResult.value = {
       array: {
-        state: 'STOPPED',
+        state: ArrayState.STOPPED,
         boot: null,
         parities: [],
         disks: [],
@@ -325,10 +395,34 @@ describe('OnboardingInternalBootStep', () => {
       },
       shares: [],
       disks: [
-        { device: '/dev/sda', size: gib(32), emhttpDeviceId: 'cache-disk', interfaceType: 'SATA' },
-        { device: '/dev/sdb', size: gib(6), emhttpDeviceId: 'small-disk', interfaceType: 'SATA' },
-        { device: '/dev/sdc', size: gib(32), emhttpDeviceId: 'eligible-disk', interfaceType: 'SATA' },
-        { device: '/dev/sdd', size: gib(32), emhttpDeviceId: 'usb-disk', interfaceType: 'USB' },
+        {
+          device: '/dev/sda',
+          size: gib(32),
+          serialNum: 'CACHE-1',
+          emhttpDeviceId: 'cache-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+        {
+          device: '/dev/sdb',
+          size: gib(6),
+          serialNum: 'SMALL-1',
+          emhttpDeviceId: 'small-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+        {
+          device: '/dev/sdc',
+          size: gib(32),
+          serialNum: 'ELIGIBLE-1',
+          emhttpDeviceId: 'eligible-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+        {
+          device: '/dev/sdd',
+          size: gib(32),
+          serialNum: 'USB-1',
+          emhttpDeviceId: 'usb-disk',
+          interfaceType: DiskInterfaceType.USB,
+        },
       ],
     };
 

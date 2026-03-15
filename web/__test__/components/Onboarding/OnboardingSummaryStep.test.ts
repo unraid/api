@@ -16,7 +16,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
 
 import OnboardingSummaryStep from '~/components/Onboarding/steps/OnboardingSummaryStep.vue';
-import { GetInternalBootContextDocument, PluginInstallStatus } from '~/composables/gql/graphql';
+import {
+  ArrayState,
+  DiskInterfaceType,
+  GetInternalBootContextDocument,
+  PluginInstallStatus,
+} from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 
 const {
@@ -303,6 +308,7 @@ describe('OnboardingSummaryStep', () => {
     };
     internalBootContextResult.value = {
       array: {
+        state: ArrayState.STOPPED,
         boot: null,
         parities: [],
         disks: [],
@@ -311,20 +317,21 @@ describe('OnboardingSummaryStep', () => {
       vars: {
         bootEligible: true,
       },
+      shares: [],
       disks: [
         {
           device: '/dev/sda',
           size: 500 * 1024 * 1024 * 1024,
+          serialNum: 'DISK-A',
           emhttpDeviceId: 'diskA',
-          emhttpSectors: null,
-          emhttpSectorSize: null,
+          interfaceType: DiskInterfaceType.SATA,
         },
         {
           device: '/dev/sdb',
           size: 250 * 1024 * 1024 * 1024,
+          serialNum: 'DISK-B',
           emhttpDeviceId: 'diskB',
-          emhttpSectors: null,
-          emhttpSectorSize: null,
+          interfaceType: DiskInterfaceType.SATA,
         },
       ],
     };
