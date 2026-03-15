@@ -6,6 +6,7 @@ import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
+import { submitInternalBootReboot } from '@/components/Onboarding/composables/internalBoot';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 import { GET_INTERNAL_BOOT_STEP_VISIBILITY_QUERY } from '@/components/Onboarding/graphql/getInternalBootStepVisibility.query';
 
@@ -190,7 +191,7 @@ const completePendingOnboarding = async () => {
   }
 };
 
-const closeModal = async (options?: { reload?: boolean }) => {
+const closeModal = async (options?: { reload?: boolean; onAfterClose?: () => void | Promise<void> }) => {
   const wasForceOpened = isForceOpened.value;
 
   if (shouldShowOnboarding.value && !wasForceOpened) {
@@ -204,6 +205,11 @@ const closeModal = async (options?: { reload?: boolean }) => {
   }
   onboardingModalStore.clearForceOpened();
   onboardingModalStore.setIsHidden(true);
+
+  if (options?.onAfterClose) {
+    await options.onAfterClose();
+    return;
+  }
 
   if (options?.reload) {
     window.location.reload();
@@ -363,9 +369,19 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
       };
 
     case 'SUMMARY':
+      return {
+        ...baseProps,
+      };
+
     case 'NEXT_STEPS':
       return {
         ...baseProps,
+        onReboot: () =>
+          closeModal({
+            onAfterClose: () => {
+              submitInternalBootReboot();
+            },
+          }),
       };
 
     default:

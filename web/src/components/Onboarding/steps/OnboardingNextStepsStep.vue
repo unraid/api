@@ -22,6 +22,7 @@ import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardin
 
 export interface Props {
   onComplete: () => void;
+  onReboot?: () => void | Promise<void>;
   onBack?: () => void;
   showBack?: boolean;
 }
@@ -92,8 +93,13 @@ const handlePrimaryAction = () => {
   props.onComplete();
 };
 
-const handleConfirmReboot = () => {
+const handleConfirmReboot = async () => {
   showRebootWarningDialog.value = false;
+  if (props.onReboot) {
+    await props.onReboot();
+    return;
+  }
+
   submitInternalBootReboot();
 };
 

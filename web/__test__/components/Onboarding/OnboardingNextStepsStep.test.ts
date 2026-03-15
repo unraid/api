@@ -61,9 +61,11 @@ describe('OnboardingNextStepsStep', () => {
 
   const mountComponent = () => {
     const onComplete = vi.fn();
+    const onReboot = vi.fn();
     const wrapper = mount(OnboardingNextStepsStep, {
       props: {
         onComplete,
+        onReboot,
         showBack: true,
       },
       global: {
@@ -71,7 +73,7 @@ describe('OnboardingNextStepsStep', () => {
       },
     });
 
-    return { wrapper, onComplete };
+    return { wrapper, onComplete, onReboot };
   };
 
   it('continues to dashboard when reboot is not required', async () => {
@@ -87,7 +89,7 @@ describe('OnboardingNextStepsStep', () => {
 
   it('shows reboot warning dialog and waits for confirmation', async () => {
     draftStore.internalBootApplySucceeded = true;
-    const { wrapper, onComplete } = mountComponent();
+    const { wrapper, onComplete, onReboot } = mountComponent();
 
     const button = wrapper.find('[data-testid="brand-button"]');
     await button.trigger('click');
@@ -105,7 +107,34 @@ describe('OnboardingNextStepsStep', () => {
     await confirmButton!.trigger('click');
     await flushPromises();
 
-    expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
+    expect(onReboot).toHaveBeenCalledTimes(1);
+    expect(submitInternalBootRebootMock).not.toHaveBeenCalled();
     expect(onComplete).not.toHaveBeenCalled();
+  });
+
+  it('falls back to direct reboot when no exit handler is provided', async () => {
+    draftStore.internalBootApplySucceeded = true;
+    const onComplete = vi.fn();
+    const wrapper = mount(OnboardingNextStepsStep, {
+      props: {
+        onComplete,
+        showBack: true,
+      },
+      global: {
+        plugins: [createTestI18n()],
+      },
+    });
+
+    await wrapper.find('[data-testid="brand-button"]').trigger('click');
+    await flushPromises();
+
+    const confirmButton = wrapper
+      .findAll('button')
+      .find((candidate) => candidate.text().trim() === 'I Understand');
+    expect(confirmButton).toBeTruthy();
+    await confirmButton!.trigger('click');
+    await flushPromises();
+
+    expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
   });
 });
