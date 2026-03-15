@@ -78,14 +78,23 @@ const initialSelection = draftStore.pluginSelectionInitialized
 const selectedPlugins = ref<Set<string>>(initialSelection);
 const installedPluginIds = ref<Set<string>>(new Set());
 
-const { result: installedPluginsResult } = useQuery(INSTALLED_UNRAID_PLUGINS_QUERY, null, {
-  fetchPolicy: 'network-only',
-});
+const { result: installedPluginsResult, loading: installedPluginsLoading } = useQuery(
+  INSTALLED_UNRAID_PLUGINS_QUERY,
+  null,
+  {
+    fetchPolicy: 'network-only',
+  }
+);
 
 const isPluginInstalled = (pluginId: string) => installedPluginIds.value.has(pluginId);
 const isPluginEnabled = (pluginId: string) =>
   installedPluginIds.value.has(pluginId) || selectedPlugins.value.has(pluginId);
-const isBusy = computed(() => props.isSavingStep ?? false);
+const isInstalledPluginsPending = computed(
+  () =>
+    installedPluginsLoading.value &&
+    !Array.isArray(installedPluginsResult.value?.installedUnraidPlugins)
+);
+const isBusy = computed(() => (props.isSavingStep ?? false) || isInstalledPluginsPending.value);
 const persistedSelectedPlugins = computed(
   () => new Set<string>([...selectedPlugins.value, ...installedPluginIds.value])
 );

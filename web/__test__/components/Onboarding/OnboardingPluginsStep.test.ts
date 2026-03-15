@@ -12,6 +12,9 @@ const { draftStore, installedPluginsResult, useQueryMock } = vi.hoisted(() => ({
     pluginSelectionInitialized: false,
     setPlugins: vi.fn(),
   },
+  installedPluginsLoading: {
+    value: false,
+  },
   installedPluginsResult: {
     value: {
       installedUnraidPlugins: [],
@@ -63,6 +66,7 @@ describe('OnboardingPluginsStep', () => {
     vi.clearAllMocks();
     draftStore.selectedPlugins = new Set();
     draftStore.pluginSelectionInitialized = false;
+    installedPluginsLoading.value = false;
     installedPluginsResult.value = {
       installedUnraidPlugins: [],
     };
@@ -71,6 +75,7 @@ describe('OnboardingPluginsStep', () => {
       if (query === INSTALLED_UNRAID_PLUGINS_QUERY) {
         return {
           result: installedPluginsResult,
+          loading: installedPluginsLoading,
         };
       }
       return { result: { value: null } };
@@ -103,7 +108,7 @@ describe('OnboardingPluginsStep', () => {
 
     await flushPromises();
 
-    const switches = wrapper.findAll('[data-testid="plugin-switch"]');
+    const switches = wrapper.findAll('input[type="checkbox"]');
     expect(switches.length).toBe(3);
     expect((switches[0].element as HTMLInputElement).checked).toBe(true);
     expect((switches[1].element as HTMLInputElement).checked).toBe(false);
@@ -113,7 +118,7 @@ describe('OnboardingPluginsStep', () => {
     }
 
     const nextButton = wrapper
-      .findAll('[data-testid="brand-button"]')
+      .findAll('button')
       .find((button) => button.text().toLowerCase().includes('next'));
 
     expect(nextButton).toBeTruthy();
@@ -135,14 +140,14 @@ describe('OnboardingPluginsStep', () => {
 
     await flushPromises();
 
-    const switches = wrapper.findAll('[data-testid="plugin-switch"]');
+    const switches = wrapper.findAll('input[type="checkbox"]');
     expect(switches.length).toBe(3);
     expect((switches[0].element as HTMLInputElement).checked).toBe(true);
     expect((switches[1].element as HTMLInputElement).checked).toBe(true);
     expect((switches[2].element as HTMLInputElement).checked).toBe(true);
 
     const nextButton = wrapper
-      .findAll('[data-testid="brand-button"]')
+      .findAll('button')
       .find((button) => button.text().toLowerCase().includes('next'));
 
     expect(nextButton).toBeTruthy();
@@ -151,8 +156,28 @@ describe('OnboardingPluginsStep', () => {
     expect(draftStore.setPlugins).toHaveBeenCalled();
     const lastCallIndex = draftStore.setPlugins.mock.calls.length - 1;
     const selected = draftStore.setPlugins.mock.calls[lastCallIndex][0] as Set<string>;
-    expect(Array.from(selected).sort()).toEqual(['community-apps', 'fix-common-problems', 'tailscale']);
+    expect(Array.from(selected).sort()).toEqual([
+      'community-apps',
+      'fix-common-problems',
+      'tailscale',
+    ]);
     expect(props.onComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables the primary action until installed plugins finish loading', async () => {
+    installedPluginsLoading.value = true;
+    installedPluginsResult.value = null;
+
+    const { wrapper } = mountComponent();
+
+    await flushPromises();
+
+    const nextButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().toLowerCase().includes('next'));
+
+    expect(nextButton).toBeTruthy();
+    expect((nextButton!.element as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('skip clears selection and calls onSkip', async () => {
