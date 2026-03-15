@@ -80,7 +80,7 @@ const { result: internalBootVisibilityResult } = useQuery(
   GET_INTERNAL_BOOT_STEP_VISIBILITY_QUERY,
   null,
   {
-    fetchPolicy: 'cache-first',
+    fetchPolicy: 'network-only',
   }
 );
 

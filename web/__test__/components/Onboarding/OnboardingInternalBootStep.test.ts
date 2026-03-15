@@ -1,5 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils';
 
+import { GET_INTERNAL_BOOT_CONTEXT_QUERY } from '@/components/Onboarding/graphql/getInternalBootContext.query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import OnboardingInternalBootStep from '~/components/Onboarding/steps/OnboardingInternalBootStep.vue';
@@ -31,12 +32,13 @@ type MockContext = {
   disks: Array<{
     device: string;
     size: number;
+    serialNum?: string | null;
     emhttpDeviceId?: string | null;
     interfaceType?: string | null;
   }>;
 };
 
-const { draftStore, contextResult, contextLoading, contextError } = vi.hoisted(() => {
+const { draftStore, contextResult, contextLoading, contextError, useQueryMock } = vi.hoisted(() => {
   const store = {
     bootMode: 'usb' as 'usb' | 'storage',
     internalBootSelection: null as MockInternalBootSelection | null,
@@ -57,6 +59,7 @@ const { draftStore, contextResult, contextLoading, contextError } = vi.hoisted((
     contextResult: { value: null as MockContext | null, __v_isRef: true },
     contextLoading: { value: false, __v_isRef: true },
     contextError: { value: null as unknown, __v_isRef: true },
+    useQueryMock: vi.fn(),
   };
 });
 
@@ -70,11 +73,13 @@ vi.mock('@unraid/ui', () => ({
 }));
 
 vi.mock('@vue/apollo-composable', () => ({
-  useQuery: () => ({
-    result: contextResult,
-    loading: contextLoading,
-    error: contextError,
-  }),
+  useQuery: useQueryMock,
+}));
+
+useQueryMock.mockImplementation(() => ({
+  result: contextResult,
+  loading: contextLoading,
+  error: contextError,
 }));
 
 vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
@@ -150,6 +155,54 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.text()).toContain('TOO_SMALL');
     expect(wrapper.text()).not.toContain('NO_UNASSIGNED_DISKS');
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeDefined();
+  });
+
+  it('loads internal boot context from the network when the step mounts', async () => {
+    mountComponent();
+    await flushPromises();
+
+    expect(useQueryMock).toHaveBeenCalledWith(
+      GET_INTERNAL_BOOT_CONTEXT_QUERY,
+      null,
+      expect.objectContaining({
+        fetchPolicy: 'network-only',
+      })
+    );
+  });
+
+  it('shows drive serials in the selectable device labels', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = {
+      array: {
+        state: 'STOPPED',
+        boot: null,
+        parities: [],
+        disks: [],
+        caches: [],
+      },
+      vars: {
+        fsState: 'Stopped',
+        bootEligible: true,
+        enableBootTransfer: 'yes',
+        reservedNames: '',
+      },
+      shares: [],
+      disks: [
+        {
+          device: '/dev/sda',
+          size: gib(32),
+          serialNum: 'WD-TEST-1234',
+          emhttpDeviceId: 'eligible-disk',
+          interfaceType: 'SATA',
+        },
+      ],
+    };
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('WD-TEST-1234 - 32.0 GB (sda)');
+    expect(wrapper.text()).not.toContain('eligible-disk - 32.0 GB (sda)');
   });
 
   it('defaults the storage pool name to cache', async () => {

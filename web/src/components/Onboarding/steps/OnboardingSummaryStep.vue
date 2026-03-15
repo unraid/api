@@ -96,7 +96,7 @@ const { result: availableLanguagesResult } = useQuery(GET_AVAILABLE_LANGUAGES_QU
   fetchPolicy: 'cache-first',
 });
 const { result: internalBootContextResult } = useQuery(GET_INTERNAL_BOOT_CONTEXT_QUERY, null, {
-  fetchPolicy: 'cache-first',
+  fetchPolicy: 'network-only',
 });
 
 const draftPluginsCount = computed(() => draftStore.selectedPlugins?.size ?? 0);
@@ -137,6 +137,7 @@ const summaryServerDescription = computed(
 interface InternalBootContextDisk {
   device: string;
   size: number;
+  serialNum?: string | null;
   emhttpDeviceId?: string | null;
 }
 
@@ -204,11 +205,14 @@ const internalBootDeviceLabelById = computed(() => {
       continue;
     }
 
+    const serialNum = disk.serialNum?.trim() || '';
     const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
     const optionValue = emhttpDeviceId || device;
+    const displayId = serialNum || emhttpDeviceId || device;
     const sizeBytes = disk.size;
     const sizeLabel = formatBytes(sizeBytes);
-    const label = `${optionValue} - ${sizeLabel} (${device})`;
+    const label =
+      displayId === device ? `${displayId} - ${sizeLabel}` : `${displayId} - ${sizeLabel} (${device})`;
 
     labels.set(optionValue, label);
     labels.set(device, label);

@@ -67,6 +67,7 @@ interface InternalBootContext {
   disks: {
     device: string;
     size: number;
+    serialNum?: string | null;
     emhttpDeviceId?: string | null;
     interfaceType?: string | null;
   }[];
@@ -153,12 +154,12 @@ const normalizeDeviceName = (value: string | null | undefined): string => {
   return trimmed;
 };
 
-const buildDeviceLabel = (optionValue: string, sizeLabel: string, device: string): string => {
-  if (optionValue === device) {
-    return `${optionValue} - ${sizeLabel}`;
+const buildDeviceLabel = (displayId: string, sizeLabel: string, device: string): string => {
+  if (displayId === device) {
+    return `${displayId} - ${sizeLabel}`;
   }
 
-  return `${optionValue} - ${sizeLabel} (${device})`;
+  return `${displayId} - ${sizeLabel} (${device})`;
 };
 
 const {
@@ -166,7 +167,7 @@ const {
   loading: contextLoading,
   error: contextError,
 } = useQuery(GET_INTERNAL_BOOT_CONTEXT_QUERY, null, {
-  fetchPolicy: 'cache-first',
+  fetchPolicy: 'network-only',
 });
 
 const formError = ref<string | null>(null);
@@ -239,12 +240,14 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
         ineligibilityCodes.push('TOO_SMALL');
       }
 
+      const serialNum = disk.serialNum?.trim() || '';
       const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
       const optionValue = emhttpDeviceId || device;
+      const displayId = serialNum || emhttpDeviceId || device;
       const sizeLabel = formatBytes(sizeBytes);
       return {
         value: optionValue,
-        label: buildDeviceLabel(optionValue, sizeLabel, device),
+        label: buildDeviceLabel(displayId, sizeLabel, device),
         device,
         sizeMiB,
         ineligibilityCodes,
