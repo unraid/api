@@ -86,6 +86,9 @@ const isPluginInstalled = (pluginId: string) => installedPluginIds.value.has(plu
 const isPluginEnabled = (pluginId: string) =>
   installedPluginIds.value.has(pluginId) || selectedPlugins.value.has(pluginId);
 const isBusy = computed(() => props.isSavingStep ?? false);
+const persistedSelectedPlugins = computed(
+  () => new Set<string>([...selectedPlugins.value, ...installedPluginIds.value])
+);
 
 const applyInstalledPlugins = (installedPlugins: string[] | null | undefined) => {
   if (!Array.isArray(installedPlugins)) {
@@ -149,7 +152,7 @@ const handleBack = () => {
 };
 
 const handlePrimaryAction = async () => {
-  draftStore.setPlugins(selectedPlugins.value);
+  draftStore.setPlugins(persistedSelectedPlugins.value);
   props.onComplete();
 };
 

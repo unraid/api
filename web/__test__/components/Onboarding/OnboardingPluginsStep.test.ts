@@ -126,6 +126,39 @@ describe('OnboardingPluginsStep', () => {
     expect(props.onComplete).toHaveBeenCalledTimes(1);
   });
 
+  it('persists already installed plugins alongside manual selections', async () => {
+    installedPluginsResult.value = {
+      installedUnraidPlugins: ['fix.common.problems.plg', 'tailscale.plg'],
+    };
+
+    const { wrapper, props } = mountComponent();
+
+    await flushPromises();
+
+    const switches = wrapper.findAll('[data-testid="plugin-switch"]');
+    expect(switches.length).toBe(3);
+    expect((switches[0].element as HTMLInputElement).checked).toBe(true);
+    expect((switches[1].element as HTMLInputElement).checked).toBe(true);
+    expect((switches[2].element as HTMLInputElement).checked).toBe(true);
+
+    const nextButton = wrapper
+      .findAll('[data-testid="brand-button"]')
+      .find((button) => button.text().toLowerCase().includes('next'));
+
+    expect(nextButton).toBeTruthy();
+    await nextButton!.trigger('click');
+
+    expect(draftStore.setPlugins).toHaveBeenCalled();
+    const lastCallIndex = draftStore.setPlugins.mock.calls.length - 1;
+    const selected = draftStore.setPlugins.mock.calls[lastCallIndex][0] as Set<string>;
+    expect(Array.from(selected).sort()).toEqual([
+      'community-apps',
+      'fix-common-problems',
+      'tailscale',
+    ]);
+    expect(props.onComplete).toHaveBeenCalledTimes(1);
+  });
+
   it('skip clears selection and calls onSkip', async () => {
     draftStore.pluginSelectionInitialized = true;
     draftStore.selectedPlugins = new Set(['community-apps']);
