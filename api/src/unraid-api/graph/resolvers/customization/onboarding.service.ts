@@ -54,7 +54,7 @@ export class OnboardingService implements OnModuleInit {
     private async ensureFirstBootCompletion(): Promise<boolean> {
         await fs.mkdir(this.activationDir, { recursive: true });
         // Check if onboarding has already been completed
-        const alreadyCompleted = this.onboardingTracker.isCompleted();
+        const alreadyCompleted = await this.onboardingTracker.isCompleted();
         if (alreadyCompleted) {
             this.logger.log('Onboarding already completed, skipping first boot setup.');
             return true;

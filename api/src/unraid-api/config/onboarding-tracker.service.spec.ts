@@ -167,4 +167,38 @@ describe('OnboardingTrackerService tracker state availability', () => {
             },
         });
     });
+
+    it('propagates tracker read failures through isCompleted', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw new Error('permission denied');
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(tracker.isCompleted()).rejects.toThrow('permission denied');
+    });
+
+    it('propagates tracker read failures through getCompletedAtVersion', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw new Error('permission denied');
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(tracker.getCompletedAtVersion()).rejects.toThrow('permission denied');
+    });
 });

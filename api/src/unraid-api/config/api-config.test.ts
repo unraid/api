@@ -163,9 +163,13 @@ describe('OnboardingTracker', () => {
         const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
-        const state = tracker.getState();
-        expect(state.completed).toBe(false);
-        expect(state.completedAtVersion).toBeUndefined();
+        await expect(tracker.getStateResult()).resolves.toEqual({
+            kind: 'missing',
+            state: {
+                completed: false,
+                completedAtVersion: undefined,
+            },
+        });
     });
 
     it('returns completed state when previously marked', async () => {
@@ -185,9 +189,13 @@ describe('OnboardingTracker', () => {
         const tracker = createOnboardingTracker(configService);
         await tracker.onApplicationBootstrap();
 
-        const state = tracker.getState();
-        expect(state.completed).toBe(true);
-        expect(state.completedAtVersion).toBe('7.1.0');
+        await expect(tracker.getStateResult()).resolves.toEqual({
+            kind: 'ok',
+            state: {
+                completed: true,
+                completedAtVersion: '7.1.0',
+            },
+        });
     });
 
     it('marks onboarding as completed with current version', async () => {
@@ -272,9 +280,13 @@ describe('OnboardingTracker', () => {
         const tracker = new OnboardingTrackerService(configService, overrides);
         await tracker.onApplicationBootstrap();
 
-        const state = tracker.getState();
-        expect(state.completed).toBe(true);
-        expect(state.completedAtVersion).toBe('6.12.0');
+        await expect(tracker.getStateResult()).resolves.toEqual({
+            kind: 'ok',
+            state: {
+                completed: true,
+                completedAtVersion: '6.12.0',
+            },
+        });
     });
 });
 

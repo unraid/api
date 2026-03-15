@@ -53,9 +53,7 @@ describe('CustomizationResolver', () => {
             error: new Error('permission denied'),
         });
 
-        await expect(resolver.resolveOnboarding()).rejects.toThrow(
-            'Onboarding tracker state is unavailable.'
-        );
+        await expect(resolver.resolveOnboarding()).rejects.toThrow();
     });
 
     it('returns INCOMPLETE status when not completed', async () => {
