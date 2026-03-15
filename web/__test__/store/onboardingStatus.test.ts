@@ -71,7 +71,7 @@ describe('onboardingStatus store', () => {
     } as unknown as ReturnType<typeof useOnboardingDraftStore>);
   });
 
-  it('blocks onboarding modal while the onboarding query is still loading', () => {
+  it('blocks auto-show while the onboarding query is still loading', () => {
     state.onboardingResult.value = null;
     state.onboardingLoading.value = true;
 
@@ -132,6 +132,16 @@ describe('onboardingStatus store', () => {
   });
 
   it('allows onboarding modal when the onboarding query succeeds', () => {
+    const store = useOnboardingStore();
+
+    expect(store.hasOnboardingQueryError).toBe(false);
+    expect(store.canDisplayOnboardingModal).toBe(true);
+    expect(store.shouldShowOnboarding).toBe(true);
+  });
+
+  it('keeps onboarding modal display enabled when onboarding data exists alongside an Apollo error', () => {
+    state.onboardingError.value = new Error('Partial data error');
+
     const store = useOnboardingStore();
 
     expect(store.hasOnboardingQueryError).toBe(false);

@@ -51,10 +51,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         this.syncConfig();
     }
 
-    /**
-     * Get the current onboarding state.
-     */
-    getState(): PublicTrackerState {
+    private getCachedState(): PublicTrackerState {
         // Check for override first (for testing)
         const overrideState = this.onboardingOverrides.getState();
         if (overrideState?.onboarding !== undefined) {
@@ -73,15 +70,25 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
     /**
      * Check if onboarding is completed.
      */
-    isCompleted(): boolean {
-        return this.getState().completed;
+    async isCompleted(): Promise<boolean> {
+        const stateResult = await this.getStateResult();
+        if (stateResult.kind === 'error') {
+            throw stateResult.error;
+        }
+
+        return stateResult.state.completed;
     }
 
     /**
      * Get the version at which onboarding was completed.
      */
-    getCompletedAtVersion(): string | undefined {
-        return this.getState().completedAtVersion;
+    async getCompletedAtVersion(): Promise<string | undefined> {
+        const stateResult = await this.getStateResult();
+        if (stateResult.kind === 'error') {
+            throw stateResult.error;
+        }
+
+        return stateResult.state.completedAtVersion;
     }
 
     /**
@@ -96,7 +103,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         if (overrideState?.onboarding !== undefined) {
             return {
                 kind: 'ok',
-                state: this.getState(),
+                state: this.getCachedState(),
             };
         }
 
@@ -125,7 +132,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
                 },
             };
             this.onboardingOverrides.setState(updatedOverride);
-            return this.getState();
+            return this.getCachedState();
         }
 
         const updatedState: TrackerState = {
@@ -136,7 +143,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         await this.writeTrackerState(updatedState);
         this.syncConfig();
 
-        return this.getState();
+        return this.getCachedState();
     }
 
     /**
@@ -155,7 +162,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
                 },
             };
             this.onboardingOverrides.setState(updatedOverride);
-            return this.getState();
+            return this.getCachedState();
         }
 
         const updatedState: TrackerState = {
@@ -166,7 +173,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         await this.writeTrackerState(updatedState);
         this.syncConfig();
 
-        return this.getState();
+        return this.getCachedState();
     }
 
     private syncConfig() {

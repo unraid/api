@@ -33,7 +33,12 @@ export class OnboardingMutationsResolver {
      * Build a full Onboarding response with computed status
      */
     private async buildOnboardingResponse(): Promise<Onboarding> {
-        const state = this.onboardingTracker.getState();
+        const stateResult = await this.onboardingTracker.getStateResult();
+        if (stateResult.kind === 'error') {
+            throw stateResult.error;
+        }
+
+        const state = stateResult.state;
         const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
         const partnerInfo = await this.onboardingService.getPublicPartnerInfo();
         const onboardingState = await this.onboardingService.getOnboardingState();

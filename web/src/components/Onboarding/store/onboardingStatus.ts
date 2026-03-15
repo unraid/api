@@ -87,7 +87,9 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     }
   };
 
-  const hasOnboardingQueryError = computed(() => Boolean(onboardingError.value));
+  const hasOnboardingQueryError = computed(
+    () => Boolean(onboardingError.value) && !onboardingData.value
+  );
   const canDisplayOnboardingModal = computed(
     () => isVersionSupported.value && (hasResumableDraft.value || !hasOnboardingQueryError.value)
   );
