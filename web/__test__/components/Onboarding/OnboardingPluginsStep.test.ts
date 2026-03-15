@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OnboardingPluginsStep from '~/components/Onboarding/steps/OnboardingPluginsStep.vue';
 import { createTestI18n } from '../../utils/i18n';
 
-const { draftStore, installedPluginsResult, useQueryMock } = vi.hoisted(() => ({
+const { draftStore, installedPluginsLoading, installedPluginsResult, useQueryMock } = vi.hoisted(() => ({
   draftStore: {
     selectedPlugins: new Set<string>(),
     pluginSelectionInitialized: false,
@@ -156,11 +156,7 @@ describe('OnboardingPluginsStep', () => {
     expect(draftStore.setPlugins).toHaveBeenCalled();
     const lastCallIndex = draftStore.setPlugins.mock.calls.length - 1;
     const selected = draftStore.setPlugins.mock.calls[lastCallIndex][0] as Set<string>;
-    expect(Array.from(selected).sort()).toEqual([
-      'community-apps',
-      'fix-common-problems',
-      'tailscale',
-    ]);
+    expect(Array.from(selected).sort()).toEqual(['community-apps', 'fix-common-problems', 'tailscale']);
     expect(props.onComplete).toHaveBeenCalledTimes(1);
   });
 

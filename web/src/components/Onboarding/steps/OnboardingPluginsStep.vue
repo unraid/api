@@ -91,8 +91,7 @@ const isPluginEnabled = (pluginId: string) =>
   installedPluginIds.value.has(pluginId) || selectedPlugins.value.has(pluginId);
 const isInstalledPluginsPending = computed(
   () =>
-    installedPluginsLoading.value &&
-    !Array.isArray(installedPluginsResult.value?.installedUnraidPlugins)
+    installedPluginsLoading.value && !Array.isArray(installedPluginsResult.value?.installedUnraidPlugins)
 );
 const isBusy = computed(() => (props.isSavingStep ?? false) || isInstalledPluginsPending.value);
 const persistedSelectedPlugins = computed(
