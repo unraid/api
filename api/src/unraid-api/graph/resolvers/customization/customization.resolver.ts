@@ -2,6 +2,7 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
+import { GraphQLError } from 'graphql';
 
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
@@ -59,7 +60,12 @@ export class CustomizationResolver {
         resource: Resource.CUSTOMIZATIONS,
     })
     async resolveOnboarding(): Promise<Onboarding> {
-        const state = this.onboardingTracker.getState();
+        const trackerStateResult = await this.onboardingTracker.getStateResult();
+        if (trackerStateResult.kind === 'error') {
+            throw new GraphQLError('Onboarding tracker state is unavailable.');
+        }
+
+        const state = trackerStateResult.state;
         const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
         const partnerInfo = await this.onboardingService.getPublicPartnerInfo();
         const activationData = await this.onboardingService.getActivationData();

@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 
 export interface OnboardingInternalBootSelection {
@@ -118,6 +118,14 @@ export const useOnboardingDraftStore = defineStore(
 
     // Navigation
     const currentStepIndex = ref(0);
+    const hasResumableDraft = computed(
+      () =>
+        currentStepIndex.value > 0 ||
+        coreSettingsInitialized.value ||
+        pluginSelectionInitialized.value ||
+        internalBootInitialized.value ||
+        internalBootApplySucceeded.value
+    );
 
     // Actions
     function setCoreSettings(settings: {
@@ -198,6 +206,7 @@ export const useOnboardingDraftStore = defineStore(
       internalBootSkipped,
       internalBootApplySucceeded,
       currentStepIndex,
+      hasResumableDraft,
       setCoreSettings,
       setPlugins,
       setInternalBootSelection,
