@@ -8,6 +8,7 @@ import gte from 'semver/functions/gte';
 
 import type { OnboardingStatus } from '~/composables/gql/graphql';
 
+import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import { useServerStore } from '~/store/server';
 
 const MIN_ONBOARDING_VERSION = '7.3.0';
@@ -47,9 +48,11 @@ const isVersionAtLeast = (version: string | null | undefined, minVersion: string
 
 export const useOnboardingStore = defineStore('onboarding', () => {
   const { osVersion } = storeToRefs(useServerStore());
+  const { hasResumableDraft } = storeToRefs(useOnboardingDraftStore());
   const {
     result: onboardingResult,
     loading: onboardingLoading,
+    error: onboardingError,
     refetch,
   } = useQuery(ONBOARDING_QUERY, {}, { errorPolicy: 'all' });
 
@@ -84,7 +87,10 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     }
   };
 
-  const canDisplayOnboardingModal = computed(() => isVersionSupported.value);
+  const hasOnboardingQueryError = computed(() => Boolean(onboardingError.value));
+  const canDisplayOnboardingModal = computed(
+    () => isVersionSupported.value && (hasResumableDraft.value || !hasOnboardingQueryError.value)
+  );
 
   // Automatic onboarding should only run for initial setup.
   const shouldShowOnboarding = computed(() => {
@@ -112,6 +118,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     effectiveOsVersion,
     isVersionSupported,
     mockOsVersion,
+    hasOnboardingQueryError,
     canDisplayOnboardingModal,
     shouldShowOnboarding,
     // Actions
