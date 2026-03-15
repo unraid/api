@@ -15,6 +15,13 @@ const DEFAULT_OS_VERSION_FILE_PATH = '/etc/unraid-version';
 const WRITE_RETRY_ATTEMPTS = 3;
 const WRITE_RETRY_DELAY_MS = 100;
 
+type PublicTrackerState = { completed: boolean; completedAtVersion?: string };
+
+export type OnboardingTrackerStateResult =
+    | { kind: 'ok'; state: PublicTrackerState }
+    | { kind: 'missing'; state: PublicTrackerState }
+    | { kind: 'error'; error: Error };
+
 /**
  * Simplified onboarding tracker service.
  * Tracks whether onboarding has been completed and at which version.
@@ -39,15 +46,15 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
 
     async onApplicationBootstrap() {
         this.currentVersion = await this.readCurrentVersion();
-        const previousState = await this.readTrackerState();
-        this.state = previousState ?? {};
+        const previousState = await this.readTrackerStateResult();
+        this.state = previousState.kind === 'error' ? {} : previousState.state;
         this.syncConfig();
     }
 
     /**
      * Get the current onboarding state.
      */
-    getState(): { completed: boolean; completedAtVersion?: string } {
+    getState(): PublicTrackerState {
         // Check for override first (for testing)
         const overrideState = this.onboardingOverrides.getState();
         if (overrideState?.onboarding !== undefined) {
@@ -82,6 +89,23 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
      */
     getCurrentVersion(): string | undefined {
         return this.currentVersion;
+    }
+
+    async getStateResult(): Promise<OnboardingTrackerStateResult> {
+        const overrideState = this.onboardingOverrides.getState();
+        if (overrideState?.onboarding !== undefined) {
+            return {
+                kind: 'ok',
+                state: this.getState(),
+            };
+        }
+
+        const trackerStateResult = await this.readTrackerStateResult();
+        if (trackerStateResult.kind !== 'error') {
+            this.state = trackerStateResult.state;
+        }
+
+        return trackerStateResult;
     }
 
     /**
@@ -164,15 +188,39 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         }
     }
 
-    private async readTrackerState(): Promise<TrackerState | undefined> {
+    private async readTrackerStateResult(): Promise<OnboardingTrackerStateResult> {
         try {
             const content = await readFile(this.trackerPath, 'utf8');
-            return JSON.parse(content) as TrackerState;
+            const state = JSON.parse(content) as TrackerState;
+            return {
+                kind: 'ok',
+                state: {
+                    completed: state.completed ?? false,
+                    completedAtVersion: state.completedAtVersion,
+                },
+            };
         } catch (error) {
+            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+                this.logger.debug(`Onboarding tracker state does not exist yet at ${this.trackerPath}.`);
+                return {
+                    kind: 'missing',
+                    state: {
+                        completed: false,
+                        completedAtVersion: undefined,
+                    },
+                };
+            }
+
             this.logger.debug(
                 `Unable to read onboarding tracker state at ${this.trackerPath}: ${error}`
             );
-            return undefined;
+            return {
+                kind: 'error',
+                error:
+                    error instanceof Error
+                        ? error
+                        : new Error('Unable to read onboarding tracker state'),
+            };
         }
     }
 

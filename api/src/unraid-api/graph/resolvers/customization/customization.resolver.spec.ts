@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { OnboardingTrackerStateResult } from '@app/unraid-api/config/onboarding-tracker.service.js';
 import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import { OnboardingStatus } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { CustomizationResolver } from '@app/unraid-api/graph/resolvers/customization/customization.resolver.js';
@@ -16,7 +17,7 @@ describe('CustomizationResolver', () => {
         getOnboardingState: vi.fn(),
     } as unknown as OnboardingService;
     const onboardingTracker = {
-        getState: vi.fn(),
+        getStateResult: vi.fn(),
         getCurrentVersion: vi.fn(),
     } as unknown as OnboardingTrackerService;
     const displayService = {
@@ -27,6 +28,13 @@ describe('CustomizationResolver', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(onboardingTracker.getStateResult).mockResolvedValue({
+            kind: 'ok',
+            state: {
+                completed: false,
+                completedAtVersion: undefined,
+            },
+        } satisfies OnboardingTrackerStateResult);
         vi.mocked(onboardingTracker.getCurrentVersion).mockReturnValue('7.2.0');
         vi.mocked(onboardingService.getPublicPartnerInfo).mockResolvedValue(null);
         vi.mocked(onboardingService.getActivationDataForPublic).mockResolvedValue(null);
@@ -39,10 +47,24 @@ describe('CustomizationResolver', () => {
         });
     });
 
+    it('throws when tracker state could not be read', async () => {
+        vi.mocked(onboardingTracker.getStateResult).mockResolvedValue({
+            kind: 'error',
+            error: new Error('permission denied'),
+        });
+
+        await expect(resolver.resolveOnboarding()).rejects.toThrow(
+            'Onboarding tracker state is unavailable.'
+        );
+    });
+
     it('returns INCOMPLETE status when not completed', async () => {
-        vi.mocked(onboardingTracker.getState).mockReturnValue({
-            completed: false,
-            completedAtVersion: undefined,
+        vi.mocked(onboardingTracker.getStateResult).mockResolvedValue({
+            kind: 'ok',
+            state: {
+                completed: false,
+                completedAtVersion: undefined,
+            },
         });
 
         const result = await resolver.resolveOnboarding();
@@ -63,9 +85,12 @@ describe('CustomizationResolver', () => {
     });
 
     it('returns COMPLETED status when completed on current version', async () => {
-        vi.mocked(onboardingTracker.getState).mockReturnValue({
-            completed: true,
-            completedAtVersion: '7.2.0',
+        vi.mocked(onboardingTracker.getStateResult).mockResolvedValue({
+            kind: 'ok',
+            state: {
+                completed: true,
+                completedAtVersion: '7.2.0',
+            },
         });
 
         const result = await resolver.resolveOnboarding();
@@ -86,9 +111,12 @@ describe('CustomizationResolver', () => {
     });
 
     it('returns COMPLETED status when completed on a prior patch of current minor', async () => {
-        vi.mocked(onboardingTracker.getState).mockReturnValue({
-            completed: true,
-            completedAtVersion: '7.2.1',
+        vi.mocked(onboardingTracker.getStateResult).mockResolvedValue({
+            kind: 'ok',
+            state: {
+                completed: true,
+                completedAtVersion: '7.2.1',
+            },
         });
         vi.mocked(onboardingTracker.getCurrentVersion).mockReturnValue('7.2.3');
 
@@ -110,9 +138,12 @@ describe('CustomizationResolver', () => {
     });
 
     it('returns UPGRADE status when completed on older version', async () => {
-        vi.mocked(onboardingTracker.getState).mockReturnValue({
-            completed: true,
-            completedAtVersion: '7.1.0',
+        vi.mocked(onboardingTracker.getStateResult).mockResolvedValue({
+            kind: 'ok',
+            state: {
+                completed: true,
+                completedAtVersion: '7.1.0',
+            },
         });
 
         const result = await resolver.resolveOnboarding();
@@ -133,9 +164,12 @@ describe('CustomizationResolver', () => {
     });
 
     it('returns DOWNGRADE status when completed on newer version', async () => {
-        vi.mocked(onboardingTracker.getState).mockReturnValue({
-            completed: true,
-            completedAtVersion: '7.3.0',
+        vi.mocked(onboardingTracker.getStateResult).mockResolvedValue({
+            kind: 'ok',
+            state: {
+                completed: true,
+                completedAtVersion: '7.3.0',
+            },
         });
 
         const result = await resolver.resolveOnboarding();
@@ -156,9 +190,12 @@ describe('CustomizationResolver', () => {
     });
 
     it('returns isPartnerBuild true when partner info exists', async () => {
-        vi.mocked(onboardingTracker.getState).mockReturnValue({
-            completed: false,
-            completedAtVersion: undefined,
+        vi.mocked(onboardingTracker.getStateResult).mockResolvedValue({
+            kind: 'ok',
+            state: {
+                completed: false,
+                completedAtVersion: undefined,
+            },
         });
         vi.mocked(onboardingService.getPublicPartnerInfo).mockResolvedValue({
             partner: {
