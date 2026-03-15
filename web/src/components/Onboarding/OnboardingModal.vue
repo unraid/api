@@ -362,16 +362,6 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         showActivationCodeHint: hasActivationCode.value,
       };
 
-    case 'SUMMARY':
-      return {
-        ...baseProps,
-      };
-
-    case 'NEXT_STEPS':
-      return {
-        ...baseProps,
-      };
-
     default:
       return baseProps;
   }
