@@ -197,4 +197,29 @@ describe('OnboardingPluginsStep', () => {
     expect(props.onSkip).toHaveBeenCalledTimes(1);
     expect(props.onComplete).not.toHaveBeenCalled();
   });
+
+  it('skip preserves detected installed plugins without keeping manual selections', async () => {
+    draftStore.pluginSelectionInitialized = true;
+    draftStore.selectedPlugins = new Set(['community-apps', 'tailscale']);
+    installedPluginsResult.value = {
+      installedUnraidPlugins: ['fix.common.problems.plg'],
+    };
+
+    const { wrapper, props } = mountComponent();
+
+    await flushPromises();
+
+    const skipButton = wrapper
+      .findAll('button')
+      .find((button) => button.text().toLowerCase().includes('skip'));
+
+    expect(skipButton).toBeTruthy();
+    await skipButton!.trigger('click');
+
+    expect(draftStore.setPlugins).toHaveBeenCalledTimes(1);
+    const selected = draftStore.setPlugins.mock.calls[0][0] as Set<string>;
+    expect(Array.from(selected)).toEqual(['fix-common-problems']);
+    expect(props.onSkip).toHaveBeenCalledTimes(1);
+    expect(props.onComplete).not.toHaveBeenCalled();
+  });
 });

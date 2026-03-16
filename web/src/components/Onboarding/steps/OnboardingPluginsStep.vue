@@ -93,7 +93,7 @@ const isInstalledPluginsPending = computed(
   () =>
     installedPluginsLoading.value && !Array.isArray(installedPluginsResult.value?.installedUnraidPlugins)
 );
-const isBusy = computed(() => (props.isSavingStep ?? false) || isInstalledPluginsPending.value);
+const isBusy = computed(() => Boolean(props.isSavingStep) || isInstalledPluginsPending.value);
 const persistedSelectedPlugins = computed(
   () => new Set<string>([...selectedPlugins.value, ...installedPluginIds.value])
 );
@@ -145,9 +145,7 @@ const togglePlugin = (pluginId: string, value: boolean) => {
 };
 
 const handleSkip = () => {
-  // Clear selection? Or just move on?
-  // User clicked "Skip", so we probably shouldn't install anything.
-  draftStore.setPlugins(new Set());
+  draftStore.setPlugins(new Set(installedPluginIds.value));
   if (props.onSkip) {
     props.onSkip();
   } else {
