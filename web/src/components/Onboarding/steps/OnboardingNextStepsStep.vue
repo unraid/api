@@ -19,6 +19,7 @@ import UnraidIconSvg from '@/assets/partners/simple-icons-unraid.svg?raw';
 import { submitInternalBootReboot } from '@/components/Onboarding/composables/internalBoot';
 import { useActivationCodeDataStore } from '@/components/Onboarding/store/activationCodeData';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
+import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
 
 export interface Props {
   onComplete: () => void;
@@ -94,6 +95,7 @@ const handlePrimaryAction = () => {
 
 const handleConfirmReboot = () => {
   showRebootWarningDialog.value = false;
+  cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
   submitInternalBootReboot();
 };
 

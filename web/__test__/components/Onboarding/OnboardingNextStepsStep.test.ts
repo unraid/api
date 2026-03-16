@@ -6,7 +6,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OnboardingNextStepsStep from '~/components/Onboarding/steps/OnboardingNextStepsStep.vue';
 import { createTestI18n } from '../../utils/i18n';
 
-const { draftStore, activationCodeDataStore, submitInternalBootRebootMock } = vi.hoisted(() => ({
+const {
+  draftStore,
+  activationCodeDataStore,
+  submitInternalBootRebootMock,
+  cleanupOnboardingStorageMock,
+} = vi.hoisted(() => ({
   draftStore: {
     internalBootApplySucceeded: false,
   },
@@ -26,6 +31,7 @@ const { draftStore, activationCodeDataStore, submitInternalBootRebootMock } = vi
     },
   },
   submitInternalBootRebootMock: vi.fn(),
+  cleanupOnboardingStorageMock: vi.fn(),
 }));
 
 vi.mock('@unraid/ui', () => ({
@@ -51,6 +57,10 @@ vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
 
 vi.mock('~/components/Onboarding/composables/internalBoot', () => ({
   submitInternalBootReboot: submitInternalBootRebootMock,
+}));
+
+vi.mock('~/components/Onboarding/store/onboardingStorageCleanup', () => ({
+  cleanupOnboardingStorage: cleanupOnboardingStorageMock,
 }));
 
 describe('OnboardingNextStepsStep', () => {
@@ -105,6 +115,9 @@ describe('OnboardingNextStepsStep', () => {
     await confirmButton!.trigger('click');
     await flushPromises();
 
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
+      clearTemporaryBypassSessionState: true,
+    });
     expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
     expect(onComplete).not.toHaveBeenCalled();
   });

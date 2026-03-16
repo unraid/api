@@ -43,7 +43,6 @@ import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/
 import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/updateSystemTime.mutation';
 import { useOnboardingModalStore } from '@/components/Onboarding/store/onboardingModalVisibility';
 import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
-import { cleanupOnboardingStorage } from '@/components/Onboarding/store/onboardingStorageCleanup';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
@@ -1103,7 +1102,6 @@ const handleComplete = async () => {
     try {
       await runWithTransientNetworkRetry(() => completeOnboarding(), shouldRetryNetworkMutations);
       completionMarked = true;
-      cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
     } catch (caughtError: unknown) {
       hadWarnings = true;
       addErrorLog(summaryT('logs.completeOnboardingFailed'), caughtError, {

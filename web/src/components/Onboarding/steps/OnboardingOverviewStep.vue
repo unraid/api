@@ -195,11 +195,12 @@ const handleSkipOnboarding = async () => {
   }
 
   isSkipping.value = true;
+  cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
+
   try {
     await completeOnboarding();
     await new Promise((r) => setTimeout(r, 500));
     await refetchOnboarding();
-    cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
     window.location.reload();
   } catch (e) {
     console.error(e);
@@ -314,6 +315,7 @@ const openDocs = () => {
         <div class="flex items-center gap-6">
           <button
             @click="handleSkipOnboarding"
+            data-testid="skip-setup-button"
             class="text-muted hover:text-toned text-sm font-medium transition-colors"
             :disabled="isBusy"
           >
