@@ -1069,7 +1069,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.guid !== 'undefined') {
       guid.value = data.guid;
     }
-    if (typeof data?.bootedFromFlashWithInternalBootSetup !== 'undefined') {
+    if (data && 'bootedFromFlashWithInternalBootSetup' in data) {
       reportedBootedFromFlashWithInternalBootSetup.value = data.bootedFromFlashWithInternalBootSetup;
     }
     if (typeof data?.keyfile !== 'undefined') {

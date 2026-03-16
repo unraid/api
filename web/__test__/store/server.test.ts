@@ -400,6 +400,16 @@ describe('useServerStore', () => {
     expect(store.state).toBe('PRO');
   });
 
+  it('should allow clearing the reported internal boot setup state back to the fallback value', () => {
+    const store = getStore();
+
+    store.setServer({ bootedFromFlashWithInternalBootSetup: true });
+    expect(store.bootedFromFlashWithInternalBootSetup).toBe(true);
+
+    store.setServer({ bootedFromFlashWithInternalBootSetup: undefined });
+    expect(store.bootedFromFlashWithInternalBootSetup).toBe(false);
+  });
+
   it('should compute regDevs correctly based on regTy', () => {
     const store = getStore();
 

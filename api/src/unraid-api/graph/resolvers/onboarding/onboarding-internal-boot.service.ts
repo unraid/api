@@ -348,15 +348,15 @@ export class OnboardingInternalBootService {
             };
         }
 
-        if (await this.isBootedFromFlashWithInternalBootSetup()) {
-            return {
-                ok: false,
-                code: 3,
-                output: 'mkbootpool: internal boot is already configured while the system is still booted from flash',
-            };
-        }
-
         try {
+            if (await this.isBootedFromFlashWithInternalBootSetup()) {
+                return {
+                    ok: false,
+                    code: 3,
+                    output: 'mkbootpool: internal boot is already configured while the system is still booted from flash',
+                };
+            }
+
             await this.runStep(
                 'debug=cmdCreatePool,cmdAssignDisk,cmdMakeBootable',
                 { debug: 'cmdCreatePool,cmdAssignDisk,cmdMakeBootable' },

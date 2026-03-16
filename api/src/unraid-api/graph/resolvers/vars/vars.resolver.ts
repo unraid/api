@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
@@ -10,6 +11,8 @@ import { VarsService } from '@app/unraid-api/graph/resolvers/vars/vars.service.j
 
 @Resolver(() => Vars)
 export class VarsResolver {
+    private readonly logger = new Logger(VarsResolver.name);
+
     constructor(
         private readonly varsService: VarsService,
         private readonly internalBootStateService: InternalBootStateService
@@ -21,8 +24,16 @@ export class VarsResolver {
         resource: Resource.VARS,
     })
     public async vars() {
-        const bootedFromFlashWithInternalBootSetup =
-            await this.internalBootStateService.getBootedFromFlashWithInternalBootSetup();
+        let bootedFromFlashWithInternalBootSetup: boolean | null = null;
+        try {
+            bootedFromFlashWithInternalBootSetup =
+                await this.internalBootStateService.getBootedFromFlashWithInternalBootSetup();
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.warn(
+                `Failed to resolve bootedFromFlashWithInternalBootSetup in vars(): ${message}`
+            );
+        }
 
         return {
             id: 'vars',

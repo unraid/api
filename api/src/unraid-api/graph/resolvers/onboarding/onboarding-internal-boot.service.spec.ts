@@ -240,11 +240,31 @@ describe('OnboardingInternalBootService', () => {
             updateBios: false,
         });
 
-        expect(result).toEqual({
+        expect(result).toMatchObject({
             ok: false,
             code: 3,
-            output: 'mkbootpool: internal boot is already configured while the system is still booted from flash',
         });
+        expect(result.output).toContain('internal boot is already configured');
+        expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
+    });
+
+    it('returns failure output when the internal boot state lookup throws', async () => {
+        internalBootStateService.getBootedFromFlashWithInternalBootSetup.mockRejectedValue(
+            new Error('state lookup failed')
+        );
+        const service = createService();
+
+        const result = await service.createInternalBootPool({
+            poolName: 'cache',
+            devices: ['disk-1'],
+            bootSizeMiB: 16384,
+            updateBios: false,
+        });
+
+        expect(result.ok).toBe(false);
+        expect(result.code).toBe(1);
+        expect(result.output).toContain('mkbootpool: command failed or timed out');
+        expect(result.output).toContain('state lookup failed');
         expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
     });
 
