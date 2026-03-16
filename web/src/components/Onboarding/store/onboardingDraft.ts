@@ -15,6 +15,25 @@ export interface OnboardingInternalBootSelection {
 
 export type OnboardingBootMode = 'usb' | 'storage';
 
+type PersistedOnboardingDraftState = {
+  serverName?: unknown;
+  serverDescription?: unknown;
+  selectedTimeZone?: unknown;
+  selectedTheme?: unknown;
+  selectedLanguage?: unknown;
+  useSsh?: unknown;
+  coreSettingsInitialized?: unknown;
+  selectedPlugins?: unknown;
+  pluginSelectionInitialized?: unknown;
+  internalBootSelection?: unknown;
+  bootMode?: unknown;
+  internalBootInitialized?: unknown;
+  internalBootSkipped?: unknown;
+  internalBootApplySucceeded?: unknown;
+  currentStepIndex?: unknown;
+  currentStepId?: unknown;
+};
+
 const normalizePersistedBoolean = (value: unknown, fallback = false): boolean => {
   if (typeof value === 'boolean') {
     return value;
@@ -103,6 +122,35 @@ const normalizePersistedStepId = (value: unknown): StepId | null => {
   }
 
   return STEP_IDS.includes(value as StepId) ? (value as StepId) : null;
+};
+
+export const shouldPersistOnboardingDraftState = (state: PersistedOnboardingDraftState): boolean => {
+  const selectedPlugins = normalizePersistedPlugins(state.selectedPlugins);
+  const internalBootSelection = normalizePersistedInternalBootSelection(state.internalBootSelection);
+  const currentStepId = normalizePersistedStepId(state.currentStepId);
+
+  return (
+    currentStepId !== null ||
+    normalizePersistedBoolean(state.coreSettingsInitialized, false) ||
+    normalizePersistedBoolean(state.pluginSelectionInitialized, false) ||
+    normalizePersistedBoolean(state.internalBootInitialized, false) ||
+    normalizePersistedBoolean(state.internalBootApplySucceeded, false) ||
+    selectedPlugins.length > 0 ||
+    internalBootSelection !== null
+  );
+};
+
+const onboardingDraftStorage = {
+  getItem: (key: string) => window.localStorage.getItem(key),
+  setItem: (key: string, value: string) => {
+    const parsed = JSON.parse(value) as PersistedOnboardingDraftState;
+    if (!shouldPersistOnboardingDraftState(parsed)) {
+      window.localStorage.removeItem(key);
+      return;
+    }
+    window.localStorage.setItem(key, value);
+  },
+  removeItem: (key: string) => window.localStorage.removeItem(key),
 };
 
 export const useOnboardingDraftStore = defineStore(
@@ -256,6 +304,7 @@ export const useOnboardingDraftStore = defineStore(
   },
   {
     persist: {
+      storage: onboardingDraftStorage,
       serializer: {
         serialize: (value) => {
           const state = value as Record<string, unknown>;
