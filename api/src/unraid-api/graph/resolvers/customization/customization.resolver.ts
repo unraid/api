@@ -2,27 +2,22 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
-import { GraphQLError } from 'graphql';
 
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
-import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
 import {
     ActivationCode,
     Customization,
     Onboarding,
-    OnboardingStatus,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 import { Theme } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 import { Language } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
 import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
-import { getOnboardingVersionDirection } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-status.util.js';
 
 @Resolver(() => Customization)
 export class CustomizationResolver {
     constructor(
         private readonly onboardingService: OnboardingService,
-        private readonly onboardingTracker: OnboardingTrackerService,
         private readonly displayService: DisplayService
     ) {}
 
@@ -60,41 +55,7 @@ export class CustomizationResolver {
         resource: Resource.CUSTOMIZATIONS,
     })
     async resolveOnboarding(): Promise<Onboarding> {
-        const trackerStateResult = await this.onboardingTracker.getStateResult();
-        if (trackerStateResult.kind === 'error') {
-            throw new GraphQLError('Onboarding tracker state is unavailable.');
-        }
-
-        const state = trackerStateResult.state;
-        const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
-        const partnerInfo = await this.onboardingService.getPublicPartnerInfo();
-        const activationData = await this.onboardingService.getActivationData();
-        const onboardingState = await this.onboardingService.getOnboardingState();
-        const versionDirection = getOnboardingVersionDirection(state.completedAtVersion, currentVersion);
-
-        // Compute the status based on completion state and version
-        let status: OnboardingStatus;
-        if (!state.completed) {
-            status = OnboardingStatus.INCOMPLETE;
-        } else if (versionDirection === 'DOWNGRADE') {
-            status = OnboardingStatus.DOWNGRADE;
-        } else if (versionDirection === 'UPGRADE') {
-            status = OnboardingStatus.UPGRADE;
-        } else {
-            status = OnboardingStatus.COMPLETED;
-        }
-
-        // Get the activation code string if present and non-empty
-        const activationCode = activationData?.code?.trim() || undefined;
-
-        return {
-            status,
-            isPartnerBuild: partnerInfo !== null,
-            completed: state.completed,
-            completedAtVersion: state.completedAtVersion,
-            activationCode,
-            onboardingState,
-        };
+        return this.onboardingService.getOnboardingResponse({ includeActivationCode: true });
     }
 
     @ResolveField(() => [Language], { nullable: true, name: 'availableLanguages' })

@@ -14,7 +14,10 @@ import { getters } from '@app/store/index.js';
 import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
 import { OnboardingStateService } from '@app/unraid-api/config/onboarding-state.service.js';
 import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
-import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import {
+    ActivationCode,
+    OnboardingStatus,
+} from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 
 vi.mock('@app/core/utils/files/file-exists.js');
@@ -115,9 +118,11 @@ vi.mock('@app/core/utils/misc/sleep.js', async () => {
 });
 
 const onboardingTrackerMock = {
-    isCompleted: vi.fn<() => boolean>(),
-    getState: vi.fn<() => { completed: boolean; completedAtVersion?: string }>(),
+    isCompleted: vi.fn<() => Promise<boolean>>(),
+    getStateResult: vi.fn(),
+    getCurrentVersion: vi.fn(),
     markCompleted: vi.fn<() => Promise<{ completed: boolean; completedAtVersion?: string }>>(),
+    reset: vi.fn<() => Promise<{ completed: boolean; completedAtVersion?: string }>>(),
 };
 const onboardingOverridesMock = {
     getState: vi.fn(),
@@ -182,7 +187,27 @@ describe('OnboardingService', () => {
         loggerWarnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
         onboardingTrackerMock.isCompleted.mockReset();
-        onboardingTrackerMock.isCompleted.mockReturnValue(false);
+        onboardingTrackerMock.isCompleted.mockResolvedValue(false);
+        onboardingTrackerMock.getStateResult.mockReset();
+        onboardingTrackerMock.getStateResult.mockResolvedValue({
+            kind: 'ok',
+            state: {
+                completed: false,
+                completedAtVersion: undefined,
+            },
+        });
+        onboardingTrackerMock.getCurrentVersion.mockReset();
+        onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.2.0');
+        onboardingTrackerMock.markCompleted.mockReset();
+        onboardingTrackerMock.markCompleted.mockResolvedValue({
+            completed: true,
+            completedAtVersion: '7.2.0',
+        });
+        onboardingTrackerMock.reset.mockReset();
+        onboardingTrackerMock.reset.mockResolvedValue({
+            completed: false,
+            completedAtVersion: undefined,
+        });
         onboardingOverridesMock.getState.mockReset();
         onboardingOverridesMock.getState.mockReturnValue(null);
         onboardingOverridesMock.setState.mockReset();
@@ -244,6 +269,72 @@ describe('OnboardingService', () => {
         expect(service).toBeDefined();
     });
 
+    describe('getOnboardingResponse', () => {
+        it('builds an onboarding response with activation code when requested', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: true,
+                    completedAtVersion: '7.2.0',
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.2.0');
+            onboardingStateMock.getRegistrationState.mockReturnValue('PRO');
+            onboardingStateMock.hasActivationCode.mockResolvedValue(true);
+            onboardingStateMock.isFreshInstall.mockReturnValue(false);
+            onboardingStateMock.isRegistered.mockReturnValue(true);
+            onboardingStateMock.requiresActivationStep.mockReturnValue(false);
+
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue({
+                partner: { name: 'Partner' },
+                branding: null,
+            });
+            vi.spyOn(service, 'getActivationData').mockResolvedValue({
+                code: ' ABC123 ',
+            } as ActivationCode);
+
+            await expect(
+                service.getOnboardingResponse({ includeActivationCode: true })
+            ).resolves.toEqual({
+                status: OnboardingStatus.COMPLETED,
+                isPartnerBuild: true,
+                completed: true,
+                completedAtVersion: '7.2.0',
+                activationCode: 'ABC123',
+                onboardingState: {
+                    registrationState: 'PRO',
+                    isRegistered: true,
+                    isFreshInstall: false,
+                    hasActivationCode: true,
+                    activationRequired: false,
+                },
+            });
+        });
+
+        it('omits activation code when it is not requested', async () => {
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+            vi.spyOn(service, 'getActivationData');
+
+            await expect(service.getOnboardingResponse()).resolves.toMatchObject({
+                status: OnboardingStatus.INCOMPLETE,
+                completed: false,
+                completedAtVersion: undefined,
+            });
+            expect(service.getActivationData).not.toHaveBeenCalled();
+        });
+
+        it('throws when tracker state is unavailable', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'error',
+                error: new Error('permission denied'),
+            });
+
+            await expect(service.getOnboardingResponse()).rejects.toThrow(
+                'Onboarding tracker state is unavailable.'
+            );
+        });
+    });
+
     describe('onModuleInit', () => {
         it('should log error if dynamix user config path is missing', async () => {
             const originalDynamixConfig = [...mockPaths['dynamix-config']];
@@ -289,7 +380,7 @@ describe('OnboardingService', () => {
         });
 
         it('should skip customizations when first boot already completed', async () => {
-            onboardingTrackerMock.isCompleted.mockReturnValueOnce(true);
+            onboardingTrackerMock.isCompleted.mockResolvedValueOnce(true);
 
             await service.onModuleInit();
 
@@ -305,8 +396,8 @@ describe('OnboardingService', () => {
 
         it('should be idempotent across init calls when tracker marks setup complete', async () => {
             onboardingTrackerMock.isCompleted
-                .mockReturnValueOnce(false) // first init applies customizations
-                .mockReturnValueOnce(true); // second init should skip
+                .mockResolvedValueOnce(false) // first init applies customizations
+                .mockResolvedValueOnce(true); // second init should skip
             vi.mocked(fs.access).mockResolvedValue(undefined);
             vi.mocked(fs.readdir).mockResolvedValue([activationJsonFile as any]);
             vi.mocked(fs.readFile).mockImplementation(async (p) => {
@@ -1363,7 +1454,7 @@ describe('applyActivationCustomizations specific tests', () => {
         loggerWarnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
         onboardingTrackerMock.isCompleted.mockReset();
-        onboardingTrackerMock.isCompleted.mockReturnValue(false);
+        onboardingTrackerMock.isCompleted.mockResolvedValue(false);
         onboardingOverridesMock.getState.mockReset();
         onboardingOverridesMock.getState.mockReturnValue(null);
         onboardingOverridesMock.setState.mockReset();
@@ -1569,7 +1660,7 @@ describe('OnboardingService - updateCfgFile', () => {
         loggerLogSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
         loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
         onboardingTrackerMock.isCompleted.mockReset();
-        onboardingTrackerMock.isCompleted.mockReturnValue(false);
+        onboardingTrackerMock.isCompleted.mockResolvedValue(false);
         onboardingOverridesMock.getState.mockReset();
         onboardingOverridesMock.getState.mockReturnValue(null);
         onboardingOverridesMock.setState.mockReset();
