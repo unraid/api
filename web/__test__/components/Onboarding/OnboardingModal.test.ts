@@ -2,6 +2,8 @@ import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { StepId } from '~/components/Onboarding/stepRegistry';
+
 import OnboardingModal from '~/components/Onboarding/OnboardingModal.vue';
 import { createTestI18n } from '../../utils/i18n';
 
@@ -66,9 +68,9 @@ const {
   },
   onboardingDraftStore: {
     currentStepIndex: { value: 0 },
-    currentStepId: { value: null },
+    currentStepId: { value: null as StepId | null },
     internalBootApplySucceeded: { value: false },
-    setCurrentStep: vi.fn((stepId: string, stepIndex: number) => {
+    setCurrentStep: vi.fn((stepId: StepId, stepIndex: number) => {
       onboardingDraftStore.currentStepId.value = stepId;
       onboardingDraftStore.currentStepIndex.value = stepIndex;
     }),

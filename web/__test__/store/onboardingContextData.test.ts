@@ -4,13 +4,15 @@ import { useQuery } from '@vue/apollo-composable';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { ApolloError } from '@apollo/client/core/index.js';
+
 import { ONBOARDING_BOOTSTRAP_QUERY } from '~/components/Onboarding/graphql/onboardingBootstrap.query';
 import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onboardingContextData';
 
 const createCompleteQueryMock = <T>(
   result: T | null = null,
   loading = false,
-  error: unknown = null
+  error: ApolloError | null = null
 ) => ({
   result: ref(result),
   loading: ref(loading),
@@ -44,31 +46,32 @@ describe('OnboardingContextData Store', () => {
   });
 
   it('loads the shared onboarding bootstrap query', () => {
-    vi.mocked(useQuery).mockImplementation((query) => {
-      if (query === ONBOARDING_BOOTSTRAP_QUERY) {
-        return createCompleteQueryMock(
-          {
-            customization: {
-              activationCode: { code: 'ABC-123' },
-              onboarding: {
-                status: 'INCOMPLETE',
-                onboardingState: { isFreshInstall: true },
-              },
-            },
-            vars: {
-              bootedFromFlashWithInternalBootSetup: false,
-              enableBootTransfer: 'yes',
+    vi.mocked(useQuery).mockReturnValue(
+      createCompleteQueryMock(
+        {
+          customization: {
+            activationCode: { code: 'ABC-123' },
+            onboarding: {
+              status: 'INCOMPLETE',
+              onboardingState: { isFreshInstall: true },
             },
           },
-          false
-        );
-      }
-
-      return createCompleteQueryMock(null, false);
-    });
+          vars: {
+            bootedFromFlashWithInternalBootSetup: false,
+            enableBootTransfer: 'yes',
+          },
+        },
+        false
+      )
+    );
 
     const store = useOnboardingContextDataStore();
 
+    expect(useQuery).toHaveBeenCalledWith(
+      ONBOARDING_BOOTSTRAP_QUERY,
+      {},
+      expect.objectContaining({ errorPolicy: 'all', fetchPolicy: 'cache-and-network' })
+    );
     expect(store.activationCode).toEqual({ code: 'ABC-123' });
     expect(store.onboarding).toMatchObject({ status: 'INCOMPLETE' });
     expect(store.onboardingState).toMatchObject({ isFreshInstall: true });
@@ -80,15 +83,9 @@ describe('OnboardingContextData Store', () => {
   });
 
   it('exposes query loading and error state', () => {
-    const queryError = new Error('bootstrap failed');
+    const queryError = new Error('bootstrap failed') as ApolloError;
 
-    vi.mocked(useQuery).mockImplementation((query) => {
-      if (query === ONBOARDING_BOOTSTRAP_QUERY) {
-        return createCompleteQueryMock(null, true, queryError);
-      }
-
-      return createCompleteQueryMock(null, false);
-    });
+    vi.mocked(useQuery).mockReturnValue(createCompleteQueryMock(null, true, queryError));
 
     const store = useOnboardingContextDataStore();
 

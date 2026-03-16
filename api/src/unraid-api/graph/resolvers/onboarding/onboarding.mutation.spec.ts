@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { OnboardingOverrideInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 import { OnboardingStatus } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { CreateInternalBootPoolInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 import { OnboardingMutationsResolver } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.mutation.js';
@@ -95,13 +96,13 @@ describe('OnboardingMutationsResolver', () => {
         };
         onboardingService.getOnboardingResponse.mockResolvedValue(response);
 
-        const input = {
+        const input: OnboardingOverrideInput = {
             onboarding: {
                 completed: true,
                 completedAtVersion: '7.2.0',
             },
             registrationState: undefined,
-        } as never;
+        };
 
         await expect(resolver.setOnboardingOverride(input)).resolves.toEqual(response);
         expect(onboardingOverrides.setState).toHaveBeenCalledWith({

@@ -287,11 +287,13 @@ describe('OnboardingService', () => {
 
             vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue({
                 partner: { name: 'Partner' },
-                branding: null,
+                branding: undefined,
             });
-            vi.spyOn(service, 'getActivationData').mockResolvedValue({
-                code: ' ABC123 ',
-            } as ActivationCode);
+            vi.spyOn(service, 'getActivationData').mockResolvedValue(
+                plainToInstance(ActivationCode, {
+                    code: ' ABC123 ',
+                })
+            );
 
             await expect(
                 service.getOnboardingResponse({ includeActivationCode: true })
