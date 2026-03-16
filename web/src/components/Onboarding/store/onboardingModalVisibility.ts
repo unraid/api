@@ -61,7 +61,7 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
   );
 
   const { isFreshInstall } = storeToRefs(useActivationCodeDataStore());
-  const { completed } = storeToRefs(useOnboardingStore());
+  const { completed, canDisplayOnboardingModal } = storeToRefs(useOnboardingStore());
   const { callbackData } = storeToRefs(useCallbackActionsStore());
   const { uptime } = storeToRefs(useServerStore());
 
@@ -77,8 +77,13 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
   };
 
   const forceOpenModal = () => {
+    if (!canDisplayOnboardingModal.value) {
+      return false;
+    }
+
     isForceOpened.value = true;
     setIsHidden(false);
+    return true;
   };
 
   const clearForceOpened = () => {

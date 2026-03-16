@@ -7,7 +7,6 @@ import gte from 'semver/functions/gte';
 import type { OnboardingStatus } from '~/composables/gql/graphql';
 
 import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onboardingContextData';
-import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import { useServerStore } from '~/store/server';
 
 const MIN_ONBOARDING_VERSION = '7.3.0';
@@ -47,11 +46,9 @@ const isVersionAtLeast = (version: string | null | undefined, minVersion: string
 
 export const useOnboardingStore = defineStore('onboarding', () => {
   const serverStore = useServerStore();
-  const onboardingDraftStore = useOnboardingDraftStore();
   const onboardingContextStore = useOnboardingContextDataStore();
   const { refetchOnboardingContext } = onboardingContextStore;
   const osVersion = computed(() => unref(serverStore.osVersion));
-  const hasResumableDraft = computed(() => unref(onboardingDraftStore.hasResumableDraft));
   const onboardingData = computed(() => unref(onboardingContextStore.onboarding));
   const onboardingLoading = computed(() => unref(onboardingContextStore.loading));
   const onboardingError = computed(() => unref(onboardingContextStore.error));
@@ -85,11 +82,9 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     }
   };
 
-  const hasOnboardingQueryError = computed(
-    () => Boolean(onboardingError.value) && !onboardingData.value
-  );
+  const hasOnboardingError = computed(() => Boolean(onboardingError.value));
   const canDisplayOnboardingModal = computed(
-    () => isVersionSupported.value && (hasResumableDraft.value || !hasOnboardingQueryError.value)
+    () => isVersionSupported.value && !hasOnboardingError.value
   );
 
   // Automatic onboarding should only run for initial setup.
@@ -118,7 +113,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     effectiveOsVersion,
     isVersionSupported,
     mockOsVersion,
-    hasOnboardingQueryError,
+    hasOnboardingError,
     canDisplayOnboardingModal,
     shouldShowOnboarding,
     // Actions

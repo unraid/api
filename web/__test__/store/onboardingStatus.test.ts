@@ -6,7 +6,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Ref } from 'vue';
 
 import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onboardingContextData';
-import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
 import { useServerStore } from '~/store/server';
 
@@ -23,7 +22,6 @@ const { state, refetchMock } = vi.hoisted(() => ({
     onboardingLoading: null as unknown as Ref<boolean>,
     onboardingError: null as unknown as Ref<unknown>,
     osVersionRef: null as unknown as Ref<string>,
-    hasResumableDraftRef: null as unknown as Ref<boolean>,
   },
   refetchMock: vi.fn(),
 }));
@@ -44,16 +42,11 @@ describe('onboardingStatus store', () => {
     state.onboardingLoading = ref(false);
     state.onboardingError = ref(null);
     state.osVersionRef = ref('7.3.0');
-    state.hasResumableDraftRef = ref(false);
     refetchMock.mockResolvedValue(undefined);
 
     vi.mocked(useServerStore).mockReturnValue({
       osVersion: state.osVersionRef,
     } as unknown as ReturnType<typeof useServerStore>);
-
-    vi.mocked(useOnboardingDraftStore).mockReturnValue({
-      hasResumableDraft: state.hasResumableDraftRef,
-    } as unknown as ReturnType<typeof useOnboardingDraftStore>);
 
     vi.mocked(useOnboardingContextDataStore).mockReturnValue({
       onboarding: state.onboardingData,
@@ -73,26 +66,14 @@ describe('onboardingStatus store', () => {
     expect(store.shouldShowOnboarding).toBe(false);
   });
 
-  it('blocks onboarding modal when the onboarding query errors and no draft exists', () => {
+  it('blocks onboarding modal when the onboarding query errors', () => {
     state.onboardingData.value = null;
     state.onboardingError.value = new Error('Network error');
 
     const store = useOnboardingStore();
 
-    expect(store.hasOnboardingQueryError).toBe(true);
+    expect(store.hasOnboardingError).toBe(true);
     expect(store.canDisplayOnboardingModal).toBe(false);
-    expect(store.shouldShowOnboarding).toBe(false);
-  });
-
-  it('keeps onboarding modal display enabled when a resumable draft exists during an error', () => {
-    state.onboardingData.value = null;
-    state.onboardingError.value = new Error('Network error');
-    state.hasResumableDraftRef.value = true;
-
-    const store = useOnboardingStore();
-
-    expect(store.hasOnboardingQueryError).toBe(true);
-    expect(store.canDisplayOnboardingModal).toBe(true);
     expect(store.shouldShowOnboarding).toBe(false);
   });
 
@@ -105,32 +86,22 @@ describe('onboardingStatus store', () => {
     expect(store.shouldShowOnboarding).toBe(false);
   });
 
-  it('keeps onboarding modal display enabled when tracker state is missing but a draft exists', () => {
-    state.onboardingData.value = null;
-    state.hasResumableDraftRef.value = true;
-
-    const store = useOnboardingStore();
-
-    expect(store.canDisplayOnboardingModal).toBe(true);
-    expect(store.shouldShowOnboarding).toBe(false);
-  });
-
   it('allows onboarding modal when the onboarding query succeeds', () => {
     const store = useOnboardingStore();
 
-    expect(store.hasOnboardingQueryError).toBe(false);
+    expect(store.hasOnboardingError).toBe(false);
     expect(store.canDisplayOnboardingModal).toBe(true);
     expect(store.shouldShowOnboarding).toBe(true);
   });
 
-  it('keeps onboarding modal display enabled when onboarding data exists alongside an Apollo error', () => {
+  it('blocks onboarding modal when onboarding data exists alongside an Apollo error', () => {
     state.onboardingError.value = new Error('Partial data error');
 
     const store = useOnboardingStore();
 
-    expect(store.hasOnboardingQueryError).toBe(false);
-    expect(store.canDisplayOnboardingModal).toBe(true);
-    expect(store.shouldShowOnboarding).toBe(true);
+    expect(store.hasOnboardingError).toBe(true);
+    expect(store.canDisplayOnboardingModal).toBe(false);
+    expect(store.shouldShowOnboarding).toBe(false);
   });
 
   it('keeps onboarding modal display enabled during refetch when onboarding data already exists', () => {
@@ -145,10 +116,6 @@ describe('onboardingStatus store', () => {
 
 vi.mock('~/components/Onboarding/store/onboardingContextData', () => ({
   useOnboardingContextDataStore: vi.fn(),
-}));
-
-vi.mock('~/components/Onboarding/store/onboardingDraft', () => ({
-  useOnboardingDraftStore: vi.fn(),
 }));
 
 vi.mock('~/store/server', () => ({

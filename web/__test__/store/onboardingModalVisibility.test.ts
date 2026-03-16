@@ -46,6 +46,7 @@ describe('OnboardingModalVisibility Store', () => {
   let mockTemporaryBypassState: ReturnType<typeof ref>;
   let mockIsFreshInstall: ReturnType<typeof ref>;
   let mockCompleted: ReturnType<typeof ref>;
+  let mockCanDisplayOnboardingModal: ReturnType<typeof ref>;
   let mockCallbackData: ReturnType<typeof ref>;
   let mockUptime: ReturnType<typeof ref>;
   let app: App<Element> | null = null;
@@ -76,6 +77,7 @@ describe('OnboardingModalVisibility Store', () => {
     mockTemporaryBypassState = ref(null);
     mockIsFreshInstall = ref(false);
     mockCompleted = ref(false);
+    mockCanDisplayOnboardingModal = ref(true);
     mockCallbackData = ref(null);
     mockUptime = ref(3600);
 
@@ -93,6 +95,7 @@ describe('OnboardingModalVisibility Store', () => {
 
     vi.mocked(useOnboardingStore).mockReturnValue({
       completed: mockCompleted,
+      canDisplayOnboardingModal: mockCanDisplayOnboardingModal,
     } as unknown as ReturnType<typeof useOnboardingStore>);
 
     vi.mocked(useCallbackActionsStore).mockReturnValue({
@@ -157,6 +160,14 @@ describe('OnboardingModalVisibility Store', () => {
 
     store.setIsHidden(true);
     expect(store.isForceOpened).toBe(false);
+  });
+
+  it('does not force-open when manual onboarding open is unavailable', () => {
+    mockCanDisplayOnboardingModal.value = false;
+
+    expect(store.forceOpenModal()).toBe(false);
+    expect(store.isForceOpened).toBe(false);
+    expect(store.isHidden).toBe(null);
   });
 
   it('clears legacy hidden sessionStorage state on mount', () => {
@@ -349,11 +360,31 @@ describe('OnboardingModalVisibility Store', () => {
     expect(replaceStateSpy).toHaveBeenCalled();
   });
 
+  it('ignores onboarding=open when manual onboarding open is unavailable', () => {
+    window.history.replaceState({}, '', '/Dashboard?onboarding=open');
+    mockCanDisplayOnboardingModal.value = false;
+
+    store.applyOnboardingUrlAction();
+
+    expect(store.isForceOpened).toBe(false);
+    expect(store.isHidden).toBe(null);
+    expect(window.location.search).not.toContain('onboarding=');
+  });
+
   it('opens when onboarding force-open event is dispatched', () => {
     window.dispatchEvent(new Event('unraid:onboarding:open'));
 
     expect(store.isForceOpened).toBe(true);
     expect(store.isHidden).toBe(false);
+  });
+
+  it('ignores onboarding force-open events when manual onboarding open is unavailable', () => {
+    mockCanDisplayOnboardingModal.value = false;
+
+    window.dispatchEvent(new Event('unraid:onboarding:open'));
+
+    expect(store.isForceOpened).toBe(false);
+    expect(store.isHidden).toBe(null);
   });
 
   it('applies onboarding=resume automatically on mount', () => {
