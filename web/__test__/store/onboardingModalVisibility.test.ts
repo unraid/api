@@ -11,14 +11,19 @@ import {
   ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
 } from '~/components/Onboarding/constants';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
+import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus.js';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
-vi.mock('@vueuse/core', () => ({
-  useSessionStorage: vi.fn(),
-}));
+vi.mock('@vueuse/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@vueuse/core')>();
+  return {
+    ...actual,
+    useSessionStorage: vi.fn(),
+  };
+});
 
 vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: vi.fn(),
@@ -198,6 +203,16 @@ describe('OnboardingModalVisibility Store', () => {
   });
 
   it('applies keyboard shortcut bypass without completing onboarding', () => {
+    const draftStore = useOnboardingDraftStore();
+    draftStore.setCoreSettings({
+      serverName: 'tower',
+      serverDescription: 'resume me',
+      timeZone: 'UTC',
+      theme: 'black',
+      language: 'en_US',
+      useSsh: true,
+    });
+    draftStore.setStepIndex(2);
     window.localStorage.setItem('onboardingDraft', '{"currentStepIndex":2}');
 
     window.dispatchEvent(
@@ -214,6 +229,8 @@ describe('OnboardingModalVisibility Store', () => {
     expect(store.isHidden).toBe(true);
     expect(mockTemporaryBypassState.value).toMatchObject({ active: true });
     expect(window.localStorage.getItem('onboardingDraft')).toBeNull();
+    expect(draftStore.hasResumableDraft).toBe(false);
+    expect(draftStore.currentStepIndex).toBe(0);
   });
 
   it('does not bypass when using 0 key with modifiers', () => {

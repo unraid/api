@@ -141,6 +141,28 @@ export const useOnboardingDraftStore = defineStore(
         internalBootApplySucceeded.value
     );
 
+    function resetDraft() {
+      serverName.value = '';
+      serverDescription.value = '';
+      selectedTimeZone.value = '';
+      selectedTheme.value = '';
+      selectedLanguage.value = '';
+      useSsh.value = false;
+      coreSettingsInitialized.value = false;
+
+      selectedPlugins.value = new Set();
+      pluginSelectionInitialized.value = false;
+
+      internalBootSelection.value = null;
+      bootMode.value = 'usb';
+      internalBootInitialized.value = false;
+      internalBootSkipped.value = false;
+      internalBootApplySucceeded.value = false;
+
+      currentStepIndex.value = 0;
+      currentStepId.value = null;
+    }
+
     // Actions
     function setCoreSettings(settings: {
       serverName: string;
@@ -227,6 +249,7 @@ export const useOnboardingDraftStore = defineStore(
       currentStepIndex,
       currentStepId,
       hasResumableDraft,
+      resetDraft,
       setCoreSettings,
       setPlugins,
       setInternalBootSelection,
