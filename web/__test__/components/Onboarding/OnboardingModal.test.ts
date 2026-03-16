@@ -305,6 +305,7 @@ describe('OnboardingModal.vue', () => {
 
   it('shows activation step for ENOKEYFILE1', () => {
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE1';
+    onboardingDraftStore.currentStepId.value = 'ACTIVATE_LICENSE';
     onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();
@@ -314,6 +315,7 @@ describe('OnboardingModal.vue', () => {
 
   it('shows activation step for ENOKEYFILE2', () => {
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE2';
+    onboardingDraftStore.currentStepId.value = 'ACTIVATE_LICENSE';
     onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();
@@ -323,6 +325,7 @@ describe('OnboardingModal.vue', () => {
 
   it('omits activation step for non-activation registration states', () => {
     activationCodeDataStore.registrationState.value = 'BASIC';
+    onboardingDraftStore.currentStepId.value = 'ACTIVATE_LICENSE';
     onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();

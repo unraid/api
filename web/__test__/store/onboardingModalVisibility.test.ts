@@ -223,8 +223,11 @@ describe('OnboardingModalVisibility Store', () => {
       language: 'en_US',
       useSsh: true,
     });
-    draftStore.setStepIndex(2);
-    window.localStorage.setItem('onboardingDraft', '{"currentStepIndex":2}');
+    draftStore.setCurrentStep('CONFIGURE_BOOT', 2);
+    window.localStorage.setItem(
+      'onboardingDraft',
+      '{"currentStepId":"CONFIGURE_BOOT","currentStepIndex":2}'
+    );
 
     window.dispatchEvent(
       new KeyboardEvent('keydown', {

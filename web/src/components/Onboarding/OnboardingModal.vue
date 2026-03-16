@@ -90,18 +90,10 @@ const showInternalBootStep = computed(() => {
   );
 });
 
-const preferredStepId = computed<StepId | null>(() => {
-  if (currentStepId.value) {
-    return currentStepId.value;
-  }
-
-  return HARDCODED_STEPS[currentStepIndex.value]?.id ?? null;
-});
-
 const shouldKeepResumedInternalBootStep = computed(
   () =>
     onboardingContextLoading.value &&
-    preferredStepId.value === 'CONFIGURE_BOOT' &&
+    currentStepId.value === 'CONFIGURE_BOOT' &&
     internalBootVisibility.value === null
 );
 
@@ -135,16 +127,17 @@ const showModal = computed(() => {
 const showExitConfirmDialog = ref(false);
 
 const currentStep = computed<StepId | null>(() => {
-  const stepId = preferredStepId.value;
+  const persistedStepId = currentStepId.value;
 
-  if (stepId && availableSteps.value.includes(stepId)) {
-    return stepId;
+  if (persistedStepId && availableSteps.value.includes(persistedStepId)) {
+    return persistedStepId;
   }
 
-  if (currentStepIndex.value < availableSteps.value.length) {
+  if (persistedStepId && currentStepIndex.value < availableSteps.value.length) {
     return availableSteps.value[currentStepIndex.value];
   }
-  return null;
+
+  return availableSteps.value[0] ?? null;
 });
 
 const currentStepComponent = computed<Component | null>(() =>
@@ -167,7 +160,7 @@ watchEffect(() => {
     return;
   }
 
-  if (currentStepId.value === null && currentStepIndex.value === 0 && stepId === 'OVERVIEW') {
+  if (currentStepId.value === null) {
     return;
   }
 

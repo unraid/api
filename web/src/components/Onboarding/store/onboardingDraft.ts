@@ -133,7 +133,6 @@ export const useOnboardingDraftStore = defineStore(
     const currentStepId = ref<StepId | null>(null);
     const hasResumableDraft = computed(
       () =>
-        currentStepIndex.value > 0 ||
         currentStepId.value !== null ||
         coreSettingsInitialized.value ||
         pluginSelectionInitialized.value ||
@@ -227,12 +226,6 @@ export const useOnboardingDraftStore = defineStore(
       currentStepIndex.value = index;
     }
 
-    function setStepIndex(index: number) {
-      const stepId = STEP_IDS[index] ?? null;
-      currentStepIndex.value = index;
-      currentStepId.value = stepId;
-    }
-
     return {
       serverName,
       serverDescription,
@@ -259,7 +252,6 @@ export const useOnboardingDraftStore = defineStore(
       setBootMode,
       setInternalBootApplySucceeded,
       setCurrentStep,
-      setStepIndex,
     };
   },
   {
@@ -280,6 +272,11 @@ export const useOnboardingDraftStore = defineStore(
             normalizedInternalBootSelection
           );
           const normalizedCurrentStepId = normalizePersistedStepId(parsed.currentStepId);
+          const parsedCurrentStepIndex = Number(parsed.currentStepIndex);
+          const normalizedCurrentStepIndex =
+            normalizedCurrentStepId !== null && Number.isFinite(parsedCurrentStepIndex)
+              ? parsedCurrentStepIndex
+              : 0;
           const hasLegacyCoreDraft =
             (typeof parsed.serverName === 'string' && parsed.serverName.length > 0) ||
             (typeof parsed.serverDescription === 'string' && parsed.serverDescription.length > 0) ||
@@ -305,6 +302,7 @@ export const useOnboardingDraftStore = defineStore(
               parsed.internalBootApplySucceeded,
               false
             ),
+            currentStepIndex: normalizedCurrentStepIndex,
             currentStepId: normalizedCurrentStepId,
             coreSettingsInitialized:
               hasLegacyCoreDraft || normalizePersistedBoolean(parsed.coreSettingsInitialized, false),

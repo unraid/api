@@ -47,17 +47,20 @@ describe('OnboardingMutationsResolver', () => {
 
     let resolver: OnboardingMutationsResolver;
 
+    const createResolver = () =>
+        new OnboardingMutationsResolver(
+            onboardingOverrides as unknown as OnboardingOverrideService,
+            onboardingService as unknown as OnboardingService,
+            onboardingInternalBootService as unknown as OnboardingInternalBootService
+        );
+
     beforeEach(() => {
         vi.clearAllMocks();
         onboardingService.markOnboardingCompleted.mockResolvedValue(undefined);
         onboardingService.resetOnboarding.mockResolvedValue(undefined);
         onboardingService.getOnboardingResponse.mockResolvedValue(defaultOnboardingResponse);
 
-        resolver = new OnboardingMutationsResolver(
-            onboardingOverrides as OnboardingOverrideService,
-            onboardingService as OnboardingService,
-            onboardingInternalBootService as OnboardingInternalBootService
-        );
+        resolver = createResolver();
     });
 
     it('propagates completion failures', async () => {
