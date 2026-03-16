@@ -2,7 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { StepId } from '~/components/Onboarding/stepRegistry';
+import type { StepId } from '~/components/Onboarding/stepRegistry.js';
 
 import OnboardingModal from '~/components/Onboarding/OnboardingModal.vue';
 import { createTestI18n } from '../../utils/i18n';
@@ -53,10 +53,6 @@ const {
       },
     },
     isFreshInstall: { value: true },
-  },
-  onboardingContextDataStore: {
-    internalBootVisibility: null as unknown as InternalBootVisibilityResult,
-    loading: { value: false },
   },
   onboardingStatusStore: {
     shouldShowOnboarding: { value: false },

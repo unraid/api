@@ -1,9 +1,9 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 
-import type { StepId } from '~/components/Onboarding/stepRegistry';
+import type { StepId } from '~/components/Onboarding/stepRegistry.js';
 
-import { STEP_IDS } from '~/components/Onboarding/stepRegistry';
+import { STEP_IDS } from '~/components/Onboarding/stepRegistry.js';
 
 export interface OnboardingInternalBootSelection {
   poolName: string;
@@ -228,7 +228,9 @@ export const useOnboardingDraftStore = defineStore(
     }
 
     function setStepIndex(index: number) {
+      const stepId = STEP_IDS[index] ?? null;
       currentStepIndex.value = index;
+      currentStepId.value = stepId;
     }
 
     return {

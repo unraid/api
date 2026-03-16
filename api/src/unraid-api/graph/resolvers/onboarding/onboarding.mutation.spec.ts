@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
+import type { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
+import type { OnboardingInternalBootService } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-internal-boot.service.js';
 import type { OnboardingOverrideInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 import { OnboardingStatus } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { CreateInternalBootPoolInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
@@ -9,18 +12,24 @@ describe('OnboardingMutationsResolver', () => {
     const onboardingOverrides = {
         setState: vi.fn(),
         clearState: vi.fn(),
-    };
+    } satisfies Pick<OnboardingOverrideService, 'setState' | 'clearState'>;
 
     const onboardingService = {
         markOnboardingCompleted: vi.fn(),
         resetOnboarding: vi.fn(),
         getOnboardingResponse: vi.fn(),
         clearActivationDataCache: vi.fn(),
-    };
+    } satisfies Pick<
+        OnboardingService,
+        | 'markOnboardingCompleted'
+        | 'resetOnboarding'
+        | 'getOnboardingResponse'
+        | 'clearActivationDataCache'
+    >;
 
     const onboardingInternalBootService = {
         createInternalBootPool: vi.fn(),
-    };
+    } satisfies Pick<OnboardingInternalBootService, 'createInternalBootPool'>;
 
     const defaultOnboardingResponse = {
         status: OnboardingStatus.INCOMPLETE,
@@ -45,9 +54,9 @@ describe('OnboardingMutationsResolver', () => {
         onboardingService.getOnboardingResponse.mockResolvedValue(defaultOnboardingResponse);
 
         resolver = new OnboardingMutationsResolver(
-            onboardingOverrides as never,
-            onboardingService as never,
-            onboardingInternalBootService as never
+            onboardingOverrides as OnboardingOverrideService,
+            onboardingService as OnboardingService,
+            onboardingInternalBootService as OnboardingInternalBootService
         );
     });
 

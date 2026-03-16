@@ -43,7 +43,7 @@ describe('onboardingStorageCleanup', () => {
       language: 'en_US',
       useSsh: true,
     });
-    draftStore.setStepIndex(2);
+    draftStore.setCurrentStep('CONFIGURE_BOOT', 2);
 
     clearOnboardingDraftStorage();
 

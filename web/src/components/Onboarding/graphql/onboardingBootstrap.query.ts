@@ -1,4 +1,4 @@
-import { graphql } from '~/composables/gql/gql';
+import { graphql } from '~/composables/gql/gql.js';
 
 export const ONBOARDING_BOOTSTRAP_QUERY = graphql(/* GraphQL */ `
   query OnboardingBootstrap {

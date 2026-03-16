@@ -335,6 +335,25 @@ describe('OnboardingService', () => {
                 'Onboarding tracker state is unavailable.'
             );
         });
+
+        it('treats a missing tracker file as incomplete onboarding state', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'missing',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                },
+            });
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+            vi.spyOn(service, 'getActivationData');
+
+            await expect(service.getOnboardingResponse()).resolves.toMatchObject({
+                status: OnboardingStatus.INCOMPLETE,
+                completed: false,
+                completedAtVersion: undefined,
+            });
+            expect(service.getActivationData).not.toHaveBeenCalled();
+        });
     });
 
     describe('onModuleInit', () => {

@@ -9,12 +9,12 @@ import { Dialog } from '@unraid/ui';
 import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 
 import type { BrandButtonProps } from '@unraid/ui';
-import type { StepId } from '~/components/Onboarding/stepRegistry';
+import type { StepId } from '~/components/Onboarding/stepRegistry.js';
 import type { Component } from 'vue';
 
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/components/Onboarding/constants';
 import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
-import { stepComponents } from '~/components/Onboarding/stepRegistry';
+import { stepComponents } from '~/components/Onboarding/stepRegistry.js';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onboardingContextData';
 import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
@@ -90,10 +90,18 @@ const showInternalBootStep = computed(() => {
   );
 });
 
+const preferredStepId = computed<StepId | null>(() => {
+  if (currentStepId.value) {
+    return currentStepId.value;
+  }
+
+  return HARDCODED_STEPS[currentStepIndex.value]?.id ?? null;
+});
+
 const shouldKeepResumedInternalBootStep = computed(
   () =>
     onboardingContextLoading.value &&
-    currentStepId.value === 'CONFIGURE_BOOT' &&
+    preferredStepId.value === 'CONFIGURE_BOOT' &&
     internalBootVisibility.value === null
 );
 
@@ -126,14 +134,6 @@ const showModal = computed(() => {
 });
 const showExitConfirmDialog = ref(false);
 
-const preferredStepId = computed<StepId | null>(() => {
-  if (currentStepId.value) {
-    return currentStepId.value;
-  }
-
-  return HARDCODED_STEPS[currentStepIndex.value]?.id ?? null;
-});
-
 const currentStep = computed<StepId | null>(() => {
   const stepId = preferredStepId.value;
 
@@ -164,6 +164,10 @@ watchEffect(() => {
   const stepIndex = currentDynamicStepIndex.value;
 
   if (!stepId || stepIndex >= availableSteps.value.length) {
+    return;
+  }
+
+  if (currentStepId.value === null && currentStepIndex.value === 0 && stepId === 'OVERVIEW') {
     return;
   }
 
