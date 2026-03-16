@@ -78,14 +78,25 @@ const initialSelection = draftStore.pluginSelectionInitialized
 const selectedPlugins = ref<Set<string>>(initialSelection);
 const installedPluginIds = ref<Set<string>>(new Set());
 
-const { result: installedPluginsResult } = useQuery(INSTALLED_UNRAID_PLUGINS_QUERY, null, {
-  fetchPolicy: 'network-only',
-});
+const { result: installedPluginsResult, loading: installedPluginsLoading } = useQuery(
+  INSTALLED_UNRAID_PLUGINS_QUERY,
+  null,
+  {
+    fetchPolicy: 'network-only',
+  }
+);
 
 const isPluginInstalled = (pluginId: string) => installedPluginIds.value.has(pluginId);
 const isPluginEnabled = (pluginId: string) =>
   installedPluginIds.value.has(pluginId) || selectedPlugins.value.has(pluginId);
-const isBusy = computed(() => props.isSavingStep ?? false);
+const isInstalledPluginsPending = computed(
+  () =>
+    installedPluginsLoading.value && !Array.isArray(installedPluginsResult.value?.installedUnraidPlugins)
+);
+const isBusy = computed(() => Boolean(props.isSavingStep) || isInstalledPluginsPending.value);
+const persistedSelectedPlugins = computed(
+  () => new Set<string>([...selectedPlugins.value, ...installedPluginIds.value])
+);
 
 const applyInstalledPlugins = (installedPlugins: string[] | null | undefined) => {
   if (!Array.isArray(installedPlugins)) {
@@ -134,9 +145,7 @@ const togglePlugin = (pluginId: string, value: boolean) => {
 };
 
 const handleSkip = () => {
-  // Clear selection? Or just move on?
-  // User clicked "Skip", so we probably shouldn't install anything.
-  draftStore.setPlugins(new Set());
+  draftStore.setPlugins(new Set(installedPluginIds.value));
   if (props.onSkip) {
     props.onSkip();
   } else {
@@ -149,7 +158,7 @@ const handleBack = () => {
 };
 
 const handlePrimaryAction = async () => {
-  draftStore.setPlugins(selectedPlugins.value);
+  draftStore.setPlugins(persistedSelectedPlugins.value);
   props.onComplete();
 };
 
