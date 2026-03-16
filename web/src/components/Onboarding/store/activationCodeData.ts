@@ -1,34 +1,24 @@
 import { computed } from 'vue';
-import { defineStore } from 'pinia';
-import { useQuery } from '@vue/apollo-composable';
+import { defineStore, storeToRefs } from 'pinia';
 
-import { ACTIVATION_CODE_QUERY } from '~/components/Onboarding/graphql/activationCode.query';
+import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onboardingContextData';
 
 export const useActivationCodeDataStore = defineStore('activationCodeData', () => {
-  const { result: activationCodeResult, loading: activationCodeLoading } = useQuery(
-    ACTIVATION_CODE_QUERY,
-    {},
-    { errorPolicy: 'all' }
-  );
-
-  const onboardingState = computed(
-    () => activationCodeResult.value?.customization?.onboarding?.onboardingState
-  );
-
-  const activationCode = computed(() => activationCodeResult.value?.customization?.activationCode);
+  const onboardingContextStore = useOnboardingContextDataStore();
+  const { loading, onboardingState, activationCode } = storeToRefs(onboardingContextStore);
 
   const registrationState = computed(() => onboardingState.value?.registrationState ?? null);
 
   const isFreshInstall = computed(() => onboardingState.value?.isFreshInstall ?? false);
 
   const partnerInfo = computed(() => {
-    const activationCode = activationCodeResult.value?.customization?.activationCode;
-    if (!activationCode?.partner && !activationCode?.branding) {
+    const activationCodeValue = activationCode.value;
+    if (!activationCodeValue?.partner && !activationCodeValue?.branding) {
       return null;
     }
     return {
-      partner: activationCode?.partner ?? null,
-      branding: activationCode?.branding ?? null,
+      partner: activationCodeValue?.partner ?? null,
+      branding: activationCodeValue?.branding ?? null,
     };
   });
 
@@ -39,7 +29,7 @@ export const useActivationCodeDataStore = defineStore('activationCodeData', () =
   const isRegistered = computed(() => onboardingState.value?.isRegistered ?? false);
 
   return {
-    loading: computed(() => activationCodeLoading.value),
+    loading,
     activationCode,
     registrationState,
     isFreshInstall,

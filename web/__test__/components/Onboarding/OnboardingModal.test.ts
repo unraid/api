@@ -7,11 +7,9 @@ import { createTestI18n } from '../../utils/i18n';
 
 type InternalBootVisibilityResult = {
   value: {
-    vars: {
-      bootedFromFlashWithInternalBootSetup: boolean | null;
-      enableBootTransfer: string | null;
-    };
-  };
+    bootedFromFlashWithInternalBootSetup: boolean | null;
+    enableBootTransfer: string | null;
+  } | null;
 };
 
 const {
@@ -30,10 +28,8 @@ const {
   mutateMock: vi.fn().mockResolvedValue(undefined),
   internalBootVisibilityResult: {
     value: {
-      vars: {
-        bootedFromFlashWithInternalBootSetup: false,
-        enableBootTransfer: 'yes',
-      },
+      bootedFromFlashWithInternalBootSetup: false,
+      enableBootTransfer: 'yes',
     },
   } as InternalBootVisibilityResult,
   internalBootVisibilityLoading: { value: false },
@@ -55,6 +51,10 @@ const {
       },
     },
     isFreshInstall: { value: true },
+  },
+  onboardingContextDataStore: {
+    internalBootVisibility: null as unknown as InternalBootVisibilityResult,
+    loading: { value: false },
   },
   onboardingStatusStore: {
     shouldShowOnboarding: { value: false },
@@ -109,11 +109,6 @@ vi.mock('@heroicons/vue/24/solid', () => ({
 }));
 
 vi.mock('@vue/apollo-composable', () => ({
-  useQuery: () => ({
-    result: internalBootVisibilityResult,
-    loading: internalBootVisibilityLoading,
-    error: { value: null },
-  }),
   useMutation: () => ({
     mutate: mutateMock,
   }),
@@ -144,6 +139,13 @@ vi.mock('~/components/Onboarding/store/onboardingModalVisibility', () => ({
 
 vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: () => activationCodeDataStore,
+}));
+
+vi.mock('~/components/Onboarding/store/onboardingContextData', () => ({
+  useOnboardingContextDataStore: () => ({
+    internalBootVisibility: internalBootVisibilityResult,
+    loading: internalBootVisibilityLoading,
+  }),
 }));
 
 vi.mock('~/components/Onboarding/store/onboardingStatus', () => ({
@@ -198,10 +200,8 @@ describe('OnboardingModal.vue', () => {
     onboardingDraftStore.internalBootApplySucceeded.value = false;
     internalBootVisibilityLoading.value = false;
     internalBootVisibilityResult.value = {
-      vars: {
-        bootedFromFlashWithInternalBootSetup: false,
-        enableBootTransfer: 'yes',
-      },
+      bootedFromFlashWithInternalBootSetup: false,
+      enableBootTransfer: 'yes',
     };
   });
 
@@ -344,10 +344,8 @@ describe('OnboardingModal.vue', () => {
 
   it('hides internal boot step when boot transfer state is unknown', () => {
     internalBootVisibilityResult.value = {
-      vars: {
-        bootedFromFlashWithInternalBootSetup: null,
-        enableBootTransfer: null,
-      },
+      bootedFromFlashWithInternalBootSetup: null,
+      enableBootTransfer: null,
     };
     onboardingDraftStore.currentStepIndex.value = 2;
     onboardingDraftStore.currentStepId.value = 'CONFIGURE_BOOT';
@@ -369,10 +367,8 @@ describe('OnboardingModal.vue', () => {
 
   it('hides internal boot step when already booting internally', () => {
     internalBootVisibilityResult.value = {
-      vars: {
-        bootedFromFlashWithInternalBootSetup: false,
-        enableBootTransfer: 'no',
-      },
+      bootedFromFlashWithInternalBootSetup: false,
+      enableBootTransfer: 'no',
     };
     onboardingDraftStore.currentStepIndex.value = 2;
     onboardingDraftStore.currentStepId.value = 'CONFIGURE_BOOT';
@@ -385,10 +381,8 @@ describe('OnboardingModal.vue', () => {
 
   it('hides internal boot step when still booted from flash but internal boot is already configured', () => {
     internalBootVisibilityResult.value = {
-      vars: {
-        bootedFromFlashWithInternalBootSetup: true,
-        enableBootTransfer: 'yes',
-      },
+      bootedFromFlashWithInternalBootSetup: true,
+      enableBootTransfer: 'yes',
     };
     onboardingDraftStore.currentStepIndex.value = 2;
     onboardingDraftStore.currentStepId.value = 'CONFIGURE_BOOT';
@@ -401,12 +395,7 @@ describe('OnboardingModal.vue', () => {
 
   it('keeps the resumed internal boot step visible while boot visibility is still loading', () => {
     internalBootVisibilityLoading.value = true;
-    internalBootVisibilityResult.value = {
-      vars: {
-        bootedFromFlashWithInternalBootSetup: null,
-        enableBootTransfer: null,
-      },
-    };
+    internalBootVisibilityResult.value = null;
     onboardingDraftStore.currentStepIndex.value = 2;
     onboardingDraftStore.currentStepId.value = 'CONFIGURE_BOOT';
 

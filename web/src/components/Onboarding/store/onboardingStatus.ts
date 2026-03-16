@@ -1,13 +1,12 @@
 import { computed, ref } from 'vue';
 import { defineStore, storeToRefs } from 'pinia';
-import { useQuery } from '@vue/apollo-composable';
 
-import { ONBOARDING_QUERY } from '@/components/Onboarding/graphql/activationOnboarding.query';
 import coerce from 'semver/functions/coerce';
 import gte from 'semver/functions/gte';
 
 import type { OnboardingStatus } from '~/composables/gql/graphql';
 
+import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onboardingContextData';
 import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import { useServerStore } from '~/store/server';
 
@@ -49,14 +48,13 @@ const isVersionAtLeast = (version: string | null | undefined, minVersion: string
 export const useOnboardingStore = defineStore('onboarding', () => {
   const { osVersion } = storeToRefs(useServerStore());
   const { hasResumableDraft } = storeToRefs(useOnboardingDraftStore());
+  const onboardingContextStore = useOnboardingContextDataStore();
   const {
-    result: onboardingResult,
+    onboarding: onboardingData,
     loading: onboardingLoading,
     error: onboardingError,
-    refetch,
-  } = useQuery(ONBOARDING_QUERY, {}, { errorPolicy: 'all' });
-
-  const onboardingData = computed(() => onboardingResult.value?.customization?.onboarding);
+  } = storeToRefs(onboardingContextStore);
+  const { refetchOnboardingContext } = onboardingContextStore;
   const mockOsVersion = ref<string | null>(readMockOsVersionFromStorage());
 
   // Core state from API
@@ -124,7 +122,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     canDisplayOnboardingModal,
     shouldShowOnboarding,
     // Actions
-    refetchOnboarding: refetch,
+    refetchOnboarding: refetchOnboardingContext,
     setMockOsVersion,
   };
 });

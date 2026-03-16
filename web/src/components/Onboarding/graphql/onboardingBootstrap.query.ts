@@ -1,7 +1,7 @@
-import { parse } from 'graphql';
+import { graphql } from '~/composables/gql/gql';
 
-export const ACTIVATION_CODE_QUERY = parse(/* GraphQL */ `
-  query ActivationCode {
+export const ONBOARDING_BOOTSTRAP_QUERY = graphql(/* GraphQL */ `
+  query OnboardingBootstrap {
     customization {
       activationCode {
         code
@@ -45,6 +45,10 @@ export const ACTIVATION_CODE_QUERY = parse(/* GraphQL */ `
         }
       }
       onboarding {
+        status
+        isPartnerBuild
+        completed
+        completedAtVersion
         onboardingState {
           registrationState
           isRegistered
@@ -53,6 +57,10 @@ export const ACTIVATION_CODE_QUERY = parse(/* GraphQL */ `
           activationRequired
         }
       }
+    }
+    vars {
+      bootedFromFlashWithInternalBootSetup
+      enableBootTransfer
     }
   }
 `);

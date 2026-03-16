@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { useMutation, useQuery } from '@vue/apollo-composable';
+import { useMutation } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
@@ -16,11 +16,11 @@ import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/components/Onboardin
 import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
 import { stepComponents } from '~/components/Onboarding/stepRegistry';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
+import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onboardingContextData';
 import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
 import { cleanupOnboardingStorage } from '~/components/Onboarding/store/onboardingStorageCleanup';
-import { GetInternalBootStepVisibilityDocument } from '~/composables/gql/graphql';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
@@ -39,6 +39,9 @@ const { refetchOnboarding } = onboardingStore;
 const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
 const themeStore = useThemeStore();
+const { internalBootVisibility, loading: onboardingContextLoading } = storeToRefs(
+  useOnboardingContextDataStore()
+);
 const draftStore = useOnboardingDraftStore();
 const { currentStepIndex, currentStepId, internalBootApplySucceeded } = storeToRefs(draftStore);
 
@@ -76,18 +79,10 @@ const showActivationStep = computed(() => {
   return hasCode && ACTIVATION_STEP_REGISTRATION_STATES.has(regState);
 });
 
-const { result: internalBootVisibilityResult, loading: internalBootVisibilityLoading } = useQuery(
-  GetInternalBootStepVisibilityDocument,
-  null,
-  {
-    fetchPolicy: 'network-only',
-  }
-);
-
 const showInternalBootStep = computed(() => {
-  const setting = internalBootVisibilityResult.value?.vars?.enableBootTransfer;
+  const setting = internalBootVisibility.value?.enableBootTransfer;
   const bootedFromFlashWithInternalBootSetup =
-    internalBootVisibilityResult.value?.vars?.bootedFromFlashWithInternalBootSetup === true;
+    internalBootVisibility.value?.bootedFromFlashWithInternalBootSetup === true;
   return (
     typeof setting === 'string' &&
     setting.trim().toLowerCase() === 'yes' &&
@@ -96,7 +91,10 @@ const showInternalBootStep = computed(() => {
 });
 
 const shouldKeepResumedInternalBootStep = computed(
-  () => internalBootVisibilityLoading.value && currentStepId.value === 'CONFIGURE_BOOT'
+  () =>
+    onboardingContextLoading.value &&
+    currentStepId.value === 'CONFIGURE_BOOT' &&
+    internalBootVisibility.value === null
 );
 
 // Determine which steps to show based on user state
