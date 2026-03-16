@@ -410,6 +410,20 @@ describe('useServerStore', () => {
     expect(store.bootedFromFlashWithInternalBootSetup).toBe(false);
   });
 
+  it('should allow TPM license transfer when a distinct TPM GUID exists even without internal boot setup', () => {
+    const store = getStore();
+
+    store.setServer({
+      guid: '0781-5591-9155-81073130B2AE',
+      tpmGuid: '03-IRIVYF2D03LGZIYGGRJ1OHZR',
+      bootedFromFlashWithInternalBootSetup: false,
+    });
+
+    expect(store.bootedFromFlashWithInternalBootSetup).toBe(false);
+    expect(store.hasDistinctTpmGuid).toBe(true);
+    expect(store.serverReplacePayload.guid).toBe('03-IRIVYF2D03LGZIYGGRJ1OHZR');
+  });
+
   it('should compute regDevs correctly based on regTy', () => {
     const store = getStore();
 

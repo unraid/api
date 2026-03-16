@@ -46,7 +46,7 @@ const { activationCode } = storeToRefs(useActivationCodeDataStore());
 
 const {
   bootDeviceType,
-  bootedFromFlashWithInternalBootSetup,
+  hasDistinctTpmGuid,
   dateTimeFormat,
   deviceCount,
   flashProduct,
@@ -135,11 +135,8 @@ const showPartnerActivationCode = computed(() => {
     (currentState === 'ENOKEYFILE' || currentState === 'TRIAL' || currentState === 'EEXPIRED')
   );
 });
-const canMoveLicenseToTpm = computed(
-  (): boolean => bootedFromFlashWithInternalBootSetup.value && Boolean(tpmGuid.value)
-);
 const showTpmTransferButton = computed((): boolean =>
-  Boolean((keyInstalled.value || showTrialExpiration.value) && canMoveLicenseToTpm.value)
+  Boolean((keyInstalled.value || showTrialExpiration.value) && hasDistinctTpmGuid.value)
 );
 const disableTpmTransferButton = computed((): boolean => showTrialExpiration.value);
 
