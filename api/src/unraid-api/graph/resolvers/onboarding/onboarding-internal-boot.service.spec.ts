@@ -1,3 +1,5 @@
+import { Logger } from '@nestjs/common';
+
 import { execa } from 'execa';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -219,6 +221,32 @@ describe('OnboardingInternalBootService', () => {
         );
         expect(internalBootStateService.invalidateCachedInternalBootDeviceState).toHaveBeenCalledTimes(
             1
+        );
+    });
+
+    it('returns success when cache invalidation fails after setup and logs a warning', async () => {
+        const warnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+        vi.mocked(emcmd).mockResolvedValue({ ok: true } as Awaited<ReturnType<typeof emcmd>>);
+        internalBootStateService.invalidateCachedInternalBootDeviceState.mockRejectedValue(
+            new Error('cache delete failed')
+        );
+        const service = createService();
+
+        const result = await service.createInternalBootPool({
+            poolName: 'cache',
+            devices: ['disk-1'],
+            bootSizeMiB: 16384,
+            updateBios: false,
+        });
+
+        expect(result.ok).toBe(true);
+        expect(result.code).toBe(0);
+        expect(vi.mocked(emcmd)).toHaveBeenCalledTimes(4);
+        expect(internalBootStateService.invalidateCachedInternalBootDeviceState).toHaveBeenCalledTimes(
+            1
+        );
+        expect(warnSpy).toHaveBeenCalledWith(
+            'Failed to invalidate cached internal boot device state after successful setup: cache delete failed'
         );
     });
 

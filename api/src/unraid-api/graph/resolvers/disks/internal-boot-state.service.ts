@@ -14,6 +14,8 @@ export class InternalBootStateService {
         'internal-boot-state:has-internal-boot-devices';
     private readonly INTERNAL_BOOT_DEVICE_SETUP_TTL_MS = 10000;
     private pendingHasInternalBootDevicesLookup: Promise<boolean> | null = null;
+    private pendingHasInternalBootDevicesLookupGeneration: number | null = null;
+    private internalBootLookupGeneration = 0;
 
     constructor(
         private readonly arrayService: ArrayService,
@@ -37,7 +39,9 @@ export class InternalBootStateService {
     }
 
     public async invalidateCachedInternalBootDeviceState(): Promise<void> {
+        this.internalBootLookupGeneration += 1;
         this.pendingHasInternalBootDevicesLookup = null;
+        this.pendingHasInternalBootDevicesLookupGeneration = null;
         await this.cacheManager.del(this.INTERNAL_BOOT_DEVICE_SETUP_CACHE_KEY);
     }
 
@@ -49,24 +53,39 @@ export class InternalBootStateService {
             return cachedValue;
         }
 
-        if (!this.pendingHasInternalBootDevicesLookup) {
-            this.pendingHasInternalBootDevicesLookup = this.loadHasInternalBootDevices();
+        const lookupGeneration = this.internalBootLookupGeneration;
+        if (
+            !this.pendingHasInternalBootDevicesLookup ||
+            this.pendingHasInternalBootDevicesLookupGeneration !== lookupGeneration
+        ) {
+            this.pendingHasInternalBootDevicesLookup = this.loadHasInternalBootDevices(lookupGeneration);
+            this.pendingHasInternalBootDevicesLookupGeneration = lookupGeneration;
         }
 
-        try {
-            return await this.pendingHasInternalBootDevicesLookup;
-        } finally {
-            this.pendingHasInternalBootDevicesLookup = null;
-        }
+        return this.pendingHasInternalBootDevicesLookup;
     }
 
-    private async loadHasInternalBootDevices(): Promise<boolean> {
-        const hasInternalBootDevices = (await this.disksService.getInternalBootDevices()).length > 0;
-        await this.cacheManager.set(
-            this.INTERNAL_BOOT_DEVICE_SETUP_CACHE_KEY,
-            hasInternalBootDevices,
-            this.INTERNAL_BOOT_DEVICE_SETUP_TTL_MS
-        );
-        return hasInternalBootDevices;
+    private async loadHasInternalBootDevices(lookupGeneration: number): Promise<boolean> {
+        try {
+            const hasInternalBootDevices = (await this.disksService.getInternalBootDevices()).length > 0;
+
+            if (lookupGeneration === this.internalBootLookupGeneration) {
+                await this.cacheManager.set(
+                    this.INTERNAL_BOOT_DEVICE_SETUP_CACHE_KEY,
+                    hasInternalBootDevices,
+                    this.INTERNAL_BOOT_DEVICE_SETUP_TTL_MS
+                );
+            }
+
+            return hasInternalBootDevices;
+        } finally {
+            if (
+                lookupGeneration === this.internalBootLookupGeneration &&
+                this.pendingHasInternalBootDevicesLookupGeneration === lookupGeneration
+            ) {
+                this.pendingHasInternalBootDevicesLookup = null;
+                this.pendingHasInternalBootDevicesLookupGeneration = null;
+            }
+        }
     }
 }

@@ -122,6 +122,56 @@ describe('InternalBootStateService', () => {
         expect(delSpy).toHaveBeenCalledTimes(1);
     });
 
+    it('does not repopulate the cache with a stale in-flight lookup after invalidation', async () => {
+        let resolveFirstLookup: ((value: Array<{ device: string }>) => void) | undefined;
+        let resolveSecondLookup: ((value: Array<{ device: string }>) => void) | undefined;
+
+        disksService.getInternalBootDevices
+            .mockImplementationOnce(
+                () =>
+                    new Promise<Array<{ device: string }>>((resolve) => {
+                        resolveFirstLookup = resolve;
+                    })
+            )
+            .mockImplementationOnce(
+                () =>
+                    new Promise<Array<{ device: string }>>((resolve) => {
+                        resolveSecondLookup = resolve;
+                    })
+            );
+        const service = createService();
+
+        const firstLookup = service.getBootedFromFlashWithInternalBootSetupForBootDisk({
+            type: ArrayDiskType.FLASH,
+        });
+
+        await Promise.resolve();
+        expect(disksService.getInternalBootDevices).toHaveBeenCalledTimes(1);
+
+        await service.invalidateCachedInternalBootDeviceState();
+        resolveFirstLookup?.([{ device: '/dev/nvme0n1' }]);
+
+        await expect(firstLookup).resolves.toBe(true);
+        expect(setSpy).not.toHaveBeenCalled();
+
+        const secondLookup = service.getBootedFromFlashWithInternalBootSetupForBootDisk({
+            type: ArrayDiskType.FLASH,
+        });
+
+        await Promise.resolve();
+        expect(disksService.getInternalBootDevices).toHaveBeenCalledTimes(2);
+
+        resolveSecondLookup?.([]);
+
+        await expect(secondLookup).resolves.toBe(false);
+        expect(setSpy).toHaveBeenCalledTimes(1);
+        expect(setSpy).toHaveBeenLastCalledWith(
+            'internal-boot-state:has-internal-boot-devices',
+            false,
+            10000
+        );
+    });
+
     it('uses array boot data for the shared top-level lookup', async () => {
         arrayService.getArrayData.mockResolvedValue({
             boot: {
