@@ -73,6 +73,8 @@ const HARDCODED_STEPS: Array<{ id: StepId; required: boolean }> = [
   { id: 'NEXT_STEPS', required: false },
 ];
 
+const STEP_ORDER = HARDCODED_STEPS.map((step) => step.id);
+
 const showActivationStep = computed(() => {
   const hasCode = hasActivationCode.value;
   const regState = registrationState.value ?? '';
@@ -126,6 +128,29 @@ const showModal = computed(() => {
 });
 const showExitConfirmDialog = ref(false);
 
+const getNearestVisibleStepId = (stepId: StepId): StepId | null => {
+  const currentOrderIndex = STEP_ORDER.indexOf(stepId);
+  if (currentOrderIndex < 0) {
+    return availableSteps.value[0] ?? null;
+  }
+
+  for (let index = currentOrderIndex + 1; index < STEP_ORDER.length; index += 1) {
+    const nextStepId = STEP_ORDER[index];
+    if (nextStepId && availableSteps.value.includes(nextStepId)) {
+      return nextStepId;
+    }
+  }
+
+  for (let index = currentOrderIndex - 1; index >= 0; index -= 1) {
+    const previousStepId = STEP_ORDER[index];
+    if (previousStepId && availableSteps.value.includes(previousStepId)) {
+      return previousStepId;
+    }
+  }
+
+  return availableSteps.value[0] ?? null;
+};
+
 const currentStep = computed<StepId | null>(() => {
   const persistedStepId = currentStepId.value;
 
@@ -133,8 +158,8 @@ const currentStep = computed<StepId | null>(() => {
     return persistedStepId;
   }
 
-  if (persistedStepId && currentStepIndex.value < availableSteps.value.length) {
-    return availableSteps.value[currentStepIndex.value];
+  if (persistedStepId) {
+    return getNearestVisibleStepId(persistedStepId);
   }
 
   return availableSteps.value[0] ?? null;
