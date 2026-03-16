@@ -28,11 +28,13 @@ vi.mock('@app/store/services/state-file-loader.js', () => ({
 describe('OnboardingInternalBootService', () => {
     const internalBootStateService = {
         getBootedFromFlashWithInternalBootSetup: vi.fn(),
+        invalidateCachedInternalBootDeviceState: vi.fn(),
     };
 
     beforeEach(() => {
         vi.clearAllMocks();
         internalBootStateService.getBootedFromFlashWithInternalBootSetup.mockResolvedValue(false);
+        internalBootStateService.invalidateCachedInternalBootDeviceState.mockResolvedValue(undefined);
         vi.mocked(getters.emhttp).mockReturnValue({
             devices: [],
             disks: [],
@@ -88,6 +90,9 @@ describe('OnboardingInternalBootService', () => {
             },
             { waitForToken: true }
         );
+        expect(internalBootStateService.invalidateCachedInternalBootDeviceState).toHaveBeenCalledTimes(
+            1
+        );
     });
 
     it('runs efibootmgr update flow when updateBios is requested', async () => {
@@ -139,6 +144,9 @@ describe('OnboardingInternalBootService', () => {
         expect(result.ok).toBe(true);
         expect(result.code).toBe(0);
         expect(result.output).toContain('BIOS boot entry updates completed successfully.');
+        expect(internalBootStateService.invalidateCachedInternalBootDeviceState).toHaveBeenCalledTimes(
+            1
+        );
         expect(vi.mocked(emcmd)).toHaveBeenCalledTimes(4);
         expect(vi.mocked(loadStateFileSync)).not.toHaveBeenCalled();
         expect(vi.mocked(execa)).toHaveBeenNthCalledWith(1, 'efibootmgr', [], { reject: false });
@@ -209,6 +217,9 @@ describe('OnboardingInternalBootService', () => {
         expect(result.output).toContain(
             'BIOS boot entry updates completed with warnings; manual BIOS boot order changes may still be required.'
         );
+        expect(internalBootStateService.invalidateCachedInternalBootDeviceState).toHaveBeenCalledTimes(
+            1
+        );
     });
 
     it('returns validation error for duplicate devices', async () => {
@@ -226,6 +237,7 @@ describe('OnboardingInternalBootService', () => {
             code: 2,
             output: 'mkbootpool: duplicate device id: disk-1',
         });
+        expect(internalBootStateService.invalidateCachedInternalBootDeviceState).not.toHaveBeenCalled();
         expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
     });
 
@@ -245,6 +257,7 @@ describe('OnboardingInternalBootService', () => {
             code: 3,
         });
         expect(result.output).toContain('internal boot is already configured');
+        expect(internalBootStateService.invalidateCachedInternalBootDeviceState).not.toHaveBeenCalled();
         expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
     });
 
@@ -265,6 +278,7 @@ describe('OnboardingInternalBootService', () => {
         expect(result.code).toBe(1);
         expect(result.output).toContain('mkbootpool: command failed or timed out');
         expect(result.output).toContain('state lookup failed');
+        expect(internalBootStateService.invalidateCachedInternalBootDeviceState).not.toHaveBeenCalled();
         expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
     });
 
@@ -283,5 +297,6 @@ describe('OnboardingInternalBootService', () => {
         expect(result.code).toBe(1);
         expect(result.output).toContain('mkbootpool: command failed or timed out');
         expect(result.output).toContain('socket failure');
+        expect(internalBootStateService.invalidateCachedInternalBootDeviceState).not.toHaveBeenCalled();
     });
 });

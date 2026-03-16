@@ -135,10 +135,11 @@ const showPartnerActivationCode = computed(() => {
     (currentState === 'ENOKEYFILE' || currentState === 'TRIAL' || currentState === 'EEXPIRED')
   );
 });
+const canMoveLicenseToTpm = computed(
+  (): boolean => bootedFromFlashWithInternalBootSetup.value && Boolean(tpmGuid.value)
+);
 const showTpmTransferButton = computed((): boolean =>
-  Boolean(
-    (keyInstalled.value || showTrialExpiration.value) && bootedFromFlashWithInternalBootSetup.value
-  )
+  Boolean((keyInstalled.value || showTrialExpiration.value) && canMoveLicenseToTpm.value)
 );
 const disableTpmTransferButton = computed((): boolean => showTrialExpiration.value);
 

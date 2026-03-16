@@ -407,6 +407,8 @@ export class OnboardingInternalBootService {
                 );
             }
 
+            await this.internalBootStateService.invalidateCachedInternalBootDeviceState();
+
             return {
                 ok: true,
                 code: 0,
