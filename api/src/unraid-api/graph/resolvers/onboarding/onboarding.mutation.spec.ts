@@ -1,167 +1,122 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
+import type { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
+import type { OnboardingInternalBootService } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-internal-boot.service.js';
+import type { OnboardingOverrideInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 import { OnboardingStatus } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { CreateInternalBootPoolInput } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 import { OnboardingMutationsResolver } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.mutation.js';
 
 describe('OnboardingMutationsResolver', () => {
-    const onboardingTracker = {
-        markCompleted: vi.fn(),
-        reset: vi.fn(),
-        getState: vi.fn(),
-        getCurrentVersion: vi.fn(),
-    };
-
     const onboardingOverrides = {
         setState: vi.fn(),
         clearState: vi.fn(),
-    };
+    } satisfies Pick<OnboardingOverrideService, 'setState' | 'clearState'>;
 
     const onboardingService = {
-        getPublicPartnerInfo: vi.fn(),
-        getOnboardingState: vi.fn(),
+        markOnboardingCompleted: vi.fn(),
+        resetOnboarding: vi.fn(),
+        getOnboardingResponse: vi.fn(),
         clearActivationDataCache: vi.fn(),
-    };
+    } satisfies Pick<
+        OnboardingService,
+        | 'markOnboardingCompleted'
+        | 'resetOnboarding'
+        | 'getOnboardingResponse'
+        | 'clearActivationDataCache'
+    >;
 
     const onboardingInternalBootService = {
         createInternalBootPool: vi.fn(),
+    } satisfies Pick<OnboardingInternalBootService, 'createInternalBootPool'>;
+
+    const defaultOnboardingResponse = {
+        status: OnboardingStatus.INCOMPLETE,
+        isPartnerBuild: false,
+        completed: false,
+        completedAtVersion: undefined,
+        onboardingState: {
+            registrationState: null,
+            isRegistered: false,
+            isFreshInstall: false,
+            hasActivationCode: false,
+            activationRequired: false,
+        },
     };
 
     let resolver: OnboardingMutationsResolver;
 
+    const createResolver = () =>
+        new OnboardingMutationsResolver(
+            onboardingOverrides as unknown as OnboardingOverrideService,
+            onboardingService as unknown as OnboardingService,
+            onboardingInternalBootService as unknown as OnboardingInternalBootService
+        );
+
     beforeEach(() => {
         vi.clearAllMocks();
-        onboardingTracker.getState.mockReturnValue({
-            completed: false,
-            completedAtVersion: undefined,
-        });
-        onboardingTracker.getCurrentVersion.mockReturnValue('7.2.0');
-        onboardingService.getPublicPartnerInfo.mockResolvedValue(null);
-        onboardingService.getOnboardingState.mockResolvedValue({
-            registrationState: null,
-            isRegistered: false,
-            isFreshInstall: false,
-            hasActivationCode: false,
-            activationRequired: false,
-        });
+        onboardingService.markOnboardingCompleted.mockResolvedValue(undefined);
+        onboardingService.resetOnboarding.mockResolvedValue(undefined);
+        onboardingService.getOnboardingResponse.mockResolvedValue(defaultOnboardingResponse);
 
-        resolver = new OnboardingMutationsResolver(
-            onboardingTracker as any,
-            onboardingOverrides as any,
-            onboardingService as any,
-            onboardingInternalBootService as any
-        );
+        resolver = createResolver();
     });
 
-    it('propagates tracker failure from completeOnboarding', async () => {
+    it('propagates completion failures', async () => {
         const error = new Error('tracker-write-failed');
-        onboardingTracker.markCompleted.mockRejectedValue(error);
+        onboardingService.markOnboardingCompleted.mockRejectedValue(error);
 
         await expect(resolver.completeOnboarding()).rejects.toThrow('tracker-write-failed');
-        expect(onboardingService.getPublicPartnerInfo).not.toHaveBeenCalled();
+        expect(onboardingService.getOnboardingResponse).not.toHaveBeenCalled();
     });
 
-    it('returns completed onboarding state when markCompleted succeeds', async () => {
-        onboardingTracker.markCompleted.mockResolvedValue({
+    it('delegates completeOnboarding through the onboarding service', async () => {
+        const response = {
+            ...defaultOnboardingResponse,
+            status: OnboardingStatus.COMPLETED,
             completed: true,
             completedAtVersion: '7.2.0',
-        });
-        onboardingTracker.getState.mockReturnValue({
-            completed: true,
-            completedAtVersion: '7.2.0',
-        });
-        onboardingTracker.getCurrentVersion.mockReturnValue('7.2.0');
-        onboardingService.getPublicPartnerInfo.mockResolvedValue(null);
+        };
+        onboardingService.getOnboardingResponse.mockResolvedValue(response);
 
-        const result = await resolver.completeOnboarding();
-
-        expect(result.completed).toBe(true);
-        expect(result.completedAtVersion).toBe('7.2.0');
-        expect(result.status).toBe(OnboardingStatus.COMPLETED);
-        expect(result.isPartnerBuild).toBe(false);
-        expect(result.onboardingState).toEqual({
-            registrationState: null,
-            isRegistered: false,
-            isFreshInstall: false,
-            hasActivationCode: false,
-            activationRequired: false,
-        });
+        await expect(resolver.completeOnboarding()).resolves.toEqual(response);
+        expect(onboardingService.markOnboardingCompleted).toHaveBeenCalledTimes(1);
+        expect(onboardingService.getOnboardingResponse).toHaveBeenCalledWith();
     });
 
-    it('returns incomplete status after resetOnboarding', async () => {
-        onboardingTracker.reset.mockResolvedValue(undefined);
-        onboardingTracker.getState.mockReturnValue({
+    it('delegates resetOnboarding through the onboarding service', async () => {
+        const response = {
+            ...defaultOnboardingResponse,
+            status: OnboardingStatus.INCOMPLETE,
             completed: false,
-            completedAtVersion: undefined,
-        });
+        };
+        onboardingService.getOnboardingResponse.mockResolvedValue(response);
 
-        const result = await resolver.resetOnboarding();
-
-        expect(onboardingTracker.reset).toHaveBeenCalledTimes(1);
-        expect(result.status).toBe(OnboardingStatus.INCOMPLETE);
-        expect(result.completed).toBe(false);
+        await expect(resolver.resetOnboarding()).resolves.toEqual(response);
+        expect(onboardingService.resetOnboarding).toHaveBeenCalledTimes(1);
+        expect(onboardingService.getOnboardingResponse).toHaveBeenCalledWith();
     });
 
-    it('returns completed status when completed version is on a prior patch of current minor', async () => {
-        onboardingTracker.markCompleted.mockResolvedValue(undefined);
-        onboardingTracker.getState.mockReturnValue({
-            completed: true,
-            completedAtVersion: '7.2.1',
-        });
-        onboardingTracker.getCurrentVersion.mockReturnValue('7.2.4');
-
-        const result = await resolver.completeOnboarding();
-
-        expect(result.status).toBe(OnboardingStatus.COMPLETED);
-    });
-
-    it('returns upgrade status when completed version is behind current', async () => {
-        onboardingTracker.markCompleted.mockResolvedValue(undefined);
-        onboardingTracker.getState.mockReturnValue({
-            completed: true,
-            completedAtVersion: '7.1.0',
-        });
-        onboardingTracker.getCurrentVersion.mockReturnValue('7.2.0');
-
-        const result = await resolver.completeOnboarding();
-
-        expect(result.status).toBe(OnboardingStatus.UPGRADE);
-    });
-
-    it('returns downgrade status when completed version is ahead of current', async () => {
-        onboardingTracker.markCompleted.mockResolvedValue(undefined);
-        onboardingTracker.getState.mockReturnValue({
+    it('stores overrides, clears activation cache, and returns the shared onboarding response', async () => {
+        const response = {
+            ...defaultOnboardingResponse,
+            status: OnboardingStatus.COMPLETED,
+            isPartnerBuild: true,
             completed: true,
             completedAtVersion: '7.2.0',
-        });
-        onboardingTracker.getCurrentVersion.mockReturnValue('7.1.0');
+        };
+        onboardingService.getOnboardingResponse.mockResolvedValue(response);
 
-        const result = await resolver.completeOnboarding();
-
-        expect(result.status).toBe(OnboardingStatus.DOWNGRADE);
-    });
-
-    it('setOnboardingOverride stores override, clears cache, and returns onboarding state', async () => {
-        onboardingTracker.getState.mockReturnValue({
-            completed: true,
-            completedAtVersion: '7.2.0',
-        });
-        onboardingTracker.getCurrentVersion.mockReturnValue('7.2.0');
-        onboardingService.getPublicPartnerInfo.mockResolvedValue({
-            partner: { name: 'Partner' },
-            branding: {},
-        } as any);
-
-        const input = {
+        const input: OnboardingOverrideInput = {
             onboarding: {
                 completed: true,
                 completedAtVersion: '7.2.0',
             },
             registrationState: undefined,
-        } as any;
+        };
 
-        const result = await resolver.setOnboardingOverride(input);
-
+        await expect(resolver.setOnboardingOverride(input)).resolves.toEqual(response);
         expect(onboardingOverrides.setState).toHaveBeenCalledWith({
             onboarding: input.onboarding,
             activationCode: undefined,
@@ -169,21 +124,20 @@ describe('OnboardingMutationsResolver', () => {
             registrationState: undefined,
         });
         expect(onboardingService.clearActivationDataCache).toHaveBeenCalledTimes(1);
-        expect(result.status).toBe(OnboardingStatus.COMPLETED);
-        expect(result.isPartnerBuild).toBe(true);
+        expect(onboardingService.getOnboardingResponse).toHaveBeenCalledWith();
     });
 
-    it('clearOnboardingOverride clears override and cache', async () => {
-        onboardingTracker.getState.mockReturnValue({
-            completed: false,
-            completedAtVersion: undefined,
-        });
-
-        const result = await resolver.clearOnboardingOverride();
-
+    it('clears overrides and returns the shared onboarding response', async () => {
+        await expect(resolver.clearOnboardingOverride()).resolves.toEqual(defaultOnboardingResponse);
         expect(onboardingOverrides.clearState).toHaveBeenCalledTimes(1);
         expect(onboardingService.clearActivationDataCache).toHaveBeenCalledTimes(1);
-        expect(result.status).toBe(OnboardingStatus.INCOMPLETE);
+        expect(onboardingService.getOnboardingResponse).toHaveBeenCalledWith();
+    });
+
+    it('propagates onboarding response failures after completion', async () => {
+        onboardingService.getOnboardingResponse.mockRejectedValue(new Error('tracker-read-failed'));
+
+        await expect(resolver.completeOnboarding()).rejects.toThrow('tracker-read-failed');
     });
 
     it('delegates createInternalBootPool to onboarding internal boot service', async () => {
@@ -199,13 +153,12 @@ describe('OnboardingMutationsResolver', () => {
             bootSizeMiB: 16384,
             updateBios: true,
         };
-        const result = await resolver.createInternalBootPool(input);
 
-        expect(onboardingInternalBootService.createInternalBootPool).toHaveBeenCalledWith(input);
-        expect(result).toEqual({
+        await expect(resolver.createInternalBootPool(input)).resolves.toEqual({
             ok: true,
             code: 0,
             output: 'done',
         });
+        expect(onboardingInternalBootService.createInternalBootPool).toHaveBeenCalledWith(input);
     });
 });

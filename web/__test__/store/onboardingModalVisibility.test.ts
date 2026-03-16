@@ -11,14 +11,19 @@ import {
   ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
 } from '~/components/Onboarding/constants';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
+import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus.js';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
-vi.mock('@vueuse/core', () => ({
-  useSessionStorage: vi.fn(),
-}));
+vi.mock('@vueuse/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@vueuse/core')>();
+  return {
+    ...actual,
+    useSessionStorage: vi.fn(),
+  };
+});
 
 vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: vi.fn(),
@@ -41,6 +46,7 @@ describe('OnboardingModalVisibility Store', () => {
   let mockTemporaryBypassState: ReturnType<typeof ref>;
   let mockIsFreshInstall: ReturnType<typeof ref>;
   let mockCompleted: ReturnType<typeof ref>;
+  let mockCanDisplayOnboardingModal: ReturnType<typeof ref>;
   let mockCallbackData: ReturnType<typeof ref>;
   let mockUptime: ReturnType<typeof ref>;
   let app: App<Element> | null = null;
@@ -71,6 +77,7 @@ describe('OnboardingModalVisibility Store', () => {
     mockTemporaryBypassState = ref(null);
     mockIsFreshInstall = ref(false);
     mockCompleted = ref(false);
+    mockCanDisplayOnboardingModal = ref(true);
     mockCallbackData = ref(null);
     mockUptime = ref(3600);
 
@@ -88,6 +95,7 @@ describe('OnboardingModalVisibility Store', () => {
 
     vi.mocked(useOnboardingStore).mockReturnValue({
       completed: mockCompleted,
+      canDisplayOnboardingModal: mockCanDisplayOnboardingModal,
     } as unknown as ReturnType<typeof useOnboardingStore>);
 
     vi.mocked(useCallbackActionsStore).mockReturnValue({
@@ -154,6 +162,14 @@ describe('OnboardingModalVisibility Store', () => {
     expect(store.isForceOpened).toBe(false);
   });
 
+  it('does not force-open when manual onboarding open is unavailable', () => {
+    mockCanDisplayOnboardingModal.value = false;
+
+    expect(store.forceOpenModal()).toBe(false);
+    expect(store.isForceOpened).toBe(false);
+    expect(store.isHidden).toBe(null);
+  });
+
   it('clears legacy hidden sessionStorage state on mount', () => {
     window.sessionStorage.setItem(ONBOARDING_MODAL_HIDDEN_STORAGE_KEY, 'true');
 
@@ -198,7 +214,20 @@ describe('OnboardingModalVisibility Store', () => {
   });
 
   it('applies keyboard shortcut bypass without completing onboarding', () => {
-    window.localStorage.setItem('onboardingDraft', '{"currentStepIndex":2}');
+    const draftStore = useOnboardingDraftStore();
+    draftStore.setCoreSettings({
+      serverName: 'tower',
+      serverDescription: 'resume me',
+      timeZone: 'UTC',
+      theme: 'black',
+      language: 'en_US',
+      useSsh: true,
+    });
+    draftStore.setCurrentStep('CONFIGURE_BOOT', 2);
+    window.localStorage.setItem(
+      'onboardingDraft',
+      '{"currentStepId":"CONFIGURE_BOOT","currentStepIndex":2}'
+    );
 
     window.dispatchEvent(
       new KeyboardEvent('keydown', {
@@ -214,6 +243,8 @@ describe('OnboardingModalVisibility Store', () => {
     expect(store.isHidden).toBe(true);
     expect(mockTemporaryBypassState.value).toMatchObject({ active: true });
     expect(window.localStorage.getItem('onboardingDraft')).toBeNull();
+    expect(draftStore.hasResumableDraft).toBe(false);
+    expect(draftStore.currentStepIndex).toBe(0);
   });
 
   it('does not bypass when using 0 key with modifiers', () => {
@@ -332,11 +363,31 @@ describe('OnboardingModalVisibility Store', () => {
     expect(replaceStateSpy).toHaveBeenCalled();
   });
 
+  it('ignores onboarding=open when manual onboarding open is unavailable', () => {
+    window.history.replaceState({}, '', '/Dashboard?onboarding=open');
+    mockCanDisplayOnboardingModal.value = false;
+
+    store.applyOnboardingUrlAction();
+
+    expect(store.isForceOpened).toBe(false);
+    expect(store.isHidden).toBe(null);
+    expect(window.location.search).not.toContain('onboarding=');
+  });
+
   it('opens when onboarding force-open event is dispatched', () => {
     window.dispatchEvent(new Event('unraid:onboarding:open'));
 
     expect(store.isForceOpened).toBe(true);
     expect(store.isHidden).toBe(false);
+  });
+
+  it('ignores onboarding force-open events when manual onboarding open is unavailable', () => {
+    mockCanDisplayOnboardingModal.value = false;
+
+    window.dispatchEvent(new Event('unraid:onboarding:open'));
+
+    expect(store.isForceOpened).toBe(false);
+    expect(store.isHidden).toBe(null);
   });
 
   it('applies onboarding=resume automatically on mount', () => {

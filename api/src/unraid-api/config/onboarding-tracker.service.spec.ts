@@ -87,3 +87,118 @@ describe('OnboardingTrackerService write retries', () => {
         expect(mockAtomicWriteFile).toHaveBeenCalledTimes(3);
     });
 });
+
+describe('OnboardingTrackerService tracker state availability', () => {
+    beforeEach(() => {
+        mockReadFile.mockReset();
+        mockAtomicWriteFile.mockReset();
+    });
+
+    it('treats a missing tracker file as a valid empty onboarding state', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(tracker.getStateResult()).resolves.toEqual({
+            kind: 'missing',
+            state: {
+                completed: false,
+                completedAtVersion: undefined,
+            },
+        });
+    });
+
+    it('captures tracker read failures when reading the tracker file fails for a non-ENOENT reason', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw new Error('permission denied');
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        const stateResult = await tracker.getStateResult();
+        expect(stateResult.kind).toBe('error');
+        if (stateResult.kind === 'error') {
+            expect(stateResult.error).toBeInstanceOf(Error);
+        }
+    });
+
+    it('returns override-backed onboarding state as a successful read result', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        overrides.setState({
+            onboarding: {
+                completed: true,
+                completedAtVersion: '7.2.0',
+            },
+        });
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(tracker.getStateResult()).resolves.toEqual({
+            kind: 'ok',
+            state: {
+                completed: true,
+                completedAtVersion: '7.2.0',
+            },
+        });
+    });
+
+    it('propagates tracker read failures through isCompleted', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw new Error('permission denied');
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(tracker.isCompleted()).rejects.toThrow('permission denied');
+    });
+
+    it('propagates tracker read failures through getCompletedAtVersion', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw new Error('permission denied');
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(tracker.getCompletedAtVersion()).rejects.toThrow('permission denied');
+    });
+});

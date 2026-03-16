@@ -1,13 +1,12 @@
-import { computed, ref } from 'vue';
-import { defineStore, storeToRefs } from 'pinia';
-import { useQuery } from '@vue/apollo-composable';
+import { computed, ref, unref } from 'vue';
+import { defineStore } from 'pinia';
 
-import { ONBOARDING_QUERY } from '@/components/Onboarding/graphql/activationOnboarding.query';
 import coerce from 'semver/functions/coerce';
 import gte from 'semver/functions/gte';
 
 import type { OnboardingStatus } from '~/composables/gql/graphql';
 
+import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onboardingContextData';
 import { useServerStore } from '~/store/server';
 
 const MIN_ONBOARDING_VERSION = '7.3.0';
@@ -46,14 +45,13 @@ const isVersionAtLeast = (version: string | null | undefined, minVersion: string
 };
 
 export const useOnboardingStore = defineStore('onboarding', () => {
-  const { osVersion } = storeToRefs(useServerStore());
-  const {
-    result: onboardingResult,
-    loading: onboardingLoading,
-    refetch,
-  } = useQuery(ONBOARDING_QUERY, {}, { errorPolicy: 'all' });
-
-  const onboardingData = computed(() => onboardingResult.value?.customization?.onboarding);
+  const serverStore = useServerStore();
+  const onboardingContextStore = useOnboardingContextDataStore();
+  const { refetchOnboardingContext } = onboardingContextStore;
+  const osVersion = computed(() => unref(serverStore.osVersion));
+  const onboardingData = computed(() => unref(onboardingContextStore.onboarding));
+  const onboardingLoading = computed(() => unref(onboardingContextStore.loading));
+  const onboardingError = computed(() => unref(onboardingContextStore.error));
   const mockOsVersion = ref<string | null>(readMockOsVersionFromStorage());
 
   // Core state from API
@@ -84,7 +82,10 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     }
   };
 
-  const canDisplayOnboardingModal = computed(() => isVersionSupported.value);
+  const hasOnboardingError = computed(() => Boolean(onboardingError.value));
+  const canDisplayOnboardingModal = computed(
+    () => isVersionSupported.value && !hasOnboardingError.value
+  );
 
   // Automatic onboarding should only run for initial setup.
   const shouldShowOnboarding = computed(() => {
@@ -112,10 +113,11 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     effectiveOsVersion,
     isVersionSupported,
     mockOsVersion,
+    hasOnboardingError,
     canDisplayOnboardingModal,
     shouldShowOnboarding,
     // Actions
-    refetchOnboarding: refetch,
+    refetchOnboarding: refetchOnboardingContext,
     setMockOsVersion,
   };
 });

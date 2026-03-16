@@ -19,7 +19,9 @@ import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-trac
 import {
     ActivationCode,
     BrandingConfig,
+    Onboarding,
     OnboardingState,
+    OnboardingStatus,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import {
@@ -27,6 +29,7 @@ import {
     getActivationDirCandidates,
 } from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
 import { Theme, ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
+import { getOnboardingVersionDirection } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-status.util.js';
 
 @Injectable()
 export class OnboardingService implements OnModuleInit {
@@ -54,7 +57,7 @@ export class OnboardingService implements OnModuleInit {
     private async ensureFirstBootCompletion(): Promise<boolean> {
         await fs.mkdir(this.activationDir, { recursive: true });
         // Check if onboarding has already been completed
-        const alreadyCompleted = this.onboardingTracker.isCompleted();
+        const alreadyCompleted = await this.onboardingTracker.isCompleted();
         if (alreadyCompleted) {
             this.logger.log('Onboarding already completed, skipping first boot setup.');
             return true;
@@ -338,6 +341,52 @@ export class OnboardingService implements OnModuleInit {
             hasActivationCode,
             activationRequired,
         };
+    }
+
+    public async getOnboardingResponse(options?: {
+        includeActivationCode?: boolean;
+    }): Promise<Onboarding> {
+        const trackerStateResult = await this.onboardingTracker.getStateResult();
+        if (trackerStateResult.kind === 'error') {
+            throw new GraphQLError('Onboarding tracker state is unavailable.');
+        }
+
+        const state = trackerStateResult.state;
+        const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
+        const partnerInfo = await this.getPublicPartnerInfo();
+        const onboardingState = await this.getOnboardingState();
+        const versionDirection = getOnboardingVersionDirection(state.completedAtVersion, currentVersion);
+
+        let status: OnboardingStatus;
+        if (!state.completed) {
+            status = OnboardingStatus.INCOMPLETE;
+        } else if (versionDirection === 'DOWNGRADE') {
+            status = OnboardingStatus.DOWNGRADE;
+        } else if (versionDirection === 'UPGRADE') {
+            status = OnboardingStatus.UPGRADE;
+        } else {
+            status = OnboardingStatus.COMPLETED;
+        }
+
+        const activationData = options?.includeActivationCode ? await this.getActivationData() : null;
+        const activationCode = activationData?.code?.trim() || undefined;
+
+        return {
+            status,
+            isPartnerBuild: partnerInfo !== null,
+            completed: state.completed,
+            completedAtVersion: state.completedAtVersion,
+            activationCode,
+            onboardingState,
+        };
+    }
+
+    public async markOnboardingCompleted(): Promise<void> {
+        await this.onboardingTracker.markCompleted();
+    }
+
+    public async resetOnboarding(): Promise<void> {
+        await this.onboardingTracker.reset();
     }
 
     public isFreshInstall(): boolean {

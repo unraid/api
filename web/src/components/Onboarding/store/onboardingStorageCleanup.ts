@@ -1,7 +1,10 @@
+import { getActivePinia } from 'pinia';
+
 import {
   ONBOARDING_MODAL_HIDDEN_STORAGE_KEY,
   ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
 } from '~/components/Onboarding/constants';
+import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 
 const ONBOARDING_DRAFT_STORAGE_KEY = 'onboardingDraft';
 
@@ -17,7 +20,17 @@ const getLocalStorageKeys = () => {
   }
 };
 
+const resetLiveOnboardingDraftStore = () => {
+  if (!getActivePinia()) {
+    return;
+  }
+
+  useOnboardingDraftStore().resetDraft();
+};
+
 export const clearOnboardingDraftStorage = () => {
+  resetLiveOnboardingDraftStore();
+
   if (typeof window === 'undefined') {
     return;
   }

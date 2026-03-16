@@ -1,9 +1,12 @@
+import { createPinia, setActivePinia } from 'pinia';
+
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   ONBOARDING_MODAL_HIDDEN_STORAGE_KEY,
   ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
 } from '~/components/Onboarding/constants';
+import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 import {
   cleanupOnboardingStorage,
   clearLegacyOnboardingModalHiddenSessionState,
@@ -13,6 +16,7 @@ import {
 
 describe('onboardingStorageCleanup', () => {
   beforeEach(() => {
+    setActivePinia(createPinia());
     window.localStorage.clear();
     window.sessionStorage.clear();
   });
@@ -27,6 +31,26 @@ describe('onboardingStorageCleanup', () => {
     expect(window.localStorage.getItem('onboardingDraft')).toBeNull();
     expect(window.localStorage.getItem('pinia-onboardingDraft')).toBeNull();
     expect(window.localStorage.getItem('unrelatedKey')).toBe('keep');
+  });
+
+  it('resets the live onboarding draft store when clearing storage', () => {
+    const draftStore = useOnboardingDraftStore();
+    draftStore.setCoreSettings({
+      serverName: 'tower',
+      serverDescription: 'test',
+      timeZone: 'UTC',
+      theme: 'black',
+      language: 'en_US',
+      useSsh: true,
+    });
+    draftStore.setCurrentStep('CONFIGURE_BOOT', 2);
+
+    clearOnboardingDraftStorage();
+
+    expect(draftStore.hasResumableDraft).toBe(false);
+    expect(draftStore.currentStepIndex).toBe(0);
+    expect(draftStore.currentStepId).toBeNull();
+    expect(draftStore.coreSettingsInitialized).toBe(false);
   });
 
   it('clears temporary bypass key from sessionStorage', () => {

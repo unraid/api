@@ -1,251 +1,119 @@
 import { ref } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
-import { useQuery } from '@vue/apollo-composable';
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ACTIVATION_CODE_QUERY } from '~/components/Onboarding/graphql/activationCode.query';
+import type { Ref } from 'vue';
+
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
+import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onboardingContextData';
 import { RegistrationState } from '~/composables/gql/graphql';
 
-// Create a complete mock of UseQueryReturn with all required properties
-const createCompleteQueryMock = <T>(result: T | null = null, loading = false) => ({
-  result: ref(result),
-  loading: ref(loading),
-  error: ref(null),
-  networkStatus: ref(7),
-  called: ref(true),
-  variables: ref({}),
-  document: ref(null),
-  query: ref(null),
-  forceDisabled: ref(false),
-  options: { errorPolicy: 'all' as const },
-  stop: vi.fn(),
-  start: vi.fn(),
-  restart: vi.fn(),
-  refetch: vi.fn(),
-  fetchMore: vi.fn(),
-  onResult: vi.fn(),
-  onError: vi.fn(),
-  subscribeToMore: vi.fn(),
-  updateQuery: vi.fn(),
-});
+type OnboardingState = {
+  registrationState?: RegistrationState | null;
+  isRegistered?: boolean;
+  isFreshInstall?: boolean;
+  hasActivationCode?: boolean;
+  activationRequired?: boolean;
+} | null;
 
-vi.mock('@vue/apollo-composable', () => ({
-  useQuery: vi.fn(),
+type ActivationCode = {
+  code?: string | null;
+  partner?: { name?: string | null } | null;
+  branding?: { hasPartnerLogo?: boolean | null } | null;
+} | null;
+
+const { state } = vi.hoisted(() => ({
+  state: {
+    loading: null as unknown as Ref<boolean>,
+    onboardingState: null as unknown as Ref<OnboardingState>,
+    activationCode: null as unknown as Ref<ActivationCode>,
+  },
 }));
 
 describe('ActivationCodeData Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
+
+    state.loading = ref(false);
+    state.onboardingState = ref(null);
+    state.activationCode = ref(null);
+
+    vi.mocked(useOnboardingContextDataStore).mockReturnValue({
+      loading: state.loading,
+      onboardingState: state.onboardingState,
+      activationCode: state.activationCode,
+    } as unknown as ReturnType<typeof useOnboardingContextDataStore>);
   });
 
-  afterEach(() => {
-    vi.resetAllMocks();
+  it('exposes loading from the shared onboarding context store', () => {
+    state.loading.value = true;
+
+    const store = useActivationCodeDataStore();
+
+    expect(store.loading).toBe(true);
   });
 
-  describe('Computed Properties', () => {
-    it('should compute loading state when activationCodeLoading is true', () => {
-      vi.mocked(useQuery).mockImplementation((query) => {
-        if (query === ACTIVATION_CODE_QUERY) {
-          return createCompleteQueryMock(null, true);
-        }
+  it('returns activation code data from the shared onboarding context store', () => {
+    state.activationCode.value = { code: 'TEST-CODE-123' };
 
-        return createCompleteQueryMock(null, false);
-      });
+    const store = useActivationCodeDataStore();
 
-      const store = useActivationCodeDataStore();
+    expect(store.activationCode).toEqual({ code: 'TEST-CODE-123' });
+  });
 
-      expect(store.loading).toBe(true);
+  it('computes registration state flags from onboarding state', () => {
+    state.onboardingState.value = {
+      registrationState: RegistrationState.ENOKEYFILE,
+      isRegistered: false,
+      isFreshInstall: true,
+      hasActivationCode: true,
+      activationRequired: true,
+    };
+
+    const store = useActivationCodeDataStore();
+
+    expect(store.registrationState).toBe(RegistrationState.ENOKEYFILE);
+    expect(store.isRegistered).toBe(false);
+    expect(store.isFreshInstall).toBe(true);
+    expect(store.hasActivationCode).toBe(true);
+    expect(store.activationRequired).toBe(true);
+  });
+
+  it('returns safe defaults when onboarding state is unavailable', () => {
+    const store = useActivationCodeDataStore();
+
+    expect(store.registrationState).toBeNull();
+    expect(store.isRegistered).toBe(false);
+    expect(store.isFreshInstall).toBe(false);
+    expect(store.hasActivationCode).toBe(false);
+    expect(store.activationRequired).toBe(false);
+  });
+
+  it('derives partnerInfo from activation code partner and branding', () => {
+    state.activationCode.value = {
+      partner: { name: 'Activation Partner' },
+      branding: { hasPartnerLogo: true },
+    };
+
+    const store = useActivationCodeDataStore();
+
+    expect(store.partnerInfo).toEqual({
+      partner: { name: 'Activation Partner' },
+      branding: { hasPartnerLogo: true },
     });
+  });
 
-    it('should compute loading state when both loadings are false', () => {
-      vi.mocked(useQuery).mockImplementation(() => createCompleteQueryMock(null, false));
+  it('returns null partnerInfo when activation code has no partner or branding', () => {
+    state.activationCode.value = null;
 
-      const store = useActivationCodeDataStore();
+    const store = useActivationCodeDataStore();
 
-      expect(store.loading).toBe(false);
-    });
-
-    it('should compute activationCode correctly', () => {
-      const mockActivationCode = { code: 'TEST-CODE-123' };
-
-      vi.mocked(useQuery).mockImplementation((query) => {
-        if (query === ACTIVATION_CODE_QUERY) {
-          return createCompleteQueryMock(
-            {
-              customization: { activationCode: mockActivationCode },
-            },
-            false
-          );
-        }
-        return createCompleteQueryMock(null, false);
-      });
-
-      const store = useActivationCodeDataStore();
-
-      expect(store.activationCode).toEqual(mockActivationCode);
-    });
-
-    it('should compute isFreshInstall from backend when regState is ENOKEYFILE', () => {
-      vi.mocked(useQuery).mockImplementation((query) => {
-        if (query === ACTIVATION_CODE_QUERY) {
-          return createCompleteQueryMock(
-            {
-              customization: {
-                onboarding: {
-                  onboardingState: {
-                    registrationState: RegistrationState.ENOKEYFILE,
-                    isFreshInstall: true, // Backend determines this value
-                  },
-                },
-              },
-            },
-            false
-          );
-        }
-
-        return createCompleteQueryMock(null, false);
-      });
-
-      const store = useActivationCodeDataStore();
-
-      expect(store.isFreshInstall).toBe(true);
-    });
-
-    it('should compute isFreshInstall from backend when regState is ENOKEYFILE1', () => {
-      vi.mocked(useQuery).mockImplementation((query) => {
-        if (query === ACTIVATION_CODE_QUERY) {
-          return createCompleteQueryMock(
-            {
-              customization: {
-                onboarding: {
-                  onboardingState: {
-                    registrationState: RegistrationState.ENOKEYFILE1,
-                    isFreshInstall: false, // Backend determines this value
-                  },
-                },
-              },
-            },
-            false
-          );
-        }
-
-        return createCompleteQueryMock(null, false);
-      });
-
-      const store = useActivationCodeDataStore();
-
-      expect(store.isFreshInstall).toBe(false);
-    });
-
-    it('should compute isFreshInstall from backend when regState is ENOKEYFILE2', () => {
-      vi.mocked(useQuery).mockImplementation((query) => {
-        if (query === ACTIVATION_CODE_QUERY) {
-          return createCompleteQueryMock(
-            {
-              customization: {
-                onboarding: {
-                  onboardingState: {
-                    registrationState: RegistrationState.ENOKEYFILE2,
-                    isFreshInstall: false, // Backend determines this value
-                  },
-                },
-              },
-            },
-            false
-          );
-        }
-
-        return createCompleteQueryMock(null, false);
-      });
-
-      const store = useActivationCodeDataStore();
-
-      expect(store.isFreshInstall).toBe(false);
-    });
-
-    it('should compute isFreshInstall from backend when regState is not ENOKEYFILE', () => {
-      vi.mocked(useQuery).mockImplementation((query) => {
-        if (query === ACTIVATION_CODE_QUERY) {
-          return createCompleteQueryMock(
-            {
-              customization: {
-                onboarding: {
-                  onboardingState: {
-                    registrationState: RegistrationState.PRO,
-                    isFreshInstall: false, // Backend determines this value
-                  },
-                },
-              },
-            },
-            false
-          );
-        }
-
-        return createCompleteQueryMock(null, false);
-      });
-
-      const store = useActivationCodeDataStore();
-
-      expect(store.isFreshInstall).toBe(false);
-    });
-
-    it('should return false for isFreshInstall when onboardingState is null (query not loaded)', () => {
-      vi.mocked(useQuery).mockImplementation(() => createCompleteQueryMock(null, false));
-
-      const store = useActivationCodeDataStore();
-
-      expect(store.isFreshInstall).toBe(false);
-    });
-
-    it('should derive partnerInfo from activationCode partner and branding', () => {
-      const mockPartner = { name: 'Activation Partner' };
-      const mockBranding = { hasPartnerLogo: true };
-      vi.mocked(useQuery).mockImplementation((query) => {
-        if (query === ACTIVATION_CODE_QUERY) {
-          return createCompleteQueryMock(
-            {
-              customization: {
-                activationCode: {
-                  partner: mockPartner,
-                  branding: mockBranding,
-                },
-              },
-            },
-            false
-          );
-        }
-
-        return createCompleteQueryMock(null, false);
-      });
-
-      const store = useActivationCodeDataStore();
-
-      expect(store.partnerInfo).toEqual({
-        partner: mockPartner,
-        branding: mockBranding,
-      });
-    });
-
-    it('should return null for partnerInfo when activationCode has no partner or branding', () => {
-      vi.mocked(useQuery).mockImplementation((query) => {
-        if (query === ACTIVATION_CODE_QUERY) {
-          return createCompleteQueryMock(
-            {
-              customization: { activationCode: null },
-            },
-            false
-          );
-        }
-
-        return createCompleteQueryMock(null, false);
-      });
-
-      const store = useActivationCodeDataStore();
-
-      expect(store.partnerInfo).toBeNull();
-    });
+    expect(store.partnerInfo).toBeNull();
   });
 });
+
+vi.mock('~/components/Onboarding/store/onboardingContextData', () => ({
+  useOnboardingContextDataStore: vi.fn(),
+}));

@@ -5,15 +5,10 @@ import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import type { OnboardingOverrideState } from '@app/unraid-api/config/onboarding-override.model.js';
 import { OnboardingOverrideService } from '@app/unraid-api/config/onboarding-override.service.js';
-import { OnboardingTrackerService } from '@app/unraid-api/config/onboarding-tracker.module.js';
-import {
-    Onboarding,
-    OnboardingStatus,
-} from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import { Onboarding } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { OnboardingService } from '@app/unraid-api/graph/resolvers/customization/onboarding.service.js';
 import { OnboardingMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { OnboardingInternalBootService } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-internal-boot.service.js';
-import { getOnboardingVersionDirection } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-status.util.js';
 import {
     CreateInternalBootPoolInput,
     OnboardingInternalBootResult,
@@ -23,42 +18,10 @@ import {
 @Resolver(() => OnboardingMutations)
 export class OnboardingMutationsResolver {
     constructor(
-        private readonly onboardingTracker: OnboardingTrackerService,
         private readonly onboardingOverrides: OnboardingOverrideService,
         private readonly onboardingService: OnboardingService,
         private readonly onboardingInternalBootService: OnboardingInternalBootService
     ) {}
-
-    /**
-     * Build a full Onboarding response with computed status
-     */
-    private async buildOnboardingResponse(): Promise<Onboarding> {
-        const state = this.onboardingTracker.getState();
-        const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
-        const partnerInfo = await this.onboardingService.getPublicPartnerInfo();
-        const onboardingState = await this.onboardingService.getOnboardingState();
-        const versionDirection = getOnboardingVersionDirection(state.completedAtVersion, currentVersion);
-
-        // Compute the status based on completion state and version
-        let status: OnboardingStatus;
-        if (!state.completed) {
-            status = OnboardingStatus.INCOMPLETE;
-        } else if (versionDirection === 'DOWNGRADE') {
-            status = OnboardingStatus.DOWNGRADE;
-        } else if (versionDirection === 'UPGRADE') {
-            status = OnboardingStatus.UPGRADE;
-        } else {
-            status = OnboardingStatus.COMPLETED;
-        }
-
-        return {
-            status,
-            isPartnerBuild: partnerInfo !== null,
-            completed: state.completed,
-            completedAtVersion: state.completedAtVersion,
-            onboardingState,
-        };
-    }
 
     @ResolveField(() => Onboarding, {
         description: 'Marks the onboarding flow as completed',
@@ -68,8 +31,8 @@ export class OnboardingMutationsResolver {
         resource: Resource.WELCOME,
     })
     async completeOnboarding(): Promise<Onboarding> {
-        await this.onboardingTracker.markCompleted();
-        return this.buildOnboardingResponse();
+        await this.onboardingService.markOnboardingCompleted();
+        return this.onboardingService.getOnboardingResponse();
     }
 
     @ResolveField(() => Onboarding, {
@@ -80,8 +43,8 @@ export class OnboardingMutationsResolver {
         resource: Resource.WELCOME,
     })
     async resetOnboarding(): Promise<Onboarding> {
-        await this.onboardingTracker.reset();
-        return this.buildOnboardingResponse();
+        await this.onboardingService.resetOnboarding();
+        return this.onboardingService.getOnboardingResponse();
     }
 
     @ResolveField(() => Onboarding, {
@@ -100,7 +63,7 @@ export class OnboardingMutationsResolver {
         };
         this.onboardingOverrides.setState(override);
         this.onboardingService.clearActivationDataCache();
-        return this.buildOnboardingResponse();
+        return this.onboardingService.getOnboardingResponse();
     }
 
     @ResolveField(() => Onboarding, {
@@ -113,7 +76,7 @@ export class OnboardingMutationsResolver {
     async clearOnboardingOverride(): Promise<Onboarding> {
         this.onboardingOverrides.clearState();
         this.onboardingService.clearActivationDataCache();
-        return this.buildOnboardingResponse();
+        return this.onboardingService.getOnboardingResponse();
     }
 
     @ResolveField(() => OnboardingInternalBootResult, {

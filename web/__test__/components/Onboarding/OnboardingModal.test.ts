@@ -2,21 +2,22 @@ import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { StepId } from '~/components/Onboarding/stepRegistry.js';
+
 import OnboardingModal from '~/components/Onboarding/OnboardingModal.vue';
 import { createTestI18n } from '../../utils/i18n';
 
 type InternalBootVisibilityResult = {
   value: {
-    vars: {
-      bootedFromFlashWithInternalBootSetup: boolean | null;
-      enableBootTransfer: string | null;
-    };
-  };
+    bootedFromFlashWithInternalBootSetup: boolean | null;
+    enableBootTransfer: string | null;
+  } | null;
 };
 
 const {
   mutateMock,
   internalBootVisibilityResult,
+  internalBootVisibilityLoading,
   onboardingModalStoreState,
   activationCodeDataStore,
   onboardingStatusStore,
@@ -29,12 +30,11 @@ const {
   mutateMock: vi.fn().mockResolvedValue(undefined),
   internalBootVisibilityResult: {
     value: {
-      vars: {
-        bootedFromFlashWithInternalBootSetup: false,
-        enableBootTransfer: 'yes',
-      },
+      bootedFromFlashWithInternalBootSetup: false,
+      enableBootTransfer: 'yes',
     },
   } as InternalBootVisibilityResult,
+  internalBootVisibilityLoading: { value: false },
   onboardingModalStoreState: {
     isAutoVisible: { value: true },
     isForceOpened: { value: false },
@@ -64,7 +64,12 @@ const {
   },
   onboardingDraftStore: {
     currentStepIndex: { value: 0 },
+    currentStepId: { value: null as StepId | null },
     internalBootApplySucceeded: { value: false },
+    setCurrentStep: vi.fn((stepId: StepId, stepIndex: number) => {
+      onboardingDraftStore.currentStepId.value = stepId;
+      onboardingDraftStore.currentStepIndex.value = stepIndex;
+    }),
   },
   purchaseStore: {
     generateUrl: vi.fn(() => 'https://example.com/activate'),
@@ -102,11 +107,6 @@ vi.mock('@heroicons/vue/24/solid', () => ({
 }));
 
 vi.mock('@vue/apollo-composable', () => ({
-  useQuery: () => ({
-    result: internalBootVisibilityResult,
-    loading: { value: false },
-    error: { value: null },
-  }),
   useMutation: () => ({
     mutate: mutateMock,
   }),
@@ -137,6 +137,13 @@ vi.mock('~/components/Onboarding/store/onboardingModalVisibility', () => ({
 
 vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: () => activationCodeDataStore,
+}));
+
+vi.mock('~/components/Onboarding/store/onboardingContextData', () => ({
+  useOnboardingContextDataStore: () => ({
+    internalBootVisibility: internalBootVisibilityResult,
+    loading: internalBootVisibilityLoading,
+  }),
 }));
 
 vi.mock('~/components/Onboarding/store/onboardingStatus', () => ({
@@ -187,12 +194,12 @@ describe('OnboardingModal.vue', () => {
     onboardingStatusStore.canDisplayOnboardingModal.value = true;
     onboardingStatusStore.isPartnerBuild.value = false;
     onboardingDraftStore.currentStepIndex.value = 0;
+    onboardingDraftStore.currentStepId.value = null;
     onboardingDraftStore.internalBootApplySucceeded.value = false;
+    internalBootVisibilityLoading.value = false;
     internalBootVisibilityResult.value = {
-      vars: {
-        bootedFromFlashWithInternalBootSetup: false,
-        enableBootTransfer: 'yes',
-      },
+      bootedFromFlashWithInternalBootSetup: false,
+      enableBootTransfer: 'yes',
     };
   });
 
@@ -298,6 +305,7 @@ describe('OnboardingModal.vue', () => {
 
   it('shows activation step for ENOKEYFILE1', () => {
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE1';
+    onboardingDraftStore.currentStepId.value = 'ACTIVATE_LICENSE';
     onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();
@@ -307,6 +315,7 @@ describe('OnboardingModal.vue', () => {
 
   it('shows activation step for ENOKEYFILE2', () => {
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE2';
+    onboardingDraftStore.currentStepId.value = 'ACTIVATE_LICENSE';
     onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();
@@ -316,6 +325,7 @@ describe('OnboardingModal.vue', () => {
 
   it('omits activation step for non-activation registration states', () => {
     activationCodeDataStore.registrationState.value = 'BASIC';
+    onboardingDraftStore.currentStepId.value = 'ACTIVATE_LICENSE';
     onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();
@@ -326,6 +336,7 @@ describe('OnboardingModal.vue', () => {
 
   it('shows internal boot step for regular builds', () => {
     onboardingDraftStore.currentStepIndex.value = 2;
+    onboardingDraftStore.currentStepId.value = 'CONFIGURE_BOOT';
 
     const wrapper = mountComponent();
 
@@ -334,12 +345,11 @@ describe('OnboardingModal.vue', () => {
 
   it('hides internal boot step when boot transfer state is unknown', () => {
     internalBootVisibilityResult.value = {
-      vars: {
-        bootedFromFlashWithInternalBootSetup: null,
-        enableBootTransfer: null,
-      },
+      bootedFromFlashWithInternalBootSetup: null,
+      enableBootTransfer: null,
     };
     onboardingDraftStore.currentStepIndex.value = 2;
+    onboardingDraftStore.currentStepId.value = 'CONFIGURE_BOOT';
 
     const wrapper = mountComponent();
 
@@ -349,6 +359,7 @@ describe('OnboardingModal.vue', () => {
   it('shows internal boot step for partner builds when boot transfer is available', () => {
     onboardingStatusStore.isPartnerBuild.value = true;
     onboardingDraftStore.currentStepIndex.value = 2;
+    onboardingDraftStore.currentStepId.value = 'CONFIGURE_BOOT';
 
     const wrapper = mountComponent();
 
@@ -357,12 +368,11 @@ describe('OnboardingModal.vue', () => {
 
   it('hides internal boot step when already booting internally', () => {
     internalBootVisibilityResult.value = {
-      vars: {
-        bootedFromFlashWithInternalBootSetup: false,
-        enableBootTransfer: 'no',
-      },
+      bootedFromFlashWithInternalBootSetup: false,
+      enableBootTransfer: 'no',
     };
     onboardingDraftStore.currentStepIndex.value = 2;
+    onboardingDraftStore.currentStepId.value = 'CONFIGURE_BOOT';
 
     const wrapper = mountComponent();
 
@@ -372,17 +382,28 @@ describe('OnboardingModal.vue', () => {
 
   it('hides internal boot step when still booted from flash but internal boot is already configured', () => {
     internalBootVisibilityResult.value = {
-      vars: {
-        bootedFromFlashWithInternalBootSetup: true,
-        enableBootTransfer: 'yes',
-      },
+      bootedFromFlashWithInternalBootSetup: true,
+      enableBootTransfer: 'yes',
     };
     onboardingDraftStore.currentStepIndex.value = 2;
+    onboardingDraftStore.currentStepId.value = 'CONFIGURE_BOOT';
 
     const wrapper = mountComponent();
 
     expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(true);
+  });
+
+  it('keeps the resumed internal boot step visible while boot visibility is still loading', () => {
+    internalBootVisibilityLoading.value = true;
+    internalBootVisibilityResult.value = null;
+    onboardingDraftStore.currentStepIndex.value = 2;
+    onboardingDraftStore.currentStepId.value = 'CONFIGURE_BOOT';
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(false);
   });
 
   it('opens exit confirmation when close button is clicked', async () => {

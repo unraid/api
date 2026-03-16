@@ -3361,6 +3361,7 @@ export type Vars = Node & {
   sysFlashSlots?: Maybe<Scalars['Int']['output']>;
   sysModel?: Maybe<Scalars['String']['output']>;
   timeZone?: Maybe<Scalars['String']['output']>;
+  tpmGuid?: Maybe<Scalars['String']['output']>;
   /** Should a NTP server be used for time sync? */
   useNtp?: Maybe<Scalars['Boolean']['output']>;
   useSsh?: Maybe<Scalars['Boolean']['output']>;

@@ -1,5 +1,9 @@
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
+
+import type { StepId } from '~/components/Onboarding/stepRegistry.js';
+
+import { STEP_IDS } from '~/components/Onboarding/stepRegistry.js';
 
 export interface OnboardingInternalBootSelection {
   poolName: string;
@@ -93,6 +97,14 @@ const normalizePersistedBootMode = (
   return internalBootSelection ? 'storage' : 'usb';
 };
 
+const normalizePersistedStepId = (value: unknown): StepId | null => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  return STEP_IDS.includes(value as StepId) ? (value as StepId) : null;
+};
+
 export const useOnboardingDraftStore = defineStore(
   'onboardingDraft',
   () => {
@@ -118,6 +130,37 @@ export const useOnboardingDraftStore = defineStore(
 
     // Navigation
     const currentStepIndex = ref(0);
+    const currentStepId = ref<StepId | null>(null);
+    const hasResumableDraft = computed(
+      () =>
+        currentStepId.value !== null ||
+        coreSettingsInitialized.value ||
+        pluginSelectionInitialized.value ||
+        internalBootInitialized.value ||
+        internalBootApplySucceeded.value
+    );
+
+    function resetDraft() {
+      serverName.value = '';
+      serverDescription.value = '';
+      selectedTimeZone.value = '';
+      selectedTheme.value = '';
+      selectedLanguage.value = '';
+      useSsh.value = false;
+      coreSettingsInitialized.value = false;
+
+      selectedPlugins.value = new Set();
+      pluginSelectionInitialized.value = false;
+
+      internalBootSelection.value = null;
+      bootMode.value = 'usb';
+      internalBootInitialized.value = false;
+      internalBootSkipped.value = false;
+      internalBootApplySucceeded.value = false;
+
+      currentStepIndex.value = 0;
+      currentStepId.value = null;
+    }
 
     // Actions
     function setCoreSettings(settings: {
@@ -178,7 +221,8 @@ export const useOnboardingDraftStore = defineStore(
       internalBootApplySucceeded.value = value;
     }
 
-    function setStepIndex(index: number) {
+    function setCurrentStep(stepId: StepId, index: number) {
+      currentStepId.value = stepId;
       currentStepIndex.value = index;
     }
 
@@ -198,13 +242,16 @@ export const useOnboardingDraftStore = defineStore(
       internalBootSkipped,
       internalBootApplySucceeded,
       currentStepIndex,
+      currentStepId,
+      hasResumableDraft,
+      resetDraft,
       setCoreSettings,
       setPlugins,
       setInternalBootSelection,
       skipInternalBoot,
       setBootMode,
       setInternalBootApplySucceeded,
-      setStepIndex,
+      setCurrentStep,
     };
   },
   {
@@ -224,6 +271,12 @@ export const useOnboardingDraftStore = defineStore(
             parsed.bootMode,
             normalizedInternalBootSelection
           );
+          const normalizedCurrentStepId = normalizePersistedStepId(parsed.currentStepId);
+          const parsedCurrentStepIndex = Number(parsed.currentStepIndex);
+          const normalizedCurrentStepIndex =
+            normalizedCurrentStepId !== null && Number.isFinite(parsedCurrentStepIndex)
+              ? parsedCurrentStepIndex
+              : 0;
           const hasLegacyCoreDraft =
             (typeof parsed.serverName === 'string' && parsed.serverName.length > 0) ||
             (typeof parsed.serverDescription === 'string' && parsed.serverDescription.length > 0) ||
@@ -249,6 +302,8 @@ export const useOnboardingDraftStore = defineStore(
               parsed.internalBootApplySucceeded,
               false
             ),
+            currentStepIndex: normalizedCurrentStepIndex,
+            currentStepId: normalizedCurrentStepId,
             coreSettingsInitialized:
               hasLegacyCoreDraft || normalizePersistedBoolean(parsed.coreSettingsInitialized, false),
             pluginSelectionInitialized: hadLegacyPluginShape
