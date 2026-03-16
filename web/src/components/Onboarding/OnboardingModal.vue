@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
@@ -40,7 +40,7 @@ const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
 const themeStore = useThemeStore();
 const draftStore = useOnboardingDraftStore();
-const { currentStepIndex, internalBootApplySucceeded } = storeToRefs(draftStore);
+const { currentStepIndex, currentStepId, internalBootApplySucceeded } = storeToRefs(draftStore);
 
 onMounted(async () => {
   try {
@@ -76,9 +76,13 @@ const showActivationStep = computed(() => {
   return hasCode && ACTIVATION_STEP_REGISTRATION_STATES.has(regState);
 });
 
-const { result: internalBootVisibilityResult } = useQuery(GetInternalBootStepVisibilityDocument, null, {
-  fetchPolicy: 'network-only',
-});
+const { result: internalBootVisibilityResult, loading: internalBootVisibilityLoading } = useQuery(
+  GetInternalBootStepVisibilityDocument,
+  null,
+  {
+    fetchPolicy: 'network-only',
+  }
+);
 
 const showInternalBootStep = computed(() => {
   const setting = internalBootVisibilityResult.value?.vars?.enableBootTransfer;
@@ -91,6 +95,10 @@ const showInternalBootStep = computed(() => {
   );
 });
 
+const shouldKeepResumedInternalBootStep = computed(
+  () => internalBootVisibilityLoading.value && currentStepId.value === 'CONFIGURE_BOOT'
+);
+
 // Determine which steps to show based on user state
 const visibleHardcodedSteps = computed(() =>
   HARDCODED_STEPS.filter((step) => showActivationStep.value || step.id !== 'ACTIVATE_LICENSE').filter(
@@ -98,7 +106,7 @@ const visibleHardcodedSteps = computed(() =>
       if (step.id !== 'CONFIGURE_BOOT') {
         return true;
       }
-      return showInternalBootStep.value;
+      return showInternalBootStep.value || shouldKeepResumedInternalBootStep.value;
     }
   )
 );
@@ -120,7 +128,21 @@ const showModal = computed(() => {
 });
 const showExitConfirmDialog = ref(false);
 
+const preferredStepId = computed<StepId | null>(() => {
+  if (currentStepId.value) {
+    return currentStepId.value;
+  }
+
+  return HARDCODED_STEPS[currentStepIndex.value]?.id ?? null;
+});
+
 const currentStep = computed<StepId | null>(() => {
+  const stepId = preferredStepId.value;
+
+  if (stepId && availableSteps.value.includes(stepId)) {
+    return stepId;
+  }
+
   if (currentStepIndex.value < availableSteps.value.length) {
     return availableSteps.value[currentStepIndex.value];
   }
@@ -137,6 +159,19 @@ const currentDynamicStepIndex = computed(() => {
   }
   const index = availableSteps.value.findIndex((id) => id === currentStep.value);
   return index >= 0 ? index : availableSteps.value.length;
+});
+
+watchEffect(() => {
+  const stepId = currentStep.value;
+  const stepIndex = currentDynamicStepIndex.value;
+
+  if (!stepId || stepIndex >= availableSteps.value.length) {
+    return;
+  }
+
+  if (currentStepId.value !== stepId || currentStepIndex.value !== stepIndex) {
+    draftStore.setCurrentStep(stepId, stepIndex);
+  }
 });
 
 const modalTitle = computed<string>(() => {
@@ -212,11 +247,22 @@ const closeModal = async (options?: { reload?: boolean }) => {
   }
 };
 
+const setActiveStepByIndex = (stepIndex: number) => {
+  const stepId = availableSteps.value[stepIndex];
+  if (!stepId) {
+    return;
+  }
+
+  draftStore.setCurrentStep(stepId, stepIndex);
+};
+
 const goToNextStep = async () => {
   if (availableSteps.value.length > 0) {
+    const activeStepIndex = currentDynamicStepIndex.value;
+
     // Move to next step
-    if (currentStepIndex.value < availableSteps.value.length - 1) {
-      currentStepIndex.value++;
+    if (activeStepIndex < availableSteps.value.length - 1) {
+      setActiveStepByIndex(activeStepIndex + 1);
     } else {
       // If we're at the last step, close the modal
       await closeModal({ reload: true });
@@ -228,19 +274,23 @@ const goToNextStep = async () => {
 };
 
 const goToPreviousStep = () => {
-  if (currentStepIndex.value > 0) {
-    currentStepIndex.value--;
+  if (currentDynamicStepIndex.value > 0) {
+    setActiveStepByIndex(currentDynamicStepIndex.value - 1);
   }
 };
 
 const goToStep = (stepIndex: number) => {
   // Prevent skipping ahead via stepper; only allow current or previous steps.
-  if (stepIndex >= 0 && stepIndex < availableSteps.value.length && stepIndex <= currentStepIndex.value) {
-    currentStepIndex.value = stepIndex;
+  if (
+    stepIndex >= 0 &&
+    stepIndex < availableSteps.value.length &&
+    stepIndex <= currentDynamicStepIndex.value
+  ) {
+    setActiveStepByIndex(stepIndex);
   }
 };
 
-const canGoBack = computed(() => currentStepIndex.value > 0);
+const canGoBack = computed(() => currentDynamicStepIndex.value > 0);
 const exitDialogDescription = computed(() =>
   internalBootApplySucceeded.value
     ? t('onboarding.modal.exit.internalBootDescription')
@@ -286,8 +336,8 @@ const handleExitConfirm = async () => {
 
 const handleActivationSkip = async () => {
   // Just move to next step without marking complete
-  if (currentStepIndex.value < availableSteps.value.length - 1) {
-    currentStepIndex.value++;
+  if (currentDynamicStepIndex.value < availableSteps.value.length - 1) {
+    setActiveStepByIndex(currentDynamicStepIndex.value + 1);
   } else {
     await closeModal();
   }

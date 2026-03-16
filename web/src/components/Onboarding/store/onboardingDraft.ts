@@ -1,6 +1,10 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 
+import type { StepId } from '~/components/Onboarding/stepRegistry';
+
+import { STEP_IDS } from '~/components/Onboarding/stepRegistry';
+
 export interface OnboardingInternalBootSelection {
   poolName: string;
   slotCount: number;
@@ -93,6 +97,14 @@ const normalizePersistedBootMode = (
   return internalBootSelection ? 'storage' : 'usb';
 };
 
+const normalizePersistedStepId = (value: unknown): StepId | null => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  return STEP_IDS.includes(value as StepId) ? (value as StepId) : null;
+};
+
 export const useOnboardingDraftStore = defineStore(
   'onboardingDraft',
   () => {
@@ -118,9 +130,11 @@ export const useOnboardingDraftStore = defineStore(
 
     // Navigation
     const currentStepIndex = ref(0);
+    const currentStepId = ref<StepId | null>(null);
     const hasResumableDraft = computed(
       () =>
         currentStepIndex.value > 0 ||
+        currentStepId.value !== null ||
         coreSettingsInitialized.value ||
         pluginSelectionInitialized.value ||
         internalBootInitialized.value ||
@@ -186,6 +200,11 @@ export const useOnboardingDraftStore = defineStore(
       internalBootApplySucceeded.value = value;
     }
 
+    function setCurrentStep(stepId: StepId, index: number) {
+      currentStepId.value = stepId;
+      currentStepIndex.value = index;
+    }
+
     function setStepIndex(index: number) {
       currentStepIndex.value = index;
     }
@@ -206,6 +225,7 @@ export const useOnboardingDraftStore = defineStore(
       internalBootSkipped,
       internalBootApplySucceeded,
       currentStepIndex,
+      currentStepId,
       hasResumableDraft,
       setCoreSettings,
       setPlugins,
@@ -213,6 +233,7 @@ export const useOnboardingDraftStore = defineStore(
       skipInternalBoot,
       setBootMode,
       setInternalBootApplySucceeded,
+      setCurrentStep,
       setStepIndex,
     };
   },
@@ -233,6 +254,7 @@ export const useOnboardingDraftStore = defineStore(
             parsed.bootMode,
             normalizedInternalBootSelection
           );
+          const normalizedCurrentStepId = normalizePersistedStepId(parsed.currentStepId);
           const hasLegacyCoreDraft =
             (typeof parsed.serverName === 'string' && parsed.serverName.length > 0) ||
             (typeof parsed.serverDescription === 'string' && parsed.serverDescription.length > 0) ||
@@ -258,6 +280,7 @@ export const useOnboardingDraftStore = defineStore(
               parsed.internalBootApplySucceeded,
               false
             ),
+            currentStepId: normalizedCurrentStepId,
             coreSettingsInitialized:
               hasLegacyCoreDraft || normalizePersistedBoolean(parsed.coreSettingsInitialized, false),
             pluginSelectionInitialized: hadLegacyPluginShape
