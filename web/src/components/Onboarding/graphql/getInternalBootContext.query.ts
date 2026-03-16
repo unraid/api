@@ -21,6 +21,7 @@ export const GET_INTERNAL_BOOT_CONTEXT_QUERY = gql`
     vars {
       fsState
       bootEligible
+      bootedFromFlashWithInternalBootSetup
       enableBootTransfer
       reservedNames
     }

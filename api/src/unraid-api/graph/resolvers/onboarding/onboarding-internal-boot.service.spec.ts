@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { getters } from '@app/store/index.js';
 import { loadStateFileSync } from '@app/store/services/state-file-loader.js';
+import { InternalBootStateService } from '@app/unraid-api/graph/resolvers/disks/internal-boot-state.service.js';
 import { OnboardingInternalBootService } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-internal-boot.service.js';
 
 vi.mock('@app/core/utils/clients/emcmd.js', () => ({
@@ -25,17 +26,27 @@ vi.mock('@app/store/services/state-file-loader.js', () => ({
 }));
 
 describe('OnboardingInternalBootService', () => {
+    const internalBootStateService = {
+        getBootedFromFlashWithInternalBootSetup: vi.fn(),
+    };
+
     beforeEach(() => {
         vi.clearAllMocks();
+        internalBootStateService.getBootedFromFlashWithInternalBootSetup.mockResolvedValue(false);
         vi.mocked(getters.emhttp).mockReturnValue({
             devices: [],
             disks: [],
         } as unknown as ReturnType<typeof getters.emhttp>);
     });
 
+    const createService = () =>
+        new OnboardingInternalBootService(
+            internalBootStateService as unknown as InternalBootStateService
+        );
+
     it('runs the internal boot emcmd sequence and returns success', async () => {
         vi.mocked(emcmd).mockResolvedValue({ ok: true } as Awaited<ReturnType<typeof emcmd>>);
-        const service = new OnboardingInternalBootService();
+        const service = createService();
 
         const result = await service.createInternalBootPool({
             poolName: 'cache',
@@ -116,7 +127,7 @@ describe('OnboardingInternalBootService', () => {
                 stderr: '',
                 exitCode: 0,
             } as Awaited<ReturnType<typeof execa>>);
-        const service = new OnboardingInternalBootService();
+        const service = createService();
 
         const result = await service.createInternalBootPool({
             poolName: 'cache',
@@ -183,7 +194,7 @@ describe('OnboardingInternalBootService', () => {
                 stderr: '',
                 exitCode: 1,
             } as Awaited<ReturnType<typeof execa>>);
-        const service = new OnboardingInternalBootService();
+        const service = createService();
 
         const result = await service.createInternalBootPool({
             poolName: 'cache',
@@ -201,7 +212,7 @@ describe('OnboardingInternalBootService', () => {
     });
 
     it('returns validation error for duplicate devices', async () => {
-        const service = new OnboardingInternalBootService();
+        const service = createService();
 
         const result = await service.createInternalBootPool({
             poolName: 'cache',
@@ -218,9 +229,48 @@ describe('OnboardingInternalBootService', () => {
         expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
     });
 
+    it('returns validation error when internal boot is already configured while booted from flash', async () => {
+        internalBootStateService.getBootedFromFlashWithInternalBootSetup.mockResolvedValue(true);
+        const service = createService();
+
+        const result = await service.createInternalBootPool({
+            poolName: 'cache',
+            devices: ['disk-1'],
+            bootSizeMiB: 16384,
+            updateBios: false,
+        });
+
+        expect(result).toMatchObject({
+            ok: false,
+            code: 3,
+        });
+        expect(result.output).toContain('internal boot is already configured');
+        expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
+    });
+
+    it('returns failure output when the internal boot state lookup throws', async () => {
+        internalBootStateService.getBootedFromFlashWithInternalBootSetup.mockRejectedValue(
+            new Error('state lookup failed')
+        );
+        const service = createService();
+
+        const result = await service.createInternalBootPool({
+            poolName: 'cache',
+            devices: ['disk-1'],
+            bootSizeMiB: 16384,
+            updateBios: false,
+        });
+
+        expect(result.ok).toBe(false);
+        expect(result.code).toBe(1);
+        expect(result.output).toContain('mkbootpool: command failed or timed out');
+        expect(result.output).toContain('state lookup failed');
+        expect(vi.mocked(emcmd)).not.toHaveBeenCalled();
+    });
+
     it('returns failure output when emcmd command throws', async () => {
         vi.mocked(emcmd).mockRejectedValue(new Error('socket failure'));
-        const service = new OnboardingInternalBootService();
+        const service = createService();
 
         const result = await service.createInternalBootPool({
             poolName: 'cache',

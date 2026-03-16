@@ -88,6 +88,7 @@ export const SERVER_STATE_QUERY = graphql(/* GraphQL */ `
       updateExpiration
     }
     vars {
+      bootedFromFlashWithInternalBootSetup
       flashGuid
       tpmGuid
       mdState

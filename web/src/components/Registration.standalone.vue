@@ -46,6 +46,7 @@ const { activationCode } = storeToRefs(useActivationCodeDataStore());
 
 const {
   bootDeviceType,
+  bootedFromFlashWithInternalBootSetup,
   dateTimeFormat,
   deviceCount,
   flashProduct,
@@ -136,13 +137,7 @@ const showPartnerActivationCode = computed(() => {
 });
 const showTpmTransferButton = computed((): boolean =>
   Boolean(
-    (keyInstalled.value || showTrialExpiration.value) &&
-      bootDeviceType.value === 'flash' &&
-      // The active GUID tells us whether we're still booted from flash, even if
-      // flashGuid is missing or has already fallen back to the TPM value.
-      guid.value &&
-      tpmGuid.value &&
-      guid.value !== tpmGuid.value
+    (keyInstalled.value || showTrialExpiration.value) && bootedFromFlashWithInternalBootSetup.value
   )
 );
 const disableTpmTransferButton = computed((): boolean => showTrialExpiration.value);

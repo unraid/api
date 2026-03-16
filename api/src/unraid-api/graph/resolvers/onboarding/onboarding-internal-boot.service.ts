@@ -12,6 +12,7 @@ import { getters } from '@app/store/index.js';
 import { loadStateFileSync } from '@app/store/services/state-file-loader.js';
 import { StateFileKey } from '@app/store/types.js';
 import { ArrayDiskType } from '@app/unraid-api/graph/resolvers/array/array.model.js';
+import { InternalBootStateService } from '@app/unraid-api/graph/resolvers/disks/internal-boot-state.service.js';
 
 const INTERNAL_BOOT_COMMAND_TIMEOUT_MS = 180000;
 const EFI_BOOT_PATH = '\\EFI\\BOOT\\BOOTX64.EFI';
@@ -32,6 +33,12 @@ const isEmhttpDeviceRecord = (value: unknown): value is EmhttpDeviceRecord => {
 
 @Injectable()
 export class OnboardingInternalBootService {
+    constructor(private readonly internalBootStateService: InternalBootStateService) {}
+
+    private async isBootedFromFlashWithInternalBootSetup(): Promise<boolean> {
+        return this.internalBootStateService.getBootedFromFlashWithInternalBootSetup();
+    }
+
     private async runStep(
         commandText: string,
         command: Record<string, string>,
@@ -342,6 +349,14 @@ export class OnboardingInternalBootService {
         }
 
         try {
+            if (await this.isBootedFromFlashWithInternalBootSetup()) {
+                return {
+                    ok: false,
+                    code: 3,
+                    output: 'mkbootpool: internal boot is already configured while the system is still booted from flash',
+                };
+            }
+
             await this.runStep(
                 'debug=cmdCreatePool,cmdAssignDisk,cmdMakeBootable',
                 { debug: 'cmdCreatePool,cmdAssignDisk,cmdMakeBootable' },

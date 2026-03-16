@@ -92,6 +92,7 @@ export const useServerStore = defineStore('server', () => {
   const flashProduct = ref<string>('');
   const flashVendor = ref<string>('');
   const guid = ref<string>('');
+  const reportedBootedFromFlashWithInternalBootSetup = ref<boolean | undefined>(undefined);
   const bootDeviceType = computed(
     (): 'flash' | 'internalBoot' | 'internalBootMulti' | 'tpm' | undefined => {
       if (!guid.value) return undefined;
@@ -138,6 +139,9 @@ export const useServerStore = defineStore('server', () => {
     () =>
       bootDeviceType.value === 'flash' &&
       Boolean(guid.value && tpmGuid.value && guid.value !== tpmGuid.value)
+  );
+  const bootedFromFlashWithInternalBootSetup = computed(
+    () => reportedBootedFromFlashWithInternalBootSetup.value ?? hasDistinctTpmGuid.value
   );
   const replaceFlashGuid = computed(() => {
     if (hasDistinctTpmGuid.value) {
@@ -203,6 +207,7 @@ export const useServerStore = defineStore('server', () => {
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
       guid: guid.value,
+      bootedFromFlashWithInternalBootSetup: bootedFromFlashWithInternalBootSetup.value,
       inIframe: inIframe.value,
       keyfile: keyfile.value,
       lanIp: lanIp.value,
@@ -1064,6 +1069,9 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.guid !== 'undefined') {
       guid.value = data.guid;
     }
+    if (data && 'bootedFromFlashWithInternalBootSetup' in data) {
+      reportedBootedFromFlashWithInternalBootSetup.value = data.bootedFromFlashWithInternalBootSetup;
+    }
     if (typeof data?.keyfile !== 'undefined') {
       keyfile.value = data.keyfile;
     }
@@ -1175,6 +1183,7 @@ export const useServerStore = defineStore('server', () => {
         data.registration && data.registration.keyFile && data.registration.keyFile.contents
           ? data.registration.keyFile.contents
           : undefined,
+      bootedFromFlashWithInternalBootSetup: data.vars?.bootedFromFlashWithInternalBootSetup ?? undefined,
       flashGuid: data.vars?.flashGuid ?? undefined,
       mdState: data.vars?.mdState ?? undefined,
       regGen: data.vars && data.vars.regGen ? parseInt(data.vars.regGen) : undefined,
@@ -1410,6 +1419,7 @@ export const useServerStore = defineStore('server', () => {
     flashVendor,
     guid,
     bootDeviceType,
+    bootedFromFlashWithInternalBootSetup,
     keyfile,
     inIframe,
     locale,

@@ -288,6 +288,9 @@ const internalBootTransferState = computed<InternalBootTransferState>(() => {
   }
   return 'unknown';
 });
+const bootedFromFlashWithInternalBootSetup = computed(
+  () => contextResult.value?.vars?.bootedFromFlashWithInternalBootSetup === true
+);
 const bootEligibilityState = computed<InternalBootEligibilityState>(() => {
   const eligibility = contextResult.value?.vars?.bootEligible;
   if (eligibility === true) {
@@ -323,8 +326,11 @@ const systemEligibilityCodes = computed<InternalBootSystemEligibilityCode[]>(() 
   if (!isArrayStopped.value) {
     codes.push('ARRAY_NOT_STOPPED');
   }
+  if (bootedFromFlashWithInternalBootSetup.value) {
+    codes.push('ALREADY_INTERNAL_BOOT');
+  }
   if (internalBootTransferState.value === 'disabled') {
-    codes.push('ENABLE_BOOT_TRANSFER_DISABLED', 'ALREADY_INTERNAL_BOOT');
+    codes.push('ENABLE_BOOT_TRANSFER_DISABLED');
   }
   if (internalBootTransferState.value === 'unknown') {
     codes.push('ENABLE_BOOT_TRANSFER_UNKNOWN');
@@ -353,6 +359,7 @@ const diskEligibilityIssues = computed(() =>
 const canConfigure = computed(
   () =>
     internalBootTransferState.value === 'enabled' &&
+    !bootedFromFlashWithInternalBootSetup.value &&
     isArrayStopped.value &&
     bootEligibilityState.value === 'eligible' &&
     deviceOptions.value.length > 0

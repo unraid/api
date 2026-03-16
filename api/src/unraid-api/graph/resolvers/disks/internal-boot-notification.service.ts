@@ -3,7 +3,7 @@ import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import type { NotificationData } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { ArrayDiskType } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
-import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
+import { InternalBootStateService } from '@app/unraid-api/graph/resolvers/disks/internal-boot-state.service.js';
 import { NotificationImportance } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
@@ -16,7 +16,7 @@ export class InternalBootNotificationService implements OnApplicationBootstrap {
 
     constructor(
         private readonly arrayService: ArrayService,
-        private readonly disksService: DisksService,
+        private readonly internalBootStateService: InternalBootStateService,
         private readonly notificationsService: NotificationsService
     ) {}
 
@@ -39,8 +39,11 @@ export class InternalBootNotificationService implements OnApplicationBootstrap {
         }
 
         try {
-            const internalBootDevices = await this.disksService.getInternalBootDevices();
-            if (internalBootDevices.length === 0) {
+            const bootedFromFlashWithInternalBootSetup =
+                await this.internalBootStateService.getBootedFromFlashWithInternalBootSetupForBootDisk(
+                    bootDisk
+                );
+            if (!bootedFromFlashWithInternalBootSetup) {
                 this.logger.debug(
                     `Skipping internal boot notification: no internal boot candidates found for ${bootDisk.device ?? bootDisk.id}`
                 );
