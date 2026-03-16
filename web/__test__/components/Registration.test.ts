@@ -161,6 +161,17 @@ describe('Registration.standalone.vue', () => {
   let replaceRenewStore: ReturnType<typeof useReplaceRenewStore>;
   let purchaseStore: ReturnType<typeof usePurchaseStore>;
 
+  const mountComponent = () =>
+    mount(Registration, {
+      global: {
+        plugins: [pinia, createTestI18n()],
+        stubs: {
+          ShieldCheckIcon: { template: '<div class="shield-check-icon"/>' },
+          ShieldExclamationIcon: { template: '<div class="shield-exclamation-icon"/>' },
+        },
+      },
+    });
+
   const findItemByLabel = (labelKey: string) => {
     const allLabels = wrapper.findAll('.font-semibold');
     const label = allLabels.find((el) => el.html().includes(t(labelKey)));
@@ -203,16 +214,7 @@ describe('Registration.standalone.vue', () => {
 
     activationCodeStateHolder.current!.value = null;
 
-    // Mount after store setup
-    wrapper = mount(Registration, {
-      global: {
-        plugins: [pinia, createTestI18n()],
-        stubs: {
-          ShieldCheckIcon: { template: '<div class="shield-check-icon"/>' },
-          ShieldExclamationIcon: { template: '<div class="shield-exclamation-icon"/>' },
-        },
-      },
-    });
+    wrapper = mountComponent();
   });
 
   afterEach(() => {

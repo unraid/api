@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { execa } from 'execa';
 
@@ -33,6 +33,8 @@ const isEmhttpDeviceRecord = (value: unknown): value is EmhttpDeviceRecord => {
 
 @Injectable()
 export class OnboardingInternalBootService {
+    private readonly logger = new Logger(OnboardingInternalBootService.name);
+
     constructor(private readonly internalBootStateService: InternalBootStateService) {}
 
     private async isBootedFromFlashWithInternalBootSetup(): Promise<boolean> {
@@ -404,6 +406,15 @@ export class OnboardingInternalBootService {
                     biosUpdateResult.hadFailures
                         ? 'BIOS boot entry updates completed with warnings; manual BIOS boot order changes may still be required.'
                         : 'BIOS boot entry updates completed successfully.'
+                );
+            }
+
+            try {
+                await this.internalBootStateService.invalidateCachedInternalBootDeviceState();
+            } catch (error) {
+                const message = error instanceof Error ? error.message : String(error);
+                this.logger.warn(
+                    `Failed to invalidate cached internal boot device state after successful setup: ${message}`
                 );
             }
 

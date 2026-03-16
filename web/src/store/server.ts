@@ -1419,6 +1419,7 @@ export const useServerStore = defineStore('server', () => {
     flashVendor,
     guid,
     bootDeviceType,
+    hasDistinctTpmGuid,
     bootedFromFlashWithInternalBootSetup,
     keyfile,
     inIframe,
