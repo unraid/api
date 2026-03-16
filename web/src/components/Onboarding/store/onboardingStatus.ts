@@ -1,5 +1,5 @@
-import { computed, ref } from 'vue';
-import { defineStore, storeToRefs } from 'pinia';
+import { computed, ref, unref } from 'vue';
+import { defineStore } from 'pinia';
 
 import coerce from 'semver/functions/coerce';
 import gte from 'semver/functions/gte';
@@ -46,15 +46,15 @@ const isVersionAtLeast = (version: string | null | undefined, minVersion: string
 };
 
 export const useOnboardingStore = defineStore('onboarding', () => {
-  const { osVersion } = storeToRefs(useServerStore());
-  const { hasResumableDraft } = storeToRefs(useOnboardingDraftStore());
+  const serverStore = useServerStore();
+  const onboardingDraftStore = useOnboardingDraftStore();
   const onboardingContextStore = useOnboardingContextDataStore();
-  const {
-    onboarding: onboardingData,
-    loading: onboardingLoading,
-    error: onboardingError,
-  } = storeToRefs(onboardingContextStore);
   const { refetchOnboardingContext } = onboardingContextStore;
+  const osVersion = computed(() => unref(serverStore.osVersion));
+  const hasResumableDraft = computed(() => unref(onboardingDraftStore.hasResumableDraft));
+  const onboardingData = computed(() => unref(onboardingContextStore.onboarding));
+  const onboardingLoading = computed(() => unref(onboardingContextStore.loading));
+  const onboardingError = computed(() => unref(onboardingContextStore.error));
   const mockOsVersion = ref<string | null>(readMockOsVersionFromStorage());
 
   // Core state from API

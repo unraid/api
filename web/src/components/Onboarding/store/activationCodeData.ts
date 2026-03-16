@@ -1,11 +1,14 @@
-import { computed } from 'vue';
-import { defineStore, storeToRefs } from 'pinia';
+import { computed, unref } from 'vue';
+import { defineStore } from 'pinia';
 
 import { useOnboardingContextDataStore } from '~/components/Onboarding/store/onboardingContextData';
 
 export const useActivationCodeDataStore = defineStore('activationCodeData', () => {
   const onboardingContextStore = useOnboardingContextDataStore();
-  const { loading, onboardingState, activationCode } = storeToRefs(onboardingContextStore);
+
+  const loading = computed(() => unref(onboardingContextStore.loading));
+  const onboardingState = computed(() => unref(onboardingContextStore.onboardingState));
+  const activationCode = computed(() => unref(onboardingContextStore.activationCode));
 
   const registrationState = computed(() => onboardingState.value?.registrationState ?? null);
 
