@@ -7,7 +7,7 @@ import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.servic
 import { InternalBootStateService } from '@app/unraid-api/graph/resolvers/disks/internal-boot-state.service.js';
 
 describe('InternalBootStateService', () => {
-    const cacheStore = new Map<string, boolean>();
+    const cacheStore = new Map<string, unknown>();
     const arrayService = {
         getArrayData: vi.fn(),
     };
@@ -15,20 +15,26 @@ describe('InternalBootStateService', () => {
         getInternalBootDevices: vi.fn(),
     };
     const cacheManager = {
-        get: vi.fn(async (key: string) => cacheStore.get(key)),
-        set: vi.fn(async (key: string, value: boolean) => {
+        async get<T>(key: string): Promise<T | undefined> {
+            return cacheStore.get(key) as T | undefined;
+        },
+        async set<T>(key: string, value: T): Promise<T> {
             cacheStore.set(key, value);
-        }),
-        del: vi.fn(async (key: string) => {
-            cacheStore.delete(key);
-        }),
-    } satisfies Pick<Cache, 'get' | 'set' | 'del'>;
+            return value;
+        },
+        async del(key: string): Promise<boolean> {
+            return cacheStore.delete(key);
+        },
+    };
+    const getSpy = vi.spyOn(cacheManager, 'get');
+    const setSpy = vi.spyOn(cacheManager, 'set');
+    const delSpy = vi.spyOn(cacheManager, 'del');
 
     const createService = () =>
         new InternalBootStateService(
             arrayService as unknown as ArrayService,
             disksService as unknown as DisksService,
-            cacheManager as Cache
+            cacheManager as unknown as Cache
         );
 
     beforeEach(() => {
@@ -45,7 +51,7 @@ describe('InternalBootStateService', () => {
 
         expect(result).toBe(false);
         expect(disksService.getInternalBootDevices).not.toHaveBeenCalled();
-        expect(cacheManager.get).not.toHaveBeenCalled();
+        expect(getSpy).not.toHaveBeenCalled();
     });
 
     it('caches the internal boot device lookup result', async () => {
@@ -62,7 +68,7 @@ describe('InternalBootStateService', () => {
         expect(firstResult).toBe(true);
         expect(secondResult).toBe(true);
         expect(disksService.getInternalBootDevices).toHaveBeenCalledTimes(1);
-        expect(cacheManager.set).toHaveBeenCalledTimes(1);
+        expect(setSpy).toHaveBeenCalledTimes(1);
     });
 
     it('coalesces concurrent cache misses into a single disk scan', async () => {
@@ -91,7 +97,7 @@ describe('InternalBootStateService', () => {
 
         await expect(firstLookup).resolves.toBe(true);
         await expect(secondLookup).resolves.toBe(true);
-        expect(cacheManager.set).toHaveBeenCalledTimes(1);
+        expect(setSpy).toHaveBeenCalledTimes(1);
     });
 
     it('invalidates the cached lookup result when requested', async () => {
@@ -113,7 +119,7 @@ describe('InternalBootStateService', () => {
         expect(initialResult).toBe(true);
         expect(refreshedResult).toBe(false);
         expect(disksService.getInternalBootDevices).toHaveBeenCalledTimes(2);
-        expect(cacheManager.del).toHaveBeenCalledTimes(1);
+        expect(delSpy).toHaveBeenCalledTimes(1);
     });
 
     it('uses array boot data for the shared top-level lookup', async () => {
