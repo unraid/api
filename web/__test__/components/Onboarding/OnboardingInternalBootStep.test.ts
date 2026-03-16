@@ -336,9 +336,46 @@ describe('OnboardingInternalBootStep', () => {
     await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
     await flushPromises();
     expect(wrapper.text()).toContain('ENABLE_BOOT_TRANSFER_DISABLED');
-    expect(wrapper.text()).toContain('ALREADY_INTERNAL_BOOT');
     expect(wrapper.text()).toContain('BOOT_ELIGIBLE_FALSE');
     expect(wrapper.text()).toContain('NO_UNASSIGNED_DISKS');
+  });
+
+  it('blocks configuration when internal boot is already configured while the system is still booted from flash', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = {
+      array: {
+        state: ArrayState.STOPPED,
+        boot: null,
+        parities: [],
+        disks: [],
+        caches: [],
+      },
+      vars: {
+        fsState: 'Stopped',
+        bootEligible: true,
+        bootedFromFlashWithInternalBootSetup: true,
+        enableBootTransfer: 'yes',
+        reservedNames: '',
+      },
+      shares: [],
+      disks: [
+        {
+          device: '/dev/sda',
+          size: gib(32),
+          serialNum: 'ELIGIBLE-1',
+          emhttpDeviceId: 'eligible-disk',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+      ],
+    };
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
+    await flushPromises();
+    expect(wrapper.text()).toContain('ALREADY_INTERNAL_BOOT');
+    expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeDefined();
   });
 
   it('keeps the blocked headline focused on server state when eligible disks exist', async () => {

@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
+import { InternalBootStateService } from '@app/unraid-api/graph/resolvers/disks/internal-boot-state.service.js';
 import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver.js';
 import { VarsService } from '@app/unraid-api/graph/resolvers/vars/vars.service.js';
 
@@ -16,6 +17,12 @@ describe('VarsResolver', () => {
                 {
                     provide: VarsService,
                     useValue: {},
+                },
+                {
+                    provide: InternalBootStateService,
+                    useValue: {
+                        getBootedFromFlashWithInternalBootSetup: async () => false,
+                    },
                 },
             ],
         }).compile();

@@ -82,7 +82,13 @@ const { result: internalBootVisibilityResult } = useQuery(GetInternalBootStepVis
 
 const showInternalBootStep = computed(() => {
   const setting = internalBootVisibilityResult.value?.vars?.enableBootTransfer;
-  return typeof setting === 'string' && setting.trim().toLowerCase() === 'yes';
+  const bootedFromFlashWithInternalBootSetup =
+    internalBootVisibilityResult.value?.vars?.bootedFromFlashWithInternalBootSetup === true;
+  return (
+    typeof setting === 'string' &&
+    setting.trim().toLowerCase() === 'yes' &&
+    !bootedFromFlashWithInternalBootSetup
+  );
 });
 
 // Determine which steps to show based on user state

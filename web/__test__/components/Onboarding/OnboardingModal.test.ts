@@ -8,6 +8,7 @@ import { createTestI18n } from '../../utils/i18n';
 type InternalBootVisibilityResult = {
   value: {
     vars: {
+      bootedFromFlashWithInternalBootSetup: boolean | null;
       enableBootTransfer: string | null;
     };
   };
@@ -29,6 +30,7 @@ const {
   internalBootVisibilityResult: {
     value: {
       vars: {
+        bootedFromFlashWithInternalBootSetup: false,
         enableBootTransfer: 'yes',
       },
     },
@@ -188,6 +190,7 @@ describe('OnboardingModal.vue', () => {
     onboardingDraftStore.internalBootApplySucceeded.value = false;
     internalBootVisibilityResult.value = {
       vars: {
+        bootedFromFlashWithInternalBootSetup: false,
         enableBootTransfer: 'yes',
       },
     };
@@ -332,6 +335,7 @@ describe('OnboardingModal.vue', () => {
   it('hides internal boot step when boot transfer state is unknown', () => {
     internalBootVisibilityResult.value = {
       vars: {
+        bootedFromFlashWithInternalBootSetup: null,
         enableBootTransfer: null,
       },
     };
@@ -354,7 +358,23 @@ describe('OnboardingModal.vue', () => {
   it('hides internal boot step when already booting internally', () => {
     internalBootVisibilityResult.value = {
       vars: {
+        bootedFromFlashWithInternalBootSetup: false,
         enableBootTransfer: 'no',
+      },
+    };
+    onboardingDraftStore.currentStepIndex.value = 2;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(true);
+  });
+
+  it('hides internal boot step when still booted from flash but internal boot is already configured', () => {
+    internalBootVisibilityResult.value = {
+      vars: {
+        bootedFromFlashWithInternalBootSetup: true,
+        enableBootTransfer: 'yes',
       },
     };
     onboardingDraftStore.currentStepIndex.value = 2;

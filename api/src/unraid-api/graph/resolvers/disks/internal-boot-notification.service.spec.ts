@@ -6,8 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ArrayDiskType } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
-import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
 import { InternalBootNotificationService } from '@app/unraid-api/graph/resolvers/disks/internal-boot-notification.service.js';
+import { InternalBootStateService } from '@app/unraid-api/graph/resolvers/disks/internal-boot-state.service.js';
 import { NotificationImportance } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
@@ -15,8 +15,8 @@ const mockArrayService = {
     getArrayData: vi.fn(),
 };
 
-const mockDisksService = {
-    getInternalBootDevices: vi.fn(),
+const mockInternalBootStateService = {
+    getBootedFromFlashWithInternalBootSetupForBootDisk: vi.fn(),
 };
 
 const mockNotificationsService = {
@@ -37,8 +37,8 @@ describe('InternalBootNotificationService', () => {
                     useValue: mockArrayService,
                 },
                 {
-                    provide: DisksService,
-                    useValue: mockDisksService,
+                    provide: InternalBootStateService,
+                    useValue: mockInternalBootStateService,
                 },
                 {
                     provide: NotificationsService,
@@ -62,7 +62,9 @@ describe('InternalBootNotificationService', () => {
                 device: 'sda',
             },
         });
-        mockDisksService.getInternalBootDevices.mockResolvedValue([{ device: '/dev/nvme0n1' }]);
+        mockInternalBootStateService.getBootedFromFlashWithInternalBootSetupForBootDisk.mockResolvedValue(
+            true
+        );
         mockNotificationsService.notifyIfUnique.mockResolvedValue(null);
 
         await service.onApplicationBootstrap();
@@ -84,7 +86,9 @@ describe('InternalBootNotificationService', () => {
                 device: 'nvme0n1',
             },
         });
-        mockDisksService.getInternalBootDevices.mockResolvedValue([{ device: '/dev/nvme0n1' }]);
+        mockInternalBootStateService.getBootedFromFlashWithInternalBootSetupForBootDisk.mockResolvedValue(
+            true
+        );
 
         await service.onApplicationBootstrap();
 
@@ -99,7 +103,9 @@ describe('InternalBootNotificationService', () => {
                 device: 'sda',
             },
         });
-        mockDisksService.getInternalBootDevices.mockResolvedValue([]);
+        mockInternalBootStateService.getBootedFromFlashWithInternalBootSetupForBootDisk.mockResolvedValue(
+            false
+        );
 
         await service.onApplicationBootstrap();
 
@@ -120,7 +126,9 @@ describe('InternalBootNotificationService', () => {
                     device: 'sda',
                 },
             });
-        mockDisksService.getInternalBootDevices.mockResolvedValue([{ device: '/dev/nvme0n1' }]);
+        mockInternalBootStateService.getBootedFromFlashWithInternalBootSetupForBootDisk.mockResolvedValue(
+            true
+        );
         mockNotificationsService.notifyIfUnique.mockResolvedValue(null);
 
         const bootstrapPromise = service.onApplicationBootstrap();
@@ -139,7 +147,9 @@ describe('InternalBootNotificationService', () => {
         mockArrayService.getArrayData.mockResolvedValue({
             boot: undefined,
         });
-        mockDisksService.getInternalBootDevices.mockResolvedValue([{ device: '/dev/nvme0n1' }]);
+        mockInternalBootStateService.getBootedFromFlashWithInternalBootSetupForBootDisk.mockResolvedValue(
+            true
+        );
 
         const bootstrapPromise = service.onApplicationBootstrap();
 
@@ -163,7 +173,9 @@ describe('InternalBootNotificationService', () => {
                 device: 'sda',
             },
         });
-        mockDisksService.getInternalBootDevices.mockRejectedValue(new Error('lsblk failed'));
+        mockInternalBootStateService.getBootedFromFlashWithInternalBootSetupForBootDisk.mockRejectedValue(
+            new Error('lsblk failed')
+        );
 
         await expect(service.onApplicationBootstrap()).resolves.toBeUndefined();
 
@@ -183,7 +195,9 @@ describe('InternalBootNotificationService', () => {
                 device: 'sda',
             },
         });
-        mockDisksService.getInternalBootDevices.mockResolvedValue([{ device: '/dev/nvme0n1' }]);
+        mockInternalBootStateService.getBootedFromFlashWithInternalBootSetupForBootDisk.mockResolvedValue(
+            true
+        );
         mockNotificationsService.notifyIfUnique.mockRejectedValue(new Error('notify failed'));
 
         await expect(service.onApplicationBootstrap()).resolves.toBeUndefined();

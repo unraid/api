@@ -4,12 +4,16 @@ import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 
 import { getters } from '@app/store/index.js';
+import { InternalBootStateService } from '@app/unraid-api/graph/resolvers/disks/internal-boot-state.service.js';
 import { UpdateSshInput, Vars } from '@app/unraid-api/graph/resolvers/vars/vars.model.js';
 import { VarsService } from '@app/unraid-api/graph/resolvers/vars/vars.service.js';
 
 @Resolver(() => Vars)
 export class VarsResolver {
-    constructor(private readonly varsService: VarsService) {}
+    constructor(
+        private readonly varsService: VarsService,
+        private readonly internalBootStateService: InternalBootStateService
+    ) {}
 
     @Query(() => Vars)
     @UsePermissions({
@@ -17,9 +21,13 @@ export class VarsResolver {
         resource: Resource.VARS,
     })
     public async vars() {
+        const bootedFromFlashWithInternalBootSetup =
+            await this.internalBootStateService.getBootedFromFlashWithInternalBootSetup();
+
         return {
             id: 'vars',
             ...(getters.emhttp().var ?? {}),
+            bootedFromFlashWithInternalBootSetup,
         };
     }
 

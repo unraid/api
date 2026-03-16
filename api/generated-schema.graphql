@@ -596,6 +596,7 @@ type Vars implements Node {
   fsState: String
   bootEligible: Boolean
   enableBootTransfer: String
+  bootedFromFlashWithInternalBootSetup: Boolean
   reservedNames: String
 
   """Human friendly string of array events happening"""

@@ -95,6 +95,7 @@ export interface Server {
   flashProduct?: string;
   flashVendor?: string;
   guid?: string;
+  bootedFromFlashWithInternalBootSetup?: boolean;
   inIframe?: boolean;
   keyfile?: string;
   lanIp?: string;

@@ -438,6 +438,9 @@ export class Vars extends Node {
     enableBootTransfer?: string;
 
     @Field({ nullable: true })
+    bootedFromFlashWithInternalBootSetup?: boolean;
+
+    @Field({ nullable: true })
     reservedNames?: string;
 
     @Field({ nullable: true, description: 'Human friendly string of array events happening' })
