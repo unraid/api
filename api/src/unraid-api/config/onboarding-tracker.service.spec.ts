@@ -168,6 +168,72 @@ describe('OnboardingTrackerService tracker state availability', () => {
         });
     });
 
+    it('preserves cached completed state when the tracker file temporarily disappears', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            return JSON.stringify({
+                completed: true,
+                completedAtVersion: '7.2.0',
+            });
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        await expect(tracker.getStateResult()).resolves.toEqual({
+            kind: 'ok',
+            state: {
+                completed: true,
+                completedAtVersion: '7.2.0',
+            },
+        });
+    });
+
+    it('preserves cached completed state when a later tracker refresh fails', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            return JSON.stringify({
+                completed: true,
+                completedAtVersion: '7.2.0',
+            });
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw new Error('permission denied');
+        });
+
+        await expect(tracker.getStateResult()).resolves.toEqual({
+            kind: 'ok',
+            state: {
+                completed: true,
+                completedAtVersion: '7.2.0',
+            },
+        });
+    });
+
     it('propagates tracker read failures through isCompleted', async () => {
         const config = createConfigService();
         const overrides = new OnboardingOverrideService();

@@ -31,6 +31,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
     private readonly logger = new Logger(OnboardingTrackerService.name);
     private readonly trackerPath = path.join(PATHS_CONFIG_MODULES, TRACKER_FILE_NAME);
     private state: TrackerState = {};
+    private hasPersistedState = false;
     private currentVersion?: string;
     private readonly versionFilePath: string;
 
@@ -47,7 +48,13 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
     async onApplicationBootstrap() {
         this.currentVersion = await this.readCurrentVersion();
         const previousState = await this.readTrackerStateResult();
-        this.state = previousState.kind === 'error' ? {} : previousState.state;
+        if (previousState.kind !== 'error') {
+            this.state = previousState.state;
+            this.hasPersistedState = previousState.kind === 'ok';
+        } else {
+            this.state = {};
+            this.hasPersistedState = false;
+        }
         this.syncConfig();
     }
 
@@ -108,8 +115,36 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         }
 
         const trackerStateResult = await this.readTrackerStateResult();
-        if (trackerStateResult.kind !== 'error') {
+        if (trackerStateResult.kind === 'ok') {
             this.state = trackerStateResult.state;
+            this.hasPersistedState = true;
+            return trackerStateResult;
+        }
+
+        if (trackerStateResult.kind === 'missing') {
+            if (this.hasPersistedState) {
+                this.logger.debug(
+                    `Onboarding tracker state temporarily disappeared at ${this.trackerPath}; using cached state.`
+                );
+                return {
+                    kind: 'ok',
+                    state: this.getCachedState(),
+                };
+            }
+
+            this.state = trackerStateResult.state;
+            this.hasPersistedState = false;
+            return trackerStateResult;
+        }
+
+        if (this.hasPersistedState) {
+            this.logger.debug(
+                `Onboarding tracker state could not be refreshed from ${this.trackerPath}; using cached state.`
+            );
+            return {
+                kind: 'ok',
+                state: this.getCachedState(),
+            };
         }
 
         return trackerStateResult;
@@ -238,6 +273,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
             try {
                 await writeFile(this.trackerPath, JSON.stringify(state, null, 2), { mode: 0o644 });
                 this.state = state;
+                this.hasPersistedState = true;
                 return;
             } catch (error) {
                 lastError = error;

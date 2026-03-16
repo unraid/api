@@ -40,7 +40,7 @@ const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
 const themeStore = useThemeStore();
 const draftStore = useOnboardingDraftStore();
-const { currentStepIndex, internalBootApplySucceeded } = storeToRefs(draftStore);
+const { currentStepIndex, hasResumableDraft, internalBootApplySucceeded } = storeToRefs(draftStore);
 
 onMounted(async () => {
   try {
@@ -76,11 +76,25 @@ const showActivationStep = computed(() => {
   return hasCode && ACTIVATION_STEP_REGISTRATION_STATES.has(regState);
 });
 
-const { result: internalBootVisibilityResult } = useQuery(GetInternalBootStepVisibilityDocument, null, {
-  fetchPolicy: 'network-only',
-});
+const { result: internalBootVisibilityResult, loading: internalBootVisibilityLoading } = useQuery(
+  GetInternalBootStepVisibilityDocument,
+  null,
+  {
+    fetchPolicy: 'network-only',
+  }
+);
+
+const configureBootStepIndex = HARDCODED_STEPS.findIndex((step) => step.id === 'CONFIGURE_BOOT');
 
 const showInternalBootStep = computed(() => {
+  if (
+    hasResumableDraft.value &&
+    internalBootVisibilityLoading.value &&
+    currentStepIndex.value >= configureBootStepIndex
+  ) {
+    return true;
+  }
+
   const setting = internalBootVisibilityResult.value?.vars?.enableBootTransfer;
   return typeof setting === 'string' && setting.trim().toLowerCase() === 'yes';
 });
@@ -114,9 +128,17 @@ const showModal = computed(() => {
 });
 const showExitConfirmDialog = ref(false);
 
+const normalizedCurrentStepIndex = computed(() => {
+  if (availableSteps.value.length === 0) {
+    return -1;
+  }
+
+  return Math.min(Math.max(currentStepIndex.value, 0), availableSteps.value.length - 1);
+});
+
 const currentStep = computed<StepId | null>(() => {
-  if (currentStepIndex.value < availableSteps.value.length) {
-    return availableSteps.value[currentStepIndex.value];
+  if (normalizedCurrentStepIndex.value >= 0) {
+    return availableSteps.value[normalizedCurrentStepIndex.value];
   }
   return null;
 });
@@ -126,11 +148,9 @@ const currentStepComponent = computed<Component | null>(() =>
 );
 
 const currentDynamicStepIndex = computed(() => {
-  if (!currentStep.value) {
-    return availableSteps.value.length;
-  }
-  const index = availableSteps.value.findIndex((id) => id === currentStep.value);
-  return index >= 0 ? index : availableSteps.value.length;
+  return normalizedCurrentStepIndex.value >= 0
+    ? normalizedCurrentStepIndex.value
+    : availableSteps.value.length;
 });
 
 const modalTitle = computed<string>(() => {

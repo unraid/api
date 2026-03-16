@@ -95,13 +95,9 @@ describe('OnboardingMutationsResolver', () => {
     });
 
     it('returns incomplete status after resetOnboarding', async () => {
-        onboardingTracker.reset.mockResolvedValue(undefined);
-        onboardingTracker.getStateResult.mockResolvedValue({
-            kind: 'ok',
-            state: {
-                completed: false,
-                completedAtVersion: undefined,
-            },
+        onboardingTracker.reset.mockResolvedValue({
+            completed: false,
+            completedAtVersion: undefined,
         });
 
         const result = await resolver.resetOnboarding();
@@ -109,16 +105,13 @@ describe('OnboardingMutationsResolver', () => {
         expect(onboardingTracker.reset).toHaveBeenCalledTimes(1);
         expect(result.status).toBe(OnboardingStatus.INCOMPLETE);
         expect(result.completed).toBe(false);
+        expect(onboardingTracker.getStateResult).not.toHaveBeenCalled();
     });
 
     it('returns completed status when completed version is on a prior patch of current minor', async () => {
-        onboardingTracker.markCompleted.mockResolvedValue(undefined);
-        onboardingTracker.getStateResult.mockResolvedValue({
-            kind: 'ok',
-            state: {
-                completed: true,
-                completedAtVersion: '7.2.1',
-            },
+        onboardingTracker.markCompleted.mockResolvedValue({
+            completed: true,
+            completedAtVersion: '7.2.1',
         });
         onboardingTracker.getCurrentVersion.mockReturnValue('7.2.4');
 
@@ -128,13 +121,9 @@ describe('OnboardingMutationsResolver', () => {
     });
 
     it('returns upgrade status when completed version is behind current', async () => {
-        onboardingTracker.markCompleted.mockResolvedValue(undefined);
-        onboardingTracker.getStateResult.mockResolvedValue({
-            kind: 'ok',
-            state: {
-                completed: true,
-                completedAtVersion: '7.1.0',
-            },
+        onboardingTracker.markCompleted.mockResolvedValue({
+            completed: true,
+            completedAtVersion: '7.1.0',
         });
         onboardingTracker.getCurrentVersion.mockReturnValue('7.2.0');
 
@@ -144,13 +133,9 @@ describe('OnboardingMutationsResolver', () => {
     });
 
     it('returns downgrade status when completed version is ahead of current', async () => {
-        onboardingTracker.markCompleted.mockResolvedValue(undefined);
-        onboardingTracker.getStateResult.mockResolvedValue({
-            kind: 'ok',
-            state: {
-                completed: true,
-                completedAtVersion: '7.2.0',
-            },
+        onboardingTracker.markCompleted.mockResolvedValue({
+            completed: true,
+            completedAtVersion: '7.2.0',
         });
         onboardingTracker.getCurrentVersion.mockReturnValue('7.1.0');
 
@@ -233,13 +218,20 @@ describe('OnboardingMutationsResolver', () => {
         });
     });
 
-    it('propagates tracker read failures while building the completion response', async () => {
-        onboardingTracker.markCompleted.mockResolvedValue(undefined);
+    it('uses the persisted completion state without re-reading the tracker file', async () => {
+        onboardingTracker.markCompleted.mockResolvedValue({
+            completed: true,
+            completedAtVersion: '7.2.0',
+        });
         onboardingTracker.getStateResult.mockResolvedValue({
             kind: 'error',
             error: new Error('tracker-read-failed'),
         });
 
-        await expect(resolver.completeOnboarding()).rejects.toThrow('tracker-read-failed');
+        const result = await resolver.completeOnboarding();
+
+        expect(result.status).toBe(OnboardingStatus.COMPLETED);
+        expect(result.completed).toBe(true);
+        expect(onboardingTracker.getStateResult).not.toHaveBeenCalled();
     });
 });

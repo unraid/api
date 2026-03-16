@@ -10,12 +10,13 @@ type InternalBootVisibilityResult = {
     vars: {
       enableBootTransfer: string | null;
     };
-  };
+  } | null;
 };
 
 const {
   mutateMock,
   internalBootVisibilityResult,
+  internalBootVisibilityLoading,
   onboardingModalStoreState,
   activationCodeDataStore,
   onboardingStatusStore,
@@ -33,6 +34,7 @@ const {
       },
     },
   } as InternalBootVisibilityResult,
+  internalBootVisibilityLoading: { value: false },
   onboardingModalStoreState: {
     isAutoVisible: { value: true },
     isForceOpened: { value: false },
@@ -62,6 +64,7 @@ const {
   },
   onboardingDraftStore: {
     currentStepIndex: { value: 0 },
+    hasResumableDraft: { value: false },
     internalBootApplySucceeded: { value: false },
   },
   purchaseStore: {
@@ -102,7 +105,7 @@ vi.mock('@heroicons/vue/24/solid', () => ({
 vi.mock('@vue/apollo-composable', () => ({
   useQuery: () => ({
     result: internalBootVisibilityResult,
-    loading: { value: false },
+    loading: internalBootVisibilityLoading,
     error: { value: null },
   }),
   useMutation: () => ({
@@ -185,7 +188,9 @@ describe('OnboardingModal.vue', () => {
     onboardingStatusStore.canDisplayOnboardingModal.value = true;
     onboardingStatusStore.isPartnerBuild.value = false;
     onboardingDraftStore.currentStepIndex.value = 0;
+    onboardingDraftStore.hasResumableDraft.value = false;
     onboardingDraftStore.internalBootApplySucceeded.value = false;
+    internalBootVisibilityLoading.value = false;
     internalBootVisibilityResult.value = {
       vars: {
         enableBootTransfer: 'yes',
@@ -342,6 +347,17 @@ describe('OnboardingModal.vue', () => {
     expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(false);
   });
 
+  it('keeps the internal boot step in place while visibility is still loading for a resumable draft', () => {
+    internalBootVisibilityLoading.value = true;
+    internalBootVisibilityResult.value = null;
+    onboardingDraftStore.currentStepIndex.value = 2;
+    onboardingDraftStore.hasResumableDraft.value = true;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(true);
+  });
+
   it('shows internal boot step for partner builds when boot transfer is available', () => {
     onboardingStatusStore.isPartnerBuild.value = true;
     onboardingDraftStore.currentStepIndex.value = 2;
@@ -363,6 +379,20 @@ describe('OnboardingModal.vue', () => {
 
     expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(true);
+  });
+
+  it('clamps to the last visible step when a resumed draft index is past the filtered step list', () => {
+    internalBootVisibilityResult.value = {
+      vars: {
+        enableBootTransfer: 'no',
+      },
+    };
+    onboardingDraftStore.currentStepIndex.value = 6;
+    onboardingDraftStore.hasResumableDraft.value = true;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="next-step"]').exists()).toBe(true);
   });
 
   it('opens exit confirmation when close button is clicked', async () => {

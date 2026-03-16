@@ -22,6 +22,28 @@ import {
 
 @Resolver(() => OnboardingMutations)
 export class OnboardingMutationsResolver {
+    private static computeStatus(
+        completedAtVersion: string | undefined,
+        currentVersion: string,
+        completed: boolean
+    ): OnboardingStatus {
+        const versionDirection = getOnboardingVersionDirection(completedAtVersion, currentVersion);
+
+        if (!completed) {
+            return OnboardingStatus.INCOMPLETE;
+        }
+
+        if (versionDirection === 'DOWNGRADE') {
+            return OnboardingStatus.DOWNGRADE;
+        }
+
+        if (versionDirection === 'UPGRADE') {
+            return OnboardingStatus.UPGRADE;
+        }
+
+        return OnboardingStatus.COMPLETED;
+    }
+
     constructor(
         private readonly onboardingTracker: OnboardingTrackerService,
         private readonly onboardingOverrides: OnboardingOverrideService,
@@ -32,35 +54,34 @@ export class OnboardingMutationsResolver {
     /**
      * Build a full Onboarding response with computed status
      */
-    private async buildOnboardingResponse(): Promise<Onboarding> {
-        const stateResult = await this.onboardingTracker.getStateResult();
-        if (stateResult.kind === 'error') {
-            throw stateResult.error;
+    private async buildOnboardingResponse(state?: {
+        completed: boolean;
+        completedAtVersion?: string;
+    }): Promise<Onboarding> {
+        let effectiveState = state;
+        if (!effectiveState) {
+            const stateResult = await this.onboardingTracker.getStateResult();
+            if (stateResult.kind === 'error') {
+                throw stateResult.error;
+            }
+
+            effectiveState = stateResult.state;
         }
 
-        const state = stateResult.state;
         const currentVersion = this.onboardingTracker.getCurrentVersion() ?? 'unknown';
         const partnerInfo = await this.onboardingService.getPublicPartnerInfo();
         const onboardingState = await this.onboardingService.getOnboardingState();
-        const versionDirection = getOnboardingVersionDirection(state.completedAtVersion, currentVersion);
-
-        // Compute the status based on completion state and version
-        let status: OnboardingStatus;
-        if (!state.completed) {
-            status = OnboardingStatus.INCOMPLETE;
-        } else if (versionDirection === 'DOWNGRADE') {
-            status = OnboardingStatus.DOWNGRADE;
-        } else if (versionDirection === 'UPGRADE') {
-            status = OnboardingStatus.UPGRADE;
-        } else {
-            status = OnboardingStatus.COMPLETED;
-        }
+        const status = OnboardingMutationsResolver.computeStatus(
+            effectiveState.completedAtVersion,
+            currentVersion,
+            effectiveState.completed
+        );
 
         return {
             status,
             isPartnerBuild: partnerInfo !== null,
-            completed: state.completed,
-            completedAtVersion: state.completedAtVersion,
+            completed: effectiveState.completed,
+            completedAtVersion: effectiveState.completedAtVersion,
             onboardingState,
         };
     }
@@ -73,8 +94,8 @@ export class OnboardingMutationsResolver {
         resource: Resource.WELCOME,
     })
     async completeOnboarding(): Promise<Onboarding> {
-        await this.onboardingTracker.markCompleted();
-        return this.buildOnboardingResponse();
+        const state = await this.onboardingTracker.markCompleted();
+        return this.buildOnboardingResponse(state);
     }
 
     @ResolveField(() => Onboarding, {
@@ -85,8 +106,8 @@ export class OnboardingMutationsResolver {
         resource: Resource.WELCOME,
     })
     async resetOnboarding(): Promise<Onboarding> {
-        await this.onboardingTracker.reset();
-        return this.buildOnboardingResponse();
+        const state = await this.onboardingTracker.reset();
+        return this.buildOnboardingResponse(state);
     }
 
     @ResolveField(() => Onboarding, {
