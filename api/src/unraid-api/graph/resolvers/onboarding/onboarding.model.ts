@@ -16,6 +16,7 @@ import {
     ValidateNested,
 } from 'class-validator';
 
+import { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { RegistrationState } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
 @InputType({
@@ -325,4 +326,33 @@ export class OnboardingInternalBootResult {
 
     @Field(() => String)
     output!: string;
+}
+
+@ObjectType({
+    description: 'Current onboarding context for configuring internal boot',
+})
+export class OnboardingInternalBootContext {
+    @Field(() => Boolean)
+    arrayStopped!: boolean;
+
+    @Field(() => Boolean, { nullable: true })
+    bootEligible?: boolean | null;
+
+    @Field(() => Boolean)
+    bootedFromFlashWithInternalBootSetup!: boolean;
+
+    @Field(() => String, { nullable: true })
+    enableBootTransfer?: string | null;
+
+    @Field(() => [String])
+    reservedNames!: string[];
+
+    @Field(() => [String])
+    shareNames!: string[];
+
+    @Field(() => [String])
+    poolNames!: string[];
+
+    @Field(() => [Disk])
+    assignableDisks!: Disk[];
 }

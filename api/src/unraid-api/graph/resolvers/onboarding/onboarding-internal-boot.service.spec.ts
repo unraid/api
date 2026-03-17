@@ -4,8 +4,10 @@ import { execa } from 'execa';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
+import { getShares } from '@app/core/utils/shares/get-shares.js';
 import { getters } from '@app/store/index.js';
 import { loadStateFileSync } from '@app/store/services/state-file-loader.js';
+import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
 import { InternalBootStateService } from '@app/unraid-api/graph/resolvers/disks/internal-boot-state.service.js';
 import { OnboardingInternalBootService } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-internal-boot.service.js';
 
@@ -27,26 +29,135 @@ vi.mock('@app/store/services/state-file-loader.js', () => ({
     loadStateFileSync: vi.fn(),
 }));
 
+vi.mock('@app/core/utils/shares/get-shares.js', () => ({
+    getShares: vi.fn(),
+}));
+
 describe('OnboardingInternalBootService', () => {
     const internalBootStateService = {
         getBootedFromFlashWithInternalBootSetup: vi.fn(),
         invalidateCachedInternalBootDeviceState: vi.fn(),
     };
+    const disksService = {
+        getAssignableDisks: vi.fn(),
+    } satisfies Pick<DisksService, 'getAssignableDisks'>;
 
     beforeEach(() => {
         vi.clearAllMocks();
         internalBootStateService.getBootedFromFlashWithInternalBootSetup.mockResolvedValue(false);
         internalBootStateService.invalidateCachedInternalBootDeviceState.mockResolvedValue(undefined);
+        disksService.getAssignableDisks.mockResolvedValue([]);
         vi.mocked(getters.emhttp).mockReturnValue({
+            var: {},
             devices: [],
             disks: [],
         } as unknown as ReturnType<typeof getters.emhttp>);
+        vi.mocked(getShares).mockImplementation(((type?: string) => {
+            if (type === 'users' || type === 'disks') {
+                return [];
+            }
+
+            return {
+                users: [],
+                disks: [],
+            };
+        }) as unknown as typeof getShares);
     });
 
     const createService = () =>
         new OnboardingInternalBootService(
-            internalBootStateService as unknown as InternalBootStateService
+            internalBootStateService as unknown as InternalBootStateService,
+            disksService as unknown as DisksService
         );
+
+    it('builds internal boot context from the latest emhttp state', async () => {
+        const assignableDisks = [
+            {
+                id: 'disk-1',
+                device: '/dev/sda',
+                serialNum: 'SERIAL-1',
+                size: 1,
+                interfaceType: 'SATA',
+            },
+        ];
+        disksService.getAssignableDisks.mockResolvedValue(assignableDisks);
+        vi.mocked(getters.emhttp).mockReturnValue({
+            var: {
+                mdState: 'STOPPED',
+                bootEligible: true,
+                enableBootTransfer: 'yes',
+                reservedNames: 'flash,cache',
+            },
+            devices: [{ id: 'disk-1', device: 'sda' }],
+            disks: [
+                { type: 'CACHE', name: 'cache' },
+                { type: 'CACHE', name: 'nvme' },
+                { type: 'DATA', name: 'disk1' },
+            ],
+        } as unknown as ReturnType<typeof getters.emhttp>);
+        vi.mocked(getShares).mockImplementation(((scope?: string) => {
+            if (scope === 'users') {
+                return [{ name: 'media' }];
+            }
+            if (scope === 'disks') {
+                return [{ name: 'diskshare' }];
+            }
+
+            return {
+                users: [{ name: 'media' }],
+                disks: [{ name: 'diskshare' }],
+            };
+        }) as unknown as typeof getShares);
+
+        const service = createService();
+        const result = await service.getInternalBootContext();
+
+        expect(result).toEqual({
+            arrayStopped: true,
+            bootEligible: true,
+            bootedFromFlashWithInternalBootSetup: false,
+            enableBootTransfer: 'yes',
+            reservedNames: ['flash', 'cache'],
+            shareNames: ['media', 'diskshare'],
+            poolNames: ['cache', 'nvme'],
+            assignableDisks,
+        });
+        expect(vi.mocked(loadStateFileSync)).not.toHaveBeenCalled();
+    });
+
+    it('refreshes internal boot context from disk and invalidates cached device state', async () => {
+        const assignableDisks = [
+            {
+                id: 'disk-1',
+                device: '/dev/sda',
+                serialNum: 'SERIAL-1',
+                size: 1,
+                interfaceType: 'SATA',
+            },
+        ];
+        disksService.getAssignableDisks.mockResolvedValue(assignableDisks);
+        vi.mocked(getters.emhttp).mockReturnValue({
+            var: {
+                mdState: 'STOPPED',
+                bootEligible: true,
+                enableBootTransfer: 'yes',
+                reservedNames: '',
+            },
+            devices: [{ id: 'disk-1', device: 'sda' }],
+            disks: [{ type: 'CACHE', name: 'cache' }],
+        } as unknown as ReturnType<typeof getters.emhttp>);
+
+        const service = createService();
+        const result = await service.refreshInternalBootContext();
+
+        expect(internalBootStateService.invalidateCachedInternalBootDeviceState).toHaveBeenCalledTimes(
+            1
+        );
+        expect(vi.mocked(loadStateFileSync)).toHaveBeenNthCalledWith(1, 'var');
+        expect(vi.mocked(loadStateFileSync)).toHaveBeenNthCalledWith(2, 'devs');
+        expect(vi.mocked(loadStateFileSync)).toHaveBeenNthCalledWith(3, 'disks');
+        expect(result.assignableDisks).toEqual(assignableDisks);
+    });
 
     it('runs the internal boot emcmd sequence and returns success', async () => {
         vi.mocked(emcmd).mockResolvedValue({ ok: true } as Awaited<ReturnType<typeof emcmd>>);
@@ -100,6 +211,7 @@ describe('OnboardingInternalBootService', () => {
     it('runs efibootmgr update flow when updateBios is requested', async () => {
         vi.mocked(emcmd).mockResolvedValue({ ok: true } as Awaited<ReturnType<typeof emcmd>>);
         vi.mocked(getters.emhttp).mockReturnValue({
+            var: { mdState: 'STOPPED' },
             devices: [{ id: 'disk-1', device: 'sdb' }],
             disks: [{ type: 'FLASH', device: 'sda' }],
         } as unknown as ReturnType<typeof getters.emhttp>);

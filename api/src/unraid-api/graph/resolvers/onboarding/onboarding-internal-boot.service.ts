@@ -4,14 +4,17 @@ import { execa } from 'execa';
 
 import type {
     CreateInternalBootPoolInput,
+    OnboardingInternalBootContext,
     OnboardingInternalBootResult,
 } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { withTimeout } from '@app/core/utils/misc/with-timeout.js';
+import { getShares } from '@app/core/utils/shares/get-shares.js';
 import { getters } from '@app/store/index.js';
 import { loadStateFileSync } from '@app/store/services/state-file-loader.js';
 import { StateFileKey } from '@app/store/types.js';
-import { ArrayDiskType } from '@app/unraid-api/graph/resolvers/array/array.model.js';
+import { ArrayDiskType, ArrayState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
+import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
 import { InternalBootStateService } from '@app/unraid-api/graph/resolvers/disks/internal-boot-state.service.js';
 
 const INTERNAL_BOOT_COMMAND_TIMEOUT_MS = 180000;
@@ -35,7 +38,10 @@ const isEmhttpDeviceRecord = (value: unknown): value is EmhttpDeviceRecord => {
 export class OnboardingInternalBootService {
     private readonly logger = new Logger(OnboardingInternalBootService.name);
 
-    constructor(private readonly internalBootStateService: InternalBootStateService) {}
+    constructor(
+        private readonly internalBootStateService: InternalBootStateService,
+        private readonly disksService: DisksService
+    ) {}
 
     private async isBootedFromFlashWithInternalBootSetup(): Promise<boolean> {
         return this.internalBootStateService.getBootedFromFlashWithInternalBootSetup();
@@ -122,16 +128,98 @@ export class OnboardingInternalBootService {
         }
     }
 
-    private ensureEmhttpBootContext(): void {
+    private loadEmhttpBootContext(forceRefresh = false): void {
         const emhttpState = getters.emhttp();
+        const hasVar =
+            typeof emhttpState.var === 'object' &&
+            emhttpState.var !== null &&
+            Object.keys(emhttpState.var).length > 0;
         const hasDevices = Array.isArray(emhttpState.devices) && emhttpState.devices.length > 0;
         const hasDisks = Array.isArray(emhttpState.disks) && emhttpState.disks.length > 0;
-        if (!hasDevices) {
+        if (forceRefresh || !hasVar) {
+            loadStateFileSync(StateFileKey.var);
+        }
+        if (forceRefresh || !hasDevices) {
             loadStateFileSync(StateFileKey.devs);
         }
-        if (!hasDisks) {
+        if (forceRefresh || !hasDisks) {
             loadStateFileSync(StateFileKey.disks);
         }
+    }
+
+    private splitCsvValues(value: string | null | undefined): string[] {
+        if (typeof value !== 'string') {
+            return [];
+        }
+
+        return value
+            .split(',')
+            .map((entry) => entry.trim())
+            .filter((entry) => entry.length > 0);
+    }
+
+    private getPoolNamesFromEmhttpState(): string[] {
+        const emhttpState = getters.emhttp();
+        const names = new Set<string>();
+
+        for (const disk of emhttpState.disks ?? []) {
+            const type = typeof disk.type === 'string' ? disk.type : '';
+            const name = typeof disk.name === 'string' ? disk.name.trim() : '';
+            if (type === ArrayDiskType.CACHE && name.length > 0) {
+                names.add(name);
+            }
+        }
+
+        return Array.from(names);
+    }
+
+    private getShareNames(): string[] {
+        const shareNames = new Set<string>();
+        for (const share of [...getShares('users'), ...getShares('disks')]) {
+            const name = typeof share.name === 'string' ? share.name.trim() : '';
+            if (name.length > 0) {
+                shareNames.add(name);
+            }
+        }
+        return Array.from(shareNames);
+    }
+
+    public async getInternalBootContext(): Promise<OnboardingInternalBootContext> {
+        this.loadEmhttpBootContext();
+
+        const vars = getters.emhttp().var ?? {};
+        let bootedFromFlashWithInternalBootSetup = false;
+
+        try {
+            bootedFromFlashWithInternalBootSetup =
+                await this.internalBootStateService.getBootedFromFlashWithInternalBootSetup();
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.warn(`Failed to resolve internal boot context boot state: ${message}`);
+        }
+
+        return {
+            arrayStopped: vars.mdState === ArrayState.STOPPED || vars.fsState === 'Stopped',
+            bootEligible:
+                typeof vars.bootEligible === 'boolean'
+                    ? vars.bootEligible
+                    : vars.bootEligible === null
+                      ? null
+                      : undefined,
+            bootedFromFlashWithInternalBootSetup,
+            enableBootTransfer:
+                typeof vars.enableBootTransfer === 'string' ? vars.enableBootTransfer : null,
+            reservedNames: this.splitCsvValues(vars.reservedNames),
+            shareNames: this.getShareNames(),
+            poolNames: this.getPoolNamesFromEmhttpState(),
+            assignableDisks: await this.disksService.getAssignableDisks(),
+        };
+    }
+
+    public async refreshInternalBootContext(): Promise<OnboardingInternalBootContext> {
+        this.loadEmhttpBootContext(true);
+        await this.internalBootStateService.invalidateCachedInternalBootDeviceState();
+        return this.getInternalBootContext();
     }
 
     private getDeviceMapFromEmhttpState(): Map<string, string> {
@@ -315,7 +403,7 @@ export class OnboardingInternalBootService {
         output: string[]
     ): Promise<{ hadFailures: boolean }> {
         let hadFailures = false;
-        this.ensureEmhttpBootContext();
+        this.loadEmhttpBootContext();
         const devsById = this.getDeviceMapFromEmhttpState();
 
         const existingEntries = await this.runEfiBootMgr([], output);

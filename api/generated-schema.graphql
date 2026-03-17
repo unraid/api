@@ -1075,6 +1075,17 @@ type OnboardingInternalBootResult {
   output: String!
 }
 
+type OnboardingInternalBootContext {
+  arrayStopped: Boolean!
+  bootEligible: Boolean
+  bootedFromFlashWithInternalBootSetup: Boolean!
+  enableBootTransfer: String
+  reservedNames: [String!]!
+  shareNames: [String!]!
+  poolNames: [String!]!
+  assignableDisks: [Disk!]!
+}
+
 type RCloneDrive {
   """Provider name"""
   name: String!
@@ -1389,6 +1400,9 @@ type OnboardingMutations {
 
   """Create and configure internal boot pool via emcmd operations"""
   createInternalBootPool(input: CreateInternalBootPoolInput!): OnboardingInternalBootResult!
+
+  """Refresh the internal boot onboarding context from the latest emhttp state"""
+  refreshInternalBootContext: OnboardingInternalBootContext!
 }
 
 """Onboarding override input for testing"""
@@ -3175,6 +3189,7 @@ type Query {
   publicTheme: Theme!
   info: Info!
   docker: Docker!
+  internalBootContext: OnboardingInternalBootContext!
   disks: [Disk!]!
   assignableDisks: [Disk!]!
   disk(id: PrefixedID!): Disk!

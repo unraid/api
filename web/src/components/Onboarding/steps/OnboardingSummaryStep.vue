@@ -182,7 +182,7 @@ const normalizeDeviceName = (value: string | null | undefined): string => {
 
 const internalBootDeviceLabelById = computed(() => {
   const data: GetInternalBootContextQuery | null | undefined = internalBootContextResult.value;
-  const disks = data?.assignableDisks ?? [];
+  const disks = data?.internalBootContext.assignableDisks ?? [];
   const labels = new Map<string, string>();
 
   for (const disk of disks) {

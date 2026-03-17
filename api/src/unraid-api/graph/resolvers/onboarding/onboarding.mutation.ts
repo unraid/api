@@ -11,6 +11,7 @@ import { OnboardingMutations } from '@app/unraid-api/graph/resolvers/mutation/mu
 import { OnboardingInternalBootService } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-internal-boot.service.js';
 import {
     CreateInternalBootPoolInput,
+    OnboardingInternalBootContext,
     OnboardingInternalBootResult,
     OnboardingOverrideInput,
 } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.model.js';
@@ -90,5 +91,16 @@ export class OnboardingMutationsResolver {
         @Args('input') input: CreateInternalBootPoolInput
     ): Promise<OnboardingInternalBootResult> {
         return this.onboardingInternalBootService.createInternalBootPool(input);
+    }
+
+    @ResolveField(() => OnboardingInternalBootContext, {
+        description: 'Refresh onboarding internal boot context from the latest emhttp state',
+    })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.WELCOME,
+    })
+    async refreshInternalBootContext(): Promise<OnboardingInternalBootContext> {
+        return this.onboardingInternalBootService.refreshInternalBootContext();
     }
 }

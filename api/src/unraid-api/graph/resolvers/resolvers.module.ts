@@ -22,6 +22,7 @@ import { NotificationsModule } from '@app/unraid-api/graph/resolvers/notificatio
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
 import { OnboardingInternalBootService } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-internal-boot.service.js';
 import { OnboardingMutationsResolver } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.mutation.js';
+import { OnboardingQueryResolver } from '@app/unraid-api/graph/resolvers/onboarding/onboarding.query.js';
 import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.resolver.js';
 import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resolver.js';
 import { RCloneModule } from '@app/unraid-api/graph/resolvers/rclone/rclone.module.js';
@@ -77,6 +78,7 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         OwnerResolver,
         OnboardingMutationsResolver,
         OnboardingInternalBootService,
+        OnboardingQueryResolver,
         RegistrationResolver,
         RootMutationsResolver,
         ServerResolver,

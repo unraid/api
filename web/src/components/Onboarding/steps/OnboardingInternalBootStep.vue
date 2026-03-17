@@ -1,11 +1,17 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useQuery } from '@vue/apollo-composable';
+import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { ChevronLeftIcon, CircleStackIcon, InformationCircleIcon } from '@heroicons/vue/24/outline';
-import { ChevronDownIcon, ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
+import {
+  ArrowPathIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
+import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
 import { convert } from 'convert';
@@ -123,12 +129,17 @@ const {
   result: contextResult,
   loading: contextLoading,
   error: contextError,
+  refetch: refetchContext,
 } = useQuery(GetInternalBootContextDocument, null, {
   fetchPolicy: 'network-only',
 });
+const { mutate: refreshInternalBootContextMutation } = useMutation(
+  REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION
+);
 
 const formError = ref<string | null>(null);
 const hasInitializedForm = ref(false);
+const isRefreshingContext = ref(false);
 const bootMode = ref<OnboardingBootMode>(
   toBootMode(draftStore.bootMode ?? (draftStore.internalBootSelection ? 'storage' : 'usb'))
 );
@@ -140,8 +151,10 @@ const bootSizePreset = ref<string>('');
 const customBootSizeGb = ref('');
 const updateBios = ref(true);
 
+const internalBootContext = computed(() => contextResult.value?.internalBootContext ?? null);
+
 const templateData = computed<InternalBootTemplateData | null>(() => {
-  const data: GetInternalBootContextQuery | null | undefined = contextResult.value;
+  const data: GetInternalBootContextQuery['internalBootContext'] | null = internalBootContext.value;
   if (!data) {
     return null;
   }
@@ -172,15 +185,15 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
     .filter((disk) => disk.device.length > 0);
 
   const poolNameSet = new Set<string>();
-  for (const cacheDisk of data.array.caches) {
-    const poolName = cacheDisk.name?.trim() || '';
+  for (const poolNameValue of data.poolNames) {
+    const poolName = poolNameValue?.trim() || '';
     if (poolName) {
       poolNameSet.add(poolName);
     }
   }
 
   const reservedNameSet = new Set<string>();
-  for (const reservedName of (data.vars?.reservedNames ?? '').split(',')) {
+  for (const reservedName of data.reservedNames) {
     const name = reservedName.trim();
     if (name) {
       reservedNameSet.add(name);
@@ -188,8 +201,8 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
   }
 
   const shareNameSet = new Set<string>();
-  for (const share of data.shares) {
-    const name = share.name?.trim() || '';
+  for (const shareName of data.shareNames) {
+    const name = shareName?.trim() || '';
     if (name) {
       shareNameSet.add(name);
     }
@@ -208,11 +221,11 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
   };
 });
 
-const isLoading = computed(() => Boolean(contextLoading.value));
+const isLoading = computed(() => Boolean(contextLoading.value) && !internalBootContext.value);
 const isBusy = computed(() => Boolean(props.isSavingStep) || isLoading.value);
 const isStepLocked = computed(() => Boolean(props.isSavingStep));
 const internalBootTransferState = computed<InternalBootTransferState>(() => {
-  const setting = contextResult.value?.vars?.enableBootTransfer;
+  const setting = internalBootContext.value?.enableBootTransfer;
   if (typeof setting !== 'string') {
     return 'unknown';
   }
@@ -227,10 +240,10 @@ const internalBootTransferState = computed<InternalBootTransferState>(() => {
   return 'unknown';
 });
 const bootedFromFlashWithInternalBootSetup = computed(
-  () => contextResult.value?.vars?.bootedFromFlashWithInternalBootSetup === true
+  () => internalBootContext.value?.bootedFromFlashWithInternalBootSetup === true
 );
 const bootEligibilityState = computed<InternalBootEligibilityState>(() => {
-  const eligibility = contextResult.value?.vars?.bootEligible;
+  const eligibility = internalBootContext.value?.bootEligible;
   if (eligibility === true) {
     return 'eligible';
   }
@@ -239,12 +252,7 @@ const bootEligibilityState = computed<InternalBootEligibilityState>(() => {
   }
   return 'unknown';
 });
-const isArrayStopped = computed(() => {
-  if (contextResult.value?.array.state) {
-    return contextResult.value.array.state === 'STOPPED';
-  }
-  return contextResult.value?.vars?.fsState === 'Stopped';
-});
+const isArrayStopped = computed(() => internalBootContext.value?.arrayStopped === true);
 const allDeviceOptions = computed(() => templateData.value?.deviceOptions ?? []);
 const deviceOptions = computed(() =>
   allDeviceOptions.value.filter((option) => option.ineligibilityCodes.length === 0)
@@ -650,6 +658,20 @@ const handlePrimaryAction = () => {
   props.onComplete();
 };
 
+const handleRefreshContext = async () => {
+  if (isRefreshingContext.value) {
+    return;
+  }
+
+  isRefreshingContext.value = true;
+  try {
+    await refreshInternalBootContextMutation();
+    await refetchContext();
+  } finally {
+    isRefreshingContext.value = false;
+  }
+};
+
 const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.continue'));
 </script>
 
@@ -742,6 +764,19 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 dark:border-yellow-800 dark:bg-yellow-900/10 dark:text-yellow-200"
       >
         {{ loadStatusMessage }}
+      </div>
+
+      <div v-if="isStorageBootSelected && !isLoading && !contextError" class="mt-6 flex justify-end">
+        <button
+          data-testid="internal-boot-refresh-button"
+          type="button"
+          class="text-muted hover:text-primary inline-flex items-center gap-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+          :disabled="isBusy || isRefreshingContext"
+          @click="handleRefreshContext"
+        >
+          <ArrowPathIcon class="h-4 w-4" :class="{ 'animate-spin': isRefreshingContext }" />
+          {{ t('onboarding.internalBootStep.actions.refreshState', 'Refresh state') }}
+        </button>
       </div>
 
       <div v-if="isStorageBootSelected && !isLoading && !contextError && canConfigure" class="space-y-5">

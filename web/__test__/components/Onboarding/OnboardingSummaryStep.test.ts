@@ -17,7 +17,6 @@ import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
 
 import OnboardingSummaryStep from '~/components/Onboarding/steps/OnboardingSummaryStep.vue';
 import {
-  ArrayState,
   DiskInterfaceType,
   GetInternalBootContextDocument,
   PluginInstallStatus,
@@ -313,28 +312,29 @@ describe('OnboardingSummaryStep', () => {
       info: { primaryNetwork: { ipAddress: '192.168.1.2' } },
     };
     internalBootContextResult.value = {
-      array: {
-        state: ArrayState.STOPPED,
-        caches: [],
-      },
-      vars: {
+      internalBootContext: {
+        arrayStopped: true,
         bootEligible: true,
+        bootedFromFlashWithInternalBootSetup: false,
+        enableBootTransfer: 'yes',
+        reservedNames: [],
+        shareNames: [],
+        poolNames: [],
+        assignableDisks: [
+          {
+            device: '/dev/sda',
+            size: 500 * 1024 * 1024 * 1024,
+            serialNum: 'DISK-A',
+            interfaceType: DiskInterfaceType.SATA,
+          },
+          {
+            device: '/dev/sdb',
+            size: 250 * 1024 * 1024 * 1024,
+            serialNum: 'DISK-B',
+            interfaceType: DiskInterfaceType.SATA,
+          },
+        ],
       },
-      shares: [],
-      assignableDisks: [
-        {
-          device: '/dev/sda',
-          size: 500 * 1024 * 1024 * 1024,
-          serialNum: 'DISK-A',
-          interfaceType: DiskInterfaceType.SATA,
-        },
-        {
-          device: '/dev/sdb',
-          size: 250 * 1024 * 1024 * 1024,
-          serialNum: 'DISK-B',
-          interfaceType: DiskInterfaceType.SATA,
-        },
-      ],
     };
     installedPluginsResult.value = { installedUnraidPlugins: [] };
     availableLanguagesResult.value = {

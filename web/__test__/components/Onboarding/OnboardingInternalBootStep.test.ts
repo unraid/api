@@ -1,15 +1,12 @@
 import { flushPromises, mount } from '@vue/test-utils';
 
+import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
 
 import OnboardingInternalBootStep from '~/components/Onboarding/steps/OnboardingInternalBootStep.vue';
-import {
-  ArrayState,
-  DiskInterfaceType,
-  GetInternalBootContextDocument,
-} from '~/composables/gql/graphql';
+import { DiskInterfaceType, GetInternalBootContextDocument } from '~/composables/gql/graphql';
 import { createTestI18n } from '../../utils/i18n';
 
 type MockInternalBootSelection = {
@@ -20,7 +17,16 @@ type MockInternalBootSelection = {
   updateBios: boolean;
 };
 
-const { draftStore, contextResult, contextLoading, contextError, useQueryMock } = vi.hoisted(() => {
+const {
+  draftStore,
+  contextResult,
+  contextLoading,
+  contextError,
+  refetchContextMock,
+  refreshContextMutationMock,
+  useQueryMock,
+  useMutationMock,
+} = vi.hoisted(() => {
   const store = {
     bootMode: 'usb' as 'usb' | 'storage',
     internalBootSelection: null as MockInternalBootSelection | null,
@@ -41,7 +47,10 @@ const { draftStore, contextResult, contextLoading, contextError, useQueryMock } 
     contextResult: { value: null as GetInternalBootContextQuery | null, __v_isRef: true },
     contextLoading: { value: false, __v_isRef: true },
     contextError: { value: null as unknown, __v_isRef: true },
+    refetchContextMock: vi.fn().mockResolvedValue(undefined),
+    refreshContextMutationMock: vi.fn().mockResolvedValue(undefined),
     useQueryMock: vi.fn(),
+    useMutationMock: vi.fn(),
   };
 });
 
@@ -55,6 +64,7 @@ vi.mock('@unraid/ui', () => ({
 }));
 
 vi.mock('@vue/apollo-composable', () => ({
+  useMutation: useMutationMock,
   useQuery: useQueryMock,
 }));
 
@@ -62,13 +72,42 @@ useQueryMock.mockImplementation(() => ({
   result: contextResult,
   loading: contextLoading,
   error: contextError,
+  refetch: refetchContextMock,
 }));
+
+useMutationMock.mockImplementation((document: unknown) => {
+  if (document === REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION) {
+    return {
+      mutate: refreshContextMutationMock,
+    };
+  }
+
+  return {
+    mutate: vi.fn(),
+  };
+});
 
 vi.mock('@/components/Onboarding/store/onboardingDraft', () => ({
   useOnboardingDraftStore: () => draftStore,
 }));
 
 const gib = (value: number) => value * 1024 * 1024 * 1024;
+
+const buildContext = (
+  overrides: Partial<GetInternalBootContextQuery['internalBootContext']> = {}
+): GetInternalBootContextQuery => ({
+  internalBootContext: {
+    arrayStopped: true,
+    bootEligible: true,
+    bootedFromFlashWithInternalBootSetup: false,
+    enableBootTransfer: 'yes',
+    reservedNames: [],
+    shareNames: [],
+    poolNames: [],
+    assignableDisks: [],
+    ...overrides,
+  },
+});
 
 const mountComponent = () =>
   mount(OnboardingInternalBootStep, {
@@ -93,18 +132,11 @@ describe('OnboardingInternalBootStep', () => {
 
   it('renders all available server and disk eligibility codes when storage boot is blocked', async () => {
     draftStore.bootMode = 'storage';
-    contextResult.value = {
-      array: {
-        state: ArrayState.STARTED,
-        caches: [{ name: 'cache' }],
-      },
-      vars: {
-        fsState: 'Started',
-        bootEligible: null,
-        enableBootTransfer: 'maybe',
-        reservedNames: '',
-      },
-      shares: [],
+    contextResult.value = buildContext({
+      arrayStopped: false,
+      bootEligible: null,
+      enableBootTransfer: 'maybe',
+      poolNames: ['cache'],
       assignableDisks: [
         {
           device: '/dev/sda',
@@ -143,7 +175,7 @@ describe('OnboardingInternalBootStep', () => {
           interfaceType: DiskInterfaceType.USB,
         },
       ],
-    };
+    });
 
     const wrapper = mountComponent();
     await flushPromises();
@@ -177,18 +209,7 @@ describe('OnboardingInternalBootStep', () => {
 
   it('shows drive serials in the selectable device labels', async () => {
     draftStore.bootMode = 'storage';
-    contextResult.value = {
-      array: {
-        state: ArrayState.STOPPED,
-        caches: [],
-      },
-      vars: {
-        fsState: 'Stopped',
-        bootEligible: true,
-        enableBootTransfer: 'yes',
-        reservedNames: '',
-      },
-      shares: [],
+    contextResult.value = buildContext({
       assignableDisks: [
         {
           device: '/dev/sda',
@@ -197,7 +218,7 @@ describe('OnboardingInternalBootStep', () => {
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
-    };
+    });
 
     const wrapper = mountComponent();
     await flushPromises();
@@ -208,18 +229,7 @@ describe('OnboardingInternalBootStep', () => {
 
   it('defaults the storage pool name to cache', async () => {
     draftStore.bootMode = 'storage';
-    contextResult.value = {
-      array: {
-        state: ArrayState.STOPPED,
-        caches: [],
-      },
-      vars: {
-        fsState: 'Stopped',
-        bootEligible: true,
-        enableBootTransfer: 'yes',
-        reservedNames: '',
-      },
-      shares: [],
+    contextResult.value = buildContext({
       assignableDisks: [
         {
           device: '/dev/sda',
@@ -228,7 +238,7 @@ describe('OnboardingInternalBootStep', () => {
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
-    };
+    });
 
     const wrapper = mountComponent();
     await flushPromises();
@@ -242,18 +252,8 @@ describe('OnboardingInternalBootStep', () => {
 
   it('leaves the pool name blank when cache already exists', async () => {
     draftStore.bootMode = 'storage';
-    contextResult.value = {
-      array: {
-        state: ArrayState.STOPPED,
-        caches: [{ name: 'cache' }],
-      },
-      vars: {
-        fsState: 'Stopped',
-        bootEligible: true,
-        enableBootTransfer: 'yes',
-        reservedNames: '',
-      },
-      shares: [],
+    contextResult.value = buildContext({
+      poolNames: ['cache'],
       assignableDisks: [
         {
           device: '/dev/sda',
@@ -262,7 +262,7 @@ describe('OnboardingInternalBootStep', () => {
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
-    };
+    });
 
     const wrapper = mountComponent();
     await flushPromises();
@@ -272,20 +272,11 @@ describe('OnboardingInternalBootStep', () => {
 
   it('shows explicit disabled and empty-disk codes when the system reports them', async () => {
     draftStore.bootMode = 'storage';
-    contextResult.value = {
-      array: {
-        state: ArrayState.STOPPED,
-        caches: [],
-      },
-      vars: {
-        fsState: 'Stopped',
-        bootEligible: false,
-        enableBootTransfer: 'no',
-        reservedNames: '',
-      },
-      shares: [],
+    contextResult.value = buildContext({
+      bootEligible: false,
+      enableBootTransfer: 'no',
       assignableDisks: [],
-    };
+    });
 
     const wrapper = mountComponent();
     await flushPromises();
@@ -299,19 +290,8 @@ describe('OnboardingInternalBootStep', () => {
 
   it('blocks configuration when internal boot is already configured while the system is still booted from flash', async () => {
     draftStore.bootMode = 'storage';
-    contextResult.value = {
-      array: {
-        state: ArrayState.STOPPED,
-        caches: [],
-      },
-      vars: {
-        fsState: 'Stopped',
-        bootEligible: true,
-        bootedFromFlashWithInternalBootSetup: true,
-        enableBootTransfer: 'yes',
-        reservedNames: '',
-      },
-      shares: [],
+    contextResult.value = buildContext({
+      bootedFromFlashWithInternalBootSetup: true,
       assignableDisks: [
         {
           device: '/dev/sda',
@@ -320,7 +300,7 @@ describe('OnboardingInternalBootStep', () => {
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
-    };
+    });
 
     const wrapper = mountComponent();
     await flushPromises();
@@ -333,18 +313,8 @@ describe('OnboardingInternalBootStep', () => {
 
   it('keeps the blocked headline focused on server state when eligible disks exist', async () => {
     draftStore.bootMode = 'storage';
-    contextResult.value = {
-      array: {
-        state: ArrayState.STARTED,
-        caches: [],
-      },
-      vars: {
-        fsState: 'Started',
-        bootEligible: true,
-        enableBootTransfer: 'yes',
-        reservedNames: '',
-      },
-      shares: [],
+    contextResult.value = buildContext({
+      arrayStopped: false,
       assignableDisks: [
         {
           device: '/dev/sda',
@@ -353,7 +323,7 @@ describe('OnboardingInternalBootStep', () => {
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
-    };
+    });
 
     const wrapper = mountComponent();
     await flushPromises();
@@ -365,18 +335,8 @@ describe('OnboardingInternalBootStep', () => {
 
   it('shows disk-level ineligibility while keeping the form available for eligible disks', async () => {
     draftStore.bootMode = 'storage';
-    contextResult.value = {
-      array: {
-        state: ArrayState.STOPPED,
-        caches: [{ name: 'cache' }],
-      },
-      vars: {
-        fsState: 'Stopped',
-        bootEligible: true,
-        enableBootTransfer: 'yes',
-        reservedNames: '',
-      },
-      shares: [],
+    contextResult.value = buildContext({
+      poolNames: ['cache'],
       assignableDisks: [
         {
           device: '/dev/sdb',
@@ -397,7 +357,7 @@ describe('OnboardingInternalBootStep', () => {
           interfaceType: DiskInterfaceType.USB,
         },
       ],
-    };
+    });
 
     const wrapper = mountComponent();
     await flushPromises();
@@ -424,18 +384,7 @@ describe('OnboardingInternalBootStep', () => {
 
   it('treats disks present in devs.ini as assignable', async () => {
     draftStore.bootMode = 'storage';
-    contextResult.value = {
-      array: {
-        state: ArrayState.STOPPED,
-        caches: [],
-      },
-      vars: {
-        fsState: 'Stopped',
-        bootEligible: true,
-        enableBootTransfer: 'yes',
-        reservedNames: '',
-      },
-      shares: [],
+    contextResult.value = buildContext({
       assignableDisks: [
         {
           device: '/dev/sda',
@@ -444,7 +393,7 @@ describe('OnboardingInternalBootStep', () => {
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
-    };
+    });
 
     const wrapper = mountComponent();
     await flushPromises();
@@ -457,5 +406,28 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.text()).not.toContain('ASSIGNED_TO_ARRAY');
     expect(wrapper.text()).not.toContain('NO_UNASSIGNED_DISKS');
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
+  });
+
+  it('refreshes internal boot context on demand', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = buildContext({
+      assignableDisks: [
+        {
+          device: '/dev/sda',
+          size: gib(32),
+          serialNum: 'UNASSIGNED-1',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+      ],
+    });
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    await wrapper.get('[data-testid="internal-boot-refresh-button"]').trigger('click');
+    await flushPromises();
+
+    expect(refreshContextMutationMock).toHaveBeenCalledTimes(1);
+    expect(refetchContextMock).toHaveBeenCalledTimes(1);
   });
 });

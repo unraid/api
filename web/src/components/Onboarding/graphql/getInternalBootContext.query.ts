@@ -2,27 +2,20 @@ import gql from 'graphql-tag';
 
 export const GET_INTERNAL_BOOT_CONTEXT_QUERY = gql`
   query GetInternalBootContext {
-    array {
-      state
-      caches {
-        name
-      }
-    }
-    vars {
-      fsState
+    internalBootContext {
+      arrayStopped
       bootEligible
       bootedFromFlashWithInternalBootSetup
       enableBootTransfer
       reservedNames
-    }
-    shares {
-      name
-    }
-    assignableDisks {
-      device
-      size
-      serialNum
-      interfaceType
+      shareNames
+      poolNames
+      assignableDisks {
+        device
+        size
+        serialNum
+        interfaceType
+      }
     }
   }
 `;
