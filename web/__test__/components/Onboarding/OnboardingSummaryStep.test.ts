@@ -1111,8 +1111,8 @@ describe('OnboardingSummaryStep', () => {
 
     const { wrapper } = mountComponent();
 
-    expect(wrapper.text()).toContain('DISK-A - 500 GiB (sda)');
-    expect(wrapper.text()).toContain('DISK-B - 250 GiB (sdb)');
+    expect(wrapper.text()).toContain('DISK-A - 537 GB (sda)');
+    expect(wrapper.text()).toContain('DISK-B - 268 GB (sdb)');
   });
 
   it('requires confirmation before applying storage boot drive changes', async () => {
