@@ -313,7 +313,6 @@ describe('OnboardingSummaryStep', () => {
     };
     internalBootContextResult.value = {
       internalBootContext: {
-        arrayStopped: true,
         bootEligible: true,
         bootedFromFlashWithInternalBootSetup: false,
         enableBootTransfer: 'yes',
