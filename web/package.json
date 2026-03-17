@@ -39,8 +39,11 @@
     "i18n:extract": "node ./scripts/extract-translations.mjs && pnpm run i18n:sort",
     "i18n:sort": "node ./scripts/sort-translations.mjs",
     "// Testing": "",
+    "pretest": "node ./scripts/build-ui-if-needed.js",
     "test": "vitest run",
+    "pretest:watch": "node ./scripts/build-ui-if-needed.js",
     "test:watch": "vitest",
+    "pretest:ci": "node ./scripts/build-ui-if-needed.js",
     "test:ci": "vitest run",
     "test:standalone": "pnpm run build && vite --config vite.test.config.ts"
   },
