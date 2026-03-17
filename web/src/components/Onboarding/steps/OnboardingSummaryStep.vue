@@ -1112,7 +1112,7 @@ const handleComplete = async () => {
         await Promise.race([
           refetchOnboarding(),
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Onboarding refresh timed out')), 1500)
+            setTimeout(() => reject(new Error('Onboarding refresh timed out')), 5500)
           ),
         ]);
       } catch (caughtError: unknown) {
