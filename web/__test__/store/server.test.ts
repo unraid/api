@@ -208,7 +208,7 @@ const getStore = () => {
       get: () => ({
         ...store.serverAccountPayload,
         guid:
-          store.guid && !store.guid.startsWith('03-') && store.tpmGuid && store.guid !== store.tpmGuid
+          store.guid && !store.guid.startsWith('01-') && store.tpmGuid && store.guid !== store.tpmGuid
             ? store.tpmGuid
             : store.guid || undefined,
       }),
@@ -415,13 +415,13 @@ describe('useServerStore', () => {
 
     store.setServer({
       guid: '0781-5591-9155-81073130B2AE',
-      tpmGuid: '03-IRIVYF2D03LGZIYGGRJ1OHZR',
+      tpmGuid: '01-IRIVYF2D03LGZIYGGRJ1OHZR',
       bootedFromFlashWithInternalBootSetup: false,
     });
 
     expect(store.bootedFromFlashWithInternalBootSetup).toBe(false);
     expect(store.hasDistinctTpmGuid).toBe(true);
-    expect(store.serverReplacePayload.guid).toBe('03-IRIVYF2D03LGZIYGGRJ1OHZR');
+    expect(store.serverReplacePayload.guid).toBe('01-IRIVYF2D03LGZIYGGRJ1OHZR');
   });
 
   it('should compute regDevs correctly based on regTy', () => {
@@ -700,10 +700,10 @@ describe('useServerStore', () => {
       guid: '058F-6387-0000-0000F1F1E1C6',
       keyfile: '/boot/config/Pro.key',
       state: 'PRO' as ServerState,
-      tpmGuid: '03-V35H8S0L1QHK1SBG1XHXJNH7',
+      tpmGuid: '01-V35H8S0L1QHK1SBG1XHXJNH7',
     });
 
-    expect(store.serverReplacePayload.guid).toBe('03-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(store.serverReplacePayload.guid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
   });
 
   it('should create serverReplacePayload with flash guid when TPM replacement is not available', () => {
@@ -724,12 +724,12 @@ describe('useServerStore', () => {
 
     store.setServer({
       flashGuid: '058F-6387-0000-0000F1F1E1C6',
-      guid: '03-V35H8S0L1QHK1SBG1XHXJNH7',
+      guid: '01-V35H8S0L1QHK1SBG1XHXJNH7',
       state: 'PRO' as ServerState,
       tpmGuid: undefined,
     });
 
-    expect(store.serverReplacePayload.guid).toBe('03-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(store.serverReplacePayload.guid).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
   });
 
   it('should create serverReplacePayload with the active flash guid when TPM guid is missing', () => {

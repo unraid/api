@@ -319,7 +319,7 @@ describe('Registration.standalone.vue', () => {
     serverStore.state = 'PRO';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
-    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
     serverStore.keyfile = 'keyfile-present';
 
     await wrapper.vm.$nextTick();
@@ -328,14 +328,14 @@ describe('Registration.standalone.vue', () => {
 
     expect(moveButton.exists()).toBe(true);
     expect(moveButton.attributes('disabled')).toBeUndefined();
-    expect(findItemByLabel(t('TPM GUID'))?.props('text')).toBe('03-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(findItemByLabel(t('TPM GUID'))?.props('text')).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
   });
 
   it('shows Move License to TPM when flashGuid is missing but the active GUID is still a flash GUID', async () => {
     serverStore.state = 'PRO';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '';
-    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
     serverStore.keyfile = 'keyfile-present';
 
     await wrapper.vm.$nextTick();
@@ -347,7 +347,7 @@ describe('Registration.standalone.vue', () => {
     serverStore.state = 'PRO';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
-    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
     serverStore.keyfile = 'keyfile-present';
 
     await wrapper.vm.$nextTick();
@@ -361,7 +361,7 @@ describe('Registration.standalone.vue', () => {
     serverStore.state = 'TRIAL';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
-    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
     serverStore.keyfile = 'keyfile-present';
 
     await wrapper.vm.$nextTick();
@@ -370,7 +370,7 @@ describe('Registration.standalone.vue', () => {
 
     expect(moveButton.exists()).toBe(true);
     expect(moveButton.attributes('disabled')).toBeDefined();
-    expect(findItemByLabel(t('TPM GUID'))?.props('text')).toBe('03-V35H8S0L1QHK1SBG1XHXJNH7');
+    expect(findItemByLabel(t('TPM GUID'))?.props('text')).toBe('01-V35H8S0L1QHK1SBG1XHXJNH7');
     expect(wrapper.text()).toContain(
       'Trials are locked to the registered GUID. You can move to TPM by purchasing a license.'
     );
@@ -380,7 +380,7 @@ describe('Registration.standalone.vue', () => {
     serverStore.state = 'EEXPIRED';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
-    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
     serverStore.keyfile = 'keyfile-present';
 
     await wrapper.vm.$nextTick();
@@ -395,7 +395,7 @@ describe('Registration.standalone.vue', () => {
     serverStore.state = 'TRIAL';
     serverStore.guid = '058F-6387-0000-0000F1F1E1C6';
     serverStore.flashGuid = '058F-6387-0000-0000F1F1E1C6';
-    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
     serverStore.keyfile = 'keyfile-present';
 
     await wrapper.vm.$nextTick();
@@ -407,8 +407,8 @@ describe('Registration.standalone.vue', () => {
 
   it('does not show Move License to TPM after switching to TPM boot', async () => {
     serverStore.state = 'EGUID';
-    serverStore.guid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
-    serverStore.tpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.guid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
+    serverStore.tpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
     serverStore.regGuid = '058F-6387-0000-0000F1F1E1C6';
 
     await wrapper.vm.$nextTick();
