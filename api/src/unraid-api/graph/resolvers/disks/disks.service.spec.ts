@@ -535,8 +535,8 @@ describe('DisksService', () => {
                 }
                 if (key === 'store.emhttp.devices') {
                     return [
-                        { device: '/dev/sda' },
-                        { device: '/dev/sdd' },
+                        { id: 'DEVS-SERIAL-SDA', device: '/dev/sda' },
+                        { id: 'DEVS-SERIAL-SDD', device: '/dev/sdd' },
                     ];
                 }
                 return defaultValue;
@@ -545,6 +545,7 @@ describe('DisksService', () => {
             const disks = await service.getAssignableDisks();
 
             expect(disks.map((disk) => disk.device)).toEqual(['/dev/sda', '/dev/sdd']);
+            expect(disks.map((disk) => disk.serialNum)).toEqual(['DEVS-SERIAL-SDA', 'DEVS-SERIAL-SDD']);
             expect(configService.get).toHaveBeenCalledWith('store.emhttp.devices', []);
         });
 

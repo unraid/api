@@ -46,6 +46,7 @@ const SmartDataSchema = z.object({
         .nullable(),
 });
 interface EmhttpDeviceRecord {
+    id?: unknown;
     device?: unknown;
 }
 
@@ -74,10 +75,10 @@ export class DisksService {
 
     constructor(private readonly configService: ConfigService) {}
 
-    private getEmhttpDeviceNames(): Set<string> {
+    private getEmhttpDeviceMap(): Map<string, string> {
         const rawDevicesValue = this.configService.get<unknown>('store.emhttp.devices', []);
         const rawDevices = Array.isArray(rawDevicesValue) ? rawDevicesValue : [];
-        const deviceNames = new Set<string>();
+        const devices = new Map<string, string>();
 
         for (const raw of rawDevices) {
             if (!raw || typeof raw !== 'object') {
@@ -85,16 +86,17 @@ export class DisksService {
             }
 
             const record = raw as EmhttpDeviceRecord;
+            const id = typeof record.id === 'string' ? record.id.trim() : '';
             const device = typeof record.device === 'string' ? record.device.trim() : '';
 
             if (!device) {
                 continue;
             }
 
-            deviceNames.add(normalizeDeviceName(device));
+            devices.set(normalizeDeviceName(device), id);
         }
 
-        return deviceNames;
+        return devices;
     }
 
     public async getTemperature(device: string): Promise<number | null> {
@@ -143,14 +145,27 @@ export class DisksService {
     }
 
     public async getAssignableDisks(): Promise<Disk[]> {
-        const assignableDevices = this.getEmhttpDeviceNames();
+        const assignableDevices = this.getEmhttpDeviceMap();
 
         if (assignableDevices.size === 0) {
             return [];
         }
 
         const disks = await this.getDisks();
-        return disks.filter((disk) => assignableDevices.has(normalizeDeviceName(disk.device)));
+        return disks
+            .filter((disk) => assignableDevices.has(normalizeDeviceName(disk.device)))
+            .map((disk) => {
+                const emhttpId = assignableDevices.get(normalizeDeviceName(disk.device))?.trim();
+                if (!emhttpId) {
+                    return disk;
+                }
+
+                return {
+                    ...disk,
+                    id: emhttpId,
+                    serialNum: emhttpId,
+                };
+            });
     }
 
     public async getInternalBootDevices(): Promise<Disk[]> {
