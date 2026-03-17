@@ -188,7 +188,7 @@ const normalizeDeviceName = (value: string | null | undefined): string => {
 
 const internalBootDeviceLabelById = computed(() => {
   const data: GetInternalBootContextQuery | null | undefined = internalBootContextResult.value;
-  const disks = data?.disks ?? [];
+  const disks = data?.assignableDisks ?? [];
   const labels = new Map<string, string>();
 
   for (const disk of disks) {
@@ -198,9 +198,8 @@ const internalBootDeviceLabelById = computed(() => {
     }
 
     const serialNum = disk.serialNum?.trim() || '';
-    const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
-    const optionValue = emhttpDeviceId || device;
-    const displayId = serialNum || emhttpDeviceId || device;
+    const optionValue = device;
+    const displayId = serialNum || device;
     const sizeBytes = disk.size;
     const sizeLabel = formatBytes(sizeBytes);
     const label =

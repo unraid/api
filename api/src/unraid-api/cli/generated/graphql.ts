@@ -714,8 +714,6 @@ export type Disk = Node & {
   bytesPerSector: Scalars['Float']['output'];
   /** The device path of the disk (e.g. /dev/sdb) */
   device: Scalars['String']['output'];
-  /** Device identifier from emhttp devs.ini used by disk assignment commands */
-  emhttpDeviceId?: Maybe<Scalars['String']['output']>;
   /** The firmware revision of the disk */
   firmwareRevision: Scalars['String']['output'];
   id: Scalars['PrefixedID']['output'];
@@ -2265,6 +2263,7 @@ export type Query = {
   apiKeyPossibleRoles: Array<Role>;
   apiKeys: Array<ApiKey>;
   array: UnraidArray;
+  assignableDisks: Array<Disk>;
   cloud: Cloud;
   config: Config;
   connect: Connect;

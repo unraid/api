@@ -4,18 +4,8 @@ export const GET_INTERNAL_BOOT_CONTEXT_QUERY = gql`
   query GetInternalBootContext {
     array {
       state
-      boot {
-        device
-      }
-      parities {
-        device
-      }
-      disks {
-        device
-      }
       caches {
         name
-        device
       }
     }
     vars {
@@ -28,11 +18,10 @@ export const GET_INTERNAL_BOOT_CONTEXT_QUERY = gql`
     shares {
       name
     }
-    disks {
+    assignableDisks {
       device
       size
       serialNum
-      emhttpDeviceId
       interfaceType
     }
   }

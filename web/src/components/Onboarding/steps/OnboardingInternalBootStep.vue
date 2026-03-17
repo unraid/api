@@ -152,8 +152,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
     return null;
   }
 
-  const deviceOptions = data.disks
-    .filter((disk) => typeof disk.emhttpDeviceId === 'string' && disk.emhttpDeviceId.trim().length > 0)
+  const deviceOptions = data.assignableDisks
     .map<InternalBootDeviceOption>((disk) => {
       const device = normalizeDeviceName(disk.device);
       const sizeBytes = disk.size;
@@ -165,9 +164,8 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
       }
 
       const serialNum = disk.serialNum?.trim() || '';
-      const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
-      const optionValue = emhttpDeviceId || device;
-      const displayId = serialNum || emhttpDeviceId || device;
+      const optionValue = device;
+      const displayId = serialNum || device;
       const sizeLabel = formatBytes(sizeBytes);
       return {
         value: optionValue,

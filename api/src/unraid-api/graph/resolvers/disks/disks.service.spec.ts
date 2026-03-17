@@ -377,7 +377,6 @@ describe('DisksService', () => {
             expect(mockDiskLayout).toHaveBeenCalledTimes(1);
             expect(mockBlockDevices).toHaveBeenCalledTimes(1);
             expect(configService.get).toHaveBeenCalledWith('store.emhttp.disks', []);
-            expect(configService.get).toHaveBeenCalledWith('store.emhttp.devices', []);
             expect(mockBatchProcess).toHaveBeenCalledTimes(1);
 
             expect(disks).toHaveLength(mockDiskLayoutData.length);
@@ -395,8 +394,6 @@ describe('DisksService', () => {
             expect(spinningDisk).toBeDefined();
             expect(spinningDisk?.isSpinning).toBe(true); // From state
             expect(spinningDisk?.interfaceType).toBe(DiskInterfaceType.SATA);
-            expect(spinningDisk?.emhttpDeviceId).toBe('WD-WCC7K7YL9876');
-
             // Check spun down disk
             const spunDownDisk = disks.find((d) => d.id === 'WD-SPUNDOWN123');
             expect(spunDownDisk).toBeDefined();
@@ -485,7 +482,6 @@ describe('DisksService', () => {
 
             // Verify we're accessing the state through ConfigService
             expect(configService.get).toHaveBeenCalledWith('store.emhttp.disks', []);
-            expect(configService.get).toHaveBeenCalledWith('store.emhttp.devices', []);
         });
 
         it('should handle empty disk layout or block devices', async () => {
@@ -528,6 +524,42 @@ describe('DisksService', () => {
             await expect(service.getDisk('NONEXISTENT')).rejects.toThrow(
                 'Disk with id NONEXISTENT not found'
             );
+        });
+    });
+
+    describe('getAssignableDisks', () => {
+        it('should return only disks present in devs.ini', async () => {
+            vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: unknown) => {
+                if (key === 'store.emhttp.disks') {
+                    return mockArrayDisks;
+                }
+                if (key === 'store.emhttp.devices') {
+                    return [
+                        { device: '/dev/sda' },
+                        { device: '/dev/sdd' },
+                    ];
+                }
+                return defaultValue;
+            });
+
+            const disks = await service.getAssignableDisks();
+
+            expect(disks.map((disk) => disk.device)).toEqual(['/dev/sda', '/dev/sdd']);
+            expect(configService.get).toHaveBeenCalledWith('store.emhttp.devices', []);
+        });
+
+        it('should return an empty array when devs.ini is empty', async () => {
+            vi.mocked(configService.get).mockImplementation((key: string, defaultValue?: unknown) => {
+                if (key === 'store.emhttp.disks') {
+                    return mockArrayDisks;
+                }
+                if (key === 'store.emhttp.devices') {
+                    return [];
+                }
+                return defaultValue;
+            });
+
+            await expect(service.getAssignableDisks()).resolves.toEqual([]);
         });
     });
 
@@ -631,7 +663,6 @@ describe('DisksService', () => {
                     sectorsPerTrack: 1,
                     firmwareRevision: '1',
                     serialNum: 'internal',
-                    emhttpDeviceId: 'internal',
                     interfaceType: DiskInterfaceType.PCIE,
                     smartStatus: DiskSmartStatus.OK,
                     partitions: [],
@@ -653,7 +684,6 @@ describe('DisksService', () => {
                     sectorsPerTrack: 1,
                     firmwareRevision: '1',
                     serialNum: 'usb',
-                    emhttpDeviceId: 'usb',
                     interfaceType: DiskInterfaceType.USB,
                     smartStatus: DiskSmartStatus.OK,
                     partitions: [],

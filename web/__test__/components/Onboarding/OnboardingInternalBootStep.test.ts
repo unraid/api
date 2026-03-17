@@ -96,10 +96,7 @@ describe('OnboardingInternalBootStep', () => {
     contextResult.value = {
       array: {
         state: ArrayState.STARTED,
-        boot: { device: '/dev/sda' },
-        parities: [{ device: '/dev/sdb' }],
-        disks: [{ device: '/dev/sdc' }],
-        caches: [{ name: 'cache', device: '/dev/sdd' }],
+        caches: [{ name: 'cache' }],
       },
       vars: {
         fsState: 'Started',
@@ -108,7 +105,7 @@ describe('OnboardingInternalBootStep', () => {
         reservedNames: '',
       },
       shares: [],
-      disks: [
+      assignableDisks: [
         {
           device: '/dev/sda',
           size: gib(32),
@@ -137,14 +134,12 @@ describe('OnboardingInternalBootStep', () => {
           device: '/dev/sde',
           size: gib(6),
           serialNum: 'SMALL-1',
-          emhttpDeviceId: 'small-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           device: '/dev/sdf',
           size: gib(32),
           serialNum: 'USB-1',
-          emhttpDeviceId: 'usb-disk',
           interfaceType: DiskInterfaceType.USB,
         },
       ],
@@ -185,9 +180,6 @@ describe('OnboardingInternalBootStep', () => {
     contextResult.value = {
       array: {
         state: ArrayState.STOPPED,
-        boot: null,
-        parities: [],
-        disks: [],
         caches: [],
       },
       vars: {
@@ -197,12 +189,11 @@ describe('OnboardingInternalBootStep', () => {
         reservedNames: '',
       },
       shares: [],
-      disks: [
+      assignableDisks: [
         {
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'WD-TEST-1234',
-          emhttpDeviceId: 'eligible-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
@@ -220,9 +211,6 @@ describe('OnboardingInternalBootStep', () => {
     contextResult.value = {
       array: {
         state: ArrayState.STOPPED,
-        boot: null,
-        parities: [],
-        disks: [],
         caches: [],
       },
       vars: {
@@ -232,12 +220,11 @@ describe('OnboardingInternalBootStep', () => {
         reservedNames: '',
       },
       shares: [],
-      disks: [
+      assignableDisks: [
         {
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
-          emhttpDeviceId: 'eligible-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
@@ -258,10 +245,7 @@ describe('OnboardingInternalBootStep', () => {
     contextResult.value = {
       array: {
         state: ArrayState.STOPPED,
-        boot: null,
-        parities: [],
-        disks: [],
-        caches: [{ name: 'cache', device: '/dev/sdz' }],
+        caches: [{ name: 'cache' }],
       },
       vars: {
         fsState: 'Stopped',
@@ -270,12 +254,11 @@ describe('OnboardingInternalBootStep', () => {
         reservedNames: '',
       },
       shares: [],
-      disks: [
+      assignableDisks: [
         {
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
-          emhttpDeviceId: 'eligible-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
@@ -292,9 +275,6 @@ describe('OnboardingInternalBootStep', () => {
     contextResult.value = {
       array: {
         state: ArrayState.STOPPED,
-        boot: { device: '/dev/sda' },
-        parities: [{ device: '/dev/sdb' }],
-        disks: [],
         caches: [],
       },
       vars: {
@@ -304,20 +284,7 @@ describe('OnboardingInternalBootStep', () => {
         reservedNames: '',
       },
       shares: [],
-      disks: [
-        {
-          device: '/dev/sda',
-          size: gib(32),
-          serialNum: 'BOOT-1',
-          interfaceType: DiskInterfaceType.SATA,
-        },
-        {
-          device: '/dev/sdb',
-          size: gib(32),
-          serialNum: 'PARITY-1',
-          interfaceType: DiskInterfaceType.SATA,
-        },
-      ],
+      assignableDisks: [],
     };
 
     const wrapper = mountComponent();
@@ -335,9 +302,6 @@ describe('OnboardingInternalBootStep', () => {
     contextResult.value = {
       array: {
         state: ArrayState.STOPPED,
-        boot: null,
-        parities: [],
-        disks: [],
         caches: [],
       },
       vars: {
@@ -348,12 +312,11 @@ describe('OnboardingInternalBootStep', () => {
         reservedNames: '',
       },
       shares: [],
-      disks: [
+      assignableDisks: [
         {
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
-          emhttpDeviceId: 'eligible-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
@@ -373,9 +336,6 @@ describe('OnboardingInternalBootStep', () => {
     contextResult.value = {
       array: {
         state: ArrayState.STARTED,
-        boot: null,
-        parities: [],
-        disks: [],
         caches: [],
       },
       vars: {
@@ -385,12 +345,11 @@ describe('OnboardingInternalBootStep', () => {
         reservedNames: '',
       },
       shares: [],
-      disks: [
+      assignableDisks: [
         {
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
-          emhttpDeviceId: 'eligible-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
@@ -409,10 +368,7 @@ describe('OnboardingInternalBootStep', () => {
     contextResult.value = {
       array: {
         state: ArrayState.STOPPED,
-        boot: null,
-        parities: [],
-        disks: [],
-        caches: [{ name: 'cache', device: '/dev/sda' }],
+        caches: [{ name: 'cache' }],
       },
       vars: {
         fsState: 'Stopped',
@@ -421,32 +377,23 @@ describe('OnboardingInternalBootStep', () => {
         reservedNames: '',
       },
       shares: [],
-      disks: [
-        {
-          device: '/dev/sda',
-          size: gib(32),
-          serialNum: 'CACHE-1',
-          interfaceType: DiskInterfaceType.SATA,
-        },
+      assignableDisks: [
         {
           device: '/dev/sdb',
           size: gib(6),
           serialNum: 'SMALL-1',
-          emhttpDeviceId: 'small-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           device: '/dev/sdc',
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
-          emhttpDeviceId: 'eligible-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           device: '/dev/sdd',
           size: gib(32),
           serialNum: 'USB-1',
-          emhttpDeviceId: 'usb-disk',
           interfaceType: DiskInterfaceType.USB,
         },
       ],
@@ -475,14 +422,11 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
   });
 
-  it('treats disks present in devs.ini as unassigned even when array data still references the device', async () => {
+  it('treats disks present in devs.ini as assignable', async () => {
     draftStore.bootMode = 'storage';
     contextResult.value = {
       array: {
         state: ArrayState.STOPPED,
-        boot: null,
-        parities: [],
-        disks: [{ device: '/dev/sda' }],
         caches: [],
       },
       vars: {
@@ -492,12 +436,11 @@ describe('OnboardingInternalBootStep', () => {
         reservedNames: '',
       },
       shares: [],
-      disks: [
+      assignableDisks: [
         {
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'UNASSIGNED-1',
-          emhttpDeviceId: 'disk-1',
           interfaceType: DiskInterfaceType.SATA,
         },
       ],

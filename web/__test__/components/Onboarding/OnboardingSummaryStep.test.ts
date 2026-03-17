@@ -315,28 +315,23 @@ describe('OnboardingSummaryStep', () => {
     internalBootContextResult.value = {
       array: {
         state: ArrayState.STOPPED,
-        boot: null,
-        parities: [],
-        disks: [],
         caches: [],
       },
       vars: {
         bootEligible: true,
       },
       shares: [],
-      disks: [
+      assignableDisks: [
         {
           device: '/dev/sda',
           size: 500 * 1024 * 1024 * 1024,
           serialNum: 'DISK-A',
-          emhttpDeviceId: 'diskA',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           device: '/dev/sdb',
           size: 250 * 1024 * 1024 * 1024,
           serialNum: 'DISK-B',
-          emhttpDeviceId: 'diskB',
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
@@ -1109,7 +1104,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'boot',
       slotCount: 2,
-      devices: ['diskA', 'diskB'],
+      devices: ['sda', 'sdb'],
       bootSizeMiB: 16384,
       updateBios: true,
     };
@@ -1125,7 +1120,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['diskA'],
+      devices: ['sda'],
       bootSizeMiB: 16384,
       updateBios: true,
     };
@@ -1153,7 +1148,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 2,
-      devices: ['diskA', 'diskB'],
+      devices: ['sda', 'sdb'],
       bootSizeMiB: 16384,
       updateBios: true,
     };
@@ -1172,7 +1167,7 @@ describe('OnboardingSummaryStep', () => {
     expect(submitInternalBootCreationMock).toHaveBeenCalledWith(
       {
         poolName: 'cache',
-        devices: ['diskA', 'diskB'],
+        devices: ['sda', 'sdb'],
         bootSizeMiB: 16384,
         updateBios: true,
       },
@@ -1190,7 +1185,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['diskA'],
+      devices: ['sda'],
       bootSizeMiB: 16384,
       updateBios: false,
     };
@@ -1213,7 +1208,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['diskA'],
+      devices: ['sda'],
       bootSizeMiB: 16384,
       updateBios: true,
     };

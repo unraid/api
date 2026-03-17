@@ -346,11 +346,6 @@ type Disk implements Node {
   """The serial number of the disk"""
   serialNum: String!
 
-  """
-  Device identifier from emhttp devs.ini used by disk assignment commands
-  """
-  emhttpDeviceId: String
-
   """The interface type of the disk"""
   interfaceType: DiskInterfaceType!
 
@@ -3181,6 +3176,7 @@ type Query {
   info: Info!
   docker: Docker!
   disks: [Disk!]!
+  assignableDisks: [Disk!]!
   disk(id: PrefixedID!): Disk!
   rclone: RCloneBackupSettings!
   logFiles: [LogFile!]!
