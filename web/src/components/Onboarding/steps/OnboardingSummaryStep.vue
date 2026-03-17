@@ -163,7 +163,7 @@ const formatBytes = (bytes: number) => {
     return t('onboarding.internalBootStep.unknownSize');
   }
 
-  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+  const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
   let value = bytes;
   let unitIndex = 0;
   while (value >= 1024 && unitIndex < units.length - 1) {

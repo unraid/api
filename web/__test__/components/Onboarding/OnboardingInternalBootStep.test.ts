@@ -202,8 +202,8 @@ describe('OnboardingInternalBootStep', () => {
     const wrapper = mountComponent();
     await flushPromises();
 
-    expect(wrapper.text()).toContain('WD-TEST-1234 - 32.0 GB (sda)');
-    expect(wrapper.text()).not.toContain('eligible-disk - 32.0 GB (sda)');
+    expect(wrapper.text()).toContain('WD-TEST-1234 - 32.0 GiB (sda)');
+    expect(wrapper.text()).not.toContain('eligible-disk - 32.0 GiB (sda)');
   });
 
   it('defaults the storage pool name to cache', async () => {
