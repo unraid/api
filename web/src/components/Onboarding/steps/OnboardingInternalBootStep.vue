@@ -40,6 +40,7 @@ const toBootMode = (value: unknown): OnboardingBootMode => (value === 'storage' 
 
 interface InternalBootDeviceOption {
   value: string;
+  aliases: string[];
   label: string;
   device: string;
   sizeMiB: number | null;
@@ -123,6 +124,28 @@ const buildDeviceLabel = (displayId: string, sizeLabel: string, device: string):
   return `${displayId} - ${sizeLabel} (${device})`;
 };
 
+const mapPersistedDeviceValue = (value: string, options: InternalBootDeviceOption[]): string => {
+  const persistedValue = value.trim();
+  if (!persistedValue) {
+    return '';
+  }
+
+  const directMatch = options.find((option) => option.value === persistedValue);
+  if (directMatch) {
+    return directMatch.value;
+  }
+
+  const aliasMatch = options.find((option) => option.aliases.includes(persistedValue));
+  if (aliasMatch) {
+    return aliasMatch.value;
+  }
+
+  return persistedValue;
+};
+
+const mapPersistedDeviceValues = (values: string[], options: InternalBootDeviceOption[]): string[] =>
+  values.map((value) => mapPersistedDeviceValue(value, options));
+
 const {
   result: contextResult,
   loading: contextLoading,
@@ -169,11 +192,16 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
       }
 
       const serialNum = disk.serialNum?.trim() || '';
-      const optionValue = disk.id?.trim() || serialNum || device;
+      const diskId = disk.id?.trim() || '';
+      const optionValue = serialNum || diskId || device;
       const displayId = serialNum || device;
       const sizeLabel = formatBytes(sizeBytes);
+      const aliases = Array.from(new Set([diskId, serialNum, device].filter(Boolean))).filter(
+        (alias) => alias !== optionValue
+      );
       return {
         value: optionValue,
+        aliases,
         label: buildDeviceLabel(displayId, sizeLabel, device),
         device,
         sizeMiB,
@@ -572,9 +600,11 @@ const initializeForm = (data: InternalBootTemplateData) => {
 
   poolName.value = draftSelection?.poolName ?? data.poolNameDefault ?? 'cache';
   slotCount.value = draftSelection?.slotCount ?? defaultSlot;
+  const persistedDevices = draftSelection?.devices.slice(0, slotCount.value) ?? [];
   selectedDevices.value =
-    draftSelection?.devices.slice(0, slotCount.value) ??
-    Array.from({ length: slotCount.value }, () => '');
+    persistedDevices.length > 0
+      ? mapPersistedDeviceValues(persistedDevices, data.deviceOptions)
+      : Array.from({ length: slotCount.value }, () => '');
   normalizeSelectedDevices(slotCount.value);
 
   updateBios.value = draftSelection?.updateBios ?? data.defaultUpdateBios;
@@ -602,7 +632,7 @@ watch(
 
     poolName.value = selection.poolName;
     slotCount.value = selection.slotCount;
-    selectedDevices.value = [...selection.devices];
+    selectedDevices.value = mapPersistedDeviceValues(selection.devices, allDeviceOptions.value);
     normalizeSelectedDevices(slotCount.value);
     updateBios.value = selection.updateBios;
     applyBootSizeSelection(selection.bootSizeMiB);

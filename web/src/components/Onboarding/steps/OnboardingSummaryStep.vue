@@ -192,7 +192,8 @@ const internalBootDeviceLabelById = computed(() => {
     }
 
     const serialNum = disk.serialNum?.trim() || '';
-    const optionValue = disk.id?.trim() || serialNum || device;
+    const diskId = disk.id?.trim() || '';
+    const optionValue = serialNum || diskId || device;
     const displayId = serialNum || device;
     const sizeBytes = disk.size;
     const sizeLabel = formatBytes(sizeBytes);
@@ -200,6 +201,12 @@ const internalBootDeviceLabelById = computed(() => {
       displayId === device ? `${displayId} - ${sizeLabel}` : `${displayId} - ${sizeLabel} (${device})`;
 
     labels.set(optionValue, label);
+    if (serialNum) {
+      labels.set(serialNum, label);
+    }
+    if (diskId) {
+      labels.set(diskId, label);
+    }
     labels.set(device, label);
   }
 
