@@ -754,7 +754,8 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
 
       <div
         v-else-if="isStorageBootSelected && contextError"
-        class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 dark:border-yellow-800 dark:bg-yellow-900/10 dark:text-yellow-200"
+        role="alert"
+        class="border-muted bg-muted/40 text-foreground rounded-lg border p-4 text-sm"
       >
         {{ loadStatusMessage }}
       </div>
@@ -875,11 +876,12 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         <blockquote
           v-if="updateBios"
           data-testid="internal-boot-update-bios-warning"
-          class="border-s-4 border-yellow-500 bg-yellow-100 p-4"
+          role="alert"
+          class="border-muted bg-muted/40 border-s-orange-dark border-s-4 p-4"
         >
           <div class="flex items-start gap-2">
-            <ExclamationTriangleIcon class="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-700" />
-            <p class="text-sm leading-relaxed text-yellow-900">
+            <ExclamationTriangleIcon class="text-orange-dark mt-0.5 h-5 w-5 flex-shrink-0" />
+            <p class="text-foreground text-sm leading-relaxed">
               {{ t('onboarding.internalBootStep.warning.updateBios') }}
             </p>
           </div>
@@ -889,7 +891,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
       <div
         v-if="isStorageBootSelected && !isLoading && shouldShowEligibilityDetails"
         data-testid="internal-boot-eligibility-panel"
-        class="mt-6 rounded-lg border border-yellow-200 bg-yellow-50 text-sm text-yellow-900 dark:border-yellow-800 dark:bg-yellow-900/10 dark:text-yellow-200"
+        class="border-muted bg-muted/40 text-foreground mt-6 rounded-lg border text-sm"
       >
         <Disclosure v-slot="{ open }">
           <DisclosureButton
@@ -924,7 +926,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             leave-from-class="transform scale-100 opacity-100"
             leave-to-class="transform scale-95 opacity-0"
           >
-            <DisclosurePanel class="space-y-4 border-t border-yellow-200 px-4 pt-4 pb-4">
+            <DisclosurePanel class="border-muted space-y-4 border-t px-4 pt-4 pb-4">
               <div v-if="systemEligibilityCodes.length > 0" class="space-y-2">
                 <p class="font-semibold">
                   {{ t('onboarding.internalBootStep.eligibility.systemTitle') }}
