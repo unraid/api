@@ -1976,6 +1976,19 @@ export type Onboarding = {
   status: OnboardingStatus;
 };
 
+/** Current onboarding context for configuring internal boot */
+export type OnboardingInternalBootContext = {
+  __typename?: 'OnboardingInternalBootContext';
+  arrayStopped: Scalars['Boolean']['output'];
+  assignableDisks: Array<Disk>;
+  bootEligible?: Maybe<Scalars['Boolean']['output']>;
+  bootedFromFlashWithInternalBootSetup: Scalars['Boolean']['output'];
+  enableBootTransfer?: Maybe<Scalars['String']['output']>;
+  poolNames: Array<Scalars['String']['output']>;
+  reservedNames: Array<Scalars['String']['output']>;
+  shareNames: Array<Scalars['String']['output']>;
+};
+
 /** Result of attempting internal boot pool setup */
 export type OnboardingInternalBootResult = {
   __typename?: 'OnboardingInternalBootResult';
@@ -1993,6 +2006,8 @@ export type OnboardingMutations = {
   completeOnboarding: Onboarding;
   /** Create and configure internal boot pool via emcmd operations */
   createInternalBootPool: OnboardingInternalBootResult;
+  /** Refresh the internal boot onboarding context from the latest emhttp state */
+  refreshInternalBootContext: OnboardingInternalBootContext;
   /** Reset onboarding progress (for testing) */
   resetOnboarding: Onboarding;
   /** Override onboarding state for testing (in-memory only) */
@@ -2282,6 +2297,8 @@ export type Query = {
   info: Info;
   /** List installed Unraid OS plugins by .plg filename */
   installedUnraidPlugins: Array<Scalars['String']['output']>;
+  /** Get the latest onboarding context for configuring internal boot */
+  internalBootContext: OnboardingInternalBootContext;
   /** Whether the system is a fresh install (no license key) */
   isFreshInstall: Scalars['Boolean']['output'];
   isSSOEnabled: Scalars['Boolean']['output'];
@@ -3208,6 +3225,7 @@ export type Vars = Node & {
   __typename?: 'Vars';
   bindMgt?: Maybe<Scalars['Boolean']['output']>;
   bootEligible?: Maybe<Scalars['Boolean']['output']>;
+  bootedFromFlashWithInternalBootSetup?: Maybe<Scalars['Boolean']['output']>;
   cacheNumDevices?: Maybe<Scalars['Int']['output']>;
   cacheSbNumDisks?: Maybe<Scalars['Int']['output']>;
   comment?: Maybe<Scalars['String']['output']>;

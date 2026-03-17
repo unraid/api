@@ -1075,6 +1075,7 @@ type OnboardingInternalBootResult {
   output: String!
 }
 
+"""Current onboarding context for configuring internal boot"""
 type OnboardingInternalBootContext {
   arrayStopped: Boolean!
   bootEligible: Boolean
@@ -1401,7 +1402,9 @@ type OnboardingMutations {
   """Create and configure internal boot pool via emcmd operations"""
   createInternalBootPool(input: CreateInternalBootPoolInput!): OnboardingInternalBootResult!
 
-  """Refresh the internal boot onboarding context from the latest emhttp state"""
+  """
+  Refresh the internal boot onboarding context from the latest emhttp state
+  """
   refreshInternalBootContext: OnboardingInternalBootContext!
 }
 
@@ -3171,6 +3174,9 @@ type Query {
   notifications: Notifications!
   online: Boolean!
   owner: Owner!
+
+  """Get the latest onboarding context for configuring internal boot"""
+  internalBootContext: OnboardingInternalBootContext!
   registration: Registration
   server: Server
   servers: [Server!]!
@@ -3189,7 +3195,6 @@ type Query {
   publicTheme: Theme!
   info: Info!
   docker: Docker!
-  internalBootContext: OnboardingInternalBootContext!
   disks: [Disk!]!
   assignableDisks: [Disk!]!
   disk(id: PrefixedID!): Disk!
