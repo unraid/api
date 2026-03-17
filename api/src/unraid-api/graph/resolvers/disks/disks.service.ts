@@ -45,11 +45,6 @@ const SmartDataSchema = z.object({
         .optional()
         .nullable(),
 });
-interface EmhttpDevice {
-    id?: string;
-    device?: string;
-}
-
 interface EmhttpDeviceRecord {
     id?: unknown;
     device?: unknown;
@@ -80,10 +75,10 @@ export class DisksService {
 
     constructor(private readonly configService: ConfigService) {}
 
-    private getEmhttpDevices(): EmhttpDevice[] {
+    private getEmhttpDeviceMap(): Map<string, string> {
         const rawDevicesValue = this.configService.get<unknown>('store.emhttp.devices', []);
         const rawDevices = Array.isArray(rawDevicesValue) ? rawDevicesValue : [];
-        const emhttpDevices: EmhttpDevice[] = [];
+        const devices = new Map<string, string>();
 
         for (const raw of rawDevices) {
             if (!raw || typeof raw !== 'object') {
@@ -94,29 +89,14 @@ export class DisksService {
             const id = typeof record.id === 'string' ? record.id.trim() : '';
             const device = typeof record.device === 'string' ? record.device.trim() : '';
 
-            if (!id || !device) {
+            if (!device) {
                 continue;
             }
 
-            emhttpDevices.push({
-                id,
-                device: normalizeDeviceName(device),
-            });
+            devices.set(normalizeDeviceName(device), id);
         }
 
-        return emhttpDevices;
-    }
-
-    private findEmhttpDevice(
-        disk: Systeminformation.DiskLayoutData,
-        emhttpDevices: EmhttpDevice[]
-    ): EmhttpDevice | undefined {
-        const normalizedSystemDevice = normalizeDeviceName(disk.device);
-        if (!normalizedSystemDevice) {
-            return undefined;
-        }
-
-        return emhttpDevices.find((emhttpDevice) => emhttpDevice.device === normalizedSystemDevice);
+        return devices;
     }
 
     public async getTemperature(device: string): Promise<number | null> {
@@ -162,6 +142,30 @@ export class DisksService {
             throw new NotFoundException(`Disk with id ${id} not found`);
         }
         return disk;
+    }
+
+    public async getAssignableDisks(): Promise<Disk[]> {
+        const assignableDevices = this.getEmhttpDeviceMap();
+
+        if (assignableDevices.size === 0) {
+            return [];
+        }
+
+        const disks = await this.getDisks();
+        return disks
+            .filter((disk) => assignableDevices.has(normalizeDeviceName(disk.device)))
+            .map((disk) => {
+                const emhttpId = assignableDevices.get(normalizeDeviceName(disk.device))?.trim();
+                if (!emhttpId) {
+                    return disk;
+                }
+
+                return {
+                    ...disk,
+                    id: emhttpId,
+                    serialNum: emhttpId,
+                };
+            });
     }
 
     public async getInternalBootDevices(): Promise<Disk[]> {
@@ -291,8 +295,7 @@ export class DisksService {
     private async parseDisk(
         disk: Systeminformation.DiskLayoutData,
         partitionsToParse: Systeminformation.BlockDevicesData[],
-        arrayDisks: ArrayDisk[],
-        emhttpDevices: EmhttpDevice[]
+        arrayDisks: ArrayDisk[]
     ): Promise<Omit<Disk, 'temperature'>> {
         const partitions = partitionsToParse
             // Only get partitions from this disk
@@ -357,12 +360,9 @@ export class DisksService {
         }
 
         const arrayDisk = arrayDisks.find((d) => d.id.trim() === disk.serialNum.trim());
-        const emhttpDevice = this.findEmhttpDevice(disk, emhttpDevices);
-
         return {
             ...disk,
             id: disk.serialNum, // Ensure id is set
-            emhttpDeviceId: emhttpDevice?.id,
             smartStatus:
                 DiskSmartStatus[disk.smartStatus?.toUpperCase() as keyof typeof DiskSmartStatus] ??
                 DiskSmartStatus.UNKNOWN,
@@ -380,9 +380,8 @@ export class DisksService {
             devices.filter((device) => device.type === 'part')
         );
         const arrayDisks = this.configService.get<ArrayDisk[]>('store.emhttp.disks', []);
-        const emhttpDevices = this.getEmhttpDevices();
         const { data } = await batchProcess(await diskLayout(), async (disk) =>
-            this.parseDisk(disk, partitions, arrayDisks, emhttpDevices)
+            this.parseDisk(disk, partitions, arrayDisks)
         );
         return data;
     }

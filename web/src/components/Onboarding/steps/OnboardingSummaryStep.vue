@@ -44,6 +44,7 @@ import { UPDATE_SYSTEM_TIME_MUTATION } from '@/components/Onboarding/graphql/upd
 import { useOnboardingModalStore } from '@/components/Onboarding/store/onboardingModalVisibility';
 import { useOnboardingStore } from '@/components/Onboarding/store/onboardingStatus';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
+import { convert } from 'convert';
 
 import type { LogEntry } from '@/components/Onboarding/components/OnboardingConsole.vue';
 import type { OnboardingErrorDiagnostics } from '@/components/Onboarding/composables/onboardingErrorDiagnostics';
@@ -163,16 +164,9 @@ const formatBytes = (bytes: number) => {
     return t('onboarding.internalBootStep.unknownSize');
   }
 
-  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-  let value = bytes;
-  let unitIndex = 0;
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-
-  const precision = value >= 100 || unitIndex === 0 ? 0 : 1;
-  return `${value.toFixed(precision)} ${units[unitIndex]}`;
+  const converted = convert(bytes, 'B').to('best', 'metric');
+  const precision = converted.quantity >= 100 || converted.unit === 'B' ? 0 : 1;
+  return `${converted.quantity.toFixed(precision)} ${converted.unit}`;
 };
 
 const normalizeDeviceName = (value: string | null | undefined): string => {
@@ -188,7 +182,7 @@ const normalizeDeviceName = (value: string | null | undefined): string => {
 
 const internalBootDeviceLabelById = computed(() => {
   const data: GetInternalBootContextQuery | null | undefined = internalBootContextResult.value;
-  const disks = data?.disks ?? [];
+  const disks = data?.internalBootContext.assignableDisks ?? [];
   const labels = new Map<string, string>();
 
   for (const disk of disks) {
@@ -198,9 +192,8 @@ const internalBootDeviceLabelById = computed(() => {
     }
 
     const serialNum = disk.serialNum?.trim() || '';
-    const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
-    const optionValue = emhttpDeviceId || device;
-    const displayId = serialNum || emhttpDeviceId || device;
+    const optionValue = disk.id?.trim() || serialNum || device;
+    const displayId = serialNum || device;
     const sizeBytes = disk.size;
     const sizeLabel = formatBytes(sizeBytes);
     const label =

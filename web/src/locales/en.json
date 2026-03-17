@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "Boot reserved size must be at least 4 GB.",
   "onboarding.internalBootStep.validation.bootSizeMax": "Boot reserved size cannot exceed 50% of the smallest selected drive.",
   "onboarding.internalBootStep.actions.continue": "Continue",
+  "onboarding.internalBootStep.actions.refreshState": "Refresh state",
   "onboarding.summaryStep.activationLabel": "Activation",
   "onboarding.summaryStep.configuration": "Configuration",
   "onboarding.summaryStep.pluginsSelected": "{count} plugins selected",

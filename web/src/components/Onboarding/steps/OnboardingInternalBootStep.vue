@@ -1,13 +1,20 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useQuery } from '@vue/apollo-composable';
+import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { ChevronLeftIcon, CircleStackIcon, InformationCircleIcon } from '@heroicons/vue/24/outline';
-import { ChevronDownIcon, ChevronRightIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
+import {
+  ArrowPathIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
+import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
+import { convert } from 'convert';
 
 import type {
   OnboardingBootMode,
@@ -54,32 +61,19 @@ interface InternalBootTemplateData {
 type InternalBootTransferState = 'enabled' | 'disabled' | 'unknown';
 type InternalBootEligibilityState = 'eligible' | 'ineligible' | 'unknown';
 type InternalBootSystemEligibilityCode =
-  | 'ARRAY_NOT_STOPPED'
   | 'ALREADY_INTERNAL_BOOT'
   | 'NO_UNASSIGNED_DISKS'
   | 'ENABLE_BOOT_TRANSFER_DISABLED'
   | 'ENABLE_BOOT_TRANSFER_UNKNOWN'
   | 'BOOT_ELIGIBLE_FALSE'
   | 'BOOT_ELIGIBLE_UNKNOWN';
-type InternalBootDiskEligibilityCode =
-  | 'ASSIGNED_TO_BOOT'
-  | 'ASSIGNED_TO_ARRAY'
-  | 'ASSIGNED_TO_PARITY'
-  | 'ASSIGNED_TO_CACHE'
-  | 'TOO_SMALL';
+type InternalBootDiskEligibilityCode = 'TOO_SMALL';
 
 const MIN_BOOT_SIZE_MIB = 4096;
 const MIN_ELIGIBLE_DEVICE_SIZE_MIB = MIN_BOOT_SIZE_MIB * 2;
 const DEFAULT_BOOT_SIZE_MIB = 16384;
 const BOOT_SIZE_PRESETS_MIB = [16384, 32768, 65536, 131072];
-const ASSIGNMENT_ELIGIBILITY_CODES = new Set<InternalBootDiskEligibilityCode>([
-  'ASSIGNED_TO_BOOT',
-  'ASSIGNED_TO_ARRAY',
-  'ASSIGNED_TO_PARITY',
-  'ASSIGNED_TO_CACHE',
-]);
 const SYSTEM_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootSystemEligibilityCode, string> = {
-  ARRAY_NOT_STOPPED: 'onboarding.internalBootStep.eligibility.codes.ARRAY_NOT_STOPPED',
   ALREADY_INTERNAL_BOOT: 'onboarding.internalBootStep.eligibility.codes.ALREADY_INTERNAL_BOOT',
   NO_UNASSIGNED_DISKS: 'onboarding.internalBootStep.eligibility.codes.NO_UNASSIGNED_DISKS',
   ENABLE_BOOT_TRANSFER_DISABLED:
@@ -90,10 +84,6 @@ const SYSTEM_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootSystemEligibilityCode,
   BOOT_ELIGIBLE_UNKNOWN: 'onboarding.internalBootStep.eligibility.codes.BOOT_ELIGIBLE_UNKNOWN',
 };
 const DISK_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootDiskEligibilityCode, string> = {
-  ASSIGNED_TO_BOOT: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_BOOT',
-  ASSIGNED_TO_ARRAY: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_ARRAY',
-  ASSIGNED_TO_PARITY: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_PARITY',
-  ASSIGNED_TO_CACHE: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_CACHE',
   TOO_SMALL: 'onboarding.internalBootStep.eligibility.codes.TOO_SMALL',
 };
 
@@ -102,16 +92,9 @@ const formatBytes = (bytes: number) => {
     return t('onboarding.internalBootStep.unknownSize');
   }
 
-  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-  let value = bytes;
-  let unitIndex = 0;
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-
-  const precision = value >= 100 || unitIndex === 0 ? 0 : 1;
-  return `${value.toFixed(precision)} ${units[unitIndex]}`;
+  const converted = convert(bytes, 'B').to('best', 'metric');
+  const precision = converted.quantity >= 100 || converted.unit === 'B' ? 0 : 1;
+  return `${converted.quantity.toFixed(precision)} ${converted.unit}`;
 };
 
 const toSizeMiB = (bytes: number): number | null => {
@@ -144,12 +127,17 @@ const {
   result: contextResult,
   loading: contextLoading,
   error: contextError,
+  refetch: refetchContext,
 } = useQuery(GetInternalBootContextDocument, null, {
   fetchPolicy: 'network-only',
 });
+const { mutate: refreshInternalBootContextMutation } = useMutation(
+  REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION
+);
 
 const formError = ref<string | null>(null);
 const hasInitializedForm = ref(false);
+const isRefreshingContext = ref(false);
 const bootMode = ref<OnboardingBootMode>(
   toBootMode(draftStore.bootMode ?? (draftStore.internalBootSelection ? 'storage' : 'usb'))
 );
@@ -161,67 +149,28 @@ const bootSizePreset = ref<string>('');
 const customBootSizeGb = ref('');
 const updateBios = ref(true);
 
-const addDiskEligibilityCode = (
-  diskCodesByDevice: Map<string, Set<InternalBootDiskEligibilityCode>>,
-  deviceName: string | null | undefined,
-  code: InternalBootDiskEligibilityCode
-) => {
-  const normalizedDeviceName = normalizeDeviceName(deviceName);
-  if (!normalizedDeviceName) {
-    return;
-  }
-
-  const existingCodes = diskCodesByDevice.get(normalizedDeviceName);
-  if (existingCodes) {
-    existingCodes.add(code);
-    return;
-  }
-
-  diskCodesByDevice.set(normalizedDeviceName, new Set([code]));
-};
-
-const diskEligibilityCodesByDevice = computed(() => {
-  const data: GetInternalBootContextQuery | null | undefined = contextResult.value;
-  const codesByDevice = new Map<string, Set<InternalBootDiskEligibilityCode>>();
-  if (!data) {
-    return codesByDevice;
-  }
-
-  addDiskEligibilityCode(codesByDevice, data.array.boot?.device, 'ASSIGNED_TO_BOOT');
-  for (const parityDisk of data.array.parities) {
-    addDiskEligibilityCode(codesByDevice, parityDisk.device, 'ASSIGNED_TO_PARITY');
-  }
-  for (const arrayDisk of data.array.disks) {
-    addDiskEligibilityCode(codesByDevice, arrayDisk.device, 'ASSIGNED_TO_ARRAY');
-  }
-  for (const cacheDisk of data.array.caches) {
-    addDiskEligibilityCode(codesByDevice, cacheDisk.device, 'ASSIGNED_TO_CACHE');
-  }
-
-  return codesByDevice;
-});
+const internalBootContext = computed(() => contextResult.value?.internalBootContext ?? null);
 
 const templateData = computed<InternalBootTemplateData | null>(() => {
-  const data: GetInternalBootContextQuery | null | undefined = contextResult.value;
+  const data: GetInternalBootContextQuery['internalBootContext'] | null = internalBootContext.value;
   if (!data) {
     return null;
   }
 
-  const deviceOptions = data.disks
+  const deviceOptions = data.assignableDisks
     .map<InternalBootDeviceOption>((disk) => {
       const device = normalizeDeviceName(disk.device);
       const sizeBytes = disk.size;
       const sizeMiB = toSizeMiB(sizeBytes);
-      const ineligibilityCodes = Array.from(diskEligibilityCodesByDevice.value.get(device) ?? []);
+      const ineligibilityCodes: InternalBootDiskEligibilityCode[] = [];
 
       if (sizeMiB !== null && sizeMiB < MIN_ELIGIBLE_DEVICE_SIZE_MIB) {
         ineligibilityCodes.push('TOO_SMALL');
       }
 
       const serialNum = disk.serialNum?.trim() || '';
-      const emhttpDeviceId = disk.emhttpDeviceId?.trim() || '';
-      const optionValue = emhttpDeviceId || device;
-      const displayId = serialNum || emhttpDeviceId || device;
+      const optionValue = disk.id?.trim() || serialNum || device;
+      const displayId = serialNum || device;
       const sizeLabel = formatBytes(sizeBytes);
       return {
         value: optionValue,
@@ -234,15 +183,15 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
     .filter((disk) => disk.device.length > 0);
 
   const poolNameSet = new Set<string>();
-  for (const cacheDisk of data.array.caches) {
-    const poolName = cacheDisk.name?.trim() || '';
+  for (const poolNameValue of data.poolNames) {
+    const poolName = poolNameValue?.trim() || '';
     if (poolName) {
       poolNameSet.add(poolName);
     }
   }
 
   const reservedNameSet = new Set<string>();
-  for (const reservedName of (data.vars?.reservedNames ?? '').split(',')) {
+  for (const reservedName of data.reservedNames) {
     const name = reservedName.trim();
     if (name) {
       reservedNameSet.add(name);
@@ -250,8 +199,8 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
   }
 
   const shareNameSet = new Set<string>();
-  for (const share of data.shares) {
-    const name = share.name?.trim() || '';
+  for (const shareName of data.shareNames) {
+    const name = shareName?.trim() || '';
     if (name) {
       shareNameSet.add(name);
     }
@@ -270,11 +219,11 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
   };
 });
 
-const isLoading = computed(() => Boolean(contextLoading.value));
+const isLoading = computed(() => Boolean(contextLoading.value) && !internalBootContext.value);
 const isBusy = computed(() => Boolean(props.isSavingStep) || isLoading.value);
 const isStepLocked = computed(() => Boolean(props.isSavingStep));
 const internalBootTransferState = computed<InternalBootTransferState>(() => {
-  const setting = contextResult.value?.vars?.enableBootTransfer;
+  const setting = internalBootContext.value?.enableBootTransfer;
   if (typeof setting !== 'string') {
     return 'unknown';
   }
@@ -289,10 +238,10 @@ const internalBootTransferState = computed<InternalBootTransferState>(() => {
   return 'unknown';
 });
 const bootedFromFlashWithInternalBootSetup = computed(
-  () => contextResult.value?.vars?.bootedFromFlashWithInternalBootSetup === true
+  () => internalBootContext.value?.bootedFromFlashWithInternalBootSetup === true
 );
 const bootEligibilityState = computed<InternalBootEligibilityState>(() => {
-  const eligibility = contextResult.value?.vars?.bootEligible;
+  const eligibility = internalBootContext.value?.bootEligible;
   if (eligibility === true) {
     return 'eligible';
   }
@@ -301,20 +250,9 @@ const bootEligibilityState = computed<InternalBootEligibilityState>(() => {
   }
   return 'unknown';
 });
-const isArrayStopped = computed(() => {
-  if (contextResult.value?.array.state) {
-    return contextResult.value.array.state === 'STOPPED';
-  }
-  return contextResult.value?.vars?.fsState === 'Stopped';
-});
 const allDeviceOptions = computed(() => templateData.value?.deviceOptions ?? []);
 const deviceOptions = computed(() =>
   allDeviceOptions.value.filter((option) => option.ineligibilityCodes.length === 0)
-);
-const unassignedDeviceOptions = computed(() =>
-  allDeviceOptions.value.filter(
-    (option) => !option.ineligibilityCodes.some((code) => ASSIGNMENT_ELIGIBILITY_CODES.has(code))
-  )
 );
 const slotOptions = computed(() => templateData.value?.slotOptions ?? [1, 2]);
 const reservedNames = computed(() => new Set(templateData.value?.reservedNames ?? []));
@@ -323,9 +261,6 @@ const existingPoolNames = computed(() => new Set(templateData.value?.poolNames ?
 const systemEligibilityCodes = computed<InternalBootSystemEligibilityCode[]>(() => {
   const codes: InternalBootSystemEligibilityCode[] = [];
 
-  if (!isArrayStopped.value) {
-    codes.push('ARRAY_NOT_STOPPED');
-  }
   if (bootedFromFlashWithInternalBootSetup.value) {
     codes.push('ALREADY_INTERNAL_BOOT');
   }
@@ -341,7 +276,7 @@ const systemEligibilityCodes = computed<InternalBootSystemEligibilityCode[]>(() 
   if (bootEligibilityState.value === 'unknown') {
     codes.push('BOOT_ELIGIBLE_UNKNOWN');
   }
-  if (unassignedDeviceOptions.value.length === 0) {
+  if (allDeviceOptions.value.length === 0) {
     codes.push('NO_UNASSIGNED_DISKS');
   }
 
@@ -360,7 +295,6 @@ const canConfigure = computed(
   () =>
     internalBootTransferState.value === 'enabled' &&
     !bootedFromFlashWithInternalBootSetup.value &&
-    isArrayStopped.value &&
     bootEligibilityState.value === 'eligible' &&
     deviceOptions.value.length > 0
 );
@@ -717,6 +651,20 @@ const handlePrimaryAction = () => {
   props.onComplete();
 };
 
+const handleRefreshContext = async () => {
+  if (isRefreshingContext.value) {
+    return;
+  }
+
+  isRefreshingContext.value = true;
+  try {
+    await refreshInternalBootContextMutation();
+    await refetchContext();
+  } finally {
+    isRefreshingContext.value = false;
+  }
+};
+
 const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.continue'));
 </script>
 
@@ -809,6 +757,19 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         class="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 dark:border-yellow-800 dark:bg-yellow-900/10 dark:text-yellow-200"
       >
         {{ loadStatusMessage }}
+      </div>
+
+      <div v-if="isStorageBootSelected && !isLoading && !contextError" class="mt-6 flex justify-end">
+        <button
+          data-testid="internal-boot-refresh-button"
+          type="button"
+          class="text-muted hover:text-primary inline-flex items-center gap-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+          :disabled="isBusy || isRefreshingContext"
+          @click="handleRefreshContext"
+        >
+          <ArrowPathIcon class="h-4 w-4" :class="{ 'animate-spin': isRefreshingContext }" />
+          {{ t('onboarding.internalBootStep.actions.refreshState', 'Refresh state') }}
+        </button>
       </div>
 
       <div v-if="isStorageBootSelected && !isLoading && !contextError && canConfigure" class="space-y-5">

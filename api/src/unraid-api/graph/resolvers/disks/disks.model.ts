@@ -123,14 +123,6 @@ export class Disk extends Node {
     @IsString()
     serialNum!: string;
 
-    @Field(() => String, {
-        nullable: true,
-        description: 'Device identifier from emhttp devs.ini used by disk assignment commands',
-    })
-    @IsOptional()
-    @IsString()
-    emhttpDeviceId?: string;
-
     @Field(() => DiskInterfaceType, { description: 'The interface type of the disk' })
     @IsEnum(DiskInterfaceType)
     interfaceType!: DiskInterfaceType;

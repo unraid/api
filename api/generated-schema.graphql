@@ -346,11 +346,6 @@ type Disk implements Node {
   """The serial number of the disk"""
   serialNum: String!
 
-  """
-  Device identifier from emhttp devs.ini used by disk assignment commands
-  """
-  emhttpDeviceId: String
-
   """The interface type of the disk"""
   interfaceType: DiskInterfaceType!
 
@@ -1080,6 +1075,18 @@ type OnboardingInternalBootResult {
   output: String!
 }
 
+"""Current onboarding context for configuring internal boot"""
+type OnboardingInternalBootContext {
+  arrayStopped: Boolean!
+  bootEligible: Boolean
+  bootedFromFlashWithInternalBootSetup: Boolean!
+  enableBootTransfer: String
+  reservedNames: [String!]!
+  shareNames: [String!]!
+  poolNames: [String!]!
+  assignableDisks: [Disk!]!
+}
+
 type RCloneDrive {
   """Provider name"""
   name: String!
@@ -1394,6 +1401,11 @@ type OnboardingMutations {
 
   """Create and configure internal boot pool via emcmd operations"""
   createInternalBootPool(input: CreateInternalBootPoolInput!): OnboardingInternalBootResult!
+
+  """
+  Refresh the internal boot onboarding context from the latest emhttp state
+  """
+  refreshInternalBootContext: OnboardingInternalBootContext!
 }
 
 """Onboarding override input for testing"""
@@ -3162,6 +3174,9 @@ type Query {
   notifications: Notifications!
   online: Boolean!
   owner: Owner!
+
+  """Get the latest onboarding context for configuring internal boot"""
+  internalBootContext: OnboardingInternalBootContext!
   registration: Registration
   server: Server
   servers: [Server!]!
@@ -3181,6 +3196,7 @@ type Query {
   info: Info!
   docker: Docker!
   disks: [Disk!]!
+  assignableDisks: [Disk!]!
   disk(id: PrefixedID!): Disk!
   rclone: RCloneBackupSettings!
   logFiles: [LogFile!]!

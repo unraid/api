@@ -29,7 +29,11 @@ describe('OnboardingMutationsResolver', () => {
 
     const onboardingInternalBootService = {
         createInternalBootPool: vi.fn(),
-    } satisfies Pick<OnboardingInternalBootService, 'createInternalBootPool'>;
+        refreshInternalBootContext: vi.fn(),
+    } satisfies Pick<
+        OnboardingInternalBootService,
+        'createInternalBootPool' | 'refreshInternalBootContext'
+    >;
 
     const defaultOnboardingResponse = {
         status: OnboardingStatus.INCOMPLETE,
@@ -160,5 +164,30 @@ describe('OnboardingMutationsResolver', () => {
             output: 'done',
         });
         expect(onboardingInternalBootService.createInternalBootPool).toHaveBeenCalledWith(input);
+    });
+
+    it('delegates refreshInternalBootContext to onboarding internal boot service', async () => {
+        onboardingInternalBootService.refreshInternalBootContext.mockResolvedValue({
+            arrayStopped: true,
+            bootEligible: true,
+            bootedFromFlashWithInternalBootSetup: false,
+            enableBootTransfer: 'yes',
+            reservedNames: [],
+            shareNames: [],
+            poolNames: [],
+            assignableDisks: [],
+        });
+
+        await expect(resolver.refreshInternalBootContext()).resolves.toEqual({
+            arrayStopped: true,
+            bootEligible: true,
+            bootedFromFlashWithInternalBootSetup: false,
+            enableBootTransfer: 'yes',
+            reservedNames: [],
+            shareNames: [],
+            poolNames: [],
+            assignableDisks: [],
+        });
+        expect(onboardingInternalBootService.refreshInternalBootContext).toHaveBeenCalledWith();
     });
 });

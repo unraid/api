@@ -17,7 +17,6 @@ import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
 
 import OnboardingSummaryStep from '~/components/Onboarding/steps/OnboardingSummaryStep.vue';
 import {
-  ArrayState,
   DiskInterfaceType,
   GetInternalBootContextDocument,
   PluginInstallStatus,
@@ -313,33 +312,30 @@ describe('OnboardingSummaryStep', () => {
       info: { primaryNetwork: { ipAddress: '192.168.1.2' } },
     };
     internalBootContextResult.value = {
-      array: {
-        state: ArrayState.STOPPED,
-        boot: null,
-        parities: [],
-        disks: [],
-        caches: [],
-      },
-      vars: {
+      internalBootContext: {
         bootEligible: true,
+        bootedFromFlashWithInternalBootSetup: false,
+        enableBootTransfer: 'yes',
+        reservedNames: [],
+        shareNames: [],
+        poolNames: [],
+        assignableDisks: [
+          {
+            id: 'DISK-A',
+            device: '/dev/sda',
+            size: 500 * 1024 * 1024 * 1024,
+            serialNum: 'DISK-A',
+            interfaceType: DiskInterfaceType.SATA,
+          },
+          {
+            id: 'DISK-B',
+            device: '/dev/sdb',
+            size: 250 * 1024 * 1024 * 1024,
+            serialNum: 'DISK-B',
+            interfaceType: DiskInterfaceType.SATA,
+          },
+        ],
       },
-      shares: [],
-      disks: [
-        {
-          device: '/dev/sda',
-          size: 500 * 1024 * 1024 * 1024,
-          serialNum: 'DISK-A',
-          emhttpDeviceId: 'diskA',
-          interfaceType: DiskInterfaceType.SATA,
-        },
-        {
-          device: '/dev/sdb',
-          size: 250 * 1024 * 1024 * 1024,
-          serialNum: 'DISK-B',
-          emhttpDeviceId: 'diskB',
-          interfaceType: DiskInterfaceType.SATA,
-        },
-      ],
     };
     installedPluginsResult.value = { installedUnraidPlugins: [] };
     availableLanguagesResult.value = {
@@ -1109,15 +1105,15 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'boot',
       slotCount: 2,
-      devices: ['diskA', 'diskB'],
+      devices: ['DISK-A', 'DISK-B'],
       bootSizeMiB: 16384,
       updateBios: true,
     };
 
     const { wrapper } = mountComponent();
 
-    expect(wrapper.text()).toContain('DISK-A - 500 GB (sda)');
-    expect(wrapper.text()).toContain('DISK-B - 250 GB (sdb)');
+    expect(wrapper.text()).toContain('DISK-A - 537 GB (sda)');
+    expect(wrapper.text()).toContain('DISK-B - 268 GB (sdb)');
   });
 
   it('requires confirmation before applying storage boot drive changes', async () => {
@@ -1125,7 +1121,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['diskA'],
+      devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
     };
@@ -1153,7 +1149,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 2,
-      devices: ['diskA', 'diskB'],
+      devices: ['DISK-A', 'DISK-B'],
       bootSizeMiB: 16384,
       updateBios: true,
     };
@@ -1172,7 +1168,7 @@ describe('OnboardingSummaryStep', () => {
     expect(submitInternalBootCreationMock).toHaveBeenCalledWith(
       {
         poolName: 'cache',
-        devices: ['diskA', 'diskB'],
+        devices: ['DISK-A', 'DISK-B'],
         bootSizeMiB: 16384,
         updateBios: true,
       },
@@ -1190,7 +1186,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['diskA'],
+      devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
     };
@@ -1213,7 +1209,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['diskA'],
+      devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
     };

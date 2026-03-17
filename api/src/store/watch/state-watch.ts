@@ -9,9 +9,6 @@ import { getters, store } from '@app/store/index.js';
 import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
 import { StateFileKey } from '@app/store/types.js';
 
-// Configure any excluded nchan channels that we support here
-const excludedWatches: StateFileKey[] = [StateFileKey.devs];
-
 const chokidarOptionsForStateKey = (
     key: StateFileKey
 ): Partial<Pick<FSWInstanceOptions, 'usePolling' | 'interval'>> => {
@@ -68,14 +65,12 @@ export class StateManager {
     private readonly setupChokidarWatchForState = () => {
         const { states } = getters.paths();
         for (const key of Object.values(StateFileKey)) {
-            if (!excludedWatches.includes(key)) {
-                const pathToWatch = join(states, `${key}.ini`);
-                emhttpLogger.debug('Setting up watch for path: %s', pathToWatch);
-                const stateWatch = watch(pathToWatch, chokidarOptionsForStateKey(key));
-                stateWatch.on('add', async (path) => this.handleStateFileUpdate(path, 'add'));
-                stateWatch.on('change', async (path) => this.handleStateFileUpdate(path, 'change'));
-                this.fileWatchers.push(stateWatch);
-            }
+            const pathToWatch = join(states, `${key}.ini`);
+            emhttpLogger.debug('Setting up watch for path: %s', pathToWatch);
+            const stateWatch = watch(pathToWatch, chokidarOptionsForStateKey(key));
+            stateWatch.on('add', async (path) => this.handleStateFileUpdate(path, 'add'));
+            stateWatch.on('change', async (path) => this.handleStateFileUpdate(path, 'change'));
+            this.fileWatchers.push(stateWatch);
         }
     };
 }

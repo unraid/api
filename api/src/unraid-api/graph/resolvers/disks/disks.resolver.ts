@@ -20,6 +20,15 @@ export class DisksResolver {
         return this.disksService.getDisks();
     }
 
+    @Query(() => [Disk])
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DISK,
+    })
+    public async assignableDisks() {
+        return this.disksService.getAssignableDisks();
+    }
+
     @Query(() => Disk)
     @UsePermissions({
         action: AuthAction.READ_ANY,

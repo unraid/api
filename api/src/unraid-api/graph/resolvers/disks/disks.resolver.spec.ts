@@ -14,6 +14,7 @@ import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.servic
 // Mock the DisksService
 const mockDisksService = {
     getDisks: vi.fn(),
+    getAssignableDisks: vi.fn(),
     getTemperature: vi.fn(),
 };
 
@@ -85,6 +86,42 @@ describe('DisksResolver', () => {
 
             expect(service.getDisks).toHaveBeenCalledTimes(1);
             expect(service.getDisks).toHaveBeenCalledWith();
+        });
+    });
+
+    describe('assignableDisks', () => {
+        it('should return assignable disks from the service', async () => {
+            const mockResult: Disk[] = [
+                {
+                    id: 'SERIAL123',
+                    device: '/dev/sda',
+                    type: 'SSD',
+                    name: 'Samsung SSD 860 EVO 1TB',
+                    vendor: 'Samsung',
+                    size: 1000204886016,
+                    bytesPerSector: 512,
+                    totalCylinders: 121601,
+                    totalHeads: 255,
+                    totalSectors: 1953525168,
+                    totalTracks: 31008255,
+                    tracksPerCylinder: 255,
+                    sectorsPerTrack: 63,
+                    firmwareRevision: 'RVT04B6Q',
+                    serialNum: 'SERIAL123',
+                    interfaceType: DiskInterfaceType.SATA,
+                    smartStatus: DiskSmartStatus.OK,
+                    temperature: -1,
+                    partitions: [],
+                    isSpinning: false,
+                },
+            ];
+            mockDisksService.getAssignableDisks.mockResolvedValue(mockResult);
+
+            const result = await resolver.assignableDisks();
+
+            expect(result).toEqual(mockResult);
+            expect(service.getAssignableDisks).toHaveBeenCalledTimes(1);
+            expect(service.getAssignableDisks).toHaveBeenCalledWith();
         });
     });
 
