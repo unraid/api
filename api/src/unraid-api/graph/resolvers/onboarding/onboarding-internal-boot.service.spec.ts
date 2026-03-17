@@ -286,7 +286,7 @@ describe('OnboardingInternalBootService', () => {
         expect(vi.mocked(execa)).toHaveBeenNthCalledWith(
             4,
             'efibootmgr',
-            ['-c', '-d', '/dev/sda', '-p', '1', '-L', 'Unraid Flash'],
+            ['-c', '-d', '/dev/sda', '-p', '1', '-L', 'Unraid Flash', '-l', '\\EFI\\BOOT\\BOOTX64.EFI'],
             { reject: false }
         );
         expect(vi.mocked(execa)).toHaveBeenNthCalledWith(5, 'efibootmgr', [], { reject: false });

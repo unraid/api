@@ -339,7 +339,7 @@ export class OnboardingInternalBootService {
         const device = flashDevice.trim();
         const devicePath = `/dev/${device}`;
         const flashResult = await this.runEfiBootMgr(
-            ['-c', '-d', devicePath, '-p', '1', '-L', 'Unraid Flash'],
+            ['-c', '-d', devicePath, '-p', '1', '-L', 'Unraid Flash', '-l', EFI_BOOT_PATH],
             output
         );
         if (flashResult.exitCode !== 0) {
