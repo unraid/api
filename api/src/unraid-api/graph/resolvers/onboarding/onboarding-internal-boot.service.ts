@@ -83,6 +83,14 @@ export class OnboardingInternalBootService {
         return merged.split('\n');
     }
 
+    private stringifyForOutput(value: unknown): string {
+        try {
+            return JSON.stringify(value);
+        } catch {
+            return '[unserializable]';
+        }
+    }
+
     private parseBootLabelMap(lines: string[]): Map<string, string> {
         const labels = new Map<string, string>();
         for (const line of lines) {
@@ -222,10 +230,11 @@ export class OnboardingInternalBootService {
         return this.getInternalBootContext();
     }
 
-    private getDeviceMapFromEmhttpState(): Map<string, string> {
+    private getDeviceMapFromEmhttpState(output: string[]): Map<string, string> {
         const emhttpState = getters.emhttp();
         const rawDevices = Array.isArray(emhttpState.devices) ? emhttpState.devices : [];
         const devicesById = new Map<string, string>();
+        output.push(`emhttp.devices raw: ${this.stringifyForOutput(rawDevices)}`);
 
         for (const rawDevice of rawDevices) {
             if (!isEmhttpDeviceRecord(rawDevice)) {
@@ -238,6 +247,9 @@ export class OnboardingInternalBootService {
             }
         }
 
+        output.push(
+            `emhttp.devices parsed id->device: ${this.stringifyForOutput(Array.from(devicesById.entries()))}`
+        );
         return devicesById;
     }
 
@@ -279,19 +291,21 @@ export class OnboardingInternalBootService {
     private resolveBootDevicePath(
         bootDevice: string,
         devsById: Map<string, string>
-    ): { bootId: string; devicePath: string } | null {
+    ): { bootId: string; devicePath: string; source: 'mapped' | 'fallback' } | null {
         const bootId = bootDevice;
         let device = bootDevice;
+        let source: 'mapped' | 'fallback' = 'fallback';
         if (device === '' || devsById.has(device)) {
             const mapped = devsById.get(device);
             if (mapped) {
                 device = mapped;
+                source = 'mapped';
             }
         }
         if (device === '') {
             return null;
         }
-        return { bootId, devicePath: `/dev/${device}` };
+        return { bootId, devicePath: `/dev/${device}`, source };
     }
 
     private async createInternalBootEntries(
@@ -305,6 +319,9 @@ export class OnboardingInternalBootService {
             if (!resolved) {
                 continue;
             }
+            output.push(
+                `Boot device resolution: input='${bootDevice}' source=${resolved.source} resolved='${resolved.devicePath}'`
+            );
 
             const createResult = await this.runEfiBootMgr(
                 [
@@ -404,7 +421,7 @@ export class OnboardingInternalBootService {
     ): Promise<{ hadFailures: boolean }> {
         let hadFailures = false;
         this.loadEmhttpBootContext();
-        const devsById = this.getDeviceMapFromEmhttpState();
+        const devsById = this.getDeviceMapFromEmhttpState(output);
 
         const existingEntries = await this.runEfiBootMgr([], output);
         if (existingEntries.exitCode === 0) {
