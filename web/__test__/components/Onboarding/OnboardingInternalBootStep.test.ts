@@ -113,28 +113,24 @@ describe('OnboardingInternalBootStep', () => {
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'BOOT-1',
-          emhttpDeviceId: 'boot-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           device: '/dev/sdb',
           size: gib(32),
           serialNum: 'PARITY-1',
-          emhttpDeviceId: 'parity-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           device: '/dev/sdc',
           size: gib(32),
           serialNum: 'ARRAY-1',
-          emhttpDeviceId: 'array-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           device: '/dev/sdd',
           size: gib(32),
           serialNum: 'CACHE-1',
-          emhttpDeviceId: 'cache-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
@@ -166,10 +162,6 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.text()).toContain('ARRAY_NOT_STOPPED');
     expect(wrapper.text()).toContain('ENABLE_BOOT_TRANSFER_UNKNOWN');
     expect(wrapper.text()).toContain('BOOT_ELIGIBLE_UNKNOWN');
-    expect(wrapper.text()).toContain('ASSIGNED_TO_BOOT');
-    expect(wrapper.text()).toContain('ASSIGNED_TO_PARITY');
-    expect(wrapper.text()).toContain('ASSIGNED_TO_ARRAY');
-    expect(wrapper.text()).toContain('ASSIGNED_TO_CACHE');
     expect(wrapper.text()).toContain('TOO_SMALL');
     expect(wrapper.text()).not.toContain('NO_UNASSIGNED_DISKS');
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeDefined();
@@ -317,14 +309,12 @@ describe('OnboardingInternalBootStep', () => {
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'BOOT-1',
-          emhttpDeviceId: 'boot-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
           device: '/dev/sdb',
           size: gib(32),
           serialNum: 'PARITY-1',
-          emhttpDeviceId: 'parity-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
       ],
@@ -436,7 +426,6 @@ describe('OnboardingInternalBootStep', () => {
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'CACHE-1',
-          emhttpDeviceId: 'cache-disk',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
@@ -474,7 +463,6 @@ describe('OnboardingInternalBootStep', () => {
     expect(deviceSelect.text()).toContain('USB-1');
     expect(deviceSelect.text()).not.toContain('CACHE-1');
     expect(deviceSelect.text()).not.toContain('SMALL-1');
-    expect(wrapper.text()).not.toContain('ASSIGNED_TO_CACHE');
     const biosWarning = wrapper.get('[data-testid="internal-boot-update-bios-warning"]');
     const eligibilityPanel = wrapper.get('[data-testid="internal-boot-eligibility-panel"]');
     expect(
@@ -483,8 +471,48 @@ describe('OnboardingInternalBootStep', () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
     await flushPromises();
-    expect(wrapper.text()).toContain('ASSIGNED_TO_CACHE');
     expect(wrapper.text()).toContain('TOO_SMALL');
+    expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
+  });
+
+  it('treats disks present in devs.ini as unassigned even when array data still references the device', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = {
+      array: {
+        state: ArrayState.STOPPED,
+        boot: null,
+        parities: [],
+        disks: [{ device: '/dev/sda' }],
+        caches: [],
+      },
+      vars: {
+        fsState: 'Stopped',
+        bootEligible: true,
+        enableBootTransfer: 'yes',
+        reservedNames: '',
+      },
+      shares: [],
+      disks: [
+        {
+          device: '/dev/sda',
+          size: gib(32),
+          serialNum: 'UNASSIGNED-1',
+          emhttpDeviceId: 'disk-1',
+          interfaceType: DiskInterfaceType.SATA,
+        },
+      ],
+    };
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(false);
+    const selects = wrapper.findAll('select');
+    expect(selects).toHaveLength(3);
+    expect(selects[1]?.text()).toContain('UNASSIGNED-1');
+    expect(wrapper.text()).not.toContain('ASSIGNED_TO_ARRAY');
+    expect(wrapper.text()).not.toContain('NO_UNASSIGNED_DISKS');
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
   });
 });

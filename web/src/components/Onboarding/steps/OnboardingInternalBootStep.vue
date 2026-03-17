@@ -61,23 +61,12 @@ type InternalBootSystemEligibilityCode =
   | 'ENABLE_BOOT_TRANSFER_UNKNOWN'
   | 'BOOT_ELIGIBLE_FALSE'
   | 'BOOT_ELIGIBLE_UNKNOWN';
-type InternalBootDiskEligibilityCode =
-  | 'ASSIGNED_TO_BOOT'
-  | 'ASSIGNED_TO_ARRAY'
-  | 'ASSIGNED_TO_PARITY'
-  | 'ASSIGNED_TO_CACHE'
-  | 'TOO_SMALL';
+type InternalBootDiskEligibilityCode = 'TOO_SMALL';
 
 const MIN_BOOT_SIZE_MIB = 4096;
 const MIN_ELIGIBLE_DEVICE_SIZE_MIB = MIN_BOOT_SIZE_MIB * 2;
 const DEFAULT_BOOT_SIZE_MIB = 16384;
 const BOOT_SIZE_PRESETS_MIB = [16384, 32768, 65536, 131072];
-const ASSIGNMENT_ELIGIBILITY_CODES = new Set<InternalBootDiskEligibilityCode>([
-  'ASSIGNED_TO_BOOT',
-  'ASSIGNED_TO_ARRAY',
-  'ASSIGNED_TO_PARITY',
-  'ASSIGNED_TO_CACHE',
-]);
 const SYSTEM_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootSystemEligibilityCode, string> = {
   ARRAY_NOT_STOPPED: 'onboarding.internalBootStep.eligibility.codes.ARRAY_NOT_STOPPED',
   ALREADY_INTERNAL_BOOT: 'onboarding.internalBootStep.eligibility.codes.ALREADY_INTERNAL_BOOT',
@@ -90,10 +79,6 @@ const SYSTEM_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootSystemEligibilityCode,
   BOOT_ELIGIBLE_UNKNOWN: 'onboarding.internalBootStep.eligibility.codes.BOOT_ELIGIBLE_UNKNOWN',
 };
 const DISK_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootDiskEligibilityCode, string> = {
-  ASSIGNED_TO_BOOT: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_BOOT',
-  ASSIGNED_TO_ARRAY: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_ARRAY',
-  ASSIGNED_TO_PARITY: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_PARITY',
-  ASSIGNED_TO_CACHE: 'onboarding.internalBootStep.eligibility.codes.ASSIGNED_TO_CACHE',
   TOO_SMALL: 'onboarding.internalBootStep.eligibility.codes.TOO_SMALL',
 };
 
@@ -161,46 +146,6 @@ const bootSizePreset = ref<string>('');
 const customBootSizeGb = ref('');
 const updateBios = ref(true);
 
-const addDiskEligibilityCode = (
-  diskCodesByDevice: Map<string, Set<InternalBootDiskEligibilityCode>>,
-  deviceName: string | null | undefined,
-  code: InternalBootDiskEligibilityCode
-) => {
-  const normalizedDeviceName = normalizeDeviceName(deviceName);
-  if (!normalizedDeviceName) {
-    return;
-  }
-
-  const existingCodes = diskCodesByDevice.get(normalizedDeviceName);
-  if (existingCodes) {
-    existingCodes.add(code);
-    return;
-  }
-
-  diskCodesByDevice.set(normalizedDeviceName, new Set([code]));
-};
-
-const diskEligibilityCodesByDevice = computed(() => {
-  const data: GetInternalBootContextQuery | null | undefined = contextResult.value;
-  const codesByDevice = new Map<string, Set<InternalBootDiskEligibilityCode>>();
-  if (!data) {
-    return codesByDevice;
-  }
-
-  addDiskEligibilityCode(codesByDevice, data.array.boot?.device, 'ASSIGNED_TO_BOOT');
-  for (const parityDisk of data.array.parities) {
-    addDiskEligibilityCode(codesByDevice, parityDisk.device, 'ASSIGNED_TO_PARITY');
-  }
-  for (const arrayDisk of data.array.disks) {
-    addDiskEligibilityCode(codesByDevice, arrayDisk.device, 'ASSIGNED_TO_ARRAY');
-  }
-  for (const cacheDisk of data.array.caches) {
-    addDiskEligibilityCode(codesByDevice, cacheDisk.device, 'ASSIGNED_TO_CACHE');
-  }
-
-  return codesByDevice;
-});
-
 const templateData = computed<InternalBootTemplateData | null>(() => {
   const data: GetInternalBootContextQuery | null | undefined = contextResult.value;
   if (!data) {
@@ -208,11 +153,12 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
   }
 
   const deviceOptions = data.disks
+    .filter((disk) => typeof disk.emhttpDeviceId === 'string' && disk.emhttpDeviceId.trim().length > 0)
     .map<InternalBootDeviceOption>((disk) => {
       const device = normalizeDeviceName(disk.device);
       const sizeBytes = disk.size;
       const sizeMiB = toSizeMiB(sizeBytes);
-      const ineligibilityCodes = Array.from(diskEligibilityCodesByDevice.value.get(device) ?? []);
+      const ineligibilityCodes: InternalBootDiskEligibilityCode[] = [];
 
       if (sizeMiB !== null && sizeMiB < MIN_ELIGIBLE_DEVICE_SIZE_MIB) {
         ineligibilityCodes.push('TOO_SMALL');
@@ -311,11 +257,6 @@ const allDeviceOptions = computed(() => templateData.value?.deviceOptions ?? [])
 const deviceOptions = computed(() =>
   allDeviceOptions.value.filter((option) => option.ineligibilityCodes.length === 0)
 );
-const unassignedDeviceOptions = computed(() =>
-  allDeviceOptions.value.filter(
-    (option) => !option.ineligibilityCodes.some((code) => ASSIGNMENT_ELIGIBILITY_CODES.has(code))
-  )
-);
 const slotOptions = computed(() => templateData.value?.slotOptions ?? [1, 2]);
 const reservedNames = computed(() => new Set(templateData.value?.reservedNames ?? []));
 const shareNames = computed(() => new Set(templateData.value?.shareNames ?? []));
@@ -341,7 +282,7 @@ const systemEligibilityCodes = computed<InternalBootSystemEligibilityCode[]>(() 
   if (bootEligibilityState.value === 'unknown') {
     codes.push('BOOT_ELIGIBLE_UNKNOWN');
   }
-  if (unassignedDeviceOptions.value.length === 0) {
+  if (allDeviceOptions.value.length === 0) {
     codes.push('NO_UNASSIGNED_DISKS');
   }
 
