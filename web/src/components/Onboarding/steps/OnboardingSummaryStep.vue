@@ -201,12 +201,6 @@ const internalBootDeviceLabelById = computed(() => {
       displayId === device ? `${displayId} - ${sizeLabel}` : `${displayId} - ${sizeLabel} (${device})`;
 
     labels.set(optionValue, label);
-    if (serialNum) {
-      labels.set(serialNum, label);
-    }
-    if (diskId) {
-      labels.set(diskId, label);
-    }
     labels.set(device, label);
   }
 
