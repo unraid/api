@@ -49,7 +49,7 @@ import type {
 
 const state: ServerState = 'BASIC' as ServerState;
 const currentFlashGuid = '1111-1111-YIJD-ZACK1234TEST'; // this is the flash drive that's been booted from
-const currentTpmGuid = '03-V35H8S0L1QHK1SBG1XHXJNH7';
+const currentTpmGuid = '01-V35H8S0L1QHK1SBG1XHXJNH7';
 const regGuid = '1111-1111-YIJD-ZACK1234TEST'; // this guid is registered in key server
 const keyfileBase64 = '';
 

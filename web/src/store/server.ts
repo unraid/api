@@ -93,15 +93,11 @@ export const useServerStore = defineStore('server', () => {
   const flashVendor = ref<string>('');
   const guid = ref<string>('');
   const reportedBootedFromFlashWithInternalBootSetup = ref<boolean | undefined>(undefined);
-  const bootDeviceType = computed(
-    (): 'flash' | 'internalBoot' | 'internalBootMulti' | 'tpm' | undefined => {
-      if (!guid.value) return undefined;
-      if (guid.value.startsWith('01-')) return 'internalBoot';
-      if (guid.value.startsWith('02-')) return 'internalBootMulti';
-      if (guid.value.startsWith('03-')) return 'tpm';
-      return 'flash';
-    }
-  );
+  const bootDeviceType = computed((): 'flash' | 'tpm' | undefined => {
+    if (!guid.value) return undefined;
+    if (guid.value.startsWith('01-')) return 'tpm';
+    return 'flash';
+  });
   const guidBlacklisted = ref<boolean>();
   const guidRegistered = ref<boolean>();
   const guidReplaceable = ref<boolean | undefined>();
