@@ -4,7 +4,6 @@ export const REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION = graphql(/* GraphQL */ `
   mutation RefreshInternalBootContext {
     onboarding {
       refreshInternalBootContext {
-        arrayStopped
         bootEligible
         bootedFromFlashWithInternalBootSetup
         enableBootTransfer

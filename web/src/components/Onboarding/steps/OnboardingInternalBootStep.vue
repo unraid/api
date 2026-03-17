@@ -61,7 +61,6 @@ interface InternalBootTemplateData {
 type InternalBootTransferState = 'enabled' | 'disabled' | 'unknown';
 type InternalBootEligibilityState = 'eligible' | 'ineligible' | 'unknown';
 type InternalBootSystemEligibilityCode =
-  | 'ARRAY_NOT_STOPPED'
   | 'ALREADY_INTERNAL_BOOT'
   | 'NO_UNASSIGNED_DISKS'
   | 'ENABLE_BOOT_TRANSFER_DISABLED'
@@ -75,7 +74,6 @@ const MIN_ELIGIBLE_DEVICE_SIZE_MIB = MIN_BOOT_SIZE_MIB * 2;
 const DEFAULT_BOOT_SIZE_MIB = 16384;
 const BOOT_SIZE_PRESETS_MIB = [16384, 32768, 65536, 131072];
 const SYSTEM_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootSystemEligibilityCode, string> = {
-  ARRAY_NOT_STOPPED: 'onboarding.internalBootStep.eligibility.codes.ARRAY_NOT_STOPPED',
   ALREADY_INTERNAL_BOOT: 'onboarding.internalBootStep.eligibility.codes.ALREADY_INTERNAL_BOOT',
   NO_UNASSIGNED_DISKS: 'onboarding.internalBootStep.eligibility.codes.NO_UNASSIGNED_DISKS',
   ENABLE_BOOT_TRANSFER_DISABLED:
@@ -252,7 +250,6 @@ const bootEligibilityState = computed<InternalBootEligibilityState>(() => {
   }
   return 'unknown';
 });
-const isArrayStopped = computed(() => internalBootContext.value?.arrayStopped === true);
 const allDeviceOptions = computed(() => templateData.value?.deviceOptions ?? []);
 const deviceOptions = computed(() =>
   allDeviceOptions.value.filter((option) => option.ineligibilityCodes.length === 0)
@@ -264,9 +261,6 @@ const existingPoolNames = computed(() => new Set(templateData.value?.poolNames ?
 const systemEligibilityCodes = computed<InternalBootSystemEligibilityCode[]>(() => {
   const codes: InternalBootSystemEligibilityCode[] = [];
 
-  if (!isArrayStopped.value) {
-    codes.push('ARRAY_NOT_STOPPED');
-  }
   if (bootedFromFlashWithInternalBootSetup.value) {
     codes.push('ALREADY_INTERNAL_BOOT');
   }
@@ -301,7 +295,6 @@ const canConfigure = computed(
   () =>
     internalBootTransferState.value === 'enabled' &&
     !bootedFromFlashWithInternalBootSetup.value &&
-    isArrayStopped.value &&
     bootEligibilityState.value === 'eligible' &&
     deviceOptions.value.length > 0
 );

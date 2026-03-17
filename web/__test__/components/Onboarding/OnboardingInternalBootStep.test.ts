@@ -97,7 +97,6 @@ const buildContext = (
   overrides: Partial<GetInternalBootContextQuery['internalBootContext']> = {}
 ): GetInternalBootContextQuery => ({
   internalBootContext: {
-    arrayStopped: true,
     bootEligible: true,
     bootedFromFlashWithInternalBootSetup: false,
     enableBootTransfer: 'yes',
@@ -133,7 +132,6 @@ describe('OnboardingInternalBootStep', () => {
   it('renders all available server and disk eligibility codes when storage boot is blocked', async () => {
     draftStore.bootMode = 'storage';
     contextResult.value = buildContext({
-      arrayStopped: false,
       bootEligible: null,
       enableBootTransfer: 'maybe',
       poolNames: ['cache'],
@@ -189,10 +187,8 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.find('[data-testid="internal-boot-eligibility-panel"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(true);
     expect(wrapper.text()).not.toContain('No eligible devices were detected for internal boot setup.');
-    expect(wrapper.text()).not.toContain('ARRAY_NOT_STOPPED');
     await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
     await flushPromises();
-    expect(wrapper.text()).toContain('ARRAY_NOT_STOPPED');
     expect(wrapper.text()).toContain('ENABLE_BOOT_TRANSFER_UNKNOWN');
     expect(wrapper.text()).toContain('BOOT_ELIGIBLE_UNKNOWN');
     expect(wrapper.text()).toContain('TOO_SMALL');
@@ -319,28 +315,6 @@ describe('OnboardingInternalBootStep', () => {
     await flushPromises();
     expect(wrapper.text()).toContain('ALREADY_INTERNAL_BOOT');
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeDefined();
-  });
-
-  it('keeps the blocked headline focused on server state when eligible disks exist', async () => {
-    draftStore.bootMode = 'storage';
-    contextResult.value = buildContext({
-      arrayStopped: false,
-      assignableDisks: [
-        {
-          device: '/dev/sda',
-          size: gib(32),
-          serialNum: 'ELIGIBLE-1',
-          interfaceType: DiskInterfaceType.SATA,
-        },
-      ],
-    });
-
-    const wrapper = mountComponent();
-    await flushPromises();
-
-    expect(wrapper.find('[data-testid="internal-boot-intro-panel"]').exists()).toBe(true);
-    expect(wrapper.text()).toContain('Storage boot is currently unavailable');
-    expect(wrapper.text()).not.toContain('No eligible devices were detected for internal boot setup.');
   });
 
   it('shows disk-level ineligibility while keeping the form available for eligible disks', async () => {
