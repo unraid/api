@@ -171,7 +171,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
       }
 
       const serialNum = disk.serialNum?.trim() || '';
-      const optionValue = device;
+      const optionValue = disk.id?.trim() || serialNum || device;
       const displayId = serialNum || device;
       const sizeLabel = formatBytes(sizeBytes);
       return {

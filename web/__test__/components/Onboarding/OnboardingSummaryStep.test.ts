@@ -322,12 +322,14 @@ describe('OnboardingSummaryStep', () => {
         poolNames: [],
         assignableDisks: [
           {
+            id: 'DISK-A',
             device: '/dev/sda',
             size: 500 * 1024 * 1024 * 1024,
             serialNum: 'DISK-A',
             interfaceType: DiskInterfaceType.SATA,
           },
           {
+            id: 'DISK-B',
             device: '/dev/sdb',
             size: 250 * 1024 * 1024 * 1024,
             serialNum: 'DISK-B',
@@ -1104,7 +1106,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'boot',
       slotCount: 2,
-      devices: ['sda', 'sdb'],
+      devices: ['DISK-A', 'DISK-B'],
       bootSizeMiB: 16384,
       updateBios: true,
     };
@@ -1120,7 +1122,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['sda'],
+      devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
     };
@@ -1148,7 +1150,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 2,
-      devices: ['sda', 'sdb'],
+      devices: ['DISK-A', 'DISK-B'],
       bootSizeMiB: 16384,
       updateBios: true,
     };
@@ -1167,7 +1169,7 @@ describe('OnboardingSummaryStep', () => {
     expect(submitInternalBootCreationMock).toHaveBeenCalledWith(
       {
         poolName: 'cache',
-        devices: ['sda', 'sdb'],
+        devices: ['DISK-A', 'DISK-B'],
         bootSizeMiB: 16384,
         updateBios: true,
       },
@@ -1185,7 +1187,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['sda'],
+      devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: false,
     };
@@ -1208,7 +1210,7 @@ describe('OnboardingSummaryStep', () => {
     draftStore.internalBootSelection = {
       poolName: 'cache',
       slotCount: 1,
-      devices: ['sda'],
+      devices: ['DISK-A'],
       bootSizeMiB: 16384,
       updateBios: true,
     };

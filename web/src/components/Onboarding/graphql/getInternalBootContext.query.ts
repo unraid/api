@@ -11,6 +11,7 @@ export const GET_INTERNAL_BOOT_CONTEXT_QUERY = gql`
       shareNames
       poolNames
       assignableDisks {
+        id
         device
         size
         serialNum

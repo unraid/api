@@ -139,36 +139,42 @@ describe('OnboardingInternalBootStep', () => {
       poolNames: ['cache'],
       assignableDisks: [
         {
+          id: 'BOOT-1',
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'BOOT-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
+          id: 'PARITY-1',
           device: '/dev/sdb',
           size: gib(32),
           serialNum: 'PARITY-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
+          id: 'ARRAY-1',
           device: '/dev/sdc',
           size: gib(32),
           serialNum: 'ARRAY-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
+          id: 'CACHE-1',
           device: '/dev/sdd',
           size: gib(32),
           serialNum: 'CACHE-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
+          id: 'SMALL-1',
           device: '/dev/sde',
           size: gib(6),
           serialNum: 'SMALL-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
+          id: 'USB-1',
           device: '/dev/sdf',
           size: gib(32),
           serialNum: 'USB-1',
@@ -212,6 +218,7 @@ describe('OnboardingInternalBootStep', () => {
     contextResult.value = buildContext({
       assignableDisks: [
         {
+          id: 'WD-TEST-1234',
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'WD-TEST-1234',
@@ -232,6 +239,7 @@ describe('OnboardingInternalBootStep', () => {
     contextResult.value = buildContext({
       assignableDisks: [
         {
+          id: 'ELIGIBLE-1',
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
@@ -256,6 +264,7 @@ describe('OnboardingInternalBootStep', () => {
       poolNames: ['cache'],
       assignableDisks: [
         {
+          id: 'ELIGIBLE-1',
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
@@ -294,6 +303,7 @@ describe('OnboardingInternalBootStep', () => {
       bootedFromFlashWithInternalBootSetup: true,
       assignableDisks: [
         {
+          id: 'ELIGIBLE-1',
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
@@ -339,18 +349,21 @@ describe('OnboardingInternalBootStep', () => {
       poolNames: ['cache'],
       assignableDisks: [
         {
+          id: 'SMALL-1',
           device: '/dev/sdb',
           size: gib(6),
           serialNum: 'SMALL-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
+          id: 'ELIGIBLE-1',
           device: '/dev/sdc',
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
           interfaceType: DiskInterfaceType.SATA,
         },
         {
+          id: 'USB-1',
           device: '/dev/sdd',
           size: gib(32),
           serialNum: 'USB-1',
@@ -387,6 +400,7 @@ describe('OnboardingInternalBootStep', () => {
     contextResult.value = buildContext({
       assignableDisks: [
         {
+          id: 'UNASSIGNED-1',
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'UNASSIGNED-1',
@@ -413,6 +427,7 @@ describe('OnboardingInternalBootStep', () => {
     contextResult.value = buildContext({
       assignableDisks: [
         {
+          id: 'UNASSIGNED-1',
           device: '/dev/sda',
           size: gib(32),
           serialNum: 'UNASSIGNED-1',

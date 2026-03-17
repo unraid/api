@@ -12,6 +12,7 @@ export const REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION = graphql(/* GraphQL */ `
         shareNames
         poolNames
         assignableDisks {
+          id
           device
           size
           serialNum
