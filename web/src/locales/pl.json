@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "Zarezerwowany rozmiar bootowania musi wynosić co najmniej 4 GB.",
   "onboarding.internalBootStep.validation.bootSizeMax": "Zarezerwowany rozmiar bootowania nie może przekraczać 50% najmniejszego z wybranych dysków.",
   "onboarding.internalBootStep.actions.continue": "Kontynuuj",
+  "onboarding.internalBootStep.actions.refreshState": "Odśwież stan",
   "onboarding.summaryStep.activationLabel": "Aktywacja",
   "onboarding.summaryStep.configuration": "Konfiguracja",
   "onboarding.summaryStep.pluginsSelected": "Wybrano {count} pluginów",
