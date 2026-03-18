@@ -440,6 +440,6 @@ describe('Registration.standalone.vue', () => {
     await wrapper.vm.$nextTick();
 
     const actionNames = serverStore.keyActions?.map((action) => action.name);
-    expect(actionNames).toEqual(['activate', 'recover']);
+    expect(actionNames).toEqual(['activate', 'recover', 'trialStart']);
   });
 });

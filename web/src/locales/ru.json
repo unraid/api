@@ -319,7 +319,6 @@
   "onboarding.licenseStep.labels.activationCode": "Код активации",
   "onboarding.licenseStep.labels.none": "Нет",
   "onboarding.licenseStep.actions.manageLicense": "Управление лицензией",
-  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "Активировать сервер",
   "onboarding.licenseStep.actions.nextStep": "СЛЕДУЮЩИЙ ШАГ",
   "onboarding.licenseStep.actions.skipForNow": "Пропустить на данный момент",

@@ -5,8 +5,9 @@ import { logErrorMessages } from '@vue/apollo-util';
 
 import { ACCOUNT_CALLBACK } from '~/helpers/urls';
 
-import type { ExternalSignIn, ExternalSignOut } from '@unraid/shared-callbacks';
+import type { ExternalSignIn, ExternalSignOut, ServerData } from '@unraid/shared-callbacks';
 
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { CONNECT_SIGN_IN, CONNECT_SIGN_OUT } from '~/store/account.fragment';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useErrorsStore } from '~/store/errors';
@@ -22,9 +23,11 @@ export interface ConnectSignInMutationPayload {
 export const useAccountStore = defineStore('account', () => {
   const callbackStore = useCallbackActionsStore();
   const errorsStore = useErrorsStore();
+  const activationCodeStore = useActivationCodeDataStore();
   const serverStore = useServerStore();
   const unraidApiStore = useUnraidApiStore();
 
+  const activationCode = computed(() => activationCodeStore.activationCode);
   const serverAccountPayload = computed(() => serverStore.serverAccountPayload);
   const serverReplacePayload = computed(() => serverStore.serverReplacePayload);
   const inIframe = computed(() => serverStore.inIframe);
@@ -132,158 +135,103 @@ export const useAccountStore = defineStore('account', () => {
   // Getters
   const accountActionType = computed(() => accountAction.value?.type);
 
-  // Actions
-  const downgradeOs = async (autoRedirectReplace?: boolean) => {
-    await callbackStore.send(
+  type AccountCallbackAction =
+    | 'downgradeOs'
+    | 'manage'
+    | 'myKeys'
+    | 'recover'
+    | 'replace'
+    | 'signIn'
+    | 'signOut'
+    | 'trialExtend'
+    | 'trialStart'
+    | 'updateOs';
+
+  const buildServerPayload = (payload: ServerData) => {
+    const basePayload = {
+      ...payload,
+    };
+
+    const activationCodeValue = activationCode.value;
+    if (activationCodeValue) {
+      const { code, partner, system } = activationCodeValue;
+      const activationCodeData = {
+        ...(code ? { code } : {}),
+        ...(partner ? { partner } : {}),
+        ...(system ? { system } : {}),
+      };
+
+      return {
+        ...basePayload,
+        activationCodeData: Object.keys(activationCodeData).length ? activationCodeData : null,
+      };
+    }
+
+    return basePayload;
+  };
+
+  const sendAccountAction = (
+    type: AccountCallbackAction,
+    options?: {
+      redirect?: 'newTab' | 'replace';
+      serverPayload?: ServerData;
+    }
+  ) => {
+    const redirect = options?.redirect ?? (inIframe.value ? 'newTab' : undefined);
+    const payload = buildServerPayload(options?.serverPayload ?? serverAccountPayload.value);
+
+    return callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
       [
         {
-          server: {
-            ...serverAccountPayload.value,
-          },
-          type: 'downgradeOs',
+          server: payload,
+          type,
         },
       ],
-      inIframe.value ? 'newTab' : autoRedirectReplace ? 'replace' : undefined,
+      redirect,
       sendType.value
     );
+  };
+
+  // Actions
+  const downgradeOs = async (autoRedirectReplace?: boolean) => {
+    await sendAccountAction('downgradeOs', {
+      redirect: inIframe.value ? 'newTab' : autoRedirectReplace ? 'replace' : undefined,
+    });
   };
 
   const manage = () => {
-    callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverAccountPayload.value,
-          },
-          type: 'manage',
-        },
-      ],
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
+    sendAccountAction('manage');
   };
   const myKeys = () => {
-    callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverAccountPayload.value,
-          },
-          type: 'myKeys',
-        },
-      ],
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
+    sendAccountAction('myKeys');
   };
   const recover = () => {
-    callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverAccountPayload.value,
-          },
-          type: 'recover',
-        },
-      ],
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
+    sendAccountAction('recover');
   };
   const replace = () => {
-    callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverAccountPayload.value,
-          },
-          type: 'replace',
-        },
-      ],
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
+    sendAccountAction('replace');
   };
   const replaceTpm = () => {
-    callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverReplacePayload.value,
-          },
-          type: 'replace',
-        },
-      ],
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
+    sendAccountAction('replace', { serverPayload: serverReplacePayload.value });
   };
   const signIn = () => {
-    callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverAccountPayload.value,
-          },
-          type: 'signIn',
-        },
-      ],
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
+    sendAccountAction('signIn');
   };
   const signOut = () => {
-    callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverAccountPayload.value,
-          },
-          type: 'signOut',
-        },
-      ],
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
+    sendAccountAction('signOut');
   };
   const trialExtend = () => {
-    callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverAccountPayload.value,
-          },
-          type: 'trialExtend',
-        },
-      ],
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
+    sendAccountAction('trialExtend');
+  };
+  const trialStart = () => {
+    sendAccountAction('trialStart');
   };
 
   const updateOs = async (autoRedirectReplace?: boolean) => {
-    await callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverAccountPayload.value,
-          },
-          type: 'updateOs',
-        },
-      ],
-      inIframe.value ? 'newTab' : autoRedirectReplace ? 'replace' : undefined,
-      sendType.value
-    );
+    await sendAccountAction('updateOs', {
+      redirect: inIframe.value ? 'newTab' : autoRedirectReplace ? 'replace' : undefined,
+    });
   };
 
   const connectSignInMutation = () => {
@@ -338,6 +286,7 @@ export const useAccountStore = defineStore('account', () => {
     signIn,
     signOut,
     trialExtend,
+    trialStart,
     updateOs,
     setAccountAction,
     setConnectSignInPayload,

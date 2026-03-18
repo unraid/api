@@ -38,6 +38,12 @@ const mockUseMutation = vi.fn(() => {
   };
 });
 
+const { activationCodeStoreMock } = vi.hoisted(() => ({
+  activationCodeStoreMock: {
+    activationCode: null as { code?: string; partner?: string; system?: string } | null,
+  },
+}));
+
 const mockSend = vi.fn();
 const mockSetError = vi.fn();
 
@@ -74,6 +80,10 @@ vi.mock('~/store/unraidApi', () => ({
   }),
 }));
 
+vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
+  useActivationCodeDataStore: () => activationCodeStoreMock,
+}));
+
 describe('Account Store', () => {
   let store: ReturnType<typeof useAccountStore>;
 
@@ -83,6 +93,7 @@ describe('Account Store', () => {
     vi.mocked(useMutation);
     vi.clearAllMocks();
     vi.useFakeTimers();
+    activationCodeStoreMock.activationCode = null;
   });
 
   afterEach(() => {
@@ -108,6 +119,37 @@ describe('Account Store', () => {
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
         [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
+        undefined,
+        'post'
+      );
+    });
+
+    it('should include activationCodeData in payload when available', () => {
+      activationCodeStoreMock.activationCode = {
+        code: 'PARTNER-CODE-123',
+        partner: 'Partner Name',
+        system: 'Partner System',
+      };
+
+      store.myKeys();
+
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [
+          {
+            server: {
+              guid: 'test-guid',
+              name: 'test-server',
+              activationCodeData: {
+                code: 'PARTNER-CODE-123',
+                partner: 'Partner Name',
+                system: 'Partner System',
+              },
+            },
+            type: 'myKeys',
+          },
+        ],
         undefined,
         'post'
       );
@@ -224,6 +266,18 @@ describe('Account Store', () => {
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
         [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'trialExtend' }],
+        undefined,
+        'post'
+      );
+    });
+
+    it('should call trialStart action correctly', () => {
+      store.trialStart();
+
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'trialStart' }],
         undefined,
         'post'
       );
