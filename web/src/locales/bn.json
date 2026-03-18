@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "বুট সংরক্ষিত আকার কমপক্ষে ৪ GB হতে হবে।",
   "onboarding.internalBootStep.validation.bootSizeMax": "বুট সংরক্ষিত আকার সর্বনিম্ন নির্বাচিত ড্রাইভের ৫০% অতিক্রম করতে পারে না।",
   "onboarding.internalBootStep.actions.continue": "চালিয়ে যান",
+  "onboarding.internalBootStep.actions.refreshState": "অবস্থা রিফ্রেশ করুন",
   "onboarding.summaryStep.activationLabel": "অ্যাক্টিভেশন",
   "onboarding.summaryStep.configuration": "কনফিগারেশন",
   "onboarding.summaryStep.pluginsSelected": "{count} প্লাগইন নির্বাচিত",
