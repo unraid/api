@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "Зарезервований розмір завантаження повинен бути не менше 4 ГБ.",
   "onboarding.internalBootStep.validation.bootSizeMax": "Зарезервований розмір завантаження не може перевищувати 50% від найменшого вибраного диска.",
   "onboarding.internalBootStep.actions.continue": "Продовжити",
+  "onboarding.internalBootStep.actions.refreshState": "Оновити стан",
   "onboarding.summaryStep.activationLabel": "Активація",
   "onboarding.summaryStep.configuration": "Конфігурація",
   "onboarding.summaryStep.pluginsSelected": "Вибрано {count} плагінів",
