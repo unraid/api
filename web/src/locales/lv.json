@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "Rezervētais boot apjoms ir vismaz 4 GB.",
   "onboarding.internalBootStep.validation.bootSizeMax": "Rezervētais boot apjoms nevar pārsniegt 50% mazākās izvēlētās diska.",
   "onboarding.internalBootStep.actions.continue": "Turpināt",
+  "onboarding.internalBootStep.actions.refreshState": "Atsvaidzināt stāvokli",
   "onboarding.summaryStep.activationLabel": "Aktivizācija",
   "onboarding.summaryStep.configuration": "Konfigurācija",
   "onboarding.summaryStep.pluginsSelected": "Atlasīts {count} spraudņi",
