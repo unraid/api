@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "Зарезервированный размер для загрузки должен быть не менее 4 ГБ.",
   "onboarding.internalBootStep.validation.bootSizeMax": "Зарезервированный размер для загрузки не может превышать 50% от наименьшего из выбранных устройств.",
   "onboarding.internalBootStep.actions.continue": "Продолжить",
+  "onboarding.internalBootStep.actions.refreshState": "Обновить состояние",
   "onboarding.summaryStep.activationLabel": "Активация",
   "onboarding.summaryStep.configuration": "Конфигурация",
   "onboarding.summaryStep.pluginsSelected": "Выбрано {count} плагинов",
