@@ -319,6 +319,7 @@
   "onboarding.licenseStep.labels.activationCode": "Activation Code",
   "onboarding.licenseStep.labels.none": "None",
   "onboarding.licenseStep.actions.manageLicense": "Manage License",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "Activate Server",
   "onboarding.licenseStep.actions.nextStep": "NEXT STEP",
   "onboarding.licenseStep.actions.skipForNow": "Skip for now",

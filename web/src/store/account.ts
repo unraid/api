@@ -10,7 +10,6 @@ import type { ExternalSignIn, ExternalSignOut } from '@unraid/shared-callbacks';
 import { CONNECT_SIGN_IN, CONNECT_SIGN_OUT } from '~/store/account.fragment';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useErrorsStore } from '~/store/errors';
-import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 import { useUnraidApiStore } from '~/store/unraidApi';
 
@@ -23,7 +22,6 @@ export interface ConnectSignInMutationPayload {
 export const useAccountStore = defineStore('account', () => {
   const callbackStore = useCallbackActionsStore();
   const errorsStore = useErrorsStore();
-  const replaceRenewStore = useReplaceRenewStore();
   const serverStore = useServerStore();
   const unraidApiStore = useUnraidApiStore();
 
@@ -166,12 +164,7 @@ export const useAccountStore = defineStore('account', () => {
       sendType.value
     );
   };
-  const myKeys = async () => {
-    /**
-     * Purge the validation response so we can start fresh after the user has linked their key
-     */
-    await replaceRenewStore.purgeValidationResponse();
-
+  const myKeys = () => {
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
       [
@@ -180,26 +173,6 @@ export const useAccountStore = defineStore('account', () => {
             ...serverAccountPayload.value,
           },
           type: 'myKeys',
-        },
-      ],
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
-  };
-  const linkKey = async () => {
-    /**
-     * Purge the validation response so we can start fresh after the user has linked their key
-     */
-    await replaceRenewStore.purgeValidationResponse();
-
-    callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverAccountPayload.value,
-          },
-          type: 'linkKey',
         },
       ],
       inIframe.value ? 'newTab' : undefined,
@@ -296,21 +269,6 @@ export const useAccountStore = defineStore('account', () => {
       sendType.value
     );
   };
-  const trialStart = () => {
-    callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverAccountPayload.value,
-          },
-          type: 'trialStart',
-        },
-      ],
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
-  };
 
   const updateOs = async (autoRedirectReplace?: boolean) => {
     await callbackStore.send(
@@ -374,14 +332,12 @@ export const useAccountStore = defineStore('account', () => {
     downgradeOs,
     manage,
     myKeys,
-    linkKey,
     recover,
     replace,
     replaceTpm,
     signIn,
     signOut,
     trialExtend,
-    trialStart,
     updateOs,
     setAccountAction,
     setConnectSignInPayload,

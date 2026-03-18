@@ -265,7 +265,6 @@ vi.mock('~/store/account', () => ({
     signIn: vi.fn(),
     signOut: vi.fn(),
     trialExtend: vi.fn(),
-    trialStart: vi.fn(),
   })),
 }));
 
@@ -775,7 +774,7 @@ describe('useServerStore', () => {
     );
 
     const mockActions = [
-      { name: 'trialStart', text: 'Start Trial' },
+      { name: 'recover', text: 'Recover' },
       { name: 'purchase', text: 'Purchase' },
     ] as ServerStateDataAction[];
 
@@ -786,15 +785,15 @@ describe('useServerStore', () => {
       message: 'Test Message',
     });
 
-    const filteredOut = store.filteredKeyActions('out', ['trialStart']);
+    const filteredOut = store.filteredKeyActions('out', ['recover']);
 
     expect(filteredOut?.length).toBe(1);
     expect(filteredOut?.[0].name).toBe('purchase');
 
-    const filteredBy = store.filteredKeyActions('by', ['trialStart']);
+    const filteredBy = store.filteredKeyActions('by', ['recover']);
 
     expect(filteredBy?.length).toBe(1);
-    expect(filteredBy?.[0].name).toBe('trialStart');
+    expect(filteredBy?.[0].name).toBe('recover');
   });
 
   it('should compute isOsVersionStable correctly', () => {

@@ -532,6 +532,50 @@ describe('Callback Actions Store', () => {
       expect(store.callbackStatus).toBe('success');
     });
 
+    it('should handle trialStart as a key install action', async () => {
+      const mockData: QueryPayloads = {
+        type: 'forUpc',
+        actions: [
+          {
+            type: 'trialStart',
+            keyUrl: 'https://example.com/trial.key',
+          },
+        ],
+        sender: 'test',
+      };
+
+      await store.saveCallbackData(mockData);
+
+      expect(mockInstall).toHaveBeenCalledWith(mockData.actions[0]);
+      expect(mockRefreshServerState).toHaveBeenCalledWith({
+        poll: false,
+        delayMs: keyActionRefreshDelayMs,
+      });
+      expect(store.callbackStatus).toBe('success');
+    });
+
+    it('should handle trialExtend as a key install action', async () => {
+      const mockData: QueryPayloads = {
+        type: 'forUpc',
+        actions: [
+          {
+            type: 'trialExtend',
+            keyUrl: 'https://example.com/trial-extend.key',
+          },
+        ],
+        sender: 'test',
+      };
+
+      await store.saveCallbackData(mockData);
+
+      expect(mockInstall).toHaveBeenCalledWith(mockData.actions[0]);
+      expect(mockRefreshServerState).toHaveBeenCalledWith({
+        poll: false,
+        delayMs: keyActionRefreshDelayMs,
+      });
+      expect(store.callbackStatus).toBe('success');
+    });
+
     it('should keep key install callbacks successful even when refresh state is not done yet', async () => {
       mockRefreshServerStateStatus.value = 'timeout';
 

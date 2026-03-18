@@ -34,7 +34,7 @@ const signOutAction = (): ExternalActions => ({
 });
 
 const keyAction = (
-  type: 'activate' | 'purchase' | 'recover' | 'replace' = 'purchase'
+  type: 'activate' | 'purchase' | 'recover' | 'replace' | 'trialExtend' | 'trialStart' = 'purchase'
 ): ExternalActions => ({
   type,
   keyUrl: 'https://example.com/test.key',
@@ -86,6 +86,8 @@ describe('callbackActions.helpers', () => {
     it('classifies key actions', () => {
       expect(isKeyAction(keyAction())).toBe(true);
       expect(isKeyAction(keyAction('activate'))).toBe(true);
+      expect(isKeyAction(keyAction('trialStart'))).toBe(true);
+      expect(isKeyAction(keyAction('trialExtend'))).toBe(true);
       expect(isKeyAction(signInAction())).toBe(false);
     });
 
