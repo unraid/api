@@ -319,6 +319,7 @@
   "onboarding.licenseStep.labels.activationCode": "Aktivační kód",
   "onboarding.licenseStep.labels.none": "Žádný",
   "onboarding.licenseStep.actions.manageLicense": "Správa licence",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "Aktivovat server",
   "onboarding.licenseStep.actions.nextStep": "DALŠÍ KROK",
   "onboarding.licenseStep.actions.skipForNow": "Přeskočit prozatím",
