@@ -13,7 +13,7 @@ import { usePurchaseStore } from '~/store/purchase';
 // Mock dependencies
 const mockSend = vi.fn();
 const mockServerStore = {
-  serverPurchasePayload: {
+  serverCallbackPayload: {
     guid: 'test-guid',
     name: 'test-server',
   },

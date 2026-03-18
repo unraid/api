@@ -159,7 +159,7 @@ const getStore = () => {
     isOsVersionStable: {
       get: () => !store.osVersion || !store.osVersion.includes('-'),
     },
-    serverPurchasePayload: {
+    serverCallbackPayload: {
       get: () => ({
         description: store.description,
         deviceCount: store.deviceCount,
@@ -182,27 +182,14 @@ const getStore = () => {
         wanFQDN: store.wanFQDN,
       }),
     },
+    serverPurchasePayload: {
+      get: () => ({
+        ...store.serverCallbackPayload,
+      }),
+    },
     serverAccountPayload: {
       get: () => ({
-        deviceCount: store.deviceCount,
-        description: store.description,
-        expireTime: store.expireTime,
-        flashProduct: store.flashProduct,
-        flashVendor: store.flashVendor,
-        guid: store.guid,
-        keyfile: store.keyfile,
-        locale: store.locale,
-        name: store.name,
-        osVersion: store.osVersion,
-        osVersionBranch: store.osVersionBranch,
-        registered: store.registered ?? false,
-        regExp: store.regExp,
-        regGen: store.regGen,
-        regGuid: store.regGuid,
-        regTy: store.regTy,
-        regUpdatesExpired: store.regUpdatesExpired,
-        state: store.state,
-        wanFQDN: store.wanFQDN,
+        ...store.serverCallbackPayload,
       }),
     },
     serverReplacePayload: {

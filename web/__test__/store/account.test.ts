@@ -56,7 +56,7 @@ vi.mock('~/store/errors', () => ({
 
 vi.mock('~/store/server', () => ({
   useServerStore: () => ({
-    serverAccountPayload: {
+    serverCallbackPayload: {
       guid: 'test-guid',
       name: 'test-server',
     },

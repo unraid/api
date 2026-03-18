@@ -12,13 +12,13 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const serverStore = useServerStore();
   const { activationCode } = storeToRefs(useActivationCodeDataStore());
 
-  const serverPurchasePayload = computed(() => serverStore.serverPurchasePayload);
+  const serverCallbackPayload = computed(() => serverStore.serverCallbackPayload);
   const inIframe = computed(() => serverStore.inIframe);
   const sendType = computed(() => callbackStore.sendType);
 
   const buildServerPayload = () => {
     const payload = {
-      ...serverPurchasePayload.value,
+      ...serverCallbackPayload.value,
     };
     if (activationCode.value) {
       const { code, partner, system } = activationCode.value;
@@ -57,45 +57,29 @@ export const usePurchaseStore = defineStore('purchase', () => {
     );
   };
 
-  const activate = () => {
+  const sendPurchaseAction = (type: PurchaseActionType) => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
-      buildActionPayload('activate'),
+      buildActionPayload(type),
       inIframe.value ? 'newTab' : undefined,
       sendType.value
     );
+  };
+
+  const activate = () => {
+    sendPurchaseAction('activate');
   };
   const redeem = () => {
-    callbackStore.send(
-      PURCHASE_CALLBACK.toString(),
-      buildActionPayload('redeem'),
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
+    sendPurchaseAction('redeem');
   };
   const purchase = () => {
-    callbackStore.send(
-      PURCHASE_CALLBACK.toString(),
-      buildActionPayload('purchase'),
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
+    sendPurchaseAction('purchase');
   };
   const upgrade = () => {
-    callbackStore.send(
-      PURCHASE_CALLBACK.toString(),
-      buildActionPayload('upgrade'),
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
+    sendPurchaseAction('upgrade');
   };
   const renew = () => {
-    callbackStore.send(
-      PURCHASE_CALLBACK.toString(),
-      buildActionPayload('renew'),
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
+    sendPurchaseAction('renew');
   };
 
   return {

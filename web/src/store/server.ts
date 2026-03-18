@@ -231,8 +231,8 @@ export const useServerStore = defineStore('server', () => {
     };
   });
 
-  const serverPurchasePayload = computed((): ServerData => {
-    const server: ServerData = {
+  const serverCallbackPayload = computed((): ServerData => {
+    return {
       description: description.value,
       deviceCount: deviceCount.value,
       expireTime: expireTime.value,
@@ -253,36 +253,21 @@ export const useServerStore = defineStore('server', () => {
       state: state.value,
       wanFQDN: wanFQDN.value,
     };
-    return server;
   });
 
+  const serverPurchasePayload = computed(
+    (): ServerData => ({
+      ...serverCallbackPayload.value,
+    })
+  );
+
   const serverAccountPayload = computed((): ServerData => {
-    return {
-      deviceCount: deviceCount.value,
-      description: description.value,
-      expireTime: expireTime.value,
-      flashProduct: flashProduct.value,
-      flashVendor: flashVendor.value,
-      guid: guid.value,
-      keyfile: keyfile.value,
-      locale: locale.value,
-      name: name.value,
-      osVersion: osVersion.value,
-      osVersionBranch: osVersionBranch.value,
-      registered: registered.value ?? false,
-      regGen: regGen.value,
-      regGuid: regGuid.value,
-      regExp: regExp.value,
-      regTy: regTy.value,
-      regUpdatesExpired: regUpdatesExpired.value,
-      state: state.value,
-      wanFQDN: wanFQDN.value,
-    };
+    return { ...serverCallbackPayload.value };
   });
 
   const serverReplacePayload = computed(
     (): ServerData => ({
-      ...serverAccountPayload.value,
+      ...serverCallbackPayload.value,
       guid: replaceFlashGuid.value,
     })
   );
@@ -1446,6 +1431,7 @@ export const useServerStore = defineStore('server', () => {
     pluginInstallFailed,
     pluginOutdated,
     server,
+    serverCallbackPayload,
     serverAccountPayload,
     serverReplacePayload,
     serverPurchasePayload,
