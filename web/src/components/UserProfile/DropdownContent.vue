@@ -83,12 +83,15 @@ const filteredKeyActions = computed(() => {
   }
   return [manageLicenseAction];
 });
+const showManageLicenseHelperText = computed(
+  () => !!filteredKeyActions.value?.some((action) => action.name === 'manageLicense')
+);
 const hasTrialStartAction = computed(
   () => keyActions.value?.some((action) => action.name === 'trialStart') ?? false
 );
 const manageLicenseHelperText = computed(() =>
   hasTrialStartAction.value
-    ? 'Start your trial from Manage License in your Unraid Account.'
+    ? t('onboarding.licenseStep.actions.manageLicenseTrialStartHelperText')
     : t('onboarding.licenseStep.actions.manageLicenseHelperText')
 );
 
@@ -255,11 +258,11 @@ const unraidConnectWelcome = computed(() => {
         <DropdownItem :item="signInAction[0]" />
       </li>
 
-      <template v-if="filteredKeyActions">
+      <template v-if="filteredKeyActions?.length">
         <li v-for="action in filteredKeyActions" :key="action.name">
           <DropdownItem :item="action" />
         </li>
-        <li class="-mt-1 px-2 text-xs leading-relaxed opacity-75">
+        <li v-if="showManageLicenseHelperText" class="-mt-1 px-2 text-xs leading-relaxed opacity-75">
           {{ manageLicenseHelperText }}
         </li>
       </template>

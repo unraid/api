@@ -319,7 +319,6 @@
   "onboarding.licenseStep.labels.activationCode": "Aktivacijski Kod",
   "onboarding.licenseStep.labels.none": "**Niti jedan**",
   "onboarding.licenseStep.actions.manageLicense": "Upravljaj licencom",
-  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "Aktiviraj poslužitelj",
   "onboarding.licenseStep.actions.nextStep": "SLJEDEĆI KORAK",
   "onboarding.licenseStep.actions.skipForNow": "Preskoči za sada",
