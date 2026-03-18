@@ -21,6 +21,7 @@ import {
   WEBGUI_TOOLS_UPDATE,
 } from '~/helpers/urls';
 
+import type { ServerStateDataAction } from '~/types/server';
 import type { UserProfileLink } from '~/types/userProfile';
 
 import Beta from '~/components/UserProfile/Beta.vue';
@@ -62,26 +63,41 @@ const signInAction = computed(
 const signOutAction = computed(
   () => stateData.value.actions?.filter((act: { name: string }) => act.name === 'signOut') ?? []
 );
-const createManageLicenseAction = (text: string): UserProfileLink<'manageLicense'> => {
+const createManageLicenseAction = (
+  text: string,
+  sourceAction?: ServerStateDataAction
+): UserProfileLink<'manageLicense'> => {
+  const wrappedClick = sourceAction?.click
+    ? (...args: Parameters<NonNullable<ServerStateDataAction['click']>>) => {
+        sourceAction.click?.(...args);
+        emit('close-dropdown');
+      }
+    : sourceAction
+      ? undefined
+      : () => {
+          accountStore.myKeys();
+          emit('close-dropdown');
+        };
+
   return {
-    click: () => {
-      accountStore.myKeys();
-      emit('close-dropdown');
-    },
-    external: true,
-    icon: KeyIcon,
+    ...sourceAction,
+    click: wrappedClick,
+    external: sourceAction?.external ?? true,
+    icon: sourceAction?.icon ?? KeyIcon,
     name: 'manageLicense',
     text,
-    title: text,
+    title: sourceAction?.title ?? text,
   };
 };
-const manageLicenseAction = createManageLicenseAction('onboarding.licenseStep.actions.manageLicense');
+const manageLicenseAction = computed(() =>
+  createManageLicenseAction('onboarding.licenseStep.actions.manageLicense', keyActions.value?.[0])
+);
 
 const filteredKeyActions = computed(() => {
   if (!keyActions.value?.length) {
     return keyActions.value;
   }
-  return [manageLicenseAction];
+  return [manageLicenseAction.value];
 });
 const showManageLicenseHelperText = computed(
   () => !!filteredKeyActions.value?.some((action) => action.name === 'manageLicense')

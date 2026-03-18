@@ -4,6 +4,7 @@ import { shallowMount } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ServerStateData, ServerStateDataAction } from '~/types/server';
+import type { UserProfileLink } from '~/types/userProfile';
 import type { Ref } from 'vue';
 
 import DropdownContent from '~/components/UserProfile/DropdownContent.vue';
@@ -98,6 +99,14 @@ vi.mock('~/store/server', async () => {
 });
 
 describe('DropdownContent', () => {
+  const isManageLicenseItem = (
+    item: unknown
+  ): item is UserProfileLink<'manageLicense'> & { name: 'manageLicense' } => {
+    return (
+      typeof item === 'object' && item !== null && (item as { name?: string }).name === 'manageLicense'
+    );
+  };
+
   beforeEach(() => {
     setActivePinia(createPinia());
 
@@ -155,5 +164,48 @@ describe('DropdownContent', () => {
     });
 
     expect(wrapper.text()).toContain('Start your trial from Manage License in your Unraid Account.');
+  });
+
+  it('uses the first key action behavior for Manage License', () => {
+    const replaceClick = vi.fn();
+    serverStoreRefs.registered!.value = true;
+    serverStoreRefs.stateData!.value = {
+      actions: [],
+      error: false,
+      heading: '',
+      humanReadable: '',
+      message: '',
+    };
+    serverStoreRefs.keyActions!.value = [
+      {
+        click: replaceClick,
+        clickParams: ['foo'],
+        disabled: true,
+        external: true,
+        name: 'replace',
+        text: 'Replace Key',
+        title: 'Replace',
+      },
+    ];
+
+    const wrapper = shallowMount(DropdownContent, {
+      global: {
+        plugins: [createTestI18n()],
+      },
+    });
+
+    const dropdownItems = wrapper.findAllComponents({ name: 'DropdownItem' });
+    const manageItem = dropdownItems
+      .map((itemWrapper) => itemWrapper.props('item'))
+      .find(isManageLicenseItem);
+
+    expect(manageItem).toBeDefined();
+    expect(manageItem?.disabled).toBe(true);
+    expect(manageItem?.external).toBe(true);
+
+    manageItem?.click?.(manageItem.clickParams);
+
+    expect(replaceClick).toHaveBeenCalledTimes(1);
+    expect(accountStoreMocks.myKeys).not.toHaveBeenCalled();
   });
 });
