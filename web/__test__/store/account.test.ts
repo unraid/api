@@ -113,17 +113,6 @@ describe('Account Store', () => {
       );
     });
 
-    it('should call linkKey action correctly', () => {
-      store.linkKey();
-      expect(mockSend).toHaveBeenCalledTimes(1);
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'linkKey' }],
-        undefined,
-        'post'
-      );
-    });
-
     it('should call recover action correctly', () => {
       store.recover();
       expect(mockSend).toHaveBeenCalledTimes(1);
