@@ -39,7 +39,6 @@ const mockUseMutation = vi.fn(() => {
 });
 
 const mockSend = vi.fn();
-const mockPurge = vi.fn();
 const mockSetError = vi.fn();
 
 vi.mock('~/store/callbackActions', () => ({
@@ -52,12 +51,6 @@ vi.mock('~/store/callbackActions', () => ({
 vi.mock('~/store/errors', () => ({
   useErrorsStore: () => ({
     setError: mockSetError,
-  }),
-}));
-
-vi.mock('~/store/replaceRenew', () => ({
-  useReplaceRenewStore: () => ({
-    purgeValidationResponse: mockPurge,
   }),
 }));
 
@@ -109,10 +102,8 @@ describe('Account Store', () => {
       );
     });
 
-    it('should call myKeys action correctly', async () => {
-      await store.myKeys();
-
-      expect(mockPurge).toHaveBeenCalledTimes(1);
+    it('should call myKeys action correctly', () => {
+      store.myKeys();
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
@@ -122,10 +113,8 @@ describe('Account Store', () => {
       );
     });
 
-    it('should call linkKey action correctly', async () => {
-      await store.linkKey();
-
-      expect(mockPurge).toHaveBeenCalledTimes(1);
+    it('should call linkKey action correctly', () => {
+      store.linkKey();
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
