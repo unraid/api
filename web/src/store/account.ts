@@ -149,21 +149,6 @@ export const useAccountStore = defineStore('account', () => {
     );
   };
 
-  const manage = () => {
-    callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [
-        {
-          server: {
-            ...serverAccountPayload.value,
-          },
-          type: 'manage',
-        },
-      ],
-      inIframe.value ? 'newTab' : undefined,
-      sendType.value
-    );
-  };
   const myKeys = () => {
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
@@ -330,7 +315,6 @@ export const useAccountStore = defineStore('account', () => {
     accountActionType,
     // Actions
     downgradeOs,
-    manage,
     myKeys,
     recover,
     replace,

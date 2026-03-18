@@ -90,18 +90,6 @@ describe('Account Store', () => {
   });
 
   describe('Actions', () => {
-    it('should call manage action correctly', () => {
-      store.manage();
-
-      expect(mockSend).toHaveBeenCalledTimes(1);
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'manage' }],
-        undefined,
-        'post'
-      );
-    });
-
     it('should call myKeys action correctly', () => {
       store.myKeys();
       expect(mockSend).toHaveBeenCalledTimes(1);

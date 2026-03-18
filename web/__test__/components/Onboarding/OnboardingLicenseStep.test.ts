@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OnboardingLicenseStep from '~/components/Onboarding/steps/OnboardingLicenseStep.vue';
 import { createTestI18n } from '../../utils/i18n';
 
-const { serverStoreMock, activationStoreMock } = vi.hoisted(() => ({
+const { serverStoreMock, activationStoreMock, accountStoreMock } = vi.hoisted(() => ({
   serverStoreMock: {
     state: { value: 'ENOKEYFILE' },
     refreshServerState: vi.fn(),
@@ -14,6 +14,9 @@ const { serverStoreMock, activationStoreMock } = vi.hoisted(() => ({
     activationCode: { value: { code: 'TEST-GUID-123' } },
     registrationState: { value: 'ENOKEYFILE' },
     hasActivationCode: { value: true },
+  },
+  accountStoreMock: {
+    myKeys: vi.fn(),
   },
 }));
 
@@ -31,6 +34,10 @@ vi.mock('~/store/server', () => ({
 
 vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
   useActivationCodeDataStore: () => activationStoreMock,
+}));
+
+vi.mock('~/store/account', () => ({
+  useAccountStore: () => accountStoreMock,
 }));
 
 vi.mock('@unraid/ui', async (importOriginal) => {
@@ -74,6 +81,7 @@ describe('OnboardingLicenseStep.vue', () => {
     serverStoreMock.state.value = 'ENOKEYFILE';
     activationStoreMock.registrationState.value = 'ENOKEYFILE';
     activationStoreMock.activationCode.value = { code: 'TEST-GUID-123' };
+    accountStoreMock.myKeys.mockReset();
 
     Object.defineProperty(window, 'location', {
       writable: true,
@@ -116,6 +124,27 @@ describe('OnboardingLicenseStep.vue', () => {
 
     expect(wrapper.text()).toContain('Registered');
     expect(wrapper.text()).toContain('Manage License');
+  });
+
+  it('routes Manage License through myKeys when registered', async () => {
+    activationStoreMock.registrationState.value = 'PRO';
+    const windowOpenMock = vi.fn();
+    vi.stubGlobal('open', windowOpenMock);
+
+    const wrapper = mountComponent({
+      activateHref: 'https://activation.url',
+      activateExternal: true,
+    });
+
+    const manageButton = wrapper.findAll('button').find((button) => {
+      return button.text().includes('Manage License');
+    });
+
+    expect(manageButton).toBeTruthy();
+    await manageButton!.trigger('click');
+
+    expect(accountStoreMock.myKeys).toHaveBeenCalledTimes(1);
+    expect(windowOpenMock).not.toHaveBeenCalled();
   });
 
   it('opens activation link in new tab when activate button is clicked', async () => {

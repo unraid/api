@@ -16,6 +16,7 @@ import {
 import { BrandButton } from '@unraid/ui';
 
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
+import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
 
 interface Props {
@@ -29,6 +30,7 @@ interface Props {
 
 const props = defineProps<Props>();
 const { t, te } = useI18n();
+const accountStore = useAccountStore();
 const serverStore = useServerStore();
 const { state } = storeToRefs(serverStore);
 const { refreshServerState } = serverStore;
@@ -68,6 +70,11 @@ const isRefreshing = ref(false);
 
 // Methods
 const openActivate = () => {
+  if (hasValidLicense.value) {
+    accountStore.myKeys();
+    return;
+  }
+
   if (props.activateExternal) {
     const opened = window.open(props.activateHref, '_blank', 'noopener,noreferrer');
     if (opened) {
