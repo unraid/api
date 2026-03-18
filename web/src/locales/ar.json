@@ -319,6 +319,7 @@
   "onboarding.licenseStep.labels.activationCode": "رمز التفعيل",
   "onboarding.licenseStep.labels.none": "لا شيء",
   "onboarding.licenseStep.actions.manageLicense": "إدارة الترخيص",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "تفعيل الخادم",
   "onboarding.licenseStep.actions.nextStep": "الخطوة التالية",
   "onboarding.licenseStep.actions.skipForNow": "تخطي الآن",
