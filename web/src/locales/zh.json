@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "启动保留大小必须至少为4 GB。",
   "onboarding.internalBootStep.validation.bootSizeMax": "启动保留大小不得超过所选最小驱动器的50%。",
   "onboarding.internalBootStep.actions.continue": "继续",
+  "onboarding.internalBootStep.actions.refreshState": "刷新状态",
   "onboarding.summaryStep.activationLabel": "激活",
   "onboarding.summaryStep.configuration": "主存储和次级存储",
   "onboarding.summaryStep.pluginsSelected": "选中了{count}个插件",
