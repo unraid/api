@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "Rezervirana veličina pokretanja mora biti najmanje 4 GB.",
   "onboarding.internalBootStep.validation.bootSizeMax": "Rezervirana veličina pokretanja ne smije prelaziti 50% najmanjeg odabranog diska.",
   "onboarding.internalBootStep.actions.continue": "Nastavite",
+  "onboarding.internalBootStep.actions.refreshState": "Osvježi stanje",
   "onboarding.summaryStep.activationLabel": "Aktivacija",
   "onboarding.summaryStep.configuration": "Konfiguracija",
   "onboarding.summaryStep.pluginsSelected": "{count} odabrano dodataka",
