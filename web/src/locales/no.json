@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "Den reserverte oppstartsstørrelsen må være minst 4 GB.",
   "onboarding.internalBootStep.validation.bootSizeMax": "Den reserverte oppstartsstørrelsen kan ikke overstige 50% av den minste valgte enheten.",
   "onboarding.internalBootStep.actions.continue": "Fortsett",
+  "onboarding.internalBootStep.actions.refreshState": "Oppdater status",
   "onboarding.summaryStep.activationLabel": "Aktivering",
   "onboarding.summaryStep.configuration": "Konfigurasjon",
   "onboarding.summaryStep.pluginsSelected": "{count} plugins valgt",
