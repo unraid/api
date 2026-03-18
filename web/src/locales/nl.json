@@ -319,6 +319,7 @@
   "onboarding.licenseStep.labels.activationCode": "Activatiecode",
   "onboarding.licenseStep.labels.none": "geen",
   "onboarding.licenseStep.actions.manageLicense": "Licentie beheren",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "Server activeren",
   "onboarding.licenseStep.actions.nextStep": "VOLGENDE STAP",
   "onboarding.licenseStep.actions.skipForNow": "Voor nu overslaan",
