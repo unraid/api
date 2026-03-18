@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "Rezervovaná velikost pro bootování musí být alespoň 4 GB.",
   "onboarding.internalBootStep.validation.bootSizeMax": "Rezervovaná velikost pro bootování nemůže přesáhnout 50 % nejmenšího vybraného disku.",
   "onboarding.internalBootStep.actions.continue": "Pokračovat",
+  "onboarding.internalBootStep.actions.refreshState": "Obnovit stav",
   "onboarding.summaryStep.activationLabel": "Aktivace",
   "onboarding.summaryStep.configuration": "Konfigurace",
   "onboarding.summaryStep.pluginsSelected": "{count} pluginy vybráno",
