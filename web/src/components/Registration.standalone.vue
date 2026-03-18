@@ -50,7 +50,6 @@ const {
   flashVendor,
   guid,
   keyActions,
-  keyfile,
   computedRegDevs,
   regGuid,
   regTm,
