@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "Boot reservstorlek måste vara minst 4 GB.",
   "onboarding.internalBootStep.validation.bootSizeMax": "Boot reservstorlek får inte överstiga 50 % av den minsta valda enheten.",
   "onboarding.internalBootStep.actions.continue": "Fortsätt",
+  "onboarding.internalBootStep.actions.refreshState": "Uppdatera status",
   "onboarding.summaryStep.activationLabel": "Aktivering",
   "onboarding.summaryStep.configuration": "Konfiguration",
   "onboarding.summaryStep.pluginsSelected": "{count} plugins valda",
