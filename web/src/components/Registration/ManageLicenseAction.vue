@@ -17,7 +17,7 @@ const accountStore = useAccountStore();
       class="w-full sm:max-w-[300px]"
       @click="accountStore.myKeys()"
     />
-    <p class="text-sm leading-relaxed opacity-75">
+    <p data-testid="manage-license-helper-text" class="text-sm leading-relaxed opacity-75">
       {{ t('onboarding.licenseStep.actions.manageLicenseHelperText') }}
     </p>
   </div>

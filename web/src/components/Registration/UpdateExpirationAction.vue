@@ -45,15 +45,15 @@ const output = computed(() => {
     <div class="flex flex-wrap items-start justify-between gap-2">
       <BrandButton
         v-if="regUpdatesExpired"
-        :disabled="renewAction?.disabled"
-        :external="renewAction?.external"
+        :disabled="renewAction.disabled"
+        :external="renewAction.external"
         :icon="renewAction.icon"
         :icon-right="ArrowTopRightOnSquareIcon"
         :icon-right-hover-display="true"
         :text="t('updateOs.updateIneligible.extendLicense')"
         :title="t('updateOs.updateIneligible.payYourAnnualFeeToContinue')"
         class="grow"
-        @click="renewAction.click?.()"
+        @click="renewAction.click()"
       />
 
       <BrandButton

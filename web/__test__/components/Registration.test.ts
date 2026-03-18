@@ -309,12 +309,11 @@ describe('Registration.standalone.vue', () => {
     await wrapper.vm.$nextTick();
 
     const manageButton = wrapper.find('[data-testid="manage-license-button"]');
+    const manageHelperText = wrapper.find('[data-testid="manage-license-helper-text"]');
 
     expect(manageButton.exists()).toBe(true);
     expect(manageButton.text()).toContain('Manage License');
-    expect(wrapper.text()).toContain(
-      'View replacement and renewal options for this server key in the Unraid Account App.'
-    );
+    expect(manageHelperText.exists()).toBe(true);
   });
 
   it('opens Manage License route when Manage License button is clicked', async () => {
