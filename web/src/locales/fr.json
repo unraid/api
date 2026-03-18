@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "La taille réservée du démarrage doit être d'au moins 4 Go.",
   "onboarding.internalBootStep.validation.bootSizeMax": "La taille réservée du démarrage ne peut pas dépasser 50% du plus petit disque sélectionné.",
   "onboarding.internalBootStep.actions.continue": "Continuer",
+  "onboarding.internalBootStep.actions.refreshState": "Actualiser l'état",
   "onboarding.summaryStep.activationLabel": "Activation",
   "onboarding.summaryStep.configuration": "Stockage principal et secondaire",
   "onboarding.summaryStep.pluginsSelected": "{count} plugins sélectionnés",
