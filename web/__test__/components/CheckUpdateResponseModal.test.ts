@@ -95,16 +95,11 @@ vi.mock('pinia', async () => {
 });
 
 const mockAccountUpdateOs = vi.fn();
+const mockAccountMyKeys = vi.fn();
 vi.mock('~/store/account', () => ({
   useAccountStore: () => ({
     updateOs: mockAccountUpdateOs,
-  }),
-}));
-
-const mockRenew = vi.fn();
-vi.mock('~/store/purchase', () => ({
-  usePurchaseStore: () => ({
-    renew: mockRenew,
+    myKeys: mockAccountMyKeys,
   }),
 }));
 
@@ -179,7 +174,7 @@ describe('CheckUpdateResponseModal', () => {
     updateOsResponse.value = null;
 
     mockAccountUpdateOs.mockClear();
-    mockRenew.mockClear();
+    mockAccountMyKeys.mockClear();
     mockSetModalOpen.mockClear();
     mockSetReleaseForUpdate.mockClear();
     mockFetchAndConfirmInstall.mockClear();
@@ -248,6 +243,6 @@ describe('CheckUpdateResponseModal', () => {
     expect(labels).toContain('Extend License');
 
     await actionButtons.find((btn) => btn.text() === 'Extend License')?.trigger('click');
-    expect(mockRenew).toHaveBeenCalled();
+    expect(mockAccountMyKeys).toHaveBeenCalled();
   });
 });

@@ -45,7 +45,6 @@ import { useFragment } from '~/composables/gql/fragment-masking';
 import { WebguiState, WebguiUpdateIgnore } from '~/composables/services/webgui';
 import { useAccountStore } from '~/store/account';
 import { useErrorsStore } from '~/store/errors';
-import { usePurchaseStore } from '~/store/purchase';
 import { CLOUD_STATE_QUERY, SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from '~/store/server.fragment';
 import { useThemeStore } from '~/store/theme';
 import { useUnraidApiStore } from '~/store/unraidApi';
@@ -55,7 +54,6 @@ export const useServerStore = defineStore('server', () => {
   const { t } = useI18n();
   const accountStore = useAccountStore();
   const errorsStore = useErrorsStore();
-  const purchaseStore = usePurchaseStore();
   const themeStore = useThemeStore();
   const unraidApiStore = useUnraidApiStore();
   const { activationCode } = storeToRefs(useActivationCodeDataStore());
@@ -324,7 +322,7 @@ export const useServerStore = defineStore('server', () => {
   const purchaseAction = computed((): ServerStateDataAction => {
     return {
       click: () => {
-        purchaseStore.purchase();
+        accountStore.myKeys();
       },
       disabled: serverActionsDisable.value.disable,
       external: true,
@@ -337,7 +335,7 @@ export const useServerStore = defineStore('server', () => {
   const upgradeAction = computed((): ServerStateDataAction => {
     return {
       click: () => {
-        purchaseStore.upgrade();
+        accountStore.myKeys();
       },
       disabled: serverActionsDisable.value.disable,
       external: true,
@@ -367,11 +365,7 @@ export const useServerStore = defineStore('server', () => {
 
     return {
       click: () => {
-        if (shouldUsePartnerActivate) {
-          purchaseStore.activate();
-        } else {
-          purchaseStore.redeem();
-        }
+        accountStore.myKeys();
       },
       disabled: serverActionsDisable.value.disable,
       external: true,
@@ -386,7 +380,7 @@ export const useServerStore = defineStore('server', () => {
   const renewAction = computed((): ServerStateDataAction => {
     return {
       click: () => {
-        purchaseStore.renew();
+        accountStore.myKeys();
       },
       disabled: serverActionsDisable.value.disable,
       external: true,

@@ -5,7 +5,7 @@ import { logErrorMessages } from '@vue/apollo-util';
 
 import { ACCOUNT_CALLBACK } from '~/helpers/urls';
 
-import type { ExternalSignIn, ExternalSignOut, ServerData } from '@unraid/shared-callbacks';
+import type { ExternalSignIn, ExternalSignOut } from '@unraid/shared-callbacks';
 
 import { CONNECT_SIGN_IN, CONNECT_SIGN_OUT } from '~/store/account.fragment';
 import { useCallbackActionsStore } from '~/store/callbackActions';
@@ -26,7 +26,6 @@ export const useAccountStore = defineStore('account', () => {
   const unraidApiStore = useUnraidApiStore();
 
   const serverCallbackPayload = computed(() => serverStore.serverCallbackPayload);
-  const serverReplacePayload = computed(() => serverStore.serverReplacePayload);
   const inIframe = computed(() => serverStore.inIframe);
   const sendType = computed(() => callbackStore.sendType);
 
@@ -132,68 +131,66 @@ export const useAccountStore = defineStore('account', () => {
   // Getters
   const accountActionType = computed(() => accountAction.value?.type);
 
-  type AccountCallbackActionType =
-    | 'downgradeOs'
-    | 'myKeys'
-    | 'recover'
-    | 'replace'
-    | 'signIn'
-    | 'signOut'
-    | 'trialExtend'
-    | 'updateOs';
+  type AccountCallbackActionType = 'myKeys' | 'signIn' | 'signOut' | 'downgradeOs' | 'updateOs';
 
-  const sendAccountAction = (
-    type: AccountCallbackActionType,
-    options?: { actionType?: 'newTab' | 'replace'; server?: ServerData }
-  ) => {
+  const sendAccountAction = (type: AccountCallbackActionType, actionType?: 'newTab' | 'replace') => {
     return callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
       [
         {
           server: {
-            ...(options?.server ?? serverCallbackPayload.value),
+            ...serverCallbackPayload.value,
           },
           type,
         },
       ],
-      options?.actionType ?? (inIframe.value ? 'newTab' : undefined),
+      actionType ?? (inIframe.value ? 'newTab' : undefined),
       sendType.value
     );
   };
 
+  const buildMyKeysActionPayload = () => [
+    {
+      server: {
+        ...serverCallbackPayload.value,
+      },
+      type: 'myKeys' as const,
+    },
+  ];
+
+  const generateMyKeysUrl = () =>
+    callbackStore.generateUrl(
+      ACCOUNT_CALLBACK.toString(),
+      buildMyKeysActionPayload(),
+      sendType.value,
+      undefined
+    );
+
   // Actions
   const downgradeOs = async (autoRedirectReplace?: boolean) => {
-    return sendAccountAction('downgradeOs', {
-      actionType: inIframe.value ? 'newTab' : autoRedirectReplace ? 'replace' : undefined,
-    });
+    return sendAccountAction(
+      'downgradeOs',
+      inIframe.value ? 'newTab' : autoRedirectReplace ? 'replace' : undefined
+    );
   };
 
-  const myKeys = () => {
-    sendAccountAction('myKeys');
-  };
-  const recover = () => {
-    sendAccountAction('recover');
-  };
-  const replace = () => {
-    sendAccountAction('replace');
-  };
-  const replaceTpm = () => {
-    sendAccountAction('replace', { server: serverReplacePayload.value });
-  };
+  const myKeys = () => sendAccountAction('myKeys');
+  const recover = () => myKeys();
+  const replace = () => myKeys();
+  const replaceTpm = () => myKeys();
   const signIn = () => {
     sendAccountAction('signIn');
   };
   const signOut = () => {
     sendAccountAction('signOut');
   };
-  const trialExtend = () => {
-    sendAccountAction('trialExtend');
-  };
+  const trialExtend = () => myKeys();
 
   const updateOs = async (autoRedirectReplace?: boolean) => {
-    return sendAccountAction('updateOs', {
-      actionType: inIframe.value ? 'newTab' : autoRedirectReplace ? 'replace' : undefined,
-    });
+    return sendAccountAction(
+      'updateOs',
+      inIframe.value ? 'newTab' : autoRedirectReplace ? 'replace' : undefined
+    );
   };
 
   const connectSignInMutation = () => {
@@ -248,6 +245,8 @@ export const useAccountStore = defineStore('account', () => {
     signOut,
     trialExtend,
     updateOs,
+    generateMyKeysUrl,
+    openInNewTab: computed(() => inIframe.value),
     setAccountAction,
     setConnectSignInPayload,
     setQueueConnectSignOut,

@@ -35,7 +35,6 @@ import type { BrandButtonProps } from '@unraid/ui';
 import UpdateOsIgnoredRelease from '~/components/UpdateOs/IgnoredRelease.vue';
 import useDateTimeHelper from '~/composables/dateTime';
 import { useAccountStore } from '~/store/account';
-import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 
@@ -49,7 +48,6 @@ withDefaults(defineProps<Props>(), {
 const { t } = useI18n();
 
 const accountStore = useAccountStore();
-const purchaseStore = usePurchaseStore();
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 
@@ -204,7 +202,7 @@ const actionButtons = computed((): BrandButtonProps[] => {
   // update available with renewal - open changelog and Extend License options
   if (availableWithRenewal.value) {
     buttons.push({
-      click: async () => await purchaseStore.renew(),
+      click: async () => await accountStore.myKeys(),
       icon: KeyIcon,
       iconRight: ArrowTopRightOnSquareIcon,
       iconRightHoverDisplay: false,

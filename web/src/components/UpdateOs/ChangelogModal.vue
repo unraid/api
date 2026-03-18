@@ -21,7 +21,7 @@ import {
 import { DOCS } from '~/helpers/urls';
 
 import RawChangelogRenderer from '~/components/UpdateOs/RawChangelogRenderer.vue';
-import { usePurchaseStore } from '~/store/purchase';
+import { useAccountStore } from '~/store/account';
 import { useThemeStore } from '~/store/theme';
 import { useUpdateOsStore } from '~/store/updateOs';
 
@@ -48,7 +48,7 @@ const emit = defineEmits<{
   close: [];
 }>();
 
-const purchaseStore = usePurchaseStore();
+const accountStore = useAccountStore();
 const updateOsStore = useUpdateOsStore();
 const themeStore = useThemeStore();
 const { darkMode, theme } = storeToRefs(themeStore);
@@ -210,7 +210,7 @@ const showRawChangelog = computed<boolean>(() => {
             v-if="showExtendKeyButton"
             :icon="KeyIcon"
             :icon-right="ArrowTopRightOnSquareIcon"
-            @click="purchaseStore.renew()"
+            @click="accountStore.myKeys()"
           >
             {{ t('updateOs.changelogModal.extendLicenseToUpdate') }}
           </BrandButton>

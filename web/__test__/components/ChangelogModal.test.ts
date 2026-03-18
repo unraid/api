@@ -60,10 +60,10 @@ vi.mock('pinia', async () => {
   };
 });
 
-const mockRenew = vi.fn();
-vi.mock('~/store/purchase', () => ({
-  usePurchaseStore: () => ({
-    renew: mockRenew,
+const mockAccountMyKeys = vi.fn();
+vi.mock('~/store/account', () => ({
+  useAccountStore: () => ({
+    myKeys: mockAccountMyKeys,
   }),
 }));
 
@@ -110,7 +110,7 @@ describe('ChangelogModal iframeSrc', () => {
     });
 
   beforeEach(() => {
-    mockRenew.mockClear();
+    mockAccountMyKeys.mockClear();
     mockAvailableWithRenewal.value = false;
     mockReleaseForUpdate.value = null;
     mockChangelogModalVisible.value = false;

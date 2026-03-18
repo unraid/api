@@ -22,7 +22,7 @@ const {
   activationCodeDataStore,
   onboardingStatusStore,
   onboardingDraftStore,
-  purchaseStore,
+  accountStore,
   serverStore,
   themeStore,
   cleanupOnboardingStorageMock,
@@ -71,8 +71,8 @@ const {
       onboardingDraftStore.currentStepIndex.value = stepIndex;
     }),
   },
-  purchaseStore: {
-    generateUrl: vi.fn(() => 'https://example.com/activate'),
+  accountStore: {
+    generateMyKeysUrl: vi.fn(() => 'https://example.com/my-keys'),
     openInNewTab: true,
   },
   serverStore: {
@@ -154,8 +154,8 @@ vi.mock('~/components/Onboarding/store/onboardingDraft', () => ({
   useOnboardingDraftStore: () => onboardingDraftStore,
 }));
 
-vi.mock('~/store/purchase', () => ({
-  usePurchaseStore: () => purchaseStore,
+vi.mock('~/store/account', () => ({
+  useAccountStore: () => accountStore,
 }));
 
 vi.mock('~/store/server', () => ({

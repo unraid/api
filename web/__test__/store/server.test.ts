@@ -248,6 +248,7 @@ const getStore = () => {
 vi.mock('~/store/account', () => ({
   useAccountStore: vi.fn(() => ({
     accountActionType: '',
+    myKeys: vi.fn(),
     recover: vi.fn(),
     replace: vi.fn(),
     signIn: vi.fn(),
@@ -261,16 +262,6 @@ vi.mock('~/store/errors', () => ({
     openTroubleshoot: vi.fn(),
     removeErrorByRef: vi.fn(),
     setError: vi.fn(),
-  })),
-}));
-
-vi.mock('~/store/purchase', () => ({
-  usePurchaseStore: vi.fn(() => ({
-    purchase: vi.fn(),
-    upgrade: vi.fn(),
-    renew: vi.fn(),
-    activate: vi.fn(),
-    redeem: vi.fn(),
   })),
 }));
 

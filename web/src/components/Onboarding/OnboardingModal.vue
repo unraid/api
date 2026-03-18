@@ -21,7 +21,7 @@ import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardin
 import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardingModalVisibility';
 import { useOnboardingStore } from '~/components/Onboarding/store/onboardingStatus';
 import { cleanupOnboardingStorage } from '~/components/Onboarding/store/onboardingStorageCleanup';
-import { usePurchaseStore } from '~/store/purchase';
+import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
@@ -36,7 +36,7 @@ const onboardingStore = useOnboardingStore();
 const { shouldShowOnboarding, isVersionDrift, completedAtVersion, canDisplayOnboardingModal } =
   storeToRefs(onboardingStore);
 const { refetchOnboarding } = onboardingStore;
-const purchaseStore = usePurchaseStore();
+const accountStore = useAccountStore();
 const { keyfile } = storeToRefs(useServerStore());
 const themeStore = useThemeStore();
 const { internalBootVisibility, loading: onboardingContextLoading } = storeToRefs(
@@ -59,8 +59,8 @@ const allowActivationSkip = computed(
   () => hasKeyfile.value || activationRequired.value || showActivationStep.value
 );
 const showKeyfileHint = computed(() => activationRequired.value && hasKeyfile.value);
-const activateHref = computed(() => purchaseStore.generateUrl('activate'));
-const activateExternal = computed(() => purchaseStore.openInNewTab);
+const activateHref = computed(() => accountStore.generateMyKeysUrl());
+const activateExternal = computed(() => accountStore.openInNewTab);
 
 // Hardcoded step definitions - order matters for UI flow
 const HARDCODED_STEPS: Array<{ id: StepId; required: boolean }> = [

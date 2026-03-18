@@ -60,10 +60,6 @@ vi.mock('~/store/server', () => ({
       guid: 'test-guid',
       name: 'test-server',
     },
-    serverReplacePayload: {
-      guid: 'test-tpm-guid',
-      name: 'test-server',
-    },
     inIframe: false,
   }),
 }));
@@ -106,7 +102,7 @@ describe('Account Store', () => {
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'recover' }],
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
         undefined,
         'post'
       );
@@ -182,7 +178,7 @@ describe('Account Store', () => {
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'replace' }],
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
         undefined,
         'post'
       );
@@ -196,8 +192,8 @@ describe('Account Store', () => {
         ACCOUNT_CALLBACK.toString(),
         [
           {
-            server: { guid: 'test-tpm-guid', name: 'test-server' },
-            type: 'replace',
+            server: { guid: 'test-guid', name: 'test-server' },
+            type: 'myKeys',
           },
         ],
         undefined,
@@ -211,7 +207,7 @@ describe('Account Store', () => {
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'trialExtend' }],
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
         undefined,
         'post'
       );
