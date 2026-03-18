@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "बूट आरक्षित आकार कम से कम 4 जीबी होना चाहिए।",
   "onboarding.internalBootStep.validation.bootSizeMax": "बूट आरक्षित आकार सबसे छोटे चयनित ड्राइव का 50% से अधिक नहीं हो सकता।",
   "onboarding.internalBootStep.actions.continue": "जारी रखें",
+  "onboarding.internalBootStep.actions.refreshState": "स्थिति रीफ़्रेश करें",
   "onboarding.summaryStep.activationLabel": "सक्रियण",
   "onboarding.summaryStep.configuration": "कॉन्फ़िगरेशन",
   "onboarding.summaryStep.pluginsSelected": "{count} प्लगइन्स चयनित",
