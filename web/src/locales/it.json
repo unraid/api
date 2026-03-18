@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "La dimensione riservata per l'avvio deve essere almeno di 4 GB.",
   "onboarding.internalBootStep.validation.bootSizeMax": "La dimensione riservata per l'avvio non può superare il 50% della più piccola unità selezionata.",
   "onboarding.internalBootStep.actions.continue": "Continua",
+  "onboarding.internalBootStep.actions.refreshState": "Aggiorna stato",
   "onboarding.summaryStep.activationLabel": "Attivazione",
   "onboarding.summaryStep.configuration": "Configurazione",
   "onboarding.summaryStep.pluginsSelected": "{count} plugin selezionati",
