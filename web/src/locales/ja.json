@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "ブート予約サイズは少なくとも4GBである必要があります。",
   "onboarding.internalBootStep.validation.bootSizeMax": "ブート予約サイズは、選択した最小ドライブの50％を超えることはできません。",
   "onboarding.internalBootStep.actions.continue": "続行",
+  "onboarding.internalBootStep.actions.refreshState": "状態を更新",
   "onboarding.summaryStep.activationLabel": "アクティベーション",
   "onboarding.summaryStep.configuration": "構成",
   "onboarding.summaryStep.pluginsSelected": "{count} プラグインが選択されました",
