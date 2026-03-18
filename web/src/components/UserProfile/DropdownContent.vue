@@ -62,13 +62,44 @@ const signInAction = computed(
 const signOutAction = computed(
   () => stateData.value.actions?.filter((act: { name: string }) => act.name === 'signOut') ?? []
 );
+const createManageLicenseAction = (text: string): UserProfileLink<'manageLicense'> => {
+  return {
+    click: () => {
+      accountStore.myKeys();
+      emit('close-dropdown');
+    },
+    external: true,
+    icon: KeyIcon,
+    name: 'manageLicense',
+    text,
+    title: text,
+  };
+};
+const licenseActionsToManage = new Set(['activate', 'purchase', 'recover', 'redeem', 'trialStart']);
 
 /**
  * Filter out the renew action from the key actions so we can display it separately and link to the Tools > Registration page
  */
-const filteredKeyActions = computed(() =>
-  keyActions.value?.filter((action) => !['renew'].includes(action.name))
-);
+const filteredKeyActions = computed(() => {
+  const actions = keyActions.value?.filter((action) => !['renew'].includes(action.name));
+
+  if (!actions?.length) {
+    return actions;
+  }
+
+  const hasLegacyLicenseAction = actions.some((action) => licenseActionsToManage.has(action.name));
+
+  if (!hasLegacyLicenseAction) {
+    return actions;
+  }
+
+  const hasTrialStart = actions.some((action) => action.name === 'trialStart');
+  const manageActionText = hasTrialStart
+    ? 'Manage License / Start Trial'
+    : 'onboarding.licenseStep.actions.manageLicense';
+  const nonLicenseActions = actions.filter((action) => !licenseActionsToManage.has(action.name));
+  return [createManageLicenseAction(manageActionText), ...nonLicenseActions];
+});
 
 const manageUnraidNetAccount = computed((): UserProfileLink => {
   return {

@@ -269,6 +269,21 @@ export const useAccountStore = defineStore('account', () => {
       sendType.value
     );
   };
+  const trialStart = () => {
+    callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [
+        {
+          server: {
+            ...serverAccountPayload.value,
+          },
+          type: 'trialStart',
+        },
+      ],
+      inIframe.value ? 'newTab' : undefined,
+      sendType.value
+    );
+  };
 
   const updateOs = async (autoRedirectReplace?: boolean) => {
     await callbackStore.send(
@@ -338,6 +353,7 @@ export const useAccountStore = defineStore('account', () => {
     signIn,
     signOut,
     trialExtend,
+    trialStart,
     updateOs,
     setAccountAction,
     setConnectSignInPayload,
