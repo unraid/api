@@ -210,6 +210,13 @@ describe('OnboardingInternalBootService', () => {
 
     it('runs efibootmgr update flow when updateBios is requested', async () => {
         vi.mocked(emcmd).mockResolvedValue({ ok: true } as Awaited<ReturnType<typeof emcmd>>);
+        disksService.getAssignableDisks.mockResolvedValue([
+            {
+                id: 'disk-1',
+                serialNum: 'disk-1',
+                device: '/dev/sdb',
+            },
+        ]);
         vi.mocked(getters.emhttp).mockReturnValue({
             var: { mdState: 'STOPPED' },
             devices: [{ id: 'disk-1', device: 'sdb' }],
@@ -262,7 +269,10 @@ describe('OnboardingInternalBootService', () => {
             1
         );
         expect(vi.mocked(emcmd)).toHaveBeenCalledTimes(4);
-        expect(vi.mocked(loadStateFileSync)).not.toHaveBeenCalled();
+        expect(disksService.getAssignableDisks).toHaveBeenCalledTimes(1);
+        expect(vi.mocked(loadStateFileSync)).toHaveBeenNthCalledWith(1, 'var');
+        expect(vi.mocked(loadStateFileSync)).toHaveBeenNthCalledWith(2, 'devs');
+        expect(vi.mocked(loadStateFileSync)).toHaveBeenNthCalledWith(3, 'disks');
         expect(vi.mocked(execa)).toHaveBeenNthCalledWith(1, 'efibootmgr', [], { reject: false });
         expect(vi.mocked(execa)).toHaveBeenNthCalledWith(2, 'efibootmgr', ['-b', '0001', '-B'], {
             reject: false,
@@ -327,9 +337,17 @@ describe('OnboardingInternalBootService', () => {
 
         expect(result.ok).toBe(true);
         expect(result.code).toBe(0);
-        expect(result.output).toContain('efibootmgr failed for');
+        expect(result.output).toContain(
+            "Unable to resolve boot device for serial 'disk-1' from assignableDisks; skipping BIOS entry creation for this disk."
+        );
+        expect(result.output).not.toContain("efibootmgr failed for '/dev/disk-1'");
         expect(result.output).toContain(
             'BIOS boot entry updates completed with warnings; manual BIOS boot order changes may still be required.'
+        );
+        expect(vi.mocked(execa)).not.toHaveBeenCalledWith(
+            'efibootmgr',
+            expect.arrayContaining(['/dev/disk-1']),
+            { reject: false }
         );
         expect(internalBootStateService.invalidateCachedInternalBootDeviceState).toHaveBeenCalledTimes(
             1

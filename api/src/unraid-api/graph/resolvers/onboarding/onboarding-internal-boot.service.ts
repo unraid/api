@@ -20,18 +20,9 @@ import { InternalBootStateService } from '@app/unraid-api/graph/resolvers/disks/
 const INTERNAL_BOOT_COMMAND_TIMEOUT_MS = 180000;
 const EFI_BOOT_PATH = '\\EFI\\BOOT\\BOOTX64.EFI';
 
-type EmhttpDeviceRecord = {
-    id: string;
-    device: string;
-};
-
-const isEmhttpDeviceRecord = (value: unknown): value is EmhttpDeviceRecord => {
-    if (!value || typeof value !== 'object') {
-        return false;
-    }
-
-    const record = value as { id?: unknown; device?: unknown };
-    return typeof record.id === 'string' && typeof record.device === 'string';
+type ResolvedBootDevice = {
+    bootId: string;
+    devicePath: string;
 };
 
 @Injectable()
@@ -254,31 +245,6 @@ export class OnboardingInternalBootService {
         return this.getInternalBootContext();
     }
 
-    private getDeviceMapFromEmhttpState(output: string[]): Map<string, string> {
-        const emhttpState = getters.emhttp();
-        const rawDevices = Array.isArray(emhttpState.devices) ? emhttpState.devices : [];
-        const devicesById = new Map<string, string>();
-        const rawDevicesText = this.stringifyForOutput(rawDevices);
-        output.push(`emhttp.devices raw: ${rawDevicesText}`);
-        this.logger.debug(`createInternalBootPool emhttp.devices raw=${rawDevicesText}`);
-
-        for (const rawDevice of rawDevices) {
-            if (!isEmhttpDeviceRecord(rawDevice)) {
-                continue;
-            }
-            const id = rawDevice.id.trim();
-            const device = rawDevice.device.trim();
-            if (id.length > 0 && device.length > 0) {
-                devicesById.set(id, device);
-            }
-        }
-
-        const parsedMapText = this.stringifyForOutput(Array.from(devicesById.entries()));
-        output.push(`emhttp.devices parsed id->device: ${parsedMapText}`);
-        this.logger.debug(`createInternalBootPool emhttp.devices parsed id->device=${parsedMapText}`);
-        return devicesById;
-    }
-
     private getFlashDeviceFromEmhttpState(): string | null {
         const emhttpState = getters.emhttp();
         const emhttpDisks = Array.isArray(emhttpState.disks) ? emhttpState.disks : [];
@@ -314,45 +280,72 @@ export class OnboardingInternalBootService {
         return hadFailures;
     }
 
-    private resolveBootDevicePath(
-        bootDevice: string,
-        devsById: Map<string, string>
-    ): { bootId: string; devicePath: string; source: 'mapped' | 'fallback' } | null {
-        const bootId = bootDevice;
-        let device = bootDevice;
-        let source: 'mapped' | 'fallback' = 'fallback';
-        if (device === '' || devsById.has(device)) {
-            const mapped = devsById.get(device);
-            if (mapped) {
-                device = mapped;
-                source = 'mapped';
+    private async resolveRequestedBootDevices(
+        bootIds: string[],
+        output: string[]
+    ): Promise<Map<string, ResolvedBootDevice>> {
+        this.loadEmhttpBootContext(true);
+        const assignableDisks = await this.disksService.getAssignableDisks();
+        const snapshot = assignableDisks.map((disk) => ({
+            id: disk.id,
+            serialNum: disk.serialNum,
+            device: disk.device,
+        }));
+        output.push(`assignableDisks snapshot: ${this.stringifyForOutput(snapshot)}`);
+        this.logger.debug(
+            `createInternalBootPool assignableDisks snapshot=${this.stringifyForOutput(snapshot)}`
+        );
+
+        const resolved = new Map<string, ResolvedBootDevice>();
+
+        for (const disk of assignableDisks) {
+            const bootId = disk.serialNum.trim();
+            const devicePath = disk.device.trim();
+            if (bootId.length === 0 || devicePath.length === 0) {
+                continue;
             }
+
+            resolved.set(bootId, { bootId, devicePath });
         }
-        if (device === '') {
-            return null;
+
+        output.push(
+            `assignableDisks resolved serialNum->device: ${this.stringifyForOutput(Array.from(resolved.entries()))}`
+        );
+        this.logger.debug(
+            `createInternalBootPool assignableDisks resolved serialNum->device=${this.stringifyForOutput(Array.from(resolved.entries()))}`
+        );
+
+        for (const bootId of bootIds) {
+            if (resolved.has(bootId)) {
+                continue;
+            }
+
+            const warning = `Unable to resolve boot device for serial '${bootId}' from assignableDisks; skipping BIOS entry creation for this disk.`;
+            output.push(warning);
+            this.logger.warn(
+                `createInternalBootPool could not resolve serial='${bootId}' from assignableDisks`
+            );
         }
-        return { bootId, devicePath: `/dev/${device}`, source };
+
+        return resolved;
     }
 
     private async createInternalBootEntries(
         devices: string[],
-        devsById: Map<string, string>,
+        resolvedDevices: Map<string, ResolvedBootDevice>,
         output: string[]
     ): Promise<boolean> {
         let hadFailures = false;
         for (const bootDevice of devices) {
-            const resolved = this.resolveBootDevicePath(bootDevice, devsById);
+            const resolved = resolvedDevices.get(bootDevice);
             if (!resolved) {
-                this.logger.warn(
-                    `createInternalBootPool unable to resolve boot device input='${bootDevice}'`
-                );
                 continue;
             }
             output.push(
-                `Boot device resolution: input='${bootDevice}' source=${resolved.source} resolved='${resolved.devicePath}'`
+                `Boot device resolution: input='${bootDevice}' source=assignableDisks resolved='${resolved.devicePath}'`
             );
             this.logger.debug(
-                `createInternalBootPool boot device resolved input='${bootDevice}' source=${resolved.source} resolved='${resolved.devicePath}'`
+                `createInternalBootPool boot device resolved input='${bootDevice}' source=assignableDisks resolved='${resolved.devicePath}'`
             );
 
             const createResult = await this.runEfiBootMgr(
@@ -457,15 +450,16 @@ export class OnboardingInternalBootService {
 
     private async updateBiosBootEntries(
         devices: string[],
+        resolvedDevices: Map<string, ResolvedBootDevice>,
         output: string[]
     ): Promise<{ hadFailures: boolean }> {
         let hadFailures = false;
         this.logger.debug(
             `createInternalBootPool BIOS update start devices=${this.stringifyForOutput(devices)}`
         );
-        this.loadEmhttpBootContext();
-        const devsById = this.getDeviceMapFromEmhttpState(output);
-        this.logger.debug(`createInternalBootPool BIOS update map size=${devsById.size}`);
+        this.logger.debug(
+            `createInternalBootPool BIOS update resolved device count=${resolvedDevices.size}`
+        );
 
         const existingEntries = await this.runEfiBootMgr([], output);
         if (existingEntries.exitCode === 0) {
@@ -473,7 +467,8 @@ export class OnboardingInternalBootService {
             hadFailures = (await this.deleteExistingBootEntries(bootLabelMap, output)) || hadFailures;
         }
 
-        hadFailures = (await this.createInternalBootEntries(devices, devsById, output)) || hadFailures;
+        hadFailures =
+            (await this.createInternalBootEntries(devices, resolvedDevices, output)) || hadFailures;
         hadFailures = (await this.createFlashBootEntry(output)) || hadFailures;
         hadFailures = (await this.updateBootOrder(devices, output)) || hadFailures;
         this.logger.debug(`createInternalBootPool BIOS update finished hadFailures=${hadFailures}`);
@@ -513,6 +508,10 @@ export class OnboardingInternalBootService {
                     output: 'mkbootpool: internal boot is already configured while the system is still booted from flash',
                 };
             }
+
+            const resolvedBootDevices = input.updateBios
+                ? await this.resolveRequestedBootDevices(input.devices, output)
+                : new Map<string, ResolvedBootDevice>();
 
             await this.runStep(
                 'debug=cmdCreatePool,cmdAssignDisk,cmdMakeBootable',
@@ -557,7 +556,11 @@ export class OnboardingInternalBootService {
             if (input.updateBios) {
                 this.logger.debug('createInternalBootPool invoking BIOS boot entry updates');
                 output.push('Applying BIOS boot entry updates...');
-                const biosUpdateResult = await this.updateBiosBootEntries(input.devices, output);
+                const biosUpdateResult = await this.updateBiosBootEntries(
+                    input.devices,
+                    resolvedBootDevices,
+                    output
+                );
                 this.logger.debug(
                     `createInternalBootPool BIOS boot entry updates completed hadFailures=${biosUpdateResult.hadFailures}`
                 );
