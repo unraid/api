@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "Die reservierte Bootgröße muss mindestens 4 GB betragen.",
   "onboarding.internalBootStep.validation.bootSizeMax": "Die reservierte Bootgröße darf 50% des kleinsten ausgewählten Laufwerks nicht überschreiten.",
   "onboarding.internalBootStep.actions.continue": "Fortfahren",
+  "onboarding.internalBootStep.actions.refreshState": "Status aktualisieren",
   "onboarding.summaryStep.activationLabel": "Aktivierung",
   "onboarding.summaryStep.configuration": "Primäres und Sekundäres Speicher",
   "onboarding.summaryStep.pluginsSelected": "{count} Plugins ausgewählt",
