@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.30.1](https://github.com/unraid/api/compare/v4.30.0...v4.30.1) (2026-03-18)
+
+
+### Bug Fixes
+
+* **web:** unify UPC license actions into manage/trial entry ([#1929](https://github.com/unraid/api/issues/1929)) ([164198c](https://github.com/unraid/api/commit/164198c25def22c99e475d301ef71b7ca2ac1615))
+
 ## [4.30.0](https://github.com/unraid/api/compare/v4.29.2...v4.30.0) (2026-03-18)
 
 
