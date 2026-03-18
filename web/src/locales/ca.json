@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "La mida d'arrencada reservada ha de ser almenys 4 GB.",
   "onboarding.internalBootStep.validation.bootSizeMax": "La mida d'arrencada reservada no pot excedir el 50% del disc seleccionat més petit.",
   "onboarding.internalBootStep.actions.continue": "Continuar",
+  "onboarding.internalBootStep.actions.refreshState": "Actualitza l'estat",
   "onboarding.summaryStep.activationLabel": "Activació",
   "onboarding.summaryStep.configuration": "Configuració",
   "onboarding.summaryStep.pluginsSelected": "{count} plugins seleccionats",
