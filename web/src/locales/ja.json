@@ -319,7 +319,6 @@
   "onboarding.licenseStep.labels.activationCode": "アクティベーションコード",
   "onboarding.licenseStep.labels.none": "なし",
   "onboarding.licenseStep.actions.manageLicense": "ライセンスを管理",
-  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "サーバーをアクティベート",
   "onboarding.licenseStep.actions.nextStep": "NEXT STEP",
   "onboarding.licenseStep.actions.skipForNow": "今回はスキップする",

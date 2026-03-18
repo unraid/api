@@ -319,7 +319,6 @@
   "onboarding.licenseStep.labels.activationCode": "Aktivációs kód",
   "onboarding.licenseStep.labels.none": "Nincs",
   "onboarding.licenseStep.actions.manageLicense": "Licenc kezelése",
-  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "Szerver aktiválása",
   "onboarding.licenseStep.actions.nextStep": "KÖVETKEZŐ LÉPÉS",
   "onboarding.licenseStep.actions.skipForNow": "Kihagyás most",

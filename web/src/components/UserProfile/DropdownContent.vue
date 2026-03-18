@@ -21,6 +21,7 @@ import {
   WEBGUI_TOOLS_UPDATE,
 } from '~/helpers/urls';
 
+import type { ServerStateDataAction } from '~/types/server';
 import type { UserProfileLink } from '~/types/userProfile';
 
 import Beta from '~/components/UserProfile/Beta.vue';
@@ -62,44 +63,53 @@ const signInAction = computed(
 const signOutAction = computed(
   () => stateData.value.actions?.filter((act: { name: string }) => act.name === 'signOut') ?? []
 );
-const createManageLicenseAction = (text: string): UserProfileLink<'manageLicense'> => {
+const createManageLicenseAction = (
+  text: string,
+  sourceAction?: ServerStateDataAction
+): UserProfileLink<'manageLicense'> => {
+  const wrappedClick = sourceAction?.click
+    ? (...args: Parameters<NonNullable<ServerStateDataAction['click']>>) => {
+        sourceAction.click?.(...args);
+        emit('close-dropdown');
+      }
+    : sourceAction
+      ? undefined
+      : () => {
+          accountStore.myKeys();
+          emit('close-dropdown');
+        };
+
   return {
-    click: () => {
-      accountStore.myKeys();
-      emit('close-dropdown');
-    },
-    external: true,
-    icon: KeyIcon,
+    ...sourceAction,
+    click: wrappedClick,
+    external: sourceAction?.external ?? true,
+    icon: sourceAction?.icon ?? KeyIcon,
     name: 'manageLicense',
     text,
-    title: text,
+    title: sourceAction?.title ?? text,
   };
 };
-const licenseActionsToManage = new Set(['activate', 'purchase', 'recover', 'redeem', 'trialStart']);
+const manageLicenseAction = computed(() =>
+  createManageLicenseAction('onboarding.licenseStep.actions.manageLicense', keyActions.value?.[0])
+);
 
-/**
- * Filter out the renew action from the key actions so we can display it separately and link to the Tools > Registration page
- */
 const filteredKeyActions = computed(() => {
-  const actions = keyActions.value?.filter((action) => !['renew'].includes(action.name));
-
-  if (!actions?.length) {
-    return actions;
+  if (!keyActions.value?.length) {
+    return keyActions.value;
   }
-
-  const hasLegacyLicenseAction = actions.some((action) => licenseActionsToManage.has(action.name));
-
-  if (!hasLegacyLicenseAction) {
-    return actions;
-  }
-
-  const hasTrialStart = actions.some((action) => action.name === 'trialStart');
-  const manageActionText = hasTrialStart
-    ? 'Manage License / Start Trial'
-    : 'onboarding.licenseStep.actions.manageLicense';
-  const nonLicenseActions = actions.filter((action) => !licenseActionsToManage.has(action.name));
-  return [createManageLicenseAction(manageActionText), ...nonLicenseActions];
+  return [manageLicenseAction.value];
 });
+const showManageLicenseHelperText = computed(
+  () => !!filteredKeyActions.value?.some((action) => action.name === 'manageLicense')
+);
+const hasTrialStartAction = computed(
+  () => keyActions.value?.some((action) => action.name === 'trialStart') ?? false
+);
+const manageLicenseHelperText = computed(() =>
+  hasTrialStartAction.value
+    ? t('onboarding.licenseStep.actions.manageLicenseTrialStartHelperText')
+    : t('onboarding.licenseStep.actions.manageLicenseHelperText')
+);
 
 const manageUnraidNetAccount = computed((): UserProfileLink => {
   return {
@@ -264,9 +274,12 @@ const unraidConnectWelcome = computed(() => {
         <DropdownItem :item="signInAction[0]" />
       </li>
 
-      <template v-if="filteredKeyActions">
+      <template v-if="filteredKeyActions?.length">
         <li v-for="action in filteredKeyActions" :key="action.name">
           <DropdownItem :item="action" />
+        </li>
+        <li v-if="showManageLicenseHelperText" class="-mt-1 px-2 text-xs leading-relaxed opacity-75">
+          {{ manageLicenseHelperText }}
         </li>
       </template>
 
