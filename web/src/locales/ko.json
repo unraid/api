@@ -319,6 +319,7 @@
   "onboarding.licenseStep.labels.activationCode": "활성화 코드",
   "onboarding.licenseStep.labels.none": "없음",
   "onboarding.licenseStep.actions.manageLicense": "라이센스 관리",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "서버 활성화",
   "onboarding.licenseStep.actions.nextStep": "다음 단계",
   "onboarding.licenseStep.actions.skipForNow": "지금은 건너뛰기",
