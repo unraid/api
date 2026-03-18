@@ -192,7 +192,8 @@ const internalBootDeviceLabelById = computed(() => {
     }
 
     const serialNum = disk.serialNum?.trim() || '';
-    const optionValue = disk.id?.trim() || serialNum || device;
+    const diskId = disk.id?.trim() || '';
+    const optionValue = serialNum || diskId || device;
     const displayId = serialNum || device;
     const sizeBytes = disk.size;
     const sizeLabel = formatBytes(sizeBytes);
