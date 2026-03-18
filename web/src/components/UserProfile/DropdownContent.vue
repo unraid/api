@@ -75,31 +75,22 @@ const createManageLicenseAction = (text: string): UserProfileLink<'manageLicense
     title: text,
   };
 };
-const licenseActionsToManage = new Set(['activate', 'purchase', 'recover', 'redeem', 'trialStart']);
+const manageLicenseAction = createManageLicenseAction('onboarding.licenseStep.actions.manageLicense');
 
-/**
- * Filter out the renew action from the key actions so we can display it separately and link to the Tools > Registration page
- */
 const filteredKeyActions = computed(() => {
-  const actions = keyActions.value?.filter((action) => !['renew'].includes(action.name));
-
-  if (!actions?.length) {
-    return actions;
+  if (!keyActions.value?.length) {
+    return keyActions.value;
   }
-
-  const hasLegacyLicenseAction = actions.some((action) => licenseActionsToManage.has(action.name));
-
-  if (!hasLegacyLicenseAction) {
-    return actions;
-  }
-
-  const hasTrialStart = actions.some((action) => action.name === 'trialStart');
-  const manageActionText = hasTrialStart
-    ? 'Manage License / Start Trial'
-    : 'onboarding.licenseStep.actions.manageLicense';
-  const nonLicenseActions = actions.filter((action) => !licenseActionsToManage.has(action.name));
-  return [createManageLicenseAction(manageActionText), ...nonLicenseActions];
+  return [manageLicenseAction];
 });
+const hasTrialStartAction = computed(
+  () => keyActions.value?.some((action) => action.name === 'trialStart') ?? false
+);
+const manageLicenseHelperText = computed(() =>
+  hasTrialStartAction.value
+    ? 'Start your trial from Manage License in your Unraid Account.'
+    : t('onboarding.licenseStep.actions.manageLicenseHelperText')
+);
 
 const manageUnraidNetAccount = computed((): UserProfileLink => {
   return {
@@ -267,6 +258,9 @@ const unraidConnectWelcome = computed(() => {
       <template v-if="filteredKeyActions">
         <li v-for="action in filteredKeyActions" :key="action.name">
           <DropdownItem :item="action" />
+        </li>
+        <li class="-mt-1 px-2 text-xs leading-relaxed opacity-75">
+          {{ manageLicenseHelperText }}
         </li>
       </template>
 
