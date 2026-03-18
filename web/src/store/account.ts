@@ -5,7 +5,15 @@ import { logErrorMessages } from '@vue/apollo-util';
 
 import { ACCOUNT_CALLBACK } from '~/helpers/urls';
 
-import type { ExternalSignIn, ExternalSignOut } from '@unraid/shared-callbacks';
+import type {
+  DowngradeOs,
+  ExternalSignIn,
+  ExternalSignOut,
+  MyKeys,
+  SignIn,
+  SignOut,
+  UpdateOs,
+} from '@unraid/shared-callbacks';
 
 import { CONNECT_SIGN_IN, CONNECT_SIGN_OUT } from '~/store/account.fragment';
 import { useCallbackActionsStore } from '~/store/callbackActions';
@@ -131,7 +139,7 @@ export const useAccountStore = defineStore('account', () => {
   // Getters
   const accountActionType = computed(() => accountAction.value?.type);
 
-  type AccountCallbackActionType = 'myKeys' | 'signIn' | 'signOut' | 'downgradeOs' | 'updateOs';
+  type AccountCallbackActionType = MyKeys | SignIn | SignOut | DowngradeOs | UpdateOs;
 
   const sendAccountAction = (type: AccountCallbackActionType, actionType?: 'newTab' | 'replace') => {
     return callbackStore.send(
