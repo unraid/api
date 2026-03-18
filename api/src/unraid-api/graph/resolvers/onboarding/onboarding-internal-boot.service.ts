@@ -53,11 +53,23 @@ export class OnboardingInternalBootService {
         output: string[]
     ): Promise<void> {
         output.push(`Running: emcmd ${commandText}`);
-        await withTimeout(
-            emcmd(command, { waitForToken: true }),
-            INTERNAL_BOOT_COMMAND_TIMEOUT_MS,
-            `internal boot (${commandText})`
+        this.logger.debug(
+            `createInternalBootPool emcmd start command='${commandText}' payload=${this.stringifyForOutput(command)}`
         );
+        try {
+            await withTimeout(
+                emcmd(command, { waitForToken: true }),
+                INTERNAL_BOOT_COMMAND_TIMEOUT_MS,
+                `internal boot (${commandText})`
+            );
+            this.logger.debug(`createInternalBootPool emcmd success command='${commandText}'`);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.warn(
+                `createInternalBootPool emcmd failed command='${commandText}' error='${message}'`
+            );
+            throw error;
+        }
     }
 
     private hasDuplicateDevices(devices: string[]): string | null {
@@ -116,11 +128,22 @@ export class OnboardingInternalBootService {
     }> {
         const commandText = args.map((arg) => this.shellQuote(arg)).join(' ');
         output.push(`Running: efibootmgr${commandText.length > 0 ? ` ${commandText}` : ''}`);
+        this.logger.debug(
+            `createInternalBootPool efibootmgr start args=${this.stringifyForOutput(args)}`
+        );
         try {
             const result = await execa('efibootmgr', args, { reject: false });
             const lines = this.commandOutputLines(result.stdout, result.stderr);
             if (lines.length > 0) {
                 output.push(...lines);
+            }
+            this.logger.debug(
+                `createInternalBootPool efibootmgr result exitCode=${result.exitCode ?? 1} outputLines=${lines.length}`
+            );
+            if ((result.exitCode ?? 1) !== 0) {
+                this.logger.warn(
+                    `createInternalBootPool efibootmgr non-zero exitCode=${result.exitCode ?? 1} args=${this.stringifyForOutput(args)}`
+                );
             }
             return {
                 exitCode: result.exitCode ?? 1,
@@ -129,6 +152,7 @@ export class OnboardingInternalBootService {
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             output.push(message);
+            this.logger.warn(`createInternalBootPool efibootmgr threw error='${message}'`);
             return {
                 exitCode: 1,
                 lines: [],
@@ -234,7 +258,9 @@ export class OnboardingInternalBootService {
         const emhttpState = getters.emhttp();
         const rawDevices = Array.isArray(emhttpState.devices) ? emhttpState.devices : [];
         const devicesById = new Map<string, string>();
-        output.push(`emhttp.devices raw: ${this.stringifyForOutput(rawDevices)}`);
+        const rawDevicesText = this.stringifyForOutput(rawDevices);
+        output.push(`emhttp.devices raw: ${rawDevicesText}`);
+        this.logger.debug(`createInternalBootPool emhttp.devices raw=${rawDevicesText}`);
 
         for (const rawDevice of rawDevices) {
             if (!isEmhttpDeviceRecord(rawDevice)) {
@@ -247,9 +273,9 @@ export class OnboardingInternalBootService {
             }
         }
 
-        output.push(
-            `emhttp.devices parsed id->device: ${this.stringifyForOutput(Array.from(devicesById.entries()))}`
-        );
+        const parsedMapText = this.stringifyForOutput(Array.from(devicesById.entries()));
+        output.push(`emhttp.devices parsed id->device: ${parsedMapText}`);
+        this.logger.debug(`createInternalBootPool emhttp.devices parsed id->device=${parsedMapText}`);
         return devicesById;
     }
 
@@ -317,10 +343,16 @@ export class OnboardingInternalBootService {
         for (const bootDevice of devices) {
             const resolved = this.resolveBootDevicePath(bootDevice, devsById);
             if (!resolved) {
+                this.logger.warn(
+                    `createInternalBootPool unable to resolve boot device input='${bootDevice}'`
+                );
                 continue;
             }
             output.push(
                 `Boot device resolution: input='${bootDevice}' source=${resolved.source} resolved='${resolved.devicePath}'`
+            );
+            this.logger.debug(
+                `createInternalBootPool boot device resolved input='${bootDevice}' source=${resolved.source} resolved='${resolved.devicePath}'`
             );
 
             const createResult = await this.runEfiBootMgr(
@@ -350,11 +382,13 @@ export class OnboardingInternalBootService {
     private async createFlashBootEntry(output: string[]): Promise<boolean> {
         const flashDevice = this.getFlashDeviceFromEmhttpState();
         if (!flashDevice) {
+            this.logger.warn('createInternalBootPool flash device was not found in emhttp.disks');
             return false;
         }
 
         const device = flashDevice.trim();
         const devicePath = `/dev/${device}`;
+        this.logger.debug(`createInternalBootPool flash device resolved='${devicePath}'`);
         const flashResult = await this.runEfiBootMgr(
             ['-c', '-d', devicePath, '-p', '1', '-L', 'Unraid Flash', '-l', EFI_BOOT_PATH],
             output
@@ -390,6 +424,9 @@ export class OnboardingInternalBootService {
     }
 
     private async updateBootOrder(devices: string[], output: string[]): Promise<boolean> {
+        this.logger.debug(
+            `createInternalBootPool boot order update start requestedDevices=${this.stringifyForOutput(devices)}`
+        );
         const currentEntries = await this.runEfiBootMgr([], output);
         if (currentEntries.exitCode !== 0) {
             return true;
@@ -397,6 +434,9 @@ export class OnboardingInternalBootService {
 
         const labelMap = this.parseBootLabelMap(currentEntries.lines);
         const uniqueOrder = this.buildDesiredBootOrder(devices, labelMap);
+        this.logger.debug(
+            `createInternalBootPool boot order candidates=${this.stringifyForOutput(uniqueOrder)} labels=${this.stringifyForOutput(Array.from(labelMap.entries()))}`
+        );
         if (uniqueOrder.length === 0) {
             return false;
         }
@@ -420,8 +460,12 @@ export class OnboardingInternalBootService {
         output: string[]
     ): Promise<{ hadFailures: boolean }> {
         let hadFailures = false;
+        this.logger.debug(
+            `createInternalBootPool BIOS update start devices=${this.stringifyForOutput(devices)}`
+        );
         this.loadEmhttpBootContext();
         const devsById = this.getDeviceMapFromEmhttpState(output);
+        this.logger.debug(`createInternalBootPool BIOS update map size=${devsById.size}`);
 
         const existingEntries = await this.runEfiBootMgr([], output);
         if (existingEntries.exitCode === 0) {
@@ -432,6 +476,7 @@ export class OnboardingInternalBootService {
         hadFailures = (await this.createInternalBootEntries(devices, devsById, output)) || hadFailures;
         hadFailures = (await this.createFlashBootEntry(output)) || hadFailures;
         hadFailures = (await this.updateBootOrder(devices, output)) || hadFailures;
+        this.logger.debug(`createInternalBootPool BIOS update finished hadFailures=${hadFailures}`);
 
         return { hadFailures };
     }
@@ -440,6 +485,7 @@ export class OnboardingInternalBootService {
         input: CreateInternalBootPoolInput
     ): Promise<OnboardingInternalBootResult> {
         const output: string[] = [];
+        this.logger.debug(`createInternalBootPool received input=${this.stringifyForOutput(input)}`);
         if (input.reboot) {
             output.push(
                 'Note: reboot was requested; onboarding handles reboot separately after internal boot setup.'
@@ -448,6 +494,7 @@ export class OnboardingInternalBootService {
 
         const duplicateDevice = this.hasDuplicateDevices(input.devices);
         if (duplicateDevice) {
+            this.logger.warn(`createInternalBootPool duplicate device detected id='${duplicateDevice}'`);
             return {
                 ok: false,
                 code: 2,
@@ -457,6 +504,9 @@ export class OnboardingInternalBootService {
 
         try {
             if (await this.isBootedFromFlashWithInternalBootSetup()) {
+                this.logger.warn(
+                    'createInternalBootPool aborted because internal boot is already configured'
+                );
                 return {
                     ok: false,
                     code: 3,
@@ -505,8 +555,12 @@ export class OnboardingInternalBootService {
             );
 
             if (input.updateBios) {
+                this.logger.debug('createInternalBootPool invoking BIOS boot entry updates');
                 output.push('Applying BIOS boot entry updates...');
                 const biosUpdateResult = await this.updateBiosBootEntries(input.devices, output);
+                this.logger.debug(
+                    `createInternalBootPool BIOS boot entry updates completed hadFailures=${biosUpdateResult.hadFailures}`
+                );
                 output.push(
                     biosUpdateResult.hadFailures
                         ? 'BIOS boot entry updates completed with warnings; manual BIOS boot order changes may still be required.'
@@ -516,6 +570,7 @@ export class OnboardingInternalBootService {
 
             try {
                 await this.internalBootStateService.invalidateCachedInternalBootDeviceState();
+                this.logger.debug('createInternalBootPool invalidated internal boot state cache');
             } catch (error) {
                 const message = error instanceof Error ? error.message : String(error);
                 this.logger.warn(
@@ -523,6 +578,7 @@ export class OnboardingInternalBootService {
                 );
             }
 
+            this.logger.debug('createInternalBootPool completed successfully');
             return {
                 ok: true,
                 code: 0,
@@ -530,6 +586,7 @@ export class OnboardingInternalBootService {
             };
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
+            this.logger.warn(`createInternalBootPool failed with error='${message}'`);
             output.push('mkbootpool: command failed or timed out');
             output.push(message);
             return {
