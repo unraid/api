@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "يجب أن يكون حجم التمهيد المحجوز على الأقل 4 جيجابايت.",
   "onboarding.internalBootStep.validation.bootSizeMax": "لا يمكن أن يتجاوز حجم التمهيد المحجوز 50٪ من أصغر قرص مختار.",
   "onboarding.internalBootStep.actions.continue": "متابعة",
+  "onboarding.internalBootStep.actions.refreshState": "تحديث الحالة",
   "onboarding.summaryStep.activationLabel": "التفعيل",
   "onboarding.summaryStep.configuration": "التكوين",
   "onboarding.summaryStep.pluginsSelected": "تم اختيار {count} من المكونات الإضافية",
