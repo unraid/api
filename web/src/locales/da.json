@@ -216,6 +216,7 @@
   "onboarding.internalBootStep.validation.bootSizeMin": "Reserveret boot-størrelse skal være mindst 4 GB.",
   "onboarding.internalBootStep.validation.bootSizeMax": "Reserveret boot-størrelse kan ikke overstige 50% af den mindste valgte drev.",
   "onboarding.internalBootStep.actions.continue": "Fortsæt",
+  "onboarding.internalBootStep.actions.refreshState": "Opdater tilstand",
   "onboarding.summaryStep.activationLabel": "Aktivering",
   "onboarding.summaryStep.configuration": "Konfiguration",
   "onboarding.summaryStep.pluginsSelected": "{count} plugins valgt",
