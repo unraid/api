@@ -194,7 +194,7 @@ const getStore = () => {
     },
     serverReplacePayload: {
       get: () => ({
-        ...store.serverAccountPayload,
+        ...store.serverCallbackPayload,
         guid:
           store.guid && !store.guid.startsWith('01-') && store.tpmGuid && store.guid !== store.tpmGuid
             ? store.tpmGuid
