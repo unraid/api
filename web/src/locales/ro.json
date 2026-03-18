@@ -319,6 +319,7 @@
   "onboarding.licenseStep.labels.activationCode": "Cod de Activare",
   "onboarding.licenseStep.labels.none": "Niciunul",
   "onboarding.licenseStep.actions.manageLicense": "Gestionează Licența",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "Activează Serverul",
   "onboarding.licenseStep.actions.nextStep": "PASUL URMĂTOR",
   "onboarding.licenseStep.actions.skipForNow": "Sari peste pentru moment",
