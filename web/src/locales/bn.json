@@ -319,6 +319,7 @@
   "onboarding.licenseStep.labels.activationCode": "সক্রিয়করণ কোড",
   "onboarding.licenseStep.labels.none": "কিছুই নেই",
   "onboarding.licenseStep.actions.manageLicense": "লাইসেন্স পরিচালনা করুন",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "সার্ভার সক্রিয় করুন",
   "onboarding.licenseStep.actions.nextStep": "পরবর্তী ধাপ",
   "onboarding.licenseStep.actions.skipForNow": "এখনই এড়িয়ে যান",
