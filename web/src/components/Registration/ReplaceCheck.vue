@@ -11,10 +11,17 @@ import { useReplaceRenewStore } from '~/store/replaceRenew';
 
 const { t } = useI18n();
 const replaceRenewStore = useReplaceRenewStore();
-const { replaceStatusOutput } = storeToRefs(replaceRenewStore);
+const { replaceStatus, replaceStatusOutput } = storeToRefs(replaceRenewStore);
 
-const isError = computed(() => replaceStatusOutput.value?.variant === 'red');
-const showButton = computed(() => !replaceStatusOutput.value || isError.value);
+const isError = computed(() => replaceStatus.value === 'error');
+const showButton = computed(() => replaceStatus.value === 'ready' || isError.value);
+const isTranslationKey = (value: string): boolean => value.includes('.') && !value.includes(' ');
+const formatBadgeText = (value?: string): string => {
+  if (!value) {
+    return t('common.unknown');
+  }
+  return isTranslationKey(value) ? t(value) : value;
+};
 
 const handleCheck = () => {
   if (isError.value) {
@@ -35,7 +42,7 @@ const handleCheck = () => {
     />
 
     <Badge v-else :variant="replaceStatusOutput?.variant" :icon="replaceStatusOutput?.icon" size="md">
-      {{ t(replaceStatusOutput?.text ?? 'Unknown') }}
+      {{ formatBadgeText(replaceStatusOutput?.text) }}
     </Badge>
 
     <span class="inline-flex flex-wrap items-center justify-end gap-2">

@@ -106,6 +106,25 @@ describe('InstallKey Store', () => {
       expect(store.keyType).toBe('license');
     });
 
+    it('should install trialStart keys using the same install flow', async () => {
+      mockGetFn.mockResolvedValueOnce({ success: true });
+      const action = createTestAction({
+        type: 'trialStart',
+        keyUrl: 'https://example.com/trial.key',
+      });
+
+      await store.install(action);
+
+      const { WebguiInstallKey } = await import('~/composables/services/webgui');
+
+      expect(WebguiInstallKey.query).toHaveBeenCalledWith({ url: action.keyUrl });
+      expect(mockGetFn).toHaveBeenCalled();
+      expect(store.keyInstallStatus).toBe('success');
+      expect(store.keyActionType).toBe('trialStart');
+      expect(store.keyUrl).toBe('https://example.com/trial.key');
+      expect(store.keyType).toBe('trial');
+    });
+
     it('should extract key type from .key URL', async () => {
       mockGetFn.mockResolvedValueOnce({ success: true });
 

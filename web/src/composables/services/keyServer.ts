@@ -2,26 +2,50 @@ import { request } from '~/composables/services/request';
 
 const KeyServer = request.url('https://keys.lime-technology.com');
 
-export interface StartTrialPayload {
-  guid: string;
-  timestamp: number; // timestamp in seconds
-}
-export interface StartTrialResponse {
-  license?: string;
-  trial?: string;
-}
-export const startTrial = async (payload: StartTrialPayload): Promise<StartTrialResponse> =>
-  await KeyServer.url('/account/trial').formUrl(payload).post().json();
+export type ValidateGuidLicenseType =
+  | 'Trial'
+  | 'Basic'
+  | 'Plus'
+  | 'Pro'
+  | 'Starter'
+  | 'Unleashed'
+  | 'Lifetime';
+
+export type ValidateGuidSku =
+  | 'new-basic'
+  | 'new-plus'
+  | 'new-pro'
+  | 'new-starter'
+  | 'new-unleashed'
+  | 'new-lifetime'
+  | 'upgrade-basic-plus'
+  | 'upgrade-basic-pro'
+  | 'upgrade-plus-pro'
+  | 'upgrade-basic-unleashed'
+  | 'upgrade-plus-unleashed'
+  | 'upgrade-starter-unleashed'
+  | 'upgrade-starter-lifetime'
+  | 'upgrade-unleashed-lifetime'
+  | 'renew-starter'
+  | 'renew-unleashed'
+  | 'extension';
 
 export interface ValidateGuidResponse {
-  hasNewerKeyfile: boolean;
+  registered: boolean;
+  purchasable: boolean;
+  upgradable: boolean;
+  upgradeAllowed: ValidateGuidLicenseType[];
+  allowedPurchaseableSkus: ValidateGuidSku[];
+  replaceable: boolean;
   linked: boolean;
-  purchaseable: true;
-  registered: false;
-  replaceable: false;
-  upgradeable: false;
-  upgradeAllowed: 'pro' | 'plus' | 'unleashed' | 'lifetime'[];
-  updatesRenewable: false;
+  highestRegType: ValidateGuidLicenseType | null;
+  updateExpiration: string | null;
+  isUpdatesExpired: boolean | null;
+  cognitoId?: string;
+  hasNewerKeyfile?: true;
+  updatesRenewable?: boolean;
+  renewalPreviewDate?: string;
+  manualExtensionAllowed?: boolean;
 }
 export interface ValidateGuidPayload {
   guid: string;

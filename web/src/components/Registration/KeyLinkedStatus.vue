@@ -12,6 +12,13 @@ const { t } = useI18n();
 const accountStore = useAccountStore();
 const replaceRenewStore = useReplaceRenewStore();
 const { keyLinkedStatus, keyLinkedOutput } = storeToRefs(replaceRenewStore);
+const isTranslationKey = (value: string): boolean => value.includes('.') && !value.includes(' ');
+const formatBadgeText = (value?: string): string => {
+  if (!value) {
+    return t('common.unknown');
+  }
+  return isTranslationKey(value) ? t(value) : value;
+};
 </script>
 
 <template>
@@ -30,11 +37,11 @@ const { keyLinkedStatus, keyLinkedOutput } = storeToRefs(replaceRenewStore);
         :icon-right="ArrowPathIcon"
         size="md"
       >
-        {{ t(keyLinkedOutput.text ?? 'Unknown') }}
+        {{ formatBadgeText(keyLinkedOutput.text) }}
       </Badge>
     </BrandButton>
     <Badge v-else :variant="keyLinkedOutput.variant" :icon="keyLinkedOutput.icon" size="md">
-      {{ t(keyLinkedOutput.text ?? 'Unknown') }}
+      {{ formatBadgeText(keyLinkedOutput.text) }}
     </Badge>
 
     <span class="flex-wrap-items-start inline-flex gap-2">

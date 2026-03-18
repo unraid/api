@@ -60,7 +60,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
         return {
           variant: 'gray',
           icon: BrandLoadingIcon,
-          text: 'Checking...',
+          text: 'updateOs.status.checking',
         };
       case 'linked':
         return {
@@ -85,7 +85,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
         return {
           variant: 'gray',
           icon: ExclamationCircleIcon,
-          text: 'Unknown',
+          text: 'common.unknown',
         };
     }
   });
@@ -106,7 +106,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
         return {
           variant: 'gray',
           icon: BrandLoadingIcon,
-          text: 'Checking...',
+          text: 'updateOs.status.checking',
         };
       case 'eligible':
         return {
@@ -131,14 +131,41 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
         return undefined;
     }
   });
+
+  const checkInFlight = ref<Promise<void> | null>(null);
+
+  const isCachedValidationResponse = (value: unknown): value is CachedValidationResponse => {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const candidate = value as Partial<CachedValidationResponse>;
+    return typeof candidate.key === 'string' && typeof candidate.timestamp === 'number';
+  };
+
+  const getCachedValidationResponse = (): CachedValidationResponse | undefined => {
+    const cachedResponse = sessionStorage.getItem(REPLACE_CHECK_LOCAL_STORAGE_KEY);
+    if (!cachedResponse) {
+      return undefined;
+    }
+
+    try {
+      const parsedResponse: unknown = JSON.parse(cachedResponse);
+      if (isCachedValidationResponse(parsedResponse)) {
+        return parsedResponse;
+      }
+    } catch {
+      sessionStorage.removeItem(REPLACE_CHECK_LOCAL_STORAGE_KEY);
+      return undefined;
+    }
+
+    sessionStorage.removeItem(REPLACE_CHECK_LOCAL_STORAGE_KEY);
+    return undefined;
+  };
   /**
    * validateCache checks the timestamp of the validation response and purges it if it's too old
    */
-  const validationResponse = ref<CachedValidationResponse | undefined>(
-    sessionStorage.getItem(REPLACE_CHECK_LOCAL_STORAGE_KEY)
-      ? JSON.parse(sessionStorage.getItem(REPLACE_CHECK_LOCAL_STORAGE_KEY) as string)
-      : undefined
-  );
+  const validationResponse = ref<CachedValidationResponse | undefined>(getCachedValidationResponse());
 
   const purgeValidationResponse = async () => {
     validationResponse.value = undefined;
@@ -164,7 +191,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     }
   };
 
-  const check = async (skipCache: boolean = false) => {
+  const runCheck = async (skipCache: boolean = false) => {
     if (!guid.value) {
       setReplaceStatus('error');
       setKeyLinked('error');
@@ -260,6 +287,21 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       error.value = { name: 'Error', message: errorMessage };
       console.error('[ReplaceCheck.check]', catchError);
     }
+  };
+
+  const check = async (skipCache: boolean = false) => {
+    if (checkInFlight.value) {
+      return checkInFlight.value;
+    }
+
+    const pendingCheck = runCheck(skipCache).finally(() => {
+      if (checkInFlight.value === pendingCheck) {
+        checkInFlight.value = null;
+      }
+    });
+
+    checkInFlight.value = pendingCheck;
+    return pendingCheck;
   };
 
   const reset = () => {

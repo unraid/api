@@ -28,19 +28,16 @@ import type { ServerStateDataAction } from '~/types/server';
 import KeyActions from '~/components/KeyActions.vue';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import RegistrationActivationCode from '~/components/Registration/ActivationCode.vue';
-import RegistrationKeyLinkedStatus from '~/components/Registration/KeyLinkedStatus.vue';
-import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue';
+import RegistrationManageLicenseAction from '~/components/Registration/ManageLicenseAction.vue';
 import RegistrationUpdateExpirationAction from '~/components/Registration/UpdateExpirationAction.vue';
 import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
 import useDateTimeHelper from '~/composables/dateTime';
 import { useAccountStore } from '~/store/account';
-import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 
 const { t } = useI18n();
 
 const accountStore = useAccountStore();
-const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
 const { activationCode } = storeToRefs(useActivationCodeDataStore());
 
@@ -85,12 +82,9 @@ const setFormattedRegTm = () => {
 watch(regTm, (_newV) => {
   setFormattedRegTm();
 });
+
 onBeforeMount(() => {
   setFormattedRegTm();
-  /** automatically check for replacement and renewal eligibility…will prompt user if eligible for a renewal / key re-roll for legacy keys */
-  if (guid.value && keyfile.value) {
-    replaceRenewCheckStore.check();
-  }
 });
 
 const headingIcon = computed(() =>
@@ -116,7 +110,7 @@ const showTrialExpiration = computed(
 );
 const showUpdateEligibility = computed((): boolean => !!regExp.value);
 const keyInstalled = computed((): boolean => !!(!stateDataError.value && state.value !== 'ENOKEYFILE'));
-const showLinkedAndTransferStatus = computed(
+const showManageLicenseAction = computed(
   (): boolean => !!(keyInstalled.value && guid.value && !showTrialExpiration.value)
 );
 // filter out renew action and only display other key actions…renew is displayed in RegistrationUpdateExpirationAction
@@ -278,21 +272,11 @@ const actionItems = computed((): RegistrationItemProps[] => {
           },
         ]
       : []),
-    ...(showLinkedAndTransferStatus.value
+    ...(showManageLicenseAction.value
       ? [
           {
-            label: t('registration.transferLicenseToNewDevice'),
-            component: RegistrationReplaceCheck,
-            componentProps: { t },
-          },
-        ]
-      : []),
-    ...(regTo.value && showLinkedAndTransferStatus.value
-      ? [
-          {
-            label: t('registration.linkedToUnraidNetAccount'),
-            component: RegistrationKeyLinkedStatus,
-            componentProps: { t },
+            label: t('onboarding.licenseStep.actions.manageLicense'),
+            component: RegistrationManageLicenseAction,
           },
         ]
       : []),

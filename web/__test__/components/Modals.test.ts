@@ -9,7 +9,6 @@ import type { Pinia } from 'pinia';
 
 import Modals from '~/components/Modals.standalone.vue';
 import { useCallbackActionsStore } from '~/store/callbackActions';
-import { useTrialStore } from '~/store/trial';
 import { useUpdateOsStore } from '~/store/updateOs';
 
 // Mock child components
@@ -42,14 +41,6 @@ vi.mock('~/components/UserProfile/CallbackFeedback.vue', () => ({
     name: 'UpcCallbackFeedback',
     props: ['open'],
     template: '<div v-if="open">CallbackFeedback</div>',
-  },
-}));
-
-vi.mock('~/components/UserProfile/Trial.vue', () => ({
-  default: {
-    name: 'UpcTrial',
-    props: ['open'],
-    template: '<div v-if="open">Trial</div>',
   },
 }));
 
@@ -88,7 +79,6 @@ describe('Modals.standalone.vue', () => {
 
   it('should render all modal components', () => {
     expect(wrapper.findComponent({ name: 'UpcCallbackFeedback' }).exists()).toBe(true);
-    expect(wrapper.findComponent({ name: 'UpcTrial' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'UpdateOsCheckUpdateResponseModal' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'UpdateOsChangelogModal' }).exists()).toBe(true);
     expect(wrapper.findComponent({ name: 'OnboardingModal' }).exists()).toBe(true);
@@ -106,21 +96,6 @@ describe('Modals.standalone.vue', () => {
     callbackStore.callbackStatus = 'ready';
     await nextTick();
     expect(callbackFeedback.props('open')).toBe(false);
-  });
-
-  it('should pass correct props to Trial modal based on store state', async () => {
-    const trialStore = useTrialStore();
-    // trialModalVisible is computed based on trialStatus
-    trialStore.trialStatus = 'trialStart';
-
-    await nextTick();
-
-    const trialModal = wrapper.findComponent({ name: 'UpcTrial' });
-    expect(trialModal.props('open')).toBe(true);
-
-    trialStore.trialStatus = 'ready';
-    await nextTick();
-    expect(trialModal.props('open')).toBe(false);
   });
 
   it('should pass correct props to UpdateOs modal based on store state', async () => {
@@ -163,7 +138,6 @@ describe('Modals.standalone.vue', () => {
   it('should render all modal components without t props (using useI18n)', () => {
     const components = [
       'UpcCallbackFeedback',
-      'UpcTrial',
       'UpdateOsCheckUpdateResponseModal',
       'UpdateOsChangelogModal',
     ];
@@ -179,12 +153,10 @@ describe('Modals.standalone.vue', () => {
   it('should use computed properties for reactive store access', async () => {
     // Test that computed properties react to store changes
     const callbackStore = useCallbackActionsStore();
-    const trialStore = useTrialStore();
     const updateOsStore = useUpdateOsStore();
 
     // Initially all should be closed/default
     expect(wrapper.findComponent({ name: 'UpcCallbackFeedback' }).props('open')).toBe(false);
-    expect(wrapper.findComponent({ name: 'UpcTrial' }).props('open')).toBe(false);
     expect(wrapper.findComponent({ name: 'UpdateOsCheckUpdateResponseModal' }).props('open')).toBe(
       false
     );
@@ -192,7 +164,6 @@ describe('Modals.standalone.vue', () => {
 
     // Update all stores using proper methods
     callbackStore.callbackStatus = 'loading';
-    trialStore.trialStatus = 'trialStart';
     updateOsStore.setModalOpen(true);
     updateOsStore.setReleaseForUpdate({
       version: '6.13.0',
@@ -208,19 +179,16 @@ describe('Modals.standalone.vue', () => {
 
     // All should be open now
     expect(wrapper.findComponent({ name: 'UpcCallbackFeedback' }).props('open')).toBe(true);
-    expect(wrapper.findComponent({ name: 'UpcTrial' }).props('open')).toBe(true);
     expect(wrapper.findComponent({ name: 'UpdateOsCheckUpdateResponseModal' }).props('open')).toBe(true);
     expect(wrapper.findComponent({ name: 'UpdateOsChangelogModal' }).props('open')).toBe(true);
   });
 
   it('should render modals container even when all modals are closed', () => {
     const callbackStore = useCallbackActionsStore();
-    const trialStore = useTrialStore();
     const updateOsStore = useUpdateOsStore();
 
     // Set all modals to closed state
     callbackStore.callbackStatus = 'ready';
-    trialStore.trialStatus = 'ready';
     updateOsStore.setModalOpen(false);
     updateOsStore.setReleaseForUpdate(null);
 

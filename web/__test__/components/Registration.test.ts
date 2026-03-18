@@ -15,7 +15,6 @@ import type { Pinia } from 'pinia';
 import Registration from '~/components/Registration.standalone.vue';
 import { useAccountStore } from '~/store/account';
 import { usePurchaseStore } from '~/store/purchase';
-import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 import { createTestI18n, testTranslate } from '../utils/i18n';
 
@@ -103,14 +102,6 @@ vi.mock('~/components/KeyActions.vue', () => ({
   default: { template: '<div data-testid="key-actions"><slot/></div>', props: ['t', 'filterOut'] },
 }));
 
-vi.mock('~/components/Registration/KeyLinkedStatus.vue', () => ({
-  default: { template: '<div data-testid="key-linked-status"></div>', props: ['t'] },
-}));
-
-vi.mock('~/components/Registration/ReplaceCheck.vue', () => ({
-  default: { template: '<div data-testid="replace-check"></div>', props: ['t'] },
-}));
-
 vi.mock('~/components/Registration/UpdateExpirationAction.vue', () => ({
   default: { template: '<div data-testid="update-expiration"></div>', props: ['t'] },
 }));
@@ -158,7 +149,6 @@ describe('Registration.standalone.vue', () => {
   let pinia: Pinia;
   let accountStore: ReturnType<typeof useAccountStore>;
   let serverStore: ReturnType<typeof useServerStore>;
-  let replaceRenewStore: ReturnType<typeof useReplaceRenewStore>;
   let purchaseStore: ReturnType<typeof usePurchaseStore>;
 
   const mountComponent = () =>
@@ -203,12 +193,9 @@ describe('Registration.standalone.vue', () => {
 
     accountStore = useAccountStore();
     serverStore = useServerStore();
-    replaceRenewStore = useReplaceRenewStore();
     purchaseStore = usePurchaseStore();
 
     serverStore.deprecatedUnraidSSL = undefined;
-
-    replaceRenewStore.check = vi.fn();
 
     vi.clearAllMocks();
 
@@ -231,8 +218,7 @@ describe('Registration.standalone.vue', () => {
     expect(findItemByLabel(t('License key type'))).toBeUndefined();
     expect(findItemByLabel(t('Device GUID'))).toBeUndefined();
     expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(true);
-    expect(wrapper.find('[data-testid="replace-check"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="key-linked-status"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="manage-license-button"]').exists()).toBe(false);
   });
 
   it('does not show a connect sign-in action on the registration page', async () => {
@@ -313,6 +299,33 @@ describe('Registration.standalone.vue', () => {
 
     expect(attachedStorageDevicesItem).toBeDefined();
     expect(attachedStorageDevicesItem?.props('text')).toBe('8 out of unlimited devices');
+  });
+
+  it('shows a Manage License action with helper text for eligible key states', async () => {
+    serverStore.state = 'PRO';
+    serverStore.guid = 'FLASH-GUID-123';
+    serverStore.keyfile = 'test-keyfile.key';
+
+    await wrapper.vm.$nextTick();
+
+    const manageButton = wrapper.find('[data-testid="manage-license-button"]');
+
+    expect(manageButton.exists()).toBe(true);
+    expect(manageButton.text()).toContain('Manage License');
+    expect(wrapper.text()).toContain(
+      'View replacement and renewal options for this server key in the Unraid Account App.'
+    );
+  });
+
+  it('opens Manage License route when Manage License button is clicked', async () => {
+    serverStore.state = 'PRO';
+    serverStore.guid = 'FLASH-GUID-123';
+    serverStore.keyfile = 'test-keyfile.key';
+
+    await wrapper.vm.$nextTick();
+    await wrapper.find('[data-testid="manage-license-button"]').trigger('click');
+
+    expect(accountStore.myKeys).toHaveBeenCalled();
   });
 
   it('shows Move License to TPM when TPM licensing is available', async () => {
@@ -428,6 +441,6 @@ describe('Registration.standalone.vue', () => {
     await wrapper.vm.$nextTick();
 
     const actionNames = serverStore.keyActions?.map((action) => action.name);
-    expect(actionNames).toEqual(['activate', 'recover', 'trialStart']);
+    expect(actionNames).toEqual(['activate', 'recover']);
   });
 });

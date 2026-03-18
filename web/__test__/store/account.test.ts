@@ -250,18 +250,6 @@ describe('Account Store', () => {
         'post'
       );
     });
-
-    it('should call trialStart action correctly', () => {
-      store.trialStart();
-
-      expect(mockSend).toHaveBeenCalledTimes(1);
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'trialStart' }],
-        undefined,
-        'post'
-      );
-    });
   });
 
   describe('State Management', () => {

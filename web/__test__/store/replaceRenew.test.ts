@@ -34,6 +34,22 @@ const mockSessionStorage = {
 
 Object.defineProperty(window, 'sessionStorage', { value: mockSessionStorage });
 
+const createValidateGuidResponse = (
+  overrides: Partial<ValidateGuidResponse> = {}
+): ValidateGuidResponse => ({
+  registered: true,
+  purchasable: false,
+  upgradable: true,
+  upgradeAllowed: ['Pro', 'Unleashed'],
+  allowedPurchaseableSkus: ['upgrade-plus-pro', 'upgrade-plus-unleashed'],
+  replaceable: true,
+  linked: true,
+  highestRegType: 'Plus',
+  updateExpiration: null,
+  isUpdatesExpired: null,
+  ...overrides,
+});
+
 describe('ReplaceRenew Store', () => {
   let store: ReturnType<typeof useReplaceRenewStore>;
   let mockGuid = 'test-guid';
@@ -84,11 +100,11 @@ describe('ReplaceRenew Store', () => {
   describe('Computed Properties', () => {
     it('should return correct keyLinkedOutput for each status', () => {
       expect(store.keyLinkedOutput.variant).toBe('gray');
-      expect(store.keyLinkedOutput.text).toBe('Unknown');
+      expect(store.keyLinkedOutput.text).toBe('common.unknown');
 
       store.keyLinkedStatus = 'checking';
       expect(store.keyLinkedOutput.variant).toBe('gray');
-      expect(store.keyLinkedOutput.text).toBe('Checking...');
+      expect(store.keyLinkedOutput.text).toBe('updateOs.status.checking');
 
       store.keyLinkedStatus = 'linked';
       expect(store.keyLinkedOutput.variant).toBe('green');
@@ -110,7 +126,7 @@ describe('ReplaceRenew Store', () => {
 
       store.replaceStatus = 'checking';
       expect(store.replaceStatusOutput?.variant).toBe('gray');
-      expect(store.replaceStatusOutput?.text).toBe('Checking...');
+      expect(store.replaceStatusOutput?.text).toBe('updateOs.status.checking');
 
       store.replaceStatus = 'eligible';
       expect(store.replaceStatusOutput?.variant).toBe('green');
@@ -155,15 +171,20 @@ describe('ReplaceRenew Store', () => {
       expect(store.error).toBeNull();
     });
 
+    it('should purge invalid cached validation response during initialization', () => {
+      mockSessionStorage.getItem.mockReturnValue('{not-valid-json');
+      setActivePinia(createPinia());
+
+      useReplaceRenewStore();
+
+      expect(mockSessionStorage.removeItem).toHaveBeenCalledWith(REPLACE_CHECK_LOCAL_STORAGE_KEY);
+    });
+
     describe('check action', () => {
-      const mockResponse = {
-        hasNewerKeyfile: false,
-        linked: true,
-        replaceable: true,
-      };
+      const mockResponse = createValidateGuidResponse();
 
       beforeEach(() => {
-        vi.mocked(validateGuid).mockResolvedValue(mockResponse as unknown as ValidateGuidResponse);
+        vi.mocked(validateGuid).mockResolvedValue(mockResponse);
         mockSessionStorage.getItem.mockReturnValue(null);
         vi.mocked(useServerStore).mockReturnValue({
           guid: 'test-guid',
@@ -227,7 +248,7 @@ describe('ReplaceRenew Store', () => {
         };
 
         mockSessionStorage.getItem.mockReturnValue(JSON.stringify(cachedResponse));
-        vi.mocked(validateGuid).mockResolvedValue(mockResponse as unknown as ValidateGuidResponse);
+        vi.mocked(validateGuid).mockResolvedValue(mockResponse);
 
         setActivePinia(createPinia());
         const testStore = useReplaceRenewStore();
@@ -252,7 +273,7 @@ describe('ReplaceRenew Store', () => {
         };
 
         mockSessionStorage.getItem.mockReturnValue(JSON.stringify(cachedResponse));
-        vi.mocked(validateGuid).mockResolvedValue(mockResponse as unknown as ValidateGuidResponse);
+        vi.mocked(validateGuid).mockResolvedValue(mockResponse);
 
         setActivePinia(createPinia());
         const testStore = useReplaceRenewStore();
@@ -275,7 +296,7 @@ describe('ReplaceRenew Store', () => {
         };
 
         mockSessionStorage.getItem.mockReturnValue(JSON.stringify(cachedResponse));
-        vi.mocked(validateGuid).mockResolvedValue(mockResponse as unknown as ValidateGuidResponse);
+        vi.mocked(validateGuid).mockResolvedValue(mockResponse);
         setActivePinia(createPinia());
 
         const testStore = useReplaceRenewStore();
@@ -334,6 +355,24 @@ describe('ReplaceRenew Store', () => {
 
         expect(mockSessionStorage.removeItem).toHaveBeenCalledWith(REPLACE_CHECK_LOCAL_STORAGE_KEY);
         expect(validateGuid).toHaveBeenCalled();
+      });
+
+      it('should dedupe concurrent check requests', async () => {
+        let resolveRequest: ((value: ValidateGuidResponse) => void) | undefined;
+        const requestPromise = new Promise<ValidateGuidResponse>((resolve) => {
+          resolveRequest = resolve;
+        });
+        vi.mocked(validateGuid).mockReturnValueOnce(requestPromise);
+
+        const firstRequest = store.check();
+        const secondRequest = store.check(true);
+
+        await Promise.resolve();
+        expect(validateGuid).toHaveBeenCalledTimes(1);
+
+        resolveRequest?.(mockResponse);
+
+        await Promise.all([firstRequest, secondRequest]);
       });
 
       it('should handle errors during check', async () => {
