@@ -167,6 +167,7 @@ const getStore = () => {
         flashProduct: store.flashProduct,
         flashVendor: store.flashVendor,
         guid: store.guid,
+        keyfile: store.keyfile,
         locale: store.locale,
         name: store.name,
         osVersion: store.osVersion,
@@ -609,6 +610,7 @@ describe('useServerStore', () => {
       flashProduct: 'TestFlash',
       flashVendor: 'TestVendor',
       guid: '123456',
+      keyfile: '/boot/config/Plus.key',
       locale: 'en-US',
       name: 'TestServer',
       osVersion: '6.10.3',
@@ -630,6 +632,7 @@ describe('useServerStore', () => {
     expect(payload.flashProduct).toBe('TestFlash');
     expect(payload.flashVendor).toBe('TestVendor');
     expect(payload.guid).toBe('123456');
+    expect(payload.keyfile).toBe('/boot/config/Plus.key');
     expect(payload.locale).toBe('en-US');
     expect(payload.name).toBe('TestServer');
     expect(payload.osVersion).toBe('6.10.3');

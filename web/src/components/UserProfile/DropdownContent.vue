@@ -74,7 +74,7 @@ const manageUnraidNetAccount = computed((): UserProfileLink => {
   return {
     external: true,
     click: () => {
-      accountStore.manage();
+      accountStore.myKeys();
       emit('close-dropdown');
     },
     icon: UserIcon,

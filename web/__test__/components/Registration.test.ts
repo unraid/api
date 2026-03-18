@@ -14,7 +14,6 @@ import type { Pinia } from 'pinia';
 
 import Registration from '~/components/Registration.standalone.vue';
 import { useAccountStore } from '~/store/account';
-import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { createTestI18n, testTranslate } from '../utils/i18n';
 
@@ -98,10 +97,6 @@ vi.mock('@unraid/ui', async (importOriginal) => {
   };
 });
 
-vi.mock('~/components/KeyActions.vue', () => ({
-  default: { template: '<div data-testid="key-actions"><slot/></div>', props: ['t', 'filterOut'] },
-}));
-
 vi.mock('~/components/Registration/UpdateExpirationAction.vue', () => ({
   default: { template: '<div data-testid="update-expiration"></div>', props: ['t'] },
 }));
@@ -149,7 +144,6 @@ describe('Registration.standalone.vue', () => {
   let pinia: Pinia;
   let accountStore: ReturnType<typeof useAccountStore>;
   let serverStore: ReturnType<typeof useServerStore>;
-  let purchaseStore: ReturnType<typeof usePurchaseStore>;
 
   const mountComponent = () =>
     mount(Registration, {
@@ -193,7 +187,6 @@ describe('Registration.standalone.vue', () => {
 
     accountStore = useAccountStore();
     serverStore = useServerStore();
-    purchaseStore = usePurchaseStore();
 
     serverStore.deprecatedUnraidSSL = undefined;
 
@@ -217,11 +210,11 @@ describe('Registration.standalone.vue', () => {
     expect(subheading.text()).toContain('Choose an option below');
     expect(findItemByLabel(t('License key type'))).toBeUndefined();
     expect(findItemByLabel(t('Device GUID'))).toBeUndefined();
-    expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="manage-license-button"]').exists()).toBe(false);
   });
 
-  it('does not show a connect sign-in action on the registration page', async () => {
+  it('shows connect sign-in action on the registration page when connect is installed', async () => {
     serverStore.state = 'ENOKEYFILE';
     serverStore.registered = false;
     serverStore.connectPluginInstalled = 'INSTALLED' as ServerconnectPluginInstalled;
@@ -229,31 +222,28 @@ describe('Registration.standalone.vue', () => {
     await wrapper.vm.$nextTick();
 
     expect(serverStore.authAction?.name).toBe('signIn');
-    expect(wrapper.text()).not.toContain('Sign In');
+    const connectAuthButton = wrapper.find('[data-testid="registration-connect-auth-button"]');
+    expect(connectAuthButton.exists()).toBe(true);
+    expect(connectAuthButton.text()).toContain('Sign In');
+    serverStore.authAction?.click?.();
+    expect(accountStore.signIn).toHaveBeenCalled();
     expect(serverStore.stateData.actions?.some((action) => action.name === 'signIn')).toBe(true);
   });
 
-  it('triggers expected action when key action is clicked', async () => {
-    serverStore.state = 'TRIAL';
+  it('shows connect sign-out action on the registration page when connected', async () => {
+    serverStore.state = 'PRO';
+    serverStore.registered = true;
+    serverStore.connectPluginInstalled = 'INSTALLED' as ServerconnectPluginInstalled;
+    serverStore.keyfile = 'test-keyfile.key';
 
     await wrapper.vm.$nextTick();
 
-    const keyActionsElement = wrapper.find('[data-testid="key-actions"]');
-
-    expect(keyActionsElement.exists(), 'KeyActions element not found').toBe(true);
-
-    const expectedActions = serverStore.keyActions?.filter((action) => !['renew'].includes(action.name));
-
-    expect(expectedActions, 'No expected actions found in store for TRIAL state').toBeDefined();
-    expect(expectedActions!.length).toBeGreaterThan(0);
-
-    const purchaseAction = expectedActions!.find((a) => a.name === 'purchase');
-
-    expect(purchaseAction, 'Purchase action not found in expected actions').toBeDefined();
-
-    purchaseAction!.click?.();
-
-    expect(purchaseStore.purchase).toHaveBeenCalled();
+    expect(serverStore.authAction?.name).toBe('signOut');
+    const connectAuthButton = wrapper.find('[data-testid="registration-connect-auth-button"]');
+    expect(connectAuthButton.exists()).toBe(true);
+    expect(connectAuthButton.text()).toContain('Sign Out');
+    serverStore.authAction?.click?.();
+    expect(accountStore.signOut).toHaveBeenCalled();
   });
 
   it('renders registered state information when state is PRO', async () => {

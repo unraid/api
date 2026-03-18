@@ -239,6 +239,7 @@ export const useServerStore = defineStore('server', () => {
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
       guid: guid.value,
+      keyfile: keyfile.value,
       locale: locale.value,
       name: name.value,
       osVersion: osVersion.value,

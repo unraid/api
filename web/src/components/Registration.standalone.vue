@@ -25,9 +25,7 @@ import { BrandButton, CardWrapper, PageContainer, SettingsGrid } from '@unraid/u
 import type { RegistrationItemProps } from '~/types/registration';
 import type { ServerStateDataAction } from '~/types/server';
 
-import KeyActions from '~/components/KeyActions.vue';
 import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
-import RegistrationActivationCode from '~/components/Registration/ActivationCode.vue';
 import RegistrationManageLicenseAction from '~/components/Registration/ManageLicenseAction.vue';
 import RegistrationUpdateExpirationAction from '~/components/Registration/UpdateExpirationAction.vue';
 import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
@@ -49,7 +47,8 @@ const {
   flashProduct,
   flashVendor,
   guid,
-  keyActions,
+  authAction,
+  connectPluginInstalled,
   computedRegDevs,
   regGuid,
   regTm,
@@ -112,15 +111,6 @@ const keyInstalled = computed((): boolean => !!(!stateDataError.value && state.v
 const showManageLicenseAction = computed(
   (): boolean => !!(keyInstalled.value && guid.value && !showTrialExpiration.value)
 );
-// filter out renew action and only display other key actions…renew is displayed in RegistrationUpdateExpirationAction
-const showFilteredKeyActions = computed(
-  (): boolean =>
-    !!(
-      keyActions.value &&
-      keyActions.value?.filter((action: ServerStateDataAction) => !['renew'].includes(action.name))
-        .length > 0
-    )
-);
 const showPartnerActivationCode = computed(() => {
   const currentState = state.value;
   return (
@@ -132,6 +122,19 @@ const showTpmTransferButton = computed((): boolean =>
   Boolean((keyInstalled.value || showTrialExpiration.value) && hasDistinctTpmGuid.value)
 );
 const disableTpmTransferButton = computed((): boolean => showTrialExpiration.value);
+const connectAuthAction = computed((): ServerStateDataAction | undefined => {
+  if (!connectPluginInstalled.value) {
+    return undefined;
+  }
+  return authAction.value;
+});
+const showActionsSection = computed(
+  (): boolean =>
+    showTpmTransferButton.value ||
+    showPartnerActivationCode.value ||
+    showManageLicenseAction.value ||
+    !!connectAuthAction.value
+);
 
 // Organize items into three sections
 const bootDeviceItems = computed((): RegistrationItemProps[] => {
@@ -260,33 +263,11 @@ const licenseItems = computed((): RegistrationItemProps[] => {
 
 const actionItems = computed((): RegistrationItemProps[] => {
   return [
-    ...(showPartnerActivationCode.value && activationCode.value?.code
-      ? [
-          {
-            label: t('registration.activationCode'),
-            component: RegistrationActivationCode,
-            componentProps: {
-              code: activationCode.value.code,
-            },
-          },
-        ]
-      : []),
     ...(showManageLicenseAction.value
       ? [
           {
             label: t('onboarding.licenseStep.actions.manageLicense'),
             component: RegistrationManageLicenseAction,
-          },
-        ]
-      : []),
-    ...(showFilteredKeyActions.value
-      ? [
-          {
-            component: KeyActions,
-            componentProps: {
-              filterOut: ['renew'],
-              t,
-            },
           },
         ]
       : []),
@@ -369,7 +350,7 @@ const actionItems = computed((): RegistrationItemProps[] => {
 
           <!-- Actions Section -->
           <div
-            v-if="actionItems.length > 0"
+            v-if="showActionsSection"
             class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
           >
             <h4 class="mb-3 text-lg font-semibold">{{ t('registration.actions') }}</h4>
@@ -395,48 +376,39 @@ const actionItems = computed((): RegistrationItemProps[] => {
                 {{ t('registration.partnerActivationDetected') }}
               </p>
             </blockquote>
+            <BrandButton
+              v-if="connectAuthAction"
+              data-testid="registration-connect-auth-button"
+              :disabled="connectAuthAction.disabled"
+              :external="connectAuthAction.external"
+              :href="connectAuthAction.href"
+              :icon="connectAuthAction.icon"
+              :text="t(connectAuthAction.text)"
+              :title="connectAuthAction.title ? t(connectAuthAction.title) : undefined"
+              class="mb-4 w-full sm:max-w-[300px]"
+              @click="connectAuthAction.click?.()"
+            />
             <SettingsGrid>
               <template
                 v-for="item in actionItems"
                 :key="item.label || 'action-' + actionItems.indexOf(item)"
               >
                 <template v-if="item.label">
-                  <template v-if="item.component === RegistrationActivationCode">
-                    <div class="md:col-span-2">
-                      <div class="flex min-w-0 flex-wrap items-center gap-2">
-                        <div class="flex items-center gap-x-2 font-semibold">
-                          <ShieldExclamationIcon v-if="item.error" class="text-unraid-red h-4 w-4" />
-                          <span v-html="item.label" />
-                          <span>:</span>
-                        </div>
-                        <div :class="[item.error ? 'text-unraid-red' : '']">
-                          <component
-                            :is="item.component"
-                            v-if="item.component"
-                            v-bind="item.componentProps"
-                            :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-                  <template v-else>
-                    <div class="flex items-center gap-x-2 font-semibold">
-                      <ShieldExclamationIcon v-if="item.error" class="text-unraid-red h-4 w-4" />
-                      <span v-html="item.label" />
-                    </div>
-                    <div :class="[item.error ? 'text-unraid-red' : '']">
-                      <span v-if="item.text" class="opacity-75 select-all">
-                        {{ item.text }}
-                      </span>
-                      <component
-                        :is="item.component"
-                        v-if="item.component"
-                        v-bind="item.componentProps"
-                        :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']"
-                      />
-                    </div>
-                  </template>
+                  <div class="flex items-center gap-x-2 font-semibold">
+                    <ShieldExclamationIcon v-if="item.error" class="text-unraid-red h-4 w-4" />
+                    <span v-html="item.label" />
+                  </div>
+                  <div :class="[item.error ? 'text-unraid-red' : '']">
+                    <span v-if="item.text" class="opacity-75 select-all">
+                      {{ item.text }}
+                    </span>
+                    <component
+                      :is="item.component"
+                      v-if="item.component"
+                      v-bind="item.componentProps"
+                      :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']"
+                    />
+                  </div>
                 </template>
                 <template v-else>
                   <div class="md:col-span-2">
