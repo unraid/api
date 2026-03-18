@@ -18,7 +18,7 @@ const accountStore = useAccountStore();
       @click="accountStore.myKeys()"
     />
     <p class="text-sm leading-relaxed opacity-75">
-      View replacement and renewal options for this server key in the Unraid Account App.
+      {{ t('onboarding.licenseStep.actions.manageLicenseHelperText') }}
     </p>
   </div>
 </template>
