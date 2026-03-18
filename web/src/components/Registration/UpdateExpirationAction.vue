@@ -53,7 +53,7 @@ const output = computed(() => {
         :text="t('updateOs.updateIneligible.extendLicense')"
         :title="t('updateOs.updateIneligible.payYourAnnualFeeToContinue')"
         class="grow"
-        @click="renewAction.click()"
+        @click="renewAction.click!()"
       />
 
       <BrandButton
