@@ -30,6 +30,10 @@ vi.mock('~/store/server', () => ({
       guid: 'test-guid',
       name: 'test-server',
     },
+    serverReplacePayload: {
+      guid: 'test-tpm-guid',
+      name: 'test-server',
+    },
     get inIframe() {
       return mockInIframe.value;
     },
@@ -73,14 +77,22 @@ describe('Account Store', () => {
     store.replace();
     assertMyKeys();
 
-    store.replaceTpm();
-    assertMyKeys();
-
     store.trialExtend();
     assertMyKeys();
 
     store.trialStart();
     assertMyKeys();
+  });
+
+  it('sends replaceTpm with TPM guid as primary guid', () => {
+    store.replaceTpm();
+
+    expect(mockSend).toHaveBeenCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-tpm-guid', name: 'test-server' }, type: 'myKeys' }],
+      undefined,
+      'fromUpc'
+    );
   });
 
   it('includes activationCodeData in callback payload when available', () => {

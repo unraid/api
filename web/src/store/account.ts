@@ -25,6 +25,7 @@ export const useAccountStore = defineStore('account', () => {
 
   const activationCode = computed(() => activationCodeStore.activationCode);
   const serverAccountPayload = computed(() => serverStore.serverAccountPayload);
+  const serverReplacePayload = computed(() => serverStore.serverReplacePayload);
   const inIframe = computed(() => serverStore.inIframe);
   const sendType = computed(() => callbackStore.sendType);
 
@@ -51,17 +52,21 @@ export const useAccountStore = defineStore('account', () => {
     };
   };
 
-  const buildAccountActionPayload = (type: AccountCallbackActionType) => [
+  const buildAccountActionPayload = (type: AccountCallbackActionType, payload?: ServerData) => [
     {
-      server: buildServerPayload(serverAccountPayload.value),
+      server: buildServerPayload(payload ?? serverAccountPayload.value),
       type,
     },
   ];
 
-  const sendAccountAction = (type: AccountCallbackActionType, actionType?: 'newTab' | 'replace') => {
+  const sendAccountAction = (
+    type: AccountCallbackActionType,
+    actionType?: 'newTab' | 'replace',
+    payload?: ServerData
+  ) => {
     return callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
-      buildAccountActionPayload(type),
+      buildAccountActionPayload(type, payload),
       actionType ?? (inIframe.value ? 'newTab' : undefined),
       sendType.value
     );
@@ -86,7 +91,7 @@ export const useAccountStore = defineStore('account', () => {
   const manage = () => myKeys();
   const recover = () => myKeys();
   const replace = () => myKeys();
-  const replaceTpm = () => myKeys();
+  const replaceTpm = () => sendAccountAction('myKeys', undefined, serverReplacePayload.value);
   const signIn = () => {
     sendAccountAction('signIn');
   };
