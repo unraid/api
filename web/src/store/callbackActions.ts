@@ -143,8 +143,20 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   );
   watch([callbackData, accountActionStatus, keyInstallStatus], updateResolvedCallbackStatus);
 
+  const resetCallbackState = () => {
+    callbackData.value = undefined;
+    callbackError.value = undefined;
+    callbackActionsExecuting.value = false;
+    callbackReconciliationPending.value = false;
+    getCallbackInboundStore().resetState();
+    getInstallKeyStore().resetState();
+  };
+
   const setCallbackStatus = (status: CallbackStatus) => {
     callbackStatus.value = status;
+    if (status === 'ready') {
+      resetCallbackState();
+    }
   };
 
   watch(callbackStatus, (newVal, oldVal) => {

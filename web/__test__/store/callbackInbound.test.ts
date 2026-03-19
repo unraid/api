@@ -285,4 +285,30 @@ describe('Callback Inbound Store', () => {
       type: 'account',
     });
   });
+
+  it('resets inbound account state', async () => {
+    mockSignInMutate.mockResolvedValueOnce({
+      data: {
+        connectSignIn: true,
+      },
+    });
+
+    await store.executeAction({
+      type: 'signIn',
+      apiKey: 'api-key',
+      user: {
+        email: 'test@example.com',
+        preferred_username: 'test-user',
+      },
+    });
+
+    expect(store.accountActionType).toBe('signIn');
+    expect(store.accountActionStatus).toBe('success');
+
+    store.resetState();
+
+    expect(store.accountActionType).toBeUndefined();
+    expect(store.accountActionStatus).toBe('ready');
+    expect(store.accountActionHide).toBe(false);
+  });
 });

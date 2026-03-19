@@ -155,11 +155,18 @@ export const useCallbackInboundStore = defineStore('callbackInbound', () => {
     }
   };
 
+  const resetState = () => {
+    accountAction.value = undefined;
+    accountActionHide.value = false;
+    accountActionStatus.value = 'ready';
+  };
+
   return {
     accountAction,
     accountActionHide,
     accountActionStatus,
     accountActionType,
     executeAction,
+    resetState,
   };
 });

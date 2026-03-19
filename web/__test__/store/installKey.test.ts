@@ -55,6 +55,26 @@ describe('InstallKey Store', () => {
       expect(store.keyType).toBeUndefined();
       expect(store.keyUrl).toBeUndefined();
     });
+
+    it('should reset state to defaults', async () => {
+      mockGetFn.mockResolvedValueOnce({ success: true });
+
+      await store.install(
+        createTestAction({
+          type: 'purchase',
+          keyUrl: 'https://example.com/license.key',
+        })
+      );
+      expect(store.keyInstallStatus).toBe('success');
+      expect(store.keyActionType).toBe('purchase');
+
+      store.resetState();
+
+      expect(store.keyInstallStatus).toBe('ready');
+      expect(store.keyActionType).toBeUndefined();
+      expect(store.keyType).toBeUndefined();
+      expect(store.keyUrl).toBeUndefined();
+    });
   });
 
   describe('Installing Keys', () => {

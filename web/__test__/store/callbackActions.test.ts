@@ -33,6 +33,8 @@ const mockAccountActionStatus = ref('success');
 const mockKeyInstallStatus = ref('success');
 const mockRefreshServerStateStatus = ref<'done' | 'ready' | 'refreshing' | 'timeout'>('done');
 const mockExecuteAction = vi.fn();
+const mockResetInboundState = vi.fn();
+const mockResetInstallState = vi.fn();
 const mockRefreshServerState = vi.fn();
 
 vi.mock('@unraid/shared-callbacks', () => {
@@ -67,6 +69,7 @@ vi.mock('~/store/callbackInbound', () => {
       $subscribe: vi.fn(),
       $dispose: vi.fn(),
       executeAction: mockExecuteAction,
+      resetState: mockResetInboundState,
       get accountActionStatus() {
         return mockAccountActionStatus.value;
       },
@@ -82,6 +85,7 @@ vi.mock('~/store/installKey', () => {
       $reset: vi.fn(),
       $subscribe: vi.fn(),
       $dispose: vi.fn(),
+      resetState: mockResetInstallState,
       get keyInstallStatus() {
         return mockKeyInstallStatus.value;
       },
@@ -831,6 +835,10 @@ describe('Callback Actions Store', () => {
       store.setCallbackStatus('ready');
       expect(preventClose.addPreventClose).not.toHaveBeenCalled();
       expect(preventClose.removePreventClose).not.toHaveBeenCalled();
+      expect(mockResetInboundState).toHaveBeenCalledTimes(1);
+      expect(mockResetInstallState).toHaveBeenCalledTimes(1);
+      expect(store.callbackData).toBeUndefined();
+      expect(store.callbackError).toBeUndefined();
 
       store.setCallbackStatus('error');
       expect(preventClose.addPreventClose).not.toHaveBeenCalled();

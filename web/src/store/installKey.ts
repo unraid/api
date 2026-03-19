@@ -59,6 +59,11 @@ export const useInstallKeyStore = defineStore('installKey', () => {
     }
   };
 
+  const resetState = () => {
+    keyAction.value = undefined;
+    keyInstallStatus.value = 'ready';
+  };
+
   return {
     // State
     keyInstallStatus,
@@ -68,5 +73,6 @@ export const useInstallKeyStore = defineStore('installKey', () => {
     keyUrl,
     // Actions
     install,
+    resetState,
   };
 });
