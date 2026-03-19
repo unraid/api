@@ -105,6 +105,7 @@ type OnboardingOverridePayload = {
   onboarding?: {
     completed?: boolean;
     completedAtVersion?: string | null;
+    forceOpen?: boolean | null;
   };
   activationCode?: {
     code?: string;
