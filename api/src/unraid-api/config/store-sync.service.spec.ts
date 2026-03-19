@@ -24,7 +24,6 @@ describe('StoreSyncService', () => {
     let subscriber: (() => void) | undefined;
 
     beforeEach(() => {
-        vi.useFakeTimers();
         subscribe.mockReset();
         getState.mockReset();
 
@@ -43,45 +42,43 @@ describe('StoreSyncService', () => {
     });
 
     afterEach(() => {
-        vi.runOnlyPendingTimers();
-        vi.useRealTimers();
+        service.onModuleDestroy();
     });
 
-    it('debounces sync operations and writes once after rapid updates', () => {
-        getState.mockReturnValue({ count: 2 });
+    it('syncs store updates immediately', () => {
+        getState.mockReturnValue({ count: 1 });
 
         subscriber?.();
-        vi.advanceTimersByTime(500);
-        subscriber?.();
-
-        expect(setSpy).not.toHaveBeenCalled();
-
-        vi.advanceTimersByTime(1000);
 
         expect(setSpy).toHaveBeenCalledTimes(1);
-        expect(setSpy).toHaveBeenCalledWith('store', { count: 2 });
+        expect(setSpy).toHaveBeenCalledWith('store', { count: 1 });
     });
 
     it('skips writes when serialized state is unchanged', () => {
         getState.mockReturnValue({ count: 1 });
 
         subscriber?.();
-        vi.advanceTimersByTime(1000);
-
         subscriber?.();
-        vi.advanceTimersByTime(1000);
 
         expect(setSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('unsubscribes and clears timer on module destroy', () => {
-        getState.mockReturnValue({ count: 1 });
+    it('writes again when the store state changes', () => {
+        getState.mockReturnValueOnce({ count: 1 }).mockReturnValueOnce({ count: 2 });
 
         subscriber?.();
+        subscriber?.();
+
+        expect(setSpy).toHaveBeenCalledTimes(2);
+        expect(setSpy).toHaveBeenNthCalledWith(1, 'store', { count: 1 });
+        expect(setSpy).toHaveBeenNthCalledWith(2, 'store', { count: 2 });
+    });
+
+    it('unsubscribes on module destroy', () => {
+        getState.mockReturnValue({ count: 1 });
+
         service.onModuleDestroy();
-        vi.advanceTimersByTime(1000);
 
         expect(unsubscribe).toHaveBeenCalledTimes(1);
-        expect(setSpy).not.toHaveBeenCalled();
     });
 });
