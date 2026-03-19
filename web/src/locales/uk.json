@@ -319,7 +319,6 @@
   "onboarding.licenseStep.labels.activationCode": "Код активації",
   "onboarding.licenseStep.labels.none": "Жоден",
   "onboarding.licenseStep.actions.manageLicense": "Керування ліцензією",
-  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "Активувати сервер",
   "onboarding.licenseStep.actions.nextStep": "НАСТУПНИЙ КРОК",
   "onboarding.licenseStep.actions.skipForNow": "Пропустити зараз",

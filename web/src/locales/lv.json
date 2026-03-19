@@ -319,7 +319,6 @@
   "onboarding.licenseStep.labels.activationCode": "Aktivācijas kods",
   "onboarding.licenseStep.labels.none": "Neviens",
   "onboarding.licenseStep.actions.manageLicense": "Pārvaldīt licenci",
-  "onboarding.licenseStep.actions.manageLicenseHelperText": "Replace, recover, or link your license on your Unraid Account.",
   "onboarding.licenseStep.actions.activateServer": "Aktivizēt serveri",
   "onboarding.licenseStep.actions.nextStep": "NAKAMĀS DARBĪBAS",
   "onboarding.licenseStep.actions.skipForNow": "Izlaist pagaidām",

@@ -3,8 +3,16 @@ import { defineStore } from 'pinia';
 
 import { ACCOUNT_CALLBACK } from '~/helpers/urls';
 
-import type { DowngradeOs, MyKeys, SignIn, SignOut, UpdateOs } from '@unraid/shared-callbacks';
+import type {
+  DowngradeOs,
+  MyKeys,
+  ServerData,
+  SignIn,
+  SignOut,
+  UpdateOs,
+} from '@unraid/shared-callbacks';
 
+import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
@@ -12,17 +20,40 @@ type AccountCallbackActionType = MyKeys | SignIn | SignOut | DowngradeOs | Updat
 
 export const useAccountStore = defineStore('account', () => {
   const callbackStore = useCallbackActionsStore();
+  const activationCodeStore = useActivationCodeDataStore();
   const serverStore = useServerStore();
 
-  const serverCallbackPayload = computed(() => serverStore.serverCallbackPayload);
+  const activationCode = computed(() => activationCodeStore.activationCode);
+  const serverAccountPayload = computed(() => serverStore.serverAccountPayload);
   const inIframe = computed(() => serverStore.inIframe);
   const sendType = computed(() => callbackStore.sendType);
 
+  const buildServerPayload = (payload: ServerData): ServerData => {
+    const activationCodeValue = activationCode.value;
+    if (!activationCodeValue) {
+      return payload;
+    }
+
+    const { code, partner, system } = activationCodeValue;
+    const activationCodeData = {
+      ...(code ? { code } : {}),
+      ...(partner ? { partner } : {}),
+      ...(system ? { system } : {}),
+    };
+
+    if (!Object.keys(activationCodeData).length) {
+      return payload;
+    }
+
+    return {
+      ...payload,
+      activationCodeData,
+    };
+  };
+
   const buildAccountActionPayload = (type: AccountCallbackActionType) => [
     {
-      server: {
-        ...serverCallbackPayload.value,
-      },
+      server: buildServerPayload(serverAccountPayload.value),
       type,
     },
   ];
@@ -52,6 +83,7 @@ export const useAccountStore = defineStore('account', () => {
   };
 
   const myKeys = () => sendAccountAction('myKeys');
+  const manage = () => myKeys();
   const recover = () => myKeys();
   const replace = () => myKeys();
   const replaceTpm = () => myKeys();
@@ -62,6 +94,7 @@ export const useAccountStore = defineStore('account', () => {
     sendAccountAction('signOut');
   };
   const trialExtend = () => myKeys();
+  const trialStart = () => myKeys();
 
   const updateOs = async (autoRedirectReplace?: boolean) => {
     return sendAccountAction(
@@ -72,6 +105,7 @@ export const useAccountStore = defineStore('account', () => {
 
   return {
     downgradeOs,
+    manage,
     myKeys,
     recover,
     replace,
@@ -79,6 +113,7 @@ export const useAccountStore = defineStore('account', () => {
     signIn,
     signOut,
     trialExtend,
+    trialStart,
     updateOs,
     generateMyKeysUrl,
     openInNewTab: computed(() => inIframe.value),

@@ -453,6 +453,19 @@ export const useServerStore = defineStore('server', () => {
       title: serverActionsDisable.value.title,
     };
   });
+  const trialStartAction = computed((): ServerStateDataAction => {
+    return {
+      click: () => {
+        accountStore.trialStart();
+      },
+      disabled: serverActionsDisable.value.disable,
+      external: true,
+      icon: KeyIcon,
+      name: 'trialStart',
+      text: t('server.actions.startTrial'),
+      title: serverActionsDisable.value.title,
+    };
+  });
 
   let messageEGUID = '';
   let trialMessage = '';
@@ -468,8 +481,8 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...(shouldUsePartnerActivationOnly.value
-              ? [redeemAction.value, recoverAction.value]
-              : [redeemAction.value, purchaseAction.value, recoverAction.value]),
+              ? [redeemAction.value, recoverAction.value, trialStartAction.value]
+              : [redeemAction.value, trialStartAction.value, purchaseAction.value, recoverAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: t('server.state.enokeyfile.humanReadable'),

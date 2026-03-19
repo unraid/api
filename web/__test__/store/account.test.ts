@@ -6,6 +6,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useAccountStore } from '~/store/account';
 
+const { activationCodeStoreMock } = vi.hoisted(() => ({
+  activationCodeStoreMock: {
+    activationCode: null as { code?: string; partner?: string; system?: string } | null,
+  },
+}));
+
 const mockSend = vi.fn();
 const mockGenerateUrl = vi.fn();
 const mockInIframe = ref(false);
@@ -20,7 +26,7 @@ vi.mock('~/store/callbackActions', () => ({
 
 vi.mock('~/store/server', () => ({
   useServerStore: () => ({
-    serverCallbackPayload: {
+    serverAccountPayload: {
       guid: 'test-guid',
       name: 'test-server',
     },
@@ -30,53 +36,78 @@ vi.mock('~/store/server', () => ({
   }),
 }));
 
+vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
+  useActivationCodeDataStore: () => activationCodeStoreMock,
+}));
+
 describe('Account Store', () => {
   let store: ReturnType<typeof useAccountStore>;
 
   beforeEach(() => {
     setActivePinia(createPinia());
     mockInIframe.value = false;
+    activationCodeStoreMock.activationCode = null;
     store = useAccountStore();
     vi.clearAllMocks();
   });
 
   it('sends myKeys payload for manage-like actions', () => {
+    const assertMyKeys = () => {
+      expect(mockSend).toHaveBeenLastCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
+        undefined,
+        'fromUpc'
+      );
+    };
+
     store.myKeys();
-    expect(mockSend).toHaveBeenLastCalledWith(
-      ACCOUNT_CALLBACK.toString(),
-      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
-      undefined,
-      'fromUpc'
-    );
+    assertMyKeys();
+
+    store.manage();
+    assertMyKeys();
 
     store.recover();
-    expect(mockSend).toHaveBeenLastCalledWith(
-      ACCOUNT_CALLBACK.toString(),
-      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
-      undefined,
-      'fromUpc'
-    );
+    assertMyKeys();
 
     store.replace();
-    expect(mockSend).toHaveBeenLastCalledWith(
-      ACCOUNT_CALLBACK.toString(),
-      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
-      undefined,
-      'fromUpc'
-    );
+    assertMyKeys();
 
     store.replaceTpm();
-    expect(mockSend).toHaveBeenLastCalledWith(
-      ACCOUNT_CALLBACK.toString(),
-      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
-      undefined,
-      'fromUpc'
-    );
+    assertMyKeys();
 
     store.trialExtend();
-    expect(mockSend).toHaveBeenLastCalledWith(
+    assertMyKeys();
+
+    store.trialStart();
+    assertMyKeys();
+  });
+
+  it('includes activationCodeData in callback payload when available', () => {
+    activationCodeStoreMock.activationCode = {
+      code: 'PARTNER-CODE-123',
+      partner: 'Partner Name',
+      system: 'Partner System',
+    };
+
+    store.myKeys();
+
+    expect(mockSend).toHaveBeenCalledWith(
       ACCOUNT_CALLBACK.toString(),
-      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
+      [
+        {
+          server: {
+            guid: 'test-guid',
+            name: 'test-server',
+            activationCodeData: {
+              code: 'PARTNER-CODE-123',
+              partner: 'Partner Name',
+              system: 'Partner System',
+            },
+          },
+          type: 'myKeys',
+        },
+      ],
       undefined,
       'fromUpc'
     );
