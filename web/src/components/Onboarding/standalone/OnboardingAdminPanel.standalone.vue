@@ -407,6 +407,7 @@ const applyNaturalGatingFromCurrentDraft = async () => {
 const openOnboardingModalFromPanel = async () => {
   if (simulateNormalRenderGatingOnOpen.value) {
     await applyNaturalGatingFromCurrentDraft();
+    await hardRefreshPageBestEffort();
     return;
   }
 
@@ -797,10 +798,10 @@ const currentRegistrationState = computed({
               </div>
               <div class="text-muted-foreground text-xs">
                 When enabled, <strong>Open</strong> reapplies the current overrides with
-                <code class="bg-muted rounded px-1">onboarding.forceOpen = false</code> and then relies
-                on the normal backend <code class="bg-muted rounded px-1">shouldOpen</code> result
-                instead of force-open. States that would stay hidden in the real app will stay hidden
-                here too.
+                <code class="bg-muted rounded px-1">onboarding.forceOpen = false</code>, reloads the
+                page, and then relies on the normal backend
+                <code class="bg-muted rounded px-1">shouldOpen</code> result instead of force-open.
+                States that would stay hidden in the real app will stay hidden here too.
               </div>
             </div>
           </label>
