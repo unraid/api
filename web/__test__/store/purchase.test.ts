@@ -14,7 +14,13 @@ import { usePurchaseStore } from '~/store/purchase';
 const mockSend = vi.fn();
 const mockServerStore = {
   serverPurchasePayload: {
+    activationCodeData: {
+      code: 'PARTNER-CODE-123',
+      partner: 'Partner Name',
+      system: 'Partner System',
+    },
     guid: 'test-guid',
+    keyfile: 'test-keyfile',
     name: 'test-server',
   },
   inIframe: false,
@@ -47,13 +53,6 @@ vi.mock('@unraid/shared-callbacks', () => {
     })),
   };
 });
-
-// Mock activation code data store
-vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
-  useActivationCodeDataStore: () => ({
-    activationCode: ref(null),
-  }),
-}));
 
 vi.mock('~/store/callbackActions', () => ({
   useCallbackActionsStore: () => ({
@@ -92,7 +91,13 @@ describe('Purchase Store', () => {
         [
           {
             server: {
+              activationCodeData: {
+                code: 'PARTNER-CODE-123',
+                partner: 'Partner Name',
+                system: 'Partner System',
+              },
               guid: 'test-guid',
+              keyfile: 'test-keyfile',
               name: 'test-server',
             },
             type: 'activate',
@@ -112,7 +117,13 @@ describe('Purchase Store', () => {
         [
           {
             server: {
+              activationCodeData: {
+                code: 'PARTNER-CODE-123',
+                partner: 'Partner Name',
+                system: 'Partner System',
+              },
               guid: 'test-guid',
+              keyfile: 'test-keyfile',
               name: 'test-server',
             },
             type: 'redeem',
@@ -132,7 +143,13 @@ describe('Purchase Store', () => {
         [
           {
             server: {
+              activationCodeData: {
+                code: 'PARTNER-CODE-123',
+                partner: 'Partner Name',
+                system: 'Partner System',
+              },
               guid: 'test-guid',
+              keyfile: 'test-keyfile',
               name: 'test-server',
             },
             type: 'purchase',
@@ -152,7 +169,13 @@ describe('Purchase Store', () => {
         [
           {
             server: {
+              activationCodeData: {
+                code: 'PARTNER-CODE-123',
+                partner: 'Partner Name',
+                system: 'Partner System',
+              },
               guid: 'test-guid',
+              keyfile: 'test-keyfile',
               name: 'test-server',
             },
             type: 'upgrade',
@@ -172,7 +195,13 @@ describe('Purchase Store', () => {
         [
           {
             server: {
+              activationCodeData: {
+                code: 'PARTNER-CODE-123',
+                partner: 'Partner Name',
+                system: 'Partner System',
+              },
               guid: 'test-guid',
+              keyfile: 'test-keyfile',
               name: 'test-server',
             },
             type: 'renew',
@@ -198,7 +227,13 @@ describe('Purchase Store', () => {
         [
           {
             server: {
+              activationCodeData: {
+                code: 'PARTNER-CODE-123',
+                partner: 'Partner Name',
+                system: 'Partner System',
+              },
               guid: 'test-guid',
+              keyfile: 'test-keyfile',
               name: 'test-server',
             },
             type: 'purchase',

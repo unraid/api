@@ -7,7 +7,6 @@ import { ACCOUNT_CALLBACK } from '~/helpers/urls';
 
 import type { ExternalSignIn, ExternalSignOut, ServerData } from '@unraid/shared-callbacks';
 
-import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { CONNECT_SIGN_IN, CONNECT_SIGN_OUT } from '~/store/account.fragment';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useErrorsStore } from '~/store/errors';
@@ -23,11 +22,9 @@ export interface ConnectSignInMutationPayload {
 export const useAccountStore = defineStore('account', () => {
   const callbackStore = useCallbackActionsStore();
   const errorsStore = useErrorsStore();
-  const activationCodeStore = useActivationCodeDataStore();
   const serverStore = useServerStore();
   const unraidApiStore = useUnraidApiStore();
 
-  const activationCode = computed(() => activationCodeStore.activationCode);
   const serverAccountPayload = computed(() => serverStore.serverAccountPayload);
   const serverReplacePayload = computed(() => serverStore.serverReplacePayload);
   const inIframe = computed(() => serverStore.inIframe);
@@ -147,29 +144,6 @@ export const useAccountStore = defineStore('account', () => {
     | 'trialStart'
     | 'updateOs';
 
-  const buildServerPayload = (payload: ServerData) => {
-    const basePayload = {
-      ...payload,
-    };
-
-    const activationCodeValue = activationCode.value;
-    if (activationCodeValue) {
-      const { code, partner, system } = activationCodeValue;
-      const activationCodeData = {
-        ...(code ? { code } : {}),
-        ...(partner ? { partner } : {}),
-        ...(system ? { system } : {}),
-      };
-
-      return {
-        ...basePayload,
-        activationCodeData: Object.keys(activationCodeData).length ? activationCodeData : null,
-      };
-    }
-
-    return basePayload;
-  };
-
   const sendAccountAction = (
     type: AccountCallbackAction,
     options?: {
@@ -178,7 +152,7 @@ export const useAccountStore = defineStore('account', () => {
     }
   ) => {
     const redirect = options?.redirect ?? (inIframe.value ? 'newTab' : undefined);
-    const payload = buildServerPayload(options?.serverPayload ?? serverAccountPayload.value);
+    const payload = options?.serverPayload ?? serverAccountPayload.value;
 
     return callbackStore.send(
       ACCOUNT_CALLBACK.toString(),

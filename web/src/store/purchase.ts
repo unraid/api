@@ -1,40 +1,18 @@
 import { computed } from 'vue';
-import { defineStore, storeToRefs } from 'pinia';
+import { defineStore } from 'pinia';
 
 import { PURCHASE_CALLBACK } from '~/helpers/urls';
 
-import { useActivationCodeDataStore } from '~/components/Onboarding/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
 export const usePurchaseStore = defineStore('purchase', () => {
   const callbackStore = useCallbackActionsStore();
   const serverStore = useServerStore();
-  const { activationCode } = storeToRefs(useActivationCodeDataStore());
 
   const serverPurchasePayload = computed(() => serverStore.serverPurchasePayload);
   const inIframe = computed(() => serverStore.inIframe);
   const sendType = computed(() => callbackStore.sendType);
-
-  const buildServerPayload = () => {
-    const payload = {
-      ...serverPurchasePayload.value,
-    };
-    if (activationCode.value) {
-      const { code, partner, system } = activationCode.value;
-      const activationCodeData = {
-        ...(code ? { code } : {}),
-        ...(partner ? { partner } : {}),
-        ...(system ? { system } : {}),
-      };
-
-      return {
-        ...payload,
-        activationCodeData: Object.keys(activationCodeData).length ? activationCodeData : null,
-      };
-    }
-    return payload;
-  };
 
   type PurchaseActionType = 'activate' | 'redeem' | 'purchase' | 'upgrade' | 'renew';
 
@@ -43,7 +21,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
       /**
        * @todo Remove the type cast once the payload type can be more specific.
        */
-      server: buildServerPayload(),
+      server: serverPurchasePayload.value,
       type,
     },
   ];
