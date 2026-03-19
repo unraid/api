@@ -113,6 +113,7 @@ describe('OnboardingTrackerService tracker state availability', () => {
             state: {
                 completed: false,
                 completedAtVersion: undefined,
+                forceOpen: false,
             },
         });
     });
@@ -164,6 +165,7 @@ describe('OnboardingTrackerService tracker state availability', () => {
             state: {
                 completed: true,
                 completedAtVersion: '7.2.0',
+                forceOpen: false,
             },
         });
     });
