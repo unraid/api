@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "Aktiveringskode",
   "onboarding.licenseStep.labels.none": "Ingen",
   "onboarding.licenseStep.actions.manageLicense": "Administrer lisens",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Erstatt, gjenopprett eller koble lisensen din til Unraid-kontoen din.",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Start prøveperioden fra Administrer lisens i Unraid-kontoen din.",
   "onboarding.licenseStep.actions.activateServer": "Aktiver server",
   "onboarding.licenseStep.actions.nextStep": "NESTE SKRITT",
   "onboarding.licenseStep.actions.skipForNow": "Hopp over for nå",
