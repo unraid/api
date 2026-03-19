@@ -553,6 +553,24 @@ describe('OnboardingService', () => {
             expect(onboardingTrackerMock.setForceOpen).not.toHaveBeenCalled();
         });
 
+        it('closes force-opened fresh incomplete onboarding in one action', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                    forceOpen: true,
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
+            onboardingStateMock.isFreshInstall.mockReturnValue(true);
+
+            await service.closeOnboarding();
+
+            expect(onboardingTrackerMock.setForceOpen).toHaveBeenCalledWith(false);
+            expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
+        });
+
         it('enables the in-memory bypass', async () => {
             await service.bypassOnboarding();
 

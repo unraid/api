@@ -421,7 +421,6 @@ export class OnboardingService implements OnModuleInit {
 
         if (state.forceOpen) {
             await this.onboardingTracker.setForceOpen(false);
-            return;
         }
 
         if (shouldAutoOpen) {
