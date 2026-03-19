@@ -2,7 +2,7 @@
 
 ## Overview
 
-This system uses a shared onboarding modal flow. Automatic modal display applies to any incomplete onboarding state on supported versions (`7.3.0+`), while completed patch-only releases stay quiet. Downgrade status is still tracked and can affect copy/behavior when the modal is opened manually. The API tracks onboarding completion state (`completed`, `completedAtVersion`) and the web client decides whether the modal should appear and which local steps to render.
+This system uses a shared onboarding modal flow. Automatic modal display applies to any incomplete onboarding state on supported versions (`7.3.0+`), while completed patch-only releases stay quiet. Downgrade status is still tracked and can affect copy/behavior when the modal is opened manually. The API tracks onboarding completion state (`completed`, `completedAtVersion`) and computes the `shouldOpen` recommendation, while the web client applies final UI guards before showing the modal and decides which local steps to render.
 
 ## How It Works
 

@@ -594,6 +594,10 @@ describe('OnboardingService', () => {
                 },
             });
             onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
+            onboardingStateMock.getRegistrationState.mockReturnValue('PRO');
+            onboardingStateMock.isRegistered.mockReturnValue(true);
+            onboardingStateMock.hasActivationCode.mockResolvedValue(false);
+            onboardingStateMock.requiresActivationStep.mockReturnValue(false);
             onboardingStateMock.isFreshInstall.mockReturnValue(false);
 
             await service.closeOnboarding();

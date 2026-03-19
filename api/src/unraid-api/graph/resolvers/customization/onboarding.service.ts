@@ -410,7 +410,6 @@ export class OnboardingService implements OnModuleInit {
 
         const state = trackerStateResult.state;
         const currentVersion = this.onboardingTracker.getCurrentVersion();
-        const onboardingState = await this.getOnboardingState();
         const shouldAutoOpen = this.isVersionSupported(currentVersion) && !state.completed;
 
         if (state.forceOpen) {
