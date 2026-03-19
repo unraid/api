@@ -2,13 +2,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { StateFileKey } from '@app/store/types.js';
 
+type RegistrationKeyIgnored = (path: string, stats?: { isFile(): boolean }) => boolean;
+type RegistrationKeyWatchOptions = {
+    persistent: boolean;
+    ignoreInitial: boolean;
+    ignored: RegistrationKeyIgnored;
+    usePolling: boolean;
+    interval: number;
+};
+
 let registrationKeyWatchHandler: ((event: string, path: string) => Promise<void>) | undefined;
 
 const chokidarWatcher = {
     on: vi.fn(),
 };
 
-const chokidarWatch = vi.fn(() => chokidarWatcher);
+const chokidarWatch = vi.fn((path: string, options: RegistrationKeyWatchOptions) => chokidarWatcher);
 
 vi.mock('chokidar', () => ({
     watch: chokidarWatch,
@@ -98,9 +107,7 @@ describe('registration-watch', () => {
         const watchOptions = chokidarWatch.mock.calls[0]?.[1];
         expect(watchOptions).toBeDefined();
 
-        const ignored = watchOptions?.ignored as
-            | ((path: string, stats?: { isFile(): boolean }) => boolean)
-            | undefined;
+        const ignored = watchOptions?.ignored;
 
         expect(ignored).toBeDefined();
         expect(ignored?.('/boot/config', { isFile: () => false })).toBe(false);
