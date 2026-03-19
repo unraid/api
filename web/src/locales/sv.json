@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "Aktiveringskod",
   "onboarding.licenseStep.labels.none": "Ingen",
   "onboarding.licenseStep.actions.manageLicense": "Hantera licens",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Ersätt, återställ eller länka din licens på ditt Unraid-konto.",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Starta din testperiod från Hantera licens i ditt Unraid-konto.",
   "onboarding.licenseStep.actions.activateServer": "Aktivera server",
   "onboarding.licenseStep.actions.nextStep": "NÄSTA STEG",
   "onboarding.licenseStep.actions.skipForNow": "Hoppa över för nu",
