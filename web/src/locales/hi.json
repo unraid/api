@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "सक्रियण कोड",
   "onboarding.licenseStep.labels.none": "कोई नहीं",
   "onboarding.licenseStep.actions.manageLicense": "लाइसेंस प्रबंधित करें",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "अपने Unraid Account पर अपना लाइसेंस बदलें, पुनर्प्राप्त करें या लिंक करें।",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "अपने Unraid Account में Manage License से अपना ट्रायल शुरू करें।",
   "onboarding.licenseStep.actions.activateServer": "सर्वर सक्रिय करें",
   "onboarding.licenseStep.actions.nextStep": "अगला चरण",
   "onboarding.licenseStep.actions.skipForNow": "अभी के लिए छोड़ें",
