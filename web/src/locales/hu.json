@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "Aktivációs kód",
   "onboarding.licenseStep.labels.none": "Nincs",
   "onboarding.licenseStep.actions.manageLicense": "Licenc kezelése",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Cserélje le, állítsa helyre vagy kapcsolja össze licencét az Unraid-fiókjában.",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Indítsa el a próbaidőszakát a Licenc kezelése menüpontból az Unraid fiókjában.",
   "onboarding.licenseStep.actions.activateServer": "Szerver aktiválása",
   "onboarding.licenseStep.actions.nextStep": "KÖVETKEZŐ LÉPÉS",
   "onboarding.licenseStep.actions.skipForNow": "Kihagyás most",
