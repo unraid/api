@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "Aktivační kód",
   "onboarding.licenseStep.labels.none": "Žádný",
   "onboarding.licenseStep.actions.manageLicense": "Správa licence",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Nahraďte, obnovte nebo propojte svou licenci ve svém účtu Unraid.",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Začněte zkušební verzi v části Spravovat licenci ve svém účtu Unraid.",
   "onboarding.licenseStep.actions.activateServer": "Aktivovat server",
   "onboarding.licenseStep.actions.nextStep": "DALŠÍ KROK",
   "onboarding.licenseStep.actions.skipForNow": "Přeskočit prozatím",
