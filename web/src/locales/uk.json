@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "Код активації",
   "onboarding.licenseStep.labels.none": "Жоден",
   "onboarding.licenseStep.actions.manageLicense": "Керування ліцензією",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Замініть, відновіть або прив’яжіть свою ліцензію у своєму обліковому записі Unraid.",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Почніть пробний період у розділі \"Керування ліцензією\" у вашому обліковому записі Unraid.",
   "onboarding.licenseStep.actions.activateServer": "Активувати сервер",
   "onboarding.licenseStep.actions.nextStep": "НАСТУПНИЙ КРОК",
   "onboarding.licenseStep.actions.skipForNow": "Пропустити зараз",
