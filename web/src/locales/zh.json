@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "激活码",
   "onboarding.licenseStep.labels.none": "无",
   "onboarding.licenseStep.actions.manageLicense": "管理许可证",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "在您的 Unraid 账户中替换、恢复或关联您的许可证。",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "在您的 Unraid 账户中的“管理许可证”开始试用。",
   "onboarding.licenseStep.actions.activateServer": "激活服务器",
   "onboarding.licenseStep.actions.nextStep": "下一步",
   "onboarding.licenseStep.actions.skipForNow": "暂时跳过",
