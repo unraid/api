@@ -21,8 +21,8 @@ import Modal from '~/components/Modal.vue';
 import RegistrationUpdateExpiration from '~/components/Registration/UpdateExpiration.vue';
 import UpcCallbackFeedbackStatus from '~/components/UserProfile/CallbackFeedbackStatus.vue';
 import UpcUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
-import { useAccountStore } from '~/store/account';
 import { useCallbackActionsStore } from '~/store/callbackActions';
+import { useCallbackInboundStore } from '~/store/callbackInbound';
 import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
@@ -36,14 +36,14 @@ withDefaults(defineProps<Props>(), {
 });
 const { t } = useI18n();
 
-const accountStore = useAccountStore();
+const callbackInboundStore = useCallbackInboundStore();
 const callbackActionsStore = useCallbackActionsStore();
 const installKeyStore = useInstallKeyStore();
 const serverStore = useServerStore();
 const updateOsActionStore = useUpdateOsActionsStore();
 
 const { accountAction, accountActionHide, accountActionStatus, accountActionType } =
-  storeToRefs(accountStore);
+  storeToRefs(callbackInboundStore);
 const { callbackCallsCompleted, callbackStatus } = storeToRefs(callbackActionsStore);
 const { keyActionType, keyUrl, keyInstallStatus, keyType } = storeToRefs(installKeyStore);
 const {

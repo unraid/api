@@ -23,8 +23,8 @@ vi.mock('~/composables/preventClose', () => ({
   removePreventClose: vi.fn(),
 }));
 
-vi.mock('~/store/account', () => ({
-  useAccountStore: () => ({
+vi.mock('~/store/callbackInbound', () => ({
+  useCallbackInboundStore: () => ({
     accountActionStatus: 'ready',
   }),
 }));

@@ -44,6 +44,7 @@ import { useActivationCodeDataStore } from '~/components/Onboarding/store/activa
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { WebguiState, WebguiUpdateIgnore } from '~/composables/services/webgui';
 import { useAccountStore } from '~/store/account';
+import { useCallbackInboundStore } from '~/store/callbackInbound';
 import { useErrorsStore } from '~/store/errors';
 import { CLOUD_STATE_QUERY, SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from '~/store/server.fragment';
 import { useThemeStore } from '~/store/theme';
@@ -53,6 +54,7 @@ import { getRegistrationDeviceLimit, normalizeRegistrationType } from '~/utils/r
 export const useServerStore = defineStore('server', () => {
   const { t } = useI18n();
   const accountStore = useAccountStore();
+  const callbackInboundStore = useCallbackInboundStore();
   const errorsStore = useErrorsStore();
   const themeStore = useThemeStore();
   const unraidApiStore = useUnraidApiStore();
@@ -921,8 +923,8 @@ export const useServerStore = defineStore('server', () => {
     if (
       !registered.value ||
       !cloud.value?.error ||
-      accountStore.accountActionType === 'signOut' ||
-      accountStore.accountActionType === 'oemSignOut'
+      callbackInboundStore.accountActionType === 'signOut' ||
+      callbackInboundStore.accountActionType === 'oemSignOut'
     ) {
       return;
     }

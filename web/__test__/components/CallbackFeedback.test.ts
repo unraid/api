@@ -142,8 +142,8 @@ const callbackUpdateRelease = ref<{ name?: string } | null>(null);
 const mockInstallOsUpdate = vi.fn();
 const mockSetUpdateOsStatus = vi.fn();
 
-vi.mock('~/store/account', () => ({
-  useAccountStore: () => ({
+vi.mock('~/store/callbackInbound', () => ({
+  useCallbackInboundStore: () => ({
     accountAction,
     accountActionHide,
     accountActionStatus,

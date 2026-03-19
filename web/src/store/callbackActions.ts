@@ -7,22 +7,17 @@ import type { ExternalActions, QueryPayloads } from '@unraid/shared-callbacks';
 import type { CallbackStatus } from '~/store/callbackActions.helpers';
 
 import { addPreventClose, removePreventClose } from '~/composables/preventClose';
-import { useAccountStore } from '~/store/account';
 import {
   getCallbackPayloadError,
   getRefreshServerStateOptions,
-  isAccountSignInAction,
-  isAccountSignOutAction,
   isExternalCallbackPayload,
-  isKeyAction,
   isSingleUpdateOsActionCallback,
-  isUpdateOsAction,
   resolveCallbackCallsCompleted,
   resolveCallbackStatus,
 } from '~/store/callbackActions.helpers';
+import { useCallbackInboundStore } from '~/store/callbackInbound';
 import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const {
@@ -34,10 +29,9 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   });
 
   // Lazy store initialization - call stores inside functions to avoid circular dependencies
-  const getAccountStore = () => useAccountStore();
+  const getCallbackInboundStore = () => useCallbackInboundStore();
   const getInstallKeyStore = () => useInstallKeyStore();
   const getServerStore = () => useServerStore();
-  const getUpdateOsActionsStore = () => useUpdateOsActionsStore();
 
   const callbackStatus = ref<CallbackStatus>('ready');
   const callbackData = ref<QueryPayloads>();
@@ -76,34 +70,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   };
 
   const executeCallbackAction = async (action: ExternalActions) => {
-    if (isKeyAction(action)) {
-      await getInstallKeyStore().install(action);
-      return;
-    }
-
-    if (isAccountSignInAction(action)) {
-      const accountStore = getAccountStore();
-      accountStore.setAccountAction(action);
-      await accountStore.setConnectSignInPayload({
-        apiKey: action.apiKey ?? '',
-        email: action.user.email ?? '',
-        preferred_username: action.user.preferred_username ?? '',
-      });
-      return;
-    }
-
-    if (isAccountSignOutAction(action)) {
-      const accountStore = getAccountStore();
-      accountStore.setAccountAction(action);
-      await accountStore.setQueueConnectSignOut(true);
-      return;
-    }
-
-    if (isUpdateOsAction(action)) {
-      const updateOsActionsStore = getUpdateOsActionsStore();
-      updateOsActionsStore.setUpdateOsAction(action);
-      await updateOsActionsStore.actOnUpdateOsAction(action.type === 'downgradeOs');
-    }
+    await getCallbackInboundStore().executeAction(action);
   };
 
   const updateResolvedCallbackStatus = () => {
@@ -113,7 +80,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
     const nextStatus = resolveCallbackStatus({
       actions: callbackData.value.actions,
-      accountActionStatus: getAccountStore().accountActionStatus,
+      accountActionStatus: getCallbackInboundStore().accountActionStatus,
       keyInstallStatus: getInstallKeyStore().keyInstallStatus,
     });
 
@@ -166,7 +133,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     }
   };
 
-  const accountActionStatus = computed(() => getAccountStore().accountActionStatus);
+  const accountActionStatus = computed(() => getCallbackInboundStore().accountActionStatus);
   const keyInstallStatus = computed(() => getInstallKeyStore().keyInstallStatus);
   const callbackCallsCompleted = computed(() =>
     resolveCallbackCallsCompleted({

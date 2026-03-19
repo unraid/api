@@ -1,56 +1,20 @@
-/**
- * Account store test coverage
- */
-
-import { nextTick, ref } from 'vue';
+import { ref } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
-import { useMutation } from '@vue/apollo-composable';
 
-import { ApolloError } from '@apollo/client/core';
 import { ACCOUNT_CALLBACK } from '~/helpers/urls';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-import type { ExternalSignIn, ExternalSignOut } from '@unraid/shared-callbacks';
-import type { ConnectSignInMutationPayload } from '~/store/account';
-import type { Ref } from 'vue';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useAccountStore } from '~/store/account';
 
-const mockUseMutation = vi.fn(() => {
-  let onDoneCallback: ((response: { data: unknown }) => void) | null = null;
-
-  return {
-    mutate: vi.fn().mockImplementation(() => {
-      onDoneCallback?.({ data: {} });
-
-      return Promise.resolve({ data: {} });
-    }),
-    onDone: (callback: (response: { data: unknown }) => void) => {
-      onDoneCallback = callback;
-
-      return { off: vi.fn() };
-    },
-    onError: (_: (error: ApolloError) => void) => ({ off: vi.fn() }),
-
-    loading: ref(false),
-    error: ref(null) as Ref<null>,
-    called: ref(false),
-  };
-});
-
 const mockSend = vi.fn();
-const mockSetError = vi.fn();
+const mockGenerateUrl = vi.fn();
+const mockInIframe = ref(false);
 
 vi.mock('~/store/callbackActions', () => ({
   useCallbackActionsStore: () => ({
     send: mockSend,
-    sendType: 'post',
-  }),
-}));
-
-vi.mock('~/store/errors', () => ({
-  useErrorsStore: () => ({
-    setError: mockSetError,
+    generateUrl: mockGenerateUrl,
+    sendType: 'fromUpc',
   }),
 }));
 
@@ -60,13 +24,9 @@ vi.mock('~/store/server', () => ({
       guid: 'test-guid',
       name: 'test-server',
     },
-    inIframe: false,
-  }),
-}));
-
-vi.mock('~/store/unraidApi', () => ({
-  useUnraidApiStore: () => ({
-    unraidApiClient: ref(true),
+    get inIframe() {
+      return mockInIframe.value;
+    },
   }),
 }));
 
@@ -75,379 +35,130 @@ describe('Account Store', () => {
 
   beforeEach(() => {
     setActivePinia(createPinia());
+    mockInIframe.value = false;
     store = useAccountStore();
-    vi.mocked(useMutation);
     vi.clearAllMocks();
-    vi.useFakeTimers();
   });
 
-  afterEach(() => {
-    vi.resetAllMocks();
+  it('sends myKeys payload for manage-like actions', () => {
+    store.myKeys();
+    expect(mockSend).toHaveBeenLastCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
+      undefined,
+      'fromUpc'
+    );
+
+    store.recover();
+    expect(mockSend).toHaveBeenLastCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
+      undefined,
+      'fromUpc'
+    );
+
+    store.replace();
+    expect(mockSend).toHaveBeenLastCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
+      undefined,
+      'fromUpc'
+    );
+
+    store.replaceTpm();
+    expect(mockSend).toHaveBeenLastCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
+      undefined,
+      'fromUpc'
+    );
+
+    store.trialExtend();
+    expect(mockSend).toHaveBeenLastCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
+      undefined,
+      'fromUpc'
+    );
   });
 
-  describe('Actions', () => {
-    it('should call myKeys action correctly', () => {
-      store.myKeys();
-      expect(mockSend).toHaveBeenCalledTimes(1);
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
-        undefined,
-        'post'
-      );
-    });
+  it('sends sign-in and sign-out payloads', () => {
+    store.signIn();
+    expect(mockSend).toHaveBeenLastCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'signIn' }],
+      undefined,
+      'fromUpc'
+    );
 
-    it('should call recover action correctly', () => {
-      store.recover();
-      expect(mockSend).toHaveBeenCalledTimes(1);
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
-        undefined,
-        'post'
-      );
-    });
-
-    it('should call signIn action correctly', () => {
-      store.signIn();
-
-      expect(mockSend).toHaveBeenCalledTimes(1);
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'signIn' }],
-        undefined,
-        'post'
-      );
-    });
-
-    it('should call signOut action correctly', () => {
-      store.signOut();
-
-      expect(mockSend).toHaveBeenCalledTimes(1);
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'signOut' }],
-        undefined,
-        'post'
-      );
-    });
-
-    it('should handle downgradeOs action with and without redirect', async () => {
-      await store.downgradeOs();
-
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'downgradeOs' }],
-        undefined,
-        'post'
-      );
-
-      await store.downgradeOs(true);
-
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'downgradeOs' }],
-        'replace',
-        'post'
-      );
-    });
-
-    it('should handle updateOs action with and without redirect', async () => {
-      await store.updateOs();
-
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'updateOs' }],
-        undefined,
-        'post'
-      );
-
-      await store.updateOs(true);
-
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'updateOs' }],
-        'replace',
-        'post'
-      );
-    });
-
-    it('should call replace action correctly', () => {
-      store.replace();
-
-      expect(mockSend).toHaveBeenCalledTimes(1);
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
-        undefined,
-        'post'
-      );
-    });
-
-    it('should call replaceTpm action correctly', () => {
-      store.replaceTpm();
-
-      expect(mockSend).toHaveBeenCalledTimes(1);
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [
-          {
-            server: { guid: 'test-guid', name: 'test-server' },
-            type: 'myKeys',
-          },
-        ],
-        undefined,
-        'post'
-      );
-    });
-
-    it('should call trialExtend action correctly', () => {
-      store.trialExtend();
-
-      expect(mockSend).toHaveBeenCalledTimes(1);
-      expect(mockSend).toHaveBeenCalledWith(
-        ACCOUNT_CALLBACK.toString(),
-        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
-        undefined,
-        'post'
-      );
-    });
+    store.signOut();
+    expect(mockSend).toHaveBeenLastCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'signOut' }],
+      undefined,
+      'fromUpc'
+    );
   });
 
-  describe('State Management', () => {
-    const originalConsoleDebug = console.debug;
+  it('handles update and downgrade redirect behavior', async () => {
+    await store.updateOs();
+    expect(mockSend).toHaveBeenLastCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'updateOs' }],
+      undefined,
+      'fromUpc'
+    );
 
-    beforeEach(() => {
-      console.debug = vi.fn();
-    });
+    await store.updateOs(true);
+    expect(mockSend).toHaveBeenLastCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'updateOs' }],
+      'replace',
+      'fromUpc'
+    );
 
-    afterEach(() => {
-      console.debug = originalConsoleDebug;
-    });
+    await store.downgradeOs();
+    expect(mockSend).toHaveBeenLastCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'downgradeOs' }],
+      undefined,
+      'fromUpc'
+    );
 
-    it('should set account actions and payloads', () => {
-      const signInAction: ExternalSignIn = {
-        type: 'signIn',
-        apiKey: 'test-api-key',
-        user: {
-          email: 'test@example.com',
-          preferred_username: 'test-user',
-        },
-      };
-      const signOutAction: ExternalSignOut = {
-        type: 'signOut',
-      };
-
-      store.setAccountAction(signInAction);
-      store.setConnectSignInPayload({
-        apiKey: signInAction.apiKey,
-        email: signInAction.user.email as string,
-        preferred_username: signInAction.user.preferred_username as string,
-      });
-
-      expect(store.accountAction).toEqual(signInAction);
-      expect(store.accountActionStatus).toBe('waiting');
-
-      store.setAccountAction(signOutAction);
-      store.setQueueConnectSignOut(true);
-
-      expect(store.accountAction).toEqual(signOutAction);
-      expect(store.accountActionStatus).toBe('waiting');
-    });
+    await store.downgradeOs(true);
+    expect(mockSend).toHaveBeenLastCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'downgradeOs' }],
+      'replace',
+      'fromUpc'
+    );
   });
 
-  describe('Apollo Mutations', () => {
-    const originalConsoleDebug = console.debug;
+  it('opens account actions in new tab when in iframe', () => {
+    mockInIframe.value = true;
+    const iframeStore = useAccountStore();
+    iframeStore.signIn();
 
-    beforeEach(() => {
-      console.debug = vi.fn();
-    });
+    expect(mockSend).toHaveBeenCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'signIn' }],
+      'newTab',
+      'fromUpc'
+    );
+    expect(iframeStore.openInNewTab).toBe(true);
+  });
 
-    afterEach(() => {
-      console.debug = originalConsoleDebug;
-    });
+  it('builds myKeys URL with single payload helper', () => {
+    mockGenerateUrl.mockReturnValue('https://example.com/account');
 
-    it('should handle connectSignInMutation success', async () => {
-      const store = useAccountStore();
-      const accountActionStatus = ref('ready');
-      const typedStore = {
-        ...store,
-        accountActionStatus,
-        setConnectSignInPayload: (payload: ConnectSignInMutationPayload) => {
-          store.setConnectSignInPayload(payload);
-          accountActionStatus.value = 'waiting';
-        },
-        setQueueConnectSignOut: (value: boolean) => {
-          store.setQueueConnectSignOut(value);
-          accountActionStatus.value = 'waiting';
-        },
-        connectSignInMutation: async () => {
-          accountActionStatus.value = 'updating';
-          const mockMutation = mockUseMutation();
+    const url = store.generateMyKeysUrl();
 
-          await mockMutation.mutate();
-          accountActionStatus.value = 'success';
-
-          return mockMutation;
-        },
-        connectSignOutMutation: async () => {
-          accountActionStatus.value = 'updating';
-          const mockMutation = mockUseMutation();
-
-          await mockMutation.mutate();
-          accountActionStatus.value = 'success';
-
-          return mockMutation;
-        },
-      };
-
-      typedStore.setAccountAction('signIn' as unknown as ExternalSignIn);
-      typedStore.setConnectSignInPayload({
-        apiKey: 'test-api-key',
-        email: 'test@example.com',
-        preferred_username: 'test-user',
-      });
-
-      expect(accountActionStatus.value).toBe('waiting');
-
-      await typedStore.connectSignInMutation();
-      await nextTick();
-
-      expect(accountActionStatus.value).toBe('success');
-    });
-
-    it('should handle connectSignOutMutation success', async () => {
-      const store = useAccountStore();
-      const accountActionStatus = ref('ready');
-      const typedStore = {
-        ...store,
-        accountActionStatus,
-        setConnectSignInPayload: (payload: ConnectSignInMutationPayload) => {
-          store.setConnectSignInPayload(payload);
-          accountActionStatus.value = 'waiting';
-        },
-        setQueueConnectSignOut: (value: boolean) => {
-          store.setQueueConnectSignOut(value);
-          accountActionStatus.value = 'waiting';
-        },
-        connectSignInMutation: async () => {
-          accountActionStatus.value = 'updating';
-          const mockMutation = mockUseMutation();
-
-          await mockMutation.mutate();
-          accountActionStatus.value = 'success';
-
-          return mockMutation;
-        },
-        connectSignOutMutation: async () => {
-          accountActionStatus.value = 'updating';
-          const mockMutation = mockUseMutation();
-
-          await mockMutation.mutate();
-          accountActionStatus.value = 'success';
-
-          return mockMutation;
-        },
-      };
-
-      typedStore.setAccountAction('signOut' as unknown as ExternalSignOut);
-      typedStore.setQueueConnectSignOut(true);
-
-      expect(accountActionStatus.value).toBe('waiting');
-
-      await typedStore.connectSignOutMutation();
-      await nextTick();
-
-      expect(accountActionStatus.value).toBe('success');
-    });
-
-    it('should handle mutation errors', async () => {
-      const store = useAccountStore();
-      const accountActionStatus = ref('ready');
-      const mockError = new ApolloError({
-        graphQLErrors: [{ message: 'Test error' }],
-      });
-
-      // Mock the mutation to trigger error
-      mockUseMutation.mockImplementationOnce(() => ({
-        mutate: vi.fn().mockRejectedValue(mockError),
-        onDone: () => ({ off: vi.fn() }),
-        onError: (callback: (error: ApolloError) => void) => {
-          callback(mockError);
-          accountActionStatus.value = 'failed';
-
-          return { off: vi.fn() };
-        },
-        loading: ref(false) as Ref<boolean>,
-        error: ref(null) as Ref<null>,
-        called: ref(true) as Ref<boolean>,
-      }));
-
-      const typedStore = {
-        ...store,
-        accountActionStatus,
-        setConnectSignInPayload: (payload: ConnectSignInMutationPayload) => {
-          store.setConnectSignInPayload(payload);
-          accountActionStatus.value = 'waiting';
-        },
-        setQueueConnectSignOut: (value: boolean) => {
-          store.setQueueConnectSignOut(value);
-          accountActionStatus.value = 'waiting';
-        },
-        connectSignInMutation: async () => {
-          accountActionStatus.value = 'updating';
-          const mockMutation = mockUseMutation();
-
-          try {
-            await mockMutation.mutate().catch(() => {
-              accountActionStatus.value = 'failed';
-
-              mockSetError({
-                heading: 'unraid-api failed to update Connect account configuration',
-                message: 'Test error',
-                level: 'error',
-                ref: 'connectSignInMutation',
-                type: 'account',
-              });
-
-              throw new Error('Test error');
-            });
-          } catch {
-            // Expected error - intentionally empty
-          }
-
-          return mockMutation;
-        },
-        connectSignOutMutation: async () => {
-          accountActionStatus.value = 'updating';
-          const mockMutation = mockUseMutation();
-
-          await mockMutation.mutate();
-
-          return mockMutation;
-        },
-      };
-
-      typedStore.setAccountAction('signIn' as unknown as ExternalSignIn);
-      typedStore.setConnectSignInPayload({
-        apiKey: 'test-api-key',
-        email: 'test@example.com',
-        preferred_username: 'test-user',
-      });
-
-      expect(accountActionStatus.value).toBe('waiting');
-
-      await typedStore.connectSignInMutation();
-      await nextTick();
-
-      expect(accountActionStatus.value).toBe('failed');
-      expect(mockSetError).toHaveBeenCalledWith({
-        heading: 'unraid-api failed to update Connect account configuration',
-        message: 'Test error',
-        level: 'error',
-        ref: 'connectSignInMutation',
-        type: 'account',
-      });
-    });
+    expect(url).toBe('https://example.com/account');
+    expect(mockGenerateUrl).toHaveBeenCalledWith(
+      ACCOUNT_CALLBACK.toString(),
+      [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
+      'fromUpc',
+      undefined
+    );
   });
 });
