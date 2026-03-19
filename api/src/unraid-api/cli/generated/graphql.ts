@@ -1972,6 +1972,8 @@ export type Onboarding = {
   isPartnerBuild: Scalars['Boolean']['output'];
   /** Runtime onboarding state values used by the onboarding flow */
   onboardingState: OnboardingState;
+  /** Whether the onboarding modal should currently be shown */
+  shouldOpen: Scalars['Boolean']['output'];
   /** The current onboarding status (INCOMPLETE, UPGRADE, DOWNGRADE, or COMPLETED) */
   status: OnboardingStatus;
 };
@@ -2000,16 +2002,24 @@ export type OnboardingInternalBootResult = {
 /** Onboarding related mutations */
 export type OnboardingMutations = {
   __typename?: 'OnboardingMutations';
+  /** Temporarily bypass onboarding in API memory */
+  bypassOnboarding: Onboarding;
   /** Clear onboarding override state and reload from disk */
   clearOnboardingOverride: Onboarding;
+  /** Close the onboarding modal */
+  closeOnboarding: Onboarding;
   /** Mark onboarding as completed */
   completeOnboarding: Onboarding;
   /** Create and configure internal boot pool via emcmd operations */
   createInternalBootPool: OnboardingInternalBootResult;
+  /** Force the onboarding modal open */
+  openOnboarding: Onboarding;
   /** Refresh the internal boot onboarding context from the latest emhttp state */
   refreshInternalBootContext: OnboardingInternalBootContext;
   /** Reset onboarding progress (for testing) */
   resetOnboarding: Onboarding;
+  /** Clear the temporary onboarding bypass */
+  resumeOnboarding: Onboarding;
   /** Override onboarding state for testing (in-memory only) */
   setOnboardingOverride: Onboarding;
 };
@@ -2030,6 +2040,7 @@ export type OnboardingMutationsSetOnboardingOverrideArgs = {
 export type OnboardingOverrideCompletionInput = {
   completed?: InputMaybe<Scalars['Boolean']['input']>;
   completedAtVersion?: InputMaybe<Scalars['String']['input']>;
+  forceOpen?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 /** Onboarding override input for testing */
