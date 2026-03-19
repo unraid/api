@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "Code d'activation",
   "onboarding.licenseStep.labels.none": "Aucun",
   "onboarding.licenseStep.actions.manageLicense": "Gérer la licence",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Remplacez, récupérez ou liez votre licence sur votre compte Unraid.",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Démarrez votre essai depuis Gérer la licence dans votre compte Unraid.",
   "onboarding.licenseStep.actions.activateServer": "Activer le serveur",
   "onboarding.licenseStep.actions.nextStep": "ÉTAPE SUIVANTE",
   "onboarding.licenseStep.actions.skipForNow": "Passer pour l'instant",
