@@ -6,8 +6,8 @@ import { plainToClass } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { GraphQLError } from 'graphql';
 import * as ini from 'ini';
-import coerce from 'semver/functions/coerce';
-import gte from 'semver/functions/gte';
+import coerce from 'semver/functions/coerce.js';
+import gte from 'semver/functions/gte.js';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';

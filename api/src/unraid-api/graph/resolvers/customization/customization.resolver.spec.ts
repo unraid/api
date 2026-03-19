@@ -37,6 +37,7 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: false,
             completedAtVersion: undefined,
+            shouldOpen: false,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -61,6 +62,7 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: false,
             completedAtVersion: undefined,
+            shouldOpen: false,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -77,6 +79,7 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: false,
             completedAtVersion: undefined,
+            shouldOpen: false,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -93,6 +96,7 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: true,
             completedAtVersion: '7.2.0',
+            shouldOpen: false,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -109,6 +113,7 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: true,
             completedAtVersion: '7.2.0',
+            shouldOpen: false,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -125,6 +130,7 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: true,
             completedAtVersion: '7.2.1',
+            shouldOpen: false,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -141,6 +147,7 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: true,
             completedAtVersion: '7.2.1',
+            shouldOpen: false,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -157,6 +164,7 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: true,
             completedAtVersion: '7.1.0',
+            shouldOpen: false,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -173,6 +181,7 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: true,
             completedAtVersion: '7.1.0',
+            shouldOpen: false,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -189,6 +198,7 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: true,
             completedAtVersion: '7.3.0',
+            shouldOpen: false,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -205,6 +215,7 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: false,
             completed: true,
             completedAtVersion: '7.3.0',
+            shouldOpen: false,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
@@ -221,6 +232,7 @@ describe('CustomizationResolver', () => {
             isPartnerBuild: true,
             completed: false,
             completedAtVersion: undefined,
+            shouldOpen: false,
             onboardingState: {
                 registrationState: undefined,
                 isRegistered: false,
