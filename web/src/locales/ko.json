@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "활성화 코드",
   "onboarding.licenseStep.labels.none": "없음",
   "onboarding.licenseStep.actions.manageLicense": "라이센스 관리",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Unraid 계정에서 라이선스를 교체, 복구 또는 연결하세요.",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Unraid Account의 라이선스 관리에서 체험판을 시작하세요.",
   "onboarding.licenseStep.actions.activateServer": "서버 활성화",
   "onboarding.licenseStep.actions.nextStep": "다음 단계",
   "onboarding.licenseStep.actions.skipForNow": "지금은 건너뛰기",
