@@ -2,6 +2,7 @@
  * Server store test coverage
  */
 
+import { ref } from 'vue';
 import { setActivePinia } from 'pinia';
 
 import { createTestingPinia } from '@pinia/testing';
@@ -32,6 +33,24 @@ type MockServerStore = ReturnType<typeof useServerStore> & Record<string, unknow
 
 // Helper function to safely create test data with type assertions
 const createTestData = <T extends Record<string, unknown>>(data: T): T => data as T;
+const activationCodeStoreMock = {
+  activationCode: ref<{ code?: string; partner?: string; system?: string } | null>(null),
+};
+
+const buildActivationCodeData = () => {
+  const activationCode = activationCodeStoreMock.activationCode.value;
+  if (!activationCode) {
+    return undefined;
+  }
+
+  const activationCodeData = {
+    ...(activationCode.code ? { code: activationCode.code } : {}),
+    ...(activationCode.partner ? { partner: activationCode.partner } : {}),
+    ...(activationCode.system ? { system: activationCode.system } : {}),
+  };
+
+  return Object.keys(activationCodeData).length ? activationCodeData : undefined;
+};
 
 // Save original console methods
 const originalConsoleDebug = console.debug;
@@ -160,49 +179,60 @@ const getStore = () => {
       get: () => !store.osVersion || !store.osVersion.includes('-'),
     },
     serverPurchasePayload: {
-      get: () => ({
-        description: store.description,
-        deviceCount: store.deviceCount,
-        expireTime: store.expireTime,
-        flashProduct: store.flashProduct,
-        flashVendor: store.flashVendor,
-        guid: store.guid,
-        locale: store.locale,
-        name: store.name,
-        osVersion: store.osVersion,
-        osVersionBranch: store.osVersionBranch,
-        registered: store.registered ?? false,
-        regExp: store.regExp,
-        regGen: store.regGen,
-        regGuid: store.regGuid,
-        regTy: store.regTy,
-        regUpdatesExpired: store.regUpdatesExpired,
-        state: store.state,
-        wanFQDN: store.wanFQDN,
-      }),
+      get: () => {
+        const payload = {
+          description: store.description,
+          deviceCount: store.deviceCount,
+          expireTime: store.expireTime,
+          flashProduct: store.flashProduct,
+          flashVendor: store.flashVendor,
+          guid: store.guid,
+          keyfile: store.keyfile,
+          locale: store.locale,
+          name: store.name,
+          osVersion: store.osVersion,
+          osVersionBranch: store.osVersionBranch,
+          registered: store.registered ?? false,
+          regExp: store.regExp,
+          regGen: store.regGen,
+          regGuid: store.regGuid,
+          regTy: store.regTy,
+          regUpdatesExpired: store.regUpdatesExpired,
+          state: store.state,
+          wanFQDN: store.wanFQDN,
+        };
+
+        const activationCodeData = buildActivationCodeData();
+        return activationCodeData ? { ...payload, activationCodeData } : payload;
+      },
     },
     serverAccountPayload: {
-      get: () => ({
-        deviceCount: store.deviceCount,
-        description: store.description,
-        expireTime: store.expireTime,
-        flashProduct: store.flashProduct,
-        flashVendor: store.flashVendor,
-        guid: store.guid,
-        keyfile: store.keyfile,
-        locale: store.locale,
-        name: store.name,
-        osVersion: store.osVersion,
-        osVersionBranch: store.osVersionBranch,
-        registered: store.registered ?? false,
-        regExp: store.regExp,
-        regGen: store.regGen,
-        regGuid: store.regGuid,
-        regTy: store.regTy,
-        regUpdatesExpired: store.regUpdatesExpired,
-        state: store.state,
-        wanFQDN: store.wanFQDN,
-      }),
+      get: () => {
+        const payload = {
+          deviceCount: store.deviceCount,
+          description: store.description,
+          expireTime: store.expireTime,
+          flashProduct: store.flashProduct,
+          flashVendor: store.flashVendor,
+          guid: store.guid,
+          keyfile: store.keyfile,
+          locale: store.locale,
+          name: store.name,
+          osVersion: store.osVersion,
+          osVersionBranch: store.osVersionBranch,
+          registered: store.registered ?? false,
+          regExp: store.regExp,
+          regGen: store.regGen,
+          regGuid: store.regGuid,
+          regTy: store.regTy,
+          regUpdatesExpired: store.regUpdatesExpired,
+          state: store.state,
+          wanFQDN: store.wanFQDN,
+        };
+
+        const activationCodeData = buildActivationCodeData();
+        return activationCodeData ? { ...payload, activationCodeData } : payload;
+      },
     },
     serverReplacePayload: {
       get: () => ({
@@ -333,6 +363,10 @@ vi.mock('@vue/apollo-composable', async () => {
   };
 });
 
+vi.mock('~/components/Onboarding/store/activationCodeData', () => ({
+  useActivationCodeDataStore: () => activationCodeStoreMock,
+}));
+
 // Mock the dependencies of the server store
 vi.mock('~/composables/locale', async () => {
   const actual = await vi.importActual('~/composables/locale');
@@ -348,6 +382,7 @@ describe('useServerStore', () => {
     console.debug = vi.fn();
     console.error = vi.fn();
     console.warn = vi.fn();
+    activationCodeStoreMock.activationCode.value = null;
 
     setActivePinia(
       createTestingPinia({
@@ -609,6 +644,7 @@ describe('useServerStore', () => {
       flashProduct: 'TestFlash',
       flashVendor: 'TestVendor',
       guid: '123456',
+      keyfile: '/boot/config/Plus.key',
       locale: 'en-US',
       name: 'TestServer',
       osVersion: '6.10.3',
@@ -630,6 +666,7 @@ describe('useServerStore', () => {
     expect(payload.flashProduct).toBe('TestFlash');
     expect(payload.flashVendor).toBe('TestVendor');
     expect(payload.guid).toBe('123456');
+    expect(payload.keyfile).toBe('/boot/config/Plus.key');
     expect(payload.locale).toBe('en-US');
     expect(payload.name).toBe('TestServer');
     expect(payload.osVersion).toBe('6.10.3');
@@ -641,6 +678,30 @@ describe('useServerStore', () => {
     expect(payload.regTy).toBe('Plus');
     expect(payload.state).toBe('PLUS');
     expect(payload.wanFQDN).toBe('test.myunraid.net');
+  });
+
+  it('should include activationCodeData in server callback payloads when present', () => {
+    const store = getStore();
+    activationCodeStoreMock.activationCode.value = {
+      code: 'PARTNER-CODE-123',
+      partner: 'Partner Name',
+      system: 'Partner System',
+    };
+
+    store.setServer({
+      guid: '123456',
+      keyfile: '/boot/config/Plus.key',
+      name: 'TestServer',
+    });
+
+    const payload = store.serverAccountPayload;
+
+    expect(payload.activationCodeData).toEqual({
+      code: 'PARTNER-CODE-123',
+      partner: 'Partner Name',
+      system: 'Partner System',
+    });
+    expect(payload.keyfile).toBe('/boot/config/Plus.key');
   });
 
   it('should create serverAccountPayload correctly', () => {

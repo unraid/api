@@ -231,34 +231,10 @@ export const useServerStore = defineStore('server', () => {
     };
   });
 
-  const serverPurchasePayload = computed((): ServerData => {
-    const server: ServerData = {
+  const buildServerCallbackPayload = (overrides: Partial<ServerData> = {}): ServerData => {
+    const payload: ServerData = {
       description: description.value,
       deviceCount: deviceCount.value,
-      expireTime: expireTime.value,
-      flashProduct: flashProduct.value,
-      flashVendor: flashVendor.value,
-      guid: guid.value,
-      locale: locale.value,
-      name: name.value,
-      osVersion: osVersion.value,
-      osVersionBranch: osVersionBranch.value,
-      registered: registered.value ?? false,
-      regExp: regExp.value,
-      regGen: regGen.value,
-      regGuid: regGuid.value,
-      regTy: regTy.value,
-      regUpdatesExpired: regUpdatesExpired.value,
-      state: state.value,
-      wanFQDN: wanFQDN.value,
-    };
-    return server;
-  });
-
-  const serverAccountPayload = computed((): ServerData => {
-    return {
-      deviceCount: deviceCount.value,
-      description: description.value,
       expireTime: expireTime.value,
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
@@ -269,20 +245,47 @@ export const useServerStore = defineStore('server', () => {
       osVersion: osVersion.value,
       osVersionBranch: osVersionBranch.value,
       registered: registered.value ?? false,
+      regExp: regExp.value,
       regGen: regGen.value,
       regGuid: regGuid.value,
-      regExp: regExp.value,
       regTy: regTy.value,
       regUpdatesExpired: regUpdatesExpired.value,
       state: state.value,
       wanFQDN: wanFQDN.value,
+      ...overrides,
     };
-  });
+
+    const activationCodeValue = activationCode.value;
+    if (!activationCodeValue) {
+      return payload;
+    }
+
+    const { code, partner, system } = activationCodeValue;
+    const activationCodeData = {
+      ...(code ? { code } : {}),
+      ...(partner ? { partner } : {}),
+      ...(system ? { system } : {}),
+    };
+
+    if (!Object.keys(activationCodeData).length) {
+      return payload;
+    }
+
+    return {
+      ...payload,
+      activationCodeData,
+    };
+  };
+
+  const serverPurchasePayload = computed((): ServerData => buildServerCallbackPayload());
+
+  const serverAccountPayload = computed((): ServerData => buildServerCallbackPayload());
 
   const serverReplacePayload = computed(
     (): ServerData => ({
-      ...serverAccountPayload.value,
-      guid: replaceFlashGuid.value,
+      ...buildServerCallbackPayload({
+        guid: replaceFlashGuid.value,
+      }),
     })
   );
 
