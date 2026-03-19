@@ -326,6 +326,7 @@ describe('OnboardingSummaryStep', () => {
             size: 500 * 1024 * 1024 * 1024,
             serialNum: 'DISK-A',
             interfaceType: DiskInterfaceType.SATA,
+            partitions: [],
           },
           {
             id: 'DISK-B',
@@ -333,6 +334,7 @@ describe('OnboardingSummaryStep', () => {
             size: 250 * 1024 * 1024 * 1024,
             serialNum: 'DISK-B',
             interfaceType: DiskInterfaceType.SATA,
+            partitions: [],
           },
         ],
       },

@@ -142,6 +142,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'BOOT-1',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
         {
           id: 'PARITY-1',
@@ -149,6 +150,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'PARITY-1',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
         {
           id: 'ARRAY-1',
@@ -156,6 +158,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'ARRAY-1',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
         {
           id: 'CACHE-1',
@@ -163,6 +166,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'CACHE-1',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
         {
           id: 'SMALL-1',
@@ -170,6 +174,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(6),
           serialNum: 'SMALL-1',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
         {
           id: 'USB-1',
@@ -177,6 +182,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'USB-1',
           interfaceType: DiskInterfaceType.USB,
+          partitions: [],
         },
       ],
     });
@@ -219,6 +225,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'WD-TEST-1234',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
       ],
     });
@@ -240,6 +247,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
       ],
     });
@@ -265,6 +273,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
       ],
     });
@@ -304,6 +313,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
       ],
     });
@@ -328,6 +338,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(6),
           serialNum: 'SMALL-1',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
         {
           id: 'ELIGIBLE-1',
@@ -335,6 +346,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'ELIGIBLE-1',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
         {
           id: 'USB-1',
@@ -342,6 +354,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'USB-1',
           interfaceType: DiskInterfaceType.USB,
+          partitions: [],
         },
       ],
     });
@@ -369,6 +382,36 @@ describe('OnboardingInternalBootStep', () => {
     expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
   });
 
+  it('warns about existing partitions without blocking disk selection', async () => {
+    draftStore.bootMode = 'storage';
+    contextResult.value = buildContext({
+      assignableDisks: [
+        {
+          id: 'PARTITIONED-1',
+          device: '/dev/sde',
+          size: gib(64),
+          serialNum: 'PARTITIONED-1',
+          interfaceType: DiskInterfaceType.SATA,
+          partitions: [{ name: 'sde1' }],
+        },
+      ],
+    });
+
+    const wrapper = mountComponent();
+    await flushPromises();
+
+    const selects = wrapper.findAll('select');
+    expect(selects).toHaveLength(3);
+    const deviceSelect = selects[1];
+    expect(deviceSelect.text()).toContain('PARTITIONED-1');
+
+    await wrapper.get('[data-testid="internal-boot-eligibility-toggle"]').trigger('click');
+    await flushPromises();
+
+    expect(wrapper.text()).toContain('HAS_PARTITIONS');
+    expect(wrapper.find('[data-testid="brand-button"]').attributes('disabled')).toBeUndefined();
+  });
+
   it('treats disks present in devs.ini as assignable', async () => {
     draftStore.bootMode = 'storage';
     contextResult.value = buildContext({
@@ -379,6 +422,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'UNASSIGNED-1',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
       ],
     });
@@ -406,6 +450,7 @@ describe('OnboardingInternalBootStep', () => {
           size: gib(32),
           serialNum: 'UNASSIGNED-1',
           interfaceType: DiskInterfaceType.SATA,
+          partitions: [],
         },
       ],
     });

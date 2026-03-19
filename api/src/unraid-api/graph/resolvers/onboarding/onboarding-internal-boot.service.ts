@@ -181,6 +181,10 @@ export class OnboardingInternalBootService {
             .filter((entry) => entry.length > 0);
     }
 
+    private async getInternalBootCandidateDisks() {
+        return this.disksService.getAssignableDisks();
+    }
+
     private getPoolNamesFromEmhttpState(): string[] {
         const emhttpState = getters.emhttp();
         const names = new Set<string>();
@@ -235,7 +239,7 @@ export class OnboardingInternalBootService {
             reservedNames: this.splitCsvValues(vars.reservedNames),
             shareNames: this.getShareNames(),
             poolNames: this.getPoolNamesFromEmhttpState(),
-            assignableDisks: await this.disksService.getAssignableDisks(),
+            assignableDisks: await this.getInternalBootCandidateDisks(),
         };
     }
 
@@ -285,20 +289,20 @@ export class OnboardingInternalBootService {
         output: string[]
     ): Promise<Map<string, ResolvedBootDevice>> {
         this.loadEmhttpBootContext(true);
-        const assignableDisks = await this.disksService.getAssignableDisks();
-        const snapshot = assignableDisks.map((disk) => ({
+        const candidateDisks = await this.getInternalBootCandidateDisks();
+        const snapshot = candidateDisks.map((disk) => ({
             id: disk.id,
             serialNum: disk.serialNum,
             device: disk.device,
         }));
-        output.push(`assignableDisks snapshot: ${this.stringifyForOutput(snapshot)}`);
+        output.push(`candidateDisks snapshot: ${this.stringifyForOutput(snapshot)}`);
         this.logger.debug(
-            `createInternalBootPool assignableDisks snapshot=${this.stringifyForOutput(snapshot)}`
+            `createInternalBootPool candidateDisks snapshot=${this.stringifyForOutput(snapshot)}`
         );
 
         const resolved = new Map<string, ResolvedBootDevice>();
 
-        for (const disk of assignableDisks) {
+        for (const disk of candidateDisks) {
             const bootId = disk.serialNum.trim();
             const devicePath = disk.device.trim();
             if (bootId.length === 0 || devicePath.length === 0) {
@@ -309,10 +313,10 @@ export class OnboardingInternalBootService {
         }
 
         output.push(
-            `assignableDisks resolved serialNum->device: ${this.stringifyForOutput(Array.from(resolved.entries()))}`
+            `candidateDisks resolved serialNum->device: ${this.stringifyForOutput(Array.from(resolved.entries()))}`
         );
         this.logger.debug(
-            `createInternalBootPool assignableDisks resolved serialNum->device=${this.stringifyForOutput(Array.from(resolved.entries()))}`
+            `createInternalBootPool candidateDisks resolved serialNum->device=${this.stringifyForOutput(Array.from(resolved.entries()))}`
         );
 
         for (const bootId of bootIds) {
@@ -320,10 +324,10 @@ export class OnboardingInternalBootService {
                 continue;
             }
 
-            const warning = `Unable to resolve boot device for serial '${bootId}' from assignableDisks; skipping BIOS entry creation for this disk.`;
+            const warning = `Unable to resolve boot device for serial '${bootId}' from candidateDisks; skipping BIOS entry creation for this disk.`;
             output.push(warning);
             this.logger.warn(
-                `createInternalBootPool could not resolve serial='${bootId}' from assignableDisks`
+                `createInternalBootPool could not resolve serial='${bootId}' from candidateDisks`
             );
         }
 
@@ -342,10 +346,10 @@ export class OnboardingInternalBootService {
                 continue;
             }
             output.push(
-                `Boot device resolution: input='${bootDevice}' source=assignableDisks resolved='${resolved.devicePath}'`
+                `Boot device resolution: input='${bootDevice}' source=candidateDisks resolved='${resolved.devicePath}'`
             );
             this.logger.debug(
-                `createInternalBootPool boot device resolved input='${bootDevice}' source=assignableDisks resolved='${resolved.devicePath}'`
+                `createInternalBootPool boot device resolved input='${bootDevice}' source=candidateDisks resolved='${resolved.devicePath}'`
             );
 
             const createResult = await this.runEfiBootMgr(

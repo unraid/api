@@ -40,13 +40,15 @@ describe('OnboardingInternalBootService', () => {
     };
     const disksService = {
         getAssignableDisks: vi.fn(),
-    } satisfies Pick<DisksService, 'getAssignableDisks'>;
+        getDisks: vi.fn(),
+    } satisfies Pick<DisksService, 'getAssignableDisks' | 'getDisks'>;
 
     beforeEach(() => {
         vi.clearAllMocks();
         internalBootStateService.getBootedFromFlashWithInternalBootSetup.mockResolvedValue(false);
         internalBootStateService.invalidateCachedInternalBootDeviceState.mockResolvedValue(undefined);
         disksService.getAssignableDisks.mockResolvedValue([]);
+        disksService.getDisks.mockResolvedValue([]);
         vi.mocked(getters.emhttp).mockReturnValue({
             var: {},
             devices: [],
@@ -78,6 +80,7 @@ describe('OnboardingInternalBootService', () => {
                 serialNum: 'SERIAL-1',
                 size: 1,
                 interfaceType: 'SATA',
+                partitions: [{ name: 'sda1' }],
             },
         ];
         disksService.getAssignableDisks.mockResolvedValue(assignableDisks);
@@ -123,6 +126,47 @@ describe('OnboardingInternalBootService', () => {
             assignableDisks,
         });
         expect(vi.mocked(loadStateFileSync)).not.toHaveBeenCalled();
+    });
+
+    it('keeps internal boot candidates limited to disks exposed by devs.ini', async () => {
+        const assignableDisks = [
+            {
+                id: 'disk-1',
+                device: '/dev/sda',
+                serialNum: 'SERIAL-1',
+                size: 1,
+                interfaceType: 'SATA',
+                partitions: [{ name: 'sda1' }],
+            },
+        ];
+        disksService.getAssignableDisks.mockResolvedValue(assignableDisks);
+        disksService.getDisks.mockResolvedValue([
+            ...assignableDisks,
+            {
+                id: 'disk-2',
+                device: '/dev/sdb',
+                serialNum: 'SERIAL-2',
+                size: 1,
+                interfaceType: 'SATA',
+                partitions: [{ name: 'sdb1' }],
+            },
+        ]);
+        vi.mocked(getters.emhttp).mockReturnValue({
+            var: {
+                mdState: 'STOPPED',
+                bootEligible: true,
+                enableBootTransfer: 'yes',
+                reservedNames: '',
+            },
+            devices: [{ id: 'disk-1', device: 'sda' }],
+            disks: [],
+        } as unknown as ReturnType<typeof getters.emhttp>);
+
+        const service = createService();
+        const result = await service.getInternalBootContext();
+
+        expect(result.assignableDisks).toEqual(assignableDisks);
+        expect(disksService.getDisks).not.toHaveBeenCalled();
     });
 
     it('refreshes internal boot context from disk and invalidates cached device state', async () => {
@@ -270,6 +314,7 @@ describe('OnboardingInternalBootService', () => {
         );
         expect(vi.mocked(emcmd)).toHaveBeenCalledTimes(4);
         expect(disksService.getAssignableDisks).toHaveBeenCalledTimes(1);
+        expect(disksService.getDisks).not.toHaveBeenCalled();
         expect(vi.mocked(loadStateFileSync)).toHaveBeenNthCalledWith(1, 'var');
         expect(vi.mocked(loadStateFileSync)).toHaveBeenNthCalledWith(2, 'devs');
         expect(vi.mocked(loadStateFileSync)).toHaveBeenNthCalledWith(3, 'disks');
@@ -338,7 +383,7 @@ describe('OnboardingInternalBootService', () => {
         expect(result.ok).toBe(true);
         expect(result.code).toBe(0);
         expect(result.output).toContain(
-            "Unable to resolve boot device for serial 'disk-1' from assignableDisks; skipping BIOS entry creation for this disk."
+            "Unable to resolve boot device for serial 'disk-1' from candidateDisks; skipping BIOS entry creation for this disk."
         );
         expect(result.output).not.toContain("efibootmgr failed for '/dev/disk-1'");
         expect(result.output).toContain(

@@ -44,6 +44,7 @@ interface InternalBootDeviceOption {
   device: string;
   sizeMiB: number | null;
   ineligibilityCodes: InternalBootDiskEligibilityCode[];
+  warningCodes: InternalBootDiskWarningCode[];
 }
 
 interface InternalBootTemplateData {
@@ -68,6 +69,7 @@ type InternalBootSystemEligibilityCode =
   | 'BOOT_ELIGIBLE_FALSE'
   | 'BOOT_ELIGIBLE_UNKNOWN';
 type InternalBootDiskEligibilityCode = 'TOO_SMALL';
+type InternalBootDiskWarningCode = 'HAS_PARTITIONS';
 
 const MIN_BOOT_SIZE_MIB = 4096;
 const MIN_ELIGIBLE_DEVICE_SIZE_MIB = MIN_BOOT_SIZE_MIB * 2;
@@ -85,6 +87,13 @@ const SYSTEM_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootSystemEligibilityCode,
 };
 const DISK_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootDiskEligibilityCode, string> = {
   TOO_SMALL: 'onboarding.internalBootStep.eligibility.codes.TOO_SMALL',
+};
+const DISK_WARNING_MESSAGE_KEYS: Record<InternalBootDiskWarningCode, string> = {
+  HAS_PARTITIONS: 'onboarding.internalBootStep.eligibility.codes.HAS_PARTITIONS',
+};
+const DISK_WARNING_FALLBACK_MESSAGES: Record<InternalBootDiskWarningCode, string> = {
+  HAS_PARTITIONS:
+    'This disk has existing partitions. Internal boot setup will repartition and erase existing data.',
 };
 
 const formatBytes = (bytes: number) => {
@@ -163,9 +172,13 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
       const sizeBytes = disk.size;
       const sizeMiB = toSizeMiB(sizeBytes);
       const ineligibilityCodes: InternalBootDiskEligibilityCode[] = [];
+      const warningCodes: InternalBootDiskWarningCode[] = [];
 
       if (sizeMiB !== null && sizeMiB < MIN_ELIGIBLE_DEVICE_SIZE_MIB) {
         ineligibilityCodes.push('TOO_SMALL');
+      }
+      if (disk.partitions.length > 0) {
+        warningCodes.push('HAS_PARTITIONS');
       }
 
       const serialNum = disk.serialNum?.trim() || '';
@@ -179,6 +192,7 @@ const templateData = computed<InternalBootTemplateData | null>(() => {
         device,
         sizeMiB,
         ineligibilityCodes,
+        warningCodes,
       };
     })
     .filter((disk) => disk.device.length > 0);
@@ -291,6 +305,14 @@ const diskEligibilityIssues = computed(() =>
       codes: option.ineligibilityCodes,
     }))
 );
+const diskWarningIssues = computed(() =>
+  allDeviceOptions.value
+    .filter((option) => option.warningCodes.length > 0)
+    .map((option) => ({
+      label: option.label,
+      codes: option.warningCodes,
+    }))
+);
 
 const canConfigure = computed(
   () =>
@@ -311,7 +333,9 @@ const isPrimaryActionLoading = computed(
 const shouldShowEligibilityDetails = computed(
   () =>
     !contextError.value &&
-    (systemEligibilityCodes.value.length > 0 || diskEligibilityIssues.value.length > 0)
+    (systemEligibilityCodes.value.length > 0 ||
+      diskEligibilityIssues.value.length > 0 ||
+      diskWarningIssues.value.length > 0)
 );
 const eligibilityPanelTitle = computed(() =>
   canConfigure.value
@@ -953,6 +977,25 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
                           {{ code }}
                         </code>
                         {{ t(DISK_ELIGIBILITY_MESSAGE_KEYS[code]) }}
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+
+              <div v-if="diskWarningIssues.length > 0" class="space-y-2">
+                <p class="font-semibold">
+                  {{ t('onboarding.internalBootStep.eligibility.diskWarningTitle', 'Disk warnings') }}
+                </p>
+                <ul class="list-disc space-y-3 pl-5">
+                  <li v-for="disk in diskWarningIssues" :key="`warning-${disk.label}`">
+                    <p class="font-medium">{{ disk.label }}</p>
+                    <ul class="list-disc space-y-1 pl-5">
+                      <li v-for="code in disk.codes" :key="`warning-${disk.label}-${code}`">
+                        <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">
+                          {{ code }}
+                        </code>
+                        {{ t(DISK_WARNING_MESSAGE_KEYS[code], DISK_WARNING_FALLBACK_MESSAGES[code]) }}
                       </li>
                     </ul>
                   </li>
