@@ -168,6 +168,7 @@ describe('OnboardingTracker', () => {
             state: {
                 completed: false,
                 completedAtVersion: undefined,
+                forceOpen: false,
             },
         });
     });
@@ -194,6 +195,7 @@ describe('OnboardingTracker', () => {
             state: {
                 completed: true,
                 completedAtVersion: '7.1.0',
+                forceOpen: false,
             },
         });
     });
@@ -285,6 +287,7 @@ describe('OnboardingTracker', () => {
             state: {
                 completed: true,
                 completedAtVersion: '6.12.0',
+                forceOpen: false,
             },
         });
     });

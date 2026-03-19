@@ -2,7 +2,7 @@
 
 ## Overview
 
-This system uses a shared onboarding modal flow. Automatic modal display is limited to fresh installs (`ENOKEYFILE`). Upgrade/downgrade status is still tracked and can affect copy/behavior when the modal is opened manually. The API tracks onboarding completion state (`completed`, `completedAtVersion`) and the web client decides whether the modal should appear and which local steps to render.
+This system uses a shared onboarding modal flow. Automatic modal display applies to fresh installs (`ENOKEYFILE`) and supported upgrade flows, while patch-only releases stay quiet. Downgrade status is still tracked and can affect copy/behavior when the modal is opened manually. The API tracks onboarding completion state (`completed`, `completedAtVersion`) and the web client decides whether the modal should appear and which local steps to render.
 
 ## How It Works
 
@@ -32,9 +32,10 @@ This system uses a shared onboarding modal flow. Automatic modal display is limi
      - minimum supported version (`7.3.0+`)
      - authenticated access (no unauthenticated GraphQL errors)
    - Exposes `shouldShowOnboarding` when status is `INCOMPLETE`
+   - Auto-opens for fresh installs and `UPGRADE` states
 
 2. **Unified Modal** - `web/src/components/Onboarding/OnboardingModal.vue`
-   - Automatically shows for fresh-install onboarding
+   - Automatically shows for fresh-install onboarding and supported upgrades
    - Can be force-opened for any user via URL action/event triggers
    - Uses a client-side hardcoded step list (`HARDCODED_STEPS`)
    - Conditionally includes/removes `ACTIVATE_LICENSE` based on activation state
@@ -117,8 +118,8 @@ To test activation-step gating:
 
 ## Notes
 
-- Automatic onboarding visibility is fresh-install driven (`ENOKEYFILE`) with client-side guards (min version + auth)
-- Status is still available for mode-aware copy; automatic visibility is fresh-install-only
+- Automatic onboarding visibility is driven by fresh installs plus `UPGRADE` states, with client-side guards (min version + auth)
+- Patch-only releases still remain silent because upgrade detection ignores same-minor version drift
 - The modal automatically switches between fresh-install and version-drift copy
 - There is no server-side per-step completion tracking in this flow
 - Exiting onboarding can call `completeOnboarding`; temporary bypass does not

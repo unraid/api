@@ -49,6 +49,7 @@ export const ONBOARDING_BOOTSTRAP_QUERY = graphql(/* GraphQL */ `
         isPartnerBuild
         completed
         completedAtVersion
+        shouldOpen
         onboardingState {
           registrationState
           isRegistered

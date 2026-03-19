@@ -73,6 +73,26 @@ export class OnboardingMutations {
     resetOnboarding!: Onboarding;
 
     @Field(() => Onboarding, {
+        description: 'Force the onboarding modal open',
+    })
+    openOnboarding!: Onboarding;
+
+    @Field(() => Onboarding, {
+        description: 'Close the onboarding modal',
+    })
+    closeOnboarding!: Onboarding;
+
+    @Field(() => Onboarding, {
+        description: 'Temporarily bypass onboarding in API memory',
+    })
+    bypassOnboarding!: Onboarding;
+
+    @Field(() => Onboarding, {
+        description: 'Clear the temporary onboarding bypass',
+    })
+    resumeOnboarding!: Onboarding;
+
+    @Field(() => Onboarding, {
         description: 'Override onboarding state for testing (in-memory only)',
     })
     setOnboardingOverride!: Onboarding;

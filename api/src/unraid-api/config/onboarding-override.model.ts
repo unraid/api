@@ -12,6 +12,8 @@ export type OnboardingOverride = {
     completed?: boolean;
     /** The OS version when onboarding was completed */
     completedAtVersion?: string | null;
+    /** Whether onboarding is explicitly forced open */
+    forceOpen?: boolean | null;
 };
 
 export type OnboardingOverrideState = {

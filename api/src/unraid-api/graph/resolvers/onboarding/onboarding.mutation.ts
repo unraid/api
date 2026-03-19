@@ -49,6 +49,54 @@ export class OnboardingMutationsResolver {
     }
 
     @ResolveField(() => Onboarding, {
+        description: 'Force the onboarding modal open',
+    })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.WELCOME,
+    })
+    async openOnboarding(): Promise<Onboarding> {
+        await this.onboardingService.openOnboarding();
+        return this.onboardingService.getOnboardingResponse();
+    }
+
+    @ResolveField(() => Onboarding, {
+        description: 'Close the onboarding modal',
+    })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.WELCOME,
+    })
+    async closeOnboarding(): Promise<Onboarding> {
+        await this.onboardingService.closeOnboarding();
+        return this.onboardingService.getOnboardingResponse();
+    }
+
+    @ResolveField(() => Onboarding, {
+        description: 'Temporarily bypass onboarding in API memory',
+    })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.WELCOME,
+    })
+    async bypassOnboarding(): Promise<Onboarding> {
+        await this.onboardingService.bypassOnboarding();
+        return this.onboardingService.getOnboardingResponse();
+    }
+
+    @ResolveField(() => Onboarding, {
+        description: 'Clear the temporary onboarding bypass',
+    })
+    @UsePermissions({
+        action: AuthAction.UPDATE_ANY,
+        resource: Resource.WELCOME,
+    })
+    async resumeOnboarding(): Promise<Onboarding> {
+        await this.onboardingService.resumeOnboarding();
+        return this.onboardingService.getOnboardingResponse();
+    }
+
+    @ResolveField(() => Onboarding, {
         description: 'Override onboarding state for testing (in-memory only)',
     })
     @UsePermissions({

@@ -1,9 +1,6 @@
 import { getActivePinia } from 'pinia';
 
-import {
-  ONBOARDING_MODAL_HIDDEN_STORAGE_KEY,
-  ONBOARDING_TEMP_BYPASS_STORAGE_KEY,
-} from '~/components/Onboarding/constants';
+import { ONBOARDING_MODAL_HIDDEN_STORAGE_KEY } from '~/components/Onboarding/constants';
 import { useOnboardingDraftStore } from '~/components/Onboarding/store/onboardingDraft';
 
 const ONBOARDING_DRAFT_STORAGE_KEY = 'onboardingDraft';
@@ -47,18 +44,6 @@ export const clearOnboardingDraftStorage = () => {
   }
 };
 
-export const clearTemporaryBypassSessionState = () => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  try {
-    window.sessionStorage.removeItem(ONBOARDING_TEMP_BYPASS_STORAGE_KEY);
-  } catch {
-    // Best effort only.
-  }
-};
-
 export const clearLegacyOnboardingModalHiddenSessionState = () => {
   if (typeof window === 'undefined') {
     return;
@@ -71,11 +56,7 @@ export const clearLegacyOnboardingModalHiddenSessionState = () => {
   }
 };
 
-export const cleanupOnboardingStorage = (options?: { clearTemporaryBypassSessionState?: boolean }) => {
+export const cleanupOnboardingStorage = () => {
   clearOnboardingDraftStorage();
   clearLegacyOnboardingModalHiddenSessionState();
-
-  if (options?.clearTemporaryBypassSessionState) {
-    clearTemporaryBypassSessionState();
-  }
 };

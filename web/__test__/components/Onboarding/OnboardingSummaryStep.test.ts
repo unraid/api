@@ -612,7 +612,7 @@ describe('OnboardingSummaryStep', () => {
     scenario.assertExpected(wrapper);
   });
 
-  it('locks modal visibility and ignores duplicate apply clicks while processing', async () => {
+  it('ignores duplicate apply clicks while processing', async () => {
     draftStore.selectedTimeZone = 'America/New_York';
     let resolveSystemTime: (() => void) | undefined;
     updateSystemTimeMock.mockImplementation(
@@ -629,7 +629,6 @@ describe('OnboardingSummaryStep', () => {
     await applyButton.trigger('click');
     await applyButton.trigger('click');
 
-    expect(setModalHiddenMock).toHaveBeenCalledWith(false);
     expect(updateSystemTimeMock).toHaveBeenCalledTimes(1);
     expect(applyButton.attributes('disabled')).toBeDefined();
 

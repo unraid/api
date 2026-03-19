@@ -32,6 +32,11 @@ export class OnboardingOverrideCompletionInput {
     @IsOptional()
     @IsString()
     completedAtVersion?: string | null;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    forceOpen?: boolean | null;
 }
 
 @InputType({

@@ -105,6 +105,7 @@ type OnboardingOverridePayload = {
   onboarding?: {
     completed?: boolean;
     completedAtVersion?: string | null;
+    forceOpen?: boolean | null;
   };
   activationCode?: {
     code?: string;
@@ -366,19 +367,51 @@ const onSimulateNormalRenderGatingChange = (event: Event) => {
   setSimulateNormalRenderGatingOnOpen(Boolean(target?.checked));
 };
 
-const openOnboardingModalFromPanel = () => {
-  if (simulateNormalRenderGatingOnOpen.value) {
-    onboardingModalStore.resetToAutomaticVisibility();
-    return;
-  }
-
-  onboardingModalStore.forceOpenModal();
-};
-
 const getMutationInput = (payload: OnboardingOverridePayload) => {
   const mutationInput = { ...payload };
   delete mutationInput.currentVersion;
   return mutationInput;
+};
+
+const applyOverridePayload = async (payload: OnboardingOverridePayload) => {
+  if (Object.prototype.hasOwnProperty.call(payload, 'currentVersion')) {
+    onboardingStore.setMockOsVersion(payload.currentVersion ?? null);
+  }
+  await apolloClient.mutate({
+    mutation: SET_ONBOARDING_OVERRIDE_MUTATION,
+    variables: { input: getMutationInput(payload) },
+    fetchPolicy: 'no-cache',
+  });
+  await apolloClient.refetchQueries({
+    include: ['ActivationCode', 'PublicWelcomeData', 'Onboarding', 'PartnerInfo'],
+  });
+};
+
+const applyNaturalGatingFromCurrentDraft = async () => {
+  const trimmed = draftJson.value.trim();
+  if (!trimmed) {
+    await onboardingStore.refetchOnboarding();
+    return;
+  }
+
+  const parsed = JSON.parse(trimmed) as OnboardingOverridePayload;
+  await applyOverridePayload({
+    ...parsed,
+    onboarding: {
+      ...(parsed.onboarding ?? {}),
+      forceOpen: false,
+    },
+  });
+};
+
+const openOnboardingModalFromPanel = async () => {
+  if (simulateNormalRenderGatingOnOpen.value) {
+    await applyNaturalGatingFromCurrentDraft();
+    await hardRefreshPageBestEffort();
+    return;
+  }
+
+  await onboardingModalStore.forceOpenModal();
 };
 
 // "Load" the preset into the editor (for editing) - and set as active selection
@@ -429,7 +462,7 @@ const applyAndOpenPreset = async (preset: Preset) => {
 
   await applyOverrides();
   await nextTick();
-  openOnboardingModalFromPanel();
+  await openOnboardingModalFromPanel();
 
   if (resetDraftAndHardRefreshOnOpen.value) {
     await hardRefreshPageBestEffort();
@@ -490,18 +523,8 @@ const applyOverrides = async () => {
 
   try {
     const parsed = JSON.parse(trimmed) as OnboardingOverridePayload;
-    if (Object.prototype.hasOwnProperty.call(parsed, 'currentVersion')) {
-      onboardingStore.setMockOsVersion(parsed.currentVersion ?? null);
-    }
-    await apolloClient.mutate({
-      mutation: SET_ONBOARDING_OVERRIDE_MUTATION,
-      variables: { input: getMutationInput(parsed) },
-      fetchPolicy: 'no-cache',
-    });
+    await applyOverridePayload(parsed);
     lastApplied.value = trimmed;
-    await apolloClient.refetchQueries({
-      include: ['ActivationCode', 'PublicWelcomeData', 'Onboarding', 'PartnerInfo'],
-    });
     errorMessage.value = '';
 
     // Do not auto-open modal on generic apply; use preset "Open" or manual button.
@@ -774,11 +797,11 @@ const currentRegistrationState = computed({
                 Simulate Normal Render Gating
               </div>
               <div class="text-muted-foreground text-xs">
-                When enabled, <strong>Open</strong> restores normal onboarding gating (<code
-                  class="bg-muted rounded px-1"
-                  >resetToAutomaticVisibility()</code
-                >) instead of force-open. Non-fresh-install states (for example, upgrade/downgrade) will
-                stay hidden.
+                When enabled, <strong>Open</strong> reapplies the current overrides with
+                <code class="bg-muted rounded px-1">onboarding.forceOpen = false</code>, reloads the
+                page, and then relies on the normal backend
+                <code class="bg-muted rounded px-1">shouldOpen</code> result instead of force-open.
+                States that would stay hidden in the real app will stay hidden here too.
               </div>
             </div>
           </label>

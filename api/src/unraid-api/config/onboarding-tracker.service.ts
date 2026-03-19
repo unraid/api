@@ -15,7 +15,7 @@ const DEFAULT_OS_VERSION_FILE_PATH = '/etc/unraid-version';
 const WRITE_RETRY_ATTEMPTS = 3;
 const WRITE_RETRY_DELAY_MS = 100;
 
-type PublicTrackerState = { completed: boolean; completedAtVersion?: string };
+type PublicTrackerState = { completed: boolean; completedAtVersion?: string; forceOpen: boolean };
 
 export type OnboardingTrackerStateResult =
     | { kind: 'ok'; state: PublicTrackerState }
@@ -32,6 +32,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
     private readonly trackerPath = path.join(PATHS_CONFIG_MODULES, TRACKER_FILE_NAME);
     private state: TrackerState = {};
     private currentVersion?: string;
+    private bypassActive = false;
     private readonly versionFilePath: string;
 
     constructor(
@@ -58,12 +59,14 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
             return {
                 completed: overrideState.onboarding.completed ?? false,
                 completedAtVersion: overrideState.onboarding.completedAtVersion ?? undefined,
+                forceOpen: overrideState.onboarding.forceOpen ?? false,
             };
         }
 
         return {
             completed: this.state.completed ?? false,
             completedAtVersion: this.state.completedAtVersion,
+            forceOpen: this.state.forceOpen ?? false,
         };
     }
 
@@ -98,6 +101,10 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         return this.currentVersion;
     }
 
+    isBypassed(): boolean {
+        return this.bypassActive;
+    }
+
     async getStateResult(): Promise<OnboardingTrackerStateResult> {
         const overrideState = this.onboardingOverrides.getState();
         if (overrideState?.onboarding !== undefined) {
@@ -119,6 +126,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
      * Mark onboarding as completed for the current OS version.
      */
     async markCompleted(): Promise<{ completed: boolean; completedAtVersion?: string }> {
+        this.bypassActive = false;
         // Check for override first
         const overrideState = this.onboardingOverrides.getState();
         if (overrideState?.onboarding !== undefined) {
@@ -129,6 +137,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
                     completed: true,
                     completedAtVersion:
                         this.currentVersion ?? overrideState.onboarding.completedAtVersion,
+                    forceOpen: false,
                 },
             };
             this.onboardingOverrides.setState(updatedOverride);
@@ -138,6 +147,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         const updatedState: TrackerState = {
             completed: true,
             completedAtVersion: this.currentVersion,
+            forceOpen: false,
         };
 
         await this.writeTrackerState(updatedState);
@@ -150,6 +160,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
      * Reset onboarding state (for testing).
      */
     async reset(): Promise<{ completed: boolean; completedAtVersion?: string }> {
+        this.bypassActive = false;
         // Check for override first
         const overrideState = this.onboardingOverrides.getState();
         if (overrideState?.onboarding !== undefined) {
@@ -159,6 +170,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
                     ...overrideState.onboarding,
                     completed: false,
                     completedAtVersion: undefined,
+                    forceOpen: false,
                 },
             };
             this.onboardingOverrides.setState(updatedOverride);
@@ -168,6 +180,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
         const updatedState: TrackerState = {
             completed: false,
             completedAtVersion: undefined,
+            forceOpen: false,
         };
 
         await this.writeTrackerState(updatedState);
@@ -179,7 +192,45 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
     private syncConfig() {
         this.configService.set(`${CONFIG_PREFIX}.completed`, this.state.completed);
         this.configService.set(`${CONFIG_PREFIX}.completedAtVersion`, this.state.completedAtVersion);
+        this.configService.set(`${CONFIG_PREFIX}.forceOpen`, this.state.forceOpen);
         this.configService.set(`${CONFIG_PREFIX}.currentVersion`, this.currentVersion);
+    }
+
+    async setForceOpen(
+        forceOpen: boolean
+    ): Promise<{ completed: boolean; completedAtVersion?: string; forceOpen: boolean }> {
+        const overrideState = this.onboardingOverrides.getState();
+        if (overrideState?.onboarding !== undefined) {
+            const updatedOverride = {
+                ...overrideState,
+                onboarding: {
+                    ...overrideState.onboarding,
+                    forceOpen,
+                },
+            };
+            this.onboardingOverrides.setState(updatedOverride);
+            return this.getCachedState();
+        }
+
+        const currentStateResult = await this.getStateResult();
+        if (currentStateResult.kind === 'error') {
+            throw currentStateResult.error;
+        }
+
+        const updatedState: TrackerState = {
+            completed: currentStateResult.state.completed,
+            completedAtVersion: currentStateResult.state.completedAtVersion,
+            forceOpen,
+        };
+
+        await this.writeTrackerState(updatedState);
+        this.syncConfig();
+
+        return this.getCachedState();
+    }
+
+    setBypassActive(active: boolean): void {
+        this.bypassActive = active;
     }
 
     private async readCurrentVersion(): Promise<string | undefined> {
@@ -204,6 +255,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
                 state: {
                     completed: state.completed ?? false,
                     completedAtVersion: state.completedAtVersion,
+                    forceOpen: state.forceOpen ?? false,
                 },
             };
         } catch (error) {
@@ -214,6 +266,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
                     state: {
                         completed: false,
                         completedAtVersion: undefined,
+                        forceOpen: false,
                     },
                 };
             }

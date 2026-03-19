@@ -6,6 +6,8 @@ import { plainToClass } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { GraphQLError } from 'graphql';
 import * as ini from 'ini';
+import coerce from 'semver/functions/coerce.js';
+import gte from 'semver/functions/gte.js';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
@@ -30,6 +32,8 @@ import {
 } from '@app/unraid-api/graph/resolvers/customization/activation-steps.util.js';
 import { Theme, ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 import { getOnboardingVersionDirection } from '@app/unraid-api/graph/resolvers/onboarding/onboarding-status.util.js';
+
+const MIN_ONBOARDING_VERSION = '7.3.0';
 
 @Injectable()
 export class OnboardingService implements OnModuleInit {
@@ -356,6 +360,12 @@ export class OnboardingService implements OnModuleInit {
         const partnerInfo = await this.getPublicPartnerInfo();
         const onboardingState = await this.getOnboardingState();
         const versionDirection = getOnboardingVersionDirection(state.completedAtVersion, currentVersion);
+        const isForceOpen = state.forceOpen ?? false;
+        const isBypassed = this.onboardingTracker.isBypassed();
+        const shouldAutoOpen =
+            this.isVersionSupported(currentVersion) &&
+            onboardingState.isFreshInstall &&
+            !state.completed;
 
         let status: OnboardingStatus;
         if (!state.completed) {
@@ -377,6 +387,7 @@ export class OnboardingService implements OnModuleInit {
             completed: state.completed,
             completedAtVersion: state.completedAtVersion,
             activationCode,
+            shouldOpen: !isBypassed && (isForceOpen || shouldAutoOpen),
             onboardingState,
         };
     }
@@ -389,8 +400,54 @@ export class OnboardingService implements OnModuleInit {
         await this.onboardingTracker.reset();
     }
 
+    public async openOnboarding(): Promise<void> {
+        this.onboardingTracker.setBypassActive(false);
+        await this.onboardingTracker.setForceOpen(true);
+    }
+
+    public async closeOnboarding(): Promise<void> {
+        const trackerStateResult = await this.onboardingTracker.getStateResult();
+        if (trackerStateResult.kind === 'error') {
+            throw trackerStateResult.error;
+        }
+
+        const state = trackerStateResult.state;
+        const currentVersion = this.onboardingTracker.getCurrentVersion();
+        const onboardingState = await this.getOnboardingState();
+        const shouldAutoOpen =
+            this.isVersionSupported(currentVersion) &&
+            onboardingState.isFreshInstall &&
+            !state.completed;
+
+        if (state.forceOpen) {
+            await this.onboardingTracker.setForceOpen(false);
+        }
+
+        if (shouldAutoOpen) {
+            await this.onboardingTracker.markCompleted();
+        }
+    }
+
+    public async bypassOnboarding(): Promise<void> {
+        this.onboardingTracker.setBypassActive(true);
+    }
+
+    public async resumeOnboarding(): Promise<void> {
+        this.onboardingTracker.setBypassActive(false);
+    }
+
     public isFreshInstall(): boolean {
         return this.onboardingState.isFreshInstall();
+    }
+
+    private isVersionSupported(version: string | undefined): boolean {
+        const normalizedVersion = coerce(version);
+        const normalizedMinVersion = coerce(MIN_ONBOARDING_VERSION);
+        if (!normalizedVersion || !normalizedMinVersion) {
+            return false;
+        }
+
+        return gte(normalizedVersion, normalizedMinVersion);
     }
 
     /**

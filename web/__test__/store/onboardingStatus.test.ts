@@ -14,6 +14,7 @@ type OnboardingData = {
   isPartnerBuild?: boolean;
   completed?: boolean;
   completedAtVersion?: string | null;
+  shouldOpen?: boolean;
 } | null;
 
 const { state, refetchMock } = vi.hoisted(() => ({
@@ -31,6 +32,7 @@ const createOnboardingData = (): NonNullable<OnboardingData> => ({
   isPartnerBuild: false,
   completed: false,
   completedAtVersion: null,
+  shouldOpen: true,
 });
 
 describe('onboardingStatus store', () => {
@@ -63,6 +65,7 @@ describe('onboardingStatus store', () => {
     const store = useOnboardingStore();
 
     expect(store.canDisplayOnboardingModal).toBe(true);
+    expect(store.shouldOpen).toBe(false);
     expect(store.shouldShowOnboarding).toBe(false);
   });
 
@@ -74,6 +77,7 @@ describe('onboardingStatus store', () => {
 
     expect(store.hasOnboardingError).toBe(true);
     expect(store.canDisplayOnboardingModal).toBe(false);
+    expect(store.shouldOpen).toBe(false);
     expect(store.shouldShowOnboarding).toBe(false);
   });
 
@@ -83,6 +87,7 @@ describe('onboardingStatus store', () => {
     const store = useOnboardingStore();
 
     expect(store.canDisplayOnboardingModal).toBe(true);
+    expect(store.shouldOpen).toBe(false);
     expect(store.shouldShowOnboarding).toBe(false);
   });
 
@@ -91,6 +96,7 @@ describe('onboardingStatus store', () => {
 
     expect(store.hasOnboardingError).toBe(false);
     expect(store.canDisplayOnboardingModal).toBe(true);
+    expect(store.shouldOpen).toBe(true);
     expect(store.shouldShowOnboarding).toBe(true);
   });
 
@@ -101,6 +107,7 @@ describe('onboardingStatus store', () => {
 
     expect(store.hasOnboardingError).toBe(true);
     expect(store.canDisplayOnboardingModal).toBe(false);
+    expect(store.shouldOpen).toBe(true);
     expect(store.shouldShowOnboarding).toBe(false);
   });
 
@@ -110,7 +117,24 @@ describe('onboardingStatus store', () => {
     const store = useOnboardingStore();
 
     expect(store.canDisplayOnboardingModal).toBe(true);
+    expect(store.shouldOpen).toBe(true);
     expect(store.shouldShowOnboarding).toBe(true);
+  });
+
+  it('treats upgrade onboarding as descriptive status only when backend keeps it closed', () => {
+    state.onboardingData.value = {
+      status: 'UPGRADE',
+      isPartnerBuild: false,
+      completed: true,
+      completedAtVersion: '7.2.4',
+      shouldOpen: false,
+    };
+
+    const store = useOnboardingStore();
+
+    expect(store.isUpgrade).toBe(true);
+    expect(store.shouldOpen).toBe(false);
+    expect(store.shouldShowOnboarding).toBe(false);
   });
 });
 

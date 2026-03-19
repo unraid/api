@@ -2,11 +2,9 @@
 import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { useMutation } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon, XMarkIcon } from '@heroicons/vue/24/solid';
 import { Dialog } from '@unraid/ui';
-import { COMPLETE_ONBOARDING_MUTATION } from '@/components/Onboarding/graphql/completeUpgradeStep.mutation';
 
 import type { BrandButtonProps } from '@unraid/ui';
 import type { StepId } from '~/components/Onboarding/stepRegistry.js';
@@ -28,14 +26,12 @@ import { useThemeStore } from '~/store/theme';
 const { t } = useI18n();
 
 const onboardingModalStore = useOnboardingModalStore();
-const { isAutoVisible, isForceOpened, isBypassActive } = storeToRefs(onboardingModalStore);
-const { activationRequired, hasActivationCode, isFreshInstall, registrationState } = storeToRefs(
+const { isVisible } = storeToRefs(onboardingModalStore);
+const { activationRequired, hasActivationCode, registrationState } = storeToRefs(
   useActivationCodeDataStore()
 );
 const onboardingStore = useOnboardingStore();
-const { shouldShowOnboarding, isVersionDrift, completedAtVersion, canDisplayOnboardingModal } =
-  storeToRefs(onboardingStore);
-const { refetchOnboarding } = onboardingStore;
+const { isVersionDrift, completedAtVersion, canDisplayOnboardingModal } = storeToRefs(onboardingStore);
 const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
 const themeStore = useThemeStore();
@@ -120,11 +116,7 @@ const showModal = computed(() => {
     return false;
   }
 
-  if (isForceOpened.value) {
-    return true;
-  }
-
-  return isFreshInstall.value && !isBypassActive.value && isAutoVisible.value;
+  return isVisible.value;
 });
 const showExitConfirmDialog = ref(false);
 
@@ -232,35 +224,9 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
   ];
 });
 
-const { mutate: completeOnboardingMutation } = useMutation(COMPLETE_ONBOARDING_MUTATION);
-
-const completePendingOnboarding = async () => {
-  if (!shouldShowOnboarding.value) {
-    return;
-  }
-
-  try {
-    await completeOnboardingMutation();
-    await refetchOnboarding();
-  } catch (error) {
-    console.error('[OnboardingModal] Failed to complete onboarding', error);
-  }
-};
-
 const closeModal = async (options?: { reload?: boolean }) => {
-  const wasForceOpened = isForceOpened.value;
-
-  if (shouldShowOnboarding.value && !wasForceOpened) {
-    await completePendingOnboarding();
-  }
-
-  if (wasForceOpened) {
-    cleanupOnboardingStorage();
-  } else {
-    cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
-  }
-  onboardingModalStore.clearForceOpened();
-  onboardingModalStore.setIsHidden(true);
+  await onboardingModalStore.closeModal();
+  cleanupOnboardingStorage();
 
   if (options?.reload) {
     window.location.reload();

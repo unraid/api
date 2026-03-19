@@ -115,9 +115,7 @@ describe('OnboardingNextStepsStep', () => {
     await confirmButton!.trigger('click');
     await flushPromises();
 
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
-      clearTemporaryBypassSessionState: true,
-    });
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
     expect(submitInternalBootRebootMock).toHaveBeenCalledTimes(1);
     expect(onComplete).not.toHaveBeenCalled();
   });
