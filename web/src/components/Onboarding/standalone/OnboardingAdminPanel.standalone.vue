@@ -368,11 +368,11 @@ const onSimulateNormalRenderGatingChange = (event: Event) => {
 
 const openOnboardingModalFromPanel = () => {
   if (simulateNormalRenderGatingOnOpen.value) {
-    onboardingModalStore.resetToAutomaticVisibility();
+    void onboardingModalStore.resetToAutomaticVisibility();
     return;
   }
 
-  onboardingModalStore.forceOpenModal();
+  void onboardingModalStore.forceOpenModal();
 };
 
 const getMutationInput = (payload: OnboardingOverridePayload) => {

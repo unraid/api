@@ -8,14 +8,13 @@ import { useOnboardingModalStore } from '~/components/Onboarding/store/onboardin
 const onboardingModalStore = useOnboardingModalStore();
 
 const showOnboardingModal = async () => {
-  onboardingModalStore.forceOpenModal();
+  await onboardingModalStore.forceOpenModal();
 
   // Wait for next tick to ensure the reactive system has updated
   await nextTick();
 
   // Log the current state for debugging
-  console.log('Modal visibility after setting:', onboardingModalStore.isAutoVisible);
-  console.log('isHidden value:', onboardingModalStore.isHidden);
+  console.log('Modal visibility after setting:', onboardingModalStore.isVisible);
 };
 </script>
 

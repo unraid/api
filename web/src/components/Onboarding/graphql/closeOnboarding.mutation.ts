@@ -1,11 +1,10 @@
 import { graphql } from '~/composables/gql';
 
-export const COMPLETE_ONBOARDING_MUTATION = graphql(/* GraphQL */ `
-  mutation CompleteOnboarding {
+export const CLOSE_ONBOARDING_MUTATION = graphql(/* GraphQL */ `
+  mutation CloseOnboarding {
     onboarding {
-      completeOnboarding {
+      closeOnboarding {
         status
-        isPartnerBuild
         completed
         completedAtVersion
         shouldOpen

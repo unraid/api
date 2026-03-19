@@ -95,7 +95,7 @@ const handlePrimaryAction = () => {
 
 const handleConfirmReboot = () => {
   showRebootWarningDialog.value = false;
-  cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
+  cleanupOnboardingStorage();
   submitInternalBootReboot();
 };
 

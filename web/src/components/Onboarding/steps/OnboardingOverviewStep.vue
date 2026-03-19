@@ -195,7 +195,7 @@ const handleSkipOnboarding = async () => {
   }
 
   isSkipping.value = true;
-  cleanupOnboardingStorage({ clearTemporaryBypassSessionState: true });
+  cleanupOnboardingStorage();
 
   try {
     await completeOnboarding();

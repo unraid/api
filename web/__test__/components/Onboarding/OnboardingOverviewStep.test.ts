@@ -148,9 +148,7 @@ describe('OnboardingOverviewStep', () => {
 
     await wrapper.find('[data-testid="skip-setup-button"]').trigger('click');
 
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
-      clearTemporaryBypassSessionState: true,
-    });
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
   });
 
   it('still clears onboarding draft when skip completion fails', async () => {
@@ -159,8 +157,6 @@ describe('OnboardingOverviewStep', () => {
 
     await wrapper.find('[data-testid="skip-setup-button"]').trigger('click');
 
-    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith({
-      clearTemporaryBypassSessionState: true,
-    });
+    expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
   });
 });

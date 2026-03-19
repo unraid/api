@@ -121,8 +121,19 @@ const onboardingTrackerMock = {
     isCompleted: vi.fn<() => Promise<boolean>>(),
     getStateResult: vi.fn(),
     getCurrentVersion: vi.fn(),
-    markCompleted: vi.fn<() => Promise<{ completed: boolean; completedAtVersion?: string }>>(),
-    reset: vi.fn<() => Promise<{ completed: boolean; completedAtVersion?: string }>>(),
+    isBypassed: vi.fn<() => boolean>(),
+    markCompleted:
+        vi.fn<() => Promise<{ completed: boolean; completedAtVersion?: string; forceOpen: boolean }>>(),
+    reset: vi.fn<
+        () => Promise<{ completed: boolean; completedAtVersion?: string; forceOpen: boolean }>
+    >(),
+    setForceOpen:
+        vi.fn<
+            (
+                forceOpen: boolean
+            ) => Promise<{ completed: boolean; completedAtVersion?: string; forceOpen: boolean }>
+        >(),
+    setBypassActive: vi.fn<(active: boolean) => void>(),
 };
 const onboardingOverridesMock = {
     getState: vi.fn(),
@@ -194,20 +205,32 @@ describe('OnboardingService', () => {
             state: {
                 completed: false,
                 completedAtVersion: undefined,
+                forceOpen: false,
             },
         });
         onboardingTrackerMock.getCurrentVersion.mockReset();
         onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.2.0');
+        onboardingTrackerMock.isBypassed.mockReset();
+        onboardingTrackerMock.isBypassed.mockReturnValue(false);
         onboardingTrackerMock.markCompleted.mockReset();
         onboardingTrackerMock.markCompleted.mockResolvedValue({
             completed: true,
             completedAtVersion: '7.2.0',
+            forceOpen: false,
         });
         onboardingTrackerMock.reset.mockReset();
         onboardingTrackerMock.reset.mockResolvedValue({
             completed: false,
             completedAtVersion: undefined,
+            forceOpen: false,
         });
+        onboardingTrackerMock.setForceOpen.mockReset();
+        onboardingTrackerMock.setForceOpen.mockImplementation(async (forceOpen: boolean) => ({
+            completed: false,
+            completedAtVersion: undefined,
+            forceOpen,
+        }));
+        onboardingTrackerMock.setBypassActive.mockReset();
         onboardingOverridesMock.getState.mockReset();
         onboardingOverridesMock.getState.mockReturnValue(null);
         onboardingOverridesMock.setState.mockReset();
@@ -303,6 +326,7 @@ describe('OnboardingService', () => {
                 completed: true,
                 completedAtVersion: '7.2.0',
                 activationCode: 'ABC123',
+                shouldOpen: false,
                 onboardingState: {
                     registrationState: 'PRO',
                     isRegistered: true,
@@ -370,6 +394,84 @@ describe('OnboardingService', () => {
                 status: OnboardingStatus.UPGRADE,
                 completed: true,
                 completedAtVersion: '7.2.4',
+                shouldOpen: false,
+            });
+        });
+
+        it('auto-opens fresh incomplete onboarding from the backend response', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                    forceOpen: false,
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
+            onboardingStateMock.isFreshInstall.mockReturnValue(true);
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            await expect(service.getOnboardingResponse()).resolves.toMatchObject({
+                status: OnboardingStatus.INCOMPLETE,
+                shouldOpen: true,
+            });
+        });
+
+        it('does not auto-open completed upgrade onboarding from the backend response', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: true,
+                    completedAtVersion: '7.2.4',
+                    forceOpen: false,
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
+            onboardingStateMock.isFreshInstall.mockReturnValue(false);
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            await expect(service.getOnboardingResponse()).resolves.toMatchObject({
+                status: OnboardingStatus.UPGRADE,
+                shouldOpen: false,
+            });
+        });
+
+        it('surfaces forced-open onboarding from the backend response', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: true,
+                    completedAtVersion: '7.2.4',
+                    forceOpen: true,
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
+            onboardingStateMock.isFreshInstall.mockReturnValue(false);
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            await expect(service.getOnboardingResponse()).resolves.toMatchObject({
+                status: OnboardingStatus.UPGRADE,
+                shouldOpen: true,
+            });
+        });
+
+        it('hides onboarding when the in-memory bypass is active', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                    forceOpen: false,
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
+            onboardingStateMock.isFreshInstall.mockReturnValue(true);
+            onboardingTrackerMock.isBypassed.mockReturnValue(true);
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            await expect(service.getOnboardingResponse()).resolves.toMatchObject({
+                status: OnboardingStatus.INCOMPLETE,
+                shouldOpen: false,
             });
         });
 
@@ -407,6 +509,60 @@ describe('OnboardingService', () => {
                 completed: true,
                 completedAtVersion: '7.3.0',
             });
+        });
+    });
+
+    describe('visibility actions', () => {
+        it('delegates openOnboarding to the tracker', async () => {
+            await service.openOnboarding();
+
+            expect(onboardingTrackerMock.setBypassActive).toHaveBeenCalledWith(false);
+            expect(onboardingTrackerMock.setForceOpen).toHaveBeenCalledWith(true);
+        });
+
+        it('clears forced-open onboarding through the tracker', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: true,
+                    completedAtVersion: '7.3.0',
+                    forceOpen: true,
+                },
+            });
+
+            await service.closeOnboarding();
+
+            expect(onboardingTrackerMock.setForceOpen).toHaveBeenCalledWith(false);
+        });
+
+        it('marks fresh incomplete onboarding complete when closed', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                    forceOpen: false,
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
+            onboardingStateMock.isFreshInstall.mockReturnValue(true);
+
+            await service.closeOnboarding();
+
+            expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
+            expect(onboardingTrackerMock.setForceOpen).not.toHaveBeenCalled();
+        });
+
+        it('enables the in-memory bypass', async () => {
+            await service.bypassOnboarding();
+
+            expect(onboardingTrackerMock.setBypassActive).toHaveBeenCalledWith(true);
+        });
+
+        it('clears the in-memory bypass', async () => {
+            await service.resumeOnboarding();
+
+            expect(onboardingTrackerMock.setBypassActive).toHaveBeenCalledWith(false);
         });
     });
 

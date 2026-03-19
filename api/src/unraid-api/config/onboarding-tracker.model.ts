@@ -7,4 +7,6 @@ export type TrackerState = {
     completed?: boolean;
     /** The OS version when onboarding was completed (for future upgrade detection) */
     completedAtVersion?: string;
+    /** Whether onboarding has been explicitly forced open */
+    forceOpen?: boolean;
 };

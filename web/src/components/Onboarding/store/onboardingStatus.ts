@@ -59,6 +59,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   const isPartnerBuild = computed(() => onboardingData.value?.isPartnerBuild ?? false);
   const completed = computed(() => onboardingData.value?.completed ?? false);
   const completedAtVersion = computed(() => onboardingData.value?.completedAtVersion);
+  const shouldOpen = computed(() => onboardingData.value?.shouldOpen ?? false);
 
   // Derived helpers for component logic
   const isUpgrade = computed(() => status.value === 'UPGRADE');
@@ -83,9 +84,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   };
 
   const hasOnboardingError = computed(() => Boolean(onboardingError.value));
-  const canDisplayOnboardingModal = computed(
-    () => isVersionSupported.value && !hasOnboardingError.value
-  );
+  const canDisplayOnboardingModal = computed(() => !hasOnboardingError.value);
 
   // Automatic onboarding should only run for initial setup.
   const shouldShowOnboarding = computed(() => {
@@ -95,7 +94,6 @@ export const useOnboardingStore = defineStore('onboarding', () => {
 
     return status.value === 'INCOMPLETE';
   });
-
   return {
     loading: computed(() => onboardingLoading.value),
     // Core state
@@ -103,6 +101,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     isPartnerBuild,
     completed,
     completedAtVersion,
+    shouldOpen,
     // Derived helpers
     isUpgrade,
     isDowngrade,

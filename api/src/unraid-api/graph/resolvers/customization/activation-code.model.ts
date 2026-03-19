@@ -402,6 +402,11 @@ export class Onboarding {
     })
     activationCode?: string;
 
+    @Field(() => Boolean, {
+        description: 'Whether the onboarding modal should currently be shown',
+    })
+    shouldOpen!: boolean;
+
     @Field(() => OnboardingState, {
         description: 'Runtime onboarding state values used by the onboarding flow',
     })
