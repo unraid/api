@@ -7,6 +7,7 @@ import { emhttpLogger } from '@app/core/log.js';
 import { CHOKIDAR_USEPOLLING } from '@app/environment.js';
 import { getters, store } from '@app/store/index.js';
 import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
+import { loadRegistrationKey } from '@app/store/modules/registration.js';
 import { StateFileKey } from '@app/store/types.js';
 
 const chokidarOptionsForStateKey = (
@@ -52,6 +53,9 @@ export class StateManager {
         try {
             emhttpLogger.debug('Loading state file for %s after %s event', stateFile, event);
             await store.dispatch(loadSingleStateFile(stateFile));
+            if (stateFile === StateFileKey.var) {
+                await store.dispatch(loadRegistrationKey());
+            }
         } catch (error: unknown) {
             emhttpLogger.error(
                 'Failed to load state file: [%s] after %s event\nerror: %o',

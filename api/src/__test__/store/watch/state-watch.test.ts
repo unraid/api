@@ -40,6 +40,10 @@ vi.mock('@app/store/modules/emhttp.js', () => ({
     loadSingleStateFile: vi.fn((key) => ({ type: 'emhttp/load-single-state-file', payload: key })),
 }));
 
+vi.mock('@app/store/modules/registration.js', () => ({
+    loadRegistrationKey: vi.fn(() => ({ type: 'registration/load-registration-key' })),
+}));
+
 vi.mock('@app/core/log.js', () => ({
     emhttpLogger: {
         trace: vi.fn(),
@@ -81,5 +85,22 @@ describe('StateManager', () => {
         await changeHandler?.('/usr/local/emhttp/state/devs.ini');
 
         expect(store.dispatch).toHaveBeenCalledWith(loadSingleStateFile(StateFileKey.devs));
+    });
+
+    it('reloads registration key when var.ini changes', async () => {
+        const { StateManager } = await import('@app/store/watch/state-watch.js');
+        const { store } = await import('@app/store/index.js');
+        const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
+        const { loadRegistrationKey } = await import('@app/store/modules/registration.js');
+
+        StateManager.getInstance();
+
+        const changeHandler = handlersByPath.get('/usr/local/emhttp/state/var.ini')?.change;
+        expect(changeHandler).toBeDefined();
+
+        await changeHandler?.('/usr/local/emhttp/state/var.ini');
+
+        expect(store.dispatch).toHaveBeenNthCalledWith(1, loadSingleStateFile(StateFileKey.var));
+        expect(store.dispatch).toHaveBeenNthCalledWith(2, loadRegistrationKey());
     });
 });
