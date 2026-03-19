@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "Codi d'activació",
   "onboarding.licenseStep.labels.none": "Cap",
   "onboarding.licenseStep.actions.manageLicense": "Gestionar Llicència",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Substituïu, recupereu o enllaceu la vostra llicència al vostre compte d'Unraid.",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Inicia la prova des de Gestiona la llicència al teu compte d'Unraid.",
   "onboarding.licenseStep.actions.activateServer": "Activar Servidor",
   "onboarding.licenseStep.actions.nextStep": "SEGÜENT PAS",
   "onboarding.licenseStep.actions.skipForNow": "Ometre per ara",
