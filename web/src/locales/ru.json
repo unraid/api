@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "Код активации",
   "onboarding.licenseStep.labels.none": "Нет",
   "onboarding.licenseStep.actions.manageLicense": "Управление лицензией",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Замените, восстановите или привяжите свою лицензию в учетной записи Unraid Account.",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Начните пробный период в разделе Manage License в вашей учетной записи Unraid.",
   "onboarding.licenseStep.actions.activateServer": "Активировать сервер",
   "onboarding.licenseStep.actions.nextStep": "СЛЕДУЮЩИЙ ШАГ",
   "onboarding.licenseStep.actions.skipForNow": "Пропустить на данный момент",
