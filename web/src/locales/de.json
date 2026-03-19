@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "Aktivierungscode",
   "onboarding.licenseStep.labels.none": "Keine",
   "onboarding.licenseStep.actions.manageLicense": "Lizenz verwalten",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Ersetzen, wiederherstellen oder verknüpfen Sie Ihre Lizenz in Ihrem Unraid-Konto.",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Starten Sie Ihre Testversion über „Lizenz verwalten“ in Ihrem Unraid-Konto.",
   "onboarding.licenseStep.actions.activateServer": "Server aktivieren",
   "onboarding.licenseStep.actions.nextStep": "NÄCHSTER SCHRITT",
   "onboarding.licenseStep.actions.skipForNow": "Jetzt überspringen",
