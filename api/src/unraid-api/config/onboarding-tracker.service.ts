@@ -137,6 +137,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
                     completed: true,
                     completedAtVersion:
                         this.currentVersion ?? overrideState.onboarding.completedAtVersion,
+                    forceOpen: false,
                 },
             };
             this.onboardingOverrides.setState(updatedOverride);
@@ -169,6 +170,7 @@ export class OnboardingTrackerService implements OnApplicationBootstrap {
                     ...overrideState.onboarding,
                     completed: false,
                     completedAtVersion: undefined,
+                    forceOpen: false,
                 },
             };
             this.onboardingOverrides.setState(updatedOverride);

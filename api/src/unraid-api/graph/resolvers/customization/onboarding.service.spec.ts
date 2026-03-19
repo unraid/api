@@ -490,6 +490,7 @@ describe('OnboardingService', () => {
                 status: OnboardingStatus.COMPLETED,
                 completed: true,
                 completedAtVersion: '7.3.0',
+                shouldOpen: false,
             });
         });
 

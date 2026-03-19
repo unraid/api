@@ -170,6 +170,64 @@ describe('OnboardingTrackerService tracker state availability', () => {
         });
     });
 
+    it('clears forceOpen when marking override-backed onboarding completed', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        overrides.setState({
+            onboarding: {
+                completed: false,
+                completedAtVersion: undefined,
+                forceOpen: true,
+            },
+        });
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(tracker.markCompleted()).resolves.toEqual({
+            completed: true,
+            completedAtVersion: '7.2.0',
+            forceOpen: false,
+        });
+    });
+
+    it('clears forceOpen when resetting override-backed onboarding state', async () => {
+        const config = createConfigService();
+        const overrides = new OnboardingOverrideService();
+
+        overrides.setState({
+            onboarding: {
+                completed: true,
+                completedAtVersion: '7.2.0',
+                forceOpen: true,
+            },
+        });
+
+        mockReadFile.mockImplementation(async (filePath) => {
+            if (String(filePath).includes('unraid-version')) {
+                return 'version="7.2.0"\n';
+            }
+            throw Object.assign(new Error('Not found'), { code: 'ENOENT' });
+        });
+
+        const tracker = new OnboardingTrackerService(config, overrides);
+        await tracker.onApplicationBootstrap();
+
+        await expect(tracker.reset()).resolves.toEqual({
+            completed: false,
+            completedAtVersion: undefined,
+            forceOpen: false,
+        });
+    });
+
     it('propagates tracker read failures through isCompleted', async () => {
         const config = createConfigService();
         const overrides = new OnboardingOverrideService();
