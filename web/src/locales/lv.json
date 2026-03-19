@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "Aktivācijas kods",
   "onboarding.licenseStep.labels.none": "Neviens",
   "onboarding.licenseStep.actions.manageLicense": "Pārvaldīt licenci",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Aizstājiet, atkopiet vai saistiet savu licenci savā Unraid kontā.",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Sāciet izmēģinājumu no Pārvaldīt licenci savā Unraid kontā.",
   "onboarding.licenseStep.actions.activateServer": "Aktivizēt serveri",
   "onboarding.licenseStep.actions.nextStep": "NAKAMĀS DARBĪBAS",
   "onboarding.licenseStep.actions.skipForNow": "Izlaist pagaidām",
