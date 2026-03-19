@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "アクティベーションコード",
   "onboarding.licenseStep.labels.none": "なし",
   "onboarding.licenseStep.actions.manageLicense": "ライセンスを管理",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Unraidアカウントで、ライセンスを交換、復旧、またはリンクしてください。",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Unraid Account の［Manage License］から試用版を開始してください。",
   "onboarding.licenseStep.actions.activateServer": "サーバーをアクティベート",
   "onboarding.licenseStep.actions.nextStep": "NEXT STEP",
   "onboarding.licenseStep.actions.skipForNow": "今回はスキップする",
