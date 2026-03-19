@@ -319,6 +319,8 @@
   "onboarding.licenseStep.labels.activationCode": "Aktivacijski Kod",
   "onboarding.licenseStep.labels.none": "**Niti jedan**",
   "onboarding.licenseStep.actions.manageLicense": "Upravljaj licencom",
+  "onboarding.licenseStep.actions.manageLicenseHelperText": "Zamijenite, obnovite ili povežite svoju licencu na svom Unraid računu.",
+  "onboarding.licenseStep.actions.manageLicenseTrialStartHelperText": "Pokrenite svoje probno razdoblje iz odjeljka Manage License na svom Unraid računu.",
   "onboarding.licenseStep.actions.activateServer": "Aktiviraj poslužitelj",
   "onboarding.licenseStep.actions.nextStep": "SLJEDEĆI KORAK",
   "onboarding.licenseStep.actions.skipForNow": "Preskoči za sada",
