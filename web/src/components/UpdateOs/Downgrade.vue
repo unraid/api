@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
@@ -13,6 +13,8 @@ import {
 import { BrandButton, CardWrapper } from '@unraid/ui';
 import { FORUMS_BUG_REPORT } from '~/helpers/urls';
 import dayjs from 'dayjs';
+import coerce from 'semver/functions/coerce';
+import lt from 'semver/functions/lt';
 
 import type { UserProfileLink } from '~/types/userProfile';
 
@@ -29,13 +31,50 @@ const { t } = useI18n();
 const serverStore = useServerStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { dateTimeFormat } = storeToRefs(serverStore);
+const { bootedFromFlashWithInternalBootSetup, dateTimeFormat, osVersion } = storeToRefs(serverStore);
 const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(
   dateTimeFormat.value,
   t,
   true,
   dayjs(props.releaseDate, 'YYYY-MM-DD').valueOf()
 );
+
+const INTERNAL_BOOT_SUPPORT_VERSION = '7.3.0';
+
+const isVersionIn73Series = (version: string | null | undefined) => {
+  const normalizedVersion = coerce(version);
+  if (!normalizedVersion) {
+    return false;
+  }
+  return normalizedVersion.major === 7 && normalizedVersion.minor === 3;
+};
+
+const isBeforeInternalBootSupportVersion = (version: string | null | undefined) => {
+  const normalizedVersion = coerce(version);
+  if (!normalizedVersion) {
+    return false;
+  }
+  return lt(normalizedVersion, INTERNAL_BOOT_SUPPORT_VERSION);
+};
+
+const shouldWarnAboutInternalBootDowngrade = computed(
+  () =>
+    bootedFromFlashWithInternalBootSetup.value &&
+    isVersionIn73Series(osVersion.value) &&
+    isBeforeInternalBootSupportVersion(props.version)
+);
+
+const startDowngrade = () => {
+  if (shouldWarnAboutInternalBootDowngrade.value) {
+    const confirmed = window.confirm(
+      t('updateOs.downgrade.internalBootConfirmFrom73xToOlder', [osVersion.value, props.version])
+    );
+    if (!confirmed) {
+      return;
+    }
+  }
+  window.confirmDowngrade?.();
+};
 
 const diagnosticsButton = ref<UserProfileLink | undefined>({
   click: () => {
@@ -47,9 +86,7 @@ const diagnosticsButton = ref<UserProfileLink | undefined>({
 });
 
 const downgradeButton = ref<UserProfileLink>({
-  click: () => {
-    window.confirmDowngrade?.();
-  },
+  click: startDowngrade,
   name: 'downgrade',
   text: t('updateOs.downgrade.beginDowngradeTo', [props.version]),
 });
@@ -80,6 +117,17 @@ const downgradeButton = ref<UserProfileLink>({
           </p>
           <p>
             {{ t('updateOs.downgrade.downloadTheDiagnosticsZipThenPlease') }}
+          </p>
+        </div>
+        <div
+          v-if="shouldWarnAboutInternalBootDowngrade"
+          class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm leading-relaxed text-red-900"
+        >
+          <p class="font-semibold">
+            {{ t('updateOs.downgrade.internalBootWarningTitle') }}
+          </p>
+          <p>
+            {{ t('updateOs.downgrade.internalBootWarningFrom73xToOlder', [osVersion, version]) }}
           </p>
         </div>
       </div>
