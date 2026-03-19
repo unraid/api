@@ -177,6 +177,8 @@
   "onboarding.internalBootStep.bootSize.helpRange": "Minimum is 4 GB; maximum is {max} GB (50% of the smallest selected drive).",
   "onboarding.internalBootStep.eligibility.availableTitle": "Some disks are unavailable for storage boot",
   "onboarding.internalBootStep.eligibility.availableDescription": "The disks below cannot be selected for storage boot right now.",
+  "onboarding.internalBootStep.eligibility.warningOnlyTitle": "Some selectable disks contain existing partitions",
+  "onboarding.internalBootStep.eligibility.warningOnlyDescription": "The disks below can still be selected for storage boot, but setup will repartition and erase existing data.",
   "onboarding.internalBootStep.eligibility.blockedTitle": "Storage boot is currently unavailable",
   "onboarding.internalBootStep.eligibility.blockedDescription": "Resolve all issues below to use storage drive boot on this server.",
   "onboarding.internalBootStep.eligibility.noDevicesTitle": "No eligible devices were detected for internal boot setup.",

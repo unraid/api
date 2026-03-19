@@ -400,6 +400,16 @@ describe('OnboardingInternalBootStep', () => {
     const wrapper = mountComponent();
     await flushPromises();
 
+    const eligibilityPanel = wrapper.get('[data-testid="internal-boot-eligibility-panel"]');
+    expect(eligibilityPanel.text()).toContain('Some selectable disks contain existing partitions');
+    expect(eligibilityPanel.text()).toContain(
+      'The disks below can still be selected for storage boot, but setup will repartition and erase existing data.'
+    );
+    expect(eligibilityPanel.text()).not.toContain('Some disks are unavailable for storage boot');
+    expect(eligibilityPanel.text()).not.toContain(
+      'The disks below cannot be selected for storage boot right now.'
+    );
+
     const selects = wrapper.findAll('select');
     expect(selects).toHaveLength(3);
     const deviceSelect = selects[1];

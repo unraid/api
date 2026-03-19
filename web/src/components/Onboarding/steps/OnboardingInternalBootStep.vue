@@ -95,6 +95,9 @@ const DISK_WARNING_FALLBACK_MESSAGES: Record<InternalBootDiskWarningCode, string
   HAS_PARTITIONS:
     'This disk has existing partitions. Internal boot setup will repartition and erase existing data.',
 };
+const WARNING_ONLY_ELIGIBILITY_TITLE = 'Some selectable disks contain existing partitions';
+const WARNING_ONLY_ELIGIBILITY_DESCRIPTION =
+  'The disks below can still be selected for storage boot, but setup will repartition and erase existing data.';
 
 const formatBytes = (bytes: number) => {
   if (!Number.isFinite(bytes) || bytes <= 0) {
@@ -104,6 +107,11 @@ const formatBytes = (bytes: number) => {
   const converted = convert(bytes, 'B').to('best', 'metric');
   const precision = converted.quantity >= 100 || converted.unit === 'B' ? 0 : 1;
   return `${converted.quantity.toFixed(precision)} ${converted.unit}`;
+};
+
+const translateOrFallback = (key: string, fallback: string) => {
+  const translated = t(key);
+  return translated === key ? fallback : translated;
 };
 
 const toSizeMiB = (bytes: number): number | null => {
@@ -323,6 +331,10 @@ const canConfigure = computed(
 );
 const hasEligibleDevices = computed(() => deviceOptions.value.length > 0);
 const hasNoEligibleDevices = computed(() => !hasEligibleDevices.value);
+const hasUnavailableDiskIssues = computed(() => diskEligibilityIssues.value.length > 0);
+const hasWarningOnlyEligibilityIssues = computed(
+  () => canConfigure.value && !hasUnavailableDiskIssues.value && diskWarningIssues.value.length > 0
+);
 const isStorageBootSelected = computed(() => bootMode.value === 'storage');
 const isPrimaryActionDisabled = computed(
   () => isStepLocked.value || (isStorageBootSelected.value && (isLoading.value || !canConfigure.value))
@@ -338,18 +350,28 @@ const shouldShowEligibilityDetails = computed(
       diskWarningIssues.value.length > 0)
 );
 const eligibilityPanelTitle = computed(() =>
-  canConfigure.value
-    ? t('onboarding.internalBootStep.eligibility.availableTitle')
-    : hasNoEligibleDevices.value
-      ? t('onboarding.internalBootStep.eligibility.noDevicesTitle')
-      : t('onboarding.internalBootStep.eligibility.blockedTitle')
+  hasWarningOnlyEligibilityIssues.value
+    ? translateOrFallback(
+        'onboarding.internalBootStep.eligibility.warningOnlyTitle',
+        WARNING_ONLY_ELIGIBILITY_TITLE
+      )
+    : canConfigure.value
+      ? t('onboarding.internalBootStep.eligibility.availableTitle')
+      : hasNoEligibleDevices.value
+        ? t('onboarding.internalBootStep.eligibility.noDevicesTitle')
+        : t('onboarding.internalBootStep.eligibility.blockedTitle')
 );
 const eligibilityPanelDescription = computed(() =>
-  canConfigure.value
-    ? t('onboarding.internalBootStep.eligibility.availableDescription')
-    : hasNoEligibleDevices.value
-      ? t('onboarding.internalBootStep.eligibility.noDevicesDescription')
-      : t('onboarding.internalBootStep.eligibility.blockedDescription')
+  hasWarningOnlyEligibilityIssues.value
+    ? translateOrFallback(
+        'onboarding.internalBootStep.eligibility.warningOnlyDescription',
+        WARNING_ONLY_ELIGIBILITY_DESCRIPTION
+      )
+    : canConfigure.value
+      ? t('onboarding.internalBootStep.eligibility.availableDescription')
+      : hasNoEligibleDevices.value
+        ? t('onboarding.internalBootStep.eligibility.noDevicesDescription')
+        : t('onboarding.internalBootStep.eligibility.blockedDescription')
 );
 
 const loadStatusMessage = computed(() => {
