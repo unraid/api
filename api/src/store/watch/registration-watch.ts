@@ -19,7 +19,7 @@ export const setupRegistrationKeyWatch = () => {
     watch('/boot/config', {
         persistent: true,
         ignoreInitial: true,
-        ignored: (path: string) => !path.endsWith('.key'),
+        ignored: (path, stats) => Boolean(stats?.isFile() && !path.endsWith('.key')),
         usePolling: true, // Required for FAT32 - inotify doesn't work
         interval: 5000, // Poll every 5 seconds (balance between responsiveness and CPU usage)
     }).on('all', (event, path) => {

@@ -89,4 +89,22 @@ describe('registration-watch', () => {
         expect(store.dispatch).toHaveBeenNthCalledWith(1, loadSingleStateFile(StateFileKey.var));
         expect(store.dispatch).toHaveBeenNthCalledWith(2, loadRegistrationKey());
     });
+
+    it('does not ignore the watched directory while still filtering non-key files', async () => {
+        const { setupRegistrationKeyWatch } = await import('@app/store/watch/registration-watch.js');
+
+        setupRegistrationKeyWatch();
+
+        const watchOptions = chokidarWatch.mock.calls[0]?.[1];
+        expect(watchOptions).toBeDefined();
+
+        const ignored = watchOptions?.ignored as
+            | ((path: string, stats?: { isFile(): boolean }) => boolean)
+            | undefined;
+
+        expect(ignored).toBeDefined();
+        expect(ignored?.('/boot/config', { isFile: () => false })).toBe(false);
+        expect(ignored?.('/boot/config/Pro.key', { isFile: () => true })).toBe(false);
+        expect(ignored?.('/boot/config/readme.txt', { isFile: () => true })).toBe(true);
+    });
 });
