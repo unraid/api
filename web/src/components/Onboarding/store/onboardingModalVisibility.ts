@@ -61,7 +61,7 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
   );
 
   const { isFreshInstall } = storeToRefs(useActivationCodeDataStore());
-  const { completed, canDisplayOnboardingModal } = storeToRefs(useOnboardingStore());
+  const { completed, canDisplayOnboardingModal, isUpgrade } = storeToRefs(useOnboardingStore());
   const { callbackData } = storeToRefs(useCallbackActionsStore());
   const { uptime } = storeToRefs(useServerStore());
 
@@ -162,7 +162,7 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
   /**
    * Automatic visibility gate for onboarding:
    * - show if explicitly unhidden (`isHidden === false`)
-   * - otherwise show only for fresh installs that are not completed, have no callback data, and are not hidden
+   * - otherwise show only for fresh installs that are not completed, or upgrade flows, when no callback data is present
    * - manual force-open is handled separately via `isForceOpened`
    */
   const isAutoVisible = computed<boolean>(() => {
@@ -172,7 +172,11 @@ export const useOnboardingModalStore = defineStore('onboardingModalVisibility', 
     if (isHidden.value === false) {
       return true;
     }
-    return isHidden.value === null && isFreshInstall.value && !completed.value && !callbackData.value;
+    return (
+      isHidden.value === null &&
+      ((isFreshInstall.value && !completed.value) || isUpgrade.value) &&
+      !callbackData.value
+    );
   });
 
   watch(isBypassActive, (active) => {

@@ -33,8 +33,13 @@ const { activationRequired, hasActivationCode, isFreshInstall, registrationState
   useActivationCodeDataStore()
 );
 const onboardingStore = useOnboardingStore();
-const { shouldShowOnboarding, isVersionDrift, completedAtVersion, canDisplayOnboardingModal } =
-  storeToRefs(onboardingStore);
+const {
+  shouldShowOnboarding,
+  isUpgrade,
+  isVersionDrift,
+  completedAtVersion,
+  canDisplayOnboardingModal,
+} = storeToRefs(onboardingStore);
 const { refetchOnboarding } = onboardingStore;
 const purchaseStore = usePurchaseStore();
 const { keyfile } = storeToRefs(useServerStore());
@@ -124,7 +129,7 @@ const showModal = computed(() => {
     return true;
   }
 
-  return isFreshInstall.value && !isBypassActive.value && isAutoVisible.value;
+  return (isFreshInstall.value || isUpgrade.value) && !isBypassActive.value && isAutoVisible.value;
 });
 const showExitConfirmDialog = ref(false);
 

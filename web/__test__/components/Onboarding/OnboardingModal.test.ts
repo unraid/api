@@ -56,6 +56,7 @@ const {
   },
   onboardingStatusStore: {
     shouldShowOnboarding: { value: false },
+    isUpgrade: { value: false },
     isVersionDrift: { value: false },
     completedAtVersion: { value: null },
     canDisplayOnboardingModal: { value: true },
@@ -189,6 +190,7 @@ describe('OnboardingModal.vue', () => {
     activationCodeDataStore.isFreshInstall.value = true;
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE';
     onboardingStatusStore.shouldShowOnboarding.value = false;
+    onboardingStatusStore.isUpgrade.value = false;
     onboardingStatusStore.isVersionDrift.value = false;
     onboardingStatusStore.completedAtVersion.value = null;
     onboardingStatusStore.canDisplayOnboardingModal.value = true;
@@ -263,6 +265,17 @@ describe('OnboardingModal.vue', () => {
     activationCodeDataStore.isFreshInstall.value = false;
     onboardingModalStoreState.isAutoVisible.value = false;
     onboardingModalStoreState.isForceOpened.value = true;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="dialog"]').exists()).toBe(true);
+  });
+
+  it('renders for upgrade onboarding even when system is not a fresh install', () => {
+    activationCodeDataStore.isFreshInstall.value = false;
+    onboardingModalStoreState.isAutoVisible.value = true;
+    onboardingStatusStore.isUpgrade.value = true;
+    onboardingStatusStore.isVersionDrift.value = true;
 
     const wrapper = mountComponent();
 

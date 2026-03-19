@@ -354,6 +354,60 @@ describe('OnboardingService', () => {
             });
             expect(service.getActivationData).not.toHaveBeenCalled();
         });
+
+        it('returns UPGRADE when onboarding was completed on an older minor version', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: true,
+                    completedAtVersion: '7.2.4',
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            await expect(service.getOnboardingResponse()).resolves.toMatchObject({
+                status: OnboardingStatus.UPGRADE,
+                completed: true,
+                completedAtVersion: '7.2.4',
+            });
+        });
+
+        it('returns COMPLETED when onboarding was completed on an earlier patch of the same minor version', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: true,
+                    completedAtVersion: '7.3.0',
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.1');
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            await expect(service.getOnboardingResponse()).resolves.toMatchObject({
+                status: OnboardingStatus.COMPLETED,
+                completed: true,
+                completedAtVersion: '7.3.0',
+            });
+        });
+
+        it('returns DOWNGRADE when onboarding was completed on a newer minor version', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: true,
+                    completedAtVersion: '7.3.0',
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.2.4');
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            await expect(service.getOnboardingResponse()).resolves.toMatchObject({
+                status: OnboardingStatus.DOWNGRADE,
+                completed: true,
+                completedAtVersion: '7.3.0',
+            });
+        });
     });
 
     describe('onModuleInit', () => {

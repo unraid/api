@@ -112,6 +112,20 @@ describe('onboardingStatus store', () => {
     expect(store.canDisplayOnboardingModal).toBe(true);
     expect(store.shouldShowOnboarding).toBe(true);
   });
+
+  it('does not auto-complete upgrade onboarding through the incomplete-only helper', () => {
+    state.onboardingData.value = {
+      status: 'UPGRADE',
+      isPartnerBuild: false,
+      completed: true,
+      completedAtVersion: '7.2.4',
+    };
+
+    const store = useOnboardingStore();
+
+    expect(store.isUpgrade).toBe(true);
+    expect(store.shouldShowOnboarding).toBe(false);
+  });
 });
 
 vi.mock('~/components/Onboarding/store/onboardingContextData', () => ({

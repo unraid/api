@@ -47,6 +47,7 @@ describe('OnboardingModalVisibility Store', () => {
   let mockIsFreshInstall: ReturnType<typeof ref>;
   let mockCompleted: ReturnType<typeof ref>;
   let mockCanDisplayOnboardingModal: ReturnType<typeof ref>;
+  let mockIsUpgrade: ReturnType<typeof ref>;
   let mockCallbackData: ReturnType<typeof ref>;
   let mockUptime: ReturnType<typeof ref>;
   let app: App<Element> | null = null;
@@ -78,6 +79,7 @@ describe('OnboardingModalVisibility Store', () => {
     mockIsFreshInstall = ref(false);
     mockCompleted = ref(false);
     mockCanDisplayOnboardingModal = ref(true);
+    mockIsUpgrade = ref(false);
     mockCallbackData = ref(null);
     mockUptime = ref(3600);
 
@@ -96,6 +98,7 @@ describe('OnboardingModalVisibility Store', () => {
     vi.mocked(useOnboardingStore).mockReturnValue({
       completed: mockCompleted,
       canDisplayOnboardingModal: mockCanDisplayOnboardingModal,
+      isUpgrade: mockIsUpgrade,
     } as unknown as ReturnType<typeof useOnboardingStore>);
 
     vi.mocked(useCallbackActionsStore).mockReturnValue({
@@ -301,6 +304,25 @@ describe('OnboardingModalVisibility Store', () => {
     mockCallbackData.value = null;
 
     expect(store.isAutoVisible).toBe(true);
+  });
+
+  it('is visible on upgrade when not hidden or bypassed', () => {
+    mockIsUpgrade.value = true;
+    mockCompleted.value = true;
+    store.setIsHidden(null);
+    mockCallbackData.value = null;
+
+    expect(store.isAutoVisible).toBe(true);
+  });
+
+  it('stays hidden for completed non-upgrade sessions that are not fresh installs', () => {
+    mockIsFreshInstall.value = false;
+    mockCompleted.value = true;
+    mockIsUpgrade.value = false;
+    store.setIsHidden(null);
+    mockCallbackData.value = null;
+
+    expect(store.isAutoVisible).toBe(false);
   });
 
   it('is not visible when temporary bypass is active', () => {
