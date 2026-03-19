@@ -88,16 +88,6 @@ const SYSTEM_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootSystemEligibilityCode,
 const DISK_ELIGIBILITY_MESSAGE_KEYS: Record<InternalBootDiskEligibilityCode, string> = {
   TOO_SMALL: 'onboarding.internalBootStep.eligibility.codes.TOO_SMALL',
 };
-const DISK_WARNING_MESSAGE_KEYS: Record<InternalBootDiskWarningCode, string> = {
-  HAS_PARTITIONS: 'onboarding.internalBootStep.eligibility.codes.HAS_PARTITIONS',
-};
-const DISK_WARNING_FALLBACK_MESSAGES: Record<InternalBootDiskWarningCode, string> = {
-  HAS_PARTITIONS:
-    'This disk has existing partitions. Internal boot setup will repartition and erase existing data.',
-};
-const WARNING_ONLY_ELIGIBILITY_TITLE = 'Some selectable disks contain existing partitions';
-const WARNING_ONLY_ELIGIBILITY_DESCRIPTION =
-  'The disks below can still be selected for storage boot, but setup will repartition and erase existing data.';
 
 const formatBytes = (bytes: number) => {
   if (!Number.isFinite(bytes) || bytes <= 0) {
@@ -107,11 +97,6 @@ const formatBytes = (bytes: number) => {
   const converted = convert(bytes, 'B').to('best', 'metric');
   const precision = converted.quantity >= 100 || converted.unit === 'B' ? 0 : 1;
   return `${converted.quantity.toFixed(precision)} ${converted.unit}`;
-};
-
-const translateOrFallback = (key: string, fallback: string) => {
-  const translated = t(key);
-  return translated === key ? fallback : translated;
 };
 
 const toSizeMiB = (bytes: number): number | null => {
@@ -351,10 +336,7 @@ const shouldShowEligibilityDetails = computed(
 );
 const eligibilityPanelTitle = computed(() =>
   hasWarningOnlyEligibilityIssues.value
-    ? translateOrFallback(
-        'onboarding.internalBootStep.eligibility.warningOnlyTitle',
-        WARNING_ONLY_ELIGIBILITY_TITLE
-      )
+    ? t('onboarding.internalBootStep.eligibility.warningOnlyTitle')
     : canConfigure.value
       ? t('onboarding.internalBootStep.eligibility.availableTitle')
       : hasNoEligibleDevices.value
@@ -363,10 +345,7 @@ const eligibilityPanelTitle = computed(() =>
 );
 const eligibilityPanelDescription = computed(() =>
   hasWarningOnlyEligibilityIssues.value
-    ? translateOrFallback(
-        'onboarding.internalBootStep.eligibility.warningOnlyDescription',
-        WARNING_ONLY_ELIGIBILITY_DESCRIPTION
-      )
+    ? t('onboarding.internalBootStep.eligibility.warningOnlyDescription')
     : canConfigure.value
       ? t('onboarding.internalBootStep.eligibility.availableDescription')
       : hasNoEligibleDevices.value
@@ -1017,7 +996,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
                         <code class="rounded bg-black/10 px-1.5 py-0.5 text-xs font-semibold">
                           {{ code }}
                         </code>
-                        {{ t(DISK_WARNING_MESSAGE_KEYS[code], DISK_WARNING_FALLBACK_MESSAGES[code]) }}
+                        {{ t('onboarding.internalBootStep.eligibility.codes.HAS_PARTITIONS') }}
                       </li>
                     </ul>
                   </li>
