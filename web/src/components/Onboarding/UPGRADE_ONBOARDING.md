@@ -2,7 +2,7 @@
 
 ## Overview
 
-This system uses a shared onboarding modal flow. Automatic modal display applies to fresh installs (`ENOKEYFILE`) and supported upgrade flows, while patch-only releases stay quiet. Downgrade status is still tracked and can affect copy/behavior when the modal is opened manually. The API tracks onboarding completion state (`completed`, `completedAtVersion`) and the web client decides whether the modal should appear and which local steps to render.
+This system uses a shared onboarding modal flow. Automatic modal display applies to any incomplete onboarding state on supported versions (`7.3.0+`), while completed patch-only releases stay quiet. Downgrade status is still tracked and can affect copy/behavior when the modal is opened manually. The API tracks onboarding completion state (`completed`, `completedAtVersion`) and computes the `shouldOpen` recommendation, while the web client applies final UI guards before showing the modal and decides which local steps to render.
 
 ## How It Works
 
@@ -32,10 +32,10 @@ This system uses a shared onboarding modal flow. Automatic modal display applies
      - minimum supported version (`7.3.0+`)
      - authenticated access (no unauthenticated GraphQL errors)
    - Exposes `shouldShowOnboarding` when status is `INCOMPLETE`
-   - Auto-opens for fresh installs and `UPGRADE` states
+   - Auto-opens for incomplete onboarding on supported versions
 
 2. **Unified Modal** - `web/src/components/Onboarding/OnboardingModal.vue`
-   - Automatically shows for fresh-install onboarding and supported upgrades
+   - Automatically shows for incomplete onboarding on supported versions
    - Can be force-opened for any user via URL action/event triggers
    - Uses a client-side hardcoded step list (`HARDCODED_STEPS`)
    - Conditionally includes/removes `ACTIVATE_LICENSE` based on activation state
@@ -118,7 +118,7 @@ To test activation-step gating:
 
 ## Notes
 
-- Automatic onboarding visibility is driven by fresh installs plus `UPGRADE` states, with client-side guards (min version + auth)
+- Automatic onboarding visibility is driven by backend `shouldOpen`, which now opens incomplete onboarding on supported versions
 - Patch-only releases still remain silent because upgrade detection ignores same-minor version drift
 - The modal automatically switches between fresh-install and version-drift copy
 - There is no server-side per-step completion tracking in this flow

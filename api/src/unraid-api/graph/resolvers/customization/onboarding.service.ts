@@ -362,10 +362,7 @@ export class OnboardingService implements OnModuleInit {
         const versionDirection = getOnboardingVersionDirection(state.completedAtVersion, currentVersion);
         const isForceOpen = state.forceOpen ?? false;
         const isBypassed = this.onboardingTracker.isBypassed();
-        const shouldAutoOpen =
-            this.isVersionSupported(currentVersion) &&
-            onboardingState.isFreshInstall &&
-            !state.completed;
+        const shouldAutoOpen = this.isVersionSupported(currentVersion) && !state.completed;
 
         let status: OnboardingStatus;
         if (!state.completed) {
@@ -413,11 +410,7 @@ export class OnboardingService implements OnModuleInit {
 
         const state = trackerStateResult.state;
         const currentVersion = this.onboardingTracker.getCurrentVersion();
-        const onboardingState = await this.getOnboardingState();
-        const shouldAutoOpen =
-            this.isVersionSupported(currentVersion) &&
-            onboardingState.isFreshInstall &&
-            !state.completed;
+        const shouldAutoOpen = this.isVersionSupported(currentVersion) && !state.completed;
 
         if (state.forceOpen) {
             await this.onboardingTracker.setForceOpen(false);

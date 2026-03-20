@@ -398,7 +398,7 @@ describe('OnboardingService', () => {
             });
         });
 
-        it('auto-opens fresh incomplete onboarding from the backend response', async () => {
+        it('auto-opens incomplete onboarding for supported versions', async () => {
             onboardingTrackerMock.getStateResult.mockResolvedValue({
                 kind: 'ok',
                 state: {
@@ -414,6 +414,36 @@ describe('OnboardingService', () => {
             await expect(service.getOnboardingResponse()).resolves.toMatchObject({
                 status: OnboardingStatus.INCOMPLETE,
                 shouldOpen: true,
+            });
+        });
+
+        it('auto-opens incomplete onboarding for licensed users on supported versions', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                    forceOpen: false,
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
+            onboardingStateMock.getRegistrationState.mockReturnValue('PRO');
+            onboardingStateMock.hasActivationCode.mockResolvedValue(false);
+            onboardingStateMock.isFreshInstall.mockReturnValue(false);
+            onboardingStateMock.isRegistered.mockReturnValue(true);
+            onboardingStateMock.requiresActivationStep.mockReturnValue(false);
+            vi.spyOn(service, 'getPublicPartnerInfo').mockResolvedValue(null);
+
+            await expect(service.getOnboardingResponse()).resolves.toMatchObject({
+                status: OnboardingStatus.INCOMPLETE,
+                shouldOpen: true,
+                onboardingState: {
+                    registrationState: 'PRO',
+                    isRegistered: true,
+                    isFreshInstall: false,
+                    hasActivationCode: false,
+                    activationRequired: false,
+                },
             });
         });
 
@@ -536,7 +566,7 @@ describe('OnboardingService', () => {
             expect(onboardingTrackerMock.setForceOpen).toHaveBeenCalledWith(false);
         });
 
-        it('marks fresh incomplete onboarding complete when closed', async () => {
+        it('marks incomplete onboarding complete when closed on supported versions', async () => {
             onboardingTrackerMock.getStateResult.mockResolvedValue({
                 kind: 'ok',
                 state: {
@@ -547,6 +577,28 @@ describe('OnboardingService', () => {
             });
             onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
             onboardingStateMock.isFreshInstall.mockReturnValue(true);
+
+            await service.closeOnboarding();
+
+            expect(onboardingTrackerMock.markCompleted).toHaveBeenCalledTimes(1);
+            expect(onboardingTrackerMock.setForceOpen).not.toHaveBeenCalled();
+        });
+
+        it('marks licensed incomplete onboarding complete when closed on supported versions', async () => {
+            onboardingTrackerMock.getStateResult.mockResolvedValue({
+                kind: 'ok',
+                state: {
+                    completed: false,
+                    completedAtVersion: undefined,
+                    forceOpen: false,
+                },
+            });
+            onboardingTrackerMock.getCurrentVersion.mockReturnValue('7.3.0');
+            onboardingStateMock.getRegistrationState.mockReturnValue('PRO');
+            onboardingStateMock.isRegistered.mockReturnValue(true);
+            onboardingStateMock.hasActivationCode.mockResolvedValue(false);
+            onboardingStateMock.requiresActivationStep.mockReturnValue(false);
+            onboardingStateMock.isFreshInstall.mockReturnValue(false);
 
             await service.closeOnboarding();
 
