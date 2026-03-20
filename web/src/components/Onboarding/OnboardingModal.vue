@@ -27,9 +27,12 @@ const { t } = useI18n();
 
 const onboardingModalStore = useOnboardingModalStore();
 const { isVisible } = storeToRefs(onboardingModalStore);
-const { activationRequired, hasActivationCode, registrationState } = storeToRefs(
-  useActivationCodeDataStore()
-);
+const {
+  activationRequired,
+  hasActivationCode,
+  registrationState,
+  loading: activationDataLoading,
+} = storeToRefs(useActivationCodeDataStore());
 const onboardingStore = useOnboardingStore();
 const { isVersionDrift, completedAtVersion, canDisplayOnboardingModal } = storeToRefs(onboardingStore);
 const purchaseStore = usePurchaseStore();
@@ -39,7 +42,7 @@ const { internalBootVisibility, loading: onboardingContextLoading } = storeToRef
   useOnboardingContextDataStore()
 );
 const draftStore = useOnboardingDraftStore();
-const { currentStepIndex, currentStepId, internalBootApplySucceeded } = storeToRefs(draftStore);
+const { currentStepId, internalBootApplySucceeded } = storeToRefs(draftStore);
 
 onMounted(async () => {
   try {
@@ -94,17 +97,26 @@ const shouldKeepResumedInternalBootStep = computed(
     currentStepId.value === 'CONFIGURE_BOOT' &&
     internalBootVisibility.value === null
 );
+const shouldKeepResumedActivationStep = computed(
+  () =>
+    activationDataLoading.value &&
+    currentStepId.value === 'ACTIVATE_LICENSE' &&
+    !showActivationStep.value
+);
 
 // Determine which steps to show based on user state
 const visibleHardcodedSteps = computed(() =>
-  HARDCODED_STEPS.filter((step) => showActivationStep.value || step.id !== 'ACTIVATE_LICENSE').filter(
-    (step) => {
-      if (step.id !== 'CONFIGURE_BOOT') {
-        return true;
-      }
+  HARDCODED_STEPS.filter((step) => {
+    if (step.id === 'ACTIVATE_LICENSE') {
+      return showActivationStep.value || shouldKeepResumedActivationStep.value;
+    }
+
+    if (step.id === 'CONFIGURE_BOOT') {
       return showInternalBootStep.value || shouldKeepResumedInternalBootStep.value;
     }
-  )
+
+    return true;
+  })
 );
 const availableSteps = computed<StepId[]>(() => visibleHardcodedSteps.value.map((step) => step.id));
 
@@ -171,9 +183,8 @@ const currentDynamicStepIndex = computed(() => {
 
 watchEffect(() => {
   const stepId = currentStep.value;
-  const stepIndex = currentDynamicStepIndex.value;
 
-  if (!stepId || stepIndex >= availableSteps.value.length) {
+  if (!stepId || currentDynamicStepIndex.value >= availableSteps.value.length) {
     return;
   }
 
@@ -181,8 +192,8 @@ watchEffect(() => {
     return;
   }
 
-  if (currentStepId.value !== stepId || currentStepIndex.value !== stepIndex) {
-    draftStore.setCurrentStep(stepId, stepIndex);
+  if (currentStepId.value !== stepId) {
+    draftStore.setCurrentStep(stepId);
   }
 });
 
@@ -239,7 +250,7 @@ const setActiveStepByIndex = (stepIndex: number) => {
     return;
   }
 
-  draftStore.setCurrentStep(stepId, stepIndex);
+  draftStore.setCurrentStep(stepId);
 };
 
 const goToNextStep = async () => {
