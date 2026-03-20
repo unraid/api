@@ -129,7 +129,6 @@ export const useOnboardingDraftStore = defineStore(
     const internalBootApplySucceeded = ref(false);
 
     // Navigation
-    const currentStepIndex = ref(0);
     const currentStepId = ref<StepId | null>(null);
     const hasResumableDraft = computed(
       () =>
@@ -158,7 +157,6 @@ export const useOnboardingDraftStore = defineStore(
       internalBootSkipped.value = false;
       internalBootApplySucceeded.value = false;
 
-      currentStepIndex.value = 0;
       currentStepId.value = null;
     }
 
@@ -221,9 +219,8 @@ export const useOnboardingDraftStore = defineStore(
       internalBootApplySucceeded.value = value;
     }
 
-    function setCurrentStep(stepId: StepId, index: number) {
+    function setCurrentStep(stepId: StepId) {
       currentStepId.value = stepId;
-      currentStepIndex.value = index;
     }
 
     return {
@@ -241,7 +238,6 @@ export const useOnboardingDraftStore = defineStore(
       internalBootInitialized,
       internalBootSkipped,
       internalBootApplySucceeded,
-      currentStepIndex,
       currentStepId,
       hasResumableDraft,
       resetDraft,
@@ -264,6 +260,7 @@ export const useOnboardingDraftStore = defineStore(
         },
         deserialize: (value) => {
           const parsed = JSON.parse(value) as Record<string, unknown>;
+          const { currentStepIndex: _ignoredCurrentStepIndex, ...persistedState } = parsed;
           const normalizedInternalBootSelection = normalizePersistedInternalBootSelection(
             parsed.internalBootSelection
           );
@@ -272,11 +269,6 @@ export const useOnboardingDraftStore = defineStore(
             normalizedInternalBootSelection
           );
           const normalizedCurrentStepId = normalizePersistedStepId(parsed.currentStepId);
-          const parsedCurrentStepIndex = Number(parsed.currentStepIndex);
-          const normalizedCurrentStepIndex =
-            normalizedCurrentStepId !== null && Number.isFinite(parsedCurrentStepIndex)
-              ? parsedCurrentStepIndex
-              : 0;
           const hasLegacyCoreDraft =
             (typeof parsed.serverName === 'string' && parsed.serverName.length > 0) ||
             (typeof parsed.serverDescription === 'string' && parsed.serverDescription.length > 0) ||
@@ -289,7 +281,7 @@ export const useOnboardingDraftStore = defineStore(
             parsed.selectedPlugins !== null &&
             !Array.isArray(parsed.selectedPlugins);
           return {
-            ...parsed,
+            ...persistedState,
             selectedPlugins: new Set(normalizePersistedPlugins(parsed.selectedPlugins)),
             internalBootSelection: normalizedInternalBootSelection,
             bootMode: normalizedBootMode,
@@ -302,7 +294,6 @@ export const useOnboardingDraftStore = defineStore(
               parsed.internalBootApplySucceeded,
               false
             ),
-            currentStepIndex: normalizedCurrentStepIndex,
             currentStepId: normalizedCurrentStepId,
             coreSettingsInitialized:
               hasLegacyCoreDraft || normalizePersistedBoolean(parsed.coreSettingsInitialized, false),

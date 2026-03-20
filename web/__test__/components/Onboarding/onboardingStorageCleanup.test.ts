@@ -18,8 +18,8 @@ describe('onboardingStorageCleanup', () => {
   });
 
   it('clears onboarding draft keys from localStorage', () => {
-    window.localStorage.setItem('onboardingDraft', '{"currentStepIndex":2}');
-    window.localStorage.setItem('pinia-onboardingDraft', '{"currentStepIndex":1}');
+    window.localStorage.setItem('onboardingDraft', '{"currentStepId":"CONFIGURE_BOOT"}');
+    window.localStorage.setItem('pinia-onboardingDraft', '{"currentStepId":"ADD_PLUGINS"}');
     window.localStorage.setItem('unrelatedKey', 'keep');
 
     clearOnboardingDraftStorage();
@@ -39,12 +39,11 @@ describe('onboardingStorageCleanup', () => {
       language: 'en_US',
       useSsh: true,
     });
-    draftStore.setCurrentStep('CONFIGURE_BOOT', 2);
+    draftStore.setCurrentStep('CONFIGURE_BOOT');
 
     clearOnboardingDraftStorage();
 
     expect(draftStore.hasResumableDraft).toBe(false);
-    expect(draftStore.currentStepIndex).toBe(0);
     expect(draftStore.currentStepId).toBeNull();
     expect(draftStore.coreSettingsInitialized).toBe(false);
   });
@@ -58,7 +57,7 @@ describe('onboardingStorageCleanup', () => {
   });
 
   it('cleans draft storage and legacy hidden onboarding key together', () => {
-    window.localStorage.setItem('onboardingDraft', '{"currentStepIndex":4}');
+    window.localStorage.setItem('onboardingDraft', '{"currentStepId":"SUMMARY"}');
     window.sessionStorage.setItem(ONBOARDING_MODAL_HIDDEN_STORAGE_KEY, 'true');
 
     cleanupOnboardingStorage();

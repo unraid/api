@@ -189,7 +189,7 @@ describe('OnboardingModalVisibility Store', () => {
       language: 'en_US',
       useSsh: true,
     });
-    draftStore.setCurrentStep('CONFIGURE_BOOT', 2);
+    draftStore.setCurrentStep('CONFIGURE_BOOT');
     mockShouldOpen.value = true;
 
     window.dispatchEvent(

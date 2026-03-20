@@ -38,6 +38,7 @@ const {
     closeModal: vi.fn().mockResolvedValue(true),
   },
   activationCodeDataStore: {
+    loading: { value: false },
     activationRequired: { value: false },
     hasActivationCode: { value: true },
     registrationState: { value: 'ENOKEYFILE' },
@@ -56,12 +57,10 @@ const {
     refetchOnboarding: vi.fn().mockResolvedValue(undefined),
   },
   onboardingDraftStore: {
-    currentStepIndex: { value: 0 },
     currentStepId: { value: null as StepId | null },
     internalBootApplySucceeded: { value: false },
-    setCurrentStep: vi.fn((stepId: StepId, stepIndex: number) => {
+    setCurrentStep: vi.fn((stepId: StepId) => {
       onboardingDraftStore.currentStepId.value = stepId;
-      onboardingDraftStore.currentStepIndex.value = stepIndex;
     }),
   },
   purchaseStore: {
@@ -167,6 +166,7 @@ describe('OnboardingModal.vue', () => {
     });
 
     onboardingModalStoreState.isVisible.value = true;
+    activationCodeDataStore.loading.value = false;
     activationCodeDataStore.activationRequired.value = false;
     activationCodeDataStore.hasActivationCode.value = true;
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE';
@@ -174,7 +174,6 @@ describe('OnboardingModal.vue', () => {
     onboardingStatusStore.completedAtVersion.value = null;
     onboardingStatusStore.canDisplayOnboardingModal.value = true;
     onboardingStatusStore.isPartnerBuild.value = false;
-    onboardingDraftStore.currentStepIndex.value = 0;
     onboardingDraftStore.currentStepId.value = null;
     onboardingDraftStore.internalBootApplySucceeded.value = false;
     internalBootVisibilityLoading.value = false;
@@ -190,6 +189,22 @@ describe('OnboardingModal.vue', () => {
         plugins: [createTestI18n()],
       },
     });
+
+  it.each([
+    ['OVERVIEW', 'overview-step'],
+    ['CONFIGURE_SETTINGS', 'settings-step'],
+    ['CONFIGURE_BOOT', 'internal-boot-step'],
+    ['ADD_PLUGINS', 'plugins-step'],
+    ['ACTIVATE_LICENSE', 'license-step'],
+    ['SUMMARY', 'summary-step'],
+    ['NEXT_STEPS', 'next-step'],
+  ] as const)('resumes persisted step %s when it is available', (stepId, testId) => {
+    onboardingDraftStore.currentStepId.value = stepId;
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find(`[data-testid="${testId}"]`).exists()).toBe(true);
+  });
 
   it('renders when backend visibility is enabled', () => {
     const wrapper = mountComponent();
@@ -218,7 +233,6 @@ describe('OnboardingModal.vue', () => {
   it('shows the activation step for ENOKEYFILE1', () => {
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE1';
     onboardingDraftStore.currentStepId.value = 'ACTIVATE_LICENSE';
-    onboardingDraftStore.currentStepIndex.value = 4;
 
     const wrapper = mountComponent();
 
@@ -231,12 +245,31 @@ describe('OnboardingModal.vue', () => {
       enableBootTransfer: 'no',
     };
     onboardingDraftStore.currentStepId.value = 'CONFIGURE_BOOT';
-    onboardingDraftStore.currentStepIndex.value = 2;
 
     const wrapper = mountComponent();
 
     expect(wrapper.find('[data-testid="internal-boot-step"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="plugins-step"]').exists()).toBe(true);
+  });
+
+  it('keeps a resumed activation step visible while activation state is still loading', async () => {
+    activationCodeDataStore.loading.value = true;
+    activationCodeDataStore.hasActivationCode.value = false;
+    activationCodeDataStore.registrationState.value = null;
+    onboardingDraftStore.currentStepId.value = 'ACTIVATE_LICENSE';
+
+    const wrapper = mountComponent();
+
+    expect(wrapper.find('[data-testid="license-step"]').exists()).toBe(true);
+    expect(onboardingDraftStore.setCurrentStep).not.toHaveBeenCalledWith('SUMMARY');
+
+    activationCodeDataStore.loading.value = false;
+    activationCodeDataStore.hasActivationCode.value = true;
+    activationCodeDataStore.registrationState.value = 'ENOKEYFILE';
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="license-step"]').exists()).toBe(true);
+    expect(onboardingDraftStore.currentStepId.value).toBe('ACTIVATE_LICENSE');
   });
 
   it('opens exit confirmation when close button is clicked', async () => {
