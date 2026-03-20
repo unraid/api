@@ -24,6 +24,16 @@ const hasErrorCode = (error: unknown): error is { code: string } => {
     return Boolean(error && typeof error === 'object' && 'code' in error);
 };
 
+const redactCommandsForLog = (commands: LooseObject): LooseObject =>
+    Object.fromEntries(
+        Object.entries(commands).map(([key, value]) => [
+            key,
+            ['luksKey', 'luksKeyfile', 'decryptionPassword', 'decryptionKeyfile'].includes(key)
+                ? '***REDACTED***'
+                : value,
+        ])
+    );
+
 const readCsrfTokenFromVarIni = async (): Promise<string | undefined> => {
     try {
         const iniContents = await readFile(VAR_INI_PATH, 'utf-8');
@@ -102,7 +112,7 @@ export const emcmd = async (
     const stateToken = getters.emhttp().var?.csrfToken;
     const csrfToken = await ensureCsrfToken(stateToken, waitForToken);
 
-    appLogger.debug(`Executing emcmd with commands: ${JSON.stringify(commands)}`);
+    appLogger.debug({ commands: redactCommandsForLog(commands) }, 'Executing emcmd');
 
     try {
         const params = new URLSearchParams();

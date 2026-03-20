@@ -1,6 +1,7 @@
 import type { TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { mkdir, writeFile } from 'node:fs/promises';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -25,6 +26,11 @@ vi.mock('@app/core/modules/array/get-array-data.js', () => ({
     getArrayData: vi.fn(),
 }));
 
+vi.mock('node:fs/promises', () => ({
+    mkdir: vi.fn(),
+    writeFile: vi.fn(),
+}));
+
 vi.mock('@app/store/index.js', () => ({
     getters: {
         emhttp: vi.fn(),
@@ -41,6 +47,8 @@ describe('ArrayService', () => {
     let mockGetState: ReturnType<typeof vi.fn>;
     let mockEmcmd: ReturnType<typeof vi.fn>;
     let mockGetArrayDataUtil: ReturnType<typeof vi.fn>;
+    let mockMkdir: ReturnType<typeof vi.fn>;
+    let mockWriteFile: ReturnType<typeof vi.fn>;
 
     beforeEach(async () => {
         vi.resetAllMocks();
@@ -51,6 +59,8 @@ describe('ArrayService', () => {
 
         mockEmcmd = vi.mocked(emcmd);
         mockGetArrayDataUtil = vi.mocked(getArrayDataUtil);
+        mockMkdir = vi.mocked(mkdir);
+        mockWriteFile = vi.mocked(writeFile);
 
         const module: TestingModule = await Test.createTestingModule({
             providers: [ArrayService],
@@ -61,6 +71,7 @@ describe('ArrayService', () => {
         mockEmhttp.mockReturnValue({
             var: {
                 mdState: ArrayState.STOPPED,
+                luksKeyfile: '/tmp/unraid/keyfile',
             },
         } as any);
 
@@ -93,6 +104,8 @@ describe('ArrayService', () => {
             },
         };
         mockGetArrayDataUtil.mockResolvedValue(mockArrayData);
+        mockMkdir.mockResolvedValue(undefined);
+        mockWriteFile.mockResolvedValue(undefined);
 
         mockGetState.mockReturnValue({
             /* mock state if needed by getArrayDataUtil */
@@ -128,6 +141,45 @@ describe('ArrayService', () => {
             expect(mockGetArrayDataUtil).toHaveBeenCalledTimes(1);
         });
 
+        it('should START a STOPPED encrypted array with a decryption password', async () => {
+            const input: ArrayStateInput = {
+                desiredState: ArrayStateInputState.START,
+                decryptionPassword: 'super-secret',
+            };
+            const expectedArrayData = { ...mockArrayData, state: ArrayState.STARTED };
+            mockGetArrayDataUtil.mockResolvedValue(expectedArrayData);
+
+            const result = await service.updateArrayState(input);
+
+            expect(result).toEqual(expectedArrayData);
+            expect(mockEmcmd).toHaveBeenCalledWith({
+                cmdStart: 'Start',
+                startState: 'STOPPED',
+                luksKey: 'c3VwZXItc2VjcmV0',
+            });
+        });
+
+        it('should START a STOPPED encrypted array with a keyfile payload', async () => {
+            const input: ArrayStateInput = {
+                desiredState: ArrayStateInputState.START,
+                decryptionKeyfile: 'data:application/octet-stream;base64,QUJDRA==',
+            };
+            const expectedArrayData = { ...mockArrayData, state: ArrayState.STARTED };
+            mockGetArrayDataUtil.mockResolvedValue(expectedArrayData);
+
+            const result = await service.updateArrayState(input);
+
+            expect(result).toEqual(expectedArrayData);
+            expect(mockMkdir).toHaveBeenCalledWith('/tmp/unraid', { recursive: true });
+            expect(mockWriteFile).toHaveBeenCalledWith('/tmp/unraid/keyfile', Buffer.from('ABCD'), {
+                mode: 0o600,
+            });
+            expect(mockEmcmd).toHaveBeenCalledWith({
+                cmdStart: 'Start',
+                startState: 'STOPPED',
+            });
+        });
+
         it('should STOP a STARTED array', async () => {
             mockEmhttp.mockReturnValue({ var: { mdState: ArrayState.STARTED } } as any);
             const input: ArrayStateInput = { desiredState: ArrayStateInputState.STOP };
@@ -156,6 +208,42 @@ describe('ArrayService', () => {
             const input: ArrayStateInput = { desiredState: ArrayStateInputState.STOP };
 
             await expect(service.updateArrayState(input)).rejects.toThrow(BadRequestException);
+            expect(mockEmcmd).not.toHaveBeenCalled();
+        });
+
+        it('should reject a decryption password that does not match webgui ASCII validation', async () => {
+            const input: ArrayStateInput = {
+                desiredState: ArrayStateInputState.START,
+                decryptionPassword: 'påssword',
+            };
+
+            await expect(service.updateArrayState(input)).rejects.toThrow(BadRequestException);
+
+            expect(mockEmcmd).not.toHaveBeenCalled();
+        });
+
+        it('should reject invalid decryption keyfile payloads', async () => {
+            const input: ArrayStateInput = {
+                desiredState: ArrayStateInputState.START,
+                decryptionKeyfile: 'not-valid-base64',
+            };
+
+            await expect(service.updateArrayState(input)).rejects.toThrow(BadRequestException);
+
+            expect(mockWriteFile).not.toHaveBeenCalled();
+            expect(mockEmcmd).not.toHaveBeenCalled();
+        });
+
+        it('should reject providing both a decryption password and keyfile', async () => {
+            const input: ArrayStateInput = {
+                desiredState: ArrayStateInputState.START,
+                decryptionPassword: 'super-secret',
+                decryptionKeyfile: 'data:application/octet-stream;base64,QUJDRA==',
+            };
+
+            await expect(service.updateArrayState(input)).rejects.toThrow(BadRequestException);
+
+            expect(mockWriteFile).not.toHaveBeenCalled();
             expect(mockEmcmd).not.toHaveBeenCalled();
         });
     });

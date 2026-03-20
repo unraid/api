@@ -1,4 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 
 import { capitalCase, constantCase } from 'change-case';
 import { GraphQLError } from 'graphql';
@@ -24,6 +26,82 @@ enum ArrayPendingState {
 export class ArrayService {
     private pendingState: ArrayPendingState | null = null;
 
+    private encodeDecryptionPassword = (decryptionPassword: string) => {
+        const printableAscii = /^[ -~]+$/;
+
+        if (!printableAscii.test(decryptionPassword)) {
+            throw new BadRequestException(
+                new AppError(
+                    'Decryption password must use printable ASCII characters. Use a keyfile for UTF-8 input.'
+                )
+            );
+        }
+
+        return Buffer.from(decryptionPassword, 'utf8').toString('base64');
+    };
+
+    private decodeDecryptionKeyfile = (decryptionKeyfile: string): Buffer => {
+        const source = decryptionKeyfile.trim();
+        const dataUrlMatch = /^data:[^,]*,(.+)$/i.exec(source);
+
+        if (dataUrlMatch) {
+            const meta = source.slice(5, source.indexOf(','));
+            const payload = dataUrlMatch[1];
+
+            try {
+                return /;base64/i.test(meta)
+                    ? Buffer.from(payload, 'base64')
+                    : Buffer.from(decodeURIComponent(payload), 'utf8');
+            } catch {
+                throw new BadRequestException(
+                    new AppError('Decryption keyfile must be a valid data URL or raw base64 payload.')
+                );
+            }
+        }
+
+        const normalized = source.replace(/\s+/g, '');
+        if (
+            normalized.length === 0 ||
+            normalized.length % 4 !== 0 ||
+            !/^[A-Za-z0-9+/=]+$/.test(normalized)
+        ) {
+            throw new BadRequestException(
+                new AppError('Decryption keyfile must be a valid data URL or raw base64 payload.')
+            );
+        }
+
+        try {
+            const decoded = Buffer.from(normalized, 'base64');
+            if (!decoded.length) {
+                throw new Error('empty');
+            }
+            const normalizedInput = normalized.replace(/=+$/g, '');
+            const normalizedDecoded = decoded.toString('base64').replace(/=+$/g, '');
+            if (normalizedInput !== normalizedDecoded) {
+                throw new Error('mismatch');
+            }
+            return decoded;
+        } catch {
+            throw new BadRequestException(
+                new AppError('Decryption keyfile must be a valid data URL or raw base64 payload.')
+            );
+        }
+    };
+
+    private writeDecryptionKeyfile = async (decryptionKeyfile: string) => {
+        const { getters } = await import('@app/store/index.js');
+        const luksKeyfile = getters.emhttp().var?.luksKeyfile;
+
+        if (!luksKeyfile) {
+            throw new BadRequestException(
+                new AppError('Array decryption keyfile path is not configured.')
+            );
+        }
+
+        await mkdir(dirname(luksKeyfile), { recursive: true });
+        await writeFile(luksKeyfile, this.decodeDecryptionKeyfile(decryptionKeyfile), { mode: 0o600 });
+    };
+
     /**
      * Is the array running?
      * @todo Refactor this to include this util in the service directly
@@ -45,7 +123,11 @@ export class ArrayService {
         return getArrayDataUtil(store.getState);
     }
 
-    async updateArrayState({ desiredState }: ArrayStateInput): Promise<UnraidArray> {
+    async updateArrayState({
+        desiredState,
+        decryptionPassword,
+        decryptionKeyfile,
+    }: ArrayStateInput): Promise<UnraidArray> {
         if (this.pendingState) {
             throw new BadRequestException(
                 new AppError(`Array state is still being updated. Changing to ${this.pendingState}`)
@@ -69,10 +151,24 @@ export class ArrayService {
 
         // Set lock then start/stop array
         this.pendingState = newPendingState;
-        const command = {
+        const command: Record<string, string> = {
             [`cmd${capitalCase(desiredState)}`]: capitalCase(desiredState),
             startState: constantCase(startState),
         };
+
+        if (decryptionPassword && decryptionKeyfile) {
+            throw new BadRequestException(
+                new AppError('Provide either a decryption password or a decryption keyfile, not both.')
+            );
+        }
+
+        if (desiredState === ArrayStateInputState.START && decryptionPassword) {
+            command.luksKey = this.encodeDecryptionPassword(decryptionPassword);
+        }
+
+        if (desiredState === ArrayStateInputState.START && decryptionKeyfile) {
+            await this.writeDecryptionKeyfile(decryptionKeyfile);
+        }
 
         try {
             await emcmd(command);

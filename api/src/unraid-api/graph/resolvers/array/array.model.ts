@@ -2,7 +2,7 @@ import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/gra
 
 import { Node } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, MinLength } from 'class-validator';
 import { GraphQLBigInt } from 'graphql-scalars';
 
 import { ParityCheck } from '@app/unraid-api/graph/resolvers/array/parity.model.js';
@@ -197,6 +197,25 @@ export class ArrayStateInput {
     @Field(() => ArrayStateInputState, { description: 'Array state' })
     @IsEnum(ArrayStateInputState)
     desiredState!: ArrayStateInputState;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'Optional password used to unlock encrypted array disks when starting the array',
+    })
+    @IsOptional()
+    @IsString()
+    @MinLength(1)
+    decryptionPassword?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description:
+            'Optional keyfile contents used to unlock encrypted array disks when starting the array. Accepts a data URL or raw base64 payload.',
+    })
+    @IsOptional()
+    @IsString()
+    @MinLength(1)
+    decryptionKeyfile?: string;
 }
 
 export enum ArrayState {
