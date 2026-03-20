@@ -10,7 +10,7 @@ import {
   ChevronRightIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { BrandButton, Select } from '@unraid/ui';
 import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
@@ -20,6 +20,7 @@ import type {
   OnboardingBootMode,
   OnboardingInternalBootSelection,
 } from '@/components/Onboarding/store/onboardingDraft';
+import type { SelectItemType } from '@unraid/ui';
 import type { GetInternalBootContextQuery } from '~/composables/gql/graphql';
 
 import { GetInternalBootContextDocument } from '~/composables/gql/graphql';
@@ -397,6 +398,24 @@ const visiblePresetOptions = computed(() => {
   }));
 });
 
+const slotCountItems = computed<SelectItemType[]>(() =>
+  slotOptions.value.map((option) => ({
+    value: option,
+    label: String(option),
+  }))
+);
+
+const bootSizePresetItems = computed<SelectItemType[]>(() => [
+  ...visiblePresetOptions.value.map((option) => ({
+    value: option.value,
+    label: option.label,
+  })),
+  {
+    value: 'custom',
+    label: t('onboarding.internalBootStep.bootSize.custom'),
+  },
+]);
+
 const bootSizeMiB = computed(() => {
   if (bootSizePreset.value === 'custom') {
     const sizeGb = Number.parseInt(customBootSizeGb.value, 10);
@@ -496,6 +515,48 @@ const isDeviceDisabled = (deviceId: string, index: number) => {
     (selected, selectedIndex) => selectedIndex !== index && selected === deviceId
   );
 };
+
+const getDeviceSelectItems = (index: number): SelectItemType[] =>
+  deviceOptions.value.map((option) => ({
+    value: option.value,
+    label: option.label,
+    disabled: isDeviceDisabled(option.value, index),
+  }));
+
+const toSelectString = (value: unknown): string => {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'number' || typeof value === 'bigint') {
+    return String(value);
+  }
+
+  return '';
+};
+
+const handleSlotCountChange = (value: unknown) => {
+  const parsedValue =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'bigint'
+        ? Number(value)
+        : Number.parseInt(toSelectString(value), 10);
+  if (Number.isFinite(parsedValue) && parsedValue >= 1 && parsedValue <= 2) {
+    slotCount.value = parsedValue;
+  }
+};
+
+const handleDeviceSelection = (index: number, value: unknown) => {
+  selectedDevices.value[index] = toSelectString(value);
+};
+
+const handleBootSizePresetChange = (value: unknown) => {
+  bootSizePreset.value = toSelectString(value);
+};
+
+const onboardingSelectClasses =
+  'w-full border-muted bg-bg text-highlighted data-[placeholder]:text-muted focus:ring-primary focus:ring-offset-0';
 
 const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
   const normalizedPoolName = poolName.value.trim();
@@ -793,13 +854,13 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             <span class="text-muted text-sm font-medium">
               {{ t('onboarding.internalBootStep.fields.slots') }}
             </span>
-            <select
-              v-model.number="slotCount"
-              class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+            <Select
+              :model-value="slotCount"
+              :items="slotCountItems"
+              :class="onboardingSelectClasses"
               :disabled="isBusy"
-            >
-              <option v-for="option in slotOptions" :key="option" :value="option">{{ option }}</option>
-            </select>
+              @update:model-value="handleSlotCountChange"
+            />
           </label>
         </div>
 
@@ -811,21 +872,14 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             <label class="text-muted text-sm font-medium">{{
               t('onboarding.internalBootStep.fields.deviceSlot', { index })
             }}</label>
-            <select
-              v-model="selectedDevices[index - 1]"
-              class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+            <Select
+              :model-value="selectedDevices[index - 1] || undefined"
+              :items="getDeviceSelectItems(index - 1)"
+              :placeholder="t('onboarding.internalBootStep.fields.selectDevice')"
+              :class="onboardingSelectClasses"
               :disabled="isBusy"
-            >
-              <option value="">{{ t('onboarding.internalBootStep.fields.selectDevice') }}</option>
-              <option
-                v-for="option in deviceOptions"
-                :key="option.value"
-                :value="option.value"
-                :disabled="isDeviceDisabled(option.value, index - 1)"
-              >
-                {{ option.label }}
-              </option>
-            </select>
+              @update:model-value="handleDeviceSelection(index - 1, $event)"
+            />
           </div>
         </div>
 
@@ -834,16 +888,13 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             <span class="text-muted text-sm font-medium">
               {{ t('onboarding.internalBootStep.fields.bootReservedSize') }}
             </span>
-            <select
-              v-model="bootSizePreset"
-              class="border-muted bg-bg focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
+            <Select
+              :model-value="bootSizePreset"
+              :items="bootSizePresetItems"
+              :class="onboardingSelectClasses"
               :disabled="isBusy"
-            >
-              <option v-for="option in visiblePresetOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-              <option value="custom">{{ t('onboarding.internalBootStep.bootSize.custom') }}</option>
-            </select>
+              @update:model-value="handleBootSizePresetChange"
+            />
           </label>
 
           <label class="space-y-2">
