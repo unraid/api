@@ -1,3 +1,4 @@
+import { ref } from 'vue';
 import { flushPromises, mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -165,10 +166,11 @@ describe('OnboardingModal.vue', () => {
       return true;
     });
 
+    activationCodeDataStore.loading = ref(false);
+    activationCodeDataStore.activationRequired = ref(false);
+    activationCodeDataStore.hasActivationCode = ref(true);
+    activationCodeDataStore.registrationState = ref<string | null>('ENOKEYFILE');
     onboardingModalStoreState.isVisible.value = true;
-    activationCodeDataStore.loading.value = false;
-    activationCodeDataStore.activationRequired.value = false;
-    activationCodeDataStore.hasActivationCode.value = true;
     activationCodeDataStore.registrationState.value = 'ENOKEYFILE';
     onboardingStatusStore.isVersionDrift.value = false;
     onboardingStatusStore.completedAtVersion.value = null;
