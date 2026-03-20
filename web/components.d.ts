@@ -100,6 +100,7 @@ declare module 'vue' {
     OnboardingCoreSettingsStep: typeof import('./src/components/Onboarding/steps/OnboardingCoreSettingsStep.vue')['default']
     OnboardingInternalBootStep: typeof import('./src/components/Onboarding/steps/OnboardingInternalBootStep.vue')['default']
     OnboardingLicenseStep: typeof import('./src/components/Onboarding/steps/OnboardingLicenseStep.vue')['default']
+    OnboardingLoadingState: typeof import('./src/components/Onboarding/components/OnboardingLoadingState.vue')['default']
     OnboardingModal: typeof import('./src/components/Onboarding/OnboardingModal.vue')['default']
     OnboardingNextStepsStep: typeof import('./src/components/Onboarding/steps/OnboardingNextStepsStep.vue')['default']
     OnboardingOverviewStep: typeof import('./src/components/Onboarding/steps/OnboardingOverviewStep.vue')['default']

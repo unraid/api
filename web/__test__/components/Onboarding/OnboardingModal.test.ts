@@ -92,6 +92,10 @@ vi.mock('@unraid/ui', () => ({
     emits: ['update:modelValue'],
     template: '<div v-if="modelValue" data-testid="dialog"><slot /></div>',
   },
+  Spinner: {
+    name: 'Spinner',
+    template: '<div data-testid="loading-spinner" />',
+  },
 }));
 
 vi.mock('@heroicons/vue/24/solid', () => ({
@@ -307,6 +311,32 @@ describe('OnboardingModal.vue', () => {
 
     expect(onboardingModalStoreState.closeModal).toHaveBeenCalledTimes(1);
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
+  });
+
+  it('shows a loading state while exit confirmation is closing the modal', async () => {
+    let resolveCloseModal: ((value: boolean) => void) | null = null;
+    onboardingModalStoreState.closeModal.mockImplementation(
+      () =>
+        new Promise<boolean>((resolve) => {
+          resolveCloseModal = resolve;
+        })
+    );
+
+    const wrapper = mountComponent();
+
+    await wrapper.find('button[aria-label="Close onboarding"]').trigger('click');
+    await flushPromises();
+
+    const exitButton = wrapper.findAll('button').find((button) => button.text().includes('Exit setup'));
+    expect(exitButton).toBeTruthy();
+    await exitButton!.trigger('click');
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Loading...');
+
+    resolveCloseModal?.(true);
+    await flushPromises();
   });
 
   it('closes onboarding without frontend completion logic', async () => {
