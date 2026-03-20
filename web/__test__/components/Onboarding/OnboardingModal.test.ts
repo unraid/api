@@ -333,9 +333,11 @@ describe('OnboardingModal.vue', () => {
     await flushPromises();
 
     expect(wrapper.find('[data-testid="onboarding-loading-state"]').exists()).toBe(true);
-    expect(wrapper.text()).toContain('Loading...');
+    expect(wrapper.text()).toContain('Closing setup...');
 
-    resolveCloseModal?.(true);
+    if (resolveCloseModal) {
+      resolveCloseModal(true);
+    }
     await flushPromises();
   });
 

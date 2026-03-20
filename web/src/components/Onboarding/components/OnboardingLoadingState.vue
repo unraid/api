@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Spinner as LoadingSpinner } from '@unraid/ui';
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     title?: string;
     description?: string;
