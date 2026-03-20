@@ -61,6 +61,28 @@ vi.mock('@unraid/ui', () => ({
     template:
       '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')">{{ text }}</button>',
   },
+  Select: {
+    props: ['modelValue', 'items', 'disabled', 'placeholder'],
+    emits: ['update:modelValue'],
+    template: `
+      <select
+        data-testid="select"
+        :disabled="disabled"
+        :value="modelValue ?? ''"
+        @change="$emit('update:modelValue', $event.target.value)"
+      >
+        <option v-if="placeholder" value="">{{ placeholder }}</option>
+        <option
+          v-for="item in items"
+          :key="item.value"
+          :value="item.value"
+          :disabled="item.disabled"
+        >
+          {{ item.label }}
+        </option>
+      </select>
+    `,
+  },
 }));
 
 vi.mock('@vue/apollo-composable', () => ({
