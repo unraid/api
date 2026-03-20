@@ -555,6 +555,9 @@ const handleBootSizePresetChange = (value: unknown) => {
   bootSizePreset.value = toSelectString(value);
 };
 
+const onboardingSelectClasses =
+  'w-full border-muted bg-bg text-highlighted data-[placeholder]:text-muted focus:ring-primary focus:ring-offset-0';
+
 const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
   const normalizedPoolName = poolName.value.trim();
   if (!normalizedPoolName) {
@@ -854,7 +857,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             <Select
               :model-value="slotCount"
               :items="slotCountItems"
-              class="w-full"
+              :class="onboardingSelectClasses"
               :disabled="isBusy"
               @update:model-value="handleSlotCountChange"
             />
@@ -873,7 +876,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
               :model-value="selectedDevices[index - 1] || undefined"
               :items="getDeviceSelectItems(index - 1)"
               :placeholder="t('onboarding.internalBootStep.fields.selectDevice')"
-              class="w-full"
+              :class="onboardingSelectClasses"
               :disabled="isBusy"
               @update:model-value="handleDeviceSelection(index - 1, $event)"
             />
@@ -888,7 +891,7 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
             <Select
               :model-value="bootSizePreset"
               :items="bootSizePresetItems"
-              class="w-full"
+              :class="onboardingSelectClasses"
               :disabled="isBusy"
               @update:model-value="handleBootSizePresetChange"
             />
