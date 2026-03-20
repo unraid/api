@@ -523,24 +523,36 @@ const getDeviceSelectItems = (index: number): SelectItemType[] =>
     disabled: isDeviceDisabled(option.value, index),
   }));
 
-const handleSlotCountChange = (value: string | number) => {
-  const parsedValue = typeof value === 'number' ? value : Number.parseInt(value, 10);
+const toSelectString = (value: unknown): string => {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'number' || typeof value === 'bigint') {
+    return String(value);
+  }
+
+  return '';
+};
+
+const handleSlotCountChange = (value: unknown) => {
+  const parsedValue =
+    typeof value === 'number'
+      ? value
+      : typeof value === 'bigint'
+        ? Number(value)
+        : Number.parseInt(toSelectString(value), 10);
   if (Number.isFinite(parsedValue) && parsedValue >= 1 && parsedValue <= 2) {
     slotCount.value = parsedValue;
   }
 };
 
-const handleDeviceSelection = (index: number, value: string | number | null | undefined) => {
-  selectedDevices.value[index] = typeof value === 'string' ? value : '';
+const handleDeviceSelection = (index: number, value: unknown) => {
+  selectedDevices.value[index] = toSelectString(value);
 };
 
-const handleBootSizePresetChange = (value: string | number | null | undefined) => {
-  if (typeof value === 'string') {
-    bootSizePreset.value = value;
-    return;
-  }
-
-  bootSizePreset.value = typeof value === 'number' ? String(value) : '';
+const handleBootSizePresetChange = (value: unknown) => {
+  bootSizePreset.value = toSelectString(value);
 };
 
 const buildValidatedSelection = (): OnboardingInternalBootSelection | null => {
