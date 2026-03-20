@@ -356,6 +356,8 @@ const languageItems = computed(() => {
 });
 
 const isLanguageDisabled = computed(() => isLanguagesLoading.value || !!languagesQueryError.value);
+const onboardingSelectClasses =
+  'w-full border-muted bg-bg text-highlighted data-[placeholder]:text-muted focus:ring-primary focus:ring-offset-0';
 
 const handleSubmit = async () => {
   if (serverNameValidation.value || serverDescriptionValidation.value) {
@@ -506,7 +508,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
             v-model="selectedTimeZone"
             :items="timeZoneItems"
             :placeholder="t('onboarding.coreSettings.selectTimezonePlaceholder')"
-            class="w-full"
+            :class="onboardingSelectClasses"
             :disabled="isBusy"
             size="lg"
           />
@@ -523,7 +525,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
             :placeholder="
               isLanguagesLoading ? t('common.loading') : t('onboarding.coreSettings.selectLanguage')
             "
-            class="w-full"
+            :class="onboardingSelectClasses"
             :disabled="isBusy || isLanguageDisabled"
             size="lg"
           />
@@ -582,7 +584,7 @@ const isBusy = computed(() => isSaving.value || (props.isSavingStep ?? false));
             <Select
               v-model="selectedTheme"
               :items="themeItems"
-              class="w-full"
+              :class="onboardingSelectClasses"
               :disabled="isBusy"
               size="lg"
             />
