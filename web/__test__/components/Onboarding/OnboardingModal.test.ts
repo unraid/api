@@ -41,7 +41,7 @@ const {
     loading: { value: false },
     activationRequired: { value: false },
     hasActivationCode: { value: true },
-    registrationState: { value: 'ENOKEYFILE' },
+    registrationState: { value: 'ENOKEYFILE' as string | null },
     partnerInfo: {
       value: {
         partner: { name: null, url: null },
