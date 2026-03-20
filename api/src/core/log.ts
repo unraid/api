@@ -19,6 +19,28 @@ const nullDestination = pino.destination({
 const LOG_TRANSPORT = process.env.LOG_TRANSPORT ?? 'file';
 const useConsole = LOG_TRANSPORT === 'console';
 
+export const LOG_REDACT_PATHS = [
+    '*.password',
+    '*.pass',
+    '*.secret',
+    '*.token',
+    '*.key',
+    '*.Password',
+    '*.Pass',
+    '*.Secret',
+    '*.Token',
+    '*.Key',
+    '*.apikey',
+    '*.localApiKey',
+    '*.accesstoken',
+    '*.idtoken',
+    '*.refreshtoken',
+    '*.luksKey',
+    '*.luksKeyfile',
+    '*.decryptionPassword',
+    '*.decryptionKeyfile',
+] as const;
+
 export const logDestination =
     process.env.SUPPRESS_LOGS === 'true'
         ? nullDestination
@@ -63,27 +85,7 @@ export const logger = pino(
             bindings: (bindings) => ({ ...bindings, apiVersion: API_VERSION }),
         },
         redact: {
-            paths: [
-                '*.password',
-                '*.pass',
-                '*.secret',
-                '*.token',
-                '*.key',
-                '*.Password',
-                '*.Pass',
-                '*.Secret',
-                '*.Token',
-                '*.Key',
-                '*.apikey',
-                '*.localApiKey',
-                '*.accesstoken',
-                '*.idtoken',
-                '*.refreshtoken',
-                '*.luksKey',
-                '*.luksKeyfile',
-                '*.decryptionPassword',
-                '*.decryptionKeyfile',
-            ],
+            paths: [...LOG_REDACT_PATHS],
             censor: '***REDACTED***',
         },
     },
