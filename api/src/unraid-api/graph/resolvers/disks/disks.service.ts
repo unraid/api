@@ -181,7 +181,7 @@ export class DisksService {
         );
     }
 
-    private async getInternalBootDeviceNames(): Promise<Set<string>> {
+    public async getInternalBootDeviceNames(): Promise<Set<string>> {
         try {
             const { stdout } = await execa('lsblk', ['-J', '-o', 'NAME,PATH,TYPE,PARTLABEL,PARTTYPE']);
 

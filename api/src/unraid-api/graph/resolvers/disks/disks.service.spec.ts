@@ -565,6 +565,129 @@ describe('DisksService', () => {
     });
 
     describe('getInternalBootDevices', () => {
+        it('returns internal boot candidate device names from the shared lsblk matcher', async () => {
+            mockExeca.mockResolvedValue({
+                stdout: JSON.stringify({
+                    blockdevices: [
+                        {
+                            name: 'sda',
+                            path: '/dev/sda',
+                            type: 'disk',
+                            children: [
+                                {
+                                    name: 'sda1',
+                                    path: '/dev/sda1',
+                                    type: 'part',
+                                    partlabel: 'BIOS Boot Partition',
+                                    parttype: '21686148-6449-6e6f-744e-656564454649',
+                                },
+                                {
+                                    name: 'sda2',
+                                    path: '/dev/sda2',
+                                    type: 'part',
+                                    partlabel: 'EFI System Partition',
+                                    parttype: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
+                                },
+                                {
+                                    name: 'sda3',
+                                    path: '/dev/sda3',
+                                    type: 'part',
+                                    partlabel: 'Unraid Boot Partition',
+                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
+                                },
+                                {
+                                    name: 'sda4',
+                                    path: '/dev/sda4',
+                                    type: 'part',
+                                    partlabel: '',
+                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
+                                },
+                            ],
+                        },
+                        {
+                            name: 'sdb',
+                            path: '/dev/sdb',
+                            type: 'disk',
+                            children: [
+                                {
+                                    name: 'sdb1',
+                                    path: '/dev/sdb1',
+                                    type: 'part',
+                                    partlabel: 'EFI System Partition',
+                                    parttype: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
+                                },
+                            ],
+                        },
+                    ],
+                }),
+                stderr: '',
+                exitCode: 0,
+                failed: false,
+                command: '',
+                cwd: '',
+                isCanceled: false,
+            } as unknown as Awaited<ReturnType<typeof execa>>);
+
+            await expect(service.getInternalBootDeviceNames()).resolves.toEqual(new Set(['sda']));
+        });
+
+        it('filters detailed disks through the shared internal boot name lookup', async () => {
+            const getInternalBootDeviceNamesSpy = vi
+                .spyOn(service, 'getInternalBootDeviceNames')
+                .mockResolvedValue(new Set(['sda', 'sdb']));
+            const getDisksSpy = vi.spyOn(service, 'getDisks').mockResolvedValue([
+                {
+                    id: 'internal',
+                    device: '/dev/sda',
+                    type: 'HD',
+                    name: 'Internal Boot',
+                    vendor: 'Samsung',
+                    size: 512110190592,
+                    bytesPerSector: 512,
+                    totalCylinders: 1,
+                    totalHeads: 1,
+                    totalSectors: 1,
+                    totalTracks: 1,
+                    tracksPerCylinder: 1,
+                    sectorsPerTrack: 1,
+                    firmwareRevision: '1',
+                    serialNum: 'internal',
+                    interfaceType: DiskInterfaceType.PCIE,
+                    smartStatus: DiskSmartStatus.OK,
+                    partitions: [],
+                    isSpinning: false,
+                },
+                {
+                    id: 'usb',
+                    device: '/dev/sdb',
+                    type: 'HD',
+                    name: 'USB Internal Boot',
+                    vendor: 'SanDisk',
+                    size: 128000000000,
+                    bytesPerSector: 512,
+                    totalCylinders: 1,
+                    totalHeads: 1,
+                    totalSectors: 1,
+                    totalTracks: 1,
+                    tracksPerCylinder: 1,
+                    sectorsPerTrack: 1,
+                    firmwareRevision: '1',
+                    serialNum: 'usb',
+                    interfaceType: DiskInterfaceType.USB,
+                    smartStatus: DiskSmartStatus.OK,
+                    partitions: [],
+                    isSpinning: false,
+                },
+            ]);
+
+            const disks = await service.getInternalBootDevices();
+
+            expect(disks).toHaveLength(1);
+            expect(disks[0]?.device).toBe('/dev/sda');
+            expect(getInternalBootDeviceNamesSpy).toHaveBeenCalledTimes(1);
+            expect(getDisksSpy).toHaveBeenCalledTimes(1);
+        });
+
         it('should return disks that match the Unraid internal boot partition layout', async () => {
             mockExeca.mockResolvedValue({
                 stdout: JSON.stringify({
