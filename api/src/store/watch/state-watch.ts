@@ -19,7 +19,7 @@ const shouldIgnoreStatePath = (path: string): boolean => {
     const isStateFile = parsed.ext === '.ini' && STATE_FILE_NAMES.has(parsed.base);
 
     if (!isStateFile) {
-        return false;
+        return true;
     }
 
     const stateFileKey = StateFileKey[parsed.name];

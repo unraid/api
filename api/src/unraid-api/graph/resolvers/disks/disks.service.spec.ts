@@ -39,6 +39,88 @@ const mockBlockDevices = blockDevices as unknown as MockedFunction<typeof blockD
 const mockDiskLayout = diskLayout as unknown as MockedFunction<typeof diskLayout>;
 const mockBatchProcess = batchProcess as unknown as MockedFunction<typeof batchProcess>;
 
+type LsblkPartition = {
+    name: string;
+    path: string;
+    type: 'part';
+    partlabel: string;
+    parttype: string;
+};
+
+type LsblkDisk = {
+    name: string;
+    path: string;
+    type: 'disk';
+    children: LsblkPartition[];
+};
+
+type LsblkPayload = {
+    blockdevices: LsblkDisk[];
+};
+
+const makeInternalBootDisk = (name: string): LsblkDisk => ({
+    name,
+    path: `/dev/${name}`,
+    type: 'disk',
+    children: [
+        {
+            name: `${name}1`,
+            path: `/dev/${name}1`,
+            type: 'part',
+            partlabel: 'BIOS Boot Partition',
+            parttype: '21686148-6449-6e6f-744e-656564454649',
+        },
+        {
+            name: `${name}2`,
+            path: `/dev/${name}2`,
+            type: 'part',
+            partlabel: 'EFI System Partition',
+            parttype: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
+        },
+        {
+            name: `${name}3`,
+            path: `/dev/${name}3`,
+            type: 'part',
+            partlabel: 'Unraid Boot Partition',
+            parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
+        },
+        {
+            name: `${name}4`,
+            path: `/dev/${name}4`,
+            type: 'part',
+            partlabel: '',
+            parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
+        },
+    ],
+});
+
+const makeEfiOnlyDisk = (name: string): LsblkDisk => ({
+    name,
+    path: `/dev/${name}`,
+    type: 'disk',
+    children: [
+        {
+            name: `${name}1`,
+            path: `/dev/${name}1`,
+            type: 'part',
+            partlabel: 'EFI System Partition',
+            parttype: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
+        },
+    ],
+});
+
+const makeLsblkPayload = (...blockdevices: LsblkDisk[]): LsblkPayload => ({
+    blockdevices,
+});
+
+const lsblkFixtures = {
+    internalBootCandidate: makeLsblkPayload(makeInternalBootDisk('sda'), makeEfiOnlyDisk('sdb')),
+    multipleInternalBootCandidates: makeLsblkPayload(
+        makeInternalBootDisk('sda'),
+        makeInternalBootDisk('sdb')
+    ),
+} satisfies Record<string, LsblkPayload>;
+
 describe('DisksService', () => {
     let service: DisksService;
     let configService: ConfigService;
@@ -567,59 +649,7 @@ describe('DisksService', () => {
     describe('getInternalBootDevices', () => {
         it('returns internal boot candidate device names from the shared lsblk matcher', async () => {
             mockExeca.mockResolvedValue({
-                stdout: JSON.stringify({
-                    blockdevices: [
-                        {
-                            name: 'sda',
-                            path: '/dev/sda',
-                            type: 'disk',
-                            children: [
-                                {
-                                    name: 'sda1',
-                                    path: '/dev/sda1',
-                                    type: 'part',
-                                    partlabel: 'BIOS Boot Partition',
-                                    parttype: '21686148-6449-6e6f-744e-656564454649',
-                                },
-                                {
-                                    name: 'sda2',
-                                    path: '/dev/sda2',
-                                    type: 'part',
-                                    partlabel: 'EFI System Partition',
-                                    parttype: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
-                                },
-                                {
-                                    name: 'sda3',
-                                    path: '/dev/sda3',
-                                    type: 'part',
-                                    partlabel: 'Unraid Boot Partition',
-                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
-                                },
-                                {
-                                    name: 'sda4',
-                                    path: '/dev/sda4',
-                                    type: 'part',
-                                    partlabel: '',
-                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
-                                },
-                            ],
-                        },
-                        {
-                            name: 'sdb',
-                            path: '/dev/sdb',
-                            type: 'disk',
-                            children: [
-                                {
-                                    name: 'sdb1',
-                                    path: '/dev/sdb1',
-                                    type: 'part',
-                                    partlabel: 'EFI System Partition',
-                                    parttype: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
-                                },
-                            ],
-                        },
-                    ],
-                }),
+                stdout: JSON.stringify(lsblkFixtures.internalBootCandidate),
                 stderr: '',
                 exitCode: 0,
                 failed: false,
@@ -690,59 +720,7 @@ describe('DisksService', () => {
 
         it('should return disks that match the Unraid internal boot partition layout', async () => {
             mockExeca.mockResolvedValue({
-                stdout: JSON.stringify({
-                    blockdevices: [
-                        {
-                            name: 'sda',
-                            path: '/dev/sda',
-                            type: 'disk',
-                            children: [
-                                {
-                                    name: 'sda1',
-                                    path: '/dev/sda1',
-                                    type: 'part',
-                                    partlabel: 'BIOS Boot Partition',
-                                    parttype: '21686148-6449-6e6f-744e-656564454649',
-                                },
-                                {
-                                    name: 'sda2',
-                                    path: '/dev/sda2',
-                                    type: 'part',
-                                    partlabel: 'EFI System Partition',
-                                    parttype: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
-                                },
-                                {
-                                    name: 'sda3',
-                                    path: '/dev/sda3',
-                                    type: 'part',
-                                    partlabel: 'Unraid Boot Partition',
-                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
-                                },
-                                {
-                                    name: 'sda4',
-                                    path: '/dev/sda4',
-                                    type: 'part',
-                                    partlabel: '',
-                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
-                                },
-                            ],
-                        },
-                        {
-                            name: 'sdb',
-                            path: '/dev/sdb',
-                            type: 'disk',
-                            children: [
-                                {
-                                    name: 'sdb1',
-                                    path: '/dev/sdb1',
-                                    type: 'part',
-                                    partlabel: 'EFI System Partition',
-                                    parttype: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
-                                },
-                            ],
-                        },
-                    ],
-                }),
+                stdout: JSON.stringify(lsblkFixtures.internalBootCandidate),
                 stderr: '',
                 exitCode: 0,
                 failed: false,
@@ -815,80 +793,7 @@ describe('DisksService', () => {
                 },
             ]);
             mockExeca.mockResolvedValue({
-                stdout: JSON.stringify({
-                    blockdevices: [
-                        {
-                            name: 'sda',
-                            path: '/dev/sda',
-                            type: 'disk',
-                            children: [
-                                {
-                                    name: 'sda1',
-                                    path: '/dev/sda1',
-                                    type: 'part',
-                                    partlabel: 'BIOS Boot Partition',
-                                    parttype: '21686148-6449-6e6f-744e-656564454649',
-                                },
-                                {
-                                    name: 'sda2',
-                                    path: '/dev/sda2',
-                                    type: 'part',
-                                    partlabel: 'EFI System Partition',
-                                    parttype: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
-                                },
-                                {
-                                    name: 'sda3',
-                                    path: '/dev/sda3',
-                                    type: 'part',
-                                    partlabel: 'Unraid Boot Partition',
-                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
-                                },
-                                {
-                                    name: 'sda4',
-                                    path: '/dev/sda4',
-                                    type: 'part',
-                                    partlabel: '',
-                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
-                                },
-                            ],
-                        },
-                        {
-                            name: 'sdb',
-                            path: '/dev/sdb',
-                            type: 'disk',
-                            children: [
-                                {
-                                    name: 'sdb1',
-                                    path: '/dev/sdb1',
-                                    type: 'part',
-                                    partlabel: 'BIOS Boot Partition',
-                                    parttype: '21686148-6449-6e6f-744e-656564454649',
-                                },
-                                {
-                                    name: 'sdb2',
-                                    path: '/dev/sdb2',
-                                    type: 'part',
-                                    partlabel: 'EFI System Partition',
-                                    parttype: 'c12a7328-f81f-11d2-ba4b-00a0c93ec93b',
-                                },
-                                {
-                                    name: 'sdb3',
-                                    path: '/dev/sdb3',
-                                    type: 'part',
-                                    partlabel: 'Unraid Boot Partition',
-                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
-                                },
-                                {
-                                    name: 'sdb4',
-                                    path: '/dev/sdb4',
-                                    type: 'part',
-                                    partlabel: '',
-                                    parttype: '0fc63daf-8483-4772-8e79-3d69d8477de4',
-                                },
-                            ],
-                        },
-                    ],
-                }),
+                stdout: JSON.stringify(lsblkFixtures.multipleInternalBootCandidates),
                 stderr: '',
                 exitCode: 0,
                 failed: false,

@@ -146,6 +146,22 @@ describe('StateManager', () => {
         expect(store.dispatch).toHaveBeenCalledWith(loadSingleStateFile(StateFileKey.devs));
     });
 
+    it('ignores non-state files while still allowing non-polled state files through the directory watcher', async () => {
+        const { StateManager } = await import('@app/store/watch/state-watch.js');
+
+        await StateManager.getInstance().ready;
+
+        const standardWatcher = watchRegistrations.find(
+            (registration) => registration.options.usePolling === false
+        );
+        const ignored = standardWatcher?.options.ignored;
+
+        expect(ignored).toBeTypeOf('function');
+        expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/README.txt')).toBe(true);
+        expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/devs.ini')).toBe(false);
+        expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/disks.ini')).toBe(true);
+    });
+
     it('reloads registration key when var.ini is replaced after boot', async () => {
         const { StateManager } = await import('@app/store/watch/state-watch.js');
         const { store } = await import('@app/store/index.js');
