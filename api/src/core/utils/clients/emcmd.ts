@@ -102,7 +102,7 @@ export const emcmd = async (
     const stateToken = getters.emhttp().var?.csrfToken;
     const csrfToken = await ensureCsrfToken(stateToken, waitForToken);
 
-    appLogger.debug(`Executing emcmd with commands: ${JSON.stringify(commands)}`);
+    appLogger.debug({ commands }, 'Executing emcmd');
 
     try {
         const params = new URLSearchParams();
