@@ -222,10 +222,22 @@ describe('ArrayService', () => {
             expect(mockEmcmd).not.toHaveBeenCalled();
         });
 
-        it('should reject invalid decryption keyfile payloads', async () => {
+        it('should reject invalid raw decryption keyfile payloads', async () => {
             const input: ArrayStateInput = {
                 desiredState: ArrayStateInputState.START,
                 decryptionKeyfile: 'not-valid-base64',
+            };
+
+            await expect(service.updateArrayState(input)).rejects.toThrow(BadRequestException);
+
+            expect(mockWriteFile).not.toHaveBeenCalled();
+            expect(mockEmcmd).not.toHaveBeenCalled();
+        });
+
+        it('should reject invalid data URL decryption keyfile payloads', async () => {
+            const input: ArrayStateInput = {
+                desiredState: ArrayStateInputState.START,
+                decryptionKeyfile: 'data:application/octet-stream;base64,not-valid-base64',
             };
 
             await expect(service.updateArrayState(input)).rejects.toThrow(BadRequestException);
@@ -245,6 +257,31 @@ describe('ArrayService', () => {
 
             expect(mockWriteFile).not.toHaveBeenCalled();
             expect(mockEmcmd).not.toHaveBeenCalled();
+        });
+
+        it('should allow a later start after decryption preflight validation fails', async () => {
+            await expect(
+                service.updateArrayState({
+                    desiredState: ArrayStateInputState.START,
+                    decryptionPassword: 'super-secret',
+                    decryptionKeyfile: 'data:application/octet-stream;base64,QUJDRA==',
+                })
+            ).rejects.toThrow(BadRequestException);
+
+            const expectedArrayData = { ...mockArrayData, state: ArrayState.STARTED };
+            mockGetArrayDataUtil.mockResolvedValue(expectedArrayData);
+
+            const result = await service.updateArrayState({
+                desiredState: ArrayStateInputState.START,
+                decryptionPassword: 'super-secret',
+            });
+
+            expect(result).toEqual(expectedArrayData);
+            expect(mockEmcmd).toHaveBeenLastCalledWith({
+                cmdStart: 'Start',
+                startState: 'STOPPED',
+                luksKey: 'c3VwZXItc2VjcmV0',
+            });
         });
     });
 

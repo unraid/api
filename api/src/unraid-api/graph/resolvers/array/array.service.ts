@@ -26,6 +26,11 @@ enum ArrayPendingState {
 export class ArrayService {
     private pendingState: ArrayPendingState | null = null;
 
+    private invalidDecryptionKeyfileError = () =>
+        new BadRequestException(
+            new AppError('Decryption keyfile must be a valid data URL or raw base64 payload.')
+        );
+
     private encodeDecryptionPassword = (decryptionPassword: string) => {
         const printableAscii = /^[ -~]+$/;
 
@@ -50,24 +55,24 @@ export class ArrayService {
 
             try {
                 return /;base64/i.test(meta)
-                    ? Buffer.from(payload, 'base64')
+                    ? this.decodeStrictBase64(payload)
                     : Buffer.from(decodeURIComponent(payload), 'utf8');
             } catch {
-                throw new BadRequestException(
-                    new AppError('Decryption keyfile must be a valid data URL or raw base64 payload.')
-                );
+                throw this.invalidDecryptionKeyfileError();
             }
         }
 
-        const normalized = source.replace(/\s+/g, '');
+        return this.decodeStrictBase64(source);
+    };
+
+    private decodeStrictBase64 = (payload: string): Buffer => {
+        const normalized = payload.replace(/\s+/g, '');
         if (
             normalized.length === 0 ||
             normalized.length % 4 !== 0 ||
             !/^[A-Za-z0-9+/=]+$/.test(normalized)
         ) {
-            throw new BadRequestException(
-                new AppError('Decryption keyfile must be a valid data URL or raw base64 payload.')
-            );
+            throw this.invalidDecryptionKeyfileError();
         }
 
         try {
@@ -82,9 +87,7 @@ export class ArrayService {
             }
             return decoded;
         } catch {
-            throw new BadRequestException(
-                new AppError('Decryption keyfile must be a valid data URL or raw base64 payload.')
-            );
+            throw this.invalidDecryptionKeyfileError();
         }
     };
 
@@ -149,8 +152,6 @@ export class ArrayService {
             throw new BadRequestException(new AppError(`The array is already ${startState}`));
         }
 
-        // Set lock then start/stop array
-        this.pendingState = newPendingState;
         const command: Record<string, string> = {
             [`cmd${capitalCase(desiredState)}`]: capitalCase(desiredState),
             startState: constantCase(startState),
@@ -169,6 +170,8 @@ export class ArrayService {
         if (desiredState === ArrayStateInputState.START && decryptionKeyfile) {
             await this.writeDecryptionKeyfile(decryptionKeyfile);
         }
+
+        this.pendingState = newPendingState;
 
         try {
             await emcmd(command);
