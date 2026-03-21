@@ -3,19 +3,30 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StateFileKey } from '@app/store/types.js';
 
 type WatchHandler = (path: string) => Promise<void>;
+type WatchRegistration = {
+    path: string;
+    options: Record<string, unknown>;
+    handlers: Partial<Record<'add' | 'change', WatchHandler>>;
+};
 
-const handlersByPath = new Map<string, Partial<Record<'add' | 'change', WatchHandler>>>();
+const watchRegistrations: WatchRegistration[] = [];
 
-const createWatcher = (path: string) => ({
+const createWatcher = (registration: WatchRegistration) => ({
     on: vi.fn((event: 'add' | 'change', handler: WatchHandler) => {
-        const existingHandlers = handlersByPath.get(path) ?? {};
-        existingHandlers[event] = handler;
-        handlersByPath.set(path, existingHandlers);
-        return createWatcher(path);
+        registration.handlers[event] = handler;
+        return createWatcher(registration);
     }),
 });
 
-const chokidarWatch = vi.fn((path: string) => createWatcher(path));
+const chokidarWatch = vi.fn((path: string, options: Record<string, unknown> = {}) => {
+    const registration: WatchRegistration = {
+        path,
+        options,
+        handlers: {},
+    };
+    watchRegistrations.push(registration);
+    return createWatcher(registration);
+});
 
 vi.mock('chokidar', () => ({
     watch: chokidarWatch,
@@ -56,30 +67,58 @@ describe('StateManager', () => {
     beforeEach(async () => {
         vi.resetModules();
         vi.clearAllMocks();
-        handlersByPath.clear();
+        watchRegistrations.length = 0;
 
         const { StateManager } = await import('@app/store/watch/state-watch.js');
         StateManager.instance = null;
     });
 
-    it('watches devs.ini alongside the other emhttp state files', async () => {
+    it('watches the emhttp state directory and keeps polling scoped to replacement-prone files', async () => {
         const { StateManager } = await import('@app/store/watch/state-watch.js');
 
         StateManager.getInstance();
 
-        expect(chokidarWatch).toHaveBeenCalledWith('/usr/local/emhttp/state/devs.ini', {
-            usePolling: false,
-        });
+        expect(chokidarWatch).toHaveBeenCalledTimes(3);
+        expect(chokidarWatch).toHaveBeenNthCalledWith(
+            1,
+            '/usr/local/emhttp/state',
+            expect.objectContaining({
+                ignoreInitial: true,
+                usePolling: false,
+                ignored: expect.any(Function),
+            })
+        );
+        expect(chokidarWatch).toHaveBeenNthCalledWith(
+            2,
+            '/usr/local/emhttp/state/disks.ini',
+            expect.objectContaining({
+                ignoreInitial: true,
+                usePolling: true,
+                interval: 10_000,
+            })
+        );
+        expect(chokidarWatch).toHaveBeenNthCalledWith(
+            3,
+            '/usr/local/emhttp/state/shares.ini',
+            expect.objectContaining({
+                ignoreInitial: true,
+                usePolling: true,
+                interval: 10_000,
+            })
+        );
     });
 
-    it('reloads the devs state when devs.ini changes', async () => {
+    it('routes non-polled state files through the standard directory watcher', async () => {
         const { StateManager } = await import('@app/store/watch/state-watch.js');
         const { store } = await import('@app/store/index.js');
         const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
 
         StateManager.getInstance();
 
-        const changeHandler = handlersByPath.get('/usr/local/emhttp/state/devs.ini')?.change;
+        const standardWatcher = watchRegistrations.find(
+            (registration) => registration.options.usePolling === false
+        );
+        const changeHandler = standardWatcher?.handlers.change;
         expect(changeHandler).toBeDefined();
 
         await changeHandler?.('/usr/local/emhttp/state/devs.ini');
@@ -87,7 +126,7 @@ describe('StateManager', () => {
         expect(store.dispatch).toHaveBeenCalledWith(loadSingleStateFile(StateFileKey.devs));
     });
 
-    it('reloads registration key when var.ini changes', async () => {
+    it('reloads registration key when var.ini is replaced after boot', async () => {
         const { StateManager } = await import('@app/store/watch/state-watch.js');
         const { store } = await import('@app/store/index.js');
         const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
@@ -95,12 +134,33 @@ describe('StateManager', () => {
 
         StateManager.getInstance();
 
-        const changeHandler = handlersByPath.get('/usr/local/emhttp/state/var.ini')?.change;
-        expect(changeHandler).toBeDefined();
+        const standardWatcher = watchRegistrations.find(
+            (registration) => registration.options.usePolling === false
+        );
+        const addHandler = standardWatcher?.handlers.add;
+        expect(addHandler).toBeDefined();
 
-        await changeHandler?.('/usr/local/emhttp/state/var.ini');
+        await addHandler?.('/usr/local/emhttp/state/var.ini');
 
         expect(store.dispatch).toHaveBeenNthCalledWith(1, loadSingleStateFile(StateFileKey.var));
         expect(store.dispatch).toHaveBeenNthCalledWith(2, loadRegistrationKey());
+    });
+
+    it('routes polled state files through the polling directory watcher', async () => {
+        const { StateManager } = await import('@app/store/watch/state-watch.js');
+        const { store } = await import('@app/store/index.js');
+        const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
+
+        StateManager.getInstance();
+
+        const pollingWatcher = watchRegistrations.find(
+            (registration) => registration.path === '/usr/local/emhttp/state/disks.ini'
+        );
+        const changeHandler = pollingWatcher?.handlers.change;
+        expect(changeHandler).toBeDefined();
+
+        await changeHandler?.('/usr/local/emhttp/state/disks.ini');
+
+        expect(store.dispatch).toHaveBeenCalledWith(loadSingleStateFile(StateFileKey.disks));
     });
 });
