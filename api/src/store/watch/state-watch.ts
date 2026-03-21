@@ -39,10 +39,11 @@ const chokidarOptionsForStateDirectory = (): ChokidarOptions => ({
 
 export class StateManager {
     public static instance: StateManager | null = null;
+    public readonly ready: Promise<void>;
     private readonly fileWatchers: FSWatcher[] = [];
 
     private constructor() {
-        this.setupChokidarWatchForState();
+        this.ready = this.setupChokidarWatchForState();
     }
 
     public static getInstance(): StateManager {
@@ -58,6 +59,14 @@ export class StateManager {
         return StateFileKey[parsed.name];
     }
 
+    private async reloadStateFile(stateFile: StateFileKey, reason: 'add' | 'change' | 'startup-sync') {
+        emhttpLogger.debug('Loading state file for %s after %s', stateFile, reason);
+        await store.dispatch(loadSingleStateFile(stateFile));
+        if (stateFile === StateFileKey.var) {
+            await store.dispatch(loadRegistrationKey());
+        }
+    }
+
     private async handleStateFileUpdate(eventPath: string, event: 'add' | 'change') {
         const stateFile = this.getStateFileKeyFromPath(eventPath);
         if (!stateFile) {
@@ -66,11 +75,7 @@ export class StateManager {
         }
 
         try {
-            emhttpLogger.debug('Loading state file for %s after %s event', stateFile, event);
-            await store.dispatch(loadSingleStateFile(stateFile));
-            if (stateFile === StateFileKey.var) {
-                await store.dispatch(loadRegistrationKey());
-            }
+            await this.reloadStateFile(stateFile, event);
         } catch (error: unknown) {
             emhttpLogger.error(
                 'Failed to load state file: [%s] after %s event\nerror: %o',
@@ -81,7 +86,13 @@ export class StateManager {
         }
     }
 
-    private readonly setupChokidarWatchForState = () => {
+    private readonly reconcileStateAfterWatchSetup = async () => {
+        for (const stateFile of Object.values(StateFileKey)) {
+            await this.reloadStateFile(stateFile, 'startup-sync');
+        }
+    };
+
+    private readonly setupChokidarWatchForState = async () => {
         const { states } = getters.paths();
 
         emhttpLogger.debug('Setting up watch for path: %s', states);
@@ -102,5 +113,7 @@ export class StateManager {
             stateWatch.on('change', async (path) => this.handleStateFileUpdate(path, 'change'));
             this.fileWatchers.push(stateWatch);
         }
+
+        await this.reconcileStateAfterWatchSetup();
     };
 }

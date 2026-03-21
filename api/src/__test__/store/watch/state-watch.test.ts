@@ -76,7 +76,7 @@ describe('StateManager', () => {
     it('watches the emhttp state directory and keeps polling scoped to replacement-prone files', async () => {
         const { StateManager } = await import('@app/store/watch/state-watch.js');
 
-        StateManager.getInstance();
+        await StateManager.getInstance().ready;
 
         expect(chokidarWatch).toHaveBeenCalledTimes(3);
         expect(chokidarWatch).toHaveBeenNthCalledWith(
@@ -108,12 +108,32 @@ describe('StateManager', () => {
         );
     });
 
+    it('reconciles all emhttp state files after watchers are attached', async () => {
+        const { StateManager } = await import('@app/store/watch/state-watch.js');
+        const { store } = await import('@app/store/index.js');
+        const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
+        const { loadRegistrationKey } = await import('@app/store/modules/registration.js');
+
+        await StateManager.getInstance().ready;
+
+        expect(store.dispatch).toHaveBeenNthCalledWith(1, loadSingleStateFile(StateFileKey.var));
+        expect(store.dispatch).toHaveBeenNthCalledWith(2, loadRegistrationKey());
+
+        const dispatchedStateLoads = vi
+            .mocked(store.dispatch)
+            .mock.calls.filter(([action]) => action?.type === 'emhttp/load-single-state-file')
+            .map(([action]) => action.payload);
+
+        expect(dispatchedStateLoads).toEqual(Object.values(StateFileKey));
+    });
+
     it('routes non-polled state files through the standard directory watcher', async () => {
         const { StateManager } = await import('@app/store/watch/state-watch.js');
         const { store } = await import('@app/store/index.js');
         const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
 
-        StateManager.getInstance();
+        await StateManager.getInstance().ready;
+        vi.mocked(store.dispatch).mockClear();
 
         const standardWatcher = watchRegistrations.find(
             (registration) => registration.options.usePolling === false
@@ -132,7 +152,8 @@ describe('StateManager', () => {
         const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
         const { loadRegistrationKey } = await import('@app/store/modules/registration.js');
 
-        StateManager.getInstance();
+        await StateManager.getInstance().ready;
+        vi.mocked(store.dispatch).mockClear();
 
         const standardWatcher = watchRegistrations.find(
             (registration) => registration.options.usePolling === false
@@ -151,7 +172,8 @@ describe('StateManager', () => {
         const { store } = await import('@app/store/index.js');
         const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
 
-        StateManager.getInstance();
+        await StateManager.getInstance().ready;
+        vi.mocked(store.dispatch).mockClear();
 
         const pollingWatcher = watchRegistrations.find(
             (registration) => registration.path === '/usr/local/emhttp/state/disks.ini'

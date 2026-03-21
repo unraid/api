@@ -121,7 +121,9 @@ export const viteNodeApp = async (): Promise<NestFastifyApplication<RawServerDef
 
         // Start listening to file updates
         try {
-            StateManager.getInstance();
+            const timeout = budget.getTimeout(MAX_OPERATION_TIMEOUT_MS, BOOTSTRAP_RESERVED_MS);
+            const stateManager = StateManager.getInstance();
+            await withTimeout(stateManager.ready, timeout, 'stateManagerReady');
             logger.info('State manager initialized');
         } catch (error) {
             logger.error(error, 'Failed to initialize state manager');
