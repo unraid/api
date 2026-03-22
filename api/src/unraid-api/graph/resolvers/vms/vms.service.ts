@@ -15,6 +15,7 @@ import { VmDomain, VmState } from '@app/unraid-api/graph/resolvers/vms/vms.model
 export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
     private readonly logger = new Logger(VmsService.name);
     private hypervisor: InstanceType<typeof HypervisorClass> | null = null;
+    private hypervisorInitialization: Promise<InstanceType<typeof HypervisorClass>> | null = null;
     private isVmsAvailable: boolean = false;
     private watcher: FSWatcher | null = null;
     private uri: string;
@@ -68,12 +69,10 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
 
     private async attemptHypervisorInitializationAndWatch(): Promise<void> {
         try {
-            await this.initializeHypervisor();
-            this.isVmsAvailable = true;
+            await this.initializeHypervisorOnce();
             this.logger.debug(`VMs service initialized successfully with URI: ${this.uri}`);
             await this.setupWatcher();
         } catch (error) {
-            await this.resetHypervisorConnection();
             this.logger.warn(
                 `Initial hypervisor connection failed: ${error instanceof Error ? error.message : 'Unknown error'}. Setting up watcher.`
             );
@@ -100,13 +99,11 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
                     `Libvirt PID file detected at ${this.pidPath}. Attempting connection...`
                 );
                 try {
-                    await this.initializeHypervisor();
-                    this.isVmsAvailable = true;
+                    await this.initializeHypervisorOnce();
                     this.logger.log(
                         'Hypervisor connection established successfully after PID file detection.'
                     );
                 } catch (error) {
-                    await this.resetHypervisorConnection();
                     this.logger.error(
                         `Failed to initialize hypervisor after PID file detection: ${error instanceof Error ? error.message : 'Unknown error'}`
                     );
@@ -126,10 +123,10 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
             });
     }
 
-    private async initializeHypervisor(): Promise<void> {
+    private async initializeHypervisor(): Promise<InstanceType<typeof HypervisorClass>> {
         if (this.hypervisor && this.isVmsAvailable) {
             this.logger.debug('Hypervisor connection assumed active based on availability flag.');
-            return;
+            return this.hypervisor;
         }
 
         this.logger.debug('Checking if libvirt process is running via PID file...');
@@ -157,17 +154,47 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
         if (!this.hypervisor) {
             throw new Error('Failed to connect to hypervisor');
         }
+
+        return this.hypervisor;
+    }
+
+    private initializeHypervisorOnce(): Promise<InstanceType<typeof HypervisorClass>> {
+        if (this.hypervisor && this.isVmsAvailable) {
+            return Promise.resolve(this.hypervisor);
+        }
+
+        if (this.hypervisorInitialization) {
+            this.logger.debug('Waiting for in-flight hypervisor initialization to finish.');
+            return this.hypervisorInitialization;
+        }
+
+        this.hypervisorInitialization = (async () => {
+            try {
+                const hypervisor = await this.initializeHypervisor();
+                this.isVmsAvailable = true;
+                return hypervisor;
+            } catch (error) {
+                await this.resetHypervisorConnection();
+                throw error;
+            } finally {
+                this.hypervisorInitialization = null;
+            }
+        })();
+
+        return this.hypervisorInitialization;
     }
 
     private async resetHypervisorConnection(): Promise<void> {
+        const hypervisor = this.hypervisor;
+        this.hypervisor = null;
+        this.isVmsAvailable = false;
+
         this.logger.debug('Closing hypervisor connection...');
         try {
-            await this.hypervisor?.connectClose();
+            await hypervisor?.connectClose();
         } catch (error) {
             this.logger.warn(`Error closing hypervisor connection: ${(error as Error).message}`);
         }
-        this.hypervisor = null;
-        this.isVmsAvailable = false;
     }
 
     private async ensureHypervisorAvailable(): Promise<InstanceType<typeof HypervisorClass>> {
@@ -176,18 +203,10 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
         }
 
         try {
-            await this.initializeHypervisor();
-            this.isVmsAvailable = true;
+            return await this.initializeHypervisorOnce();
         } catch (error) {
-            await this.resetHypervisorConnection();
             throw new GraphQLError('VMs are not available');
         }
-
-        if (!this.hypervisor) {
-            throw new GraphQLError('VMs are not available');
-        }
-
-        return this.hypervisor;
     }
 
     private isConnectionError(error: unknown): error is Error {
@@ -373,26 +392,33 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
         try {
             return await this.listDomains(hypervisor);
         } catch (error: unknown) {
-            if (this.isConnectionError(error)) {
+            let finalError = error;
+
+            if (this.isConnectionError(finalError)) {
                 this.logger.warn(
-                    `VM domain lookup lost its libvirt connection: ${error.message}. Resetting and retrying once.`
+                    `VM domain lookup lost its libvirt connection: ${finalError.message}. Resetting and retrying once.`
                 );
                 await this.resetHypervisorConnection();
                 hypervisor = await this.ensureHypervisorAvailable();
-                return await this.listDomains(hypervisor);
+
+                try {
+                    return await this.listDomains(hypervisor);
+                } catch (retryError) {
+                    finalError = retryError;
+                }
             }
 
-            if (error instanceof Error && error.message.includes('virConnectListAllDomains')) {
+            if (finalError instanceof Error && finalError.message.includes('virConnectListAllDomains')) {
                 this.logger.error(
-                    `Failed to list domains, possibly due to connection issue: ${error.message}`
+                    `Failed to list domains, possibly due to connection issue: ${finalError.message}`
                 );
             } else {
                 this.logger.error(
-                    `Failed to get domains: ${error instanceof Error ? error.message : 'Unknown error'}`
+                    `Failed to get domains: ${finalError instanceof Error ? finalError.message : 'Unknown error'}`
                 );
             }
             throw new GraphQLError(
-                `Failed to get domains: ${error instanceof Error ? error.message : 'Unknown error'}`
+                `Failed to get domains: ${finalError instanceof Error ? finalError.message : 'Unknown error'}`
             );
         }
     }

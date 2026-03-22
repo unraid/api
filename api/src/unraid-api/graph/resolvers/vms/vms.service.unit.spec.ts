@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { GraphQLError } from 'graphql';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
@@ -151,6 +152,69 @@ describe('VmsService unit', () => {
         expect(connectCloseMock).toHaveBeenCalledTimes(1);
         expect(connectListAllDomainsMock).toHaveBeenCalledTimes(2);
         expect(domains).toHaveLength(1);
+    });
+
+    it('wraps retry failures from getDomains in a GraphQLError', async () => {
+        connectListAllDomainsMock
+            .mockRejectedValueOnce(new Error('virConnectListAllDomains failed: client socket is closed'))
+            .mockRejectedValueOnce(new Error('virConnectListAllDomains failed: retry still closed'));
+
+        await service.onApplicationBootstrap();
+
+        await expect(service.getDomains()).rejects.toBeInstanceOf(GraphQLError);
+        expect(connectOpenMock).toHaveBeenCalledTimes(2);
+        expect(connectCloseMock).toHaveBeenCalledTimes(1);
+        expect(connectListAllDomainsMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('serializes concurrent hypervisor initialization across bootstrap and domain listing', async () => {
+        const openControl: { resolve?: () => void } = {};
+        connectOpenMock.mockImplementationOnce(
+            () =>
+                new Promise<void>((resolve) => {
+                    openControl.resolve = resolve;
+                })
+        );
+        connectListAllDomainsMock.mockResolvedValue([createMockDomain()]);
+
+        const bootstrapPromise = service.onApplicationBootstrap();
+        const domainsPromise = service.getDomains();
+
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(connectOpenMock).toHaveBeenCalledTimes(1);
+        expect(connectListAllDomainsMock).not.toHaveBeenCalled();
+
+        openControl.resolve?.();
+
+        await expect(bootstrapPromise).resolves.toBeUndefined();
+        await expect(domainsPromise).resolves.toHaveLength(1);
+        expect(connectOpenMock).toHaveBeenCalledTimes(1);
+        expect(connectListAllDomainsMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears shared hypervisor state before close finishes', async () => {
+        const closeControl: { resolve?: () => void } = {};
+        connectCloseMock.mockImplementationOnce(
+            () =>
+                new Promise<void>((resolve) => {
+                    closeControl.resolve = resolve;
+                })
+        );
+
+        await service.onApplicationBootstrap();
+
+        const resetPromise = Reflect.apply(
+            Reflect.get(service, 'resetHypervisorConnection') as () => Promise<void>,
+            service,
+            []
+        );
+
+        expect(Reflect.get(service, 'hypervisor')).toBeNull();
+        expect(Reflect.get(service, 'isVmsAvailable')).toBe(false);
+
+        closeControl.resolve?.();
+        await resetPromise;
     });
 
     it('finishes shutdown polling with the original hypervisor even if shared state is reset', async () => {
