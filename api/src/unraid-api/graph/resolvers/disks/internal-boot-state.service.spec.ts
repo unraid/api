@@ -12,6 +12,7 @@ describe('InternalBootStateService', () => {
         getArrayData: vi.fn(),
     };
     const disksService = {
+        getInternalBootDeviceNames: vi.fn(),
         getInternalBootDevices: vi.fn(),
     };
     const cacheManager = {
@@ -50,12 +51,13 @@ describe('InternalBootStateService', () => {
         });
 
         expect(result).toBe(false);
+        expect(disksService.getInternalBootDeviceNames).not.toHaveBeenCalled();
         expect(disksService.getInternalBootDevices).not.toHaveBeenCalled();
         expect(getSpy).not.toHaveBeenCalled();
     });
 
     it('caches the internal boot device lookup result', async () => {
-        disksService.getInternalBootDevices.mockResolvedValue([{ device: '/dev/nvme0n1' }]);
+        disksService.getInternalBootDeviceNames.mockResolvedValue(new Set(['/dev/nvme0n1']));
         const service = createService();
 
         const firstResult = await service.getBootedFromFlashWithInternalBootSetupForBootDisk({
@@ -67,16 +69,17 @@ describe('InternalBootStateService', () => {
 
         expect(firstResult).toBe(true);
         expect(secondResult).toBe(true);
-        expect(disksService.getInternalBootDevices).toHaveBeenCalledTimes(1);
+        expect(disksService.getInternalBootDeviceNames).toHaveBeenCalledTimes(1);
+        expect(disksService.getInternalBootDevices).not.toHaveBeenCalled();
         expect(setSpy).toHaveBeenCalledTimes(1);
     });
 
     it('coalesces concurrent cache misses into a single disk scan', async () => {
-        let resolveLookup: ((value: Array<{ device: string }>) => void) | undefined;
+        let resolveLookup: ((value: Set<string>) => void) | undefined;
 
-        disksService.getInternalBootDevices.mockImplementation(
+        disksService.getInternalBootDeviceNames.mockImplementation(
             () =>
-                new Promise<Array<{ device: string }>>((resolve) => {
+                new Promise<Set<string>>((resolve) => {
                     resolveLookup = resolve;
                 })
         );
@@ -91,9 +94,10 @@ describe('InternalBootStateService', () => {
 
         await Promise.resolve();
 
-        expect(disksService.getInternalBootDevices).toHaveBeenCalledTimes(1);
+        expect(disksService.getInternalBootDeviceNames).toHaveBeenCalledTimes(1);
+        expect(disksService.getInternalBootDevices).not.toHaveBeenCalled();
 
-        resolveLookup?.([{ device: '/dev/nvme0n1' }]);
+        resolveLookup?.(new Set(['/dev/nvme0n1']));
 
         await expect(firstLookup).resolves.toBe(true);
         await expect(secondLookup).resolves.toBe(true);
@@ -101,9 +105,9 @@ describe('InternalBootStateService', () => {
     });
 
     it('invalidates the cached lookup result when requested', async () => {
-        disksService.getInternalBootDevices
-            .mockResolvedValueOnce([{ device: '/dev/nvme0n1' }])
-            .mockResolvedValueOnce([]);
+        disksService.getInternalBootDeviceNames
+            .mockResolvedValueOnce(new Set(['/dev/nvme0n1']))
+            .mockResolvedValueOnce(new Set());
         const service = createService();
 
         const initialResult = await service.getBootedFromFlashWithInternalBootSetupForBootDisk({
@@ -118,24 +122,25 @@ describe('InternalBootStateService', () => {
 
         expect(initialResult).toBe(true);
         expect(refreshedResult).toBe(false);
-        expect(disksService.getInternalBootDevices).toHaveBeenCalledTimes(2);
+        expect(disksService.getInternalBootDeviceNames).toHaveBeenCalledTimes(2);
+        expect(disksService.getInternalBootDevices).not.toHaveBeenCalled();
         expect(delSpy).toHaveBeenCalledTimes(1);
     });
 
     it('does not repopulate the cache with a stale in-flight lookup after invalidation', async () => {
-        let resolveFirstLookup: ((value: Array<{ device: string }>) => void) | undefined;
-        let resolveSecondLookup: ((value: Array<{ device: string }>) => void) | undefined;
+        let resolveFirstLookup: ((value: Set<string>) => void) | undefined;
+        let resolveSecondLookup: ((value: Set<string>) => void) | undefined;
 
-        disksService.getInternalBootDevices
+        disksService.getInternalBootDeviceNames
             .mockImplementationOnce(
                 () =>
-                    new Promise<Array<{ device: string }>>((resolve) => {
+                    new Promise<Set<string>>((resolve) => {
                         resolveFirstLookup = resolve;
                     })
             )
             .mockImplementationOnce(
                 () =>
-                    new Promise<Array<{ device: string }>>((resolve) => {
+                    new Promise<Set<string>>((resolve) => {
                         resolveSecondLookup = resolve;
                     })
             );
@@ -146,10 +151,11 @@ describe('InternalBootStateService', () => {
         });
 
         await Promise.resolve();
-        expect(disksService.getInternalBootDevices).toHaveBeenCalledTimes(1);
+        expect(disksService.getInternalBootDeviceNames).toHaveBeenCalledTimes(1);
+        expect(disksService.getInternalBootDevices).not.toHaveBeenCalled();
 
         await service.invalidateCachedInternalBootDeviceState();
-        resolveFirstLookup?.([{ device: '/dev/nvme0n1' }]);
+        resolveFirstLookup?.(new Set(['/dev/nvme0n1']));
 
         await expect(firstLookup).resolves.toBe(true);
         expect(setSpy).not.toHaveBeenCalled();
@@ -159,9 +165,10 @@ describe('InternalBootStateService', () => {
         });
 
         await Promise.resolve();
-        expect(disksService.getInternalBootDevices).toHaveBeenCalledTimes(2);
+        expect(disksService.getInternalBootDeviceNames).toHaveBeenCalledTimes(2);
+        expect(disksService.getInternalBootDevices).not.toHaveBeenCalled();
 
-        resolveSecondLookup?.([]);
+        resolveSecondLookup?.(new Set());
 
         await expect(secondLookup).resolves.toBe(false);
         expect(setSpy).toHaveBeenCalledTimes(1);
@@ -178,11 +185,12 @@ describe('InternalBootStateService', () => {
                 type: ArrayDiskType.FLASH,
             },
         });
-        disksService.getInternalBootDevices.mockResolvedValue([{ device: '/dev/nvme0n1' }]);
+        disksService.getInternalBootDeviceNames.mockResolvedValue(new Set(['/dev/nvme0n1']));
         const service = createService();
 
         await expect(service.getBootedFromFlashWithInternalBootSetup()).resolves.toBe(true);
         expect(arrayService.getArrayData).toHaveBeenCalledTimes(1);
-        expect(disksService.getInternalBootDevices).toHaveBeenCalledTimes(1);
+        expect(disksService.getInternalBootDeviceNames).toHaveBeenCalledTimes(1);
+        expect(disksService.getInternalBootDevices).not.toHaveBeenCalled();
     });
 });

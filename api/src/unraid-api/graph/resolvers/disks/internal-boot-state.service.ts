@@ -67,7 +67,8 @@ export class InternalBootStateService {
 
     private async loadHasInternalBootDevices(lookupGeneration: number): Promise<boolean> {
         try {
-            const hasInternalBootDevices = (await this.disksService.getInternalBootDevices()).length > 0;
+            const hasInternalBootDevices =
+                (await this.disksService.getInternalBootDeviceNames()).size > 0;
 
             if (lookupGeneration === this.internalBootLookupGeneration) {
                 await this.cacheManager.set(
