@@ -62,14 +62,7 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
     async onModuleDestroy() {
         this.logger.debug('Closing file watcher...');
         await this.watcher?.close();
-        this.logger.debug('Closing hypervisor connection...');
-        try {
-            await this.hypervisor?.connectClose();
-        } catch (error) {
-            this.logger.warn(`Error closing hypervisor connection: ${(error as Error).message}`);
-        }
-        this.hypervisor = null;
-        this.isVmsAvailable = false;
+        await this.resetHypervisorConnection();
         this.logger.debug('VMs service cleanup complete.');
     }
 
@@ -80,7 +73,7 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
             this.logger.debug(`VMs service initialized successfully with URI: ${this.uri}`);
             await this.setupWatcher();
         } catch (error) {
-            this.isVmsAvailable = false;
+            await this.resetHypervisorConnection();
             this.logger.warn(
                 `Initial hypervisor connection failed: ${error instanceof Error ? error.message : 'Unknown error'}. Setting up watcher.`
             );
@@ -113,7 +106,7 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
                         'Hypervisor connection established successfully after PID file detection.'
                     );
                 } catch (error) {
-                    this.isVmsAvailable = false;
+                    await this.resetHypervisorConnection();
                     this.logger.error(
                         `Failed to initialize hypervisor after PID file detection: ${error instanceof Error ? error.message : 'Unknown error'}`
                     );
@@ -123,18 +116,8 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
                 this.logger.warn(
                     `Libvirt PID file removed from ${this.pidPath}. Hypervisor likely stopped.`
                 );
-                this.isVmsAvailable = false;
-                try {
-                    if (this.hypervisor) {
-                        await this.hypervisor.connectClose();
-                        this.logger.debug('Hypervisor connection closed due to PID file removal.');
-                    }
-                } catch (closeError) {
-                    this.logger.error(
-                        `Error closing hypervisor connection after PID unlink: ${closeError instanceof Error ? closeError.message : 'Unknown error'}`
-                    );
-                }
-                this.hypervisor = null;
+                await this.resetHypervisorConnection();
+                this.logger.debug('Hypervisor connection closed due to PID file removal.');
             })
             .on('error', (error: unknown) => {
                 this.logger.error(
@@ -176,14 +159,53 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
         }
     }
 
-    public async setVmState(uuid: string, targetState: VmState): Promise<boolean> {
-        if (!this.isVmsAvailable || !this.hypervisor) {
-            throw new GraphQLError('VMs are not available');
+    private async resetHypervisorConnection(): Promise<void> {
+        this.logger.debug('Closing hypervisor connection...');
+        try {
+            await this.hypervisor?.connectClose();
+        } catch (error) {
+            this.logger.warn(`Error closing hypervisor connection: ${(error as Error).message}`);
+        }
+        this.hypervisor = null;
+        this.isVmsAvailable = false;
+    }
+
+    private async ensureHypervisorAvailable(): Promise<InstanceType<typeof HypervisorClass>> {
+        if (this.isVmsAvailable && this.hypervisor) {
+            return this.hypervisor;
         }
 
         try {
+            await this.initializeHypervisor();
+            this.isVmsAvailable = true;
+        } catch (error) {
+            await this.resetHypervisorConnection();
+            throw new GraphQLError('VMs are not available');
+        }
+
+        if (!this.hypervisor) {
+            throw new GraphQLError('VMs are not available');
+        }
+
+        return this.hypervisor;
+    }
+
+    private isConnectionError(error: unknown): error is Error {
+        if (!(error instanceof Error)) {
+            return false;
+        }
+
+        return /virConnect|libvirt|socket is closed|connection (is|was) closed|not connected/i.test(
+            error.message
+        );
+    }
+
+    public async setVmState(uuid: string, targetState: VmState): Promise<boolean> {
+        const hypervisor = await this.ensureHypervisorAvailable();
+
+        try {
             this.logger.debug(`Looking up domain with UUID: ${uuid}`);
-            const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
+            const domain = await hypervisor.domainLookupByUUIDString(uuid);
             this.logger.debug(`Found domain, getting info...`);
             const info = await domain.getInfo();
             this.logger.debug(`Current domain state: ${info.state}`);
@@ -287,13 +309,11 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
     }
 
     public async forceStopVm(uuid: string): Promise<boolean> {
-        if (!this.isVmsAvailable || !this.hypervisor) {
-            throw new GraphQLError('VMs are not available');
-        }
+        const hypervisor = await this.ensureHypervisorAvailable();
 
         try {
             this.logger.debug(`Looking up domain with UUID: ${uuid}`);
-            const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
+            const domain = await hypervisor.domainLookupByUUIDString(uuid);
             this.logger.debug(`Found domain, force stopping...`);
 
             await domain.destroy();
@@ -306,13 +326,11 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
     }
 
     public async rebootVm(uuid: string): Promise<boolean> {
-        if (!this.isVmsAvailable || !this.hypervisor) {
-            throw new GraphQLError('VMs are not available');
-        }
+        const hypervisor = await this.ensureHypervisorAvailable();
 
         try {
             this.logger.debug(`Looking up domain with UUID: ${uuid}`);
-            const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
+            const domain = await hypervisor.domainLookupByUUIDString(uuid);
             this.logger.debug(`Found domain, rebooting...`);
 
             await domain.shutdown();
@@ -332,13 +350,11 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
     }
 
     public async resetVm(uuid: string): Promise<boolean> {
-        if (!this.isVmsAvailable || !this.hypervisor) {
-            throw new GraphQLError('VMs are not available');
-        }
+        const hypervisor = await this.ensureHypervisorAvailable();
 
         try {
             this.logger.debug(`Looking up domain with UUID: ${uuid}`);
-            const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
+            const domain = await hypervisor.domainLookupByUUIDString(uuid);
             this.logger.debug(`Found domain, resetting...`);
 
             await domain.destroy();
@@ -353,39 +369,19 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
     }
 
     public async getDomains(): Promise<Array<VmDomain>> {
-        if (!this.isVmsAvailable) {
-            throw new GraphQLError('VMs are not available');
-        }
-        if (!this.hypervisor) {
-            throw new GraphQLError('Libvirt is not initialized');
-        }
-
+        let hypervisor = await this.ensureHypervisorAvailable();
         try {
-            const hypervisor = this.hypervisor;
-            this.logger.debug('Getting all domains...');
-            const domains = await hypervisor.connectListAllDomains(
-                ConnectListAllDomainsFlags.ACTIVE | ConnectListAllDomainsFlags.INACTIVE
-            );
-            this.logger.debug(`Found ${domains.length} domains`);
-
-            const resolvedDomains: Array<VmDomain> = await Promise.all(
-                domains.map(async (domain) => {
-                    const info = await domain.getInfo();
-                    const name = await domain.getName();
-                    const uuid = await domain.getUUIDString();
-                    const state = this.mapDomainStateToVmState(info.state);
-
-                    return {
-                        id: uuid,
-                        uuid,
-                        name,
-                        state,
-                    };
-                })
-            );
-
-            return resolvedDomains;
+            return await this.listDomains(hypervisor);
         } catch (error: unknown) {
+            if (this.isConnectionError(error)) {
+                this.logger.warn(
+                    `VM domain lookup lost its libvirt connection: ${error.message}. Resetting and retrying once.`
+                );
+                await this.resetHypervisorConnection();
+                hypervisor = await this.ensureHypervisorAvailable();
+                return await this.listDomains(hypervisor);
+            }
+
             if (error instanceof Error && error.message.includes('virConnectListAllDomains')) {
                 this.logger.error(
                     `Failed to list domains, possibly due to connection issue: ${error.message}`
@@ -399,6 +395,32 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
                 `Failed to get domains: ${error instanceof Error ? error.message : 'Unknown error'}`
             );
         }
+    }
+
+    private async listDomains(
+        hypervisor: InstanceType<typeof HypervisorClass>
+    ): Promise<Array<VmDomain>> {
+        this.logger.debug('Getting all domains...');
+        const domains = await hypervisor.connectListAllDomains(
+            ConnectListAllDomainsFlags.ACTIVE | ConnectListAllDomainsFlags.INACTIVE
+        );
+        this.logger.debug(`Found ${domains.length} domains`);
+
+        return Promise.all(
+            domains.map(async (domain) => {
+                const info = await domain.getInfo();
+                const name = await domain.getName();
+                const uuid = await domain.getUUIDString();
+                const state = this.mapDomainStateToVmState(info.state);
+
+                return {
+                    id: uuid,
+                    uuid,
+                    name,
+                    state,
+                };
+            })
+        );
     }
 
     private async waitForDomainShutdown(domain: Domain, maxRetries: number = 10): Promise<boolean> {
