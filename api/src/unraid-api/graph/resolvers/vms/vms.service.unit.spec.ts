@@ -13,6 +13,7 @@ const {
     connectCloseMock,
     connectListAllDomainsMock,
     connectOpenMock,
+    domainGetInfoMock,
     domainLookupByUUIDStringMock,
     watchMock,
     watcherMock,
@@ -29,6 +30,7 @@ const {
         connectCloseMock: vi.fn().mockResolvedValue(undefined),
         connectListAllDomainsMock: vi.fn(),
         connectOpenMock: vi.fn().mockResolvedValue(undefined),
+        domainGetInfoMock: vi.fn(),
         domainLookupByUUIDStringMock: vi.fn(),
         watchMock: vi.fn(() => watcher),
         watcherMock: watcher,
@@ -67,20 +69,31 @@ vi.mock('@unraid/libvirt', () => ({
         connectClose: connectCloseMock,
         connectListAllDomains: connectListAllDomainsMock,
         connectOpen: connectOpenMock,
+        domainGetInfo: domainGetInfoMock,
         domainLookupByUUIDString: domainLookupByUUIDStringMock,
     })),
 }));
 
 interface MockDomain {
+    create: ReturnType<typeof vi.fn>;
+    destroy: ReturnType<typeof vi.fn>;
     getInfo: ReturnType<typeof vi.fn>;
     getName: ReturnType<typeof vi.fn>;
     getUUIDString: ReturnType<typeof vi.fn>;
+    resume: ReturnType<typeof vi.fn>;
+    shutdown: ReturnType<typeof vi.fn>;
+    suspend: ReturnType<typeof vi.fn>;
 }
 
 const createMockDomain = (overrides: Partial<MockDomain> = {}): MockDomain => ({
+    create: vi.fn().mockResolvedValue(undefined),
+    destroy: vi.fn().mockResolvedValue(undefined),
     getInfo: vi.fn().mockResolvedValue({ state: 5 }),
     getName: vi.fn().mockResolvedValue('alpha'),
     getUUIDString: vi.fn().mockResolvedValue('uuid-1'),
+    resume: vi.fn().mockResolvedValue(undefined),
+    shutdown: vi.fn().mockResolvedValue(undefined),
+    suspend: vi.fn().mockResolvedValue(undefined),
     ...overrides,
 });
 
@@ -95,6 +108,7 @@ describe('VmsService unit', () => {
         connectListAllDomainsMock.mockReset();
         connectOpenMock.mockReset();
         connectOpenMock.mockResolvedValue(undefined);
+        domainGetInfoMock.mockReset();
         domainLookupByUUIDStringMock.mockReset();
         watchMock.mockClear();
         watcherMock.close.mockClear();
@@ -137,5 +151,33 @@ describe('VmsService unit', () => {
         expect(connectCloseMock).toHaveBeenCalledTimes(1);
         expect(connectListAllDomainsMock).toHaveBeenCalledTimes(2);
         expect(domains).toHaveLength(1);
+    });
+
+    it('finishes shutdown polling with the original hypervisor even if shared state is reset', async () => {
+        vi.useFakeTimers();
+
+        const domain = createMockDomain({
+            getInfo: vi.fn().mockResolvedValue({ state: 1 }),
+        });
+
+        domainLookupByUUIDStringMock.mockResolvedValue(domain);
+        domainGetInfoMock
+            .mockImplementationOnce(async () => {
+                Reflect.set(service, 'hypervisor', null);
+                Reflect.set(service, 'isVmsAvailable', false);
+                return { state: 1 };
+            })
+            .mockResolvedValueOnce({ state: 5 });
+
+        await service.onApplicationBootstrap();
+
+        const stopPromise = service.stopVm('uuid-1');
+        await vi.advanceTimersByTimeAsync(1_000);
+
+        await expect(stopPromise).resolves.toBe(true);
+        expect(domain.shutdown).toHaveBeenCalledTimes(1);
+        expect(domainGetInfoMock).toHaveBeenCalledTimes(2);
+
+        vi.useRealTimers();
     });
 });

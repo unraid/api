@@ -231,7 +231,7 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
                         this.logger.debug(`Initiating graceful shutdown for domain...`);
                         await domain.shutdown();
 
-                        const shutdownSuccess = await this.waitForDomainShutdown(domain);
+                        const shutdownSuccess = await this.waitForDomainShutdown(domain, hypervisor);
                         if (!shutdownSuccess) {
                             this.logger.debug('Graceful shutdown failed, forcing domain stop...');
                             await domain.destroy();
@@ -335,7 +335,7 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
 
             await domain.shutdown();
 
-            const shutdownSuccess = await this.waitForDomainShutdown(domain);
+            const shutdownSuccess = await this.waitForDomainShutdown(domain, hypervisor);
             if (!shutdownSuccess) {
                 throw new Error('Graceful shutdown failed, please force stop the VM and try again');
             }
@@ -423,13 +423,13 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
         );
     }
 
-    private async waitForDomainShutdown(domain: Domain, maxRetries: number = 10): Promise<boolean> {
-        if (!this.hypervisor) {
-            throw new Error('Hypervisor is not initialized');
-        }
-
+    private async waitForDomainShutdown(
+        domain: Domain,
+        hypervisor: InstanceType<typeof HypervisorClass>,
+        maxRetries: number = 10
+    ): Promise<boolean> {
         for (let i = 0; i < maxRetries; i++) {
-            const currentInfo = await this.hypervisor.domainGetInfo(domain);
+            const currentInfo = await hypervisor.domainGetInfo(domain);
             if (currentInfo.state === DomainState.SHUTOFF) {
                 this.logger.debug('Domain shutdown completed successfully');
                 return true;
