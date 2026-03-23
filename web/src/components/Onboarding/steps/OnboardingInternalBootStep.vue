@@ -11,6 +11,7 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/vue/24/solid';
 import { BrandButton, Select } from '@unraid/ui';
+import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 import { REFRESH_INTERNAL_BOOT_CONTEXT_MUTATION } from '@/components/Onboarding/graphql/refreshInternalBootContext.mutation';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue';
@@ -807,11 +808,12 @@ const primaryButtonText = computed(() => t('onboarding.internalBootStep.actions.
         </div>
       </blockquote>
 
-      <div
-        v-if="isStorageBootSelected && isLoading"
-        class="text-muted rounded-lg border border-dashed p-4 text-sm"
-      >
-        {{ t('onboarding.internalBootStep.loadingOptions') }}
+      <div v-if="isStorageBootSelected && isLoading" class="mt-2">
+        <OnboardingLoadingState
+          compact
+          :title="t('common.loading')"
+          :description="t('onboarding.internalBootStep.loadingOptions')"
+        />
       </div>
 
       <div

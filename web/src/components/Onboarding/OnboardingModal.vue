@@ -10,6 +10,7 @@ import type { BrandButtonProps } from '@unraid/ui';
 import type { StepId } from '~/components/Onboarding/stepRegistry.js';
 import type { Component } from 'vue';
 
+import OnboardingLoadingState from '~/components/Onboarding/components/OnboardingLoadingState.vue';
 import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/components/Onboarding/constants';
 import OnboardingSteps from '~/components/Onboarding/OnboardingSteps.vue';
 import { stepComponents } from '~/components/Onboarding/stepRegistry.js';
@@ -131,6 +132,7 @@ const showModal = computed(() => {
   return isVisible.value;
 });
 const showExitConfirmDialog = ref(false);
+const isClosingModal = ref(false);
 
 const getNearestVisibleStepId = (stepId: StepId): StepId | null => {
   const currentOrderIndex = STEP_ORDER.indexOf(stepId);
@@ -293,6 +295,14 @@ const exitDialogDescription = computed(() =>
     ? t('onboarding.modal.exit.internalBootDescription')
     : t('onboarding.modal.exit.description')
 );
+const isAwaitingStepData = computed(() => onboardingContextLoading.value && !currentStepComponent.value);
+const showModalLoadingState = computed(() => isClosingModal.value || isAwaitingStepData.value);
+const loadingStateTitle = computed(() =>
+  isClosingModal.value ? t('onboarding.modal.closing.title') : t('onboarding.loading.title')
+);
+const loadingStateDescription = computed(() =>
+  isClosingModal.value ? t('onboarding.modal.closing.description') : t('onboarding.loading.description')
+);
 
 const handleTimezoneComplete = async () => {
   await goToNextStep();
@@ -319,16 +329,27 @@ const handleInternalBootSkip = async () => {
 };
 
 const handleExitIntent = () => {
+  if (isClosingModal.value) {
+    return;
+  }
   showExitConfirmDialog.value = true;
 };
 
 const handleExitCancel = () => {
+  if (isClosingModal.value) {
+    return;
+  }
   showExitConfirmDialog.value = false;
 };
 
 const handleExitConfirm = async () => {
   showExitConfirmDialog.value = false;
-  await closeModal();
+  isClosingModal.value = true;
+  try {
+    await closeModal();
+  } finally {
+    isClosingModal.value = false;
+  }
 };
 
 const handleActivationSkip = async () => {
@@ -438,20 +459,28 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         type="button"
         class="bg-background/90 text-foreground hover:bg-muted fixed top-5 right-8 z-20 rounded-md p-1.5 shadow-sm transition-colors"
         :aria-label="t('onboarding.modal.closeAriaLabel')"
+        :disabled="isClosingModal"
         @click="handleExitIntent"
       >
         <XMarkIcon class="h-5 w-5" />
       </button>
 
       <div class="flex min-h-0 w-full flex-1 flex-col items-center">
-        <OnboardingSteps
-          :steps="filteredSteps"
-          :active-step-index="currentDynamicStepIndex"
-          :on-step-click="goToStep"
-          class="mb-8"
-        />
+        <template v-if="showModalLoadingState">
+          <div class="flex w-full max-w-4xl flex-1 items-center px-4 pb-4 md:px-8">
+            <OnboardingLoadingState :title="loadingStateTitle" :description="loadingStateDescription" />
+          </div>
+        </template>
+        <template v-else>
+          <OnboardingSteps
+            :steps="filteredSteps"
+            :active-step-index="currentDynamicStepIndex"
+            :on-step-click="goToStep"
+            class="mb-8"
+          />
 
-        <component v-if="currentStepComponent" :is="currentStepComponent" v-bind="currentStepProps" />
+          <component v-if="currentStepComponent" :is="currentStepComponent" v-bind="currentStepProps" />
+        </template>
       </div>
     </div>
   </Dialog>
@@ -483,6 +512,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         <button
           type="button"
           class="border-muted text-foreground hover:bg-muted rounded-md border px-4 py-2 text-sm"
+          :disabled="isClosingModal"
           @click="handleExitCancel"
         >
           {{ t('onboarding.modal.exit.keepOnboarding') }}
@@ -490,6 +520,7 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         <button
           type="button"
           class="bg-primary text-primary-foreground hover:bg-primary/90 rounded-md px-4 py-2 text-sm font-medium"
+          :disabled="isClosingModal"
           @click="handleExitConfirm"
         >
           {{ t('onboarding.modal.exit.confirm') }}

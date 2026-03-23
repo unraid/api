@@ -30,6 +30,10 @@ vi.mock('@unraid/ui', () => ({
     template:
       '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')">{{ text }}</button>',
   },
+  Spinner: {
+    name: 'Spinner',
+    template: '<div data-testid="loading-spinner" />',
+  },
 }));
 
 vi.mock('@headlessui/vue', () => ({

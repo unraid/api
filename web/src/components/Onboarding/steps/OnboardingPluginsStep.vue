@@ -6,6 +6,7 @@ import { useQuery } from '@vue/apollo-composable';
 import { ChevronLeftIcon, Squares2X2Icon } from '@heroicons/vue/24/outline';
 import { ChevronRightIcon, InformationCircleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
+import OnboardingLoadingState from '@/components/Onboarding/components/OnboardingLoadingState.vue';
 import { INSTALLED_UNRAID_PLUGINS_QUERY } from '@/components/Onboarding/graphql/installedPlugins.query';
 import { useOnboardingDraftStore } from '@/components/Onboarding/store/onboardingDraft';
 import { Switch } from '@headlessui/vue';
@@ -199,41 +200,49 @@ const primaryButtonText = computed(() => t('onboarding.pluginsStep.nextStep'));
       </blockquote>
 
       <!-- Plugin List -->
-      <div class="mb-8 grid gap-4">
-        <div
-          v-for="plugin in availablePlugins"
-          :key="plugin.id"
-          class="border-muted bg-bg hover:border-primary/50 flex items-center justify-between rounded-lg border p-5 transition-colors"
-        >
-          <div class="flex-1 pr-4">
-            <h3 class="text-highlighted mb-1 text-base font-bold">
-              {{ plugin.name }}
-            </h3>
-            <p class="text-muted text-sm leading-relaxed">
-              {{ plugin.description }}
-            </p>
-          </div>
-
-          <Switch
-            :model-value="isPluginEnabled(plugin.id)"
-            @update:model-value="(val: boolean) => togglePlugin(plugin.id, val)"
-            :disabled="isBusy || isPluginInstalled(plugin.id)"
-            :class="[
-              isPluginEnabled(plugin.id) ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700',
-              'focus:ring-primary relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
-            ]"
+      <div class="mb-8">
+        <OnboardingLoadingState
+          v-if="isInstalledPluginsPending"
+          compact
+          :title="t('onboarding.loading.title')"
+          :description="t('onboarding.pluginsStep.loading.description')"
+        />
+        <div v-else class="grid gap-4">
+          <div
+            v-for="plugin in availablePlugins"
+            :key="plugin.id"
+            class="border-muted bg-bg hover:border-primary/50 flex items-center justify-between rounded-lg border p-5 transition-colors"
           >
-            <span class="sr-only">{{
-              t('onboarding.pluginsStep.enablePluginAria', { name: plugin.name })
-            }}</span>
-            <span
-              aria-hidden="true"
+            <div class="flex-1 pr-4">
+              <h3 class="text-highlighted mb-1 text-base font-bold">
+                {{ plugin.name }}
+              </h3>
+              <p class="text-muted text-sm leading-relaxed">
+                {{ plugin.description }}
+              </p>
+            </div>
+
+            <Switch
+              :model-value="isPluginEnabled(plugin.id)"
+              @update:model-value="(val: boolean) => togglePlugin(plugin.id, val)"
+              :disabled="isBusy || isPluginInstalled(plugin.id)"
               :class="[
-                isPluginEnabled(plugin.id) ? 'translate-x-5' : 'translate-x-0',
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                isPluginEnabled(plugin.id) ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700',
+                'focus:ring-primary relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50',
               ]"
-            />
-          </Switch>
+            >
+              <span class="sr-only">{{
+                t('onboarding.pluginsStep.enablePluginAria', { name: plugin.name })
+              }}</span>
+              <span
+                aria-hidden="true"
+                :class="[
+                  isPluginEnabled(plugin.id) ? 'translate-x-5' : 'translate-x-0',
+                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                ]"
+              />
+            </Switch>
+          </div>
         </div>
       </div>
 
