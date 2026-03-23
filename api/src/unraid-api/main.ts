@@ -36,10 +36,24 @@ const signalProcessReady = (reason: string): boolean => {
         return false;
     }
 
-    process.send('ready');
-    readySignalState[READY_SIGNAL_SENT_SYMBOL] = true;
-    apiLogger.info('Sent PM2 ready signal while %s', reason);
-    return true;
+    try {
+        const readySignalSent = process.send('ready');
+
+        if (!readySignalSent) {
+            apiLogger.warn(
+                'process.send returned false while sending PM2 ready signal while %s',
+                reason
+            );
+            return false;
+        }
+
+        readySignalState[READY_SIGNAL_SENT_SYMBOL] = true;
+        apiLogger.info('Sent PM2 ready signal while %s', reason);
+        return true;
+    } catch (error: unknown) {
+        apiLogger.error(error, 'Failed to send PM2 ready signal while %s', reason);
+        return false;
+    }
 };
 
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
