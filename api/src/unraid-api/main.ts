@@ -40,20 +40,16 @@ const signalProcessReady = (reason: string): boolean => {
 };
 
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
-    apiLogger.info('bootstrapNestServer: loading application modules');
     const [{ AppModule }, { GraphQLExceptionsFilter }, { HttpExceptionFilter }] = await Promise.all([
         import('@app/unraid-api/app/app.module.js'),
         import('@app/unraid-api/exceptions/graphql-exceptions.filter.js'),
         import('@app/unraid-api/exceptions/http-exceptions.filter.js'),
     ]);
-    apiLogger.info('bootstrapNestServer: application modules loaded');
-    apiLogger.info('bootstrapNestServer: creating Nest application');
 
     const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
         bufferLogs: false,
         ...(LOG_LEVEL !== 'TRACE' ? { logger: false } : {}),
     });
-    apiLogger.info('bootstrapNestServer: Nest application created');
     app.enableShutdownHooks(['SIGINT', 'SIGTERM', 'SIGQUIT']);
 
     // Enable validation globally
@@ -81,14 +77,11 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
      * tl;dr different types used by nestjs/platform-fastify and fastify.
      *------------------------------------------------------------------------**/
 
-    apiLogger.info('bootstrapNestServer: registering fastify-cookie');
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Known nestjs x fastify type compatibility issue
     await server.register(fastifyCookie);
-    apiLogger.info('bootstrapNestServer: fastify-cookie registered');
 
     // Minimal Helmet configuration to avoid blocking plugin functionality
-    apiLogger.info('bootstrapNestServer: registering fastify-helmet');
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Known nestjs x fastify type compatibility issue
     await server.register(fastifyHelmet, {
@@ -112,7 +105,6 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
         // HSTS disabled to avoid issues with running on local networks
         hsts: false,
     });
-    apiLogger.info('bootstrapNestServer: fastify-helmet registered');
 
     // Add sandbox access control hook
     server.addHook('preHandler', async (request, reply) => {
@@ -148,7 +140,6 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     });
 
     // Allows all origins but still checks authentication
-    apiLogger.info('bootstrapNestServer: configuring CORS and global filters');
     app.enableCors({
         origin: true, // Allows all origins
         credentials: true,
@@ -169,16 +160,12 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
 
     apiLogger.info('Starting Nest Server on Port / Path: %s', PORT);
     app.useGlobalFilters(new GraphQLExceptionsFilter(), new HttpExceptionFilter());
-    apiLogger.info('bootstrapNestServer: initializing Nest application');
     await app.init();
-    apiLogger.info('bootstrapNestServer: Nest application initialized');
 
     if (Number.isNaN(parseInt(PORT))) {
-        apiLogger.info('bootstrapNestServer: listening on unix socket');
         const result = await server.listen({ path: '/var/run/unraid-api.sock' });
         apiLogger.info('Server listening on %s', result);
     } else {
-        apiLogger.info('bootstrapNestServer: listening on TCP port');
         const result = await server.listen({ port: parseInt(PORT), host: '0.0.0.0' });
         apiLogger.info('Server listening on %s', result);
     }
