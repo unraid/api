@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -64,6 +64,8 @@ describe('StateManager integration', () => {
         tempRoot = await mkdtemp(join(tmpdir(), 'state-watch-'));
         statesDirectory = join(tempRoot, 'state');
         await mkdir(statesDirectory);
+        await writeFile(join(statesDirectory, 'var.ini'), 'NAME="Before"\n');
+        await writeFile(join(statesDirectory, 'disks.ini'), '[disk1]\nname=disk1\n');
         testContext.states = statesDirectory;
 
         const { StateManager } = await import('@app/store/watch/state-watch.js');
@@ -84,12 +86,13 @@ describe('StateManager integration', () => {
         await rm(tempRoot, { recursive: true, force: true });
     });
 
-    it('reloads var state when emhttp writes var.ini.new into the state directory', async () => {
+    it('reloads var state when emhttp atomically replaces var.ini', async () => {
         const { store } = await import('@app/store/index.js');
         const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
         const { loadRegistrationKey } = await import('@app/store/modules/registration.js');
 
         await writeFile(join(statesDirectory, 'var.ini.new'), 'NAME="Gamer5"\n');
+        await rename(join(statesDirectory, 'var.ini.new'), join(statesDirectory, 'var.ini'));
 
         await vi.waitFor(() => {
             expect(store.dispatch).toHaveBeenNthCalledWith(1, loadSingleStateFile(StateFileKey.var));
@@ -97,7 +100,7 @@ describe('StateManager integration', () => {
         });
     });
 
-    it('does not route disks.ini.new through the directory watcher', async () => {
+    it('does not react to disks.ini.new before the canonical file is replaced', async () => {
         const { store } = await import('@app/store/index.js');
 
         await writeFile(join(statesDirectory, 'disks.ini.new'), '[disk1]\nname=disk1\n');

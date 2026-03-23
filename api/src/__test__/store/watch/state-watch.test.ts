@@ -73,34 +73,45 @@ describe('StateManager', () => {
         StateManager.instance = null;
     });
 
-    it('watches the emhttp state directory and keeps polling scoped to replacement-prone files', async () => {
+    it('watches each canonical emhttp state file and keeps polling scoped to replacement-prone files', async () => {
         const { StateManager } = await import('@app/store/watch/state-watch.js');
 
         await StateManager.getInstance().ready;
 
-        expect(chokidarWatch).toHaveBeenCalledTimes(3);
+        expect(chokidarWatch).toHaveBeenCalledTimes(Object.values(StateFileKey).length);
         expect(chokidarWatch).toHaveBeenNthCalledWith(
             1,
-            '/usr/local/emhttp/state',
+            '/usr/local/emhttp/state/var.ini',
             expect.objectContaining({
+                atomic: 200,
                 ignoreInitial: true,
                 usePolling: false,
-                ignored: expect.any(Function),
             })
         );
         expect(chokidarWatch).toHaveBeenNthCalledWith(
             2,
-            '/usr/local/emhttp/state/disks.ini',
+            '/usr/local/emhttp/state/devs.ini',
             expect.objectContaining({
+                atomic: 200,
+                ignoreInitial: true,
+                usePolling: false,
+            })
+        );
+        expect(chokidarWatch).toHaveBeenNthCalledWith(
+            5,
+            '/usr/local/emhttp/state/shares.ini',
+            expect.objectContaining({
+                atomic: 200,
                 ignoreInitial: true,
                 usePolling: true,
                 interval: 10_000,
             })
         );
         expect(chokidarWatch).toHaveBeenNthCalledWith(
-            3,
-            '/usr/local/emhttp/state/shares.ini',
+            6,
+            '/usr/local/emhttp/state/disks.ini',
             expect.objectContaining({
+                atomic: 200,
                 ignoreInitial: true,
                 usePolling: true,
                 interval: 10_000,
@@ -127,7 +138,7 @@ describe('StateManager', () => {
         expect(dispatchedStateLoads).toEqual(Object.values(StateFileKey));
     });
 
-    it('routes non-polled state files through the standard directory watcher', async () => {
+    it('routes non-polled state files through their canonical file watchers', async () => {
         const { StateManager } = await import('@app/store/watch/state-watch.js');
         const { store } = await import('@app/store/index.js');
         const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
@@ -136,7 +147,7 @@ describe('StateManager', () => {
         vi.mocked(store.dispatch).mockClear();
 
         const standardWatcher = watchRegistrations.find(
-            (registration) => registration.options.usePolling === false
+            (registration) => registration.path === '/usr/local/emhttp/state/devs.ini'
         );
         const changeHandler = standardWatcher?.handlers.change;
         expect(changeHandler).toBeDefined();
@@ -144,29 +155,6 @@ describe('StateManager', () => {
         await changeHandler?.('/usr/local/emhttp/state/devs.ini');
 
         expect(store.dispatch).toHaveBeenCalledWith(loadSingleStateFile(StateFileKey.devs));
-    });
-
-    it('ignores non-state files while still allowing non-polled state files through the directory watcher', async () => {
-        const { StateManager } = await import('@app/store/watch/state-watch.js');
-
-        await StateManager.getInstance().ready;
-
-        const standardWatcher = watchRegistrations.find(
-            (registration) => registration.options.usePolling === false
-        );
-        const ignored = standardWatcher?.options.ignored;
-
-        expect(ignored).toBeTypeOf('function');
-        expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state')).toBe(false);
-        expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/README.txt')).toBe(true);
-        expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/devs.ini')).toBe(false);
-        expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/var.ini.new')).toBe(
-            false
-        );
-        expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/disks.ini')).toBe(true);
-        expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/disks.ini.new')).toBe(
-            true
-        );
     });
 
     it('reloads registration key when var.ini is replaced after boot', async () => {
@@ -178,40 +166,19 @@ describe('StateManager', () => {
         await StateManager.getInstance().ready;
         vi.mocked(store.dispatch).mockClear();
 
-        const standardWatcher = watchRegistrations.find(
-            (registration) => registration.options.usePolling === false
+        const watcher = watchRegistrations.find(
+            (registration) => registration.path === '/usr/local/emhttp/state/var.ini'
         );
-        const addHandler = standardWatcher?.handlers.add;
-        expect(addHandler).toBeDefined();
+        const changeHandler = watcher?.handlers.change;
+        expect(changeHandler).toBeDefined();
 
-        await addHandler?.('/usr/local/emhttp/state/var.ini');
+        await changeHandler?.('/usr/local/emhttp/state/var.ini');
 
         expect(store.dispatch).toHaveBeenNthCalledWith(1, loadSingleStateFile(StateFileKey.var));
         expect(store.dispatch).toHaveBeenNthCalledWith(2, loadRegistrationKey());
     });
 
-    it('reloads registration key when var.ini.new is observed after boot', async () => {
-        const { StateManager } = await import('@app/store/watch/state-watch.js');
-        const { store } = await import('@app/store/index.js');
-        const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
-        const { loadRegistrationKey } = await import('@app/store/modules/registration.js');
-
-        await StateManager.getInstance().ready;
-        vi.mocked(store.dispatch).mockClear();
-
-        const standardWatcher = watchRegistrations.find(
-            (registration) => registration.options.usePolling === false
-        );
-        const addHandler = standardWatcher?.handlers.add;
-        expect(addHandler).toBeDefined();
-
-        await addHandler?.('/usr/local/emhttp/state/var.ini.new');
-
-        expect(store.dispatch).toHaveBeenNthCalledWith(1, loadSingleStateFile(StateFileKey.var));
-        expect(store.dispatch).toHaveBeenNthCalledWith(2, loadRegistrationKey());
-    });
-
-    it('routes polled state files through the polling directory watcher', async () => {
+    it('routes polled state files through their canonical file watchers', async () => {
         const { StateManager } = await import('@app/store/watch/state-watch.js');
         const { store } = await import('@app/store/index.js');
         const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
