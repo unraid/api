@@ -14,21 +14,37 @@ const POLLED_STATE_KEYS = [StateFileKey.disks, StateFileKey.shares] as const;
 const POLLED_STATE_KEY_SET = new Set<StateFileKey>(POLLED_STATE_KEYS);
 const STATE_FILE_NAMES = new Set(Object.values(StateFileKey).map((key) => `${key}.ini`));
 
-const shouldIgnoreStatePath = (path: string): boolean => {
+const getNormalizedStateFileName = (path: string): string | null => {
     const parsed = parse(path);
-    const isStateFile = parsed.ext === '.ini' && STATE_FILE_NAMES.has(parsed.base);
+    if (STATE_FILE_NAMES.has(parsed.base)) {
+        return parsed.base;
+    }
 
-    if (!isStateFile) {
+    if (!parsed.base.endsWith('.new')) {
+        return null;
+    }
+
+    const originalStateFileName = parsed.base.slice(0, -'.new'.length);
+    return STATE_FILE_NAMES.has(originalStateFileName) ? originalStateFileName : null;
+};
+
+const shouldIgnoreStatePath = (path: string): boolean => {
+    const normalizedStateFileName = getNormalizedStateFileName(path);
+
+    if (!normalizedStateFileName) {
         return true;
     }
 
-    const stateFileKey = StateFileKey[parsed.name];
+    const stateFileKey = StateFileKey[normalizedStateFileName.slice(0, -'.ini'.length)];
     return POLLED_STATE_KEY_SET.has(stateFileKey);
 };
 
-const chokidarOptionsForStateDirectory = (): ChokidarOptions => ({
+const chokidarOptionsForStateDirectory = (statesPath: string): ChokidarOptions => ({
     ignoreInitial: true,
     ignored: (path, stats) => {
+        if (path === statesPath) {
+            return false;
+        }
         if (stats?.isDirectory()) {
             return false;
         }
@@ -54,9 +70,22 @@ export class StateManager {
         return StateManager.instance;
     }
 
+    public async close(): Promise<void> {
+        await Promise.all(this.fileWatchers.map(async (watcher) => watcher.close()));
+        this.fileWatchers.length = 0;
+
+        if (StateManager.instance === this) {
+            StateManager.instance = null;
+        }
+    }
+
     private getStateFileKeyFromPath(path: string): StateFileKey | undefined {
-        const parsed = parse(path);
-        return StateFileKey[parsed.name];
+        const normalizedStateFileName = getNormalizedStateFileName(path);
+        if (!normalizedStateFileName) {
+            return undefined;
+        }
+
+        return StateFileKey[normalizedStateFileName.slice(0, -'.ini'.length)];
     }
 
     private async reloadStateFile(stateFile: StateFileKey, reason: 'add' | 'change' | 'startup-sync') {
@@ -96,7 +125,7 @@ export class StateManager {
         const { states } = getters.paths();
 
         emhttpLogger.debug('Setting up watch for path: %s', states);
-        const directoryWatch = watch(states, chokidarOptionsForStateDirectory());
+        const directoryWatch = watch(states, chokidarOptionsForStateDirectory(states));
         directoryWatch.on('add', async (path) => this.handleStateFileUpdate(path, 'add'));
         directoryWatch.on('change', async (path) => this.handleStateFileUpdate(path, 'change'));
         this.fileWatchers.push(directoryWatch);

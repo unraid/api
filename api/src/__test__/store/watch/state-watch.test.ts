@@ -157,9 +157,16 @@ describe('StateManager', () => {
         const ignored = standardWatcher?.options.ignored;
 
         expect(ignored).toBeTypeOf('function');
+        expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state')).toBe(false);
         expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/README.txt')).toBe(true);
         expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/devs.ini')).toBe(false);
+        expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/var.ini.new')).toBe(
+            false
+        );
         expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/disks.ini')).toBe(true);
+        expect((ignored as (path: string) => boolean)('/usr/local/emhttp/state/disks.ini.new')).toBe(
+            true
+        );
     });
 
     it('reloads registration key when var.ini is replaced after boot', async () => {
@@ -178,6 +185,27 @@ describe('StateManager', () => {
         expect(addHandler).toBeDefined();
 
         await addHandler?.('/usr/local/emhttp/state/var.ini');
+
+        expect(store.dispatch).toHaveBeenNthCalledWith(1, loadSingleStateFile(StateFileKey.var));
+        expect(store.dispatch).toHaveBeenNthCalledWith(2, loadRegistrationKey());
+    });
+
+    it('reloads registration key when var.ini.new is observed after boot', async () => {
+        const { StateManager } = await import('@app/store/watch/state-watch.js');
+        const { store } = await import('@app/store/index.js');
+        const { loadSingleStateFile } = await import('@app/store/modules/emhttp.js');
+        const { loadRegistrationKey } = await import('@app/store/modules/registration.js');
+
+        await StateManager.getInstance().ready;
+        vi.mocked(store.dispatch).mockClear();
+
+        const standardWatcher = watchRegistrations.find(
+            (registration) => registration.options.usePolling === false
+        );
+        const addHandler = standardWatcher?.handlers.add;
+        expect(addHandler).toBeDefined();
+
+        await addHandler?.('/usr/local/emhttp/state/var.ini.new');
 
         expect(store.dispatch).toHaveBeenNthCalledWith(1, loadSingleStateFile(StateFileKey.var));
         expect(store.dispatch).toHaveBeenNthCalledWith(2, loadRegistrationKey());
