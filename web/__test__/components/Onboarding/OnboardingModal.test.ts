@@ -118,7 +118,17 @@ vi.mock('~/components/Onboarding/stepRegistry', () => ({
     ADD_PLUGINS: { template: '<div data-testid="plugins-step" />' },
     ACTIVATE_LICENSE: { template: '<div data-testid="license-step" />' },
     SUMMARY: { template: '<div data-testid="summary-step" />' },
-    NEXT_STEPS: { template: '<div data-testid="next-step" />' },
+    NEXT_STEPS: {
+      props: ['onComplete'],
+      methods: {
+        handleClick() {
+          cleanupOnboardingStorageMock();
+          this.onComplete();
+        },
+      },
+      template:
+        '<div data-testid="next-step"><button data-testid="next-step-complete" @click="handleClick">finish</button></div>',
+    },
   },
 }));
 
@@ -311,6 +321,22 @@ describe('OnboardingModal.vue', () => {
 
     expect(onboardingModalStoreState.closeModal).toHaveBeenCalledTimes(1);
     expect(cleanupOnboardingStorageMock).toHaveBeenCalledWith();
+  });
+
+  it('closes the modal from next steps after draft cleanup instead of persisting step 2 again', async () => {
+    onboardingDraftStore.currentStepId.value = 'NEXT_STEPS';
+    cleanupOnboardingStorageMock.mockImplementation(() => {
+      onboardingDraftStore.currentStepId.value = null;
+    });
+
+    const wrapper = mountComponent();
+
+    await wrapper.find('[data-testid="next-step-complete"]').trigger('click');
+    await flushPromises();
+
+    expect(onboardingModalStoreState.closeModal).toHaveBeenCalledTimes(1);
+    expect(onboardingDraftStore.setCurrentStep).not.toHaveBeenCalledWith('CONFIGURE_SETTINGS');
+    expect(onboardingDraftStore.currentStepId.value).toBeNull();
   });
 
   it('shows a loading state while exit confirmation is closing the modal', async () => {

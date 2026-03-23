@@ -432,6 +432,12 @@ const currentStepProps = computed<Record<string, unknown>>(() => {
         showActivationCodeHint: hasActivationCode.value,
       };
 
+    case 'NEXT_STEPS':
+      return {
+        ...baseProps,
+        onComplete: () => closeModal({ reload: true }),
+      };
+
     default:
       return baseProps;
   }
