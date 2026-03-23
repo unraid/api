@@ -2,14 +2,17 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { FastifyAdapter } from '@nestjs/platform-fastify/index.js';
 
 import fastifyCookie from '@fastify/cookie';
 import fastifyHelmet from '@fastify/helmet';
 import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
 
+import type { AppReadyEvent } from '@app/unraid-api/app/app-lifecycle.events.js';
 import { apiLogger } from '@app/core/log.js';
 import { LOG_LEVEL, PORT } from '@app/environment.js';
+import { APP_READY_EVENT } from '@app/unraid-api/app/app-lifecycle.events.js';
 
 const READY_SIGNAL_SENT_SYMBOL = Symbol.for('unraid-api.processReadySignalSent');
 
@@ -174,14 +177,11 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     // PM2 documents this as Graceful Start or Clean Restart.
     // See https://pm2.keymetrics.io/docs/usage/signals-clean-restart/
     signalProcessReady('NestJS server is now listening');
-    void import('@app/unraid-api/graph/resolvers/docker/docker-startup-tasks.js')
-        .then(({ scheduleDockerStartupTasks }) => {
-            scheduleDockerStartupTasks(app, apiLogger);
-        })
-        .catch((error: unknown) => {
-            apiLogger.warn(error, 'Failed to load Docker startup task scheduler');
-        });
     apiLogger.info('Nest Server is now listening');
+    const appReadyEvent: AppReadyEvent = {
+        reason: 'nestjs-server-listening',
+    };
+    app.get(EventEmitter2).emit(APP_READY_EVENT, appReadyEvent);
 
     return app;
 }

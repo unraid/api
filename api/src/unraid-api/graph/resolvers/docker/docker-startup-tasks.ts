@@ -1,17 +1,17 @@
-import type { Type } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 
+import type { AppReadyEvent } from '@app/unraid-api/app/app-lifecycle.events.js';
+import { apiLogger } from '@app/core/log.js';
+import { APP_READY_EVENT } from '@app/unraid-api/app/app-lifecycle.events.js';
 import { ContainerStatusJob } from '@app/unraid-api/graph/resolvers/docker/container-status.job.js';
 import { DockerTemplateScannerService } from '@app/unraid-api/graph/resolvers/docker/docker-template-scanner.service.js';
 
 const DEFAULT_DOCKER_STARTUP_DELAY_MS = 5_000;
 
-interface NestAppGetter {
-    get(
-        typeOrToken: unknown,
-        options?: {
-            strict?: boolean;
-        }
-    ): unknown;
+interface DockerStartupTasksDependencies {
+    containerStatusJob?: Pick<ContainerStatusJob, 'refreshContainerDigestsAfterStartup'> | null;
+    dockerTemplateScannerService?: Pick<DockerTemplateScannerService, 'bootstrapScan'> | null;
 }
 
 interface DockerStartupLogger {
@@ -19,22 +19,11 @@ interface DockerStartupLogger {
     warn: (error: unknown, message: string, ...args: unknown[]) => void;
 }
 
-const getOptionalProvider = <T>(app: NestAppGetter, token: Type<T>): T | null => {
-    try {
-        return app.get(token, { strict: false }) as T;
-    } catch {
-        return null;
-    }
-};
-
 export const scheduleDockerStartupTasks = (
-    app: NestAppGetter,
+    { dockerTemplateScannerService, containerStatusJob }: DockerStartupTasksDependencies,
     logger: DockerStartupLogger,
     delayMs = DEFAULT_DOCKER_STARTUP_DELAY_MS
 ): void => {
-    const dockerTemplateScannerService = getOptionalProvider(app, DockerTemplateScannerService);
-    const containerStatusJob = getOptionalProvider(app, ContainerStatusJob);
-
     if (!dockerTemplateScannerService && !containerStatusJob) {
         return;
     }
@@ -57,3 +46,22 @@ export const scheduleDockerStartupTasks = (
         }, delayMs);
     }
 };
+
+@Injectable()
+export class DockerStartupTasksListener {
+    constructor(
+        private readonly dockerTemplateScannerService: DockerTemplateScannerService,
+        private readonly containerStatusJob: ContainerStatusJob
+    ) {}
+
+    @OnEvent(APP_READY_EVENT)
+    handleAppReady(_event: AppReadyEvent): void {
+        scheduleDockerStartupTasks(
+            {
+                dockerTemplateScannerService: this.dockerTemplateScannerService,
+                containerStatusJob: this.containerStatusJob,
+            },
+            apiLogger
+        );
+    }
+}
